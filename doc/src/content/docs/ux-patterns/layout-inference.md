@@ -137,9 +137,9 @@ information you didn't declare — like `CollectionDetail`'s id/title functions 
 instead Mateu logs a one-time hint naming the archetype so you can adopt it explicitly.
 
 Explicit always wins: archetype subclasses, listing backends and fluent component trees are never
-rewritten, `@AutoPage(false)` opts a class out (and `-Dmateu.page.inference.disabled=true` — the
-`Mateu.PageInference.Disabled` switch in C#, the same convention in Python — turns it off globally),
-and extending the archetype remains the way to take fine control (e.g. `columns()`).
+rewritten, `@AutoPage(false)` opts a class out (and `mateu.page.inference.enabled=false` turns it
+off globally — see [Global switches](#global-switches)), and extending the archetype remains the way
+to take fine control (e.g. `columns()`).
 
 ### `@Aside` — a content-page from a plain form
 
@@ -185,7 +185,7 @@ Inference only fills the gaps you left open — it never overrides a decision yo
 - **Explicit annotations always win.** `@Section`, `@Tab`, `@Zones`, `@FoldedLayout`, `@Toc`, `@Stereotype`, `@UseRadioButtons`… are respected as declared; inference works around them or steps aside.
 - **The tabs rule has explicit opt-outs**: a `@Section(sticky = true)` section or a class-level `@Toc` means you chose the pinned/scroll layout, so sections are never turned into tabs; `@Zones` and `@FoldedLayout` layouts are likewise untouched.
 - **Per-class opt-out**: `@AutoLayout(false)` disables inference for one class when it is enabled globally.
-- **Global opt-in**: set the `mateu.layout.inference` system property to `true` to enable inference for every class without annotating each one — then use `@AutoLayout(false)` on the exceptions.
+- **Global opt-in**: set `mateu.layout.inference.enabled=true` to enable inference for every class without annotating each one — then use `@AutoLayout(false)` on the exceptions (see [Global switches](#global-switches)).
 - **Composable**: `@AutoLayout` targets `ANNOTATION_TYPE` too, so it can be bundled into your own [semantic annotations](/java-ui-definition/annotations/semantic-annotations/) (e.g. a company-wide `@StandardForm`).
 
 ## Renderer adaptation: `groupRelationship` and `adaptable`
@@ -232,4 +232,19 @@ takes one annotation.
 
 ## When to use it
 
-Put `@AutoLayout` on forms and record views whose layout you have no strong opinion about — quickly-built back-office screens, generated CRUD models, prototypes — and keep hand-tuned layouts (`@Zones`, `@Toc`, sticky sections, explicit tabs) for the screens you designed deliberately. Since explicit annotations always win, it is safe to enable globally with `mateu.layout.inference` and refine individual screens later.
+Put `@AutoLayout` on forms and record views whose layout you have no strong opinion about — quickly-built back-office screens, generated CRUD models, prototypes — and keep hand-tuned layouts (`@Zones`, `@Toc`, sticky sections, explicit tabs) for the screens you designed deliberately. Since explicit annotations always win, it is safe to enable globally with `mateu.layout.inference.enabled=true` and refine individual screens later.
+
+## Global switches
+
+Both kinds of inference have one global switch each, named the same way. An annotation on the class
+(`@AutoLayout(…)` / `@AutoPage(…)`) always wins over the switch.
+
+| Inference | Java (system property, or the env var) | C# (`AppContext` switch) | Python (env var) | Default |
+|---|---|---|---|---|
+| Layout (`@AutoLayout`) | `mateu.layout.inference.enabled` / `MATEU_LAYOUT_INFERENCE_ENABLED` | `Mateu.LayoutInference.Enabled` | `MATEU_LAYOUT_INFERENCE_ENABLED` | `false` |
+| Page (`@AutoPage`) | `mateu.page.inference.enabled` / `MATEU_PAGE_INFERENCE_ENABLED` | `Mateu.PageInference.Enabled` | `MATEU_PAGE_INFERENCE_ENABLED` | `true` |
+
+The names used before 3.0-alpha.412 still work, but they are deprecated and log one warning naming
+the replacement: `mateu.layout.inference` (C# `Mateu.LayoutInference`) and
+`mateu.page.inference.disabled` (C# `Mateu.PageInference.Disabled`) — mind that one: `disabled=true`
+means `enabled=false`. When both an old and a new name are set, the new one wins.

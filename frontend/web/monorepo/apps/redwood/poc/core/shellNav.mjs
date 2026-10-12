@@ -175,8 +175,8 @@ export function shellNavOf(reg) {
   // dentro de la cabecera oscura (topbar)
   // HAMBURGER_SECTIONS (Opera Cloud) → SECCIONES: la hamburguesa abre un drawer con el primer
   // nivel (sólo las secciones) y la subcabecera lleva el segundo nivel de la sección en pantalla.
-  // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU (el servidor manda la vieja; una
-  // definición que llegue sin pasar por él puede traer la nueva).
+  // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU: los servidores la mandan desde
+  // 3.0-alpha.412; la vieja se sigue aceptando (un servidor anterior, un bundle estático).
   let mode = 'tabs'
   if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
   else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'

@@ -96,7 +96,7 @@ Marks a class as the application shell.
 ### `@DrawerClosed`
 Starts the navigation drawer in the closed state.
 
-### `@KeycloakSecured`
+### `@KeycloakSecured` (deprecated — identity comes from the host framework or a `PrincipalResolver`)
 ```java
 @KeycloakSecured(url="https://auth.example.com", realm="myrealm", clientId="myapp")
 ```
@@ -991,11 +991,11 @@ return PageBanners.append(new PageBanner(BannerTheme.WARNING, "Warning", detail)
 @BadgeInHeader(color = "warning") String alertCode;
 ```
 
-### `BadgeSupplier` (programmatic)
+### `HeaderBadgesSupplier` (programmatic; the old `BadgeSupplier` is a deprecated alias)
 ```java
-public class BookingPage implements BadgeSupplier {
+public class BookingPage implements HeaderBadgesSupplier {
     @Override
-    public List<Badge> badges() {
+    public List<Badge> headerBadges() {
         return List.of(Badge.builder().text(status).color("success").pill(true).build());
     }
 }
@@ -1034,7 +1034,7 @@ public class CustomerList {
 | `Hydratable` | `hydrate(HttpRequest)` called before each render — load data from DB |
 | `ComponentTreeSupplier` | Return a fluent component tree instead of annotated fields |
 | `BannerSupplier` | Programmatic page banners |
-| `BadgeSupplier` | Programmatic header-strip badges |
+| `HeaderBadgesSupplier` | Programmatic header-strip badges (was `BadgeSupplier`, deprecated) |
 | `TitleSupplier` | Dynamic page title |
 | `SubtitleSupplier` | Dynamic page subtitle |
 | `ValidationSupplier` | Programmatic cross-field validation |
@@ -1055,7 +1055,7 @@ public class CustomerList {
 | `PageBanner` | Dynamic banner: `new PageBanner(BannerTheme, title, description)` |
 | `PageBanners` | Banner collection with replace/append: `PageBanners.replace(...)`, `.append(...)` |
 | `UICommand` | Frontend command: `UICommand.markAsClean()` / `markAsDirty()` (works with `@ConfirmOnNavigationIfDirty`) |
-| `Badge` | Fluent badge component (used in `BadgeSupplier`, grid cells): `Badge.builder()...build()` |
+| `Badge` | Fluent badge component (used in `HeaderBadgesSupplier`, grid cells): `Badge.builder()...build()` |
 | `ListingData<R>` | Search result: `ListingData.of(list)` or builder |
 | `Pageable` | Pagination/sort from the grid: `page`, `size`, `sort` |
 | `HttpRequest` | Access path vars, query params, headers, auth |

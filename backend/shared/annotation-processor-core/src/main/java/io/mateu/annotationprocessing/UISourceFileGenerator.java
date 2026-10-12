@@ -90,6 +90,7 @@ class UISourceFileGenerator {
     }
   }
 
+  @SuppressWarnings("removal") // @KeycloakSecured is deprecated but keeps working
   static void createIndexController(
       String generatedFullClassName,
       String pkgName,

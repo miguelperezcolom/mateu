@@ -29,7 +29,7 @@ from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, Compon
 from mateu_uidl.components import Notice, StatusItem, StatusList  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_dtos import MenuItem  # noqa: E402
-from mateu_uidl import AppShell, AppSupplier, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
+from mateu_uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
 from mateu_uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
 from mateu_uidl import Text as TextField  # noqa: E402
 from mateu_uidl import Max, Min  # noqa: E402
@@ -166,7 +166,7 @@ class AppInCode(AppSupplier):
     def get_app(self) -> AppShell:
         return AppShell(
             title="App in code",
-            variant="MENU_ON_TOP",
+            variant=AppVariant.HAMBURGER_MENU,
             home_route="/a",
             menu=[
                 MenuItem(label="A", route="/a", server_side_type=""),

@@ -10,10 +10,11 @@ import org.junit.jupiter.api.Test;
 class AppVariantWireTest {
 
   @Test
-  void hamburgerMenuIsTheRightSpellingAndTravelsUnderTheOldName() {
-    assertThat(AppMapper.toDto(AppVariant.HAMBURGER_MENU)).isEqualTo(AppVariantDto.HAMBURGUER_MENU);
-    assertThat(AppMapper.toDto(AppVariant.HAMBURGUER_MENU))
-        .isEqualTo(AppVariantDto.HAMBURGUER_MENU);
+  @SuppressWarnings("removal")
+  void bothSpellingsTravelAsHamburgerMenu() {
+    // since 3.0-alpha.412 the server sends the right spelling; renderers accept both
+    assertThat(AppMapper.toDto(AppVariant.HAMBURGER_MENU)).isEqualTo(AppVariantDto.HAMBURGER_MENU);
+    assertThat(AppMapper.toDto(AppVariant.HAMBURGUER_MENU)).isEqualTo(AppVariantDto.HAMBURGER_MENU);
   }
 
   @Test

@@ -117,7 +117,7 @@ navigation, a re-sent back/next cannot import twice), steps are named Upload / M
 Result, the heading defaults to `Import <Row>` and `TimeOnly`/`DateTimeOffset`/`Guid` columns
 convert; its validation surface is DataAnnotations (`[Required]`, `[Range]`…). On Python the import
 is the wizard's completion action (`@wizard_completion_action("Import")`, Java's `doImport`, then a
-read-only result step) and its report checks `Required()`, `Min`/`Max`/`Size`/`Pattern` — the same
+read-only result step) and its report checks `Required()`, `Min`/`Max`/`Length`/`Pattern` — the same
 constraints that travel as client-side `validations` and are re-checked when a form is saved.
 
 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
@@ -203,7 +203,7 @@ wire by the hard conformance gate:
 - **Python**: the same list (`RestSourceSupplier`, `@rest_source`/`sources.yaml`,
   `@business_component`/`ComponentRef`, `layoutDelta:`, `@group_action`, the grid row editor,
   embedded islands, `ComponentAdapter`, listing exports (the `ListingExporter` port), `@wizard_completion_action`), plus
-  `Min`/`Max`/`Size`/`Pattern` validation and class- and method-level `@eyes_only`.
+  `Min`/`Max`/`Length` (formerly `Size`)/`Pattern` validation and class- and method-level `@eyes_only`.
 
 Proxy mode for views assembled at runtime stays the SSRF-sensitive path on every server: the
 endpoint is taken from what the server holds (the view's own declarations), never from the request.
@@ -212,6 +212,29 @@ The shared wire-conformance corpus is a HARD gate on Python: every case must mat
 except an explicit, strictly-xfailed allow-list whose every entry is a defect of the golden itself
 (today one: `dashboard`, whose Java golden advertises list-row actions for the fields of a `Text`
 component).
+
+### Port idioms: same wire, different declaration
+
+The three servers emit the same wire; they do not always declare it the same way. The differences
+below are **deliberate port idioms** — each language declares the concept the way its developers
+expect, and the wire (pinned by the conformance corpus) is identical. They are documented here
+rather than converged, because converging would rename stable port API for no change on screen. The
+last column says where the review (3.0-alpha.412) did converge, and why.
+
+| Concept | Java | .NET | Python | Decision |
+|---|---|---|---|---|
+| Menu entries | `@Menu` on a **field** whose type is the target page (`Menu` / `RouteLink` records for submenus and links) | `[MenuItem]` / `[MenuGroup("A/B")]` on **methods** returning the target | `@menu_item` / `@menu_group` on methods | Idiom. A C# property / Python attribute typed as the page would be bound and serialised as form state; a method is the natural "go there" declaration. Same `MenuOptionDto` tree on the wire. |
+| Header KPI | `@KPI` (no argument; the label comes from the field / `@Label`) on a field or method | `[Kpi("Title")]` (title required) on a property or method | `kpi("Title")` — one lowercase class used both as a method decorator and as an `Annotated[...]` marker | Idiom. The ports carry the label in the declaration because they have no per-member `@Label` on methods; same `KPIDto`. |
+| Wizard steps | `WizardStep` **fields** of a `Wizard`, in declaration order | `[Step(n)]` on the wizard's properties (1-based) | `Step(n)` marker in `Annotated[...]` | Idiom: named steps in Java, numbered steps in the ports. Python's top-level `Step` is that marker; the `ProgressSteps` item (Java/.NET `Step` record) is `mateu_uidl.components.Step`. |
+| Wizard completion | `@WizardCompletionAction(label, availableFromStep = "stepField")` on a method | override `CompletionActionLabel` + `OnNext`, `CompletionAvailableFromStep` (`int?`) | `@wizard_completion_action(label, available_from_step=n)` | Idiom. `availableFromStep` names a step **field** in Java and a step **number** in the ports, because that is how each one names its steps. |
+| Wizard progress style | `@WizardProgress(WizardProgressStyle.STEPS)` (enum) | `[WizardProgress("steps")]` | `@wizard_progress("steps")` | Idiom (a string where Java has an enum); values `bar` / `steps` / `rail` everywhere. |
+| Edit in a drawer | override `Crud.editInDrawer()` | override the `EditInDrawer` property | `@edit_in_drawer` class decorator | Idiom. |
+| Action timeout / idempotency / shortcut | attributes of `@Action(timeoutMillis, idempotent, shortcut)` | `[ActionOptions(...)]`, `[Shortcut("ctrl+s")]` | `@action_options(...)`, `@shortcut("ctrl+s")` | Idiom: the ports have no `@Action` equivalent, so each knob is its own composable attribute / decorator. |
+| Toast variants | `NotificationVariant { success, warning, error, primary, contrast }` | `MessageVariant { Success, Info, Warning, Error, Contrast }` | `MessageVariant` (same as .NET) | Idiom; each maps to the wire's variant string. |
+| Length constraint | Bean Validation `@Size(min, max)` | — (not ported: `[Size]` is the sizing intent) | `Length(min=, max=)` | **Converged (3.0-alpha.412)**: Python's `Size` is now `Length`, because in Java and .NET `Size` is a component's *sizing intent* — the same name meaning two things across ports was a real trap. `Size` still works and warns. |
+| View-level permission | `@EyesOnly(permissions = …)` on the class | `[EyesOnly(Permissions = …)]` | `@eyes_only(permissions=[…])` | **Converged (3.0-alpha.412)**: the port-only `[Secured("x")]` / `@secured("x")` was **never enforced** — nothing read it — so a view "secured" with it was open to everyone. Both are deprecated naming `EyesOnly`, which refuses the view (403) and hides its menu entries. |
+| Code-authored routes and shells | `RouteEntrySupplier`, `AppSupplier`, `MenuSupplier`, `AppShell` in `mateu-uidl` | `IRouteEntrySupplier`, `IAppSupplier`, `IMenuSupplier`, `AppShell`, `RouteEntry` — **in the `Mateu.Uidl` package since 3.0-alpha.412** (they used to live in `Mateu.Core`) | `RouteEntrySupplier`, `AppSupplier`, `MenuSupplier`, `AppShell` in `mateu_uidl` | **Converged** on the package: a UI-only .NET module can author routes and shells referencing just `Mateu.Uidl`. Their full names stay `Mateu.Core.*` and `Mateu.Core` type-forwards them, so existing code and binaries keep working (a same-named copy in the `Mateu.Uidl` namespace would make every file importing both namespaces ambiguous). |
+| Global inference switches | `mateu.layout.inference.enabled` / `mateu.page.inference.enabled` (system property or `MATEU_…` env var) | AppContext switches `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled` | env vars `MATEU_LAYOUT_INFERENCE_ENABLED` / `MATEU_PAGE_INFERENCE_ENABLED` | **Converged (3.0-alpha.412)** on one name and one polarity per switch; the old names keep working with a warning. See [Layout inference](/ux-patterns/layout-inference/#global-switches). |
 
 ## Renderers
 

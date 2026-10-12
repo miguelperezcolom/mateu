@@ -95,7 +95,7 @@ names its replacement.
 
 | Deprecated | Use instead |
 |---|---|
-| `AppVariant.HAMBURGUER_MENU` (misspelled; also in YAML `variant:`) | `AppVariant.HAMBURGER_MENU` — renders the same. .NET: `AppVariant.HamburgerMenu`; Python: `AppVariant.HAMBURGER_MENU` (the old string warns) |
+| `AppVariant.HAMBURGUER_MENU` (misspelled; also in YAML `variant:`) | `AppVariant.HAMBURGER_MENU` — renders the same. .NET: `AppVariant.HamburgerMenu`; Python: `AppVariant.HAMBURGER_MENU` (the old string warns). Since 3.0-alpha.412 it is also the wire value — see [Wire and renderers](#wire-and-renderers) |
 | `@GenericClass` | nothing — it was never read; declare the field with its type argument (`List<MyDto>`) |
 | `io.mateu.uidl.annotations.ActionType` | `@Toolbar` / `@Button` / `@Hidden` on the method |
 | `ActionPosition`, `ActionStereotype`, `ActionThemeVariant` (empty enums in `io.mateu.uidl.fluent`) | nothing — they had no constants; style buttons with `ButtonStyle` / `ButtonColor` / `ButtonVariant` |
@@ -107,6 +107,27 @@ names its replacement.
 | 28 unreachable wire DTOs in `io.mateu.dtos` (`JourneyDto`, `ViewDto`, `BadgeColorDto`, `SortCriteriaDto`, …) | nothing — no live DTO references them; the wire is unchanged |
 | .NET `DashboardLayout` / `ContentLayout` (now `[Obsolete]`, like Java's `@Deprecated`); Python ones warn | `ResponsiveGrid` |
 
+## Deprecated in 3.0-alpha.412 (still working)
+
+The owner's pre-beta API decisions. Every item is an addition plus a deprecation: the old name keeps
+compiling and working (Java `@Deprecated(forRemoval = true)`, .NET `[Obsolete]`, Python
+`DeprecationWarning`) until it is removed after the deprecation period.
+
+| Deprecated | Use instead |
+|---|---|
+| `BadgeSupplier` (`List<Badge> badges()`) | `HeaderBadgesSupplier` (`List<Badge> headerBadges()`) — named after `@BadgeInHeader`. Both are read; the new one wins if a page implements both |
+| `Button.getActionId()` | `Button.resolvedActionId()` — same value: the declared id, else derived from the label. `actionId()` is the declared id only. Nothing changes on the wire |
+| `@KeycloakSecured` | your framework's authentication (an OIDC login / resource server for Keycloak) — Mateu reads the principal it authenticates, or a `PrincipalResolver` bean. See [Security](/java-user-manual/advanced/security/) |
+| `AppVariantDto.HAMBURGUER_MENU` (wire DTO) | `AppVariantDto.HAMBURGER_MENU` |
+| The settings `mateu.layout.inference` and `mateu.page.inference.disabled` (they warn once) | `mateu.layout.inference.enabled` and `mateu.page.inference.enabled` — mind the polarity: `disabled=true` is `enabled=false`. .NET: the AppContext switches `Mateu.LayoutInference` / `Mateu.PageInference.Disabled` → `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled`. See [Global switches](/ux-patterns/layout-inference/#global-switches) |
+| Python `Size(min=, max=)` (the length constraint) | `Length(min=, max=)` — same fields; in Java and .NET `Size` is a component's sizing intent |
+| .NET `[Secured("x")]`, Python `@secured("x")` | `[EyesOnly(Permissions = new[] { "x" })]` / `@eyes_only(permissions=["x"])` on the class. **`[Secured]` was never enforced** — a view carrying it was open to everyone — so check those views: `EyesOnly` really refuses them |
+
+**Moved, nothing to change**: the .NET code-authoring types (`IRouteEntrySupplier`, `IAppSupplier`,
+`IMenuSupplier`, `AppShell`, `RouteEntry`) now live in the `Mateu.Uidl` package with the same full
+names (`Mateu.Core.*`); `Mateu.Core` forwards them, so existing code and binaries keep working, and a
+UI-only module no longer needs `Mateu.Core` to use them.
+
 ## Defaults that changed
 
 These compile unchanged and **behave differently**. Check each against your screens.
@@ -116,6 +137,7 @@ These compile unchanged and **behave differently**. Check each against your scre
 | Enum labels | the raw constant (`OUT_OF_STOCK`) | the name humanized ("Out of stock") | label each constant explicitly (`@Label`) |
 | Rich text (`@Stereotype(richText)`) | the value was Quill Delta JSON | the value is **HTML** | values stored by the old editor still open and are saved as HTML on the next edit — migrate stored data if other systems read it |
 | `GridLayout.auto` | chose table / list / cards / master-detail from the available width | always a **table** | declare `gridLayout()` explicitly (`cards`, `list`, `masterDetail`) |
+| Clicking a listing row (a navigable listing: a view per row, or `rowRoute`) | only the id link opened the record | a click **anywhere on the row** opens it (and Enter on a focused row); the selection checkbox, inline editors and display columns — buttons, links, menus, action groups, components, columns with their own action — keep their own behaviour | — (put a per-row action in a column with its own `actionId` if a click there must not open the record) |
 | Listing search box | always shown | shown only if the listing implements `Searchable` | add `Searchable` to the listing (`AutoCrud` and `Crud` already have it) |
 | Listings without interaction capabilities | opened empty | **search on opening** (`Listing.searchesOnOpening()` defaults to `true`) | override `searchesOnOpening()` to return `false` |
 | `@Section(columns = …)` | default `1`, and an explicit `1` was ignored | default `0` = inherit from `@FormLayout`; an explicit `columns = 1` is honoured | remove an explicit `columns = 1` you did not mean |
@@ -135,6 +157,15 @@ These compile unchanged and **behave differently**. Check each against your scre
 - Every response now carries `wireVersion` (`3.0`). The first-party renderers check it and show a
   clear message when the server speaks another wire major; a custom renderer should do the same and
   ignore unknown fields and component types — see the [wire specification](/reference/wire-specification/).
+- **Servers now send `HAMBURGER_MENU`** (3.0-alpha.412) where they used to send the misspelled
+  `HAMBURGUER_MENU` — Java, .NET and Python alike, whichever spelling you declared. Every
+  first-party renderer accepts both spellings (web and Redwood since 3.0-alpha.387; React Native and
+  IntelliJ treat every menu variant the same), so this only matters with a **renderer that predates
+  the change or a custom one**: an old renderer plus a new server is a mismatch — upgrade the
+  renderer together with the server (they ship together), and make a custom renderer accept both.
+- The **Java wire DTOs** (`mateu-dtos`) are outside the Java binary-compatibility promise: the
+  contract is the JSON. A new optional wire field replaces a DTO record's canonical constructor, so
+  build DTOs through their builders. See [Stability & versioning](/reference/stability-and-versioning/#the-wire-dtos-json-not-java-binaries).
 - The Redwood renderer serves Mateu routes **by path** (`/products`), not by hash (`#/products`).
   Bookmarks with a hash keep working in the statically served VB app only.
 

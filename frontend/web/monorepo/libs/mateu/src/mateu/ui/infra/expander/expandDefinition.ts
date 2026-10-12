@@ -250,14 +250,14 @@ const hasRemoteMenu = (items: FluentNode[]): boolean =>
  * the wire (`AppMetadataExtractor.getVariant`), so a browser-expanded shell must resolve it the same
  * way: the renderers have no `AUTO` layout and drew NOTHING for it (an empty play / static app).
  * Remote sections → MENU_ON_TOP; with groups: a group nesting a group → TILES, more than 7 top
- * entries → HAMBURGUER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
+ * entries → HAMBURGER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
  */
 export function resolveAppVariant(declared: unknown, menu: FluentNode[]): string {
     if (typeof declared === 'string' && declared.trim() && declared.trim().toUpperCase() !== 'AUTO') return declared.trim()
     if (hasRemoteMenu(menu)) return 'MENU_ON_TOP'
     if (menu.some(isGroup)) {
         if (menu.some((i) => isGroup(i) && (subOf(i) ?? []).some(isGroup))) return 'TILES'
-        if (menu.length > 7) return 'HAMBURGUER_MENU'
+        if (menu.length > 7) return 'HAMBURGER_MENU'
         return 'MENU_ON_TOP'
     }
     return 'TABS'

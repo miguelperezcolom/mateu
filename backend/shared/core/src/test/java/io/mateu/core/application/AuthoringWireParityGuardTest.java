@@ -116,7 +116,8 @@ class AuthoringWireParityGuardTest {
               "FormDto.readOnly",
               // DERIVED: status band, server-composed.
               "FormDto.status",
-              // DERIVED: header badges, composed from @BadgeInHeader / BadgeSupplier, not a Form
+              // DERIVED: header badges, composed from @BadgeInHeader / HeaderBadgesSupplier, not a
+              // Form
               // record field.
               "FormDto.badges",
               // DERIVED: page banners, composed from @Banner / BannerSupplier, not a Form record

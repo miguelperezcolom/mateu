@@ -5,87 +5,6 @@ using Access = Mateu.Uidl.Access;
 
 namespace Mateu.Core;
 
-/// <summary>
-/// One entry of a mount's route registry: what a URL resolves to. (Mirrors Java's
-/// <c>io.mateu.uidl.data.RouteEntry</c> and Python's <c>RouteEntry</c>.)
-/// </summary>
-/// <param name="Route">Path RELATIVE to the mount, with <c>:name</c> segments for path parameters.
-/// "" is the mount's root view.</param>
-/// <param name="Definition">The layout file. Null when the view model supplies its own tree.</param>
-/// <param name="ViewModel">The server class. <b>Optional on purpose</b>: a statically deployed route
-/// has no server behind it, so a definition with no view model is a valid, complete route.</param>
-/// <param name="FixedParams">Pinned — NOT overridable by the request. Re-applied on the server
-/// rather than trusted from the client, or "fixed" would be a suggestion and flipping one via the
-/// query string would be a capability escalation.</param>
-/// <param name="DefaultParams">Seeded — the request may override them.</param>
-/// <param name="Parent">The ABSOLUTE route of the screen whose slot this route fills, or null for a
-/// top-level route. A sub-route with a parent does not replace the page: the parent renders its
-/// shell and this route's screen is nested into the parent's slot. Set when the authored
-/// <c>children</c> tree is flattened. (Mirrors Java's RouteEntry.parent.)</param>
-/// <param name="Children">Sub-routes nested under this one, authored RELATIVE to it. Each child
-/// fills this screen's slot. This is the AUTHORING shape; the registry flattens it into absolute
-/// entries carrying <c>Parent</c>, so a table entry read at runtime has an empty Children.</param>
-/// <param name="State">Literal values that seed the route's component/route state on entry (the
-/// componentState scope). They enter at the client-state/defaults precedence level, so a pinned
-/// parameter still wins. (Mirrors Java's RouteEntry.state.)</param>
-/// <param name="AppState">Literal values that seed the app state on entry (the app-scoped store
-/// that [AppContext] also feeds, persisted across navigation). (Mirrors RouteEntry.appState.)</param>
-/// <param name="Data">The route's component/route data, a reference to a named data source; there
-/// is no literal data channel, data is always sourced. Resolved when the route loads.</param>
-/// <param name="AppData">The route's app data, a reference to a named data source resolved once at
-/// app scope (shared across routes).</param>
-/// <param name="Access">Who may reach this route (<c>access:</c> in routes.yaml): a caller who does
-/// not satisfy it gets 403 for the route and every route nested under it — the same as a
-/// class-level [EyesOnly] view. Null = anybody. (Mirrors Java's RouteEntry.access.)</param>
-public sealed record RouteEntry(
-    string Route,
-    string? Definition,
-    string? ViewModel,
-    IReadOnlyDictionary<string, object?> FixedParams,
-    IReadOnlyDictionary<string, object?> DefaultParams,
-    string? Parent = null,
-    IReadOnlyList<RouteEntry>? Children = null,
-    IReadOnlyDictionary<string, object?>? State = null,
-    IReadOnlyDictionary<string, object?>? AppState = null,
-    RestDataSourceDto? Data = null,
-    RestDataSourceDto? AppData = null,
-    Access? Access = null)
-{
-    /// <summary>Whether this route declares an identity restriction (<c>access:</c>): a caller who
-    /// does not satisfy it is refused this route and every route nested under it (403).</summary>
-    public bool RestrictsAccess() => Access is { } a && a.Restricts();
-
-    public static RouteEntry Of(string route, string? viewModel) =>
-        new(route, null, viewModel, EmptyParams, EmptyParams);
-
-    internal static readonly IReadOnlyDictionary<string, object?> EmptyParams =
-        new Dictionary<string, object?>();
-
-    /// <summary>Whether this route fills the slot of a parent screen rather than replacing the page.</summary>
-    public bool HasParent() => !string.IsNullOrWhiteSpace(Parent);
-
-    public IReadOnlyList<string> PathParams() =>
-        Route.Split('/')
-            .Where(s => s.StartsWith(':') && s.Length > 1)
-            .Select(s => s[1..])
-            .ToList();
-
-    /// <summary>Defaults first (with <c>State</c> seeded at that same level), then whatever the
-    /// request brought, then the fixed ones — which win over everything, which is the whole point of
-    /// declaring them fixed.</summary>
-    public Dictionary<string, object?> ResolveParams(IReadOnlyDictionary<string, object?>? fromRequest)
-    {
-        var resolved = new Dictionary<string, object?>(DefaultParams);
-        // `State` seeds at the defaults level too (literal component state the route brings).
-        if (State is not null)
-            foreach (var kv in State) resolved.TryAdd(kv.Key, kv.Value);
-        if (fromRequest is not null)
-            foreach (var kv in fromRequest) resolved[kv.Key] = kv.Value;
-        foreach (var kv in FixedParams) resolved[kv.Key] = kv.Value;
-        return resolved;
-    }
-}
-
 /// <summary>A matched route: the entry that answered, and the path parameters read off the URL.</summary>
 public sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, object?> PathParams)
 {
@@ -154,6 +73,9 @@ public sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
 /// </summary>
 public sealed class RouteRegistry : ISpecsCache
 {
+    private static readonly IReadOnlyDictionary<string, object?> NoParams =
+        new Dictionary<string, object?>();
+
     public const string FileName = "routes.yaml";
 
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
@@ -508,7 +430,7 @@ public sealed class RouteRegistry : ISpecsCache
         IDictionary<object, object> node, string key, string altKey)
     {
         if (!node.TryGetValue(key, out var raw)) node.TryGetValue(altKey, out raw);
-        if (raw is not IDictionary<object, object> map) return RouteEntry.EmptyParams;
+        if (raw is not IDictionary<object, object> map) return NoParams;
         var values = new Dictionary<string, object?>();
         foreach (var kv in map)
         {

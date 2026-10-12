@@ -366,8 +366,9 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 - **i18n** — implement `ITranslator` and register it; titles, labels and menu entries are translated.
 - **Events** — `[Emits("event-name")]` advertises an event a view emits; `[SubscribeTo("event",
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
-- **Security** — `[Secured("permission")]` marks a view as requiring a permission; the `[App]` shell
-  can carry login/logout URLs. Field and action access is covered in
+- **Security** — `[EyesOnly(Permissions = new[] { "x" })]` on a view class restricts it (403, and its
+  menu entries hidden); the `[App]` shell can carry login/logout URLs. (`[Secured("x")]` is
+  deprecated: it was never enforced.) Field and action access is covered in
   [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp

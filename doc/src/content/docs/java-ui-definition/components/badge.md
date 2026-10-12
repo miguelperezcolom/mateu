@@ -9,7 +9,7 @@ A small, inline label used to display status, counts, or tags.
 | Approach | Where it appears | How to use |
 |---|---|---|
 | `@Badge` / `@Stereotype(FieldStereotype.badge)` | **Inside the form body**, inline with other fields | Annotate a field |
-| `@BadgeInHeader` / `BadgeSupplier` | **Page header strip** alongside the title | Annotate a field or implement the interface |
+| `@BadgeInHeader` / `HeaderBadgesSupplier` | **Page header strip** alongside the title | Annotate a field or implement the interface |
 
 ### `@Badge` — inline field badge
 
@@ -28,7 +28,7 @@ Annotating a field with `@BadgeInHeader` moves it to the page header strip and h
 boolean vip;
 ```
 
-For runtime-computed badges implement `BadgeSupplier` — see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/#badgesupplier).
+For runtime-computed badges implement `HeaderBadgesSupplier` — see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/#headerbadgessupplier).
 
 ---
 

@@ -3,8 +3,8 @@ package io.mateu.uidl.fluent;
 public enum AppVariant {
   /**
    * The misspelling of {@link #HAMBURGER_MENU}, kept so existing declarations (Java and YAML) keep
-   * compiling and parsing. Both render the same; on the wire the variant still travels as {@code
-   * HAMBURGUER_MENU}, which every renderer reads (they accept both spellings).
+   * compiling and parsing. Both render the same; on the wire both travel as {@code HAMBURGER_MENU}
+   * (since 3.0-alpha.412; the renderers accept both spellings).
    *
    * @deprecated use {@link #HAMBURGER_MENU} instead.
    */
@@ -12,8 +12,7 @@ public enum AppVariant {
   HAMBURGUER_MENU,
   /**
    * A hamburger button opening the whole menu in a drawer. The right spelling of the deprecated
-   * {@code HAMBURGUER_MENU}: the server sends it to the renderers under the old wire name, so
-   * either can be declared.
+   * {@code HAMBURGUER_MENU}; it is also the wire value (since 3.0-alpha.412).
    */
   HAMBURGER_MENU,
   /**

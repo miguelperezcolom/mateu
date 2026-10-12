@@ -144,6 +144,7 @@ class ComponentMapperMixin(MixinBase):
                 icon=c.icon,
                 description=c.description,
                 action_id=c.action_id,
+                timeframe=c.timeframe,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Scoreboard):

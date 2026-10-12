@@ -26,7 +26,11 @@ public sealed class SubscribeToAttribute(string @event, string action) : Attribu
     public string Action { get; } = action;
 }
 
-/// <summary>Restricts an [App] or [UI] view to users holding this permission.</summary>
+/// <summary>Meant to restrict an [App] or [UI] view to users holding this permission — but it was
+/// never enforced (nothing reads it). Deprecated in 3.0-alpha.412: use
+/// <c>[EyesOnly(Permissions = new[] { "x" })]</c> on the class, which refuses the view (403) and
+/// hides the menu entries leading to it, exactly like Java's <c>@EyesOnly</c>.</summary>
+[Obsolete("[Secured] was never enforced: use [EyesOnly(Permissions = new[] { \"...\" })] on the class instead.")]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class SecuredAttribute(string permission) : Attribute
 {

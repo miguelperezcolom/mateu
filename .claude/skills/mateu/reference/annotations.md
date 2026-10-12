@@ -13,7 +13,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | `@Title`, `@Subtitle`, `@PageTitle` | titles |
 | `@Logo`, `@FavIcon` | branding |
 | `@Menu` | navigation entry (ViewModel, String route, `RouteLink`, `RemoteMenu`, nested) |
-| `@KeycloakSecured` | protect a view |
+| `@KeycloakSecured` | deprecated — use the host framework's security / a `PrincipalResolver` |
 
 ## Field editability & visibility
 | Annotation | Use |

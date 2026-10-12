@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  *
  * <p>For String fields: the field value is used as badge text; null or blank hides the badge.
  *
- * <p>For programmatic control implement {@link io.mateu.uidl.interfaces.BadgeSupplier}.
+ * <p>For programmatic control implement {@link io.mateu.uidl.interfaces.HeaderBadgesSupplier}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})

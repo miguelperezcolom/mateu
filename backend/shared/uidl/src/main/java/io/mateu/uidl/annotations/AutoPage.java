@@ -25,8 +25,10 @@ import java.lang.annotation.Target;
  *
  * <p>Explicit always wins: archetype subclasses, listing backends and fluent component trees are
  * never rewritten, and extending the archetype remains the way to take fine control (columns,
- * overrides). {@code @AutoPage(false)} opts a class out when inference is enabled globally via the
- * {@code mateu.layout.inference} system property.
+ * overrides). Page inference is ON by default; {@code @AutoPage(false)} opts a class out, and
+ * {@code mateu.page.inference.enabled=false} (a system property or the {@code
+ * MATEU_PAGE_INFERENCE_ENABLED} environment variable) switches it off globally — the older {@code
+ * mateu.page.inference.disabled=true} still works, deprecated.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})

@@ -30,15 +30,16 @@ public class ApiFreezeTests
         ((AppMetadataDto)new ReflectionMapper().MapApp(app).Metadata).Variant;
 
     [Fact]
-    public void The_right_spelling_travels_under_the_wire_name_every_renderer_reads()
+    public void The_right_spelling_is_the_wire_value()
     {
-        Assert.Equal("HAMBURGUER_MENU", WireVariantOf(typeof(HamburgerVariantApp)));
+        // since 3.0-alpha.412 servers send HAMBURGER_MENU; the renderers accept both spellings
+        Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(HamburgerVariantApp)));
     }
 
     [Fact]
     public void The_old_misspelling_keeps_working()
     {
-        Assert.Equal("HAMBURGUER_MENU", WireVariantOf(typeof(OldHamburguerVariantApp)));
+        Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(OldHamburguerVariantApp)));
     }
 
     [Fact]
@@ -66,6 +67,24 @@ public class ApiFreezeTests
         Assert.NotNull(typeof(DashboardLayout).GetCustomAttribute<ObsoleteAttribute>());
         Assert.NotNull(typeof(ContentLayout).GetCustomAttribute<ObsoleteAttribute>());
 #pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void The_code_authoring_types_live_in_Mateu_Uidl_and_Mateu_Core_forwards_them()
+    {
+        // A UI-only module (referencing just Mateu.Uidl) can author routes and app shells in code;
+        // the full names are unchanged and Mateu.Core forwards them, so old binaries keep loading.
+        var core = typeof(SyncHandler).Assembly;
+        foreach (var type in new[]
+                 {
+                     typeof(IRouteEntrySupplier), typeof(IAppSupplier), typeof(IMenuSupplier),
+                     typeof(AppShell), typeof(RouteEntry),
+                 })
+        {
+            Assert.Equal("Mateu.Uidl", type.Assembly.GetName().Name);
+            Assert.Equal("Mateu.Core", type.Namespace);
+            Assert.Same(type, core.GetType(type.FullName!, throwOnError: true));
+        }
     }
 
     private static void Check(MemberInfo member, string name, List<string> offenders)

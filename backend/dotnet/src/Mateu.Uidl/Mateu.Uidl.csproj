@@ -9,6 +9,11 @@
     <RootNamespace>Mateu.Uidl</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <!-- the wire-boundary types the code-authoring API returns (MenuItemDto, RestDataSourceDto),
+         like Java's mateu-uidl -> mateu-dtos boundary -->
+    <ProjectReference Include="../Mateu.Dtos/Mateu.Dtos.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 </Project>

@@ -71,4 +71,22 @@ class ArchetypeAdvisorTest {
     assertThat(PageTypeResolver.resolve(LooksLikeADashboard.class))
         .isEqualTo(io.mateu.uidl.annotations.PageType.DASHBOARD);
   }
+
+  @Test
+  void kpiTilesWithoutATimeframeAreAdvised() {
+    var dated = MetricCard.builder().title("Revenue").value("1").timeframe("This month").build();
+    var undated = MetricCard.builder().title("Orders").value("2").timeframe(" ").build();
+    assertThat(ArchetypeAdvisor.timeframeless(List.of(dated, undated))).isEqualTo(1);
+    assertThat(ArchetypeAdvisor.adviseTimeframes(JustAForm.class, List.of(dated, undated)))
+        .isTrue();
+    // the hint is logged once, but still applies on later renders
+    assertThat(ArchetypeAdvisor.adviseTimeframes(JustAForm.class, List.of(undated))).isTrue();
+  }
+
+  @Test
+  void kpiTilesThatAllCarryATimeframeAreNotAdvised() {
+    var dated = MetricCard.builder().title("Revenue").value("1").timeframe("Q3 2026").build();
+    assertThat(ArchetypeAdvisor.adviseTimeframes(JustAForm.class, List.of(dated))).isFalse();
+    assertThat(ArchetypeAdvisor.adviseTimeframes(JustAForm.class, List.of())).isFalse();
+  }
 }

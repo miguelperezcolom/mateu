@@ -5,7 +5,7 @@ namespace Mateu.Core;
 
 /// <summary>Page-level inference — the C# port of Java's PageInference (fase 1 of
 /// design/page-level-inference-plan.md; the Java class is the reference decision table).
-/// Under the explicit [AutoPage] opt-in (or the global "Mateu.LayoutInference" switch), a plain
+/// Unless switched off ([AutoPage(false)], or the global "Mateu.PageInference.Enabled" switch), a plain
 /// class whose structure spells an archetype is COMPOSED as that archetype by the mapper instead
 /// of rendered as a reflected form. Explicit always wins — archetype subclasses and component
 /// tree suppliers are never rewritten (crud/listing views take their own mapping paths before
@@ -13,15 +13,15 @@ namespace Mateu.Core;
 /// properties) and welcome (nothing but calls-to-action and presentational components).</summary>
 public static class PageInference
 {
-    /// <summary>[AutoPage] decides when present; otherwise the "Mateu.LayoutInference"
-    /// AppContext switch enables it globally (same switch as the form-level inference).</summary>
+    /// <summary>[AutoPage] decides when present; otherwise the "Mateu.PageInference.Enabled"
+    /// AppContext switch (default on; see <see cref="InferenceSwitches"/>).</summary>
     public static bool Enabled(Type? type)
     {
         if (type is null) return false;
         if (type.Find<AutoPageAttribute>() is { } auto) return auto.Value;
         // Page inference is ON by default (the template is the default inferred output); opt out per
-        // class with [AutoPage(false)], or globally with the "Mateu.PageInference.Disabled" switch.
-        return !(AppContext.TryGetSwitch("Mateu.PageInference.Disabled", out var off) && off);
+        // class with [AutoPage(false)], or globally with "Mateu.PageInference.Enabled" = false.
+        return InferenceSwitches.PageInferenceEnabled();
     }
 
     /// <summary>Whether ANY composition rule applies.</summary>

@@ -60,8 +60,10 @@ def title(value: str) -> Callable[[type], type]:
 
 
 def wizard_progress(style: str) -> Callable[[type], type]:
-    """Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
-    step bullets (the ProgressSteps component). (Python analogue of Java's @WizardProgress.)"""
+    """Chooses how a Wizard visualizes its progress: "bar" (default), "steps" — connected
+    step bullets (the ProgressSteps component) — or "rail" — a sticky right-hand rail with a
+    ``current | total`` counter over the vertical step list. (Python analogue of Java's
+    @WizardProgress.)"""
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_wizard_progress__", style)
@@ -292,11 +294,12 @@ class AppVariant(str, Enum):
 
     @staticmethod
     def to_wire(variant: str) -> str:
-        """The value a variant travels under on the wire: ``HAMBURGER_MENU`` goes as the historical
-        ``HAMBURGUER_MENU`` — the name every renderer reads (they accept both), as Java's AppMapper
-        does; anything else travels unchanged."""
+        """The value a variant travels under on the wire. Since 3.0-alpha.412 both
+        ``HAMBURGER_MENU`` and the old misspelling ``HAMBURGUER_MENU`` travel as
+        ``HAMBURGER_MENU`` (the renderers accept both), as Java's AppMapper does; anything else
+        travels unchanged."""
         value = variant.value if isinstance(variant, AppVariant) else variant
-        return "HAMBURGUER_MENU" if value == AppVariant.HAMBURGER_MENU.value else value
+        return AppVariant.HAMBURGER_MENU.value if value == "HAMBURGUER_MENU" else value
 
 
 #: The misspelled variant still accepted by ``@app(variant=...)`` (with a DeprecationWarning).
@@ -570,6 +573,15 @@ def subscribe_to(event: str, action: str) -> Callable[[type], type]:
 
 
 def secured(permission: str) -> Callable[[type], type]:
+    """Deprecated (3.0-alpha.412): it was never enforced — nothing reads it. Use
+    ``@eyes_only(permissions=["..."])`` on the class instead, which refuses the view (403) and hides
+    the menu entries leading to it, exactly like Java's ``@EyesOnly``."""
+    warnings.warn(
+        "@secured was never enforced: use @eyes_only(permissions=[...]) on the class instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_secured__", permission)
         return cls

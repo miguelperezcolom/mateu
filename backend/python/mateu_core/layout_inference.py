@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from .inference_switches import layout_inference_enabled
+
 #: Enums with up to this many members render as radio buttons instead of a dropdown.
 RADIO_MAX_OPTIONS = 4
 
@@ -42,10 +44,12 @@ _COMPACT_STEREOTYPES = frozenset(("radio", "checkbox"))
 
 def enabled(cls) -> bool:
     """Whether inference applies to the view class: the ``@auto_layout`` decorator decides when
-    present (``@auto_layout(False)`` opts out); default off. (Java additionally supports the
-    ``mateu.layout.inference`` system property for a global default — not ported.)"""
+    present (``@auto_layout(False)`` opts out); otherwise the ``MATEU_LAYOUT_INFERENCE_ENABLED``
+    environment variable (Java's ``mateu.layout.inference.enabled``) — default off."""
     flag = getattr(cls, "__mateu_auto_layout__", None)
-    return bool(flag) if flag is not None else False
+    if flag is not None:
+        return bool(flag)
+    return layout_inference_enabled()
 
 
 def estimated_weight(stereotype: str) -> int:
