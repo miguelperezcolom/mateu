@@ -133,18 +133,23 @@ public class MateuYamlMountController {
 
   @Produces(MediaType.TEXT_EVENT_STREAM)
   @Post("/{+path:.*mateu/v3/sse/.*}")
-  public Flux<UIIncrementDto> sse(
+  public Mono<HttpResponse<?>> sse(
       @PathVariable("path") String path, @Body RunActionRqDto rq, HttpRequest<?> request)
       throws Throwable {
     var mount = YamlMounts.mountForApiPath(mounts(), request.getPath());
     if (mount == null) {
-      return Flux.empty();
+      return Mono.just(
+          HttpResponse.ok(Flux.<UIIncrementDto>empty())
+              .contentType(io.micronaut.http.MediaType.TEXT_EVENT_STREAM_TYPE));
     }
-    return service.runAction(
-        mount.basePath(),
-        YamlMounts.mountRequest(mount.basePath(), rq),
-        mount.basePath(),
-        requestOf(request, rq, mount));
+    // a refusal answers 403 (MicronautSse): thrown from a text/event-stream route it was a 500
+    return MicronautSse.stream(
+        () ->
+            service.runAction(
+                mount.basePath(),
+                YamlMounts.mountRequest(mount.basePath(), rq),
+                mount.basePath(),
+                requestOf(request, rq, mount)));
   }
 
   private static io.mateu.uidl.interfaces.HttpRequest requestOf(

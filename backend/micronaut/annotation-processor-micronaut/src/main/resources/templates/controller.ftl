@@ -73,14 +73,15 @@ public class ${simpleClassName}MateuController implements MateuController {
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
     @Produces(MediaType.TEXT_EVENT_STREAM)
     @Post("v3/sse/{/ignored:.*}")
-    public Flux<UIIncrementDto> runStepSse(
+    public Mono<HttpResponse<?>> runStepSse(
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,
         HttpRequest<?> serverHttpRequest) throws Throwable {
         var httpRequest = new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
-        return service.runAction(uiId, rq, baseUrl, httpRequest);
+        // a refusal answers 403 (io.mateu.MicronautSse): thrown from a text/event-stream route it was a 500
+        return io.mateu.MicronautSse.stream(() -> service.runAction(uiId, rq, baseUrl, httpRequest));
     }
 
     // The renderer's error reports (io.mateu.core.infra.ClientErrorLog): one log line per report.

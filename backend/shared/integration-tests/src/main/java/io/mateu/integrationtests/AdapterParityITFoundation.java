@@ -136,6 +136,24 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * The same refusal on the STREAMED leg ({@code /v3/sse/}, the one a LongTask / {@code Action.sse}
+   * uses): 403 too. A streamed route produces {@code text/event-stream}, and an adapter whose
+   * forbidden handler only answers other media types (or that commits the stream before the request
+   * is guarded) answered 500.
+   */
+  public void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+    given()
+        .contentType(ContentType.JSON)
+        .accept("text/event-stream")
+        .body(action("adminAction"))
+        .when()
+        .post("/restricted/mateu/v3/sse/_no_route")
+        .then()
+        .statusCode(403)
+        .body(not(containsString("admin action ran")));
+  }
+
+  /**
    * A caller the framework authenticated with the {@code admin} role (sent as {@code headers}, e.g.
    * {@link #PARITY_ROLES_HEADER}; empty when the test itself establishes the identity) sees the
    * {@code @EyesOnly} field and may run the restricted action: the framework's principal reaches

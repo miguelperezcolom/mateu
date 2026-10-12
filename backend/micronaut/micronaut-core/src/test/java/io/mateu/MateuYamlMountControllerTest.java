@@ -109,11 +109,11 @@ class MateuYamlMountControllerTest {
   void theContentLoadStreamsThePage() throws Throwable {
     var rq = rq("");
     var increments =
-        controller
-            .sse(
-                "yaml-parity/mateu/v3/sse/_no_route",
-                rq,
-                HttpRequest.POST("/yaml-parity/mateu/v3/sse/_no_route", rq))
+        streamed(
+                controller.sse(
+                    "yaml-parity/mateu/v3/sse/_no_route",
+                    rq,
+                    HttpRequest.POST("/yaml-parity/mateu/v3/sse/_no_route", rq)))
             .collectList()
             .block();
     assertThat(increments, not(empty()));
@@ -131,11 +131,19 @@ class MateuYamlMountControllerTest {
             .isPresent(),
         is(false));
     assertThat(
-        controller
-            .sse("other/mateu/v3/sse/x", rq, HttpRequest.POST("/other/mateu/v3/sse/x", rq))
+        streamed(
+                controller.sse(
+                    "other/mateu/v3/sse/x", rq, HttpRequest.POST("/other/mateu/v3/sse/x", rq)))
             .collectList()
             .block(),
         empty());
+  }
+
+  /** The stream an SSE answer carries (a refusal would be a 403 with no stream). */
+  @SuppressWarnings("unchecked")
+  private static reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto> streamed(
+      reactor.core.publisher.Mono<io.micronaut.http.HttpResponse<?>> response) {
+    return (reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto>) response.block().body();
   }
 
   private static RunActionRqDto rq(String consumedRoute) throws Exception {

@@ -42,6 +42,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+      contract.refusesARestrictedStreamedActionToAnAnonymousCaller();
+    }
+
+    @Test
     void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
       contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
           java.util.Map.of(AdapterParityITFoundation.PARITY_ROLES_HEADER, "admin"));

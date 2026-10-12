@@ -72,6 +72,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Real security module on a generated project (yaml starter + Spring Security, httpBasic, in-memory users) | 🔧 the YAML starter's `@SpringBootApplication(scanBasePackages = "io.mateu")` scanned Mateu's package and NOT the app's: the developer's `SecurityFilterChain` was ignored (Boot's default login answered 401 to everything), and so would be any `PrincipalResolver`, `SecretsProvider`, `ListingExporter`… they add — fixed in the starter (so the archetype and both IDE wizards), pinned by `newProject.test.ts`; ✅ then `access: roles: [admin]`: anonymous 403, a `staff` user 403, an `admin` 200 with the page |
 | Real security module on Quarkus (Code + YAML starter + `quarkus-elytron-security-properties-file`, basic auth) | 🔧 a YAML mount on Quarkus is served by Vert.x routes that ran at `MIN_VALUE+105`, BEFORE Quarkus' authentication (-200) and authorization (-100) filters: `access:` refused every caller, the admin included, the app's `quarkus.http.auth.permission` policies never applied to the mount, and a refusal answered **500** (no JAX-RS exception mapper on that path) — mount routes moved after security, the identity read off the RoutingContext, refusals → 403 (`YamlMountRoutesTest`); ✅ anonymous 403, staff 403, admin 200 with the page; index, deep link and the code-backed route still served. The shared e2e suite never saw it: its Quarkus SUT has `@UI` classes, so it is served by the generated JAX-RS controllers |
 | A refused YAML route on the adapters' own routing (sync + sse) | 🔧 Helidon (SE routing) answered **500** for a refused YAML route and for a refused streamed action — the JAX-RS mapper does not cover that routing, and on SSE the stream was committed before the lazy guard ran; Quarkus' SSE leg the same → 403 on both legs, the stream's head now goes out with its first event (`YamlMountRoutesTest` in both adapters); ✅ Spring MVC already answered 403 on sync and sse |
+| Real security module on Micronaut (Code + YAML starter + `micronaut-security`, basic auth via an `HttpRequestAuthenticationProvider`) | ✅ `access: roles: [admin]` on sync: anonymous 403, staff 403, admin 200; 🔧 a refused STREAMED request (`/v3/sse/`, what a LongTask or `Action.sse` uses) answered **500** on Micronaut — its exception handler is not applied to a `text/event-stream` route — and a **200 stream cut short** on Quarkus' generated JAX-RS controllers; both now await the first signal before committing and answer 403 (`MicronautSse`, `QuarkusSse`, generated templates). New cross-adapter contract `refusesARestrictedStreamedActionToAnAnonymousCaller`, green on all five |
 | Code twins (RouteEntrySupplier/AppSupplier/MenuSupplier) | ✅ core suite (1752) + Python (786) + .NET (711, local SDK) |
 
 ## 3. Doc claims found wrong and fixed
@@ -104,8 +105,8 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 
 ## 5. Not walked yet ⏳
 
-A real security module on Micronaut and Helidon MP (only the parity contracts ran — note Helidon's own
-routing serves YAML mounts too, and its docs already say that path carries no JAX-RS principal); IntelliJ completion/validation inside a running IDE (covered by the
+A real security module on Helidon MP (MP-JWT; its own routing serves YAML mounts and streamed actions
+and, as its docs say, carries no JAX-RS principal there — a `PrincipalResolver` is the documented way); IntelliJ completion/validation inside a running IDE (covered by the
 plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
 only); React Native for the YAML fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
 
@@ -122,7 +123,7 @@ only); React Native for the YAML fixtures; compiling every Java sample of the do
   `NothingToServeCheckTest` (+resolvers), `SpaFallbackTest` (+navigation only).
 - Adapters: Quarkus `YamlMountRoutesTest` (+ a restricted YAML route: 403 on sync and sse, served to
   its role); Helidon `YamlMountRoutesTest` (+ 403 on sync and sse); parity contracts `doesNotAnswerADataFetchWithTheIndex`, `answersDeepLinksWithEncodedSegments`,
-  YAML-mount data fetch (all five); Helidon `YamlMountRoutesTest` (root mount); Micronaut
+  YAML-mount data fetch, `refusesARestrictedStreamedActionToAnAnonymousCaller` (all five); Helidon `YamlMountRoutesTest` (root mount); Micronaut
   `MateuStaticFacadesStartupTest`, `MateuYamlMountControllerTest` (+data fetch).
 - Ports: Python `test_route_files.py`, `test_definition_only_seeds.py`, `test_layout_delta.py` (rows);
   .NET `RouteFilesTests`, `DefinitionOnlySeedsTests`, `LayoutDeltaTests` (rows).
@@ -132,4 +133,4 @@ only); React Native for the YAML fixtures; compiling every Java sample of the do
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 26 fixed (22 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 27 fixed (23 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).

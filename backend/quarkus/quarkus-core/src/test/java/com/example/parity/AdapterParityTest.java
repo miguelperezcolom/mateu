@@ -26,6 +26,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+    contract.refusesARestrictedStreamedActionToAnAnonymousCaller();
+  }
+
+  @Test
   @io.quarkus.test.security.TestSecurity(user = "parity-user", roles = "admin")
   void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
     contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(java.util.Map.of());
