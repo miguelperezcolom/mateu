@@ -33,6 +33,9 @@ public @interface Action {
     boolean sse() default false;
     String fieldsToValidate() default "";
     boolean bubble() default false;
+    String shortcut() default "";
+    int timeoutMillis() default 0;
+    boolean idempotent() default false;
 }
 ```
 
@@ -58,6 +61,9 @@ public @interface Action {
 | `sse` | `boolean` | `false` | Stream results to the UI via Server-Sent Events. |
 | `fieldsToValidate` | `String` | `""` | Comma-separated field IDs to validate (subset validation). |
 | `bubble` | `boolean` | `false` | Bubble the action result to the parent component. |
+| `shortcut` | `String` | `""` | Keyboard shortcut that runs the action (see [Keyboard shortcuts](#keyboard-shortcuts)). |
+| `timeoutMillis` | `int` | `0` | Client-side ceiling for the request; past it the user is told the server took too long. `0` keeps the client default. |
+| `idempotent` | `boolean` | `false` | Safe to re-send: the client may retry it by itself on a transient failure (reads are retried anyway). |
 
 ### Example
 
@@ -622,7 +628,7 @@ return PageBanners.replace(new PageBanner(BannerTheme.INFO, "Step 1 complete", "
 return PageBanners.append(new PageBanner(BannerTheme.WARNING, "Warning", details));
 ```
 
-Action banners are cleared automatically when the user navigates to a different page.
+Action banners are cleared when the page is rendered again — navigating to another page, or an action returning `this` — except the banners that arrive in that same answer (`List.of(this, PageBanners.append(...))` keeps them).
 
 ![Banners — INFO and WARNING messages below the page header](/images/docs/components/banners.png)
 
@@ -701,6 +707,9 @@ Action methods can return different types to drive the UI after execution:
 | `Message` | A toast notification is shown (`Message.builder().text("...").build()`). |
 | `PageBanner` / `List<PageBanner>` | Shows banners on the current page (replaces existing). |
 | `PageBanners` | Shows banners with explicit replace/append semantics. |
+| `UICommand` / `List<UICommand>` | Runs the commands: navigate, push a URL, mark dirty/clean, announce, download, run another action… |
+| `Collection` mixing the above | Each element applies: `List.of(this, Message.success("Saved"))` re-renders the page **and** shows the toast; `this` with `PageBanners.append(...)` keeps the banners that came with it. |
+| `Dialog` / `Drawer` / `ConfirmDialog` | Opens the overlay over the page. A returned `ConfirmDialog` runs the action of the button the user picks, on the view that returned it. |
 
 ```java
 // Navigate to a URL

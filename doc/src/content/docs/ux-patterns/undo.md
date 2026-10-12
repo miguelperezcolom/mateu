@@ -29,7 +29,7 @@ public Message restore(HttpRequest httpRequest) {
 }
 ```
 
-- The toast shows the text plus an **Undo button** (label `undoLabel`, default "Deshacer") and
+- The toast shows the text plus an **Undo button** (label `undoLabel`; when unset, the renderer's own word for Undo in the app's language) and
   stays 10 seconds by default.
 - Clicking Undo dispatches `undoActionId` on the initiator component with `undoParameters` as
   action parameters — a plain method of the same class that **reverses the effect itself**.

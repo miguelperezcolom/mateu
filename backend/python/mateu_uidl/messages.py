@@ -69,7 +69,6 @@ class Message:
             text,
             variant=MessageVariant.CONTRAST,
             duration=10000,
-            undo_label="Deshacer",
             undo_action_id=undo_action_id,
             undo_parameters=undo_parameters,
         )

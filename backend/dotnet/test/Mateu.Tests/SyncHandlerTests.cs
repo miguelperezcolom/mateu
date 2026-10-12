@@ -2945,13 +2945,13 @@ public class SyncHandlerTests
         Assert.Equal(["doc-7"], ArchivePage.Archived);
         var message = Assert.Single(inc.Messages);
         Assert.Equal("Documento archivado", message.Text);
-        Assert.Equal("Deshacer", message.UndoLabel);
+        Assert.Null(message.UndoLabel); // the client says "Undo" in the app's language
         Assert.Equal("restore", message.UndoActionId);
         Assert.Equal("doc-7", message.UndoParameters!["docId"]);
         Assert.Equal(10000, message.Duration);
         // the undo fields serialize camelCase on the wire
         var json = Render(inc);
-        Assert.Contains("\"undoLabel\":\"Deshacer\"", json);
+        Assert.DoesNotContain("Deshacer", json);
         Assert.Contains("\"undoActionId\":\"restore\"", json);
         Assert.Contains("\"undoParameters\":{\"docId\":\"doc-7\"}", json);
         Assert.Contains("\"variant\":\"contrast\"", json);

@@ -82,7 +82,9 @@ class UndoableMessageSyncTest {
     assertThat(archived).containsExactly("doc-7");
     var message = increment.messages().get(0);
     assertThat(message.text()).isEqualTo("Documento archivado");
-    assertThat(message.undoLabel()).isEqualTo("Deshacer");
+    // no label: the client says "Undo" in the app's own language (it used to be "Deshacer" for
+    // everyone)
+    assertThat(message.undoLabel()).isNull();
     assertThat(message.undoActionId()).isEqualTo("restore");
     assertThat(message.undoParameters()).containsEntry("docId", "doc-7");
     assertThat(message.duration()).isEqualTo(10000);

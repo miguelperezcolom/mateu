@@ -25,7 +25,6 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
         new(text, MessageVariant.Contrast)
         {
             Duration = 10000,
-            UndoLabel = "Deshacer",
             UndoActionId = undoActionId,
             UndoParameters = undoParameters,
         };
