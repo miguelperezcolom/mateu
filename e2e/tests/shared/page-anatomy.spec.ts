@@ -73,3 +73,30 @@ test.describe('Welcome banner element (/arch/welcome-banner)', () => {
     await expect(page.locator('mateu-ux[data-has-welcome-banner]').first()).toBeAttached();
   });
 });
+
+test.describe('Page anatomy as YAML (/yaml-page)', () => {
+  test('the header authored as data shows its elements, and its FAB and toolbar run their flows', async ({ page }) => {
+    const problems: string[] = [];
+    page.on('console', (m) => {
+      if (m.text().includes('no component on the page handles it')) problems.push(m.text());
+    });
+    page.on('pageerror', (e) => problems.push('pageerror: ' + e.message));
+    await page.goto('/yaml-page');
+    await expect(page.getByRole('heading', { name: 'Requisition 4471' })).toBeVisible();
+    await expect(page.getByText('Requisitions', { exact: true })).toBeVisible();
+    await expect(page.getByText('Pending approval')).toBeVisible();
+    await expect(page.getByText('Last updated 2026-07-20 12:00')).toBeVisible();
+    await expect(page.getByText('1,240 €')).toBeVisible();
+    await expect(page.getByText('Static banner text')).toBeVisible();
+    const heard = page.evaluate(() => new Promise<string[]>((resolve) => {
+      const got: string[] = [];
+      const on = (e: Event) => { got.push(e.type); if (got.length === 2) resolve(got); };
+      document.addEventListener('yaml-page-fab', on);
+      document.addEventListener('yaml-page-warn', on);
+    }));
+    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Warn' }).click();
+    expect((await heard).sort()).toEqual(['yaml-page-fab', 'yaml-page-warn']);
+    expect(problems).toEqual([]);
+  });
+});
