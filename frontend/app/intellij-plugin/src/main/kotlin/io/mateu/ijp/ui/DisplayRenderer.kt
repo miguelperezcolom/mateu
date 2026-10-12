@@ -1053,6 +1053,10 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
         for (item in group.arr("items")) {
             val id = item.text("id")
             val card = verticalPanel(2)
+            // The border BEFORE the card is stacked: addStacked caps its height at the preferred
+            // height it has then, and restyle() adding the 9px frame afterwards clipped the caption
+            // line (both frames — selected and not — are 9px a side, so the cap stays right).
+            card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(8))
             card.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
             val foot = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
             val caption = item.text("caption")

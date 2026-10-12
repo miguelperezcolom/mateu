@@ -152,6 +152,16 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertEquals(listOf("newOrder", "review"), server.actionIds())
     }
 
+    fun testTaskQueueCardsAreNotCappedBelowTheirOwnHeight() {
+        // the card's height cap was taken before its frame was set: the caption line was clipped
+        val queue = render(context(), """{"type":"TaskQueue","actionId":"pick","groups":[{"label":"3 items",
+            "items":[{"id":"h1","title":"Riu Palace","caption":"Palma"},{"id":"h2","title":"Riu Plaza","caption":"Madrid","selected":true}]}]}""")
+        val cards = all(queue).filterIsInstance<javax.swing.JPanel>()
+            .filter { it.accessibleContext.accessibleName?.startsWith("Riu ") == true }.toList()
+        assertEquals(2, cards.size)
+        for (card in cards) assertTrue(card.accessibleContext.accessibleName, card.maximumSize.height >= card.preferredSize.height)
+    }
+
     fun testEntityHeaderAndMeter() {
         val header = render(context(), """{"type":"EntityHeader","title":"ACME Corp","subtitle":"Customer since 2019",
             "badges":[{"label":"VIP","color":"success"}],"facts":[{"label":"Country","value":"Spain"}],"metricValue":"1.2M","metricLabel":"Revenue"}""")
