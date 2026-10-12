@@ -104,6 +104,9 @@ const CHILDREN_KEY: Record<string, string> = {
     Scoreboard: 'metrics',
     TabLayout: 'tabs',
     Tab: 'content',
+    // NoticeMapper lifts a notice's `content` (any components inside the tinted strip) the same way:
+    // left in metadata, a statically bundled notice lost them (expandDisplayGallery.test.ts).
+    Notice: 'content',
 }
 
 // Authored listing types → the wire `Crud` component. Pinned by the Java golden
@@ -170,6 +173,7 @@ export function expandComponent(authored: FluentNode): Component {
         // HeroSectionMapper: `auto` is the default look, so nothing travels
         delete metadata.tone
     }
+    if (type === 'MatrixGrid') normalizeMatrix(metadata)
 
     let kids: FluentNode[] = []
     if (CHILDREN_KEY[type]) {
@@ -206,6 +210,28 @@ export function expandComponent(authored: FluentNode): Component {
         metadata,
         children: kids.map(expandComponent),
     } as unknown as ClientSideComponent
+}
+
+/** MatrixGridMapper's two normalisations: a section without an id gets `section<i>` (collapsing is
+ *  keyed by it — two id-less sections folded together), and every row carries exactly one cell per
+ *  column (padded with blanks, cut when long), so a short authored row does not shift the grid. */
+function normalizeMatrix(metadata: Record<string, unknown>): void {
+    const columnCount = Array.isArray(metadata.columns) ? metadata.columns.length : 0
+    if (!Array.isArray(metadata.sections)) return
+    metadata.sections = (metadata.sections as Record<string, unknown>[]).map((section, i) => ({
+        ...section,
+        id: typeof section.id === 'string' && section.id.trim() !== '' ? section.id : `section${i}`,
+        rows: (Array.isArray(section.rows) ? section.rows as Record<string, unknown>[] : []).map((row) => {
+            const cells = Array.isArray(row.cells) ? row.cells as Record<string, unknown>[] : []
+            return {
+                ...row,
+                cells: Array.from({ length: columnCount }, (_, c) => {
+                    const cell = cells[c]
+                    return cell ? { ...cell, value: cell.value ?? '' } : { value: '', link: false }
+                }),
+            }
+        }),
+    }))
 }
 
 const isAuthoredNode = (v: unknown): v is FluentNode =>

@@ -1,0 +1,2245 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ServerSide",
+      "id" : "ab6a4544-e11b-4c17-85f9-b56085ec1463",
+      "serverSideType" : "io.mateu.core.application.runaction.SeededYamlPage",
+      "route" : "_empty",
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "VerticalLayout",
+          "spacing" : false,
+          "padding" : false,
+          "margin" : false,
+          "spacingVariant" : null,
+          "horizontalAlignment" : null,
+          "justification" : null,
+          "wrap" : false,
+          "flexGrows" : null,
+          "fullWidth" : false,
+          "style" : null
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "EntityHeader",
+            "title" : "Ada Lovelace",
+            "badges" : [ {
+              "label" : "VIP",
+              "color" : null
+            } ],
+            "subtitle" : "Analyst",
+            "facts" : [ {
+              "label" : "Since",
+              "value" : "2019"
+            } ],
+            "metricLabel" : "Balance",
+            "metricValue" : "1,240 €",
+            "metricCaption" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "h2",
+            "attributes" : { },
+            "text" : "A large heading",
+            "size" : "xl",
+            "noMargins" : false
+          },
+          "id" : "b2af1a9a-9070-430e-994f-57797a4ec630",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "A small caption",
+            "size" : "xs",
+            "noMargins" : true
+          },
+          "id" : "8c1065de-28d1-4275-a7e7-dd0cce0ca5ac",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Markdown",
+            "markdown" : "**Bold** and a [link](https://example.com)"
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Image",
+            "src" : "/images/logo.png"
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Badge",
+            "text" : "Active",
+            "iconOnLeft" : null,
+            "iconOnRight" : null,
+            "color" : "success",
+            "primary" : false,
+            "small" : false,
+            "pill" : true
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Avatar",
+            "name" : "Ada Lovelace",
+            "abbreviation" : null,
+            "image" : null
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "AvatarGroup",
+            "avatars" : [ {
+              "type" : "Avatar",
+              "name" : "Ada Lovelace",
+              "abbreviation" : null,
+              "image" : null
+            }, {
+              "type" : "Avatar",
+              "name" : "Grace Hopper",
+              "abbreviation" : null,
+              "image" : null
+            }, {
+              "type" : "Avatar",
+              "name" : "Alan Turing",
+              "abbreviation" : null,
+              "image" : null
+            } ],
+            "maxItemsVisible" : 2
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Card",
+            "media" : null,
+            "headerPrefix" : null,
+            "header" : null,
+            "title" : {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "A card",
+                "size" : null,
+                "noMargins" : false
+              },
+              "id" : "1af60c17-8af3-4aea-91f7-13e06d18aabd",
+              "children" : [ ],
+              "style" : null,
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            },
+            "subtitle" : null,
+            "headerSuffix" : null,
+            "content" : {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "Card body",
+                "size" : null,
+                "noMargins" : false
+              },
+              "id" : "b4617d54-31d5-4f3c-8a47-4a2853f90df3",
+              "children" : [ ],
+              "style" : null,
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            },
+            "footer" : null,
+            "variants" : [ "outlined" ]
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Chart",
+            "chartType" : "bar",
+            "chartData" : {
+              "labels" : [ "Q1", "Q2" ],
+              "datasets" : [ {
+                "label" : "Sales",
+                "data" : [ 10.0, 20.0 ]
+              } ]
+            },
+            "chartOptions" : null
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "TrendChart",
+            "title" : "Revenue",
+            "values" : [ 1.0, 3.0, 2.0, 5.0 ],
+            "labels" : [ "Jan", "Feb", "Mar", "Apr" ],
+            "color" : null,
+            "area" : false
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Funnel",
+            "stages" : [ {
+              "label" : "Visits",
+              "value" : 1000.0,
+              "color" : null
+            }, {
+              "label" : "Leads",
+              "value" : 120.0,
+              "color" : null
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Heatmap",
+            "cells" : [ {
+              "date" : "2026-10-01",
+              "value" : 3.0,
+              "label" : null
+            }, {
+              "date" : "2026-10-02",
+              "value" : 7.0,
+              "label" : null
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Gantt",
+            "tasks" : [ {
+              "id" : "t1",
+              "title" : "Design",
+              "start" : "2026-10-01",
+              "end" : "2026-10-10",
+              "progress" : 50.0,
+              "color" : null
+            } ],
+            "onTaskSelectionActionId" : "pickTask"
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Kanban",
+            "columns" : [ {
+              "id" : "todo",
+              "title" : "To do",
+              "color" : null,
+              "cards" : [ {
+                "id" : "k1",
+                "title" : "Write docs",
+                "description" : null,
+                "badge" : null,
+                "color" : null,
+                "actionId" : "openCard"
+              } ]
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "PlanningBoard",
+            "resources" : [ {
+              "id" : "r101",
+              "label" : "Room 101",
+              "group" : null,
+              "attributes" : [ ],
+              "icon" : null
+            } ],
+            "blocks" : [ {
+              "id" : "b1",
+              "resourceId" : "r101",
+              "start" : "2026-10-02",
+              "end" : "2026-10-04",
+              "label" : "Smith",
+              "color" : null,
+              "status" : null,
+              "icon" : null,
+              "summary" : null
+            } ],
+            "from" : "2026-10-01",
+            "to" : "2026-10-07",
+            "moveActionId" : "moveBlock",
+            "selectActionId" : "pickBlock",
+            "attributeColumns" : [ ],
+            "resizeActionId" : null,
+            "openActionId" : null,
+            "rangeSelectActionId" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "MatrixGrid",
+            "rowHeaderLabel" : "Type",
+            "columns" : [ {
+              "id" : "d1",
+              "label" : "1",
+              "group" : "October",
+              "tone" : null
+            }, {
+              "id" : "d2",
+              "label" : "2",
+              "group" : "October",
+              "tone" : null
+            } ],
+            "sections" : [ {
+              "id" : "section0",
+              "title" : "Rooms",
+              "collapsed" : false,
+              "rows" : [ {
+                "id" : "dbl",
+                "label" : "Double",
+                "cells" : [ {
+                  "value" : "4",
+                  "tone" : null,
+                  "link" : false
+                }, {
+                  "value" : "2",
+                  "tone" : null,
+                  "link" : true
+                } ],
+                "editable" : true,
+                "emphasis" : false
+              } ]
+            } ],
+            "cellActionId" : "openCell",
+            "editActionId" : "editCell"
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "ActionPanel",
+            "label" : "I want to…",
+            "shortcut" : null,
+            "categories" : [ {
+              "title" : "Booking",
+              "actions" : [ {
+                "label" : "Cancel booking",
+                "actionId" : "cancelBooking",
+                "parameters" : null,
+                "count" : null,
+                "populated" : true,
+                "disabled" : false
+              } ]
+            } ],
+            "maxPerCategory" : 10,
+            "hideUnpopulatedToggle" : false
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Map",
+            "position" : null,
+            "zoom" : null,
+            "markers" : [ {
+              "id" : "m1",
+              "latitude" : 39.57,
+              "longitude" : 2.65,
+              "label" : "Palma",
+              "description" : null,
+              "color" : null
+            } ],
+            "markerActionId" : "openMarker",
+            "tileUrl" : null,
+            "attribution" : null
+          },
+          "id" : "map",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Timeline",
+            "items" : [ {
+              "id" : "e1",
+              "title" : "Created",
+              "description" : null,
+              "timestamp" : "2026-10-01 10:00",
+              "icon" : null,
+              "color" : null,
+              "actionId" : null
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "OrgChart",
+            "root" : {
+              "id" : "ceo",
+              "title" : "CEO",
+              "subtitle" : null,
+              "avatar" : null,
+              "color" : null,
+              "actionId" : null,
+              "children" : [ {
+                "id" : "cto",
+                "title" : "CTO",
+                "subtitle" : null,
+                "avatar" : null,
+                "color" : null,
+                "actionId" : null,
+                "children" : [ ]
+              } ]
+            }
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Bpmn",
+            "xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" id=\"d\"><bpmn:process id=\"p\"><bpmn:startEvent id=\"s\"/></bpmn:process></bpmn:definitions>"
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "StatusList",
+            "items" : [ {
+              "id" : "s1",
+              "icon" : null,
+              "avatar" : null,
+              "title" : "Payment",
+              "description" : null,
+              "status" : "Done",
+              "statusColor" : "success",
+              "actionLabel" : null,
+              "actionId" : null,
+              "actionLabel2" : null,
+              "actionId2" : null,
+              "actionLabel3" : null,
+              "actionId3" : null,
+              "actionIcon" : null,
+              "actionIcon2" : null,
+              "actionIcon3" : null,
+              "lines" : null
+            } ],
+            "compact" : false,
+            "frameless" : false,
+            "rowActionId" : null,
+            "columns" : 0,
+            "itemHeadingLevel" : 0
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "BulletedList",
+            "items" : [ "Sea view", "Late check-out" ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Faq",
+            "items" : [ {
+              "question" : "Can I cancel?",
+              "answer" : "Yes, until 24h before.",
+              "open" : false
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "PricingTable",
+            "plans" : [ {
+              "id" : "basic",
+              "name" : "Basic",
+              "price" : "9 €",
+              "period" : "month",
+              "featured" : false,
+              "features" : [ "One user" ],
+              "ctaLabel" : "Choose",
+              "actionId" : "choosePlan"
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "OfferCard",
+            "tag" : null,
+            "title" : "Breakfast",
+            "subtitle" : null,
+            "image" : null,
+            "features" : [ ],
+            "priceLabel" : "12 €",
+            "actionLabel" : "Add",
+            "actionId" : "addOffer",
+            "current" : false,
+            "currentLabel" : null,
+            "added" : false,
+            "addedLabel" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Testimonials",
+            "items" : [ {
+              "quote" : "Great stay",
+              "author" : "Ada",
+              "role" : null,
+              "avatar" : null,
+              "rating" : 5
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "FeatureGrid",
+            "features" : [ {
+              "icon" : "⚡",
+              "title" : "Fast",
+              "description" : "Very fast",
+              "actionId" : null
+            } ],
+            "columns" : 2
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "ProgressBar",
+            "indeterminate" : false,
+            "min" : 0,
+            "max" : 0,
+            "value" : 0.4,
+            "valueKey" : null,
+            "text" : "40 %",
+            "theme" : null
+          },
+          "id" : "fieldId",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "ProgressSteps",
+            "steps" : [ {
+              "id" : null,
+              "title" : "Order",
+              "description" : null,
+              "status" : "done"
+            }, {
+              "id" : null,
+              "title" : "Pay",
+              "description" : null,
+              "status" : "current"
+            }, {
+              "id" : null,
+              "title" : "Ship",
+              "description" : null,
+              "status" : null
+            } ],
+            "vertical" : false
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Meter",
+            "label" : "Occupancy",
+            "value" : 72.0,
+            "max" : 100.0,
+            "unit" : "%",
+            "caption" : null,
+            "warnAt" : null,
+            "dangerAt" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "EmptyState",
+            "icon" : "📭",
+            "title" : "Nothing here",
+            "description" : "No bookings yet",
+            "actionId" : "newBooking",
+            "actionLabel" : "New booking"
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Skeleton",
+            "variant" : "card",
+            "count" : 2
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Notice",
+            "text" : "Two complaints pending",
+            "theme" : "warning",
+            "icon" : null,
+            "noIcon" : false,
+            "actionLabel" : "Review",
+            "actionId" : "reviewComplaints",
+            "status" : null,
+            "slim" : false,
+            "fullWidth" : false,
+            "inlineContent" : false
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Inside the notice",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "ebae0851-bbb7-4f69-a5f9-18e19a760f2c",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "CalloutCard",
+            "title" : "Upgrade",
+            "description" : "Get more rooms",
+            "icon" : null,
+            "ctaLabel" : "Upgrade now",
+            "actionId" : "upgrade",
+            "theme" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Separator",
+            "attributes" : { }
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "HeroSection",
+            "title" : "Welcome",
+            "subtitle" : "Find your stay",
+            "image" : null,
+            "height" : null,
+            "centered" : true,
+            "tone" : null
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Inside the hero",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "52fa2081-2d0a-43c7-ba5e-dd48e56f525e",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Stat",
+            "label" : "Arrivals",
+            "value" : "12",
+            "unit" : null,
+            "delta" : "+3",
+            "trend" : "up",
+            "spark" : [ ],
+            "actionId" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "ComparisonCard",
+            "title" : "Revenue",
+            "leftLabel" : "This year",
+            "leftValue" : "1.2M",
+            "rightLabel" : "Last year",
+            "rightValue" : "1.0M",
+            "delta" : null,
+            "trend" : null
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Scoreboard"
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "MetricCard",
+              "title" : "Revenue",
+              "value" : "1.2M",
+              "unit" : null,
+              "trend" : "up",
+              "trendLabel" : null,
+              "icon" : null,
+              "description" : null,
+              "actionId" : "drillRevenue",
+              "timeframe" : null
+            },
+            "id" : null,
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "DashboardLayout",
+            "columns" : 2
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "DashboardPanel",
+              "title" : "Panel",
+              "subtitle" : null,
+              "colSpan" : 1,
+              "rowSpan" : 0
+            },
+            "id" : null,
+            "children" : [ {
+              "type" : "ClientSide",
+              "metadata" : {
+                "type" : "Text",
+                "container" : "div",
+                "attributes" : { },
+                "text" : "Inside the panel",
+                "size" : null,
+                "noMargins" : false
+              },
+              "id" : "a0efd3ea-3f08-490a-806b-f3a8d0cb6dc5",
+              "children" : [ ],
+              "style" : null,
+              "cssClasses" : null,
+              "slot" : null,
+              "sizing" : null
+            } ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Calendar",
+            "month" : "2026-10-01",
+            "events" : [ {
+              "id" : "ev1",
+              "title" : "Meeting",
+              "date" : "2026-10-05",
+              "endDate" : null,
+              "startTime" : "10:00",
+              "endTime" : null,
+              "color" : null,
+              "actionId" : null
+            } ],
+            "view" : "month",
+            "views" : [ "month", "week", "day", "list" ],
+            "days" : [ {
+              "date" : "2026-10-12",
+              "label" : "Holiday",
+              "tone" : "warning"
+            } ],
+            "dayActionId" : "openDay"
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "TaskQueue",
+            "actionId" : "openItem",
+            "groups" : [ {
+              "label" : "Today",
+              "items" : [ {
+                "id" : "q1",
+                "title" : "Call Ada",
+                "caption" : "10:00",
+                "badges" : [ ],
+                "selected" : false,
+                "actionLabel" : null,
+                "actionId" : null
+              } ]
+            } ]
+          },
+          "id" : null,
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "CustomComponent",
+            "name" : "x-gallery-widget",
+            "props" : {
+              "greeting" : "hello"
+            }
+          },
+          "id" : null,
+          "children" : [ {
+            "type" : "ClientSide",
+            "metadata" : {
+              "type" : "Text",
+              "container" : "div",
+              "attributes" : { },
+              "text" : "Inside the custom component",
+              "size" : null,
+              "noMargins" : false
+            },
+            "id" : "972588c1-2e27-4687-b2fd-0a0e423b0b58",
+            "children" : [ ],
+            "style" : null,
+            "cssClasses" : null,
+            "slot" : null,
+            "sizing" : null
+          } ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "initialData" : { },
+      "style" : "max-width:900px;margin: auto;",
+      "cssClasses" : null,
+      "actions" : [ {
+        "id" : "nested-form-action-catalog-sources_create",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_create-and-stay",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_add",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_select",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_selected",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_prev",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_next",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_save",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_remove",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_move-up",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_move-down",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "nested-form-action-catalog-sources_cancel",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "pickTask",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "openCard",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "moveBlock",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "pickBlock",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "openCell",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "editCell",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "cancelBooking",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "openMarker",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "choosePlan",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "addOffer",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "newBooking",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "reviewComplaints",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "upgrade",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "drillRevenue",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "openDay",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "openItem",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : [ {
+          "targetComponentId" : null,
+          "type" : "DispatchEvent",
+          "data" : {
+            "eventName" : "gallery-picked",
+            "detail" : null
+          }
+        } ]
+      }, {
+        "id" : "declaredActions_create",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_create-and-stay",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_add",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_select",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_selected",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_prev",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_next",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_save",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_remove",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_move-up",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_move-down",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredActions_cancel",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_create",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_create-and-stay",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_add",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_select",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_selected",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_prev",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_next",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_save",
+        "validationRequired" : true,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_remove",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_move-up",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_move-down",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      }, {
+        "id" : "declaredTriggers_cancel",
+        "validationRequired" : false,
+        "confirmationRequired" : false,
+        "rowsSelectedRequired" : false,
+        "confirmationTexts" : null,
+        "modalStyle" : null,
+        "modalTitle" : null,
+        "customEvent" : null,
+        "href" : null,
+        "js" : null,
+        "background" : false,
+        "sse" : false,
+        "fieldsToValidate" : null,
+        "bubble" : false,
+        "shortcut" : null,
+        "timeoutMillis" : 0,
+        "idempotent" : false,
+        "restAction" : null,
+        "commands" : null
+      } ],
+      "triggers" : [ ],
+      "rules" : [ ],
+      "validations" : [ ],
+      "slot" : null,
+      "containerId" : null,
+      "confirmOnNavigationIfDirty" : false,
+      "emitsName" : null,
+      "pageWidth" : null,
+      "pageType" : "form",
+      "staticView" : false,
+      "structureHash" : "8467b01a6f66363da8bff60aee6ad867a5656e12eaedf7bc57f09ec8f0ac7834"
+    },
+    "state" : { },
+    "data" : { },
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}
