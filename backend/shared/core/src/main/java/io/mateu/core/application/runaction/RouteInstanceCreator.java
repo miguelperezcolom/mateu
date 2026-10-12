@@ -74,6 +74,33 @@ public class RouteInstanceCreator {
   }
 
   /**
+   * The class of the root mount ({@code @UI("")}): through the routed-class providers (the MVC and
+   * Micronaut processors), else through the pre-compiled mount resolvers (WebFlux, Quarkus,
+   * Helidon), which the providers do not know about. Null when there is no root class.
+   */
+  public Class<?> rootClass(RunActionCommand command) {
+    var viaProviders = routedClassResolver.resolve("", command).orElse(null);
+    if (viaProviders != null && viaProviders.resolvedClass() != null) {
+      return viaProviders.resolvedClass();
+    }
+    if (routeResolvers != null) {
+      for (var candidate : List.of("", "/")) {
+        for (var resolver : routeResolvers) {
+          if (resolver.supportsRoute(candidate, io.mateu.uidl.RouteConstants.NO_PARENT_ROUTE)) {
+            var resolved =
+                resolver.resolveRoute(
+                    candidate, io.mateu.uidl.RouteConstants.NO_PARENT_ROUTE, command.httpRequest());
+            if (resolved != null) {
+              return resolved;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Resolves a route segment to an App / RouteResolver class (shortest-first favoured by {@link
    * #findRouteResolver}). Returns the instantiated app after remote-menu resolution so the UI can
    * use it as the next serverSideType.

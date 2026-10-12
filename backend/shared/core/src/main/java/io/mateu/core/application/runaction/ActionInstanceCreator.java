@@ -135,13 +135,14 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     try {
-      var root = routedClassResolver.resolve("", command).orElse(null);
-      if (root == null
-          || root.resolvedClass() == null
-          || !isApp(root.resolvedClass(), command.route())) {
+      // through the pre-compiled mount resolvers too: on WebFlux/Quarkus/Helidon the root @UI is
+      // not a routed-class provider, so a Redwood shell's content load (route only) of a menu page
+      // answered "Page not found"
+      var root = routeInstanceCreator.rootClass(command);
+      if (root == null || !isApp(root, command.route())) {
         return Mono.empty();
       }
-      return instantiateWithKnownType(command.withServerSideType(root.resolvedClass().getName()));
+      return instantiateWithKnownType(command.withServerSideType(root.getName()));
     } catch (Throwable t) {
       log.debug("rootAppMenuContent {}: {}", command.route(), t.toString());
       return Mono.empty();
