@@ -559,6 +559,28 @@ class WireConformanceTest {
     public String email = "ada@example.com";
   }
 
+  /**
+   * The access annotations as an ANONYMOUS caller sees them: the {@code @EyesOnly} field is not on
+   * the wire at all, the {@code @ReadOnlyUnless} one is read-only and the {@code @DisabledUnless}
+   * button disabled. The security half of the wire, pinned across the three servers.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/access-annotations")
+  @Title("Access annotations")
+  public static class AccessAnnotations {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.EyesOnly(roles = "hr")
+    public String salary = "100k";
+
+    @io.mateu.uidl.annotations.ReadOnlyUnless(roles = "manager")
+    public String notes = "n/a";
+
+    @io.mateu.uidl.annotations.Button
+    @io.mateu.uidl.annotations.DisabledUnless(roles = "manager")
+    public void approve() {}
+  }
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -585,7 +607,8 @@ class WireConformanceTest {
           "toc",
           "grid-field",
           "status-list",
-          "compact");
+          "compact",
+          "access-annotations");
 
   static TestMateu mateu;
 
@@ -617,7 +640,8 @@ class WireConformanceTest {
             TocPage.class,
             GridField.class,
             StatusListPage.class,
-            CompactPage.class);
+            CompactPage.class,
+            AccessAnnotations.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -739,6 +763,18 @@ class WireConformanceTest {
       assertThat(actual)
           .as("case '%s' — the reference no longer produces what the corpus pins", name)
           .isEqualTo(MAPPER.readTree(Files.readString(file)));
+    }
+  }
+
+  /**
+   * Every case of the corpus is rendered here: a case directory without a Java fixture would be a
+   * spec no reference produces, checked (or silently skipped) by the ports alone.
+   */
+  @Test
+  void everyCaseOfTheCorpusHasAFixture() throws IOException {
+    try (var dirs = Files.list(corpus())) {
+      assertThat(dirs.filter(Files::isDirectory).map(d -> d.getFileName().toString()))
+          .containsExactlyInAnyOrderElementsOf(CASES);
     }
   }
 

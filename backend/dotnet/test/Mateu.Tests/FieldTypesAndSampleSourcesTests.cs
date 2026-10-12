@@ -213,8 +213,10 @@ public class FieldTypesAndSampleSourcesTests
     [Fact]
     public async Task Without_the_opt_in_the_endpoint_is_called_for_real()
     {
-        // 127.0.0.1:1 refuses: a real call fails and answers the empty object
-        Assert.Equal("{}", Fetched(await RestFetch(Sampled(mock: false), "load")));
+        // 127.0.0.1:1 refuses: a real call fails, and the failure is surfaced (not an empty success)
+        var increment = await RestFetch(Sampled(mock: false), "load");
+        Assert.Equal("{\"status\":0,\"message\":\"Request failed\"}",
+            JsonSerializer.Serialize(((Dictionary<string, object?>)increment.AppData!)["_restfetchError"], Json));
     }
 
     [Fact]

@@ -45,6 +45,16 @@ public sealed class MateuOptions
     /// app metadata — the browser's direct one. Null (the default) reads the environment variable
     /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
     public bool? MockSources { get; set; }
+
+    /// <summary>Serve the native MCP endpoint <c>POST /mateu/mcp</c>. Null (the default) reads the
+    /// environment variable <c>MATEU_MCP_ENABLED</c> (<c>true</c>/<c>1</c>); otherwise it is OFF, as
+    /// on Java (<c>mateu.mcp.enabled</c>): it gives any caller a programmatic way to drive every
+    /// screen, which the application has to decide to expose.</summary>
+    public bool? Mcp { get; set; }
+
+    /// <summary>Whether <c>MATEU_MCP_ENABLED</c> turns the MCP endpoint on (true/1/yes).</summary>
+    public static bool McpEnabledByEnvironment() =>
+        System.Environment.GetEnvironmentVariable("MATEU_MCP_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so

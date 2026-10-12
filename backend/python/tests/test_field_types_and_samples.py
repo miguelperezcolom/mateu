@@ -269,8 +269,10 @@ def restfetch(h: SyncHandler, action_id: str) -> dict:
 
 def test_without_the_opt_in_the_endpoint_is_called_for_real(specs, monkeypatch):
     monkeypatch.delenv("MATEU_SOURCES_MOCK", raising=False)
-    # the closed endpoint is called and fails → the empty object of a failed proxy fetch
-    assert restfetch(handler(specs), "load") == {"_restfetch": {}}
+    # the closed endpoint is called and fails → the failure is surfaced, not mistaken for success
+    assert restfetch(handler(specs), "load") == {
+        "_restfetchError": {"status": 0, "message": "Request failed"}
+    }
 
 
 def test_with_the_opt_in_a_read_answers_with_the_sample(specs, monkeypatch):

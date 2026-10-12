@@ -15,12 +15,26 @@ public sealed class McpService
     readonly SyncHandler _handler;
     readonly JsonSerializerOptions _json;
     readonly string? _requestBaseUrl;
+    readonly Func<RunActionRqDto, UIIncrementDto>? _run;
 
     public McpService(SyncHandler handler, JsonSerializerOptions json, string? requestBaseUrl = null)
+        : this(handler, json, requestBaseUrl, null)
+    {
+    }
+
+    /// <param name="handler">The handler tool calls run against.</param>
+    /// <param name="json">The wire's JSON options.</param>
+    /// <param name="requestBaseUrl">The base url of the request in flight.</param>
+    /// <param name="run">How a tool call runs a request; null → the handler directly. The ASP.NET
+    /// endpoint passes the same error boundary the sync endpoint applies, so a failing action answers
+    /// the generic message + reference instead of its raw exception text.</param>
+    public McpService(SyncHandler handler, JsonSerializerOptions json, string? requestBaseUrl,
+        Func<RunActionRqDto, UIIncrementDto>? run)
     {
         _handler = handler;
         _json = json;
         _requestBaseUrl = requestBaseUrl;
+        _run = run;
     }
 
     /// <summary>Load a screen (route) → flat projection. The load is dispatched as actionId "".</summary>
@@ -114,7 +128,7 @@ public sealed class McpService
 
     JsonNode? Sync(RunActionRqDto rq)
     {
-        var increment = _handler.Handle(rq, _requestBaseUrl);
+        var increment = _run is not null ? _run(rq) : _handler.Handle(rq, _requestBaseUrl);
         return JsonSerializer.SerializeToNode(increment, _json);
     }
 }

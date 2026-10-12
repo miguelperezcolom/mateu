@@ -21,6 +21,22 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesARestrictedActionToAnAnonymousCaller() {
+    contract.refusesARestrictedActionToAnAnonymousCaller();
+  }
+
+  @Test
+  @io.quarkus.test.security.TestSecurity(user = "parity-user", roles = "admin")
+  void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
+    contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(java.util.Map.of());
+  }
+
+  @Test
+  void answersAnUnexpectedErrorWithAReferenceNeverItsMessage() {
+    contract.answersAnUnexpectedErrorWithAReferenceNeverItsMessage();
+  }
+
+  @Test
   void aForgedBearerTokenRevealsNothing() {
     contract.aForgedBearerTokenRevealsNothing();
   }

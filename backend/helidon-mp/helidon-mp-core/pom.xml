@@ -16,6 +16,9 @@
     <description>Runtime of the Mateu adapter for Helidon MicroProfile (JAX-RS/Jersey + CDI/Weld).</description>
 
     <properties>
+        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 70.1%
+             (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
+        <jacoco.min.bundle.coverage>68%</jacoco.min.bundle.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- The Helidon line the adapter is built and tested against — the SAME one the e2e SUT
              (e2e/sut/apps/helidon-app1) runs on. Every Helidon/Jakarta artifact comes from its BOM

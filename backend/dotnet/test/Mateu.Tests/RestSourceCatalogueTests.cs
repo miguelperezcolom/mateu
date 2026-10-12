@@ -203,7 +203,9 @@ public class RestSourceCatalogueTests
         var increment = await Handler(RestSourceCatalog.Empty, new HttpClient(fake))
             .HandleAsync(RestFetch("by-ref-sources", "options", "partner"));
         Assert.Empty(fake.Urls);
-        Assert.Equal("{}", Fetched(increment));
+        // nothing to call: the misconfiguration is surfaced (as on Java), not read as an empty success
+        Assert.Equal("{\"status\":0,\"message\":\"Request failed\"}",
+            JsonSerializer.Serialize(((Dictionary<string, object?>)increment.AppData!)["_restfetchError"]));
     }
 
     [Fact]
