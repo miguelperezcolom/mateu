@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { buttonA11y } from '../a11y/a11y';
 import { stripHtml } from './htmlText';
+import { inlineSpans } from './markdownInline';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
  *  color, image upload, money text, light markdown) — dependency-free except expo-image-picker. */
@@ -302,13 +303,16 @@ export function RichText({ value, kind }: { value: string; kind: 'markdown' | 'h
 
 function renderInline(line: string, kind: string): React.ReactNode {
   if (kind !== 'markdown') return line;
-  // **bold** spans only — the pragmatic subset
-  const parts = line.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith('**') && part.endsWith('**') ? (
-      <Text key={i} style={styles.mdBold}>{part.slice(2, -2)}</Text>
+  // **bold** and [links](url) — the pragmatic subset
+  return inlineSpans(line).map((span, i) =>
+    span.kind === 'bold' ? (
+      <Text key={i} style={styles.mdBold}>{span.text}</Text>
+    ) : span.kind === 'link' ? (
+      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => void Linking.openURL(span.url)}>
+        {span.text}
+      </Text>
     ) : (
-      part
+      span.text
     ),
   );
 }
