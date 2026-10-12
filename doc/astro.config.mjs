@@ -80,6 +80,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'mateu-about/what-is-mateu', label: 'What is Mateu' },
 						{ slug: 'start-here/choose-your-path', label: 'Choose your path' },
+						{ slug: 'concepts/building-blocks', label: 'What a Mateu UI is made of' },
 						{ slug: 'define/yaml/quickstart', label: 'Quickstart: YAML (no code)' },
 						{ slug: 'java-user-manual/start-here/quickstart', label: 'Quickstart: Java' },
 						{ slug: 'csharp-user-manual', label: 'Quickstart: C#' },
@@ -107,16 +108,46 @@ export default defineConfig({
 					label: 'Concepts',
 					items: [
 						{ slug: 'concepts', label: 'Overview' },
-						{ slug: 'mateu-about/the-model', label: 'The model' },
-						{ slug: 'reference/wire-specification', label: 'The wire' },
-						{ slug: 'mateu-about/how-mateu-works', label: 'How Mateu works' },
-						{ slug: 'the-mateu-way', label: 'Pages: the Mateu Way' },
-						{ slug: 'ux-patterns/page-templates', label: 'Page templates' },
-						{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a page template' },
-						{ slug: 'concepts/routes-and-mounts', label: 'Routes & mounts' },
-						{ slug: 'concepts/data-sources', label: 'Data sources' },
-						{ slug: 'concepts/action-catalogue', label: 'Actions' },
-						{ slug: 'authoring-rule', label: 'The authoring rule' },
+						{ slug: 'concepts/building-blocks', label: 'What a Mateu UI is made of' },
+						{
+							label: 'Building blocks',
+							items: [
+								{ slug: 'concepts/routes-and-mounts', label: 'Mounts & routes' },
+								{ slug: 'concepts/app-shell-and-menus', label: 'App shell & menus' },
+								{ slug: 'concepts/pages-and-components', label: 'Pages & components' },
+								{ slug: 'define/yaml/partials', label: 'Partials' },
+								{ slug: 'concepts/action-catalogue', label: 'Actions' },
+								{ slug: 'concepts/data-sources', label: 'Data sources' },
+								{ slug: 'concepts/state-and-triggers', label: 'State, scopes & triggers' },
+								{
+									label: 'Cross-cutting',
+									items: [
+										{ slug: 'java-ui-definition/field-types', label: 'Field types' },
+										{ slug: 'define/yaml/translations', label: 'Translations' },
+										{ slug: 'deploy/environments', label: 'Environments' },
+										{ slug: 'define/yaml/permissions', label: 'Access & permissions' },
+										{ slug: 'define/yaml/project-settings', label: 'Project settings' },
+									],
+								},
+							],
+						},
+						{
+							label: 'Pages & patterns',
+							items: [
+								{ slug: 'the-mateu-way', label: 'Pages: the Mateu Way' },
+								{ slug: 'ux-patterns/page-templates', label: 'Page templates' },
+								{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a page template' },
+							],
+						},
+						{
+							label: 'The model & the wire',
+							items: [
+								{ slug: 'mateu-about/the-model', label: 'The model' },
+								{ slug: 'reference/wire-specification', label: 'The wire' },
+								{ slug: 'mateu-about/how-mateu-works', label: 'How Mateu works' },
+								{ slug: 'authoring-rule', label: 'The authoring rule' },
+							],
+						},
 						{
 							label: 'Federation',
 							items: [
