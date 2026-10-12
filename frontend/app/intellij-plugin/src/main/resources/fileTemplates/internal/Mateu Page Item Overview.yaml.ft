@@ -1,5 +1,6 @@
 # Item overview: key information on the left, the rest of the record in tabs on the right.
 type: HorizontalLayout
+pageType: detail
 __PAGE_WIDTH__
 content:
   - type: Card

@@ -1,5 +1,6 @@
 # Collection detail: the list on the left, the selected item's detail on the right.
 type: HorizontalLayout
+pageType: collection
 __PAGE_WIDTH__
 content:
   - type: VerticalLayout

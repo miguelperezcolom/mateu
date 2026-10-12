@@ -204,7 +204,11 @@ class DispatchMixin(MixinBase):
             # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
             if not yaml_spec.model_view:
                 return self.fragment_response(
-                    rq.route or "", self.mapper.map_component(yaml_spec.layout), rq
+                    rq.route or "",
+                    _with_declared_page_type(
+                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq
+                    ),
+                    rq,
                 )
             type_ = self.registry.type_by_name(yaml_spec.model_view)
         if type_ is None:
@@ -218,9 +222,14 @@ class DispatchMixin(MixinBase):
         # render of this request (Java's LayoutDeltaApplier).
         delta_token = layout_delta.activate(type_, yaml_spec.delta if bound_spec else None)
         try:
-            return self._handle_view(type_, rq, layout_override)
+            increment = self._handle_view(type_, rq, layout_override)
         finally:
             layout_delta.deactivate(delta_token)
+        # A `pageType:` the bound definition declares wins over the inferred one, as its layout does
+        # (Java's ReflectionObjectToComponentMapper.pageTypeOf).
+        if bound_spec and yaml_spec.page_type:
+            increment = _with_page_type_on_view(increment, type_name(type_), yaml_spec.page_type)
+        return increment
 
     def _handle_view(self, type_, rq: RunActionRq, layout_override) -> UIIncrement:
 
@@ -360,3 +369,38 @@ class DispatchMixin(MixinBase):
         if isinstance(clicked, dict) and clicked.get("id") is not None:
             return str(clicked.get("id"))
         return None
+
+
+def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq):
+    """A definition-only page that declares a ``pageType:``: the bare layout carries no page type,
+    so it is wrapped in a server-side page that does (Java's ``ActionInstanceCreator.seedBareLayout``
+    → ``SeededYamlPage``). Undeclared → unchanged."""
+    if not page_type:
+        return layout
+    import re
+
+    from mateu_dtos import ServerSideComponent
+
+    route = (rq.route or "").split("?")[0].strip("/")
+    return ServerSideComponent(
+        id="page_" + re.sub(r"[^A-Za-z0-9_-]", "_", route or "root"),
+        server_side_type="",
+        route="/" + route,
+        children=[layout],
+        page_type=page_type,
+    )
+
+
+def _with_page_type_on_view(increment: UIIncrement, server_side_type: str, page_type: str):
+    """The increment with the bound view's page wrapper carrying the declared page type."""
+    from mateu_dtos import ServerSideComponent
+
+    changed = False
+    fragments = []
+    for fragment in increment.fragments or []:
+        component = fragment.component
+        if isinstance(component, ServerSideComponent) and component.server_side_type == server_side_type:
+            fragment = fragment.model_copy(update={"component": component.model_copy(update={"page_type": page_type})})
+            changed = True
+        fragments.append(fragment)
+    return increment.model_copy(update={"fragments": fragments}) if changed else increment

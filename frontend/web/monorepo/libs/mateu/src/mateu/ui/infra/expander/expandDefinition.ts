@@ -29,6 +29,9 @@ export interface DefinitionSpec {
     modelView?: string
     actions?: unknown[]
     triggers?: unknown[]
+    /** The page's coarse template type — the YAML twin of `@PageTemplate`: landing | collection |
+     *  detail | form | process | dashboard (any case). Declared, it wins over inference. */
+    pageType?: string
     [field: string]: unknown
 }
 
@@ -43,9 +46,22 @@ export function isClientExpandable(spec: DefinitionSpec): boolean {
 
 function layoutOf(spec: DefinitionSpec): FluentNode | undefined {
     if (spec.layout && typeof spec.layout === 'object') return spec.layout
-    // Bare tree: the whole object is the layout, as long as it looks like a component node.
-    if (typeof spec.type === 'string') return spec as unknown as FluentNode
+    // Bare tree: the whole object is the layout, as long as it looks like a component node. Its
+    // `pageType:` is the page's, not the root component's (the server's loader ignores it there).
+    if (typeof spec.type === 'string') {
+        const { pageType: _pageType, ...tree } = spec
+        return tree as unknown as FluentNode
+    }
     return undefined
+}
+
+const PAGE_TYPES = ['landing', 'collection', 'detail', 'form', 'process', 'dashboard']
+
+/** The page type a definition DECLARES, as its wire name — matched without regard to case, an
+ *  unknown value ignored — exactly like the server's `YamlUidlLoader.pageTypeOf`. */
+export function declaredPageType(spec: DefinitionSpec): string | undefined {
+    const raw = typeof spec.pageType === 'string' ? spec.pageType.trim().toLowerCase() : ''
+    return PAGE_TYPES.includes(raw) ? raw : undefined
 }
 
 /** What the route entry adds to its definition when it is expanded (the route, not the screen, owns
@@ -122,7 +138,15 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
         actions.push({ id: '__restdata__', restAction: { source: sourceOf(ctx.data), resultPath: '' } })
         triggers.push({ type: 'OnLoad', actionId: '__restdata__', times: 1 })
     }
-    if (!actions.length && !triggers.length) return component
+    // A declared `pageType:` must reach the page. The renderers read it off the fragment's TOP
+    // component (`pageTypeOf`: the wrapper's, which is just that property), so a page with no
+    // behaviour carries it on its root and stays unwrapped — the visual editor's canvas maps a click
+    // to a definition node through that unwrapped tree. (The server wraps instead —
+    // SeededYamlPage — since its bare ClientSide DTO has no such field; Redwood reads the wrapper.)
+    const pageType = declaredPageType(spec)
+    if (!actions.length && !triggers.length) {
+        return pageType ? ({ ...component, pageType } as unknown as Component) : component
+    }
     const path = ctx.path ?? ''
     return {
         type: ComponentType.ServerSide,
@@ -136,6 +160,7 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
         rules: [],
         validations: [],
         children: [component],
+        ...(pageType ? { pageType } : {}),
     } as unknown as Component
 }
 

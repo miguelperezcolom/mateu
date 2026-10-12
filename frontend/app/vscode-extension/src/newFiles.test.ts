@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { parse } from 'yaml'
 import {
     fileNameOf,
+    fileNameProblem,
     loadCatalogue,
     pageFileName,
     render,
@@ -11,6 +12,7 @@ import {
     templateText,
     templatesRoot,
     titleOf,
+    uniqueBaseName,
     yamlScalar,
 } from './newFiles'
 
@@ -50,6 +52,34 @@ describe('New › Mateu catalogue', () => {
                 else expect(doc.style).toBeUndefined()
             }
         }
+    })
+})
+
+describe('page templates declare their page type', () => {
+    it('every template states the pageType of its family (the blank layout leaves it to inference)', () => {
+        for (const t of catalogue.pageTemplates) {
+            const doc = parse(render(templateText(roots.internal, t.template), 'my-page'))
+            expect(doc.pageType, t.id).toBe(t.id === 'blank' ? undefined : t.family)
+        }
+    })
+})
+
+// The rules the name prompt validates INLINE (and re-asks with when the clash shows up at write time).
+describe('new file name validation', () => {
+    const onDisk = new Set(['/s/ui/form.yaml', '/s/ui/form-2.yaml', '/s/ui/orders.yaml'])
+    const exists = (p: string) => onDisk.has(p)
+
+    it('names what is wrong, and changing the name clears it', () => {
+        expect(fileNameProblem('  ', '/s/ui', exists)).toBe('Enter a file name')
+        expect(fileNameProblem('my page', '/s/ui', exists)).toMatch(/letters, digits/)
+        expect(fileNameProblem('orders', '/s/ui', exists)).toBe('orders.yaml already exists there — choose another name')
+        expect(fileNameProblem('orders.yaml', '/s/ui/', exists)).toMatch(/already exists/)
+        expect(fileNameProblem('orders-archive', '/s/ui', exists)).toBeUndefined()
+    })
+
+    it('a template proposes a free name', () => {
+        expect(uniqueBaseName('form', '/s/ui', exists)).toBe('form-3')
+        expect(uniqueBaseName('dashboard', '/s/ui/', exists)).toBe('dashboard')
     })
 })
 

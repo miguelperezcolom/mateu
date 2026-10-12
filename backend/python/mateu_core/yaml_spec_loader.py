@@ -47,6 +47,8 @@ class Spec:
     source: Any = None
     refused_actions: frozenset = field(default_factory=frozenset)
     locked_fields: frozenset = field(default_factory=frozenset)
+    #: The ``pageType:`` the definition declares (wire name), or None — inferred.
+    page_type: str | None = None
 
     def depends_on_request(self) -> bool:
         return self.source is not None
@@ -145,7 +147,7 @@ class YamlSpecLoader:
                 return None
             self.translations.translate_tree(tree, locale)
             _, layout, delta = parse_spec_tree(tree, self.partials, self.field_types)
-            return Spec(spec.model_view, layout, delta, None, refused, locked)
+            return Spec(spec.model_view, layout, delta, None, refused, locked, spec.page_type)
         except Exception as e:  # noqa: BLE001 - fall back to the shared spec
             _log.warning("Failed to personalise the YAML spec for %s: %s", route, e)
             return spec
@@ -201,7 +203,31 @@ class YamlSpecLoader:
             model_view = entry.view_model or None
         if layout is None and not model_view:
             return None  # a delta with no view model to infer from: nothing to render
-        return Spec(model_view, layout, delta, source)
+        return Spec(model_view, layout, delta, source, page_type=page_type_of(data))
+
+
+_PAGE_TYPES = ("landing", "collection", "detail", "form", "process", "dashboard")
+
+
+def page_type_of(data: Any) -> str | None:
+    """The page type a definition DECLARES (``pageType:`` beside ``layout:``) as its wire name, or
+    None when it declares none — the YAML twin of ``@page_template``: a declared type wins over the
+    shape inference. Matched without regard to case; an unknown value is ignored (logged), so a typo
+    never costs the page (Java's ``YamlUidlLoader.pageTypeOf``)."""
+    if not isinstance(data, dict):
+        return None
+    raw = data.get("pageType")
+    declared = str(raw).strip() if raw is not None else ""
+    if not declared:
+        return None
+    if declared.lower() in _PAGE_TYPES:
+        return declared.lower()
+    _log.warning(
+        "Unknown pageType '%s' ignored (expected landing, collection, detail, form, process or"
+        " dashboard) — the page type is inferred instead",
+        declared,
+    )
+    return None
 
 
 def describe_yaml_error(path, error: Exception) -> str:

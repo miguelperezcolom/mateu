@@ -1,5 +1,6 @@
 # Matrix grid: metric rows in sections against date columns; editable rows run editActionId.
 type: MatrixGrid
+pageType: collection
 __PAGE_WIDTH__
 rowHeaderLabel: __TITLE__
 editActionId: editCell

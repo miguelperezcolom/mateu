@@ -1,6 +1,7 @@
 # A listing: search, a filter, sorting and paging over the rows of the `products` source (see
 # sources.yaml). Open it in the Mateu visual editor (IntelliJ or VS Code) to edit it on a canvas.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+pageType: collection
 type: Listing
 title: Products
 pageSize: 10

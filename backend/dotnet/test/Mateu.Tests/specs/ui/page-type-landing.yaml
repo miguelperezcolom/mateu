@@ -1,0 +1,8 @@
+# A definition-only page that DECLARES its page type — the YAML twin of [PageTemplate].
+# Used by YamlPageTypeTests.
+pageType: Landing
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "Welcome"

@@ -1,6 +1,7 @@
 # Listing / CRUD page: rows come from a named source in sources.yaml; rowRoute opens the record.
 type: Listing
 title: __TITLE__
+pageType: collection
 __PAGE_WIDTH__
 searchable: true
 gridLayout: table

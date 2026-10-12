@@ -2,18 +2,19 @@ import * as vscode from 'vscode'
 import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-    FILE_NAME_PATTERN,
     baseNameOf,
     fileNameOf,
+    fileNameProblem,
     loadCatalogue,
     pageFileName,
     render,
     targetDir,
     templateText,
     templatesRoot,
+    uniqueBaseName,
 } from './newFiles'
 import { ofKind, registerInMount, relativePath, routeNameOf, setHome, specsRoot, withBasePath } from './routesWizard'
-import { applyRoute, askMakeHome, editFile, scanWorkspace, validateRoute } from './AddRouteCommand'
+import { applyRoute, askMakeHome, editFile, reconfirmRoute, scanWorkspace, validateRoute } from './AddRouteCommand'
 import { hasDescriptor, projectRenderer } from './ProjectSettingsCommand'
 import { coordinatesOf, rendererInfo } from './projectDescriptor'
 
@@ -77,32 +78,32 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
     const wsRoot = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(folder))?.uri.fsPath
     const dir = targetDir(folder, wsRoot, (p) => existsSync(p) && statSync(p).isDirectory())
 
-    const name = await vscode.window.showInputBox({
+    // a page template proposes a FREE name: picking one already used here must not start on an error
+    if (kind.page) defaultName = uniqueBaseName(defaultName, dir, existsSync)
+    const askName = (value: string) => vscode.window.showInputBox({
         title: `New Mateu ${kind.label.replace(/…$/, '')}`,
         prompt: `Created in ${dir}`,
-        value: defaultName,
-        validateInput: (v) => {
-            const n = baseNameOf(v)
-            if (n === '') return 'Enter a file name'
-            if (!FILE_NAME_PATTERN.test(n)) return "Use letters, digits, '.', '-' or '_'"
-            if (existsSync(join(dir, fileNameOf(n)))) return `${fileNameOf(n)} already exists there`
-            return undefined
-        },
+        value,
+        // inline, re-checked on every keystroke: the clash clears as soon as the name changes
+        validateInput: (v) => fileNameProblem(v, dir, existsSync),
     })
+    const name = await askName(defaultName)
     if (name === undefined) return
-    const baseName = baseNameOf(name)
-    const file = join(dir, fileNameOf(baseName))
-    if (existsSync(file)) {
-        vscode.window.showErrorMessage(`${fileNameOf(baseName)} already exists in ${dir}`)
-        return
-    }
-    let text = render(templateText(roots.internal, template), baseName, undefined, style)
+    let baseName = baseNameOf(name)
+    const skeleton = templateText(roots.internal, template)
+    let edits: (t: string) => string = (t) => t
 
     // The specs/ui files around the target: what routes and mounts reference (relative to the root).
     const ws = scanWorkspace(specsRoot(dir))
-    const rel = file.startsWith(`${ws.root}/`) ? file.substring(ws.root.length + 1) : fileNameOf(baseName)
+    const relOf = (n: string) => {
+        const f = join(dir, fileNameOf(n))
+        return f.startsWith(`${ws.root}/`) ? f.substring(ws.root.length + 1) : fileNameOf(n)
+    }
     const title = `New Mateu ${kind.label.replace(/…$/, '')}`
-    let afterCreate: (() => Promise<void>) | null = null
+    // checked right before writing (false = the user gave up); nothing is created when it fails
+    let beforeCreate: (() => Promise<boolean>) | null = null
+    // what to do once the file exists, given its path relative to specs/ui (the name may still change)
+    let afterCreate: ((rel: string) => Promise<void>) | null = null
 
     if (kind.id === 'mount') {
         const renderer = await projectRenderer()
@@ -112,7 +113,7 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
                 ` Renderer: ${rendererInfo(renderer).label} (specs/ui/project.yaml) — the app serving it depends on ${coordinatesOf(renderer)}.`,
         })
         if (home === undefined) return
-        if (home.trim() !== '') text = setHome(text, home)
+        if (home.trim() !== '') edits = (t) => setHome(t, home)
     } else if (kind.id === 'routes') {
         const mounts = ofKind(ws, 'mount')
         let mount: string | null = null
@@ -130,11 +131,13 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
             prompt: 'Base path (optional, ONLY for a class-declared @UI("/shop") mount). Leave empty for a type: UI mount.',
         })
         if (basePath === undefined) return
-        text = withBasePath(text, basePath)
+        edits = (t) => withBasePath(t, basePath)
         if (mount != null) {
             const m = mount
-            const entry = relativePath(m.includes('/') ? m.substring(0, m.lastIndexOf('/')) : '', rel)
-            afterCreate = () => editFile(`${ws.root}/${m}`, (t) => registerInMount(t, entry))
+            afterCreate = (rel) => {
+                const entry = relativePath(m.includes('/') ? m.substring(0, m.lastIndexOf('/')) : '', rel)
+                return editFile(`${ws.root}/${m}`, (t) => registerInMount(t, entry))
+            }
         }
     } else if (kind.page) {
         const routesFiles = ofKind(ws, 'routes').map((f) => f.path)
@@ -149,26 +152,52 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
             if (!pick) return
             const routesRel = pick.routes
             if (routesRel != null) {
-                const route = await vscode.window.showInputBox({
+                let route = await vscode.window.showInputBox({
                     title,
                     prompt: `Route in ${routesRel}, relative to the mount`,
-                    value: routeNameOf(rel),
+                    value: routeNameOf(relOf(baseName)),
                     validateInput: (v) => validateRoute(ws, routesRel, v),
                 })
                 if (route === undefined) return
                 const makeHome = await askMakeHome(ws, routesRel, title)
                 if (makeHome === undefined) return
-                afterCreate = () => applyRoute(ws, routesRel, { route, layout: rel }, makeHome)
+                beforeCreate = async () => {
+                    // a route declared meanwhile is asked again (the reason inline) BEFORE anything
+                    // is written — never a page created without the route it was meant to get
+                    route = await reconfirmRoute(ws, routesRel, route!, title)
+                    return route !== undefined
+                }
+                afterCreate = (rel) => applyRoute(ws, routesRel, { route: route!, layout: rel }, makeHome)
             }
         }
     }
 
+    // A file that appeared since the name was typed does not abort the flow: the name is asked again
+    // (the clash shown inline) and every other choice made so far is kept.
+    if (beforeCreate && !(await beforeCreate())) return
     mkdirSync(dir, { recursive: true })
-    writeFileSync(file, text, { flag: 'wx' })
+    let file = join(dir, fileNameOf(baseName))
+    while (!createExclusive(file, edits(render(skeleton, baseName, undefined, style)))) {
+        const again = await askName(baseName)
+        if (again === undefined) return
+        baseName = baseNameOf(again)
+        file = join(dir, fileNameOf(baseName))
+    }
     try {
-        await afterCreate?.()
+        await afterCreate?.(relOf(baseName))
     } catch (e) {
         vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e))
     }
     await vscode.window.showTextDocument(vscode.Uri.file(file))
+}
+
+/** Create `file` with `text` unless it exists (false then); any other failure throws. */
+function createExclusive(file: string, text: string): boolean {
+    try {
+        writeFileSync(file, text, { flag: 'wx' })
+        return true
+    } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === 'EEXIST') return false
+        throw e
+    }
 }

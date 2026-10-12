@@ -97,7 +97,8 @@ composition.
 ## How the choice is encoded
 
 - **Category** → the `pageType` on the wire (`landing`/`collection`/`detail`/`form`/`process`/
-  `dashboard`). Archetypes declare theirs; set it explicitly with `@PageTemplate(PageType.X)`.
+  `dashboard`). Archetypes declare theirs; set it explicitly with `@PageTemplate(PageType.X)`, or
+  with `pageType:` on a YAML page definition.
 - **Density** → `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)`, or leave it inferred.
 - **Template** → extend the archetype (or set the flag) from Step 3. Everything below is
   composition of wire components that already render on every renderer — except where the

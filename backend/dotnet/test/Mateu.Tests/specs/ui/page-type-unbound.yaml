@@ -1,0 +1,10 @@
+# A definition bound to a view model with NO pageType: the type is inferred (`form`).
+# Used by YamlPageTypeTests.
+viewModel: Mateu.Tests.PageTypePlainView
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: "Name"
+      dataType: string

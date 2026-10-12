@@ -123,7 +123,10 @@ and scrolls internally).
 
 ### Page type & width — [page-templates](/ux-patterns/page-templates/)
 - **`pageType`** (`landing`/`collection`/`detail`/`form`/`process`/`dashboard`) is on every page:
-  `@PageTemplate` wins > archetype family > `MetricCard` field → dashboard > default `form`.
+  `@PageTemplate` (or a YAML definition's `pageType:`) wins > archetype family > `MetricCard` field
+  → dashboard > default `form`. A definition-only page that declares `pageType:` is wrapped in a
+  `ServerSide` page carrying it (a bare layout has nowhere to put it); the browser expander of a
+  `specsOnly` bundle stamps it on the root component instead (`pageTypeOf` reads either).
 - **`pageWidth`** (`fixed`/`fullWidth`/`edgeToEdge`): `@PageWidth` on the view wins > `PageWidthSupplier`
   > null (renderer infers from type/content).
 - **`labelsAside`** is inferred per form: aside only when single-column AND ≥6 fields AND all labels

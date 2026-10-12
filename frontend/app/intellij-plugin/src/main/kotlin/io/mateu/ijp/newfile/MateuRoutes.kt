@@ -140,6 +140,18 @@ object MateuRoutes {
     }
 
     /**
+     * What is wrong with [route] as a NEW entry of the routes file [routesFile] (whose text is
+     * [routesText]) — null when nothing is. Validated inline by the dialogs, so the clash that
+     * [appendRoute] would throw never surfaces after the dialog closed.
+     */
+    fun routeProblem(route: String, routesFile: String, routesText: String): String? {
+        val r = route.trim().trim('/')
+        if (r.contains(Regex("\\s"))) return "A route cannot contain spaces"
+        if (r in existingRoutes(routesText)) return "Route \"$r\" is already declared in $routesFile"
+        return null
+    }
+
+    /**
      * Append one entry to a routes file's `routes:` list. Throws [IllegalArgumentException] when the
      * route is already there or the list cannot be edited safely.
      */

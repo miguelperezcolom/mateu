@@ -42,12 +42,32 @@ record SeededYamlPage(
     Map<String, Object> state,
     List<Action> declaredActions,
     List<Trigger> declaredTriggers,
-    io.mateu.uidl.data.RestSourceCatalog catalog)
+    io.mateu.uidl.data.RestSourceCatalog catalog,
+    String pageType)
     implements ComponentTreeSupplier,
+        io.mateu.core.domain.out.componentmapper.DeclaredPageType,
         StateSupplier,
         ActionSupplier,
         RestSourceSupplier,
         TriggersSupplier {
+
+  SeededYamlPage(
+      Component layout,
+      Map<String, Object> state,
+      List<Action> declaredActions,
+      List<Trigger> declaredTriggers,
+      io.mateu.uidl.data.RestSourceCatalog catalog) {
+    this(layout, state, declaredActions, declaredTriggers, catalog, null);
+  }
+
+  /**
+   * The definition's {@code pageType:} — the YAML twin of {@code @PageTemplate}; null leaves the
+   * page type to inference.
+   */
+  @Override
+  public String declaredPageType() {
+    return pageType;
+  }
 
   SeededYamlPage(Component layout, Map<String, Object> state) {
     this(layout, state, List.of(), List.of(), io.mateu.uidl.data.RestSourceCatalog.empty());

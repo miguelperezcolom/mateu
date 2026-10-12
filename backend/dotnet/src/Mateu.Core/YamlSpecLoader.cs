@@ -37,6 +37,9 @@ public sealed class YamlSpecLoader : ISpecsCache
         public IReadOnlySet<string> LockedFields { get; init; } = new HashSet<string>();
 
         public bool DependsOnRequest => Source is not null;
+
+        /// <summary>The <c>pageType:</c> the definition declares (wire name), or null — inferred.</summary>
+        public string? PageType { get; init; }
     }
 
     private static readonly Spec None = new(null, null);
@@ -151,7 +154,11 @@ public sealed class YamlSpecLoader : ISpecsCache
             // by several routes must NOT name one, or it could only ever serve the class it names.
             if (string.IsNullOrWhiteSpace(modelView) && !string.IsNullOrWhiteSpace(entry?.ViewModel))
                 modelView = entry!.ViewModel;
-            return new Spec(modelView, layout) { Delta = delta, Source = dependsOnRequest ? root : null };
+            return new Spec(modelView, layout)
+            {
+                Delta = delta, Source = dependsOnRequest ? root : null,
+                PageType = YamlComponentBuilder.PageTypeOf(root),
+            };
         }
         catch (Exception e)
         {

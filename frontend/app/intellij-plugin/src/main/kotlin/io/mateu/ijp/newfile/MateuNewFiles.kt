@@ -117,6 +117,61 @@ object MateuNewFiles {
 
     private fun quoted(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
+    /** What a new file's base name may be made of. */
+    val FILE_NAME_PATTERN = Regex("^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+    /**
+     * What is wrong with [name] as the base name of a new file in [dir] — null when nothing is. The
+     * one rule set the New | Mateu dialog validates INLINE (next to the name field, re-checked as the
+     * name changes), so a clash never surfaces after the dialog has closed and lost what was typed.
+     */
+    fun fileNameProblem(name: String, dir: String, exists: (String) -> Boolean): String? {
+        val n = name.trim().removeSuffix(".yaml").removeSuffix(".yml")
+        if (n.isBlank()) return "Enter a file name"
+        if (!FILE_NAME_PATTERN.matches(n)) return "Use letters, digits, '.', '-' or '_'"
+        val file = fileNameOf(n)
+        if (exists("${dir.trimEnd('/')}/$file")) return "$file already exists there — choose another name"
+        return null
+    }
+
+    /**
+     * [base] when no `<base>.yaml` exists in [dir], else the first free `<base>-2`, `<base>-3`… — the
+     * default a page template proposes, so picking one that was already used does not start the
+     * dialog on an error.
+     */
+    fun uniqueBaseName(base: String, dir: String, exists: (String) -> Boolean): String {
+        val d = dir.trimEnd('/')
+        if (!exists("$d/${fileNameOf(base)}")) return base
+        var i = 2
+        while (exists("$d/${fileNameOf("$base-$i")}")) i++
+        return "$base-$i"
+    }
+
+    /**
+     * A problem a dialog learnt only when it TRIED (the write failed: the file appeared meanwhile, the
+     * routes file changed…) — reported next to its field for as long as the input it was about stays
+     * the same, and forgotten the moment that input changes. What keeps the dialog OPEN with every
+     * typed value instead of closing on an error and making the user start over.
+     */
+    class StickyProblem<K> {
+        private var key: K? = null
+        private var message: String? = null
+
+        fun remember(input: K, problem: String) {
+            key = input
+            message = problem
+        }
+
+        /** The remembered problem while [input] is what it was about; null (and forgotten) otherwise. */
+        fun currentFor(input: K): String? {
+            if (message != null && input != key) {
+                key = null
+                message = null
+            }
+            return message
+        }
+    }
+
     /** `orders` → `orders.yaml`; keeps an explicit .yaml/.yml. */
     fun fileNameOf(name: String): String {
         val n = name.trim()

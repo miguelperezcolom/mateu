@@ -1,5 +1,6 @@
 # Welcome page: a hero with calls to action over highlight tiles.
 type: VerticalLayout
+pageType: landing
 __PAGE_WIDTH__
 content:
   - type: HeroSection

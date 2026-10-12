@@ -1,5 +1,6 @@
 # To-do list: pending work as counted buckets; clicking a card runs actionId with the item id.
 type: VerticalLayout
+pageType: collection
 __PAGE_WIDTH__
 content:
   - {type: Text, text: __TITLE__, container: h2}

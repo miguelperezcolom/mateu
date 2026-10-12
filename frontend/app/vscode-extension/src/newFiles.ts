@@ -140,6 +140,30 @@ export function baseNameOf(name: string): string {
 
 export const FILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
 
+/**
+ * What is wrong with `name` as the base name of a new file in `dir` — undefined when nothing is. The
+ * input box shows it inline (`validateInput`) and, when the clash is only discovered at write time,
+ * the name is asked AGAIN with it instead of aborting the whole flow (the IntelliJ dialog's twin:
+ * `MateuNewFiles.fileNameProblem`).
+ */
+export function fileNameProblem(name: string, dir: string, exists: (p: string) => boolean): string | undefined {
+    const n = baseNameOf(name)
+    if (n === '') return 'Enter a file name'
+    if (!FILE_NAME_PATTERN.test(n)) return "Use letters, digits, '.', '-' or '_'"
+    const file = fileNameOf(n)
+    if (exists(`${dir.replace(/\/+$/, '')}/${file}`)) return `${file} already exists there — choose another name`
+    return undefined
+}
+
+/** `base` when no `<base>.yaml` exists in `dir`, else the first free `<base>-2`, `<base>-3`… */
+export function uniqueBaseName(base: string, dir: string, exists: (p: string) => boolean): string {
+    const d = dir.replace(/\/+$/, '')
+    if (!exists(`${d}/${fileNameOf(base)}`)) return base
+    let i = 2
+    while (exists(`${d}/${fileNameOf(`${base}-${i}`)}`)) i++
+    return `${base}-${i}`
+}
+
 /** The default file name for a page template: its id kebab-cased (`smartSearch` → `smart-search`). */
 export function pageFileName(templateId: string): string {
     return templateId.replace(/(?<=[a-z])(?=[A-Z])/g, '-').toLowerCase()
