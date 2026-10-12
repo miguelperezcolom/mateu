@@ -78,6 +78,7 @@ version (latest release).
 | `explorer` | 8598 | Explorer app on the Redwood renderer. |
 | [`demo-vb`](demo-vb) | 9005 | Reference app for the Redwood / Oracle Visual Builder renderer. |
 | [`demo-vb-pms`](demo-vb-pms) | 9010 | An OPERA Cloud-like property management system, written once, rendered by both Redwood and Vaadin. |
+| [`demo-eventconductor`](demo-eventconductor) | 8620–8622 | Using a third-party Mateu UI (EventConductor's workflow console): in-process with `mateu.ui.modules`, and federated into a Java and a YAML shell with `RemoteMenu` / `MicroFrontend`. |
 
 ## Notes
 

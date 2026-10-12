@@ -1,0 +1,7 @@
+# The mount: this whole app is data. No Java beyond the Spring Boot entry point.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+home: overview
+routes:
+  - routes.yaml

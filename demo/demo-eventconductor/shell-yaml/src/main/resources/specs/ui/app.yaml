@@ -1,0 +1,14 @@
+# The app shell as data. The Workflow section is EventConductor's console, a separate service: the
+# shell asks it for its menu (server to server) and the browser loads its screens from it.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Acme operations (YAML)
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Overview
+    route: overview
+  - type: RemoteMenu
+    label: Workflow
+    baseUrl: http://localhost:8620/_workflow
+    path: /_workflow
