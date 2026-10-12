@@ -99,6 +99,9 @@ N/A (why) · — not walked yet.
 | LongTask progress dialog (long-task spec) | N/A (no LongTask in the ports) | N/A | 🔧 never streamed: `${state.title}`, "Iniciando..." forever, empty bar → 25c74104d ✅ Processing → Step 1..4 of 5 → finished, full bar |
 | Legacy (Quill Delta) rich-text value | — | — | 🔧 printed as raw JSON → 4d18e007f ✅ |
 | Validation-refused toast | 🔧 hard-coded Spanish ("Revisa los campos") → 31f172397 | | |
+| Amount money field / unset Integer stepper / typing a decimal (nullable-numbers spec) | — | — | 🔧 "[object Object]", 0 for null, "12.5" typed as 125 → 84134c133 ✅ rn-nn |
+| Save from a create/edit form, then Back | — | — | 🔧 Back returned to the submitted form → 4e5264a53 + 98e5afe38 (stack-aware: a route already on the stack is gone back to, also for the ports' NavigateTo) ✅ rn-dirty / rn-items; ports: starter probe 6/6, the Back-after-Save check on a port is **not walked yet** |
+| Dirty guard on Back (confirm-dirty spec) | — | — | ✅ rn-dirty 4/4 |
 | Rich text editing | N/A by design: an editable `richText` is a plain multiline input of the HTML (no WYSIWYG on native) | | |
 
 ### IntelliJ (render probe + render tests)
@@ -116,6 +119,9 @@ N/A (why) · — not walked yet.
 | LongTask progress dialog | 🔧 never streamed, raw `${state.title}`, empty bar → 82f33d96b (`MateuApiClientStreamTest`, `OverlayStateTest`, `NativeUxReviewTest`) |
 | Delete on a listing seeded with `""` | 🔧 opened a second "list" tab → d5bf61b3c (`MediatorRoutesTest`) |
 | Validation-refused balloon | 🔧 hard-coded Spanish → fcc01398a |
+| Amount money field (nullable-numbers) | 🔧 blank, first keystroke dropped the currency → 24124558d (`MoneyValuesTest`; render probe Price = 25.5). Unset Integer still shows 0 in a JSpinner — not fixed |
+| Legacy (Quill Delta) rich text | 🔧 raw JSON → e02cc6cc9 (`RichTextValueTest`; render probe) |
+| Java SUT screens (16 routes) through the render probe | ✅ no unsupported / exception / raw values |
 | Interactions (clicks/typing) in a running IDE, mobile hub | — not walked (the render probe cannot click; covered by the unit tests above) / N/A (no hub on desktop) |
 
 ### Conformance corpus
@@ -129,9 +135,11 @@ N/A (why) · — not walked yet.
 | CollectionDetail / wizard cases | ❌ 7: known structural divergences |
 | New cases `card-menu`, `app-extras` (command center / notifications / global search flags), `welcome-banner` | 🔧 03ce1c245 / b68499658 / 6437514d6 — the three servers match |
 
-**Counts:** ✅ ≈ 85 cells verified · 🔧 37 fixes (each with a test or probe) + 3 doc claims ·
+**Counts:** ✅ ≈ 90 cells verified · 🔧 42 fixes (each with a test or probe) + 3 doc claims ·
 ❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: photo capture on a device, IntelliJ
-click-level interaction in a running IDE (its fixes are pinned by unit tests).
+click-level interaction in a running IDE (its fixes are pinned by unit tests), RN Back-after-Save
+on a port, RN `.NET` column cells marked "—", the remaining shared e2e specs replayed on native
+(inline-grid-form, master-detail, recent-features, accessibility on Java screens).
 
 ## Bugs fixed (one line each)
 
@@ -171,6 +179,10 @@ click-level interaction in a running IDE (its fixes are pinned by unit tests).
 34. d5bf61b3c IntelliJ — a delete on a listing seeded with "" opened a second "list" tab.
 35. 25c74104d RN — LongTask never streamed (sync endpoint): raw `${state.title}`, stuck first step, empty bar (also: overlay state updates by id, ProgressBar max 0).
 36. 82f33d96b IntelliJ — same LongTask gap.
+38. 84134c133 RN — Amount fields showed "[object Object]", unset integers showed 0, decimals could not be typed.
+39. 24124558d IntelliJ — Amount fields blank; editing dropped the currency.
+40. e02cc6cc9 IntelliJ — legacy Delta rich text shown as raw JSON.
+41. 4e5264a53 / 98e5afe38 RN — Back after a crud Save returned to the submitted form; stack-aware navigation.
 37. conformance — new cases `card-menu`, `app-extras`, `welcome-banner` (all three servers match).
 
 ## ❌ Open — owner decisions / not fixed
