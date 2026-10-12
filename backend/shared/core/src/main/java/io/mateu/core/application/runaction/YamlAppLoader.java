@@ -34,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
  * {@code RuleLink} with a {@code RunAction} rule runs client-side. The header switches {@code
  * themeToggle}, {@code commandCenter}, {@code chromeless}, {@code accessKeys} and {@code mobileQr}
  * are read too, and so are {@code shortcuts:} (app-wide keys / quick-launch codes), {@code
- * headerValues:} + {@code liveUpdates} (live header values) and {@code idleTimeoutMinutes} /
- * {@code idleWarningSeconds} / {@code idleSignOutUrl} (the idle-session warning).
+ * headerValues:} + {@code liveUpdates} (live header values) and {@code idleTimeoutMinutes} / {@code
+ * idleWarningSeconds} / {@code idleSignOutUrl} (the idle-session warning).
  *
  * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
  * (SSE/MCP/upload URLs, {@code @AppContext} selectors, notifications, global search, FABs). They

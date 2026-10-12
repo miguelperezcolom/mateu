@@ -113,6 +113,7 @@
         "commandCenterEnabled" : true,
         "chromeless" : false,
         "accessKeys" : true,
+        "mobileQr" : true,
         "noBreadcrumbs" : false,
         "askLabel" : null,
         "askIcon" : null,
@@ -189,7 +190,7 @@
         "liveUpdates" : false,
         "idleSession" : null
       },
-      "id" : "f72f81e8-feef-4625-b720-7cc26f1052e6",
+      "id" : "b0f7b324-8624-4934-85cd-8866be12e200",
       "children" : [ {
         "type" : "ClientSide",
         "metadata" : {
@@ -200,7 +201,7 @@
           "size" : null,
           "noMargins" : false
         },
-        "id" : "5e3d56f2-8174-463f-a800-2e7465743148",
+        "id" : "023fdd78-a491-408e-9488-3ec611bb33da",
         "children" : [ ],
         "style" : null,
         "cssClasses" : null,
