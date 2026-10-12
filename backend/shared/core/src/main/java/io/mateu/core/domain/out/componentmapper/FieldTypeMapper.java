@@ -174,6 +174,10 @@ public class FieldTypeMapper {
       }
       return FieldStereotype.select;
     }
+    if (ChoiceCollections.elementEnum(field) != null) {
+      // a List/Set of enum constants with no stereotype: pick several (ChoiceCollections)
+      return FieldStereotype.multiSelect;
+    }
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.RestOptions.class)) {
       // options fetched client-side from an arbitrary REST endpoint → a select
       return FieldStereotype.select;

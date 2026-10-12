@@ -300,6 +300,17 @@ def is_enum(t) -> bool:
     return isinstance(t, type) and issubclass(t, Enum)
 
 
+def element_enum(t):
+    """The enum of a ``list[E]`` / ``set[E]`` / ``frozenset[E]`` annotation, else None."""
+    from typing import get_args, get_origin
+
+    if get_origin(t) in (list, set, frozenset):
+        args = get_args(t)
+        if len(args) == 1 and is_enum(args[0]):
+            return args[0]
+    return None
+
+
 def _resolved_generic_args(cls, target) -> tuple | None:
     """The type arguments ``cls`` binds for the generic base ``target``, walking the
     inheritance chain and substituting type variables — the Python analogue of Java's

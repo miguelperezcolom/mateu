@@ -74,6 +74,7 @@ from ._common import (
     _log,
     enum_label,
     value_labels_of,
+    element_enum,
     is_enum,
 )
 
@@ -285,8 +286,9 @@ class FieldMapperMixin(MixinBase):
         options = self._supplied_options(instance, field_id)
         if not options:
             # Enum options: value = the member name, label = enum_label (Java's enumLabel rule).
+            choices = t if is_enum(t) else element_enum(t)
             options = (
-                [Option(value=m.name, label=enum_label(m)) for m in t] if is_enum(t) else []
+                [Option(value=m.name, label=enum_label(m)) for m in choices] if choices is not None else []
             )
         value = getattr(instance, f.name, None)
 
@@ -666,6 +668,10 @@ class FieldMapperMixin(MixinBase):
             return "combobox"
         if f.has(Searchable):
             return "searchable"
+        if element_enum(f.type) is not None:
+            # a list/set of enum constants with no stereotype: pick several (Java's
+            # ChoiceCollections; owner, 2026-10-12)
+            return "multiSelect"
         if plain:
             return "plainText"
         if is_enum(f.type):

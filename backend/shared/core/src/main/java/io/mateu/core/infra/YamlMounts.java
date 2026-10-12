@@ -68,8 +68,8 @@ public final class YamlMounts {
    * that path). The adapters used to stand the whole YAML surface down as soon as any {@code @UI}
    * existed, so every YAML mount of a mixed deployment answered 404.
    *
-   * @param classBaseUrls the base URLs of the generated controllers ({@code ""} or {@code "/"} for a
-   *     root {@code @UI})
+   * @param classBaseUrls the base URLs of the generated controllers ({@code ""} or {@code "/"} for
+   *     a root {@code @UI})
    */
   public static List<Mount> notServedByClasses(
       List<Mount> mounts, java.util.Collection<String> classBaseUrls) {

@@ -14,7 +14,11 @@ class MessageMapperTest {
     // mapper turned the error boundary's 0 into 3000 ms, so a failed save's reason vanished
     var error =
         MessageMapper.mapToMessageDtos(
-            Message.builder().variant(NotificationVariant.error).text("Boom").duration(4000).build(),
+            Message.builder()
+                .variant(NotificationVariant.error)
+                .text("Boom")
+                .duration(4000)
+                .build(),
             "",
             null);
     assertThat(error.get(0).duration()).isZero();

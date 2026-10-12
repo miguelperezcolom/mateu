@@ -159,27 +159,6 @@ public final class TestMateu implements AutoCloseable {
     }
   }
 
-  /**
-   * Same as {@link #run(RunActionRqDto)}, served by the controller of a NON-ROOT mount: the browser
-   * on {@code /shop/orders} posts {@code route=/orders} to {@code /shop/mateu/...}, so the base url
-   * travels as the mount and the route is relative to it — every other helper here runs at {@code
-   * ""}, which is how the non-root-mount bugs stayed invisible to the core suites.
-   */
-  public UIIncrementDto runAt(String baseUrl, RunActionRqDto rq) {
-    try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", baseUrl);
-      var result = service.runAction("", rq, baseUrl, httpRequest).blockFirst();
-      if (result == null) {
-        throw new AssertionError("runAction produced no increment for " + rq);
-      }
-      return result;
-    } catch (RuntimeException | Error e) {
-      throw e;
-    } catch (Throwable t) {
-      throw new AssertionError("runAction failed for " + rq, t);
-    }
-  }
-
   /** Same as {@link #run(RunActionRqDto)}, sending the given request headers (e.g. a token). */
   public UIIncrementDto run(RunActionRqDto rq, java.util.Map<String, String> headers) {
     try {
