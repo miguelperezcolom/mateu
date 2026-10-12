@@ -244,6 +244,36 @@ class NonRootAppMenuSyncTest {
 
   @Nested
   @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  class OnANonRootMountServedByCompiledRouteResolvers {
+
+    // WebFlux, Quarkus and Helidon serve each @UI through a pre-compiled RouteResolver matching the
+    // mount's ABSOLUTE path (/e2-demo/other), not through a RoutedClassProvider whose matcher
+    // composes the base url. The route-typed entry dispatches the route RELATIVE to the mount
+    // (/other) — and found nothing on those adapters ("Note" never showed in the e2e).
+    TestMateu mateu;
+    Mount mount;
+
+    @BeforeAll
+    void boot() {
+      mateu = TestMateu.withCompiledRouteResolvers(NonRootApp.class, OtherPage.class);
+      mount = new Mount(mateu, NonRootApp.class, "/e2-demo");
+    }
+
+    @AfterAll
+    void shutdown() {
+      mateu.close();
+    }
+
+    @Test
+    void aRouteTypedEntryNamingANestedMountLoadsThatPage() {
+      var option = entryRoutedTo(appOf(mount.shell("")).orElseThrow(), "/other");
+      assertThat(screenOf(mount.content(option.route(), option.consumedRoute())))
+          .isEqualTo("io.mateu.core.application.NonRootAppMenuSyncTest$OtherPage");
+    }
+  }
+
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
   class OnTheRootMount {
 
     TestMateu mateu;

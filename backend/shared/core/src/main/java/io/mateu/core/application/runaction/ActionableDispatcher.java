@@ -86,15 +86,6 @@ final class ActionableDispatcher {
   static String targetOf(RouteLink routeLink, RunActionCommand command) {
     var route = command.route();
     var target = routeLink.route();
-    System.out.println(
-        "DBG targetOf route="
-            + route
-            + " target="
-            + target
-            + " resolvedPath="
-            + (command.httpRequest() != null
-                ? command.httpRequest().getAttribute("resolvedPath")
-                : null));
     if (route == null || target == null || !target.startsWith("/") || target.startsWith("//")) {
       return route;
     }

@@ -144,6 +144,12 @@ the one-to-one case.
   only worked when the field was named like the route. Tests `NonRootAppMenuSyncTest`, e2e
   `nonroot-menu.spec.ts` (`NonRootMenuApp`). The .NET/Python ports serve every mount from one
   endpoint with absolute routes + consumed = mount, so they never had the second spelling.
+  GOTCHA (adapters): WebFlux/Quarkus/Helidon generate NO `RoutedClassProvider` per `@UI` — only a
+  pre-compiled `RouteResolver` matching the mount's ABSOLUTE path (`/e2-demo/routed-page`), whereas
+  MVC/Micronaut's `RouteAnnotationMatcher` composes the base url. So a mount-relative route
+  (`/routed-page` sent to `/e2-demo`) found nothing there; `DirectClassResolver.candidateRoutes`
+  now also tries it under the mount. Pinned by `TestMateu.withCompiledRouteResolvers` (the
+  WebFlux/Quarkus/Helidon shape — `withUis` is the MVC one).
 - **Parameter precedence** — identical on the server, in `libs/mateu` and in the VB core, because
   route resolution also runs in the browser: `fixed > client state > path > query > defaults`.
   Applied in `RouteSegmentUtils.addParameterValues`. The fixed ones are **re-applied server-side**

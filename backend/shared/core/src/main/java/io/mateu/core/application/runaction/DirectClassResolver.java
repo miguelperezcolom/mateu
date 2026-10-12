@@ -75,32 +75,42 @@ final class DirectClassResolver {
       }
     }
 
-    // Global RouteResolvers
+    // Global RouteResolvers (the pre-compiled mount resolvers of the WebFlux/Quarkus/Helidon APs).
+    // Their patterns are the mounts' ABSOLUTE paths (/e2-demo/routed-page), while a route inside a
+    // mount is RELATIVE to it (/routed-page sent to the /e2-demo controller): try the route as it
+    // came, then read it under the mount it was sent to — the same composition the annotation
+    // matcher applies for the RoutedClassProvider adapters (MVC, Micronaut), so a @UI nested under
+    // another @UI's path resolves through either kind of provider.
     if (routeResolvers != null) {
-      for (var parentRoute : List.of(RouteConstants.NO_PARENT_ROUTE, command.consumedRoute())) {
-        var found =
-            routeResolvers.stream().filter(r -> r.supportsRoute(route, parentRoute)).findFirst();
-        if (found.isPresent()) {
-          var resolvedClass = found.get().resolveRoute(route, parentRoute, command.httpRequest());
-          if (resolvedClass != null) {
-            setResolvedRoute(command.httpRequest(), route);
-            var instanceTypeName = resolvedClass.getName();
-            log.debug("direct class (routeResolver) {} → {}", route, instanceTypeName);
-            return createInstance(
-                command,
-                instanceTypeName,
-                instanceFactoryProvider,
-                route,
-                Optional.of(
-                    new ResolvedRoute(
-                        route,
-                        found
-                            .get()
-                            .matchingPattern(route, parentRoute)
-                            .get()
-                            .routeRegex()
-                            .pattern(),
-                        resolvedClass)));
+      for (var candidate : candidateRoutes(route, command.baseUrl())) {
+        for (var parentRoute : List.of(RouteConstants.NO_PARENT_ROUTE, command.consumedRoute())) {
+          var found =
+              routeResolvers.stream()
+                  .filter(r -> r.supportsRoute(candidate, parentRoute))
+                  .findFirst();
+          if (found.isPresent()) {
+            var resolvedClass =
+                found.get().resolveRoute(candidate, parentRoute, command.httpRequest());
+            if (resolvedClass != null) {
+              setResolvedRoute(command.httpRequest(), route);
+              var instanceTypeName = resolvedClass.getName();
+              log.debug("direct class (routeResolver) {} → {}", candidate, instanceTypeName);
+              return createInstance(
+                  command,
+                  instanceTypeName,
+                  instanceFactoryProvider,
+                  candidate,
+                  Optional.of(
+                      new ResolvedRoute(
+                          candidate,
+                          found
+                              .get()
+                              .matchingPattern(candidate, parentRoute)
+                              .get()
+                              .routeRegex()
+                              .pattern(),
+                          resolvedClass)));
+            }
           }
         }
       }
@@ -108,6 +118,29 @@ final class DirectClassResolver {
 
     log.debug("no direct class matched {}", route);
     return Mono.empty();
+  }
+
+  /**
+   * The route as it came and, when the request was sent to a non-root mount and the route does not
+   * already carry it, the same route under that mount ({@code /routed-page} → {@code
+   * /e2-demo/routed-page}).
+   */
+  static List<String> candidateRoutes(String route, String baseUrl) {
+    if (route == null
+        || baseUrl == null
+        || baseUrl.contains("://")
+        || !route.startsWith("/")
+        || route.startsWith("//")) {
+      return List.of(route);
+    }
+    var mount = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+    if (mount.length() <= 1
+        || !mount.startsWith("/")
+        || route.equals(mount)
+        || route.startsWith(mount + "/")) {
+      return List.of(route);
+    }
+    return List.of(route, mount + route);
   }
 
   private static Mono<Object> createInstance(
