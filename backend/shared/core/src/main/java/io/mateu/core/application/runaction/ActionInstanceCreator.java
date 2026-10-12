@@ -528,14 +528,26 @@ public class ActionInstanceCreator {
       if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
-      if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
+      // a menu rule leaf's action (@Menu Rule … RunAction) is the app's too: the menu is on the
+      // shell — only worth an instance when the app has a method of that name to run
+      var hasMethod =
+          java.util.Arrays.stream(appClass.getMethods())
+              .anyMatch(m -> actionId.equals(m.getName()));
+      if (!hasMethod
+          && !io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }
-      var supplier =
-          (io.mateu.uidl.interfaces.AppActionsSupplier)
-              io.mateu.uidl.di.MateuBeanProvider.getBean(
-                      io.mateu.uidl.interfaces.InstanceFactory.class)
-                  .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+      var app =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.InstanceFactory.class)
+              .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+      if (hasMethod
+          && io.mateu.core.domain.out.componentmapper.MenuRuleActions.runs(
+              app, actionId, command.route(), command.httpRequest())) {
+        return true;
+      }
+      if (!(app instanceof io.mateu.uidl.interfaces.AppActionsSupplier supplier)) {
+        return false;
+      }
       var actions = supplier.appActions(command.httpRequest());
       // dropdown header actions dispatch their CHILDREN's ids — flatten before matching
       return actions != null

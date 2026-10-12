@@ -37,7 +37,9 @@ import { searchGlobally } from "@infra/ui/appSources.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
-import { inAppRoute, shellActionFor } from '@infra/ui/shellFlows.ts'
+import { dispatchAppHeaderAction, findComponent } from '@infra/ui/renderers/appHeaderActions.ts'
+import { notify } from '@application/Notifier.ts'
+import { inAppRoute, shellActionFor, shellActionTarget } from '@infra/ui/shellFlows.ts'
 import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
@@ -279,8 +281,9 @@ export class MateuApp extends ComponentElement {
     }
 
     runAction = (actionId: string, ownedByShell = false) => {
-        const root = this.renderRoot as Element | ShadowRoot
-        const comp = root.querySelector?.('mateu-component') as HTMLElement | null
+        // the on-screen component lives inside the content mateu-ux's own shadow root: a plain
+        // querySelector from here never reached it, and the action was dropped without a word
+        const comp = findComponent(this.renderRoot as Element | ShadowRoot)
         if (comp) {
             comp.dispatchEvent(new CustomEvent('action-requested', {
                 // an id the SHELL declares (a server action of its own) must not be answered by the
@@ -328,8 +331,17 @@ export class MateuApp extends ComponentElement {
         const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
         const resolved = shellActionFor(app, actionId)
         if (runDeclaredFlow(resolved, this.applyShellCommand)) return
-        const ownedByShell = !!app?.actions?.some((a) => a && a.id === actionId)
-        this.runAction(actionId, ownedByShell)
+        if (shellActionTarget(app, actionId) === 'component') {
+            // an action-catalogue entry (a REST call): the on-screen component runs it
+            this.runAction(actionId, false)
+            return
+        }
+        // The APP's own action: it lives on the shell whatever screen is below, so it goes on the
+        // app-level rail, exactly like a header action (see shellActionTarget).
+        if (app) {
+            void dispatchAppHeaderAction(app, this, actionId).catch((e) =>
+                notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, this))
+        }
     }
 
     // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
