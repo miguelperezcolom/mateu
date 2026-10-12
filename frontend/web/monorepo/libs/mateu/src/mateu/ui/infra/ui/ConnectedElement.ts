@@ -30,6 +30,7 @@ import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
+import { windowTitleChanged } from '@infra/ui/composedHeading.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -238,6 +239,8 @@ export default abstract class ConnectedElement extends LitElement {
 
         if ('SetWindowTitle' == command.type) {
             document.title = command.data as string
+            // a composed page (Dashboard, SmartSearchPage…) shows it as its heading (composedHeading.ts)
+            windowTitleChanged(document.title)
             // A single-page app changes what is on screen without changing the page, so a screen
             // reader has nothing to announce and the user is told nothing about where they landed.
             // The backend sends this command on every route load, which makes it the one reliable

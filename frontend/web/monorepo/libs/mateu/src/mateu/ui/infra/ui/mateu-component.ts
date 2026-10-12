@@ -36,6 +36,7 @@ import { shortcutMatchesEvent } from './shortcuts'
 import { resolveComponentState } from './common'
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import { needsComposedHeading } from "@infra/ui/composedHeading.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
@@ -1185,6 +1186,7 @@ export class MateuComponent extends ComponentElement {
                     @close-modal-requested="${this.closeModalRequestedListener}"
                     @filter-reset-requested="${this.resetFilters}"
                     @action-requested="${this.actionRequestedListener}">
+            ${needsComposedHeading(this.component as never) ? html`<mateu-composed-heading></mateu-composed-heading>` : nothing}
             ${this.component?.children?.map(child => {
                 if (child.type == ComponentType.ClientSide) {
                     const clientChild = child as ClientSideComponent
