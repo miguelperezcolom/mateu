@@ -68,6 +68,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
 | Deep links / SPA fallback | 🔧 a data fetch of an unknown path got index.html 200 on all 5 adapters (4d25240d9); 🔧 Micronaut 404'd any deep link whose segment had a space, accent, `+`, `~`, `:` or `@` (4bc185173); both pinned by parity contracts on 5 adapters |
 | Security: CORS off, MCP off, forged bearer reveals nothing | ✅ `AdapterParity*` on all five adapters (run) |
+| Real security module on a generated project (yaml starter + Spring Security, httpBasic, in-memory users) | 🔧 the YAML starter's `@SpringBootApplication(scanBasePackages = "io.mateu")` scanned Mateu's package and NOT the app's: the developer's `SecurityFilterChain` was ignored (Boot's default login answered 401 to everything), and so would be any `PrincipalResolver`, `SecretsProvider`, `ListingExporter`… they add — fixed in the starter (so the archetype and both IDE wizards), pinned by `newProject.test.ts`; ✅ then `access: roles: [admin]`: anonymous 403, a `staff` user 403, an `admin` 200 with the page |
 | Code twins (RouteEntrySupplier/AppSupplier/MenuSupplier) | ✅ core suite (1752) + Python (786) + .NET (711, local SDK) |
 
 ## 3. Doc claims found wrong and fixed
@@ -93,14 +94,14 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 5. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`,
    `Card`… served by a port shows "Unsupported component". Grow the builders or keep YAML pages Java-first?
 6. **VS Code schema performance** (see the editors' engines row): a per-editor schema shape, or accept it.
-7. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available` served.
+7. ~~Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas~~ — re-checked: the canvas now paints "Available" / "Out of stock" like the served app (fixed by 24f26141b, pre-beta UX review).
 8. ~~The routes editor has no `appState:` column~~ — added (App state column, DOM test).
 9. CLAUDE.md still says Code + YAML is not offered on Micronaut/Helidon (owner's file, not edited).
 
 ## 5. Not walked yet ⏳
 
-`PrincipalResolver` with a real security module per
-adapter (only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
+a real security module on the non-Spring adapters (Quarkus
+OIDC, Micronaut JWT, Helidon MP-JWT — only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
 the plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
 only); the editor's Redwood canvas; React Native for the YAML
 fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
@@ -123,8 +124,8 @@ fixtures; compiling every Java sample of the docs (signatures of the code-twin s
   .NET `RouteFilesTests`, `DefinitionOnlySeedsTests`, `LayoutDeltaTests` (rows).
 - Frontend: `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder, proxied options), editor
   `componentCatalogue.test.ts`, `playManifest.test.ts`, `exportBundle.test.ts`, DOM tests (State
-  and App state columns, components.yaml); generator `cases.json` +2, `newProject.test.ts`.
+  and App state columns, components.yaml); generator `cases.json` +2, `newProject.test.ts` (+ no starter narrows the Spring scan).
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 23 fixed (19 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 24 fixed (20 fix commits + the routes-editor State / App state columns) · ❌ 6 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
