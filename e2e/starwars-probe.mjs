@@ -8,7 +8,7 @@
  * `type: Listing` with a rowsSource ref → source catalogue → external fetch → row mapping → grid —
  * deterministically, without depending on a live host's uptime.
  *
- * The demo points at swapi.ec1.mateu.io, a writable clone that searches, filters and pages on the
+ * The demo points at swapi.mateu.io, a writable clone that searches, filters and pages on the
  * SERVER, so the fixtures answer the paged envelope (`content` + `totalElements`) and the checks
  * below assert the page is rendered as given — not re-filtered or re-sliced in the browser.
  *
