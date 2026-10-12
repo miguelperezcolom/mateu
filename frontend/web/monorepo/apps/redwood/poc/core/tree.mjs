@@ -121,6 +121,8 @@ export function actionsOf(tree) {
       parameters: a.parameters || {},
       // shown but inert (a Toggle.disabled wizard/crud button): the oj-button's disabled
       disabled: !!a.disabled,
+      // a RouteLink button navigates (see content.mjs buttonOf)
+      ...(a.route ? { route: a.route } : {}),
       ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
     })
   }
@@ -202,6 +204,8 @@ export function sectionButtonsOf(card) {
     chroming: m.buttonStyle === 'primary' ? 'callToAction' : m.buttonStyle === 'tertiary' ? 'borderless' : 'outlined',
     disabled: !!m.disabled,
     parameters: m.parameters || {},
+    // a RouteLink button navigates (see content.mjs buttonOf)
+    ...(m.route ? { route: m.route } : {}),
   })
   const walk = (n, isRoot, inTitleRow) => {
     if (!n || typeof n !== 'object') return
