@@ -34,7 +34,7 @@ shared Star Wars theme. Read them in order.
 
 | # | Module | Port | What it adds | Run |
 |---|---|---|---|---|
-| **1** | [`demo-starwars`](demo-starwars) | 8600 | **100% YAML over an external API** — mount, shell, routes, sources and CRUD authored as data (`specs/ui/**`), live from [swapi](https://swapi.ec1.mateu.io); reference combos. No Java UI. | `mvn spring-boot:run` |
+| **1** | [`demo-starwars`](demo-starwars) | 8600 | **100% YAML over an external API** — mount, shell, routes, sources and CRUD authored as data (`specs/ui/**`), live from [swapi](https://swapi.mateu.io); reference combos. No Java UI. | `mvn spring-boot:run` |
 | **2** | [`demo-starwars-2-code-first`](demo-starwars-2-code-first) | 8601 | **The first line of Java** — one `@UI` + `AutoCrud<T>` over an in-memory store gives a full CRUD, inferred from a record. | idem |
 | **3** | [`demo-starwars-3-forms`](demo-starwars-3-forms) | 8602 | **Rich forms** — a multi-step `Wizard` (zoned step, STEPS progress) and a tabbed form (textarea, stars, toggle, date, money, radios). | idem |
 | **4** | [`demo-starwars-4-app`](demo-starwars-4-app) | 8603 | **Archetypes + app shell** — a `Dashboard` (metric scoreboard + chart panels) and a CRUD behind an `@App(commandCenter=true)` shell. | idem |
@@ -84,6 +84,6 @@ version (latest release).
 - Ports above are the defaults in each module's `application.properties` (or the framework's
   equivalent); every demo has its own, so several can run at once.
 - `demo-starwars` (1) and `demo-starwars-6-static-bundle` read live data from
-  `https://swapi.ec1.mateu.io`; when that service is down they start but show no rows.
+  `https://swapi.mateu.io`; when that service is down they start but show no rows.
 - The repository-root `settings.xml` is only needed if your Maven setup cannot reach Maven Central
   directly: `mvn -s ../../settings.xml …`.
