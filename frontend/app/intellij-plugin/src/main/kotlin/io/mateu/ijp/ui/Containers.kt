@@ -114,8 +114,10 @@ fun renderAnchor(ctx: AppContext, metadata: JsonNode): JComponent {
 }
 
 fun renderProgressBar(metadata: JsonNode, state: JsonNode): JComponent {
+    // a 0 bound means "unset" on the wire (a LongTask's dialog sends min 0, max 0 with a 0..1
+    // value): the web's vaadin-progress-bar then keeps its 0..1 default, and so does this bar
     val min = metadata.dbl("min", 0.0)
-    val max = metadata.dbl("max", 1.0)
+    val max = metadata.dbl("max", 1.0).takeIf { it != 0.0 } ?: 1.0
     val valueKey = metadata.text("valueKey")
     val value = if (valueKey.isNotBlank()) state.dbl(valueKey, 0.0) else metadata.dbl("value", 0.0)
     val bar = JProgressBar(0, 100)

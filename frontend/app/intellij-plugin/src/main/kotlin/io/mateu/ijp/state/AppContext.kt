@@ -245,6 +245,8 @@ class AppContext(val session: AppSession) {
     private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
     private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
     private var currentActionConfirmation: Map<String, ConfirmationTexts> = HashMap()
+    /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
+    private var currentActionSse: Set<String> = emptySet()
 
     /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
      *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -547,6 +549,24 @@ class AppContext(val session: AppSession) {
 
         val serverSideType = resolveActionTarget(actionId)
         val generation = polling.generation
+        if (actionId in currentActionSse) {
+            // a LongTask: each progress increment is applied as it arrives
+            background(
+                work = {
+                    apiClient.runActionStream(
+                        currentRoute, currentConsumedRoute, actionId, serverSideType,
+                        currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
+                    ) { increment -> SwingUtilities.invokeLater { applyIncrement(increment) } }
+                    com.fasterxml.jackson.databind.node.NullNode.instance
+                },
+                onOk = { polling.actionSucceeded(generation, actionId) },
+                onErr = {
+                    if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
+                    else showError("Action failed: ${it.message}")
+                },
+            )
+            return
+        }
         background(
             work = {
                 apiClient.runAction(
@@ -659,6 +679,7 @@ class AppContext(val session: AppSession) {
         val bubbleFlags = HashMap<String, Boolean>()
         val rowsSelectedFlags = HashMap<String, Boolean>()
         val confirmations = HashMap<String, ConfirmationTexts>()
+        val sseActions = HashSet<String>()
         val restData = HashMap<String, JsonNode>()
         val actionNodes = sscNode.path("actions")
         if (actionNodes.isArray) {
@@ -670,6 +691,7 @@ class AppContext(val session: AppSession) {
                     bubbleFlags[id] = a.bool("bubble")
                     rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
                     ActionConfirmation.of(a)?.let { confirmations[id] = it }
+                    if (a.bool("sse")) sseActions.add(id)
                     val rest = a.path("restAction")
                     if (rest.isObject) restData[id] = rest
                 }
@@ -680,6 +702,7 @@ class AppContext(val session: AppSession) {
         currentActionBubble = bubbleFlags
         currentActionRowsSelectedRequired = rowsSelectedFlags
         currentActionConfirmation = confirmations
+        currentActionSse = sseActions
         currentActionRestData = restData
         currentActionDefs = actionNodes.takeIf { it.isArray }
         // A catalogue REST call reached from the menu runs against the latest loaded view.
@@ -989,6 +1012,15 @@ class AppContext(val session: AppSession) {
             return
         }
 
+        // A state update aimed at an open overlay (a LongTask's progress dialog) belongs to it.
+        if ((component.isNull || component.isMissingNode) && state.isObject && targetId.isNotBlank()) {
+            val update = session.overlayStateUpdaters[targetId]
+            if (update != null) {
+                SwingUtilities.invokeLater { update(state) }
+                return
+            }
+        }
+
         val target = if (targetId.isBlank()) contentPane else (registry[targetId] ?: contentPane)
 
         if (component.isNull || component.isMissingNode) {
@@ -1161,21 +1193,37 @@ class AppContext(val session: AppSession) {
             if (session.openOverlays[key]?.invoke(component, state, data) == true) return
         }
         val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
-        val dialog = javax.swing.JDialog(owner, meta.text("headerTitle"), java.awt.Dialog.ModalityType.MODELESS)
-        dialog.contentPane.add(overlayBody(component, state, data))
+        // the overlay's own state: its initialData, then the updates aimed at it (LongTask steps)
+        var overlayState: JsonNode = OverlayState.seed(state, meta)
+        var shown: JsonNode = component
+        val dialog = javax.swing.JDialog(owner, OverlayState.title(meta, overlayState), java.awt.Dialog.ModalityType.MODELESS)
+        dialog.contentPane.add(overlayBody(component, overlayState, data))
         val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
             if (!dialog.isDisplayable) {
                 false
             } else {
-                dialog.title = c.path("metadata").text("headerTitle")
+                shown = c
+                overlayState = OverlayState.seed(st, c.path("metadata"))
+                dialog.title = OverlayState.title(c.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
-                dialog.contentPane.add(overlayBody(c, st, d))
+                dialog.contentPane.add(overlayBody(c, overlayState, d))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
                 true
             }
         }
+        val updateState: (JsonNode) -> Unit = { st ->
+            if (dialog.isDisplayable) {
+                overlayState = OverlayState.merge(overlayState, st)
+                dialog.title = OverlayState.title(shown.path("metadata"), overlayState)
+                dialog.contentPane.removeAll()
+                dialog.contentPane.add(overlayBody(shown, overlayState, data))
+                dialog.contentPane.revalidate()
+                dialog.contentPane.repaint()
+            }
+        }
         if (key != null) session.openOverlays[key] = refresh
+        if (key != null) session.overlayStateUpdaters[key] = updateState
         val width = remToPx(meta.text("width"), 448)
         if (owner != null) {
             val h = (owner.height - 80).coerceAtLeast(300)
@@ -1192,6 +1240,7 @@ class AppContext(val session: AppSession) {
                 session.removeOverlay(close)
                 // By value: a newer window under the same id may already have taken the slot.
                 if (key != null) session.openOverlays.remove(key, refresh)
+                if (key != null) session.overlayStateUpdaters.remove(key, updateState)
                 onClosed()
             }
         })
