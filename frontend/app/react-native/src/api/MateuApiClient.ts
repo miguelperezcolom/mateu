@@ -1,4 +1,4 @@
-import { authHeaders } from '../core/auth.ts';
+import { authHeaders, authHeadersFrom, type TokenProvider } from '../core/auth.ts';
 import { handleSessionExpired } from '../core/sessionGuard.ts';
 import { checkWireVersion } from '../core/wireVersion.ts';
 
@@ -29,9 +29,17 @@ export class MateuApiClient {
   onWireMismatch: (message: string) => void = () => {};
   private wireChecked = false;
 
-  constructor(baseUrl: string, sessionId: string) {
+  /**
+   * This client's own token provider. `undefined` (the single-backend renderer) = use the global one
+   * registered with setTokenProvider; a provider or `null` (a hub UI session) = use ONLY this one, so
+   * one UI's token is never sent to another UI's server.
+   */
+  readonly auth: TokenProvider | null | undefined;
+
+  constructor(baseUrl: string, sessionId: string, auth?: TokenProvider | null) {
     this.baseUrl = baseUrl;
     this.sessionId = sessionId;
+    this.auth = auth;
   }
 
   /** The headers every Mateu request carries: the per-install session id and, when a token
@@ -41,7 +49,7 @@ export class MateuApiClient {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'X-Session-Id': this.sessionId,
-      ...(await authHeaders()),
+      ...(this.auth === undefined ? await authHeaders() : await authHeadersFrom(this.auth)),
       ...extra,
     };
   }
@@ -79,7 +87,7 @@ export class MateuApiClient {
 
     let response = await doFetch();
     // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
-    if (response.status === 401 && (await handleSessionExpired())) {
+    if (response.status === 401 && (await handleSessionExpired(this.auth))) {
       response = await doFetch();
     }
     const text = await response.text();

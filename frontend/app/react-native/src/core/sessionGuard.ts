@@ -1,4 +1,4 @@
-import { reauthenticateWithProvider } from './auth.ts';
+import { reauthenticate as reauthenticateProvider, reauthenticateWithProvider, type TokenProvider } from './auth.ts';
 
 /**
  * Session-expiry re-auth (parity with the web's `onSessionExpired`, libs/mateu sessionGuard). When a
@@ -19,6 +19,7 @@ export type SessionExpiredHandler = () => boolean | Promise<boolean>;
 
 let handler: SessionExpiredHandler | undefined;
 let inFlight: Promise<boolean> | undefined;
+const ownFlights = new Map<TokenProvider, Promise<boolean>>();
 
 /** Register (or clear, with undefined) the re-auth handler. */
 export const onSessionExpired = (h: SessionExpiredHandler | undefined): void => {
@@ -40,7 +41,18 @@ const reauthenticate = async (): Promise<boolean> => {
  * Invoked by the API client on a 401. Returns true when the app re-authenticated and the caller
  * should retry once; false (nobody re-authenticates, it declined, or it threw) to fail normally.
  */
-export const handleSessionExpired = (): Promise<boolean> => {
+export const handleSessionExpired = (own?: TokenProvider | null): Promise<boolean> => {
+  // A client with its OWN provider (a hub UI session) re-authenticates against it only — never the
+  // global handler/provider, which belong to another UI (or to none). Single flight per provider.
+  if (own !== undefined) {
+    if (!own) return Promise.resolve(false);
+    let flight = ownFlights.get(own);
+    if (!flight) {
+      flight = reauthenticateProvider(own, true).finally(() => ownFlights.delete(own));
+      ownFlights.set(own, flight);
+    }
+    return flight;
+  }
   if (!inFlight) {
     inFlight = reauthenticate().finally(() => {
       inFlight = undefined;

@@ -108,9 +108,9 @@ of the same name:
 
 | Profile | Use | Network | App id |
 |---|---|---|---|
-| `development` | internal APK against a LAN backend | cleartext `http` allowed (Android `usesCleartextTraffic`, iOS local networking) | `io.mateu.app.dev` / `io.mateu.app.dev` |
-| `preview` | internal APK / ad-hoc for QA | **https only** | `io.mateu.app` / `io.mateu.app` |
-| `production` | Play Store `.aab` / App Store `.ipa` | **https only** | `io.mateu.app` (Android) / `io.mateu.app` (iOS) |
+| `development` | internal APK against a LAN backend | cleartext `http` allowed (Android `usesCleartextTraffic`, iOS local networking) | `io.mateu.app.dev` |
+| `preview` | internal APK / ad-hoc for QA | **https only** | `io.mateu.app` |
+| `production` | Play Store `.aab` / App Store `.ipa` | **https only** | `io.mateu.app` |
 
 ```bash
 # registry coordinates per environment — nothing environment-specific is committed

@@ -594,8 +594,24 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
     });
   };
 
+  const { session } = useAppContext();
+  const hub = session.hub;
+  const canOut = session.signOut ? true : session.api.auth === undefined && canSignOut();
+  const doSignOut = () => void (session.signOut ? session.signOut() : signOut());
   return (
     <DrawerContentScrollView style={styles.sidebar}>
+      {hub && (
+        // The Mateu hub app: the drawer top is where the user jumps back to their list of UIs or
+        // to another UI (design/mobile-app-hub.md §4, "switch between UIs").
+        <View style={styles.hubRow}>
+          <TouchableOpacity {...buttonA11y({ label: 'My UIs' })} style={styles.hubButton} onPress={hub.goHome}>
+            <Text style={styles.hubButtonText}>‹ My UIs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity {...buttonA11y({ label: 'Switch UI' })} style={styles.hubButton} onPress={hub.openSwitcher}>
+            <Text style={styles.hubButtonText}>⇄ Switch</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
       <HeaderValuesView />
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
@@ -603,8 +619,8 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
-      {canSignOut() && (
-        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 12 }]} onPress={() => void signOut()}>
+      {canOut && (
+        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 12 }]} onPress={doSignOut}>
           <Text style={styles.menuItemText}>Sign out</Text>
         </TouchableOpacity>
       )}
@@ -871,6 +887,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 }
 
 const styles = StyleSheet.create({
+  hubRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8, paddingTop: 4, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd', marginBottom: 8 },
+  hubButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 },
+  hubButtonText: { color: theme.primary, fontWeight: '600', fontSize: 15 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
   stackHost: { flex: 1, backgroundColor: theme.white },
