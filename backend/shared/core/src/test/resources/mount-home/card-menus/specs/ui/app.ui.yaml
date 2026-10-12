@@ -1,0 +1,5 @@
+# Fixture for YamlCardMenusSyncTest: a card menu authored on a `type: AppShell`.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

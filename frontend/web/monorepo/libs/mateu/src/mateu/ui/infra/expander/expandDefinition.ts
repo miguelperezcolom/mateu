@@ -229,13 +229,20 @@ function menuRules(item: FluentNode): Record<string, unknown>[] {
 function menuOption(item: FluentNode): Record<string, unknown> {
     const route = typeof item.route === 'string' && item.route ? item.route
         : typeof item.path === 'string' ? item.path
-        // an entry with no route of its own (a RuleLink) gets the server's label-derived path
-        : item.type === 'RuleLink' ? camelCase(item.label) : ''
+        // an entry with no route of its own (a RuleLink, a group) gets the server's label-derived path
+        : camelCase(item.label)
     const path = '/' + route.replace(/^\/+/, '')
     const submenu = (item.submenu ?? item.submenus ?? item.menu) as FluentNode[] | undefined
+    // the card look (AppMenuDtoBuilder): `presentation: {display: cards}` on a group opens it as a
+    // card panel; `icon` / `image` on an entry shown as a card. An entry's own `icon:` wins.
+    const presentation = (item.presentation ?? undefined) as
+        { display?: string, icon?: string, image?: string } | undefined
     return {
         label: item.label,
-        icon: item.icon,
+        icon: item.icon ?? presentation?.icon ?? undefined,
+        description: item.description ?? undefined,
+        display: presentation?.display === 'cards' ? 'cards' : undefined,
+        image: presentation?.image ?? undefined,
         path,
         route: path,
         consumedRoute: '',
