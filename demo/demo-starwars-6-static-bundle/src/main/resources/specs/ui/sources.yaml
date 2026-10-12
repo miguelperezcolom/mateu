@@ -7,7 +7,7 @@ sources:
   - name: swapi-planets
     description: Star Wars planets, as select options (id → name)
     source:
-      url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+      url: https://swapi.mateu.io/api/planets?size=1000&sort=name
       itemsPath: content
       valuePath: id
       labelPath: name
@@ -15,7 +15,7 @@ sources:
   - name: swapi-people
     description: Star Wars characters, as select options (id → name)
     source:
-      url: https://swapi.ec1.mateu.io/api/people?size=1000&sort=name
+      url: https://swapi.mateu.io/api/people?size=1000&sort=name
       itemsPath: content
       valuePath: id
       labelPath: name

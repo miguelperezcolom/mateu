@@ -202,7 +202,7 @@ supplies it.
   an ordinary click, so an `active-item-changed` listener never hears one), and `rowRouteFields` adds
   the template's fields to the fetched row — a row carries only its visible columns, and nobody wants
   an id column. Demo: `demo/demo-starwars` (`person.yaml`, `person-new.yaml`), a full CRUD with no Java
-  beyond the Spring Boot main, against `swapi.ec1.mateu.io` (github.com/miguelperezcolom/swapi-service,
+  beyond the Spring Boot main, against `swapi.mateu.io` (github.com/miguelperezcolom/swapi-service,
   a writable clone: H2 in memory re-seeded at boot, reads open, writes behind `X-Api-Key`).
   Tests: `YamlDeclaredActionsSyncTest`.
 
