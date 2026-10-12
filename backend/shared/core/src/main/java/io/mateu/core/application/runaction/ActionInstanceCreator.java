@@ -550,6 +550,11 @@ public class ActionInstanceCreator {
       if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
+      // a menu RULE leaf's RunAction (@Menu Rule / List<Rule>) runs on the app too: the menu lives
+      // on the shell, whatever screen is below it (the header-action rail, like the FAB above)
+      if (isMenuRuleAction(appClass, actionId, command)) {
+        return true;
+      }
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }
@@ -572,6 +577,40 @@ public class ActionInstanceCreator {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  private static boolean isMenuRuleAction(
+      Class<?> appClass, String actionId, RunActionCommand command) {
+    var menuFields =
+        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(appClass).stream()
+            .filter(
+                field ->
+                    io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                            field, io.mateu.uidl.annotations.Menu.class)
+                        && (io.mateu.uidl.data.Rule.class.equals(field.getType())
+                            || java.util.List.class.isAssignableFrom(field.getType())))
+            .toList();
+    if (menuFields.isEmpty()) {
+      return false;
+    }
+    var app =
+        io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.InstanceFactory.class)
+            .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+    for (var field : menuFields) {
+      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, app);
+      var rules =
+          value instanceof java.util.List<?> list
+              ? list
+              : java.util.List.of(value == null ? "" : value);
+      for (var item : rules) {
+        if (item instanceof io.mateu.uidl.data.Rule rule
+            && rule.action() == io.mateu.uidl.data.RuleAction.RunAction
+            && actionId.equals(rule.actionId())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

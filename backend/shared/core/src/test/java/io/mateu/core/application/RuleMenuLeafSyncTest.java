@@ -24,6 +24,20 @@ class RuleMenuLeafSyncTest {
   static class RuleMenuApp {
     @Menu String catalog = "/rulemenu/catalog"; // a route leaf
     @Menu Rule refresh = Rule.builder().actionId("refreshAll").build(); // a rule leaf
+
+    @Menu
+    Rule ping =
+        Rule.builder()
+            .action(io.mateu.uidl.data.RuleAction.RunAction)
+            .actionId("pingServer")
+            .build();
+
+    static boolean pinged;
+
+    public io.mateu.uidl.data.Message pingServer() {
+      pinged = true;
+      return io.mateu.uidl.data.Message.success("pong");
+    }
   }
 
   static TestMateu mateu;
@@ -47,5 +61,22 @@ class RuleMenuLeafSyncTest {
     assertThat(wire).contains("refreshAll");
     // the route leaf is untouched — still a route
     assertThat(wire).contains("rulemenu/catalog");
+  }
+
+  @Test
+  void theActionARuleLeafRunsIsDispatchedToTheApp() throws Exception {
+    // the menu lives on the shell: the leaf's RunAction goes to the APP class (the header-action
+    // rail), whatever screen is below — it used to be dispatched to the on-screen component,
+    // which did not own it, and was lost (the actions walkthrough, 2026-10-12)
+    var increment =
+        mateu.run(
+            io.mateu.dtos.RunActionRqDto.builder()
+                .route("/rulemenu")
+                .consumedRoute("")
+                .actionId("pingServer")
+                .serverSideType(RuleMenuApp.class.getName())
+                .build());
+    assertThat(RuleMenuApp.pinged).isTrue();
+    assertThat(json.writeValueAsString(increment)).contains("pong");
   }
 }

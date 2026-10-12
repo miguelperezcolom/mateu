@@ -38,6 +38,7 @@ import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
 import { inAppRoute, shellActionFor } from '@infra/ui/shellFlows.ts'
+import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
 import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
@@ -280,7 +281,10 @@ export class MateuApp extends ComponentElement {
 
     runAction = (actionId: string, ownedByShell = false) => {
         const root = this.renderRoot as Element | ShadowRoot
-        const comp = root.querySelector?.('mateu-component') as HTMLElement | null
+        // the on-screen content, so an action it owns runs there; with no content on screen (an app
+        // whose home is empty) the app itself — the event bubbles to the app's own component,
+        // which advertises the actions of its menu's rule leaves
+        const comp = (root.querySelector?.('mateu-component') as HTMLElement | null) ?? this
         if (comp) {
             comp.dispatchEvent(new CustomEvent('action-requested', {
                 // an id the SHELL declares (a server action of its own) must not be answered by the
@@ -339,6 +343,15 @@ export class MateuApp extends ComponentElement {
     runMenuRules = (rules: Rule[]) => {
         for (const rule of rules) {
             if (rule.action === RuleAction.RunAction && rule.actionId) {
+                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+                if (app && app.serverSideType && !shellActionFor(app, rule.actionId)) {
+                    // a server action of the app class: the header-action rail (against the APP,
+                    // whatever screen is below) — the on-screen component does not own it, and
+                    // dispatched there it bubbled out unclaimed and was lost
+                    dispatchAppHeaderAction(app, this as unknown as HTMLElement & { baseUrl?: string }, rule.actionId)
+                        .catch((e) => console.error('menu action failed', e))
+                    continue
+                }
                 this.runShellAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {

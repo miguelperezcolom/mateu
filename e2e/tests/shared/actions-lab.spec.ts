@@ -154,6 +154,43 @@ test.describe('Actions lab (/actions-lab) — return values', () => {
   })
 })
 
+test.describe('Menus that run actions (/action-menu-app)', () => {
+
+  test('a rule leaf runs the app action and the page under it stays', async ({ page }) => {
+    const unhandled = unhandledOf(page)
+    await page.goto('/action-menu-app')
+    await page.getByText('Ping server').first().click()
+    await expect(toast(page, 'Pong from the menu')).toBeVisible()
+    await expect(page).toHaveURL(/\/action-menu-app/)
+    expect(unhandled).toEqual([])
+  })
+})
+
+test.describe('Session expiry', () => {
+
+  test('a 401 asks the app to re-authenticate and the retry completes the action', async ({ page }) => {
+    await open(page, '/actions-lab', 'Actions lab')
+    // the app's re-auth flow: claim the event, then retry
+    await page.evaluate(() => document.addEventListener('mateu-session-expired', (e) => {
+      e.preventDefault()
+      ;(window as any).__expired = ((window as any).__expired ?? 0) + 1
+      setTimeout(() => (e as CustomEvent).detail.retry(), 50)
+    }))
+    let first = true
+    await page.route('**/mateu/v3/**', route => {
+      if (first && (route.request().postData() ?? '').includes('"actionId":"greet"')) {
+        first = false
+        return route.fulfill({ status: 401, body: '' })
+      }
+      return route.continue()
+    })
+    await field(page, 'name').fill('Bob')
+    await page.getByRole('button', { name: 'Greet', exact: true }).click()
+    await expect(toast(page, 'Hello Bob!')).toBeVisible()
+    expect(await page.evaluate(() => (window as any).__expired)).toBe(1)
+  })
+})
+
 test.describe('Actions lab (/actions-lab) — failures', () => {
 
   test('a UserFacingException shows its title and message as written', async ({ page }) => {
