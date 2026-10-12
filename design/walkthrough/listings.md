@@ -49,6 +49,7 @@ Legend: ✅ verified (how) · 🔧 was broken → fixed (commit) · ❌ broken, 
 | 21 | Static bundle: a filtered listing (`/products?status=X`) answered nothing on reload / shared link | `bundleStore.toSyncPath` | 07feff813 |
 | 22 | HeroSearch / SmartSearchPage (`<Filters, Row>` bases): result columns/cards built from the FILTER fields | uidl `GenericTypeHierarchyResolver` | 88623485a |
 | 23 | Listings created in the visual editor (template, "turn into listing") had no sortable column | visual-editor `templates.ts`, `quickStarts.ts` (+ bundle) | d712a404c |
+| 24 | React Native: a read-only number on a record page rendered as a greyed −/+ stepper | RN `readOnlyText.ts` | cc1d1d4c2 |
 
 ## Matrix
 
@@ -58,23 +59,23 @@ Helidon MP), the whole shared + renderer suite (354 tests) green on MVC · **Y/V
 Vaadin, served (`starters/yaml` sample mode, `demo-starwars` REST) · **Y/static** = YAML static bundle
 (`starters/static`, specsOnly) · **RW** = Redwood, Java (`mvc-app1` built for Redwood, `demo-vb`) ·
 **Y/RW** = YAML on Redwood (`starters/yaml` with the Redwood jar) · **.NET / Py** = the ports' starters
-served behind the Vaadin renderer (same-origin proxy) + port tests + conformance · **RN** = React Native
+served behind the Vaadin renderer (same-origin proxy) + port tests + conformance · **RN** = React Native (expo web against `mvc-app1`)
 · **IJ** = IntelliJ (`./gradlew renderProbe` over captured wire) · **Editor** = visual editor.
 
 | Feature | J/V | Y/V | Y/static | RW | Y/RW | .NET | Py | RN | IJ | Editor |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Bare `Listing<Row>` (no chrome, loads on opening) | ✅ spec | ✅ | ✅ | ✅ | ✅ | ✅ browser | ✅ browser | ⏳ | ✅ probe | ✅ (template) |
-| `Searchable` — word search, any order | ✅ spec | ✅ | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Bare `Listing<Row>` (no chrome, loads on opening) | ✅ spec | ✅ | ✅ | ✅ | ✅ | ✅ browser | ✅ browser | ✅ expo web | ✅ probe | ✅ (template) |
+| `Searchable` — word search, any order | ✅ spec | ✅ | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ✅ expo web | ⏳ | N/A |
 | Filter text/select, chips | ✅ spec | ✅ | ✅ | ✅ | ✅ select | ✅ browser | ✅ browser | ⏳ | ⏳ | ⏳ |
 | Typed filters (NumberRange, DateRange, Set<Enum>) | ✅ spec | N/A | N/A | ✅ multi | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | AutoCrud criteria (date-range default, enum multi, bool) | ✅ probe `/products` | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Header sort asc/desc/off, server-side | 🔧 #1 #2 #4 spec | 🔧 #17 | 🔧 #17 | 🔧 #18 spec | ✅ | 🔧 #1 #3 browser | 🔧 #1 #3 browser | 🔧 #1 (offered now) ⏳ | 🔧 #1 (offered now) ⏳ | 🔧 #23 |
-| Paging / pager | ✅ spec | ✅ starwars (`totalPath`) | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ✅ probe | N/A |
+| Header sort asc/desc/off, server-side | 🔧 #1 #2 #4 spec | 🔧 #17 | 🔧 #17 | 🔧 #18 spec | ✅ | 🔧 #1 #3 browser | 🔧 #1 #3 browser | 🔧 #1 → ✅ expo web (table width) | 🔧 #1 (offered now) ⏳ | 🔧 #23 |
+| Paging / pager | ✅ spec | ✅ starwars (`totalPath`) | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ✅ expo web | ✅ probe | N/A |
 | URL sync (page/sort/filters) + reload | ✅ spec | ✅ | 🔧 #21 | ❌ (see below) | ❌ | ✅ browser | ✅ browser | N/A | N/A | N/A |
 | Deep link with filters | 🔧 #5 #20 spec | ✅ | 🔧 #21 (+ static-vcn spec) | ❌ | ❌ | ✅ | ✅ | N/A | N/A | N/A |
-| Row click → record; back; forward | 🔧 #6 #7 spec | ✅ `rowRoute` | ⏳ | ✅ (back loses search) | ⏳ | ✅ browser | ✅ browser | ⏳ | ⏳ | N/A |
+| Row click → record; back; forward | 🔧 #6 #7 spec | ✅ `rowRoute` | ⏳ | ✅ (back loses search) | ⏳ | ✅ browser | ✅ browser | ✅ expo web | ⏳ | N/A |
 | Deep link / reload on a record | 🔧 #7 spec | ✅ | ✅ static-vcn | ⏳ | ⏳ | ✅ browser | ✅ browser | N/A | N/A | N/A |
-| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ | ⚠ class title, not the record | ⏳ | ⏳ | N/A |
+| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ | ⚠ class title, not the record | 🔧 #24 (read-only stepper) ✅ | ⏳ | N/A |
 | Editable w/o Navigable → drawer, save refreshes | ✅ spec | N/A | N/A | ✅ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | Drawer validation (required field) | 🔧 #9 spec | N/A | N/A | 🔧 #9 | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | AutoCrud editInDrawer (open/cancel/save, url) | 🔧 #14 test + probe | N/A | N/A | ✅ (`demo-vb /products`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
@@ -84,9 +85,9 @@ served behind the Vaadin renderer (same-origin proxy) + port tests + conformance
 | Row action menu (ColumnActionGroup) | ✅ probe (demo #16) | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | Inline editing (update-row, no no-op commits) | ✅ probe `/inline-crud-demo` | N/A | N/A | ✅ (`demo-vb /stock`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | Aggregates + `@GroupBy` | 🔧 #19 probe | N/A | N/A | ⏳ | N/A | ✅ conf | ✅ conf | ⏳ | ⏳ | N/A |
-| Column chooser (persisted) | ✅ probe | ⏳ | ⏳ | ✅ button | ⏳ | ✅ (shared client) | ✅ (shared client) | ⏳ | ⏳ | N/A |
+| Column chooser (persisted) | ✅ probe | ⏳ | ⏳ | ✅ button | ⏳ | ✅ (shared client) | ✅ (shared client) | ✅ button | ⏳ | N/A |
 | Saved views ★ default | ✅ probe | ⏳ | ⏳ | ✅ button | ⏳ | ✅ (shared client) | ✅ (shared client) | N/A | ✅ button | N/A |
-| Exports (CSV built-in; Excel/PDF only with an exporter) | 🔧 #12 spec | N/A | N/A | ✅ button | N/A | ✅ tests | ✅ tests | ⏳ | ✅ button | N/A |
+| Exports (CSV built-in; Excel/PDF only with an exporter) | 🔧 #12 spec | N/A | N/A | ✅ button | N/A | ✅ tests | ✅ tests | ✅ button | ✅ button | N/A |
 | Cards layout + `searchesOnOpening=false` (HeroSearch) | 🔧 #22 probe | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | Lookup selector / tree selector dialogs | ✅ probe `/proveedor-demo`, `/tree-select` | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | REST listing: direct + server paging, `rowRoute` | ✅ starwars | ✅ | ✅ sample | ⏳ | ✅ sample | N/A | N/A | ⏳ | ⏳ | ⏳ |
@@ -97,7 +98,7 @@ served behind the Vaadin renderer (same-origin proxy) + port tests + conformance
 | `@DragRows` + DropZone | ✅ core test only | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | Empty state | ✅ (`?searchText=zzz` → "Nothing here yet.") | ⏳ | ⏳ | ✅ noData template | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 
-Counts (cells above): ✅ 111 · 🔧 23 · ❌ 4 · ⚠ 1 · N/A 89 · ⏳ 102.
+Counts (cells above): ✅ 117 · 🔧 24 · ❌ 4 · ⚠ 1 · N/A 89 · ⏳ 95.
 
 
 ## Doc claims found wrong (now true)
