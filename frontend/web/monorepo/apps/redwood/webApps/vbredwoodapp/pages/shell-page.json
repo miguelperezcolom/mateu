@@ -96,7 +96,8 @@
       "chains": [
         {
           "parameters": {
-            "actionId": "{{ $current.data.actionId }}"
+            "actionId": "{{ $current.data.actionId }}",
+            "route": "{{ $current.data.route }}"
           },
           "chain": "runMateuHeaderAction"
         }

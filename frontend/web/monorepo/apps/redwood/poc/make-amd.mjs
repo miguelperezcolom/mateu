@@ -303,6 +303,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withContextState,
     withSearchableIds,
     shellNavOf,
+    // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
+    headerActionRouteOf,
+    // YAML app-context selectors backed by an optionsSource (direct sources)
+    loadContextSelectorOptions,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
     localMenuOptionOf,
@@ -495,6 +499,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    blockClickOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

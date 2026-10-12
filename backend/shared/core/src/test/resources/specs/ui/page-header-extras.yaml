@@ -1,0 +1,34 @@
+# Fixture for YamlPageHeaderSyncTest (and golden source for the client-side expander,
+# expandPageHeader.test.ts): every page-header element a Java page gets from its annotations and
+# suppliers, authored as data on a `type: Form`.
+type: Form
+title: ${state.name}
+subtitle: Customer record
+overline: Customers
+titlePlaceholder: New customer…
+timestamp: Last updated ${state.updatedAt}
+badges:
+  - {label: "${state.status}", color: success}
+  - {label: VIP}
+kpis:
+  - {label: Balance, value: "${state.balance}"}
+  - {label: Orders, value: "12"}
+peerNav: {prevLabel: Previous, prevRoute: customers/1, nextLabel: Next, nextRoute: customers/3}
+recordSwitcher:
+  label: Customer
+  value: ${state.id}
+  searchable: true
+  options:
+    - {value: "1", label: Ada}
+    - {value: "2", label: Grace}
+  route: customers/${state._record}
+banners:
+  - {theme: WARNING, title: Overdue, description: Two invoices are overdue, closeable: true}
+  - {theme: INFO, title: Synced, timeoutSeconds: 5}
+fabs:
+  - {icon: "vaadin:envelope", label: Email, actionId: email, order: 2}
+  - {icon: "vaadin:plus", label: New order, actionId: newOrder, order: 1, buttonStyle: secondary}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, dataType: string}

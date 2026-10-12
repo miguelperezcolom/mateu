@@ -140,6 +140,22 @@ class MateuProjectGeneratorTest : TestCase() {
         assertEquals(emptyList<String>(), MateuProjectGenerator.validate(manifest, base.copy(authoring = "static", runtime = null, sample = "listing")))
     }
 
+    /** What the wizard step shows inline, before the version is resolved and before anything is written. */
+    fun testStepProblems() {
+        val draft = Options(authoring = "code", runtime = "spring-mvc", renderer = "redwood", sample = "crud", groupId = "com.acme", artifactId = "x", packageName = "com.acme.x", version = "")
+        // a valid choice is accepted without a version (it is resolved only when creating)
+        assertEquals(emptyList<String>(), MateuProjectGenerator.stepProblems(manifest, draft))
+        // an incompatible combination is refused ON THE STEP, with the manifest's reason
+        val withRule = (manifest.deepCopy() as com.fasterxml.jackson.databind.node.ObjectNode).also {
+            it.putArray("incompatible").addObject().put("renderer", "redwood").put("sample", "crud").put("reason", "not on Redwood yet")
+        }
+        assertEquals(listOf("not on Redwood yet"), MateuProjectGenerator.stepProblems(withRule, draft))
+        // the project name (the artifact id) too
+        assertTrue(MateuProjectGenerator.stepProblems(manifest, draft.copy(artifactId = "My App")).joinToString().contains("Artifact id"))
+        // group id and package are validated on their own fields, not repeated here
+        assertEquals(emptyList<String>(), MateuProjectGenerator.stepProblems(manifest, draft.copy(groupId = "1 bad", packageName = "also bad!")))
+    }
+
     fun testWritesIntoAnEmptyFolderOnly() {
         val dir = Files.createTempDirectory("mateu-new-project").toFile()
         try {

@@ -6,6 +6,8 @@ type: Routes
 routes:
   - route: ""
     layout: app.yaml
+  - route: home
+    layout: home.yaml
   - route: products
     layout: products.yaml
   # __ROUTES__

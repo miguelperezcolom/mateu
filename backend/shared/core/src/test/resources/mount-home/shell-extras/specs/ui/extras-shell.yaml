@@ -1,0 +1,37 @@
+# Fixture for AppShellExtrasSyncTest (and golden source for the browser expander,
+# expandAppShellExtras.test.ts): the header extras an @App class gets from @AppContext fields,
+# AppActionsSupplier, NotificationsSupplier and GlobalSearchSupplier, authored as data.
+# __PORT__ is replaced by the test with the port of its local REST stub.
+type: AppShell
+title: Shell extras
+variant: MENU_ON_TOP
+homeRoute: home
+actions:
+  - id: newBooking
+    steps:
+      - type: Navigate
+        route: bookings/new
+contextSelectors:
+  - fieldName: hotel
+    label: Hotel
+    options:
+      - {value: H1, label: Palma}
+      - {value: H2, label: Ibiza}
+  - fieldName: company
+    optionsSource: {ref: companies}
+headerActions:
+  - {label: New booking, icon: "vaadin:plus", actionId: newBooking}
+  - {label: Reports, route: reports}
+  - label: More
+    children:
+      - {label: Help, route: help}
+# inline sources (a sources.yaml `ref` works the same; inline keeps the stub port per test run)
+notifications:
+  source: {url: "http://localhost:__PORT__/inbox", itemsPath: items, proxy: true}
+  markRead: {url: "http://localhost:__PORT__/inbox/read?ids=${state.ids}", method: POST, proxy: true}
+globalSearch:
+  source: {url: "http://localhost:__PORT__/search?q=${state.searchText}", proxy: true}
+menu:
+  - type: RouteLink
+    label: Home
+    route: home

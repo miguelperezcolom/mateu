@@ -1,4 +1,5 @@
-import { LitElement, html, css } from 'lit'
+import { LitElement, html } from 'lit'
+import { panelStyles } from './panelStyles'
 import '../widgets/ve-combo'
 import '../widgets/ve-access'
 import '../widgets/ve-image-picker'
@@ -16,6 +17,9 @@ import { specFor } from '../model/schemaCatalog'
 import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import type { ContractMembers } from '../model/contract'
 import '../widgets/ve-select'
+import '../widgets/ve-source-picker'
+import './page-header-editor'
+import { PAGE_HEADER_KEYS, parseOptions } from '../model/headerProps'
 
 /**
  * The properties pane (right). Driven by the generated component schema: for the selected node it
@@ -36,46 +40,7 @@ import '../widgets/ve-select'
  */
 @customElement('editor-properties')
 export class EditorProperties extends LitElement {
-    static styles = css`
-        :host { display: block; height: 100%; overflow: auto; background: var(--ve-surface, #f7f8fa); border-left: 1px solid var(--ve-border, #e3e5e8); }
-        .title { padding: 0.6rem 0.75rem; font: 600 12px var(--ve-font, system-ui); color: var(--ve-text, #374151); border-bottom: 1px solid var(--ve-border, #e3e5e8); }
-        .empty { padding: 1rem 0.75rem; font: 13px var(--ve-font, system-ui); color: var(--ve-tertiary, #9ca3af); }
-        .type { padding: 0.5rem 0.75rem; font: 600 13px var(--ve-font, system-ui); color: var(--ve-text, #111827); }
-        .section { padding: 0.15rem 0.75rem 0.1rem; font: 600 10px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-tertiary, #9ca3af); margin-top: 0.35rem; }
-        label { display: block; padding: 0.25rem 0.75rem 0; font: 11px var(--ve-font, system-ui); color: var(--ve-secondary, #6b7280); }
-        label .req { color: var(--ve-error); }
-        ve-select { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; box-sizing: border-box;
-                font: 13px var(--ve-font, system-ui); --ve-select-radius: 6px; --ve-select-padding: 0.35rem 0.5rem; }
-        input { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem;
-                font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
-        textarea.note { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem; resize: vertical;
-                font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-note-border); border-radius: 6px; box-sizing: border-box;
-                background: var(--ve-note-bg); color: var(--ve-note-ink); }
-        .check { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.75rem 0.35rem; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #374151); }
-        .check input { width: auto; margin: 0; }
-        .muted { padding: 0.15rem 0.75rem 0.35rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #b0b6be); }
-        .row { display: flex; gap: 0.4rem; padding: 0.6rem 0.75rem; border-top: 1px solid var(--ve-border, #e3e5e8); margin-top: 0.5rem; }
-        .row button { flex: 1; padding: 0.4rem; font: 12px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade);
-                      border-radius: 6px; cursor: pointer; }
-        .row button.danger { color: var(--ve-error, #b00020); border-color: var(--ve-error-border); }
-        .add { display: flex; gap: 0.4rem; padding: 0.4rem 0.75rem 0.6rem; }
-        .add input { margin: 0; }
-        .add button { padding: 0 0.6rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; }
-        .inline { display: flex; gap: 0.3rem; align-items: center; margin: 0.1rem 0.75rem 0.35rem; }
-        ve-image-picker, ve-icon-picker, ve-combo { margin: 0.1rem 0.75rem 0.35rem; }
-        .inline input, .inline ve-select, .inline ve-combo { margin: 0; width: auto; flex: 1; min-width: 0; }
-        .inline button, .slots button { padding: 0.3rem 0.55rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
-            border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; white-space: nowrap; }
-        .slots { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.2rem 0.75rem 0.4rem; }
-        .help { padding: 0 0.75rem 0.3rem; font: 11px var(--ve-font, system-ui); color: var(--ve-tertiary, #9ca3af); }
-        .muted-inline { color: var(--ve-tertiary, #b0b6be); }
-        details.more { margin: 0.2rem 0 0.3rem; }
-        details.more summary { cursor: pointer; padding: 0.3rem 0.75rem; font: 12px var(--ve-font, system-ui);
-            color: var(--ve-primary-text, #1d4ed8); list-style: none; }
-        details.more summary::-webkit-details-marker { display: none; }
-        details.more summary::before { content: '▸ '; }
-        details.more[open] summary::before { content: '▾ '; }
-    `
+    static styles = panelStyles
 
     @property({ attribute: false }) node: PageNode | null = null
     @property({ attribute: false }) project?: ProjectIndex
@@ -100,21 +65,24 @@ export class EditorProperties extends LitElement {
         if (!node) return html`<div class="title">Properties</div><div class="empty">Select a component on the canvas.</div>`
 
         const spec = specFor(node.type)
+        // A page's header (a Form's overline, badges, KPIs, banners, FABs, previous/next, switcher) has
+        // its own section; those keys are not repeated among the generic properties.
+        const header = node.type === 'Form' ? HEADER_KEYS : NO_KEYS
         // Scalar props the schema declares for this component (typed editors).
         // `note` (the design note) has its own box at the top, not a row among the properties.
-        const known = spec ? spec.props.filter((p) => p.kind !== 'children' && p.kind !== 'complex' && p.name !== 'note') : []
+        const known = spec ? spec.props.filter((p) => p.kind !== 'children' && p.kind !== 'complex' && p.name !== 'note' && !header.has(p.name)) : []
         // Complex props with a dedicated editor (data sources, navigation, options).
         const rich = spec ? spec.props.filter((p) => RICH.has(p.ref ?? '') || (p.kind === 'children' && p.ref === 'Option')) : []
         const slots = slotProps(spec)
         const richNames = new Set([...rich, ...slots].map((p) => p.name))
-        const structural = spec ? spec.props.filter((p) => (p.kind === 'children' || p.kind === 'complex') && !richNames.has(p.name) && p.name !== 'content' && p.ref !== 'Access') : []
+        const structural = spec ? spec.props.filter((p) => (p.kind === 'children' || p.kind === 'complex') && !richNames.has(p.name) && p.name !== 'content' && p.ref !== 'Access' && !header.has(p.name)) : []
         // The props an author reaches for first stay in view; the long tail (a FormField has ~50) folds
         // under "More properties" — always including anything already set on the node.
         const common = new Set(COMMON[node.type] ?? known.slice(0, 8).map((p) => p.name))
         const isPrimary = (p: PropSpec) => common.has(p.name) || p.required || node[p.name] !== undefined
         const primary = known.filter(isPrimary)
         const more = known.filter((p) => !isPrimary(p))
-        const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name), ...ACCESS_KEYS])
+        const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name), ...ACCESS_KEYS, ...header])
         // Props on the node the schema does not know (hand-authored, or a newer catalog) — keep editable.
         const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && !(this.page && PAGE_KEYS.has(k))
             && (node[k] == null || typeof node[k] !== 'object'))
@@ -136,6 +104,9 @@ export class EditorProperties extends LitElement {
                 <summary>More properties (${more.length})</summary>
                 ${more.map((p) => this.field(p, node[p.name]))}
             </details>` : ''}
+
+            ${node.type === 'Form' ? html`<page-header-editor .node=${node} .project=${this.project} .renderer=${this.renderer}
+                .actionOptions=${this.pickerOptionsFor('actionId') ?? []} .routeOptions=${this.routeOptions}></page-header-editor>` : ''}
 
             ${rich.length ? html`<div class="section">Data &amp; behaviour</div>` : ''}
             ${rich.map((p) => this.richField(p, node[p.name]))}
@@ -295,25 +266,10 @@ export class EditorProperties extends LitElement {
     /** Editors for the complex shapes authors touch most (see the class comment). */
     private richField(p: PropSpec, value: unknown) {
         if (p.ref === 'RestDataSource') {
-            const v = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>
-            const sources = this.project?.sources ?? []
-            const ref = typeof v.ref === 'string' ? v.ref : ''
-            const url = typeof v.url === 'string' ? v.url : ''
             return html`
                 <label>${p.name} <span class="muted-inline">(REST source)</span></label>
-                <ve-select @change=${(e: Event) => {
-                    const name = (e.target as HTMLSelectElement).value
-                    this.emit(p.name, name ? { ...omitKeys(v, ['url']), ref: name } : (url ? omitKeys(v, ['ref']) : ''))
-                }}>
-                    <option value="" ?selected=${!ref}>${sources.length ? '— inline url —' : '— no sources.yaml —'}</option>
-                    ${sources.map((s) => html`<option value=${s.name} ?selected=${s.name === ref} title=${s.description ?? ''}>${s.name}</option>`)}
-                    ${ref && !sources.some((s) => s.name === ref) ? html`<option value=${ref} selected>${ref} (unknown)</option>` : ''}
-                </ve-select>
-                ${ref ? '' : html`<input placeholder="https://api.example.com/items" .value=${url}
-                    @change=${(e: Event) => {
-                        const u = (e.target as HTMLInputElement).value.trim()
-                        this.emit(p.name, u ? { ...v, url: u } : '')
-                    }} />`}`
+                <ve-source-picker style="margin: 0.1rem 0.75rem 0.35rem" .sources=${this.project?.sources ?? []} .value=${value}
+                    @change=${(e: Event) => this.emit(p.name, (e.target as unknown as { value: unknown }).value)}></ve-source-picker>`
         }
         if (p.ref === 'Actionable') {
             const v = (value && typeof value === 'object' ? value : undefined) as Record<string, unknown> | undefined
@@ -422,6 +378,10 @@ const COMMON: Record<string, string[]> = {
 /** Page-level keys edited in the Page section (not repeated under "Other" when they sit on a bare root). */
 const PAGE_KEYS = new Set(['pageType'])
 
+/** The page header keys of a Form, edited by page-header-editor. */
+const HEADER_KEYS: ReadonlySet<string> = new Set(PAGE_HEADER_KEYS)
+const NO_KEYS: ReadonlySet<string> = new Set()
+
 /** The access overlay keys every component accepts (edited in the Access section). */
 const ACCESS_KEYS = COMPONENT_ACCESS_KEYS.map((k) => k.key)
 
@@ -445,22 +405,8 @@ function slotLabel(key: string): string {
     return singular[key] ?? key
 }
 
-function omitKeys(o: Record<string, unknown>, keys: string[]): Record<string, unknown> {
-    const out: Record<string, unknown> = {}
-    for (const k of Object.keys(o)) if (!keys.includes(k)) out[k] = o[k]
-    return out
-}
-
-/** `a=Alpha, b` → [{value:'a', label:'Alpha'}, {value:'b', label:'b'}]; '' clears. */
-export function parseOptions(text: string): Record<string, unknown>[] | '' {
-    const out = text.split(',').map((s) => s.trim()).filter(Boolean).map((pair) => {
-        const eq = pair.indexOf('=')
-        const value = eq >= 0 ? pair.slice(0, eq).trim() : pair
-        const label = eq >= 0 ? pair.slice(eq + 1).trim() : pair
-        return { value, label }
-    })
-    return out.length ? out : ''
-}
+/** Kept exported from here for the callers that imported it with the pane. */
+export { parseOptions }
 
 /** Coerce obvious booleans/numbers so `spacing: true` stays a boolean in YAML, not a string. */
 function coerce(value: string): unknown {

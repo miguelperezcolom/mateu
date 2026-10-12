@@ -25,6 +25,7 @@
 // design/phase6-client-side-expander.md, "golden strategy"). Reproducing every component's defaults
 // would be a fourth copy of what the three backends already hold.
 
+import { expandFormHeader } from '@infra/expander/pageHeader'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
@@ -138,7 +139,11 @@ export function expandComponent(authored: FluentNode): Component {
         } as unknown as ClientSideComponent
     }
 
-    const { type, content, children, ...fields } = node
+    // A Button placed in content (a hero's call to action, a layout's child) is ClientSide-wrapped
+    // on the wire, but the server's ButtonMapper treats it exactly like a toolbar button: a RouteLink
+    // `actionable` becomes the button's `route` (it NAVIGATES on the client) and a missing actionId
+    // comes from the label. Without it a bundled "Browse products" button did nothing.
+    const { type, content, children, ...fields } = (node.type === 'Button' ? expandButton(node) : node) as FluentNode
 
     const envelope: Record<string, unknown> = {}
     const metadata: Record<string, unknown> = { type }
@@ -155,6 +160,11 @@ export function expandComponent(authored: FluentNode): Component {
         delete metadata.id
         metadata.dataType = metadata.dataType ?? 'string'
         metadata.stereotype = metadata.stereotype ?? 'regular'
+    }
+    if (type === 'Form') {
+        // the page-header keys (overline, badges, kpis, recordSwitcher, banners, fabs…) as FormMapper
+        // shapes them
+        expandFormHeader(metadata)
     }
     if (type === 'HeroSection' && metadata.tone === 'auto') {
         // HeroSectionMapper: `auto` is the default look, so nothing travels

@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import {
     AppDoc, AppFields, AppMenuItem, parseApp, serializeApp,
     appActionIds, appActionSteps, setAppActionSteps, addAppFlowAction, removeAppAction,
-    WIDGET_KINDS, widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget,
+    WIDGET_KINDS, widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget, appExtra, withAppExtra,
 } from '../model/appModel'
 import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
@@ -15,6 +15,8 @@ import { formatAccessInline, parseAccessInline } from '../model/access'
 import type { ComboOption } from '../widgets/comboModel'
 import '../widgets/ve-select'
 import '../widgets/ve-icon-picker'
+import './app-header-extras'
+import { APP_HEADER_KEYS } from '../model/headerProps'
 
 /**
  * The app-shell editor: a form over the `app:` block of `routes.yaml` — title, chrome and the
@@ -138,6 +140,12 @@ export class AppEditor extends LitElement {
                     ${this.check('Open on mobile', 'mobileQr', f, 'A header button with the QR that adds this UI to the Mateu mobile app')}
                 </div>
                 <div class="note">Unticked: the @App class (if any) decides.</div>
+
+                <div class="section">Header extras</div>
+                <app-header-extras .value=${Object.fromEntries(APP_HEADER_KEYS.map((k) => [k, appExtra(this.doc, k)]))}
+                    .sources=${this.project?.sources ?? []} .routeOptions=${this.routeOptions} .actionOptions=${this.actionOptions}
+                    .renderer=${this.renderer}
+                    @extras-changed=${(e: CustomEvent) => this.update_(withAppExtra(this.doc, e.detail.key, e.detail.value))}></app-header-extras>
 
                 <div class="section">Actions</div>
                 <div class="note">Flows the shell declares — a bounded list of steps run in the browser, no backend. A menu “Action” item runs one.</div>

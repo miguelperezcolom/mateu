@@ -11,6 +11,7 @@
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
 
+import { humanizeFieldId } from '@infra/ui/humanize'
 import { withoutAccessKeys } from './accessKeys.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
@@ -313,6 +314,43 @@ export function idleSessionOf(shell: FluentNode): Record<string, unknown> | null
     return { timeoutSeconds: timeout, warningSeconds: warning, signOutUrl: signOut, keepAliveActionId: null }
 }
 
+/** A shell header action (`headerActions:`) as AppMapper sends it: its route made absolute. */
+function headerAction(a: Record<string, unknown>): Record<string, unknown> {
+    const route = typeof a.route === 'string' && a.route.trim() ? '/' + a.route.trim().replace(/^\/+/, '') : null
+    const children = Array.isArray(a.children)
+        ? (a.children as Record<string, unknown>[]).filter((c) => c && typeof c === 'object').map(headerAction)
+        : null
+    return { actionId: a.actionId ?? null, label: a.label, icon: a.icon ?? null, children, route }
+}
+
+/**
+ * The header extras a `type: AppShell` authors — `contextSelectors:`, `headerActions:`,
+ * `notifications:` and `globalSearch:` — as AppMapper puts them on the wire App. The sources travel
+ * as authored (usually a `{ref}`), and the browser fetches them (appSources.ts).
+ */
+export function shellHeaderExtras(shell: FluentNode): Record<string, unknown> {
+    const objects = (v: unknown) => (Array.isArray(v) ? v : []).filter((x) => x && typeof x === 'object') as Record<string, unknown>[]
+    const contextSelectors = objects(shell.contextSelectors)
+        .filter((s) => typeof s.fieldName === 'string' && s.fieldName.trim())
+        .map((s) => ({
+            fieldName: s.fieldName,
+            label: typeof s.label === 'string' && s.label.trim() ? s.label : humanizeFieldId(String(s.fieldName)),
+            options: objects(s.options).map((o) => ({ value: o.value, label: o.label })),
+            optionsSource: s.optionsSource ?? null,
+        }))
+    const notifications = shell.notifications as Record<string, unknown> | undefined
+    const globalSearch = shell.globalSearch as Record<string, unknown> | undefined
+    return {
+        contextSelectors,
+        contextActions: objects(shell.headerActions).map(headerAction),
+        notificationsEnabled: !!notifications?.source,
+        notificationsSource: notifications?.source ?? null,
+        notificationsReadSource: notifications?.markRead ?? null,
+        globalSearchEnabled: !!globalSearch?.source,
+        globalSearchSource: globalSearch?.source ?? null,
+    }
+}
+
 /**
  * `type: AppShell` → the wire App (what the server's YamlAppLoader + AppMapper produce for a
  * definition-only mount root): title, subtitle, variant and the menu, with `homeRoute` the first
@@ -363,8 +401,8 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     homeBaseUrl: '',
                     apps: [],
                     fabs: [],
-                    contextSelectors: [],
-                    contextActions: [],
+                    // the header extras (AppMapper): pickers, header actions, inbox and palette search
+                    ...shellHeaderExtras(shell),
                     // the shell's FLOWS, lowered as the server's AppMapper lowers them: a menu
                     // RuleLink whose RunAction names one runs it in the browser
                     actions: ((shell.actions as Record<string, unknown>[] | undefined) ?? [])

@@ -33,6 +33,12 @@ define([
       if (!pick) {
         return;
       }
+      // a YAML switcher with a `route` NAVIGATES to it (the picked value in ${state._record}),
+      // the in-app way every page chain navigates (application:mateuNavigate)
+      if (pick.route) {
+        await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: pick.route } });
+        return;
+      }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
         params: { actionId: pick.actionId, parameters: pick.parameters },

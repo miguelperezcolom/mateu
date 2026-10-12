@@ -22,10 +22,13 @@ The first choice is **how you author the UI**:
 
 | Authoring | What you get | Runtimes |
 |---|---|---|
-| **Code** | Screens are classes: `@UI` (Java), `[UI]` (C#) or `@ui` (Python). A Product CRUD, or an empty home screen. | Spring Boot MVC/WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python |
-| **YAML only, served by a backend** | **No UI code at all**: the Spring Boot main class plus `src/main/resources/specs/ui/` — a `type: UI` mount, `routes.yaml`, an app shell, a listing and `sources.yaml` with sample data. See the [YAML quickstart](/define/yaml/quickstart/). | Spring Boot MVC |
+| **Code** | Screens are classes: `@UI` (Java), `[UI]` (C#) or `@ui` (Python). An app shell with a menu, a home page and a Product CRUD — or, with the *Home only* sample, the shell and the home page alone. | Spring Boot MVC/WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python |
+| **YAML only, served by a backend** | **No UI code at all**: the Spring Boot main class plus `src/main/resources/specs/ui/` — a `type: UI` mount (with its `home:`), `routes.yaml`, an app shell, a home page, a listing and `sources.yaml` with sample data. See the [YAML quickstart](/define/yaml/quickstart/). | Spring Boot MVC |
 | **YAML only, static** | **No backend**: the same YAML, bundled at build time into a folder of static files for any CDN. | none — `mvn package` writes `target/mateu-bundle/` |
-| **Code + YAML** | App shell, routes and pages as YAML; the Product CRUD as a Java view model bound in `routes.yaml`. | Spring Boot MVC/WebFlux, Quarkus |
+| **Code + YAML** | App shell, routes and the home page as YAML; the Product CRUD as a Java view model bound in `routes.yaml`. | Spring Boot MVC/WebFlux, Quarkus |
+
+Whatever you pick, the project runs out of the box and opens on its **home page**; with the
+products sample, the home page's call to action and the **Products** menu entry lead to the products.
 
 Then, where they apply: the **runtime**, the **renderer** (Vaadin, or Oracle Redwood for Spring
 Boot), the sample to start from, **sample pages from the page templates** (for the YAML flavours, in

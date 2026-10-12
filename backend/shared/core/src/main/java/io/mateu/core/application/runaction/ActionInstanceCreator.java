@@ -106,7 +106,39 @@ public class ActionInstanceCreator {
     }
     return routeInstanceCreator
         .findRouteResolver(command)
-        .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)));
+        .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
+        .switchIfEmpty((Mono) Mono.defer(() -> rootAppMenuContent(finalCommand)));
+  }
+
+  /**
+   * A CONTENT load (consumedRoute set, no serverSideType) of a route no class or definition claims
+   * — the route of a {@code @Menu} entry of the root {@code @UI("")} app, whose target class has no
+   * {@code @UI} of its own. A renderer that loads content by route alone (the Redwood shell) asks
+   * exactly that; it resolves the way the same load naming the app's type does (what the Vaadin
+   * shell sends): through the app's menu. Only reached when everything else found nothing, so it
+   * never changes what an existing route answers.
+   */
+  private Mono<?> rootAppMenuContent(RunActionCommand command) {
+    if (command.consumedRoute() == null
+        || "_empty".equals(command.consumedRoute())
+        || command.route() == null
+        || stripQuery(command.route()).replaceAll("^/+", "").isEmpty()
+        || isTerminalRoute(command.route())
+        || (command.actionId() != null && !command.actionId().isEmpty())) {
+      return Mono.empty();
+    }
+    try {
+      var root = routedClassResolver.resolve("", command).orElse(null);
+      if (root == null
+          || root.resolvedClass() == null
+          || !isApp(root.resolvedClass(), command.route())) {
+        return Mono.empty();
+      }
+      return instantiateWithKnownType(command.withServerSideType(root.resolvedClass().getName()));
+    } catch (Throwable t) {
+      log.debug("rootAppMenuContent {}: {}", command.route(), t.toString());
+      return Mono.empty();
+    }
   }
 
   /**
@@ -156,6 +188,19 @@ public class ActionInstanceCreator {
         routeRegistry.mountHomeFor(command.route()),
         httpRequest,
         path -> routeRegistry.isReachable(path, httpRequest));
+  }
+
+  /**
+   * The data-authored app shell ({@code type: AppShell}) of the route's mount, as declared — or
+   * null when the mount has none. What the shell's {@code _appsource} proxy may call is decided by
+   * what THIS declares, never by the request.
+   */
+  public io.mateu.uidl.fluent.AppShell declaredShellFor(String route) {
+    var path = route == null ? "" : route;
+    // mountHomeFor first: it makes sure the mounts have been scanned (rootDefinitionFor does not),
+    // so a header asking before any page load of this server still finds its shell
+    var home = routeRegistry.mountHomeFor(path);
+    return yamlAppLoader.load(routeRegistry.rootDefinitionFor(path), home);
   }
 
   /**

@@ -1,0 +1,10 @@
+# Fixture for YamlPageHeaderSyncTest: a record switcher whose entries come from a sources.yaml
+# reference (fetched by the browser) and whose pick runs a declared page action instead of
+# navigating.
+type: Form
+title: Country
+recordSwitcher:
+  type: context
+  optionsSource: {ref: countries}
+  actionId: pickCountry
+content: []

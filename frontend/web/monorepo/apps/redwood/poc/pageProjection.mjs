@@ -2,7 +2,7 @@ import {
   wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
-  pageSwitcherOf,
+  pageSwitcherOf, pageHeaderNodeOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 
@@ -247,7 +247,8 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
  * the shell's own FAB. Primary-styled ones are the call to action.
  */
 export function fabsOf(shell, host) {
-  const page = host && host.tree ? findByType(host.tree, 'Page') : null
+  // a YAML page declares its FABs on its `type: Form` (FabDto, the same wire field)
+  const page = host && host.tree ? pageHeaderNodeOf(host.tree) : null
   const row = (f, appLevel) => ({
     key: (appLevel ? 'app:' : 'page:') + (f.id || f.actionId),
     label: f.label || f.actionId || '',

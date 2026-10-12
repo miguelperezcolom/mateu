@@ -115,6 +115,13 @@ Three notes on how to read the table:
   (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual and just
   point at the one supporting panel that belongs to the side.
 
+## The header in YAML
+
+Every header element on this page — overline, title placeholder, timestamp, badges, KPIs, peer
+navigation, the record switcher, banners and page FABs — is authorable on a YAML page's
+`type: Form` too, with the same wire fields. See
+[YAML pages › Page header](/define/yaml/pages/#page-header--type-form).
+
 ## Record and context switcher
 
 The Redwood header's `selectObject` / `selectContext` element, available on **any** page with a

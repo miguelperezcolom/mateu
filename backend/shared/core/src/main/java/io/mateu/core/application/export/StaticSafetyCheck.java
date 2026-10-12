@@ -127,6 +127,7 @@ public final class StaticSafetyCheck {
       }
       var route = "/" + entry.route();
       out.addAll(checkDefinition(route, def, catalog));
+      out.addAll(checkShellHeaderActions(route, def, catalogueActionIds(manifest)));
       for (var data : new RestDataSource[] {entry.data(), entry.appData()}) {
         if (data != null) {
           out.addAll(checkSource(route, MAPPER.valueToTree(data), catalog, "the route's data"));
@@ -338,6 +339,56 @@ public final class StaticSafetyCheck {
           }
           return true;
         });
+    return out;
+  }
+
+  private static Set<String> catalogueActionIds(MateuBundleExporter.BundleManifest manifest) {
+    var ids = new java.util.HashSet<String>();
+    if (manifest.actions() != null) {
+      for (var action : manifest.actions()) {
+        if (action != null && action.id() != null) {
+          ids.add(action.id());
+        }
+      }
+    }
+    return ids;
+  }
+
+  /**
+   * A data-authored shell's header buttons ({@code headerActions:}): one that navigates ({@code
+   * route}) or runs one of the shell's own {@code actions:} / an action-catalogue entry runs in the
+   * browser; any other {@code actionId} is an app-level action dispatched to a server. (The shell's
+   * REST sources — pickers, inbox, palette search — are judged as sources by {@link
+   * #checkDefinition}: a proxied one needs the server's {@code _appsource}.)
+   */
+  static List<Violation> checkShellHeaderActions(
+      String route, JsonNode def, Set<String> catalogueActions) {
+    var out = new ArrayList<Violation>();
+    if (def == null || !"AppShell".equals(def.path("type").asText())) {
+      return out;
+    }
+    var shellActions = new java.util.HashSet<String>(catalogueActions);
+    for (var action : def.path("actions")) {
+      shellActions.add(action.path("id").asText());
+    }
+    var pending = new java.util.ArrayDeque<JsonNode>();
+    def.path("headerActions").forEach(pending::add);
+    while (!pending.isEmpty()) {
+      var action = pending.pop();
+      action.path("children").forEach(pending::add);
+      var actionId = action.path("actionId").asText("");
+      if (!actionId.isBlank()
+          && action.path("route").asText("").isBlank()
+          && !shellActions.contains(actionId)) {
+        out.add(
+            new Violation(
+                route,
+                "header action '"
+                    + actionId
+                    + "' is neither a route nor an action of the shell or the action catalogue, so"
+                    + " it would be dispatched to a server"));
+      }
+    }
     return out;
   }
 

@@ -68,6 +68,15 @@ public sealed record AppHeaderAction(
         new(null, label, icon, children);
 }
 
+/// <summary>Implemented by the [App] class to name the route the app opens on (its home page) — one
+/// of its menu routes, mount-relative, e.g. "home". Without it a [MenuItem] app declares no home and
+/// its root shows an empty content area until a menu entry is picked. An IAppSupplier shell's own
+/// HomeRoute wins over it. (C# analogue of Java's HomeRouteSupplier.)</summary>
+public interface IHomeRouteSupplier
+{
+    string HomeRoute();
+}
+
 /// <summary>Implemented by an app shell to contribute action buttons to the app header, next to
 /// the [AppContext] selectors. Evaluated on every shell build, so actions can appear and
 /// disappear with server-side state. (C# analogue of Java's AppActionsSupplier.)</summary>

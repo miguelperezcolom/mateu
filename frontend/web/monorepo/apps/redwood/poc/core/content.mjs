@@ -242,6 +242,10 @@ export function islandContentOf(ctx, opts = {}) {
     disabled: !!m.disabled,
     chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
     parameters: m.parameters || {},
+    // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
+    // route on it): the click goes to that route instead of running actionId on the server, which
+    // has nothing behind it — a YAML hero's "Browse products" did nothing
+    ...(m.route ? { route: m.route } : {}),
   })
   const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
     .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

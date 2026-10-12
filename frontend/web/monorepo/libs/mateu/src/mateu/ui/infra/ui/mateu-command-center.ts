@@ -3,7 +3,7 @@ import { LitElement, html, css, nothing, TemplateResult, PropertyValues } from "
 import { customElement, property, state, query } from "lit/decorators.js";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
-import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
+import { searchGlobally } from "@infra/ui/appSources.ts";
 import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
 import { fabPosition, fabStyles, onFabRail } from "@infra/ui/layout/fabRail.ts";
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
@@ -151,14 +151,9 @@ export class MateuCommandCenter extends LitElement {
     private async fetchGlobalSearch(query: string) {
         const app = this.app
         if (!app?.globalSearchEnabled) { this.loading = false; return }
+        // (a data-authored shell's globalSearch.source, else the app class's _globalsearch action)
         try {
-            const increment = await mateuApiClient.runAction(
-                this.baseUrl ?? '', app.rootRoute ?? '', '', '_globalsearch',
-                'command-center', undefined, app.serverSideType, {},
-                { searchText: query }, this, true)
-            const data = increment?.fragments?.map(f => f.data)
-                .find(d => d && (d as Record<string, unknown>)['_globalsearch'])
-            this.dataHits = ((data as Record<string, unknown> | undefined)?.['_globalsearch'] as GlobalSearchHit[]) ?? []
+            this.dataHits = (await searchGlobally(app, this.baseUrl ?? '', query, this, 'command-center')) as GlobalSearchHit[]
         } catch {
             this.dataHits = []
         } finally {

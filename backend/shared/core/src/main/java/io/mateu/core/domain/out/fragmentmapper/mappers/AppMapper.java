@@ -89,7 +89,7 @@ public final class AppMapper {
             .fabs(getAppFabs(app))
             .themeToggle(getThemeToggle(app))
             .contextSelectors(getContextSelectors(app, httpRequest))
-            .contextActions(getContextActions(app, httpRequest))
+            .contextActions(getContextActions(app, httpRequest, appRouteForMenu))
             .notificationsEnabled(isNotificationsEnabled(app))
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
@@ -112,6 +112,18 @@ public final class AppMapper {
             .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
             .idleSession(AppShellExtrasMapper.idleSession(app))
+            .notificationsSource(
+                app.notifications() != null
+                    ? FieldMapper.mapRestDataSource(app.notifications().source())
+                    : null)
+            .notificationsReadSource(
+                app.notifications() != null
+                    ? FieldMapper.mapRestDataSource(app.notifications().markRead())
+                    : null)
+            .globalSearchSource(
+                app.globalSearch() != null
+                    ? FieldMapper.mapRestDataSource(app.globalSearch().source())
+                    : null)
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -168,6 +180,30 @@ public final class AppMapper {
    * class method with that name runs.
    */
   private static List<AppHeaderActionDto> getContextActions(AppShell app, HttpRequest httpRequest) {
+    return getContextActions(app, httpRequest, "");
+  }
+
+  /**
+   * The shell's own header actions (YAML {@code headerActions:}), their routes made absolute like
+   * the menu's, then the ones an {@code AppActionsSupplier} app class adds.
+   */
+  private static List<AppHeaderActionDto> getContextActions(
+      AppShell app, HttpRequest httpRequest, String appRoute) {
+    var declared =
+        app.headerActions().stream()
+            .map(action -> withAbsoluteRoutes(mapHeaderAction(action), appRoute))
+            .toList();
+    var supplied = getSuppliedContextActions(app, httpRequest);
+    if (declared.isEmpty()) return supplied;
+    if (supplied.isEmpty()) return declared;
+    var all = new java.util.ArrayList<AppHeaderActionDto>(declared);
+    all.addAll(supplied);
+    return all;
+  }
+
+  /** The header actions an {@code AppActionsSupplier} app class adds for this request. */
+  private static List<AppHeaderActionDto> getSuppliedContextActions(
+      AppShell app, HttpRequest httpRequest) {
     if (app.serverSideType() == null) return List.of();
     var appClass = forName(app.serverSideType());
     if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
@@ -199,6 +235,9 @@ public final class AppMapper {
    * io.mateu.uidl.interfaces.NotificationsSupplier}.
    */
   private static boolean isNotificationsEnabled(AppShell app) {
+    if (app.notifications() != null && app.notifications().source() != null) {
+      return true;
+    }
     if (app.serverSideType() == null) {
       return false;
     }
@@ -208,6 +247,9 @@ public final class AppMapper {
 
   /** The ⌘K palette searches data too when the app class implements GlobalSearchSupplier. */
   private static boolean isGlobalSearchEnabled(AppShell app) {
+    if (app.globalSearch() != null && app.globalSearch().source() != null) {
+      return true;
+    }
     if (app.serverSideType() == null) {
       return false;
     }
@@ -215,11 +257,28 @@ public final class AppMapper {
         forName(app.serverSideType()));
   }
 
+  private static AppHeaderActionDto withAbsoluteRoutes(AppHeaderActionDto action, String appRoute) {
+    return AppHeaderActionDto.builder()
+        .actionId(action.actionId())
+        .label(action.label())
+        .icon(action.icon())
+        .route(
+            action.route() == null
+                ? null
+                : AppShellExtrasMapper.absolute(appRoute == null ? "" : appRoute, action.route()))
+        .children(
+            action.children() == null
+                ? null
+                : action.children().stream().map(c -> withAbsoluteRoutes(c, appRoute)).toList())
+        .build();
+  }
+
   private static AppHeaderActionDto mapHeaderAction(io.mateu.uidl.data.AppHeaderAction action) {
     return AppHeaderActionDto.builder()
         .actionId(action.actionId())
         .label(action.label())
         .icon(action.icon())
+        .route(action.route() != null && !action.route().isBlank() ? action.route() : null)
         .children(
             action.children() == null
                 ? null
@@ -235,9 +294,25 @@ public final class AppMapper {
    */
   private static List<AppContextSelectorDto> getContextSelectors(
       AppShell app, HttpRequest httpRequest) {
-    if (app.serverSideType() == null) return List.of();
-    var appClass = forName(app.serverSideType());
     var selectors = new java.util.ArrayList<AppContextSelectorDto>();
+    // the shell's own pickers (YAML `contextSelectors:` / AppShell in code) first
+    for (var selector : app.contextSelectors()) {
+      if (selector == null || selector.fieldName() == null || selector.fieldName().isBlank()) {
+        continue;
+      }
+      selectors.add(
+          AppContextSelectorDto.builder()
+              .fieldName(selector.fieldName())
+              .label(
+                  selector.label() != null && !selector.label().isBlank()
+                      ? selector.label()
+                      : io.mateu.uidl.Humanizer.toUpperCaseFirst(selector.fieldName()))
+              .options(selector.options().stream().map(FieldMapper::mapOption).toList())
+              .optionsSource(FieldMapper.mapRestDataSource(selector.optionsSource()))
+              .build());
+    }
+    if (app.serverSideType() == null) return selectors;
+    var appClass = forName(app.serverSideType());
     for (var field : appClass.getDeclaredFields()) {
       if (!MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
         continue;

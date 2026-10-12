@@ -1,11 +1,23 @@
-"""The whole UI: a CRUD over ``Product`` at /products."""
+"""The whole UI: an app shell (``Shell``) with a menu, a home page (``Home``) and a CRUD over
+``Product`` at /products."""
 
 from __future__ import annotations
 
 from enum import Enum
 from typing import Annotated
 
-from mateu_uidl import Crud, Required, title, ui
+from mateu_uidl import (
+    Crud,
+    HomeRouteSupplier,
+    Panel,
+    Required,
+    Welcome,
+    app,
+    menu_item,
+    title,
+    ui,
+)
+from mateu_uidl.components import Button, Text
 
 
 class ProductStatus(Enum):
@@ -44,6 +56,8 @@ _STORE: dict[str, Product] = {
 @ui("products")
 @title("Products")
 class Products(Crud[Product]):
+    """A CRUD over ``Product`` at /products: listing, create, detail, edit and delete."""
+
     def fetch(self, search):
         s = (search or "").lower()
         return [p for p in _STORE.values() if not s or s in p.name.lower() or s in p.id.lower()]
@@ -56,3 +70,45 @@ class Products(Crud[Product]):
 
     def delete(self, id):
         _STORE.pop(id, None)
+
+
+@ui("home")
+class Home(Welcome):
+    """The home page, a ``Welcome``: a hero with a title and an intro, ``Button`` fields as its
+    calls to action and ``Panel(...)`` fields as tiles below. A button runs the method named by
+    its action id (``browseProducts`` → ``browse_products``); returning a route navigates."""
+
+    browse: Button = Button(label="Browse products", action_id="browseProducts", button_style="primary")
+    products: Annotated[Text, Panel("Products")] = Text(
+        text="Search, create, edit and delete products: a whole CRUD derived from one class."
+    )
+    next: Annotated[Text, Panel("Your next screen")] = Text(
+        text="Write a class for it and add a @menu_item method returning it to Shell."
+    )
+
+    def hero_title(self) -> str:
+        return "My app"
+
+    def hero_subtitle(self) -> str:
+        return "Every screen here is declared in Python; Mateu renders it."
+
+    def browse_products(self) -> str:
+        return "/products"
+
+
+@app("My app")
+class Shell(HomeRouteSupplier):
+    """The app shell, at the app root: the title and the menu around every screen. Each
+    ``@menu_item`` method is a menu entry returning that screen; ``home_route`` names the one the
+    app opens on."""
+
+    @menu_item("Home")
+    def home(self) -> Home:
+        return Home()
+
+    @menu_item("Products")
+    def products(self) -> Products:
+        return Products()
+
+    def home_route(self) -> str:
+        return "home"

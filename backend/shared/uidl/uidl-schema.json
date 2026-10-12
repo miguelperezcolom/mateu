@@ -427,6 +427,26 @@
         }
       }
     },
+    "AppContextSelector" : {
+      "type" : "object",
+      "properties" : {
+        "fieldName" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Option"
+          }
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSource"
+        }
+      }
+    },
     "AppData" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -460,9 +480,51 @@
         }
       }
     },
+    "AppGlobalSearchSource" : {
+      "type" : "object",
+      "properties" : {
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        }
+      }
+    },
+    "AppHeaderAction" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppHeaderAction"
+          }
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
     "AppLayout" : {
       "type" : "string",
       "enum" : [ "SINGLE_SLOT", "SPLIT" ]
+    },
+    "AppNotificationsSource" : {
+      "type" : "object",
+      "properties" : {
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "markRead" : {
+          "$ref" : "#/$defs/RestDataSource"
+        }
+      }
     },
     "AppShell" : {
       "type" : "object",
@@ -588,6 +650,24 @@
         },
         "mobileQr" : {
           "type" : "boolean"
+        },
+        "contextSelectors" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppContextSelector"
+          }
+        },
+        "headerActions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppHeaderAction"
+          }
+        },
+        "notifications" : {
+          "$ref" : "#/$defs/AppNotificationsSource"
+        },
+        "globalSearch" : {
+          "$ref" : "#/$defs/AppGlobalSearchSource"
         },
         "note" : {
           "type" : "string",
@@ -818,6 +898,10 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "BannerTheme" : {
+      "type" : "string",
+      "enum" : [ "NONE", "INFO", "SUCCESS", "WARNING", "DANGER" ]
     },
     "BoardLayout" : {
       "type" : "object",
@@ -3686,6 +3770,45 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "overline" : {
+          "type" : "string"
+        },
+        "titlePlaceholder" : {
+          "type" : "string"
+        },
+        "timestamp" : {
+          "type" : "string"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Chip"
+          }
+        },
+        "kpis" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Fact"
+          }
+        },
+        "peerNav" : {
+          "$ref" : "#/$defs/PeerNav"
+        },
+        "recordSwitcher" : {
+          "$ref" : "#/$defs/RecordSwitcher"
+        },
+        "banners" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PageBanner"
+          }
+        },
+        "fabs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PageFab"
+          }
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -6528,6 +6651,46 @@
         }
       }
     },
+    "PageBanner" : {
+      "type" : "object",
+      "properties" : {
+        "theme" : {
+          "$ref" : "#/$defs/BannerTheme"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "closeable" : {
+          "type" : "boolean"
+        },
+        "timeoutSeconds" : {
+          "type" : "integer"
+        }
+      }
+    },
+    "PageFab" : {
+      "type" : "object",
+      "properties" : {
+        "icon" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "order" : {
+          "type" : "integer"
+        },
+        "buttonStyle" : {
+          "type" : "string"
+        }
+      }
+    },
     "Partial" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -7161,6 +7324,41 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "RecordSwitcher" : {
+      "type" : "object",
+      "properties" : {
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Option"
+          }
+        },
+        "value" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/SwitcherType"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "searchable" : {
+          "type" : "boolean"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
         }
       }
     },
@@ -8074,6 +8272,10 @@
     "SubscriptionSource" : {
       "type" : "string",
       "enum" : [ "DOCUMENT", "COMPONENT", "SELF" ]
+    },
+    "SwitcherType" : {
+      "type" : "string",
+      "enum" : [ "object", "context" ]
     },
     "Tab" : {
       "type" : "object",

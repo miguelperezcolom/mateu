@@ -11,7 +11,15 @@ import lombok.Builder;
  * server-side via {@code HttpRequest.appContext(fieldName)}.
  */
 @Builder
-public record AppContextSelectorDto(String fieldName, String label, List<OptionDto> options) {
+public record AppContextSelectorDto(
+    String fieldName,
+    String label,
+    List<OptionDto> options,
+    /**
+     * Where the options come from instead (a data-authored shell's {@code optionsSource:}): a REST
+     * source the browser fetches — through the server's {@code _appsource} action when proxied.
+     */
+    RestDataSourceDto optionsSource) {
 
   public AppContextSelectorDto {
     options = Collections.unmodifiableList(options != null ? options : List.of());

@@ -23,6 +23,20 @@ public record CrudMetadataDto(
     /// never auto-selected).</summary>
     public string GridLayout { get; init; } = "auto";
 
+    /// <summary>Rows per page. LOAD-BEARING: the renderer does not default it — without it the
+    /// Vaadin grid painted every row EMPTY (the right count, no cells) and no pager. Java's
+    /// CrudlDto always sends it (10 unless the listing says otherwise).</summary>
+    public int PageSize { get; init; } = 10;
+
+    /// <summary>The search runs on Enter (and debounced while typing) — Java's default.</summary>
+    public bool SearchOnEnter { get; init; } = true;
+
+    /// <summary>The search box takes the focus on opening — Java's default.</summary>
+    public bool AutoFocusOnSearchText { get; init; } = true;
+
+    /// <summary>How the filters lay out: auto (the smart search bar) — Java's default.</summary>
+    public string FiltersLayout { get; init; } = "auto";
+
     /// <summary>The smart search bar's filters, one FormField per filterable entity property
     /// (enums as multi-selects, temporals as date ranges, [RangeFilter] numerics as min–max).</summary>
     public IReadOnlyList<FormFieldMetadataDto> Filters { get; init; } = [];

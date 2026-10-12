@@ -186,7 +186,137 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         return fluent.Text(text=node.get("text", ""))
     if kind == "ComponentRef":
         return fluent.ComponentRef(ref=str(node.get("ref") or ""))
+    if kind == "Form":
+        return _form(node, partials, chain)
     return fluent.Text(text=f"Unsupported component: {kind}")
+
+
+def _str(value: Any) -> str | None:
+    return None if value is None else str(value)
+
+
+def _maps(node: dict, key: str) -> list[dict]:
+    raw = node.get(key)
+    return [m for m in raw if isinstance(m, dict)] if isinstance(raw, list) else []
+
+
+def _int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.Form:
+    """A ``type: Form`` node: a page with a declared header (title, subtitle, overline,
+    titlePlaceholder, timestamp, badges, kpis, peerNav, recordSwitcher, banners, fabs) over its
+    content (mirrors Java's fluent Form as YamlUidlLoader reads it). Every header key is optional;
+    an absent one leaves its wire field None / empty."""
+    from mateu_uidl import BannerTheme, PageBanner, PeerNav, RecordSwitcher, SwitcherType
+
+    def button(b: dict) -> fluent.Button:
+        return fluent.Button(
+            label=str(b.get("label") or ""),
+            action_id=str(b.get("actionId") or ""),
+            button_style=_str(b.get("buttonStyle")),
+            disabled=bool(b.get("disabled", False)),
+        )
+
+    def theme(raw: Any) -> BannerTheme:
+        for t in BannerTheme:
+            if str(raw or "").upper() in (t.name.upper(), str(t.value).upper()):
+                return t
+        return BannerTheme.INFO
+
+    peer = node.get("peerNav")
+    sw = node.get("recordSwitcher")
+    switcher = None
+    if isinstance(sw, dict):
+        switcher = RecordSwitcher(
+            options=_options(sw.get("options")),
+            value=_str(sw.get("value")),
+            type=SwitcherType.context
+            if str(sw.get("type") or "").lower() == "context"
+            else SwitcherType.object,
+            label=_str(sw.get("label")),
+            searchable=bool(sw.get("searchable", False)),
+            disabled=bool(sw.get("disabled", False)),
+            options_source=_source(sw.get("optionsSource")),
+            route=_str(sw.get("route")),
+            action_id=_str(sw.get("actionId")),
+        )
+    return fluent.Form(
+        id=_str(node.get("id")),
+        style=_str(node.get("style")),
+        css_classes=_str(node.get("cssClasses")),
+        title=_str(node.get("title")),
+        subtitle=_str(node.get("subtitle")),
+        no_header=bool(node.get("noHeader", False)),
+        content=_children(node, partials, chain),
+        toolbar=tuple(button(b) for b in _maps(node, "toolbar")),
+        buttons=tuple(button(b) for b in _maps(node, "buttons")),
+        overline=_str(node.get("overline")),
+        title_placeholder=_str(node.get("titlePlaceholder")),
+        timestamp=_str(node.get("timestamp")),
+        badges=tuple(
+            fluent.ChipItem(label=_str(b.get("label")), color=_str(b.get("color")))
+            for b in _maps(node, "badges")
+        ),
+        kpis=tuple(
+            fluent.Fact(label=_str(k.get("label")), value=_str(k.get("value")))
+            for k in _maps(node, "kpis")
+        ),
+        peer_nav=PeerNav(
+            prev_label=_str(peer.get("prevLabel")),
+            prev_route=_str(peer.get("prevRoute")),
+            next_label=_str(peer.get("nextLabel")),
+            next_route=_str(peer.get("nextRoute")),
+        )
+        if isinstance(peer, dict)
+        else None,
+        record_switcher=switcher,
+        banners=tuple(
+            PageBanner(
+                theme=theme(b.get("theme")),
+                title=_str(b.get("title")),
+                description=_str(b.get("description")),
+                closeable=bool(b.get("closeable", False)),
+                timeout_seconds=_int(b.get("timeoutSeconds")),
+            )
+            for b in _maps(node, "banners")
+        ),
+        fabs=tuple(
+            fluent.PageFab(
+                icon=_str(f.get("icon")),
+                label=_str(f.get("label")),
+                action_id=str(f.get("actionId") or ""),
+                order=_int(f.get("order")),
+                button_style=_str(f.get("buttonStyle")),
+            )
+            for f in _maps(node, "fabs")
+        ),
+    )
+
+
+def _source(raw: Any):
+    """A ``{ref, url, itemsPath, valuePath, labelPath, …}`` node (or a bare name, the ref
+    shorthand) as a uidl ``RestDataSource``; blank members stay blank."""
+    from mateu_uidl.rest_sources import RestDataSource
+
+    if isinstance(raw, str) and raw.strip():
+        return RestDataSource(ref=raw.strip(), value_path="", label_path="", method="")
+    if not isinstance(raw, dict):
+        return None
+    return RestDataSource(
+        ref=str(raw.get("ref") or "").strip(),
+        url=str(raw.get("url") or ""),
+        method=str(raw.get("method") or ""),
+        body=str(raw.get("body") or ""),
+        items_path=str(raw.get("itemsPath") or ""),
+        value_path=str(raw.get("valuePath") or ""),
+        label_path=str(raw.get("labelPath") or ""),
+        proxy=bool(raw.get("proxy", False)),
+    )
 
 
 def _options(raw: Any) -> tuple:

@@ -107,6 +107,70 @@ Hero Search → `landing`; Listing, Smart Search, To-do List, Calendar, Collecti
 grid-like pages → `collection`; General/Item Overview, Foldout and Gantt → `detail`; Dashboard →
 `dashboard`; Wizard step → `process`; Form → `form`. The blank layout leaves it to inference.
 
+## Page header — `type: Form`
+
+A page's header lives on its `type: Form` node: `title`, `subtitle`, `avatar`, `header`,
+`toolbar`, `buttons`, `footer`, `noHeader` — and every other element a Java page gets from its
+annotations and suppliers, now authorable as data:
+
+| Key | Shape | Java twin |
+|---|---|---|
+| `overline` | text above the title | `@Overline` / `OverlineSupplier` |
+| `titlePlaceholder` | what the header shows while the title is empty | `@TitlePlaceholder` |
+| `timestamp` | the "last updated" line under the subtitle | `@Timestamp` field |
+| `badges` | list of `{label, color}` chips | `@BadgeInHeader` / `BadgeSupplier` |
+| `kpis` | list of `{label, value}` key facts | `@KPI` |
+| `peerNav` | `{prevLabel, prevRoute, nextLabel, nextRoute}` | `PeerNavigationSupplier` |
+| `recordSwitcher` | `{label, value, type, searchable, disabled, options \| optionsSource, route \| actionId}` | `RecordSwitcherSupplier` |
+| `banners` | list of `{theme, title, description, closeable, timeoutSeconds}` | `@Banner` / `BannerSupplier` |
+| `fabs` | list of `{icon, label, actionId, order, buttonStyle}` | `@Fab` methods on the page |
+
+```yaml
+type: Form
+title: ${state.name}
+overline: Customers
+titlePlaceholder: New customer…
+timestamp: Last updated ${state.updatedAt}
+badges:
+  - {label: "${state.status}", color: success}   # blank once interpolated → hidden
+kpis:
+  - {label: Balance, value: "${state.balance}"}
+peerNav: {prevLabel: Previous, prevRoute: "customers/${state.prevId}", nextLabel: Next, nextRoute: "customers/${state.nextId}"}
+recordSwitcher:
+  label: Customer
+  value: ${state.id}
+  searchable: true
+  optionsSource: {ref: customers, itemsPath: content, valuePath: id, labelPath: name}
+  route: customers/${state._record}            # the picked value is ${state._record}
+banners:
+  - {theme: WARNING, title: Overdue, description: "Two invoices are overdue", closeable: true}
+fabs:
+  - {icon: "vaadin:plus", label: New order, actionId: newOrder}
+content: [...]
+```
+
+- **Dynamic values use the idioms every YAML text already has**: `${state.x}` and `${data.x}`
+  (the route's `data:` source feeds `data`), interpolated by the renderer. A badge whose text
+  interpolates to blank is hidden — the same switch a `@BadgeInHeader` String field gives.
+- **The record switcher's entries** are either listed (`options: [{value, label, description}]`) or
+  fetched by the browser from a REST source (`optionsSource:`, usually a `sources.yaml` reference,
+  read with its `itemsPath`/`valuePath`/`labelPath` — like a select field's options). A pick
+  **navigates** to `route` (with `${state._record}` = the picked value), or, without a route,
+  dispatches `actionId` (default `_switchRecord`) with the value in `_record` — a page `actions:`
+  entry or a view model method can take it from there. The source is fetched directly by the
+  browser, so a `proxy: true` source does not serve a switcher.
+- **Banner themes** are `INFO`, `SUCCESS`, `WARNING`, `DANGER` (upper case).
+- **FABs** dispatch their `actionId` like any button: an action the page declares in `actions:`,
+  an [action-catalogue](/concepts/action-catalogue/) entry, or a method of the bound view model.
+  They stack by `order` (ties keep the list order); `buttonStyle` defaults to `primary`.
+- They reach the wire with the **same field names** a reflected Java page's header has (`overline`,
+  `titlePlaceholder`, `timestamp`, `badges`, `kpis`, `peerNav`, `switcher`, `banners`, `fabs`), so
+  every renderer draws them alike — served by **Java, .NET or Python**, pre-rendered into a static
+  bundle, or expanded in the browser from a `specsOnly` bundle.
+- **Redwood** draws the KPIs, subtitle, switcher (listed or from a direct source; `route` picks
+  navigate), banners and FABs of a YAML page; like for a Java page it does not draw the overline,
+  title placeholder, timestamp, previous/next arrows or header badges yet.
+
 ## Available types
 
 All component types from the [`io.mateu.uidl.data`](/java-ui-definition/supported-components/) package are supported.

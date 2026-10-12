@@ -37,8 +37,9 @@ export default defineConfig({
             // measured 2026-10-11: 58.5% statements, 60.2% lines, 49.5% functions, 53.9% branches (it was
             // 41.7 / 43.1 / 37.7 / 41.8 before the host bridge, the Redwood canvas page and the editor
             // element itself had tests; the panels are still mostly exercised by hand). 2026-10-12: 62.4 / 64.1 /
-            // 54.3 / 56.7 with the editor's own dropdown, pickers and placement under test.
-            thresholds: { lines: 64, statements: 62, functions: 54, branches: 56 },
+            // 54.3 / 56.7 with the editor's own dropdown, pickers and placement under test. 2026-10-12 (header
+            // extras editors): 65.7 / 64.0 / 57.0 / 58.4.
+            thresholds: { lines: 65, statements: 64, functions: 57, branches: 58 },
         },
     },
 })

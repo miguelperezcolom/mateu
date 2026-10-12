@@ -1,6 +1,6 @@
 import { collectTexts } from './tree.mjs'
 import { BADGE_CLASSES, interpolate, islandContentOf } from './content.mjs'
-import { PANE_TYPES, findOutside } from './pageHeader.mjs'
+import { PANE_TYPES, findOutside, pageHeaderNodeOf } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
@@ -32,7 +32,7 @@ export function foldoutOf(ctx) {
   // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
   // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
   // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
-  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   const state = (ctx && ctx.state) || {}
   const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
     .map((b) => {

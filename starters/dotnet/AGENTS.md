@@ -15,7 +15,9 @@ the Mateu wire (`POST /mateu/v3/sync/{route}`) and any Mateu renderer renders it
 ```
 MateuStarter.csproj     the project; references Mateu.AspNetCore + Mateu.Uidl
 Program.cs              AddMateu(assembly) discovers every [UI]/[App] class; MapMateu() serves the wire
-Products.cs             the model (Product) and the UI (a Crud<Product> mounted with [UI("products")])
+Shell.cs                the app shell: [App] title + [MenuItem] menu (Home, Products); IHomeRouteSupplier picks the home page
+Home.cs                 the home page: a Welcome with a "Browse products" call to action ([UI("home")])
+Products.cs             the model (Product) and a Crud<Product> mounted with [UI("products")]
 ```
 
 ## Run

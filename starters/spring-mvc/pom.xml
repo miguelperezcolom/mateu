@@ -15,7 +15,7 @@
     <artifactId>mateu-starter-spring-mvc</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>mateu-starter-spring-mvc</name>
-    <description>Minimal Mateu app on Spring Boot (MVC): one @UI class, a CRUD over a record.</description>
+    <description>Minimal Mateu app on Spring Boot (MVC): an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
         <java.version>21</java.version>

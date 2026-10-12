@@ -126,9 +126,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # The starter targets net8.0, but it builds Mateu.NET from source (ProjectReference), which
+      # targets net8.0 AND net10.0: an SDK 8 alone cannot build the net10.0 half (NETSDK1045).
+      # Same SDK pair as the release/NuGet job.
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            8.0.x
+            10.0.x
       - name: Build the .NET starter
         run: dotnet build starters/dotnet/MateuStarter.csproj
 

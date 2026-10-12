@@ -10,7 +10,7 @@ import {
   listHeaderVarsOf, wizardVarsOf, archetypeVarsOf, islandVarsOf, nestedVarOf, noGenericFormVars, hostContentPlanOf,
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
 } from './pageProjection.mjs'
-import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer } from './actionPlan.mjs'
+import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
 import { HOST_ID } from './reduceContexts.mjs'
 import { fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
@@ -196,6 +196,18 @@ test('theme: the stored choice wins, else the OS; dark is JET\'s inverted scheme
   assert.ok(classes.has('oj-color-invert') && classes.has('oj-c-colorscheme-dark') && attrs.theme === 'dark')
   applyTheme('light', doc)
   assert.equal(classes.size, 0)
+})
+
+test('a display-block click: a RouteLink button navigates, any other runs its action', () => {
+  assert.deepEqual(blockClickOf({ actionId: 'browseProducts', parameters: {}, route: 'products' }), { navigate: 'products' })
+  assert.deepEqual(blockClickOf({ actionId: 'greet', parameters: { a: 1 } }), { actionId: 'greet', parameters: { a: 1 } })
+  // VB binds an absent route as '' (or the literal 'undefined' is never sent): blank → action
+  assert.deepEqual(blockClickOf({ actionId: 'greet', route: '  ' }), { actionId: 'greet', parameters: {} })
+  // both dispatchers consult it before running anything
+  for (const chain of ['dispatchHostBlockAction', 'dispatchIslandAction']) {
+    const src = webApp(`flows/main/pages/main-start-page-chains/${chain}.js`)
+    assert.ok(src.includes('bridge.blockClickOf') && src.includes('application:mateuNavigate'), chain)
+  }
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

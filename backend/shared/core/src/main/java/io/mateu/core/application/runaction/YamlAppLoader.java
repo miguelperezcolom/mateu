@@ -37,9 +37,13 @@ import lombok.extern.slf4j.Slf4j;
  * headerValues:} + {@code liveUpdates} (live header values) and {@code idleTimeoutMinutes} / {@code
  * idleWarningSeconds} / {@code idleSignOutUrl} (the idle-session warning).
  *
- * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
- * (SSE/MCP/upload URLs, {@code @AppContext} selectors, notifications, global search, FABs). They
- * need a class and are a follow-up.
+ * <p>{@code contextSelectors:}, {@code headerActions:}, {@code notifications:} and {@code
+ * globalSearch:} carry the header extras an {@code @App} class gets from {@code @AppContext}
+ * fields, {@code AppActionsSupplier}, {@code NotificationsSupplier} and {@code
+ * GlobalSearchSupplier}.
+ *
+ * <p><b>Not carried yet</b>: SSE/MCP/upload URLs and app-level FABs — read reflectively from the
+ * app class.
  */
 @Slf4j
 @Named
@@ -272,6 +276,32 @@ public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
     // The shell's FLOWS: `actions:` with `steps:`, the very shape a page definition declares. A
     // menu leaf (`RuleLink` with a `RunAction` rule) naming one runs it in the browser.
     YamlUidlLoader.actionsOf(mapper, root).forEach(builder::action);
+
+    // The header extras an @App class gets from @AppContext fields, AppActionsSupplier,
+    // NotificationsSupplier and GlobalSearchSupplier, authored as data (pickers with static options
+    // or a REST source; buttons that navigate or run a shell/catalogue action; an inbox and a
+    // palette search fed by REST sources).
+    if (root.has("contextSelectors") && root.get("contextSelectors").isArray()) {
+      for (var node : root.get("contextSelectors")) {
+        builder.contextSelector(
+            mapper.treeToValue(node, io.mateu.uidl.data.AppContextSelector.class));
+      }
+    }
+    if (root.has("headerActions") && root.get("headerActions").isArray()) {
+      for (var node : root.get("headerActions")) {
+        builder.headerAction(mapper.treeToValue(node, io.mateu.uidl.data.AppHeaderAction.class));
+      }
+    }
+    if (root.hasNonNull("notifications")) {
+      builder.notifications(
+          mapper.treeToValue(
+              root.get("notifications"), io.mateu.uidl.data.AppNotificationsSource.class));
+    }
+    if (root.hasNonNull("globalSearch")) {
+      builder.globalSearch(
+          mapper.treeToValue(
+              root.get("globalSearch"), io.mateu.uidl.data.AppGlobalSearchSource.class));
+    }
 
     if (root.has("widgets") && root.get("widgets").isArray()) {
       for (var node : root.get("widgets")) {

@@ -9,10 +9,11 @@ import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,
   fetchRestJson, filterRestRows, sortRestRows, restListingPage, restAnswerOf, loadRestOptions,
   adoptAppSources, adoptManifestSources, interpolateRestUrl, interpolateRest, mapItemsToOptions, restPageOf,
+  loadContextSelectorOptions,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
-import { reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
+import { pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
 import { runMateuAction, loadLookups } from './transport.mjs'
 
 let passed = 0
@@ -414,6 +415,65 @@ test('helpers: options mapping and a page with no total', () => {
   assert.deepEqual(mapItemsToOptions([{ v: 1 }], '', 'v', 'missing'), [{ value: 1, label: '1' }])
   assert.equal(restPageOf({ data: [] }, { url: '/x', itemsPath: 'data' }, []).total, null)
   assert.equal(interpolateRest('Hi ${state.who.name}', { state: { who: { name: 'Ann' } } }), 'Hi Ann')
+})
+
+
+test('YAML Form: a recordSwitcher.optionsSource loads into data._switcher (direct), the header reads it', async () => {
+  reset()
+  const f = stubFetch({ items: [{ code: 'ES', name: 'Spain' }, { code: 'FR', name: 'France' }] })
+  const tree = { type: 'ServerSide', id: 'y', actions: [], triggers: [], children: [{ type: 'ClientSide', id: 'form', metadata: {
+    type: 'Form', title: 'Country', switcher: { options: [], value: 'ES', type: 'object', label: 'Country', actionId: '_switchRecord',
+      optionsSource: { url: '/api/countries', itemsPath: 'items', valuePath: 'code', labelPath: 'name' } } }, children: [] }] }
+  let reg = { contexts: { [HOST_ID]: { id: HOST_ID, tree, state: {}, data: {} } }, stack: [], shell: null }
+  reg = await loadRestOptions(reg, HOST_ID, { fetchImpl: f })
+  assert.equal(f.calls[0].url, '/api/countries')
+  const sw = pageSwitcherOf(reg.contexts[HOST_ID])
+  assert.deepEqual(sw.objectOptions.map((o) => [o.value, o.label]), [['ES', 'Spain'], ['FR', 'France']])
+  // loaded once: same url, no second fetch
+  await loadRestOptions(reg, HOST_ID, { fetchImpl: f })
+  assert.equal(f.calls.length, 1)
+})
+
+test('YAML shell: app-context selectors with a DIRECT optionsSource get their options; proxied/declared stay', async () => {
+  reset()
+  const f = stubFetch({ items: [{ code: 'ES', name: 'Spain' }] })
+  const out = await loadContextSelectorOptions([
+    { fieldName: 'country', label: 'Country', options: [], optionsSource: { ref: 'countries' } },
+    { fieldName: 'hotel', label: 'Hotel', options: [{ value: 'h1', label: 'H1' }], optionsSource: { url: '/never' } },
+    { fieldName: 'secret', label: 'S', options: [], optionsSource: { ref: 'secret' } },
+    { fieldName: 'plain', label: 'P', options: [] },
+  ], { fetchImpl: f })
+  assert.deepEqual(out[0].options, [{ value: 'ES', label: 'Spain' }])
+  assert.deepEqual(out[1].options, [{ value: 'h1', label: 'H1' }])
+  assert.deepEqual(out[2].options, []) // proxied: not wired on this renderer
+  assert.deepEqual(out[3].options, [])
+  assert.deepEqual(f.calls.map((c) => c.url), ['/api/countries'])
+  // a failing source leaves the selector as it was
+  const failed = await loadContextSelectorOptions([{ fieldName: 'c', options: [], optionsSource: { url: '/x' } }], { fetchImpl: stubFetch({}, 500) })
+  assert.deepEqual(failed[0].options, [])
+})
+
+test('YAML shell: a PROXIED selector source goes through _appsource (role + field), answer in appData._restfetch', async () => {
+  reset()
+  setRestSourceCatalogue([{ name: 'hotels', source: { url: 'https://pms.example.com/hotels', proxy: true, itemsPath: 'items', valuePath: 'id', labelPath: 'name' } }])
+  const asked = []
+  const f = stubFetch({})
+  const out = await loadContextSelectorOptions([
+    { fieldName: 'hotel', label: 'Hotel', options: [], optionsSource: { ref: 'hotels' } },
+    { fieldName: 'broken', label: 'B', options: [], optionsSource: { ref: 'hotels' } },
+  ], {
+    fetchImpl: f,
+    server: async (parameters) => {
+      asked.push(parameters)
+      return parameters._field === 'broken'
+        ? { appData: { _restfetchError: { status: 502 } } }
+        : { appData: { _restfetch: { items: [{ id: 'h1', name: 'Palace' }] } } }
+    },
+  })
+  assert.deepEqual(asked, [{ _appSource: 'contextOptions', _field: 'hotel' }, { _appSource: 'contextOptions', _field: 'broken' }])
+  assert.deepEqual(out[0].options, [{ value: 'h1', label: 'Palace' }])
+  assert.deepEqual(out[1].options, []) // a failed proxy leaves the picker as it was
+  assert.equal(f.calls.length, 0) // never fetched from the browser
 })
 
 for (const { name, fn } of queue) {

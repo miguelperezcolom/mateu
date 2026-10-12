@@ -15,8 +15,10 @@ the Mateu wire (`POST /mateu/v3/sync/{route}`) and any Mateu renderer renders it
 ```
 requirements.txt        the Mateu package (mateu-ui on PyPI) + its dependencies
 main.py                 the FastAPI app; add_mateu(app, views) mounts the views module
-views.py                the model (Product) and the UI (a Crud[Product] mounted with @ui("products"))
-test_starter.py         smoke test: the CRUD answers on the sync endpoint
+views.py                the UI: the app shell (@app Shell — menu Home, Products — with HomeRouteSupplier
+                        picking the home page), the home page (a Welcome at @ui("home")) and the
+                        model (Product) with its Crud[Product] at @ui("products")
+test_starter.py         smoke test: the shell, the home page and the CRUD answer on the sync endpoint
 ```
 
 ## Run

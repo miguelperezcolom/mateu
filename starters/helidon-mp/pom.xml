@@ -7,7 +7,8 @@
     <parent>
         <groupId>io.helidon.applications</groupId>
         <artifactId>helidon-mp</artifactId>
-        <version>4.2.6</version>
+        <!-- the Helidon line the Mateu adapter (mateu-helidon-mp) is built against -->
+        <version>4.5.1</version>
         <relativePath/>
     </parent>
 
@@ -15,7 +16,7 @@
     <artifactId>mateu-starter-helidon-mp</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>mateu-starter-helidon-mp</name>
-    <description>Minimal Mateu app on Helidon MP: one @UI class, a CRUD over a record.</description>
+    <description>Minimal Mateu app on Helidon MP: an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
         <lombok.version>1.18.40</lombok.version>

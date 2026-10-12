@@ -39,8 +39,9 @@ cd my-app
 mvn spring-boot:run
 ```
 
-Open http://localhost:8080: an app shell with a **Products** listing — search, a status filter,
-sorting and paging — over sample data.
+Open http://localhost:8080: an app shell with a menu (**Home**, **Products**) opening on a home
+page, whose **Browse products** button leads to a listing — search, a status filter, sorting and
+paging — over sample data.
 
 ## What you got
 
@@ -51,12 +52,35 @@ my-app/
 └── src/main/
     ├── java/…/Application.java   boots the server — nothing else
     └── resources/specs/ui/
-        ├── app.ui.yaml           the mount: this app at "/", its routes, its home
+        ├── app.ui.yaml           the mount: this app at "/", its routes, its home (`home: home`)
         ├── routes.yaml           each route bound to a definition
         ├── app.yaml              the app shell: title and menu
+        ├── home.yaml             a page: the home, with a call to action to the products
         ├── products.yaml         a page: the listing
         ├── sources.yaml          the REST endpoints, named once, with sample data
         └── project.yaml          project settings (the renderer)
+```
+
+The home page is a hero whose button navigates — its `actionable` is a `RouteLink`, so there is
+nothing behind it to run:
+
+```yaml
+# home.yaml
+type: VerticalLayout
+fullWidth: true
+horizontalAlignment: STRETCH
+content:
+  - type: HeroSection
+    title: My app
+    subtitle: Every screen here is declared as data, in src/main/resources/specs/ui.
+    centered: true
+    content:
+      - type: Button
+        label: Browse products
+        buttonStyle: primary
+        actionable:
+          type: RouteLink
+          route: products
 ```
 
 The listing reads its rows from a **named source**:

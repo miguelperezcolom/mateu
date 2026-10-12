@@ -6,6 +6,7 @@ import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { markReadVars, notificationsOf, runAppSource } from '@infra/ui/appSources.ts'
 
 /** One inbox entry as served by the _notifications-list / _notifications-read actions. */
 interface AppNotification {
@@ -52,7 +53,7 @@ export class MateuNotificationBell extends LitElement {
     protected updated() {
         // fetch once on first connect so the badge knows the unread count; the app metadata
         // arrives as a property binding, so wait until it is actually set
-        if (!this.fetched && this.app?.serverSideType) {
+        if (!this.fetched && (this.app?.serverSideType || this.app?.notificationsSource)) {
             this.fetched = true
             this.refresh()
         }
@@ -95,10 +96,34 @@ export class MateuNotificationBell extends LitElement {
     }
 
     private refresh() {
+        // a data-authored shell lists its inbox from a REST source (notifications.source); an app
+        // class implementing NotificationsSupplier answers the _notifications-list action
+        const source = this.app?.notificationsSource
+        if (this.app && source) {
+            return runAppSource(this.app, this.baseUrl ?? '', 'notifications', source, {}, this)
+                .then((json) => { this.notifications = notificationsOf(json, source) })
+                .catch(() => undefined) // inbox unavailable: keep whatever list we had
+        }
         return this.runNotificationsAction('_notifications-list', {})
     }
 
-    private markRead(ids: string[] | 'all') {
+    private async markRead(ids: string[] | 'all') {
+        if (this.app?.notificationsSource) {
+            const read = this.app.notificationsReadSource
+            const all = ids === 'all'
+            const which = all ? this.notifications.filter((n) => n.unread).map((n) => n.id) : ids
+            // read locally at once: an inbox with no "mark as read" call is still read on screen
+            this.notifications = this.notifications.map((n) => which.includes(n.id) ? { ...n, unread: false } : n)
+            if (read) {
+                try {
+                    await runAppSource(this.app, this.baseUrl ?? '', 'notificationsRead', read, markReadVars(which, all), this)
+                    await this.refresh()
+                } catch {
+                    // the server keeps them unread; the next refresh says so
+                }
+            }
+            return
+        }
         return this.runNotificationsAction('_notifications-read', { ids })
     }
 

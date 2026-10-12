@@ -7,6 +7,14 @@ from typing import Any
 import dataclasses
 
 from mateu_dtos import (
+    Badge,
+    Banner,
+    Button,
+    Fab,
+    FormMetadata,
+    Kpi,
+    RecordSwitcherRecord,
+    RestDataSource,
     MergeFieldRecord,
     MergeRecordRecord,
     RecordMergeMetadata,
@@ -112,6 +120,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import components as fluent
+from mateu_uidl import RecordSwitcherSupplier
 
 from ..registry import normalize
 from mateu_uidl.patterns import hero_tone_wire
@@ -544,6 +553,10 @@ class ComponentMapperMixin(MixinBase):
                 ),
                 c,
             )
+        if isinstance(c, fluent.Form):
+            return self._fluent_client(
+                self._form_header(c), c, [self.map_component(child) for child in c.content]
+            )
         if isinstance(c, fluent.EntityHeader):
             meta = EntityHeaderMetadata(
                 title=c.title,
@@ -972,6 +985,81 @@ class ComponentMapperMixin(MixinBase):
             children=[self._org_node(child) for child in n.children],
         )
 
+    def _form_header(self, c) -> FormMetadata:
+        """A fluent Form's header as the "Form" wire metadata — the same field names a reflected
+        page carries on PageMetadata (mirrors Java's FormMapper). An element the form does not
+        declare stays None / empty."""
+
+        def button(b) -> Button:
+            return Button(
+                label=self.T(b.label), action_id=b.action_id, disabled=b.disabled,
+                button_style=b.button_style,
+            )
+
+        switcher = None
+        sw = c.record_switcher
+        if sw is not None:
+            sw_type = getattr(sw.type, "value", sw.type) or "object"
+            switcher = RecordSwitcherRecord(
+                options=[self._switcher_option(o) for o in sw.options],
+                value=None if sw.value is None else str(sw.value),
+                type=str(sw_type),
+                label=self._opt_t(sw.label),
+                searchable=bool(sw.searchable),
+                disabled=bool(sw.disabled),
+                action_id=getattr(sw, "action_id", None) or RecordSwitcherSupplier.ACTION_ID,
+                options_source=_wire_source(getattr(sw, "options_source", None)),
+                route=getattr(sw, "route", None),
+            )
+        peer = c.peer_nav
+        return FormMetadata(
+            title=self._opt_t(c.title),
+            subtitle=self._opt_t(c.subtitle),
+            no_header=c.no_header,
+            toolbar=[button(b) for b in c.toolbar],
+            buttons=[button(b) for b in c.buttons],
+            overline=self._opt_t(c.overline),
+            title_placeholder=self._opt_t(c.title_placeholder),
+            timestamp=self._opt_t(c.timestamp),
+            badges=[
+                Badge(text=self.T(b.label or ""), color=b.color or "normal", pill=False)
+                for b in c.badges
+            ],
+            kpis=[Kpi(title=self.T(k.label or ""), text=k.value or "") for k in c.kpis],
+            banners=[
+                Banner(
+                    theme=str(getattr(b.theme, "value", b.theme)).upper(),
+                    title=self._opt_t(b.title),
+                    description=self._opt_t(b.description),
+                    has_icon=False,
+                    has_close_button=bool(b.closeable),
+                    timeout_seconds=int(b.timeout_seconds or 0),
+                )
+                for b in c.banners
+            ],
+            # sorted() is stable: equal orders keep their declaration order
+            fabs=[
+                Fab(
+                    id=f.action_id,
+                    icon=f.icon or "",
+                    action_id=f.action_id,
+                    label=self._opt_t(f.label),
+                    order=f.order,
+                    button_style=f.button_style or "primary",
+                )
+                for f in sorted(c.fabs, key=lambda f: f.order)
+            ],
+            peer_nav=None
+            if peer is None
+            else PeerNav(
+                prev_label=peer.prev_label,
+                prev_route=peer.prev_route,
+                next_label=peer.next_label,
+                next_route=peer.next_route,
+            ),
+            switcher=switcher,
+        )
+
     def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:
         return ClientSideComponent(
             metadata=meta,
@@ -1026,6 +1114,24 @@ class ComponentMapperMixin(MixinBase):
 
         walk(c)
         return list(dict.fromkeys(out))
+
+
+def _wire_source(source) -> "RestDataSource | None":
+    """A switcher's options source on the wire: a wire descriptor passes through; a uidl
+    ``RestDataSource`` is copied with its blank members left out (None)."""
+    if source is None or isinstance(source, RestDataSource):
+        return source
+    return RestDataSource(
+        ref=getattr(source, "ref", None) or None,
+        url=getattr(source, "url", None) or None,
+        method=getattr(source, "method", None) or None,
+        headers=getattr(source, "headers", None) or None,
+        body=getattr(source, "body", None) or None,
+        items_path=getattr(source, "items_path", None) or None,
+        value_path=getattr(source, "value_path", None) or None,
+        label_path=getattr(source, "label_path", None) or None,
+        proxy=bool(getattr(source, "proxy", False)),
+    )
 
 
 def _merge_text(value: object) -> str:

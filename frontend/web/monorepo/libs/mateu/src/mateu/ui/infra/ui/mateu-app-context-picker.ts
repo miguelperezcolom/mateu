@@ -10,6 +10,7 @@ import {
     writeAppContext
 } from "@infra/appContextStore.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { contextOptionsOf, runAppSource } from '@infra/ui/appSources.ts'
 
 /**
  * One application-level context selector on the app header (an @AppContext field of the app
@@ -117,6 +118,19 @@ export class MateuAppContextPicker extends LitElement {
 
     private async remoteSearch() {
         const app = this.app
+        // a data-authored shell's picker fed by a REST source (`optionsSource:`): fetched by the
+        // browser — or through the server's _appsource when proxied — with ${state.searchText}
+        const source = this.selector.optionsSource
+        if (app && source) {
+            try {
+                const json = await runAppSource(app, this.baseUrl ?? '', 'contextOptions', source,
+                    { searchText: this.searchText }, this, this.selector.fieldName)
+                this.searchedOptions = contextOptionsOf(json, source)
+            } catch {
+                // source unavailable: the static options (if any) and the client-side filter stay
+            }
+            return
+        }
         if (!app?.serverSideType) return
         try {
             const increment = await mateuApiClient.runAction(

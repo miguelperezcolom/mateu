@@ -69,6 +69,13 @@ persistent menu would only add noise.
 - **Keyboard:** `↑`/`↓` move the selection, `Enter` opens it, `Esc` closes the palette.
 - **Close:** `Esc`, the ✕ button (bottom-right), or clicking the backdrop.
 
+## Entity search in YAML
+
+A data-authored shell feeds the palette's entity search from a REST source instead of a
+`GlobalSearchSupplier` class: `globalSearch: {source: …}` on its `type: AppShell`, called with
+`${state.searchText}`. See
+[App shell as data › Header extras](/define/yaml/app-shell/#header-extras-pickers-actions-inbox-and-search).
+
 ## Renderers
 
 The command center is a single shared, design-system-neutral web component

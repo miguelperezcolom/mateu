@@ -48,7 +48,8 @@ export interface Replacement {
 
 export interface LanguageDef {
     sampleFiles: string[]
-    unmount?: { file: string; removeLines: string[] }
+    /** Applied when a flavour unmounts the sample: drop `removeFiles`, and `removeLines` from `file`. */
+    unmount?: { file?: string; removeLines?: string[]; removeFiles?: string[] }
     sampleRoute?: { route: string; label: string; viewModel: string }
     specsDir?: string
     packageDir?: string
@@ -287,10 +288,14 @@ export function generateProject(sources: Sources, o: NewProjectOptions): Map<str
     const keepSample = flavour.keepsSample && o.sample !== 'empty'
     if (!keepSample) for (const f of lang.sampleFiles) files.delete(f)
     // (3) unmount it
-    if (keepSample && flavour.unmountsSample && lang.unmount && files.has(lang.unmount.file)) {
-        const drop = new Set(lang.unmount.removeLines)
-        const text = files.get(lang.unmount.file) as string
-        files.set(lang.unmount.file, text.split('\n').filter((l) => !drop.has(l.trim())).join('\n'))
+    if (keepSample && flavour.unmountsSample && lang.unmount) {
+        for (const f of lang.unmount.removeFiles ?? []) files.delete(f)
+        const file = lang.unmount.file
+        if (file && files.has(file)) {
+            const drop = new Set(lang.unmount.removeLines ?? [])
+            const text = files.get(file) as string
+            files.set(file, text.split('\n').filter((l) => !drop.has(l.trim())).join('\n'))
+        }
     }
     // (4) overlays: common, the language's own, the flavour's (by sample, else "*"), the renderer's
     const overlays = [...(lang.overlays ?? [])]

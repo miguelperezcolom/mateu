@@ -1,0 +1,10 @@
+# A `type: Form` page whose record switcher takes its options from a source and dispatches the
+# default action. Used by YamlPageHeaderTests.
+layout:
+  type: Form
+  title: Switching
+  recordSwitcher:
+    optionsSource: { ref: people, itemsPath: content, valuePath: id, labelPath: name }
+  content:
+    - type: Text
+      text: "Hello"

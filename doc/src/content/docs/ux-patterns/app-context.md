@@ -136,6 +136,14 @@ class BackofficeApp(AppActionsSupplier):
                     AppHeaderAction(action_id="exportExcel", label="As Excel")])]
 ```
 
+## In YAML
+
+A data-authored shell (`type: AppShell`) declares the same pickers and header buttons as data —
+`contextSelectors:` (static `options` or an `optionsSource` REST source) and `headerActions:`
+(each navigates with `route`, or runs a shell flow / action-catalogue entry with `actionId`). See
+[App shell as data › Header extras](/define/yaml/app-shell/#header-extras-pickers-actions-inbox-and-search).
+Java only: the .NET and Python servers have no `type: AppShell`.
+
 ## Other servers
 
 The pattern is wire-level, so the .NET and Python backends emit the same selectors:

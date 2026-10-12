@@ -1,0 +1,70 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "Country",
+        "readOnly" : false,
+        "subtitle" : null,
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ ],
+        "banners" : [ ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : {
+          "options" : [ ],
+          "value" : null,
+          "type" : "context",
+          "label" : null,
+          "searchable" : false,
+          "disabled" : false,
+          "actionId" : "pickCountry",
+          "optionsSource" : {
+            "ref" : "countries",
+            "url" : null,
+            "method" : null,
+            "headers" : null,
+            "body" : null,
+            "itemsPath" : null,
+            "valuePath" : null,
+            "labelPath" : null,
+            "proxy" : false,
+            "sample" : null
+          },
+          "route" : null
+        },
+        "fabs" : null
+      },
+      "id" : null,
+      "children" : [ ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}
