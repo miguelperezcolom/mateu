@@ -215,8 +215,87 @@ public static class YamlComponentBuilder
             "Form" => BuildForm(map, partials, chain),
             // A reference to a named business component (components.yaml / [BusinessComponent]).
             "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
-            var other => new Text($"Unsupported component: {other}"),
+            var other => Generic(other, map, partials, chain) ?? new Text($"Unsupported component: {other}"),
         };
+    }
+
+    // ── Every other component, read generically off its fluent record ─────────────────────────
+    // The YAML keys ARE the Java record's components (camelCase), the .NET record's properties
+    // their PascalCase: a node of any type the fluent API has is built property by property —
+    // nested components, lists of them, nested value records, enums, dates. Before this every
+    // display component (Card, MetricCard, Notice, Calendar, Kanban…) authored in YAML rendered
+    // "Unsupported component" on the .NET server.
+
+    private static readonly Lazy<Dictionary<string, Type>> ComponentTypes = new(() =>
+        typeof(IComponent).Assembly.GetTypes()
+            .Where(t => !t.IsAbstract && typeof(IComponent).IsAssignableFrom(t))
+            .GroupBy(t => t.Name)
+            .ToDictionary(g => g.Key, g => g.First()));
+
+    private static IComponent? Generic(string? kind, IDictionary<object, object> map, Ctx partials, List<string> chain)
+    {
+        if (kind is null || !ComponentTypes.Value.TryGetValue(kind, out var type)) return null;
+        try { return ObjectOf(type, map, partials, chain) as IComponent; }
+        catch { return null; } // a value the record refuses: say so, as for an unknown type
+    }
+
+    private static object? ObjectOf(Type type, IDictionary<object, object> map, Ctx partials, List<string> chain)
+    {
+        var byKey = map.Where(e => e.Key is string).ToDictionary(e => ((string)e.Key).ToLowerInvariant(), e => e.Value);
+        object? ValueFor(string name, Type target) =>
+            byKey.TryGetValue(name.ToLowerInvariant(), out var raw) ? Convert(target, raw, partials, chain) : null;
+        var ctor = type.GetConstructors().OrderBy(c => c.GetParameters().Length).First();
+        var args = ctor.GetParameters().Select(p => ValueFor(p.Name ?? "", p.ParameterType)
+            ?? (p.HasDefaultValue ? p.DefaultValue : DefaultOf(p.ParameterType))).ToArray();
+        var instance = ctor.Invoke(args);
+        var fromCtor = ctor.GetParameters().Select(p => (p.Name ?? "").ToLowerInvariant()).ToHashSet();
+        foreach (var prop in type.GetProperties().Where(p => p.CanWrite && !fromCtor.Contains(p.Name.ToLowerInvariant())))
+        {
+            if (!byKey.ContainsKey(prop.Name.ToLowerInvariant())) continue;
+            var value = ValueFor(prop.Name, prop.PropertyType);
+            if (value is not null) prop.SetValue(instance, value);
+        }
+        return instance;
+    }
+
+    private static object? DefaultOf(Type t) =>
+        t == typeof(string) ? "" : t.IsValueType ? Activator.CreateInstance(t) : null;
+
+    private static object? Convert(Type target, object? raw, Ctx partials, List<string> chain)
+    {
+        if (raw is null) return null;
+        var t = Nullable.GetUnderlyingType(target) ?? target;
+        if (typeof(IComponent).IsAssignableFrom(t)) return Single(raw, partials, chain);
+        if (t == typeof(string)) return raw is string s ? s : raw.ToString();
+        if (t == typeof(object)) return raw;
+        if (t == typeof(bool)) return bool.TryParse(raw.ToString(), out var b) && b;
+        if (t == typeof(int)) return int.TryParse(raw.ToString(), out var i) ? i : 0;
+        if (t == typeof(long)) return long.TryParse(raw.ToString(), out var l) ? l : 0L;
+        if (t == typeof(double)) return double.TryParse(raw.ToString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0d;
+        if (t == typeof(decimal)) return decimal.TryParse(raw.ToString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var m) ? m : 0m;
+        if (t == typeof(DateOnly)) return DateOnly.Parse(raw.ToString()!, System.Globalization.CultureInfo.InvariantCulture);
+        if (t == typeof(DateTime)) return DateTime.Parse(raw.ToString()!, System.Globalization.CultureInfo.InvariantCulture);
+        if (t.IsEnum) return Enum.TryParse(t, raw.ToString(), true, out var e) ? e : null;
+        if (raw is IDictionary<object, object> dict)
+        {
+            if (t.IsGenericType && t.GetGenericArguments().Length == 2)
+                return dict.Where(x => x.Key is string).ToDictionary(x => (string)x.Key, x => (object?)x.Value);
+            return t.IsClass ? ObjectOf(t, dict, partials, chain) : null;
+        }
+        var elem = t.IsArray ? t.GetElementType()
+            : t.IsGenericType && t.GetGenericArguments().Length == 1 ? t.GetGenericArguments()[0] : null;
+        if (elem is not null && raw is IEnumerable<object> items)
+        {
+            var list = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elem))!;
+            foreach (var item in items)
+            {
+                if (typeof(IComponent).IsAssignableFrom(elem))
+                    foreach (var c in InList(item, partials, chain)) list.Add(c);
+                else if (Convert(elem, item, partials, chain) is { } v) list.Add(v);
+            }
+            return list;
+        }
+        return null;
     }
 
     /// <summary>A <c>type: Form</c> node: a page with a declared header (title, subtitle,
