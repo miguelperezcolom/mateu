@@ -92,6 +92,25 @@ test.describe('page archetypes', () => {
     expect(problems).toEqual([]);
   });
 
+  test('CalendarPage: the views switch, a tinted day is labelled, a day click runs on the server', async ({ page }) => {
+    const problems = watch(page);
+    await page.goto('/arch/calendar');
+    await expect(page.getByText('Inspection day')).toBeVisible();
+    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    // the week of today: today's event is still there, a month-only day is not
+    await expect(page.getByText('Room inspection — 204').first()).toBeVisible();
+    await page.getByRole('button', { name: 'List', exact: true }).click();
+    await expect(page.getByText('Room inspection — 204').first()).toBeVisible();
+    await page.getByRole('button', { name: 'Month', exact: true }).click();
+    const inThreeDays = new Date();
+    // the tinted day is today (always in the month shown)
+    await page.getByText('Inspection day').click();
+    const iso = inThreeDays.getFullYear() + '-' + String(inThreeDays.getMonth() + 1).padStart(2, '0')
+      + '-' + String(inThreeDays.getDate()).padStart(2, '0');
+    await expect(page.locator('vaadin-notification-card').filter({ hasText: 'Day ' + iso }).first()).toBeVisible();
+    expect(problems).toEqual([]);
+  });
+
   test('CollectionDetail: picking an item shows its detail in place, the search narrows the list', async ({ page }) => {
     const problems = watch(page);
     await page.goto('/arch/collection-detail');

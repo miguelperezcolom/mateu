@@ -65,6 +65,35 @@ public class HousekeepingCalendar extends CalendarPage {
   }
 
   @Override
+  protected List<io.mateu.uidl.data.CalendarView> views() {
+    return List.of(
+        io.mateu.uidl.data.CalendarView.month,
+        io.mateu.uidl.data.CalendarView.week,
+        io.mateu.uidl.data.CalendarView.list);
+  }
+
+  @Override
+  protected List<io.mateu.uidl.data.CalendarDay> days(
+      LocalDate from, LocalDate to, HttpRequest httpRequest) {
+    return List.of(
+        io.mateu.uidl.data.CalendarDay.builder()
+            .date(LocalDate.now())
+            .label("Inspection day")
+            .tone("warning")
+            .build());
+  }
+
+  @Override
+  protected boolean daysClickable() {
+    return true;
+  }
+
+  @Override
+  protected Object actionOnDay(LocalDate date, HttpRequest httpRequest) {
+    return io.mateu.uidl.data.Message.success("Day " + date);
+  }
+
+  @Override
   protected boolean showCreate() {
     return true;
   }
