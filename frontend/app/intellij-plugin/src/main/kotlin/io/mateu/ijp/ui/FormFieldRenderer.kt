@@ -81,6 +81,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
             BorderLayout.WEST)
         val display = when {
             dataType in BOOL_TYPES -> if (rawValue.asBoolean(false)) "✓" else "—"
+            MoneyValues.isAmount(rawValue) -> MoneyValues.text(rawValue)
             dataType == "money" -> formatMoney(value)
             value.isNotBlank() -> value
             else -> "—"
@@ -149,7 +150,9 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     val options = metadata.arr("options")
     val input: JComponent = when {
         stereotype == "badge" -> badgeChip(label, io.mateu.ijp.state.Expressions.truthy(value))
-        stereotype == "plainText" -> JBLabel(if (dataType == "money") formatMoney(value) else value)
+        stereotype == "plainText" -> JBLabel(
+            if (MoneyValues.isAmount(rawValue)) MoneyValues.text(rawValue) else if (dataType == "money") formatMoney(value) else value,
+        )
         stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
             lookupField(ctx, fieldId, metadata, value, enabled)
         stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
@@ -172,6 +175,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         dataType in DATE_TYPES || dataType == "datetime" -> dateField(ctx, fieldId, value, enabled)
         dataType in INT_TYPES && metadata.bool("stepButtonsVisible") -> stepperField(ctx, fieldId, metadata, value, enabled)
         dataType in INT_TYPES -> numberField(ctx, fieldId, value, enabled, integer = true)
+        MoneyValues.isAmount(rawValue) && !enabled -> JBLabel(MoneyValues.text(rawValue))
+        MoneyValues.isAmount(rawValue) -> amountField(ctx, fieldId, rawValue, enabled)
         (dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES) && !enabled ->
             JBLabel(formatMoney(value))
         dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES ->
@@ -663,6 +668,15 @@ private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabl
         else if (integer) raw.toIntOrNull()?.let { ctx.putState(fieldId, it) }
         else raw.replace(',', '.').toDoubleOrNull()?.let { ctx.putState(fieldId, it) }
     }
+    return tf
+}
+
+/** An Amount ({value, currency, locale}): edits the value, keeps the currency and locale. */
+private fun amountField(ctx: AppContext, fieldId: String, raw: JsonNode, enabled: Boolean): JComponent {
+    val tf = JBTextField(MoneyValues.inputText(raw))
+    tf.isEnabled = enabled
+    (tf.document as AbstractDocument).documentFilter = NumericDocumentFilter(integer = false)
+    tf.onTextChange { ctx.putState(fieldId, MoneyValues.commit(raw, tf.text)) }
     return tf
 }
 
