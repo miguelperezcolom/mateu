@@ -1,5 +1,7 @@
 # Road to beta/GA — status and how to resume
 
+Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
+
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
 continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-12 evening.
 
