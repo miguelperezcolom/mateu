@@ -39,8 +39,8 @@ continue the work from here. **Update it at the end of every block of work.** La
    cells not marked yet** (same brief).
 3. **Coverage** — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md) (PR #800): 8 streams
    S1–S8 with target floors. Launch AFTER the walkthrough is integrated (its tests change the numbers).
-4. **Refactor/optimization** backed by those tests.
-5. **Pre-beta review with Miguel** (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
+4. **Refactor/optimization** backed by those tests — **scheduled for the weekend of 17–18 Oct** (owner, 2026-10-12), with whatever token budget is left that week.
+5. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
    then beta, then GA.
 
 ## Minimise CI runs and releases (owner, 2026-10-12)
