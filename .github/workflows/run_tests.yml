@@ -147,7 +147,7 @@ jobs:
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
           --test-coverage-lines=94 --test-coverage-functions=91 --test-coverage-branches=78
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
-          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs
+          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
