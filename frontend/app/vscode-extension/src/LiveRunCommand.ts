@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as http from 'node:http'
+import * as https from 'node:https'
 import { BuildTool, isHotCodeReplaced, liveRunPlan, LiveRunPlan, reloadUrlOf } from './liveRun'
 
 /**
@@ -94,7 +95,9 @@ export class LiveRunCommand {
     private static reload(explicit: boolean) {
         const base = LiveRunCommand.appUrl
             ?? vscode.workspace.getConfiguration('mateu').get<string>('baseUrl') ?? 'http://localhost:8080'
-        const request = http.request(reloadUrlOf(base), { method: 'POST', timeout: 2000 }, (response) => {
+        const url = reloadUrlOf(base)
+        // by scheme: http.request THROWS (synchronously, out of the command) on an https:// URL
+        const request = clientFor(url).request(url, { method: 'POST', timeout: 2000 }, (response) => {
             response.resume()
             if (explicit && (response.statusCode ?? 0) >= 300) {
                 vscode.window.showWarningMessage(`Mateu: ${base} is not running in development mode (mateu.dev=true).`)
@@ -107,8 +110,10 @@ export class LiveRunCommand {
     }
 }
 
+const clientFor = (url: string) => (url.startsWith('https:') ? https : http)
+
 const answers = (url: string): Promise<boolean> => new Promise((resolve) => {
-    const request = http.get(url, { timeout: 2000 }, (response) => {
+    const request = clientFor(url).get(url, { timeout: 2000 }, (response) => {
         response.resume()
         resolve(true)
     })
