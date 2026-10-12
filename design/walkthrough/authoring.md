@@ -55,6 +55,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | IntelliJ renderer (`./gradlew renderProbe` over the walkthrough page wire, es) | ✅ translated title, partial fields, field type, business component, buttons, a11y names |
 | IntelliJ: schema provider, New › Mateu skeletons, New Project generator (`MateuProjectGeneratorTest`, byte-compares the TS engine) | ✅ `./gradlew test` (schema, newfile, newproject: 53 tests). IntelliJ itself NOT driven (no GUI): completion/validation inside the IDE not exercised |
 | VS Code: manifest, New File, Add Route, New Project, live run | ✅ vitest 167 + new `specsSchema.test.ts` |
+| Schema in the editors' engines | ✅ IntelliJ (real `JsonSchemaService` test): top-level and NESTED `type:` values + a typed node's keys (2 new tests); ❌ yaml-language-server (VS Code): 5 s to validate a 4 KB deep page (demo-vb `components-2.yaml`), re-run on every keystroke — the 125-way `oneOf` Component union. A `type`-dispatch (`if`/`then`) union validates it in 50 ms with the same completions, but IntelliJ then offers only `Workflow` for a nested `type:`; a guarded `oneOf` (`if`/`then`/`else: false`) times IntelliJ completion out. Owner: ship a per-editor variant (VS Code staging could transform it) or accept the cost |
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
 | Visual editor dark mode | ✅ routes and listing screens legible |
@@ -87,7 +88,8 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 4. **.NET layoutDelta** still reorders within a FormRow only (Java and Python now treat a form's rows as one run) — port when an SDK is at hand.
 5. **Live reload** of an unseeded definition-only page sends an empty componentState (it is ClientSide).
 7. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`, `Card`… served by a port shows "Unsupported component". .NET also still reads only `routes.yaml` (Python fixed). Owner: grow the builders or keep YAML pages Java-first?
-8. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
+8. **VS Code schema performance** (see the editors' engines row): needs a per-editor schema shape or acceptance.
+9. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
    served.
 
 ## 5. Not walked yet ⏳
