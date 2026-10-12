@@ -2,10 +2,11 @@
 title: "Standalone desktop app"
 ---
 
-Mateu is normally deployed as a web service: a Java backend serves the API and
-(optionally) the renderer, and users open it in a browser. But the exact same
-application can be packaged as a **self-contained desktop tool** the user just
-launches — with or without a browser.
+A Mateu UI is most often deployed as a web service: a backend (Java, C# or
+Python) serves the UI model and (optionally) the renderer, and users open it in a
+browser — or, with no backend at all, as a static bundle on a CDN. But the exact
+same application can also be packaged as a **self-contained desktop tool** the
+user just launches — with or without a browser.
 
 This is how internal utilities are often shipped: no deployment, no URL to
 remember, no separate install of a frontend. The user double-clicks a jar (or a

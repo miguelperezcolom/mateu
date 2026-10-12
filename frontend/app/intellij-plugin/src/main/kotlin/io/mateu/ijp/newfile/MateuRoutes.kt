@@ -30,7 +30,7 @@ object MateuRoutes {
         val parent: String? = null,
     )
 
-    const val DOCS_URL = "https://mateu.io/java-ui-definition/route-registry/"
+    const val DOCS_URL = "https://mateu.io/concepts/routes-and-mounts/"
 
     private fun yaml() = Yaml(SafeConstructor(LoaderOptions()))
 

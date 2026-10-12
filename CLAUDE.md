@@ -134,7 +134,7 @@ the one-to-one case.
   with `parent` set). The ports' suppliers are parameterless (the port idiom, like `IAppActionsSupplier`),
   not request-scoped. Tests: `RouteEntrySupplierSyncTest`/`AppSupplierSyncTest` (Java, 7),
   `CodeAuthoringTests` (.NET, 7), `test_code_authoring.py` (Python, 7). Docs:
-  `route-registry.md#authoring-routes-in-code`, `navigation-and-menus.md#app-shells-and-menus-in-code`.
+  `concepts/routes-and-mounts.md#authoring-routes-in-code`, `navigation-and-menus.md#app-shells-and-menus-in-code`.
 - **Routes are RELATIVE to the mount**, so two federated domains can each have an `orders` screen.
 - **Parameter precedence** — identical on the server, in `libs/mateu` and in the VB core, because
   route resolution also runs in the browser: `fixed > client state > path > query > defaults`.
@@ -161,10 +161,10 @@ the one-to-one case.
   picks by consumed route and never answers a content load with a shell (#557, the "deep link renders
   HOME"/nested-shells bug). `staticOnly` (`-Dmateu.bundle.static=true`) runs `StaticSafetyCheck` and
   fails the build on anything that needs a server. Reference: `demo/demo-static-vcn` (Java + YAML,
-  e2e projects `static-vcn-java`/`static-vcn-yaml`), guide `java-user-manual/build/static-ui.md`.
+  e2e projects `static-vcn-java`/`static-vcn-yaml`), guide `deploy/static-ui.md`.
 - Ports: `mateu_core/route_registry.py` and `src/Mateu.Core/RouteRegistry.cs` mirror the model,
   matching, precedence and definition lookup; **neither has a bundle exporter**. Both accept
-  `viewModel` and `view_model`. User docs: `doc/.../java-ui-definition/route-registry.md`.
+  `viewModel` and `view_model`. User docs: `doc/.../concepts/routes-and-mounts.md`.
 
 ### Writing from YAML — `actions:` on a definition (2026-09-07)
 
@@ -244,7 +244,7 @@ environment without a rebuild.
   `hasNoSources()` / `hasRef()` instead of `isEmpty()` / `isReference()`. **Any helper added to a
   serialised uidl record needs a name that is not a getter.** Pinned by a round-trip test.
 - Tests: `RestSourceRegistryTest` (12), `restSourceCatalogue.test.ts` (12). User docs:
-  `doc/.../java-ui-definition/rest-source-catalogue.md`.
+  `doc/.../concepts/data-sources.md`.
 
 ### More authored kinds under `specs/ui/` (2026-10-10)
 
@@ -255,17 +255,17 @@ ported to .NET/Python.
 - **Action catalogue** — `actions.yaml` / any `type: Actions` file + `ActionCatalogSupplier`: named
   client-runnable actions (flows, `restAction`) a page or the shell runs by id, resolved OWNER FIRST
   (the page/shell's own actions win). Wire `AppDto.actionCatalogue`, bundle `manifest.actions`.
-  Docs `java-ui-definition/action-catalogue.md`.
+  Docs `concepts/action-catalogue.md`.
 - **Access keys in YAML** — `access:` on routes, `eyesOnly`/`readOnlyUnless`/`disabledUnless` on
   components and catalogue actions, applied SERVER-side per request (refused route/action → 403,
   locked fields dropped from state); cosmetic (shown unrestricted) in Play and static bundles.
-  Docs `yaml-security.md`.
+  Docs `define/yaml/permissions.md`.
 - **Translations** — `type: Translations` / `translations/<locale>.yaml` + `TranslationsSupplier`;
   `${i18n.key}` in any YAML text, resolved per request locale (the bundle ships the catalogue and the
-  browser resolves it). Docs `yaml-i18n.md`.
+  browser resolves it). Docs `define/yaml/translations.md`.
 - **Environments** — `type: Environment` / `environments/<name>.yaml`: per-source overrides
   (`baseUrl`/`url`/`headers`/`proxy`, never secrets) for `MATEU_ENVIRONMENT` / `-Dmateu.environment`
-  / `-Dmateu.bundle.environment`. An overlay keeps the source's sample data. Docs `environments.md`.
+  / `-Dmateu.bundle.environment`. An overlay keeps the source's sample data. Docs `deploy/environments.md`.
 - **Field types** — `types.yaml` (`type: Types`) + `FieldTypeCatalogSupplier`: a `FormField`/
   `GridColumn` names one by `fieldType:` and takes its attributes (incl. status `tones`) as defaults,
   its own winning; resolved by the YAML loader and by the browser expander. Docs `field-types.md`.
@@ -277,7 +277,7 @@ ported to .NET/Python.
 - **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood`,
   chosen once for the editor canvas, Play, `mateu-bundle:bundle` (`-Dmateu.bundle.renderer`
   overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
-  Docs `project-settings.md`.
+  Docs `define/yaml/project-settings.md`.
 
 ### Response shaping: what a source can and cannot normalise (2026-09-08)
 
@@ -299,7 +299,7 @@ from a bare path to a `${…}` expression: that interpolator already exists on b
 When the API is yours, the cheapest fix is not here at all — **have the endpoint serve the shape the
 screen needs**. `demo-starwars` uses only `itemsPath`/`totalPath` and no `fields`, because
 swapi-service denormalises on the way out; which is also why it is no evidence the mapping suffices.
-Reasoning written up in `doc/.../java-ui-definition/rest-source-catalogue.md` ("Why it stops there").
+Reasoning written up in `doc/.../concepts/data-sources.md` ("Why it stops there").
 
 ### Derived API contract and server generator (2026-08-19)
 
@@ -617,7 +617,7 @@ Response is `UIIncrementDto` (see `backend/shared/dtos`).
 ## Important Conventions
 
 - `@UI("/path")` on a class registers it as a routed view; no path means root.
-- **YAML-only routing + the unified menu-leaf model (2026-09-06).** `@UI` is now the ONLY routing annotation — `@Route`/`@Routes`/`@HomeRoute` were **deleted** and all inner routes moved to `routes.yaml` (the AP indexer/processors, `RouteAnnotationMatcher` branches and `@HomeRoute` resolvers were pruned; the home route defaults to the first menu item; the manual `RouteResolver`/`RouteValue`/`RouteConstants` SPI stays — it's orthogonal). `RouteEntry` (uidl.data) gained `parent`/`children` (nested-slot sub-routes — a child renders in the parent screen's slot; authored as a `children:` tree, flattened to flat entries carrying `parent`; a `type: Routes` file can carry an optional `basePath` header discovered across the classpath) and the **four route scopes**: `state`/`appState` (literal seeds — `state`→componentState, `appState`→response app state merged UNDER the client's `@AppContext`; both at the defaults precedence level) and `data`/`appData` (source **references** to `sources.yaml` — no literal data channel; `data:` reuses the `@RestData` load path, `appData` rides `AppDto.appDataSource` and the shell fetches it once). A **menu leaf is `route | rule`**: `MenuOptionDto.rules` carries client-side rules; a `@Menu` field typed `Rule`/`List<Rule>` becomes a `RuleLink` (RunAction/RunJS) that runs instead of navigating (every other `@Menu` shape stays a route). Verified end-to-end in a browser (rule leaf) + 990 core tests; ported to .NET/Python (wire `ref`/`appDataSource`/`rules`). Docs: `java-ui-definition/route-registry.md`, `java-user-manual/build/navigation-and-menus.md`.
+- **YAML-only routing + the unified menu-leaf model (2026-09-06).** `@UI` is now the ONLY routing annotation — `@Route`/`@Routes`/`@HomeRoute` were **deleted** and all inner routes moved to `routes.yaml` (the AP indexer/processors, `RouteAnnotationMatcher` branches and `@HomeRoute` resolvers were pruned; the home route defaults to the first menu item; the manual `RouteResolver`/`RouteValue`/`RouteConstants` SPI stays — it's orthogonal). `RouteEntry` (uidl.data) gained `parent`/`children` (nested-slot sub-routes — a child renders in the parent screen's slot; authored as a `children:` tree, flattened to flat entries carrying `parent`; a `type: Routes` file can carry an optional `basePath` header discovered across the classpath) and the **four route scopes**: `state`/`appState` (literal seeds — `state`→componentState, `appState`→response app state merged UNDER the client's `@AppContext`; both at the defaults precedence level) and `data`/`appData` (source **references** to `sources.yaml` — no literal data channel; `data:` reuses the `@RestData` load path, `appData` rides `AppDto.appDataSource` and the shell fetches it once). A **menu leaf is `route | rule`**: `MenuOptionDto.rules` carries client-side rules; a `@Menu` field typed `Rule`/`List<Rule>` becomes a `RuleLink` (RunAction/RunJS) that runs instead of navigating (every other `@Menu` shape stays a route). Verified end-to-end in a browser (rule leaf) + 990 core tests; ported to .NET/Python (wire `ref`/`appDataSource`/`rules`). Docs: `concepts/routes-and-mounts.md`, `java-user-manual/build/navigation-and-menus.md`.
 - **Using external Mateu UIs (2026-10-12)** — a third-party UI module (a jar of `@UI` screens + their generated controllers, e.g. EventConductor's console, package `io.mateu.workflow.infra.in.ui`) is mounted IN-PROCESS by naming its package: `mateu.ui.modules=…` (comma list / `MATEU_UI_MODULES`) or `@EnableMateuUiModules(...)` — `MateuUiModulesRegistrar` (an `ImportBeanDefinitionRegistrar` imported by `MateuAutoConfiguration`, duplicated in mvc-core and webflux-core like the auto-config) scans those packages like `@ComponentScan` and WARNs on a package with no beans. Needed since Mateu stopped scanning `io.mateu.*` (without it: the module's mount 404s, its screens say "Page not found"). Quarkus/Micronaut/Helidon discover per jar (Jandex/beans.xml, AOT). Pinned by `UiModulesIT` (MVC + WebFlux, fixture `io.mateu.thirdparty.ui.ThirdPartyHome` compiled by each adapter's AP; contract in `AdapterParityITFoundation.servesANamedThirdPartyUiModule`). FEDERATED: two fixes found composing the console — a YAML `type: AppShell` now offers unclaimed deep links to its `RemoteMenu`s (`AppMenuResolver.resolveRemoteDeepLink`, wired in `ActionInstanceCreator`'s YAML paths; `YamlShellRemoteDeepLinkSyncTest`), and an `Element` `import: /x.js` of a REMOTE screen loads from the remote's origin (`elementRenderer.remoteOriginOf/moduleUrlFor`; the remote must serve it with CORS — Mateu's CORS covers only `/mateu/**`; Redwood's `content.mjs` importUrl NOT yet). A `MicroFrontend` island of an in-app remote route needs `serverSideType` = the remote's `@UI` class. Wire policy unchanged: same major interoperates, nothing refused. Guide `java-user-manual/build/using-external-mateu-uis.md`; demo `demo/demo-eventconductor` (8620 in-process + console, 8621 Java shell, 8622 YAML shell); probe `e2e/external-ui-probe.mjs`; EC-side checklist `design/readiness/eventconductor-uis.md`.
 - `AutoCrud<T>` / `AutoCrudOrchestrator<T>` give full CRUD with minimal code.
 - **Mateu ships UI only (2026-10-10)**: a non-UI concern is at most an interface the app implements. Listing exports: Mateu owns the Export buttons (`csvExportable()`/`excelExportable()`/`pdfExportable()`), the columns/rows/filters and the `DownloadFile`; the FILE is written by the app's `ListingExporter` bean (uidl: `format()` + `export(ListingExport, HttpRequest)` → `ExportedFile`; `ListingExporters` in core picks it, app's over core's built-in `DefaultCsvExporter`). Excel/PDF buttons only show while an exporter for the format is registered; a request for an unwritten format answers `UserFacingException("Export not available")`. The `mateu-export-excel`/`-pdf` modules and `agent-cli`/`agent-cli-companion` were REMOVED. Ports: .NET `IListingExporter` services (`MateuExporters`), Python `ListingExporter` subclasses discovered by `MateuRegistry` (`mateu_core.export.Exporters`). Demo implementation: `demo-vb-pms` `ExcelListingExporter` (Apache POI).

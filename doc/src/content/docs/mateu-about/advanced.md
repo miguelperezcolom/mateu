@@ -16,7 +16,7 @@ These topics cover more advanced usage patterns in Mateu.
 
 Read this section after you understand:
 
-- how to define UIs in Java
+- how to define UIs (in YAML, with the visual editor, or in code)
 - how Mateu renders them
 - how routing and actions work
 

@@ -1,6 +1,6 @@
 # The route registry of the mount. Each entry binds a route (relative to the mount; "" is its root)
 # to a `layout:` (a definition file next to this one) and/or a `viewModel:` (a Java class that
-# handles the screen's actions). See https://mateu.io/java-ui-definition/route-registry/
+# handles the screen's actions). See https://mateu.io/concepts/routes-and-mounts/
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
 type: Routes
 routes:

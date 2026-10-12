@@ -50,8 +50,8 @@ Deploy `target/mateu-bundle/` to any static host with an SPA fallback (every non
 
 ## References
 
-- Static UIs: https://mateu.io/java-user-manual/build/static-ui/
-- REST sources and sample data: https://mateu.io/java-ui-definition/rest-source-catalogue/
+- Static UIs: https://mateu.io/deploy/static-ui/
+- REST sources and sample data: https://mateu.io/concepts/data-sources/
 - The authoring schema (every component and its keys):
   https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md.

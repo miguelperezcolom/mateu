@@ -2,20 +2,20 @@
 title: "Architecture"
 ---
 
-Mateu has three layers: a UI definition model, a small API that exposes it, and a renderer that turns it into a browser UI.
+Mateu has three layers: a UI definition model, a small API (or a static bundle) that delivers it, and a renderer that turns it into a UI — in a browser, in the IDE or on a phone.
 
 ```text
-ViewModel (your Java code)
-  -> UI definition (Mateu internal format)
-  -> Mateu API (HTTP endpoints)
-  -> Renderer (browser / web components)
+Your UI model (YAML / visual editor, or a ViewModel in Java, C# or Python)
+  -> UI definition (the Mateu wire model)
+  -> Mateu API (HTTP endpoints) — or a static bundle, with no backend
+  -> Renderer (web components, IntelliJ plugin, React Native app)
 ```
 
-These layers are decoupled. You write ViewModels. Mateu produces the definition. The renderer consumes it.
+These layers are decoupled. You declare the UI once. Mateu produces the definition. The renderer consumes it.
 
 ## The UI definition layer
 
-Mateu introspects your ViewModels — fields, methods, annotations — and produces an internal UI description. This description is a structured representation of:
+Mateu reads your UI model — YAML definitions (written by hand or with the visual editor), or ViewModels in code (fields, methods, annotations) — and produces an internal UI description. This description is a structured representation of:
 
 - what fields exist and their types
 - what actions are available
@@ -23,7 +23,7 @@ Mateu introspects your ViewModels — fields, methods, annotations — and produ
 - what validation rules apply
 - what navigation entries are exposed
 
-This description is the contract between backend and frontend. It is not HTML. It is not JSON for a specific component library. It is an abstract UI specification.
+This description is the contract between whatever serves the UI and whatever renders it. It is not HTML. It is not JSON for a specific component library. It is an abstract UI specification.
 
 ## The API layer
 
@@ -34,7 +34,7 @@ Mateu exposes a small set of HTTP endpoints that the renderer calls:
 - execute an action
 - resolve a lookup (relationship options and labels)
 
-These endpoints are registered automatically by the Mateu integration for your runtime (Spring Boot, Micronaut, Quarkus, etc.). You do not write them.
+These endpoints are registered automatically by the Mateu integration for your runtime (Spring Boot, Micronaut, Quarkus, Helidon MP, ASP.NET, FastAPI). You do not write them. A UI with no server-side behaviour can skip this layer entirely: it is exported as a [static bundle](/deploy/static-bundle/) and served from a CDN.
 
 ## The renderer
 
@@ -46,11 +46,11 @@ Because the renderer consumes an abstract UI description, it can be replaced. An
 - **Desktop renderer** — an IntelliJ IDEA plugin that renders native Swing controls inside the IDE (tool windows, editor tabs, docking) on Windows, macOS, and Linux.
 - **Mobile renderer** — an Expo / React Native application that renders native components on iOS and Android.
 
-All renderers consume the same API. The same backend serves web, desktop, and mobile clients simultaneously.
+All renderers consume the same API. The same UI — and the same backend, when there is one — serves web, desktop, and mobile clients simultaneously.
 
 ## Stateless request cycle
 
-Each browser interaction follows the same stateless path:
+When a backend serves the UI, each browser interaction follows the same stateless path:
 
 ```text
 1. Browser sends: current field values + action id
@@ -65,14 +65,15 @@ No session. No server-side UI state. The ViewModel is created per request and di
 
 ## Pluggable integration
 
-Mateu integrates with your Java runtime through an adapter layer. The same ViewModel code works across:
+When a backend serves the UI, Mateu integrates with its runtime through an adapter layer. On the JVM, the same ViewModel code works across:
 
 - Spring Boot MVC
 - Spring WebFlux
 - Micronaut
 - Quarkus
+- Helidon MP
 
-The integration registers the Mateu API endpoints and handles DI for ViewModel construction.
+The integration registers the Mateu API endpoints and handles DI for ViewModel construction. The C# (ASP.NET) and Python (FastAPI) ports emit the same wire model, and a UI defined only in YAML is served by any of them — or by none, as a static bundle.
 
 ## Orchestrators
 
