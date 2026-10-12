@@ -78,6 +78,43 @@ every navigation type (`RouteLink`, `Menu`, `RemoteMenu`, …) and every compone
 available with no extra wiring, and the same [JSON Schema IntelliSense](/define/yaml/pages/#intellisense-setup)
 applies while you edit.
 
+## Card menus
+
+A `Menu` group with `presentation: {display: cards}` opens as a panel of **cards** instead of a
+plain dropdown. Each entry is a card: its `label` is the title, `description` the text and
+`presentation: {icon: …}` or `presentation: {image: …}` the visual. An entry that is itself a `Menu`
+is not a destination — its entries become the card's actions:
+
+```yaml
+menu:
+  - type: Menu
+    label: Quick access
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: Check-in
+        route: check-in
+        description: Sign the registration card and scan the ID
+        presentation: {icon: "vaadin:clipboard"}
+      - type: RouteLink
+        label: Floor plan
+        route: floor-plan
+        description: Rooms coloured by housekeeping status
+        presentation: {image: /img/floor.png}
+      - type: Menu
+        label: Billing
+        description: Folios, charges and payments
+        presentation: {icon: "vaadin:invoice"}
+        submenu:          # the card's actions
+          - {type: RouteLink, label: Folio, route: billing}
+          - {type: RouteLink, label: New booking, route: bookings/new}
+```
+
+The routes of the entries are mount-relative as written: a group adds nothing to them. It works
+served and in a `specsOnly` static bundle alike. Where it shows (top bars on Vaadin and Redwood, the
+React Native drawer, IntelliJ) and the Java/.NET/Python equivalents:
+[Card menus](/ux-patterns/navigation/#card-menus-a-group-that-opens-as-cards).
+
 ## Flows on the shell
 
 A menu entry does not have to navigate somewhere: it can **run a flow**. The shell declares its
@@ -302,8 +339,9 @@ src/main/
 
 Open any of these files in the [visual editor](/define/yaml/visual-editor/) and it picks the
 mode from the file's `type:`: `app.yaml` opens the **app** form (title, chrome and a
-link/group/separator/action menu tree, an **Actions** panel for the shell's flows and a **Widgets**
-section), `routes.yaml` opens the **routes** table, and the `type: UI` file
+link/group/separator/action menu tree — a group's **Display** is *List* or *Cards*, and the entries
+of a cards group get a description, an image and, for a card with actions, an icon —, an
+**Actions** panel for the shell's flows and a **Widgets** section), `routes.yaml` opens the **routes** table, and the `type: UI` file
 opens the **mount** form. Each file is authored on its own — editing the shell never rewrites the
 routes.
 

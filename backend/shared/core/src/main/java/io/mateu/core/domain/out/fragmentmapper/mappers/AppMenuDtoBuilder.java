@@ -54,7 +54,14 @@ final class AppMenuDtoBuilder {
                   .submenus(
                       option instanceof Menu asMenu
                           ? buildMenu(
-                              app, asMenu.submenu(), route, appRoute, prefix + asMenu.path())
+                              app,
+                              asMenu.submenu(),
+                              route,
+                              appRoute,
+                              // a group authored as data (YAML `type: Menu`) has no path of
+                              // its own: its entries' routes are mount-relative as written —
+                              // concatenating the null made them "null/check-in"
+                              asMenu.path() != null ? prefix + asMenu.path() : prefix)
                           : List.of())
                   .separator(option instanceof MenuSeparator)
                   .remote(option instanceof RemoteMenu)
