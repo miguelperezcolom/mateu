@@ -35,6 +35,20 @@ test.describe('page archetypes', () => {
     expect(problems).toEqual([]);
   });
 
+  test('page width and type follow the archetype', async ({ page }) => {
+    for (const [route, width, type] of [
+      ['/arch/gantt', 'edge', 'detail'],
+      ['/arch/foldout', 'edge', 'detail'],
+      ['/arch/data-management', 'full', 'collection'],
+      ['/arch/dashboard', null, 'dashboard'],
+    ] as const) {
+      await page.goto(route);
+      const ux = page.locator('mateu-ux[data-page-type]').first();
+      await expect(ux, route).toHaveAttribute('data-page-type', type);
+      if (width) await expect(ux, route).toHaveAttribute('data-page-width', width);
+    }
+  });
+
   test('Welcome: the hero calls to action navigate', async ({ page }) => {
     const problems = watch(page);
     await page.goto('/arch/welcome');
