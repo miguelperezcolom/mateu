@@ -2,13 +2,17 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
+import io.mateu.dtos.BadgeDto;
 import io.mateu.dtos.ButtonColorDto;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ButtonSizeDto;
 import io.mateu.dtos.ButtonStyleDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.FabDto;
 import io.mateu.dtos.FormDto;
+import io.mateu.dtos.KPIDto;
+import io.mateu.dtos.PeerNavDto;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonColor;
 import io.mateu.uidl.data.ButtonGroup;
@@ -77,6 +81,29 @@ public class FormMapper {
                     : null)
             .toolbar(form.toolbar().stream().map(FormMapper::mapToButtonDto).toList())
             .buttons(form.buttons().stream().map(FormMapper::mapToButtonDto).toList())
+            // the page-header elements a reflected page gets from its annotations, authored as
+            // data: same wire fields as PageDto's, so every renderer's header reads them alike
+            .overline(blankToNull(form.overline()))
+            .titlePlaceholder(blankToNull(form.titlePlaceholder()))
+            .timestamp(blankToNull(form.timestamp()))
+            .badges(form.badges().stream().map(FormMapper::mapChipToBadgeDto).toList())
+            .kpis(
+                form.kpis().isEmpty()
+                    ? null
+                    : form.kpis().stream()
+                        .map(fact -> new KPIDto(fact.label(), fact.value(), null, null))
+                        .toList())
+            .peerNav(
+                form.peerNav() != null
+                    ? new PeerNavDto(
+                        form.peerNav().prevLabel(),
+                        form.peerNav().prevRoute(),
+                        form.peerNav().nextLabel(),
+                        form.peerNav().nextRoute())
+                    : null)
+            .switcher(PageMapper.mapSwitcher(form.recordSwitcher()))
+            .banners(form.banners().stream().map(PageMapper::mapToBannerDto).toList())
+            .fabs(form.fabs().isEmpty() ? null : mapFabs(form.fabs()))
             .build();
     return new ClientSideComponentDto(
         formMetadataDto,
@@ -96,6 +123,41 @@ public class FormMapper {
         form.style(),
         form.cssClasses(),
         null);
+  }
+
+  /** A header chip ({@code label}/{@code color}) as the header badge a reflected page sends. */
+  static BadgeDto mapChipToBadgeDto(io.mateu.uidl.data.Chip chip) {
+    return new BadgeDto(
+        chip.label(),
+        null,
+        null,
+        chip.color() != null && !chip.color().isBlank() ? chip.color() : "normal",
+        false,
+        false,
+        false);
+  }
+
+  /** Data-authored page FABs, in their declared {@code order} (ties keep the list's order). */
+  static java.util.List<FabDto> mapFabs(java.util.List<io.mateu.uidl.data.PageFab> fabs) {
+    return fabs.stream()
+        .sorted(java.util.Comparator.comparingInt(io.mateu.uidl.data.PageFab::order))
+        .map(
+            fab ->
+                FabDto.builder()
+                    .id(fab.actionId())
+                    .label(fab.label())
+                    .icon(fab.icon())
+                    .actionId(fab.actionId())
+                    .buttonStyle(
+                        fab.buttonStyle() != null && !fab.buttonStyle().isBlank()
+                            ? fab.buttonStyle()
+                            : "primary")
+                    .build())
+        .toList();
+  }
+
+  private static String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value;
   }
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {

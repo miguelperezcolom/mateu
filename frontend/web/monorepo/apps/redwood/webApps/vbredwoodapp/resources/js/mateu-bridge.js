@@ -1428,8 +1428,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       visit(n)
       for (const [k, v] of Object.entries(n)) {
         // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
-        // content: its actionId + label made a stray «Customer» button in the form's action row
-        if (k === 'switcher' && n.type === 'Page') continue
+        // content: its actionId + label made a stray «Customer» button in the form's action row. A
+        // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
+        if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
+        if (k === 'fabs' && n.type === 'Form') continue
         if (Array.isArray(v)) v.forEach((x) => walk(x, false))
         else if (v && typeof v === 'object') walk(v, false)
       }
@@ -1869,7 +1871,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
     // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
     // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
-    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     const state = (ctx && ctx.state) || {}
     const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
       .map((b) => {
@@ -2438,6 +2440,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
@@ -2760,14 +2763,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Puerta 1.3: banners de página (Page.metadata.banners) → items del
    *  oj-sp-messages-banner del starter (MessagesBannerType). */
   function bannersOf(ctx) {
-    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    // a YAML page authors them on its `type: Form` (same wire field): its ${state.x} resolved here
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
+    const interp = (t) => (page && page.fromForm ? interpolate(t || '', (ctx && ctx.state) || {}) : (t || ''))
     // los messageType del oj-sp-messages-banner van con prefijo general-* (patrón del starter)
     const THEMES = { INFO: 'general-info', SUCCESS: 'general-success', WARNING: 'general-warning', DANGER: 'general-error' }
     return (((page || {}).metadata || {}).banners || []).map((banner, i) => ({
       id: 'mateu-banner-' + i,
       messageType: THEMES[banner.theme] || 'general-info',
-      primaryText: banner.title || '',
-      secondaryText: banner.description || '',
+      primaryText: interp(banner.title),
+      secondaryText: interp(banner.description),
     }))
   }
 
@@ -3005,11 +3010,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: selector.label || selector.fieldName,
         options: (selector.options || []).map((o) => ({ value: o.value, label: o.label || String(o.value) })),
       })),
+      // a YAML header action may NAVIGATE (AppHeaderActionDto.route) instead of dispatching:
+      // headerActionRouteOf tells the click chain where to go
       headerActions: (shell.headerActions || []).map((a) => ({
         actionId: a.actionId,
         label: a.label,
+        route: a.route || '',
         hasChildren: !!(a.children && a.children.length),
-        children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
+        children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label, route: c.route || '' })),
       })),
       serverSideType: shell.serverSideType,
       // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
@@ -3019,6 +3027,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ? ((menuTree.find((node) => node.home) || {}).home || '')
         : shell.homeRoute,
     }
+  }
+
+  /**
+   * The in-app route a header action navigates to (AppHeaderActionDto.route, authored in YAML), or ''
+   * when it dispatches its actionId app-level as before. Looked up by the clicked key — the actionId,
+   * or, for a route-only action (no actionId), the route itself — at any depth of the dropdowns.
+   */
+  function headerActionRouteOf(headerActions, key) {
+    if (key == null || key === '') return ''
+    for (const a of headerActions || []) {
+      if (a && a.route && (a.actionId === key || a.route === key)) return a.route
+      const inner = headerActionRouteOf(a && a.children, key)
+      if (inner) return inner
+    }
+    return ''
   }
 
 
@@ -4732,22 +4755,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * The node that carries the page-header extras (kpis, subtitle, switcher, badges, banners, fabs…):
+   * a reflected Java page's `Page`, else — a YAML page, whose header is authored on its `type: Form`
+   * — the `Form`, which the server stamps with the SAME field names (FormDto). A tree with a Page is
+   * read exactly as before. `fromForm` tells the callers to interpolate the `${state.x}` the YAML
+   * author wrote (a reflected Page arrives resolved).
+   */
+  function pageHeaderNodeOf(tree) {
+    if (!tree) return null
+    const page = findByType(tree, 'Page')
+    if (page) return page
+    const form = findByType(tree, 'Form')
+    return form ? Object.assign({}, form, { fromForm: true }) : null
+  }
+
   /** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
    *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
    *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
   function pageKpisOf(ctx) {
-    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     if (!page) return []
     const state = ctx.state || {}
     return ((page.metadata || {}).kpis || [])
       .filter((k) => k && (k.title || k.text))
-      .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
+      .map((k) => ({
+        label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
+        value: interpolate(k.text == null ? '' : String(k.text), state),
+      }))
   }
 
   /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
    *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
   function pageSubtitleOf(ctx) {
-    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     const subtitle = page && page.metadata ? page.metadata.subtitle : ''
     return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
   }
@@ -4798,40 +4839,56 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   const RECORD_SWITCHER_ACTION = '_switchRecord'
   const RECORD_SWITCHER_PARAMETER = '_record'
+  const RECORD_SWITCHER_OPTIONS = '_switcher'
   function pageSwitcherOf(ctx) {
-    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     const sw = page && page.metadata ? page.metadata.switcher : null
     const none = { on: false, type: 'object', value: null, label: '', searchable: false, disabled: false,
-      actionId: RECORD_SWITCHER_ACTION, objectOptions: [], contextOptions: [], fact: null }
-    if (!sw || !Array.isArray(sw.options) || !sw.options.length) return none
-    const options = sw.options
+      actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
+    if (!sw) return none
+    const state = (ctx && ctx.state) || {}
+    const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+    // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
+    // ctx.data._switcher — the same slot a select's REST options land in
+    const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
+    const declared = Array.isArray(sw.options) && sw.options.length ? sw.options
+      : (sw.optionsSource && Array.isArray(loaded) ? loaded : [])
+    if (!declared.length) return none
+    const options = declared
       .filter((o) => o && o.value != null)
-      .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : String(o.label), description: o.description || '' }))
+      .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : interp(o.label), description: o.description ? interp(o.description) : '' }))
     const type = sw.type === 'context' ? 'context' : 'object'
-    const value = sw.value == null ? null : String(sw.value)
+    const value = sw.value == null ? null : interp(sw.value)
     const current = options.find((o) => o.value === value)
     const disabled = !!sw.disabled
     return {
       on: true,
       type,
       value,
-      label: sw.label || '',
+      label: sw.label ? interp(sw.label) : '',
       searchable: !!sw.searchable,
       disabled,
       actionId: sw.actionId || RECORD_SWITCHER_ACTION,
+      // a YAML switcher may NAVIGATE instead (`route: customers/${state._record}`): resolved per pick
+      // (the page's other ${state.x} resolved now, `${state._record}` kept for switcherPickOf)
+      route: sw.route ? interpolate(sw.route, { ...state, [RECORD_SWITCHER_PARAMETER]: '${state.' + RECORD_SWITCHER_PARAMETER + '}' }) : '',
       objectOptions: !disabled && type === 'object' ? options : [],
       contextOptions: !disabled && type === 'context' ? options : [],
-      fact: disabled && current ? { label: sw.label || '', value: current.label } : null,
+      fact: disabled && current ? { label: sw.label ? interp(sw.label) : '', value: current.label } : null,
     }
   }
 
   /** The action a pick of the header switcher runs, or null when nothing changed (the data switcher
-   *  also writes back the value it was given, and an echo must not re-run the page). */
+   *  also writes back the value it was given, and an echo must not re-run the page). A switcher that
+   *  declares a `route` (YAML) also carries `route`: that route with `${state._record}` = the picked
+   *  value — the consumer navigates to it instead of dispatching the action. */
   function switcherPickOf(switcher, picked) {
     if (!switcher || !switcher.on || switcher.disabled || picked == null) return null
     const value = typeof picked === 'object' ? (picked.value != null ? picked.value : picked.key) : picked
     if (value == null || String(value) === String(switcher.value)) return null
-    return { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
+    const pick = { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
+    if (switcher.route) pick.route = interpolate(switcher.route, { [RECORD_SWITCHER_PARAMETER]: String(value) })
+    return pick
   }
 
   /** El TOOLBAR de la Page del host (para las acciones del header de banda):
@@ -13430,6 +13487,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -13884,7 +13942,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const data = ctx.data || {}
     const out = []
     const seen = {}
-    for (const f of collectFields(ctx.tree)) {
+    // the page header's record switcher (a YAML `recordSwitcher.optionsSource`) loads like a select:
+    // into data._switcher, where pageSwitcherOf reads it when the switcher declares no options
+    const header = pageHeaderNodeOf(ctx.tree)
+    const sw = header && header.metadata && header.metadata.switcher
+    const switcherField = sw && sw.optionsSource && !(Array.isArray(sw.options) && sw.options.length)
+      ? [{ fieldId: RECORD_SWITCHER_OPTIONS, optionsSource: sw.optionsSource, switcher: true }] : []
+    for (const f of collectFields(ctx.tree).concat(switcherField)) {
       if (!f.optionsSource || seen[f.fieldId]) continue
       seen[f.fieldId] = true
       const resolved = resolveRestSource(f.optionsSource) || {}
@@ -13916,7 +13980,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let content = []
       try {
         let json
-        if (viaProxy(src) && opts.server) {
+        if (viaProxy(src) && field.switcher) {
+          // no field on the server answers a proxied switcher source: the header keeps no switcher
+          throw new Error('a proxied recordSwitcher.optionsSource is not supported on this renderer')
+        } else if (viaProxy(src) && opts.server) {
           const inc = await opts.server({ _sourceKind: 'options', _sourceId: field.fieldId }, true)
           const appData = (inc && inc.appData) || {}
           if (appData._restfetchError) throw new Error('proxied options failed')
@@ -13934,6 +14001,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const data = { ...(now.data || {}) }
     for (const { fieldId, value } of loaded) data[fieldId] = value
     return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...now, data } } }
+  }
+
+  /**
+   * The app-context selectors (AppDto.contextSelectors) with the options of those backed by an
+   * `optionsSource` (YAML `contextSelectors[].optionsSource`) fetched — a DIRECT source in the browser, a
+   * proxied one through `opts.server(parameters)` (the app-level `_appsource` action; without it the
+   * selector keeps no options). A
+   * selector with declared options, or whose source fails, comes back as it was. Never throws.
+   */
+  async function loadContextSelectorOptions(selectors, opts = {}) {
+    const scope = { state: {}, data: {}, appState: opts.appState || {} }
+    return Promise.all((selectors || []).map(async (selector) => {
+      const src = selector && selector.optionsSource
+      if (!src || (Array.isArray(selector.options) && selector.options.length)) return selector
+      const proxied = viaProxy(src)
+      if (proxied && !opts.server) {
+        try { console.warn('mateu: a proxied app-context optionsSource needs the server (_appsource)') } catch (e) { /* no console */ }
+        return selector
+      }
+      try {
+        const resolved = resolveRestSource(src) || {}
+        let json
+        if (proxied) {
+          // the server's app-level `_appsource`: the browser names the ROLE and the picker's field,
+          // never a url; the answer rides appData._restfetch like __restfetch__'s
+          const inc = await opts.server({ _appSource: 'contextOptions', _field: selector.fieldName })
+          const appData = (inc && inc.appData) || {}
+          if (appData._restfetchError) throw new Error('proxied app-context options failed')
+          json = appData._restfetch
+        } else {
+          json = await fetchRestJson(src, scope, opts.fetchImpl)
+        }
+        return { ...selector, options: mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath) }
+      } catch (e) {
+        try { console.warn('mateu: app-context options fetch failed', e) } catch (ignored) { /* no console */ }
+        return selector
+      }
+    }))
   }
 
   // ── REST actions (and the route's `data:` load, `__restdata__`) ──────────────────────────────
@@ -16930,7 +17035,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * the shell's own FAB. Primary-styled ones are the call to action.
    */
   function fabsOf(shell, host) {
-    const page = host && host.tree ? findByType(host.tree, 'Page') : null
+    // a YAML page declares its FABs on its `type: Form` (FabDto, the same wire field)
+    const page = host && host.tree ? pageHeaderNodeOf(host.tree) : null
     const row = (f, appLevel) => ({
       key: (appLevel ? 'app:' : 'page:') + (f.id || f.actionId),
       label: f.label || f.actionId || '',
@@ -18913,6 +19019,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withContextState,
     withSearchableIds,
     shellNavOf,
+    // a YAML header action's route (AppHeaderActionDto.route) — the click navigates instead
+    headerActionRouteOf,
+    // YAML app-context selectors backed by an optionsSource (direct sources)
+    loadContextSelectorOptions,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
     localMenuOptionOf,

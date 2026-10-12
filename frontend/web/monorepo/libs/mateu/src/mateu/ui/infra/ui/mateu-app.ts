@@ -33,7 +33,7 @@ type MenuBarItemSelectedEvent = CustomEvent<{ value: MenuBarItem }>
 type AppLayout = HTMLElement & { drawerOpened?: boolean }
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
-import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
+import { searchGlobally } from "@infra/ui/appSources.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
@@ -185,12 +185,8 @@ export class MateuApp extends ComponentElement {
         }
         this._globalSearchTimer = setTimeout(async () => {
             try {
-                const increment = await mateuApiClient.runAction(this.baseUrl ?? '',
-                    metadata.rootRoute ?? '', '', '_globalsearch', 'cmd-palette', undefined,
-                    metadata.serverSideType, {}, { searchText: query }, this, true)
-                const data = increment?.fragments?.map(f => f.data).find(d => d && (d as Record<string, unknown>)['_globalsearch'])
                 this.commandPaletteDataHits =
-                    ((data as Record<string, unknown> | undefined)?.['_globalsearch'] as GlobalSearchHit[]) ?? []
+                    (await searchGlobally(metadata, this.baseUrl ?? '', query, this, 'cmd-palette')) as GlobalSearchHit[]
             } catch {
                 this.commandPaletteDataHits = []
             }

@@ -1,0 +1,30 @@
+# A definition-only page whose `type: Form` declares EVERY page-header key.
+# Used by YamlPageHeaderTests.
+layout:
+  type: Form
+  title: ${state.name}
+  overline: Customers
+  titlePlaceholder: New customer…
+  timestamp: Last updated ${state.updatedAt}
+  badges:
+    - { label: "${state.status}", color: success }
+    - { label: VIP }
+  kpis:
+    - { label: Balance, value: "${state.balance}" }
+  peerNav: { prevLabel: Previous, prevRoute: customers/1, nextLabel: Next, nextRoute: customers/3 }
+  recordSwitcher:
+    label: Customer
+    value: ${state.id}
+    options:
+      - { value: "1", label: Ada }
+      - { value: "2", label: Grace }
+    route: customers/${state._record}
+  banners:
+    - { theme: WARNING, title: Overdue, description: "Two invoices are overdue", closeable: true, timeoutSeconds: 5 }
+  fabs:
+    - { icon: "vaadin:plus", label: New order, actionId: newOrder, order: 2 }
+    - { icon: "vaadin:phone", label: Call, actionId: call, order: 1, buttonStyle: secondary }
+    - { icon: "vaadin:envelope", label: Mail, actionId: mail, order: 2 }
+  content:
+    - type: Text
+      text: "Hello"

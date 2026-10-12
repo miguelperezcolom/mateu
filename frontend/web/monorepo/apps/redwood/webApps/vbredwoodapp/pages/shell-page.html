@@ -97,7 +97,7 @@
               <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.headerMenuAction ]]">
                 <oj-bind-for-each data="[[ $current.data.children ]]">
                   <template>
-                    <oj-option :value="[[ $current.data.actionId ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                    <oj-option :value="[[ $current.data.actionId || $current.data.route ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
                   </template>
                 </oj-bind-for-each>
               </oj-menu>

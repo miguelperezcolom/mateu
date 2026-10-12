@@ -34,7 +34,8 @@
           "shortcut" : null,
           "separatorBefore" : false,
           "children" : null,
-          "route" : null
+          "route" : null,
+          "rowsSelectedRequired" : false
         } ],
         "avatar" : {
           "type" : "ClientSide",
@@ -61,7 +62,7 @@
             "size" : "s",
             "noMargins" : false
           },
-          "id" : "e0715a90-42d9-48ba-92f2-1b06090d6182",
+          "id" : "3741345f-23c8-42de-afb1-36c5ae982319",
           "children" : [ ],
           "style" : null,
           "cssClasses" : null,
@@ -86,7 +87,14 @@
           "slot" : null,
           "sizing" : null
         } ],
-        "footer" : [ ]
+        "footer" : [ ],
+        "overline" : null,
+        "titlePlaceholder" : null,
+        "timestamp" : null,
+        "kpis" : null,
+        "peerNav" : null,
+        "switcher" : null,
+        "fabs" : null
       },
       "id" : null,
       "children" : [ {

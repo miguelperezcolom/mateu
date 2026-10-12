@@ -5,4 +5,6 @@ export default interface AppHeaderAction {
     icon: string | undefined
     /** Present: the action renders as a dropdown menu and only these dispatch. */
     children: AppHeaderAction[] | undefined
+    /** A data-authored shell's button that NAVIGATES inside the app instead of running an action. */
+    route?: string | null
 }

@@ -49,6 +49,13 @@ public class BackofficeApp implements NotificationsSupplier {
 - Pair with [long-running jobs](/ux-patterns/long-running-jobs/): when a background task
   completes, append an inbox entry so the outcome survives the toast.
 
+## In YAML
+
+A data-authored shell feeds the bell from REST sources instead of a `NotificationsSupplier` class:
+`notifications: {source: …, markRead: …}` on its `type: AppShell` — fetched by the browser (or
+through the server when the source is `proxy: true`). See
+[App shell as data › Header extras](/define/yaml/app-shell/#header-extras-pickers-actions-inbox-and-search).
+
 ## Wire
 
 `AppDto.notificationsEnabled` turns the bell on; the actions answer

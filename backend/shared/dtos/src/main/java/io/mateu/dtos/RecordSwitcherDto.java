@@ -19,4 +19,14 @@ public record RecordSwitcherDto(
     String label,
     boolean searchable,
     boolean disabled,
-    String actionId) {}
+    String actionId,
+    /**
+     * Where the options come from when they are not listed: a REST source the browser fetches (a
+     * data-authored page's {@code optionsSource:}). {@code null} for a supplier's switcher.
+     */
+    RestDataSourceDto optionsSource,
+    /**
+     * Where a pick navigates, {@code ${state._record}} standing for the picked value; {@code null}
+     * dispatches {@link #actionId()} instead.
+     */
+    String route) {}

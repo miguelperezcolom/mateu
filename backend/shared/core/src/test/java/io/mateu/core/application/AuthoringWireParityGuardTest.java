@@ -59,7 +59,11 @@ class AuthoringWireParityGuardTest {
   private static final Map<String, String> FIELD_RENAMES =
       Map.of(
           // FieldMapper: .fieldId(formField.id())
-          "fieldId", "id");
+          "fieldId",
+          "id",
+          // FormMapper: .switcher(mapSwitcher(form.recordSwitcher()))
+          "switcher",
+          "recordSwitcher");
 
   /**
    * Today's known-uncovered DTO fields, keyed {@code "<DtoSimpleName>.<field>"}. Each is tagged
@@ -177,7 +181,8 @@ class AuthoringWireParityGuardTest {
 
       for (String dtoField : recordComponentNames(dto)) {
         String mapped = FIELD_RENAMES.getOrDefault(dtoField, dtoField);
-        if (authorable.contains(mapped)) {
+        // a rename applies where the record spells it differently (PageView keeps `switcher`)
+        if (authorable.contains(dtoField) || authorable.contains(mapped)) {
           continue;
         }
         String key = dtoName + "." + dtoField;

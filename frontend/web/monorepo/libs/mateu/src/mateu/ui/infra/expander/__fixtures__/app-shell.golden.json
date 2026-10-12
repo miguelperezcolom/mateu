@@ -188,9 +188,12 @@
         "shortcuts" : [ ],
         "headerValues" : [ ],
         "liveUpdates" : false,
-        "idleSession" : null
+        "idleSession" : null,
+        "notificationsSource" : null,
+        "notificationsReadSource" : null,
+        "globalSearchSource" : null
       },
-      "id" : "b0f7b324-8624-4934-85cd-8866be12e200",
+      "id" : "844d426c-5efc-4bbf-8515-a90c7d1292d9",
       "children" : [ {
         "type" : "ClientSide",
         "metadata" : {
@@ -201,7 +204,7 @@
           "size" : null,
           "noMargins" : false
         },
-        "id" : "023fdd78-a491-408e-9488-3ec611bb33da",
+        "id" : "86b3ac6b-ee4f-4aae-97a4-f20c92839dd3",
         "children" : [ ],
         "style" : null,
         "cssClasses" : null,

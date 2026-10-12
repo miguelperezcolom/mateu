@@ -1,3 +1,4 @@
+import RestDataSource from "@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 
 /**
@@ -13,4 +14,10 @@ export default interface RecordSwitcher {
     searchable?: boolean
     disabled?: boolean
     actionId: string
+    /** A data-authored page's `optionsSource:` — the browser fetches the entries from this REST
+     *  source (itemsPath/valuePath/labelPath) instead of listing them. */
+    optionsSource?: RestDataSource | null
+    /** Where a pick NAVIGATES, `${state._record}` standing for the picked value; absent = dispatch
+     *  `actionId`. */
+    route?: string | null
 }

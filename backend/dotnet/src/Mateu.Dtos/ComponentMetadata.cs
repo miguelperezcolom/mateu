@@ -78,6 +78,7 @@ namespace Mateu.Dtos;
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
 [JsonDerivedType(typeof(CustomFieldMetadataDto), "CustomField")]
+[JsonDerivedType(typeof(FormMetadataDto), "Form")]
 public abstract record ComponentMetadataDto;
 
 // ── Dashboards, foldouts, heroes, empty states, skeletons, Gantt ───────────────

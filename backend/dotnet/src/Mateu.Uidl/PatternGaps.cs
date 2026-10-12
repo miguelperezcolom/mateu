@@ -84,7 +84,19 @@ public sealed record RecordSwitcher(
     SwitcherType Type = SwitcherType.Object,
     string? Label = null,
     bool Searchable = false,
-    bool Disabled = false);
+    bool Disabled = false)
+{
+    /// <summary>Where the options come from when they are not inline (a sources.yaml ref or an
+    /// inline endpoint), fetched by the client like a field's options source.</summary>
+    public RestDataSource? OptionsSource { get; init; }
+
+    /// <summary>When set, a pick NAVIGATES here (interpolated with <c>${state._record}</c> = the
+    /// picked value) instead of dispatching <see cref="ActionId"/>.</summary>
+    public string? Route { get; init; }
+
+    /// <summary>The action a pick dispatches; null = <see cref="IRecordSwitcherSupplier.ActionId"/>.</summary>
+    public string? ActionId { get; init; }
+}
 
 /// <summary>Implemented by a view to put a record/context switcher in its header — the sibling of
 /// <see cref="IPeerNavigationSupplier"/>. Picking an entry dispatches <see cref="ActionId"/> with the

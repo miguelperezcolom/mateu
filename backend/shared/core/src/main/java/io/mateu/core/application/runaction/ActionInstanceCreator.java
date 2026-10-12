@@ -191,6 +191,19 @@ public class ActionInstanceCreator {
   }
 
   /**
+   * The data-authored app shell ({@code type: AppShell}) of the route's mount, as declared — or
+   * null when the mount has none. What the shell's {@code _appsource} proxy may call is decided by
+   * what THIS declares, never by the request.
+   */
+  public io.mateu.uidl.fluent.AppShell declaredShellFor(String route) {
+    var path = route == null ? "" : route;
+    // mountHomeFor first: it makes sure the mounts have been scanned (rootDefinitionFor does not),
+    // so a header asking before any page load of this server still finds its shell
+    var home = routeRegistry.mountHomeFor(path);
+    return yamlAppLoader.load(routeRegistry.rootDefinitionFor(path), home);
+  }
+
+  /**
    * A YAML page for the route (no app shell involved). A bare layout renders as-is (static); a page
    * that declares a {@code modelView:} instantiates that class as the ModelView (state + actions),
    * and the reflective mapper re-applies the YAML layout to it (by route). Empty when there is no

@@ -40,5 +40,9 @@ export default interface Form extends ComponentMetadata {
     /** the header's record/context switcher (RecordSwitcherSupplier) */
     switcher?: RecordSwitcher
     timestamp?: string
+    /** The small line above the title (`@Overline` / a YAML Form's `overline:`). */
+    overline?: string
+    /** What the header shows while the title is empty (`@TitlePlaceholder` / `titlePlaceholder:`). */
+    titlePlaceholder?: string
 
 }

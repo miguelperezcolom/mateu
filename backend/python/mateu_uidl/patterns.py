@@ -173,6 +173,14 @@ class RecordSwitcher:
     label: str | None = None
     searchable: bool = False
     disabled: bool = False
+    #: Where the options come from when they are not inline (a ``RestDataSource`` — a sources.yaml
+    #: ref or an inline endpoint), fetched by the client like a field's options source.
+    options_source: Any = None
+    #: When set, a pick NAVIGATES here (interpolated with ``${state._record}`` = the picked value)
+    #: instead of dispatching ``action_id``.
+    route: str | None = None
+    #: The action a pick dispatches; None = ``RecordSwitcherSupplier.ACTION_ID``.
+    action_id: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "options", tuple(self.options or ()))

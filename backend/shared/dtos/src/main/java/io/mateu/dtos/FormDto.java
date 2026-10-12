@@ -32,7 +32,26 @@ public record FormDto(
     List<ButtonDto> buttons,
     ComponentDto avatar,
     List<ComponentDto> header,
-    List<ComponentDto> footer)
+    List<ComponentDto> footer,
+    /**
+     * The small line of text shown ABOVE the title — as on {@link PageDto#overline()}. {@code null}
+     * when the page declares none.
+     */
+    String overline,
+    /** What the header shows while the title is still empty — as on {@link PageDto}. */
+    String titlePlaceholder,
+    /** The "last updated" line of the header — as on {@link PageDto#timestamp()}. */
+    String timestamp,
+    /** The header's key facts — as on {@link PageDto#kpis()}; {@code null} when none. */
+    List<KPIDto> kpis,
+    /** Previous/next object arrows — as on {@link PageDto#peerNav()}. */
+    PeerNavDto peerNav,
+    /** The record/context switcher — as on {@link PageDto#switcher()}. */
+    RecordSwitcherDto switcher,
+    /**
+     * The page's floating action buttons — as on {@link PageDto#fabs()}; {@code null} when none.
+     */
+    List<FabDto> fabs)
     implements ComponentMetadataDto {
 
   public FormDto {

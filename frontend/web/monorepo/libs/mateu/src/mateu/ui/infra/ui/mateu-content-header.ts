@@ -307,7 +307,14 @@ export class MateuContentHeader extends LitElement {
 
     // Previous/next peer-object arrows (the Redwood "next/previous object" header element).
     // Navigates like a breadcrumb link; a missing route disables that side.
-    renderPeerNav = (peerNav: NonNullable<Form['peerNav']>) => {
+    renderPeerNav = (declared: NonNullable<Form['peerNav']>) => {
+        // a route may be a template (a YAML page's `nextRoute: customers/${state.nextId}`): resolved
+        // here, so a design-system hook gets the routes it navigates to
+        const peerNav = {
+            ...declared,
+            prevRoute: declared.prevRoute ? this.peerRoute(declared.prevRoute) : declared.prevRoute,
+            nextRoute: declared.nextRoute ? this.peerRoute(declared.nextRoute) : declared.nextRoute,
+        }
         const custom = componentRenderer.get()?.renderPeerNav?.(peerNav)
         if (custom) return custom
         return html`
@@ -326,13 +333,20 @@ export class MateuContentHeader extends LitElement {
         `
     }
 
+    /** A peer route may be a template (a YAML page's `peerNav: {nextRoute: customers/${state.nextId}}`). */
+    private peerRoute = (route: string): string => interpolate(route, this.state, this.data) ?? route
+
     // The record/context switcher (the Redwood selectObject/selectContext header element): beside
     // the title, so the user jumps between records without leaving the page. A design-system
     // renderer may draw its own through the renderRecordSwitcher hook.
     renderSwitcher = (switcher: NonNullable<Form['switcher']>) => {
         const custom = componentRenderer.get()?.renderRecordSwitcher?.(switcher)
         if (custom) return custom
-        return html`<mateu-record-switcher .switcher=${switcher}></mateu-record-switcher>`
+        // the switcher's value may be a template (a YAML page's `value: ${state.id}`)
+        const resolved = typeof switcher.value === 'string' && switcher.value.includes('${')
+            ? { ...switcher, value: interpolate(switcher.value, this.state, this.data) }
+            : switcher
+        return html`<mateu-record-switcher .switcher=${resolved} .state=${this.state} .data=${this.data}></mateu-record-switcher>`
     }
 
     /**

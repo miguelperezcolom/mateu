@@ -74,7 +74,27 @@ public record AppShell(
      * "Open on mobile" — the twin of {@code @App(mobileQr)} (YAML {@code mobileQr: true}). Null:
      * the class.
      */
-    @Experimental("mobile app (3.0 beta)") Boolean mobileQr)
+    @Experimental("mobile app (3.0 beta)") Boolean mobileQr,
+    /**
+     * Application context pickers on the header — the data twin of {@code @AppContext} fields:
+     * static options or a REST source each.
+     */
+    @Experimental("YAML app shell extras (3.0 beta)") @Singular
+        List<io.mateu.uidl.data.AppContextSelector> contextSelectors,
+    /**
+     * Header action buttons (and dropdowns) — the data twin of {@code AppActionsSupplier}: each
+     * navigates ({@code route}) or runs an action of the shell / the action catalogue.
+     */
+    @Experimental("YAML app shell extras (3.0 beta)") @Singular
+        List<io.mateu.uidl.data.AppHeaderAction> headerActions,
+    /** The notification inbox fed by REST sources — the twin of {@code NotificationsSupplier}. */
+    @Experimental("YAML app shell extras (3.0 beta)")
+        io.mateu.uidl.data.AppNotificationsSource notifications,
+    /**
+     * The palette's entity search fed by a REST source — the twin of {@code GlobalSearchSupplier}.
+     */
+    @Experimental("YAML app shell extras (3.0 beta)")
+        io.mateu.uidl.data.AppGlobalSearchSource globalSearch)
     implements Component, PageMainContent {
 
   public AppShell {
@@ -82,6 +102,8 @@ public record AppShell(
     actions = actions != null ? actions : List.of();
     shortcuts = shortcuts != null ? shortcuts : List.of();
     headerValues = headerValues != null ? headerValues : List.of();
+    contextSelectors = contextSelectors != null ? contextSelectors : List.of();
+    headerActions = headerActions != null ? headerActions : List.of();
     // A shell federating remote sections that names no variant is drawn MENU_ON_TOP, as it always
     // was: the browser used to force that variant on any shell with remotes, and now respects the
     // one the app declares instead.

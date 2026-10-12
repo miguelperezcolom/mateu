@@ -1,4 +1,4 @@
-/* Acción de cabecera (Fase 6): se despacha APP-LEVEL — route '' + serverSideType del App
+/* Acción de cabecera (Fase 6): con `route` (YAML) navega en la app; si no, se despacha APP-LEVEL — route '' + serverSideType del App
  * (así lo exime Mateu de la resolución de menú) con el appState del contexto; los toasts
  * salen por el oj-sp-messages-toast de la propia shell. */
 
@@ -19,10 +19,22 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.actionId
+     * @param {string} [params.route]  a YAML header action's route (AppHeaderActionDto.route)
      */
-    async run(context, { actionId }) {
+    async run(context, { actionId, route }) {
       const { $application, $page } = context;
 
+      // a header action (or a dropdown child — its oj-option value is actionId || route) that
+      // declares a ROUTE navigates in-app instead of dispatching (bridge.headerActionRouteOf)
+      const target = bridge.headerActionRouteOf($application.variables.mateuHeaderActions,
+        actionId || route) || route || '';
+      if (target) {
+        await Actions.callChain(context, {
+          chain: 'onMateuNavigate',
+          params: { event: { detail: { currentId: target } } },
+        });
+        return;
+      }
       if (!actionId) {
         return;
       }

@@ -17,8 +17,9 @@ import {
   summarizeHost, generalOverviewOf, emptyStateOf, sectionButtonsOf, withoutSectionButtons,
   reduceContexts, HOST_ID, overlayOf, foldoutOf, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
+  pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
 } from './reduceContexts.mjs'
-import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf } from './pageProjection.mjs'
+import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -389,6 +390,113 @@ test('SUT foldout: the folded panels carry their summaries for the digest line',
   const f = foldoutOf(wire('foldout').contexts[HOST_ID])
   assert.deepEqual(f.panels.map((p) => [p.title, p.open, p.hasSummary, p.summary]),
     [['Payments', false, true, '€240 due'], ['Requests', false, true, '2 open'], ['History', true, false, '']])
+})
+
+
+// ── YAML page header (the extras authored on a `type: Form`, FormDto — same names as PageDto) ──
+
+const yamlPage = (metadata, children = []) => ({
+  type: 'ServerSide', id: 'y1', serverSideType: undefined, route: '/customers/2', actions: [],
+  children: [node({ type: 'Form', title: '${state.name}', toolbar: [], buttons: [], ...metadata }, children)],
+})
+const YAML_STATE = { id: '2', name: 'Grace', balance: '€120', status: 'Active', who: 'Ops' }
+
+test('YAML Form: kpis/subtitle come off the Form when there is no Page, ${state.x} interpolated', () => {
+  const ctx = host(yamlPage({
+    subtitle: 'Owner ${state.who}',
+    kpis: [{ title: 'Balance', text: '${state.balance}', style: null, cssClasses: null }, { title: '${state.who} desk', text: '3' }],
+  }), YAML_STATE)
+  assert.equal(pageHeaderNodeOf(ctx.tree).fromForm, true)
+  assert.deepEqual(pageKpisOf(ctx), [{ label: 'Balance', value: '€120' }, { label: 'Ops desk', value: '3' }])
+  assert.equal(pageSubtitleOf(ctx), 'Owner Ops')
+})
+
+test('YAML Form: a tree WITH a Page keeps reading the Page (the Form inside it is not the header)', () => {
+  const tree = page({ kpis: [{ title: 'Nights', text: '3' }] }, [node({ type: 'Form', kpis: [{ title: 'Wrong', text: 'x' }] })])
+  assert.equal(pageHeaderNodeOf(tree).metadata.type, 'Page')
+  assert.deepEqual(pageKpisOf(host(tree)), [{ label: 'Nights', value: '3' }])
+})
+
+test('YAML Form: the record switcher (options, ${state} value) and a route pick navigates', () => {
+  const ctx = host(yamlPage({ switcher: {
+    options: [{ value: '1', label: 'Ada' }, { value: '2', label: 'Grace' }],
+    value: '${state.id}', type: 'object', label: 'Customer', searchable: false, disabled: false,
+    actionId: '_switchRecord', optionsSource: null, route: 'customers/${state._record}?from=${state.who}',
+  } }), YAML_STATE)
+  const sw = pageSwitcherOf(ctx)
+  assert.equal(sw.on, true)
+  assert.equal(sw.value, '2')
+  assert.deepEqual(sw.objectOptions.map((o) => o.label), ['Ada', 'Grace'])
+  // the page's own state resolved at projection, the picked value at pick time
+  assert.equal(sw.route, 'customers/${state._record}?from=Ops')
+  assert.deepEqual(switcherPickOf(sw, '1'), { actionId: '_switchRecord', parameters: { _record: '1' }, route: 'customers/1?from=Ops' })
+  assert.equal(switcherPickOf(sw, '2'), null) // echo
+  // the header chrome is not content: no stray «Customer» button in the form's row
+  assert.equal(actionsOf(ctx.tree).some((a) => a.actionId === '_switchRecord'), false)
+})
+
+test('YAML Form: a switcher with an optionsSource reads the options loaded into data._switcher', () => {
+  const md = { switcher: { options: [], value: '2', type: 'context', label: 'Customer', actionId: '_switchRecord',
+    optionsSource: { ref: 'people' }, route: null } }
+  assert.equal(pageSwitcherOf(host(yamlPage(md), YAML_STATE)).on, false) // not loaded yet
+  const sw = pageSwitcherOf(host(yamlPage(md), YAML_STATE, { _switcher: { content: [{ value: 2, label: 'Grace' }, { value: 3, label: 'Linus' }] } }))
+  assert.equal(sw.on, true)
+  assert.deepEqual(sw.contextOptions.map((o) => [o.value, o.label]), [['2', 'Grace'], ['3', 'Linus']])
+  assert.deepEqual(switcherPickOf(sw, '3'), { actionId: '_switchRecord', parameters: { _record: '3' } })
+})
+
+test('YAML Form: banners (interpolated) → the messages banner; fabs → the page FABs, not row buttons', () => {
+  const ctx = host(yamlPage({
+    banners: [{ theme: 'WARNING', hasIcon: false, hasCloseButton: true, title: 'Overdue', description: '${state.name} owes ${state.balance}', timeoutSeconds: 0 }],
+    fabs: [{ id: 'newOrder', label: 'New order', icon: 'vaadin:plus', actionId: 'newOrder', buttonStyle: 'primary' }],
+  }), YAML_STATE)
+  assert.deepEqual(bannersOf(ctx), [{ id: 'mateu-banner-0', messageType: 'general-warning', primaryText: 'Overdue', secondaryText: 'Grace owes €120' }])
+  const fabs = fabsOf({ fabs: [] }, ctx)
+  assert.deepEqual(fabs.map((f) => [f.key, f.actionId, f.appLevel, f.chroming]), [['page:newOrder', 'newOrder', false, 'callToAction']])
+  assert.equal(actionsOf(ctx.tree).some((a) => a.actionId === 'newOrder'), false)
+})
+
+test('YAML Form: a reflected Page banner is still read verbatim (no interpolation on the Page path)', () => {
+  assert.deepEqual(bannersOf(host(page({ banners: [{ theme: 'INFO', title: 'Hi', description: 'd' }] }))).map((b) => b.primaryText), ['Hi'])
+})
+
+test('YAML Form: page badges of a foldout come off the Form too', () => {
+  const tree = yamlPage({ badges: [{ text: '${state.status}', color: 'success' }, { text: '${state.missing}', color: 'normal' }] }, [
+    node({ type: 'FoldoutLayout', panels: [] }, [text('Overview', 'overview')]),
+  ])
+  const f = foldoutOf(host(tree, YAML_STATE))
+  assert.deepEqual(f.badges.map((b) => b.label), ['Active']) // a blank one is hidden
+})
+
+test('YAML shell: a header action with a route navigates (headerActionRouteOf), at any depth', () => {
+  const nav = shellNavOf({ shell: { menu: [], headerActions: [
+    { actionId: null, label: 'Help', route: 'help', children: [] },
+    { actionId: 'more', label: 'More', children: [{ actionId: 'reports', label: 'Reports', route: 'reports/weekly' }, { actionId: 'sync', label: 'Sync' }] },
+  ] } })
+  assert.deepEqual(nav.headerActions.map((a) => a.route), ['help', ''])
+  assert.equal(headerActionRouteOf(nav.headerActions, 'help'), 'help')
+  assert.equal(headerActionRouteOf(nav.headerActions, 'reports'), 'reports/weekly')
+  assert.equal(headerActionRouteOf(nav.headerActions, 'sync'), '') // dispatched app-level as before
+  assert.equal(headerActionRouteOf(nav.headerActions, ''), '')
+})
+
+test('YAML wiring: the VB chains navigate on a switcher/header route and load sourced selector options', () => {
+  // the switcher pick: a route fires the in-app navigation, else the action as before
+  const sw = webApp('flows/main/pages/main-start-page-chains/onPageSwitch.js')
+  assert.match(sw, /if \(pick\.route\)[\s\S]*application:mateuNavigate[\s\S]*payload: \{ route: pick\.route \}/)
+  assert.ok(sw.indexOf('pick.route') < sw.indexOf("chain: 'runMateuAction'"))
+  // a header action button passes its route; a dropdown child's value falls back to its route
+  const listeners = JSON.parse(webApp('pages/shell-page.json')).eventListeners
+  assert.equal(listeners.headerActionClicked.chains[0].parameters.route, '{{ $current.data.route }}')
+  assert.match(webApp('pages/shell-page.html'), /<oj-option :value="\[\[ \$current\.data\.actionId \|\| \$current\.data\.route \]\]">/)
+  const ha = webApp('pages/shell-page-chains/runMateuHeaderAction.js')
+  assert.match(ha, /bridge\.headerActionRouteOf\(\$application\.variables\.mateuHeaderActions/)
+  assert.ok(ha.indexOf("chain: 'onMateuNavigate'") < ha.indexOf('bridge.callMateu'))
+  // the selectors' options are loaded before the shell nav is built, proxied through _appsource
+  const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.ok(boot.indexOf('bridge.loadContextSelectorOptions') > 0)
+  assert.ok(boot.indexOf('bridge.loadContextSelectorOptions') < boot.indexOf('bridge.shellNavOf(reg)'))
+  assert.match(boot, /runAppLevelAction\(base, reg\.shell\.serverSideType, ctxAppState, '_appsource', parameters\)/)
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)

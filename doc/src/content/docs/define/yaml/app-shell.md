@@ -67,6 +67,10 @@ point.
 | `homeRoute` | what the mount loads at its root |
 | `actions` | the shell's **flows**: actions with `steps:`, run by a menu leaf — see [Flows on the shell](#flows-on-the-shell) |
 | `themeToggle`, `commandCenter`, `chromeless`, `accessKeys` | the header switches — the twins of the same `@App(...)` attributes. Absent: the `@App` class decides (no class: off). `chromeless` implies the command center |
+| `contextSelectors` | app context pickers on the header — the twin of `@AppContext` fields: see [Header extras](#header-extras-pickers-actions-inbox-and-search) |
+| `headerActions` | header buttons and dropdowns — the twin of `AppActionsSupplier` |
+| `notifications` | the notification inbox fed by REST sources — the twin of `NotificationsSupplier` |
+| `globalSearch` | the palette's entity search fed by a REST source — the twin of `GlobalSearchSupplier` |
 | `mobileQr` | the "Open on mobile" header button (experimental) — the twin of `@App(mobileQr)`; see [Mobile app](/ux-patterns/mobile-app/). Absent: the `@App` class decides (no class: off) |
 
 `menu:` and `widgets:` deserialize through the **same `type:` discriminator as page layouts**, so
@@ -130,6 +134,75 @@ AppShell.builder()
     .themeToggle(true)
     .build();
 ```
+
+## Header extras: pickers, actions, inbox and search
+
+What an `@App` class gets from `@AppContext` fields, `AppActionsSupplier`, `NotificationsSupplier`
+and `GlobalSearchSupplier` is authorable on the shell too. Dynamic data comes from the
+[REST source catalogue](/concepts/data-sources/) (`sources.yaml`), by reference:
+
+```yaml
+type: AppShell
+title: Front office
+actions:
+  - id: newBooking
+    steps:
+      - {type: Navigate, route: bookings/new}
+contextSelectors:
+  - fieldName: hotel                 # the app-state key every request carries
+    label: Hotel
+    options:
+      - {value: H1, label: Palma}
+      - {value: H2, label: Ibiza}
+  - fieldName: company
+    optionsSource: {ref: companies}  # itemsPath / valuePath / labelPath of the source
+headerActions:
+  - {label: New booking, icon: "vaadin:plus", actionId: newBooking}   # a shell flow / catalogue action
+  - {label: Reports, route: reports}                                  # navigates in the app
+  - label: More
+    children:
+      - {label: Help, route: help}
+notifications:
+  source: {ref: inbox}               # GET the inbox
+  markRead: {ref: inbox-read}        # optional; ${state.ids}, ${state.id}, ${state.all}
+globalSearch:
+  source: {ref: search}              # ${state.searchText} in its url/body
+```
+
+- **`contextSelectors`** — `fieldName`, `label` (default: the field name, humanized) and either
+  static `options` or an `optionsSource`. The picked value is kept by the browser and sent in the
+  app state of every request, exactly like an `@AppContext` picker (a Java server reads it with
+  `HttpRequest.appContext(fieldName)`). A source is called with `${state.searchText}` (what the user
+  typed in the picker), so a large list can be searched server-side.
+- **`headerActions`** — `label`, `icon`, and either `route` (in-app navigation, relative to the
+  mount like the menu's routes) or `actionId`: one of the shell's `actions:` flows or an
+  [action-catalogue](/concepts/action-catalogue/) entry runs **in the browser**, like a menu
+  `RuleLink`; any other id is an app-level action dispatched to the server (an `@App` class
+  method). `children` makes a dropdown.
+- **`notifications`** — `source` lists the inbox; each item (at the source's `itemsPath`, else the
+  response itself) is read as `id`, `title`, `text`, `route`, `unread` (absent = unread) and `when`,
+  through the catalogue entry's `fields:` map when the endpoint names them differently.
+  `markRead` (optional) is called when entries are read, with `${state.ids}` (comma-joined),
+  `${state.id}` and `${state.all}`; without it entries are marked read on screen only.
+- **`globalSearch`** — `source` is called with `${state.searchText}`; each hit is read as
+  `label`, `description`, `route`, `category` (field map honoured). Hits without a route are
+  dropped.
+- **Where the call runs**: a direct source is fetched by the **browser** — served and in a
+  [static bundle](/deploy/static-ui/) alike. A `proxy: true` source is called by the **server**,
+  through the reserved app-level action `_appsource`, which only calls a source the shell itself
+  declares for that role (the browser names the role, never a url) and injects `${secret.X}`
+  server-side. A static bundle has no server, so the bundle's static-safety check reports a proxied
+  shell source — and a header action naming neither a route nor a shell/catalogue action — as
+  needing one.
+- A shell built in code (`AppShell.builder().contextSelector(…).headerAction(…).notifications(…)
+  .globalSearch(…)`) carries the same. When the mount also has an `@App` class, its pickers and
+  supplier actions are added after the shell's; its `NotificationsSupplier` /
+  `GlobalSearchSupplier` keep answering when the shell declares no source of its own.
+- **Renderers**: Vaadin draws all four. Redwood draws the pickers (static options, and a source
+  — direct or proxied), the header actions (`route` navigates) and, as before, the inbox and
+  search of an `@App` class; it does not read `notifications.source` / `globalSearch.source` yet.
+- **Ports**: the .NET and Python servers have no `type: AppShell`, so these keys are Java-only
+  (their app classes keep `[AppContext]` / `IAppActionsSupplier` / … and `@app_context` / …).
 
 ## Header widgets
 
@@ -233,8 +306,10 @@ routes.
 ## Limits
 
 Not carried by the definition yet — these are read reflectively off an `@App` class and still need
-one: SSE / MCP / upload URLs, `@AppContext` selectors, notifications, global search and FABs. (The
-theme toggle, command center, chromeless and access-keys switches are authorable on the shell.)
+one: SSE / MCP / upload URLs and app-level FABs. (The theme toggle, command center, chromeless and
+access-keys switches, the context pickers, header actions, inbox and palette search are authorable
+on the shell; page-level FABs are authorable on a page's `type: Form` — see
+[YAML pages](/define/yaml/pages/#page-header--type-form).)
 
 The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there
 (they do carry the [action catalogue](/concepts/action-catalogue/), which a menu leaf of

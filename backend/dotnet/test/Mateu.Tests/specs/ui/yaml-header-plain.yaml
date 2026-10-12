@@ -1,0 +1,8 @@
+# A definition-only `type: Form` page with NO page-header keys beyond the title.
+# Used by YamlPageHeaderTests.
+layout:
+  type: Form
+  title: Plain
+  content:
+    - type: Text
+      text: "Hello"

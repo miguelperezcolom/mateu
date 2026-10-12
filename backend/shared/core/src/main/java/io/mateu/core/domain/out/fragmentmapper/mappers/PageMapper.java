@@ -21,7 +21,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 
 public class PageMapper {
 
-  private static BannerDto mapToBannerDto(PageBanner banner) {
+  static BannerDto mapToBannerDto(PageBanner banner) {
     BannerThemeDto theme = BannerThemeDto.NONE;
     if (banner.theme() != null) {
       try {
@@ -50,7 +50,12 @@ public class PageMapper {
         .label(switcher.label())
         .searchable(switcher.searchable())
         .disabled(switcher.disabled())
-        .actionId(io.mateu.uidl.interfaces.RecordSwitcherSupplier.ACTION_ID)
+        .actionId(
+            switcher.actionId() != null && !switcher.actionId().isBlank()
+                ? switcher.actionId()
+                : io.mateu.uidl.interfaces.RecordSwitcherSupplier.ACTION_ID)
+        .optionsSource(FieldMapper.mapRestDataSource(switcher.optionsSource()))
+        .route(switcher.route() != null && !switcher.route().isBlank() ? switcher.route() : null)
         .build();
   }
 

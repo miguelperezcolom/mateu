@@ -226,6 +226,7 @@ public static class ComponentMapper
         {
             ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
         }),
+        Form f => Dto(f, MapFormHeader(f), f.Content.Select(MapContent)),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
@@ -293,6 +294,49 @@ public static class ComponentMapper
         EmbeddedView ev when ev.View is IComponent c => Map(c),
         EmbeddedView ev => new ReflectionMapper().MapEmbeddedView(ev.View),
         _ => Map(content),
+    };
+
+    /// <summary>A fluent Form's header as the "Form" wire metadata — the same field names a
+    /// reflected page carries on PageMetadataDto (mirrors Java's FormMapper). An element the form
+    /// does not declare stays null / empty.</summary>
+    private static FormMetadataDto MapFormHeader(Form f) => new()
+    {
+        Title = f.Title,
+        Subtitle = f.Subtitle,
+        NoHeader = f.NoHeader,
+        Toolbar = f.Toolbar.Select(FormButton).ToList(),
+        Buttons = f.Buttons.Select(FormButton).ToList(),
+        Overline = f.Overline,
+        TitlePlaceholder = f.TitlePlaceholder,
+        Timestamp = f.Timestamp,
+        Badges = f.Badges.Select(b => new BadgeDto(b.Label ?? "", b.Color ?? "normal") { Pill = false }).ToList(),
+        Kpis = f.Kpis.Select(k => new KpiDto(k.Label ?? "", k.Value ?? "")).ToList(),
+        Banners = f.Banners.Select(SyncHandler.BannerOf).ToList(),
+        // Stable sort: equal orders keep their declaration order.
+        Fabs = f.Fabs.OrderBy(x => x.Order).Select(x => new FabDto(x.Icon ?? "", x.ActionId)
+        {
+            Id = x.ActionId,
+            Label = x.Label,
+            Order = x.Order,
+            ButtonStyle = x.ButtonStyle ?? "primary",
+        }).ToList(),
+        PeerNav = f.PeerNav is { } p ? new PeerNavDto(p.PrevLabel, p.PrevRoute, p.NextLabel, p.NextRoute) : null,
+        Switcher = f.RecordSwitcher is { } s
+            ? new RecordSwitcherDto(
+                (s.Options ?? []).Select(ReflectionMapper.MapOption).ToList(), s.Value,
+                s.Type == SwitcherType.Context ? "context" : "object",
+                s.Label, s.Searchable, s.Disabled, s.ActionId ?? IRecordSwitcherSupplier.ActionId)
+            {
+                OptionsSource = s.OptionsSource is null ? null : MateuCatalogs.ToDto(s.OptionsSource),
+                Route = s.Route,
+            }
+            : null,
+    };
+
+    private static ButtonDto FormButton(Button b) => new(b.Label, b.ActionId)
+    {
+        Disabled = b.Disabled,
+        ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null),
     };
 
     /// <summary>Foldout: panel headers ride in the metadata; the overview travels as the child
@@ -380,6 +424,12 @@ public static class ComponentMapper
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
             case DashboardLayout d: foreach (var i in d.Items) Collect(i, ids); break;
             case ResponsiveGrid g: foreach (var i in g.Content) Collect(i, ids); break;
+            case Form fm:
+                foreach (var i in fm.Content) Collect(i, ids);
+                foreach (var b in fm.Toolbar.Concat(fm.Buttons)) Collect(b, ids);
+                foreach (var fab in fm.Fabs.Where(x => !string.IsNullOrEmpty(x.ActionId))) ids.Add(fab.ActionId);
+                if (fm.RecordSwitcher is { Route: null } rs) ids.Add(rs.ActionId ?? IRecordSwitcherSupplier.ActionId);
+                break;
             case Slotted sl when sl.SlotContent is not null: Collect(sl.SlotContent, ids); break;
             case ContentLayout cl:
                 foreach (var i in cl.Main) Collect(i, ids);

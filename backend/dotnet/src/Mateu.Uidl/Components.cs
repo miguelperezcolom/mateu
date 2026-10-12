@@ -1335,3 +1335,40 @@ public sealed class SizeAttribute : Attribute
 /// substitutes the entry's composition before rendering; an unknown name renders as a placeholder
 /// text, never an error. (Mirrors io.mateu.uidl.data.ComponentRef.)</summary>
 public sealed record ComponentRef(string Ref) : ComponentBase;
+
+/// <summary>A floating action button declared as DATA — what a YAML page's <c>fabs:</c> entry
+/// becomes (the [Fab] attribute is its code twin on reflected pages). Sorted by
+/// <see cref="Order"/>; <see cref="ButtonStyle"/> null = primary. (Mirrors
+/// io.mateu.uidl.data.PageFab.)</summary>
+public sealed record PageFab
+{
+    public string? Icon { get; init; }
+    public string? Label { get; init; }
+    public string ActionId { get; init; } = "";
+    public int Order { get; init; }
+    public string? ButtonStyle { get; init; }
+}
+
+/// <summary>A page whose header is declared as data — the fluent twin of a YAML <c>type: Form</c>
+/// node: title/subtitle plus the page-header elements a reflected page gets from its annotations
+/// (overline, title placeholder, timestamp, badges, KPIs, peer navigation, record switcher, banners,
+/// FABs). Every header value may hold <c>${state.x}</c>/<c>${data.x}</c>; the renderer interpolates
+/// it. Maps to the "Form" wire metadata. (Mirrors io.mateu.uidl.fluent.Form.)</summary>
+public sealed record Form : ComponentBase
+{
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public bool NoHeader { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+    public IReadOnlyList<Button> Toolbar { get; init; } = [];
+    public IReadOnlyList<Button> Buttons { get; init; } = [];
+    public string? Overline { get; init; }
+    public string? TitlePlaceholder { get; init; }
+    public string? Timestamp { get; init; }
+    public IReadOnlyList<Chip> Badges { get; init; } = [];
+    public IReadOnlyList<Fact> Kpis { get; init; } = [];
+    public PeerNav? PeerNav { get; init; }
+    public RecordSwitcher? RecordSwitcher { get; init; }
+    public IReadOnlyList<PageBanner> Banners { get; init; } = [];
+    public IReadOnlyList<PageFab> Fabs { get; init; } = [];
+}

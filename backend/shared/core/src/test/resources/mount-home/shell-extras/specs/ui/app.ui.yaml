@@ -1,0 +1,6 @@
+# Fixture for AppShellExtrasSyncTest: a shell with context pickers, header actions, an inbox and a
+# palette search, all authored as data.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

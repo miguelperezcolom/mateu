@@ -60,7 +60,7 @@ import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
 import { renderNeutralField } from "@infra/ui/renderers/neutralFieldRenderer.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
+import { renderPage, renderPageFabs } from "@infra/ui/renderers/pageRenderer.ts";
 import { renderCrud } from "@infra/ui/renderers/crudRenderer.ts";
 import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
 import {renderChat} from "@infra/ui/renderers/chatRenderer.ts";
@@ -218,7 +218,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
                slot: 'buttons'
         } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
-
+            ${renderPageFabs(container, metadata?.fabs)}
             </mateu-form>`
     },
     [ComponentMetadataType.Table]: ({ component, state, data }) =>

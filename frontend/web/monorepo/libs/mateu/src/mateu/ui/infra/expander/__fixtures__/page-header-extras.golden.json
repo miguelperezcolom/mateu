@@ -1,0 +1,212 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Form",
+        "icon" : null,
+        "title" : "${state.name}",
+        "readOnly" : false,
+        "subtitle" : "Customer record",
+        "status" : null,
+        "noHeader" : false,
+        "badges" : [ {
+          "type" : "Badge",
+          "text" : "${state.status}",
+          "iconOnLeft" : null,
+          "iconOnRight" : null,
+          "color" : "success",
+          "primary" : false,
+          "small" : false,
+          "pill" : false
+        }, {
+          "type" : "Badge",
+          "text" : "VIP",
+          "iconOnLeft" : null,
+          "iconOnRight" : null,
+          "color" : "normal",
+          "primary" : false,
+          "small" : false,
+          "pill" : false
+        } ],
+        "banners" : [ {
+          "theme" : "WARNING",
+          "hasIcon" : false,
+          "hasCloseButton" : true,
+          "title" : "Overdue",
+          "description" : "Two invoices are overdue",
+          "timeoutSeconds" : 0
+        }, {
+          "theme" : "INFO",
+          "hasIcon" : false,
+          "hasCloseButton" : false,
+          "title" : "Synced",
+          "description" : null,
+          "timeoutSeconds" : 5
+        } ],
+        "actions" : [ ],
+        "toolbar" : [ ],
+        "buttons" : [ ],
+        "avatar" : null,
+        "header" : [ ],
+        "footer" : [ ],
+        "overline" : "Customers",
+        "titlePlaceholder" : "New customer…",
+        "timestamp" : "Last updated ${state.updatedAt}",
+        "kpis" : [ {
+          "type" : "KPIDto",
+          "title" : "Balance",
+          "text" : "${state.balance}",
+          "style" : null,
+          "cssClasses" : null
+        }, {
+          "type" : "KPIDto",
+          "title" : "Orders",
+          "text" : "12",
+          "style" : null,
+          "cssClasses" : null
+        } ],
+        "peerNav" : {
+          "prevLabel" : "Previous",
+          "prevRoute" : "customers/1",
+          "nextLabel" : "Next",
+          "nextRoute" : "customers/3"
+        },
+        "switcher" : {
+          "options" : [ {
+            "value" : "1",
+            "label" : "Ada",
+            "description" : null,
+            "image" : null,
+            "imageStyle" : null,
+            "icon" : null,
+            "children" : [ ]
+          }, {
+            "value" : "2",
+            "label" : "Grace",
+            "description" : null,
+            "image" : null,
+            "imageStyle" : null,
+            "icon" : null,
+            "children" : [ ]
+          } ],
+          "value" : "${state.id}",
+          "type" : "object",
+          "label" : "Customer",
+          "searchable" : true,
+          "disabled" : false,
+          "actionId" : "_switchRecord",
+          "optionsSource" : null,
+          "route" : "customers/${state._record}"
+        },
+        "fabs" : [ {
+          "id" : "newOrder",
+          "label" : "New order",
+          "icon" : "vaadin:plus",
+          "actionId" : "newOrder",
+          "buttonStyle" : "secondary"
+        }, {
+          "id" : "email",
+          "label" : "Email",
+          "icon" : "vaadin:envelope",
+          "actionId" : "email",
+          "buttonStyle" : "primary"
+        } ]
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "FormLayout",
+          "autoResponsive" : false,
+          "labelsAside" : false,
+          "maxColumns" : 100,
+          "columnWidth" : null,
+          "expandColumns" : false,
+          "expandFields" : false,
+          "responsiveSteps" : null,
+          "itemLabelWidth" : null,
+          "columnSpacing" : null,
+          "itemRowSpacing" : null,
+          "itemLabelSpacing" : null
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "FormField",
+            "fieldId" : "name",
+            "dataType" : "string",
+            "stereotype" : "regular",
+            "observed" : false,
+            "autofocus" : false,
+            "label" : "Name",
+            "placeholder" : null,
+            "cssClasses" : null,
+            "description" : null,
+            "badges" : [ ],
+            "attributes" : [ ],
+            "colspan" : 1,
+            "rightAligned" : false,
+            "bold" : false,
+            "options" : [ ],
+            "remoteCoordinates" : null,
+            "optionsSource" : null,
+            "initialValue" : null,
+            "readOnly" : false,
+            "required" : false,
+            "style" : null,
+            "columns" : [ ],
+            "inlineEditing" : false,
+            "onItemSelectionActionId" : null,
+            "rowSelectionShortcut" : null,
+            "formPosition" : null,
+            "formStyle" : null,
+            "formTheme" : null,
+            "formColumns" : 0,
+            "sliderMin" : 0,
+            "sliderMax" : 0,
+            "stepButtonsVisible" : false,
+            "step" : 0.0,
+            "itemIdPath" : null,
+            "detailPath" : null,
+            "useButtonForDetail" : false,
+            "minHeightWhenDetailVisible" : null,
+            "optionsColumns" : 0,
+            "mainFilter" : false,
+            "treeLeavesOnly" : false,
+            "multiline" : false,
+            "propertyRow" : false,
+            "link" : null
+          },
+          "id" : "name",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

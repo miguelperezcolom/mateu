@@ -143,6 +143,8 @@ class Fab(Wire):
     order: int = 0
     #: The button emphasis (Java's FabDto.buttonStyle, "primary" for a FAB).
     button_style: str = "primary"
+    #: The FAB's id (a data-declared FAB carries its action id here, like Java's FabDto.id).
+    id: str | None = None
 
 
 class PeerNav(Wire):
@@ -166,6 +168,12 @@ class RecordSwitcherRecord(Wire):
     searchable: bool = False
     disabled: bool = False
     action_id: str = "_switchRecord"
+    #: Where the client fetches the options from (a catalogue ref or an inline endpoint), like a
+    #: field's options source; None when the options are inline.
+    options_source: "RestDataSource | None" = None
+    #: When set, a pick navigates here (interpolated with ``${state._record}`` = the picked value)
+    #: instead of dispatching ``action_id``.
+    route: str | None = None
 
 
 class Banner(Wire):

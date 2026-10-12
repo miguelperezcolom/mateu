@@ -111,6 +111,9 @@ public class RunActionUseCase {
     if (RESTFETCH_ACTION.equals(command.actionId())) {
       return handleRestFetch(command);
     }
+    if (APP_SOURCE_ACTION.equals(command.actionId())) {
+      return handleAppSource(command);
+    }
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
             .map(instance -> enforceClassLevelAccess(instance, command))
@@ -364,6 +367,76 @@ public class RunActionUseCase {
     } catch (RestProxyException e) {
       return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
     }
+  }
+
+  // ── App-shell sources through the server ───────────────────────────────────
+  // A data-authored shell (type: AppShell) feeds its context pickers, notification inbox and
+  // palette search from REST sources. A DIRECT source is fetched by the browser (served and static
+  // alike); a PROXIED one comes here: the browser names the ROLE (and the picker's field), never a
+  // url — the source is the one the SHELL declares, resolved against the catalogue the server
+  // holds, so this can no more be turned into an open relay than __restfetch__ can.
+  public static final String APP_SOURCE_ACTION = "_appsource";
+
+  private Flux<UIIncrementDto> handleAppSource(RunActionCommand command) {
+    // The shell and its source are resolved HERE, on the request's thread (its class loader is the
+    // one the specs are read with); only the blocking upstream call moves to the elastic pool.
+    java.util.concurrent.Callable<UIIncrementDto> call;
+    try {
+      call = appSourceCall(command);
+    } catch (RuntimeException e) {
+      return Flux.error(e);
+    }
+    return Mono.fromCallable(call)
+        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+        .flux();
+  }
+
+  private java.util.concurrent.Callable<UIIncrementDto> appSourceCall(RunActionCommand command) {
+    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
+    var params =
+        rq != null && rq.parameters() != null
+            ? rq.parameters()
+            : java.util.Map.<String, Object>of();
+    var shell = actionInstanceCreator.declaredShellFor(command.route());
+    var declared =
+        AppShellSources.declared(
+            shell,
+            String.valueOf(params.getOrDefault("_appSource", "")),
+            String.valueOf(params.getOrDefault("_field", "")));
+    if (declared == null) {
+      return () -> restFetchError(404, "The app shell declares no such source");
+    }
+    var source =
+        declared.hasRef()
+            ? restSourceRegistry
+                .catalog()
+                .get(declared.ref())
+                .map(declared::resolvedAgainst)
+                .orElse(declared)
+            : declared;
+    if (SampleSources.enabled() && source.carriesSample()) {
+      var method = source.method() == null ? "GET" : source.method().trim().toUpperCase();
+      Object body = "GET".equals(method) || method.isEmpty() ? source.sample() : java.util.Map.of();
+      return () -> UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, body)).build();
+    }
+    // the variables the browser interpolates with (searchText, ids…), minus the routing keys
+    var state = new java.util.LinkedHashMap<String, Object>();
+    params.forEach(
+        (key, value) -> {
+          if (!key.startsWith("_")) {
+            state.put(key, value);
+          }
+        });
+    var resolved = source;
+    return () -> {
+      try {
+        return UIIncrementDto.builder()
+            .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(resolved, state)))
+            .build();
+      } catch (RestProxyException e) {
+        return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
+      }
+    };
   }
 
   /** A proxied REST call that failed: a >=400 upstream status, or a transport error (status 0). */

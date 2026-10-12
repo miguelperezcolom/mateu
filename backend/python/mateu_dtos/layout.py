@@ -71,6 +71,17 @@ class FormMetadata(Wire):
     buttons: list["Button"] = Field(default_factory=list)
     header: list["Component"] = Field(default_factory=list)
     footer: list["Component"] = Field(default_factory=list)
+    # The page-header elements of a fluent/YAML `type: Form` page, with the PageDto field names.
+    # Absent ones stay null / empty.
+    overline: str | None = None
+    title_placeholder: str | None = None
+    timestamp: str | None = None
+    badges: list["Badge"] = Field(default_factory=list)
+    kpis: list["Kpi"] = Field(default_factory=list)
+    banners: list["Banner"] = Field(default_factory=list)
+    fabs: list["Fab"] = Field(default_factory=list)
+    peer_nav: "PeerNav | None" = None
+    switcher: "RecordSwitcherRecord | None" = None
 
 
 class CardMetadata(Wire):

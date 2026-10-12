@@ -46,6 +46,11 @@ public record KpiDto(string Title, string Text)
 
 public record FabDto(string Icon, string ActionId)
 {
+    /// <summary>The FAB's id (a data-declared FAB carries its action id here, like Java's
+    /// FabDto.id); omitted when absent, so reflected pages' wire is unchanged.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; init; }
+
     public string? Label { get; init; }
     public int Order { get; init; }
 

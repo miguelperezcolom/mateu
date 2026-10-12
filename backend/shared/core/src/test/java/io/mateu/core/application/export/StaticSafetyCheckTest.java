@@ -235,6 +235,39 @@ class StaticSafetyCheckTest {
         .anySatisfy(r -> assertThat(r).contains("PlanningBoard runs action 'move'"));
   }
 
+  @Test
+  void aYamlShellsHeaderNeedsTheServerOnlyForProxiedSourcesAndUndeclaredActions() throws Exception {
+    var def =
+        JSON.readTree(
+            """
+            {"type":"AppShell",
+             "actions":[{"id":"newBooking","steps":[{"type":"Navigate","route":"bookings/new"}]}],
+             "contextSelectors":[
+               {"fieldName":"hotel","options":[{"value":"H1","label":"Palma"}]},
+               {"fieldName":"company","optionsSource":{"ref":"proxied"}}],
+             "headerActions":[
+               {"label":"New","actionId":"newBooking"},
+               {"label":"Reports","route":"reports"},
+               {"label":"Catalogued","actionId":"fromCatalogue"},
+               {"label":"More","children":[{"label":"Sync","actionId":"syncNow"}]}],
+             "notifications":{"source":{"ref":"fine"}},
+             "globalSearch":{"source":{"ref":"leaky"}}}
+            """);
+    var reasons =
+        new java.util.ArrayList<>(
+            StaticSafetyCheck.checkDefinition("/", def, catalog()).stream()
+                .map(StaticSafetyCheck.Violation::reason)
+                .toList());
+    StaticSafetyCheck.checkShellHeaderActions("/", def, java.util.Set.of("fromCatalogue")).stream()
+        .map(StaticSafetyCheck.Violation::reason)
+        .forEach(reasons::add);
+    assertThat(reasons)
+        .hasSize(3)
+        .anySatisfy(r -> assertThat(r).contains("source 'proxied'").contains("proxy"))
+        .anySatisfy(r -> assertThat(r).contains("source 'leaky'").contains("secret"))
+        .anySatisfy(r -> assertThat(r).contains("header action 'syncNow'"));
+  }
+
   // ── end to end through the exporter ────────────────────────────────────────────────────────────
 
   @UI("")
