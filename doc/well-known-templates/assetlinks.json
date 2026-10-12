@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "io.mateu.mobile",
+      "package_name": "io.mateu.app",
       "sha256_cert_fingerprints": ["TODO_SHA256"]
     }
   }

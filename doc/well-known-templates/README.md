@@ -7,8 +7,8 @@ association file would be worse than none — the OS caches it.
 
 | File | Fill in | Where it comes from |
 |---|---|---|
-| `apple-app-site-association` | `TODO_TEAM_ID` (and the bundle id, if `io.mateu.native` changes) | Apple Developer account → Membership → Team ID |
-| `assetlinks.json` | `TODO_SHA256` (and the package, if `io.mateu.mobile` changes) | Play Console → App integrity → App signing key certificate (SHA-256); add the upload key too for internal builds |
+| `apple-app-site-association` | `TODO_TEAM_ID` (and the bundle id, if `io.mateu.app` changes) | Apple Developer account → Membership → Team ID |
+| `assetlinks.json` | `TODO_SHA256` (and the package, if `io.mateu.app` changes) | Play Console → App integrity → App signing key certificate (SHA-256); add the upload key too for internal builds |
 
 Once filled, the owner moves them to `doc/public/.well-known/` so they are served at:
 
