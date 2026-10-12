@@ -74,7 +74,9 @@ N/A (why) · — not walked yet.
 | Starter: home, CTA, tabs, search, detail, Edit → Save, New (validation + create) | ✅ `e2e/rn-starter-probe.mjs` 6/6 | ✅ 6/6 | — |
 | Re-pressing the active tab after a pushed screen | 🔧 stuck → c091b8086 ✅ | ✅ | — |
 | Boot error (fragment-less increment) | 🔧 blank white screen → ee68f8777 (unit) | — | — |
-| Dashboard, Calendar (› month), Foldout, Wizard (next/back keeps value) | ✅ rn-interact | — | — |
+| Dashboard, Calendar (› month), Foldout, Wizard (next/back keeps value) | ✅ rn-interact | ✅ calendar (rn-net) | — |
+| DataManagement grid ⇄ gantt, Featured page (tabs, KPI, Save) | — | ✅ rn-net | — |
+| Page FAB above the bottom button bar | — | 🔧 the bar covered the FAB (a tap pressed Save) → see commit "a page FAB is drawn above" ✅ | — |
 | CollectionDetail selection | ✅; 🔧 search → wrong type ("Action not found") → cb4525280 | — | — |
 | EmptyState icon token printed as text | 🔧 → cb4525280 | — | — |
 | Drawer CRUD New → sheet → Save → listed | ✅ | — | — |
@@ -140,6 +142,7 @@ listed above.
 25. c0adaa50b Py/.NET — CRUD create/edit forms answered pageType "collection" and did not guard unsaved changes (Java's do); server navigations now send MarkAsClean first and drawer close/cancel too (browser-verified: Save/Cancel never ask, leaving a dirty edit asks once).
 26. 87799500e conformance — cases can pin a second request (`request.json`); first case `app-no-home-content`.
 27. dcf8f08a5 .NET — the starter (and the solution) could not build on a .NET 8/9 SDK.
+28. RN — a page FAB was covered by the page's bottom button bar.
 22. 45e827575 conformance — action ids were not compared.
 
 ## ❌ Open — owner decisions / not fixed
