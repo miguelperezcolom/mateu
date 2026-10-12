@@ -109,7 +109,7 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8594`.
+Point a Mateu renderer at it — e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web`; the server must list that origin in its CORS settings). The server answers the sync API only: it does not serve the web renderer's page itself.
 The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Android emulator
 (`10.0.2.2:8594`) reach it too.
 
