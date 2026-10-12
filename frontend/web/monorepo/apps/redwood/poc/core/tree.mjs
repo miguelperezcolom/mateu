@@ -13,8 +13,10 @@ export function walkWithinSurface(node, visit) {
     visit(n)
     for (const [k, v] of Object.entries(n)) {
       // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
-      // content: its actionId + label made a stray «Customer» button in the form's action row
-      if (k === 'switcher' && n.type === 'Page') continue
+      // content: its actionId + label made a stray «Customer» button in the form's action row. A
+      // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
+      if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
+      if (k === 'fabs' && n.type === 'Form') continue
       if (Array.isArray(v)) v.forEach((x) => walk(x, false))
       else if (v && typeof v === 'object') walk(v, false)
     }

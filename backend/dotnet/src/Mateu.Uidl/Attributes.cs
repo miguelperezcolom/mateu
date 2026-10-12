@@ -554,7 +554,14 @@ public sealed class TitlePlaceholderAttribute(string value) : Attribute
 public enum BannerTheme { Info, Success, Warning, Danger }
 
 /// <summary>An action-returned page banner: return one, or a list, from an action/toolbar method.</summary>
-public sealed record PageBanner(BannerTheme Theme = BannerTheme.Info, string? Title = null, string? Description = null);
+public sealed record PageBanner(BannerTheme Theme = BannerTheme.Info, string? Title = null, string? Description = null)
+{
+    /// <summary>Shows a dismiss button.</summary>
+    public bool Closeable { get; init; }
+
+    /// <summary>Auto-dismisses after this many seconds; 0 = never.</summary>
+    public int TimeoutSeconds { get; init; }
+}
 
 /// <summary>A page banner. Put on a method returning the description (string), or a void method.</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]

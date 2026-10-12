@@ -188,20 +188,20 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 276 | 248 | 0 | 28 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 7 | 6 | 1 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 7 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 311 | 263 | 42 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 315 | 263 | 46 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 108 | 96 | 8 | 2 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **979** | **844** | **58** | **42** | **35** |
+| **Total** | | **983** | **844** | **62** | **42** | **35** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `DragRows`, `MobileApp`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeaderValue`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeaderValue`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `NotFound`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
@@ -220,6 +220,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `tone`
 - `io.mateu.uidl.annotations.WizardCompletionAction`: `availableFromStep`
+- `io.mateu.uidl.data.AppHeaderAction`: `route`
 - `io.mateu.uidl.data.Calendar`: `dayActionId`, `days`, `view`, `views`
 - `io.mateu.uidl.data.CalendarEvent`: `endDate`, `endTime`, `startTime`
 - `io.mateu.uidl.data.FieldLink`: `presentation`
@@ -233,13 +234,15 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.PlanningBoard`: `attributeColumns`, `openActionId`, `rangeSelectActionId`, `resizeActionId`
 - `io.mateu.uidl.data.PlanningResource`: `attributes`, `icon`
 - `io.mateu.uidl.data.Popover`: `trigger`
+- `io.mateu.uidl.data.RecordSwitcher`: `actionId`, `optionsSource`, `route`
 - `io.mateu.uidl.data.ResponsiveGrid`: `asReorderable`, `reorderable`
 - `io.mateu.uidl.data.RestDataSource`: `sample`
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
 - `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
-- `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `shortcuts`
+- `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `shortcuts`
+- `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
 

@@ -2,7 +2,13 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import RecordSwitcher from "@mateu/shared/apiClients/dtos/componentmetadata/RecordSwitcher";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
-import { currentSwitcherOption, filterSwitcherOptions, switcherPick } from "@infra/ui/recordSwitcherModel.ts";
+import { currentSwitcherOption, filterSwitcherOptions, switcherPick, switcherRoute } from "@infra/ui/recordSwitcherModel.ts";
+import { fetchExternalJson } from "@infra/http/externalOptions.ts";
+import { contextOptionsOf } from "@infra/ui/appSources.ts";
+import { interpolate, templateResolver } from "@infra/ui/interpolation.ts";
+import { navigateToRoute } from "@infra/ui/rowRoute.ts";
+import { dirtyGuard } from "@infra/ui/dirtyGuard.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { activatableFocusStyles } from "@infra/a11y/focusStyles.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -20,23 +26,60 @@ export class MateuRecordSwitcher extends LitElement {
     @property({ attribute: false })
     switcher?: RecordSwitcher
 
+    /** The page state/data: a source url and the pick's `route` interpolate against them. */
+    @property({ attribute: false })
+    state: ComponentState = {}
+
+    @property({ attribute: false })
+    data: ComponentData = {}
+
+    /** The entries fetched from the switcher's `optionsSource` (a YAML page's), once. */
+    @state() private fetched: Option[] | undefined
+    private fetchedFrom: unknown
+
     @state() private open = false
     @state() private filter = ''
     @state() private active = 0
 
+    /** The switcher with its entries: listed, or fetched from its `optionsSource`. */
+    private effective(): RecordSwitcher | undefined {
+        const s = this.switcher
+        if (!s || (s.options?.length ?? 0) > 0 || !s.optionsSource) return s
+        return { ...s, options: this.fetched ?? [] }
+    }
+
+    protected willUpdate() {
+        const source = this.switcher?.optionsSource
+        if (!source || (this.switcher?.options?.length ?? 0) > 0 || this.fetchedFrom === source) return
+        this.fetchedFrom = source
+        // fetched by the browser, like a select field's optionsSource (a static bundle has no server)
+        fetchExternalJson(source, templateResolver(this.state, this.data))
+            .then((json) => { this.fetched = contextOptionsOf(json, source) as Option[] })
+            .catch(() => { this.fetched = [] })
+    }
+
     private pick(value: unknown) {
-        if (!this.switcher) return
-        const action = switcherPick(this.switcher, value)
+        const switcher = this.effective()
+        if (!switcher) return
+        const action = switcherPick(switcher, value)
         this.open = false
         this.filter = ''
         if (!action) return
+        // a data-authored switcher NAVIGATES to its route, the picked value in ${state._record}
+        const route = switcherRoute(switcher, value, this.state ?? {},
+            (template, state) => interpolate(template, state, this.data))
+        if (route) {
+            if (!dirtyGuard.confirmLeave()) return
+            navigateToRoute(this, route)
+            return
+        }
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: action, bubbles: true, composed: true,
         }))
     }
 
     private visible(): Option[] {
-        return filterSwitcherOptions(this.switcher?.options ?? [], this.filter)
+        return filterSwitcherOptions(this.effective()?.options ?? [], this.filter)
     }
 
     private onKey(e: KeyboardEvent) {
@@ -58,7 +101,7 @@ export class MateuRecordSwitcher extends LitElement {
     }
 
     render() {
-        const s = this.switcher
+        const s = this.effective()
         if (!s) return nothing
         const current = currentSwitcherOption(s)
         const label = s.label ?? (s.type === 'context' ? chromeText('context') : '')

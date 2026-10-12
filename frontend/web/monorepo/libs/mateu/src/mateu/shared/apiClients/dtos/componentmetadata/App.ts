@@ -48,6 +48,13 @@ export default interface App extends ComponentMetadata {
     rootRoute: string | undefined
     notificationsEnabled?: boolean
     globalSearchEnabled?: boolean
+    /** A data-authored shell's inbox (`notifications.source`): listed from this REST source instead
+     *  of the `_notifications-list` action of a NotificationsSupplier class. */
+    notificationsSource?: RestDataSource | null
+    /** …and its "mark as read" call (`notifications.markRead`), with ${state.ids}/${state.id}/${state.all}. */
+    notificationsReadSource?: RestDataSource | null
+    /** A data-authored shell's palette search (`globalSearch.source`), with ${state.searchText}. */
+    globalSearchSource?: RestDataSource | null
     commandCenterEnabled?: boolean
     chromeless?: boolean
     /** @App(accessKeys): holding Alt shows a key next to every visible button and tab */

@@ -18,7 +18,18 @@ public record RecordSwitcherDto(
     string? Label,
     bool Searchable,
     bool Disabled,
-    string ActionId);
+    string ActionId)
+{
+    /// <summary>Where the client fetches the options from (a catalogue ref or an inline endpoint),
+    /// like a field's options source; omitted when the options are inline.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RestDataSourceDto? OptionsSource { get; init; }
+
+    /// <summary>When set, a pick navigates here (interpolated with <c>${state._record}</c> = the
+    /// picked value) instead of dispatching <see cref="ActionId"/>; omitted when absent.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Route { get; init; }
+}
 
 public record PageMetadataDto(
     string? Title,

@@ -451,7 +451,7 @@ public sealed partial class ReflectionMapper
     }
 
     /// <summary>Maps a uidl Option including its children, so hierarchical option sets survive.</summary>
-    private static OptionDto MapOption(Option option) => new(option.Value, option.Label)
+    internal static OptionDto MapOption(Option option) => new(option.Value, option.Label)
     {
         Children = (option.Children ?? []).Select(MapOption).ToList(),
     };

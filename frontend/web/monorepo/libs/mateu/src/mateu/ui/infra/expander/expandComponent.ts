@@ -25,6 +25,7 @@
 // design/phase6-client-side-expander.md, "golden strategy"). Reproducing every component's defaults
 // would be a fourth copy of what the three backends already hold.
 
+import { expandFormHeader } from '@infra/expander/pageHeader'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
@@ -155,6 +156,11 @@ export function expandComponent(authored: FluentNode): Component {
         delete metadata.id
         metadata.dataType = metadata.dataType ?? 'string'
         metadata.stereotype = metadata.stereotype ?? 'regular'
+    }
+    if (type === 'Form') {
+        // the page-header keys (overline, badges, kpis, recordSwitcher, banners, fabs…) as FormMapper
+        // shapes them
+        expandFormHeader(metadata)
     }
     if (type === 'HeroSection' && metadata.tone === 'auto') {
         // HeroSectionMapper: `auto` is the default look, so nothing travels

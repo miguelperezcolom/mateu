@@ -1742,7 +1742,58 @@ class Dialog(Component):
     css_classes: str | None = None
 
 
+@dataclass(frozen=True)
+class PageFab:
+    """A floating action button declared as DATA — what a YAML page's ``fabs:`` entry becomes
+    (``@fab`` is its code twin on reflected pages). Sorted by ``order``; ``button_style`` None =
+    primary. (Mirrors io.mateu.uidl.data.PageFab.)"""
+
+    icon: str | None = None
+    label: str | None = None
+    action_id: str = ""
+    order: int = 0
+    button_style: str | None = None
+
+
+@dataclass(frozen=True)
+class Form(Component):
+    """A page whose header is declared as data — the fluent twin of a YAML ``type: Form`` node:
+    title/subtitle plus the page-header elements a reflected page gets from its decorators
+    (overline, title placeholder, timestamp, badges, KPIs, peer navigation, record switcher,
+    banners, FABs). Header values may hold ``${state.x}``/``${data.x}``; the renderer interpolates
+    them. Maps to the "Form" wire metadata. (Mirrors io.mateu.uidl.fluent.Form.)
+
+    ``badges`` are :class:`ChipItem`, ``kpis`` :class:`Fact`, ``peer_nav`` a ``PeerNav``,
+    ``record_switcher`` a ``RecordSwitcher``, ``banners`` ``PageBanner`` and ``fabs``
+    :class:`PageFab`."""
+
+    title: str | None = None
+    subtitle: str | None = None
+    no_header: bool = False
+    content: tuple = ()
+    toolbar: tuple = ()
+    buttons: tuple = ()
+    overline: str | None = None
+    title_placeholder: str | None = None
+    timestamp: str | None = None
+    badges: tuple = ()
+    kpis: tuple = ()
+    peer_nav: Any = None
+    record_switcher: Any = None
+    banners: tuple = ()
+    fabs: tuple = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        for name in ("content", "toolbar", "buttons", "badges", "kpis", "banners", "fabs"):
+            object.__setattr__(self, name, tuple(getattr(self, name) or ()))
+
+
 __all__ = [
+    "Form",
+    "PageFab",
     "ComponentRef",
     "Component",
     "MetricTrend",

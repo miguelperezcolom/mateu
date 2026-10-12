@@ -1,6 +1,7 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
-import { islandContentOf, editorNodeIds } from './content.mjs'
+import { interpolate, islandContentOf, editorNodeIds } from './content.mjs'
 import { findByType } from './listing.mjs'
+import { pageHeaderNodeOf } from './pageHeader.mjs'
 import { metricAriaLabel } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
@@ -321,14 +322,16 @@ export function itemOverviewOf(ctx) {
 /** Puerta 1.3: banners de página (Page.metadata.banners) → items del
  *  oj-sp-messages-banner del starter (MessagesBannerType). */
 export function bannersOf(ctx) {
-  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  // a YAML page authors them on its `type: Form` (same wire field): its ${state.x} resolved here
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
+  const interp = (t) => (page && page.fromForm ? interpolate(t || '', (ctx && ctx.state) || {}) : (t || ''))
   // los messageType del oj-sp-messages-banner van con prefijo general-* (patrón del starter)
   const THEMES = { INFO: 'general-info', SUCCESS: 'general-success', WARNING: 'general-warning', DANGER: 'general-error' }
   return (((page || {}).metadata || {}).banners || []).map((banner, i) => ({
     id: 'mateu-banner-' + i,
     messageType: THEMES[banner.theme] || 'general-info',
-    primaryText: banner.title || '',
-    secondaryText: banner.description || '',
+    primaryText: interp(banner.title),
+    secondaryText: interp(banner.description),
   }))
 }
 

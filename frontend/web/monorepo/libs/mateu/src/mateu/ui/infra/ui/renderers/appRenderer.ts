@@ -9,6 +9,8 @@ import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
 import "@infra/ui/mateu-header-values.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
+import AppHeaderAction from "@mateu/shared/apiClients/dtos/componentmetadata/AppHeaderAction.ts";
+import { shellActionFor } from "@infra/ui/shellFlows.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
@@ -39,7 +41,20 @@ const lazyWhen = (lazy: boolean, content: () => ReturnType<typeof html>) =>
 // A header action always dispatches against the APP class (same rail as the
 // @AppContext pickers' remote search) — never against the on-screen component.
 // The dispatch itself lives in appHeaderActions.ts, shared with the DS-native shells.
-const runHeaderAction = async (metadata: App, container: MateuApp, actionId: string) => {
+const runHeaderAction = async (metadata: App, container: MateuApp, action: AppHeaderAction) => {
+    // a data-authored shell's button: navigate in the app, or run one of the shell's flows / an
+    // action-catalogue entry in the browser (like a menu RuleLink) — else the app class's action
+    if (action.route) {
+        if (!dirtyGuard.confirmLeave()) return
+        navigateToRoute(container, action.route)
+        return
+    }
+    const actionId = action.actionId
+    if (!actionId) return
+    if (shellActionFor(metadata, actionId)) {
+        container.runShellAction(actionId)
+        return
+    }
     try {
         await dispatchAppHeaderAction(metadata, container, actionId)
     } catch (e) {
@@ -59,11 +74,11 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
             <summary class="app-header-action-btn">${action.label} ▾</summary>
             <div class="mateu-nav-panel" style="right: 0; left: auto;">
                 ${action.children!.map(child => html`
-                    <button class="mateu-nav-item" @click="${() => child.actionId && runHeaderAction(metadata, container, child.actionId)}">${child.label}</button>`)}
+                    <button class="mateu-nav-item" @click="${() => runHeaderAction(metadata, container, child)}">${child.label}</button>`)}
             </div>
         </details>` : html`
         <button class="app-header-action-btn" style="flex-shrink: 0;"
-            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">${action.icon ? icon(action.icon) : nothing}${action.label}</button>`)}`
+            @click="${() => runHeaderAction(metadata, container, action)}" title="${action.label}">${action.icon ? icon(action.icon) : nothing}${action.label}</button>`)}`
 }
 
 // DS-neutral top navigation from the app menu items (was a vaadin-menu-bar). A leaf item is a nav

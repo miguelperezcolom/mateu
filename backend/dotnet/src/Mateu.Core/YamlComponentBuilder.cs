@@ -212,11 +212,111 @@ public static class YamlComponentBuilder
                 Disabled = Bool(map, "disabled"),
             },
             "Text" => new Text(Str(map, "text") ?? ""),
+            "Form" => BuildForm(map, partials, chain),
             // A reference to a named business component (components.yaml / [BusinessComponent]).
             "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
             var other => new Text($"Unsupported component: {other}"),
         };
     }
+
+    /// <summary>A <c>type: Form</c> node: a page with a declared header (title, subtitle,
+    /// overline, titlePlaceholder, timestamp, badges, kpis, peerNav, recordSwitcher, banners, fabs)
+    /// over its content (mirrors Java's fluent Form as YamlUidlLoader reads it). Every header key is
+    /// optional; an absent one leaves its wire field null / empty.</summary>
+    private static Form BuildForm(IDictionary<object, object> map, Ctx partials, List<string> chain) => new()
+    {
+        Id = Str(map, "id"),
+        Style = Str(map, "style"),
+        CssClasses = Str(map, "cssClasses"),
+        Title = Str(map, "title"),
+        Subtitle = Str(map, "subtitle"),
+        NoHeader = Bool(map, "noHeader"),
+        Content = Children(map, partials, chain),
+        Toolbar = Maps(map, "toolbar").Select(FormButton).ToList(),
+        Buttons = Maps(map, "buttons").Select(FormButton).ToList(),
+        Overline = Str(map, "overline"),
+        TitlePlaceholder = Str(map, "titlePlaceholder"),
+        Timestamp = Str(map, "timestamp"),
+        Badges = Maps(map, "badges").Select(b => new Chip { Label = Str(b, "label"), Color = Str(b, "color") }).ToList(),
+        Kpis = Maps(map, "kpis").Select(k => new Fact { Label = Str(k, "label"), Value = Str(k, "value") }).ToList(),
+        PeerNav = map.TryGetValue("peerNav", out var pn) && pn is IDictionary<object, object> peer
+            ? new PeerNav(Str(peer, "prevLabel"), Str(peer, "prevRoute"), Str(peer, "nextLabel"), Str(peer, "nextRoute"))
+            : null,
+        RecordSwitcher = map.TryGetValue("recordSwitcher", out var rs) && rs is IDictionary<object, object> sw
+            ? new RecordSwitcher(
+                OptionsOf(sw),
+                Str(sw, "value"),
+                string.Equals(Str(sw, "type"), "context", StringComparison.OrdinalIgnoreCase)
+                    ? SwitcherType.Context : SwitcherType.Object,
+                Str(sw, "label"),
+                Bool(sw, "searchable"),
+                Bool(sw, "disabled"))
+            {
+                OptionsSource = SourceOf(sw, "optionsSource"),
+                Route = Str(sw, "route"),
+                ActionId = Str(sw, "actionId"),
+            }
+            : null,
+        Banners = Maps(map, "banners").Select(b => new PageBanner(ThemeOf(Str(b, "theme")), Str(b, "title"), Str(b, "description"))
+        {
+            Closeable = Bool(b, "closeable"),
+            TimeoutSeconds = int.TryParse(Str(b, "timeoutSeconds"), out var t) ? t : 0,
+        }).ToList(),
+        Fabs = Maps(map, "fabs").Select(f => new PageFab
+        {
+            Icon = Str(f, "icon"),
+            Label = Str(f, "label"),
+            ActionId = Str(f, "actionId") ?? "",
+            Order = int.TryParse(Str(f, "order"), out var o) ? o : 0,
+            ButtonStyle = Str(f, "buttonStyle"),
+        }).ToList(),
+    };
+
+    private static Button FormButton(IDictionary<object, object> b) =>
+        new(Str(b, "label") ?? "", Str(b, "actionId") ?? "")
+        {
+            ButtonStyle = Str(b, "buttonStyle"),
+            Disabled = Bool(b, "disabled"),
+        };
+
+    private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>
+        map.TryGetValue(key, out var v) && v is IEnumerable<object> seq
+            ? seq.OfType<IDictionary<object, object>>()
+            : [];
+
+    private static List<Option> OptionsOf(IDictionary<object, object> map) =>
+        map.TryGetValue("options", out var o) && o is IEnumerable<object> options
+            ? options.Select(opt => opt is IDictionary<object, object> m
+                    ? new Option(Str(m, "value") ?? "", Str(m, "label") ?? Str(m, "value") ?? "")
+                    : new Option(opt?.ToString() ?? "", opt?.ToString() ?? ""))
+                .ToList()
+            : [];
+
+    /// <summary>A <c>{ref, url, itemsPath, valuePath, labelPath, …}</c> node (or a bare name, the
+    /// ref shorthand) as a RestDataSource.</summary>
+    private static RestDataSource? SourceOf(IDictionary<object, object> map, string key)
+    {
+        if (!map.TryGetValue(key, out var raw)) return null;
+        return raw switch
+        {
+            string s when !string.IsNullOrWhiteSpace(s) => RestDataSource.OfRef(s),
+            IDictionary<object, object> m => new RestDataSource
+            {
+                Ref = Str(m, "ref")?.Trim() ?? "",
+                Url = Str(m, "url"),
+                Method = Str(m, "method"),
+                Body = Str(m, "body"),
+                ItemsPath = Str(m, "itemsPath"),
+                ValuePath = Str(m, "valuePath"),
+                LabelPath = Str(m, "labelPath"),
+                Proxy = Bool(m, "proxy"),
+            },
+            _ => null,
+        };
+    }
+
+    private static BannerTheme ThemeOf(string? theme) =>
+        Enum.TryParse<BannerTheme>(theme, ignoreCase: true, out var t) ? t : BannerTheme.Info;
 
     private static IReadOnlyList<IComponent> Children(
         IDictionary<object, object> map, Ctx partials, List<string> chain)

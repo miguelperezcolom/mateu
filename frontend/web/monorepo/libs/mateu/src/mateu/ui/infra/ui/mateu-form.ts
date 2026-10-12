@@ -1,9 +1,10 @@
 import { customElement, property } from "lit/decorators.js";
-import { css, html, TemplateResult } from "lit";
+import { css, html, nothing, TemplateResult } from "lit";
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-content-header'
+import './mateu-form-banners'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 export { possiblyHtml } from './mateu-content-header'
@@ -35,6 +36,8 @@ export class MateuForm extends MetadataDrivenElement {
                     .appState="${this.appState}"
                     .appData="${this.appData}"
                 ></mateu-content-header>
+                ${metadata?.banners?.length ? html`
+                    <mateu-form-banners .banners="${metadata.banners}" .state="${this.state}" .data="${this.data}"></mateu-form-banners>` : nothing}
                 <div class="form-content" style="width: 100%;">
                     <slot></slot>
                     <div class="mateu-hlayout form-buttons">

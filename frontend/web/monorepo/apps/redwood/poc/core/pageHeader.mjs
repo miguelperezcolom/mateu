@@ -57,22 +57,40 @@ export function entityHeaderOf(ctx) {
   }
 }
 
+/**
+ * The node that carries the page-header extras (kpis, subtitle, switcher, badges, banners, fabs…):
+ * a reflected Java page's `Page`, else — a YAML page, whose header is authored on its `type: Form`
+ * — the `Form`, which the server stamps with the SAME field names (FormDto). A tree with a Page is
+ * read exactly as before. `fromForm` tells the callers to interpolate the `${state.x}` the YAML
+ * author wrote (a reflected Page arrives resolved).
+ */
+export function pageHeaderNodeOf(tree) {
+  if (!tree) return null
+  const page = findByType(tree, 'Page')
+  if (page) return page
+  const form = findByType(tree, 'Form')
+  return form ? Object.assign({}, form, { fromForm: true }) : null
+}
+
 /** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
  *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
  *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
 export function pageKpisOf(ctx) {
-  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   if (!page) return []
   const state = ctx.state || {}
   return ((page.metadata || {}).kpis || [])
     .filter((k) => k && (k.title || k.text))
-    .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
+    .map((k) => ({
+      label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
+      value: interpolate(k.text == null ? '' : String(k.text), state),
+    }))
 }
 
 /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
  *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
 export function pageSubtitleOf(ctx) {
-  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   const subtitle = page && page.metadata ? page.metadata.subtitle : ''
   return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
 }
@@ -123,40 +141,56 @@ export function itemOverviewPageOf(entity, blocks, toolbar) {
  */
 export const RECORD_SWITCHER_ACTION = '_switchRecord'
 export const RECORD_SWITCHER_PARAMETER = '_record'
+export const RECORD_SWITCHER_OPTIONS = '_switcher'
 export function pageSwitcherOf(ctx) {
-  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   const sw = page && page.metadata ? page.metadata.switcher : null
   const none = { on: false, type: 'object', value: null, label: '', searchable: false, disabled: false,
-    actionId: RECORD_SWITCHER_ACTION, objectOptions: [], contextOptions: [], fact: null }
-  if (!sw || !Array.isArray(sw.options) || !sw.options.length) return none
-  const options = sw.options
+    actionId: RECORD_SWITCHER_ACTION, route: '', objectOptions: [], contextOptions: [], fact: null }
+  if (!sw) return none
+  const state = (ctx && ctx.state) || {}
+  const interp = (t) => (page.fromForm ? interpolate(t, state) : String(t))
+  // the declared options, else (a YAML `optionsSource`) the ones loadRestOptions fetched into
+  // ctx.data._switcher — the same slot a select's REST options land in
+  const loaded = ((ctx && ctx.data && ctx.data[RECORD_SWITCHER_OPTIONS]) || {}).content
+  const declared = Array.isArray(sw.options) && sw.options.length ? sw.options
+    : (sw.optionsSource && Array.isArray(loaded) ? loaded : [])
+  if (!declared.length) return none
+  const options = declared
     .filter((o) => o && o.value != null)
-    .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : String(o.label), description: o.description || '' }))
+    .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : interp(o.label), description: o.description ? interp(o.description) : '' }))
   const type = sw.type === 'context' ? 'context' : 'object'
-  const value = sw.value == null ? null : String(sw.value)
+  const value = sw.value == null ? null : interp(sw.value)
   const current = options.find((o) => o.value === value)
   const disabled = !!sw.disabled
   return {
     on: true,
     type,
     value,
-    label: sw.label || '',
+    label: sw.label ? interp(sw.label) : '',
     searchable: !!sw.searchable,
     disabled,
     actionId: sw.actionId || RECORD_SWITCHER_ACTION,
+    // a YAML switcher may NAVIGATE instead (`route: customers/${state._record}`): resolved per pick
+    // (the page's other ${state.x} resolved now, `${state._record}` kept for switcherPickOf)
+    route: sw.route ? interpolate(sw.route, { ...state, [RECORD_SWITCHER_PARAMETER]: '${state.' + RECORD_SWITCHER_PARAMETER + '}' }) : '',
     objectOptions: !disabled && type === 'object' ? options : [],
     contextOptions: !disabled && type === 'context' ? options : [],
-    fact: disabled && current ? { label: sw.label || '', value: current.label } : null,
+    fact: disabled && current ? { label: sw.label ? interp(sw.label) : '', value: current.label } : null,
   }
 }
 
 /** The action a pick of the header switcher runs, or null when nothing changed (the data switcher
- *  also writes back the value it was given, and an echo must not re-run the page). */
+ *  also writes back the value it was given, and an echo must not re-run the page). A switcher that
+ *  declares a `route` (YAML) also carries `route`: that route with `${state._record}` = the picked
+ *  value — the consumer navigates to it instead of dispatching the action. */
 export function switcherPickOf(switcher, picked) {
   if (!switcher || !switcher.on || switcher.disabled || picked == null) return null
   const value = typeof picked === 'object' ? (picked.value != null ? picked.value : picked.key) : picked
   if (value == null || String(value) === String(switcher.value)) return null
-  return { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
+  const pick = { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
+  if (switcher.route) pick.route = interpolate(switcher.route, { [RECORD_SWITCHER_PARAMETER]: String(value) })
+  return pick
 }
 
 /** El TOOLBAR de la Page del host (para las acciones del header de banda):

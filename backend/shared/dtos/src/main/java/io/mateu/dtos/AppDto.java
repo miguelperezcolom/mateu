@@ -146,7 +146,21 @@ public record AppDto(
      */
     boolean liveUpdates,
     /** {@code @App(idleTimeoutMinutes)}: the idle-session warning; null = off. */
-    IdleSessionDto idleSession)
+    IdleSessionDto idleSession,
+    /**
+     * The inbox of a data-authored shell ({@code notifications.source}): the browser lists the
+     * notifications from this REST source instead of the {@code _notifications-list} action of a
+     * {@code NotificationsSupplier} class. {@code null} = the class decides (or no inbox).
+     */
+    RestDataSourceDto notificationsSource,
+    /** The "mark as read" call of that inbox ({@code notifications.markRead}); null = none. */
+    RestDataSourceDto notificationsReadSource,
+    /**
+     * The palette's entity search of a data-authored shell ({@code globalSearch.source}): fetched
+     * with {@code ${state.searchText}} instead of the {@code _globalsearch} action. {@code null} =
+     * the class decides (or no data search).
+     */
+    RestDataSourceDto globalSearchSource)
     implements ComponentMetadataDto {
 
   public AppDto {

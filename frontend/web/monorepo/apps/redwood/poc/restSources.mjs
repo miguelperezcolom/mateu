@@ -27,6 +27,7 @@
 
 import { findFirst } from './core/listing.mjs'
 import { collectFields } from './core/tree.mjs'
+import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs'
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
 
 // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
@@ -483,7 +484,13 @@ export function restOptionFieldsOf(ctx, scope) {
   const data = ctx.data || {}
   const out = []
   const seen = {}
-  for (const f of collectFields(ctx.tree)) {
+  // the page header's record switcher (a YAML `recordSwitcher.optionsSource`) loads like a select:
+  // into data._switcher, where pageSwitcherOf reads it when the switcher declares no options
+  const header = pageHeaderNodeOf(ctx.tree)
+  const sw = header && header.metadata && header.metadata.switcher
+  const switcherField = sw && sw.optionsSource && !(Array.isArray(sw.options) && sw.options.length)
+    ? [{ fieldId: RECORD_SWITCHER_OPTIONS, optionsSource: sw.optionsSource, switcher: true }] : []
+  for (const f of collectFields(ctx.tree).concat(switcherField)) {
     if (!f.optionsSource || seen[f.fieldId]) continue
     seen[f.fieldId] = true
     const resolved = resolveRestSource(f.optionsSource) || {}
@@ -515,7 +522,10 @@ export async function loadRestOptions(reg, ctxId, opts = {}) {
     let content = []
     try {
       let json
-      if (viaProxy(src) && opts.server) {
+      if (viaProxy(src) && field.switcher) {
+        // no field on the server answers a proxied switcher source: the header keeps no switcher
+        throw new Error('a proxied recordSwitcher.optionsSource is not supported on this renderer')
+      } else if (viaProxy(src) && opts.server) {
         const inc = await opts.server({ _sourceKind: 'options', _sourceId: field.fieldId }, true)
         const appData = (inc && inc.appData) || {}
         if (appData._restfetchError) throw new Error('proxied options failed')
@@ -533,6 +543,44 @@ export async function loadRestOptions(reg, ctxId, opts = {}) {
   const data = { ...(now.data || {}) }
   for (const { fieldId, value } of loaded) data[fieldId] = value
   return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...now, data } } }
+}
+
+/**
+ * The app-context selectors (AppDto.contextSelectors) with the options of those backed by an
+ * `optionsSource` (YAML `contextSelectors[].optionsSource`) fetched — a DIRECT source in the browser, a
+ * proxied one through `opts.server(parameters)` (the app-level `_appsource` action; without it the
+ * selector keeps no options). A
+ * selector with declared options, or whose source fails, comes back as it was. Never throws.
+ */
+export async function loadContextSelectorOptions(selectors, opts = {}) {
+  const scope = { state: {}, data: {}, appState: opts.appState || {} }
+  return Promise.all((selectors || []).map(async (selector) => {
+    const src = selector && selector.optionsSource
+    if (!src || (Array.isArray(selector.options) && selector.options.length)) return selector
+    const proxied = viaProxy(src)
+    if (proxied && !opts.server) {
+      try { console.warn('mateu: a proxied app-context optionsSource needs the server (_appsource)') } catch (e) { /* no console */ }
+      return selector
+    }
+    try {
+      const resolved = resolveRestSource(src) || {}
+      let json
+      if (proxied) {
+        // the server's app-level `_appsource`: the browser names the ROLE and the picker's field,
+        // never a url; the answer rides appData._restfetch like __restfetch__'s
+        const inc = await opts.server({ _appSource: 'contextOptions', _field: selector.fieldName })
+        const appData = (inc && inc.appData) || {}
+        if (appData._restfetchError) throw new Error('proxied app-context options failed')
+        json = appData._restfetch
+      } else {
+        json = await fetchRestJson(src, scope, opts.fetchImpl)
+      }
+      return { ...selector, options: mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath) }
+    } catch (e) {
+      try { console.warn('mateu: app-context options fetch failed', e) } catch (ignored) { /* no console */ }
+      return selector
+    }
+  }))
 }
 
 // ── REST actions (and the route's `data:` load, `__restdata__`) ──────────────────────────────

@@ -208,6 +208,17 @@ define([
         window.__mateuShellMenu = reg.shell.menu;
       }
 
+      // App-context selectors backed by a REST source (YAML contextSelectors[].optionsSource): their
+      // options are fetched BEFORE the nav is built — a direct source in the browser, a proxied one
+      // through the app-level `_appsource` action. A source that fails leaves the picker empty.
+      if (reg.shell && Array.isArray(reg.shell.appContext) && reg.shell.appContext.some((s) => s && s.optionsSource)) {
+        const ctxAppState = $application.variables.mateuAppState || {};
+        reg.shell.appContext = await bridge.loadContextSelectorOptions(reg.shell.appContext, {
+          appState: ctxAppState,
+          server: (parameters) => bridge.runAppLevelAction(base, reg.shell.serverSideType, ctxAppState, '_appsource', parameters),
+        });
+      }
+
       const nav = bridge.shellNavOf(reg);
       const appState = $application.variables.mateuAppState || {};
       $application.variables.mateuNavItems = nav.items;

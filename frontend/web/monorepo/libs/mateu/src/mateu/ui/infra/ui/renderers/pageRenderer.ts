@@ -70,6 +70,20 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
  */
 export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
 
+/** A page's floating action buttons (a reflected page's `@Fab`s, a YAML page's `fabs:`): each
+ *  dispatches its action like a button. Shared by the Page and the Form renderers. */
+export const renderPageFabs = (container: LitElement, fabs: Fab[] | undefined) => (fabs ?? []).map((fab, idx) => html`
+            <button class="page-fab" style="${pageFabPosition(idx)}" ${onFabRail('page', idx)} aria-label="${fab.label}"
+                @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: { actionId: fab.actionId },
+                    bubbles: true,
+                    composed: true
+                }))}"
+                title="${fab.label}">
+                ${icon(fab.icon)}
+            </button>
+        `)
+
 export const renderPage = (container: LitElement, rawComponent: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, standalone?: boolean) => {
     const component = hoistLeadingEntityHeader(rawComponent)
     const metadata = component.metadata as PageComponent
@@ -95,17 +109,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
             slot: 'buttons'
         } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
-        ${fabs.map((fab, idx) => html`
-            <button class="page-fab" style="${pageFabPosition(idx)}" ${onFabRail('page', idx)} aria-label="${fab.label}"
-                @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
-                    detail: { actionId: fab.actionId },
-                    bubbles: true,
-                    composed: true
-                }))}"
-                title="${fab.label}">
-                ${icon(fab.icon)}
-            </button>
-        `)}
+        ${renderPageFabs(container, fabs)}
 </mateu-page>
     `
 }

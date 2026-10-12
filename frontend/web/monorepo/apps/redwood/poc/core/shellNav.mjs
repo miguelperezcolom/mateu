@@ -204,11 +204,14 @@ export function shellNavOf(reg) {
       label: selector.label || selector.fieldName,
       options: (selector.options || []).map((o) => ({ value: o.value, label: o.label || String(o.value) })),
     })),
+    // a YAML header action may NAVIGATE (AppHeaderActionDto.route) instead of dispatching:
+    // headerActionRouteOf tells the click chain where to go
     headerActions: (shell.headerActions || []).map((a) => ({
       actionId: a.actionId,
       label: a.label,
+      route: a.route || '',
       hasChildren: !!(a.children && a.children.length),
-      children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
+      children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label, route: c.route || '' })),
     })),
     serverSideType: shell.serverSideType,
     // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
@@ -218,4 +221,19 @@ export function shellNavOf(reg) {
       ? ((menuTree.find((node) => node.home) || {}).home || '')
       : shell.homeRoute,
   }
+}
+
+/**
+ * The in-app route a header action navigates to (AppHeaderActionDto.route, authored in YAML), or ''
+ * when it dispatches its actionId app-level as before. Looked up by the clicked key — the actionId,
+ * or, for a route-only action (no actionId), the route itself — at any depth of the dropdowns.
+ */
+export function headerActionRouteOf(headerActions, key) {
+  if (key == null || key === '') return ''
+  for (const a of headerActions || []) {
+    if (a && a.route && (a.actionId === key || a.route === key)) return a.route
+    const inner = headerActionRouteOf(a && a.children, key)
+    if (inner) return inner
+  }
+  return ''
 }

@@ -630,8 +630,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private static UICommandDto Retarget(UICommandDto cmd, RunActionRqDto? rq) =>
         cmd.TargetComponentId == "ux_main" && rq is not null ? cmd with { TargetComponentId = Target(rq) } : cmd;
 
-    private static BannerDto BannerOf(PageBanner b) =>
-        new(b.Theme.ToString().ToUpperInvariant(), b.Title, b.Description);
+    internal static BannerDto BannerOf(PageBanner b) =>
+        new(b.Theme.ToString().ToUpperInvariant(), b.Title, b.Description)
+        {
+            HasCloseButton = b.Closeable,
+            TimeoutSeconds = b.TimeoutSeconds,
+        };
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
     private static string Title(Type type) =>
