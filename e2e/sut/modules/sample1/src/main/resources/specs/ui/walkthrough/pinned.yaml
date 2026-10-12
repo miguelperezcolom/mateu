@@ -1,0 +1,7 @@
+# ONE definition serving TWO routes, each pinning its own `flavour` (fixedParams): the case an
+# annotation cannot express. The pin is re-applied server-side, so a client asking for another
+# value does not win.
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Text, id: wt-flavour, text: "Flavour: ${state.flavour}"}

@@ -1,0 +1,7 @@
+# The field type catalogue: a FormField names one by `fieldType:` and takes its attributes as defaults.
+type: Types
+types:
+  - id: WalkthroughCode
+    label: Code
+    dataType: string
+    placeholder: AB-123
