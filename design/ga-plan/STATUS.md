@@ -80,6 +80,35 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   per-session; Java manifest settings only from system properties/env; Redwood federation doesn't know static remotes
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
+
+## Walkthrough results so far (branches pushed, not integrated yet)
+| area | branch | matrix | ✅ | 🔧 fixed | ❌ owner | not walked |
+|---|---|---|---|---|---|---|
+| app shell & navigation | `walkthrough/app-shell` (16 commits) | `design/walkthrough/app-shell.md` | 63 | 33 (11 bugs) | 5 | RN, IntelliJ, static bundles, .NET in a browser, MicroFrontend, breadcrumbs, appState/appData in a browser, visual editor |
+| actions, events, overlays | `walkthrough/actions` (10 commits) | `design/walkthrough/actions.md` | 54 | 22 (14 bugs) | 3 | 170 cells ⏳ (mostly RN, IntelliJ, ports beyond unit level, static bundle, editor) |
+| forms · listings · pages · authoring · native-ports | `walkthrough/<area>` | — | running, hard stop 03:00 13 Oct | | | |
+
+Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to resume (same brief).
+
+## Pending owner decisions (with the proposal to apply if Miguel agrees)
+1. **Default home page** — 7 doc pages say an app opens on its first menu item; Redwood does, Vaadin shell + server don't. → implement the documented rule everywhere.
+2. **Full paths in .NET/Python apps mounted under a sub-path** (`/shell/probe` → "Route not found" in Python; .NET untested) → ports accept full paths like Java.
+3. **Python chrome language** ignores `Accept-Language` (Java follows it) → parity.
+4. **YAML apps next to Java apps**: with any `@UI` class present, YAML-defined apps 404 on every Java adapter (doc corrected to say so) → serve both.
+5. **Python has no `PageBanners`** (replace/append) → add it.
+6. **Error toast duration**: Python never auto-closes, Java closes after 3 s → errors stay until dismissed, in all backends.
+7. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed.
+
+## Known doc/CLAUDE.md corrections to apply at integration
+- CLAUDE.md says `@Action(runOnEnter=true)` exists — it doesn't; `shortcut = "enter"` is the way.
+- CLAUDE.md's description of the Vaadin `@AppContext` picker is out of date: the shell uses the shared `mateu-app-context-picker`.
+- CLAUDE.md says core's JaCoCo floor is 75 %; the pom has 84 %.
+- Redwood pre-selects the first option of each context picker; Vaadin leaves it empty (decide which is right).
+- `renderer/layout-sizing.spec.ts` only skips geometry checks when the project is named `renderer-vb` (test issue).
+
+## Budget (owner, 2026-10-12)
+Weekly usage 33 % at Mon 18:15 (resets Sun 19 Oct 09:00). Cap: ≤ 60 % before Friday. **Thursday 15 Oct: important demo** — Tue/Wed are for securing it. Coverage paused; refactor + pre-beta review the weekend of 17–18 Oct with what's left. Ask Miguel for `/usage` before launching anything big.
+
 ## What needs Miguel's machine vs what can run anywhere
 - **Anywhere** (a cloud session on claude.ai/code with this repo): the walkthrough, coverage, refactor, docs,
   integration batches, releases (`gh`), anything in this repo.
