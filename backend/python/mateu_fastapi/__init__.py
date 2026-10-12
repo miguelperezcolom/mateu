@@ -213,6 +213,16 @@ def add_mateu(
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
+    # The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
+    # calls POST /mateu/v3/components/_/action, and this port answered it 404 — Redwood could not
+    # render a Python backend at all. The route travels in the body, never in that path.
+    async def component_action(request: Request, rest: str = "") -> JSONResponse:
+        return await sync(request, "")
+
+    app.add_api_route(
+        f"{prefix}/mateu/v3/components/{{rest:path}}", component_action, methods=["POST"]
+    )
+
     # Streamed actions: one text/event-stream "data:" event per increment, at the same
     # /mateu/v3/sse/{route} the Java adapters serve. The app-level `_live-updates` action is the
     # open-ended APP EVENT STREAM of @app(live_updates=True): the last published header values

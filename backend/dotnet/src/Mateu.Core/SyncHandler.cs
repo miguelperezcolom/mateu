@@ -70,6 +70,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     public async Task<UIIncrementDto> HandleAsync(
         RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
     {
+        rq = LoadActionNormalised(rq);
         if (rq.ActionId == "__restfetch__")
         {
             EstablishRequestContext(rq);
@@ -82,8 +83,15 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
     /// use it; a proxied REST fetch on this path blocks — the HTTP endpoint goes through
     /// <see cref="HandleAsync"/>.</summary>
+    /// <summary>"__load__" is the documented load action (Java treats it as the route load; the
+    /// Redwood renderer boots with it): answered "Action not found" here, Redwood rendered nothing.
+    /// </summary>
+    private static RunActionRqDto LoadActionNormalised(RunActionRqDto rq) =>
+        rq.ActionId == "__load__" ? rq with { ActionId = "" } : rq;
+
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        rq = LoadActionNormalised(rq);
         // a Document parked by this request is fetched from this mount (DocumentCommands)
         RequestBaseUrl.Value = requestBaseUrl;
         EstablishRequestContext(rq);
