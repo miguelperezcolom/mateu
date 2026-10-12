@@ -1,5 +1,6 @@
 import { takeUndoToasts, showUndoToasts } from './notify.mjs'
 import { announce } from './a11y.mjs'
+import { updateHeaderValue } from './appExtras.mjs'
 // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
 // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
 // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
@@ -194,5 +195,7 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   // assertive for what must not be missed). `env.mateuAnnounce` is the test seam.
   const say = (env && env.mateuAnnounce) || announce
   for (const a of effects.announcements || []) say(a.text, { politeness: a.assertive ? 'assertive' : 'polite' })
+  // UICommand.updateHeaderValue: the header repaints and the other tabs follow (appExtras.mjs)
+  for (const h of effects.headerValues || []) ((env && env.mateuHeaderValue) || updateHeaderValue)(h.id, h.value)
   return n
 }

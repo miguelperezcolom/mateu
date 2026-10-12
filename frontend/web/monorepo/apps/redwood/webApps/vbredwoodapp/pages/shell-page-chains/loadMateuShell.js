@@ -118,6 +118,11 @@ define([
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
       bridge.setKeysActionSink(runPageAction);
+      // compare & merge (RecordMerge): picks are DOM state; the merge goes out as a page action
+      bridge.installRecordMerges();
+      bridge.setRecordMergeSink(runPageAction);
+      // app shortcuts + «?» + quick launch, live header values, the idle warning (appExtras.mjs)
+      bridge.installAppExtras();
 
       // The IDE's visual editor paints with this app (its preview page sets the flag): the
       // increment comes from the editor through postMessage, the app answers its own /mateu calls
@@ -240,6 +245,19 @@ define([
       }
       $application.variables.mateuShellSST = nav.serverSideType || '';
       bridge.setAccessKeysEnabled(!!(reg.shell && reg.shell.accessKeys));
+      // E2: the shell's app shortcuts, live header values (and their stream) and idle warning; the
+      // context of the chain goes stale, so navigation and app actions always use the latest one
+      bridge.syncAppExtras(reg.shell, {
+        base,
+        navigate: (route) => Actions.callChain(window.__mateuShellContext || context, {
+          chain: 'onMateuNavigate', params: { event: { detail: { route: bridge.routeUnderMount(route) || route } } },
+        }),
+        runAppAction: (actionId) => Actions.callChain(window.__mateuShellContext || context, {
+          chain: 'runMateuHeaderAction', params: { actionId },
+        }),
+        keepAlive: (actionId) => bridge.runAppLevelAction(base, $application.variables.mateuShellSST,
+          $application.variables.mateuAppState || {}, actionId).catch(() => undefined),
+      });
       // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
       // GlobalSearchSupplier: the Ask palette also searches the app's entities (askOracleTyped)
       $application.variables.mateuGlobalSearch = !!(reg.shell && reg.shell.globalSearchEnabled);

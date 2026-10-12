@@ -171,6 +171,10 @@
            con sus triggers) van a un hueco que rellena el bridge — VB no estampa HTML crudo desde
            un binding; cualquier otro Popover, botón + oj-popup. oj-color-invert: texto e iconos
            claros sobre el header oscuro, como el icono home del propio global-header. -->
+      <!-- LIVE HEADER VALUES (HeaderValuesSupplier / headerValues:): «Business date: 12 Oct». The bridge
+           paints them (appExtras.mjs) and repaints on UpdateHeaderValue, another tab, or the app
+           event stream of @App(liveUpdates) -->
+      <span id="mateuHeaderValues" class="mateu-header-values oj-color-invert" hidden></span>
       <div class="mateu-header-widgets oj-color-invert oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
         <oj-bind-for-each data="[[ $application.variables.mateuHeaderWidgets ]]">
           <template>
@@ -380,6 +384,26 @@
          marca del @App(askLabel, askIcon): bridge.brandAskFab) abre esta paleta —
          buscador que filtra la navegación y las vistas rápidas del listado; cada fila navega y
          cierra. El chat del agente NO vive aquí: tiene su botón en la cabecera y su drawer (abajo). -->
+    <!-- «Keyboard shortcuts» (the ? key, @AppShortcut): the app's shortcuts (picking one runs it), the
+         screen's own and the shell's; the body is filled by the bridge (appExtras.mjs) -->
+    <oj-dialog id="mateuShortcutsHelp" cancel-behavior="icon" drag-affordance="none"
+      dialog-title="[[ $application.translations.appBundle.keyboardShortcuts ]]">
+      <div slot="body" id="mateuShortcutsHelpBody" class="mateu-sc-body"></div>
+    </oj-dialog>
+
+    <!-- IDLE-SESSION WARNING (@App(idleTimeoutMinutes)): an alert dialog with the countdown; Stay runs
+         the keep-alive action, Sign out (or zero) goes to the sign-out url — appExtras.mjs drives it;
+         Escape counts as Stay -->
+    <oj-dialog id="mateuIdleWarning" role="alertdialog" cancel-behavior="none" drag-affordance="none"
+      aria-describedby="mateuIdleMessage"
+      dialog-title="[[ $application.translations.appBundle.idleTitle ]]">
+      <div slot="body"><p id="mateuIdleMessage" class="oj-typography-body-md"></p></div>
+      <div slot="footer">
+        <oj-button id="mateuIdleSignOut" chroming="outlined"><oj-bind-text value="[[ $application.translations.appBundle.idleSignOut ]]"></oj-bind-text></oj-button>
+        <oj-button id="mateuIdleStay" chroming="callToAction"><oj-bind-text value="[[ $application.translations.appBundle.idleStay ]]"></oj-bind-text></oj-button>
+      </div>
+    </oj-dialog>
+
     <oj-dialog id="mateuAskOracle" cancel-behavior="icon" drag-affordance="none"
       dialog-title="[[ $application.variables.mateuAskLabel ]]">
       <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">

@@ -278,7 +278,7 @@ render), so this table — not the feature rows above — is the authority on wh
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 95 rendered, 11 layout
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 96 rendered, 11 layout
 containers, 2 partial, 0 not rendered. A type the renderer does not know
 (one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
 renderers, and its children still render.
@@ -361,6 +361,7 @@ renderers, and its children still render.
 | `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
 | `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
+| `RecordMerge` | ✅ | compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
 | `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |

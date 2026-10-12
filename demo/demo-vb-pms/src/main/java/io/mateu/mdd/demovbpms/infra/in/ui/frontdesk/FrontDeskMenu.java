@@ -8,4 +8,6 @@ public class FrontDeskMenu {
   @Menu RegistrationCard checkIn;
 
   @Menu TelephoneConsole telephoneOperator;
+
+  @Menu MergeProfiles mergeProfiles;
 }

@@ -197,6 +197,7 @@ export function reduceContexts(reg, increment, opts = {}) {
     // nothing is drawn — [{ text, assertive }]
     announcements: [],
     events: [], // bus @SubscribeTo: [{ name, detail }]
+    headerValues: [], // UICommand.updateHeaderValue: [{ id, value }] (appExtras.mjs)
   }
 
   for (const m of increment.messages || [])
@@ -229,6 +230,11 @@ export function reduceContexts(reg, increment, opts = {}) {
         themeToggle: md.themeToggle,
         // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
         accessKeys: !!md.accessKeys,
+        // E2 patterns (appExtras.mjs): app shortcuts / quick launch, live header values, idle warning
+        shortcuts: md.shortcuts || [],
+        headerValues: md.headerValues || [],
+        liveUpdates: !!md.liveUpdates,
+        idleSession: md.idleSession || null,
         // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
         // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
@@ -355,6 +361,12 @@ export function reduceContexts(reg, increment, opts = {}) {
       case 'RunAction':
         effects.runActions.push(c.data)
         break
+      case 'UpdateHeaderValue': {
+        // a live header value (the business date…): this tab, and the others through storage
+        const d = c.data && typeof c.data === 'object' ? c.data : {}
+        if (d.id) effects.headerValues.push({ id: String(d.id), value: d.value == null ? '' : String(d.value) })
+        break
+      }
       case 'Announce': {
         // the Redwood `announcement` slot: polite by default, assertive when the server says so
         const d = c.data && typeof c.data === 'object' ? c.data : { text: c.data }
