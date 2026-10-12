@@ -4,6 +4,7 @@ import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 import io.mateu.core.application.runaction.PartialExpander;
+import io.mateu.core.domain.act.FluentHandlerButtons;
 import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.domain.out.componentmapper.SizingResolver;
@@ -25,10 +26,11 @@ public class ComponentTreeSupplierMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var tree = componentTreeSupplier.component(httpRequest);
     var leaf =
         mapComponentToDto(
             componentTreeSupplier,
-            PartialExpander.expand(componentTreeSupplier.component(httpRequest), httpRequest),
+            PartialExpander.expand(tree, httpRequest),
             baseUrl,
             route,
             consumedRoute,
@@ -52,7 +54,9 @@ public class ComponentTreeSupplierMapper {
             ActionMapper.mapActions(componentTreeSupplier, httpRequest),
             componentTreeSupplier,
             leaf,
-            httpRequest),
+            httpRequest,
+            // the buttons ComponentTreeActionRunner runs by id: no method backs them
+            FluentHandlerButtons.ids(tree)),
         TriggerMapper.mapTriggers(componentTreeSupplier, httpRequest),
         RuleMapper.mapRules(componentTreeSupplier, httpRequest),
         ValidationMapper.mapValidations(componentTreeSupplier, route, httpRequest),

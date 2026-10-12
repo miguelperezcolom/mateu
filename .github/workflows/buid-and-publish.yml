@@ -241,4 +241,4 @@ jobs:
             exit 0
           fi
           dotnet nuget push "$RUNNER_TEMP/nupkgs/*.nupkg" --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json --skip-duplicate
+            --source https://api.nuget.org/v3/index.json --skip-duplicate --timeout 900
