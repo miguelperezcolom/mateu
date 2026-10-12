@@ -20,7 +20,12 @@ React Native → IntelliJ.
   never send — it found most of the bugs below.
 - **React Native**: `frontend/app/react-native` on Expo web, direct mode
   (`EXPO_PUBLIC_MATEU_BACKEND_PORT`), against both starters and a Python app whose menu reaches
-  one representative screen per area; the hub mode with `e2e/rn-hub-probe.mjs`.
+  one representative screen per area; the hub mode with `e2e/rn-hub-probe.mjs`; and against the
+  **Java e2e SUT** (`mvc-app1`, the screens the shared Playwright specs use), replaying the specs'
+  contracts on the native renderer (bulk-action confirmations, long task, crud navigation…).
+  Caveat: the SUT jar at hand was built 2026-10-10 from the main checkout, so a few newer routes
+  were missing and one server answer (`_route: /null` after a crud save) is stale — reproduced
+  against current core with a scratch TestMateu test before being dismissed.
 - **IntelliJ**: `./gradlew renderProbe -Pprobe.json=… -Pprobe.baseUrl=…` over wire captured from
   the Python port, plus the plugin's render tests.
 - **Conformance**: Java `WireConformanceTest`, `test_wire_conformance.py`, `WireConformanceTests`.
@@ -63,7 +68,7 @@ N/A (why) · — not walked yet.
 | Exporters (CSV, Excel, PDF downloads) | ✅ 3 downloads | ✅ CSV |
 | Section affordances, draft save | ✅ | ✅ |
 | Card menu, app context picker, header action, notification bell, command-center palette + global search | ✅ shell-walk | ✅ shell-walk |
-| Security principal (identity the host app established → `EyesOnly` / `ReadOnlyUnless` / `disabled_unless`) | ✅ sec.mjs: no role → salary hidden, notes read-only, Approve disabled; `hr` → salary shown; `hr,manager` → notes editable, Approve enabled | — (covered by `HostingTests`) |
+| Security principal (identity the host app established → `EyesOnly` / `ReadOnlyUnless` / `disabled_unless`) | ✅ sec.mjs: no role → salary hidden, notes read-only, Approve disabled; `hr` → salary shown; `hr,manager` → notes editable, Approve enabled | ✅ sec.mjs over an ASP.NET host setting `HttpContext.User` (none / hr / hr+manager / manager, same outcomes); a forced `approve` without the role answers 403 "Forbidden" |
 | YAML pages served by the ports (the yaml starter's specs) | ❌ 8: only 8 YAML component types build — `home.yaml` (HeroSection) and `products.yaml` (Listing) show "Unsupported component"; `app.yaml` (AppShell) is documented as Java-only | ❌ 8: same 8 types in `YamlComponentBuilder` |
 | Ports behind **Redwood** (bundle served by a scratch proxy reproducing `IndexPage.mountUi`) | 🔧 the port answered the documented `POST v3/components/_/action` 404 and `__load__` "Action not found" → 3c22ff69a: the Redwood shell now boots on a port (title, menu tabs). ❌ 9: the content area stayed empty; the scratch proxy is not faithful for routed URLs (it also sends route "" for a Java mount), so this needs a proper serving path (❌ 1) before it can be judged | 🔧 same → 3c22ff69a (test) |
 
@@ -88,6 +93,13 @@ N/A (why) · — not walked yet.
 | Header actions, command center | N/A (documented: drawer shell without a top app bar) | N/A | N/A |
 | A11y names: every control named, inputs named, tappables are buttons | ✅ `rn-a11y-probe.mjs` 7/7 (Products) | — | — |
 | Photo capture (camera) | — (needs a device camera; the web fallback is a file picker) | — | — |
+| Java SUT screens: all-types, validation, simple-listing, items, bulk-actions, overlays, status-demo, nullable-numbers, master-detail-list, profile, app (tabs), inline-host, live-element, confirm-dirty, full-crud/new | — | — | ✅ rn-java: render without unsupported/raw text; validation refuses, tabs switch, Greet/Submit/Save answer, drawer & dialog open and Confirm closes, island Edit → Save, master-detail + Add |
+| `@Action(confirmationRequired)` (bulk-action-buttons spec: declared texts, generic "Are you sure?", deny runs nothing) | — | — | 🔧 ran WITHOUT asking → 31f172397 ✅ rn-bulk 4/4 |
+| Crud Back to list / Cancel / delete on a listing | — | — | 🔧 stacked a second "list" screen (Back then returned to the record; a listing delete pushed a copy of itself) → 6bf2092a7 ✅ rn-items |
+| LongTask progress dialog (long-task spec) | N/A (no LongTask in the ports) | N/A | 🔧 never streamed: `${state.title}`, "Iniciando..." forever, empty bar → 25c74104d ✅ Processing → Step 1..4 of 5 → finished, full bar |
+| Legacy (Quill Delta) rich-text value | — | — | 🔧 printed as raw JSON → 4d18e007f ✅ |
+| Validation-refused toast | 🔧 hard-coded Spanish ("Revisa los campos") → 31f172397 | | |
+| Rich text editing | N/A by design: an editable `richText` is a plain multiline input of the HTML (no WYSIWYG on native) | | |
 
 ### IntelliJ (render probe + render tests)
 
@@ -100,7 +112,11 @@ N/A (why) · — not walked yet.
 | EmptyState icon token | 🔧 printed as text → 2ae7068f2 (`DisplayComponentsRenderTest`) |
 | CollectionDetail queue cards | 🔧 captions clipped → see commit "task-queue cards no longer clip" |
 | App shell whose app has no home | ❌ 5: content area empty |
-| Interactions (clicks/typing), mobile hub | — / N/A (no hub on desktop) |
+| `@Action(confirmationRequired)` | 🔧 ran without asking → fcc01398a (`ActionConfirmationTest`) |
+| LongTask progress dialog | 🔧 never streamed, raw `${state.title}`, empty bar → 82f33d96b (`MateuApiClientStreamTest`, `OverlayStateTest`, `NativeUxReviewTest`) |
+| Delete on a listing seeded with `""` | 🔧 opened a second "list" tab → d5bf61b3c (`MediatorRoutesTest`) |
+| Validation-refused balloon | 🔧 hard-coded Spanish → fcc01398a |
+| Interactions (clicks/typing) in a running IDE, mobile hub | — not walked (the render probe cannot click; covered by the unit tests above) / N/A (no hub on desktop) |
 
 ### Conformance corpus
 
@@ -111,11 +127,11 @@ N/A (why) · — not walked yet.
 | New case `peer-nav` | 🔧 d3abf2593 (3 servers match) |
 | Cases that need a second request | 🔧 87799500e: `request.json` honoured by the three runners; `app-no-home-content` matches in all three. A `crud-new-form` trial showed the ports' create form diverging structurally from Java's (layout, actions) — the semantic gaps it surfaced (pageType, dirty guard) are fixed (c0adaa50b); the case itself is not added (❌ 7) |
 | CollectionDetail / wizard cases | ❌ 7: known structural divergences |
+| New cases `card-menu`, `app-extras` (command center / notifications / global search flags), `welcome-banner` | 🔧 03ce1c245 / b68499658 / 6437514d6 — the three servers match |
 
-**Counts:** ✅ ≈ 75 cells verified · 🔧 28 fixes (each with a test or probe) + 3 doc claims ·
-❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: the .NET security principal in a
-browser (covered by `HostingTests`), photo capture on a device,
-IntelliJ click-level interaction beyond its render tests.
+**Counts:** ✅ ≈ 85 cells verified · 🔧 37 fixes (each with a test or probe) + 3 doc claims ·
+❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: photo capture on a device, IntelliJ
+click-level interaction in a running IDE (its fixes are pinned by unit tests).
 
 ## Bugs fixed (one line each)
 
@@ -147,6 +163,15 @@ IntelliJ click-level interaction beyond its render tests.
 27. dcf8f08a5 .NET — the starter (and the solution) could not build on a .NET 8/9 SDK.
 28. RN — a page FAB was covered by the page's bottom button bar.
 22. 45e827575 conformance — action ids were not compared.
+29. 4d18e007f RN — a legacy (Quill Delta) rich-text value showed as raw JSON (the documented "still opens" held only on the web).
+30. 31f172397 RN — `@Action(confirmationRequired)` ignored: a confirmed bulk action ran without asking.
+31. fcc01398a IntelliJ — same: confirmed actions ran without asking.
+32. 31f172397 / fcc01398a RN + IntelliJ — the validation-refused message was hard-coded Spanish.
+33. 6bf2092a7 RN — a crud's Back to list / Cancel stacked a second listing over the record; a delete on a listing seeded with "" pushed a copy of itself.
+34. d5bf61b3c IntelliJ — a delete on a listing seeded with "" opened a second "list" tab.
+35. 25c74104d RN — LongTask never streamed (sync endpoint): raw `${state.title}`, stuck first step, empty bar (also: overlay state updates by id, ProgressBar max 0).
+36. 82f33d96b IntelliJ — same LongTask gap.
+37. conformance — new cases `card-menu`, `app-extras`, `welcome-banner` (all three servers match).
 
 ## ❌ Open — owner decisions / not fixed
 
@@ -210,6 +235,18 @@ Environment note: `frontend/app/react-native` `npm test` has one failing file lo
   component) is cheap and found ~10 bugs here; worth running on the Java demos too.
 - `homeBaseUrl` / document links are now relative in the ports (like Java); native renderers
   already resolve relative document URLs.
+- **Java core (actions/commands area)**: an action returning a MIXED collection (State + Message +
+  UICommand — which is how every crud save/delete answers) gets
+  `SetWindowTitle = "[State[state=…CapabilityCrud@4fc6011e…], Message[…], UICommand[…]]"`:
+  `CommandMapper.isCommandResult` only exempts all-command collections, so `getTitle(list)` falls
+  back to `toString()`. The web sets `document.title` to it and announces it to screen readers
+  after every crud save/delete (RN already ignores titles starting with `[`). Reproduced on current
+  core with a TestMateu crud save. Not fixed here (not my area).
+- Crud flows on native: a Save from the create/edit form pushes the record screen ON TOP of the
+  form, so Back returns to the (stale) form — the web's history does the same; a native "replace
+  top" for form → record would be nicer. Not changed.
+- The e2e shared specs are a good native checklist: replaying `bulk-action-buttons` and
+  `long-task` on React Native found three real gaps in an hour.
 
 ## Doc claims found wrong and fixed
 
