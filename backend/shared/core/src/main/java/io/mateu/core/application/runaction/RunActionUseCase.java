@@ -94,7 +94,11 @@ public class RunActionUseCase {
       wireTypePolicy.check(incoming.serverSideType(), incoming.route(), incoming.httpRequest());
       // the YAML access keys: a refused route / declared action answers 403, and fields locked
       // for the caller lose their client-sent values (the data twin of @EyesOnly & co.)
-      command = yamlUidlLoader != null ? yamlUidlLoader.guard(incoming) : incoming;
+      // a route that repeats the mount it was sent to (/e2-demo/page to /e2-demo) is the same
+      // place as the relative one (/page): read it as such, or the app answers for its own content
+      // and the shell reloads forever (see MountPrefixedRoutes)
+      var relative = MountPrefixedRoutes.relativize(incoming);
+      command = yamlUidlLoader != null ? yamlUidlLoader.guard(relative) : relative;
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);
     }

@@ -67,9 +67,23 @@ public class AppMappingUtils {
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {
     if (route != null && !route.isEmpty() && !appRoute.equals(route)) {
-      return actionable.path() != null
-          && (actionable.path().equals(route) || route.startsWith(actionable.path() + "/"));
+      if (actionable.path() == null) {
+        return false;
+      }
+      // The entry's path is relative to the app; a route that carries the app's own route (an
+      // app reached at /e2-demo by a route /e2-demo/page) is compared below it, or no entry of a
+      // non-root app is ever selected.
+      return matchesPath(actionable.path(), route)
+          || (appRoute != null
+              && !appRoute.isEmpty()
+              && !"/".equals(appRoute)
+              && route.startsWith(appRoute + "/")
+              && matchesPath(actionable.path(), route.substring(appRoute.length())));
     }
     return actionable.selected();
+  }
+
+  private static boolean matchesPath(String path, String route) {
+    return path.equals(route) || route.startsWith(path + "/");
   }
 }

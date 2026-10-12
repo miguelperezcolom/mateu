@@ -133,6 +133,17 @@ the one-to-one case.
   `CodeAuthoringTests` (.NET, 7), `test_code_authoring.py` (Python, 7). Docs:
   `route-registry.md#authoring-routes-in-code`, `navigation-and-menus.md#app-shells-and-menus-in-code`.
 - **Routes are RELATIVE to the mount**, so two federated domains can each have an `orders` screen.
+  A route that REPEATS the mount it is sent to (`/e2-demo/page` to the `/e2-demo` controller) is
+  the same place: `MountPrefixedRoutes.relativize` (start of `RunActionUseCase.handle`) strips it
+  when the consumed route is relative (`""`/`_empty`), the request names no type or the app itself,
+  and no `@Menu` field is called like the mount segment. Before (2026-10-12), the prefix resolved to
+  the app itself, so the app answered for its own content with that route as home and the shell
+  reloaded forever (a non-root app's page-typed menu entries looped; root apps have no second
+  spelling). Same fix: `isSelected` compares an entry below the app's route, and a route-typed
+  `@Menu String x = "/r"` dispatches to `/r` (mount-relative, sub-path kept) instead of `/x`, which
+  only worked when the field was named like the route. Tests `NonRootAppMenuSyncTest`, e2e
+  `nonroot-menu.spec.ts` (`NonRootMenuApp`). The .NET/Python ports serve every mount from one
+  endpoint with absolute routes + consumed = mount, so they never had the second spelling.
 - **Parameter precedence** — identical on the server, in `libs/mateu` and in the VB core, because
   route resolution also runs in the browser: `fixed > client state > path > query > defaults`.
   Applied in `RouteSegmentUtils.addParameterValues`. The fixed ones are **re-applied server-side**
