@@ -37,13 +37,24 @@ import reactor.core.publisher.Mono;
 @Requires(condition = MateuYamlMountController.Present.class)
 public class MateuYamlMountController {
 
-  /** A {@code type: UI} mount on the classpath and no generated Mateu controller. */
+  /**
+   * A {@code type: UI} mount on the classpath and no generated ROOT Mateu controller. The YAML
+   * mounts are served next to the {@code @UI} classes; only a root {@code @UI} keeps this controller
+   * out, because its catch-all index and this one would be equally specific — that root index
+   * answers the YAML mounts' deep links itself ({@link YamlMounts#deepLinkIndex}).
+   */
   public static class Present implements Condition {
     @Override
     public boolean matches(ConditionContext context) {
       var classLoader = context.getBeanContext().getClassLoader();
       return YamlMounts.present(classLoader)
-          && context.getBeanContext().getBeanDefinitions(MateuController.class).isEmpty();
+          && context.getBeanContext().getBeanDefinitions(MateuController.class).stream()
+              .noneMatch(
+                  definition ->
+                      definition
+                          .stringValue(io.micronaut.http.annotation.Controller.class)
+                          .map(path -> "/mateu".equals(path) || "mateu".equals(path))
+                          .orElse(false));
     }
   }
 
@@ -61,7 +72,15 @@ public class MateuYamlMountController {
 
   private List<YamlMounts.Mount> mounts() {
     if (mounts == null) {
-      mounts = YamlMounts.mounts(routeRegistry, yamlAppLoader);
+      // served next to the @UI classes: a base path a class already serves is left to it
+      mounts =
+          YamlMounts.notServedByClasses(
+              YamlMounts.mounts(routeRegistry, yamlAppLoader),
+              io.mateu.uidl.di.MateuBeanProvider.isInitialized()
+                  ? io.mateu.uidl.di.MateuBeanProvider.getBeans(MateuController.class).stream()
+                      .map(MateuController::getBaseUrl)
+                      .toList()
+                  : List.of());
     }
     return mounts;
   }

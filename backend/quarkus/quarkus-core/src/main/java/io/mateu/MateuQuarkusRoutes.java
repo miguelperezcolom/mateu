@@ -236,16 +236,34 @@ public class MateuQuarkusRoutes {
   }
 
   private void yamlMounts(Router router) {
-    if (!YamlMounts.present(Thread.currentThread().getContextClassLoader())
-        || !beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE).isEmpty()) {
+    if (!YamlMounts.present(Thread.currentThread().getContextClassLoader())) {
       return;
     }
+    // served next to the @UI classes: a base path a class already serves is left to it
     yamlMountRoutes(
         router,
-        YamlMounts.mounts(routeRegistry, yamlAppLoader),
+        YamlMounts.notServedByClasses(
+            YamlMounts.mounts(routeRegistry, yamlAppLoader), classBaseUrls(beanManager)),
         service,
         routeRegistry,
         yamlAppLoader);
+  }
+
+  /** The base URLs of the generated controllers (the {@code @UI}s of the deployment). */
+  private static java.util.List<String> classBaseUrls(jakarta.enterprise.inject.spi.BeanManager beanManager) {
+    var baseUrls = new java.util.ArrayList<String>();
+    for (var bean : beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE)) {
+      try {
+        baseUrls.add(
+            ((MateuController)
+                    beanManager.getReference(
+                        bean, MateuController.class, beanManager.createCreationalContext(bean)))
+                .getBaseUrl());
+      } catch (RuntimeException e) {
+        // a controller that cannot be resolved here serves no YAML mount path either
+      }
+    }
+    return baseUrls;
   }
 
   /**

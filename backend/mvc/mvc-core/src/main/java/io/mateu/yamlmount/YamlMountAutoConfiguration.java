@@ -8,7 +8,6 @@ import io.mateu.core.infra.MateuController;
 import io.mateu.core.infra.YamlMounts;
 import io.mateu.dtos.RunActionRqDto;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.MediaType;
@@ -25,23 +24,33 @@ import org.springframework.web.servlet.function.ServerResponse;
  * class-less deployment has none, and this fills the gap for every discovered mount at its own
  * {@code basePath}. The surface itself is {@link YamlMounts} (core), shared by every adapter.
  *
- * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount) and a
- * class-level {@link ConditionalOnMissingBean} on {@link MateuController} — so the moment any
- * generated controller exists (a Java {@code @UI} in the same deployment), this stands down.
+ * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount);
+ * the YAML mounts are served NEXT TO any generated controller (a Java {@code @UI} in the same
+ * deployment): only a base path a class already serves is left to the class.
  *
  * <p>The endpoints are a {@link RouterFunction}, not annotated controllers: a functional route is
  * picked up by its {@code @Bean} type regardless of package or component scanning.
  */
 @AutoConfiguration
 @Conditional(YamlMountCondition.class)
-@ConditionalOnMissingBean(MateuController.class)
 public class YamlMountAutoConfiguration {
 
   @Bean
   public RouterFunction<ServerResponse> mateuYamlMountRoutes(
-      MateuService service, RouteRegistry routeRegistry, YamlAppLoader yamlAppLoader) {
+      MateuService service,
+      RouteRegistry routeRegistry,
+      YamlAppLoader yamlAppLoader,
+      org.springframework.beans.factory.ObjectProvider<MateuController> controllers) {
     var builder = RouterFunctions.route();
-    for (var mount : YamlMounts.mounts(routeRegistry, yamlAppLoader)) {
+    // served next to the @UI classes: only a path a class already serves is left to it
+    var mounts =
+        YamlMounts.notServedByClasses(
+            YamlMounts.mounts(routeRegistry, yamlAppLoader),
+            controllers.orderedStream().map(MateuController::getBaseUrl).toList());
+    if (mounts.isEmpty()) {
+      return RouterFunctions.route(request -> false, request -> ServerResponse.notFound().build());
+    }
+    for (var mount : mounts) {
       var basePath = mount.basePath();
       builder
           .GET(mount.spaPath(), request -> index(mount))

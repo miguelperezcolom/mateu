@@ -201,11 +201,13 @@ public class MateuHelidonRoutes {
           config.getOptionalValue(DevEndpoint.SPECS_DIR_PROPERTY, String.class).orElse(null));
     }
 
-    if (YamlMounts.present(Thread.currentThread().getContextClassLoader())
-        && beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE).isEmpty()) {
+    if (YamlMounts.present(Thread.currentThread().getContextClassLoader())) {
+      // served next to the @UI classes: a base path a class already serves is left to it
       yamlMountRoutes(
           routing,
-          YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get()),
+          YamlMounts.notServedByClasses(
+              YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get()),
+              generatedUis(beanManager).keySet()),
           service::get,
           routeRegistry::get,
           yamlAppLoader::get);

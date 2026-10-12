@@ -9,7 +9,6 @@ import io.mateu.core.infra.YamlMounts;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -28,13 +27,12 @@ import reactor.core.publisher.Mono;
 
 /**
  * The YAML-mount surface ({@link YamlMounts}) on WebFlux — an SPA shell and a sync/SSE endpoint per
- * {@code type: UI} mount, for a deployment with no Java {@code @UI}. Stands down as soon as a
- * generated controller exists, exactly like the Spring MVC one.
+ * {@code type: UI} mount, served next to the Java {@code @UI}s of the deployment (a base path a
+ * class already serves is left to the class), exactly like the Spring MVC one.
  */
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @Conditional(YamlMountWebFluxAutoConfiguration.Present.class)
-@ConditionalOnMissingBean(MateuController.class)
 public class YamlMountWebFluxAutoConfiguration {
 
   /** True when the classpath declares at least one {@code type: UI} mount. */
@@ -47,9 +45,20 @@ public class YamlMountWebFluxAutoConfiguration {
 
   @Bean
   public RouterFunction<ServerResponse> mateuYamlMountRoutes(
-      MateuService service, RouteRegistry routeRegistry, YamlAppLoader yamlAppLoader) {
+      MateuService service,
+      RouteRegistry routeRegistry,
+      YamlAppLoader yamlAppLoader,
+      org.springframework.beans.factory.ObjectProvider<MateuController> controllers) {
     var builder = RouterFunctions.route();
-    for (var mount : YamlMounts.mounts(routeRegistry, yamlAppLoader)) {
+    // served next to the @UI classes: only a path a class already serves is left to it
+    var mounts =
+        YamlMounts.notServedByClasses(
+            YamlMounts.mounts(routeRegistry, yamlAppLoader),
+            controllers.orderedStream().map(MateuController::getBaseUrl).toList());
+    if (mounts.isEmpty()) {
+      return RouterFunctions.route(request -> false, request -> ServerResponse.notFound().build());
+    }
+    for (var mount : mounts) {
       var basePath = mount.basePath();
       builder
           .GET(mount.spaPath(), request -> index(mount))

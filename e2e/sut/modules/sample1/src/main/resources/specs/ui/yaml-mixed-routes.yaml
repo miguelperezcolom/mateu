@@ -1,0 +1,5 @@
+type: Routes
+basePath: yaml-mixed
+routes:
+  - route: welcome
+    layout: yaml-mixed-welcome.yaml

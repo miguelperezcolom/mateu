@@ -1,0 +1,5 @@
+type: Form
+title: Served next to the classes
+content:
+  - type: Text
+    text: A YAML mount in a deployment that also has @UI classes.
