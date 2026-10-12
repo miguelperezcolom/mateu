@@ -92,7 +92,61 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 
 Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to resume (same brief).
 
-## Pending owner decisions (with the proposal to apply if Miguel agrees)
+## Owner decisions — APPLIED on `integration/walkthrough` (2026-10-12, owner delegated: "apply your own criterion")
+Local branch `integration/walkthrough` = origin/master + walkthrough/app-shell, actions, forms, pages, listings +
+ga/control + test/coverage-map (conflicts resolved keeping both sides' fixes and tests; bundles rebuilt once).
+Each item has a test that fails without it.
+1. ✅ **Default home = first menu item**, on the WIRE (Java `AppMapper.withFirstMenuItemAsHome`, .NET
+   `FirstNavigableLeaf`, Python `_first_navigable_route`; rule/remote/hidden leaves skipped; sentinel only when there is
+   none) → every renderer follows it; conformance goldens `app-context`/`app-header-actions` regenerated; docs were
+   already right. `AppSyncTest`, `test_home_route_supplier.py`, `HomeRouteSupplierTests`; e2e `/app`, `/shell-cc` updated.
+2. ✅ .NET/Python accept mount-absolute routes (`MateuRegistry` under-mount lookup). `test_mount_absolute_routes.py`,
+   `MountAbsoluteRouteTests`.
+3. ✅ Python chrome language follows `Accept-Language`. `test_chrome_locale.py`.
+4. ✅ YAML `type: UI` mounts served NEXT TO `@UI` classes on all five adapters (`YamlMounts.notServedByClasses`; a path a
+   class serves is left to it; Micronaut/Quarkus/Helidon root index answers YAML deep links via `deepLinkIndex`);
+   `define/yaml/app-shell.md` back to the positive claim. `YamlMountsTest` + shared e2e `yaml-mount-next-to-ui.spec.ts`
+   (fixture `yaml-mixed.ui.yaml` in sample1; green on MVC + WebFlux locally; Quarkus/Micronaut/Helidon only in CI —
+   watch them on the batch PR).
+5. ✅ Python `PageBanners.replace/append`. (.NET still has only the bare replace — parity row says so.)
+6. ✅ Error toasts sticky (duration 0 + ✕) in Java/.NET/Python and Vaadin (neutral + Vaadin notifiers), Redwood (undo
+   toasts; banners already persisted), RN (`toastLifetime`), IntelliJ (sticky "Mateu errors" group). Same texts.
+7. ✅ `List/Set<Enum>` with no stereotype → `multiSelect` (Java, .NET, Python; no conformance golden affected).
+8. ✅ Editable markdown/html = source + Preview toggle: Vaadin `mateu-markup-editor` (libs), Redwood `mateu-markup-field`.
+9. ✅ Vaadin shows the window title as the heading of composed archetypes (`composedHeading.ts`: dashboard/collection/
+   detail page types with nothing naming them).
+10. ✅ Python fluent `Card` with Java's component slots (`CardMetadata` now mirrors `CardDto`).
+- ✅ **Redwood 400 on every shell load**: it was the VB security provider fetching `%{env.userProfileUrl}%` (plus the
+  `#{env.catalogJson}#` catalogue parse error). `copy.mjs` empties the catalogue/profile config and points the provider
+  at a static anonymous user (`/_redwood/resources/mateu-anonymous-user.json`). Verified in a browser: no 4xx, no console
+  errors on `/` and `/arch/smart-search`.
+- ✅ Redwood listing URL contract (coordinator): `page` + `sort` now written on every search and restored on navigation
+  (filters + searchText already were). Unit-tested; not walked in a browser.
+- ✅ Redwood: Separator is a visible rule; an edited Amount keeps its currency (`committedValueOf`).
+- ✅ RN calendar: month cells no longer nest event buttons in the day button. ✅ .NET starter honours `--urls`.
+- ✅ CLAUDE.md: runOnEnter (doesn't exist), AppContext picker (shared element everywhere), core gate 84 %.
+
+### Verification (local, 2026-10-12 evening)
+core `mvn verify` 1790 ✅ (JaCoCo gate ok) · libs/mateu vitest 1506 ✅ · Redwood `npm test` all suites ✅ · .NET net8 722 ✅
+· Python 804 ✅ · IntelliJ `MessageGroupsTest` ✅ · shared e2e MVC 483 ✅ (4 failures fixed: tests updated for the new
+home, sortable headers, a layout-shift race) · WebFlux 482 ✅ · renderer-vaadin 63 ✅ · renderer-vb 59 ✅ / **1 ❌**
+(below) · lint 415/420 · design tokens OK (baseline ratcheted 555→553) · licences OK · bundle freshness OK.
+
+### Left for the next session (not done — budget)
+- ❌ **renderer-vb `shell.spec.ts` "routes.yaml of the mount: … record master with its default tab"**: `/shell/customers/7`
+  on Redwood shows the child tab ("Customer orders") but not the master's "Customer 7" text. Appeared on the
+  integration (Vaadin passes) — diagnose which merged branch changed the Redwood header for record masters.
+- Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog
+  over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
+  nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —
+  likely a gantt laid out while hidden). All need a browser session.
+- IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed on long pages (needs `renderProbe`).
+- Listings: double `search` after delete/bulk and on filtered deep links (harmless); record page title is the class
+  title in Python AND .NET (decide whether the record should name it, as Java does).
+- .NET `PageBanners` (append) for full parity.
+- Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
+
+## (Superseded) Pending owner decisions — the original list, all applied above
 1. **Default home page** — 7 doc pages say an app opens on its first menu item; Redwood does, Vaadin shell + server don't. → implement the documented rule everywhere.
 2. **Full paths in .NET/Python apps mounted under a sub-path** (`/shell/probe` → "Route not found" in Python; .NET untested) → ports accept full paths like Java.
 3. **Python chrome language** ignores `Accept-Language` (Java follows it) → parity.
@@ -106,14 +160,14 @@ Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to
 11. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible; calendar event click runs nothing; map marker click unconfirmed; Gantt negative-width console errors; **every Redwood shell page load returns a 400 'invalid catalog JSON'** (check before any Redwood demo). IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed to a few px on long pages. RN web: calendar nests buttons (warning).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
-- `parity.md` claimed full server+YAML parity for the ports; it wasn't true (fixed in walkthrough/pages) and Python still lacks `Card` — keep parity.md honest.
+- ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).
 - Tooling: `npm ci` for the Redwood workspace wipes the other workspaces' node_modules and vice versa; RN `MateuViewController.test` fails on the local Node.
 - Behaviour change (walkthrough/forms): `@Button`/`@Toolbar` actions now get "There are validation errors" when the form breaks a bean-validation constraint (server re-checks what the browser enforced). Mention in the release notes.
 - Field types are read only from `specs/ui/types.yaml`; a Types file created from the IDE wizard under another name is silently ignored → fix or document.
 - `Callable<String>` renders as an empty editable text box; number fields store strings like "19.95" in the browser state.
-- CLAUDE.md says `@Action(runOnEnter=true)` exists — it doesn't; `shortcut = "enter"` is the way.
-- CLAUDE.md's description of the Vaadin `@AppContext` picker is out of date: the shell uses the shared `mateu-app-context-picker`.
-- CLAUDE.md says core's JaCoCo floor is 75 %; the pom has 84 %.
+- ✅ (applied) CLAUDE.md says `@Action(runOnEnter=true)` exists — it doesn't; `shortcut = "enter"` is the way.
+- ✅ (applied) CLAUDE.md's description of the Vaadin `@AppContext` picker is out of date: the shell uses the shared `mateu-app-context-picker`.
+- ✅ (applied) CLAUDE.md says core's JaCoCo floor is 75 %; the pom has 84 %.
 - Redwood pre-selects the first option of each context picker; Vaadin leaves it empty (decide which is right).
 - `renderer/layout-sizing.spec.ts` only skips geometry checks when the project is named `renderer-vb` (test issue).
 

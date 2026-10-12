@@ -15,8 +15,8 @@ class MessageGroupsTest : TestCase() {
     }
 
     fun testBothGroupsAreDeclared() {
-        val xml = javaClass.getResource("/META-INF/plugin.xml")!!.readText()
-        assertTrue(xml.contains("""<notificationGroup id="Mateu errors" displayType="STICKY_BALLOON"/>"""))
-        assertTrue(xml.contains("""<notificationGroup id="Mateu" displayType="BALLOON"/>"""))
+        val xml = java.io.File("src/main/resources/META-INF/plugin.xml").readText()
+        assertTrue(Regex("""<notificationGroup\s+id="Mateu errors"\s+displayType="STICKY_BALLOON"""").containsMatchIn(xml))
+        assertTrue(Regex("""<notificationGroup\s+id="Mateu"\s+displayType="BALLOON"""").containsMatchIn(xml))
     }
 }
