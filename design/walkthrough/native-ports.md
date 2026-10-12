@@ -112,8 +112,10 @@ N/A (why) · — not walked yet.
 | Cases that need a second request | 🔧 87799500e: `request.json` honoured by the three runners; `app-no-home-content` matches in all three. A `crud-new-form` trial showed the ports' create form diverging structurally from Java's (layout, actions) — the semantic gaps it surfaced (pageType, dirty guard) are fixed (c0adaa50b); the case itself is not added (❌ 7) |
 | CollectionDetail / wizard cases | ❌ 7: known structural divergences |
 
-**Counts:** ✅ ≈ 60 cells verified · 🔧 24 fixes (each with a test or probe) · ❌ 7 · — not walked yet
-listed above.
+**Counts:** ✅ ≈ 75 cells verified · 🔧 28 fixes (each with a test or probe) + 3 doc claims ·
+❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: security principal and YAML-page
+interaction through the ports in a browser (covered by port tests), photo capture on a device,
+IntelliJ click-level interaction beyond its render tests.
 
 ## Bugs fixed (one line each)
 
@@ -181,6 +183,10 @@ listed above.
    catalogue generically), or document the subset.
 
 9. **Ports behind Redwood, content area**: see the matrix row — blocked on 1.
+
+Environment note: `frontend/app/react-native` `npm test` has one failing file locally
+(`MateuViewController.test.ts`: `mock.module is not a function` — node 23 needs
+`--experimental-test-module-mocks`); untouched by this branch.
 
 ## Permanent harnesses added
 
