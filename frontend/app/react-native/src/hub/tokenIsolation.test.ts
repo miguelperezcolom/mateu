@@ -83,7 +83,7 @@ test('a 401 refreshes only the UI that got it, then retries with the new token',
   // a global handler belongs to someone else: it must not be consulted for a hub session
   let globalHandlerCalls = 0;
   onSessionExpired(() => (globalHandlerCalls++, true));
-  statusFor = (url, auth) => (url.startsWith('https://a.com') && auth === 'Bearer OLD-A' ? 401 : 200);
+  statusFor = (url, auth) => (new URL(url).host === 'a.com' && auth === 'Bearer OLD-A' ? 401 : 200);
   const a = new MateuApiClient('https://a.com', 'sa', pa);
   const b = new MateuApiClient('https://b.com', 'sb', pb);
   await a.initialLoad('', {});
