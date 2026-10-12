@@ -221,6 +221,15 @@ public class MateuQuarkusRoutes {
                                     if (!response.closed()) {
                                       response.write(io.mateu.core.infra.dev.DevEndpoint.sse(json));
                                     }
+                                  }),
+                          error -> {},
+                          // shutting down: end it, or the graceful shutdown waits on the stream
+                          () ->
+                              context.runOnContext(
+                                  v -> {
+                                    if (!response.closed() && !response.ended()) {
+                                      response.end();
+                                    }
                                   }));
               response.closeHandler(v -> subscription.dispose());
             });

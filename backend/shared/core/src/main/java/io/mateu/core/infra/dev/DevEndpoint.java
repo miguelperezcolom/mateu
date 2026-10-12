@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 /**
  * The HTTP side of live reload, framework neutral so every adapter serves it the same way (like the
@@ -53,21 +54,47 @@ public final class DevEndpoint {
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
+  /**
+   * Fires when the JVM is going down. Every open stream completes on it: a graceful shutdown waits
+   * for active requests, and an endless event stream is one — the old process held the browser's
+   * stream for the whole grace period (30 s on Spring Boot), so the page neither noticed the
+   * backend leave nor re-rendered against the restarted one until it ran out.
+   */
+  private static final Sinks.Empty<Void> SHUTTING_DOWN = Sinks.empty();
+
+  static {
+    try {
+      Runtime.getRuntime()
+          .addShutdownHook(new Thread(DevEndpoint::shutdown, "mateu-dev-events-shutdown"));
+    } catch (IllegalStateException | SecurityException ignored) {
+      // already shutting down, or not allowed: the streams end with the process
+    }
+  }
+
   private DevEndpoint() {}
+
+  /** Completes every open event stream (the JVM shutdown hook calls it). */
+  public static void shutdown() {
+    SHUTTING_DOWN.tryEmitEmpty();
+  }
 
   /**
    * The event payloads (JSON, one per SSE event) for one connection: hello, then every change, with
-   * a ping every {@value #PING_SECONDS} s. Never completes; the adapter disposes it when the client
-   * goes away.
+   * a ping every {@value #PING_SECONDS} s. Completes only when the server shuts down ({@link
+   * #shutdown}) — the adapter must then end the response; it disposes it when the client goes away.
    */
   public static Flux<String> events() {
     return events(Duration.ofSeconds(PING_SECONDS));
   }
 
   static Flux<String> events(Duration pingEvery) {
+    return events(pingEvery, SHUTTING_DOWN.asMono());
+  }
+
+  static Flux<String> events(Duration pingEvery, org.reactivestreams.Publisher<?> until) {
     var changes = DevSpecs.events().map(DevEndpoint::json);
     var pings = Flux.interval(pingEvery).map(i -> "{\"type\":\"ping\"}");
-    return Flux.concat(Flux.just(hello()), Flux.merge(changes, pings));
+    return Flux.concat(Flux.just(hello()), Flux.merge(changes, pings)).takeUntilOther(until);
   }
 
   /** The SSE frame for one payload. */
