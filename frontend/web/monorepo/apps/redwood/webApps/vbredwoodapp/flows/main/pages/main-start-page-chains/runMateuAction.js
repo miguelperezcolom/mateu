@@ -157,9 +157,10 @@ define([
       // del foldout: comparar referencias/uuids no vale (proxies de VB, uuids estables).
       let hostRepainted = false;
       const touchesHost = bridge.touchesHost;
-      let lastIncrement = null;
+      let lastIncrement = null; const returnedConfirms = []; // ConfirmDialogs RETURNED: asked below
       const applyInc = (inc) => {
         lastIncrement = inc;
+        returnedConfirms.push(...bridge.returnedConfirmDialogsOf(inc));
         reg = bridge.reduceContexts(reg, inc);
         bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
@@ -315,6 +316,14 @@ define([
       }
 
       $application.variables.mateuRegistry = reg;
+
+      if (returnedConfirms.length && !hostRepainted) { // a RETURNED ConfirmDialog: ask, run the pick
+        const ask = $page.variables.mateuConfirm = returnedConfirms[returnedConfirms.length - 1];
+        const answer = bridge.awaitConfirmation();
+        await Actions.callComponentMethod(context, { selector: '#mateuConfirm', method: 'open' });
+        const chosen = (await answer) ? ask.confirmActionId : ask.denyActionId; if (chosen) await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: chosen } });
+        return;
+      }
 
       // Una respuesta que SÓLO trae mensajes (p.ej. el «falta la tarifa» con el que un wizard
       // no deja salir del paso) no cambia la pantalla: re-proyectarla volvía a pintar el

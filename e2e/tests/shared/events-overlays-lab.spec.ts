@@ -77,6 +77,9 @@ test.describe('Triggers lab (/triggers-lab)', () => {
     await expect(field(page, 'onLoad')).toHaveValue('loaded')
     await page.getByRole('button', { name: 'Fail', exact: true }).click()
     await expect(field(page, 'onError')).toHaveValue('after fail')
+    // a failed action's OnSuccess must not run (it used to, right after its OnError)
+    await page.waitForTimeout(500)
+    await expect(field(page, 'onSuccess')).toHaveValue('')
   })
 
   test('OnCustomEvent runs when the event is dispatched', async ({ page }) => {

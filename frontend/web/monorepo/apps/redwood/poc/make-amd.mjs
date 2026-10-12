@@ -282,6 +282,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     confirmationOf,
     awaitConfirmation,
     answerConfirmation,
+    returnedConfirmDialogsOf,
     selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,

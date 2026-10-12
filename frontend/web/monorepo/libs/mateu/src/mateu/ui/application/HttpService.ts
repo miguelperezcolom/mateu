@@ -130,19 +130,18 @@ export class HttpService implements Service {
                 this.handleUIIncrement(uiIncrement, initiator, callbackToken)
             }
 
-            if (uiIncrement.messages && uiIncrement.messages.length == 1) {
-                if (uiIncrement.messages[0].variant == 'error') {
-                    initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
-                        detail: {
-                            actionId
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                }
-            }
-
-            initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-succeeded', {
+            // The server answers an exception with an error message (the error boundary), not an
+            // HTTP error: that answer FAILED — its OnError triggers run, and its OnSuccess ones
+            // must not (they used to as well, so a failing poll kept rescheduling itself)
+            if (uiIncrement.messages?.length == 1 && uiIncrement.messages[0].variant == 'error') {
+                initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
+                    detail: {
+                        actionId
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            } else initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-succeeded', {
                 detail: {
                     actionId,
                     evevntId: nanoid()

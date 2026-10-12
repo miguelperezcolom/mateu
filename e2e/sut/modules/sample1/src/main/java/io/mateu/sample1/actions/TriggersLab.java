@@ -24,6 +24,8 @@ import lombok.Setter;
 @Trigger(type = TriggerType.OnValueChange, actionId = "watchedChanged", propertyName = "watched")
 @Trigger(type = TriggerType.OnSuccess, actionId = "afterOk", calledActionId = "ok")
 @Trigger(type = TriggerType.OnError, actionId = "afterFail", calledActionId = "fail")
+// must NOT run: `fail` fails (an OnSuccess of a failing action used to run as well)
+@Trigger(type = TriggerType.OnSuccess, actionId = "successAfterFail", calledActionId = "fail")
 @Trigger(type = TriggerType.OnCustomEvent, actionId = "onCustom", eventName = "lab-custom")
 @Getter
 @Setter
@@ -65,6 +67,11 @@ public class TriggersLab {
 
   public TriggersLab afterFail() {
     onError = "after fail";
+    return this;
+  }
+
+  public TriggersLab successAfterFail() {
+    onSuccess = "WRONG: success after a failure";
     return this;
   }
 
