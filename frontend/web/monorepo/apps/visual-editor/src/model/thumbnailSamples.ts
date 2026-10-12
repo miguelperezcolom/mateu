@@ -133,7 +133,7 @@ const SAMPLES: Record<string, Sample> = {
         { text: 'Yes, cleaned at 9:40.', userName: 'Housekeeping', time: '10:03', userColorIndex: 3 },
     ] },
     Meter: { type: 'Meter', label: 'Storage', value: 72, max: 100, unit: '%', caption: '72 of 100 GB', warnAt: 70, dangerAt: 90 },
-    MetricCard: metric('Revenue', '€48,210'),
+    MetricCard: { ...metric('Revenue', '€48,210'), timeframe: 'Last 30 days' },
     Notice: { type: 'Notice', text: '2 complaints pending', theme: 'warning', actionLabel: 'Review', actionId: 'go' },
     NotFound: { type: 'NotFound', title: 'Page not found', message: 'The page you asked for does not exist.', backRoute: '/', backLabel: 'Go home' },
     OfferCard: { type: 'OfferCard', tag: 'Best value', title: 'Premium room', subtitle: 'Sea view · 32 m²', features: ['Breakfast', 'Late check-out'], priceLabel: '€180 / night', actionLabel: 'Upgrade', actionId: 'go' },
@@ -142,6 +142,13 @@ const SAMPLES: Record<string, Sample> = {
         { title: 'Booking', actions: [{ label: 'Change dates', actionId: 'a', populated: true }, { label: 'Add a guest', actionId: 'b' }] },
         { title: 'Billing', actions: [{ label: 'Post a charge', actionId: 'c', count: 3 }, { label: 'Split the folio', actionId: 'd' }] },
     ] },
+    RecordMerge: { type: 'RecordMerge', title: 'Possible duplicate', mergeActionId: 'merge',
+        records: [{ id: 'a', label: 'Profile 1021' }, { id: 'b', label: 'Profile 3388' }],
+        fields: [
+            { fieldId: 'name', label: 'Name', values: ['Ana García', 'Ana García'] },
+            { fieldId: 'email', label: 'Email', values: [null, 'ana@example.com'] },
+            { fieldId: 'phone', label: 'Phone', values: ['+34 600 111 222', '+34 699 333 444'] },
+        ] },
     DropZone: { type: 'DropZone', accept: 'charges', actionId: 'move', title: 'Window 2', subtitle: 'Drop charges here' },
     Map: { type: 'Map', markers: [
         { id: 'a', latitude: 39.5715, longitude: 2.649, label: 'Palma Centre', color: '#508223' },

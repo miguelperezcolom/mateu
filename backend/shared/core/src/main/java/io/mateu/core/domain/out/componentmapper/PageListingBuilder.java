@@ -158,10 +158,13 @@ public class PageListingBuilder {
               // the appearance declared by an @Toolbar on the same method; unset keeps the
               // renderer's default (see ToolbarButtons)
               buttons.add(
-                  ToolbarButtons.toolbarButton(
+                  ToolbarButtons.listToolbarButton(
                       method.getName(),
                       label != null ? label.value() : method.getName(),
-                      MetaAnnotations.find(method, Toolbar.class)));
+                      MetaAnnotations.find(method, Toolbar.class),
+                      MetaAnnotations.find(
+                          method, io.mateu.uidl.annotations.ListToolbarButton.class),
+                      MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class)));
             });
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
       buttons.add(new Button("Import", "import"));

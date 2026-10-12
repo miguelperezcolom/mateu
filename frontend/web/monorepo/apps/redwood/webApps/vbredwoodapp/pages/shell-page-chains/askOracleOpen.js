@@ -54,10 +54,14 @@ define([
           icon: 'oj-ux-ico-filter', kind: bridge.chromeText('quickView') });
       }
     }
+    // QUICK LAUNCH (@AppShortcut codes): the matching app shortcuts first — an exact code + Enter
+    // goes straight there (appExtras.mjs)
+    const reg = $application.variables.mateuRegistry;
+    const shortcutRows = bridge.appShortcutRowsOf(reg && reg.shell ? reg.shell.shortcuts : [], text);
     const busca = (text || '').trim().toLowerCase();
     // se busca también por el rastro: "workflow" encuentra sus pantallas
     return busca
-      ? items.filter((item) => (item.label + ' ' + (item.trail || '')).toLowerCase().indexOf(busca) >= 0)
+      ? shortcutRows.concat(items.filter((item) => (item.label + ' ' + (item.trail || '')).toLowerCase().indexOf(busca) >= 0))
       : items;
   };
 

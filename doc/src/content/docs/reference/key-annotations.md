@@ -31,7 +31,7 @@ Use it when a class should become a page or UI entry point.
 
 `@Route`, `@Routes` and `@HomeRoute` were **removed**: `@UI` is the only routing annotation. The
 screens inside a UI — including routes with placeholders — are declared as data in a
-[`routes.yaml` route registry](/java-ui-definition/route-registry/).
+[`routes.yaml` route registry](/concepts/routes-and-mounts/).
 
 ```java
 public class ExamplePage {
@@ -256,7 +256,7 @@ Current rules:
 ### Key fields
 
 - `value()` — `@AutoLayout(false)` opts a class out when inference is enabled globally via the
-  `mateu.layout.inference` system property.
+  `mateu.layout.inference.enabled` setting (formerly `mateu.layout.inference`, still accepted).
 
 See [Layout inference](/ux-patterns/layout-inference/) for the full rules, thresholds and wire
 semantics.
@@ -535,9 +535,11 @@ Object approve(HttpRequest req) { ... }
 
 ---
 
-## `@KeycloakSecured`
+## `@KeycloakSecured` (deprecated)
 
-Secures a UI using Keycloak.
+Secures a UI using Keycloak. **Deprecated in 3.0-alpha.412**: identity comes from your host
+framework or a `PrincipalResolver` — see [Security](/java-user-manual/advanced/security/). It keeps
+working.
 
 ```java
 @UI("")
@@ -549,7 +551,7 @@ Secures a UI using Keycloak.
 public class App {}
 ```
 
-Use it for application authentication.
+Prefer your framework's authentication for new apps.
 
 ### Key fields
 

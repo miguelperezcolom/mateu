@@ -168,6 +168,28 @@ class FieldKindsSyncTest {
     String name = "Ada";
   }
 
+  @UI("/field-kinds/supplied-badges")
+  public static class SuppliedBadgesForm implements io.mateu.uidl.interfaces.HeaderBadgesSupplier {
+    @BadgeInHeader String ignored = "loses to the supplier";
+
+    @Override
+    public List<io.mateu.uidl.data.Badge> headerBadges() {
+      return List.of(
+          io.mateu.uidl.data.Badge.builder().text("Confirmed").color("success").build(),
+          io.mateu.uidl.data.Badge.builder().text(" ").build());
+    }
+  }
+
+  /** The deprecated alias keeps working: Mateu still reads a BadgeSupplier. */
+  @SuppressWarnings("removal")
+  @UI("/field-kinds/legacy-badges")
+  public static class LegacyBadgesForm implements io.mateu.uidl.interfaces.BadgeSupplier {
+    @Override
+    public List<io.mateu.uidl.data.Badge> badges() {
+      return List.of(io.mateu.uidl.data.Badge.builder().text("Legacy").color("warning").build());
+    }
+  }
+
   @SuppressWarnings("unused")
   @UI("/field-kinds/links")
   public static class LinkedForm {
@@ -235,6 +257,8 @@ class FieldKindsSyncTest {
             PlainTextForm.class,
             SectionedForm.class,
             BadgeHeaderForm.class,
+            SuppliedBadgesForm.class,
+            LegacyBadgesForm.class,
             GridForm.class,
             LinkedForm.class,
             SuppliedLinkForm.class);
@@ -594,6 +618,22 @@ class FieldKindsSyncTest {
         .containsExactlyInAnyOrder(
             org.assertj.core.groups.Tuple.tuple("${state.vip ? 'VIP' : ''}", "success"),
             org.assertj.core.groups.Tuple.tuple("${state.status}", "normal"));
+  }
+
+  @Test
+  void headerBadgesSupplierWinsOverBadgeInHeaderFieldsAndSkipsBlankBadges() {
+    var badges = collect(root("/field-kinds/supplied-badges"), PageDto.class).get(0).badges();
+    assertThat(badges)
+        .extracting(BadgeDto::text, BadgeDto::color)
+        .containsExactly(org.assertj.core.groups.Tuple.tuple("Confirmed", "success"));
+  }
+
+  @Test
+  void theDeprecatedBadgeSupplierStillSuppliesHeaderBadges() {
+    var badges = collect(root("/field-kinds/legacy-badges"), PageDto.class).get(0).badges();
+    assertThat(badges)
+        .extracting(BadgeDto::text, BadgeDto::color)
+        .containsExactly(org.assertj.core.groups.Tuple.tuple("Legacy", "warning"));
   }
 
   @Test

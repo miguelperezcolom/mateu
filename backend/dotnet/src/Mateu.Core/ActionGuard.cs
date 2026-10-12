@@ -143,11 +143,36 @@ internal static class ActionGuard
         if (reason is not null) Deny($"action '{actionId}' on {type.FullName} denied by {reason}");
     }
 
-    /// <summary>Enforces a class-level [EyesOnly] on a view type resolved from the wire.</summary>
+    /// <summary>Enforces a class-level [EyesOnly] — and the deprecated [Secured], which means
+    /// exactly [EyesOnly(Permissions = [permission])] — on a view type resolved from the wire.</summary>
     internal static void EnsureViewVisible(Type type)
     {
-        if (!Authorized(type.Find<EyesOnlyAttribute>()))
-            Deny($"view {type.FullName} denied by class-level [EyesOnly]");
+        var id = IdentitySource.Value?.Invoke();
+        if (!ViewGatesSatisfied(type, id, out var reason))
+            Deny($"view {type.FullName} denied by class-level {reason}");
+    }
+
+    /// <summary>Whether <paramref name="id"/> may see the view <paramref name="type"/>: its
+    /// class-level [EyesOnly] and its deprecated [Secured] (since 3.0-alpha.412 enforced with the
+    /// semantics of [EyesOnly(Permissions = [permission])]; before, nothing read it).</summary>
+    internal static bool ViewGatesSatisfied(Type type, Identity? id, out string reason)
+    {
+        if (type.Find<EyesOnlyAttribute>() is { } gate
+            && !Satisfies(gate.Roles, gate.Groups, gate.Scopes, gate.Permissions, id))
+        {
+            reason = "[EyesOnly]";
+            return false;
+        }
+#pragma warning disable CS0618 // [Secured] is deprecated, and still enforced
+        if (type.Find<SecuredAttribute>() is { } secured
+            && !Satisfies([], [], [], [secured.Permission], id))
+#pragma warning restore CS0618
+        {
+            reason = "[Secured]";
+            return false;
+        }
+        reason = "";
+        return true;
     }
 
     internal static void Deny(string what)
@@ -166,6 +191,9 @@ internal static class ActionGuard
                 ids.Add(Naming.CamelCase(onRow.Value));
         foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
             if (s.Action.Length > 0) ids.Add(s.Action);
+        // an app-wide shortcut's action runs on the app, whatever screen is below it
+        foreach (var shortcut in type.GetCustomAttributes<AppShortcutAttribute>())
+            if (!string.IsNullOrWhiteSpace(shortcut.ActionId)) ids.Add(shortcut.ActionId.Trim());
         if (instance is IRefreshOnChange refresh && !string.IsNullOrEmpty(refresh.RefreshActionId))
             ids.Add(refresh.RefreshActionId);
         // [Section(EditAction/AddAction/ViewMoreAction)] buttons dispatch the named methods

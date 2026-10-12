@@ -1,9 +1,9 @@
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { MateuAppProvider, useAppContext } from './src/context/AppContext';
+import { MateuAppProvider } from './src/context/AppContext';
 import {
   fetchRegistryEntry,
   installedRendererVersion,
@@ -16,11 +16,20 @@ import { OidcTokenProvider } from './src/core/oidc';
 import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
 import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
-import { loadFailureMessage } from './src/core/uxRules';
 import { theme } from './src/theme';
-import { AppRenderer } from './src/renderer/AppRenderer';
-import { MateuViewHost } from './src/renderer/MateuViewHost';
-import { overlayContentWithData, overlayIdOf, upsertOverlay } from './src/renderer/patternGaps';
+import { SessionContent } from './src/shell/SessionContent';
+import { HubApp } from './src/hub/HubApp';
+
+// ─── Boot modes ──────────────────────────────────────────────────────────────
+// HUB (default): the generic "Mateu" app — the user's own list of UIs, added by QR / address / deep
+// link, each rendered in its own session (src/hub, design/mobile-app-hub.md).
+// REGISTRY: a white-label installable whose app.json carries a registry URL + app id (below).
+// DIRECT: a developer pointing the renderer at ONE backend — EXPO_PUBLIC_MATEU_BACKEND_PORT /
+// EXPO_PUBLIC_MATEU_BACKEND_URL, or `?route=` on the web build (what the screenshot/a11y probes use).
+const directMode = (): boolean =>
+  !!process.env.EXPO_PUBLIC_MATEU_BACKEND_PORT ||
+  !!process.env.EXPO_PUBLIC_MATEU_BACKEND_URL ||
+  (Platform.OS === 'web' && typeof window !== 'undefined' && /[?&](route|direct)=/.test(window.location.search));
 
 // ─── Backend resolution ──────────────────────────────────────────────────────
 // PRODUCTION: the installable carries only a registry URL + app id (app.json `expo.extra`
@@ -54,7 +63,9 @@ interface BootConfig {
 }
 
 const DEV_CONFIG: BootConfig = {
-  baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
+  baseUrl:
+    process.env.EXPO_PUBLIC_MATEU_BACKEND_URL?.replace(/\/+$/, '') ||
+    `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
   appState: { tenantId: '1111', profile: 'dev' },
   oidc: oidcConfigFromEnv({
     EXPO_PUBLIC_MATEU_OIDC_ISSUER: process.env.EXPO_PUBLIC_MATEU_OIDC_ISSUER,
@@ -73,207 +84,6 @@ function configFromEntry(entry: RegistryEntry): BootConfig {
   };
 }
 // ─────────────────────────────────────────────────────────────────────────────
-
-interface Toast {
-  id: number;
-  title: string | null;
-  text: string;
-  variant: 'info' | 'warning' | 'error';
-  undo?: { label: string; onPress: () => void };
-}
-
-/** Non-blocking messages from the backend (toasts on the web) as stacked banners. Undoable
- *  messages (Message.undoActionId) show an Undo button and stay long enough to press it. */
-function ToastHost() {
-  const { session } = useAppContext();
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const nextId = useRef(1);
-
-  useEffect(() => {
-    session.notify = (title, text, variant, options) => {
-      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo };
-      setToasts((t) => [...t, toast]);
-      // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed
-      const duration = options?.duration && options.duration > 0 ? options.duration : options?.undo ? 10000 : 4000;
-      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
-    };
-  }, [session]);
-
-  const dismiss = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
-
-  if (toasts.length === 0) return null;
-  return (
-    <View style={styles.toastHost} pointerEvents="box-none">
-      {toasts.map((t) => (
-        <View key={t.id} style={[styles.toast, styles[`toast_${t.variant}`]]}>
-          {!!t.title && <Text style={styles.toastTitle}>{t.title}</Text>}
-          <View style={styles.toastBody}>
-            <Text style={[styles.toastText, styles.toastTextGrow]}>{t.text}</Text>
-            {!!t.undo && (
-              <TouchableOpacity
-                style={styles.toastUndo}
-                onPress={() => {
-                  t.undo!.onPress();
-                  dismiss(t.id);
-                }}
-              >
-                <Text style={styles.toastUndoText}>{t.undo.label}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-/** Dirty guard (@ConfirmOnNavigationIfDirty): native Alert on iOS/Android, window.confirm on web. */
-function DirtyGuardHost() {
-  const { session } = useAppContext();
-  useEffect(() => {
-    session.confirmDiscard = () =>
-      new Promise<boolean>((resolve) => {
-        if (Platform.OS === 'web') {
-          resolve(window.confirm('There are unsaved changes. Discard them?'));
-          return;
-        }
-        Alert.alert('Unsaved changes', 'Discard your changes?', [
-          { text: 'Keep editing', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
-        ]);
-      });
-  }, [session]);
-  return null;
-}
-
-/** Drawer/Dialog fragments (action=Add overlays): shown as a native modal sheet; the server
- *  closes them with UICommand.closeModal (its named event reaches @SubscribeTo hosts). An Add whose
- *  overlay id matches an OPEN overlay refreshes that one in place (the "same Drawer.id" contract —
- *  crud "Save and next", the drawer error banner) instead of stacking a duplicate. */
-function OverlayHost() {
-  const { session } = useAppContext();
-  const [overlays, setOverlays] = useState<
-    { component: unknown; title: string; revision: number; opener?: import('./src/core/MateuSession').OverlayOpenerContext }[]
-  >([]);
-
-  useEffect(() => {
-    session.openOverlay = (component, _state, _data, opener) => {
-      const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
-      const title = (meta['headerTitle'] as string) ?? (meta['title'] as string) ?? '';
-      setOverlays((o) => upsertOverlay(o, { component, title, opener, revision: 0 }));
-    };
-    session.closeTopOverlay = () => setOverlays((o) => o.slice(0, -1));
-  }, [session]);
-
-  if (overlays.length === 0) return null;
-  const top = overlays[overlays.length - 1];
-  const meta = ((top.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
-  const content = overlayContentWithData(meta);
-
-  return (
-    <Modal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
-      <View style={styles.overlayBackdrop}>
-        <View style={styles.overlaySheet}>
-          <View style={styles.overlayHeader}>
-            <Text style={styles.overlayTitle}>{top.title}</Text>
-            <TouchableOpacity onPress={() => session.closeTopOverlay()}>
-              <Text style={styles.overlayClose}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          {content ? (
-            <MateuViewHost
-              key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
-              session={session}
-              serverSideNode={content}
-              overlayOpener={top.opener}
-            />
-          ) : null}
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function MateuRoot() {
-  const { api, appState } = useAppContext();
-  const { session } = useAppContext();
-  const [rootComponent, setRootComponent] = useState<unknown>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // bumped by "Try again" on the connection-failure screen to repeat the boot load
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    // A server speaking another wire major: say so once, visibly, instead of rendering oddly.
-    api.onWireMismatch = (message) => session.notify('Version mismatch', message, 'warning', { duration: 12000 });
-    setLoading(true);
-    setError(null);
-    api
-      .initialLoad(MATEU_ROUTE, appState)
-      .then((result) => {
-        // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
-        const res = result as Record<string, unknown>;
-        const fragments = (res['fragments'] as any[]) ?? [];
-        const frag =
-          fragments.find((f) => f?.component?.metadata?.type === 'App') ??
-          fragments.find((f) => f?.component?.children?.[0]?.metadata?.type === 'App') ??
-          fragments[0];
-        const comp = frag?.component ?? null;
-        // Unwrap a ServerSide whose child is the App shell.
-        const child = (comp?.children as any[])?.[0];
-        setRootComponent(child?.metadata?.type === 'App' ? child : comp);
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attempt]);
-
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={styles.loadingText}>Loading…</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    // RN-05: the first screen of the app must not be a dead end. It used to show "Could not
-    // connect to Mateu backend" + the raw transport text and nothing to press — the user's only
-    // way out was killing the app. Plain words, the technical detail kept small for support, and
-    // a Try again that repeats the boot load (Nielsen #9; NN/g error-message guidelines).
-    const message = loadFailureMessage(error);
-    return (
-      <View style={styles.centered} accessibilityRole="alert">
-        <Text style={styles.errorTitle} accessibilityRole="header">{message.title}</Text>
-        <Text style={styles.errorDetail}>{message.detail}</Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Try again"
-          style={styles.retryButton}
-          onPress={() => setAttempt((a) => a + 1)}
-        >
-          <Text style={styles.retryText}>Try again</Text>
-        </TouchableOpacity>
-        {message.detail !== error && <Text style={styles.errorTechnical}>{error}</Text>}
-      </View>
-    );
-  }
-
-  if (!rootComponent) return null;
-
-  const comp = rootComponent as Record<string, unknown>;
-  const metadata = (comp['metadata'] as Record<string, unknown>) ?? {};
-  const metaType = (metadata['type'] as string) ?? '';
-
-  if (metaType === 'App') {
-    return <AppRenderer component={comp} appMeta={metadata as any} />;
-  }
-
-  // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} target={{ label: '', route: MATEU_ROUTE, consumedRoute: '_empty', serverSideType: '' }} />;
-}
 
 /** Blocking screen shown when the registry demands a newer renderer. "Update now" first tries
  *  an over-the-air update (expo-updates, real for EAS-built installables), then falls back to
@@ -446,10 +256,7 @@ function AuthGate({ config }: { config: BootConfig }) {
   }
   return (
     <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState }}>
-      <MateuRoot />
-      <OverlayHost />
-      <ToastHost />
-      <DirtyGuardHost />
+      <SessionContent initialRoute={MATEU_ROUTE} />
     </MateuAppProvider>
   );
 }
@@ -458,7 +265,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
-        <RegistryBoot />
+        {readRegistryConfig() || directMode() ? <RegistryBoot /> : <HubApp />}
       </SafeAreaView>
     </SafeAreaProvider>
   );

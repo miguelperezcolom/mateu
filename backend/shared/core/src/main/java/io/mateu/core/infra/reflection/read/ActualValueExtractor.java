@@ -65,6 +65,14 @@ public class ActualValueExtractor {
         return SearchableIdsConverter.convert(
             f, (java.util.Collection<?>) entry.getValue(), instanceFactory, httpRequest);
       }
+      if (holdsEnums(f)) {
+        // left as sent: the writer's enum-collection conversion (FieldValueConverter) takes a
+        // list OR a comma-joined string (a URL restore) and drops stale constants. The generic
+        // list/array converters below cast a String to a List (ClassCastException) and let one
+        // stale constant throw — either way hydration swallowed it and the whole selection was
+        // lost.
+        return entry.getValue();
+      }
       if (List.class.isAssignableFrom(f.getType())) {
         return convertListValue(f, entry.getValue(), instanceFactory, httpRequest);
       }
@@ -95,6 +103,19 @@ public class ActualValueExtractor {
       }
     }
     return targetValue;
+  }
+
+  /** An array, List or Set of enum constants (a multi-choice field). */
+  private static boolean holdsEnums(Field f) {
+    var type = f.getType();
+    if (type.isArray()) {
+      return type.getComponentType().isEnum();
+    }
+    return Collection.class.isAssignableFrom(type)
+        && f.getGenericType() instanceof java.lang.reflect.ParameterizedType p
+        && p.getActualTypeArguments().length == 1
+        && p.getActualTypeArguments()[0] instanceof Class<?> element
+        && element.isEnum();
   }
 
   /**

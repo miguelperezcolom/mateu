@@ -250,17 +250,42 @@ const hasRemoteMenu = (items: FluentNode[]): boolean =>
  * the wire (`AppMetadataExtractor.getVariant`), so a browser-expanded shell must resolve it the same
  * way: the renderers have no `AUTO` layout and drew NOTHING for it (an empty play / static app).
  * Remote sections → MENU_ON_TOP; with groups: a group nesting a group → TILES, more than 7 top
- * entries → HAMBURGUER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
+ * entries → HAMBURGER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
  */
 export function resolveAppVariant(declared: unknown, menu: FluentNode[]): string {
     if (typeof declared === 'string' && declared.trim() && declared.trim().toUpperCase() !== 'AUTO') return declared.trim()
     if (hasRemoteMenu(menu)) return 'MENU_ON_TOP'
     if (menu.some(isGroup)) {
         if (menu.some((i) => isGroup(i) && (subOf(i) ?? []).some(isGroup))) return 'TILES'
-        if (menu.length > 7) return 'HAMBURGUER_MENU'
+        if (menu.length > 7) return 'HAMBURGER_MENU'
         return 'MENU_ON_TOP'
     }
     return 'TABS'
+}
+
+/** `shortcuts:` of a shell → the wire's (AppShellExtrasMapper): a key or a code, and somewhere to go. */
+export function shellShortcuts(raw: unknown): Record<string, unknown>[] {
+    const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined)
+    return ((raw as Record<string, unknown>[] | undefined) ?? [])
+        .filter((s) => s && typeof s === 'object')
+        .map((s) => ({ key: text(s.key)?.toLowerCase(), code: text(s.code), route: text(s.route), actionId: text(s.actionId), label: text(s.label) }))
+        .filter((s) => (s.key || s.code) && (s.route || s.actionId))
+        .map((s) => {
+            const route = s.route ? '/' + s.route.replace(/^\/+/, '') : undefined
+            const last = route?.replace(/\/+$/, '').split('/').pop() ?? ''
+            const label = s.label ?? (route ? (last ? last.charAt(0).toUpperCase() + last.slice(1).replace(/-/g, ' ') : 'Home') : s.actionId)
+            return { key: s.key ?? null, label, route: route ?? null, actionId: s.actionId ?? null, code: s.code ?? null }
+        })
+}
+
+/** `idleTimeoutMinutes:` & co. → the wire's idle session (AppShellExtrasMapper.idleSession). */
+export function idleSessionOf(shell: FluentNode): Record<string, unknown> | null {
+    const minutes = Number(shell.idleTimeoutMinutes ?? 0)
+    if (!(minutes > 0)) return null
+    const timeout = minutes * 60
+    const warning = Math.max(5, Math.min(Number(shell.idleWarningSeconds ?? 60) || 60, timeout))
+    const signOut = typeof shell.idleSignOutUrl === 'string' && shell.idleSignOutUrl.trim() ? shell.idleSignOutUrl.trim() : '/'
+    return { timeoutSeconds: timeout, warningSeconds: warning, signOutUrl: signOut, keepAliveActionId: null }
 }
 
 /**
@@ -297,6 +322,7 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     commandCenterEnabled: flag('commandCenter') || flag('chromeless'),
                     chromeless: flag('chromeless'),
                     accessKeys: flag('accessKeys'),
+                    mobileQr: flag('mobileQr'),
                     drawerClosed: flag('drawerClosed'),
                     style: typeof shell.style === 'string' ? shell.style : undefined,
                     cssClasses: typeof shell.cssClasses === 'string' ? shell.cssClasses : undefined,
@@ -321,6 +347,14 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     // the app's ACTION catalogue (AppMapper.actionCatalogue): whatever the client
                     // holds — the bundle manifest's, or the visual editor's Play
                     actionCatalogue: actionCatalogue(),
+                    // E2 patterns, as AppShellExtrasMapper reads them off a `type: AppShell`
+                    shortcuts: shellShortcuts(shell.shortcuts),
+                    headerValues: ((shell.headerValues as Record<string, unknown>[] | undefined) ?? [])
+                        .filter((v) => v && typeof v.id === 'string')
+                        .map((v) => ({ id: v.id, label: typeof v.label === 'string' && v.label.trim() ? v.label : null, value: v.value ?? '' })),
+                    // a bundle has no server to stream from, nor to keep alive
+                    liveUpdates: false,
+                    idleSession: idleSessionOf(shell),
                 },
                 // the header widgets (AppMapper.mapWidgets): each authored component, in slot "widgets"
                 children: widgets.map((w) => ({ ...expandComponent(w), slot: 'widgets' })),

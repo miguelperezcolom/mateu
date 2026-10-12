@@ -69,7 +69,12 @@ public sealed partial class ReflectionMapper
                 return submenus;
             }
             foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                         .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)))
+                         .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)
+                                     // an entry leading to a view the caller may not open (its
+                                     // class-level [EyesOnly] / deprecated [Secured]) is hidden,
+                                     // and the entry's own [EyesOnly] hides it too
+                                     && Authorized(m.Find<EyesOnlyAttribute>())
+                                     && ActionGuard.ViewGatesSatisfied(m.ReturnType, identity?.Invoke(), out _)))
             {
                 var attribute = m.Find<MenuItemAttribute>()!;
                 var entry = Presented(MapMenuItem(m), null, attribute.Description, attribute.Icon, attribute.Image);
@@ -137,6 +142,13 @@ public sealed partial class ReflectionMapper
             Chromeless = app.Chromeless,
             // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             AccessKeys = app.AccessKeys,
+            // E2 patterns: app-wide shortcuts, live header values, the idle-session warning
+            Shortcuts = MapShortcuts(appType, appRoute),
+            HeaderValues = MapHeaderValues(appType, app),
+            LiveUpdates = app.LiveUpdates,
+            IdleSession = MapIdleSession(app, appRoute),
+            // "Open on mobile" (QR for the Mateu mobile app): opt-in, mirrors AppDto.mobileQr.
+            MobileQr = app.MobileQr,
             // The UI language: what the translator says (mirrors AppDto.locale).
             Locale = translator?.Locale,
         };

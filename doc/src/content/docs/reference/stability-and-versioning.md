@@ -46,11 +46,29 @@ You can build on these; they follow the deprecation policy.
 |---|---|
 | **The authoring API** — annotations (`@UI`, `@Action`, `@Section`…), interfaces (`CrudStore`, `Listing` and its capability interfaces, suppliers…), the fluent component records and data types | the `io.mateu:mateu-uidl` artifact (`io.mateu.uidl.*`) |
 | **The archetypes and orchestrators** you extend — `AutoCrud`, `FilteredAutoCrud`, `Crud`, `Wizard`, `Dashboard`, `Foldout`, `HeroSearch`, `CollectionDetail`, … | their `public`/`protected` members in `io.mateu:mateu-core` (`io.mateu.core.infra.declarative.orchestrators.*`) |
-| **The wire** — the JSON exchanged between backend and renderer | the DTOs of `io.mateu:mateu-dtos` and the [wire specification](/reference/wire-specification/); compatibility rules below |
+| **The wire** — the JSON exchanged between backend and renderer | the [wire specification](/reference/wire-specification/), versioned by `wireVersion`; compatibility rules [below](#wire-compatibility). The Java DTO classes of `io.mateu:mateu-dtos` that model it are **not** under the Java binary-compatibility promise — see [The wire DTOs](#the-wire-dtos-json-not-java-binaries) |
 | **The authoring schemas** — `uidl-schema.json`, `routes-schema.json`, `sources-schema.json`, `specs-schema.json` (YAML `specs/ui/**`) | `backend/shared/uidl/*.json`, generated from the records |
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
+| **Adapter configuration** — the `mateu.*` properties the guides document (`mateu.cors.allowed-origins`, `mateu.ui.modules`…) and `@EnableMateuUiModules` (Spring MVC / WebFlux) | the adapter artifacts (`mateu-mvc`, `mateu-webflux`, …); everything else in them is internal |
 | **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
+
+### The wire DTOs: JSON, not Java binaries
+
+`mateu-dtos` is public — you can read it, and a renderer or a non-Java producer can build on the JSON
+it describes — but **its contract is the JSON wire, not the Java classes**. The wire is versioned by
+`wireVersion` and stays additive within a major ([Wire compatibility](#wire-compatibility)); the Java
+records that model it are not covered by the binary-compatibility promise:
+
+- a new optional wire field adds a component to its DTO record, which replaces the record's
+  canonical constructor — harmless for the JSON, binary-incompatible for Java code that called that
+  constructor;
+- so build DTOs through their **builders** (`AppDto.builder()…`), or better, don't build them at
+  all: hand Mateu the authoring API (`mateu-uidl`) and let it map.
+
+The compatibility check still compares `mateu-dtos` against the last release and publishes the
+report, but it never fails the build for it, even with enforcement on. Deprecations in `mateu-dtos`
+(an enum constant that is no longer sent, an unreachable DTO) still follow the deprecation policy.
 
 ### Module layering
 
@@ -167,23 +185,24 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 270 | 242 | 0 | 28 | 0 |
-| `mateu-uidl` | `io.mateu.uidl` | 6 | 6 | 0 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 169 | 163 | 4 | 2 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 306 | 263 | 37 | 6 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 276 | 248 | 0 | 28 | 0 |
+| `mateu-uidl` | `io.mateu.uidl` | 7 | 6 | 1 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 7 | 3 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 311 | 263 | 42 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 105 | 96 | 6 | 1 | 2 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 108 | 96 | 8 | 2 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **961** | **839** | **47** | **40** | **35** |
+| **Total** | | **979** | **844** | **58** | **42** | **35** |
 
 **Experimental types** (the whole type and its members):
 
-- `io.mateu.uidl.annotations`: `AI`, `DragRows`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl`: `LiveHeaderValues`
+- `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `DragRows`, `MobileApp`, `RowStatus`, `Tooltip`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeaderValue`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `KeepAliveHandler`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
 
@@ -196,7 +215,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.smartsearch.SmartSearchPage`: `preSearchContent`
 - `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
-- `io.mateu.uidl.annotations.App`: `accessKeys`
+- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `tone`
@@ -209,6 +228,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.HeroSection`: `tone`
 - `io.mateu.uidl.data.Map`: `attribution`, `markerActionId`, `markers`, `tileUrl`
 - `io.mateu.uidl.data.Menu`: `presentation`
+- `io.mateu.uidl.data.MetricCard`: `timeframe`
 - `io.mateu.uidl.data.PlanningBlock`: `icon`, `summary`
 - `io.mateu.uidl.data.PlanningBoard`: `attributeColumns`, `openActionId`, `rangeSelectActionId`, `resizeActionId`
 - `io.mateu.uidl.data.PlanningResource`: `attributes`, `icon`
@@ -218,8 +238,8 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
-- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`
-- `io.mateu.uidl.fluent.AppShell`: `accessKeys`
+- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
+- `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `shortcuts`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
 
@@ -251,9 +271,10 @@ compatibility check skips them, and they may change in any release. The extensio
 ## Enforcement
 
 Every build checks the Java public API against the **last released version** with
-[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `mateu-uidl` and `mateu-dtos` jars, and
-the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`), against
-`<mateu.japicmp.baseline>` (in `backend/pom.xml`) and writes a report to
+[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `mateu-uidl` jar and the
+archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`) — and, report-only,
+the `mateu-dtos` jar ([why](#the-wire-dtos-json-not-java-binaries)) — against
+`<mateu.japicmp.baseline>` (in `backend/pom.xml`, currently `3.0-alpha.411`) and writes a report to
 `target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job summary.
 
 - **Until the beta** the check is **report-only** (`mateu.api.enforce=false`): the alphas
@@ -261,16 +282,16 @@ the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators
 - **The blocking configuration is ready** behind one switch: `-Dmateu.api.enforce=true` (the
   `mateu.api.enforce` property of `backend/pom.xml`; the plugin's own `mateu.japicmp.enforce`
   follows it). With it, a binary- or source-incompatible change to the **non-`@Experimental`**
-  surface **fails `mvn verify`**, unless it is listed in
+  surface of `mateu-uidl` and the archetypes **fails `mvn verify`** (`mateu-dtos` stays
+  report-only), unless it is listed in
   **`backend/api-compat/japicmp-exclusions.properties`** — the reviewed allowlist. Adding an entry is
   how an intentional break (the end of a deprecation period, a major release) gets through; the
   comment block above the list names the release or PR that accepted each group, and the list is
   reset whenever the baseline moves. The [Internal](#stable-and-experimental-api-by-package) types
   are excluded from the check.
 - Marking an existing stable API `@Experimental` is itself reported as a removal — japicmp drops the
-  annotated element on the new side only — so an API cannot leave the promise silently. The marks
-  added by the API freeze review on 3.0-alpha.408/409 API are in the allowlist for that reason, until
-  the baseline moves past them.
+  annotated element on the new side only — so an API cannot leave the promise silently: such a mark
+  needs an allowlist entry until the baseline moves past it.
 
 **Flipping it on at the beta** — one commit, at the beta tag:
 
@@ -279,7 +300,8 @@ the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators
 2. set `<mateu.api.enforce>true</mateu.api.enforce>` in `backend/pom.xml`;
 3. empty `japicmp-exclusions.properties` down to the sentinel (its entries described the diff against
    the old baseline), run `mvn verify -pl shared/dtos,shared/uidl,shared/core`, and re-add only the
-   breaks that are deliberate.
+   breaks that are deliberate. (Since 3.0-alpha.412 the list holds only the sentinel and
+   `-Dmateu.api.enforce=true` passes against `3.0-alpha.411`.)
 
 Run it locally with `mvn verify -pl shared/uidl` (add `-Dmateu.api.enforce=true` to see what would
 fail; `-Dmateu.japicmp.skip=true` skips it, e.g. offline — the baseline jar comes from Maven

@@ -308,7 +308,7 @@ Marks a field as a status chip rendered in the **page header strip** (not in the
 - **Boolean field**: the badge is shown when the value is `true`; the text comes from `label` (falls back to the field's derived label if empty).
 - **String field**: the field value is used as badge text; `null` or blank hides the badge.
 
-For programmatic control implement `BadgeSupplier` (see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/)).
+For programmatic control implement `HeaderBadgesSupplier` (see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/)).
 
 ![BadgeInHeader — status chip in the page header strip](/images/docs/annotations/badge.png)
 

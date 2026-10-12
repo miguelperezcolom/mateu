@@ -9,7 +9,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | Annotation | Target | Description |
 |---|---|---|
 | [`@UI`](ui/) | Class | Registers a class as a Mateu UI entry point |
-| [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/) |
+| [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/) |
 | [`@HomeRoute`](route/) | — | **Removed** — the home is the first menu item, or `HomeRouteSupplier.homeRoute()` |
 | [`@UISpec`](uispec/) | Class | Uses a YAML file as the component tree instead of `ComponentTreeSupplier` |
 
@@ -21,7 +21,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | [`@DrawerClosed`](app/) | Class | Starts the drawer/sidebar in closed state |
 | [`@Logo`](app/) | Class | Sets the app logo URL |
 | [`@FavIcon`](app/) | Class | Sets the browser favicon |
-| [`@KeycloakSecured`](app/) | Class | Protects a page with Keycloak authentication |
+| [`@KeycloakSecured`](app/) | Class | Deprecated: logs in against Keycloak — use your framework's security (see [Security](/java-user-manual/advanced/security/)) |
 | [`@AI`](app/) | Class | Enables AI/SSE integration |
 
 ## HTML head injection

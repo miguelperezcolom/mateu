@@ -85,12 +85,58 @@ public static class MateuExtensions
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
         app.MapPost(prefix + "/mateu/v3/sync/{**route}", async (HttpContext ctx, SyncHandler handler) =>
         {
-            var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
+            // Read INSIDE the boundary: a malformed body is an error toast, never a raw 500.
+            var rq = new RunActionRqDto();
+            var increment = await RunGuarded(ctx, rq, async () =>
+            {
+                rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
-            var increment = await RunGuarded(ctx, rq, () =>
-                handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted));
+                return await handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted);
+            });
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
+        });
+
+        // Streamed actions (Java's v3/sse/**): one text/event-stream "data:" event per increment.
+        // The app event stream of [App(LiveUpdates)] (_live-updates) stays open — the snapshot of
+        // published header values, then every LiveHeaderValues.Publish, an empty heartbeat every
+        // 20 s, and it ENDS after 5 minutes (the browser reconnects at once). Any other action runs
+        // through the sync handler and streams its single increment.
+        app.MapPost(prefix + "/mateu/v3/sse/{**route}", async (HttpContext ctx, SyncHandler handler) =>
+        {
+            var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
+                     ?? new RunActionRqDto();
+            ctx.Response.ContentType = "text/event-stream";
+            ctx.Response.Headers.CacheControl = "no-cache";
+            async Task Send(UIIncrementDto increment, CancellationToken token)
+            {
+                await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
+                await ctx.Response.Body.FlushAsync(token);
+            }
+            if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
+            {
+                var increment = await RunGuarded(ctx, rq, () =>
+                    handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted));
+                await Send(increment, ctx.RequestAborted);
+                return;
+            }
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+            lifetime.CancelAfter(LiveUpdatesMaxDuration);
+            var queue = System.Threading.Channels.Channel.CreateUnbounded<UIIncrementDto>();
+            queue.Writer.TryWrite(SyncHandler.LiveUpdatesSnapshot());
+            using var subscription = LiveHeaderValues.Subscribe(change =>
+                queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.LiveUpdateCommand(change.Id, change.Value)])));
+            using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
+                LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+            try
+            {
+                await foreach (var increment in queue.Reader.ReadAllAsync(lifetime.Token))
+                    await Send(increment, lifetime.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // the browser went away, or the stream reached its maximum life
+            }
         });
 
         // A document an action parked (Mateu.Core.DocumentStore), served ONCE. No auth beyond the
@@ -108,16 +154,45 @@ public static class MateuExtensions
             }
         });
 
+        // The UI manifest the generic Mateu mobile app reads (name, icon, wire/app version, the
+        // OIDC issuer the host trusts). Public and cacheable: it carries no secret, and the app
+        // needs it before anyone has logged in. EXPERIMENTAL (mobile app).
+        app.MapGet(prefix + MobileManifest.Path, async (HttpContext ctx, MateuRegistry registry) =>
+        {
+            foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl), ctx.RequestAborted);
+        });
+
         // Live reload (development mode only): the event stream and the re-render trigger. Absent
         // otherwise — a production app does not even route them.
         if (DevSpecs.Enabled) MapDevEndpoints(app);
 
         // Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
-        // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
+        // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and
+        // the SAME error boundary (a failing tool call never shows its raw exception). OFF unless
+        // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
+        var options = app.Services.GetService<MateuOptions>();
+        if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+    }
+
+    private static void MapMcpEndpoint(WebApplication app, string prefix)
+    {
         app.MapPost(prefix + "/mateu/mcp", async (HttpContext ctx, SyncHandler handler) =>
         {
-            var message = await JsonSerializer.DeserializeAsync<JsonNode>(ctx.Request.Body, Json, ctx.RequestAborted);
-            var mcp = new McpService(handler, Json, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
+            JsonNode? message;
+            try
+            {
+                message = await JsonSerializer.DeserializeAsync<JsonNode>(ctx.Request.Body, Json, ctx.RequestAborted);
+            }
+            catch (JsonException)
+            {
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync(
+                    "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}");
+                return;
+            }
+            var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
+            var mcp = new McpService(handler, Json, baseUrl, rq => Guard(ctx, rq, () => handler.Handle(rq, baseUrl)));
             var response = McpJsonRpc.Handle(message, mcp);
             if (response is null)
             {
@@ -128,6 +203,13 @@ public static class MateuExtensions
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
         });
     }
+
+    /// <summary>Heartbeat of the live-updates stream (keeps proxies from closing an idle connection).</summary>
+    internal static TimeSpan LiveUpdatesHeartbeat = TimeSpan.FromSeconds(20);
+
+    /// <summary>Maximum life of one live-updates stream: an adapter does not always learn that its
+    /// browser went away, and a subscription nobody reads must not live forever.</summary>
+    internal static TimeSpan LiveUpdatesMaxDuration = TimeSpan.FromMinutes(5);
 
     /// <summary><c>GET /mateu/dev/events</c> (SSE: hello with the boot id, then every change, a ping
     /// every 15 s) and <c>POST /mateu/dev/reload[?scope=app]</c> (204), at the server root like Java's.</summary>
@@ -173,15 +255,6 @@ public static class MateuExtensions
         {
             return await run();
         }
-        catch (MateuForbiddenException e)
-        {
-            // A denied action/view ([DisabledUnless]/[EyesOnly] not satisfied at invocation): 403
-            // with an error message increment, the method never ran.
-            Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
-                rq.Route, rq.ActionId, e.Message);
-            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
-        }
         catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
         {
             // The client went away: nobody is listening for an answer.
@@ -189,17 +262,47 @@ public static class MateuExtensions
         }
         catch (Exception e)
         {
-            var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
-            var cause = MateuErrors.Unwrap(e);
-            var log = Logger(ctx, "Mateu.Errors");
-            if (MateuErrors.IsForTheUser(cause))
-                log.LogInformation("Action {ActionId} on {Route} answered a user-facing error [{CorrelationId}]: {Message}",
-                    rq.ActionId, rq.Route, correlationId, cause.Message);
-            else
-                log.LogError(cause, "Unhandled error in action {ActionId} on {Route} [{CorrelationId}]",
-                    rq.ActionId, rq.Route, correlationId);
-            return MateuErrors.Increment(cause, correlationId, Detailed(ctx));
+            var increment = ErrorIncrement(ctx, rq, e, out var forbidden);
+            if (forbidden) ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return increment;
         }
+    }
+
+    /// <summary>The same boundary for a request run synchronously inside another response (an MCP
+    /// tool call): the error message increment, without touching the HTTP status of the envelope.</summary>
+    internal static UIIncrementDto Guard(HttpContext ctx, RunActionRqDto rq, Func<UIIncrementDto> run)
+    {
+        try
+        {
+            return run();
+        }
+        catch (Exception e)
+        {
+            return ErrorIncrement(ctx, rq, e, out _);
+        }
+    }
+
+    private static UIIncrementDto ErrorIncrement(HttpContext ctx, RunActionRqDto rq, Exception e, out bool forbidden)
+    {
+        forbidden = e is MateuForbiddenException;
+        if (forbidden)
+        {
+            // A denied action/view ([DisabledUnless]/[EyesOnly] not satisfied at invocation): an
+            // error message increment (403 on the sync endpoint), the method never ran.
+            Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
+                rq.Route, rq.ActionId, e.Message);
+            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
+        }
+        var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
+        var cause = MateuErrors.Unwrap(e);
+        var log = Logger(ctx, "Mateu.Errors");
+        if (MateuErrors.IsForTheUser(cause))
+            log.LogInformation("Action {ActionId} on {Route} answered a user-facing error [{CorrelationId}]: {Message}",
+                rq.ActionId, rq.Route, correlationId, cause.Message);
+        else
+            log.LogError(cause, "Unhandled error in action {ActionId} on {Route} [{CorrelationId}]",
+                rq.ActionId, rq.Route, correlationId);
+        return MateuErrors.Increment(cause, correlationId, Detailed(ctx));
     }
 
     private static bool Detailed(HttpContext ctx) =>

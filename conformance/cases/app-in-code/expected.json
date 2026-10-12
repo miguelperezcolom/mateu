@@ -33,7 +33,7 @@
         "title" : "App in code",
         "totalMenuOptions" : 3,
         "type" : "App",
-        "variant" : "MENU_ON_TOP"
+        "variant" : "HAMBURGER_MENU"
       },
       "type" : "ClientSide"
     }

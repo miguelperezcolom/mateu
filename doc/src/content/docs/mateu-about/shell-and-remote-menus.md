@@ -16,7 +16,6 @@ The shell defines:
 ```java
 @UI("")
 @Title("Console")
-@KeycloakSecured(...)
 public class ShellHome {
 }
 ```
@@ -32,6 +31,10 @@ RemoteMenu users = new RemoteMenu("/_users")
 ```
 
 Each remote menu points to a UI exposed by another service.
+
+The remote can be any Mateu app, including a product's console built with Mateu — see
+[Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/) for CORS, tokens,
+deep links and wire versions across the two services.
 
 ### Where the shell asks a remote
 

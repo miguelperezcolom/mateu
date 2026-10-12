@@ -711,6 +711,10 @@ class AppContext(val session: AppSession) {
         val root = contentPane ?: return
         for (a in shortcutActions) a.unregisterCustomShortcutSet(root)
         shortcutActions.clear()
+        // App-wide shortcuts (@AppShortcut) on this view too, minus the keys the screen itself uses:
+        // the screen's own shortcut wins (see AppShortcuts.bindable).
+        val screenKeys = if (actionNodes.isArray) actionNodes.map { it.text("shortcut") }.filter { it.isNotBlank() } else emptyList()
+        registerAppShortcuts(root, screenKeys)
         if (!actionNodes.isArray) return
         for (a in actionNodes) {
             val id = a.text("id")
@@ -725,6 +729,44 @@ class AppContext(val session: AppSession) {
                 com.intellij.openapi.actionSystem.CustomShortcutSet(keyStroke), root,
             )
             shortcutActions.add(action)
+        }
+    }
+
+    /** The navigator (no server-side screen of its own): (re)binds just the app shortcuts on its root. */
+    fun bindAppShortcuts() = registerShortcutActions(com.fasterxml.jackson.databind.node.MissingNode.getInstance())
+
+    /**
+     * Binds the app's shortcuts (and "?" → the shortcuts list) on [root], skipping those the screen
+     * binds itself. Registered as IDE actions scoped to the component, like the screen's; removed
+     * with them on the next (re)load.
+     */
+    fun registerAppShortcuts(root: JComponent, screenKeys: Collection<String> = emptyList()) {
+        val shortcuts = session.appShortcuts
+        if (shortcuts.isEmpty()) return
+        for (s in AppShortcuts.bindable(shortcuts, screenKeys)) {
+            val keyStroke = AppShortcuts.keyStrokeSpec(s.key)?.let { javax.swing.KeyStroke.getKeyStroke(it) } ?: continue
+            val action = object : com.intellij.openapi.actionSystem.AnAction() {
+                override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+                    io.mateu.ijp.ui.runAppShortcut(session, s)
+                }
+            }
+            action.registerCustomShortcutSet(com.intellij.openapi.actionSystem.CustomShortcutSet(keyStroke), root)
+            shortcutActions.add(action)
+        }
+        val help = object : com.intellij.openapi.actionSystem.AnAction() {
+            override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+                io.mateu.ijp.ui.showShortcutsDialog(session, root)
+            }
+            // "?" is a character: never steal it from a text field
+            override fun update(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+                val focus = java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+                e.presentation.isEnabled = focus !is javax.swing.text.JTextComponent
+            }
+            override fun getActionUpdateThread() = com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
+        }
+        javax.swing.KeyStroke.getKeyStroke("shift SLASH")?.let {
+            help.registerCustomShortcutSet(com.intellij.openapi.actionSystem.CustomShortcutSet(it), root)
+            shortcutActions.add(help)
         }
     }
 
@@ -1209,6 +1251,11 @@ class AppContext(val session: AppSession) {
                 // named event so the host page can react (e.g. reload) — same contract as the web.
                 SwingUtilities.invokeLater { session.closeTopOverlay() }
                 dispatchNamedEvent(cmdData)
+            }
+            // A live header value (the business date…) changes everywhere the session shows it.
+            "UpdateHeaderValue" -> {
+                val id = cmdData.text("id")
+                if (id.isNotBlank()) SwingUtilities.invokeLater { session.updateHeaderValue(id, cmdData.text("value")) }
             }
             // PushStateToHistory: no browser history on desktop.
         }

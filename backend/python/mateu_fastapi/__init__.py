@@ -14,6 +14,7 @@ Per request the adapter
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable, Sequence
 from types import ModuleType
 from typing import Any
@@ -26,12 +27,18 @@ from starlette.concurrency import run_in_threadpool
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_core.identity import framework_identity_provider, warn_on_startup
-from mateu_core import dev_specs, documents
+from mateu_core import dev_specs, documents, mobile_manifest
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
 from mateu_uidl import Identity
 
 log = logging.getLogger("mateu.fastapi")
+
+#: The live-updates event stream (``_live-updates``): an empty heartbeat this often, and the stream
+#: closes after LIVE_MAX_SECONDS so a subscription nobody reads cannot live forever — the browser
+#: reconnects at once (mirrors Java's LiveUpdatesActionRunner). Module-level so tests can shorten them.
+LIVE_HEARTBEAT_SECONDS: float = 20
+LIVE_MAX_SECONDS: float = 300
 
 #: Response header carrying the request's correlation id (also in the error toast and the log).
 CORRELATION_HEADER = "X-Mateu-Correlation-Id"
@@ -41,6 +48,11 @@ _FORBIDDEN_BODY = {
         {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 5000}
     ]
 }
+
+
+def mcp_enabled_from_env() -> bool:
+    """``MATEU_MCP_ENABLED`` (true/1/yes) — the native MCP endpoint is OFF unless enabled."""
+    return os.environ.get("MATEU_MCP_ENABLED", "").strip().lower() in ("1", "true", "yes")
 
 
 def authenticated_principal(request: Request) -> Identity | None:
@@ -89,6 +101,7 @@ def add_mateu(
     proxy_timeout_seconds: float = 30.0,
     environment: str | None = None,
     live_reload: bool | None = None,
+    mcp: bool | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -111,6 +124,9 @@ def add_mateu(
       watched, every cache is dropped on change, and ``GET /mateu/dev/events`` (SSE) +
       ``POST /mateu/dev/reload`` are served. Never in a production profile. Pair it with
       ``uvicorn --reload`` for Python changes.
+    - ``mcp`` — serve the native MCP endpoint ``POST /mateu/mcp`` (default: the
+      ``MATEU_MCP_ENABLED`` env var, else OFF — Java's ``mateu.mcp.enabled``). It gives any caller a
+      programmatic way to drive every screen, so the application has to decide to expose it.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -194,6 +210,89 @@ def add_mateu(
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
+    # Streamed actions: one text/event-stream "data:" event per increment, at the same
+    # /mateu/v3/sse/{route} the Java adapters serve. The app-level `_live-updates` action is the
+    # open-ended APP EVENT STREAM of @app(live_updates=True): the last published header values
+    # first, then one increment per LiveHeaderValues.publish, an empty heartbeat every
+    # LIVE_HEARTBEAT_SECONDS, closing after LIVE_MAX_SECONDS or when the browser goes away. Any
+    # other action runs through the sync handler and streams its one increment.
+    async def sse(request: Request, route: str = "") -> Response:
+        import asyncio
+        import json as json_module
+
+        from mateu_uidl import LiveHeaderValues
+
+        mateu_request = request_of(request)
+        rq: RunActionRq | None = None
+        try:
+            body = await request.body()
+            rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
+            if not rq.route:
+                rq.route = route
+            parsed = rq
+            first = await run_in_threadpool(
+                run_bound, mateu_request, lambda: handler.handle(parsed, mateu_request.base_url)
+            )
+        except MateuForbiddenException:
+            return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
+        except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
+            failure = failed(error, mateu_request, rq.action_id if rq is not None else None)
+            payload = bytes(failure.body).decode()
+
+            async def one_error():
+                yield f"data: {payload}\n\n"
+
+            return StreamingResponse(one_error(), media_type="text/event-stream")
+
+        def event(increment) -> str:
+            return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
+
+        headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+        if rq.action_id != "_live-updates":
+
+            async def single():
+                yield event(first)
+
+            return StreamingResponse(single(), media_type="text/event-stream", headers=headers)
+
+        from mateu_dtos import UICommand, UIIncrement
+
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def push(change) -> None:
+            loop.call_soon_threadsafe(queue.put_nowait, change)
+
+        unsubscribe = LiveHeaderValues.subscribe(push)
+
+        async def stream():
+            try:
+                yield event(first)
+                deadline = loop.time() + LIVE_MAX_SECONDS
+                while True:
+                    remaining = deadline - loop.time()
+                    if remaining <= 0:
+                        break
+                    try:
+                        change = await asyncio.wait_for(
+                            queue.get(), timeout=min(LIVE_HEARTBEAT_SECONDS, remaining)
+                        )
+                        increment = UIIncrement.of(
+                            commands=[UICommand.update_header_value(change.id, change.value)]
+                        )
+                    except asyncio.TimeoutError:
+                        increment = UIIncrement.of()
+                    if await request.is_disconnected():
+                        break
+                    yield event(increment)
+            finally:
+                unsubscribe()
+
+        return StreamingResponse(stream(), media_type="text/event-stream", headers=headers)
+
+    app.add_api_route(f"{prefix}/mateu/v3/sse/{{route:path}}", sse, methods=["POST"])
+    app.add_api_route(f"{prefix}/mateu/v3/sse", sse, methods=["POST"])
+
     # A document an action parked (mateu_core.documents), served ONCE. No auth beyond the token: a
     # new tab or a download link cannot carry a bearer token, and the 256-bit, short-lived,
     # single-use token was only handed out to a user allowed to run the action.
@@ -203,11 +302,29 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
 
+    # The UI manifest the generic Mateu mobile app reads (experimental): public and cacheable — a
+    # name, an icon, the wire version and, optionally, which OIDC provider the host app trusts.
+    async def manifest() -> Response:
+        return Response(
+            content=mobile_manifest.manifest_json(registry.app_type),
+            status_code=200,
+            headers=mobile_manifest.HEADERS,
+        )
+
+    app.add_api_route(f"{prefix}{mobile_manifest.PATH}", manifest, methods=["GET"])
+
     # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
-    # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
-    async def mcp(request: Request) -> JSONResponse:
+    # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the
+    # SAME error boundary: a tool call that fails shows the generic text + reference, never the raw
+    # exception (which may carry SQL, paths, other users' data). OFF unless enabled.
+    async def mcp_endpoint(request: Request) -> JSONResponse:
         mateu_request = request_of(request)
-        message = await request.json()
+        try:
+            message = await request.json()
+        except ValueError:
+            return JSONResponse(
+                {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}
+            )
 
         def sync_fn(route, action_id, component_state, parameters):
             rq = RunActionRq(
@@ -216,7 +333,14 @@ def add_mateu(
                 component_state=component_state or {},
                 parameters=parameters or {},
             )
-            return handler.handle(rq, mateu_request.base_url).model_dump(by_alias=True, mode="json")
+            try:
+                increment = handler.handle(rq, mateu_request.base_url)
+            except MateuForbiddenException:
+                return dict(_FORBIDDEN_BODY)
+            except Exception as error:  # noqa: BLE001 - the error boundary, as on sync
+                cid = mateu_request.correlation_id or new_correlation_id()
+                increment = error_increment(error, cid, show_details, rq.action_id)
+            return increment.model_dump(by_alias=True, mode="json")
 
         try:
             response = await run_in_threadpool(
@@ -228,7 +352,8 @@ def add_mateu(
             return JSONResponse(status_code=202, content=None)
         return JSONResponse(response)
 
-    app.add_api_route(f"{prefix}/mateu/mcp", mcp, methods=["POST"])
+    if mcp_enabled_from_env() if mcp is None else mcp:
+        app.add_api_route(f"{prefix}/mateu/mcp", mcp_endpoint, methods=["POST"])
 
     if dev_specs.enabled() if live_reload is None else live_reload:
         dev_specs.enable(True)

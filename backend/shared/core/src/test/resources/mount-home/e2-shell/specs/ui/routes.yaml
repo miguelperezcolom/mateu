@@ -1,0 +1,8 @@
+type: Routes
+routes:
+  - route: ""
+    definition: shell.yaml
+  - route: home
+    definition: home.yaml
+  - route: guests
+    definition: home.yaml

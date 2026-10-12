@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TODO_APPLE_TEAM_ID.io.mateu.app"],
+        "components": [
+          { "/": "/add", "comment": "Add a Mateu UI (QR / Open on mobile)" },
+          { "/": "/add/*" }
+        ]
+      }
+    ]
+  }
+}

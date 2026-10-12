@@ -84,6 +84,7 @@
     "@types/sortablejs": "^1.15.9",
     "@vitest/coverage-v8": "^4.1.11",
     "jsdom": "^29.1.1",
+    "jsqr": "^1.4.0",
     "lit": "^3.3.1",
     "typescript": "~7.0.2",
     "vite": "^8.1.5",

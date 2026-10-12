@@ -81,6 +81,7 @@ export const REDWOOD_COVERAGE = {
   ProgressSteps: { status: 'full', note: 'oj-train' },
   ProgressBar: { status: 'full', note: 'oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process' },
   ActionPanel: { status: 'full', note: 'oj-dialog + oj-switch ("I want to…")' },
+  RecordMerge: { status: 'full', note: 'compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button' },
   DropZone: { status: 'full', note: 'drop target for @DragRows listing rows (oj-table dnd); its content as text lines' },
   MatrixGrid: { status: 'full', note: 'oj-data-grid' },
   PlanningBoard: { status: 'full', note: 'oj-gantt (move, resize, double click, range selection)' },

@@ -248,17 +248,33 @@ export function panelColClass(colSpan, columns) {
 }
 
 export const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
+/** El texto accesible de un KPI, en orden de lectura: "Revenue, 12.4k €, Last 7 days, +8%, …"
+ *  (igual que el de la web: el periodo viaja con el número al que califica). */
+export function metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }) {
+  const present = (s) => s != null && String(s).trim() !== ''
+  const v = [value, unit].filter(present).map((s) => String(s).trim()).join(' ')
+  return [title, v, timeframe, trendLabel, description].filter(present).map((s) => String(s).trim()).join(', ')
+}
 /** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
  *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
 export function metricOf(m, interp = (x) => x) {
   const trend = m.trend || ''
+  const title = interp(m.title || '')
+  const value = String(m.value == null ? '' : m.value)
+  const unit = m.unit || ''
+  // el periodo que cubre el número ("Last 7 days"): bajo el valor, y en el texto accesible
+  const timeframe = String(interp(m.timeframe || '') || '').trim()
+  const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
+  const description = interp(m.description || '')
   return {
-    title: interp(m.title || ''),
-    value: String(m.value == null ? '' : m.value),
-    unit: m.unit || '',
-    trendText: trend ? (TREND_TEXT[trend] || '') + (m.trendLabel ? ' ' + interp(m.trendLabel) : '') : (m.trendLabel ? interp(m.trendLabel) : ''),
+    title,
+    value,
+    unit,
+    timeframe,
+    trendText: trend ? (TREND_TEXT[trend] || '') + (trendLabel ? ' ' + trendLabel : '') : trendLabel,
     trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
-    description: interp(m.description || ''),
+    description,
+    ariaLabel: metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }),
     actionId: m.actionId || '',
     parameters: {},
   }
@@ -313,7 +329,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isRecordMerge', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
   // the display components of core/display.mjs
   'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
   'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',

@@ -66,7 +66,8 @@ public final class LayoutInference {
 
   /**
    * Whether inference applies to the type: {@code @AutoLayout} decides when present (composable,
-   * meta-aware), otherwise the {@code mateu.layout.inference} system property enables it globally.
+   * meta-aware), otherwise the {@code mateu.layout.inference.enabled} setting enables it globally
+   * (see {@link InferenceSwitches}).
    */
   public static boolean enabled(Class<?> type) {
     if (type == null) {
@@ -75,7 +76,7 @@ public final class LayoutInference {
     if (MetaAnnotations.isPresent(type, AutoLayout.class)) {
       return MetaAnnotations.find(type, AutoLayout.class).value();
     }
-    return Boolean.getBoolean("mateu.layout.inference");
+    return InferenceSwitches.layoutInferenceEnabled();
   }
 
   /**

@@ -161,8 +161,15 @@ def project_increment(increment):
         }
 
     if messages:
+        # the wire's message names its severity "variant" (error/warning/success/info): reading only
+        # "type" told an agent every failure was "info"
         screen["messages"] = [
-            {"text": m.get("text", m.get("message", "")), "type": m.get("type", "info")} for m in messages
+            {
+                "text": m.get("text", m.get("message", "")),
+                "type": m.get("variant") or m.get("type") or "info",
+                **({"title": m["title"]} if m.get("title") else {}),
+            }
+            for m in messages
         ]
     notable = [{"type": c.get("type"), "data": c.get("data")} for c in commands if c.get("type") and c.get("type") != "SetWindowTitle"]
     if notable:

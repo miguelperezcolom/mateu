@@ -15,7 +15,7 @@ public static class ComponentMapper
     public static ClientSideComponentDto Map(IComponent component) => component switch
     {
         MetricCard m => Dto(m, new MetricCardMetadataDto(
-            m.Title, m.Value, m.Unit, LowerName(m.Trend), m.TrendLabel, m.Icon, m.Description, m.ActionId)),
+            m.Title, m.Value, m.Unit, LowerName(m.Trend), m.TrendLabel, m.Icon, m.Description, m.ActionId, m.Timeframe)),
 
         Scoreboard s => Dto(s, new ScoreboardMetadataDto(), s.Metrics.Select(Map)),
 
@@ -142,6 +142,8 @@ public static class ComponentMapper
             i.Id, i.Icon, i.Avatar, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList(), sl.Compact, sl.Frameless, sl.RowActionId)),
 
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
+
+        RecordMerge rm => Dto(rm, MapRecordMerge(rm)),
 
         ActionPanel ap => Dto(ap, new ActionPanelMetadataDto(
             string.IsNullOrWhiteSpace(ap.Label) ? "I want to…" : ap.Label,
@@ -372,6 +374,7 @@ public static class ComponentMapper
                 break;
             case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
+            case RecordMerge rm when !string.IsNullOrEmpty(rm.MergeActionId): ids.Add(rm.MergeActionId); break;
             case ComponentRef r: Collect(MateuCatalogs.Resolve(r), ids); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
@@ -398,6 +401,41 @@ public static class ComponentMapper
             case VerticalLayout vl: foreach (var i in vl.Content) Collect(i, ids); break;
             case TabLayout tl: foreach (var t in tl.Tabs) Collect(t.Content, ids); break;
         }
+    }
+
+    /// <summary>A RecordMerge as Java's RecordMergeMapper settles it: each row padded/cut to one
+    /// value per record, Differs when the trimmed texts are not all the same (null = blank), the pick
+    /// to begin with = the declared one when it names a record, else the first non-blank value; a
+    /// missing field label is the field id humanized, a missing record label "Record N".</summary>
+    internal static RecordMergeMetadataDto MapRecordMerge(RecordMerge merge)
+    {
+        var records = merge.Records ?? [];
+        var ids = records.Select((r, i) => r.Id ?? "record" + i).ToList();
+        static string Text(object? v) => v?.ToString()?.Trim() ?? "";
+        MergeFieldDto Field(MergeField f)
+        {
+            var values = Enumerable.Range(0, ids.Count)
+                .Select(i => i < f.Values.Count ? f.Values[i] : null).ToList();
+            var texts = values.Select(Text).ToList();
+            var chosen = f.Chosen;
+            if (chosen is null || !ids.Contains(chosen))
+            {
+                var first = texts.FindIndex(t => t.Length > 0);
+                chosen = ids.Count == 0 ? null : ids[first >= 0 ? first : 0];
+            }
+            return new MergeFieldDto(f.FieldId,
+                string.IsNullOrWhiteSpace(f.Label) ? Naming.HumanizeConstant(f.FieldId ?? "") : f.Label!,
+                values, chosen, f.Editable, texts.Distinct().Count() > 1);
+        }
+        return new RecordMergeMetadataDto(
+            merge.Title,
+            records.Select((r, i) => new MergeRecordDto(ids[i],
+                string.IsNullOrWhiteSpace(r.Label) ? "Record " + (i + 1) : r.Label!, r.Caption)).ToList(),
+            (merge.Fields ?? []).Select(Field).ToList(),
+            merge.MergeActionId,
+            string.IsNullOrWhiteSpace(merge.MergeLabel) ? "Merge" : merge.MergeLabel!,
+            merge.Parameters,
+            merge.DifferencesOnly);
     }
 
     private static ClientSideComponentDto Dto(IComponent c, ComponentMetadataDto meta, IEnumerable<ComponentDto>? children = null) =>

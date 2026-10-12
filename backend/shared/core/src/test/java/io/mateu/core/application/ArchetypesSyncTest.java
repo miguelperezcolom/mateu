@@ -210,6 +210,7 @@ class ArchetypesSyncTest {
             .trendLabel("+8%")
             .icon("vaadin:dollar")
             .actionId("openRevenue")
+            .timeframe("Last 7 days")
             .build();
 
     MetricCard orders = MetricCard.builder().title("Orders").value("3,421").build();
@@ -1084,6 +1085,7 @@ class ArchetypesSyncTest {
     assertThat(revenue.trendLabel()).isEqualTo("+8%");
     assertThat(revenue.icon()).isEqualTo("vaadin:dollar");
     assertThat(revenue.actionId()).isEqualTo("openRevenue");
+    assertThat(revenue.timeframe()).isEqualTo("Last 7 days");
   }
 
   @Test

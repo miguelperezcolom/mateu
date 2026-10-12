@@ -13,6 +13,9 @@ from mateu_dtos import ComponentEntryRecord
 from mateu_dtos import (
     AppContextSelector,
     AppHeaderAction,
+    AppShortcut as AppShortcutDto,
+    HeaderValue as HeaderValueDto,
+    IdleSession,
     AppMetadata,
     ClientSideComponent,
     MenuItem,
@@ -21,6 +24,8 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     AppActionsSupplier,
+    HeaderValuesSupplier,
+    LiveHeaderValues,
     AppVariant,
     AppSupplier,
     GlobalSearchSupplier,
@@ -163,6 +168,8 @@ class AppMapperMixin(MixinBase):
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
             # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
+            # "Open on mobile" (experimental): opt-in, mirrors AppDto.mobileQr.
+            mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
             # The UI language: what the translator says (mirrors AppDto.locale).
             locale=self._locale(),
             # The capability tokens this app requires from its host renderer: derived from the
@@ -177,6 +184,11 @@ class AppMapperMixin(MixinBase):
             # Sample mode (MATEU_SOURCES_MOCK=true): tell the client so its direct leg answers
             # sampled sources with their samples too. True or absent (mirrors AppDto.mockSources).
             mock_sources=True if sample_sources.enabled() else None,
+            # E2 patterns (mirror Java's AppShellExtrasMapper)
+            shortcuts=self._app_shortcuts(cls, shell, mount),
+            header_values=self._header_values(cls, shell),
+            live_updates=self._live_updates(cls, shell),
+            idle_session=self._idle_session(cls, shell, mount),
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,
@@ -188,6 +200,89 @@ class AppMapperMixin(MixinBase):
             ),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
+
+    # ── E2 patterns: app shortcuts, live header values, idle-session warning ─────
+    def _app_shortcuts(self, cls, shell, mount: str) -> list[AppShortcutDto]:
+        """The shell's shortcuts, then the ``@app_shortcut`` ones; an entry with no key nor code,
+        or nowhere to go, is dropped; routes absolute like the menu's (mirrors Java's
+        AppShellExtrasMapper.shortcuts)."""
+        from ..naming import humanize_constant
+
+        raw = []
+        for e in (getattr(shell, "shortcuts", None) or []) if shell is not None else []:
+            raw.append((e.key, e.route, e.action_id, e.label, e.code))
+        raw.extend(getattr(cls, "__mateu_app_shortcuts__", []))
+
+        def blank(v):
+            return v.strip() if isinstance(v, str) and v.strip() else None
+
+        out: list[AppShortcutDto] = []
+        for key, route, action_id, label, code in raw:
+            key, route, action_id, label, code = (blank(key), blank(route), blank(action_id), blank(label), blank(code))
+            if (key is None and code is None) or (route is None and action_id is None):
+                continue
+            absolute = None
+            if route is not None:
+                if mount and (route == mount or route.startswith(mount + "/")):
+                    absolute = route
+                else:
+                    absolute = self._prepend(mount, route)
+            if label is None:
+                if route is not None:
+                    path = route.rstrip("/")
+                    segment = path[path.rfind("/") + 1:]
+                    label = humanize_constant(segment.replace("-", " ")) if segment else "Home"
+                else:
+                    label = humanize_constant(action_id or "")
+            out.append(AppShortcutDto(
+                key=key.lower() if key else None, label=label, route=absolute,
+                action_id=action_id, code=code,
+            ))
+        return out
+
+    def _live_updates(self, cls, shell) -> bool:
+        if shell is not None and getattr(shell, "live_updates", None) is not None:
+            return bool(shell.live_updates)
+        return bool(getattr(cls, "__mateu_app_live_updates__", False))
+
+    def _header_values(self, cls, shell) -> list[HeaderValueDto]:
+        """The shell's values, then the supplier's (same id replaces), and for a live app the last
+        PUBLISHED value of each declared id (mirrors AppShellExtrasMapper.headerValues)."""
+        by_id: dict[str, tuple[str | None, str | None]] = {}
+        for v in (getattr(shell, "header_values", None) or []) if shell is not None else []:
+            if v is not None and v.id:
+                by_id[v.id] = (v.label, v.value)
+        if issubclass(cls, HeaderValuesSupplier):
+            for v in cls().header_values() or []:
+                if v is not None and v.id:
+                    by_id[v.id] = (v.label, v.value)
+        if self._live_updates(cls, shell):
+            for vid, published in LiveHeaderValues.current().items():
+                if vid in by_id:
+                    by_id[vid] = (by_id[vid][0], published)
+        return [
+            HeaderValueDto(id=vid, label=label if label and label.strip() else None, value=value)
+            for vid, (label, value) in by_id.items()
+        ]
+
+    def _idle_session(self, cls, shell, mount: str) -> IdleSession | None:
+        minutes, warning, sign_out = getattr(cls, "__mateu_app_idle__", (0, 60, ""))
+        if shell is not None:
+            if getattr(shell, "idle_timeout_minutes", None) is not None:
+                minutes = shell.idle_timeout_minutes
+            if getattr(shell, "idle_warning_seconds", None) is not None:
+                warning = shell.idle_warning_seconds
+            if getattr(shell, "idle_sign_out_url", None):
+                sign_out = shell.idle_sign_out_url
+        if not minutes or minutes <= 0:
+            return None
+        timeout = minutes * 60
+        warning = max(5, min(warning, timeout))
+        url = sign_out.strip() if sign_out and sign_out.strip() else (mount or "/")
+        return IdleSession(
+            timeout_seconds=timeout, warning_seconds=warning, sign_out_url=url,
+            keep_alive_action_id="_keep-alive",
+        )
 
     @staticmethod
     def _prepend(app_route: str, path: str) -> str:
@@ -358,11 +453,9 @@ class AppMapperMixin(MixinBase):
             return True
         if not isinstance(target, type):
             return True
-        for klass in target.__mro__:
-            gate = klass.__dict__.get("__mateu_eyes_only__")
-            if gate is not None and not self.authorized(gate):
-                return False
-        return True
+        from ..action_guard import class_access_granted
+
+        return class_access_granted(self, target)
 
     @staticmethod
     def variant_of(cls, items) -> str:

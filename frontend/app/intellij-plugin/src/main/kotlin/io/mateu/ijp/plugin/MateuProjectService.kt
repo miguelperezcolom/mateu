@@ -39,7 +39,12 @@ import javax.swing.SwingUtilities
  * the IDE's own Check-for-Updates flow (which installs plugin AND platform updates).
  */
 @Service(Service.Level.PROJECT)
-class MateuProjectService(private val project: Project) {
+class MateuProjectService(private val project: Project) : com.intellij.openapi.Disposable {
+
+    /** The project closes: the live-updates stream and the idle watcher stop with the session. */
+    override fun dispose() {
+        session?.dispose()
+    }
 
     /** Stable container the navigator tool window shows; the app shell renders into it. */
     val navigatorRoot: JPanel = JPanel(BorderLayout())
@@ -151,6 +156,8 @@ class MateuProjectService(private val project: Project) {
         // @AppContext selector changed → rebuild the shell against the new context; open views
         // pick the new appState up on their next request (it travels with every call).
         s.onAppContextChanged = { ctx.initialLoad(route) }
+        // The idle warning signed out: back to the app's root, as a fresh start.
+        s.onSignedOut = { ctx.initialLoad(route) }
     }
 
     /** Standalone landing: open the app's @HomeRoute (like the web shells) — falling back to the

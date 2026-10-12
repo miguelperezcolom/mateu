@@ -1,22 +1,33 @@
 ---
-title: "Design Systems"
-description: "Choose a frontend renderer for your Mateu application."
+title: "Renderers"
+description: "Where a Mateu UI renders — Vaadin and Oracle Redwood / Visual Builder on the web, the Mateu mobile app, IntelliJ on the desktop — all from the same model."
 ---
 
-Mateu separates UI definition (your Java backend) from UI rendering (the frontend). You choose which design system renders your UI by adding a single Maven dependency.
+A Mateu UI is a model; a **renderer** turns it into something people use. Every renderer consumes
+the same wire model, so the same UI — whether it was written in YAML, Java, C# or Python, and
+whether a backend or a static bundle serves it — renders in any of them without changes.
 
-All renderers consume the same Mateu API, so you can switch or support multiple renderers without changing your Java code.
+| Renderer | Where | How you choose it |
+|---|---|---|
+| [Vaadin](/design-systems/vaadin/) | web browser (the default) | `renderer: vaadin` in `project.yaml`, or the `mateu-vaadin` dependency |
+| [Oracle Redwood / Visual Builder](/design-systems/oracle-redwood/) | web browser, standalone or **embedded in an existing Visual Builder app** | `renderer: redwood`, or the `mateu-redwood` dependency |
+| [The Mateu mobile app](/native/react-native/) | iOS and Android | install the app and add the UI's address |
+| [IntelliJ](/native/) | desktop, inside IntelliJ IDEA | the Mateu plugin, pointed at the UI |
+
+For the web renderers, the project's choice lives in
+[`project.yaml`](/define/yaml/project-settings/); a static bundle ships that renderer, and a served
+app uses the renderer dependency on its classpath.
 
 ## Web or native?
 
-Each renderer family serves a different goal. The same `@UI` backend can drive all of them at once, so you pick per deployment — or offer several.
+Each renderer family serves a different goal. The same UI can be rendered by all of them at once, so you pick per deployment — or offer several.
 
 - **Web renderers** (with multiple design systems) — best when you want a **zero-install** UI delivered through the browser, and when you need to **drop Mateu into an application you already have without breaking its UX**. Choose the design system that matches the host application — [Vaadin](/design-systems/vaadin/) or [Oracle Redwood](/design-systems/oracle-redwood/) — and the Mateu screens blend in seamlessly.
 - **Native renderers** — best when you want **better performance** and an OS-native feel. The [desktop (IntelliJ plugin)](/native/) renderer runs your app inside IntelliJ IDEA and gives power users the IDE's productivity workspace — **docking, split editor tabs, Search Everywhere, keyboard-first navigation**. The [mobile (React Native)](/native/) renderer ships your app to iOS and Android.
 
-You don't have to pick just one: the identical backend can serve a web UI, a native desktop app, and a mobile app simultaneously.
+You don't have to pick just one: the same UI can be used from a browser, from IntelliJ and from a phone at the same time.
 
-## Available renderers
+## Web renderer artifacts
 
 | Renderer | Design system | Dependency |
 |---|---|---|
@@ -54,7 +65,7 @@ Replace the renderer dependency in your `pom.xml`. For example, to switch from V
 </dependency>
 ```
 
-No Java code changes are needed.
+Nothing in the UI definition changes. A YAML-only project switches with `renderer:` in `project.yaml`.
 
 ## Embedding in existing UIs
 
@@ -73,7 +84,7 @@ Beyond the browser, Mateu also supports native renderers for desktop and mobile:
 | [Desktop (IntelliJ plugin)](/native/) | Windows, macOS, Linux (inside IntelliJ IDEA) | IntelliJ platform / Swing |
 | [Mobile (React Native)](/native/) | iOS, Android | Expo / React Native |
 
-Both native renderers consume the same Mateu API as the web renderers. The same backend serves web, desktop, and mobile clients simultaneously with no code changes.
+Both native renderers consume the same wire model as the web renderers, so web, desktop and mobile users can use the same UI at the same time.
 
 See [Native Renderers](/native/) for details.
 

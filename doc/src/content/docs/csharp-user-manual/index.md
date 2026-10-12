@@ -366,8 +366,9 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 - **i18n** — implement `ITranslator` and register it; titles, labels and menu entries are translated.
 - **Events** — `[Emits("event-name")]` advertises an event a view emits; `[SubscribeTo("event",
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
-- **Security** — `[Secured("permission")]` marks a view as requiring a permission; the `[App]` shell
-  can carry login/logout URLs. Field and action access is covered in
+- **Security** — `[EyesOnly(Permissions = new[] { "x" })]` on a view class restricts it (403, and its
+  menu entries hidden); the `[App]` shell can carry login/logout URLs. (`[Secured("x")]` is
+  deprecated; it is enforced exactly like `[EyesOnly(Permissions = new[] { "x" })]`.) Field and action access is covered in
   [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp
@@ -719,7 +720,7 @@ loader.Partials.Register("legal-notice",
 ```
 
 Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
-[Partials](/java-ui-definition/partials/).
+[Partials](/define/yaml/partials/).
 
 ## Route registry (`routes.yaml`)
 
@@ -748,7 +749,7 @@ ones are re-applied on the server over everything, including the state the clien
 file is the same one a Java or Python app consumes.
 
 See the full reference, including the JSON Schema for editor completion, in
-[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+[Route registry](/concepts/routes-and-mounts/). Not available in this port: the static-bundle
 exporter, so nothing ships the table to a browser.
 
 ## Status

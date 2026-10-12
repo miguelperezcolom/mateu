@@ -14,6 +14,11 @@
   <description>Logic shared by the framework annotation processors of Mateu (controller generation, lint).</description>
 
   <properties>
+    <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 73.5%
+         (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
+    <jacoco.min.bundle.coverage>72%</jacoco.min.bundle.coverage>
+    <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
+    <argLine></argLine>
     <jacoco.min.coverage>70%</jacoco.min.coverage>
   </properties>
 
@@ -110,7 +115,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <!-- @{argLine} first: it carries JaCoCo's agent (jacoco:prepare-agent). Overwriting it
+               silently recorded NOTHING, so the coverage floor below was never checked. -->
           <argLine>
+            @{argLine}
             -Dnet.bytebuddy.experimental=true
             --add-opens java.compiler/javax.annotation.processing=ALL-UNNAMED
             --add-opens java.compiler/javax.lang.model.element=ALL-UNNAMED

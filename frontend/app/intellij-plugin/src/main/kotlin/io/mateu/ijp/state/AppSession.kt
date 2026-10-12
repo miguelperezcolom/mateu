@@ -174,6 +174,86 @@ class AppSession(
         }
     }
 
+    // ── E2 patterns: app shortcuts, live header values, idle-session warning ──────────────────
+
+    /** App-wide shortcuts / quick-launch codes (`AppDto.shortcuts`), published by renderApp. */
+    var appShortcuts: List<AppShortcuts.Shortcut> = emptyList()
+
+    /** Live header values by id, in the app's order; changed by UpdateHeaderValue and the stream. */
+    val headerValues = LinkedHashMap<String, HeaderValues.Value>()
+    private val headerValueListeners = java.util.concurrent.CopyOnWriteArrayList<(String?) -> Unit>()
+
+    /** Repaint on change; the callback receives the id that changed (null = reseeded). */
+    fun onHeaderValuesChanged(listener: (String?) -> Unit): () -> Unit {
+        headerValueListeners.add(listener)
+        return { headerValueListeners.remove(listener) }
+    }
+
+    /** What the shell declares — authoritative when it is (re)built. */
+    fun seedHeaderValues(values: List<HeaderValues.Value>) {
+        if (values == headerValues.values.toList()) return
+        headerValues.clear()
+        values.forEach { headerValues[it.id] = it }
+        headerValueListeners.forEach { it(null) }
+    }
+
+    /** One value changes (an action's UpdateHeaderValue, or the live stream). EDT. */
+    fun updateHeaderValue(id: String, value: String) {
+        val current = headerValues[id]
+        if (current?.value == value) return
+        headerValues[id] = HeaderValues.Value(id, current?.label, value)
+        headerValueListeners.forEach { it(id) }
+    }
+
+    /** The `@App(liveUpdates)` event stream, when the app asks for it. */
+    private var liveStream: LiveUpdatesStream? = null
+
+    fun syncLiveUpdates(wanted: Boolean) {
+        if (wanted && liveStream == null) liveStream = LiveUpdatesStream(this).also { it.start() }
+        if (!wanted) { liveStream?.stop(); liveStream = null }
+    }
+
+    /** The idle-session watcher (Swing side), installed by renderApp; stopped on dispose. */
+    var idleWatcher: AutoCloseable? = null
+
+    /** Fired when the idle warning signs out — the host resets the app to its root. */
+    var onSignedOut: (() -> Unit)? = null
+
+    /** Opens an app route (an app shortcut, quick launch) through the host's normal navigation. */
+    fun openAppRoute(label: String, route: String) {
+        openViewHandler?.invoke(label, route, "", null, null)
+    }
+
+    /**
+     * Runs an app-level action (an action shortcut, the idle keep-alive) on the APP class — the same
+     * rail as the notification bell. Its messages surface through [notifier]; header-value changes apply.
+     */
+    fun runAppAction(actionId: String, initiator: String = "app-shortcut", quiet: Boolean = false) {
+        executor.submit {
+            val increment = runCatching {
+                apiClient.runAction(appRootRoute, "", actionId, appServerSideType, initiator, emptyMap(), appState, emptyMap())
+            }.getOrNull() ?: return@submit
+            SwingUtilities.invokeLater {
+                HeaderValues.changesOf(increment).forEach { (id, v) -> updateHeaderValue(id, v) }
+                if (!quiet) {
+                    val messages = increment.path("messages")
+                    if (messages.isArray) for (m in messages) {
+                        val text = m.path("text").asText("")
+                        if (text.isNotBlank()) notifier?.invoke(m.path("title").asText(null), text, m.path("variant").asText("info"), null)
+                    }
+                }
+            }
+        }
+    }
+
+    /** The session ends (project closed): the stream and the idle watcher stop, the pool too. */
+    fun dispose() {
+        syncLiveUpdates(false)
+        runCatching { idleWatcher?.close() }
+        idleWatcher = null
+        executor.shutdownNow()
+    }
+
     fun setWindowTitle(title: String) {
         SwingUtilities.invokeLater {
             frame?.title = title

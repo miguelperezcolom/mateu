@@ -5,6 +5,11 @@ description: "The mental model, building blocks, and stateless cycle behind Mate
 
 The shift Mateu requires is not technical — it is conceptual. You are not building screens. You are defining a model that becomes a UI.
 
+This page explains the model through its **code** form (Java), where state, actions and structure
+are fields, methods and annotations. The same three concepts exist in a YAML definition (fields,
+actions bound to sources or a view model, layout) and in C# and Python — see
+[Define the UI](/define/).
+
 ## Three concepts
 
 Everything in Mateu maps to three things:

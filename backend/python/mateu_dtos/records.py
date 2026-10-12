@@ -22,6 +22,10 @@ class Button(Wire):
     disabled: bool = False
     button_style: str | None = None
     shortcut: str | None = None
+    # a bulk action (@list_toolbar_button): the renderer disables the button while no row is
+    # selected — on the BUTTON so no renderer has to look the advertised action up by id
+    # (mirrors Java's ButtonDto.rowsSelectedRequired)
+    rows_selected_required: bool = False
 
 
 class Option(Wire):

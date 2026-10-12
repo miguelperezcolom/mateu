@@ -612,7 +612,7 @@ loader.partials.register("legal-notice", [{"type": "Text", "text": "Prices inclu
 ```
 
 Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
-[Partials](/java-ui-definition/partials/).
+[Partials](/define/yaml/partials/).
 
 ## Route registry (`routes.yaml`)
 
@@ -641,16 +641,19 @@ Both `viewModel` and `view_model` are accepted — the file is the same one a Ja
 but snake_case reads more naturally here.
 
 See the full reference, including the JSON Schema for editor completion, in
-[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+[Route registry](/concepts/routes-and-mounts/). Not available in this port: the static-bundle
 exporter, so nothing ships the table to a browser.
 
 ## Validation
 
-`Required()`, `Min(n)`, `Max(n)`, `Size(min=, max=)` and `Pattern(regexp)` in a field's
+`Required()`, `Min(n)`, `Max(n)`, `Length(min=, max=)` and `Pattern(regexp)` in a field's
 `Annotated[...]`, `@validation(condition, field_id, message)` on the class and a `ValidationSupplier`
 travel as the component's `validations` (the same conditions and messages Java emits), so the
 renderer refuses to submit an invalid form — and the same constraints are checked again on the
 server when a crud form is saved and in the import wizard's report.
+
+`Length` was called `Size` before 3.0-alpha.412; `Size` still works but warns — in Java and C#
+`Size` is a component's sizing intent, so the length constraint got its own name here.
 
 ## Grid fields
 

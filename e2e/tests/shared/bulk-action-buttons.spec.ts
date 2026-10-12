@@ -71,3 +71,13 @@ test('the selection guard survives adding an @Action to the button', async ({ pa
     await selectFirstRow(page);
     await expect(toolbarButton(page, 'Cancel')).toBeEnabled();
 });
+
+test('a plain listing keeps the selection guard on its page-header toolbar', async ({ page }) => {
+    // a listing with no interaction capability is not promoted to the crud mediator: its toolbar
+    // renders in the PAGE header, which had no selection guard at all (the button carries it now)
+    await page.goto('/bulk-actions-plain');
+    await expect(page.getByText('Job 1').first()).toBeVisible();
+    await expect(toolbarButton(page, 'Archive')).toBeDisabled();
+    await selectFirstRow(page);
+    await expect(toolbarButton(page, 'Archive')).toBeEnabled();
+});

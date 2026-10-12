@@ -33,13 +33,15 @@ export class OidcTokenProvider implements TokenProvider {
   constructor(
     readonly config: OidcConfig,
     private readonly store: KeyValueStore,
+    /** Where the tokens live — a hub UI passes its own key (uiSecretKeys), so UIs never share them. */
+    private readonly tokensKey: string = TOKENS_KEY,
   ) {}
 
   private async load(): Promise<void> {
     if (this.loaded) return;
     this.loaded = true;
     try {
-      this.tokens = parseStoredTokens(await this.store.get(TOKENS_KEY));
+      this.tokens = parseStoredTokens(await this.store.get(this.tokensKey));
     } catch {
       this.tokens = null;
     }
@@ -48,8 +50,8 @@ export class OidcTokenProvider implements TokenProvider {
   private async save(tokens: StoredTokens | null): Promise<void> {
     this.tokens = tokens;
     try {
-      if (tokens) await this.store.set(TOKENS_KEY, JSON.stringify(tokens));
-      else await this.store.remove(TOKENS_KEY);
+      if (tokens) await this.store.set(this.tokensKey, JSON.stringify(tokens));
+      else await this.store.remove(this.tokensKey);
     } catch {
       // kept in memory for this launch
     }

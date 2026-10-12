@@ -120,6 +120,9 @@ public class EndOfDay extends Wizard {
             this::setOccupiedRoomsDirty,
             () -> {
               Hotel.rollBusinessDate();
+              // every open session repaints its header (PmsHome: @App(liveUpdates))
+              io.mateu.uidl.LiveHeaderValues.publish(
+                  "businessDate", Hotel.businessDate().toString());
               return "✓ Business date rolled to " + Hotel.businessDate();
             },
             () -> "✓ Final reports: Manager report, Trial balance");

@@ -25,7 +25,7 @@ models through the Java plugin.
 Both editors can paint the canvas with the **Vaadin** renderer or with the real **Redwood**
 renderer, which is the Oracle Visual Builder app of `io.mateu:mateu-redwood`. The canvas opens in the
 project's renderer (`project.yaml`, below), and the selector in the editor's toolbar previews the
-other renderer for the session. See [the Redwood canvas](/java-ui-definition/visual-editor/#the-redwood-canvas).
+other renderer for the session. See [the Redwood canvas](/define/yaml/visual-editor/#the-redwood-canvas).
 In both IDEs the Redwood app is part of the editor's bundle. The IDE's local server serves it, so
 it works with no backend running. VS Code frames it from the extension's loopback server, because a
 webview cannot host the app itself. A bundle built without the Redwood app falls back to the
@@ -36,7 +36,7 @@ Without it the canvas shows a notice instead of the page, and the Vaadin canvas 
 ## The project's renderer: project.yaml
 
 The renderer is a **project** setting, kept in `specs/ui/project.yaml` (`type: Project`,
-`renderer: vaadin | redwood`; see [project settings](/java-ui-definition/project-settings)). Both IDEs
+`renderer: vaadin | redwood`; see [project settings](/define/yaml/project-settings)). Both IDEs
 edit that file, and the file is the source of truth:
 
 - **IntelliJ**: **Settings | Tools | Mateu → Project → Renderer** reads `project.yaml` when the page
@@ -61,11 +61,11 @@ palette). Every kind of file under `specs/ui` is offered:
 
 | Entry | Creates | Notes |
 |---|---|---|
-| **UI Mount** | `type: UI` | An app served at a base path — the data-driven `@UI`. Lists its route files. Optionally names its **home page route** (`home:`, the page the mount opens on — see [the mount's home](/java-ui-definition/route-registry/#the-mounts-home)) — usually left empty at creation and set later from Add Route…. |
-| **Routes File** | `type: Routes` | Created **empty** (`routes: []` under a short header pointing at [the route registry](/java-ui-definition/route-registry/)). Pick the **mount** (`type: UI`) to register it in — it is appended to that mount's `routes:` list (preselected when there is exactly one). The optional **base path** is only for a class-declared `@UI("/shop")` mount. Add the entries one at a time with **Add Route…** (below). |
+| **UI Mount** | `type: UI` | An app served at a base path — the data-driven `@UI`. Lists its route files. Optionally names its **home page route** (`home:`, the page the mount opens on — see [the mount's home](/concepts/routes-and-mounts/#the-mounts-home)) — usually left empty at creation and set later from Add Route…. |
+| **Routes File** | `type: Routes` | Created **empty** (`routes: []` under a short header pointing at [the route registry](/concepts/routes-and-mounts/)). Pick the **mount** (`type: UI`) to register it in — it is appended to that mount's `routes:` list (preselected when there is exactly one). The optional **base path** is only for a class-declared `@UI("/shop")` mount. Add the entries one at a time with **Add Route…** (below). |
 | **App Shell** | `type: AppShell` | Title, variant, home route and a menu with a group. Bind it to the mount root (`""`). |
-| **Action Catalogue** | `type: Actions` | Created **empty** (`actions: []` under a short header). Named flows and REST calls the shell menu and any page run by id — see [the action catalogue](/java-ui-definition/action-catalogue/). The visual editor opens it in a structured editor (add / rename / describe / remove actions, edit their steps), and every action-id picker offers its ids marked **catalog**. |
-| **REST Source Catalogue** | `type: Sources` | Two example sources (`source:` nested, `provenance`, `fields`, `totalPath`). See [the REST source catalogue](/java-ui-definition/rest-source-catalogue/). |
+| **Action Catalogue** | `type: Actions` | Created **empty** (`actions: []` under a short header). Named flows and REST calls the shell menu and any page run by id — see [the action catalogue](/concepts/action-catalogue/). The visual editor opens it in a structured editor (add / rename / describe / remove actions, edit their steps), and every action-id picker offers its ids marked **catalog**. |
+| **REST Source Catalogue** | `type: Sources` | Two example sources (`source:` nested, `provenance`, `fields`, `totalPath`). See [the REST source catalogue](/concepts/data-sources/). |
 | **Page…** | a page definition | Pick a **template** and a **page width** (below). When the folder has a routes file, **Add a route to `<routes file>`** (on by default) appends a route to the new page, named after the file — optionally making it the home page. |
 
 Page templates follow the [page templates](/ux-patterns/page-templates/) Mateu ships:
@@ -125,7 +125,7 @@ context menu of the routes file, or from the command palette. You choose:
 Every change is a **minimal text edit**: the entry is appended after the last one (the first one turns
 `routes: []` into a block list), the mount gets one new line, and nothing else in your files is
 reformatted. Fixed/default parameters, `children` and the data scopes are then edited by hand — see
-[the route registry](/java-ui-definition/route-registry/).
+[the route registry](/concepts/routes-and-mounts/).
 
 ## Connecting IntelliJ to a backend: Settings | Tools | Mateu
 

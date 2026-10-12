@@ -17,7 +17,7 @@ This case adds several real-world patterns on top of the basic CRUD:
 
 - how to use Spring injection in CRUD classes
 - how to define a lookup field backed by a backend service
-- how to add a custom editor page with a [`routes.yaml` entry](/java-ui-definition/route-registry/)
+- how to add a custom editor page with a [`routes.yaml` entry](/concepts/routes-and-mounts/)
 - how actions return messages and refresh form state
 
 ---

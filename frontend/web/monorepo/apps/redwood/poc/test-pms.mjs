@@ -33,7 +33,7 @@ import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
-import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX } from './core/listing.mjs'
+import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
@@ -905,6 +905,13 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.equal(k.value, '53')
   assert.equal(k.trendText, '▼ vs LW')
   assert.match(k.trendClass, /mateu-trend-down/)
+  // timeframe: bajo el valor y dentro del texto accesible; en blanco no se pinta
+  assert.equal(k.timeframe, '')
+  assert.equal(k.ariaLabel, 'Occ, 53 %, vs LW')
+  const t = metricOf({ title: 'Revenue', value: '12.4k', unit: '€', timeframe: ' Last 7 days ', trendLabel: '+8%', description: 'Gross' })
+  assert.equal(t.timeframe, 'Last 7 days')
+  assert.equal(t.ariaLabel, 'Revenue, 12.4k €, Last 7 days, +8%, Gross')
+  assert.equal(metricOf({ title: 'R', value: 1, timeframe: '   ' }).timeframe, '')
   assert.deepEqual(gridTrackWeights('repeat(3, minmax(0, 1fr))'), [1, 1, 1])
   assert.deepEqual(gridTrackWeights('64fr 36fr'), [64, 36])
   assert.deepEqual(gridTrackWeights('62% 38%'), [62, 38], 'las zonas de @Zones viajan en %')
@@ -1151,6 +1158,39 @@ test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigabl
   assert.equal(rowClickOpensRecord(board), false)
   assert.equal(rowClickOpensRecord(null), true, 'sin listado conocido, como antes')
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /bridge\.rowClickOpensRecord\(listing\)/)
+})
+
+test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas con clic propio', () => {
+  // las columnas de display (y los editores inline) llevan la clase que el chain respeta
+  assert.equal(isDisplayColumn({ id: 'name', actionId: 'view' }), false, 'la columna que abre no es de display')
+  assert.equal(isDisplayColumn({ id: 'city', dataType: 'string' }), false)
+  assert.equal(isDisplayColumn({ id: 's', dataType: 'status' }), false)
+  for (const dataType of ['action', 'actionGroup', 'menu', 'component', 'link']) assert.equal(isDisplayColumn({ id: 'c', dataType }), true, dataType)
+  assert.equal(isDisplayColumn({ id: 'c', stereotype: 'button' }), true)
+  assert.equal(isDisplayColumn({ id: 'c', actionId: 'approve' }), true, 'una columna con su propia acción')
+  assert.equal(isDisplayColumn({ id: 'c', editable: true, editorType: 'string' }), true, 'un editor inline')
+  const ctx = { tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud', columns: [
+    node({ type: 'GridColumn', id: 'name', label: 'Name', dataType: 'string', actionId: 'view' }),
+    node({ type: 'GridColumn', id: 'stock', label: 'Stock', dataType: 'integer', editable: true, editorType: 'integer' }),
+    node({ type: 'GridColumn', id: 'ops', label: '', dataType: 'actionGroup' }),
+  ] })] }, data: { crud: { page: { content: [{ _rowNumber: 0, name: 'A', stock: 1 }], totalElements: 1 } } }, state: {} }
+  const listing = listingOf(ctx)
+  const cls = (id) => listing.columns.find((c) => c.id === id).className || ''
+  assert.doesNotMatch(cls('name'), new RegExp(NO_OPEN_CELL_CLASS))
+  assert.match(cls('stock'), new RegExp(NO_OPEN_CELL_CLASS), 'la celda editable no abre')
+  assert.match(cls('ops'), new RegExp(NO_OPEN_CELL_CLASS))
+  // el origen del ojRowAction: una celda normal es de la fila; un control o una celda de display no
+  const at = (hits) => ({ closest: (sel) => hits.some((h) => sel.split(',').map((x) => x.trim()).includes(h)) ? {} : null })
+  assert.equal(rowActionIsRows(at([])), true, 'texto de una celda normal')
+  assert.equal(rowActionIsRows(at(['.' + NO_OPEN_CELL_CLASS])), false, 'celda de display / editable')
+  assert.equal(rowActionIsRows(at(['oj-button'])), false, 'un botón de la fila')
+  assert.equal(rowActionIsRows(at(['a'])), false, 'un enlace')
+  assert.equal(rowActionIsRows(at(['[role="checkbox"]'])), false, 'la casilla de selección')
+  assert.equal(rowActionIsRows(null), true, 'sin origen (Enter en la fila): es de la fila')
+  // una tabla de TRABAJO (inline editing) ya no corta el clic de fila entero: sólo sus editores
+  const chain = webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js')
+  assert.match(chain, /bridge\.rowActionIsRows\(origin\)/)
+  assert.doesNotMatch(chain, /listing\.editable\)/)
 })
 
 // ── P1 #14 arrastrar filas a un destino (@DragRows + DropZone) ───────────────────────────────

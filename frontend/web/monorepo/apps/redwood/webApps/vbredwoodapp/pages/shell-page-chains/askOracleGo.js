@@ -20,6 +20,12 @@ define([
      */
     async run(context, { item }) {
       const { $application } = context;
+      if (item && !item.route && item.actionId) {
+        // an app shortcut that runs an app-level action (@AppShortcut(actionId))
+        await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'close' });
+        await Actions.callChain(context, { chain: 'runMateuHeaderAction', params: { actionId: item.actionId } });
+        return;
+      }
       if (!item || !item.route) {
         return;
       }

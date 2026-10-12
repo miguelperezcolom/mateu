@@ -112,7 +112,20 @@ public class WireConformanceTests
         { "grid-field", typeof(GridField) },
         { "status-list", typeof(StatusListPage) },
         { "compact", typeof(CompactPage) },
+        { "access-annotations", typeof(AccessAnnotations) },
     };
+
+    [Fact]
+    public void Every_case_of_the_corpus_is_wired()
+    {
+        // a case directory missing here would be a spec this port silently never checks
+        var wired = Cases.Select(row => (string)row[0]).ToHashSet();
+        var corpus = Directory.GetDirectories(Corpus).Select(Path.GetFileName).ToHashSet();
+        Assert.Equal(corpus.OrderBy(c => c), wired.OrderBy(c => c));
+        // and the allow-lists name only real cases, each with its paths
+        Assert.Subset(wired, KnownDivergences.Keys.ToHashSet());
+        Assert.Equal(KnownDivergences.Keys.OrderBy(k => k), AllowedPaths.Keys.OrderBy(k => k));
+    }
 
     [Theory, MemberData(nameof(Cases))]
     public void The_corpus_exists_for_every_case(string @case, Type view)

@@ -14,5 +14,6 @@ public enum UICommandTypeDto {
   MarkAsClean,
   DownloadFile,
   Announce,
-  Print
+  Print,
+  UpdateHeaderValue
 }

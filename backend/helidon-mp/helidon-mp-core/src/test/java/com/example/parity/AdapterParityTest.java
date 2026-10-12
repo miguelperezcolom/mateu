@@ -30,6 +30,22 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesARestrictedActionToAnAnonymousCaller() {
+    contract.refusesARestrictedActionToAnAnonymousCaller();
+  }
+
+  @Test
+  void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
+    contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
+        java.util.Map.of(AdapterParityITFoundation.PARITY_ROLES_HEADER, "admin"));
+  }
+
+  @Test
+  void answersAnUnexpectedErrorWithAReferenceNeverItsMessage() {
+    contract.answersAnUnexpectedErrorWithAReferenceNeverItsMessage();
+  }
+
+  @Test
   void aForgedBearerTokenRevealsNothing() {
     contract.aForgedBearerTokenRevealsNothing();
   }
@@ -57,6 +73,11 @@ class AdapterParityTest {
   @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
+  }
+
+  @Test
+  void servesTheMobileManifest() {
+    contract.servesTheMobileManifest();
   }
 
   @Test

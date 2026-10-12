@@ -95,6 +95,7 @@ public final class AppMapper {
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
             .accessKeys(getAccessKeys(app))
+            .mobileQr(getMobileQr(app))
             .noBreadcrumbs(getNoBreadcrumbs(app) || backLinkParent(app))
             .backRoute(backLinkParent(app) ? parentLink(appRoute, httpRequest)[0] : null)
             .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
@@ -107,6 +108,10 @@ public final class AppMapper {
             .locale(getLocale(httpRequest))
             .actions(mapShellActions(app))
             .actionCatalogue(ActionCatalogMapper.mapCatalogue(httpRequest))
+            .shortcuts(AppShellExtrasMapper.shortcuts(app, appRouteForMenu))
+            .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
+            .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
+            .idleSession(AppShellExtrasMapper.idleSession(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -120,12 +125,14 @@ public final class AppMapper {
   }
 
   /**
-   * The variant on the wire. {@code HAMBURGER_MENU} is the right spelling of {@code
-   * HAMBURGUER_MENU} and travels under the old name, the one every renderer already knows.
+   * The variant on the wire. Since 3.0-alpha.412 both spellings travel as {@code HAMBURGER_MENU}
+   * (the renderers accept both; they ship with the server).
    */
+  @SuppressWarnings("removal")
   static AppVariantDto toDto(AppVariant variant) {
     if (variant == null) return null;
-    if (variant == AppVariant.HAMBURGER_MENU) return AppVariantDto.HAMBURGUER_MENU;
+    if (variant == AppVariant.HAMBURGER_MENU || variant == AppVariant.HAMBURGUER_MENU)
+      return AppVariantDto.HAMBURGER_MENU;
     return AppVariantDto.valueOf(variant.name());
   }
 
@@ -495,6 +502,17 @@ public final class AppMapper {
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).accessKeys();
+    }
+    return false;
+  }
+
+  /** "Open on mobile": {@code @App(mobileQr = true)} on the app class, or the shell's own value. */
+  private static boolean getMobileQr(AppShell app) {
+    if (app.mobileQr() != null) return app.mobileQr();
+    if (app.serverSideType() == null) return false;
+    var appClass = forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).mobileQr();
     }
     return false;
   }

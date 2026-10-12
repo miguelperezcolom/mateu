@@ -101,6 +101,7 @@ export enum ComponentMetadataType {
     StatusList = "StatusList",
     BulletedList = "BulletedList",
     ActionPanel = "ActionPanel",
+    RecordMerge = "RecordMerge",
     MatrixGrid = "MatrixGrid",
     DropZone = "DropZone",
     Separator = "Separator",

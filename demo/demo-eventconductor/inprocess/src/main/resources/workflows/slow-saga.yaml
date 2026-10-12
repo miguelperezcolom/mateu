@@ -1,0 +1,37 @@
+# Something to watch in the UI: a saga that sits in a TIMER for a while and then rolls back,
+# so the process detail has a live graph, an amber compensation and an Errors tab with a reason.
+# Started by cron so there is always one in flight; turn cron off in application.properties to stop.
+id: slow-saga
+name: Slow saga
+version: 1
+cronExpression: "0 */2 * * * *"
+steps:
+  - id: start
+    type: START
+    name: Start
+  - id: reserve
+    type: ACTION
+    name: Reserve the room
+    topic: work
+    preconditionStepId: start
+    compensable: true
+    compensationStepId: cancelReservation
+  - id: settle
+    type: TIMER
+    name: Wait for settlement
+    duration: 60000
+    preconditionStepId: reserve
+  - id: charge
+    type: ACTION
+    name: Charge the card
+    topic: work
+    preconditionStepId: settle
+    retries: 0
+  - id: end
+    type: END
+    name: Done
+    preconditionStepId: charge
+  - id: cancelReservation
+    type: ACTION
+    name: Cancel the reservation
+    topic: work

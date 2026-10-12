@@ -67,6 +67,9 @@ public sealed record MetricCard : ComponentBase
     public string? Description { get; init; }
     /// <summary>Makes the tile clickable — the renderer dispatches this action (a method name).</summary>
     public string? ActionId { get; init; }
+    /// <summary>The period the value covers ("Last 7 days", "This month"), shown under the value.
+    /// Experimental (3.0-alpha.412), like Java's <c>MetricCard.timeframe</c>.</summary>
+    public string? Timeframe { get; init; }
 }
 
 /// <summary>A horizontal band of <see cref="MetricCard"/>s summarising essential status

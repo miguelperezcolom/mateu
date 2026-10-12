@@ -1,3 +1,4 @@
+import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import {customElement, property, state} from "lit/decorators.js";
@@ -14,6 +15,7 @@ import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
 import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
+import { rowOpenTargetOf } from '@infra/ui/rowOpen.ts'
 import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
@@ -469,7 +471,7 @@ export class MateuTableCrud extends LitElement {
             }
         })
         this.resizeObserver.observe(this)
-        this.addEventListener('mateu-selection-changed', this.selectionChangedListener)
+        this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
     }
 
     // the grid writes the selection into the shared state in place — re-render the toolbar so
@@ -481,7 +483,7 @@ export class MateuTableCrud extends LitElement {
         clearTimeout(this.loadingTimer)
         window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
-        this.removeEventListener('mateu-selection-changed', this.selectionChangedListener)
+        this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
     }
 
     /**
@@ -548,6 +550,8 @@ export class MateuTableCrud extends LitElement {
         this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: this._pageSizeOf(metadata), page: 0, crud_selected_items: [] }
+        // the selection was just reset: selection-gated toolbar buttons (here and in the page header)
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
         this._syncStateToUrl(metadata)
         // This is what the filter bar calls — Enter on the search box, a chip added or removed,
         // Apply on a range. A listing reading an external endpoint has no server `search` action to
@@ -697,6 +701,8 @@ export class MateuTableCrud extends LitElement {
     handleSearchRequested = (callback: (() => void) | undefined) => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: this._pageSizeOf(metadata), crud_selected_items: [] }
+        // the selection was just reset: selection-gated toolbar buttons (here and in the page header)
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
         this._syncStateToUrl(metadata)
         // @RestListing: fetch the rows CLIENT-SIDE from the external endpoint instead of dispatching
         // the server `search` action — the listing surface of consuming non-Mateu endpoints.
@@ -984,15 +990,17 @@ export class MateuTableCrud extends LitElement {
 
     /** Whether this toolbar button's action requires selected rows and none are selected. */
     needsSelection = (button: Button): boolean => {
-        const selected = this.state?.['crud_selected_items']
-        if (Array.isArray(selected) && selected.length > 0) return false
+        if (hasSelection(this.state?.['crud_selected_items'])) return false
+        // the guard the server put ON the button (every @ListToolbarButton carries it)
+        if (button.rowsSelectedRequired) return true
+        // older servers: look the advertised action up by the button's actionId
         type Walked = { tagName?: string, parentElement?: Walked | null, getRootNode?: () => { host?: Walked },
             component?: { actions?: Array<{ id?: string, rowsSelectedRequired?: boolean }> } }
         let node: Walked | null | undefined = this as unknown as Walked
         while (node) {
             const actions = node.tagName === 'MATEU-COMPONENT' ? node.component?.actions : undefined
             const action = Array.isArray(actions) ? actions.find(a => a?.id === button.actionId) : undefined
-            if (action) return !!action.rowsSelectedRequired
+            if (action) return requiresSelection(button, [action])
             node = node.parentElement ?? node.getRootNode?.()?.host ?? null
         }
         return false
@@ -1098,6 +1106,16 @@ export class MateuTableCrud extends LitElement {
             return html`${valueLabel(val, col.valueLabels)}`
         }
 
+        // A listing that declares a rowRoute opens a row by its route in EVERY layout (the table
+        // does it in mateu-table): the list and card layouts used to run `view` regardless.
+        const openByRoute = (item: unknown): boolean => {
+            const target = rowOpenTargetOf(metadata.rowRoute ? { kind: 'route', template: metadata.rowRoute } : undefined,
+                item, this.state, this.data)
+            if (target?.kind !== 'route') return false
+            navigateToRoute(this, target.route)
+            return true
+        }
+
         const renderTwoLineList = () => {
             const idField = this.identifierFieldName
             const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
@@ -1153,11 +1171,13 @@ export class MateuTableCrud extends LitElement {
                         <div role="button" tabindex="0" class="m-item"
                             ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             @click="${() => {
+                                if (openByRoute(item)) return
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
                                 this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'view', parameters: item }, bubbles: true, composed: true }))
                             }}" @keydown="${onActivate(() => {
+                                if (openByRoute(item)) return
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
@@ -1176,6 +1196,7 @@ export class MateuTableCrud extends LitElement {
         }
 
         const handleCardClick = (dispatcher: HTMLElement, actionId: string, item: any) => {
+            if (actionId === 'view' && openByRoute(item)) return
             const idField = this.identifierFieldName
             if (idField && item[idField] !== undefined) {
                 this.state = { ...this.state, _selectedId: String(item[idField]) }

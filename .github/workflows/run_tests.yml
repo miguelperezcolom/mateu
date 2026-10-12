@@ -147,7 +147,7 @@ jobs:
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
           --test-coverage-lines=94 --test-coverage-functions=91 --test-coverage-branches=78
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
-          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs
+          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -385,8 +385,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install the package
         run: pip install "./backend/python[dev,all]"
-      - name: Tests
-        run: cd backend/python && python -m pytest -q -p no:cacheprovider tests/
+      - name: Tests (with the coverage floor of pyproject's [tool.coverage.report])
+        run: |
+          cd backend/python
+          python -m coverage run -m pytest -q -p no:cacheprovider tests/
+          python -m coverage report
       - name: Types
         run: cd backend/python && mypy
       - name: The wheel builds, installs and imports
@@ -554,8 +557,10 @@ jobs:
       # JaCoCo coverage gate (`verify`). Core is where the ~1200 unit tests + the Java conformance
       # runner live; uidl (schema/annotation tests), the two annotation processors (one carries a
       # 70% per-package coverage floor) and webflux-core's in-JVM *IT suite also have
-      # tests, which used to run nowhere because `-pl shared/core` left them out. The adapters are
-      # otherwise exercised end to end by the e2e job above.
+      # tests, which used to run nowhere because `-pl shared/core` left them out. Every adapter
+      # runs its own AdapterParityITFoundation suite (security, CORS, MCP, documents, error
+      # boundary over real HTTP) and carries a coverage floor, as does the bundle plugin; the e2e
+      # job above exercises them end to end on top.
       - name: Build backend
         run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
@@ -571,7 +576,7 @@ jobs:
       - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
-          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core
+          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core,mvc/mvc-core,micronaut/micronaut-core,quarkus/quarkus-core,helidon-mp/helidon-mp-core,mateu-bundle-maven-plugin
 
       - name: API compatibility report
         if: always()
@@ -602,8 +607,30 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: .NET tests (net8.0 + net10.0)
-        run: cd backend/dotnet && dotnet test
+      # coverlet (coverage.cobertura.xml per target framework) and a LINE floor per package. Measured
+      # when introduced: Uidl 93%, Core 93%, Dtos 99%, AspNetCore 98% — the floors sit just below
+      # so they catch a real regression, not a refactor; ratchet them up as suites grow.
+      - name: .NET tests (net8.0 + net10.0) with coverage
+        run: cd backend/dotnet && dotnet test --collect:"XPlat Code Coverage" --results-directory /tmp/dotnet-coverage
+
+      - name: .NET coverage floor
+        run: |
+          python3 - <<'EOF'
+          import glob, sys, xml.etree.ElementTree as ET
+          floors = {"Mateu.Uidl": 0.92, "Mateu.Core": 0.92, "Mateu.Dtos": 0.97, "Mateu.AspNetCore": 0.95}
+          reports = glob.glob("/tmp/dotnet-coverage/*/coverage.cobertura.xml")
+          if not reports:
+              sys.exit("no coverage report produced")
+          failed = False
+          for report in reports:
+              for package in ET.parse(report).getroot().iter("package"):
+                  name, rate = package.get("name"), float(package.get("line-rate"))
+                  floor = floors.get(name)
+                  print(f"{report.split('/')[-2][:8]} {name}: {rate:.1%} (floor {floor})")
+                  if floor is not None and rate < floor:
+                      failed = True
+          sys.exit(1 if failed else 0)
+          EOF
 
       - name: .NET packages build
         run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done

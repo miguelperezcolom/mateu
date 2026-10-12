@@ -105,6 +105,20 @@ public class DocumentsTests
     }
 
     [Fact]
+    public void A_failing_lazy_document_answers_500_with_nothing_of_the_error_and_once()
+    {
+        var store = new DocumentStore(TimeSpan.FromMinutes(5));
+        var token = store.Park(Document.Lazy("report.pdf", Document.PdfMediaType,
+            () => throw new InvalidOperationException("db password is hunter2")));
+        var served = DocumentDownloads.Serve(token, store);
+        Assert.Equal(500, served.Status);
+        Assert.Empty(served.Body);
+        Assert.Equal("no-store", Assert.Single(served.Headers).Value);
+        // the token was consumed: a retry cannot run the producer again
+        Assert.Equal(404, DocumentDownloads.Serve(token, store).Status);
+    }
+
+    [Fact]
     public void A_printed_document_asks_the_client_to_print_it()
     {
         var file = TheDownload(Run("printFolio"));

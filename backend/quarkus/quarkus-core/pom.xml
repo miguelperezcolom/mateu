@@ -16,6 +16,11 @@
     <description>Runtime of the Mateu adapter for Quarkus (Quarkus REST + Vert.x routes).</description>
 
     <properties>
+        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 68.7%
+             after integration batch 2 (2026-10; was 72.2% in design/coverage/backends.md): the
+             mobile manifest route in MateuQuarkusRoutes is not exercised by the parity suite.
+             Ratchet it up as the suite grows. -->
+        <jacoco.min.bundle.coverage>68%</jacoco.min.bundle.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- The Quarkus line the adapter is built and tested against. Every Quarkus artifact below
              comes from this ONE BOM (they used to mix 3.38.0 and 3.15.7), and all of them are
@@ -63,6 +68,13 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- @TestSecurity: a Quarkus SecurityIdentity for the test request, read reflectively by
+             QuarkusHttpRequest — pins that a Quarkus-authenticated caller reaches Mateu's checks -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-security</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

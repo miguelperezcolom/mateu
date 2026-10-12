@@ -52,6 +52,30 @@ class AppHandlerMixin(MixinBase):
             fragments=[UIFragment(target_component_id=self.target(rq), component=app_component, action="Replace")],
         )
 
+    # ── Idle session & live header values (E2 patterns; mirror Java's runners) ──
+    def keep_alive_action(self, cls, rq: RunActionRq) -> UIIncrement:
+        """``_keep-alive`` (the idle warning's "Stay signed in"): reaching the server is most of it;
+        an app class implementing :class:`KeepAliveHandler` is called too. Answers an empty
+        increment."""
+        from mateu_uidl import KeepAliveHandler
+
+        if isinstance(cls, type) and issubclass(cls, KeepAliveHandler):
+            cls().keep_alive()
+        return UIIncrement.of()
+
+    @staticmethod
+    def live_updates_snapshot() -> UIIncrement:
+        """The first increment of the ``_live-updates`` stream: the last value PUBLISHED for each
+        id (``LiveHeaderValues.current``) as UpdateHeaderValue commands, or an empty increment."""
+        from mateu_uidl import LiveHeaderValues
+
+        return UIIncrement.of(
+            commands=[
+                UICommand.update_header_value(vid, value)
+                for vid, value in LiveHeaderValues.current().items()
+            ]
+        )
+
     # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
     def notifications_action(self, cls, rq: RunActionRq) -> UIIncrement:
         """The notification inbox's app-level actions: ``_notifications-list`` answers the

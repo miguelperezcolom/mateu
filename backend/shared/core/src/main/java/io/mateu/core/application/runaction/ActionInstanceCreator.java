@@ -99,7 +99,7 @@ public class ActionInstanceCreator {
           // gives them, instead of mounting the route on the shell, which answers "Not found".
           .flatMap(
               resolved ->
-                  resolved == app
+                  resolved == app && !isAuthoredHere(finalCommand.route())
                       ? appMenuResolver.resolveRemoteMenuForRoute(
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
@@ -134,6 +134,14 @@ public class ActionInstanceCreator {
                         routeRegistry.isMountRoot(finalCommand.route())
                             ? Mono.just(app)
                             : Mono.empty()));
+  }
+
+  /**
+   * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
+   * is never offered to a remote, even when no menu entry claims it.
+   */
+  private boolean isAuthoredHere(String route) {
+    return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
 
   /**
@@ -410,6 +418,20 @@ public class ActionInstanceCreator {
    * no menu actionable for the empty route, so resolving would come back empty and the action would
    * answer "Not found." instead of dispatching to its runner.
    */
+  /**
+   * Whether {@code actionId} is the action of one of the app's {@code @AppShortcut}s. A blank id
+   * never is: a route load has actionId "" and most shortcuts have no action either — matching the
+   * two blanks answered every page load of such an app with the shell (blank screens on Redwood).
+   */
+  static boolean isAppShortcutAction(Class<?> appClass, String actionId) {
+    if (actionId == null || actionId.isBlank()) {
+      return false;
+    }
+    return java.util.Arrays.stream(
+            appClass.getAnnotationsByType(io.mateu.uidl.annotations.AppShortcut.class))
+        .anyMatch(shortcut -> actionId.equals(shortcut.actionId()));
+  }
+
   private boolean isAppLevelAction(RunActionCommand command) {
     var actionId = command.actionId();
     if (actionId == null) {
@@ -431,6 +453,11 @@ public class ActionInstanceCreator {
     if (io.mateu.core.domain.act.GlobalSearchActionRunner.ACTION_ID.equals(actionId)) {
       return true;
     }
+    // The idle warning's keep-alive and the live-updates event stream belong to the shell too.
+    if (io.mateu.core.domain.act.KeepAliveActionRunner.ACTION_ID.equals(actionId)
+        || io.mateu.core.domain.act.LiveUpdatesActionRunner.ACTION_ID.equals(actionId)) {
+      return true;
+    }
     // Header actions declared by the app's AppActionsSupplier dispatch to the app
     // instance too — same reasoning as the context selectors' remote search.
     if (command.serverSideType() == null) {
@@ -446,6 +473,10 @@ public class ActionInstanceCreator {
                   actionId.equals(m.getName())
                       && io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
                           m, io.mateu.uidl.annotations.Fab.class))) {
+        return true;
+      }
+      // an app-wide shortcut's action (@AppShortcut(actionId)) runs on the app, whatever screen
+      if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {

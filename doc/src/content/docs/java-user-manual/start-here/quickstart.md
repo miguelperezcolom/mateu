@@ -18,7 +18,7 @@ Project…** in VS Code, or `mvn archetype:generate -DarchetypeGroupId=io.mateu
 -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.example
 -DartifactId=my-app` — with your package, the latest Mateu release and an `AGENTS.md`/`CLAUDE.md`
 for AI assistants. See [Create your project](/java-create-your-project/). Prefer no code at all?
-[Quickstart: YAML only](/java-user-manual/start-here/quickstart-yaml/).
+[Quickstart: YAML only](/define/yaml/quickstart/).
 :::
 
 :::caution[The archetype needs a JDK 21–25]

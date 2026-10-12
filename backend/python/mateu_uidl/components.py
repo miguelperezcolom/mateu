@@ -108,6 +108,9 @@ class MetricCard(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    # The period the value covers ("Last 7 days"), shown under the value. Experimental
+    # (3.0-alpha.412), like Java's MetricCard.timeframe.
+    timeframe: str | None = None
 
 
 @dataclass(frozen=True)
@@ -1232,6 +1235,62 @@ class ActionPanel(Component):
 
 
 @dataclass(frozen=True)
+class MergeRecord:
+    """A column of a :class:`RecordMerge`: one of the records compared. ``label`` names it in the
+    header and in the picks' accessible names ("Use value from {label} for Email"); ``caption`` is a
+    quieter second line."""
+
+    id: str | None = None
+    label: str | None = None
+    caption: str | None = None
+
+
+@dataclass(frozen=True)
+class MergeField:
+    """A row of a :class:`RecordMerge`: one field and its value in each record (records' order).
+    ``chosen`` = the record whose value starts picked (None = the first with a value); ``editable``
+    also offers a free-text value."""
+
+    field_id: str
+    label: str | None = None
+    values: tuple[object, ...] = ()
+    chosen: str | None = None
+    editable: bool = False
+
+    def __post_init__(self):
+        object.__setattr__(self, "values", tuple(self.values))
+
+    @staticmethod
+    def of(field_id: str, label: str | None, *values: object) -> "MergeField":
+        """A row, nothing pre-picked: ``MergeField.of("email", "Email", a, b)``."""
+        return MergeField(field_id=field_id, label=label, values=tuple(values))
+
+
+@dataclass(frozen=True)
+class RecordMerge(Component):
+    """COMPARE AND MERGE: two (or more) records side by side, one column per record and one row per
+    field; differing rows are highlighted and each row is a pick ("use the value from A"), plus a
+    free value where the field is editable. The merge button runs ``merge_action_id`` with
+    ``_merged`` (field id → value) and ``_choices`` (field id → record id, or "custom") next to
+    ``parameters``. Mirrors Java's ``RecordMerge``."""
+
+    title: str | None = None
+    records: tuple[MergeRecord, ...] = ()
+    fields: tuple[MergeField, ...] = ()
+    merge_action_id: str | None = None
+    merge_label: str | None = None
+    parameters: dict[str, object] | None = None
+    differences_only: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "records", tuple(self.records))
+        object.__setattr__(self, "fields", tuple(self.fields))
+
+
+@dataclass(frozen=True)
 class MatrixColumn:
     """A column of a :class:`MatrixGrid`. Consecutive columns sharing a ``group`` (e.g. the month)
     get a spanning header above theirs; ``tone`` (info, success, warning, danger, neutral) tints the
@@ -1756,6 +1815,9 @@ __all__ = [
     "ActionPanelItem",
     "ActionPanelCategory",
     "ActionPanel",
+    "MergeRecord",
+    "MergeField",
+    "RecordMerge",
     "MatrixColumn",
     "MatrixCell",
     "MatrixRow",

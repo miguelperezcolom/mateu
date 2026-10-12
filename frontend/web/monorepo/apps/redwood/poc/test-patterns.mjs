@@ -112,6 +112,26 @@ test('A2: the three VB headers bind the switcher, and the pick runs through onPa
   assert.ok(JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue.switcher)
 })
 
+// ── KPI timeframe on the welcome tiles ───────────────────────────────────────────────────
+
+test('a welcome KPI tile carries its timeframe under the value and in its accessible name', () => {
+  const tree = page({}, [
+    node({ type: 'HeroSection', title: 'Welcome' }),
+    node({ type: 'DashboardPanel', title: 'Revenue' }, [
+      node({ type: 'MetricCard', title: 'Revenue', value: '12.4k', unit: '€', timeframe: 'Last 7 days', trendLabel: '+8%' })]),
+    node({ type: 'DashboardPanel', title: 'Occupancy' }, [node({ type: 'MetricCard', title: 'Occupancy', value: '82' })]),
+  ])
+  const [withTf, without] = welcomeOf(host(tree)).tiles
+  assert.equal(withTf.kpiTimeframe, 'Last 7 days')
+  assert.equal(withTf.kpiAriaLabel, 'Revenue, 12.4k €, Last 7 days, +8%')
+  assert.equal(without.kpiTimeframe, '')
+  assert.equal(without.kpiAriaLabel, 'Occupancy, 82')
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.match(html, /\$current\.data\.kpiTimeframe/)
+  // the scoreboard atom (every surface) paints it too
+  assert.ok((html.match(/mateu-metric-timeframe"><oj-bind-text value="\[\[ \$current\.data\.timeframe \]\]"/g) || []).length > 1)
+})
+
 // ── A3 hero tone ──────────────────────────────────────────────────────────────────────────
 
 const welcomeTree = (tone) => page({}, [node({ type: 'HeroSection', title: 'Welcome', subtitle: 'Hi', tone })])

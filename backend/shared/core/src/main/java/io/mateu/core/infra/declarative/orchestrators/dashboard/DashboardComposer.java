@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.dashboard;
 
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 
+import io.mateu.core.domain.out.componentmapper.ArchetypeAdvisor;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.DashboardPanel;
@@ -69,6 +70,7 @@ public final class DashboardComposer {
       }
     }
     flushMetrics(pendingMetrics, items);
+    ArchetypeAdvisor.adviseTimeframes(host.getClass(), allMetrics(items));
     // Consolidated onto the one responsive grid (coherence-plan #9): a fixed column count becomes N
     // fill tracks; 0 lets the renderer auto-fit. The tiles (DashboardPanel) and the Scoreboard band
     // carry their own column span (grid-column) as before, so the grid needs no per-child spans;
@@ -77,6 +79,14 @@ public final class DashboardComposer {
         columns > 0 ? Collections.nCopies(columns, GridTrack.fill()) : List.of();
     var grid = new ResponsiveGrid(id, tracks, null, items, null, "align-items: stretch;");
     return reorderable ? grid.asReorderable() : grid;
+  }
+
+  private static List<MetricCard> allMetrics(List<Component> items) {
+    return items.stream()
+        .filter(Scoreboard.class::isInstance)
+        .map(Scoreboard.class::cast)
+        .flatMap(scoreboard -> scoreboard.metrics().stream())
+        .toList();
   }
 
   private static void flushMetrics(List<MetricCard> pendingMetrics, List<Component> items) {

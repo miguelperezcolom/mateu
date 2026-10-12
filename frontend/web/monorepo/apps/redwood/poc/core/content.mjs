@@ -1,4 +1,5 @@
 import { calendarAtomOf } from '../calendar.mjs'
+import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl } from '../elements.mjs'
 import { collectTexts } from './tree.mjs'
@@ -995,6 +996,10 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'ActionPanel') {
       atom(actionPanelAtomOf(m, node.id, interp), container)
+      return
+    }
+    if (t === 'RecordMerge') {
+      atom(recordMergeAtomOf(m, node.id, interp), container)
       return
     }
     if (t === 'BulletedList') {

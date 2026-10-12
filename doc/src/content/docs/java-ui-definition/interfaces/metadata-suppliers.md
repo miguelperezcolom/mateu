@@ -48,28 +48,34 @@ public class DashboardPage implements BannerSupplier {
 
 ---
 
-# BadgeSupplier
+# HeaderBadgesSupplier
 
-Provides page-header status chips dynamically. Badges appear in the page header strip alongside the title — useful for status flags that depend on data loaded at render time.
+Provides page-header status chips dynamically — the code twin of `@BadgeInHeader`. Badges appear in the page header strip alongside the title — useful for status flags that depend on data loaded at render time.
 
-`BadgeSupplier` takes precedence over `@BadgeInHeader`-annotated fields when both are present.
+`HeaderBadgesSupplier` takes precedence over `@BadgeInHeader`-annotated fields when both are present.
 
 ```java
-public interface BadgeSupplier {
-    List<Badge> badges();
+public interface HeaderBadgesSupplier {
+    List<Badge> headerBadges();
 }
 ```
+
+:::note[Renamed in 3.0-alpha.412]
+This interface used to be `BadgeSupplier` (`List<Badge> badges()`). `BadgeSupplier` still works —
+it is a deprecated alias that extends `HeaderBadgesSupplier` — but new code should implement
+`HeaderBadgesSupplier`.
+:::
 
 ## Usage
 
 ```java
 @UI("/booking/:id")
-public class BookingDetailPage implements BadgeSupplier {
+public class BookingDetailPage implements HeaderBadgesSupplier {
 
     String status;
 
     @Override
-    public List<Badge> badges() {
+    public List<Badge> headerBadges() {
         return switch (status) {
             case "CONFIRMED" -> List.of(Badge.builder()
                 .text("Confirmed").color(BadgeColor.success.name())

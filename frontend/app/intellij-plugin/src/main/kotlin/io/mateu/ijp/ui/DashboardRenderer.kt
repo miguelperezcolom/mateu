@@ -86,6 +86,19 @@ fun renderScoreboard(r: ComponentRenderer, component: JsonNode, state: JsonNode,
     return rowPanel
 }
 
+/**
+ * The KPI tile's accessible name, in reading order: "Revenue, 12.4k €, Last 7 days, +8%, …" — the
+ * same text the web, Redwood and React Native renderers give it, so the timeframe travels with the
+ * number it qualifies.
+ */
+fun metricAccessibleName(metadata: JsonNode): String {
+    val value = listOf(metadata.text("value"), metadata.text("unit")).map { it.trim() }.filter { it.isNotEmpty() }.joinToString(" ")
+    return listOf(metadata.text("title"), value, metadata.text("timeframe"), metadata.text("trendLabel"), metadata.text("description"))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .joinToString(", ")
+}
+
 fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val card = tilePanel()
     val title = JBLabel(metadata.text("title"))
@@ -97,6 +110,17 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     value.font = value.font.deriveFont(Font.BOLD, 26f)
     value.alignmentX = Component.LEFT_ALIGNMENT
     card.add(value)
+
+    // the period the number covers ("Last 7 days"): small and muted, right under the value
+    val timeframe = metadata.text("timeframe").trim()
+    if (timeframe.isNotEmpty()) {
+        val tf = JBLabel(timeframe)
+        tf.foreground = ToneColors.secondaryText()
+        tf.font = JBUI.Fonts.smallFont()
+        tf.alignmentX = Component.LEFT_ALIGNMENT
+        card.add(tf)
+    }
+    card.accessibleName(metricAccessibleName(metadata))
 
     val trendLabel = metadata.text("trendLabel")
     if (trendLabel.isNotBlank()) {

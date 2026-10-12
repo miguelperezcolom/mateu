@@ -154,6 +154,17 @@ class AppShell:
     subtitle: str | None = None
     variant: str | None = None
     home_route: str | None = None
+    #: App-wide shortcuts / quick-launch codes (twin of ``@app_shortcut``), added before the
+    #: decorator's (EXPERIMENTAL).
+    shortcuts: list["AppShortcutEntry"] = dataclass_field(default_factory=list)
+    #: Live header values with their initial value (twin of ``HeaderValuesSupplier``).
+    header_values: list["HeaderValue"] = dataclass_field(default_factory=list)
+    #: The live event stream (twin of ``@app(live_updates)``); None = the decorator.
+    live_updates: bool | None = None
+    #: The idle-session warning (twins of ``@app(idle_*)``); None = the decorator.
+    idle_timeout_minutes: int | None = None
+    idle_warning_seconds: int | None = None
+    idle_sign_out_url: str | None = None
 
 
 class MenuSupplier:
@@ -182,4 +193,46 @@ class GroupActionVisibility:
     (Java's ``GroupActionVisibility``)."""
 
     def group_action_visible(self, method_name: str, group_value: str) -> bool:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class AppShortcutEntry:
+    """An app-wide keyboard shortcut / quick-launch code as DATA — the twin of ``@app_shortcut``
+    for a code-authored shell (``AppShell.shortcuts``). A ``key`` and/or a ``code``; a ``route``
+    or an ``action_id`` (EXPERIMENTAL; mirrors Java's ``AppShortcutEntry``)."""
+
+    key: str | None = None
+    route: str | None = None
+    action_id: str | None = None
+    label: str | None = None
+    code: str | None = None
+
+
+@dataclass(frozen=True)
+class HeaderValue:
+    """A LIVE value on the app header ("Business date: 12 Oct") the server can change while the app
+    is open: ``UICommand.update_header_value`` from an action (every tab of that browser follows),
+    or ``LiveHeaderValues.publish`` for every session when the app has ``@app(live_updates=True)``
+    (EXPERIMENTAL; mirrors Java's ``HeaderValue``)."""
+
+    id: str
+    label: str | None = None
+    value: str | None = None
+
+
+class HeaderValuesSupplier:
+    """Implemented by the ``@app`` class to put live values on the header; read when the shell is
+    built (EXPERIMENTAL; mirrors Java's ``HeaderValuesSupplier``)."""
+
+    def header_values(self) -> list[HeaderValue]:
+        raise NotImplementedError
+
+
+class KeepAliveHandler:
+    """Implemented by the ``@app`` class to hook the idle warning's "Stay signed in": called on the
+    ``_keep-alive`` app-level action (EXPERIMENTAL; mirrors Java's ``KeepAliveHandler``). Mateu does
+    no authentication — what "signed in" means is the app's."""
+
+    def keep_alive(self) -> None:
         raise NotImplementedError

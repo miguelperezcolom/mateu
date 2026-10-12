@@ -131,7 +131,7 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     if not mapper.authorized(getattr(fn, "__mateu_eyes_only__", None)):
         reason = "eyes_only"
     elif not class_access_granted(mapper, type_):
-        reason = "class-level eyes_only"
+        reason = "class-level eyes_only/secured"
     elif not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
         reason = "disabled_unless"
     elif not for_current_audience(getattr(fn, "__mateu_audience__", None)):
@@ -140,14 +140,26 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
         deny(f"action '{action_id}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
 
 
+def class_gates(klass) -> list:
+    """The class-level access gates declared on ``klass`` itself: its ``@eyes_only`` and the
+    deprecated ``@secured`` (enforced since 3.0-alpha.412 as ``@eyes_only(permissions=[p])``)."""
+    return [
+        gate
+        for gate in (
+            klass.__dict__.get("__mateu_eyes_only__"),
+            klass.__dict__.get("__mateu_secured_gate__"),
+        )
+        if gate is not None
+    ]
+
+
 def class_access_granted(mapper, type_) -> bool:
-    """Whether the caller passes every class-level ``@eyes_only`` of ``type_`` and of its bases
-    (Java's ``WireTypePolicy.classLevelAccessGranted``)."""
+    """Whether the caller passes every class-level ``@eyes_only`` / ``@secured`` of ``type_`` and
+    of its bases (Java's ``WireTypePolicy.classLevelAccessGranted``)."""
     if not isinstance(type_, type):
         return True
     for klass in type_.__mro__:
-        gate = klass.__dict__.get("__mateu_eyes_only__")
-        if gate is not None and not mapper.authorized(gate):
+        if any(not mapper.authorized(gate) for gate in class_gates(klass)):
             return False
     return True
 
@@ -155,7 +167,10 @@ def class_access_granted(mapper, type_) -> bool:
 def ensure_class_access(mapper, type_, what: str = "request") -> None:
     """Refuses (403) a request that names a type the caller may not see."""
     if type_ is not None and not class_access_granted(mapper, type_):
-        deny(f"{what} for {type_.__module__}.{type_.__qualname__}: class-level eyes_only not satisfied")
+        deny(
+            f"{what} for {type_.__module__}.{type_.__qualname__}: "
+            "class-level eyes_only/secured not satisfied"
+        )
 
 
 def deny(what: str) -> None:
@@ -190,6 +205,10 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     from .mapper.layout import section_affordance_ids
 
     ids.update(section_affordance_ids(type_))
+    # @app_shortcut(action_id=...) on an app class: the shortcut runs that app-level method
+    for _key, _route, shortcut_action, _label, _code in getattr(type_, "__mateu_app_shortcuts__", ()) or ():
+        if shortcut_action:
+            ids.add(shortcut_action)
     refresh = getattr(type_, "__mateu_refresh_action__", None)
     if isinstance(refresh, str) and refresh:
         ids.add(refresh)

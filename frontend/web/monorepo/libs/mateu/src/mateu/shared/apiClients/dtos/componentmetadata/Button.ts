@@ -26,4 +26,9 @@ export default interface Button extends ComponentMetadata {
      * the page state at click time. Null on a plain action button. */
     route?: string
 
+    /** The action needs selected listing rows (a bulk @ListToolbarButton): the renderer disables
+     * the button while nothing is selected. Carried by the button so no renderer has to find the
+     * advertised action by id. */
+    rowsSelectedRequired?: boolean
+
 }

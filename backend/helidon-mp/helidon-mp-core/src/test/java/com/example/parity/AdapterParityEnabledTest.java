@@ -29,6 +29,11 @@ class AdapterParityEnabledTest {
   }
 
   @Test
+  void mcpToolCallsApplyTheSameRbacAndErrorBoundary() {
+    contract.mcpToolCallsApplyTheSameRbacAndErrorBoundary();
+  }
+
+  @Test
   void servesMcpWhenEnabled() {
     contract.servesMcpWhenEnabled();
   }

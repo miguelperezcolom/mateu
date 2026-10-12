@@ -39,9 +39,14 @@ export function getTokenProvider(): TokenProvider | undefined {
 /** `{ Authorization: 'Bearer …' }` when a provider has a token, else `{}`. Never throws: a broken
  *  provider must not take the whole request down (the backend then answers 401 and re-auth runs). */
 export async function authHeaders(): Promise<Record<string, string>> {
-  if (!provider) return {};
+  return authHeadersFrom(provider);
+}
+
+/** The same, from an explicit provider — a hub UI session carries its own, so tokens never cross UIs. */
+export async function authHeadersFrom(p: TokenProvider | null | undefined): Promise<Record<string, string>> {
+  if (!p) return {};
   try {
-    const token = await provider.getToken();
+    const token = await p.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch {
     return {};
@@ -75,15 +80,20 @@ export async function signOut(): Promise<void> {
  * login. Returns true when a request retried now would carry a fresh token.
  */
 export async function reauthenticateWithProvider(interactive = true): Promise<boolean> {
-  if (!provider) return false;
+  return reauthenticate(provider, interactive);
+}
+
+/** The 401 contract against an explicit provider (a hub UI session's own). */
+export async function reauthenticate(p: TokenProvider | null | undefined, interactive = true): Promise<boolean> {
+  if (!p) return false;
   try {
-    if (await provider.refresh()) return true;
+    if (await p.refresh()) return true;
   } catch {
     // fall through to the interactive login
   }
-  if (!interactive || !provider.login) return false;
+  if (!interactive || !p.login) return false;
   try {
-    return await provider.login();
+    return await p.login();
   } catch {
     return false;
   }

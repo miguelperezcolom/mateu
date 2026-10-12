@@ -47,6 +47,7 @@ from .fields import (
 )
 from .front_office import (
     ActionPanelMetadata,
+    RecordMergeMetadata,
     AddOnPickerMetadata,
     BulletedListMetadata,
     DropZoneMetadata,
@@ -164,6 +165,7 @@ ComponentMetadata = Annotated[
         StatusListMetadata,
         BulletedListMetadata,
         ActionPanelMetadata,
+        RecordMergeMetadata,
         MatrixGridMetadata,
         MapMetadata,
         DropZoneMetadata,

@@ -1,23 +1,23 @@
 ---
 title: Mateu
-description: "A model-driven UI system for business apps: declare the model once — in Java, C#, Python or YAML — and Mateu derives the UI, on web and native, served by a backend or shipped as a static bundle."
+description: "Define business UIs once, agnostically: one model, authored as YAML, in a visual editor or in Java, C# or Python; rendered on web, mobile and desktop; served by any backend or as a static bundle with none."
 template: splash
 hero:
   title: Mateu
-  tagline: "A model-driven UI system for business apps: declare the model once — in Java, C#, Python or YAML — and Mateu derives the UI, on web and native, served by a backend or shipped as a static bundle."
+  tagline: "Define business UIs once. Author the model as YAML, in a visual editor, or in Java, C# or Python. Render it on the web, on phones and on the desktop. Serve it from any backend — or from a CDN with no backend at all."
   actions:
-    - text: Quickstart
-      link: /java-user-manual/start-here/quickstart/
+    - text: Choose your path
+      link: /start-here/choose-your-path/
       icon: right-arrow
-    - text: The Mateu Way
-      link: /the-mateu-way/
-      variant: minimal
     - text: What is Mateu?
       link: /mateu-about/what-is-mateu/
       variant: minimal
+    - text: Concepts
+      link: /concepts/
+      variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 
 {/* UX: the hero answers "what is this?" in two seconds; the reel comes right
     after as the proof — never as a gate the value proposition hides behind. */}
@@ -28,101 +28,144 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
   <iframe src="/reel.html" title="Mateu — a 30-second tour" loading="lazy" allow="autoplay" style={{ width: '100%', height: '100%', border: 0, display: 'block' }}></iframe>
 </div>
 
+## One model, three ways to write it
+
+The same product listing, written three ways. Each produces the same model, and every renderer
+draws it the same way.
+
+<Tabs syncKey="authoring">
+<TabItem label="YAML (no code)">
+
+```yaml
+# specs/ui/products.yaml
+type: Listing
+title: Products
+searchable: true
+rowsSource:
+  ref: products            # an endpoint named once in sources.yaml
+columns:
+  - {type: GridColumn, id: name, label: Name}
+  - {type: GridColumn, id: price, label: Price}
+  - {type: GridColumn, id: status, label: Status, dataType: status}
+```
+
+Write it by hand, or let the visual editor in IntelliJ or VS Code write it.
+
+</TabItem>
+<TabItem label="Java">
+
+```java
+@UI("/products")
+@Title("Products")
+public class Products extends AutoCrud<Product> {
+  @Override
+  public CrudStore<Product> store() {
+    return ProductStore.INSTANCE;
+  }
+}
+```
+
+</TabItem>
+<TabItem label="C#">
+
+```csharp
+[UI("products"), Title("Products")]
+public class Products : Crud<Product>
+{
+    public override IEnumerable<Product> Fetch(string? search) => Store.Search(search);
+    public override Product? Get(string id) => Store.Get(id);
+    public override void Save(Product p) => Store.Save(p);
+    public override void Delete(string id) => Store.Delete(id);
+}
+```
+
+</TabItem>
+<TabItem label="Python">
+
+```python
+@ui("products")
+@title("Products")
+class Products(Crud[Product]):
+    def fetch(self, search): return store.search(search)
+    def get(self, id): return store.get(id)
+    def save(self, entity): store.save(entity)
+    def delete(self, id): store.delete(id)
+```
+
+</TabItem>
+</Tabs>
+
+![Products list](/images/docs/admin-panel/products-list.png)
+
+[Choose your path →](/start-here/choose-your-path/)
+
 ## The problem
 
-Most business applications end up with two applications:
+Most business applications end up as two applications:
 
 ```text
 backend → API → frontend → duplicated model → duplicated validation
 ```
 
-That usually means duplicated business concepts, duplicated validation, more glue code, more moving parts, and harder maintenance.
+That means duplicated concepts, duplicated validation, glue code, and one more project to keep
+alive.
 
 ## The Mateu approach
 
 ```text
-model (Java · Kotlin · C# · Python · YAML) → Mateu wire model → browser · desktop · mobile
+model (YAML · visual editor · Java · C# · Python) → one wire model → browser · phone · desktop
 ```
 
-> The model owns the UI.
+You declare what a screen contains; Mateu derives the screen. The model is files in your
+repository, reviewed and released like any other code — not a project in somebody's cloud.
 
-You declare what a screen contains; Mateu derives the screen. Served by your backend, or exported
-as a static bundle with no backend at all — without turning every internal tool into a separate
-frontend project.
-
-```java
-@UI("/products")
-public class Products extends AutoCrud<Product> {
-    @Override
-    public CrudStore<Product> store() {
-        return new ProductStore(); // your CrudStore<Product>
-    }
-}
-```
-
-![Products list — generated from the code above](/images/docs/admin-panel/products-list.png)
-
-Wondering how this differs from a React SPA, Vaadin, or a CRUD generator? See [Mateu vs the traditional stack →](/mateu-about/comparison/).
-
-## Or say the same thing as data
-
-The Java class is one authoring surface. The same screen can be written as YAML — a page definition,
-a route registry and an app shell — and a whole application authored that way needs no Mateu Java at
-all:
-
-```yaml
-# specs/ui/routes.yaml
-app:
-  title: Back office
-  menu:
-    - type: RouteLink
-      label: Orders
-      route: orders
-routes:
-  - route: orders
-    definition: orders.yaml
-```
-
-Both halves meet in the same component model, share the same published JSON Schema (so your editor
-autocompletes them), and can be mixed on one screen — layout from YAML, behaviour from Java. There
-is a [visual editor](/java-ui-definition/yaml-ui-definition/) that writes those files, and the files
-live in your repository, in your build, under review.
-
-[The model →](/mateu-about/the-model/) · [Mateu vs visual builders →](/mateu-about/comparison-low-code/)
+<CardGrid>
+  <Card title="Author it your way" icon="pencil">
+    YAML and the [visual editor](/define/yaml/visual-editor/) with no code, or
+    [Java](/java-user-manual/start-here/quickstart/), [C#](/csharp-user-manual/) or
+    [Python](/python-user-manual/) — or [both on one screen](/define/mixing/).
+  </Card>
+  <Card title="Render it anywhere" icon="laptop">
+    [Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/) on the
+    web (also embedded in Visual Builder apps), the [Mateu mobile app](/native/react-native/), and
+    [IntelliJ](/native/) on the desktop.
+  </Card>
+  <Card title="Serve it from anything" icon="rocket">
+    [A backend](/deploy/) in Java (5 frameworks), .NET or Python — or a
+    [static bundle](/deploy/static-bundle/) on a CDN with no backend.
+  </Card>
+  <Card title="Compose it" icon="puzzle">
+    [Federate](/mateu-about/ui-federation/) UIs owned by different teams and domains into one
+    console.
+  </Card>
+</CardGrid>
 
 ## What you can build
 
 <CardGrid>
   <Card title="Admin panels" icon="document">
-    Fast CRUD-heavy backoffice screens directly from your Java model.
+    CRUD-heavy backoffice screens over your model or your APIs.
+  </Card>
+  <Card title="Consoles over APIs" icon="external">
+    A 100 % static UI over REST APIs, the way cloud consoles are built.
   </Card>
   <Card title="Distributed backoffices" icon="puzzle">
-    Let each microservice define its own UI and compose everything in one shell.
+    Each service or domain owns its UI; a shell composes them.
   </Card>
-  <Card title="Embedded UI" icon="external">
-    Use Mateu inside React, Vue, Angular or plain HTML through a web component.
-  </Card>
-  <Card title="Real-world architectures" icon="setting">
-    Works naturally with microservices, DDD, CQRS, and hexagonal architecture.
+  <Card title="Embedded UI" icon="seti:html">
+    Mateu screens inside React, Vue, Angular, Visual Builder or plain HTML.
   </Card>
 </CardGrid>
 
-## Works with your stack
+Wondering how this differs from a React SPA, Vaadin or a low-code platform? See
+[Mateu vs the traditional stack](/mateu-about/comparison/) and
+[Mateu vs visual builders](/mateu-about/comparison-low-code/).
 
-Mateu works with Spring Boot MVC, Spring WebFlux, Micronaut, Quarkus, and any HTTP-based Java backend. You keep your architecture. Mateu becomes one more inbound adapter.
+## Where to go next
 
-## One protocol, many stacks
-
-Mateu's UI travels as a wire protocol, not as framework code. That means:
-
-- **Polyglot servers** — write your UI in [Java](/java-user-manual/start-here/quickstart/), [Kotlin](/kotlin-user-manual/), [C#](/csharp-user-manual/) or [Python](/python-user-manual/) (C# and Python are early-stage); they all emit the same UI model.
-- **Multi-frontend** — the same backend renders on [two web design systems](/design-systems/) (Vaadin and Oracle Redwood) and on [native desktop and mobile](/native/) (the IntelliJ plugin on the desktop, React Native on iOS/Android), without touching your code.
-- **Several ways in, one model** — annotations, YAML, the visual editor and [Figma](/design-systems/figma/) all produce [the same model](/mateu-about/the-model/), with a generated schema and written-down precedence rules keeping them in step.
-
-## Recommended path
-
-1. [Quickstart](/java-user-manual/start-here/quickstart/)
-2. [Admin panel](/java-user-manual/use-cases/admin-panel/)
-3. [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
-4. [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/)
-5. [Real-world architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/)
+1. [Choose your path](/start-here/choose-your-path/) — authoring, rendering, deployment.
+2. A quickstart: [YAML](/define/yaml/quickstart/), [Java](/java-user-manual/start-here/quickstart/),
+   [C#](/csharp-user-manual/) or [Python](/python-user-manual/).
+3. [Concepts](/concepts/) — the model, routes, data sources, actions, federation.
+4. [The Mateu Way](/the-mateu-way/) — six families of screens and where each one starts.
+5. [Serve & deploy](/deploy/) — backends, static bundles, Netlify, Kubernetes, app stores.

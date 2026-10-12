@@ -562,6 +562,33 @@
         "accessKeys" : {
           "type" : "boolean"
         },
+        "shortcuts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppShortcutEntry"
+          }
+        },
+        "headerValues" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/HeaderValue"
+          }
+        },
+        "liveUpdates" : {
+          "type" : "boolean"
+        },
+        "idleTimeoutMinutes" : {
+          "type" : "integer"
+        },
+        "idleWarningSeconds" : {
+          "type" : "integer"
+        },
+        "idleSignOutUrl" : {
+          "type" : "string"
+        },
+        "mobileQr" : {
+          "type" : "boolean"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -577,6 +604,26 @@
         "disabledUnless" : {
           "$ref" : "#/$defs/Access",
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
+        }
+      }
+    },
+    "AppShortcutEntry" : {
+      "type" : "object",
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "code" : {
+          "type" : "string"
         }
       }
     },
@@ -1077,6 +1124,9 @@
           "type" : "string"
         },
         "separatorBefore" : {
+          "type" : "boolean"
+        },
+        "rowsSelectedRequired" : {
           "type" : "boolean"
         },
         "note" : {
@@ -2026,6 +2076,8 @@
         "$ref" : "#/$defs/ProgressBar"
       }, {
         "$ref" : "#/$defs/ProgressSteps"
+      }, {
+        "$ref" : "#/$defs/RecordMerge"
       }, {
         "$ref" : "#/$defs/ResourceGrid"
       }, {
@@ -4533,6 +4585,20 @@
       "type" : "string",
       "enum" : [ "alternative", "sequential", "simultaneous" ]
     },
+    "HeaderValue" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
     "HeatCell" : {
       "type" : "object",
       "properties" : {
@@ -5618,6 +5684,41 @@
         }
       }
     },
+    "MergeField" : {
+      "type" : "object",
+      "properties" : {
+        "fieldId" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "values" : {
+          "type" : "array",
+          "items" : { }
+        },
+        "chosen" : {
+          "type" : "string"
+        },
+        "editable" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MergeRecord" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "caption" : {
+          "type" : "string"
+        }
+      }
+    },
     "MessageInput" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -5860,6 +5961,9 @@
           "type" : "string"
         },
         "cssClasses" : {
+          "type" : "string"
+        },
+        "timeframe" : {
           "type" : "string"
         },
         "note" : {
@@ -6995,6 +7099,68 @@
         },
         "actionId" : {
           "type" : "string"
+        }
+      }
+    },
+    "RecordMerge" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "RecordMerge"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "records" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MergeRecord"
+          }
+        },
+        "fields" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MergeField"
+          }
+        },
+        "mergeActionId" : {
+          "type" : "string"
+        },
+        "mergeLabel" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object"
+        },
+        "differencesOnly" : {
+          "type" : "boolean"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },

@@ -67,7 +67,7 @@ public @interface App {
 
 An `@App` with **no menu of its own** that answers a `routes.yaml` route with `children` offers
 those children as its options — the tabs of a record master. See the
-[recipe](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
+[recipe](/concepts/routes-and-mounts/#recipe-a-record-master-whose-tabs-are-pages).
 
 **`AppVariant` values:**
 
@@ -237,9 +237,14 @@ public class ShellApp implements App { ... }
 
 ---
 
-## @KeycloakSecured
+## @KeycloakSecured (deprecated)
 
 **Target:** `TYPE`
+
+:::caution[Deprecated in 3.0-alpha.412]
+Identity comes from your host framework (Spring Security, Quarkus OIDC…) or a `PrincipalResolver`
+bean — see [Security](/java-user-manual/advanced/security/). `@KeycloakSecured` keeps working.
+:::
 
 Integrates Keycloak authentication. The frontend will redirect unauthenticated users to the Keycloak login page before the UI is displayed.
 
@@ -341,7 +346,6 @@ A full application shell combining several annotations:
 @PageTitle("Workflow Engine")
 @Logo("/images/logo.svg")
 @Title("Workflow Engine")
-@KeycloakSecured(url = "https://auth.example.com", realm = "myrealm", clientId = "workflow")
 public class WorkflowHome {
 
     @Menu

@@ -6,7 +6,7 @@ This is the shortest path to becoming productive with Mateu.
 
 ## Recommended order
 
-1. [Quickstart](/java-user-manual/start-here/quickstart/) — or [Quickstart: YAML only](/java-user-manual/start-here/quickstart-yaml/) for an app with no UI code
+1. [Quickstart](/java-user-manual/start-here/quickstart/) — or [Quickstart: YAML only](/define/yaml/quickstart/) for an app with no UI code
 2. [First app](/java-user-manual/start-here/first-app/)
 3. [Admin panel](/java-user-manual/use-cases/admin-panel/)
 

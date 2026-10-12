@@ -296,11 +296,72 @@ public sealed class AppAttribute(string title) : Attribute
     /// @App(accessKeys=true).)</summary>
     public bool AccessKeys { get; set; }
 
+    /// <summary>LIVE UPDATES: every browser keeps one event stream open (shared by its tabs) through
+    /// which the server pushes header-value changes (<see cref="LiveHeaderValues.Publish"/>) to every
+    /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>
+    public bool LiveUpdates { get; set; }
+
+    /// <summary>IDLE-SESSION WARNING: after this many minutes without activity (any tab) a modal
+    /// counts down <see cref="IdleWarningSeconds"/>; "Stay signed in" runs the app-level
+    /// <c>_keep-alive</c> action (<see cref="IKeepAliveHandler"/>), "Sign out" goes to
+    /// <see cref="IdleSignOutUrl"/>. 0 (the default): off. EXPERIMENTAL.</summary>
+    public int IdleTimeoutMinutes { get; set; }
+
+    /// <summary>How long the idle warning counts down. Default 60 seconds.</summary>
+    public int IdleWarningSeconds { get; set; } = 60;
+
+    /// <summary>Where "Sign out" goes (a full page load); blank = the app's route, else "/".</summary>
+    public string IdleSignOutUrl { get; set; } = "";
+
+    /// <summary>"Open on mobile": an app header action that shows a QR code of this app (and the
+    /// current route) for the generic Mateu mobile app, or — on a phone — an "Open in the Mateu app"
+    /// link. Opt-in. EXPERIMENTAL (mobile app, 3.0 beta). (C# analogue of Java's
+    /// @App(mobileQr=true).)</summary>
+    public bool MobileQr { get; set; }
+
     /// <summary>Extra capability tokens this app REQUIRES from its host renderer, beyond the ones
     /// derived from the app's own metadata — for anything the derivation cannot see. They are added
     /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES
     /// them all. (C# analogue of Java's @App(requires = {...}).)</summary>
     public string[] Requires { get; set; } = [];
+}
+
+/// <summary>What the UI manifest (<c>GET {base}/mateu/v3/manifest</c>) tells the generic Mateu
+/// mobile app about this app: its name, short name, icon and theme colour (defaults: the [App]
+/// title, the title again, none, none), the minimum app version, and — when both the issuer and the
+/// client id are set — the OIDC identity provider the host app trusts. Mateu never validates a token:
+/// the manifest only tells the client where to log in. Every value is overridden by its environment
+/// variable (MATEU_MOBILE_NAME, MATEU_MOBILE_SHORT_NAME, MATEU_MOBILE_ICON, MATEU_MOBILE_THEME_COLOR,
+/// MATEU_MOBILE_MIN_APP_VERSION, MATEU_MOBILE_OIDC_ISSUER, MATEU_MOBILE_OIDC_CLIENT_ID,
+/// MATEU_MOBILE_OIDC_SCOPES), which suits values that vary per environment. Blank = unset.
+/// EXPERIMENTAL (mobile app, 3.0 beta). (C# analogue of Java's @MobileApp.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class MobileAppAttribute : Attribute
+{
+    /// <summary>The app's name on the phone; blank = the [App] title.</summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>A short name for small places (home list, switcher); blank = the name.</summary>
+    public string ShortName { get; set; } = "";
+
+    /// <summary>The icon: an absolute URL, a data URI, or a path the client resolves against the
+    /// manifest URL. Blank = none.</summary>
+    public string Icon { get; set; } = "";
+
+    /// <summary>A CSS colour, e.g. "#1f6feb". Blank = none.</summary>
+    public string ThemeColor { get; set; } = "";
+
+    /// <summary>The oldest Mateu app version that can open this UI; blank = "1.0.0".</summary>
+    public string MinAppVersion { get; set; } = "";
+
+    /// <summary>The OIDC issuer URL the host app trusts.</summary>
+    public string OidcIssuer { get; set; } = "";
+
+    /// <summary>The OIDC client id the mobile app logs in as.</summary>
+    public string OidcClientId { get; set; } = "";
+
+    /// <summary>The scopes to request; empty = openid + profile.</summary>
+    public string[] Scopes { get; set; } = [];
 }
 
 /// <summary>AI chat on the app: a floating button opens a chat panel that streams its answers

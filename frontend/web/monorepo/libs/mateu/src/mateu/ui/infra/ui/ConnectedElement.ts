@@ -1,3 +1,4 @@
+import { updateHeaderValue } from '@infra/ui/headerValues.ts'
 import {Subscription} from "rxjs";
 import {upstream} from "@domain/state";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
@@ -248,6 +249,11 @@ export default abstract class ConnectedElement extends LitElement {
             // for a screen-reader user, when nothing on screen takes focus. Draws nothing.
             const data = command.data as { text?: string, assertive?: boolean } | undefined
             if (data?.text) announce(data.text, { politeness: data.assertive ? 'assertive' : 'polite' })
+        }
+        if ('UpdateHeaderValue' == command.type) {
+            // a live header value (the business date…): this tab, and the others through storage
+            const data = command.data as { id?: string, value?: string } | undefined
+            if (data?.id) updateHeaderValue(data.id, data.value)
         }
         if ('SetFavicon' == command.type) {
             this.changeFavicon(command.data as string)

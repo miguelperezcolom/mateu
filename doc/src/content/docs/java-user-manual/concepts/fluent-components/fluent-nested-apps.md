@@ -36,7 +36,7 @@ public class AdminApp implements AppSupplier {
 }
 ```
 
-The app and the pages within it are bound to their URLs by [`routes.yaml` entries](/java-ui-definition/route-registry/), the pages under the app's route:
+The app and the pages within it are bound to their URLs by [`routes.yaml` entries](/concepts/routes-and-mounts/), the pages under the app's route:
 
 ```java
 public class AdminHomePage implements ComponentTreeSupplier {
@@ -131,7 +131,7 @@ AppShell.builder()
 | `new RouteLink("/path", "Label")` | Link to a route within the app |
 | `new Menu("/path", "Label", List.of(...))` | Submenu group with children |
 
-Routes in `RouteLink` are relative to the app's root route by convention. The full route is resolved by the target page's [`routes.yaml` entry](/java-ui-definition/route-registry/).
+Routes in `RouteLink` are relative to the app's root route by convention. The full route is resolved by the target page's [`routes.yaml` entry](/concepts/routes-and-mounts/).
 
 ---
 

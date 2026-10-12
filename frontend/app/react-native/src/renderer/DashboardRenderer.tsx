@@ -5,6 +5,7 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { DashboardPanel, MetricCard } from '../api/metadata';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { metricA11yLabel, metricTimeframe } from './metricCard';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -22,6 +23,8 @@ export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
   const trendArrow = trend === 'up' ? '▲ ' : trend === 'down' ? '▼ ' : '';
   const icon = displayIcon(metadata.icon);
   const actionId = metadata.actionId;
+  const timeframe = metricTimeframe(metadata);
+  const label = metricA11yLabel(metadata);
 
   const body = (
     <>
@@ -33,6 +36,7 @@ export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
         <Text style={styles.metricValue}>{metadata.value ?? ''}</Text>
         {!!metadata.unit && <Text style={styles.metricUnit}>{metadata.unit}</Text>}
       </View>
+      {!!timeframe && <Text style={styles.metricTimeframe}>{timeframe}</Text>}
       {(!!metadata.trend || !!metadata.trendLabel) && (
         <Text style={[styles.metricTrend, { color: trendColor }]}>
           {trendArrow}{metadata.trendLabel ?? ''}
@@ -44,12 +48,12 @@ export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
 
   if (actionId) {
     return (
-      <TouchableOpacity {...buttonA11y()} style={styles.metricCard} onPress={() => runAction(actionId)}>
+      <TouchableOpacity {...buttonA11y({ label })} style={styles.metricCard} onPress={() => runAction(actionId)}>
         {body}
       </TouchableOpacity>
     );
   }
-  return <View style={styles.metricCard}>{body}</View>;
+  return <View style={styles.metricCard} accessible accessibilityLabel={label}>{body}</View>;
 }
 
 // ── Scoreboard (horizontal KPI band; children = MetricCards) ─────────────────
@@ -106,6 +110,7 @@ const styles = StyleSheet.create({
   metricValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   metricValue: { fontSize: 28, fontWeight: '700', lineHeight: 32, color: theme.ink },
   metricUnit: { fontSize: 15, color: theme.muted },
+  metricTimeframe: { fontSize: 12, color: theme.muted },
   metricTrend: { fontSize: 13 },
   metricDescription: { fontSize: 12, color: theme.faint },
   scoreboard: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
