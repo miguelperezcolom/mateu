@@ -64,6 +64,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Editor pickers (label → `${i18n.*}` keys, actionId → page + catalogue ids, route → registry) | ✅ |
 | Editor icon / image / source pickers, Board | ✅ (browser probe) icon picker: 240 Vaadin icons, filter, pick writes the property and the canvas paints it; image: free text writes `src` (standalone has no host images to list); source picker lists `sources.yaml` and writes `ref:`; Board: one card per route with its thumbnail, Edit/Play |
 | Editor Redwood canvas (`renderer: redwood`) | ✅ the real Redwood app boots in the frame ("ready", Oracle CDN reachable), paints the yaml starter's listing from `sample:` data with humanized status badges, and a click inside the frame selects the node (Properties → Listing); ❌ the listing's `filters:` field also paints as a bare **Status select below the table** — the served Redwood app shows it only in the smart search bar. The expander's shape matches the server's (`metadata.filters`), so it is in the preview path of the Redwood renderer — Redwood area (repro: yaml starter `products.yaml`, editor on `renderer: redwood`, no backend) |
+| Docs: Java samples of the code twins (`RouteEntrySupplier`, `AppSupplier`/`MenuSupplier`, `RestSourceCatalogSupplier`, `ActionCatalogSupplier`, `FieldTypeCatalogSupplier`, `TranslationsSupplier`, `PrincipalResolver`, `SecretsProvider`, `ListingExporter`) | ✅ every block declaring a type was extracted and compiled with `javac` against `mateu-uidl` (14 blocks across 12 pages): all compile, except two that call the reader's own client / a third-party library (a vault, POI/PDFBox) and one deliberate API outline (`ListingExporter` signatures — they match the real records) |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
@@ -108,7 +109,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 A real security module on Helidon MP (MP-JWT; its own routing serves YAML mounts and streamed actions
 and, as its docs say, carries no JAX-RS principal there — a `PrincipalResolver` is the documented way); IntelliJ completion/validation inside a running IDE (covered by the
 plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
-only); React Native for the YAML fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
+only); React Native for the YAML fixtures; compiling the docs' OTHER Java samples (annotation-driven pages; the code-twin samples were compiled, see section 2).
 
 ## 6. Permanent tests added
 
@@ -133,4 +134,6 @@ only); React Native for the YAML fixtures; compiling every Java sample of the do
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 27 fixed (23 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Markers in the tables above (a cell can carry several): ✅ 109 verified · 🔧 38 broken → fixed · ❌ 7 open
+(section 4) · N/A 7 · ⏳ none left in the tables (section 5 lists what was not walked). Behind them:
+23 `fix(...)` commits on this branch (44 commits in all), each with a test that fails without it.
