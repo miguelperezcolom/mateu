@@ -886,16 +886,25 @@ class WireConformanceTest {
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {
+    return normalise(node, false);
+  }
+
+  /**
+   * An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
+   * is a contract break. Dropped with every generated id, the ports' CRUD forms shipped with dead
+   * Save/Edit buttons that no case noticed.
+   */
+  static JsonNode normalise(JsonNode node, boolean inActions) {
     if (node.isObject()) {
       var out = MAPPER.createObjectNode();
       var names = new java.util.TreeSet<String>();
       node.fieldNames().forEachRemaining(names::add);
       for (var name : names) {
         if (VOLATILE.contains(name)
-            && !(Boolean.getBoolean("conformance.keepIds") && name.equals("id"))) {
+            && !(name.equals("id") && (inActions || Boolean.getBoolean("conformance.keepIds")))) {
           continue;
         }
-        var value = normalise(node.get(name));
+        var value = normalise(node.get(name), name.equals("actions"));
         if (isDefault(value)) {
           continue; // absent and default mean the same thing to a renderer
         }
@@ -905,7 +914,7 @@ class WireConformanceTest {
     }
     if (node.isArray()) {
       ArrayNode out = MAPPER.createArrayNode();
-      node.forEach(child -> out.add(normalise(child)));
+      node.forEach(child -> out.add(normalise(child, inActions)));
       return out;
     }
     return node;

@@ -563,20 +563,23 @@ def _is_default(value) -> bool:
     return value is None or value == [] or value == {} or value is False or value == 0 or value == ""
 
 
-def normalise(node):
-    """Mirrors the Java normaliser: drop volatile and empty members, sort keys."""
+def normalise(node, in_actions: bool = False):
+    """Mirrors the Java normaliser: drop volatile and empty members, sort keys. An ACTION's id is
+    not volatile: it is the name the client sends, so a missing or renamed action is a contract
+    break (the corpus used to drop it with every generated id, which is how the ports' CRUD forms
+    shipped with dead Save/Edit buttons unnoticed)."""
     if isinstance(node, dict):
         out = {}
         for key in sorted(node):
-            if key in VOLATILE:
+            if key in VOLATILE and not (key == "id" and in_actions):
                 continue
-            value = normalise(node[key])
+            value = normalise(node[key], key == "actions")
             if _is_default(value):
                 continue  # absent and default mean the same thing to a renderer
             out[key] = value
         return out
     if isinstance(node, list):
-        return [normalise(v) for v in node]
+        return [normalise(v, in_actions) for v in node]
     return node
 
 

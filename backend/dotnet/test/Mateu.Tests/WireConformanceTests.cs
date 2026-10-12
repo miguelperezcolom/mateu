@@ -33,7 +33,10 @@ public class WireConformanceTests
 
     /// <summary>Mirrors the Java and Python normalisers: drop volatile and DEFAULT members, sort
     /// keys. "Absent" and "at its default" are the same thing to a renderer.</summary>
-    private static JsonNode? Normalise(JsonNode? node)
+    /// An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
+    /// is a contract break (dropped with every generated id, the ports' CRUD forms shipped with dead
+    /// Save/Edit buttons unnoticed).
+    private static JsonNode? Normalise(JsonNode? node, bool inActions = false)
     {
         switch (node)
         {
@@ -42,8 +45,8 @@ public class WireConformanceTests
                 var result = new JsonObject();
                 foreach (var name in obj.Select(p => p.Key).OrderBy(n => n, StringComparer.Ordinal))
                 {
-                    if (Volatile_.Contains(name)) continue;
-                    var value = Normalise(obj[name]?.DeepClone());
+                    if (Volatile_.Contains(name) && !(name == "id" && inActions)) continue;
+                    var value = Normalise(obj[name]?.DeepClone(), name == "actions");
                     if (IsDefault(value)) continue;
                     result[name] = value;
                 }
@@ -52,7 +55,7 @@ public class WireConformanceTests
             case JsonArray array:
             {
                 var result = new JsonArray();
-                foreach (var item in array) result.Add(Normalise(item?.DeepClone()));
+                foreach (var item in array) result.Add(Normalise(item?.DeepClone(), inActions));
                 return result;
             }
             // A number compares by VALUE, not by spelling: Java writes a double weight as 3.0,

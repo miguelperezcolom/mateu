@@ -6,7 +6,9 @@
   "fragments" : [ {
     "action" : "Replace",
     "component" : {
-      "actions" : [ { } ],
+      "actions" : [ {
+        "id" : "search-supplier"
+      } ],
       "children" : [ {
         "children" : [ {
           "cssClasses" : "mateu-section",

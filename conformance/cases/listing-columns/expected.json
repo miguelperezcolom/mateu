@@ -6,7 +6,13 @@
   "fragments" : [ {
     "action" : "Replace",
     "component" : {
-      "actions" : [ { }, { }, { } ],
+      "actions" : [ {
+        "id" : "search"
+      }, {
+        "id" : "action-on-row-*"
+      }, {
+        "id" : "action-on-view-*"
+      } ],
       "children" : [ {
         "children" : [ {
           "metadata" : {
