@@ -1,12 +1,12 @@
 ---
 title: Page templates
-description: The full-page templates enterprise design systems standardize — and the Mateu archetype or pattern that builds each one from the backend.
+description: The full-page templates enterprise design systems standardize — and the Mateu archetype or pattern that builds each one from your UI model.
 ---
 
 Enterprise design systems (Oracle Redwood's RDS toolkit is the canonical example) don't stop at
 components — they standardize **full-page templates**: the record overview, the collection with a
 detail pane, the guided process, the create-and-edit drawer. Mateu covers these templates from the
-backend: you extend an archetype or set a flag, and the page comes out with the template's anatomy
+UI model: you extend an archetype or set a flag, and the page comes out with the template's anatomy
 on every renderer that paints its components (see the Redwood column).
 
 This page is the map. Each row names the template (RDS naming), the Mateu piece that builds it,

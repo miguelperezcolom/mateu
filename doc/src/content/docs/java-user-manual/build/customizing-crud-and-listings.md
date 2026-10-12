@@ -356,7 +356,7 @@ Do not create custom pages too early. Start with the model and the CRUD. Add cus
 
 ## Putting logic in the frontend
 
-Mateu is backend-driven. Keep logic, validation, and state in Java. The UI is a projection of the server-side model, not an independent stateful application.
+When your Java backend serves the UI, logic lives on the server: keep logic, validation, and state in your Java model. The UI is a projection of that model, not an independent stateful application.
 
 ---
 

@@ -54,9 +54,9 @@ exists); run with `-Dmateu.sources.mock=false` to call the real endpoints.
 
 ## References
 
-- Docs: https://mateu.io — route registry https://mateu.io/java-ui-definition/route-registry/,
-  REST sources https://mateu.io/java-ui-definition/rest-source-catalogue/, the YAML app shell
-  https://mateu.io/java-ui-definition/yaml-app-shell/.
+- Docs: https://mateu.io — route registry https://mateu.io/concepts/routes-and-mounts/,
+  REST sources https://mateu.io/concepts/data-sources/, the YAML app shell
+  https://mateu.io/define/yaml/app-shell/.
 - The authoring schema (every component and its keys):
   https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md.

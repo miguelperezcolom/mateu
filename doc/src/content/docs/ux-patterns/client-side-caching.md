@@ -1,6 +1,6 @@
 ---
 title: Client-side caching
-description: How Mateu makes return visits feel instant — it caches what a screen looks like (and, for screens you mark static, its data too) so navigation doesn't wait on the backend, without ever losing the server-driven UI.
+description: How Mateu makes return visits feel instant — it caches what a screen looks like (and, for screens you mark static, its data too) so navigation doesn't wait on the backend, while a served UI keeps the server as its source of truth.
 ---
 
 **Status:** ✅ Implemented

@@ -2,7 +2,7 @@
 title: "UI Definition"
 ---
 
-Mateu provides a complete Java API for building server-driven UIs. You describe the interface in Java — Mateu renders it.
+Mateu provides a complete Java API for defining UIs in code. You describe the interface in Java — Mateu renders it on every renderer, served by your Java backend. (The same model can also be authored [in YAML](/define/yaml/pages/) or with the [visual editor](/define/yaml/visual-editor/).)
 
 ## Sections
 

@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.eclipse.microprofile.config.Config;
 import reactor.core.publisher.Flux;
 
@@ -202,31 +203,48 @@ public class MateuHelidonRoutes {
 
     if (YamlMounts.present(Thread.currentThread().getContextClassLoader())
         && beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE).isEmpty()) {
-      List<YamlMounts.Mount> mounts = YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get());
-      for (var mount : mounts) {
-        routing.get(mount.spaPath(), (req, res) -> index(res, mount));
+      yamlMountRoutes(
+          routing,
+          YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get()),
+          service::get,
+          routeRegistry::get,
+          yamlAppLoader::get);
+    }
+  }
+
+  /**
+   * The routes of the given YAML mounts: the SPA shell, the mobile manifest, the deep links and the
+   * sync/SSE API. Split from the presence check so it can be exercised on a plain Helidon routing.
+   */
+  static void yamlMountRoutes(
+      HttpRouting.Builder routing,
+      List<YamlMounts.Mount> mounts,
+      Supplier<MateuService> service,
+      Supplier<RouteRegistry> routeRegistry,
+      Supplier<YamlAppLoader> yamlAppLoader) {
+    for (var mount : mounts) {
+      routing.get(mount.spaPath(), (req, res) -> index(res, mount));
+      routing.get(
+          mount.apiPrefix() + "/v3/manifest",
+          (req, res) -> {
+            io.mateu.core.infra.MobileManifest.HEADERS.forEach(res::header);
+            res.send(
+                YamlMounts.manifestJson(
+                    routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
+          });
+      if (!mount.basePath().isEmpty()) {
         routing.get(
-            mount.apiPrefix() + "/v3/manifest",
+            mount.spaPath() + "/*",
             (req, res) -> {
-              io.mateu.core.infra.MobileManifest.HEADERS.forEach(res::header);
-              res.send(
-                  YamlMounts.manifestJson(
-                      routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
+              var path = req.path().path();
+              if (path.contains(".") || path.contains("/mateu/")) {
+                res.next();
+              } else {
+                index(res, mount);
+              }
             });
-        if (!mount.basePath().isEmpty()) {
-          routing.get(
-              mount.spaPath() + "/*",
-              (req, res) -> {
-                var path = req.path().path();
-                if (path.contains(".") || path.contains("/mateu/")) {
-                  res.next();
-                } else {
-                  index(res, mount);
-                }
-              });
-        }
-        routing.post(mount.apiPrefix() + "/v3/*", (req, res) -> run(req, res, mount));
       }
+      routing.post(mount.apiPrefix() + "/v3/*", (req, res) -> run(req, res, mount, service.get()));
     }
   }
 
@@ -312,20 +330,20 @@ public class MateuHelidonRoutes {
     res.header("Content-Type", "text/html;charset=UTF-8").send(mount.indexHtml());
   }
 
-  private void run(ServerRequest req, ServerResponse res, YamlMounts.Mount mount) throws Exception {
+  private static void run(
+      ServerRequest req, ServerResponse res, YamlMounts.Mount mount, MateuService service)
+      throws Exception {
     var rq = WireMapper.shared().readValue(req.content().as(String.class), RunActionRqDto.class);
     var httpRequest = new HelidonSeHttpRequest(req).storeRunActionRqDto(rq);
     httpRequest.setAttribute("uiId", "");
     httpRequest.setAttribute("baseUrl", mount.basePath());
     try {
       var increments =
-          service
-              .get()
-              .runAction(
-                  mount.basePath(),
-                  YamlMounts.mountRequest(mount.basePath(), rq),
-                  mount.basePath(),
-                  httpRequest);
+          service.runAction(
+              mount.basePath(),
+              YamlMounts.mountRequest(mount.basePath(), rq),
+              mount.basePath(),
+              httpRequest);
       if (req.path().path().startsWith(mount.apiPrefix() + "/v3/sse/")) {
         writeEvents(res, increments);
       } else {

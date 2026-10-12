@@ -83,6 +83,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesTheRuntimeBundle() {
+    contract.servesTheRuntimeBundle();
+  }
+
+  @Test
   void acceptsClientLogs() {
     contract.acceptsClientLogs();
   }

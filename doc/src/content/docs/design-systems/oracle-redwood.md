@@ -35,7 +35,7 @@ trademarks of Oracle and/or its affiliates; Mateu is not affiliated with or endo
 **Demo:** https://redwood.mateu.io/
 
 Redwood's RDS toolkit standardizes full-page **templates** (Collection Detail, General Overview,
-Guided Process, Create and Edit — Drawer…). Mateu builds those templates from the backend — see
+Guided Process, Create and Edit — Drawer…). Mateu builds those templates from the UI model — see
 the [page templates map](/ux-patterns/page-templates/) for the template → archetype mapping.
 
 ## Two modes, one renderer

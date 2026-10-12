@@ -23,7 +23,7 @@ export interface NewRoute {
     parent?: string | null
 }
 
-export const DOCS_URL = 'https://mateu.io/java-ui-definition/route-registry/'
+export const DOCS_URL = 'https://mateu.io/concepts/routes-and-mounts/'
 
 function tryParse(text: string): unknown {
     try {
