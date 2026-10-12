@@ -50,6 +50,19 @@ class MateuSchemaProviderTest : BasePlatformTestCase() {
     "VerticalLayout",
   )
 
+  /** A component nested in a page: its `type:` values and, once chosen, its own keys. */
+  fun testNestedComponentTypeValues() = assertOffers(
+    "specs/ui/page.yaml",
+    "type: VerticalLayout\ncontent:\n  - type: $caret\n",
+    "Button", "FormField", "Listing",
+  )
+
+  fun testNestedComponentKeys() = assertOffers(
+    "specs/ui/page2.yaml",
+    "type: VerticalLayout\ncontent:\n  - type: Button\n    $caret\n",
+    "label", "actionId",
+  )
+
   fun testUiMount() = assertOffers("specs/ui/shop.yaml", "type: UI\n$caret\n", "basePath", "home", "routes")
 
   fun testRoutesFileEntry() = assertOffers(
