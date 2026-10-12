@@ -80,6 +80,22 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertEquals("openRevenue", server.actionIds().single())
     }
 
+    fun testAGanttTaskIsSelectedFromTheKeyboard() {
+        // a GanttPage opens a task's drawer: the chart used to be paint-only in the plugin
+        val ctx = context()
+        val gantt = render(ctx, """{"type":"Gantt","onTaskSelectionActionId":"selectGanttTask","tasks":[
+            {"id":"t1","title":"Design","start":"2026-10-01","end":"2026-10-10"},
+            {"id":"t2","title":"Build","start":"2026-10-05","end":"2026-10-20"}]}""")
+        val target = all(gantt).filterIsInstance<JComponent>().first { it.isFocusable && it.keyListeners.isNotEmpty() }
+        target.keyListeners.forEach {
+            it.keyPressed(KeyEvent(target, KeyEvent.KEY_PRESSED, 0, 0, KeyEvent.VK_DOWN, KeyEvent.CHAR_UNDEFINED))
+        }
+        pressEnter(target)
+        awaitRequests(1)
+        assertEquals("selectGanttTask", server.actionIds().single())
+        assertEquals("t2", server.requests.single().path("parameters").path("_clickedTaskId").asText())
+    }
+
     fun testAMetricTileWithoutAnActionIsNotAStop() {
         val tile = render(context(), """{"type":"MetricCard","title":"Revenue","value":"12.4k"}""")
         assertTrue(targets(tile).isEmpty())
