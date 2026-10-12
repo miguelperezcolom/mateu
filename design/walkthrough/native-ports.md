@@ -36,6 +36,7 @@ N/A (why) · — not walked yet.
 |---|---|---|
 | Starter: shell, home CTA, menu tabs | ✅ starter-walk | ✅ starter-walk |
 | Starter: CRUD search, row → detail, deep link + reload | ✅ | ✅ |
+| Starter: unsaved-changes guard on create/edit (leave asks; Save/Cancel don't) | 🔧 no guard → c0adaa50b ✅ dirty2 | 🔧 → c0adaa50b (tests) |
 | Starter: detail → Edit → Save | 🔧 Save/Edit dead → b44946598 ✅ | 🔧 dead → b44946598; 🔧 price never saved ("77" string) → cf0b6df08; 🔧 every Save refused on a decimal-comma server (`[Range(0, double.MaxValue)]`) → c091b8086 ✅ |
 | Starter: New, required empty refused, filled created | 🔧 → b44946598 ✅ | 🔧 + no client validation → cf0b6df08 ✅ |
 | Starter: select + Delete with confirm | ✅ (del.mjs) | ✅ |
@@ -105,7 +106,7 @@ N/A (why) · — not walked yet.
 | Normaliser dropped ACTION ids with every generated id — the corpus could not see a missing action | 🔧 45e827575: ids inside `actions[]` compared in the three runners; 7 goldens regenerated, Java/.NET/Python all match |
 | `fab` golden gains the advertised FAB action | 🔧 b44946598 |
 | New case `peer-nav` | 🔧 d3abf2593 (3 servers match) |
-| Cases that need a second request (content load, CRUD `/new`, wizard `next`) | ❌ 6: the runners only render the first load |
+| Cases that need a second request | 🔧 87799500e: `request.json` honoured by the three runners; `app-no-home-content` matches in all three. A `crud-new-form` trial showed the ports' create form diverging structurally from Java's (layout, actions) — the semantic gaps it surfaced (pageType, dirty guard) are fixed (c0adaa50b); the case itself is not added (❌ 7) |
 | CollectionDetail / wizard cases | ❌ 7: known structural divergences |
 
 **Counts:** ✅ ≈ 60 cells verified · 🔧 24 fixes (each with a test or probe) · ❌ 7 · — not walked yet
@@ -136,6 +137,8 @@ listed above.
 21. 2ae7068f2 IntelliJ — EmptyState web icon token printed as text.
 23. 8cf286ee1 IntelliJ — task-queue cards clipped their caption.
 24. 3c22ff69a Py/.NET — the documented `POST v3/components/_/action` answered 404 and `__load__` "Action not found" (Redwood could not boot on a port).
+25. c0adaa50b Py/.NET — CRUD create/edit forms answered pageType "collection" and did not guard unsaved changes (Java's do); server navigations now send MarkAsClean first and drawer close/cancel too (browser-verified: Save/Cancel never ask, leaving a dirty edit asks once).
+26. 87799500e conformance — cases can pin a second request (`request.json`); first case `app-no-home-content`.
 22. 45e827575 conformance — action ids were not compared.
 
 ## ❌ Open — owner decisions / not fixed
@@ -159,12 +162,12 @@ listed above.
 5. IntelliJ: an app whose shell has no home renders an empty content area (same as Java/Vaadin,
    where it is an empty page titled with the class name — the "home defaults to the first menu
    item" claim in CLAUDE.md holds only for RN, which opens the first tab).
-6. Conformance runners only pin the FIRST load; interaction steps (content load of
-   `_no_home_route`, CRUD `/new`, wizard `next`) need a per-case `request.json` honoured by the
-   three runners — the bugs fixed here would then be pinned at wire level too.
+6. (done — `request.json`, 87799500e.)
 7. Known structural divergences not worth a case yet: the ports' CollectionDetail is a
    VerticalLayout + ResponsiveGrid, Java's a form with an island; the Java wizard advertises a `*`
-   catch-all where the ports list `next/back/skip`.
+   catch-all where the ports list `next/back/skip`; the CRUD create/edit form's layout and actions
+   (Java's bubble to its mediator). Also: for a `""` consumed route Java answers component route
+   `""`, the ports `"_empty"`.
 
 8. **YAML pages in the ports** build only VerticalLayout, HorizontalLayout, FormLayout, FormField,
    Button, Text, Form and ComponentRef (Python `yaml_preview._build`, .NET `YamlComponentBuilder`) —
