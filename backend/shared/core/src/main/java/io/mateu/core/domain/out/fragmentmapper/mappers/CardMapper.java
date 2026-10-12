@@ -99,7 +99,7 @@ public class CardMapper {
                         .toList()
                     : null)
             .build(),
-        "fieldId",
+        WireIds.idOf(card, card.id()),
         List.of(),
         card.style(),
         card.cssClasses(),

@@ -15,7 +15,7 @@ public class AvatarGroupMapper {
                 .map(avatar -> new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()))
                 .toList(),
             avatarGroup.maxItemsVisible()),
-        "fieldId",
+        WireIds.idOf(avatarGroup, null),
         List.of(),
         avatarGroup.style(),
         avatarGroup.cssClasses(),

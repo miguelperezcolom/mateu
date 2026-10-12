@@ -188,6 +188,39 @@ class YamlDisplayGallerySyncTest {
             "openItem");
   }
 
+  @Test
+  void displayComponentsWithoutAnIdDoNotShareOne() {
+    // they all used to travel as id "fieldId": two charts or diagrams on a page shared a DOM id
+    var ids = new java.util.HashMap<String, java.util.Set<String>>();
+    collectIds(component(), ids);
+    for (var type :
+        List.of("Markdown", "Image", "Badge", "Avatar", "AvatarGroup", "Chart", "Bpmn")) {
+      assertThat(ids.getOrDefault(type, Set.of())).as(type).doesNotContain("fieldId");
+    }
+    var bpmn = io.mateu.uidl.data.Bpmn.builder().xml("<a/>").build();
+    var other = io.mateu.uidl.data.Bpmn.builder().xml("<b/>").build();
+    assertThat(io.mateu.core.domain.out.fragmentmapper.mappers.BpmnMapper.mapBpmnToDto(bpmn).id())
+        .isNotEqualTo(
+            io.mateu.core.domain.out.fragmentmapper.mappers.BpmnMapper.mapBpmnToDto(other).id())
+        .isEqualTo(
+            io.mateu.core.domain.out.fragmentmapper.mappers.BpmnMapper.mapBpmnToDto(bpmn).id());
+  }
+
+  private static void collectIds(JsonNode node, java.util.Map<String, java.util.Set<String>> out) {
+    if (node == null || node.isMissingNode()) return;
+    if (node.isArray()) {
+      node.forEach(child -> collectIds(child, out));
+      return;
+    }
+    if (!node.isObject()) return;
+    if (node.path("metadata").path("type").isTextual()) {
+      out.computeIfAbsent(
+              node.path("metadata").path("type").asText(), k -> new java.util.HashSet<>())
+          .add(node.path("id").asText());
+    }
+    node.properties().forEach(entry -> collectIds(entry.getValue(), out));
+  }
+
   /** A plain (non-app) view mounted at the root, like the e2e SUT's SimpleForm. */
   @io.mateu.uidl.annotations.UI("")
   public static class RootView {
