@@ -27,10 +27,11 @@ export default defineConfig({
             include: ['src/**/*.ts'],
             exclude: ['src/**/*.test.ts', 'src/test/**', 'src/stubs/**'],
             reporter: ['text-summary', 'json-summary'],
-            // re-measured 2026-10-10 under vitest 4 (its v8 provider remaps with the AST, so functions
-            // and branches are counted for real — vitest 3 read 31.8% / 54.8% on the same suite):
-            // 13.8% lines/statements (mateu-field is 2.5k lines), 6.1% functions, 8.7% branches
-            thresholds: { lines: 13, statements: 13, functions: 6, branches: 8 },
+            // re-measured 2026-10-11 after the frontend coverage review (validation state on the
+            // control, row selection, inline-edited cells, layouts, toasts, foldout): 35.7% lines,
+            // 35.5% statements, 24.4% functions, 28.2% branches (was 13.8/13.8/6.1/8.7); after
+            // merging the web UX review (2026-10-12) branches read 27.96% — floor 27
+            thresholds: { lines: 35, statements: 35, functions: 24, branches: 27 },
         },
     },
 })

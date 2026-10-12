@@ -30,14 +30,15 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**'],
       reporter: ['text-summary', 'json-summary'],
-      // re-measured 2026-10-10 under vitest 4 (its v8 provider remaps with the AST, so functions
-      // and branches are counted for real — under vitest 3 the same suite read 54.4% functions /
-      // 80.6% branches): 55.0% statements, 56.1% lines, 41.0% functions, 42.2% branches
+      // re-measured 2026-10-11 after the frontend coverage review (dialog, smart search bar,
+      // command center, notification bell, column chooser, tree select, toasts, offline banner,
+      // skip link, access keys, focus trap, SSE streaming): 63.8% statements, 64.9% lines,
+      // 52.2% functions, 50.5% branches (was 55.0/56.1/41.0/42.2 on 2026-10-10)
       thresholds: {
-        lines: 56,
-        statements: 55,
-        functions: 41,
-        branches: 42,
+        lines: 64,
+        statements: 63,
+        functions: 51,
+        branches: 50,
       },
     },
   },

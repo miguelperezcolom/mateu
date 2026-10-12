@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.17.0"
+    // Line coverage of the plugin's own code (`koverLog` / `koverXmlReport`, verified by `koverVerify`).
+    id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
 group = "io.mateu"
@@ -282,6 +284,20 @@ tasks.runIde {
 // macos → build/installer/Mateu.app (+ .zip): the Community .app rebranded "Mateu" (name + icon),
 // plugin preinstalled, a launcher wrapper that opens the bundled workspace on double-click, re-signed
 // ad-hoc. Unsigned → first launch needs right-click ▸ Open (or clear the quarantine xattr).
+// Coverage ratchet (`koverVerify`, run in CI after the tests): line coverage of the plugin's own
+// code may only stay or grow. Measured 47.9% (2026-10-11, 292 tests) — raise the bound as suites
+// grow, never lower it. The whole module counts: IDE glue that cannot run headless (dialogs, tool
+// window factories, project service) is deliberately NOT excluded, so it shows as the gap it is.
+kover {
+    reports {
+        verify {
+            rule("plugin line coverage") {
+                minBound(47)
+            }
+        }
+    }
+}
+
 tasks.register("buildInstaller") {
     group = "distribution"
     description = "Builds a portable IntelliJ IDEA Community + Mateu plugin bundle"
@@ -594,4 +610,16 @@ tasks.register<JavaExec>("renderProbe") {
         val jnaDir = ideLib?.resolve("jna")?.listFiles()?.firstOrNull { it.isDirectory }
         if (jnaDir != null) jvmArgs("-Djna.boot.library.path=${jnaDir.absolutePath}", "-Djna.nosys=true")
     }
+}
+
+// The suite runs HEADLESS everywhere, as it does in CI: with a display (a developer's Mac) Swing
+// picks the platform look-and-feel, headless it falls back to Metal, whose composites carry extra
+// buttons (a combo box's arrow, a scroll bar's arrows). A11y assertions that passed on a Mac failed
+// on the Linux runner; one environment for both removes that class of "works on my machine".
+tasks.test {
+    jvmArgs("-Djava.awt.headless=true")
+    // ConformanceCorpusRenderTest reads the repo's corpus at run time: declare it, or a cached test
+    // result outlives a change to the cases.
+    inputs.dir(rootProject.file("../../../conformance/cases"))
+        .withPropertyName("conformanceCorpus").withPathSensitivity(PathSensitivity.RELATIVE)
 }

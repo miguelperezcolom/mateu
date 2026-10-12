@@ -1,5 +1,5 @@
-import { i18nKeyOf } from './i18nKeys';
-import { interpolateUrlWith } from './urlTemplate';
+import { i18nKeyOf } from './i18nKeys.ts';
+import { interpolateUrlWith } from './urlTemplate.ts';
 
 /**
  * Tiny expression evaluator for rule filters, validation conditions and `${...}` label
@@ -59,9 +59,27 @@ function tokenize(src: string): Token[] {
   return tokens;
 }
 
+/** Properties an expression may never read: the routes from a value back to `Function` (the same
+ *  set as the web evaluator, libs/mateu infra/ui/expression.ts). */
+const BLOCKED_PROPERTIES = new Set([
+  'constructor', '__proto__', 'prototype', '__defineGetter__', '__defineSetter__',
+  '__lookupGetter__', '__lookupSetter__',
+]);
+
+/** Reads `key` of `value`, refusing the blocked properties (throws, like the web evaluator). */
+function member(value: unknown, key: string): unknown {
+  if (BLOCKED_PROPERTIES.has(key)) throw new Error(`Access to '${key}' is not allowed in expressions`);
+  return value == null ? undefined : (value as Ctx)[key];
+}
+
 class Parser {
   private pos = 0;
-  constructor(private tokens: Token[], private ctx: Ctx) {}
+  private tokens: Token[];
+  private ctx: Ctx;
+  constructor(tokens: Token[], ctx: Ctx) {
+    this.tokens = tokens;
+    this.ctx = ctx;
+  }
 
   parse(): unknown {
     const v = this.ternary();
@@ -170,14 +188,14 @@ class Parser {
       if (this.isOp('.')) {
         this.eat('.');
         const prop = this.eat().value;
-        value = value == null ? undefined : (value as Ctx)[prop];
+        value = member(value, prop);
         continue;
       }
       if (this.isOp('[')) {
         this.eat('[');
         const key = this.ternary();
         this.eat(']');
-        value = value == null ? undefined : (value as Ctx)[String(key)];
+        value = member(value, String(key));
         continue;
       }
       break;
@@ -195,7 +213,8 @@ class Parser {
       if (t.value === 'true') return true;
       if (t.value === 'false') return false;
       if (t.value === 'null' || t.value === 'undefined') return t.value === 'null' ? null : undefined;
-      return this.ctx[t.value];
+      // only the context's OWN names: `constructor`, `toString`… must not reach Object.prototype
+      return Object.prototype.hasOwnProperty.call(this.ctx, t.value) ? this.ctx[t.value] : undefined;
     }
     if (t.value === '(') {
       this.eat('(');

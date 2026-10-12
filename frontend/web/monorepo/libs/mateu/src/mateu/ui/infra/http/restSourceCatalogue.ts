@@ -20,17 +20,66 @@ import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadat
 
 let entries: RestSourceEntry[] = []
 
+/**
+ * The catalogues of the FEDERATED remotes, one layer per remote (keyed by its base URL). A screen a
+ * shell mounts from a remote names the remote's sources, which the shell's own catalogue does not
+ * carry — the remote's app metadata (or its static manifest) does. Each remote's arrival replaces
+ * only its own layer, and the shell's own catalogue replacing itself (an app re-mounting) leaves
+ * them alone. The shell's entries win a name clash: names are global, and the shell is the
+ * deployment that decides what they mean.
+ */
+const remoteLayers = new Map<string, RestSourceEntry[]>()
+
 /** Replaces the catalogue. Called when app metadata or a bundle manifest arrives. */
 export const setRestSourceCatalogue = (incoming: RestSourceEntry[] | undefined): void => {
     entries = Array.isArray(incoming) ? incoming : []
 }
 
-/** The entry with this name, or undefined. */
-export const getRestSource = (name: string | undefined): RestSourceEntry | undefined =>
-    name ? entries.find((entry) => entry.name === name) : undefined
+/** Replaces the layer of one federated remote (its app's `restSources`, or its manifest's). */
+export const setRemoteRestSources = (remote: string, incoming: RestSourceEntry[] | undefined): void => {
+    if (!remote) return
+    if (Array.isArray(incoming) && incoming.length > 0) remoteLayers.set(remote, incoming)
+    else remoteLayers.delete(remote)
+}
+
+/** The entry with this name — the app's own first, then the remotes' — or undefined. */
+export const getRestSource = (name: string | undefined): RestSourceEntry | undefined => {
+    if (!name) return undefined
+    const own = entries.find((entry) => entry.name === name)
+    if (own) return own
+    for (const layer of remoteLayers.values()) {
+        const found = layer.find((entry) => entry.name === name)
+        if (found) return found
+    }
+    return undefined
+}
 
 /** Everything currently in the catalogue — for diagnostics and tests. */
 export const restSourceCatalogue = (): RestSourceEntry[] => entries
+
+/**
+ * The remotes still being asked for their app (and so for their sources). A page a shell mounts
+ * from a remote on a COLD load — a bookmarked URL — can ask for its rows before that remote's menu
+ * answer has arrived, and its source name would not resolve yet. Such a fetch waits for these.
+ */
+const pendingRemoteCatalogues = new Set<Promise<void>>()
+
+/** Registers an in-flight ask of remotes (settled either way — a failure only ends the wait). */
+export const trackRemoteCatalogues = (asking: Promise<unknown>): void => {
+    const settled: Promise<void> = asking.then(() => undefined, () => undefined)
+        .finally(() => { pendingRemoteCatalogues.delete(settled) })
+    pendingRemoteCatalogues.add(settled)
+}
+
+/** Resolves once every remote being asked has answered (or failed); at once when none is. */
+export const remoteCataloguesSettled = (): Promise<void> =>
+    Promise.all([...pendingRemoteCatalogues]).then(() => undefined)
+
+/** Test hook: forget every remote layer. */
+export const __clearRemoteRestSources = (): void => {
+    remoteLayers.clear()
+    pendingRemoteCatalogues.clear()
+}
 
 const blank = (value: string | undefined): boolean => value === undefined || value === null || value === ''
 

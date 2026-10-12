@@ -33,6 +33,7 @@ public class ActionInstanceCreator {
 
   Mono<?> createInstance(RunActionCommand command) {
     log.debug("createInstance {}", command);
+    command = homeContentOfConsumedMountRoot(command);
 
     try {
       var adjusted = crudNavigationAdjuster.adjust(command);
@@ -90,20 +91,18 @@ public class ActionInstanceCreator {
     // sub-routes.
     if (wrapsInAppShell(command)) {
       var app = shellFor(command);
-      // A route this deployment does not author may belong to one of the shell's remotes (a
-      // bookmarked remote screen): mounted from it, as an @UI class shell does.
-      Mono<?> remote =
-          isAuthoredHere(command.route())
-              ? Mono.empty()
-              : appMenuResolver.resolveRemoteDeepLink(finalCommand, app);
-      return remote
-          .switchIfEmpty(
-              (Mono)
-                  Mono.defer(
-                      () ->
-                          appMenuResolver.resolveMenuIfApp(
-                              finalCommand, app, routeInstanceCreator::findRouteResolver)))
-          .switchIfEmpty((Mono) Mono.just(app));
+      return appMenuResolver
+          .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
+          .switchIfEmpty((Mono) Mono.just(app))
+          // A deep link no entry of the shell claims may still belong to one of its REMOTES (a
+          // bookmarked page of a federated domain): give them the chance a class-declared shell
+          // gives them, instead of mounting the route on the shell, which answers "Not found".
+          .flatMap(
+              resolved ->
+                  resolved == app && !isAuthoredHere(finalCommand.route())
+                      ? appMenuResolver.resolveRemoteMenuForRoute(
+                          finalCommand, app, finalCommand.httpRequest())
+                      : Mono.just(resolved));
     }
     return routeInstanceCreator
         .findRouteResolver(command)
@@ -128,9 +127,6 @@ public class ActionInstanceCreator {
     return appMenuResolver
         .resolveMenuIfApp(command, app, routeInstanceCreator::findRouteResolver)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYamlPage(finalCommand)))
-        // nothing local claims it: one of the shell's remotes may (a remote screen's content load)
-        .switchIfEmpty(
-            (Mono) Mono.defer(() -> appMenuResolver.resolveRemoteDeepLink(finalCommand, app)))
         .switchIfEmpty(
             (Mono)
                 Mono.defer(
@@ -140,7 +136,10 @@ public class ActionInstanceCreator {
                             : Mono.empty()));
   }
 
-  /** The route has an authored entry in this deployment's route registry (a local page). */
+  /**
+   * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
+   * is never offered to a remote, even when no menu entry claims it.
+   */
   private boolean isAuthoredHere(String route) {
     return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
@@ -377,6 +376,33 @@ public class ActionInstanceCreator {
    * {@code rootDefinitionFor} is null), for content loads (a non-{@code _empty} consumedRoute), and
    * for terminal / app-level actions.
    */
+  /**
+   * A load of a nested mount's ROOT that has already CONSUMED that root (route and consumed route
+   * both {@code /orders}): what a federated shell asks a remote for on a deep link to the remote's
+   * menu path — its home CONTENT, not its app shell again. A data-defined mount answers it with the
+   * route of its declared {@code home:}; without this it answered its shell, which the shell's
+   * content slot then reloaded forever. Anything else is returned unchanged.
+   */
+  private RunActionCommand homeContentOfConsumedMountRoot(RunActionCommand command) {
+    if (command == null
+        || command.route() == null
+        || command.consumedRoute() == null
+        || (command.actionId() != null && !command.actionId().isEmpty())) {
+      return command;
+    }
+    var route = io.mateu.core.infra.Slashes.trim(command.route());
+    if (route.isEmpty()
+        || !route.equals(io.mateu.core.infra.Slashes.trim(command.consumedRoute()))
+        || !routeRegistry.isMountRoot(route)) {
+      return command;
+    }
+    var home = routeRegistry.mountHomeFor(route);
+    if (home == null || home.isBlank()) {
+      return command;
+    }
+    return command.withRoute("/" + route + "/" + io.mateu.core.infra.Slashes.trim(home));
+  }
+
   private boolean wrapsInAppShell(RunActionCommand command) {
     if (!"_empty".equals(command.consumedRoute())
         || isTerminalRoute(command.route())

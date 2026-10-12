@@ -222,7 +222,7 @@ object Expressions {
             while (isOp("+") || isOp("-")) {
                 val op = eat().value
                 val right = multiplicative()
-                left = if (op == "+" && (left is String || right is String)) "${left ?: ""}${right ?: ""}"
+                left = if (op == "+" && (left is String || right is String)) "${display(left)}${display(right)}"
                 else if (op == "+") num(left) + num(right) else num(left) - num(right)
             }
             return left
@@ -249,7 +249,7 @@ object Expressions {
             while (true) {
                 when {
                     isOp(".") -> { eat("."); value = member(value, eat().value) }
-                    isOp("[") -> { eat("["); val key = ternary(); eat("]"); value = member(value, key?.toString() ?: "") }
+                    isOp("[") -> { eat("["); val key = ternary(); eat("]"); value = member(value, display(key)) } // rows[1]: the literal is 1.0, the index "1"
                     else -> return value
                 }
             }
@@ -277,7 +277,13 @@ object Expressions {
             is Map<*, *> -> target[prop]
             is List<*> -> if (prop == "length") target.size.toDouble() else prop.toIntOrNull()?.let { target.getOrNull(it) }
             is com.fasterxml.jackson.databind.JsonNode -> {
-                val n = if (prop == "length" && target.isArray) return target.size().toDouble() else target.path(prop)
+                // An array is indexed by position (`state.rows[0]`): path(String) on an ArrayNode is
+                // always missing, so a numeric key has to go through path(Int).
+                val n = when {
+                    prop == "length" && target.isArray -> return target.size().toDouble()
+                    target.isArray -> prop.toIntOrNull()?.let { target.path(it) } ?: target.path(prop)
+                    else -> target.path(prop)
+                }
                 when {
                     n.isMissingNode || n.isNull -> null
                     n.isNumber -> n.asDouble()
@@ -289,6 +295,13 @@ object Expressions {
             is String -> if (prop == "length") target.length.toDouble() else null
             else -> null
         })
+    }
+
+    /** A value as JS would print it inside a string: whole doubles without ".0", null as "". */
+    private fun display(v: Any?): String = when (v) {
+        null -> ""
+        is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
+        else -> v.toString()
     }
 
     /** JsonNode values coming from wire-backed state unwrap to their primitive equivalents. */

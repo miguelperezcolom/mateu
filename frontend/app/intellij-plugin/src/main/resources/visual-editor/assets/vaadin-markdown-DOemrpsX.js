@@ -1,0 +1,1 @@
+import"./vaadinCanvasRenderer-BB3NOpYi.js";

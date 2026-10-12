@@ -29,12 +29,15 @@ const EXCLUDED = [
 
 const WORDS = 'Retry|Cancel|Clear filters|Show more|Filter by|No data\\.?|Ask AI|Save|Close|Delete|Search|Loading…?|'
     + 'Previous|Next|Expand|Collapse|Upload|Replace|Apply|Clear|Undo|Dismiss|Remove|Edit|Select|Reset|Send|'
-    + 'Maximize|Back|Menu|Yes|Columns|Notifications|Cerrar|Limpiar|Borrar|Buscar|Guardar|Cancelar'
+    + 'Maximize|Back|Menu|Yes|Columns|Notifications|Copied|Copiado|Cerrar|Limpiar|Borrar|Buscar|Guardar|Cancelar'
 
 const PATTERNS: { name: string, re: RegExp }[] = [
     { name: 'static attribute text', re: /\b(?:aria-label|title|placeholder)="[A-Za-z¿¡ÁÉÍÓÚáéíóú][^"${}]*"/ },
-    // text between a tag's `>` (not an arrow `=>` or a generic `->`) and a closing tag
-    { name: 'static text node', re: /(?<![=-])>\s*[A-Z¿][a-záéíóúñ]+(?:\s+[a-záéíóúñ]+){0,5}[.…]?\s*<\// },
+    // the same with a value interpolated after fixed words: aria-label="Remove filter ${label}"
+    { name: 'attribute text around an interpolation', re: /\b(?:aria-label|title|placeholder)="[A-Z¿¡][a-záéíóúñ]+ [a-záéíóúñ ]*\$\{/ },
+    // text between a tag's `>` (not an arrow `=>` or a generic `->`) and a closing tag — a whole
+    // sentence too ("Apply some filters to save a view" slipped through a 6-word cap)
+    { name: 'static text node', re: /(?<![=-])>\s*[A-Z¿][a-záéíóúñ]+(?:\s+[a-záéíóúñ]+){0,15}[.…]?\s*<\// },
     { name: 'chrome word literal', re: new RegExp(`['"\`](?:${WORDS})['"\`]`) },
 ]
 

@@ -111,6 +111,19 @@ export default defineConfig({
       dependencies: ['static-vcn-java'],
     },
     ]),
+    // The YAML-only federation (e2e/sut/yaml-federation, started by its run.sh): a console served on
+    // :18480 whose menu mounts a SERVED YAML domain (:18481) and a STATIC one (:18482). Like the
+    // static projects, only listed under CI when the job that starts those servers asks for it.
+    ...(process.env.CI && !process.env.YAML_FEDERATION ? [] : [
+    {
+      name: 'yaml-federation',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:18480',
+      },
+      testMatch: '**/yaml-federation/**/*.spec.ts',
+    },
+    ]),
     // The same renderer-agnostic specs against the VB/Redwood renderer: mvc-app1 built a second
     // time with -Dmateu.renderer=mateu-redwood -Dsut.build.dir=target-vb and served on :8090 (CI job
     // `renderer-vb` in run_tests.yml; RENDERER_VB_URL overrides the URL locally). It paints

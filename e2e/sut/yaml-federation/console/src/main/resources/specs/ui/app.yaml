@@ -1,0 +1,25 @@
+# The console: one local page and two federated domains, both authored in YAML only —
+#  - Orders, SERVED by its own backend (yaml-fed-orders, :18481, mounted at /orders);
+#  - Catalog, a STATIC bundle with no backend at all (yaml-fed-catalog, served as files on :18482).
+# A RemoteMenu whose baseUrl names a manifest.json is a static remote: the browser reads that
+# manifest and answers the domain's loads from it, as the static site itself would.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Operations console
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RemoteMenu
+    label: Orders
+    baseUrl: http://localhost:18481/orders
+    path: /orders
+    route: ""
+    consumedRoute: _empty
+  - type: RemoteMenu
+    label: Catalog
+    baseUrl: http://localhost:18482/manifest.json
+    path: /catalog
+    route: ""
+    consumedRoute: _empty

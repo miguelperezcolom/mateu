@@ -310,7 +310,14 @@ public class MateuHelidonRoutes {
     httpRequest.setAttribute("uiId", "");
     httpRequest.setAttribute("baseUrl", mount.basePath());
     try {
-      var increments = service.get().runAction(mount.basePath(), rq, mount.basePath(), httpRequest);
+      var increments =
+          service
+              .get()
+              .runAction(
+                  mount.basePath(),
+                  YamlMounts.mountRequest(mount.basePath(), rq),
+                  mount.basePath(),
+                  httpRequest);
       if (req.path().path().startsWith(mount.apiPrefix() + "/v3/sse/")) {
         writeEvents(res, increments);
       } else {
