@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
@@ -5462,6 +5462,13 @@ test('chat: una pantalla que abre el asistente no le quita el foco al chat', () 
   assert.equal(focusIsInChat(inChat), true)
   assert.equal(focusIsInChat(inPage), false)
   assert.equal(focusIsInChat(null), false)
+})
+
+test('a11y: navegar con un drawer abierto (el del contexto) no se lleva el foco al contenido', () => {
+  const doc = (opened) => ({ querySelectorAll: () => [{ opened: false }, { opened }] })
+  assert.equal(overlayIsOpen(doc(true)), true)
+  assert.equal(overlayIsOpen(doc(false)), false)
+  assert.equal(overlayIsOpen(null), false)
 })
 
 test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de la shell; el resto, el navegador', () => {

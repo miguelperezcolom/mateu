@@ -482,6 +482,7 @@
           <template>
             <div class="oj-sm-margin-4x-bottom">
               <oj-select-one class="oj-form-control-full-width"
+                :data-field="[[ $current.data.fieldName ]]"
                 label-hint="[[ $current.data.label ]]"
                 value="[[ $current.data.value ]]"
                 on-value-changed="[[ $listeners.contextChanged ]]">

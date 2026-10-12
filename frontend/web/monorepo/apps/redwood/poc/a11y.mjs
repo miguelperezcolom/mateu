@@ -124,7 +124,8 @@ let hasNavigated = false
  */
 export function announceNavigation(title) {
   announce(title)
-  if (hasNavigated && !focusIsInChat(typeof document === 'undefined' ? null : document.activeElement)) focusContentSoon()
+  const active = typeof document === 'undefined' ? null : document.activeElement
+  if (hasNavigated && !focusIsInChat(active) && !overlayIsOpen(typeof document === 'undefined' ? null : document)) focusContentSoon()
   hasNavigated = true
 }
 
@@ -136,6 +137,17 @@ export function announceNavigation(title) {
  */
 export function focusIsInChat(activeElement) {
   return !!(activeElement && typeof activeElement.closest === 'function' && activeElement.closest('#mateuChatPanel'))
+}
+
+/**
+ * Whether an overlay (a drawer, a dialog) is open — the context drawer, whose picker re-loads the
+ * screen behind it. Moving the focus to the new content's heading took it OUT of the still-open
+ * drawer: Escape no longer closed it, and a keyboard user was left behind a modal scrim. The title
+ * is still announced.
+ */
+export function overlayIsOpen(doc) {
+  if (!doc || typeof doc.querySelectorAll !== 'function') return false
+  return Array.from(doc.querySelectorAll('oj-drawer-popup, oj-dialog')).some((el) => el.opened === true)
 }
 
 /**

@@ -49,6 +49,29 @@ test.describe('App shell on any renderer (/shell)', () => {
     await expect(page.getByText(/synced/).filter({ visible: true }).first()).toBeVisible({ timeout: 20000 });
   });
 
+  test('an @AppContext value picked on the header reaches every screen; the keyboard keeps up', async ({ page }) => {
+    await page.goto('/shell/probe');
+    await expect(page.getByRole('button', { name: 'Where am i' })).toBeVisible({ timeout: 20000 });
+    const drawer = page.getByRole('button', { name: 'Context' });
+    if (await drawer.isVisible()) {
+      // Redwood: the pickers live in a "Working context" drawer. Picking reloads the screen behind
+      // it; the focus used to fall to <body>, so Escape no longer closed the drawer.
+      await drawer.click();
+      await page.getByRole('combobox', { name: 'Region' }).click();
+      await page.getByRole('option', { name: 'South' }).click();
+      await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest('oj-select-one'))).toBe(true);
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('heading', { name: 'Working context' })).toBeHidden();
+    } else {
+      // Vaadin: the pickers sit on the header itself (a choice reloads the page)
+      await page.getByRole('button', { name: /^Region/ }).click();
+      await page.getByRole('option', { name: 'South' }).click();
+      await expect(page.getByRole('button', { name: 'Where am i' })).toBeVisible({ timeout: 20000 });
+    }
+    await page.getByRole('button', { name: 'Where am i' }).click();
+    await expect(page.getByText(/region=South/).filter({ visible: true }).first()).toBeVisible({ timeout: 20000 });
+  });
+
   test('routes.yaml of the mount: a pinned param and a record master with its default tab', async ({ page }) => {
     await page.goto('/shell/orders/pending');
     await page.getByRole('button', { name: 'Show status' }).click();

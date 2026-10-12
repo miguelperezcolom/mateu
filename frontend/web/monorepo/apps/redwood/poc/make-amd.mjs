@@ -422,6 +422,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     announce,
     announceNavigation,
     focusIsInChat,
+    overlayIsOpen,
     focusContent,
     focusContentSoon,
     mountSkipLink,
