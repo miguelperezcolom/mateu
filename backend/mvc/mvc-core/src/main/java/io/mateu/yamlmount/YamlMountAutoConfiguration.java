@@ -24,9 +24,9 @@ import org.springframework.web.servlet.function.ServerResponse;
  * class-less deployment has none, and this fills the gap for every discovered mount at its own
  * {@code basePath}. The surface itself is {@link YamlMounts} (core), shared by every adapter.
  *
- * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount);
- * the YAML mounts are served NEXT TO any generated controller (a Java {@code @UI} in the same
- * deployment): only a base path a class already serves is left to the class.
+ * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount); the YAML
+ * mounts are served NEXT TO any generated controller (a Java {@code @UI} in the same deployment):
+ * only a base path a class already serves is left to the class.
  *
  * <p>The endpoints are a {@link RouterFunction}, not annotated controllers: a functional route is
  * picked up by its {@code @Bean} type regardless of package or component scanning.

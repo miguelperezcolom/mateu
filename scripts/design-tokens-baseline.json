@@ -1,7 +1,7 @@
 {
   "apps/redwood/poc/core/boards.mjs": 1,
   "apps/redwood/poc/core/display.mjs": 2,
-  "apps/vaadin/src/fields/mateu-field.ts": 3,
+  "apps/vaadin/src/fields/mateu-field.ts": 1,
   "apps/vaadin/src/fields/mateu-vaadin-tree-select.ts": 2,
   "apps/vaadin/src/grid/mateu-table.ts": 1,
   "apps/vaadin/src/renderers/mateu-vaadin-foldout.ts": 4,

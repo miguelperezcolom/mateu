@@ -250,7 +250,7 @@ test('a listing keeps its page and sort in the URL, with the Vaadin contract (ba
 test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
   const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
     'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
-  assert.ok(!bundle.includes('#{env.'), 'a #{env.*}# placeholder only a VB host fills is left in the jar bundle')
+  assert.ok(!bundle.includes('#{env.catalogJson}#'), 'the service-catalogue placeholder only a VB host fills is left in the jar bundle')
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 

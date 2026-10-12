@@ -250,7 +250,8 @@ public class MateuQuarkusRoutes {
   }
 
   /** The base URLs of the generated controllers (the {@code @UI}s of the deployment). */
-  private static java.util.List<String> classBaseUrls(jakarta.enterprise.inject.spi.BeanManager beanManager) {
+  private static java.util.List<String> classBaseUrls(
+      jakarta.enterprise.inject.spi.BeanManager beanManager) {
     var baseUrls = new java.util.ArrayList<String>();
     for (var bean : beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE)) {
       try {

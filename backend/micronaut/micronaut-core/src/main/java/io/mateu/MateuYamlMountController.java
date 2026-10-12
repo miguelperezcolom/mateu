@@ -39,9 +39,9 @@ public class MateuYamlMountController {
 
   /**
    * A {@code type: UI} mount on the classpath and no generated ROOT Mateu controller. The YAML
-   * mounts are served next to the {@code @UI} classes; only a root {@code @UI} keeps this controller
-   * out, because its catch-all index and this one would be equally specific — that root index
-   * answers the YAML mounts' deep links itself ({@link YamlMounts#deepLinkIndex}).
+   * mounts are served next to the {@code @UI} classes; only a root {@code @UI} keeps this
+   * controller out, because its catch-all index and this one would be equally specific — that root
+   * index answers the YAML mounts' deep links itself ({@link YamlMounts#deepLinkIndex}).
    */
   public static class Present implements Condition {
     @Override

@@ -1175,7 +1175,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><mateu-markup-editor
-                            .value="${value ?? ''}" .label="${labelText}" ?required="${this.field.required}"
+                            .value="${value ?? ''}" .label="${typeof label === "string" ? label : ""}" ?required="${this.field.required}"
                             @value-changed="${this.markupChanged}"
                     ><vaadin-markdown slot="preview" .content="${value ?? ''}"></vaadin-markdown></mateu-markup-editor>
                     </vaadin-custom-field>
@@ -1636,7 +1636,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><mateu-markup-editor
-                            .value="${value ?? ''}" .label="${labelText}" ?required="${this.field.required}"
+                            .value="${value ?? ''}" .label="${typeof label === "string" ? label : ""}" ?required="${this.field.required}"
                             @value-changed="${this.markupChanged}"
                     ><div slot="preview">${safeHtml('' + (value ?? ''))}</div></mateu-markup-editor></vaadin-custom-field>
                 `

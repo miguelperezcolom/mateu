@@ -198,6 +198,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       askSomething: 'Ask something…',
       assistantFailed: 'The assistant could not answer: {message}',
       formatting: 'Formatting',
+      preview: 'Preview',
       rteBold: 'Bold', rteItalic: 'Italic', rteUnderline: 'Underline', rteBullets: 'Bulleted list', rteNumbers: 'Numbered list',
       rteLink: 'Link', rteClear: 'Clear formatting', rteLinkPrompt: 'Link URL',
       colourPicker: '{label} — picker',
@@ -397,6 +398,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       askSomething: 'Pregunta lo que quieras…',
       assistantFailed: 'El asistente no ha podido responder: {message}',
       formatting: 'Formato',
+      preview: 'Vista previa',
       rteBold: 'Negrita', rteItalic: 'Cursiva', rteUnderline: 'Subrayado', rteBullets: 'Lista con viñetas', rteNumbers: 'Lista numerada',
       rteLink: 'Enlace', rteClear: 'Quitar formato', rteLinkPrompt: 'URL del enlace',
       colourPicker: '{label} — selector',
@@ -1240,6 +1242,63 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
     { cmd: 'removeFormat', icon: 'oj-ux-ico-remove-formatting', label: 'rteClear' },
   ]
+
+  /**
+   * `<mateu-markup-field kind="markdown|html" value="…">`: the editor of an EDITABLE markdown / html
+   * field — the source in a textarea and a Preview toggle that shows it rendered (markdown through
+   * markdownToHtml, html sanitised). It was drawn as an oj-text-area with the raw source and no way
+   * to see the result, while Vaadin drew the result and could not edit it (owner, 2026-10-12: an
+   * editor with preview on both). Leaves as `valueChanged` {value, updatedFrom:'internal'}.
+   */
+  function markupPreviewHtml(kind, source) {
+    return kind === 'markdown' ? markdownToHtml(source || '') : sanitizeHtml(source || '')
+  }
+
+  function defineMarkupField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-markup-field')) return
+    const doc = win.document
+    class MateuMarkupField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'kind', 'aria-label'] }
+      connectedCallback() { this.render() }
+      attributeChangedCallback() { if (this.isConnected && !this.editing) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      render() {
+        this.textContent = ''
+        this.classList.add('mateu-markup-field')
+        const bar = doc.createElement('div')
+        bar.className = 'mateu-markup-bar'
+        const toggle = doc.createElement('button')
+        toggle.type = 'button'
+        toggle.className = 'mateu-markup-toggle'
+        toggle.setAttribute('aria-pressed', this.previewing ? 'true' : 'false')
+        toggle.textContent = chromeText(this.previewing ? 'edit' : 'preview')
+        toggle.addEventListener('click', () => { this.previewing = !this.previewing; this.render() })
+        bar.appendChild(toggle)
+        this.appendChild(bar)
+        if (this.previewing) {
+          const view = doc.createElement('div')
+          view.className = 'mateu-atom-richtext mateu-markup-preview oj-typography-body-md'
+          view.innerHTML = markupPreviewHtml(this.getAttribute('kind'), this.value)
+          this.appendChild(view)
+          return
+        }
+        const area = doc.createElement('textarea')
+        area.className = 'mateu-markup-source'
+        area.value = this.value
+        area.setAttribute('aria-label', this.getAttribute('aria-label') || '')
+        area.addEventListener('input', () => {
+          this.editing = true
+          this.value = area.value
+          this.editing = false
+        })
+        area.addEventListener('change', () => this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: area.value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true })))
+        this.appendChild(area)
+      }
+    }
+    win.customElements.define('mateu-markup-field', MateuMarkupField)
+  }
 
   /**
    * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
@@ -6242,11 +6301,45 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parts.join('&')
   }
 
-  /** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. */
-  function listingUrlOf(route, values, searchText) {
+  /** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. Con
+   *  `paging` ({page, sort}) también la página (si no es la primera) y el orden, con el contrato de
+   *  Vaadin y del bundle estático: `page=N`, `sort=campo:ascending,otro:descending` — así volver de
+   *  una ficha, recargar o compartir el enlace conserva la página y el orden, no sólo los filtros. */
+  function listingUrlOf(route, values, searchText, paging) {
     const bare = String(route || '').split('?')[0]
+    const parts = []
     const query = listingQueryOf(values, searchText)
-    return query ? bare + '?' + query : bare
+    if (query) parts.push(query)
+    const page = paging && Number(paging.page)
+    if (page > 0) parts.push('page=' + page)
+    const sort = paging && Array.isArray(paging.sort)
+      ? paging.sort.filter((x) => x && x.field && x.direction).map((x) => x.field + ':' + x.direction).join(',')
+      : ''
+    if (sort) parts.push('sort=' + encodeURIComponent(sort).replace(/%2C/gi, ',').replace(/%3A/gi, ':'))
+    return parts.length ? bare + '?' + parts.join('&') : bare
+  }
+
+  /** La página y el orden que trae la query de un listado (`page=2&sort=name:descending`) →
+   *  { page, sort: [{field, direction}] }; la primera página y ningún orden si no vienen. */
+  function listingUrlPagingOf(query) {
+    const out = { page: 0, sort: [] }
+    for (const part of String(query || '').replace(/^\?/, '').split('&')) {
+      const eq = part.indexOf('=')
+      if (eq <= 0) continue
+      let value = part.slice(eq + 1)
+      try { value = decodeURIComponent(value.replace(/\+/g, ' ')) } catch (e) { /* as it came */ }
+      const key = part.slice(0, eq)
+      if (key === 'page') {
+        const n = parseInt(value, 10)
+        if (n > 0) out.page = n
+      } else if (key === 'sort') {
+        out.sort = value.split(',').map((x) => {
+          const [field, direction] = x.split(':')
+          return field && (direction === 'ascending' || direction === 'descending') ? { field, direction } : null
+        }).filter(Boolean)
+      }
+    }
+    return out
   }
 
   const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)
@@ -7494,7 +7587,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (st === 'color') return { isColor: true }
     if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
+    // an editable markdown / html: the source + a Preview toggle (mateu-markup-field)
+    if ((st === 'markdown' || st === 'html') && !f.readOnly) return { isMarkupEditor: true, markupKind: st }
     return null
+  }
+
+  /**
+   * What an edited field commits: the edited value, EXCEPT when the field held an Amount
+   * ({currency, value, locale}) — then the same Amount with the new value. The money input edits the
+   * NUMBER, and committing it bare lost the currency: the server could not pour a bare number into
+   * an Amount and kept the old one (the forms walkthrough).
+   */
+  function committedValueOf(previous, value) {
+    if (previous != null && typeof previous === 'object' && !Array.isArray(previous)
+        && 'currency' in previous && 'value' in previous
+        && (value == null || typeof value === 'number' || (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))))) {
+      return value == null ? null : { ...previous, value: Number(value) }
+    }
+    return value
   }
 
   /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
@@ -7502,6 +7612,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
       || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
       || (md.stereotype === 'richText' && !md.readOnly)
+      || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
       || (md.dataType === 'array' && (md.options || []).length
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
@@ -7528,7 +7639,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
         ...flags,
         isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
-        isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
+        isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
         converter: null, captureMode: '', accept: '',
         ...extra,
       }
@@ -11156,7 +11267,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
       summary: toast.text || '',
-      autoTimeout: 10000,
+      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12)
+      autoTimeout: toast.variant === 'error' ? 'off' : 10000,
       closeAffordance: 'defaults',
     }
   }
@@ -19344,6 +19456,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   defineCaptureField();
   // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
   defineRichTextField();
+  defineMarkupField();
   defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
@@ -19451,6 +19564,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setRulesContext,
     setRuleActionSink,
     valueChangeActionOf,
+    committedValueOf,
     triggerDownload,
     autoTrail,
     parentCrumb,
@@ -19502,6 +19616,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     splitListingQuery,
     listingQueryOf,
     listingUrlOf,
+    listingUrlPagingOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
