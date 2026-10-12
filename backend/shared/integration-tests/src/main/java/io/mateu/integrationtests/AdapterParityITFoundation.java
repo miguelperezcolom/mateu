@@ -478,6 +478,110 @@ public class AdapterParityITFoundation {
     }
   }
 
+  /**
+   * {@code GET /mateu/v3/bundle}: the static bundle rendered live ({@code MateuBundleExporter}) —
+   * the {@code manifest.json} the {@code mateu:bundle} goal writes, with an entry per served
+   * {@code @UI} — with and without the parameterised routes, the same body on a second (cached)
+   * request.
+   */
+  public void servesTheRuntimeBundle() {
+    for (String params : new String[] {"false", "true"}) {
+      String first =
+          given()
+              .queryParam("params", params)
+              .when()
+              .get("/mateu/v3/bundle")
+              .then()
+              .statusCode(200)
+              .header("Content-Type", startsWith("application/json"))
+              .body(containsString("\"entries\""))
+              .body(containsString("Plain form"))
+              .extract()
+              .asString();
+      given()
+          .queryParam("params", params)
+          .when()
+          .get("/mateu/v3/bundle")
+          .then()
+          .statusCode(200)
+          .body(equalTo(first));
+    }
+  }
+
+  /** The base path of the YAML mount fixture ({@code specs/ui/yaml-parity.ui.yaml}). */
+  public static final String YAML_MOUNT = "/yaml-parity";
+
+  private static final String YAML_MOUNT_TITLE = "YAML parity";
+
+  private static String yamlPageRq(String consumedRoute) {
+    return "{\"route\": \"/page\", \"consumedRoute\": \""
+        + consumedRoute
+        + "\", \"actionId\": \"\", \"componentState\": {}, \"parameters\": {},"
+        + " \"appState\": {}}";
+  }
+
+  /**
+   * The surface of a deployment with no Java {@code @UI} ({@code io.mateu.core.infra.YamlMounts}):
+   * a {@code type: UI} mount at {@value #YAML_MOUNT} whose root binds an app shell titled "YAML
+   * parity" and whose {@code page} route a definition with the text "YAML parity page". Its SPA
+   * shell (and deep links under it), its mobile manifest — JSON even for a request asking for HTML,
+   * named after the shell —, and its sync and SSE API, which resolve routes RELATIVE to the mount:
+   * a fresh deep link to {@code /page} answers the shell aimed at {@code /yaml-parity/page}, and
+   * the content load that follows answers the page.
+   */
+  public void servesAYamlMount() {
+    for (String path : new String[] {YAML_MOUNT, YAML_MOUNT + "/page"}) {
+      given()
+          .accept("text/html")
+          .when()
+          .get(path)
+          .then()
+          .statusCode(200)
+          .header("Content-Type", startsWith("text/html"))
+          .body(containsString("<mateu-ui baseUrl=\"" + YAML_MOUNT + "\""))
+          .body(containsString("<title>" + YAML_MOUNT_TITLE + "</title>"));
+    }
+    for (String accept : new String[] {"application/json", "text/html"}) {
+      given()
+          .accept(accept)
+          .when()
+          .get(YAML_MOUNT + "/mateu/v3/manifest")
+          .then()
+          .statusCode(200)
+          .header("Content-Type", startsWith("application/json"))
+          .header("Cache-Control", equalTo("public, max-age=300"))
+          .header("X-Content-Type-Options", equalTo("nosniff"))
+          .body(
+              equalTo(
+                  "{\"name\":\""
+                      + YAML_MOUNT_TITLE
+                      + "\",\"shortName\":\""
+                      + YAML_MOUNT_TITLE
+                      + "\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}"));
+    }
+    given()
+        .contentType(ContentType.JSON)
+        .body(yamlPageRq("_empty"))
+        .when()
+        .post(YAML_MOUNT + "/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("application/json"))
+        .body(containsString("\"title\":\"" + YAML_MOUNT_TITLE + "\""))
+        .body(containsString("\"homeRoute\":\"" + YAML_MOUNT + "/page\""));
+    given()
+        .contentType(ContentType.JSON)
+        .accept("text/event-stream")
+        .body(yamlPageRq(""))
+        .when()
+        .post(YAML_MOUNT + "/mateu/v3/sse/_no_route")
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("text/event-stream"))
+        .body(startsWith("data:"))
+        .body(containsString("YAML parity page"));
+  }
+
   /** The renderer's error reports are accepted under any UI's base URL. */
   public void acceptsClientLogs() {
     given()

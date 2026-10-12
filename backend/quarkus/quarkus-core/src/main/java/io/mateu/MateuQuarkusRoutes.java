@@ -240,7 +240,24 @@ public class MateuQuarkusRoutes {
         || !beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE).isEmpty()) {
       return;
     }
-    List<YamlMounts.Mount> mounts = YamlMounts.mounts(routeRegistry, yamlAppLoader);
+    yamlMountRoutes(
+        router,
+        YamlMounts.mounts(routeRegistry, yamlAppLoader),
+        service,
+        routeRegistry,
+        yamlAppLoader);
+  }
+
+  /**
+   * The routes of the given YAML mounts: the SPA shell, the mobile manifest, the sync/SSE API and
+   * the deep links. Split from the presence check so it can be exercised on a plain Vert.x router.
+   */
+  static void yamlMountRoutes(
+      Router router,
+      List<YamlMounts.Mount> mounts,
+      MateuService service,
+      RouteRegistry routeRegistry,
+      YamlAppLoader yamlAppLoader) {
     for (var mount : mounts) {
       router.get(mount.spaPath()).order(EARLY + 4).blockingHandler(rc -> index(rc, mount));
       router
@@ -257,7 +274,7 @@ public class MateuQuarkusRoutes {
           .postWithRegex(java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + ".*")
           .order(EARLY + 5)
           .handler(BodyHandler.create())
-          .blockingHandler(rc -> run(rc, mount));
+          .blockingHandler(rc -> run(rc, mount, service));
       // Deep links answer the mount's index: AFTER Quarkus REST and the static resources, which
       // pass on what they do not serve, so the app's own endpoints and the assets keep winning.
       String deepLinks =
@@ -282,7 +299,7 @@ public class MateuQuarkusRoutes {
     rc.response().putHeader("Content-Type", "text/html;charset=UTF-8").end(mount.indexHtml());
   }
 
-  private void run(RoutingContext rc, YamlMounts.Mount mount) {
+  private static void run(RoutingContext rc, YamlMounts.Mount mount, MateuService service) {
     try {
       var rq = WireMapper.shared().readValue(rc.body().asString(), RunActionRqDto.class);
       var httpRequest = new QuarkusHttpRequest(rc.request()).storeRunActionRqDto(rq);
