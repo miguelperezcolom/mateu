@@ -139,6 +139,7 @@ listed above.
 24. 3c22ff69a Py/.NET — the documented `POST v3/components/_/action` answered 404 and `__load__` "Action not found" (Redwood could not boot on a port).
 25. c0adaa50b Py/.NET — CRUD create/edit forms answered pageType "collection" and did not guard unsaved changes (Java's do); server navigations now send MarkAsClean first and drawer close/cancel too (browser-verified: Save/Cancel never ask, leaving a dirty edit asks once).
 26. 87799500e conformance — cases can pin a second request (`request.json`); first case `app-no-home-content`.
+27. dcf8f08a5 .NET — the starter (and the solution) could not build on a .NET 8/9 SDK.
 22. 45e827575 conformance — action ids were not compared.
 
 ## ❌ Open — owner decisions / not fixed
@@ -155,9 +156,9 @@ listed above.
    `MapMateu(ui: true)` emitting the index with a pinned renderer), and/or should CI publish
    `mateu-vaadin` to npm per release? Same for Redwood: no way to put a port behind it.
 2. (Doc claim, fixed — see "Doc claims fixed" below; the final wording depends on 1.)
-3. **.NET starter on a .NET 9 SDK**: `starters/dotnet` (net8.0) references the sources, which
-   multi-target net8.0+net10.0 — `dotnet run` fails without the .NET 10 SDK unless
-   `-p:TargetFrameworks=net8.0`. Generated projects use NuGet, so only the in-repo starter.
+3. (fixed — dcf8f08a5) **.NET starter on a .NET 8/9 SDK** failed with NETSDK1045: net10.0 is now
+   built only on a .NET 10 SDK, and the NuGet job fails a release whose packages lack net10.0.
+   Owner: confirm on the next release that the guard passes (MSBuild 18 = .NET 10 SDK).
 4. (fixed) IntelliJ CollectionDetail cards clipped their caption line.
 5. IntelliJ: an app whose shell has no home renders an empty content area (same as Java/Vaadin,
    where it is an empty page titled with the class name — the "home defaults to the first menu
