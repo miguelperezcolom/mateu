@@ -130,8 +130,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
-        // 1. App shell at the root route.
+        // 1. App shell at the root route — unless this is the shell's own CONTENT load: an app with
+        // no home route aims its content area at the "_no_home_route" sentinel with its own type,
+        // and answering the shell again nested a second shell inside the first, which asked again
+        // (the browser's loop guard). That load renders the app as a page, as Java does.
         if (string.IsNullOrEmpty(rq.ActionId)
+            && !IsHomeContentLoad(rq)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
         {
@@ -438,6 +442,16 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     }
 
     // ── Plain views ─────────────────────────────────────────────────────────────
+    /// <summary>The shell's content area loading the app's home when the app names none: its own
+    /// type, aimed at the "_no_home_route" (or "_page") sentinel. The page the app itself draws
+    /// answers it, not the shell (mirrors Java's AppHomeRouteResolver: the sentinel becomes
+    /// "_page").</summary>
+    private static bool IsHomeContentLoad(RunActionRqDto rq)
+    {
+        var route = (rq.Route ?? "").Split('?')[0].Trim('/');
+        return !string.IsNullOrEmpty(rq.ServerSideType) && route is "_no_home_route" or "_page";
+    }
+
     private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl,
         string? homeRouteOverride = null, string? homeTypeOverride = null)
     {

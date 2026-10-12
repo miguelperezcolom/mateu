@@ -1324,6 +1324,27 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void The_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_again()
+    {
+        // an app with no home route aims its content area at "_no_home_route" with its own type:
+        // the port answered the SHELL again, which the web client nested inside the first one and
+        // which asked again — the browser's loop guard aborted it with console errors
+        var shell = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
+        var shellMeta = (AppMetadataDto)((ClientSideComponentDto)shell.Fragments.Single().Component!).Metadata;
+        Assert.Equal("_no_home_route", shellMeta.HomeRoute);
+
+        var content = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(TestApp).FullName,
+            Route = "/_no_home_route",
+            ConsumedRoute = "",
+        });
+        var component = Assert.Single(content.Fragments).Component;
+        Assert.IsNotType<ClientSideComponentDto>(component);
+        Assert.DoesNotContain("\"type\":\"App\"", Render(content));
+    }
+
+    [Fact]
     public void An_app_context_picker_searches_its_options_on_the_app_level_rail()
     {
         // the web picker asks _appcontext-search-<field> whenever it opens or the user types; the

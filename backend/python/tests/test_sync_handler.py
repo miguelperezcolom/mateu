@@ -1138,6 +1138,21 @@ def test_app_context_selectors_on_the_wire():
     assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
 
 
+def test_the_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_again():
+    # an app with no home route aims its content area at "_no_home_route" with its own type: the
+    # port answered the SHELL again, which the web client nested inside the first one and which
+    # asked again — the browser's loop guard aborted it with console errors
+    shell = handler().handle(RunActionRq(route="", consumed_route="_empty", server_side_type=_name(TestApp)))
+    assert shell.fragments[0].component.metadata.type == "App"
+    assert shell.fragments[0].component.metadata.home_route == "_no_home_route"
+    content = handler().handle(RunActionRq(
+        route="/_no_home_route", consumed_route="", server_side_type=_name(TestApp),
+    ))
+    component = content.fragments[0].component
+    assert component.type == "ServerSide"
+    assert getattr(getattr(component, "metadata", None), "type", None) != "App"
+
+
 def test_an_app_context_picker_searches_its_options_on_the_app_level_rail():
     # the web picker asks _appcontext-search-<field> whenever it opens or the user types; the port
     # used to answer "Action not found" — an error toast on every picker of a Python app
