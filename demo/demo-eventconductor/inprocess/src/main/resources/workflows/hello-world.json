@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/miguelperezcolom/eventconductor/main/modules/workflow-engine/src/main/resources/workflow-definition-schema.json",
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": 1,
+  "steps": [
+    {
+      "id": "start",
+      "type": "START",
+      "name": "Start"
+    },
+    {
+      "id": "greet",
+      "type": "ACTION",
+      "name": "Greet the user",
+      "preconditionStepId": "start"
+    },
+    {
+      "id": "end",
+      "type": "END",
+      "name": "Done",
+      "preconditionStepId": "greet"
+    }
+  ]
+}

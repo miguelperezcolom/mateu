@@ -204,6 +204,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   printing* in the UX patterns.
 - A JPA (`jakarta`/`javax.persistence.Version`) or Spring Data `@Version` on an entity now joins
   Mateu's optimistic locking: same conflict dialog, version incremented by the provider, not by Mateu.
+- **Using external Mateu UIs**: a third-party UI module (a jar of `@UI` screens, e.g. a workflow
+  engine's console) is mounted in-process by naming its package — `mateu.ui.modules=…` or
+  `@EnableMateuUiModules` (Spring MVC and WebFlux) — since Mateu no longer scans `io.mateu.*`; a
+  named package with no beans is warned about. Guide *Using external Mateu UIs*, with EventConductor
+  as the worked example (`demo/demo-eventconductor`, `e2e/external-ui-probe.mjs`).
 
 ### Fixed
 - **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
@@ -224,6 +229,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.
 - A streamed action on the root view of a mount did nothing; LongTask steps no longer retitle the tab.
 - The wire conformance corpus (25 cases) now matches exactly in Java, .NET and Python.
+- **A remote screen under a YAML shell** (`type: AppShell` with a `RemoteMenu`) answered "Page not
+  found" on a reload, a bookmark or a shared link: unclaimed routes are now offered to the shell's
+  remotes, as an `@UI` class shell always did.
+- **A custom element of a remote screen** (`Element` with `import: /…`) loaded its module from the
+  shell's origin and 404'd; a root-relative module url of a remote screen is now resolved against
+  the remote's origin (which must serve it with CORS).
 
 ## [3.0-alpha.406] — 2026-10-10
 

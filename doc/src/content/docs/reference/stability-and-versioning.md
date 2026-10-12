@@ -50,6 +50,7 @@ You can build on these; they follow the deprecation policy.
 | **The authoring schemas** — `uidl-schema.json`, `routes-schema.json`, `sources-schema.json`, `specs-schema.json` (YAML `specs/ui/**`) | `backend/shared/uidl/*.json`, generated from the records |
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
+| **Adapter configuration** — the `mateu.*` properties the guides document (`mateu.cors.allowed-origins`, `mateu.ui.modules`…) and `@EnableMateuUiModules` (Spring MVC / WebFlux) | the adapter artifacts (`mateu-mvc`, `mateu-webflux`, …); everything else in them is internal |
 | **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
 
 ### The wire DTOs: JSON, not Java binaries

@@ -191,6 +191,36 @@ public class AdapterParityITFoundation {
         .body(containsString("The booking is already checked in"));
   }
 
+  /**
+   * A third-party UI module ({@code @UI("/thirdparty") @Title("Third-party module")} in a package
+   * the application does not scan) is served once the application names its package — {@code
+   * mateu.ui.modules} or {@code @EnableMateuUiModules} on Spring; the container's own bean
+   * discovery elsewhere.
+   */
+  public void servesANamedThirdPartyUiModule() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            "{\"route\": \"\", \"consumedRoute\": \"_empty\", \"actionId\": \"\","
+                + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}")
+        .when()
+        .post("/thirdparty/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("Third-party module"));
+  }
+
+  /** ...and is NOT served while the application has not named it (no endpoint at all). */
+  public void doesNotServeAnUnnamedThirdPartyUiModule() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(RQ)
+        .when()
+        .post("/thirdparty/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(not(equalTo(200)));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()

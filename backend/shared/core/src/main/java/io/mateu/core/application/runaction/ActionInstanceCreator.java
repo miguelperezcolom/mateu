@@ -99,7 +99,7 @@ public class ActionInstanceCreator {
           // gives them, instead of mounting the route on the shell, which answers "Not found".
           .flatMap(
               resolved ->
-                  resolved == app
+                  resolved == app && !isAuthoredHere(finalCommand.route())
                       ? appMenuResolver.resolveRemoteMenuForRoute(
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
@@ -134,6 +134,14 @@ public class ActionInstanceCreator {
                         routeRegistry.isMountRoot(finalCommand.route())
                             ? Mono.just(app)
                             : Mono.empty()));
+  }
+
+  /**
+   * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
+   * is never offered to a remote, even when no menu entry claims it.
+   */
+  private boolean isAuthoredHere(String route) {
+    return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
 
   /**

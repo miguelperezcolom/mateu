@@ -1,0 +1,6 @@
+# Fixture for YamlShellRemoteDeepLinkSyncTest: a YAML shell composing a remote console.
+type: UI
+basePath: /
+home: overview
+routes:
+  - routes.yaml
