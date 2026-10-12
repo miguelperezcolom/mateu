@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/vendor.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-lit.js","assets/vendor-editor.js"])))=>i.map(i=>d[i]);
-/* mateu sources 5f067ee56a480374 */
+/* mateu sources e589eb902ebf30f0 */
 import{_ as e,a as t,c as n,d as r,f as i,g as a,h as o,i as s,l as c,m as l,n as u,o as d,p as f,r as p,s as m,t as h,u as g,v as _}from"./vendor-vaadin.js";import{E as ee,_ as v,a as y,b,c as x,d as te,f as ne,g as S,i as C,n as re,o as w,p as ie,r as ae,s as T,t as oe,u as se,v as ce,w as E,x as D}from"./vendor-lit.js";import{a as le,c as ue,i as de,l as fe,s as pe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})(),_(`vaadin-card`,E`
       :host(.mateu-section) {
         --vaadin-card-border-width: 0 !important;
@@ -9947,11 +9947,11 @@ ${i}
         <div tab="${s??l}" data-node-id="${Jt(t)}" style="padding: var(--lumo-space-m) 0; align-self: stretch; min-width: 0;">
                    ${t.children?.map(t=>z(e,t,n,r,i,a,o))}
                </div>
-            `},ax=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`);let l=0;if(t.children){for(let e=0;e<t.children.length;e++)if(t.children[e].metadata?.active){l=e;break}}return b`
+            `},ax=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style;s.fullWidth&&(c=c?`width: 100%;`+c:`width: 100%;`);let l=null;if(t.children){for(let e=0;e<t.children.length;e++)if(t.children[e].metadata?.active){l=e;break}}return b`
                <vaadin-accordion
                        style="align-self: stretch; min-width: 0; ${t.style??``}"
                        class="${t.cssClasses}"
-                       opened="${l}"
+                       .opened=${l}
                        slot="${t.slot??v}"
                >
                    ${t.children?.map(t=>ox(e,t,n,r,i,a,o,s.variant))}
