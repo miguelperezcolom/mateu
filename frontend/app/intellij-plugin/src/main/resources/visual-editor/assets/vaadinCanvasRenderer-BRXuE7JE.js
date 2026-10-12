@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./markdown-helpers-ruIZSPMf.js","./rolldown-runtime-hePW80VL.js","./purify.es-DmVU2mR8.js","./vaadin-markdown-CjEc5NSt.js","./lit-Ca8Nedot.js","./dist-B-dE9BQR.js","./dist-gzTbOEzr.js"])))=>i.map(i=>d[i]);
-import{a as e,c as t,i as n,l as r,o as i,r as a,s as o}from"./focusTrap-BiPAqUE5.js";import{a as s,h as c,i as l,n as u,o as d,p as f,r as p,t as m}from"./lit-Ca8Nedot.js";import{B as ee,C as h,Ct as te,D as ne,E as re,En as ie,G as ae,H as oe,I as se,L as ce,M as le,Mt as ue,N as de,O as fe,P as pe,Pn as me,S as he,St as ge,Vt as _e,Y as ve,_n as ye,an as be,at as g,c as xe,cn as _,ct as Se,dt as Ce,et as we,f as Te,ft as Ee,gn as De,hn as v,ht as Oe,j as y,k as ke,ln as Ae,m as je,mt as Me,n as Ne,nt as Pe,ot as Fe,p as Ie,pn as Le,s as Re,t as ze,u as Be,un as Ve,vn as He,w as Ue,wn as We,yt as Ge,z as Ke}from"./unsafe-svg-BvTL-EMZ.js";import{S as b,_ as qe,a as Je,b as x,c as Ye,d as Xe,f as Ze,g as Qe,h as S,i as C,l as $e,m as w,n as et,o as tt,p as T,r as E,s as nt,u as D,v as rt,x as O,y as it}from"./vaadin-markdown-CjEc5NSt.js";var at=class e extends EventTarget{#e;#t=new Set;#n;#r=!1;constructor(e){super(),this.#e=e,this.#n=new CSSStyleSheet}#i(e){let{propertyName:t}=e;this.#t.has(t)&&this.dispatchEvent(new CustomEvent(`property-changed`,{detail:{propertyName:t}}))}observe(e){this.connect(),!this.#t.has(e)&&(this.#t.add(e),this.#n.replaceSync(`
+import{a as e,c as t,i as n,l as r,o as i,r as a,s as o}from"./focusTrap-BiPAqUE5.js";import{a as s,h as c,i as l,n as u,o as d,p as f,r as p,t as m}from"./lit-Ca8Nedot.js";import{B as ee,C as h,Ct as te,D as ne,E as re,En as ie,G as ae,H as oe,I as se,L as ce,M as le,Mt as ue,N as de,O as fe,P as pe,Pn as me,S as he,St as ge,Vt as _e,Y as ve,_n as ye,an as be,at as g,c as xe,cn as _,ct as Se,dt as Ce,et as we,f as Te,ft as Ee,gn as De,hn as v,ht as Oe,j as y,k as ke,ln as Ae,m as je,mt as Me,n as Ne,nt as Pe,ot as Fe,p as Ie,pn as Le,s as Re,t as ze,u as Be,un as Ve,vn as He,w as Ue,wn as We,yt as Ge,z as Ke}from"./unsafe-svg-BAYrCrVU.js";import{S as b,_ as qe,a as Je,b as x,c as Ye,d as Xe,f as Ze,g as Qe,h as S,i as C,l as $e,m as w,n as et,o as tt,p as T,r as E,s as nt,u as D,v as rt,x as O,y as it}from"./vaadin-markdown-CjEc5NSt.js";var at=class e extends EventTarget{#e;#t=new Set;#n;#r=!1;constructor(e){super(),this.#e=e,this.#n=new CSSStyleSheet}#i(e){let{propertyName:t}=e;this.#t.has(t)&&this.dispatchEvent(new CustomEvent(`property-changed`,{detail:{propertyName:t}}))}observe(e){this.connect(),!this.#t.has(e)&&(this.#t.add(e),this.#n.replaceSync(`
       :root::before, :host::before {
         content: '' !important;
         position: absolute !important;
@@ -11169,6 +11169,7 @@ ${qu}
                 `;if(this.field?.stereotype==`select`){if(this.field?.optionsSource){let e=this.field.optionsSource,r=Ce(e.url,this.state,this.data)??e.url;this.data[this.id]?.sourceSignature!==r&&(this.data[this.id]={content:this.data[this.id]?.content??[],sourceSignature:r},e.proxy?this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`__restfetch__`,parameters:{_sourceKind:`options`,_sourceId:this.field.fieldId},callback:t=>{let n=t?.appData?._restfetch,i=ve(n,e.itemsPath,e.valuePath,e.labelPath);this.data[this.id]={content:i,totalElements:i.length,sourceSignature:r},this.requestUpdate()},callbackonly:!0},bubbles:!0,composed:!0})):ae(e,Me(this.state,this.data)).then(e=>{this.data[this.id]={content:e,totalElements:e.length,sourceSignature:r},this.requestUpdate()}).catch(e=>console.warn(`mateu: external options fetch failed`,e)));let i=t;return t&&t.value&&(i=t.value),s`
                     <vaadin-select
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             item-label-path="label"
                             item-value-path="value"
@@ -11183,6 +11184,7 @@ ${qu}
                     `}if(this.field?.remoteCoordinates){let e=this.field.remoteCoordinates;this.data[this.id]&&this.data[this.id].searchSignature&&this.data[this.id].searchSignature!=``&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements||this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.action,parameters:{searchText:``,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}));let r=t;return t&&t.value&&(r=t.value),s`
                     <vaadin-select
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             item-label-path="label"
                             item-value-path="value"
@@ -11197,6 +11199,7 @@ ${qu}
                     `}let e=t;return t&&t.value&&(e=t.value),s`
                     <vaadin-select
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             item-label-path="label"
                             item-value-path="value"
@@ -11222,6 +11225,7 @@ ${qu}
                 `;if(this.field?.stereotype==`combobox`){if(this.field?.remoteCoordinates){let e=this.field.remoteCoordinates,r;this.data[this.id]&&this.data[this.id].content&&(r=this.data[this.id].content.find(e=>e.value==t)),!r&&this.comboData&&(r=this.comboData.find(e=>e.value==t)),!r&&t&&(r={value:t,label:this.data[this.id+`-label`]??t});let i=this.remoteComboDataProvider(e.action);return s`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             item-label-path="label"
                             item-id-path="value"
@@ -11239,6 +11243,7 @@ ${qu}
                     `}return s`
                     <vaadin-combo-box
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             item-label-path="label"
                             item-value-path="value"
@@ -11449,6 +11454,7 @@ ${qu}
                     </vaadin-custom-field>`;if(this.field?.stereotype==`textarea`)return s`
                     <vaadin-text-area
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             .maxlength="${this.field.charLimit}"
                             .value="${t}"
@@ -11462,6 +11468,7 @@ ${qu}
                     ></vaadin-text-area>`;if(this.field?.stereotype==`email`)return s`
                     <vaadin-email-field
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             @value-changed="${this.valueChanged}"
                             value="${t}"
@@ -11478,6 +11485,7 @@ ${qu}
                     ><a href="${y(ge(t))}">${t}</a></vaadin-custom-field>`:s`
                             <vaadin-text-field
                                     id="${this.field.fieldId}"
+                                    placeholder="${this.field.placeholder??u}"
                                     label="${n}"
                                     required="${this.field.required||u}"
                                     @value-changed="${this.valueChanged}"
@@ -11497,6 +11505,7 @@ ${qu}
                     ></vaadin-icon>`:s`
                     <vaadin-combo-box
                                     id="${this.field.fieldId}"
+                                    placeholder="${this.field.placeholder??u}"
                                     label="${n}"
                                     required="${this.field.required||u}"
                                     @value-changed="${this.valueChanged}"
@@ -11515,6 +11524,7 @@ ${qu}
                 `;if(this.field?.stereotype==`password`)return s`
                     <vaadin-password-field
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder??u}"
                             label="${n}"
                             @value-changed="${this.valueChanged}"
                             value="${t}"
@@ -11624,6 +11634,7 @@ ${qu}
                 `:s`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder??u}"
                         label="${n}"
                         @value-changed="${this.valueChanged}"
                         value="${t}"
@@ -11636,6 +11647,7 @@ ${qu}
                 ></vaadin-text-field>
 `}renderNumberField(e,t,n,r){return this.field?s`<vaadin-number-field
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder??u}"
                         label="${n}"
                         @value-changed="${this.valueChanged}"
                         value="${t}"
@@ -11669,6 +11681,7 @@ ${qu}
                 `}return s`
                 <vaadin-integer-field
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder??u}"
                         label="${n}"
                         @value-changed="${this.valueChanged}"
                         value="${t}"
@@ -11720,6 +11733,7 @@ ${qu}
                     data-colspan="${this.field.colspan}"
             ></vcf-date-range-picker>`}renderDateField(e,t,n,r){return this.field?s`<vaadin-date-picker
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder??u}"
                         label="${n}"
                         @value-changed="${this.valueChanged}"
                         value="${t}"
@@ -11738,6 +11752,7 @@ ${qu}
                         data-colspan="${this.field.colspan}"
             ></vaadin-date-time-picker>`:s``}renderTimeField(e,t,n,r){return this.field?s`<vaadin-time-picker
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder??u}"
                         label="${n}"
                         @value-changed="${this.valueChanged}"
                         value="${t}"
