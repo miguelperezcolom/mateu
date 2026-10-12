@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "preview": "vite preview",
     "copy": "vite build && rm -rf ../../../../app/intellij-plugin/src/main/resources/visual-editor && mkdir -p ../../../../app/intellij-plugin/src/main/resources/visual-editor && cp -rf dist/* ../../../../app/intellij-plugin/src/main/resources/visual-editor/"
