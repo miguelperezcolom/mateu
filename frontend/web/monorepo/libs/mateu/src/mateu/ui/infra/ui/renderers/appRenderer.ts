@@ -7,6 +7,7 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
+import "@infra/ui/mateu-header-values.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
@@ -49,8 +50,9 @@ const runHeaderAction = async (metadata: App, container: MateuApp, actionId: str
 const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     const actions = metadata.contextActions ?? []
-    if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled) return nothing
-    return html`${metadata.notificationsEnabled ? html`
+    const liveValues = (metadata.headerValues?.length ?? 0) > 0
+    if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled && !liveValues) return nothing
+    return html`${liveValues ? html`<mateu-header-values></mateu-header-values>` : nothing}${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
         <details class="mateu-nav-group" style="flex-shrink: 0;">

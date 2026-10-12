@@ -21,12 +21,23 @@ import java.util.List;
 @UI("")
 @Title("My first Mateu app")
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
-@App(themeToggle = true, commandCenter = true)
+@App(themeToggle = true, commandCenter = true, liveUpdates = true)
+// app-wide keyboard shortcuts + quick-launch codes (type MRG / EOD in the command center); "?" lists them
+@AppShortcut(key = "f9", route = "/record-merge-demo", label = "Merge profiles", code = "MRG")
+@AppShortcut(key = "f8", route = "/e2-business-day", label = "End of day", code = "EOD")
+@AppShortcut(key = "alt+y", actionId = "syncNow", label = "Sync", code = "SYNC")
 public class Home2
         implements WidgetSupplier,
         io.mateu.uidl.interfaces.AppActionsSupplier,
         io.mateu.uidl.interfaces.NotificationsSupplier,
-        io.mateu.uidl.interfaces.GlobalSearchSupplier {
+        io.mateu.uidl.interfaces.GlobalSearchSupplier,
+        io.mateu.uidl.interfaces.HeaderValuesSupplier {
+
+    // live header values: the business date moves when "Close the day" (/e2-business-day) publishes it
+    @Override
+    public java.util.List<io.mateu.uidl.data.HeaderValue> headerValues(HttpRequest httpRequest) {
+        return io.mateu.mdd.demoadminpanel.infra.in.ui.e2.FrontDeskDemo.headerValues();
+    }
 
     // ⌘K entity search demo: the palette finds demo records by name and jumps to them
     @Override

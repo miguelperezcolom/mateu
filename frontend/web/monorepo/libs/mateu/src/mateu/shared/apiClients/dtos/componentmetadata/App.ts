@@ -8,6 +8,7 @@ import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab";
 import AppContextSelector from "./AppContextSelector.ts"
 import AppHeaderAction from "@mateu/shared/apiClients/dtos/componentmetadata/AppHeaderAction.ts";
 import type Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action.ts";
+import type { AppShortcut, HeaderValue, IdleSession } from "@mateu/shared/apiClients/dtos/componentmetadata/AppShellExtras.ts";
 
 export default interface App extends ComponentMetadata {
 
@@ -102,5 +103,17 @@ export default interface App extends ComponentMetadata {
      * owner (page or shell) does not declare resolves here before going to the server (see
      * infra/ui/actionCatalogue.ts). */
     actionCatalogue?: Action[] | undefined
+
+    /** App-wide keyboard shortcuts and quick-launch codes (`@AppShortcut`, `shortcuts:`). */
+    shortcuts?: AppShortcut[] | undefined
+
+    /** Live values on the header (`HeaderValuesSupplier`, `headerValues:`); UpdateHeaderValue changes them. */
+    headerValues?: HeaderValue[] | undefined
+
+    /** `@App(liveUpdates)`: one app event stream per browser carries header-value changes. */
+    liveUpdates?: boolean
+
+    /** `@App(idleTimeoutMinutes)`: the idle-session warning; absent = off. */
+    idleSession?: IdleSession | null
 
 }

@@ -1,3 +1,4 @@
+import { keyLabel, shortcutsMatching } from '@infra/ui/appShortcuts.ts'
 import { LitElement, html, css, nothing, TemplateResult, PropertyValues } from "lit";
 import { customElement, property, state, query } from "lit/decorators.js";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
@@ -229,9 +230,18 @@ export class MateuCommandCenter extends LitElement {
 
     private renderOverlay(): TemplateResult {
         const query = this.queryText.trim().toLowerCase()
+        // QUICK LAUNCH: the app shortcuts whose code or label match come first (an exact code first
+        // of all), so typing "RES" + Enter goes straight there
+        const quickLaunch: FlatItem[] = query
+            ? shortcutsMatching(this.app?.shortcuts, query)
+                .filter(s => !!s.route)
+                .slice(0, 5)
+                .map(s => ({ label: s.label, breadcrumb: [s.code, keyLabel(s.key)].filter(Boolean).join(' · '), route: s.route! }))
+            : []
         const menuMatches = query
-            ? this.flattenMenu(this.app?.menu, '').filter(i =>
-                i.label.toLowerCase().includes(query) || i.breadcrumb.toLowerCase().includes(query))
+            ? [...quickLaunch, ...this.flattenMenu(this.app?.menu, '').filter(i =>
+                (i.label.toLowerCase().includes(query) || i.breadcrumb.toLowerCase().includes(query))
+                && !quickLaunch.some(q => q.route === i.route))]
             : []
         const targets = this.visibleTargets(menuMatches)
         return html`
