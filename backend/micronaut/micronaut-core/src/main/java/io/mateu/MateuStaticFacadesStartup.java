@@ -25,6 +25,7 @@ public class MateuStaticFacadesStartup implements ApplicationEventListener<Start
 
   @Override
   public void onApplicationEvent(StartupEvent event) {
-    beanContext.getBean(DefaultInstanceFactory.class);
+    io.mateu.uidl.interfaces.MateuInstanceFactory.setInstanceFactory(
+        beanContext.getBean(DefaultInstanceFactory.class));
   }
 }
