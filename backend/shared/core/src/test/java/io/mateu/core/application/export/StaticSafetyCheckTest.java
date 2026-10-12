@@ -292,4 +292,30 @@ class StaticSafetyCheckTest {
       assertThat(violations.get(0).toString()).startsWith("/");
     }
   }
+
+  @Test
+  void aFlowOrACatalogueEntryRunsInTheBrowser() throws Exception {
+    // found walking a specsOnly + staticOnly starter: a page button running its own flow (Navigate)
+    // or an action-catalogue entry failed the build as "dispatched to a server"
+    var def =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(
+                """
+                {"layout": {"type": "HorizontalLayout", "content": [
+                   {"type": "Button", "label": "A", "actionId": "openAlpha"},
+                   {"type": "Button", "label": "B", "actionId": "fromCatalogue"},
+                   {"type": "Button", "label": "C", "actionId": "callsServer"}]},
+                 "actions": [
+                   {"id": "openAlpha", "steps": [{"type": "Navigate", "route": "/alpha"}]},
+                   {"id": "callsServer", "steps": [{"type": "RunAction", "actionId": "save"}]}]}
+                """);
+    assertThat(
+            StaticSafetyCheck.checkDefinition(
+                    "/x", def, catalog(), java.util.Set.of("fromCatalogue"))
+                .stream()
+                .map(Object::toString))
+        .isNotEmpty()
+        .noneMatch(v -> v.contains("openAlpha") || v.contains("fromCatalogue"))
+        .anyMatch(v -> v.contains("'save'"));
+  }
 }

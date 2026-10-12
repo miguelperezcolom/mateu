@@ -126,7 +126,7 @@ public final class StaticSafetyCheck {
         continue;
       }
       var route = "/" + entry.route();
-      out.addAll(checkDefinition(route, def, catalog));
+      out.addAll(checkDefinition(route, def, catalog, catalogueActionIds(manifest)));
       out.addAll(checkShellHeaderActions(route, def, catalogueActionIds(manifest)));
       for (var data : new RestDataSource[] {entry.data(), entry.appData()}) {
         if (data != null) {
@@ -285,10 +285,23 @@ public final class StaticSafetyCheck {
   }
 
   static List<Violation> checkDefinition(String route, JsonNode def, RestSourceCatalog catalog) {
+    return checkDefinition(route, def, catalog, Set.of());
+  }
+
+  /**
+   * @param catalogueActions the action catalogue's ids: every entry is client-runnable (a flow or a
+   *     REST call — the catalogue refuses anything else), so naming one needs no server
+   */
+  static List<Violation> checkDefinition(
+      String route, JsonNode def, RestSourceCatalog catalog, Set<String> catalogueActions) {
     var out = new ArrayList<Violation>();
-    Set<String> restActions = new java.util.HashSet<>();
+    // What the browser runs on its own: the page's REST calls AND its flows (`steps:` — navigate,
+    // emit, close, mark clean… lowered to client commands), plus any catalogue entry. A flow used
+    // to
+    // be reported as "dispatched to a server", failing a staticOnly build that needed none.
+    Set<String> restActions = new java.util.HashSet<>(catalogueActions);
     for (var action : def.path("actions")) {
-      if (action.has("restAction")) {
+      if (action.has("restAction") || action.has("steps")) {
         restActions.add(action.path("id").asText());
       }
     }

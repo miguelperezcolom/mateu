@@ -41,6 +41,9 @@ interface RouteEntry {
     viewModel?: string | null
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    // Literal seeds (`state:` / `appState:` in routes.yaml), at the defaults' precedence level.
+    state?: Record<string, unknown>
+    appState?: Record<string, unknown>
     // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
     data?: { ref?: string | null, url?: string | null } | null
 }
@@ -184,13 +187,19 @@ export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIn
     const match = matchRouteEntry(syncPath)
     if (!match) return increment
     const { entry, pathParams } = match
-    const defaults = entry.defaultParams ?? {}
+    // A route's `state:` seeds sit at the defaults' level, as on the server (it was ignored here, so
+    // a specsOnly page read `${state.x}` as blank where the served one showed the seed).
+    const defaults = { ...(entry.defaultParams ?? {}), ...(entry.state ?? {}) }
     const fixed = entry.fixedParams ?? {}
-    if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length) {
+    const appSeed = entry.appState ?? {}
+    if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length
+        && !Object.keys(appSeed).length) {
         return increment
     }
     return {
         ...increment,
+        // `appState:` goes UNDER what the increment (the client's app context) already carries
+        ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...(increment.appState ?? {}) } } : {}),
         fragments: (increment.fragments ?? []).map(f => ({
             ...f,
             state: { ...defaults, ...(f.state ?? {}), ...pathParams, ...fixed },
