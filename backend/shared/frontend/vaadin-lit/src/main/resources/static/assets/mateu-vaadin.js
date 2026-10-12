@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/vendor.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-lit.js","assets/vendor-editor.js"])))=>i.map(i=>d[i]);
-/* mateu sources e2b86b2f219dec8c */
+/* mateu sources ffb6ee1df9b69e3c */
 import{_ as e,a as t,c as n,d as r,f as i,g as a,h as o,i as s,l as c,m as l,n as u,o as d,p as f,r as p,s as m,t as h,u as g,v as _}from"./vendor-vaadin.js";import{E as ee,_ as v,a as y,b,c as x,d as te,f as ne,g as S,i as C,n as re,o as w,p as ie,r as ae,s as T,t as oe,u as se,v as ce,w as E,x as D}from"./vendor-lit.js";import{a as le,c as ue,i as de,l as fe,s as pe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})(),_(`vaadin-card`,E`
       :host(.mateu-section) {
         --vaadin-card-border-width: 0 !important;
@@ -597,20 +597,24 @@ ${i}
                     </div>`:v}
                 ${r?b`<p>${r}</p>`:v}
             </div>`}render(){let e=(this.banners??[]).map((e,t)=>({banner:e,index:t})).filter(({index:e})=>!this.dismissed.has(e));return e.length?b`<div class="page-banners">${e.map(({banner:e,index:t})=>this.renderBanner(e,t))}</div>`:v}static{this.styles=E`
-        :host { display: block; }
+        /* Always-light pastels with dark ink, like the page banners: they are NOT Lumo's 10pct tints,
+           which follow dark mode and would put the dark ink on a dark ground. Themeable through the
+           --mateu-banner-* tokens; the literals are only their fallbacks. */
+        :host { display: block; --mateu-banner-ink-color: var(--mateu-banner-ink, #1a1a1a); }
         .page-banners { display: flex; flex-direction: column; gap: 0.5rem; padding-block: 0 0.5rem; }
         .page-banner {
-            box-sizing: border-box; width: 100%; color: #1a1a1a;
+            box-sizing: border-box; width: 100%; color: var(--mateu-banner-ink-color);
             padding: var(--lumo-space-m, 1rem); border-radius: var(--lumo-border-radius-l, 12px);
         }
-        .page-banner p { margin: 0; color: #1a1a1a; }
+        .page-banner p { margin: 0; color: var(--mateu-banner-ink-color); }
         .head { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .title { font-weight: 600; }
-        .banner-close { color: #1a1a1a; border: none; background: transparent; cursor: pointer; font-size: .875rem; line-height: 1; }
-        .page-banner--info { background: #e8f4fd; }
-        .page-banner--success { background: #eafaf1; }
-        .page-banner--warning { background: #fef9e7; }
-        .page-banner--danger { background: #fdf2f2; }
+        .banner-close { color: var(--mateu-banner-ink-color); border: none; background: transparent; cursor: pointer;
+                        font-size: var(--lumo-font-size-s, .875rem); line-height: 1; }
+        .page-banner--info { background: var(--mateu-banner-info-bg, #e8f4fd); }
+        .page-banner--success { background: var(--mateu-banner-success-bg, #eafaf1); }
+        .page-banner--warning { background: var(--mateu-banner-warning-bg, #fef9e7); }
+        .page-banner--danger { background: var(--mateu-banner-danger-bg, #fdf2f2); }
     `}};k([w({attribute:!1})],$s.prototype,`banners`,void 0),k([w({attribute:!1})],$s.prototype,`state`,void 0),k([w({attribute:!1})],$s.prototype,`data`,void 0),k([y()],$s.prototype,`dismissed`,void 0),$s=k([T(`mateu-form-banners`)],$s);var ec=class extends qa{constructor(...e){super(...e),this.state={},this.data={},this.appState={},this.appData={}}render(){let e=this.component?.metadata;return b`
             <div class="mateu-vlayout ${this.component?.cssClasses??``}">
                 <mateu-content-header

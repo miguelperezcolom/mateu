@@ -68,20 +68,24 @@ export class MateuFormBanners extends LitElement {
     }
 
     static styles = css`
-        :host { display: block; }
+        /* Always-light pastels with dark ink, like the page banners: they are NOT Lumo's 10pct tints,
+           which follow dark mode and would put the dark ink on a dark ground. Themeable through the
+           --mateu-banner-* tokens; the literals are only their fallbacks. */
+        :host { display: block; --mateu-banner-ink-color: var(--mateu-banner-ink, #1a1a1a); }
         .page-banners { display: flex; flex-direction: column; gap: 0.5rem; padding-block: 0 0.5rem; }
         .page-banner {
-            box-sizing: border-box; width: 100%; color: #1a1a1a;
+            box-sizing: border-box; width: 100%; color: var(--mateu-banner-ink-color);
             padding: var(--lumo-space-m, 1rem); border-radius: var(--lumo-border-radius-l, 12px);
         }
-        .page-banner p { margin: 0; color: #1a1a1a; }
+        .page-banner p { margin: 0; color: var(--mateu-banner-ink-color); }
         .head { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .title { font-weight: 600; }
-        .banner-close { color: #1a1a1a; border: none; background: transparent; cursor: pointer; font-size: .875rem; line-height: 1; }
-        .page-banner--info { background: #e8f4fd; }
-        .page-banner--success { background: #eafaf1; }
-        .page-banner--warning { background: #fef9e7; }
-        .page-banner--danger { background: #fdf2f2; }
+        .banner-close { color: var(--mateu-banner-ink-color); border: none; background: transparent; cursor: pointer;
+                        font-size: var(--lumo-font-size-s, .875rem); line-height: 1; }
+        .page-banner--info { background: var(--mateu-banner-info-bg, #e8f4fd); }
+        .page-banner--success { background: var(--mateu-banner-success-bg, #eafaf1); }
+        .page-banner--warning { background: var(--mateu-banner-warning-bg, #fef9e7); }
+        .page-banner--danger { background: var(--mateu-banner-danger-bg, #fdf2f2); }
     `
 }
 
