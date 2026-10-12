@@ -64,7 +64,7 @@ N/A (why) · — not walked yet.
 | Card menu, app context picker, header action, notification bell, command-center palette + global search | ✅ shell-walk | ✅ shell-walk |
 | Security principal (identity from the host) | — | — |
 | YAML pages served by the ports (the yaml starter's specs) | ❌ 8: only 8 YAML component types build — `home.yaml` (HeroSection) and `products.yaml` (Listing) show "Unsupported component"; `app.yaml` (AppShell) is documented as Java-only | ❌ 8: same 8 types in `YamlComponentBuilder` |
-| Ports behind **Redwood** | ❌ 1 (no way to serve it) | ❌ 1 |
+| Ports behind **Redwood** (bundle served by a scratch proxy reproducing `IndexPage.mountUi`) | 🔧 the port answered the documented `POST v3/components/_/action` 404 and `__load__` "Action not found" → 3c22ff69a: the Redwood shell now boots on a port (title, menu tabs). ❌ 9: the content area stayed empty; the scratch proxy is not faithful for routed URLs (it also sends route "" for a Java mount), so this needs a proper serving path (❌ 1) before it can be judged | 🔧 same → 3c22ff69a (test) |
 
 ### React Native (Expo web)
 
@@ -134,6 +134,8 @@ listed above.
 19. cb4525280 RN — EmptyState web icon token printed as text.
 20. 97af34a04 IntelliJ — header overline / placeholder / timestamp / peer nav dropped.
 21. 2ae7068f2 IntelliJ — EmptyState web icon token printed as text.
+23. 8cf286ee1 IntelliJ — task-queue cards clipped their caption.
+24. 3c22ff69a Py/.NET — the documented `POST v3/components/_/action` answered 404 and `__load__` "Action not found" (Redwood could not boot on a port).
 22. 45e827575 conformance — action ids were not compared.
 
 ## ❌ Open — owner decisions / not fixed
@@ -169,6 +171,8 @@ listed above.
    the yaml starter's own pages render "Unsupported component: HeroSection / Listing". The port
    manuals do not state the subset. Owner: extend the builders (or map YAML through the fluent
    catalogue generically), or document the subset.
+
+9. **Ports behind Redwood, content area**: see the matrix row — blocked on 1.
 
 ## Permanent harnesses added
 
