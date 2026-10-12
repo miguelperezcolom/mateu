@@ -140,6 +140,22 @@ class AppShellExtrasSyncTest {
     assertThat(increment.messages()).extracting(m -> m.text()).contains("synced");
   }
 
+  /**
+   * A route load has actionId "" and most shortcuts have no actionId either: the two blanks must
+   * not make the load "app-level" (every page of such an app came up blank on Redwood).
+   */
+  @Test
+  void aBlankActionIdIsNeverAnAppShortcutAction() {
+    assertThat(
+            io.mateu.core.application.runaction.ActionInstanceCreatorAccess.isAppShortcutAction(
+                FrontDesk.class, ""))
+        .isFalse();
+    assertThat(
+            io.mateu.core.application.runaction.ActionInstanceCreatorAccess.isAppShortcutAction(
+                FrontDesk.class, "syncNow"))
+        .isTrue();
+  }
+
   @Test
   void headerValuesComeFromTheSupplier() {
     assertThat(app("/e2").headerValues())

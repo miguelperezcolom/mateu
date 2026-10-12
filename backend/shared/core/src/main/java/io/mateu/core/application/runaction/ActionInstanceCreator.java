@@ -373,6 +373,20 @@ public class ActionInstanceCreator {
    * no menu actionable for the empty route, so resolving would come back empty and the action would
    * answer "Not found." instead of dispatching to its runner.
    */
+  /**
+   * Whether {@code actionId} is the action of one of the app's {@code @AppShortcut}s. A blank id
+   * never is: a route load has actionId "" and most shortcuts have no action either — matching the
+   * two blanks answered every page load of such an app with the shell (blank screens on Redwood).
+   */
+  static boolean isAppShortcutAction(Class<?> appClass, String actionId) {
+    if (actionId == null || actionId.isBlank()) {
+      return false;
+    }
+    return java.util.Arrays.stream(
+            appClass.getAnnotationsByType(io.mateu.uidl.annotations.AppShortcut.class))
+        .anyMatch(shortcut -> actionId.equals(shortcut.actionId()));
+  }
+
   private boolean isAppLevelAction(RunActionCommand command) {
     var actionId = command.actionId();
     if (actionId == null) {
@@ -417,9 +431,7 @@ public class ActionInstanceCreator {
         return true;
       }
       // an app-wide shortcut's action (@AppShortcut(actionId)) runs on the app, whatever screen
-      if (java.util.Arrays.stream(
-              appClass.getAnnotationsByType(io.mateu.uidl.annotations.AppShortcut.class))
-          .anyMatch(shortcut -> !actionId.isBlank() && actionId.equals(shortcut.actionId()))) {
+      if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {

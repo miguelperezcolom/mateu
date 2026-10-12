@@ -33,7 +33,7 @@ Mateu does no authentication: what "signed in" and "sign out" mean is the app's.
 
 ### Every tab counts
 
-Activity is **shared by the tabs** of the app: each tab records its last key press, click, scroll or touch in `localStorage` (at most every 5 s), and each tab measures idleness from the latest activity of **any** tab. Working in one tab keeps the others from warning; **Stay signed in** in one tab dismisses the warning in all; **Sign out** in one signs out the others. While the warning is up only *Stay signed in* keeps the session — a stray mouse move must not cancel a warning nobody saw.
+Activity is **shared by the tabs** of the app: each tab records its last key press, click, wheel or touch (not scroll: a shell scrolls by itself) in `localStorage` (at most every 5 s), and each tab measures idleness from the latest activity of **any** tab. Working in one tab keeps the others from warning; **Stay signed in** in one tab dismisses the warning in all; **Sign out** in one signs out the others. While the warning is up only *Stay signed in* keeps the session — a stray mouse move must not cancel a warning nobody saw.
 
 ### In YAML
 

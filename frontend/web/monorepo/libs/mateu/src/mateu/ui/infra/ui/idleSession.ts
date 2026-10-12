@@ -44,4 +44,4 @@ export const recordActivity = (state: { own: number, written: number }, now: num
 }
 
 /** The events that count as the user being there. */
-export const ACTIVITY_EVENTS = ['keydown', 'pointerdown', 'wheel', 'touchstart', 'scroll'] as const
+export const ACTIVITY_EVENTS = ['keydown', 'pointerdown', 'wheel', 'touchstart'] as const
