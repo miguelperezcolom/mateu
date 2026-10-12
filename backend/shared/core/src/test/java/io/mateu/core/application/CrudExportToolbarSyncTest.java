@@ -104,6 +104,20 @@ class CrudExportToolbarSyncTest {
     if (listing.isEmpty()) listing = crudls(mateu.sync("/guests-export"));
     assertThat(listing).isNotEmpty();
     assertThat(listing.get(0).toolbar()).extracting(ButtonDto::actionId).contains("export-csv");
+    // ...and the component that carries the button ADVERTISES the action: the browser sends only
+    // advertised actions, and an Export click used to be dropped as unclaimed
+    var advertised = new java.util.ArrayList<String>();
+    for (var f : content.fragments()) {
+      for (var server :
+          FieldKindsSyncTest.collect(f.component(), io.mateu.dtos.ServerSideComponentDto.class)) {
+        if (server.actions() != null) server.actions().forEach(a -> advertised.add(a.id()));
+      }
+      if (f.component() instanceof io.mateu.dtos.ServerSideComponentDto server
+          && server.actions() != null) {
+        server.actions().forEach(a -> advertised.add(a.id()));
+      }
+    }
+    assertThat(advertised).contains("export-csv");
     // Mateu ships no Excel / PDF engine: without the application's exporter, no button
     assertThat(listing.get(0).toolbar())
         .extracting(ButtonDto::actionId)

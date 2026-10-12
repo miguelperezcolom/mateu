@@ -118,6 +118,17 @@ public class CapabilityBooks
     return comparator;
   }
 
+  /** The built-in CSV export (Excel/PDF only show while an app registers an exporter for them). */
+  @Override
+  public boolean csvExportable() {
+    return true;
+  }
+
+  @Override
+  public boolean excelExportable() {
+    return true;
+  }
+
   @Override
   public Book view(String id, HttpRequest httpRequest) {
     return BOOKS.stream().filter(b -> b.id().equals(id)).findFirst().orElseThrow();

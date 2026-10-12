@@ -87,6 +87,8 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
                 method.getName(), behaviour, false, false));
       }
     }
+    // the Export buttons dispatch export-<format>: advertised, or the click is dropped unclaimed
+    actions.addAll(exportActions(this));
     if (this instanceof Selector<?>) {
       actions.add(Action.builder().id("action-on-row-select").build());
       // the «Add selected» toolbar button of a multi-valued @Searchable field's selector
@@ -122,6 +124,25 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
    * (emits the value/label/close events the lookup field listens for); any other method name is
    * invoked reflectively by the engine. Override to intercept row actions yourself.
    */
+  /**
+   * The export actions a listing offers ({@link #csvExportable()} and the others), for the
+   * components that carry its toolbar to advertise. Which buttons actually SHOW is decided by the
+   * exporters the app registers; an advertised action without a button is harmless.
+   */
+  static List<Action> exportActions(Listing<?> listing) {
+    var actions = new java.util.ArrayList<Action>();
+    if (listing.csvExportable()) {
+      actions.add(Action.builder().id(io.mateu.uidl.data.ExportFormat.csv.actionId()).build());
+    }
+    if (listing.excelExportable()) {
+      actions.add(Action.builder().id(io.mateu.uidl.data.ExportFormat.excel.actionId()).build());
+    }
+    if (listing.pdfExportable()) {
+      actions.add(Action.builder().id(io.mateu.uidl.data.ExportFormat.pdf.actionId()).build());
+    }
+    return actions;
+  }
+
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
     if ("select".equals(methodName) && this instanceof Selector<?> selector) {
       // a multi-valued field ADDS the clicked row to the ids it holds (SearchableSelection)

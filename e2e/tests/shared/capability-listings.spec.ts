@@ -86,6 +86,20 @@ test.describe('capability listing — search, filters, sort, paging and the URL'
         await expect(page.locator('.chip')).toHaveCount(3)
     })
 
+    test('Export CSV downloads the filtered rows; no Excel without an exporter', async ({ page }) => {
+        await page.goto('/capability-books?genre=NOVEL')
+        await expectIds(page, ['B-03', 'B-06', 'B-09', 'B-12', 'B-15', 'B-18', 'B-21', 'B-24', 'B-27', 'B-30'])
+        await expect(page.getByRole('button', { name: /excel/i })).toHaveCount(0)
+        const [download] = await Promise.all([
+            page.waitForEvent('download'),
+            page.getByRole('button', { name: 'Export CSV' }).click(),
+        ])
+        const fs = await import('fs')
+        const csv = fs.readFileSync((await download.path())!, 'utf8').trim().split('\n')
+        expect(csv[0]).toBe('Id,Title,Author,Pages,Published,Genre')
+        expect(csv).toHaveLength(11)
+    })
+
     test('a deep link with filters stays on the listing\'s own path', async ({ page }) => {
         await page.goto('/capability-books?genre=NOVEL')
         await expectIds(page, ['B-03', 'B-06', 'B-09', 'B-12', 'B-15', 'B-18', 'B-21', 'B-24', 'B-27', 'B-30'])

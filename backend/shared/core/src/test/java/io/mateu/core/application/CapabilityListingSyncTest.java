@@ -172,6 +172,24 @@ class CapabilityListingSyncTest {
     }
   }
 
+  @UI("/exportable-books")
+  public static class ExportableBooks implements Listing<Book>, Navigable<Book, String> {
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      return all();
+    }
+
+    @Override
+    public Book view(String id, HttpRequest httpRequest) {
+      return BOOKS.get(0);
+    }
+
+    @Override
+    public boolean csvExportable() {
+      return true;
+    }
+  }
+
   public record BookFilters(String title) {}
 
   @UI("/smart-books")
@@ -205,7 +223,8 @@ class CapabilityListingSyncTest {
             DeletableBooks.class,
             BulkBooks.class,
             SmartBooks.class,
-            SortedBooks.class);
+            SortedBooks.class,
+            ExportableBooks.class);
   }
 
   @AfterAll
@@ -308,6 +327,15 @@ class CapabilityListingSyncTest {
         .containsExactly(
             new io.mateu.uidl.data.Sort("pages", io.mateu.uidl.data.Direction.descending));
     assertThat(SortedBooks.lastPageable.page()).isEqualTo(1);
+  }
+
+  /**
+   * A listing promoted to the CRUD mediator keeps the exports it offers (the bridge dropped them).
+   */
+  @Test
+  void aNavigableListingKeepsItsCsvExport() {
+    var crudl = listingOf(load(ExportableBooks.class, "/exportable-books"));
+    assertThat(toolbarActionIds(crudl)).contains("export-csv");
   }
 
   // ── + Searchable ──────────────────────────────────────────────────────────

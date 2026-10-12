@@ -156,6 +156,23 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
     return target.gridLayout();
   }
 
+  // the listing's export switches: the bridge used to answer Listing's defaults (false), so a
+  // navigable/editable listing that offered CSV showed no Export button
+  @Override
+  public boolean csvExportable() {
+    return target.csvExportable();
+  }
+
+  @Override
+  public boolean excelExportable() {
+    return target.excelExportable();
+  }
+
+  @Override
+  public boolean pdfExportable() {
+    return target.pdfExportable();
+  }
+
   // ── type reflection over the listing's declarations ───────────────────────
 
   @Override

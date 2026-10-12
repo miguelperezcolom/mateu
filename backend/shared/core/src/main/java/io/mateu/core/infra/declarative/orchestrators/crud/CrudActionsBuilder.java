@@ -46,6 +46,8 @@ final class CrudActionsBuilder {
               .rowsSelectedRequired(true)
               .bubble(true)
               .build());
+      // the Export buttons of the list toolbar (ListRouteResolver): advertised, or dropped
+      actions.addAll(io.mateu.uidl.interfaces.Listing.exportActions(orchestrator));
       if (orchestrator.behaviourSource() instanceof UploadEnabled) {
         actions.add(Action.builder().id("import").build());
         actions.add(Action.builder().id("process-import").build());
