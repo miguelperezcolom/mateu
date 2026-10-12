@@ -10,7 +10,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
@@ -71,9 +70,36 @@ class NewMateuFileAction(private val kind: MateuNewFiles.FileKind) :
             LocalFileSystem.getInstance().findFileByPath(it)?.isDirectory == true
         }
         val ws = SpecsWorkspace.scan(MateuRoutes.specsRoot(target))
-        val dialog = NewMateuFileDialog(project, kind, MateuNewFiles.catalogue, target, ws)
+        var created: VirtualFile? = null
+        val dialog = NewMateuFileDialog(project, kind, MateuNewFiles.catalogue, target, ws) { d ->
+            createFrom(project, d, target, ws) { created = it }
+        }
+        // the files are written by the dialog's OK (so a failure stays inline, in the open dialog)
         if (!dialog.showAndGet()) return
-        val templateName = dialog.pageTemplate?.template ?: kind.template ?: return
+        val file = created ?: return
+        FileEditorManager.getInstance(project).openFile(file, true)
+        PsiManager.getInstance(project).findFile(file)?.let { view.selectElement(it) }
+    }
+
+    /**
+     * Write what [dialog] describes; returns the problem, or null. Everything is re-checked against
+     * the disk FIRST — a file or route that appeared since the dialog last validated is reported, and
+     * nothing is half-written (a page created whose route then could not be added).
+     */
+    private fun createFrom(
+        project: Project,
+        dialog: NewMateuFileDialog,
+        target: String,
+        ws: SpecsWorkspace,
+        onCreated: (VirtualFile) -> Unit,
+    ): String? {
+        val exists = { p: String -> java.io.File(p).exists() || LocalFileSystem.getInstance().findFileByPath(p) != null }
+        MateuNewFiles.fileNameProblem(dialog.fileBaseName, target, exists)?.let { return it }
+        dialog.pageRoute?.let { pr ->
+            val onDisk = java.io.File(ws.abs(pr.routesFile)).takeIf { it.isFile }?.readText()
+            MateuRoutes.routeProblem(pr.route, pr.routesFile, onDisk ?: ws.text(pr.routesFile).orEmpty())?.let { return it }
+        }
+        val templateName = dialog.pageTemplate?.template ?: kind.template ?: return "No template for ${kind.label}"
         var text = MateuNewFiles.render(
             templateText(project, templateName),
             name = dialog.fileBaseName,
@@ -86,9 +112,8 @@ class NewMateuFileAction(private val kind: MateuNewFiles.FileKind) :
             "mount" -> dialog.homeRoute?.let { text = MateuRoutes.setHome(text, it) }
             "routes" -> text = MateuRoutes.withBasePath(text, dialog.basePath)
         }
-        var created: VirtualFile? = null
-        val error = SpecsWorkspace.write(project, "New Mateu File") {
-            created = create(target, fileName, text)
+        return SpecsWorkspace.write(project, "New Mateu File") {
+            onCreated(create(target, fileName, text))
             if (kind.id == "routes") {
                 dialog.mount?.let { mount ->
                     val entry = MateuRoutes.relativePath(mount.substringBeforeLast('/', ""), rel)
@@ -101,10 +126,6 @@ class NewMateuFileAction(private val kind: MateuNewFiles.FileKind) :
                 }
             }
         }
-        error?.let { Messages.showErrorDialog(project, it, "New Mateu File") }
-        val file = created ?: return
-        FileEditorManager.getInstance(project).openFile(file, true)
-        PsiManager.getInstance(project).findFile(file)?.let { view.selectElement(it) }
     }
 
     /** The user's customised template when they edited it in File and Code Templates, else ours. */
@@ -158,10 +179,11 @@ class AddMateuRouteAction(private val fromNewGroup: Boolean = false) :
         val project = e.project ?: return
         val (root, routesFile) = context(e) ?: return
         val ws = SpecsWorkspace.scan(root)
-        val dialog = AddMateuRouteDialog(project, ws, routesFile)
-        if (!dialog.showAndGet()) return
-        SpecsWorkspace.write(project, "Add Mateu Route") {
-            AddMateuRouteDialog.apply(ws, dialog.routesFile, dialog.newRoute, dialog.makeHome)
-        }?.let { Messages.showErrorDialog(project, it, "Add Mateu Route") }
+        // the route is appended by the dialog's OK, so a failure stays inline in the open dialog
+        AddMateuRouteDialog(project, ws, routesFile) { d ->
+            SpecsWorkspace.write(project, "Add Mateu Route") {
+                AddMateuRouteDialog.apply(ws, d.routesFile, d.newRoute, d.makeHome)
+            }
+        }.showAndGet()
     }
 }

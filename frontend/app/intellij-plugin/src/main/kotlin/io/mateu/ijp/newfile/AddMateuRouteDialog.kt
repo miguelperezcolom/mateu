@@ -30,6 +30,11 @@ class AddMateuRouteDialog(
     project: Project,
     private val ws: SpecsWorkspace,
     routesFile: String?,
+    /**
+     * Appends the route when OK is pressed; returns what went wrong, or null. Run BEFORE the dialog
+     * closes, so a failure is shown inline and nothing chosen is lost.
+     */
+    private val onApply: (AddMateuRouteDialog) -> String? = { null },
 ) : DialogWrapper(project) {
 
     private val routesFiles = ws.ofKind(SpecKind.ROUTES).map { it.path }
@@ -48,6 +53,9 @@ class AddMateuRouteDialog(
     private val homeCheck = JBCheckBox("Make this the home page")
     private val homeHint = JBLabel().apply { foreground = UIUtil.getContextHelpForeground() }
     private var routeEdited = false
+
+    /** A failure the write itself reported, kept inline until the route or its file changes. */
+    private val applyProblem = MateuNewFiles.StickyProblem<Pair<String?, String>>()
 
     val routesFile: String get() = routesCombo.selectedItem as String
     val newRoute: MateuRoutes.NewRoute
@@ -76,7 +84,16 @@ class AddMateuRouteDialog(
     }
 
     private var syncing = false
-    private fun edited() { if (!syncing) routeEdited = true }
+    private fun edited() {
+        if (!syncing) {
+            routeEdited = true
+            // validate as the user types from the first edit on: the route clash shows next to the
+            // field and clears as soon as the route changes (not only after an OK click)
+            startTrackingValidation()
+        }
+    }
+
+    private fun applyInput() = (routesCombo.selectedItem as? String) to routeField.text.trim().trim('/')
 
     private fun syncRoutesFile() {
         val text = ws.text(routesFile).orEmpty()
@@ -136,15 +153,26 @@ class AddMateuRouteDialog(
 
     override fun doValidate(): ValidationInfo? {
         if (routesFiles.isEmpty()) return ValidationInfo("There is no type: Routes file in ${ws.root}", routesCombo)
-        val r = routeField.text.trim().trim('/')
-        if (r.contains(Regex("\\s"))) return ValidationInfo("A route cannot contain spaces", routeField)
-        if (r in MateuRoutes.existingRoutes(ws.text(routesFile).orEmpty())) {
-            return ValidationInfo("Route \"$r\" is already declared in $routesFile", routeField)
-        }
+        MateuRoutes.routeProblem(routeField.text, routesFile, ws.text(routesFile).orEmpty())
+            ?.let { return ValidationInfo(it, routeField) }
         if ((layoutCombo.selectedItem as? Choice)?.value == null && viewModelField.text.isBlank()) {
             return ValidationInfo("Pick a layout or enter a view model", layoutCombo)
         }
+        applyProblem.currentFor(applyInput())?.let { return ValidationInfo(it, routeField) }
         return null
+    }
+
+    /** Append first, close after: a failed write keeps the dialog open with the error inline. */
+    override fun doOKAction() {
+        if (!okAction.isEnabled) return
+        val problem = onApply(this)
+        if (problem != null) {
+            applyProblem.remember(applyInput(), problem)
+            setErrorText(problem, routeField)
+            startTrackingValidation()
+            return
+        }
+        super.doOKAction()
     }
 
     companion object {

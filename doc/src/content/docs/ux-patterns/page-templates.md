@@ -70,7 +70,8 @@ Three notes on how to read the table:
   lists, calendars, collection detail), `detail` (overviews, foldout, master-detail), `form`
   (plain reflected forms), `process` (wizards), `dashboard` (archetype, or any ModelView with
   `MetricCard` fields). Archetypes declare theirs through the mapping; declare it explicitly with
-  `@PageTemplate(PageType.X)`. The type anchors the width default (form/process/landing are
+  `@PageTemplate(PageType.X)` — or, on a YAML page, with a top-level `pageType: landing` key
+  ([YAML pages](/define/yaml/pages/#page-type--pagetype)); declared, either wins over inference. The type anchors the width default (form/process/landing are
   always capped; collection/detail/dashboard defer to the content inference) and is stamped as
   `data-page-type` on the rendered page host as a stylesheet hook.
 - **Peer navigation.** A detail/overview page can implement `PeerNavigationSupplier` to add the

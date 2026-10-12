@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { targetDir } from './newFiles'
 import {
@@ -68,6 +68,41 @@ export function validateRoute(ws: SpecsWorkspace, routesRel: string, v: string):
     if (/\s/.test(r)) return 'A route cannot contain spaces'
     if (existingRoutes(ws.texts[routesRel] ?? '').includes(r)) return `Route "${r}" is already declared in ${routesRel}`
     return undefined
+}
+
+/**
+ * `ws` with the routes file `routesRel` as it is on disk NOW (the scan is a snapshot taken when the
+ * flow started); unreadable → the snapshot's text.
+ */
+export function withFreshText(ws: SpecsWorkspace, routesRel: string, read: (abs: string) => string | undefined = readText): SpecsWorkspace {
+    return { ...ws, texts: { ...ws.texts, [routesRel]: read(`${ws.root}/${routesRel}`) ?? ws.texts[routesRel] ?? '' } }
+}
+
+function readText(abs: string): string | undefined {
+    try {
+        return readFileSync(abs, 'utf8')
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * `route`, re-validated against the routes file as it is NOW right before writing: when it was
+ * declared meanwhile the route is asked again with the reason inline — the flow is not aborted and
+ * nothing chosen so far is lost. undefined = the user gave up.
+ */
+export async function reconfirmRoute(ws: SpecsWorkspace, routesRel: string, route: string, title: string): Promise<string | undefined> {
+    const fresh = withFreshText(ws, routesRel)
+    let r: string | undefined = route
+    while (r !== undefined && validateRoute(fresh, routesRel, r) !== undefined) {
+        r = await vscode.window.showInputBox({
+            title,
+            prompt: `Route in ${routesRel}, relative to the mount`,
+            value: r,
+            validateInput: (v) => validateRoute(fresh, routesRel, v),
+        })
+    }
+    return r
 }
 
 /**
@@ -161,8 +196,10 @@ async function run(uri?: vscode.Uri): Promise<void> {
     const makeHome = await askMakeHome(ws, routesRel, title)
     if (makeHome === undefined) return
 
+    const confirmed = await reconfirmRoute(ws, routesRel, route, title)
+    if (confirmed === undefined) return
     try {
-        await applyRoute(ws, routesRel, { route, layout: layoutPick.layout, viewModel, parent }, makeHome)
+        await applyRoute(ws, routesRel, { route: confirmed, layout: layoutPick.layout, viewModel, parent }, makeHome)
         await vscode.window.showTextDocument(vscode.Uri.file(`${root}/${routesRel}`))
     } catch (e) {
         vscode.window.showErrorMessage(e instanceof Error ? e.message : String(e))

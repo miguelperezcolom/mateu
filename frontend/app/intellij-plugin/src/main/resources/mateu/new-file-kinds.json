@@ -1,5 +1,5 @@
 {
-  "$comment": "New | Mateu file kinds — the SINGLE source shared by the IntelliJ plugin (New | Mateu group) and the VS Code extension (Mateu: New File…, staged by scripts/prepackage.mjs). Each `template` names a skeleton at fileTemplates/internal/<template>.yaml.ft. Placeholders: __TITLE__ (title derived from the file name), __NAME__ (file base name) and a line holding only __PAGE_WIDTH__ (replaced by a root `style:` for the chosen page width, or removed). Every skeleton is validated against backend/shared/uidl/specs-schema.json by NewMateuFileSkeletonsTest.",
+  "$comment": "New | Mateu file kinds — the SINGLE source shared by the IntelliJ plugin (New | Mateu group) and the VS Code extension (Mateu: New File…, staged by scripts/prepackage.mjs). Each `template` names a skeleton at fileTemplates/internal/<template>.yaml.ft. Placeholders: __TITLE__ (title derived from the file name), __NAME__ (file base name) and a line holding only __PAGE_WIDTH__ (replaced by a root `style:` for the chosen page width, or removed). Every skeleton is validated against backend/shared/uidl/specs-schema.json by NewMateuFileSkeletonsTest. A page template's `family` is the `pageType:` its skeleton declares (all but the blank layout; pinned by NewMateuFileValidationTest and newFiles.test.ts).",
   "files": [
     {
       "id": "mount",

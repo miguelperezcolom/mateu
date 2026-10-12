@@ -224,7 +224,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             // and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.loadYaml).
             if (string.IsNullOrEmpty(yamlSpec.ModelView))
                 return yamlSpec.Layout is { } bare
-                    ? FragmentResponse(rq.Route ?? "", ComponentMapper.Map(bare), rq)
+                    ? FragmentResponse(rq.Route ?? "", WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
         }
@@ -489,8 +489,30 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // for a page, and only when the route's definition is bound to THIS view model (mirrors
         // Java's ReflectionObjectToComponentMapper + YamlUidlLoader.deltaForRoute).
         if (isPage) view = LayoutDeltaApplier.Apply(view, DeltaFor(rq.Route, type));
+        // A `pageType:` the route's definition declares wins over the inferred one, as its layout
+        // does (mirrors Java's ReflectionObjectToComponentMapper.pageTypeOf).
+        if (isPage && view is ServerSideComponentDto page && DeclaredPageTypeFor(rq.Route, type) is { } declared)
+            view = page with { PageType = declared };
         return FragmentResponse(Title(type), view, rq,
             LookupLabels(type, instance, instance), emitWindowTitle: isPage && !embedded);
+    }
+
+    /// <summary>The <c>pageType:</c> of the route's definition when it is bound to
+    /// <paramref name="type"/>, else null (inferred).</summary>
+    private string? DeclaredPageTypeFor(string? route, Type type) =>
+        PersonalSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.PageType : null;
+
+    /// <summary>A definition-only page that declares a <c>pageType:</c>: the bare layout carries no
+    /// page type, so it is wrapped in a server-side page that does (mirrors Java's
+    /// ActionInstanceCreator.seedBareLayout → SeededYamlPage). Undeclared → unchanged.</summary>
+    private static ComponentDto WithDeclaredPageType(ComponentDto layout, string? pageType, RunActionRqDto rq)
+    {
+        if (pageType is null) return layout;
+        var route = (rq.Route ?? "").Split('?')[0].Trim('/');
+        return new ServerSideComponentDto(
+            "page_" + System.Text.RegularExpressions.Regex.Replace(route == "" ? "root" : route, "[^A-Za-z0-9_-]", "_"),
+            "", "/" + route, [layout], new Dictionary<string, object?>(), [], [], null, null, null)
+        { PageType = pageType };
     }
 
     /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to

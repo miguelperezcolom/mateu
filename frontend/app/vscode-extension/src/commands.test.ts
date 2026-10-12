@@ -121,6 +121,19 @@ describe('Mateu: Add Route…', () => {
         expect(read('routes.yaml')).toBe(ROUTES)
     })
 
+    it('a route declared meanwhile is asked again instead of failing the flow', async () => {
+        const routes = write('routes.yaml', ROUTES)
+        let retry: any
+        fake.answer(pick('(none)'), 'orders',
+            // somebody declares `orders` while the flow is still open
+            () => { write('routes.yaml', ROUTES + '  - route: orders\n    viewModel: x.Y\n'); return 'a.B' },
+            (_: unknown, o: any) => { retry = o; return 'orders2' })
+        await addRoute(vscode.Uri.file(routes))
+        expect(retry.validateInput('orders')).toMatch(/already declared/)
+        expect(parse(read('routes.yaml')).routes.at(-1)).toEqual({ route: 'orders2', viewModel: 'a.B' })
+        expect(fake.messages.filter((m) => m.level === 'error')).toEqual([])
+    })
+
     it('a route with neither layout nor view model is refused', async () => {
         const routes = write('routes.yaml', ROUTES)
         let vmPrompt: any
@@ -201,6 +214,65 @@ describe('Mateu: New File…', () => {
         expect(prompt.validateInput('bad name')).toMatch(/letters, digits/)
         expect(prompt.validateInput('')).toMatch(/Enter a file name/)
         expect(read('sources.yaml')).toBe('keep: me\n')
+    })
+
+    it('proposes a free name when the template default is taken', async () => {
+        write('listing.yaml', 'keep: me\n')
+        let prompt: any
+        fake.answer(pick('Page…'), pick('Listing / CRUD'), pick((i: any) => i.width?.id === 'fullWidth'),
+            (_: unknown, o: any) => { prompt = o; return undefined })
+        await newFile(vscode.Uri.file(specs))
+        expect(prompt.value).toBe('listing-2')
+        expect(prompt.validateInput(prompt.value)).toBeUndefined()
+    })
+
+    it('a file that appears before the write re-asks the NAME, keeping every other choice', async () => {
+        write('ui.yaml', MOUNT)
+        write('routes.yaml', ROUTES)
+        let retry: any
+        fake.answer(pick('Page…'), pick('Listing / CRUD'), pick((i: any) => i.width?.id === 'edgeToEdge'),
+            'customers', pick('Add a route to routes.yaml'),
+            // somebody creates customers.yaml while the flow is still open
+            () => { write('customers.yaml', 'keep: me\n'); return 'customers' },
+            pick('Keep the current home page'),
+            (_: unknown, o: any) => { retry = o; return 'clients' })
+        await newFile(vscode.Uri.file(specs))
+        // asked again with the clash inline — not aborted, nothing overwritten
+        expect(retry.value).toBe('customers')
+        expect(retry.validateInput('customers')).toMatch(/already exists/)
+        expect(read('customers.yaml')).toBe('keep: me\n')
+        // the page lands under the new name, with the width and the route chosen before
+        const page = parse(read('clients.yaml'))
+        expect(page.style).toBe('padding: 0;')
+        expect(page.pageType).toBe('collection')
+        expect(parse(read('routes.yaml')).routes.at(-1)).toEqual({ route: 'customers', layout: 'clients.yaml' })
+        expect(fake.messages.filter((m) => m.level === 'error')).toEqual([])
+    })
+
+    it('a route declared before the write re-asks the ROUTE and writes nothing until it is free', async () => {
+        write('ui.yaml', MOUNT)
+        write('routes.yaml', ROUTES)
+        let retry: any
+        fake.answer(pick('Page…'), pick('Form'), pick((i: any) => i.width?.id === 'fixed'),
+            'customer', pick('Add a route to routes.yaml'), 'customer',
+            // somebody declares the same route while the flow is still open
+            (items: any[]) => { write('routes.yaml', ROUTES + '  - route: customer\n    layout: other.yaml\n'); return pick('Keep the current home page')(items) },
+            (_: unknown, o: any) => { retry = o; return 'customer-edit' })
+        await newFile(vscode.Uri.file(specs))
+        expect(retry.validateInput('customer')).toMatch(/already declared/)
+        expect(parse(read('routes.yaml')).routes.at(-1)).toEqual({ route: 'customer-edit', layout: 'customer.yaml' })
+        expect(parse(read('customer.yaml')).pageType).toBe('form')
+    })
+
+    it('giving up on the re-asked route creates nothing', async () => {
+        write('ui.yaml', MOUNT)
+        write('routes.yaml', ROUTES)
+        fake.answer(pick('Page…'), pick('Form'), pick((i: any) => i.width?.id === 'fixed'),
+            'customer', pick('Add a route to routes.yaml'), 'customer',
+            (items: any[]) => { write('routes.yaml', ROUTES + '  - route: customer\n'); return pick('Keep the current home page')(items) },
+            () => undefined)
+        await newFile(vscode.Uri.file(specs))
+        expect(existsSync(join(specs, 'customer.yaml'))).toBe(false)
     })
 
     it('offers Project Settings only while the project has no descriptor', async () => {

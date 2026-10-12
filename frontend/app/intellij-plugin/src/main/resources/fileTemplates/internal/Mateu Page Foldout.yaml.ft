@@ -1,6 +1,7 @@
 # Foldout: an always-visible overview with lateral panels that fold out.
 type: FoldoutLayout
 headerTitle: __TITLE__
+pageType: detail
 __PAGE_WIDTH__
 overview:
   type: VerticalLayout

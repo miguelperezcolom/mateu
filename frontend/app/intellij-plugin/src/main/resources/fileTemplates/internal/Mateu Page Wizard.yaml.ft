@@ -2,6 +2,7 @@
 # (e.g. signup/1, signup/2); Back / Next navigate between them.
 type: Form
 title: __TITLE__
+pageType: process
 __PAGE_WIDTH__
 content:
   # where you are in the process, above the step's fields (a Form's `header:` is the right-hand side

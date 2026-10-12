@@ -2,6 +2,7 @@
 # `actions:` entry carrying a restAction for a backend-less page).
 type: Form
 title: __TITLE__
+pageType: form
 __PAGE_WIDTH__
 content:
   - type: FormLayout

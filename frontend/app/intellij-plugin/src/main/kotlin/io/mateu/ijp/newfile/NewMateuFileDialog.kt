@@ -30,6 +30,11 @@ class NewMateuFileDialog(
     catalogue: MateuNewFiles.Catalogue,
     private val targetDir: String,
     private val ws: SpecsWorkspace,
+    /**
+     * Creates the file(s) from this dialog's choices when OK is pressed; returns what went wrong, or
+     * null. Run BEFORE the dialog closes, so a failure is shown inline and nothing typed is lost.
+     */
+    private val create: (NewMateuFileDialog) -> String? = { null },
 ) : DialogWrapper(project) {
 
     /** The page wizard's "add a route" choice. */
@@ -67,6 +72,9 @@ class NewMateuFileDialog(
     private var routeEdited = false
     private var syncing = false
 
+    /** A failure the write itself reported, kept inline until the name or the route changes. */
+    private val creationProblem = MateuNewFiles.StickyProblem<Pair<String, String?>>()
+
     val fileBaseName: String get() = nameField.text.trim().removeSuffix(".yaml").removeSuffix(".yml")
     val pageTemplate: MateuNewFiles.PageTemplate? get() = if (kind.page) templateCombo.selectedItem as? MateuNewFiles.PageTemplate else null
     val pageWidth: MateuNewFiles.PageWidth? get() = if (kind.page) widthCombo.selectedItem as? MateuNewFiles.PageWidth else null
@@ -92,7 +100,16 @@ class NewMateuFileDialog(
         syncHome()
         syncEnabled()
         init()
+        // Validate as the user types (not only on OK): a clash shows next to its field at once and
+        // clears the moment the name changes — the dialog never has to be closed to get past it.
+        initValidation()
     }
+
+    /** On the real disk (a file created outside the IDE is not in the VFS yet) or in the VFS. */
+    private fun existsOnDisk(path: String): Boolean =
+        java.io.File(path).exists() || LocalFileSystem.getInstance().findFileByPath(path) != null
+
+    private fun creationInput() = fileBaseName to pageRoute?.route
 
     private fun listener(block: () -> Unit) = object : DocumentListener {
         override fun insertUpdate(e: DocumentEvent) = block()
@@ -105,7 +122,8 @@ class NewMateuFileDialog(
         templateDescription.text = "<html>${t.description}</html>"
         widths.firstOrNull { it.id == t.pageWidth }?.let { widthCombo.selectedItem = it }
         if (kind.page && (nameField.text.isBlank() || nameField.text == kind.fileName || isTemplateDefault(nameField.text))) {
-            nameField.text = t.id.replace(Regex("(?<=[a-z])(?=[A-Z])"), "-").lowercase()
+            // a free name: picking a template already used here must not start on an error
+            nameField.text = MateuNewFiles.uniqueBaseName(templateDefault(t), targetDir, ::existsOnDisk)
         }
     }
 
@@ -135,9 +153,13 @@ class NewMateuFileDialog(
         homeCheck.isEnabled = on && (routesCombo.selectedItem as? String)?.let { ws.mountListing(it) } != null
     }
 
+    private fun templateDefault(t: MateuNewFiles.PageTemplate) =
+        t.id.replace(Regex("(?<=[a-z])(?=[A-Z])"), "-").lowercase()
+
+    /** The name is one a template proposed (`form`, `form-2`…): changing the template may replace it. */
     private fun isTemplateDefault(text: String) =
         (templateCombo.model as DefaultComboBoxModel).let { m ->
-            (0 until m.size).any { m.getElementAt(it).id.replace(Regex("(?<=[a-z])(?=[A-Z])"), "-").lowercase() == text }
+            (0 until m.size).any { Regex("^${Regex.escape(templateDefault(m.getElementAt(it)))}(-\\d+)?$").matches(text) }
         }
 
     override fun createCenterPanel(): JComponent = panel {
@@ -188,19 +210,24 @@ class NewMateuFileDialog(
     override fun getPreferredFocusedComponent(): JComponent = nameField
 
     override fun doValidate(): ValidationInfo? {
-        val n = fileBaseName
-        if (n.isBlank()) return ValidationInfo("Enter a file name", nameField)
-        if (!Regex("^[A-Za-z0-9][A-Za-z0-9._-]*$").matches(n)) {
-            return ValidationInfo("Use letters, digits, '.', '-' or '_'", nameField)
-        }
-        val exists = LocalFileSystem.getInstance().findFileByPath("$targetDir/${MateuNewFiles.fileNameOf(n)}") != null
-        if (exists) return ValidationInfo("${MateuNewFiles.fileNameOf(n)} already exists there", nameField)
+        MateuNewFiles.fileNameProblem(nameField.text, targetDir, ::existsOnDisk)?.let { return ValidationInfo(it, nameField) }
         pageRoute?.let { pr ->
-            if (pr.route.contains(Regex("\\s"))) return ValidationInfo("A route cannot contain spaces", routeField)
-            if (pr.route in MateuRoutes.existingRoutes(ws.text(pr.routesFile).orEmpty())) {
-                return ValidationInfo("Route \"${pr.route}\" is already declared in ${pr.routesFile}", routeField)
-            }
+            MateuRoutes.routeProblem(pr.route, pr.routesFile, ws.text(pr.routesFile).orEmpty())
+                ?.let { return ValidationInfo(it, routeField) }
         }
+        creationProblem.currentFor(creationInput())?.let { return ValidationInfo(it, nameField) }
         return null
+    }
+
+    /** Create first, close after: a failed write keeps the dialog open with the error inline. */
+    override fun doOKAction() {
+        if (!okAction.isEnabled) return
+        val problem = create(this)
+        if (problem != null) {
+            creationProblem.remember(creationInput(), problem)
+            setErrorText(problem, nameField)
+            return
+        }
+        super.doOKAction()
     }
 }

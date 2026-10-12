@@ -1,5 +1,6 @@
 # Calendar: toolbar over a month grid. Events with an actionId are clickable.
 type: VerticalLayout
+pageType: collection
 __PAGE_WIDTH__
 content:
   - {type: Text, text: __TITLE__, container: h2}

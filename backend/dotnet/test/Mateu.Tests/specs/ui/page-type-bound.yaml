@@ -1,0 +1,11 @@
+# A definition bound to a view model whose shape infers `form`; the declared type wins.
+# Used by YamlPageTypeTests.
+viewModel: Mateu.Tests.PageTypePlainView
+pageType: dashboard
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: "Name"
+      dataType: string

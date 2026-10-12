@@ -74,6 +74,24 @@ public static class YamlComponentBuilder
         return ParsePageNode(Deserialize(yaml), partials, types);
     }
 
+    /// <summary>The page type a definition DECLARES (<c>pageType:</c> beside <c>layout:</c>) as its wire
+    /// name, or null when it declares none — the YAML twin of [PageTemplate]: a declared type wins
+    /// over the shape inference. Matched without regard to case; an unknown value is ignored, so a
+    /// typo never costs the page (mirrors Java's YamlUidlLoader.pageTypeOf).</summary>
+    public static string? PageTypeOf(object? root)
+    {
+        if (root is not IDictionary<object, object> map || !map.TryGetValue("pageType", out var raw)) return null;
+        var declared = raw?.ToString()?.Trim();
+        if (string.IsNullOrEmpty(declared)) return null;
+        foreach (var type in Enum.GetValues<Mateu.Uidl.PageType>())
+            if (string.Equals(type.ToString(), declared, StringComparison.OrdinalIgnoreCase))
+                return type.ToString().ToLowerInvariant();
+        MateuLogging.For("Mateu.Yaml").LogWarning(
+            "Unknown pageType '{PageType}' ignored (expected landing, collection, detail, form, process or dashboard) — the page type is inferred instead",
+            declared);
+        return null;
+    }
+
     /// <summary><see cref="ParsePage(string, PartialRegistry?, FieldTypeRegistry?)"/> over an already-deserialised tree —
     /// what a per-request personalised spec (access keys applied, <c>${i18n.…}</c> resolved) is
     /// re-built from.</summary>

@@ -129,7 +129,7 @@ public class ReflectionObjectToComponentMapper {
             MetaAnnotations.isPresent(instance.getClass(), ConfirmOnNavigationIfDirty.class),
             emitsName(instance),
             PageWidthResolver.wirePageWidth(instance),
-            PageTypeResolver.wirePageType(instance),
+            pageTypeOf(instance, route),
             StaticViewResolver.isStatic(instance),
             null),
         io.mateu.core.application.runaction.ComponentStateHelper.withoutRestricted(
@@ -137,5 +137,16 @@ public class ReflectionObjectToComponentMapper {
         getData(httpRequest, instance),
         UIFragmentActionDto.Replace,
         null);
+  }
+
+  /**
+   * The page type of a page rendered for {@code route}: the {@code pageType:} its YAML definition
+   * declares when that definition is bound to this instance's class (the YAML twin of
+   * {@code @PageTemplate} — and the more specific of the two, as its {@code layout:} is), else the
+   * resolver's.
+   */
+  private String pageTypeOf(Object instance, String route) {
+    var declared = yamlUidlLoader.pageTypeForRoute(route, instance.getClass());
+    return declared != null ? declared : PageTypeResolver.wirePageType(instance);
   }
 }

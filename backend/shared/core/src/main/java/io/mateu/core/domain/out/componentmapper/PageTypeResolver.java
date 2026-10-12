@@ -44,6 +44,12 @@ public final class PageTypeResolver {
 
   /** The view's page type (explicit annotation first, then the shape mapping). */
   public static PageType resolve(Object instance) {
+    if (instance instanceof DeclaredPageType declared) {
+      var parsed = fromWireName(declared.declaredPageType());
+      if (parsed != null) {
+        return parsed;
+      }
+    }
     var type = instance instanceof Class ? (Class<?>) instance : instance.getClass();
     var annotation = MetaAnnotations.find(type, PageTemplate.class);
     if (annotation != null) {
@@ -80,6 +86,19 @@ public final class PageTypeResolver {
     }
     ArchetypeAdvisor.advise(type);
     return PageType.FORM;
+  }
+
+  /** The {@link PageType} of a wire name (any case), or {@code null} for a blank/unknown one. */
+  public static PageType fromWireName(String wireName) {
+    if (wireName == null || wireName.isBlank()) {
+      return null;
+    }
+    for (var type : PageType.values()) {
+      if (type.name().equalsIgnoreCase(wireName.trim())) {
+        return type;
+      }
+    }
+    return null;
   }
 
   /** Wire name of a {@link PageType}: the lowercase enum name. */

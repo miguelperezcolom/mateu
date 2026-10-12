@@ -53,7 +53,8 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
       JsonNode source,
       java.util.Set<String> refusedActions,
-      java.util.Set<String> lockedFields) {
+      java.util.Set<String> lockedFields,
+      String pageType) {
 
     public YamlPageSpec {
       refusedActions = refusedActions == null ? java.util.Set.of() : refusedActions;
@@ -66,7 +67,20 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         io.mateu.uidl.data.LayoutDelta delta,
         java.util.List<io.mateu.uidl.fluent.Action> actions,
         java.util.List<io.mateu.uidl.fluent.Trigger> triggers) {
-      this(modelView, layout, delta, actions, triggers, null, null, null);
+      this(modelView, layout, delta, actions, triggers, null, null, null, null);
+    }
+
+    /** As the canonical constructor, with no declared {@code pageType:} (inferred). */
+    public YamlPageSpec(
+        String modelView,
+        Component layout,
+        io.mateu.uidl.data.LayoutDelta delta,
+        java.util.List<io.mateu.uidl.fluent.Action> actions,
+        java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
+        JsonNode source,
+        java.util.Set<String> refusedActions,
+        java.util.Set<String> lockedFields) {
+      this(modelView, layout, delta, actions, triggers, source, refusedActions, lockedFields, null);
     }
 
     /**
@@ -411,7 +425,8 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
           triggersOf(tree),
           null,
           refused,
-          locked);
+          locked,
+          spec.pageType());
     } catch (Exception e) {
       log.warn("Failed to personalise the YAML spec for {}: {}", route, e.getMessage());
       return spec;
@@ -533,7 +548,15 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
               || referencesRestrictedCatalogueAction(root);
       specProblems.clear(yamlPath);
       return new YamlPageSpec(
-          modelView, layout, delta, actions, triggers, dependsOnRequest ? root : null, null, null);
+          modelView,
+          layout,
+          delta,
+          actions,
+          triggers,
+          dependsOnRequest ? root : null,
+          null,
+          null,
+          pageTypeOf(root, yamlPath));
     } catch (Exception e) {
       var problem = YamlSpecProblems.describe(yamlPath, text, e);
       log.warn("Could not read the definition {}", problem);
@@ -610,6 +633,44 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
    */
   private static String definitionPath(String definition) {
     return definition.startsWith("/") ? definition.substring(1) : "specs/ui/" + definition;
+  }
+
+  /**
+   * The page type a definition DECLARES ({@code pageType:} beside {@code layout:}), as its wire
+   * name, or {@code null} when it declares none — the YAML twin of {@code @PageTemplate}: a
+   * declared type wins over the shape inference, an absent one leaves it alone. Matched without
+   * regard to case; an unknown value is ignored (logged), so a typo never costs the page.
+   */
+  static String pageTypeOf(JsonNode root, String where) {
+    var node = root == null || !root.isObject() ? null : root.get("pageType");
+    if (node == null || node.isNull() || node.asText().isBlank()) {
+      return null;
+    }
+    var declared = node.asText().trim();
+    for (var type : io.mateu.uidl.annotations.PageType.values()) {
+      if (type.name().equalsIgnoreCase(declared)) {
+        return type.name().toLowerCase();
+      }
+    }
+    log.warn(
+        "{}: unknown pageType '{}' ignored (expected one of landing, collection, detail, form,"
+            + " process, dashboard) — the page type is inferred instead",
+        where,
+        declared);
+    return null;
+  }
+
+  /**
+   * The declared {@code pageType:} of the route's definition (wire name), under the same "this
+   * instance IS the page's declared ModelView" rule as {@link #layoutForRoute}; {@code null} when
+   * the definition declares none or belongs to another class.
+   */
+  public String pageTypeForRoute(String route, Class<?> modelViewClass) {
+    var spec = loadSpec(route);
+    if (spec == null || spec.modelView() == null || modelViewClass == null) {
+      return null;
+    }
+    return spec.modelView().equals(modelViewClass.getName()) ? spec.pageType() : null;
   }
 
   /**

@@ -1,0 +1,11 @@
+# An unknown pageType is ignored (and logged): the page still renders, its type inferred.
+# Used by YamlPageTypeSyncTest.
+viewModel: io.mateu.core.application.YamlPageTypeSyncTest$PlainView
+pageType: banana
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: "Name"
+      dataType: string

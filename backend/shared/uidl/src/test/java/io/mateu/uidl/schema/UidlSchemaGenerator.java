@@ -771,6 +771,16 @@ public final class UidlSchemaGenerator {
             "Triggers this page fires without a click: on load, on a custom event or on a value"
                 + " change. Each entry is discriminated by `type` (OnLoadTrigger,"
                 + " OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs.");
+    var pageTypeProp = pageProps.putObject("pageType").put("type", "string");
+    var pageTypes = pageTypeProp.putArray("enum");
+    for (var pageType : io.mateu.uidl.annotations.PageType.values()) {
+      pageTypes.add(pageType.name().toLowerCase());
+    }
+    pageTypeProp.put(
+        "description",
+        "The page's coarse template type (the YAML twin of @PageTemplate): landing, collection,"
+            + " detail, form, process or dashboard. Declared, it wins over the type inferred from"
+            + " the content; it drives the page's default width. Omit it to keep the inference.");
 
     // `type: Translations` — one locale's message catalogue (also the convention
     // specs/ui/translations/<locale>.yaml, where `type` and `locale` may be omitted). Hand-built:
