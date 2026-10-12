@@ -506,6 +506,13 @@ test('a TaskQueue among other content is content: the queue page (queue + detail
   assert.equal(taskQueueOf(node({ type: 'VerticalLayout' }, [node({ type: 'Gantt', tasks: [] }), queue])), null)
 })
 
+test('a hero among other content is content: the welcome page is a hero over its tiles and nothing else', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' }, [node({ type: 'Button', label: 'Go', actionId: 'go' })])
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
+  assert.ok(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} }))
+  assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
+})
+
 test('an EmptyState with a call to action is content (the page band has no button and lost it)', () => {
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'Nothing here', actionId: 'newBooking', actionLabel: 'New booking' })])
   assert.equal(emptyStateOf(tree), null)
