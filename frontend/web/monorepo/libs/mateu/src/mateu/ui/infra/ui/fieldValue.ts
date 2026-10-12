@@ -46,11 +46,13 @@ export const isNoOpCommit = (raw: unknown, current: unknown): boolean => {
  * user had no way to tell it already had a colour. Three-digit hex is expanded; anything that
  * cannot be shown keeps the control's own default.
  */
+const COLOR_INPUT_DEFAULT = '#000000' // design-token-ok: the <input type=color> value contract, not a style
+
 export const colorInputValue = (value: unknown): string => {
-    if (typeof value !== 'string') return '#000000'
+    if (typeof value !== 'string') return COLOR_INPUT_DEFAULT
     const v = value.trim().toLowerCase()
     if (/^#[0-9a-f]{6}$/.test(v)) return v
     const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec(v)
     if (short) return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`
-    return '#000000'
+    return COLOR_INPUT_DEFAULT
 }
