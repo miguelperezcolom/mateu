@@ -86,27 +86,42 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
    renderer against them; should the ports serve the web renderer themselves?
 3. **Redwood index**: unsubstituted Visual Builder tokens (`#{env.catalogJson}#`, `%{env.userProfileUrl}%`)
    log a 400 and a VB error on every page — Redwood area.
-5. **Live reload** of an unseeded definition-only page sends an empty componentState (it is ClientSide).
-7. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`, `Card`… served by a port shows "Unsupported component". Owner: grow the builders or keep YAML pages Java-first?
-8. **VS Code schema performance** (see the editors' engines row): needs a per-editor schema shape or acceptance.
-9. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
-   served.
+4. **Live reload** of an unseeded definition-only page sends an empty componentState (the page renders
+   ClientSide, no `mateu-component` holds typed values; they survive in the DOM).
+5. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`,
+   `Card`… served by a port shows "Unsupported component". Grow the builders or keep YAML pages Java-first?
+6. **VS Code schema performance** (see the editors' engines row): a per-editor schema shape, or accept it.
+7. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available` served.
+8. The routes editor has no `appState:` column (`state:` added).
+9. CLAUDE.md still says Code + YAML is not offered on Micronaut/Helidon (owner's file, not edited).
 
 ## 5. Not walked yet ⏳
 
-a proxied `optionsSource` on a select; the bogus `declaredActions_*` / `nested-form-action-catalog-sources_*` ids a SeededYamlPage advertises (wire noise from its record fields); `PrincipalResolver`
-with a real security module per adapter;  
-IntelliJ completion/validation inside the IDE and `renderProbe`; VS Code extension inside VS Code;
-editor Board, image/icon/source pickers, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
-the YAML fixtures; docs' Java code samples compiled.
+A proxied `optionsSource` on a select field; `PrincipalResolver` with a real security module per
+adapter (only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
+the plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
+only); the editor's Board, image/icon/source pickers and Redwood canvas; React Native for the YAML
+fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
 
 ## 6. Permanent tests added
 
-- `frontend/app/vscode-extension/src/specsSchema.test.ts` — schema vs shipped files, New File templates, docs.
-- `backend/shared/core/.../DocumentedYamlExamplesTest` — doc trees parse.
-- `e2e/tests/shared/yaml-authoring.spec.ts` + sample1 fixtures — all five Java adapters.
-- `SeededYamlPageRestSourcesTest` (proxied listing rows), `DefinitionOnlyRouteSyncTest` (plain root), `StaticSafetyCheckTest` (flows), `DefinitionInlinerTest`,
-  `SpaFallbackTest` + `AdapterParityITFoundation.doesNotAnswerADataFetchWithTheIndex` (5 adapters),
-  Helidon `YamlMountRoutesTest` (root mount), `MateuStaticFacadesStartupTest` (Micronaut),
-  `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder), editor
-  `componentCatalogue.test.ts`, `playManifest.test.ts`, `exportBundle.test.ts`, 2 `cases.json` cases.
+- Schema: `frontend/app/vscode-extension/src/specsSchema.test.ts` (ajv: shipped files, files against the
+  schema they name, New File templates, docs examples); `MateuSchemaProviderTest` +2 (IntelliJ nested
+  `type:` values and keys); core `DocumentedYamlExamplesTest` (doc trees parse with the loader's mapper).
+- Served YAML: `e2e/tests/shared/yaml-authoring.spec.ts` + sample1 fixtures (8 tests × 5 Java adapters).
+- Core: `DefinitionOnlyRouteSyncTest` (plain root), `SeededYamlPageRestSourcesTest` (proxied rows),
+  `YamlDeclaredActionsSyncTest` (+declared actions only), `StaticSafetyCheckTest` (flows/catalogue),
+  `DefinitionInlinerTest`, `LayoutDeltaApplierTest` (+rows), `RootAppMenuContentCompiledResolversSyncTest`,
+  `NothingToServeCheckTest` (+resolvers), `SpaFallbackTest` (+navigation only).
+- Adapters: parity contracts `doesNotAnswerADataFetchWithTheIndex`, `answersDeepLinksWithEncodedSegments`,
+  YAML-mount data fetch (all five); Helidon `YamlMountRoutesTest` (root mount); Micronaut
+  `MateuStaticFacadesStartupTest`, `MateuYamlMountControllerTest` (+data fetch).
+- Ports: Python `test_route_files.py`, `test_definition_only_seeds.py`, `test_layout_delta.py` (rows);
+  .NET `RouteFilesTests`, `DefinitionOnlySeedsTests`, `LayoutDeltaTests` (rows).
+- Frontend: `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder), editor
+  `componentCatalogue.test.ts`, `playManifest.test.ts`, `exportBundle.test.ts`, DOM tests (State
+  column, components.yaml); generator `cases.json` +2, `newProject.test.ts`.
+
+## 7. Counts
+
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 21 fixed (17 fix commits + the routes-editor State column) · ❌ 9 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
