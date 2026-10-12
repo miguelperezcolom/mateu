@@ -21,6 +21,8 @@ class Button(Wire):
     type: str = "Button"
     disabled: bool = False
     button_style: str | None = None
+    #: The button's colour theme (e.g. "error" on a crud's Delete) — mirrors ButtonDto.color.
+    color: str | None = None
     shortcut: str | None = None
     # a bulk action (@list_toolbar_button): the renderer disables the button while no row is
     # selected — on the BUTTON so no renderer has to look the advertised action up by id
@@ -65,6 +67,14 @@ class GridColumnMeta(Wire):
     tooltip_path: str | None = None
     #: The column sizes to its content (header + widest cell) — true unless a width is fixed.
     auto_width: bool = False
+    #: Cell alignment: "end" for numbers, "center" for booleans, None = start (mirrors
+    #: GridColumnDto.align).
+    align: str | None = None
+    #: The user can resize the column (listing columns are; mirrors GridColumnDto.resizable).
+    resizable: bool = False
+    #: Display-width weight (1u ≈ 76px) the renderer's layout heuristics read (mirrors
+    #: GridColumnDto.weight / Java's WeightEstimator).
+    weight: float | None = None
     #: A fixed column width (e.g. "3rem"); None shares the remaining space.
     width: str | None = None
     #: flex-grow of the column ("0" for fixed/auto columns).
@@ -228,6 +238,9 @@ class RestAction(Wire):
 class Trigger(Wire):
     type: str
     action_id: str
+    #: How many times the trigger fires (an OnLoad search runs once); 0 = unlimited (mirrors
+    #: TriggerDto.times).
+    times: int = 0
 
 
 class CustomTrigger(Wire):

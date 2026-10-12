@@ -386,3 +386,116 @@ public class AccessAnnotations
 
     [Button, DisabledUnless(Roles = ["manager"])] public void Approve() { }
 }
+
+// ── Listings and CRUDs ─────────────────────────────────────────────────────────────────────────
+
+public enum ProductStatus { Available, OutOfStock, Discontinued }
+
+// The starters' Product: an id, a text, a number and an enum.
+public class Product
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public double Price { get; set; }
+    public ProductStatus Status { get; set; }
+}
+
+// The plain CRUD the starters ship: listing with search + derived filters, New/Delete, the id
+// column a link to the record.
+[UI("conformance/crud"), Title("Products")]
+public class ProductsCrud : Crud<Product>
+{
+    private static readonly List<Product> Store =
+    [
+        new() { Id = "P-001", Name = "Espresso machine", Price = 249.0, Status = ProductStatus.Available },
+        new() { Id = "P-002", Name = "Coffee grinder", Price = 89.5, Status = ProductStatus.Available },
+        new() { Id = "P-003", Name = "Milk frother", Price = 39.9, Status = ProductStatus.OutOfStock },
+    ];
+
+    public override IEnumerable<Product> Fetch(string? search) => Store;
+    public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
+    public override void Save(Product product) { }
+    public override void Delete(string id) { }
+}
+
+public class Book
+{
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    public int Pages { get; set; }
+}
+
+public class BookFilters
+{
+    public string? Title { get; set; }
+    public bool Classic { get; set; }
+}
+
+public static class Books
+{
+    public static List<Book> All() =>
+    [
+        new() { Id = "b1", Title = "El Quijote", Pages = 863 },
+        new() { Id = "b2", Title = "Rayuela", Pages = 600 },
+    ];
+}
+
+// A read-only listing that declares a search box and a filters type — nothing else.
+[UI("conformance/listing-filters"), Title("Books")]
+public class FilteredBooks : IListing<Book>, Mateu.Uidl.ISearchable, IFilterable<BookFilters>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+}
+
+// A listing that is navigable: the id column becomes the link to the record.
+[UI("conformance/listing-navigable"), Title("Books")]
+public class NavigableBooks : IListing<Book>, INavigable<Book, string>
+{
+    public ListingData<Book> Search(SearchRequest request) => ListingData.From(Books.All());
+    public Book View(string id) => Books.All()[0];
+}
+
+// A sale: grouped by region, totals over amount and a count over invoice.
+public class Sale
+{
+    public string Id { get; set; } = "";
+    [GroupBy] public string Region { get; set; } = "";
+    [Aggregate(AggregateFunction.Sum)] public double Amount { get; set; }
+    [Aggregate(AggregateFunction.Count)] public string? Invoice { get; set; }
+}
+
+// A CRUD whose columns carry aggregates and whose rows group by a column.
+[UI("conformance/crud-grouped"), Title("Sales")]
+public class SalesCrud : Crud<Sale>
+{
+    public override IEnumerable<Sale> Fetch(string? search) =>
+    [
+        new() { Id = "1", Region = "North", Amount = 100.0, Invoice = "F-1" },
+        new() { Id = "2", Region = "South", Amount = 50.0, Invoice = "F-2" },
+        new() { Id = "3", Region = "North", Amount = 25.0, Invoice = "F-3" },
+    ];
+    public override Sale? Get(string id) => null;
+    public override void Save(Sale sale) { }
+    public override void Delete(string id) { }
+}
+
+public enum Tone { calm, loud }
+
+// One column per basic type: what each becomes on a listing.
+public class Measurement
+{
+    public string Label { get; set; } = "";
+    public int Count { get; set; }
+    public double Amount { get; set; }
+    public bool Active { get; set; }
+    public DateOnly? Day { get; set; }
+    public DateTime? At { get; set; }
+    public Tone Tone { get; set; }
+}
+
+// A bare listing whose row carries every basic type: the column mapping, pinned.
+[UI("conformance/listing-columns"), Title("Measurements")]
+public class MeasurementsListing : IListing<Measurement>
+{
+    public ListingData<Measurement> Search(SearchRequest request) => ListingData.From(new List<Measurement>());
+}

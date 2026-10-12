@@ -1,0 +1,7 @@
+# crud
+
+Pins the listing of the plain CRUD every starter ships (Products: a text id, a name, a double price and an enum status): the Crud metadata the renderer draws — title on the listing, `pageSize`/`searchOnEnter`/`autoFocusOnSearchText`/`filtersLayout` (a missing `pageSize` left every Vaadin cell empty), one column per field with its dataType, `regular` stereotype, `resizable`, `autoWidth`, alignment and layout `weight`, the Id column as the LINK to the record (`actionId: "view"`), the derived smart-search filters (the enum as a multi-select with its humanised options), the New / Delete toolbar (Delete coloured `error`), row selection, the listing box style, the `width: 100%` frames and the once-only `OnLoad` search.
+
+## What it does not pin
+
+Java answers the first load of a CRUD with a MEDIATOR app shell; the browser then loads this listing through it. The corpus pins that content load (the Java runner issues it), because the ports answer the listing directly. What stays out, on every side, is the mediator PROTOCOL around it: the content component's `actions` (Java advertises only search/update-row and a bubbling delete, and lets New/View bubble to the mediator; the ports have no mediator and advertise them on the listing) and the mediator's private routing state (`initialData`/`state`: `_route`, `idFieldForRow`, `styleForView`). That is a structural difference, not a gap: everything the user sees is pinned.

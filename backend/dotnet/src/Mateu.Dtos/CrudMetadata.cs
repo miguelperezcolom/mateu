@@ -39,7 +39,7 @@ public record CrudMetadataDto(
 
     /// <summary>The smart search bar's filters, one FormField per filterable entity property
     /// (enums as multi-selects, temporals as date ranges, [RangeFilter] numerics as min–max).</summary>
-    public IReadOnlyList<FormFieldMetadataDto> Filters { get; init; } = [];
+    public IReadOnlyList<ComponentMetadataDto> Filters { get; init; } = [];
 
     /// <summary>The [GroupBy] column of the row class (camelCase field id): the listing groups
     /// its rows by it — implicit primary sort + a group subtotal row whenever the value changes.
@@ -131,6 +131,20 @@ public record GridColumnMetaDto(string Id, string Label)
     /// <summary>A fixed CSS width (e.g. the "3rem" of a grid field's Edit column).</summary>
     public string? Width { get; init; }
 
+    /// <summary>Cell alignment of a listing column: "end" for numbers, "center" for booleans
+    /// (Java's GridColumnMapper.getAlignment); omitted otherwise.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Align { get; init; }
+
+    /// <summary>The user can drag the column's edge (every listing column, as in Java).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Resizable { get; init; }
+
+    /// <summary>The column's display-width weight (1u ≈ 76px) the renderer's layout heuristics
+    /// read — Java's WeightEstimator.base over the field's type; omitted when not computed.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public double? Weight { get; init; }
+
     /// <summary>The static text of a button column ("Edit").</summary>
     public string? Text { get; init; }
 
@@ -146,4 +160,10 @@ public record GridColumnMetaDto(string Id, string Label)
     public IReadOnlyDictionary<string, string>? ValueLabels { get; init; }
 }
 
-public record TriggerDto(string Type, string ActionId);
+public record TriggerDto(string Type, string ActionId)
+{
+    /// <summary>How many times the trigger fires (Java's OnLoadTrigger.times: 1 for a listing's
+    /// preload search); omitted when unbounded.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public int Times { get; init; }
+}

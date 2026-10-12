@@ -1958,7 +1958,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
 
     # Data columns edit in place with the widget matching their type…
     assert (
-        '"id": "name", "label": "Name", "type": "GridColumn", "dataType": null, "stereotype": null, '
+        '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": "regular", '
         '"captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"'
     ) in j
     assert '"editorType": "integer"' in j
@@ -1968,7 +1968,7 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     assert '"editorOptions": [{"value": "OK"' in j
     # …ReadOnly() columns stay display-only…
     assert (
-        '"id": "id", "label": "Id", "type": "GridColumn", "dataType": null, "stereotype": null, '
+        '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": "regular", '
         '"captionPath": null, "leadingPath": null, "editable": false'
     ) in j
     # …and the crud advertises the update-row action.

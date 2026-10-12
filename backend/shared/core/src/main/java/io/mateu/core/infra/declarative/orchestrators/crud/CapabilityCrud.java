@@ -30,7 +30,10 @@ import java.util.List;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object, Object> {
 
-  private final Listing<Object> target;
+  // transient: the bridged listing is the BEHAVIOUR behind this crud, not a nested form of it — a
+  // non-transient field made the action collector advertise its actions again under a
+  // "nested-form-action-target-" prefix
+  private final transient Listing<Object> target;
 
   public CapabilityCrud(Object target) {
     this.target = (Listing<Object>) target;
