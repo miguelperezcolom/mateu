@@ -2781,6 +2781,23 @@
         }
       }
     },
+    "DataStep" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "status" : {
+          "type" : "string"
+        }
+      }
+    },
     "Details" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -7192,7 +7209,7 @@
         "steps" : {
           "type" : "array",
           "items" : {
-            "$ref" : "#/$defs/Step"
+            "$ref" : "#/$defs/DataStep"
           }
         },
         "vertical" : {
