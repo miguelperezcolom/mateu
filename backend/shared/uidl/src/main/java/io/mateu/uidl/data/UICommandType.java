@@ -25,5 +25,10 @@ public enum UICommandType {
    * Prints the current page with the browser's print dialog; the renderers' print stylesheet hides
    * the app chrome (navigation, toolbars, overlays). No data.
    */
-  Print
+  Print,
+  /**
+   * Changes a live header value ({@link HeaderValue}) on the app shell — in this tab and in the
+   * other tabs of the same browser; data must be a {@link HeaderValue} (id + value).
+   */
+  UpdateHeaderValue
 }

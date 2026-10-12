@@ -55,12 +55,28 @@ public record AppShell(
     /** No nav chrome (implies the command center) — the twin of {@code @App(chromeless)}. */
     Boolean chromeless,
     /** Access keys mode — the twin of {@code @App(accessKeys)}. Null: the class. */
-    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys)
+    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys,
+    /** App-wide keyboard shortcuts / quick-launch codes — the twin of {@code @AppShortcut}. */
+    @Experimental("app shortcuts (3.0-alpha, E2 patterns)") @Singular
+        List<io.mateu.uidl.data.AppShortcutEntry> shortcuts,
+    /** Live header values, with their initial value — the twin of {@code HeaderValuesSupplier}. */
+    @Experimental("live header values (3.0-alpha, E2 patterns)") @Singular
+        List<io.mateu.uidl.data.HeaderValue> headerValues,
+    /** The live event stream — the twin of {@code @App(liveUpdates)}. Null: the class. */
+    @Experimental("live header values (3.0-alpha, E2 patterns)") Boolean liveUpdates,
+    /** Idle-session timeout in minutes — the twin of {@code @App(idleTimeoutMinutes)}. */
+    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") Integer idleTimeoutMinutes,
+    /** The idle warning's countdown in seconds — the twin of {@code @App(idleWarningSeconds)}. */
+    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") Integer idleWarningSeconds,
+    /** Where the idle warning's "Sign out" goes — the twin of {@code @App(idleSignOutUrl)}. */
+    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") String idleSignOutUrl)
     implements Component, PageMainContent {
 
   public AppShell {
     menu = menu != null ? menu : List.of();
     actions = actions != null ? actions : List.of();
+    shortcuts = shortcuts != null ? shortcuts : List.of();
+    headerValues = headerValues != null ? headerValues : List.of();
     // A shell federating remote sections that names no variant is drawn MENU_ON_TOP, as it always
     // was: the browser used to force that variant on any shell with remotes, and now respects the
     // one the app declares instead.

@@ -151,6 +151,10 @@ public class ActionMapper {
                     && !Amount.class.equals(field.getType())
                     && !Status.class.equals(field.getType())
                     && !isBasicArray(field.getType())
+                    // a @Menu field is navigation, not a nested form: its screen's actions (and
+                    // their keyboard shortcuts) belong to that screen, not to the app shell
+                    && !io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                        field, io.mateu.uidl.annotations.Menu.class)
                     // a component held by a field (a dashboard panel's Text, a Callable island)
                     // renders as itself, not as a nested form: its record components (a Text's
                     // `variants` list…) are not editable lists of the page
