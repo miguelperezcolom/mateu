@@ -143,3 +143,17 @@ describe('mateu-field branches', () => {
         expect(root.textContent).toContain('$1,234.50')
     })
 })
+
+describe('mateu-field: a plain string field with options', () => {
+    it('is a select of them, not a text field showing the raw value (the GeneralOverview switcher)', async () => {
+        const options = [{ value: 'r1', label: 'Requisition 204' }, { value: 'r2', label: 'Requisition 205' }]
+        const { root } = await mount({ fieldId: 'record', options }, { record: 'r1' })
+        expect(root.querySelector('vaadin-text-field')).toBeNull()
+        expect((root.querySelector('vaadin-select') as unknown as { items: unknown[] }).items).toEqual(options)
+    })
+
+    it('without options it stays a text field', async () => {
+        const { root } = await mount({ fieldId: 'name', options: [] }, { name: 'Ada' })
+        expect(root.querySelector('vaadin-text-field')).not.toBeNull()
+    })
+})

@@ -61,7 +61,7 @@ public class HousekeepingCalendar extends CalendarPage {
 
   @Override
   protected Object actionOn(CalendarEvent event, HttpRequest httpRequest) {
-    return URI.create("/foldout-demo");
+    return URI.create("/arch/foldout");
   }
 
   @Override
@@ -71,6 +71,6 @@ public class HousekeepingCalendar extends CalendarPage {
 
   @Override
   protected Object createAction(HttpRequest httpRequest) {
-    return URI.create("/todo-list-demo");
+    return URI.create("/arch/todo");
   }
 }

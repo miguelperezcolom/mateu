@@ -47,11 +47,11 @@ public class WelcomeDemo extends Welcome {
 
   @Action
   Object startCheckin() {
-    return URI.create("/checkin");
+    return URI.create("/arch/todo");
   }
 
   @Action
   Object openDashboard() {
-    return URI.create("/dashboard-demo");
+    return URI.create("/arch/dashboard");
   }
 }

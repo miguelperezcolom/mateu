@@ -95,7 +95,7 @@ public class SalesDashboard extends Dashboard {
 
   @Action
   Object openOrders() {
-    return URI.create("/products");
+    return URI.create("/arch/smart-search");
   }
 
   @Panel(title = "Notes")

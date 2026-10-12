@@ -125,6 +125,6 @@ public class FrontDeskTasks extends TodoList<FrontDeskTasks.Task> {
 
   @Override
   protected Object actionOn(Task task, HttpRequest httpRequest) {
-    return URI.create("/foldout-demo");
+    return URI.create("/arch/foldout");
   }
 }
