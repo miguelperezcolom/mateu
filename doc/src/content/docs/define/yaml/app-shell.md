@@ -320,7 +320,10 @@ conventional single mount is used: `specs/ui/routes.yaml` loaded at base path `"
 For **Spring MVC**, `mateu-mvc` auto-configures the HTTP surface (the SPA at the mount's base path and
 sync under it) when the classpath declares at least one `type: UI` mount — the work the annotation
 processor normally does per `@UI` class, which cannot happen when there is no class. It stands down as
-soon as a generated controller exists, so adding an `@UI` class later changes nothing.
+soon as a generated controller exists: in a deployment that also has an `@UI` class, the `type: UI`
+mounts are **not served** (their URLs answer 404; the startup log still lists them as discovered).
+Keep a YAML-only mount in its own application, or author the screens as `routes.yaml` routes of the
+`@UI` mount instead (the same holds for every Java adapter).
 
 Your application is then a Spring Boot entry point plus resources:
 
