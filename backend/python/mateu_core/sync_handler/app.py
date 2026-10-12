@@ -138,7 +138,7 @@ class AppHandlerMixin(MixinBase):
         a Python app greeted the user with an "Action not found" error toast."""
         field = (rq.action_id or "")[len(self.APP_CONTEXT_SEARCH_PREFIX):]
         text = str((rq.parameters or {}).get("searchText") or "").strip().lower()
-        options = next(
+        options: list = next(
             (s.options for s in self.mapper.map_context_selectors(cls) if s.field_name == field), []
         )
         content = [

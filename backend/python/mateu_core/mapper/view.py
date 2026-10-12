@@ -221,7 +221,11 @@ class ViewMapperMixin(MixinBase):
         # already runs them (action_guard counts a subscription's action as declared), but the
         # web client only SENDS what the component advertises, so the subscription fired, bubbled
         # out unclaimed and was lost (Java's ActionMapper.triggeredActions; same rule).
-        trigger_ids = {getattr(t, "action_id", None) for t in triggers} - {None, ""}
+        trigger_ids: set[str] = {
+            aid
+            for aid in (getattr(t, "action_id", None) for t in triggers)
+            if isinstance(aid, str) and aid
+        }
         known_ids = {a.id for a in actions}
         for aid in sorted(trigger_ids - known_ids):
             if resolve_action(cls, aid, lambda: trigger_ids) is not None:
