@@ -93,7 +93,7 @@ adds an entry to the list.
   demo needs one.
 - **Google Play:** same approach; declare the deep-link domain (Digital Asset Links).
 - Accounts: Apple Developer Program (99 $/year) and Google Play (25 $ once) — the owner's.
-- Bundle ids: `io.mateu.mobile` (Android) / `io.mateu.native` (iOS): align them, or keep both as they are.
+- Bundle ids: `io.mateu.app` (Android) / `io.mateu.app` (iOS): align them, or keep both as they are.
 
 ## Phases
 1. **Server:** the manifest endpoint (Java 5 adapters + .NET + Python) and `@App(mobileQr)` + YAML key + the

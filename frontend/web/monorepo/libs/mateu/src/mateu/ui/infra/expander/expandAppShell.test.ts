@@ -20,6 +20,7 @@ const shell: FluentNode = {
     themeToggle: true,
     commandCenter: true,
     accessKeys: true,
+    mobileQr: true,
     actions: [
         { id: 'newOrder', steps: [{ type: 'MarkClean' }, { type: 'Navigate', route: 'orders/new' }] },
         { id: 'announce', steps: [{ type: 'Emit', event: 'order-started' }] },

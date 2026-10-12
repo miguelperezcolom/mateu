@@ -235,6 +235,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         headerValues: md.headerValues || [],
         liveUpdates: !!md.liveUpdates,
         idleSession: md.idleSession || null,
+        // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
+        mobileQr: !!md.mobileQr,
         // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
         // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)

@@ -147,6 +147,8 @@ public sealed partial class ReflectionMapper
             HeaderValues = MapHeaderValues(appType, app),
             LiveUpdates = app.LiveUpdates,
             IdleSession = MapIdleSession(app, appRoute),
+            // "Open on mobile" (QR for the Mateu mobile app): opt-in, mirrors AppDto.mobileQr.
+            MobileQr = app.MobileQr,
             // The UI language: what the translator says (mirrors AppDto.locale).
             Locale = translator?.Locale,
         };

@@ -27,7 +27,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_core.identity import framework_identity_provider, warn_on_startup
-from mateu_core import dev_specs, documents
+from mateu_core import dev_specs, documents, mobile_manifest
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
 from mateu_uidl import Identity
@@ -301,6 +301,17 @@ def add_mateu(
         return Response(content=served.body, status_code=served.status, headers=served.headers)
 
     app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
+
+    # The UI manifest the generic Mateu mobile app reads (experimental): public and cacheable — a
+    # name, an icon, the wire version and, optionally, which OIDC provider the host app trusts.
+    async def manifest() -> Response:
+        return Response(
+            content=mobile_manifest.manifest_json(registry.app_type),
+            status_code=200,
+            headers=mobile_manifest.HEADERS,
+        )
+
+    app.add_api_route(f"{prefix}{mobile_manifest.PATH}", manifest, methods=["GET"])
 
     # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
     # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the

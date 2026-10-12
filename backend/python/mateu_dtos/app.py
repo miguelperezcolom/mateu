@@ -67,6 +67,9 @@ class AppMetadata(Wire):
     #: @app(access_keys=True): keyboard access-keys mode — holding Alt shows a key next to every
     #: visible button and tab and Alt+key activates it. Mirrors AppDto.accessKeys.
     access_keys: bool = False
+    #: @app(mobile_qr=True) (experimental): the "Open on mobile" header action — a dialog with the
+    #: QR that adds this UI to the Mateu mobile app. Mirrors AppDto.mobileQr.
+    mobile_qr: bool = False
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.

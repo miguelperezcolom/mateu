@@ -400,6 +400,11 @@
       "defaultValue": false,
       "description": "@App(themeToggle): the header shows the light/dark switch"
     },
+    "mateuMobileQr": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "@App(mobileQr): the header shows the 'Open on mobile' action (the QR of the mateu.io/add link)"
+    },
     "mateuShellSST": {
       "type": "string",
       "defaultValue": "",

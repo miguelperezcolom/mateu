@@ -45,6 +45,16 @@ public @interface App {
   boolean accessKeys() default false;
 
   /**
+   * "Open on mobile": an app header action that shows the QR code a phone scans to add this UI to
+   * the Mateu mobile app — {@code https://mateu.io/add?u=<base URL>&r=<current route>}, a universal
+   * link that opens the app when it is installed. On a phone the dialog offers the link itself
+   * instead. The QR carries no secret, only where the UI lives; credentials are entered at login.
+   * Pair it with {@link MobileApp} for the name, icon and identity provider the app shows. Opt-in.
+   */
+  @Experimental("mobile app (3.0 beta)")
+  boolean mobileQr() default false;
+
+  /**
    * The label of the shell's own "ask" FAB — the always-present button that opens the destination
    * search (the Ask-Oracle pattern). It is the button's accessible name, its tooltip and the title
    * of the palette it opens. Blank (the default) keeps the renderer's own brand: on Redwood, "Ask

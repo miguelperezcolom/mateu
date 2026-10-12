@@ -154,6 +154,15 @@ public static class MateuExtensions
             }
         });
 
+        // The UI manifest the generic Mateu mobile app reads (name, icon, wire/app version, the
+        // OIDC issuer the host trusts). Public and cacheable: it carries no secret, and the app
+        // needs it before anyone has logged in. EXPERIMENTAL (mobile app).
+        app.MapGet(prefix + MobileManifest.Path, async (HttpContext ctx, MateuRegistry registry) =>
+        {
+            foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl), ctx.RequestAborted);
+        });
+
         // Live reload (development mode only): the event stream and the re-render trigger. Absent
         // otherwise — a production app does not even route them.
         if (DevSpecs.Enabled) MapDevEndpoints(app);

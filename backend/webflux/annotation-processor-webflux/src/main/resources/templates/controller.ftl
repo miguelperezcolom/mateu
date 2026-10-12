@@ -34,6 +34,15 @@ public class ${simpleClassName}MateuController implements MateuController {
         return baseUrl;
     }
 
+    // The Mateu mobile app's manifest (io.mateu.core.infra.MobileManifest): public, cacheable JSON
+    // with the name, icon and identity provider the app shows for this UI.
+    @org.springframework.web.bind.annotation.GetMapping("v3/manifest")
+    public org.springframework.http.ResponseEntity<String> mobileManifest() {
+        var response = org.springframework.http.ResponseEntity.ok();
+        io.mateu.core.infra.MobileManifest.HEADERS.forEach((name, value) -> response.header(name, value));
+        return response.body(io.mateu.core.infra.MobileManifest.json(uiId));
+    }
+
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment,
     // sent as soon as it is produced.
     @PostMapping("v3/sse/**")

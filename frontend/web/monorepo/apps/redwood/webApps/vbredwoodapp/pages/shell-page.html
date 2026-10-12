@@ -119,6 +119,17 @@
           <oj-bind-text value="[[ $application.translations.appBundle.chatOpen ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
+      <!-- OPEN ON MOBILE (@App(mobileQr)): opens the dialog with the QR of the mateu.io/add link
+           (poc/qr.mjs) — the Mateu mobile app adds this UI by scanning it. display=icons: the label
+           is the button's accessible name and tooltip. -->
+      <oj-bind-if test="[[ $application.variables.mateuMobileQr ]]">
+        <oj-button id="mateuMobileQrButton" chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-1x-start"
+          aria-haspopup="dialog" aria-controls="mateuMobileQrDialog"
+          on-oj-action="[[ $listeners.mobileQrOpen ]]">
+          <span slot="startIcon" class="oj-ux-ico-qr-code"></span>
+          <oj-bind-text value="[[ $application.translations.appBundle.mobileQrAction ]]"></oj-bind-text>
+        </oj-button>
+      </oj-bind-if>
       <!-- light/dark switch (@App(themeToggle)): JET's own inverted colour scheme (poc/theme.mjs) -->
       <oj-bind-if test="[[ $application.variables.mateuThemeToggle ]]">
         <oj-button id="mateuThemeToggle" chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-1x-start"
@@ -430,6 +441,36 @@
           </div>
         </div>
 
+      </div>
+    </oj-dialog>
+
+    <!-- OPEN ON MOBILE (@App(mobileQr)): the QR of https://mateu.io/add?u=<this UI>&r=<this screen>,
+         the link as copyable text and a hint; on a phone (or a touch-first device) the link itself
+         instead of the QR. oj-dialog moves focus in, keeps it there, gives it back and closes on Esc.
+         The QR carries NO secret: only where the UI lives (design/mobile-app-hub.md). -->
+    <oj-dialog id="mateuMobileQrDialog" cancel-behavior="icon" drag-affordance="none" style="width: 26rem; max-width: 92vw;"
+      dialog-title="[[ $application.translations.appBundle.mobileQrTitle ]]">
+      <div slot="body" class="mateu-mobile-qr" style="width: 100%;">
+        <oj-bind-if test="[[ !$variables.mateuMobileQrModel.phone ]]">
+          <div class="oj-flex oj-sm-justify-content-center">
+            <img id="mateuMobileQrImage" :src="[[ $variables.mateuMobileQrModel.img ]]" :alt="[[ $variables.mateuMobileQrModel.alt ]]"
+              width="240" height="240" style="width: 240px; height: 240px; background: #fff; border-radius: 4px;">
+          </div>
+          <p class="oj-typography-body-sm oj-sm-margin-4x-top"><oj-bind-text value="[[ $application.translations.appBundle.mobileQrHint ]]"></oj-bind-text></p>
+        </oj-bind-if>
+        <oj-bind-if test="[[ $variables.mateuMobileQrModel.phone ]]">
+          <p class="oj-typography-body-sm"><oj-bind-text value="[[ $application.translations.appBundle.mobileQrPhoneHint ]]"></oj-bind-text></p>
+          <a id="mateuMobileQrOpenInApp" class="oj-button-sm" :href="[[ $variables.mateuMobileQrModel.url ]]"
+            style="display: inline-block; font-weight: 600;"><oj-bind-text value="[[ $application.translations.appBundle.mobileQrOpenInApp ]]"></oj-bind-text></a>
+        </oj-bind-if>
+        <div class="oj-flex oj-sm-align-items-center oj-sm-margin-3x-top" style="gap: .5rem;">
+          <label for="mateuMobileQrUrl" class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.mobileQrLink ]]"></oj-bind-text></label>
+          <input id="mateuMobileQrUrl" type="text" readonly class="oj-flex-item" :value="[[ $variables.mateuMobileQrModel.url ]]"
+            style="min-width: 0; font: inherit; font-size: .75rem; padding: .25rem .4rem; border: 1px solid var(--oj-core-divider-color, #ccc); border-radius: 4px; background: transparent; color: inherit;">
+          <oj-button id="mateuMobileQrCopy" chroming="outlined" on-oj-action="[[ $listeners.mobileQrCopy ]]">
+            <oj-bind-text value="[[ $application.translations.appBundle.mobileQrCopy ]]"></oj-bind-text>
+          </oj-button>
+        </div>
       </div>
     </oj-dialog>
 

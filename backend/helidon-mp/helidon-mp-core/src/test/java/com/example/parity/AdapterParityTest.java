@@ -76,6 +76,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesTheMobileManifest() {
+    contract.servesTheMobileManifest();
+  }
+
+  @Test
   void acceptsClientLogs() {
     contract.acceptsClientLogs();
   }

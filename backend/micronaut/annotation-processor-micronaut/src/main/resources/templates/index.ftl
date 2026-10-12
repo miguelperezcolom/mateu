@@ -25,8 +25,10 @@ public class ${simpleClassName}Controller {
     @Value("${r"${mateu.debug:false}"}")
     boolean debug;
 
-    // Any route under the UI, however deep, answers the index — the SPA fallback.
-    @Get(value = "/{+path:[\\-a-zA-Z0-9/_]+}", produces = MediaType.TEXT_HTML)
+    // Any route under the UI, however deep, answers the index — the SPA fallback. Except the
+    // mobile app's manifest (any UI's <base>/mateu/v3/manifest), which is JSON even when a browser
+    // asks for HTML.
+    @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[\\-a-zA-Z0-9/_]+}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path) {
         return getIndex();
     }

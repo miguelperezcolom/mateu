@@ -35,7 +35,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs', 'recordMerge.mjs', 'appExtras.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
-  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
+  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs', 'qr.mjs',
   'editorPreview.mjs', 'embedded.mjs',
   'liveReload.mjs',
 ]
@@ -505,6 +505,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     runAppLevelAction,
     applyInitialTheme,
     toggleTheme,
+    // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
+    mobileQrModelOf,
+    isPhoneLike,
   };
 });
 `

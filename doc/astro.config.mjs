@@ -91,6 +91,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/undo' },
 						{ slug: 'ux-patterns/session-expiry' },
 						{ slug: 'ux-patterns/idle-session', label: 'Idle-Session Warning' },
+						{ slug: 'ux-patterns/mobile-app', label: 'Mobile App (Open on Mobile)' },
 						{ slug: 'ux-patterns/client-error-log' },
 						{ slug: 'ux-patterns/not-found', label: 'Not Found' },
 						{ slug: 'ux-patterns/audit-diff', label: 'Audit Version Diff' },

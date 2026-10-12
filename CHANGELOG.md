@@ -181,6 +181,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - Server-sent URLs are checked (`javascript:` refused); token storage is configurable.
 
 ### Added
+- **Mateu mobile, phase 1 (experimental)** — the server half of one generic Mateu app to which UIs
+  are added by QR, like accounts in an authenticator ([Mobile app](https://mateu.io/ux-patterns/mobile-app/)):
+  - `GET <baseUrl>/mateu/v3/manifest`: public, cacheable JSON with the UI's name, short name,
+    icon, theme colour, wire and minimum app versions and, optionally, the OpenID Connect issuer +
+    client id the host app trusts. Values come from `@Title`/`@Logo`/`@App(accentColor)`, the
+    new `@MobileApp` and the `mateu.mobile.*` settings (system property or `MATEU_MOBILE_*`
+    env var, which win). Served by the five Java adapters (`@UI` and YAML mounts), ASP.NET Core
+    (`[MobileApp]`) and FastAPI (`@mobile_app`), member for member. Mateu still validates no
+    token: the manifest only names the identity provider.
+  - "Open on mobile": `@App(mobileQr = true)` / YAML `mobileQr: true` / `[App(MobileQr = true)]` /
+    `@app(mobile_qr=True)` → `AppDto.mobileQr` → a header button (Vaadin and Redwood) opening a
+    dialog with the QR of `https://mateu.io/add?u=<base URL>&r=<route>`, the link to copy and,
+    on a phone, an "Open in the Mateu app" link instead. The QR is drawn by Mateu's own
+    dependency-free encoder, in a lazy chunk.
+  - `mateu.io/add`, the landing page the link opens when the app is not installed (store links are
+    placeholders until the app is published), plus templates of the universal/App Link files.
 - `io.mateu:mateu-bom`; annotation processors are Gradle-incremental.
 - SSE / LongTask on WebFlux, Quarkus and Helidon; client-log, asset caching, YAML mounts and the
   deep-link fallback on every adapter.

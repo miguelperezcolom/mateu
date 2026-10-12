@@ -1,0 +1,139 @@
+"""The mobile-app UI manifest (``GET <base>/mateu/v3/manifest``) and the "Open on mobile" flag —
+the Python mirror of Java's ``MobileManifestTest`` / .NET's ``MobileManifestTests``. The JSON strings
+are the shared parity fixtures: the three backends must answer exactly these bytes."""
+
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from mateu_core import MateuRegistry, RunActionRq, SyncHandler, mobile_manifest, type_name  # noqa: E402
+from mateu_uidl import app, menu_item, mobile_app, title, ui  # noqa: E402
+
+ACME = (
+    '{"name":"Acme CRM","shortName":"CRM","icon":"/images/acme.svg","themeColor":"#1f6feb",'
+    '"wireVersion":"3","minAppVersion":"1.0.0","auth":{"type":"oidc",'
+    '"issuer":"https://auth.acme.com/realms/acme","clientId":"mateu-mobile",'
+    '"scopes":["openid","profile"]}}'
+)
+PLAIN = '{"name":"Plain","shortName":"Plain","wireVersion":"3","minAppVersion":"1.0.0"}'
+
+SETTINGS = (
+    "MATEU_MOBILE_NAME",
+    "MATEU_MOBILE_SHORT_NAME",
+    "MATEU_MOBILE_ICON",
+    "MATEU_MOBILE_THEME_COLOR",
+    "MATEU_MOBILE_MIN_APP_VERSION",
+    "MATEU_MOBILE_OIDC_ISSUER",
+    "MATEU_MOBILE_OIDC_CLIENT_ID",
+    "MATEU_MOBILE_OIDC_SCOPES",
+)
+
+
+@pytest.fixture(autouse=True)
+def no_settings(monkeypatch):
+    for name in SETTINGS:
+        monkeypatch.delenv(name, raising=False)
+
+
+@ui("mm-home")
+@title("Home")
+class MmHome:
+    name: str | None = None
+
+
+# The port has no app logo: the Acme fixture's icon comes from @mobile_app(icon=...).
+@app("Acme CRM", mobile_qr=True)
+@mobile_app(
+    short_name="CRM",
+    icon="/images/acme.svg",
+    theme_color="#1f6feb",
+    oidc_issuer="https://auth.acme.com/realms/acme",
+    oidc_client_id="mateu-mobile",
+)
+class AcmeApp:
+    @menu_item("Home")
+    def home(self) -> "MmHome":
+        return MmHome()
+
+
+@app("Plain")
+class PlainApp:
+    @menu_item("Home")
+    def home(self) -> "MmHome":
+        return MmHome()
+
+
+def test_acme_fixture():
+    assert mobile_manifest.manifest_json(AcmeApp) == ACME
+
+
+def test_plain_fixture():
+    assert mobile_manifest.manifest_json(PlainApp) == PLAIN
+
+
+def test_settings_win(monkeypatch):
+    monkeypatch.setenv("MATEU_MOBILE_OIDC_ISSUER", "https://idp.example")
+    monkeypatch.setenv("MATEU_MOBILE_OIDC_CLIENT_ID", "app")
+    monkeypatch.setenv("MATEU_MOBILE_OIDC_SCOPES", "openid email")
+    body = json.loads(mobile_manifest.manifest_json(PlainApp))
+    assert body["auth"] == {
+        "type": "oidc",
+        "issuer": "https://idp.example",
+        "clientId": "app",
+        "scopes": ["openid", "email"],
+    }
+    # ...also over what @mobile_app declares
+    monkeypatch.setenv("MATEU_MOBILE_NAME", "Acme (staging)")
+    body = json.loads(mobile_manifest.manifest_json(AcmeApp))
+    assert body["name"] == "Acme (staging)"
+    assert body["shortName"] == "CRM"
+    assert body["auth"]["issuer"] == "https://idp.example"
+
+
+def test_auth_needs_both_issuer_and_client_id(monkeypatch):
+    monkeypatch.setenv("MATEU_MOBILE_OIDC_ISSUER", "https://idp.example")
+    assert "auth" not in json.loads(mobile_manifest.manifest_json(PlainApp))
+
+
+def test_name_falls_back_to_the_humanized_class_name():
+    class BackOffice:
+        pass
+
+    assert json.loads(mobile_manifest.manifest_json(BackOffice))["name"] == "Back office"
+
+
+def test_the_endpoint_is_public_and_cacheable():
+    fastapi = pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from mateu_fastapi import add_mateu
+
+    api = fastapi.FastAPI()
+    add_mateu(api, AcmeApp, MmHome, identity_provider=lambda: None)
+    client = TestClient(api)
+    response = client.get("/mateu/v3/manifest")
+    assert response.status_code == 200
+    assert response.text == ACME
+    assert response.headers["content-type"] == "application/json"
+    assert response.headers["cache-control"] == "public, max-age=300"
+    assert response.headers["x-content-type-options"] == "nosniff"
+
+    mounted = fastapi.FastAPI()
+    add_mateu(mounted, PlainApp, MmHome, base_url="/crm", identity_provider=lambda: None)
+    assert TestClient(mounted).get("/crm/mateu/v3/manifest").text == PLAIN
+
+
+def meta(cls) -> dict:
+    inc = SyncHandler(MateuRegistry(cls, MmHome)).handle(RunActionRq(server_side_type=type_name(cls)))
+    return json.loads(json.dumps(inc.model_dump(by_alias=True, mode="json")))["fragments"][0][
+        "component"
+    ]["metadata"]
+
+
+def test_mobile_qr_is_opt_in():
+    assert meta(PlainApp)["mobileQr"] is False
+    assert meta(AcmeApp)["mobileQr"] is True

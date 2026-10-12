@@ -1,0 +1,166 @@
+---
+// https://mateu.io/add?u=<url-encoded base URL>[&r=<url-encoded route>]
+//
+// Where a "Open on mobile" QR lands when the Mateu app is NOT installed (when it is, the phone
+// opens the app through the universal link / App Link instead — see doc/well-known-templates/).
+// A static page: the query is read in the browser, so it works on any static host. It shows the
+// TARGET DOMAIN prominently (a QR can come from anyone — that is the phishing protection), the
+// store links, an "Open in the Mateu app" button (mateu://add?…) and the QR again, for scanning
+// from a phone when this page was opened on a desktop.
+// Design: design/mobile-app-hub.md; user docs: /ux-patterns/mobile-app/.
+---
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="robots" content="noindex" />
+	<meta name="color-scheme" content="light dark" />
+	<title>Add a UI to the Mateu app</title>
+	<link rel="icon" href="/favicon.png" />
+	<style>
+		:root {
+			--bg: #f6f7f9; --card: #ffffff; --ink: #1a1a1a; --muted: #5b6270; --line: #d9dde3;
+			--accent: #1f6feb; --accent-ink: #ffffff; --warn-bg: #fff4d6; --warn-ink: #5c4300;
+			--err-bg: #fde7e7; --err-ink: #7a1414;
+		}
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg: #111418; --card: #1b1f25; --ink: #eceff3; --muted: #a3abb8; --line: #333a44;
+				--accent: #5b9bff; --accent-ink: #0b1220; --warn-bg: #3d3210; --warn-ink: #ffe6a3;
+				--err-bg: #3d1515; --err-ink: #ffc9c9;
+			}
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0; background: var(--bg); color: var(--ink);
+			font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+		}
+		main { max-width: 34rem; margin: 0 auto; padding: 2rem 16px 3rem; }
+		.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.5rem; }
+		h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+		h2 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
+		p { margin: .5rem 0; }
+		.muted { color: var(--muted); font-size: .9rem; }
+		.domain { font-size: 1.6rem; font-weight: 700; word-break: break-all; margin: .75rem 0 .25rem; }
+		code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; word-break: break-all; }
+		dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .75rem; margin: .5rem 0; }
+		dt { color: var(--muted); font-size: .9rem; }
+		dd { margin: 0; }
+		.btn {
+			display: inline-block; padding: .65rem 1.1rem; border-radius: 8px; text-decoration: none;
+			font-weight: 600; border: 1px solid var(--accent);
+		}
+		.btn.primary { background: var(--accent); color: var(--accent-ink); }
+		.btn.secondary { color: var(--accent); background: transparent; }
+		.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+		.stores { display: flex; flex-wrap: wrap; gap: .5rem; }
+		.qr { display: block; width: min(16rem, 100%); height: auto; margin: .5rem auto; border-radius: 6px; }
+		.notice { border-radius: 8px; padding: .75rem 1rem; margin: 1rem 0; }
+		.notice.warn { background: var(--warn-bg); color: var(--warn-ink); }
+		.notice.error { background: var(--err-bg); color: var(--err-ink); }
+		[hidden] { display: none !important; }
+		footer { margin-top: 1.5rem; text-align: center; }
+		footer a { color: var(--accent); }
+	</style>
+</head>
+<body>
+	<main>
+		<div class="card">
+			<h1>Add a UI to the Mateu app</h1>
+			<noscript>
+				<p class="notice error" role="alert">This page needs JavaScript to read the link it was opened with.
+				Open it in a browser with JavaScript enabled, or type the address into the Mateu app.</p>
+			</noscript>
+
+			<div id="invalid" class="notice error" role="alert" hidden>
+				<strong>This link does not point to a valid UI.</strong>
+				<p id="invalid-reason"></p>
+				<p>Ask whoever shared it for a new QR code, or use the “Open on mobile” button in the application itself.</p>
+			</div>
+
+			<section id="valid" aria-labelledby="target-heading" hidden>
+				<p class="muted" id="target-heading">You are about to add the UI at</p>
+				<p class="domain" id="domain"></p>
+				<div id="http-warning" class="notice warn" role="note" hidden>
+					This address uses plain <strong>http</strong>. It is only accepted for local development
+					(<code>localhost</code>); the Mateu app refuses it in a store build.
+				</div>
+				<p class="muted">Only continue if you trust this domain. The link carries no password or
+					token: you will sign in inside the app.</p>
+				<dl>
+					<dt>Address</dt><dd><code id="base-url"></code></dd>
+					<dt id="route-label" hidden>Screen</dt><dd id="route-value" hidden><code id="route"></code></dd>
+				</dl>
+
+				<h2>Open this UI in the Mateu app</h2>
+				<p><a class="btn primary" id="open-app" href="#">Open in the Mateu app</a></p>
+				<p class="muted">If nothing happens, the app is not installed yet:</p>
+				<div class="stores">
+					<!-- TODO(owner): store URLs — replace href="#" with the App Store and Google Play listings once published. -->
+					<a class="btn secondary" href="#" aria-disabled="true">Download on the App Store</a>
+					<a class="btn secondary" href="#" aria-disabled="true">Get it on Google Play</a>
+				</div>
+				<p class="muted">The Mateu app is not in the stores yet.</p>
+
+				<h2>On another device?</h2>
+				<p class="muted">Scan this code with your phone's camera.</p>
+				<img class="qr" id="qr" alt="" width="256" height="256" />
+				<p><code id="page-url"></code></p>
+			</section>
+		</div>
+		<footer class="muted">
+			<a href="/ux-patterns/mobile-app/">What is this?</a>
+		</footer>
+	</main>
+
+	<script>
+		import { qrDataUri } from '../scripts/qrEncoder.js'
+
+		const $ = (id: string) => document.getElementById(id) as HTMLElement
+		const params = new URLSearchParams(location.search)
+		const u = (params.get('u') ?? '').trim()
+		const r = (params.get('r') ?? '').trim()
+
+		const fail = (reason: string) => {
+			$('invalid-reason').textContent = reason
+			$('invalid').hidden = false
+		}
+
+		let target: URL | null = null
+		if (!u) {
+			fail('It has no address (the “u” parameter is missing).')
+		} else {
+			try { target = new URL(u) } catch { fail('Its address is not a URL: ' + u) }
+		}
+		if (target) {
+			const local = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)
+			if (target.protocol !== 'https:' && !(target.protocol === 'http:' && local)) {
+				fail('Only https addresses can be added (this one is “' + target.protocol.replace(':', '') + '”).')
+				target = null
+			} else if (target.username || target.password) {
+				fail('The address must not contain a user name or password.')
+				target = null
+			} else {
+				$('domain').textContent = target.host
+				$('http-warning').hidden = target.protocol === 'https:'
+				$('base-url').textContent = u
+				if (r && r !== '/') {
+					$('route').textContent = r
+					$('route-label').hidden = false
+					$('route-value').hidden = false
+				}
+				const query = 'u=' + encodeURIComponent(u) + (r && r !== '/' ? '&r=' + encodeURIComponent(r) : '')
+				;($('open-app') as HTMLAnchorElement).href = 'mateu://add?' + query
+				const pageUrl = 'https://mateu.io/add?' + query
+				$('page-url').textContent = pageUrl
+				const img = $('qr') as HTMLImageElement
+				img.src = qrDataUri(pageUrl)
+				img.alt = 'QR code that opens ' + target.host + ' in the Mateu app (' + pageUrl + ')'
+				$('valid').hidden = false
+				document.title = 'Add ' + target.host + ' to the Mateu app'
+			}
+		}
+	</script>
+</body>
+</html>

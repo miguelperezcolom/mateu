@@ -89,6 +89,7 @@ class AppShellFlowSyncTest {
     assertThat(app.themeToggle()).isTrue();
     assertThat(app.commandCenterEnabled()).isTrue();
     assertThat(app.accessKeys()).isTrue();
+    assertThat(app.mobileQr()).isTrue();
     assertThat(app.chromeless()).isFalse();
     var shell = (ClientSideComponentDto) increment.fragments().get(0).component();
     assertThat(shell.children()).hasSize(1);

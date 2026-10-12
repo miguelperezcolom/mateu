@@ -69,7 +69,12 @@ public record AppShell(
     /** The idle warning's countdown in seconds — the twin of {@code @App(idleWarningSeconds)}. */
     @Experimental("idle-session warning (3.0-alpha, E2 patterns)") Integer idleWarningSeconds,
     /** Where the idle warning's "Sign out" goes — the twin of {@code @App(idleSignOutUrl)}. */
-    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") String idleSignOutUrl)
+    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") String idleSignOutUrl,
+    /**
+     * "Open on mobile" — the twin of {@code @App(mobileQr)} (YAML {@code mobileQr: true}). Null:
+     * the class.
+     */
+    @Experimental("mobile app (3.0 beta)") Boolean mobileQr)
     implements Component, PageMainContent {
 
   public AppShell {
