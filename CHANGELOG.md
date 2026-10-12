@@ -83,6 +83,50 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
     `mateu_uidl.__all__` added.
   - `HeroSection` and `FoldoutPanel` regain their 3.0-alpha.408 constructors (alpha.409 had dropped
     them when adding `tone` / `summary`).
+- **Pre-beta API decisions** (3.0-alpha.412; the owner's resolutions of the open questions in
+  `design/api-freeze-review.md`). Nothing is removed — every rename is an addition plus a deprecation:
+  - **Wire DTOs are outside the Java binary promise**: the contract of `mateu-dtos` is the JSON wire,
+    versioned by `wireVersion`. japicmp still reports on it but never blocks for it, so the allowlist
+    no longer needs an entry per new wire field. Build DTOs through their builders.
+  - **japicmp baseline → `3.0-alpha.411`**; the allowlist is back to the sentinel (every entry
+    described the diff against alpha.408), and `-Dmateu.api.enforce=true` passes.
+  - **The wire now says `HAMBURGER_MENU`**: the Java, .NET and Python servers send the right
+    spelling; every first-party renderer accepts both (`HAMBURGUER_MENU` from an older server still
+    renders), as the web and Redwood renderers have since 3.0-alpha.387. `AppVariantDto.HAMBURGUER_MENU`
+    is deprecated. A renderer that only knows the old spelling (pre-alpha.387, or a custom one) would
+    not draw the hamburger chrome for a new server — ship server and renderer together.
+  - **`HeaderBadgesSupplier`** (`headerBadges()`) — named after `@BadgeInHeader` — replaces
+    `BadgeSupplier`, which is deprecated and keeps working.
+  - **`Button.resolvedActionId()`** — the id the button dispatches (declared, else derived from the
+    label); `getActionId()` is deprecated (same value). `actionId()` stays the declared one. No wire
+    change.
+  - **`@KeycloakSecured` is deprecated** (still works): identity comes from the host framework's
+    security or a `PrincipalResolver` — see the Security page.
+  - **Inference switches unified**: `mateu.layout.inference.enabled` (default `false`) and
+    `mateu.page.inference.enabled` (default `true`) — system property or `MATEU_…` env var; .NET
+    `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled`; Python
+    `MATEU_LAYOUT_INFERENCE_ENABLED` / `MATEU_PAGE_INFERENCE_ENABLED`. The old
+    `mateu.layout.inference` / `mateu.page.inference.disabled` (and the .NET switches) still work and
+    warn once.
+  - **.NET code-authoring types in `Mateu.Uidl`**: `IRouteEntrySupplier`, `IAppSupplier`,
+    `IMenuSupplier`, `AppShell` and `RouteEntry` moved to the `Mateu.Uidl` assembly (same full names;
+    `Mateu.Core` type-forwards them), so a UI-only module can author routes and shells in code.
+  - **Python `Length`** is the length constraint; `Size` is deprecated (warns) — in Java and .NET
+    `Size` is the sizing intent.
+  - **Port idioms documented** in the parity matrix (menus, KPI, wizard steps and completion,
+    progress style, edit-in-drawer, action options, toast variants). The port-only `[Secured]` /
+    `@secured`, which was silently ignored, is now **enforced** with the semantics of
+    `EyesOnly(permissions = …)` (view and actions 403, menu entries hidden) and deprecated in favour
+    of `EyesOnly` — a view that carried it is no longer open to everyone.
+- **The whole row opens the record**: on a navigable listing (a view per row, or `rowRoute`) a click
+  anywhere on the row opens it — not only on the id link — in the web (Vaadin), Redwood, React
+  Native and IntelliJ renderers. Clicks on the selection checkbox, on inline editors and on display
+  columns (buttons, links, menus, action groups, components, columns with their own action) keep
+  doing their own thing; Enter on a focused row opens it.
+- **KPI timeframe** (`@Experimental`): `MetricCard.timeframe` ("Last 7 days") is shown under the
+  value in every renderer and is part of the tile's accessible name; a dashboard whose KPI tiles
+  carry no timeframe logs a one-time hint. Also in .NET (`Timeframe`) and Python (`timeframe`). The
+  dashboard page gained a KPI checklist.
 - **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
   a server speaking another wire major gets one clear message instead of a broken screen.
 
@@ -114,7 +158,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   which scans only Mateu's packages. Apps no longer need `scanBasePackages = "io.mateu"` — drop it
   (and scan your own packages if your code lives under `io.mateu.*`).
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
-- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
+- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`. Now also on the ports: .NET
+  `MateuOptions.Mcp = true` / Python `add_mateu(..., mcp=True)` (or `MATEU_MCP_ENABLED=true` on
+  both); a failing MCP tool call answers the error boundary's generic text + reference, never the
+  raw exception.
+- **.NET / Python proxied REST calls surface failures** like Java: a >=400 or transport error
+  answers `_restfetchError {status, message}` instead of an empty `_restfetch` the renderer read as
+  success; values interpolated into a JSON body are escaped; .NET sends a declared `Content-Type`
+  (it was dropped, so a JSON body travelled as `text/plain`); .NET answers a malformed sync body with
+  an error toast instead of a raw 500.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
 - **RunJS is opt-in** (`<meta name="mateu-allow-run-js" content="true">`).
 - **Quarkus** apps declare `quarkus-rest-jackson`; `quarkus-spring-di` is no longer brought in.

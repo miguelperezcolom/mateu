@@ -111,6 +111,7 @@ class SalesDashboard(Dashboard):
         icon="chart",
         description="Total invoiced",
         action_id="openRevenue",
+        timeframe="Last 7 days",
     )
     tickets: MetricCard = MetricCard(title="Open tickets", value="42", trend=MetricTrend.down)
     plan: Annotated[Gantt, Panel("Plan", subtitle="Q3", col_span=2, row_span=1)] = Gantt(
@@ -908,8 +909,10 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
         "icon": "chart",
         "description": "Total invoiced",
         "actionId": "openRevenue",
+        "timeframe": "Last 7 days",
     }
     assert card2["metadata"]["trend"] == "down"
+    assert card2["metadata"]["timeframe"] is None
     assert card2["metadata"]["actionId"] is None
 
     # Panel(...)-annotated field becomes a titled DashboardPanel tile wrapping its content.

@@ -133,7 +133,7 @@ const SAMPLES: Record<string, Sample> = {
         { text: 'Yes, cleaned at 9:40.', userName: 'Housekeeping', time: '10:03', userColorIndex: 3 },
     ] },
     Meter: { type: 'Meter', label: 'Storage', value: 72, max: 100, unit: '%', caption: '72 of 100 GB', warnAt: 70, dangerAt: 90 },
-    MetricCard: metric('Revenue', '€48,210'),
+    MetricCard: { ...metric('Revenue', '€48,210'), timeframe: 'Last 30 days' },
     Notice: { type: 'Notice', text: '2 complaints pending', theme: 'warning', actionLabel: 'Review', actionId: 'go' },
     NotFound: { type: 'NotFound', title: 'Page not found', message: 'The page you asked for does not exist.', backRoute: '/', backLabel: 'Go home' },
     OfferCard: { type: 'OfferCard', tag: 'Best value', title: 'Premium room', subtitle: 'Sea view · 32 m²', features: ['Breakfast', 'Late check-out'], priceLabel: '€180 / night', actionLabel: 'Upgrade', actionId: 'go' },

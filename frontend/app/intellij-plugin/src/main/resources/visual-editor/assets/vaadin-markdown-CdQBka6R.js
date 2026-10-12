@@ -1,0 +1,1 @@
+import"./vaadinCanvasRenderer-Br0-caAN.js";

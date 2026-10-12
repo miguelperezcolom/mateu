@@ -127,6 +127,19 @@ def test_a_lazy_document_is_produced_only_when_fetched():
     assert calls["lazy"] == 1
 
 
+def test_a_failing_lazy_document_answers_500_with_nothing_of_the_error_and_once():
+    def boom() -> bytes:
+        raise RuntimeError("db password is hunter2")
+
+    store = documents.DocumentStore()
+    token = store.park(Document.lazy("report.pdf", "application/pdf", boom))
+    served = documents.serve(token, store)
+    assert served.status == 500
+    assert served.body == b"" and served.headers == {"Cache-Control": "no-store"}
+    # the token was consumed: a retry cannot run the producer again
+    assert documents.serve(token, store).status == 404
+
+
 def test_a_printed_document_and_the_print_command():
     file = the_download(run("printFolio"))
     assert file["disposition"] == "inline" and file["print"] is True

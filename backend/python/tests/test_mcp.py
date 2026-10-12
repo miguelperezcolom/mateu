@@ -72,6 +72,17 @@ class ProjectionTest(unittest.TestCase):
         s = mcp.project_increment({"commands": [{"type": "navigateTo", "data": "/thanks"}, {"type": "SetWindowTitle", "data": "x"}], "fragments": []})
         self.assertEqual(s["commands"], [{"type": "navigateTo", "data": "/thanks"}])
 
+    def test_a_message_keeps_its_severity_and_title(self):
+        # the wire's message carries "variant", not "type": every error used to project as "info"
+        s = mcp.project_increment({"messages": [
+            {"variant": "error", "title": "Something went wrong", "text": "Reference: abc"},
+            {"text": "plain"},
+        ]})
+        self.assertEqual(s["messages"], [
+            {"text": "Reference: abc", "type": "error", "title": "Something went wrong"},
+            {"text": "plain", "type": "info"},
+        ])
+
     def test_empty_increment_does_not_raise(self):
         s = mcp.project_increment({})
         self.assertEqual(s["fields"], [])

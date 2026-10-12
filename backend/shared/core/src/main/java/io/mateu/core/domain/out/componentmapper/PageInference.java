@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
 
 /**
  * Fase 1 of page-level inference (see {@code design/page-level-inference-plan.md}): under the
- * explicit {@link AutoPage} opt-in (or the global {@code mateu.layout.inference} property), the
+ * {@link AutoPage} (or the global {@code mateu.page.inference.enabled} setting, on by default), the
  * structural signals stop advising ({@code ArchetypeAdvisor}) and start <b>composing</b> — the
  * mapper substitutes the plain instance with the matching archetype bridge at mapping time. Rules
  * are deterministic and structure-based, like {@code LayoutInference}; explicit always wins:
@@ -29,7 +29,8 @@ public final class PageInference {
 
   /**
    * Whether page inference applies to the type: {@code @AutoPage} decides when present (composable,
-   * meta-aware), otherwise the {@code mateu.layout.inference} system property enables it globally.
+   * meta-aware), otherwise the {@code mateu.page.inference.enabled} setting (default {@code true},
+   * see {@link InferenceSwitches}).
    */
   public static boolean enabled(Class<?> type) {
     if (type == null) {
@@ -40,8 +41,8 @@ public final class PageInference {
     }
     // Page inference is ON by default: the matching template is the default inferred output for a
     // plain view (the developer still just declares data; it is always overridable). Opt out per
-    // class with @AutoPage(false), or globally with -Dmateu.page.inference.disabled=true.
-    return !Boolean.getBoolean("mateu.page.inference.disabled");
+    // class with @AutoPage(false), or globally with -Dmateu.page.inference.enabled=false.
+    return InferenceSwitches.pageInferenceEnabled();
   }
 
   /** Whether ANY composition rule applies — used by {@code ArchetypeAdvisor} to stand down. */

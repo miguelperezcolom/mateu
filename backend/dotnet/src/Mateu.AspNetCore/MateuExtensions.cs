@@ -85,10 +85,14 @@ public static class MateuExtensions
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
         app.MapPost(prefix + "/mateu/v3/sync/{**route}", async (HttpContext ctx, SyncHandler handler) =>
         {
-            var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
+            // Read INSIDE the boundary: a malformed body is an error toast, never a raw 500.
+            var rq = new RunActionRqDto();
+            var increment = await RunGuarded(ctx, rq, async () =>
+            {
+                rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
-            var increment = await RunGuarded(ctx, rq, () =>
-                handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted));
+                return await handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted);
+            });
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
         });
@@ -113,11 +117,31 @@ public static class MateuExtensions
         if (DevSpecs.Enabled) MapDevEndpoints(app);
 
         // Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
-        // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
+        // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and
+        // the SAME error boundary (a failing tool call never shows its raw exception). OFF unless
+        // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
+        var options = app.Services.GetService<MateuOptions>();
+        if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+    }
+
+    private static void MapMcpEndpoint(WebApplication app, string prefix)
+    {
         app.MapPost(prefix + "/mateu/mcp", async (HttpContext ctx, SyncHandler handler) =>
         {
-            var message = await JsonSerializer.DeserializeAsync<JsonNode>(ctx.Request.Body, Json, ctx.RequestAborted);
-            var mcp = new McpService(handler, Json, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
+            JsonNode? message;
+            try
+            {
+                message = await JsonSerializer.DeserializeAsync<JsonNode>(ctx.Request.Body, Json, ctx.RequestAborted);
+            }
+            catch (JsonException)
+            {
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync(
+                    "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}");
+                return;
+            }
+            var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
+            var mcp = new McpService(handler, Json, baseUrl, rq => Guard(ctx, rq, () => handler.Handle(rq, baseUrl)));
             var response = McpJsonRpc.Handle(message, mcp);
             if (response is null)
             {
@@ -173,15 +197,6 @@ public static class MateuExtensions
         {
             return await run();
         }
-        catch (MateuForbiddenException e)
-        {
-            // A denied action/view ([DisabledUnless]/[EyesOnly] not satisfied at invocation): 403
-            // with an error message increment, the method never ran.
-            Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
-                rq.Route, rq.ActionId, e.Message);
-            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
-        }
         catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
         {
             // The client went away: nobody is listening for an answer.
@@ -189,17 +204,47 @@ public static class MateuExtensions
         }
         catch (Exception e)
         {
-            var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
-            var cause = MateuErrors.Unwrap(e);
-            var log = Logger(ctx, "Mateu.Errors");
-            if (MateuErrors.IsForTheUser(cause))
-                log.LogInformation("Action {ActionId} on {Route} answered a user-facing error [{CorrelationId}]: {Message}",
-                    rq.ActionId, rq.Route, correlationId, cause.Message);
-            else
-                log.LogError(cause, "Unhandled error in action {ActionId} on {Route} [{CorrelationId}]",
-                    rq.ActionId, rq.Route, correlationId);
-            return MateuErrors.Increment(cause, correlationId, Detailed(ctx));
+            var increment = ErrorIncrement(ctx, rq, e, out var forbidden);
+            if (forbidden) ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return increment;
         }
+    }
+
+    /// <summary>The same boundary for a request run synchronously inside another response (an MCP
+    /// tool call): the error message increment, without touching the HTTP status of the envelope.</summary>
+    internal static UIIncrementDto Guard(HttpContext ctx, RunActionRqDto rq, Func<UIIncrementDto> run)
+    {
+        try
+        {
+            return run();
+        }
+        catch (Exception e)
+        {
+            return ErrorIncrement(ctx, rq, e, out _);
+        }
+    }
+
+    private static UIIncrementDto ErrorIncrement(HttpContext ctx, RunActionRqDto rq, Exception e, out bool forbidden)
+    {
+        forbidden = e is MateuForbiddenException;
+        if (forbidden)
+        {
+            // A denied action/view ([DisabledUnless]/[EyesOnly] not satisfied at invocation): an
+            // error message increment (403 on the sync endpoint), the method never ran.
+            Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
+                rq.Route, rq.ActionId, e.Message);
+            return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
+        }
+        var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
+        var cause = MateuErrors.Unwrap(e);
+        var log = Logger(ctx, "Mateu.Errors");
+        if (MateuErrors.IsForTheUser(cause))
+            log.LogInformation("Action {ActionId} on {Route} answered a user-facing error [{CorrelationId}]: {Message}",
+                rq.ActionId, rq.Route, correlationId, cause.Message);
+        else
+            log.LogError(cause, "Unhandled error in action {ActionId} on {Route} [{CorrelationId}]",
+                rq.ActionId, rq.Route, correlationId);
+        return MateuErrors.Increment(cause, correlationId, Detailed(ctx));
     }
 
     private static bool Detailed(HttpContext ctx) =>

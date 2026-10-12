@@ -108,6 +108,9 @@ class MetricCard(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    # The period the value covers ("Last 7 days"), shown under the value. Experimental
+    # (3.0-alpha.412), like Java's MetricCard.timeframe.
+    timeframe: str | None = None
 
 
 @dataclass(frozen=True)

@@ -91,7 +91,8 @@ public record MetricCardMetadataDto(
     string? TrendLabel,
     string? Icon,
     string? Description,
-    string? ActionId) : ComponentMetadataDto;
+    string? ActionId,
+    string? Timeframe = null) : ComponentMetadataDto;
 
 /// <summary>Horizontal band of metric cards. The MetricCards travel as component children.</summary>
 public record ScoreboardMetadataDto : ComponentMetadataDto;

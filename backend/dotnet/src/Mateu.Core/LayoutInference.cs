@@ -36,13 +36,14 @@ public static class LayoutInference
     public const string MoreOptionsLabel = "More options";
 
     /// <summary>Whether inference applies to the type: [AutoLayout] decides when present, otherwise
-    /// the "Mateu.LayoutInference" AppContext switch enables it globally (the C# analogue of Java's
-    /// mateu.layout.inference system property). Global default off.</summary>
+    /// the "Mateu.LayoutInference.Enabled" AppContext switch enables it globally (the C# analogue of
+    /// Java's mateu.layout.inference.enabled; the old "Mateu.LayoutInference" still works, deprecated —
+    /// see <see cref="InferenceSwitches"/>). Global default off.</summary>
     public static bool Enabled(Type? type)
     {
         if (type is null) return false;
         if (type.Find<AutoLayoutAttribute>() is { } auto) return auto.Value;
-        return AppContext.TryGetSwitch("Mateu.LayoutInference", out var on) && on;
+        return InferenceSwitches.LayoutInferenceEnabled();
     }
 
     /// <summary>Estimated visual weight of a field in standard field-row units (1 = one regular

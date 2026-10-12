@@ -158,9 +158,27 @@ final class PageMetadataExtractor {
     return null;
   }
 
+  /**
+   * The badges a page supplies in code, or null when it supplies none: {@link
+   * HeaderBadgesSupplier}, else the deprecated {@code BadgeSupplier} alias.
+   */
+  @SuppressWarnings("removal")
+  private static List<Badge> suppliedHeaderBadges(Object instance) {
+    if (instance instanceof HeaderBadgesSupplier supplier) {
+      var badges = supplier.headerBadges();
+      return badges != null ? badges : List.of();
+    }
+    if (instance instanceof BadgeSupplier supplier) {
+      var badges = supplier.badges();
+      return badges != null ? badges : List.of();
+    }
+    return null;
+  }
+
   static List<Badge> getBadges(Object instance, HttpRequest httpRequest) {
-    if (instance instanceof BadgeSupplier badgeSupplier) {
-      return badgeSupplier.badges().stream()
+    List<Badge> supplied = suppliedHeaderBadges(instance);
+    if (supplied != null) {
+      return supplied.stream()
           .filter(b -> b != null && b.text() != null && !b.text().isBlank())
           .toList();
     }

@@ -29,14 +29,13 @@ define([
       const { $application } = context;
 
       const listing = $application.variables.mateuListing;
-      if (listing && listing.editable) {
-        return; // tabla de TRABAJO: las celdas se editan in situ, el clic de fila no navega
-      }
       const detail = (event && event.detail) || {};
-      // un clic en un BOTÓN de la fila (su acción: el «Open» de la bandeja) es de ese botón, no
-      // de la fila: sin esto abría también el detalle de la fila, que tapaba a dónde llevaba
+      // CLIC DE FILA ENTERA (decisión U1): toda la fila abre el registro, salvo las celdas con clic
+      // propio — un BOTÓN de la fila (el «Open» de la bandeja), un enlace, la casilla de selección,
+      // un EDITOR inline (en una tabla de trabajo sólo esas celdas se editan; el resto abre) o una
+      // columna de display (clase mateu-cell-noopen, precomputada en listingOf). Ver rowActionIsRows.
       const origin = detail.originalEvent && detail.originalEvent.target;
-      if (origin && origin.closest && origin.closest('[data-method], oj-button, oj-c-button, button, a')) {
+      if (!bridge.rowActionIsRows(origin)) {
         return;
       }
       const stamp = (detail.originalEvent && detail.originalEvent.timeStamp) || event.timeStamp || 0;

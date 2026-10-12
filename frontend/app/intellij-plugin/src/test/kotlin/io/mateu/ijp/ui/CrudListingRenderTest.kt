@@ -145,7 +145,7 @@ class CrudListingRenderTest : BasePlatformTestCase() {
         val table = table(render(ctx))
         table.setSize(400, 200)
         val rect = table.getCellRect(1, 1, true)
-        val e = MouseEvent(table, MouseEvent.MOUSE_CLICKED, 0, 0, rect.centerX.toInt(), rect.centerY.toInt(), 2, false)
+        val e = MouseEvent(table, MouseEvent.MOUSE_CLICKED, 0, 0, rect.centerX.toInt(), rect.centerY.toInt(), 2, false, MouseEvent.BUTTON1)
         table.mouseListeners.forEach { it.mouseClicked(e) }
         await("the view request") { server.actionIds().contains("view") }
         assertEquals("p2", server.requests.last().path("parameters").path("id").asText())

@@ -40,14 +40,31 @@ const handleMetricClick = (event: Event, metadata: MetricCard) => {
     }))
 }
 
+const present = (s?: string): s is string => s != null && String(s).trim() != ''
+
+/**
+ * The tile's accessible text, in reading order: "Revenue, 12.4k €, Last 7 days, +8%, …".
+ * Visually the tile is several spans a screen reader would read as unrelated fragments; the
+ * timeframe in particular must travel with the number it qualifies.
+ */
+export const metricCardAccessibleText = (metadata: MetricCard): string => {
+    const value = [metadata.value, metadata.unit].filter(present).map(s => String(s).trim()).join(' ')
+    return [metadata.title, value, metadata.timeframe, metadata.trendLabel, metadata.description]
+        .filter(present)
+        .map(s => String(s).trim())
+        .join(', ')
+}
+
 export const renderMetricCard = (component: ClientSideComponent) => {
     const metadata = component.metadata as MetricCard
     const clickable = !!metadata.actionId
+    const timeframe = present(metadata.timeframe) ? metadata.timeframe.trim() : undefined
     return html`
         <div class="mateu-metric-card ${component.cssClasses??''}"
              style="${cardSurface} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${clickable?'cursor: pointer;':''} ${component.style??''}"
              slot="${component.slot??nothing}"
-             role="${clickable?'button':nothing}"
+             role="${clickable?'button':'group'}"
+             aria-label="${metricCardAccessibleText(metadata)}"
              @click="${(e: Event) => handleMetricClick(e, metadata)}"
         >
             <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
@@ -58,6 +75,7 @@ export const renderMetricCard = (component: ClientSideComponent) => {
                 <span style="font-size: var(--lumo-font-size-xxxl, 2rem); font-weight: 600; line-height: 1.1;">${metadata.value}</span>
                 ${metadata.unit?html`<span style="font-size: var(--lumo-font-size-m, 1rem); color: var(--lumo-secondary-text-color, #666);">${metadata.unit}</span>`:nothing}
             </div>
+            ${timeframe?html`<span class="mateu-metric-timeframe" style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-secondary-text-color, #666);">${timeframe}</span>`:nothing}
             ${metadata.trend || metadata.trendLabel?html`
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${trendColor(metadata.trend)};">
                     ${trendArrow(metadata.trend)} ${metadata.trendLabel??nothing}

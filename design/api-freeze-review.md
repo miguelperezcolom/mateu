@@ -332,7 +332,8 @@ the first real adopter. The `value` of every mark names the feature and release.
 
 ### 2.6 Wire (flagged only — wire names are a renderer contract)
 
-- `AppVariantDto.HAMBURGUER_MENU`. This is the wire spelling, and it stays.
+- `AppVariantDto.HAMBURGUER_MENU`. This was the wire spelling. **Resolved (§7 #2):** servers send
+  `HAMBURGER_MENU` since 3.0-alpha.412.
   - Every first-party renderer already accepts `HAMBURGER_MENU` too, so a future wire minor could
     send the right spelling once third-party renderers have had a release to catch up.
   - **Owner decision:** whether to do that in 3.x, and when.
@@ -370,6 +371,9 @@ again. The fluent `Listing` and `PageView` constructor changes are in the allowl
 
 ## 4. japicmp
 
+> **Update (3.0-alpha.412):** baseline `3.0-alpha.411`, allowlist reset to the sentinel, `mateu-dtos`
+> report-only — see §7 #1 and #11. The rest of this section describes the alpha.410 state.
+
 - The baseline moves `3.0-alpha.407` → **`3.0-alpha.408`**, compared under the `mateu-*` artifact
   ids. `3.0-alpha.409` was tagged today but **is not on Maven Central yet**: when it lands, bump
   `<mateu.japicmp.baseline>` and drop the allowlist groups that only described 408→409.
@@ -404,27 +408,38 @@ again. The fluent `Listing` and `PageView` constructor changes are in the allowl
 - Every wire field and discriminator.
 - `IconKey` upstream spellings.
 - `@DetailFormCustomisation` (British spelling).
-- `Button.getActionId()`.
+- `Button.getActionId()` (later resolved, §7 #5).
 - `@HiddenIn*` naming.
 - Built-in action id casing.
 - Enum casing families.
-- `@KeycloakSecured`.
+- `@KeycloakSecured` (later resolved, §7 #6).
 - Moving internal types to `internal` packages: they are classified instead.
 - Demos still using `HAMBURGUER_MENU`. They compile with a deprecation warning, and other agents
   are working in `demo/`.
 
-## 7. Decisions for the owner
+## 7. Decisions for the owner — resolved (3.0-alpha.412)
 
-1. **DTO constructor policy** (§2.6): exclude them from the promise, or keep old constructors on
-   every wire addition.
-2. Whether to switch the wire to `HAMBURGER_MENU` in a 3.x minor.
-3. Python `Size` clash: add `Length` and deprecate the constraint.
-4. `BadgeSupplier` vs `@BadgeInHeader`: add `HeaderBadgesSupplier`?
-5. `Button.getActionId()` → `effectiveActionId()`?
-6. `@KeycloakSecured`: generalise it before the beta?
-7. Built-in action id casing for new ids (camelCase).
-8. `mateu.page.inference.disabled` vs `mateu.layout.inference` polarity.
-9. .NET code-authoring types living in `Mateu.Core`.
-10. The port-only `[Secured]` / `[Step]`, and the menu/KPI/wizard-completion model differences
-    (§2.5).
-11. Bump the japicmp baseline to alpha.409 once it is on Central.
+The owner resolved the open questions on 2026-10-12; they are implemented on
+`api/prebeta-decisions`. Rule throughout: nothing breaks an existing user — a rename is an addition
+plus a deprecation (`@Deprecated(since = "3.0-alpha.412", forRemoval = true)`, .NET `[Obsolete]`,
+Python `DeprecationWarning`), each naming its replacement.
+
+| # | Question | Resolution | Where |
+|---|---|---|---|
+| 1 | DTO constructor policy (§2.6) | **(a)**: the wire DTOs are OUTSIDE the Java binary promise — the contract is the JSON wire, versioned by `wireVersion`. japicmp keeps comparing `mateu-dtos` (report) but never blocks on it; the four alpha.409 DTO allowlist entries are gone | `shared/dtos/pom.xml` (break flags forced off), stability page "The wire DTOs: JSON, not Java binaries" |
+| 2 | `HAMBURGER_MENU` on the wire | Servers (Java/.NET/Python) **emit `HAMBURGER_MENU`** for both spellings; renderers (libs/mateu, Redwood poc, RN, IntelliJ) accept both — they already did (web/Redwood since alpha.387; RN/IntelliJ treat every menu variant alike); `AppVariantDto.HAMBURGUER_MENU` deprecated; the in-browser YAML expander now produces the new spelling; the `app-in-code` conformance case pins it in all three servers | `AppMapper.toDto`, .NET `AppVariant.ToWire`, Python `AppVariant.to_wire`, migration guide "Wire and renderers" |
+| 3 | Python `Size` clash | `Length` added (same fields/validation); `Size` is a deprecated subclass that warns naming `Length` | `mateu_uidl/constraints.py`, `test_api_freeze.py` |
+| 4 | `BadgeSupplier` vs `@BadgeInHeader` | `HeaderBadgesSupplier.headerBadges()` added; `BadgeSupplier` deprecated, still read (the new one wins). Not a sub-interface: making `BadgeSupplier` extend it added an interface method that japicmp (rightly, for source) flags. The ports have no supplier equivalent (only the `[HeaderBadge]` / `HeaderBadge` field marker) | `PageMetadataExtractor.suppliedHeaderBadges`, `FieldKindsSyncTest` |
+| 5 | `Button.getActionId()` | It derives the id from the label when none is declared, and IS what reaches the wire (`ButtonMapper`, `FormMapper`). Renamed to `resolvedActionId()`; `getActionId()` deprecated (same value). `actionId()` stays the declared id. No wire change | `Button`, `ButtonActionIdTest` |
+| 6 | `@KeycloakSecured` | Deprecated (still works): identity comes from the host framework / `PrincipalResolver`; docs point to the Security page | `KeycloakSecured`, security / app / key-annotations pages |
+| 7 | Built-in action id casing | **Still open** — not part of this round | — |
+| 8 | Inference switch polarity | One scheme: `mateu.layout.inference.enabled` (default false) and `mateu.page.inference.enabled` (default true), system property or `MATEU_…` env var; the old `mateu.layout.inference` / `mateu.page.inference.disabled` work as aliases with one WARN; new name wins. .NET: `Mateu.LayoutInference.Enabled` / `Mateu.PageInference.Enabled` AppContext switches (old ones aliased, warn once). Python had no global switch: it now reads `MATEU_LAYOUT_INFERENCE_ENABLED` / `MATEU_PAGE_INFERENCE_ENABLED` | `InferenceSwitches` (Java + .NET), `mateu_core/inference_switches.py`, layout-inference page "Global switches" |
+| 9 | .NET code-authoring types in `Mateu.Core` | Moved to the **`Mateu.Uidl` assembly** (which now references `Mateu.Dtos` for the wire-boundary `MenuItemDto` / `RestDataSourceDto`, like Java's uidl → dtos boundary), **keeping their full names** (`Mateu.Core.*`); `Mateu.Core` carries `[TypeForwardedTo]` for each. A same-named copy in the `Mateu.Uidl` namespace plus an `[Obsolete]` shim was rejected: every existing `IAppSupplier` file imports both namespaces, so the shim would turn into CS0104 ambiguity errors — a break | `src/Mateu.Uidl/CodeAuthoring.cs`, `src/Mateu.Core/TypeForwards.cs`, `ApiFreezeTests` |
+| 10 | Port-model differences | Documented as port idioms in `reference/parity.md` ("Port idioms" table: menus, KPI, wizard steps, completion, progress style, edit-in-drawer, action options, toast variants). Converged only where the difference was a trap: **`[Secured]` / `@secured` was never read by either port** (a "secured" view was open), so it is now ENFORCED with exactly the semantics of `EyesOnly(permissions = p)` — view and actions 403, menu entries hidden; tests `SecuredEnforcementTests` (.NET) / `test_secured_enforced.py` — and deprecated in favour of `EyesOnly`; Python's top-level `Step` (wizard marker) stays and the doc names `mateu_uidl.components.Step` as the ProgressSteps item; Python's `wizard_progress` now documents `rail` | `parity.md`, `I18nAndEvents.cs`, `class_decorators.py` |
+| 11 | japicmp baseline | → **`3.0-alpha.411`** (on Maven Central under the `mateu-*` ids; alpha.409 never was). The allowlist is back to the sentinel; `mvn install -pl shared/dtos,shared/uidl,shared/core -Dmateu.api.enforce=true` passes. It did catch one real issue on the way (see #4) | `backend/pom.xml`, `api-compat/japicmp-exclusions.properties` |
+
+Also in the same round (UX decisions, not API): **U1** a click anywhere on a navigable listing row
+opens the record (except the selection, editable cells and display columns; Enter opens) in all four
+renderers; **U2** `MetricCard.timeframe` (`@Experimental`), rendered under the value everywhere, with
+a one-time `ArchetypeAdvisor` hint when a dashboard's KPI tiles carry none and a KPI checklist on the
+dashboard page.

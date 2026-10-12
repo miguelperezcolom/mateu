@@ -222,26 +222,75 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         }
     }
 
-    // Double-click a row → open its detail via the row link action (e.g. "view"), passing the
-    // whole row as parameters. Listings without a link column (e.g. the check-in board) fall back
-    // to the row's FIRST action — its primary (e.g. "Check-in").
+    // WHOLE-ROW OPEN (decision U1, see RowOpen): a navigable listing (rowRoute, or a `view`
+    // column) opens the row's record from ANY non-display cell — a single click, or a double click
+    // when the listing has multi-selection (there a single click means "select") — and with Enter
+    // on the selected row. Display cells (an own-action link column, an inline editor) keep their
+    // own click. A listing that is NOT navigable keeps the previous double-click: its first link
+    // action, else the row's FIRST action — its primary (e.g. "Check-in" on the check-in board).
+    val rowOpen = RowOpen.openOf(metadata.text("rowRoute"), allSpecs.map { it.rowOpenColumn() })
+    val multiSelection = metadata.bool("rowsSelectionEnabled")
+    val openRow: (JsonNode) -> Unit = { row ->
+        when (val target = RowOpen.targetOf(rowOpen, row)) {
+            is RowOpen.Target.Route -> ctx.navigate(target.route, "", null, null)
+            is RowOpen.Target.Action -> ctx.runAction(target.actionId, rowAsParams(ctx, row))
+            null -> Unit
+        }
+    }
+    val specAt = { viewCol: Int -> if (viewCol < 0) null else specs.getOrNull(table.convertColumnIndexToModel(viewCol)) }
     table.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-            if (e.clickCount < 2) return
+            if (e.button != MouseEvent.BUTTON1) return
             val viewRow = table.rowAtPoint(e.point)
             if (viewRow < 0) return
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
+            val spec = specAt(table.columnAtPoint(e.point))
+            val modified = e.isControlDown || e.isShiftDown || e.isMetaDown || e.isAltDown
+            if (rowOpen != null) {
+                // a link cell with its OWN action does that action (the web's button column)
+                if (!modified && e.clickCount == 1 && spec != null && spec.kind == ColKind.LINK &&
+                    spec.actionId != RowOpen.ROW_OPEN_ACTION_ID) {
+                    ctx.runAction(spec.actionId, rowAsParams(ctx, row))
+                    return
+                }
+                if (RowOpen.clickOpens(rowOpen, spec?.rowOpenColumn(), e.clickCount, modified, multiSelection)) openRow(row)
+                return
+            }
+            if (e.clickCount < 2) return
             if (rowLinkActionId.isNotBlank()) {
                 ctx.runAction(rowLinkActionId, rowAsParams(ctx, row))
                 return
             }
-            val firstAction = actionSpecs.firstNotNullOfOrNull { spec ->
-                collectActions(row.path(spec.id), spec.dataType).firstOrNull()
+            val firstAction = actionSpecs.firstNotNullOfOrNull { s ->
+                collectActions(row.path(s.id), s.dataType).firstOrNull()
             } ?: return
             val method = firstAction.text("methodNameInCrud")
             if (method.isNotBlank()) ctx.runAction("action-on-row-$method", mapOf("_clickedRow" to row))
         }
     })
+    if (rowOpen != null) {
+        // the hand cursor over the cells that open the row, the default one over display cells
+        table.addMouseMotionListener(object : java.awt.event.MouseMotionAdapter() {
+            override fun mouseMoved(e: MouseEvent) {
+                val opens = table.rowAtPoint(e.point) >= 0 && !RowOpen.isDisplayColumn(specAt(table.columnAtPoint(e.point))?.rowOpenColumn())
+                table.cursor = java.awt.Cursor.getPredefinedCursor(if (opens) java.awt.Cursor.HAND_CURSOR else java.awt.Cursor.DEFAULT_CURSOR)
+            }
+        })
+        // Enter opens the selected row (JTable's default would just move to the next row)
+        val enter = javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0)
+        table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(enter, "mateuOpenRow")
+        table.actionMap.put("mateuOpenRow", object : javax.swing.AbstractAction() {
+            override fun actionPerformed(e: java.awt.event.ActionEvent?) {
+                if (table.isEditing) { table.cellEditor?.stopCellEditing(); return }
+                val viewRow = table.selectionModel.leadSelectionIndex.takeIf { it >= 0 } ?: table.selectedRow
+                if (viewRow < 0 || viewRow >= table.rowCount) return
+                model.rowAt(table.convertRowIndexToModel(viewRow))?.let(openRow)
+            }
+        })
+        table.accessibleDescription(
+            if (multiSelection) "Double-click a row or press Enter to open it" else "Click a row or press Enter to open it",
+        )
+    }
 
     // Right-click a row → context menu with the row link ("Open") + the row's column actions
     // (e.g. "Set as blue") — the IDE-native way to reach row actions.
@@ -255,7 +304,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             table.setRowSelectionInterval(viewRow, viewRow)
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
             val menu = JBPopupMenu()
-            if (rowLinkActionId.isNotBlank()) {
+            if (rowOpen != null && RowOpen.targetOf(rowOpen, row) != null) {
+                menu.add(JBMenuItem("Open").apply { addActionListener { openRow(row) } })
+            } else if (rowLinkActionId.isNotBlank()) {
                 menu.add(JBMenuItem("Open").apply {
                     addActionListener { ctx.runAction(rowLinkActionId, rowAsParams(ctx, row)) }
                 })
@@ -578,7 +629,10 @@ private data class ColSpec(
     val tooltipPath: String = "",
     val tones: Map<String, String> = emptyMap(),
     val valueLabels: Map<String, String> = emptyMap(),
-)
+) {
+    /** What the whole-row-open rule reads of this column (RowOpen.isDisplayColumn). */
+    fun rowOpenColumn() = RowOpen.Column(dataType = dataType, stereotype = stereotype, actionId = actionId, editable = editable)
+}
 
 // ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────
 

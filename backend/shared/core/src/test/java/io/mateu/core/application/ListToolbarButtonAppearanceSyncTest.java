@@ -111,11 +111,50 @@ class ListToolbarButtonAppearanceSyncTest {
     }
   }
 
+  /**
+   * The same bulk button on a listing with NO interaction capability: never promoted to the crud
+   * mediator, so its toolbar renders in the PAGE header — which has no advertised-actions list of
+   * its own, so the guard has to ride on the button.
+   */
+  @UI("/plain-jobs")
+  @Title("Jobs")
+  public static class PlainJobsListing
+      implements io.mateu.uidl.interfaces.Listing<PlainJobsListing.Row> {
+
+    public record Row(String id, String name) {}
+
+    @Override
+    public io.mateu.uidl.data.ListingData<Row> search(
+        io.mateu.uidl.data.SearchRequest request, io.mateu.uidl.interfaces.HttpRequest rq) {
+      var rows = List.of(new Row("1", "nightly"));
+      return new io.mateu.uidl.data.ListingData<>(new io.mateu.uidl.data.Page<>("", 1, 0, 1, rows));
+    }
+
+    @Override
+    public boolean selectionEnabled() {
+      return true;
+    }
+
+    @ListToolbarButton
+    @Action(confirmationTitle = "Archive jobs")
+    @Label("Archive")
+    public Message archive(List<Row> selection) {
+      return new Message(selection.size() + " archived");
+    }
+
+    /** Explicitly NOT selection-gated: runs over the whole listing. */
+    @ListToolbarButton(rowsSelectedRequired = false)
+    @Label("Purge all")
+    public Message purgeAll() {
+      return new Message("purged");
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ProcessesCrud.class);
+    mateu = TestMateu.withUis(ProcessesCrud.class, PlainJobsListing.class);
     PROCESSES.add(new Process("1", "nightly", "failed"));
   }
 
@@ -250,6 +289,53 @@ class ListToolbarButtonAppearanceSyncTest {
   void addingAnActionDoesNotDisarmTheSelectionGuard() {
     assertThat(action("action-on-row-cancel").rowsSelectedRequired()).isTrue();
     assertThat(action("action-on-row-cancel").bubble()).isTrue();
+  }
+
+  // ── the guard rides on the BUTTON ───────────────────────────────────────────
+
+  /**
+   * The renderer disables a selection-gated button while no row is selected. It reads the guard off
+   * the button itself, not by looking the advertised action up by the button's actionId: the two
+   * ids are not always the same string (an @Action method is also advertised under its nested-form
+   * id), and the page header of a plain listing has no actions list to look in.
+   */
+  @Test
+  void theBulkButtonCarriesItsOwnSelectionGuard() {
+    assertThat(button("action-on-row-cancel").rowsSelectedRequired()).isTrue();
+    assertThat(button("action-on-row-retryFromFailure").rowsSelectedRequired()).isTrue();
+  }
+
+  @Test
+  void aPlainListingsPageHeaderButtonCarriesTheGuardToo() {
+    var json =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .valueToTree(
+                mateu.run(
+                    RunActionRqDto.builder()
+                        .route("/plain-jobs")
+                        .consumedRoute("/plain-jobs")
+                        .serverSideType(PlainJobsListing.class.getName())
+                        .actionId("")
+                        .initiatorComponentId("c1_app")
+                        .componentState(Map.of())
+                        .build()));
+    var buttons =
+        json.findParents("actionId").stream()
+            .filter(node -> node.has("label") && node.has("rowsSelectedRequired"))
+            .toList();
+    var archive =
+        buttons.stream()
+            .filter(node -> "archive".equals(node.get("actionId").asText()))
+            .findFirst()
+            .orElseThrow();
+    var purge =
+        buttons.stream()
+            .filter(node -> "purgeAll".equals(node.get("actionId").asText()))
+            .findFirst()
+            .orElseThrow();
+    // @Action defaults rowsSelectedRequired to false; @ListToolbarButton's true wins (OR)
+    assertThat(archive.get("rowsSelectedRequired").asBoolean()).isTrue();
+    assertThat(purge.get("rowsSelectedRequired").asBoolean()).isFalse();
   }
 
   // ── regression: the three buttons already in production ─────────────────────

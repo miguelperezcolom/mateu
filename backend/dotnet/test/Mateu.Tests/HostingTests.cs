@@ -152,11 +152,14 @@ public class HostingTests
     }
 
     [Fact]
-    public async Task A_failing_proxied_endpoint_answers_an_empty_result()
+    public async Task A_failing_proxied_endpoint_surfaces_its_status()
     {
         var fake = new FakeHttp(_ => new HttpResponseMessage(HttpStatusCode.BadGateway));
         var (handler, _) = Host(o => { o.HttpClient = new HttpClient(fake); o.Secrets = _ => "k"; });
-        Assert.Equal("{}", RestFetched(await handler.HandleAsync(RestFetch())));
+        var increment = await handler.HandleAsync(RestFetch());
+        Assert.Equal("{\"status\":502,\"message\":\"Request failed (HTTP 502)\"}",
+            JsonSerializer.Serialize(((Dictionary<string, object?>)increment.AppData!)["_restfetchError"]));
+        Assert.False(((Dictionary<string, object?>)increment.AppData!).ContainsKey("_restfetch"));
         Assert.Equal(["https://api.example.com/countries?key=k"], fake.Urls);
     }
 

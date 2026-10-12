@@ -22,6 +22,7 @@ public class MetricCardMapper {
             .icon(metricCard.icon())
             .description(metricCard.description())
             .actionId(metricCard.actionId())
+            .timeframe(metricCard.timeframe())
             .build(),
         metricCard.id(),
         List.of(),

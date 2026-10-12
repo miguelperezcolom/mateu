@@ -1,6 +1,7 @@
 """Golden-JSON tests — the Python output must serialize to the same wire shape as the Java/C# backends."""
 
 import json
+import re
 import sys
 from datetime import date
 from decimal import Decimal
@@ -1993,6 +1994,10 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
         '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
     ) in j
+    # The BUTTON carries the selection guard too, so the renderer can disable it while nothing is
+    # selected without looking the advertised action up by id (Java's ButtonDto.rowsSelectedRequired).
+    assert re.search(r'"actionId": "action-on-row-deactivate"[^{}]*"rowsSelectedRequired": true', j)
+    assert re.search(r'"actionId": "action-on-row-restockAll"[^{}]*"rowsSelectedRequired": false', j)
 
 
 def test_list_toolbar_button_dispatch_receives_typed_selected_rows_and_researches():

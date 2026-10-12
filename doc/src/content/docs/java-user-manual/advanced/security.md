@@ -2,13 +2,24 @@
 title: "Security"
 ---
 
-Mateu provides two security annotations: `@KeycloakSecured` for authentication and `@EyesOnly` for role-based authorization. Both are declarative — no security filter chains or interceptor configuration required.
+Mateu does not authenticate: **identity comes from your host framework** (Spring Security, Quarkus
+OIDC, Micronaut Security, MicroProfile JWT, ASP.NET Core authentication, your FastAPI dependency) or
+from a `PrincipalResolver` bean — see [How authorization works](#how-authorization-works). On top of
+that identity, `@EyesOnly` (and `@ReadOnlyUnless` / `@DisabledUnless`) drive what each user sees —
+declaratively, with no filter chains or interceptors in your UI code.
 
 ---
 
-## Authentication with `@KeycloakSecured`
+## `@KeycloakSecured` (deprecated)
 
-`@KeycloakSecured` is a type-level annotation. Apply it to your `@UI` class to require Keycloak login before the application loads:
+:::caution[Deprecated in 3.0-alpha.412]
+`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
+not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
+[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
+register a `PrincipalResolver`.
+:::
+
+`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
 
 ```java
 @UI("")

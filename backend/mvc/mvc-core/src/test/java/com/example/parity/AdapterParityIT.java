@@ -37,6 +37,22 @@ class AdapterParityIT {
     }
 
     @Test
+    void refusesARestrictedActionToAnAnonymousCaller() {
+      contract.refusesARestrictedActionToAnAnonymousCaller();
+    }
+
+    @Test
+    void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
+      contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
+          java.util.Map.of(AdapterParityITFoundation.PARITY_ROLES_HEADER, "admin"));
+    }
+
+    @Test
+    void answersAnUnexpectedErrorWithAReferenceNeverItsMessage() {
+      contract.answersAnUnexpectedErrorWithAReferenceNeverItsMessage();
+    }
+
+    @Test
     void aForgedBearerTokenRevealsNothing() {
       contract.aForgedBearerTokenRevealsNothing();
     }
@@ -110,6 +126,11 @@ class AdapterParityIT {
     @Test
     void grantsCrossOriginAccessToTheAllowList() {
       contract.grantsCrossOriginAccessToTheAllowList();
+    }
+
+    @Test
+    void mcpToolCallsApplyTheSameRbacAndErrorBoundary() {
+      contract.mcpToolCallsApplyTheSameRbacAndErrorBoundary();
     }
 
     @Test

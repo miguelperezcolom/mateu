@@ -21,7 +21,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | [`@DrawerClosed`](app/) | Class | Starts the drawer/sidebar in closed state |
 | [`@Logo`](app/) | Class | Sets the app logo URL |
 | [`@FavIcon`](app/) | Class | Sets the browser favicon |
-| [`@KeycloakSecured`](app/) | Class | Protects a page with Keycloak authentication |
+| [`@KeycloakSecured`](app/) | Class | Deprecated: logs in against Keycloak — use your framework's security (see [Security](/java-user-manual/advanced/security/)) |
 | [`@AI`](app/) | Class | Enables AI/SSE integration |
 
 ## HTML head injection

@@ -1,10 +1,11 @@
 package io.mateu.core.infra;
 
 /**
- * Framework settings, read the way the rest of Mateu's switches are ({@code mateu.layout.inference}
- * …): a JVM system property, else the equivalent environment variable — the key upper-cased with
- * dots and dashes as underscores ({@code mateu.self-base-url} → {@code MATEU_SELF_BASE_URL}). Read
- * on every call (cheap), so a test can flip a property without restarting anything.
+ * Framework settings, read the way the rest of Mateu's switches are ({@code
+ * mateu.layout.inference.enabled} …): a JVM system property, else the equivalent environment
+ * variable — the key upper-cased with dots and dashes as underscores ({@code mateu.self-base-url} →
+ * {@code MATEU_SELF_BASE_URL}). Read on every call (cheap), so a test can flip a property without
+ * restarting anything.
  */
 public final class MateuSettings {
 

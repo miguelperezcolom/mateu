@@ -14,6 +14,7 @@ Per request the adapter
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable, Sequence
 from types import ModuleType
 from typing import Any
@@ -41,6 +42,11 @@ _FORBIDDEN_BODY = {
         {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 5000}
     ]
 }
+
+
+def mcp_enabled_from_env() -> bool:
+    """``MATEU_MCP_ENABLED`` (true/1/yes) — the native MCP endpoint is OFF unless enabled."""
+    return os.environ.get("MATEU_MCP_ENABLED", "").strip().lower() in ("1", "true", "yes")
 
 
 def authenticated_principal(request: Request) -> Identity | None:
@@ -89,6 +95,7 @@ def add_mateu(
     proxy_timeout_seconds: float = 30.0,
     environment: str | None = None,
     live_reload: bool | None = None,
+    mcp: bool | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -111,6 +118,9 @@ def add_mateu(
       watched, every cache is dropped on change, and ``GET /mateu/dev/events`` (SSE) +
       ``POST /mateu/dev/reload`` are served. Never in a production profile. Pair it with
       ``uvicorn --reload`` for Python changes.
+    - ``mcp`` — serve the native MCP endpoint ``POST /mateu/mcp`` (default: the
+      ``MATEU_MCP_ENABLED`` env var, else OFF — Java's ``mateu.mcp.enabled``). It gives any caller a
+      programmatic way to drive every screen, so the application has to decide to expose it.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -204,10 +214,17 @@ def add_mateu(
     app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
 
     # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
-    # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
-    async def mcp(request: Request) -> JSONResponse:
+    # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync, and the
+    # SAME error boundary: a tool call that fails shows the generic text + reference, never the raw
+    # exception (which may carry SQL, paths, other users' data). OFF unless enabled.
+    async def mcp_endpoint(request: Request) -> JSONResponse:
         mateu_request = request_of(request)
-        message = await request.json()
+        try:
+            message = await request.json()
+        except ValueError:
+            return JSONResponse(
+                {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}
+            )
 
         def sync_fn(route, action_id, component_state, parameters):
             rq = RunActionRq(
@@ -216,7 +233,14 @@ def add_mateu(
                 component_state=component_state or {},
                 parameters=parameters or {},
             )
-            return handler.handle(rq, mateu_request.base_url).model_dump(by_alias=True, mode="json")
+            try:
+                increment = handler.handle(rq, mateu_request.base_url)
+            except MateuForbiddenException:
+                return dict(_FORBIDDEN_BODY)
+            except Exception as error:  # noqa: BLE001 - the error boundary, as on sync
+                cid = mateu_request.correlation_id or new_correlation_id()
+                increment = error_increment(error, cid, show_details, rq.action_id)
+            return increment.model_dump(by_alias=True, mode="json")
 
         try:
             response = await run_in_threadpool(
@@ -228,7 +252,8 @@ def add_mateu(
             return JSONResponse(status_code=202, content=None)
         return JSONResponse(response)
 
-    app.add_api_route(f"{prefix}/mateu/mcp", mcp, methods=["POST"])
+    if mcp_enabled_from_env() if mcp is None else mcp:
+        app.add_api_route(f"{prefix}/mateu/mcp", mcp_endpoint, methods=["POST"])
 
     if dev_specs.enabled() if live_reload is None else live_reload:
         dev_specs.enable(True)

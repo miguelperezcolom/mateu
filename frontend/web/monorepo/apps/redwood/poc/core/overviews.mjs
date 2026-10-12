@@ -1,6 +1,7 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { islandContentOf, editorNodeIds } from './content.mjs'
 import { findByType } from './listing.mjs'
+import { metricAriaLabel } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
@@ -141,6 +142,8 @@ export function welcomeOf(ctx) {
       kpiTitle: mm ? (mm.title || mm.label || '') : '',
       kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
       kpiCaption: mm ? (mm.description || mm.caption || '') : '',
+      kpiTimeframe: mm ? String(mm.timeframe || '').trim() : '',
+      kpiAriaLabel: mm ? metricAriaLabel({ title: mm.title || mm.label || '', value: mm.value == null ? '' : String(mm.value), unit: mm.unit || '', timeframe: mm.timeframe || '', trendLabel: mm.trendLabel || '', description: mm.description || mm.caption || '' }) : '',
       kpiActionId: mm ? (mm.actionId || '') : '',
     }
   })

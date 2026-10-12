@@ -174,11 +174,15 @@ public static class McpProjection
             foreach (var mEl in messages)
             {
                 if (mEl is not JsonObject m) continue;
-                ms.Add(new JsonObject
+                // The wire's message names its severity "variant" (error/warning/success/info):
+                // reading only "type" told an agent every failure was "info".
+                var projected = new JsonObject
                 {
                     ["text"] = Str(m["text"]) ?? Str(m["message"]) ?? "",
-                    ["type"] = Str(m["type"]) ?? "info",
-                });
+                    ["type"] = Str(m["variant"]) ?? Str(m["type"]) ?? "info",
+                };
+                if (!string.IsNullOrWhiteSpace(Str(m["title"]))) projected["title"] = Str(m["title"]);
+                ms.Add(projected);
             }
             outObj["messages"] = ms;
         }

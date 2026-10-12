@@ -60,8 +60,10 @@ def title(value: str) -> Callable[[type], type]:
 
 
 def wizard_progress(style: str) -> Callable[[type], type]:
-    """Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
-    step bullets (the ProgressSteps component). (Python analogue of Java's @WizardProgress.)"""
+    """Chooses how a Wizard visualizes its progress: "bar" (default), "steps" — connected
+    step bullets (the ProgressSteps component) — or "rail" — a sticky right-hand rail with a
+    ``current | total`` counter over the vertical step list. (Python analogue of Java's
+    @WizardProgress.)"""
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_wizard_progress__", style)
@@ -292,11 +294,12 @@ class AppVariant(str, Enum):
 
     @staticmethod
     def to_wire(variant: str) -> str:
-        """The value a variant travels under on the wire: ``HAMBURGER_MENU`` goes as the historical
-        ``HAMBURGUER_MENU`` — the name every renderer reads (they accept both), as Java's AppMapper
-        does; anything else travels unchanged."""
+        """The value a variant travels under on the wire. Since 3.0-alpha.412 both
+        ``HAMBURGER_MENU`` and the old misspelling ``HAMBURGUER_MENU`` travel as
+        ``HAMBURGER_MENU`` (the renderers accept both), as Java's AppMapper does; anything else
+        travels unchanged."""
         value = variant.value if isinstance(variant, AppVariant) else variant
-        return "HAMBURGUER_MENU" if value == AppVariant.HAMBURGER_MENU.value else value
+        return AppVariant.HAMBURGER_MENU.value if value == "HAMBURGUER_MENU" else value
 
 
 #: The misspelled variant still accepted by ``@app(variant=...)`` (with a DeprecationWarning).
@@ -570,8 +573,23 @@ def subscribe_to(event: str, action: str) -> Callable[[type], type]:
 
 
 def secured(permission: str) -> Callable[[type], type]:
+    """Restricts a view to callers holding ``permission``. Before 3.0-alpha.412 nothing read it, so
+    a view carrying it was open to everyone; it is now ENFORCED with exactly the semantics of
+    ``@eyes_only(permissions=[permission])`` — the view and its actions are refused (403) to a
+    caller without the permission or with no principal, and the menu entries leading to it are
+    hidden. Deprecated: use ``@eyes_only``, which also takes roles, groups and scopes."""
+    warnings.warn(
+        "@secured is enforced as @eyes_only(permissions=[...]): use "
+        "@eyes_only(permissions=[...]) on the class instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    from .security import EyesOnly
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_secured__", permission)
+        # the gate the access checks read (mateu_core.action_guard.class_gates)
+        setattr(cls, "__mateu_secured_gate__", EyesOnly(permissions=(permission,)))
         return cls
 
     return deco

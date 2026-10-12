@@ -6,7 +6,8 @@ import copy
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Callable
+import urllib.error
 import urllib.request
 
 from mateu_dtos import UIIncrement
@@ -20,12 +21,45 @@ from ._common import (
 )
 
 
+class ProxyError(Exception):
+    """A proxied call that failed: a >=400 upstream status, or a transport error (status 0)."""
+
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+def _restfetch_error(status: int) -> UIIncrement:
+    """A failed proxied call rides back on ``_restfetchError`` (Java's restFetchError, same texts):
+    an empty ``_restfetch`` read as success, and the renderer toasted "Saved" over a write that
+    never happened."""
+    suffix = f" (HTTP {status})" if status > 0 else ""
+    return UIIncrement(
+        app_data={"_restfetchError": {"status": status, "message": "Request failed" + suffix}}
+    )
+
+
+def _declares_json(headers: dict | None) -> bool:
+    """Whether the request declares a JSON body (a ``Content-Type`` naming json) — then the values
+    interpolated into the body are JSON-escaped (Java's TemplateInterpolator.declaresJson)."""
+    return any(
+        name.lower() == "content-type" and value is not None and "json" in str(value).lower()
+        for name, value in (headers or {}).items()
+    )
+
+
+def _json_escape(value: str) -> str:
+    """The value as the inside of a JSON string literal (Java's TemplateInterpolator.jsonEscape)."""
+    return json.dumps(value, ensure_ascii=False)[1:-1]
+
+
 class ProxyHandlerMixin(MixinBase):
     # ── Proxy-mode external fetch (__restfetch__) ───────────────────────────────
     def _rest_fetch_response(self, rq: RunActionRq) -> UIIncrement:
         """Resolve the DECLARED source of the routed view by _sourceKind/_sourceId, interpolate
         ${state.x}/${secret.X}, fetch server-side and return the raw JSON on app_data._restfetch
-        (an empty object on any failure — the renderer maps it as in direct mode)."""
+        (an empty object when the view declares no such source). A failed call (>=400 upstream, or
+        a transport error) answers app_data._restfetchError ``{status, message}`` instead."""
         json_obj: Any = {}
         cls = self.registry.resolve(rq.server_side_type, rq.route)
         if cls is not None:
@@ -47,34 +81,49 @@ class ProxyHandlerMixin(MixinBase):
                 method = (source.method or "GET").strip().upper()
                 json_obj = copy.deepcopy(source.sample) if method in ("", "GET", "HEAD") else {}
             elif source is not None:
-                json_obj = self._fetch_proxy(source, rq.component_state)
+                try:
+                    json_obj = self._fetch_proxy(source, rq.component_state)
+                except ProxyError as e:
+                    return _restfetch_error(e.status)
         return UIIncrement(app_data={"_restfetch": json_obj})
 
     def _fetch_proxy(self, source, state: dict) -> Any:
-        """Fetch a resolved source server-side (url/headers/body interpolated); an empty object on
-        any non-2xx or transport error."""
+        """Fetch a resolved source server-side (url/headers/body interpolated) and return its JSON
+        (an empty body — a 204 — is an empty object). Raises :class:`ProxyError` on a non-2xx or a
+        transport error, so the failure is surfaced rather than mistaken for success."""
+        # Logged by its TEMPLATE, never the resolved url: that may carry a ${secret.X}.
+        template = getattr(source, "url", None) or "?"
         try:
             # values percent-encoded by position: client state cannot steer the server's request
             url = interpolate_url(source.url or "", lambda expr: self._value_of(expr, state))
             if not url.lower().startswith(("http://", "https://")):
                 # urllib also opens file:// and ftp:// — a proxy source is an HTTP endpoint only.
-                log.warning("Proxy fetch refused: %r is not an http(s) url", url)
-                return {}
+                log.warning("Proxy fetch refused: %r is not an http(s) url", template)
+                raise ProxyError(0, "not an http(s) url")
             method = (source.method or "GET").upper()
             data = None
             if method not in ("GET", "HEAD") and source.body:
-                data = self._interpolate(source.body, state).encode()
+                # The values go into the body ESCAPED when the request declares JSON: a quote or a
+                # newline in a value would otherwise close the string early (or inject members).
+                escape = _json_escape if _declares_json(source.headers) else None
+                data = self._interpolate(source.body, state, escape).encode()
             req = urllib.request.Request(url, data=data, method=method)
             req.add_header("Accept", "application/json")
             for name, value in (source.headers or {}).items():
                 req.add_header(name, self._interpolate(value, state))
             with urllib.request.urlopen(req, timeout=self.proxy_timeout_seconds) as resp:
                 if resp.status >= 400:
-                    return {}
-                return json.loads(resp.read().decode())
+                    raise ProxyError(resp.status, f"HTTP {resp.status}")
+                body = resp.read().decode()
+                return json.loads(body) if body.strip() else {}
+        except ProxyError:
+            raise
+        except urllib.error.HTTPError as e:  # urllib raises for a >=400 answer
+            log.warning("Proxy fetch failed for %s: HTTP %s", template, e.code)
+            raise ProxyError(e.code, f"HTTP {e.code}") from e
         except (urllib.error.URLError, ValueError, OSError) as e:
-            log.warning("Proxy fetch failed for %s: %s", getattr(source, "url", "?"), e)
-            return {}
+            log.warning("Proxy fetch failed for %s: %s", template, type(e).__name__)
+            raise ProxyError(0, type(e).__name__) from e
 
     def _resolve_secret(self, key: str) -> str | None:
         """Resolve a secret: the injected provider first, then the environment — but ONLY variables
@@ -100,10 +149,16 @@ class ProxyHandlerMixin(MixinBase):
             return self._resolve_secret(expr[7:]) or ""
         return ""
 
-    def _interpolate(self, template: str | None, state: dict) -> str:
-        """Interpolate ${state.x}/${secret.X} placeholders (unknown → empty)."""
+    def _interpolate(
+        self, template: str | None, state: dict, escape: Callable[[str], str] | None = None
+    ) -> str:
+        """Interpolate ${state.x}/${secret.X} placeholders (unknown → empty); ``escape`` is applied
+        to each VALUE, never to the template's own punctuation."""
         if not template:
             return template or ""
-        return re.sub(
-            r"\$\{([^}]+)\}", lambda m: self._value_of(m.group(1).strip(), state), template
-        )
+
+        def value(m: re.Match[str]) -> str:
+            v = self._value_of(m.group(1).strip(), state)
+            return escape(v) if escape is not None else v
+
+        return re.sub(r"\$\{([^}]+)\}", value, template)

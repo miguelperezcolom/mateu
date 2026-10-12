@@ -20,7 +20,7 @@ public class Dash : Dashboard
     {
         Title = "Revenue", Value = "1.2", Unit = "M",
         Trend = MetricTrend.Up, TrendLabel = "12% more", Icon = "euro",
-        Description = "Total revenue", ActionId = "openRevenue",
+        Description = "Total revenue", ActionId = "openRevenue", Timeframe = "Last 7 days",
     };
 
     public MetricCard Orders { get; } = new() { Title = "Orders", Value = "348", Trend = MetricTrend.Down };
@@ -603,6 +603,7 @@ public class ComponentTests
         Assert.Contains("\"trendLabel\":\"12% more\"", json);
         Assert.Contains("\"description\":\"Total revenue\"", json);
         Assert.Contains("\"actionId\":\"openRevenue\"", json);
+        Assert.Contains("\"timeframe\":\"Last 7 days\"", json);
 
         // [Panel] wraps the component in a DashboardPanel tile (title/subtitle/spans in metadata).
         Assert.Contains("\"type\":\"DashboardPanel\"", json);
@@ -1172,7 +1173,7 @@ public class ComponentTests
         Assert.Equal(
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"Scoreboard\"},\"id\":\"board\",\"children\":[" +
             "{\"type\":\"ClientSide\",\"metadata\":{\"type\":\"MetricCard\",\"title\":\"Occupancy\",\"value\":\"87\"," +
-            "\"unit\":\"%\",\"trend\":\"up\",\"trendLabel\":null,\"icon\":null,\"description\":null,\"actionId\":null}," +
+            "\"unit\":\"%\",\"trend\":\"up\",\"trendLabel\":null,\"icon\":null,\"description\":null,\"actionId\":null,\"timeframe\":null}," +
             "\"id\":null,\"children\":[],\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}]," +
             "\"style\":null,\"cssClasses\":null,\"slot\":null,\"sizing\":null}",
             json);

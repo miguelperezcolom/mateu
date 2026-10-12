@@ -106,6 +106,24 @@ class McpProjectionTest {
   }
 
   @Test
+  void aMessageKeepsItsSeverityAndTitle() throws Exception {
+    // the wire's MessageDto carries "variant", not "type": every error used to project as "info"
+    ObjectNode s =
+        McpProjection.project(
+            json(
+                """
+                {"messages":[
+                  {"variant":"error","title":"Something went wrong","text":"Reference: abc"},
+                  {"text":"plain"}]}
+                """),
+            om);
+    assertThat(s.get("messages").get(0).get("type").asText()).isEqualTo("error");
+    assertThat(s.get("messages").get(0).get("title").asText()).isEqualTo("Something went wrong");
+    assertThat(s.get("messages").get(1).get("type").asText()).isEqualTo("info");
+    assertThat(s.get("messages").get(1).has("title")).isFalse();
+  }
+
+  @Test
   void emptyIncrementDoesNotThrow() {
     ObjectNode s = McpProjection.project(om.createObjectNode(), om);
     assertThat(s.get("fields")).isEmpty();

@@ -31,6 +31,10 @@ oj-sp-global-header a[id$='_HOa1'] {
 #mateuTable tbody tr {
   cursor: pointer;
 }
+/* …salvo las celdas con clic propio (editores, botones, enlaces, menús: poc isDisplayColumn) */
+#mateuTable tbody td.mateu-cell-noopen {
+  cursor: auto;
+}
 
 /* El pie sticky del guided process (Continue/Back) se ancla a bottom:0 — con la barra de
    tabs inferior (oj-applayout-fixed-bottom, 64px) quedaba tapado. Solo aplica cuando la

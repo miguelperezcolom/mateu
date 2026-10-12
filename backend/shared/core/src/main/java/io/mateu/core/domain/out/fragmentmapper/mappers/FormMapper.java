@@ -111,7 +111,7 @@ public class FormMapper {
     }
     if (userTrigger instanceof Button button) {
       return ButtonDto.builder()
-          .actionId(button.getActionId())
+          .actionId(button.resolvedActionId())
           .label(button.label())
           .iconOnLeft(button.iconOnLeft())
           .iconOnRight(button.iconOnRight())
@@ -122,6 +122,7 @@ public class FormMapper {
           .size(resolveSize(button))
           .separatorBefore(button.separatorBefore())
           .route(routeOf(button))
+          .rowsSelectedRequired(button.rowsSelectedRequired())
           .build();
     }
     return null;
@@ -148,7 +149,7 @@ public class FormMapper {
         && button.color() != ButtonColor.none) {
       return ButtonColorDto.valueOf(button.color().name());
     }
-    String id = button.getActionId();
+    String id = button.resolvedActionId();
     if (id != null
         && (id.equals("delete") || id.equals("delete-edit") || id.startsWith("delete-"))) {
       return ButtonColorDto.error;
@@ -167,7 +168,7 @@ public class FormMapper {
     if (button.buttonStyle() != null) {
       return ButtonStyleDto.valueOf(button.buttonStyle().name());
     }
-    String id = button.getActionId();
+    String id = button.resolvedActionId();
     if (id == null) return null;
     if (id.equals("save") || id.equals("create")) {
       return ButtonStyleDto.primary;

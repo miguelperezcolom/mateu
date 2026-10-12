@@ -41,6 +41,16 @@
                             <version>${mateu.japicmp.baseline}</version>
                         </dependency>
                     </oldVersion>
+                    <!-- REPORT-ONLY, even with mateu.api.enforce=true: the wire DTOs are outside the
+                         Java binary-compatibility promise. Their contract is the JSON wire, versioned
+                         by wireVersion (additive within a major); a new optional wire field replaces
+                         a record's canonical constructor, which is fine for JSON and binary-incompatible
+                         for Java. The report is still written (target/japicmp/) and published by CI.
+                         See reference/stability-and-versioning.md ("What is public API"). -->
+                    <parameter>
+                        <breakBuildOnBinaryIncompatibleModifications>false</breakBuildOnBinaryIncompatibleModifications>
+                        <breakBuildOnSourceIncompatibleModifications>false</breakBuildOnSourceIncompatibleModifications>
+                    </parameter>
                 </configuration>
             </plugin>
             <!-- Public API: its javadoc must pass doclint (every check except missing comments) and

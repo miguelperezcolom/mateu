@@ -59,7 +59,7 @@ afterEach(() => {
 const text = (el: MateuApp) => el.shadowRoot!.textContent ?? ''
 
 describe('the app shell variants', () => {
-    for (const variant of [AppVariant.MENU_ON_TOP, AppVariant.HAMBURGUER_MENU, AppVariant.MENU_ON_LEFT,
+    for (const variant of [AppVariant.MENU_ON_TOP, AppVariant.HAMBURGUER_MENU, AppVariant.HAMBURGER_MENU, AppVariant.MENU_ON_LEFT,
         AppVariant.TABS, AppVariant.TILES, AppVariant.RAIL, AppVariant.HAMBURGER_SECTIONS]) {
         it(`${variant} renders, with a main landmark and no javascript: links`, async () => {
             const el = await mount(app({ variant }))

@@ -172,7 +172,11 @@ class CrudMapperMixin(MixinBase):
         for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
             marker = getattr(fn, "__mateu_list_toolbar_button__")
             action_id = "action-on-row-" + camel_case(name)
-            toolbar.append(Button(label=self.T(marker.label or humanize(name)), action_id=action_id))
+            toolbar.append(Button(
+                label=self.T(marker.label or humanize(name)),
+                action_id=action_id,
+                rows_selected_required=marker.rows_selected_required,
+            ))
             bulk_actions.append(Action(
                 id=action_id,
                 validation_required=False,
@@ -430,7 +434,11 @@ class CrudMapperMixin(MixinBase):
         for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
             marker = getattr(fn, "__mateu_list_toolbar_button__")
             action_id = "action-on-row-" + camel_case(name)
-            toolbar.append(Button(label=self.T(marker.label or humanize(name)), action_id=action_id))
+            toolbar.append(Button(
+                label=self.T(marker.label or humanize(name)),
+                action_id=action_id,
+                rows_selected_required=marker.rows_selected_required,
+            ))
             actions.append(Action(
                 id=action_id,
                 validation_required=False,

@@ -120,12 +120,14 @@ public final class AppMapper {
   }
 
   /**
-   * The variant on the wire. {@code HAMBURGER_MENU} is the right spelling of {@code
-   * HAMBURGUER_MENU} and travels under the old name, the one every renderer already knows.
+   * The variant on the wire. Since 3.0-alpha.412 both spellings travel as {@code HAMBURGER_MENU}
+   * (the renderers accept both; they ship with the server).
    */
+  @SuppressWarnings("removal")
   static AppVariantDto toDto(AppVariant variant) {
     if (variant == null) return null;
-    if (variant == AppVariant.HAMBURGER_MENU) return AppVariantDto.HAMBURGUER_MENU;
+    if (variant == AppVariant.HAMBURGER_MENU || variant == AppVariant.HAMBURGUER_MENU)
+      return AppVariantDto.HAMBURGER_MENU;
     return AppVariantDto.valueOf(variant.name());
   }
 

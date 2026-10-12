@@ -15,6 +15,9 @@
     <url>https://mateu.io</url>
 
     <properties>
+        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 78.3%
+             (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
+        <jacoco.min.bundle.coverage>76%</jacoco.min.bundle.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>

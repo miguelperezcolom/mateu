@@ -14,14 +14,18 @@ from mateu_uidl import ComponentTreeSupplier, Crud, Listing
 from mateu_uidl import components as fluent
 from mateu_uidl.components import Button, MetricCard
 
+from .inference_switches import page_inference_enabled
 from .reflection import view_fields
 
 
 def enabled(cls) -> bool:
     """Page inference is ON by default (the matching template is the default inferred output for a
-    plain view); ``@auto_page(False)`` opts a class out."""
+    plain view); ``@auto_page(False)`` opts a class out, and the ``MATEU_PAGE_INFERENCE_ENABLED``
+    environment variable (Java's ``mateu.page.inference.enabled``) switches it off globally."""
     flag = getattr(cls, "__mateu_auto_page__", None)
-    return bool(flag) if flag is not None else True
+    if flag is not None:
+        return bool(flag)
+    return page_inference_enabled()
 
 
 def composes(cls) -> bool:
