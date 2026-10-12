@@ -244,6 +244,7 @@ class AppContext(val session: AppSession) {
     private var currentActionValidationRequired: MutableMap<String, Boolean> = HashMap()
     private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
     private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
+    private var currentActionConfirmation: Map<String, ConfirmationTexts> = HashMap()
 
     /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
      *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -491,14 +492,30 @@ class AppContext(val session: AppSession) {
                 currentFieldErrors.putAll(fieldErrors)
                 rerenderCurrentForm()
                 val summary = fieldErrors.entries.joinToString("; ") { "${it.key}: ${it.value}" }
-                showMessage(summary, "warning", "Revisa los campos")
+                showMessage(summary, "warning", "There are validation errors")
                 // A balloon is a visual affordance; a screen-reader user gets no signal that the
                 // save was refused. Speak it, and put the focus on the first rejected field so
                 // they are taken to the problem rather than told there is one somewhere.
-                contentPane?.let { io.mateu.ijp.ui.announce(it, "Revisa los campos. $summary") }
+                contentPane?.let { io.mateu.ijp.ui.announce(it, "There are validation errors. $summary") }
                 focusFirstInvalidField(fieldErrors.keys.firstOrNull())
                 return
             }
+        }
+
+        // @Action(confirmationRequired): ask first, with the declared texts — same order as the
+        // web's mateu-component (selection guard, validation, then the question).
+        currentActionConfirmation[actionId]?.let { t ->
+            val choice = JOptionPane.showOptionDialog(
+                contentPane,
+                t.message,
+                t.header,
+                JOptionPane.YES_NO_OPTION,
+                if (t.destructive) JOptionPane.WARNING_MESSAGE else JOptionPane.QUESTION_MESSAGE,
+                null,
+                arrayOf(t.confirmationText, t.denialText),
+                t.denialText,
+            )
+            if (choice != JOptionPane.YES_OPTION) return
         }
 
         // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching
@@ -641,6 +658,7 @@ class AppContext(val session: AppSession) {
         val validationFlags = HashMap<String, Boolean>()
         val bubbleFlags = HashMap<String, Boolean>()
         val rowsSelectedFlags = HashMap<String, Boolean>()
+        val confirmations = HashMap<String, ConfirmationTexts>()
         val restData = HashMap<String, JsonNode>()
         val actionNodes = sscNode.path("actions")
         if (actionNodes.isArray) {
@@ -651,6 +669,7 @@ class AppContext(val session: AppSession) {
                     validationFlags[id] = a.bool("validationRequired")
                     bubbleFlags[id] = a.bool("bubble")
                     rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
+                    ActionConfirmation.of(a)?.let { confirmations[id] = it }
                     val rest = a.path("restAction")
                     if (rest.isObject) restData[id] = rest
                 }
@@ -660,6 +679,7 @@ class AppContext(val session: AppSession) {
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
         currentActionRowsSelectedRequired = rowsSelectedFlags
+        currentActionConfirmation = confirmations
         currentActionRestData = restData
         currentActionDefs = actionNodes.takeIf { it.isArray }
         // A catalogue REST call reached from the menu runs against the latest loaded view.
