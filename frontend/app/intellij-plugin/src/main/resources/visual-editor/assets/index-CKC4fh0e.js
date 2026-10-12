@@ -6021,8 +6021,8 @@ content: []
                 <h3 style="margin:0 0 .25rem">Business components</h3>
                 <div style="color:var(--ve-secondary,#6b7280); margin-bottom:.75rem">${r.length} named composition${r.length===1?``:`s`} — a page uses one with <code>type: ComponentRef</code>, <code>ref: &lt;name&gt;</code>. Edit this file as YAML.</div>
                 <table style="border-collapse:collapse; width:100%">${r.map(e=>y`<tr>
-                    <td style="padding:.2rem .6rem .2rem 0; font-family:ui-monospace,monospace; font-size:12px; white-space:nowrap">${e.name}</td>
-                    <td style="padding:.2rem 0; border-bottom:1px solid var(--ve-border,#eceef1)">${e.rootType}</td></tr>`)}</table>
+                    <td style="padding:var(--lumo-space-xs, .2rem) var(--lumo-space-s, .6rem) var(--lumo-space-xs, .2rem) 0; font-family:ui-monospace,monospace; font-size:var(--lumo-font-size-xs, 12px); white-space:nowrap">${e.name}</td>
+                    <td style="padding:var(--lumo-space-xs, .2rem) 0; border-bottom:1px solid var(--ve-border,#eceef1)">${e.rootType}</td></tr>`)}</table>
             </div>`:y`<div style=${n}>
             <h3 style="margin:0 0 .25rem">Environment · ${og(this.currentPath??``,e)}</h3>
             <div style="color:var(--ve-secondary,#6b7280)">Re-points named REST sources (baseUrl, url, headers, proxy) when this environment is active (<code>MATEU_ENVIRONMENT</code>, or the bundle goal's <code>environment</code>). Never put a secret here — use <code>\${secret.X}</code>. Edit this file as YAML.</div>
