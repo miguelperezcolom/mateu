@@ -22,7 +22,7 @@ export class MountEditor extends LitElement {
         .row { display: flex; gap: 0.4rem; align-items: center; margin: 0.3rem 0; }
         .row input { flex: 1; font-family: ui-monospace, monospace; font-size: 12px; }
         .row button { border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
-        .row button.danger { border-color: #f2c2c8; color: var(--ve-error, #b00020); }
+        .row button.danger { border-color: var(--ve-error-border); color: var(--ve-error, #b00020); }
         .add { margin-top: 0.6rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
         .add:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
         .note { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-top: 0.4rem; }

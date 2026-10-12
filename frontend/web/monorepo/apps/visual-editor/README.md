@@ -48,10 +48,20 @@ pickers) is the mockable half. None of the modes require a paid cloud.
 A `remote`/`mock` render that gets no answer from its backend falls back to the client-side render
 (classless pages) and says so in the canvas.
 
-**Canvas renderer.** The canvas paints with the **Vaadin (Lumo)** reference renderer by default
-(lazily loaded from `apps/vaadin`, so the preview matches what ships), the **DS-neutral** one, or
-**Redwood (Oracle)**. Listings and option fields read the project's `sources.yaml`, so they preview
-with real rows.
+**Canvas renderer.** The canvas paints with the **project's renderer** (`project.yaml`
+`renderer:`): **Vaadin (Lumo)** by default (lazily loaded from `apps/vaadin`, so the preview matches
+what ships) or **Redwood (Oracle)** — there is no per-page or per-session switch; the DS-neutral
+renderer is only the fallback when the Vaadin chunk cannot load. Listings and option fields read the
+project's `sources.yaml`, so they preview with real rows.
+
+**Dropdowns and pickers.** The editor draws its own (`widgets/ve-select.ts`, `ve-combo`,
+`ve-image-picker`, `ve-icon-picker`), never a native `<select>`: inside the IDE (JCEF) the native
+popup is painted by the embedding — light in a dark IDE, and placed wrong. Every panel is placed by
+`widgets/placement.ts` (the side of its field with room, clamped to the viewport) and coloured by the
+`--ve-*` tokens (light + dark, `mateu-visual-editor.ts`); `scripts/check-design-tokens.mjs` guards it.
+Icon properties are free text plus a picker of the icons the project's renderer paints
+(`model/iconCatalog.ts`: the Vaadin set from `@vaadin/icons`, read lazily; for Redwood the names it
+translates plus its icon font, loaded from Oracle's CDN at run time, never bundled).
 
 **The Redwood canvas** (`canvas/redwood-frame.ts`) is not a component renderer: Redwood's runtime is a
 whole Visual Builder app, so the canvas frames it. `redwood-preview.html` (`src/redwood/previewPage.ts`)

@@ -339,14 +339,22 @@ export function bannersOf(ctx) {
  *  chrome flotante (chat FAB: right = (100vw - 1536px)/2, medido) — el shell calcula
  *  su caja sobre el viewport COMPLETO e ignora el navigator drawer, así que centrar
  *  el contenido en el área restante lo desalineaba del FAB en viewports anchos;
- *  izquierda auto (absorbe el drawer), tope 1408. */
+ *  izquierda auto (absorbe el drawer), tope 1408 — y nunca menos de 24px a la izquierda: el tope
+ *  descuenta ambos gutters, o un área estrecha quedaba pegada a la izquierda con hueco sólo a la
+ *  derecha. */
 export function pageStyleOf(ctx) {
   const width = (ctx && ctx.pageWidth) || 'fixed'
   if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
   if (width === 'fullWidth') return { maxWidth: 'none', margin: '0', padding: '24px' }
+  // the right gutter (aligned with the shell's floating chrome, see above) …
+  const right = 'max(24px, calc((100vw - 1536px) / 2 + 64px))'
   return {
-    maxWidth: '1408px',
-    margin: '0 max(24px, calc((100vw - 1536px) / 2 + 64px)) 0 auto',
+    // … and a cap that always leaves 24px on the LEFT too: with `max-width: 1408px` alone, any area
+    // narrower than 1408 + 2·24 (a laptop, the visual editor's canvas) filled itself up to the right
+    // gutter and `margin-left: auto` resolved to 0 — the page hugged the left edge with a blank 24px
+    // strip on the right only. Same 1408 cap and the same right edge wherever there is room.
+    maxWidth: `min(1408px, calc(100% - 24px - ${right}))`,
+    margin: `0 ${right} 0 auto`,
     padding: '24px',
   }
 }

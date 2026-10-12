@@ -239,6 +239,27 @@ The images come from the folders the app serves: `src/main/resources/static`, `p
 editing. Build output (`target`, `build`, `node_modules`, `dist`…) is skipped. The list follows the
 project: an image added, changed or deleted shows up in the picker without reopening the editor.
 
+#### Icons
+
+A property that holds an icon name — `icon`, a button's `iconOnLeft`/`iconOnRight`, a tile's
+`actionIcon` — and an app-shell menu entry's icon stay **free text**, with a **☆** button next to
+them that opens a searchable grid of the icons the **project's renderer** paints, each previewed.
+Picking one fills the text.
+
+- **Vaadin**: the whole Vaadin icon set (`vaadin:cart`).
+- **Redwood**: first the neutral names Redwood translates to its own icons (`vaadin:cart` becomes
+  `oj-ux-ico-cart`, so the page keeps working on Vaadin too), then every `oj-ux-ico-*` icon of
+  Redwood's icon font. The font loads from Oracle's CDN, as the Redwood canvas does; offline, the
+  picker still lists the translated names. A name Redwood does not translate shows its generic icon,
+  which is what the app shows too.
+
+#### The page's settings
+
+Select the page itself (the root, `Esc` until nothing is above it) and **Properties** starts with a
+**Page** section. `pageType` is the page family — `landing`, `collection`, `detail`, `form`,
+`process` or `dashboard`, the YAML twin of `@PageTemplate`. Leave it on **inferred** and the page
+type comes from the page's content; pick one and the editor writes `pageType:` on the definition.
+
 The canvas, the Redwood canvas and **Play** show a project image even when no backend serves it.
 The IDE serves the file to the editor, and the page keeps the URL you picked. In a browser with no
 IDE, the field is plain text.
@@ -275,17 +296,16 @@ holds something a delta cannot.
 
 The canvas paints with the **project's renderer**, the one `specs/ui/project.yaml` names
 (`renderer: vaadin | redwood`; Vaadin when the project has no descriptor, see
-[project settings](/define/yaml/project-settings)). The renderer selector in the toolbar
-marks the project's choice with **· project**. Picking another renderer there is a **peek** for this
-session: the toolbar shows **preview — project: …** next to it, and **↺** goes back. A peek never
-changes the file, and Play and Export keep using the project's renderer. To change the project's
+[project settings](/define/yaml/project-settings)). The toolbar names it, and there is no
+per-page or per-session switch: the canvas, the board, Play and Export all use the project's
+renderer, so what you see is what ships. To change the project's
 renderer, open `project.yaml`. The editor shows it as a small settings form, and choosing a renderer
 there rewrites only its `renderer:` line, so comments are kept. You can also use the IDE settings
 ([IDE tooling](/native/ide-tooling#the-projects-renderer-projectyaml)).
 
 ## The Redwood canvas
 
-With `renderer: redwood`, or with the toolbar switched to **Redwood (Oracle)**, the canvas paints
+With `renderer: redwood`, the canvas paints
 the page with the real Redwood renderer: the
 Oracle Visual Builder app that the `io.mateu:mateu-redwood` jar ships, running inside the canvas. You see
 what a Redwood app shows, at the canvas's width, and the page is still editable:
@@ -448,8 +468,7 @@ expands each screen in the browser, the same way a statically deployed bundle do
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a
 tablet or a phone, starting at the canvas's width.
 
-Play always runs in the **project's renderer** (a badge in its bar names it), whatever the canvas
-is peeking at. With `renderer: redwood` the whole mount runs in the real Redwood app, framed like
+Play always runs in the **project's renderer** (a badge in its bar names it), like the canvas. With `renderer: redwood` the whole mount runs in the real Redwood app, framed like
 the Redwood canvas but live. Its menu navigates, rows and links open their screens, and Play's
 address bar, back and forward move it. The editor is that app's backend. Every call the app makes
 comes to the editor, which answers it from the files as you have edited them, using the same
