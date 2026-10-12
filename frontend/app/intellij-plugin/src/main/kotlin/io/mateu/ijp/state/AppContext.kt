@@ -48,7 +48,7 @@ class AppContext(val session: AppSession) {
      * `_route` matches it is a stay-in-place response (e.g. a row action's "/list" + re-search) —
      * the web mediator only remounts on a route CHANGE, so neither do we.
      */
-    private var currentInnerRoute: String = ""
+    private var currentInnerRoute: String? = null
     var currentComponentId: String = "ux_main"
     var currentComponentState: MutableMap<String, Any?> = HashMap()
 
@@ -1050,7 +1050,7 @@ class AppContext(val session: AppSession) {
                 // nothing (or back to the listing).
                 val base = stateComp.ifBlank { currentConsumedRoute }
                 val routeSuffix = state.text("_route")
-                if (currentInnerRoute.isNotBlank() && routeSuffix.trim('/') == currentInnerRoute) {
+                if (MediatorRoutes.stays(currentInnerRoute, routeSuffix)) {
                     // Same inner route as what's already rendered (e.g. a row action answering
                     // "/list" to a listing): stay put — a RunAction command (e.g. "search") in the
                     // same increment refreshes the data.
