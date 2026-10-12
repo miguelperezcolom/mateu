@@ -150,6 +150,15 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   public static final String SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer";
 
   /**
+   * Emitted after an action changed the listing's rows in place (a delete, a bulk/row action):
+   * every crud listing subscribes to it and re-runs its search. A RunAction aimed at the listing by
+   * id cannot do it — the listing's component id is composed in the browser (from the route and the
+   * type), so the id the server guessed matched nothing and the deleted rows stayed on screen until
+   * a reload.
+   */
+  public static final String LISTING_CHANGED_EVENT = "mateu-crud:listing-changed";
+
+  /**
    * This crud's built-in affordances (the Redwood collection-container / create-edit-drawer {@code
    * displayOptions}): the New and Delete buttons ({@code on}/{@code off}/{@code disabled} on top of
    * the capability gates), the edit drawer's "Save and next" (default {@code off}) and its error
@@ -407,6 +416,11 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   @Override
   public Object state(HttpRequest httpRequest) {
     var map = io.mateu.core.infra.declarative.FormViewModel.toMap(stateSource());
+    if (stateSource() != this) {
+      // the state is another object's (the capability bridge's listing): this crud's own routing
+      // still has to travel, or the nested view never learns which record was asked for
+      map.putAll(routingState());
+    }
     var route = httpRequest.runActionRq().route();
     if (route.contains("?")) {
       var params = route.substring(route.indexOf("?") + 1);

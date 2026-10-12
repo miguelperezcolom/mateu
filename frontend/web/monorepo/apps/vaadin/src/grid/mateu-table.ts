@@ -41,7 +41,7 @@ import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
 import { detailIndicatorColumn } from "./detailIndicatorColumn.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { columnRenderer, renderColumnOrGroup } from "./renderColumn.ts";
+import { columnRenderer, renderColumnOrGroup, sorterChanged } from "./renderColumn.ts";
 import { splitLines } from "@infra/ui/listingLines.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
@@ -427,6 +427,7 @@ export class MateuTable extends LitElement {
                     .dataProvider="${this.metadata?.infiniteScrolling ? this.dataProvider : undefined}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
+                    @sorter-changed="${sorterChanged}"
                     ?rows-draggable="${!!(this.metadata as Crud | undefined)?.dragType}"
                     @grid-dragstart="${this.onRowsDragStart}"
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {

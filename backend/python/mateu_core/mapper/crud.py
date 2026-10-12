@@ -7,6 +7,7 @@ from typing import Any
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 
@@ -157,7 +158,7 @@ class CrudMapperMixin(MixinBase):
                 value_labels=value_labels_of(f.type),
                 # the first column opens the record (Java: ListRouteResolver.withViewOnFirstColumn)
                 action_id="view" if not columns else None,
-            ), f), f.type)))
+            ), f), f.type, grouped=self.group_by_of(element) is not None)))
         # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
         # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
         display = self._crud_display(cls, instance)
@@ -431,7 +432,7 @@ class CrudMapperMixin(MixinBase):
                 value_labels=value_labels_of(f.type),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
-            ), f), f.type)))
+            ), f), f.type, grouped=row_type is not None and self.group_by_of(row_type) is not None)))
         # A listing declaring an interaction capability is a CRUD (Java bridges it to one with
         # CapabilityCrud); a plain one is a page holding a listing (Java's PageListingBuilder):
         # its title is the PAGE's, its row/view actions are open wildcards, nothing is validated.
@@ -730,10 +731,18 @@ def column_weight(t, stereotype: str | None) -> float:
     return 3.0
 
 
-def listing_column(meta: GridColumnMeta, t) -> GridColumnMeta:
+def sortable_type(t) -> bool:
+    """Whether a column of this type sorts from its header (Java's ListingColumnBuilder.isSortable):
+    text, numbers, booleans, enums, dates and times."""
+    t = _unwrap_optional(t)
+    return t in (str, int, float, bool, Decimal, date, datetime, time) or is_enum(t)
+
+
+def listing_column(meta: GridColumnMeta, t, grouped: bool = False) -> GridColumnMeta:
     """What every LISTING column carries on Java's wire (ListingColumnBuilder + GridColumnMapper):
-    a "regular" stereotype unless it declares one, resizable, sized to its content unless a width
-    is fixed, right-aligned numbers and centred booleans, and its layout weight."""
+    a "regular" stereotype unless it declares one, resizable, sortable when its values have a
+    natural order (unless the rows are grouped), sized to its content unless a width is fixed,
+    right-aligned numbers and centred booleans, and its layout weight."""
     stereotype = meta.stereotype or "regular"
     align = None
     if meta.data_type in ("integer", "number", "money") or stereotype == "money":
@@ -743,6 +752,7 @@ def listing_column(meta: GridColumnMeta, t) -> GridColumnMeta:
     return meta.model_copy(update={
         "stereotype": stereotype,
         "resizable": True,
+        "sortable": not grouped and sortable_type(t),
         "auto_width": meta.auto_width or meta.width is None,
         "align": align,
         "weight": column_weight(t, meta.stereotype),

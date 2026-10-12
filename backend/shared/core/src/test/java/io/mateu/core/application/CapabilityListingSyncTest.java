@@ -156,6 +156,22 @@ class CapabilityListingSyncTest {
     }
   }
 
+  @UI("/sorted-books")
+  public static class SortedBooks implements Listing<Book>, Navigable<Book, String> {
+    static volatile io.mateu.uidl.data.Pageable lastPageable;
+
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      lastPageable = request.pageable();
+      return all();
+    }
+
+    @Override
+    public Book view(String id, HttpRequest httpRequest) {
+      return BOOKS.get(0);
+    }
+  }
+
   public record BookFilters(String title) {}
 
   @UI("/smart-books")
@@ -188,7 +204,8 @@ class CapabilityListingSyncTest {
             CreatableBooks.class,
             DeletableBooks.class,
             BulkBooks.class,
-            SmartBooks.class);
+            SmartBooks.class,
+            SortedBooks.class);
   }
 
   @AfterAll
@@ -256,6 +273,43 @@ class CapabilityListingSyncTest {
     assertThat(firstColumnActionId(crudl)).isNull();
   }
 
+  /**
+   * "Rows only — sorting and pagination come free": the sort reaches {@code
+   * request.pageable().sort()}, but only if a header offers it. No reflected column ever said it
+   * was sortable, so no listing (AutoCrud included) could be sorted from the grid.
+   */
+  @Test
+  void aListingsDataColumnsSortFromTheirHeader() {
+    var crudl = listingOf(load(PlainBooks.class, "/plain-books"));
+    var columns = new ArrayList<io.mateu.dtos.GridColumnDto>();
+    crudl
+        .columns()
+        .forEach(c -> FieldKindsSyncTest.walk(c, io.mateu.dtos.GridColumnDto.class, columns));
+    assertThat(columns).extracting(io.mateu.dtos.GridColumnDto::id).contains("title", "pages");
+    assertThat(columns).allMatch(io.mateu.dtos.GridColumnDto::sortable);
+  }
+
+  /**
+   * A header click sends {@code {fieldId, direction}}. The crud path read only {@code field}, so
+   * every sort a user asked a navigable listing (or an AutoCrud) for was dropped on the server.
+   */
+  @Test
+  void theSortAHeaderClickSendsReachesTheRequest() {
+    run(
+        SortedBooks.class,
+        "/sorted-books",
+        "search",
+        Map.of(
+            "sort", List.of(Map.of("fieldId", "pages", "direction", "descending")),
+            "page", 1,
+            "size", 10),
+        Map.of("crudId", "crud"));
+    assertThat(SortedBooks.lastPageable.sort())
+        .containsExactly(
+            new io.mateu.uidl.data.Sort("pages", io.mateu.uidl.data.Direction.descending));
+    assertThat(SortedBooks.lastPageable.page()).isEqualTo(1);
+  }
+
   // ── + Searchable ──────────────────────────────────────────────────────────
 
   @Test
@@ -292,6 +346,52 @@ class CapabilityListingSyncTest {
                 .componentState(Map.of())
                 .build());
     assertThat(String.valueOf(detail)).contains("El Quijote");
+    // a record's generated toString is a field dump, never a title: the class names it instead
+    assertThat(String.valueOf(detail)).doesNotContain("Book[id=");
+  }
+
+  /**
+   * A deep link, a reload or a browser Forward to a record: the page is opened at its url, the
+   * mediator answers, and the nested view loads with the state the mediator sent. That state is
+   * where the record travels ({@code _route}) — and the bridge serialized only the LISTING, so it
+   * never did: the nested view loaded the listing under the record's url.
+   */
+  @Test
+  void aDeepLinkToARecordOfANavigableListingOpensTheRecord() {
+    var opened =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/navigable-books/b2")
+                .consumedRoute("_empty")
+                .actionId("")
+                .initiatorComponentId("_ux")
+                .build());
+    Map<String, Object> state = null;
+    for (var fragment : opened.fragments()) {
+      if (fragment.state() instanceof Map<?, ?> s && s.get("_route") != null) {
+        state = (Map<String, Object>) s;
+      }
+    }
+    assertThat(state).as("the record travels in the mediator's state").isNotNull();
+    assertThat(state.get("_route")).isEqualTo("/b2");
+
+    var nested =
+        mateu.run(
+            RunActionRqDto.builder()
+                // what the nested view asks for: its component route + the record from the state
+                .route("/navigable-books" + state.get("_route"))
+                .consumedRoute("/navigable-books")
+                .serverSideType(NavigableBooks.class.getName())
+                .actionId("")
+                .initiatorComponentId("cap_nested")
+                .componentState(state)
+                .build());
+    assertThat(String.valueOf(nested)).contains("Rayuela");
+    var listings = new ArrayList<CrudlDto>();
+    nested
+        .fragments()
+        .forEach(f -> FieldKindsSyncTest.walk(f.component(), CrudlDto.class, listings));
+    assertThat(listings).as("the record, not the listing").isEmpty();
   }
 
   /**
@@ -390,6 +490,71 @@ class CapabilityListingSyncTest {
         Map.of("crud_selected_items", List.of(Map.of("id", "b1"))),
         null);
     assertThat(DeletableBooks.lastDeleted).containsExactly("b1");
+  }
+
+  /**
+   * After a delete the listing has to show what is left. The response used to aim a RunAction
+   * "search" at a listing id the server guessed ({@code ux_..._cs_list}), which no component in the
+   * browser carries — the deleted rows stayed on screen until a reload. The listing now subscribes
+   * to an event the delete emits.
+   */
+  @Test
+  void aDeleteTellsTheListingToRefreshThroughAnEventItSubscribesTo() {
+    var deleted =
+        run(
+            DeletableBooks.class,
+            "/deletable-books",
+            "delete",
+            Map.of("crud_selected_items", List.of(Map.of("id", "b2"))),
+            null);
+    assertThat(deleted.commands())
+        .anySatisfy(
+            command -> {
+              assertThat(command.type()).isEqualTo(io.mateu.dtos.UICommandTypeDto.DispatchEvent);
+              assertThat(String.valueOf(command.data()))
+                  .contains(
+                      io.mateu.core.infra.declarative.orchestrators.crud.Crud
+                          .LISTING_CHANGED_EVENT);
+            });
+    assertThat(String.valueOf(deleted)).doesNotContain("_cs_list");
+    // the action answers several results at once: their list's toString is no window title
+    assertThat(deleted.commands())
+        .noneMatch(
+            command ->
+                command.type() == io.mateu.dtos.UICommandTypeDto.SetWindowTitle
+                    && String.valueOf(command.data()).startsWith("["));
+
+    var listing = load(DeletableBooks.class, "/deletable-books");
+    var subscriptions = new ArrayList<io.mateu.dtos.OnCustomEventTriggerDto>();
+    for (var fragment : listing.fragments()) {
+      collectTriggers(fragment.component(), subscriptions);
+    }
+    assertThat(subscriptions)
+        .anySatisfy(
+            trigger -> {
+              assertThat(trigger.eventName())
+                  .isEqualTo(
+                      io.mateu.core.infra.declarative.orchestrators.crud.Crud
+                          .LISTING_CHANGED_EVENT);
+              assertThat(trigger.actionId()).isEqualTo("search");
+            });
+  }
+
+  private static void collectTriggers(
+      Object component, List<io.mateu.dtos.OnCustomEventTriggerDto> found) {
+    var servers = new ArrayList<io.mateu.dtos.ServerSideComponentDto>();
+    if (component instanceof io.mateu.dtos.ServerSideComponentDto server) {
+      servers.add(server);
+    }
+    FieldKindsSyncTest.walk(component, io.mateu.dtos.ServerSideComponentDto.class, servers);
+    for (var server : servers) {
+      if (server.triggers() != null) {
+        server.triggers().stream()
+            .filter(io.mateu.dtos.OnCustomEventTriggerDto.class::isInstance)
+            .map(io.mateu.dtos.OnCustomEventTriggerDto.class::cast)
+            .forEach(found::add);
+      }
+    }
   }
 
   // ── @ListToolbarButton methods on the bridged listing (behaviourSource) ───

@@ -17,6 +17,7 @@
                 "dataType" : "string",
                 "label" : "Id",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 3.0
@@ -28,6 +29,7 @@
                 "dataType" : "string",
                 "label" : "Name",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 3.0
@@ -40,6 +42,7 @@
                 "dataType" : "number",
                 "label" : "Price",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 2.0
@@ -51,6 +54,7 @@
                 "dataType" : "string",
                 "label" : "Status",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "valueLabels" : {

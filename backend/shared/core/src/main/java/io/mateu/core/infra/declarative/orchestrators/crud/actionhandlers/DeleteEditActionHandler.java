@@ -23,7 +23,7 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
     }
     return CrudActionResult.of(actionId)
         .withRoute("/list")
-        .withActionToRun("search")
-        .withTargetComponentId(CrudTargetComponentId.list(httpRequest));
+        // the listing refreshes itself on this event (see Crud.LISTING_CHANGED_EVENT)
+        .withCommand(io.mateu.uidl.data.UICommand.dispatchEvent(Crud.LISTING_CHANGED_EVENT));
   }
 }

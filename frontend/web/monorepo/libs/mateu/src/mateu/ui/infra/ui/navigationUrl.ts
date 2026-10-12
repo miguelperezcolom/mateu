@@ -55,3 +55,42 @@ export const isScreenChange = (
     }
     return previous.pathname !== current.pathname || (previous.search ?? '') !== (current.search ?? '')
 }
+
+/**
+ * The URL a route change of the top-level ux points the address bar at.
+ *
+ * <p>An absolute route (`/orders/3`) is resolved against the page's own mount (origin +
+ * `pathPrefix`); a relative one (`section1`) against `baseUrl`, prefixed with `pathPrefix`. A route
+ * that is ONLY a query string (`?genre=NOVEL`) is the page already mounted with other filters —
+ * which is what the top-level ux reports when the page was opened from a deep link carrying a
+ * listing's filters. It used to take the relative branch, where both `baseUrl` and `pathPrefix`
+ * carry the mount path, and the address bar became `/books/books?genre=NOVEL`: the rows were right,
+ * but the next reload asked for a route that does not exist.
+ */
+export const routeTargetUrl = (
+    rawRoute: string | undefined,
+    baseUrlAttr: string | undefined,
+    pathPrefix: string | undefined,
+    origin: string,
+): URL => {
+    let route = rawRoute ?? ''
+    let baseUrl = baseUrlAttr ?? ''
+    if (!route || route.startsWith('/') || route.startsWith('?') || route.startsWith('#')) {
+        baseUrl = origin + (pathPrefix ?? '')
+    } else {
+        route = (pathPrefix ?? '') + route
+        if (baseUrl.indexOf('://') < 0) {
+            if (!baseUrl.startsWith('/')) {
+                baseUrl = '/' + baseUrl
+            }
+            baseUrl = origin + baseUrl
+        }
+    }
+    if (route.startsWith(pathPrefix + '/')) {
+        route = route.substring(pathPrefix?.length ?? 0)
+    }
+    if (baseUrl.endsWith('/') && route.startsWith('/')) {
+        route = route.substring(1)
+    }
+    return new URL(baseUrl + route)
+}

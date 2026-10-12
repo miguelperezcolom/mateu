@@ -234,6 +234,29 @@ class CrudHistoryPathSyncTest {
   }
 
   /**
+   * A crud that is its own page, opened from a listing whose filters, page and sort are in the
+   * query string — the url a reload or a shared link brings back. The browser sends that url as the
+   * route; the query is not where the crud is mounted, so the record must not be pushed under it
+   * ({@code /?page=1/p1}, which the browser then turned into {@code /root-products/?page=1/p1}).
+   */
+  @Test
+  void openingARecordFromAFilteredListingLeavesTheQueryOutOfThePath() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/?page=1&sort=name:ascending")
+                .consumedRoute("")
+                .serverSideType(RootProductsCrud.class.getName())
+                .actionId("view")
+                .initiatorComponentId("c4_app")
+                .componentState(Map.of("id", "p1"))
+                .parameters(Map.of())
+                .build());
+
+    assertThat(pushedPath(increment)).isEqualTo("/p1");
+  }
+
+  /**
    * A route that carries filters in its query string, which is how a generated navigation asks for
    * a filtered listing — "show me the cancelled ones" becomes {@code
    * /shop/products?status=CANCELLED}.

@@ -122,7 +122,7 @@ public class RunActionUseCase {
             .map(
                 instance ->
                     io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud
-                        .bridgeIfNeeded(instance))
+                        .bridgeIfNeeded(instance, command.componentState()))
             .flatMap(instance -> routeIfNeeded(command, instance))
             .map(instance -> enforceClassLevelAccess(instance, command))
             .flatMapMany(
@@ -208,7 +208,7 @@ public class RunActionUseCase {
         .map(
             instance ->
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
-                    instance))
+                    instance, command.componentState()))
         .flatMap(instance -> routeIfNeeded(command, instance))
         .map(instance -> enforceClassLevelAccess(instance, command))
         // Map the instance as a plain load (no action is run) so we get its component, then reduce
@@ -285,7 +285,7 @@ public class RunActionUseCase {
         .map(
             instance ->
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
-                    instance))
+                    instance, command.componentState()))
         .flatMap(instance -> routeIfNeeded(command, instance))
         .map(instance -> enforceClassLevelAccess(instance, command))
         // The upstream call is a BLOCKING java.net.http send (once per selected row on the bulk

@@ -72,6 +72,10 @@ class GridColumnMeta(Wire):
     align: str | None = None
     #: The user can resize the column (listing columns are; mirrors GridColumnDto.resizable).
     resizable: bool = False
+    #: The header sorts: a listing column whose values have a natural order (text, numbers,
+    #: booleans, enums, dates and times) unless the rows are grouped (mirrors
+    #: GridColumnDto.sortable / Java's ListingColumnBuilder.isSortable).
+    sortable: bool = False
     #: Display-width weight (1u ≈ 76px) the renderer's layout heuristics read (mirrors
     #: GridColumnDto.weight / Java's WeightEstimator).
     weight: float | None = None

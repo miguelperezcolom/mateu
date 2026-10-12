@@ -117,10 +117,10 @@ public class CommandMapper {
         || instance instanceof io.mateu.dtos.UIIncrementDto) {
       return true;
     }
-    return instance instanceof Collection<?> collection
-        && !collection.isEmpty()
-        && collection.stream()
-            .allMatch(o -> o instanceof UICommand || o instanceof Step || o instanceof Document);
+    // a collection is several results at once — a crud action answers [State, Message, commands…],
+    // a handler may answer [this, a command] — and its toString() is a dump, never a title: after
+    // every crud delete the tab read "[State[state=…CapabilityCrud@…, UICommand[…]]"
+    return instance instanceof Collection<?> collection && !collection.isEmpty();
   }
 
   // same marker check as EditableView.isEmbedded / EmbeddedOrchestratorFieldBuilder

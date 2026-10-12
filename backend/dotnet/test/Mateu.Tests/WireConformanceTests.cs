@@ -106,6 +106,12 @@ public class WireConformanceTests
                 {
                     component.Remove("actions");
                     component.Remove("initialData");
+                    // the mediator's own refresh subscriptions ("mateu-crud:*" events); .NET
+                    // re-renders the listing in place
+                    if (component["triggers"] is JsonArray triggers)
+                        foreach (var t in triggers.OfType<JsonObject>().Where(t =>
+                                     (t["eventName"]?.GetValue<string>() ?? "").StartsWith("mateu-crud:")).ToList())
+                            triggers.Remove(t);
                 }
             }
         return increment;
