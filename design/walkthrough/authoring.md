@@ -47,6 +47,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | … both on spring-mvc/webflux/quarkus | ✅ CRUD list → open → edit+save → New (validation) → create → deep link `/products/new` → back |
 | … both on micronaut/helidon-mp | 🔧 refused by the wizard; really broken (Micronaut facade, Helidon root deep links) → fixed and now offered (763daa246, bd4f80c78, +2 `cases.json`) |
 | … dotnet | ❌ not exercised: no .NET SDK on this machine |
+| Python port serving the walkthrough YAML (MATEU_SPECS_DIR, Vaadin dev server) | 🔧 only `routes.yaml` read — mount-listed / `type: Routes` files answered "Route not found"; 🔧 a definition-only page dropped its route seeds (8596758f5, `test_route_files.py`, `test_definition_only_seeds.py`); ✅ translation es, partial, field type, 403; ❌ `Notice` (any type outside 8) renders "Unsupported component" — the ports' YAML builder covers 8 types (parity doc corrected to 🟡) |
 | … python | ✅ generated tests pass; 🔧 docs pointed at the removed Compose renderer and the starter said nothing about seeing it in a browser (de9d52296) — verified through the Vaadin dev server (`MATEU_BACKEND=…`) |
 | Maven archetype (code / yaml / static, JDK 21) | ✅ generated, built, code booted + CRUD walk; yaml booted |
 | IntelliJ renderer (`./gradlew renderProbe` over the walkthrough page wire, es) | ✅ translated title, partial fields, field type, business component, buttons, a11y names |
@@ -81,7 +82,8 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
    log a 400 and a VB error on every page — Redwood area.
 4. **.NET layoutDelta** still reorders within a FormRow only (Java and Python now treat a form's rows as one run) — port when an SDK is at hand.
 5. **Live reload** of an unseeded definition-only page sends an empty componentState (it is ClientSide).
-6. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
+7. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`, `Card`… served by a port shows "Unsupported component". .NET also still reads only `routes.yaml` (Python fixed). Owner: grow the builders or keep YAML pages Java-first?
+8. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
    served.
 
 ## 5. Not walked yet ⏳
