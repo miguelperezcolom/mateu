@@ -32,14 +32,17 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         Deletable<IdType>,
         StateSupplier {
 
-  private final List<CrudOrchestratorRouteResolver> routeResolvers =
+  // static: the resolvers and handlers are stateless, and as instance List fields the action
+  // collector read them as editable grid fields — advertising routeResolvers_create,
+  // actionHandlers_move-up… (24 bogus actions) on every crud
+  private static final List<CrudOrchestratorRouteResolver> routeResolvers =
       List.of(
           new MediatorRouteResolver(),
           new NewRouteResolver(),
           new EditRouteResolver(),
           new ListRouteResolver(),
           new ViewRouteResolver());
-  private final List<CrudOrchestratorActionHandler> actionHandlers =
+  private static final List<CrudOrchestratorActionHandler> actionHandlers =
       List.of(
           new SearchActionHandler(),
           new NavigateToViewActionHandler(),

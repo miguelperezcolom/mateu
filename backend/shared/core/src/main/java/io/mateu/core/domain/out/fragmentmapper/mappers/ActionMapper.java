@@ -144,7 +144,8 @@ public class ActionMapper {
     getAllFields(serverSideObjectType).stream()
         .filter(
             field ->
-                !isBasic(field.getType())
+                !java.lang.reflect.Modifier.isTransient(field.getModifiers())
+                    && !isBasic(field.getType())
                     && !field.getType().isEnum()
                     && !List.class.isAssignableFrom(field.getType())
                     && !Map.class.isAssignableFrom(field.getType())

@@ -22,7 +22,7 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noq
 from mateu_core.rest_source_registry import RestSourceRegistry  # noqa: E402
 from mateu_uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  # noqa: E402
 from typing import Annotated  # noqa: E402
-from datetime import date  # noqa: E402
+from datetime import date, datetime  # noqa: E402
 from enum import Enum  # noqa: E402
 from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
@@ -407,6 +407,136 @@ class AccessAnnotations:
         return None
 
 
+
+# ── Listings and CRUDs ──────────────────────────────────────────────────────────────────────────
+
+from mateu_uidl import Aggregate, AggregateFunction, Crud, Filterable, GroupBy, Listing, Navigable, Searchable  # noqa: E402
+
+
+class ProductStatus(Enum):
+    Available = "Available"
+    OutOfStock = "OutOfStock"
+    Discontinued = "Discontinued"
+
+
+class Product:
+    """The starters' Product: an id, a text, a number and an enum."""
+
+    id: str = ""
+    name: str = ""
+    price: float = 0.0
+    status: ProductStatus = ProductStatus.Available
+
+    def __init__(self, id="", name="", price=0.0, status=ProductStatus.Available):
+        self.id, self.name, self.price, self.status = id, name, price, status
+
+
+PRODUCTS = [
+    Product("P-001", "Espresso machine", 249.0, ProductStatus.Available),
+    Product("P-002", "Coffee grinder", 89.5, ProductStatus.Available),
+    Product("P-003", "Milk frother", 39.9, ProductStatus.OutOfStock),
+]
+
+
+@ui("/conformance/crud")
+@title("Products")
+class ProductsCrud(Crud[Product]):
+    def fetch(self, search):
+        return list(PRODUCTS)
+
+    def get(self, id):
+        return next((p for p in PRODUCTS if p.id == id), None)
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+class Book:
+    id: str = ""
+    title: str = ""
+    pages: int = 0
+
+    def __init__(self, id="", title="", pages=0):
+        self.id, self.title, self.pages = id, title, pages
+
+
+class BookFilters:
+    title: str | None = None
+    classic: bool = False
+
+
+BOOKS = [Book("b1", "El Quijote", 863), Book("b2", "Rayuela", 600)]
+
+
+@ui("/conformance/listing-filters")
+@title("Books")
+class FilteredBooks(Listing[Book], Searchable, Filterable[BookFilters]):
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+
+@ui("/conformance/listing-navigable")
+@title("Books")
+class NavigableBooks(Listing[Book], Navigable[Book, str]):
+    def search(self, request, http=None):
+        return list(BOOKS)
+
+    def view(self, id, http=None):
+        return BOOKS[0]
+
+
+class Sale:
+    id: str = ""
+    region: Annotated[str, GroupBy()] = ""
+    amount: Annotated[float, Aggregate(AggregateFunction.sum)] = 0.0
+    invoice: Annotated[str | None, Aggregate(AggregateFunction.count)] = None
+
+    def __init__(self, id="", region="", amount=0.0, invoice=None):
+        self.id, self.region, self.amount, self.invoice = id, region, amount, invoice
+
+
+class Tone(Enum):
+    calm = "calm"
+    loud = "loud"
+
+
+class Measurement:
+    """One column per basic type: what each becomes on a listing."""
+
+    label: str = ""
+    count: int = 0
+    amount: float = 0.0
+    active: bool = False
+    day: date | None = None
+    at: datetime | None = None
+    tone: Tone = Tone.calm
+
+
+@ui("/conformance/listing-columns")
+@title("Measurements")
+class MeasurementsListing(Listing[Measurement]):
+    def search(self, request, http=None):
+        return []
+
+
+@ui("/conformance/crud-grouped")
+@title("Sales")
+class SalesCrud(Crud[Sale]):
+    def fetch(self, search):
+        return [Sale("1", "North", 100.0, "F-1"), Sale("2", "South", 50.0, "F-2"), Sale("3", "North", 25.0, "F-3")]
+
+    def get(self, id):
+        return None
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -450,19 +580,38 @@ def normalise(node):
     return node
 
 
-def actual(view_cls) -> dict:
+#: Cases whose Java reference answers the first load with a MEDIATOR shell and the listing on the
+#: content load (a CRUD, or a listing promoted to one). The corpus pins that content; what it
+#: leaves out on every side is the mediator PROTOCOL around it — the content's ``actions`` (Java
+#: lets New/View/Delete bubble to its mediator, this port answers them in place) and the mediator's
+#: private routing state (``initialData``/``state``). Mirrors Java's ``MEDIATED`` and .NET's.
+MEDIATED = {"crud", "crud-grouped", "listing-navigable"}
+
+
+def without_mediator_protocol(increment: dict) -> dict:
+    for fragment in increment.get("fragments", []):
+        fragment.pop("state", None)
+        component = fragment.get("component")
+        if isinstance(component, dict):
+            component.pop("actions", None)
+            component.pop("initialData", None)
+    return increment
+
+
+def actual(view_cls, case: str | None = None) -> dict:
     handler = SyncHandler(
         MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=None)
     )
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
-    return normalise(inc.model_dump(by_alias=True, mode="json"))
+    out = normalise(inc.model_dump(by_alias=True, mode="json"))
+    return without_mediator_protocol(out) if case in MEDIATED else out
 
 
 def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing)]
 
 
 def test_every_case_of_the_corpus_is_wired():
@@ -508,7 +657,7 @@ def test_the_allow_list_names_only_real_cases():
 
 @pytest.mark.parametrize("case,view", _cases_with_known_divergences())
 def test_python_matches_the_corpus(case, view):
-    mine, theirs = actual(view), expected(case)
+    mine, theirs = actual(view, case), expected(case)
     assert mine == theirs, (
         f"'{case}': the Python wire differs from the corpus (conformance/cases/{case}). Close the "
         f"divergence in the port — or, if the Java golden itself is wrong, add the case to "

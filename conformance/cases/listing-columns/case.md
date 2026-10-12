@@ -1,0 +1,3 @@
+# listing-columns
+
+Pins what each basic type becomes as a LISTING column, on a bare listing whose row has one field of each: text, integer, double, boolean, date, date-time and an enum. The listing column keeps the number-ness of its field (`integer` / `number`, right-aligned) and reads booleans as `bool` (centred); everything else — dates and enums included — travels as `string`. Every column is `regular`, `resizable` and sized to its content, and carries the layout `weight` the renderer's heuristics read (Java's `WeightEstimator`, from the FINE type: bool 1, integer 1.5, number and date 2, date-time 2.5, text and enum 3). The enum column carries its humanised `valueLabels`.

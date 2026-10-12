@@ -581,6 +581,188 @@ class WireConformanceTest {
     public void approve() {}
   }
 
+  // ── Listings and CRUDs ───────────────────────────────────────────────────────────────────────
+
+  public enum ProductStatus {
+    Available,
+    OutOfStock,
+    Discontinued
+  }
+
+  /** The starters' Product: an id, a text, a number and an enum. */
+  public record Product(String id, String name, double price, ProductStatus status)
+      implements io.mateu.uidl.interfaces.Identifiable {}
+
+  static final List<Product> PRODUCTS =
+      List.of(
+          new Product("P-001", "Espresso machine", 249.0, ProductStatus.Available),
+          new Product("P-002", "Coffee grinder", 89.5, ProductStatus.Available),
+          new Product("P-003", "Milk frother", 39.9, ProductStatus.OutOfStock));
+
+  static io.mateu.uidl.interfaces.CrudStore<Product> productStore() {
+    return new io.mateu.uidl.interfaces.CrudStore<>() {
+      @Override
+      public java.util.Optional<Product> findById(String id) {
+        return PRODUCTS.stream().filter(p -> p.id().equals(id)).findFirst();
+      }
+
+      @Override
+      public String save(Product entity) {
+        return entity.id();
+      }
+
+      @Override
+      public List<Product> findAll() {
+        return PRODUCTS;
+      }
+
+      @Override
+      public void deleteAllById(List<String> ids) {}
+    };
+  }
+
+  /**
+   * The plain CRUD the starters ship: listing with search + derived filters, New/Delete, the id
+   * column a link to the record. What every port must answer when the user opens it.
+   */
+  @UI("/conformance/crud")
+  @Title("Products")
+  public static class ProductsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Product> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Product> store() {
+      return productStore();
+    }
+  }
+
+  public record Book(String id, String title, int pages) {}
+
+  public record BookFilters(String title, boolean classic) {}
+
+  static io.mateu.uidl.data.ListingData<Book> books() {
+    return io.mateu.uidl.data.ListingData.from(
+        List.of(new Book("b1", "El Quijote", 863), new Book("b2", "Rayuela", 600)));
+  }
+
+  /** A read-only listing that declares a search box and a filters type — nothing else. */
+  @UI("/conformance/listing-filters")
+  @Title("Books")
+  public static class FilteredBooks
+      implements io.mateu.uidl.interfaces.Listing<Book>,
+          io.mateu.uidl.interfaces.Searchable,
+          io.mateu.uidl.interfaces.Filterable<BookFilters> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+  }
+
+  /** A listing that is navigable: the id column becomes the link to the record. */
+  @UI("/conformance/listing-navigable")
+  @Title("Books")
+  public static class NavigableBooks
+      implements io.mateu.uidl.interfaces.Listing<Book>,
+          io.mateu.uidl.interfaces.Navigable<Book, String> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Book> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return books();
+    }
+
+    @Override
+    public Book view(String id, HttpRequest httpRequest) {
+      return books().page().content().get(0);
+    }
+  }
+
+  /** A sale: grouped by region, totals over amount and a count over invoice. */
+  public static class Sale implements io.mateu.uidl.interfaces.Identifiable {
+    public String id;
+    @io.mateu.uidl.annotations.GroupBy public String region;
+
+    @io.mateu.uidl.annotations.Aggregate(io.mateu.uidl.data.AggregateFunction.sum)
+    public double amount;
+
+    @io.mateu.uidl.annotations.Aggregate(io.mateu.uidl.data.AggregateFunction.count)
+    public String invoice;
+
+    public Sale() {}
+
+    public Sale(String id, String region, double amount, String invoice) {
+      this.id = id;
+      this.region = region;
+      this.amount = amount;
+      this.invoice = invoice;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+  }
+
+  /** A CRUD whose columns carry aggregates and whose rows group by a column. */
+  @UI("/conformance/crud-grouped")
+  @Title("Sales")
+  public static class SalesCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Sale> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Sale> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        final List<Sale> sales =
+            List.of(
+                new Sale("1", "North", 100.0, "F-1"),
+                new Sale("2", "South", 50.0, "F-2"),
+                new Sale("3", "North", 25.0, "F-3"));
+
+        @Override
+        public java.util.Optional<Sale> findById(String id) {
+          return sales.stream().filter(s -> s.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Sale entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<Sale> findAll() {
+          return sales;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  public enum Tone {
+    calm,
+    loud
+  }
+
+  /** One column per basic type: what each becomes on a listing. */
+  public record Measurement(
+      String label,
+      int count,
+      double amount,
+      boolean active,
+      LocalDate day,
+      java.time.LocalDateTime at,
+      Tone tone) {}
+
+  /** A bare listing whose row carries every basic type: the column mapping, pinned. */
+  @UI("/conformance/listing-columns")
+  @Title("Measurements")
+  public static class MeasurementsListing implements io.mateu.uidl.interfaces.Listing<Measurement> {
+    @Override
+    public io.mateu.uidl.data.ListingData<Measurement> search(
+        io.mateu.uidl.data.SearchRequest request, HttpRequest httpRequest) {
+      return io.mateu.uidl.data.ListingData.from(List.of());
+    }
+  }
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -608,7 +790,12 @@ class WireConformanceTest {
           "grid-field",
           "status-list",
           "compact",
-          "access-annotations");
+          "access-annotations",
+          "crud",
+          "listing-filters",
+          "listing-navigable",
+          "crud-grouped",
+          "listing-columns");
 
   static TestMateu mateu;
 
@@ -641,7 +828,12 @@ class WireConformanceTest {
             GridField.class,
             StatusListPage.class,
             CompactPage.class,
-            AccessAnnotations.class);
+            AccessAnnotations.class,
+            ProductsCrud.class,
+            FilteredBooks.class,
+            NavigableBooks.class,
+            SalesCrud.class,
+            MeasurementsListing.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -699,7 +891,8 @@ class WireConformanceTest {
       var names = new java.util.TreeSet<String>();
       node.fieldNames().forEachRemaining(names::add);
       for (var name : names) {
-        if (VOLATILE.contains(name)) {
+        if (VOLATILE.contains(name)
+            && !(Boolean.getBoolean("conformance.keepIds") && name.equals("id"))) {
           continue;
         }
         var value = normalise(node.get(name));
@@ -733,8 +926,58 @@ class WireConformanceTest {
         || (value.isTextual() && value.asText().isEmpty());
   }
 
+  /**
+   * Cases whose first load answers a MEDIATOR shell (a CRUD, or a listing promoted to one): the
+   * browser then loads the content through it with the route consumed. The ports answer that
+   * content directly, so the corpus pins the content load — the screen the user actually sees.
+   *
+   * <p>What it does NOT pin is the mediator PROTOCOL around it, which is structural: Java's listing
+   * advertises only its own actions and lets New/View/Delete bubble to the mediator, and carries
+   * the mediator's private routing state ({@code _route}, {@code idFieldForRow}); the ports have no
+   * mediator and answer every action in place. So for these cases the content component's {@code
+   * actions} and the fragment's {@code initialData}/{@code state} are left out on every side (see
+   * {@link #withoutMediatorProtocol}); everything the renderer draws is pinned.
+   */
+  private static final java.util.Map<String, Class<?>> MEDIATED =
+      java.util.Map.of(
+          "crud", ProductsCrud.class,
+          "crud-grouped", SalesCrud.class,
+          "listing-navigable", NavigableBooks.class);
+
   private static JsonNode actual(String route) {
-    var increment = mateu.sync("/conformance/" + route);
+    var path = "/conformance/" + route;
+    var mediated = MEDIATED.get(route);
+    var increment =
+        mediated == null
+            ? mateu.sync(path)
+            : mateu.run(
+                io.mateu.dtos.RunActionRqDto.builder()
+                    .route(path)
+                    .consumedRoute(path)
+                    .serverSideType(mediated.getName())
+                    .actionId("")
+                    .initiatorComponentId("c1_app")
+                    .componentState(java.util.Map.of())
+                    .build());
+    if (mediated != null) {
+      return withoutMediatorProtocol(roundTrip(increment));
+    }
+    return roundTrip(increment);
+  }
+
+  /** Drops the mediator protocol of a mediated case — identical in the three runners. */
+  static JsonNode withoutMediatorProtocol(JsonNode increment) {
+    for (var fragment : increment.path("fragments")) {
+      ((com.fasterxml.jackson.databind.node.ObjectNode) fragment).remove("state");
+      if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
+        c.remove("actions");
+        c.remove("initialData");
+      }
+    }
+    return increment;
+  }
+
+  private static JsonNode roundTrip(Object increment) {
     // Round-trip through text so a BigDecimal (DecimalNode) and the same value read back from the
     // golden (DoubleNode) compare equal: they serialise to the identical "1250.5", and it is that
     // serialised form the corpus pins — not Jackson's in-memory numeric node type.

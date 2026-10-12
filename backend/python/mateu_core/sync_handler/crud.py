@@ -75,6 +75,15 @@ class CrudHandlerMixin(MixinBase):
             return self.crud_save(crud, element, id_, rq, base_route)
         if aid == "update-row":
             return self.update_row(crud, element, rq)
+        if aid == "delete" and id_ is None:
+            # Delete on the LISTING: the rows selected in the grid (Java's DeleteActionHandler);
+            # the listing re-runs its search in place.
+            for row_id in self._selected_ids(rq):
+                self.delete(crud, row_id)
+            refreshed = self.crud_search(crud, element, rq)
+            return refreshed.model_copy(update={"messages": [
+                MessageDto(variant="success", position="middle", title="", text="Deleted", duration=3000)
+            ]})
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
         # Crud.<format>_exportable: only an exportable crud answers its export (the id is wire
@@ -97,6 +106,11 @@ class CrudHandlerMixin(MixinBase):
             if aid in ("cancel-new", "cancel-edit", "cancel-view"):
                 close = UICommand.close_modal()
                 return UIIncrement(commands=[close.model_copy(update={"target_component_id": self.target(rq)})])
+        if aid == "view":
+            # the id column's link (first column, actionId "view"): open the record's route
+            row_id = self._row_id(rq)
+            if row_id is not None:
+                return self.navigate(f"{base_route}/{row_id}", None, rq)
         if aid in (None, ""):
             if mode == "new":
                 return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new", rq)

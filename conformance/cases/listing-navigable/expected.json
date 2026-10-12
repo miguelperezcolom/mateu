@@ -1,0 +1,79 @@
+{
+  "commands" : [ {
+    "data" : "Books",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "actionId" : "view",
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Id",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Title",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "align" : "end",
+                "autoWidth" : true,
+                "dataType" : "integer",
+                "label" : "Pages",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 1.5
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filtersLayout" : "auto",
+            "gridLayout" : "auto",
+            "pageSize" : 10,
+            "searchOnEnter" : true,
+            "title" : "Books",
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "style" : "min-width: min(30rem, 100%); display: block;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "Page"
+        },
+        "style" : "width: 100%;",
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "collection",
+      "route" : "/conformance/listing-navigable",
+      "style" : "width: 100%;",
+      "triggers" : [ {
+        "actionId" : "search",
+        "times" : 1,
+        "type" : "OnLoad"
+      } ],
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

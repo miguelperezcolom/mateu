@@ -55,6 +55,10 @@ public class WireConformanceTests
                 foreach (var item in array) result.Add(Normalise(item?.DeepClone()));
                 return result;
             }
+            // A number compares by VALUE, not by spelling: Java writes a double weight as 3.0,
+            // System.Text.Json as 3 — the same number to every renderer.
+            case JsonValue v when v.GetValueKind() == JsonValueKind.Number && v.TryGetValue<double>(out var d):
+                return JsonValue.Create(d);
             default:
                 return node;
         }
@@ -74,12 +78,37 @@ public class WireConformanceTests
         return false;
     }
 
-    private static JsonNode Actual(Type view)
+    private static JsonNode Actual(Type view, string? @case = null)
     {
         var handler = new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
         var increment = handler.Handle(new RunActionRqDto { ServerSideType = view.FullName });
         var json = JsonSerializer.Serialize(increment, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-        return Normalise(JsonNode.Parse(json))!;
+        var normalised = Normalise(JsonNode.Parse(json))!;
+        return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
+    }
+
+    /// <summary>Cases whose Java reference answers the first load with a MEDIATOR shell and the
+    /// listing on the content load (a CRUD, or a listing promoted to one). The corpus pins that
+    /// content; what it leaves out on every side is the mediator PROTOCOL around it — the content's
+    /// <c>actions</c> (Java lets New/View/Delete bubble to its mediator, .NET answers them in place)
+    /// and the mediator's private routing state (<c>initialData</c>/<c>state</c>). Mirrors Java's
+    /// <c>MEDIATED</c> and Python's.</summary>
+    private static readonly HashSet<string> Mediated = ["crud", "crud-grouped", "listing-navigable"];
+
+    /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
+    private static JsonNode WithoutMediatorProtocol(JsonNode increment)
+    {
+        if (increment["fragments"] is JsonArray fragments)
+            foreach (var fragment in fragments.OfType<JsonObject>())
+            {
+                fragment.Remove("state");
+                if (fragment["component"] is JsonObject component)
+                {
+                    component.Remove("actions");
+                    component.Remove("initialData");
+                }
+            }
+        return increment;
     }
 
     private static JsonNode Expected(string @case) =>
@@ -113,6 +142,11 @@ public class WireConformanceTests
         { "status-list", typeof(StatusListPage) },
         { "compact", typeof(CompactPage) },
         { "access-annotations", typeof(AccessAnnotations) },
+        { "crud", typeof(ProductsCrud) },
+        { "listing-filters", typeof(FilteredBooks) },
+        { "listing-navigable", typeof(Wire.NavigableBooks) },
+        { "crud-grouped", typeof(SalesCrud) },
+        { "listing-columns", typeof(MeasurementsListing) },
     };
 
     [Fact]
@@ -157,7 +191,7 @@ public class WireConformanceTests
     [Theory, MemberData(nameof(Cases))]
     public void Dotnet_matches_the_corpus(string @case, Type view)
     {
-        var mine = Actual(view);
+        var mine = Actual(view, @case);
         var theirs = Expected(@case);
         var diffs = new List<string>();
         Diff("$", theirs, mine, diffs);

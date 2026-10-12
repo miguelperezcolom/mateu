@@ -110,7 +110,7 @@ public sealed partial class ReflectionMapper
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
             {
-                DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
+                DataType = ListingColumnDataType(p),
                 Aggregate = AggregateOf(p),
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
@@ -118,7 +118,7 @@ public sealed partial class ReflectionMapper
                 TooltipPath = TooltipPathOf(p),
                 ValueLabels = ValueLabelsOf(p),
             }))
-            .Select(c => WithFieldType(c, row))
+            .Select(c => AsListingColumn(WithFieldType(c, row), row))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
         var toolbar = new List<ButtonDto>();
@@ -160,7 +160,7 @@ public sealed partial class ReflectionMapper
                 ? [ComponentMapper.Map(preSearch)]
                 : null,
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
-        }, "crud", []) with { Sizing = "fill" };
+        }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
         var pageChildren = new List<ComponentDto>();
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
@@ -169,7 +169,7 @@ public sealed partial class ReflectionMapper
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
             with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
-        var triggers = smartSearch is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
+        var triggers = smartSearch is null ? new List<TriggerDto> { PreloadSearch() } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
@@ -197,22 +197,25 @@ public sealed partial class ReflectionMapper
                 var id = Naming.CamelCase(p.Name);
                 var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
                 if (t == typeof(DateRange))
-                    return new FormFieldMetadataDto(id, "date", label) { Stereotype = "dateRange" };
+                    return new FormFieldMetadataDto(id, "date", label) { Stereotype = "dateRange", OptionsColumns = 0 };
                 if (t == typeof(NumberRange))
-                    return new FormFieldMetadataDto(id, "number", label) { Stereotype = "numberRange" };
+                    return new FormFieldMetadataDto(id, "number", label) { Stereotype = "numberRange", OptionsColumns = 0 };
                 if (EnumSetElementType(p) is { } el)
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "multiSelect",
                         Options = Enum.GetNames(el).Select(n => new OptionDto(n, EnumLabel(el, n))).ToList(),
+                        OptionsColumns = 0,
                     };
                 if (t.IsEnum)
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "select",
                         Options = Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList(),
+                        OptionsColumns = 0,
                     };
-                return new FormFieldMetadataDto(id, InferDataType(t, p), label);
+                // a filter lays out no options grid: Java sends no optionsColumns for one
+                return new FormFieldMetadataDto(id, InferDataType(t, p), label) { OptionsColumns = 0 };
             })
             .ToList();
 
@@ -249,7 +252,7 @@ public sealed partial class ReflectionMapper
                 {
                     // a LISTING column keeps the number-ness of its field so the renderers
                     // right-align it (Java: ColumnTypeMapper.getDataTypeForListingColumn)
-                    DataType = ListingDataType(p),
+                    DataType = ListingColumnDataType(p),
                     Editable = editable,
                     EditorType = editable ? EditorTypeOf(p) : null,
                     EditorOptions = editable ? EditorOptionsOf(p) : null,
@@ -263,14 +266,15 @@ public sealed partial class ReflectionMapper
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
             })
-            .Select(c => WithFieldType(c, element))
+            .Select(c => AsListingColumn(WithFieldType(c, element), element))
             .ToList();
         var toolbar = new List<ButtonDto>();
-        var actions = new List<ActionDto> { new("search") };
+        // a search is a read: it validates nothing (Java's CrudActionsBuilder)
+        var actions = new List<ActionDto> { new("search", ValidationRequired: false) };
         if (canCreate && display.Create.Shown())
         {
             toolbar.Add(new ButtonDto("New", "new") { Disabled = !display.Create.Enabled() });
-            actions.Add(new ActionDto("new"));
+            actions.Add(new ActionDto("new", ValidationRequired: false));
         }
         // Export the listing (Crud.CsvExportable / ExcelExportable / PdfExportable): the whole
         // filtered set as a download, buttons first in the toolbar in Java's order (mirrors
@@ -290,8 +294,10 @@ public sealed partial class ReflectionMapper
         }
         if (canDelete && display.Delete.Shown())
         {
-            toolbar.Add(new ButtonDto("Delete", "delete") { Disabled = !display.Delete.Enabled() });
-            actions.Add(new ActionDto("delete"));
+            toolbar.Add(new ButtonDto("Delete", "delete") { Disabled = !display.Delete.Enabled(), Color = "error" });
+            // the client asks for confirmation and needs a selection (Java's CrudActionsBuilder)
+            actions.Add(new ActionDto("delete", ValidationRequired: false,
+                ConfirmationRequired: true, RowsSelectedRequired: true));
         }
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
@@ -323,7 +329,7 @@ public sealed partial class ReflectionMapper
             // [Compact] on the crud/listing: dense rows (Java: Listing.compact)
             Compact = viewType.Find<CompactAttribute>() != null,
             RowsSelectionEnabled = canDelete,
-        }, "crud", []) with { Sizing = "fill" };
+        }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
         var pageChildren = new List<ComponentDto>();
         if (hero is not null)
             pageChildren.Add(Client(new HeroSectionMetadataDto(
@@ -331,13 +337,14 @@ public sealed partial class ReflectionMapper
         pageChildren.Add(crudComponent);
         // [Compact]: the page carries the high-density preset + --mateu-compact:1, as a [Compact] view
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
-            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
+            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : CrudFullWidthStyle };
         // A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
-        var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
+        var triggers = hero is null ? new List<TriggerDto> { PreloadSearch() } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
+            Style = CrudFullWidthStyle,
             PageWidth = PageWidthOf(viewType, instance),
             PageType = PageTypeOf(viewType),
         };
@@ -354,13 +361,18 @@ public sealed partial class ReflectionMapper
         var title = T(viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name));
         var instance = Activator.CreateInstance(viewType);
         var rowsClickable = profile.CanView || profile.CanEdit;
+        // Java promotes a listing declaring an INTERACTION capability to a crud (CapabilityCrud):
+        // the title rides on the listing and the page is the crud's full-width page. A listing
+        // declaring none stays a plain listing page: the title is the PAGE's, the filters lay out
+        // inline and it is not routed through a crud (route "_empty").
+        var bridged = profile.CanView || profile.CanEdit || profile.CanCreate || profile.CanDelete;
         var columns = EditableProperties(profile.RowType)
             .Where(p => GridRowType(p) is null && Visible(p))
             .Select((p, index) => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
             {
-                DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
+                DataType = ListingColumnDataType(p),
                 Aggregate = AggregateOf(p),
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
@@ -371,10 +383,16 @@ public sealed partial class ReflectionMapper
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
             }))
-            .Select(c => WithFieldType(c, profile.RowType))
+            .Select(c => AsListingColumn(WithFieldType(c, profile.RowType), profile.RowType))
             .ToList();
         var toolbar = new List<ButtonDto>();
-        var actions = new List<ActionDto> { new("search") };
+        var actions = new List<ActionDto> { new("search", ValidationRequired: false) };
+        if (!bridged)
+        {
+            // what a plain Java listing advertises: its search and the row/view action wildcards
+            actions.Add(new ActionDto("action-on-row-*", ValidationRequired: false));
+            actions.Add(new ActionDto("action-on-view-*", ValidationRequired: false));
+        }
         AddExportButtons(instance, toolbar, actions);
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (profile.CanCreate)
@@ -386,8 +404,9 @@ public sealed partial class ReflectionMapper
         }
         if (profile.CanDelete)
         {
-            toolbar.Add(new ButtonDto("Delete", "delete"));
-            actions.Add(new ActionDto("delete"));
+            toolbar.Add(new ButtonDto("Delete", "delete") { Color = "error" });
+            actions.Add(new ActionDto("delete", ValidationRequired: false,
+                ConfirmationRequired: true, RowsSelectedRequired: true));
         }
         if (profile.CanEdit)
         {
@@ -412,9 +431,10 @@ public sealed partial class ReflectionMapper
                 Bubble: true));
         }
         var gridLayout = viewType.GetMethod("GridLayout", Type.EmptyTypes)?.Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        var crud = Client(new CrudMetadataDto(bridged ? title : null, columns, toolbar)
         {
             Searchable = profile.Searchable,
+            FiltersLayout = bridged ? "auto" : "inline",
             Filters = profile.FiltersType is { } filtersType ? MapListingFilters(filtersType) : [],
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
@@ -423,14 +443,20 @@ public sealed partial class ReflectionMapper
             // [Compact] on the crud/listing: dense rows (Java: Listing.compact)
             Compact = viewType.Find<CompactAttribute>() != null,
             RowsSelectionEnabled = profile.CanDelete,
-        }, "crud", []) with { Sizing = "fill" };
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud])
-            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
+        }, "crud", []) with { Sizing = "fill", Style = ListingBoxStyle };
+        var compact = viewType.Find<CompactAttribute>() != null;
+        var page = bridged
+            ? Client(new PageMetadataDto(null, null, null, [], []), null, [crud])
+                with { Style = compact ? CompactStyle : CrudFullWidthStyle }
+            : Client(new PageMetadataDto(title, T(Naming.Humanize(viewType.Name)), null, [], [])
+                { PageType = PageTypeOf(viewType) }, null, [crud])
+                with { Style = compact ? CompactStyle : null };
         return new ServerSideComponentDto(
-            Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
+            Guid.NewGuid().ToString(), viewType.FullName!, bridged ? route : "_empty", [page],
             new Dictionary<string, object?>(), actions,
-            new List<TriggerDto> { new("OnLoad", "search") }, null, null, null)
+            new List<TriggerDto> { PreloadSearch() }, null, null, null)
         {
+            Style = bridged ? CrudFullWidthStyle : null,
             PageWidth = PageWidthOf(viewType, instance),
             PageType = PageTypeOf(viewType),
         };
@@ -545,6 +571,8 @@ public sealed partial class ReflectionMapper
                 {
                     Stereotype = stereotype,
                     Options = options,
+                    // a filter lays out no options grid: Java sends no optionsColumns for one
+                    OptionsColumns = 0,
                 };
             })
             .ToList();
@@ -760,6 +788,75 @@ public sealed partial class ReflectionMapper
         if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(System.Numerics.BigInteger)) return "integer";
         if (t == typeof(double) || t == typeof(float) || t == typeof(decimal)) return "number";
         return null;
+    }
+
+    /// <summary>A LISTING column's data type, as Java sends it (ColumnTypeMapper
+    /// .getDataTypeForListingColumn): booleans "bool", whole numbers "integer", decimals "number",
+    /// everything else — text, enums, dates — "string".</summary>
+    internal static string ListingColumnDataType(PropertyInfo c)
+    {
+        var t = Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType;
+        if (t == typeof(bool)) return "bool";
+        return ListingDataType(c) ?? "string";
+    }
+
+    /// <summary>The style of the listing box (Java's PageListingBuilder.LISTING_BOX_STYLE): never
+    /// narrower than 30rem, but never wider than its container either.</summary>
+    internal const string ListingBoxStyle = "min-width: min(30rem, 100%); display: block;";
+
+    /// <summary>The style of a crud's ServerSide wrapper and of its page (Java's crud mediator).</summary>
+    internal const string CrudFullWidthStyle = "width: 100%;";
+
+    /// <summary>The preload search of a listing: an OnLoad trigger that fires once (Java's
+    /// TriggerMapper OnLoad → search, times 1).</summary>
+    internal static TriggerDto PreloadSearch() => new("OnLoad", "search") { Times = 1 };
+
+    /// <summary>A listing column finished the way Java's ListingColumnBuilder + GridColumnMapper
+    /// finish theirs: stereotype "regular" unless one is declared, resizable, sized to its content
+    /// unless a width is fixed, numbers aligned at the end and booleans centred, and the
+    /// display-width weight of its type (WeightEstimator.base).</summary>
+    private static GridColumnDto AsListingColumn(GridColumnDto column, Type row)
+    {
+        var m = column.Metadata;
+        var p = row.GetProperties().FirstOrDefault(x => Naming.CamelCase(x.Name) == m.Id);
+        var stereotype = m.Stereotype ?? "regular";
+        var align = m.Align;
+        if (align is null)
+        {
+            if (m.DataType is "integer" or "number" or "money" || stereotype == "money") align = "end";
+            else if (m.DataType == "bool") align = "center";
+        }
+        return column with
+        {
+            Metadata = m with
+            {
+                Stereotype = stereotype,
+                Resizable = true,
+                AutoWidth = m.AutoWidth || m.Width is null,
+                Align = align,
+                Weight = m.Weight ?? (p is null ? 3.0 : WeightOf(p, stereotype)),
+            },
+        };
+    }
+
+    /// <summary>Java's WeightEstimator.base: the stereotype first, then the field's FINE type.</summary>
+    private static double WeightOf(PropertyInfo p, string? stereotype)
+    {
+        switch (stereotype)
+        {
+            case "icon": return 1.0;
+            case "combobox" or "select": return 2.0;
+            case "link": return 2.5;
+            case "image": return 4.0;
+            case "html" or "richText" or "markdown" or "textarea": return 5.0;
+        }
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        if (t == typeof(bool)) return 1.0;
+        if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte)
+            || t == typeof(System.Numerics.BigInteger)) return 1.5;
+        if (t == typeof(double) || t == typeof(float) || t == typeof(decimal) || t == typeof(DateOnly)) return 2.0;
+        if (t == typeof(DateTime) || t == typeof(DateTimeOffset)) return 2.5;
+        return 3.0;
     }
 
     private static string GridColumnDataType(PropertyInfo c)

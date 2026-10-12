@@ -61,6 +61,8 @@ final class FieldActionCollector {
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(field -> List.class.isAssignableFrom(field.getType()))
+        // a transient list is not page data, so not an editable grid field
+        .filter(field -> !java.lang.reflect.Modifier.isTransient(field.getModifiers()))
         .flatMap(
             field -> {
               String fieldName = field.getName();
