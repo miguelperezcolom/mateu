@@ -288,7 +288,12 @@ public class MateuQuarkusRoutes {
       var httpRequest = new QuarkusHttpRequest(rc.request()).storeRunActionRqDto(rq);
       httpRequest.setAttribute("uiId", "");
       httpRequest.setAttribute("baseUrl", mount.basePath());
-      var increments = service.runAction(mount.basePath(), rq, mount.basePath(), httpRequest);
+      var increments =
+          service.runAction(
+              mount.basePath(),
+              YamlMounts.mountRequest(mount.basePath(), rq),
+              mount.basePath(),
+              httpRequest);
       var response = rc.response();
       if (rc.request().path().startsWith(mount.apiPrefix() + "/v3/sse/")) {
         response.setChunked(true).putHeader("Content-Type", "text/event-stream");

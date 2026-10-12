@@ -6,7 +6,7 @@ import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {loopGuard} from "@infra/ui/loopGuard.ts";
-import {awaitBundle, hasBundle, resolveBundledLoad, toSyncPath} from "@infra/http/bundleStore.ts";
+import {awaitBundle, hasBundle, isForeignBaseUrl, isStaticBundleUrl, resolveBundledLoad, resolveRemoteBundledLoad, toSyncPath} from "@infra/http/bundleStore.ts";
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
@@ -246,7 +246,27 @@ export class AxiosMateuApiClient implements MateuApiClient {
         // no bundle is loading). Actions (actionId≠"") always fall through to the backend (they need
         // server logic), and a route absent from the bundle falls through too — so a hybrid deploy
         // (bundle + backend) still works.
-        if (actionId === '') {
+        // A federated STATIC remote: its base URL names a bundle manifest, not a server. Its loads
+        // are answered from that manifest; there is nothing to POST anything else to.
+        if (isStaticBundleUrl(baseUrl)) {
+            const bundled = actionId === ''
+                ? await resolveRemoteBundledLoad(baseUrl, toSyncPath(route), consumedRoute)
+                : undefined
+            const answer = (): Promise<UIIncrement> => bundled
+                ? Promise.resolve({
+                    ...bundled,
+                    fragments: (bundled.fragments ?? []).map(f =>
+                        f.targetComponentId ? f : { ...f, targetComponentId: initiatorComponentId }),
+                })
+                : Promise.reject(new Error(actionId === ''
+                    ? `the static bundle ${baseUrl} does not answer the route "${route}"`
+                    : `the static bundle ${baseUrl} has no server to run "${actionId}"`))
+            return await this.wrap<UIIncrement>(answer, initiator, background, actionId, options.retry,
+                false, options.isStale)
+        }
+        // The page's own bundle answers its own loads, never a federated remote's (another origin):
+        // that one would get the shell's own app back as "its" menu.
+        if (actionId === '' && !isForeignBaseUrl(baseUrl)) {
             await awaitBundle()
             if (hasBundle()) {
                 // exact match first, then a :param template (e.g. orders/42 → the orders/:id

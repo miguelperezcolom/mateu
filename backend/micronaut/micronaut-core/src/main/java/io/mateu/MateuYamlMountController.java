@@ -117,7 +117,11 @@ public class MateuYamlMountController {
       return Mono.empty();
     }
     return service
-        .runAction(mount.basePath(), rq, mount.basePath(), requestOf(request, rq, mount))
+        .runAction(
+            mount.basePath(),
+            YamlMounts.mountRequest(mount.basePath(), rq),
+            mount.basePath(),
+            requestOf(request, rq, mount))
         .next();
   }
 
@@ -130,7 +134,11 @@ public class MateuYamlMountController {
     if (mount == null) {
       return Flux.empty();
     }
-    return service.runAction(mount.basePath(), rq, mount.basePath(), requestOf(request, rq, mount));
+    return service.runAction(
+        mount.basePath(),
+        YamlMounts.mountRequest(mount.basePath(), rq),
+        mount.basePath(),
+        requestOf(request, rq, mount));
   }
 
   private static io.mateu.uidl.interfaces.HttpRequest requestOf(

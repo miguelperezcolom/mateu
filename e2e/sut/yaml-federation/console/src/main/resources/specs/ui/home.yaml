@@ -1,0 +1,6 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Welcome to the console
+content:
+  - type: Text
+    text: Orders and the catalog are owned by other teams and federated here.

@@ -235,8 +235,12 @@ export class MessageHost implements HostBridge {
         this.channel.postMessage({ type: 'listImages' })
         return new Promise((resolve) => {
             this._resolveImages = resolve
+            // Only THIS request's slot is cleared: a stale timer of an earlier, already answered request
+            // used to clear a newer request's resolver, which then never resolved (the picker hung).
+            // Resolving an already settled promise is a no-op, so the timer always settles its own.
             setTimeout(() => {
-                if (this._resolveImages) { this._resolveImages = undefined; resolve([]) }
+                if (this._resolveImages === resolve) this._resolveImages = undefined
+                resolve([])
             }, 3000)
         })
     }
@@ -254,8 +258,10 @@ export class MessageHost implements HostBridge {
         this.channel.postMessage({ type: 'listFiles' })
         return new Promise((resolve) => {
             this._resolveFiles = resolve
+            // same rule as listImages: a stale timer never steals a newer request's slot
             setTimeout(() => {
-                if (this._resolveFiles) { this._resolveFiles = undefined; resolve([]) }
+                if (this._resolveFiles === resolve) this._resolveFiles = undefined
+                resolve([])
             }, 1500)
         })
     }

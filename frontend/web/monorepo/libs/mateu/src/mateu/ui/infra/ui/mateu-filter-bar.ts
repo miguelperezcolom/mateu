@@ -16,7 +16,7 @@ import {
     setDefaultView,
 } from "../savedViewsStore.ts";
 import { ListenerSlot } from '@infra/ui/connectionScope.ts'
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -446,7 +446,7 @@ export class MateuFilterBar extends LitElement {
                         <button class="view-star ${view.isDefault ? 'view-star--on' : ''}"
                                 title="${view.isDefault ? chromeText('unsetDefaultView') : chromeText('openWithView')}"
                                 @click="${() => { setDefaultView(this.viewsScope, view.name); this.requestUpdate() }}">★</button>
-                        <button class="chip-remove" aria-label="Delete view ${view.name}"
+                        <button class="chip-remove" aria-label="${chromeTextf('deleteViewNamed', { name: view.name })}"
                                 @click="${() => { deleteView(this.viewsScope, view.name); this.requestUpdate() }}">✕</button>
                     </div>`)}
                 ${anySet ? html`
@@ -459,7 +459,7 @@ export class MateuFilterBar extends LitElement {
                         <button class="apply-button"
                                 @click="${(e: Event) => this.saveCurrentView((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">${chromeText('save')}</button>
                     </div>` : html`
-                    <div class="panel-row views-empty">Apply some filters to save a view</div>`}
+                    <div class="panel-row views-empty">${chromeText('applyFiltersToSaveView')}</div>`}
             </div>`
     }
 
@@ -529,7 +529,7 @@ export class MateuFilterBar extends LitElement {
                     ${chips.map(chip => html`
                         <span theme="badge contrast pill" class="chip">
                             <span class="chip-label">${chip.label}:</span> ${chip.display}
-                            <button class="chip-remove" aria-label="Remove filter ${chip.label}"
+                            <button class="chip-remove" aria-label="${chromeTextf('removeFilterNamed', { name: chip.label })}"
                                     @mousedown="${this.keepFocus}"
                                     @click="${(e: Event) => { e.stopPropagation(); this.removeChip(chip.fieldId) }}">✕</button>
                         </span>`)}

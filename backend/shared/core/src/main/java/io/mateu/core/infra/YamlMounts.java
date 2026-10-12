@@ -3,6 +3,7 @@ package io.mateu.core.infra;
 import io.mateu.core.application.runaction.MountRegistry;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlAppLoader;
+import io.mateu.dtos.RunActionRqDto;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,11 +106,51 @@ public final class YamlMounts {
     // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
     html = html.replace("AQUIELTITULODELAPAGINA", title);
+    // A nested mount's API lives at its ABSOLUTE path (/back-office/mateu/v3/…). A bare
+    // "back-office" is resolved by the browser against the page, so /back-office/x posted to
+    // /back-office/back-office/mateu/… and every page of a nested YAML mount answered 404. The
+    // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
+    // the mount on them.
     return IndexPage.devHead(
         IndexPage.mountUi(
             html,
             "<mateu-ui baseUrl=\""
-                + basePath
+                + uiPath(basePath)
                 + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"));
+  }
+
+  /** The {@code baseUrl} of a mount's {@code <mateu-ui>}: "" or "/back-office". */
+  static String uiPath(String basePath) {
+    return basePath == null || basePath.isEmpty() ? "" : "/" + basePath;
+  }
+
+  /**
+   * The request a mount's sync endpoint hands to the service. The client sends the route RELATIVE
+   * to the {@code baseUrl} it posts to (it strips it from the browser path, as for a pathed
+   * {@code @UI} page), while a YAML mount's routes are registered WITH the mount on them ({@code
+   * orders/list}): without this, every route of a nested mount was "Page not found". A route that
+   * already names the mount (one the server sent back itself) is left as it is.
+   */
+  public static RunActionRqDto mountRequest(String basePath, RunActionRqDto rq) {
+    if (rq == null || basePath == null || basePath.isEmpty()) {
+      return rq;
+    }
+    var route = rq.route() == null ? "" : rq.route();
+    var relative = route.startsWith("/") ? route.substring(1) : route;
+    if (relative.equals(basePath) || relative.startsWith(basePath + "/")) {
+      return rq;
+    }
+    var mounted = "/" + basePath + (relative.isEmpty() ? "" : "/" + relative);
+    return new RunActionRqDto(
+        rq.componentState(),
+        rq.appState(),
+        rq.parameters(),
+        rq.initiatorComponentId(),
+        rq.consumedRoute(),
+        rq.actionId(),
+        mounted,
+        rq.serverSideType(),
+        rq.serverSideComponentRoute(),
+        rq.knownStructureHash());
   }
 }

@@ -135,11 +135,13 @@
     "watch": "tsc -watch -p ./",
     "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "package": "vsce package --out mateu-visual-editor.vsix"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "@vscode/vsce": "^3.9.2",
     "typescript": "^5.4.0",
     "vitest": "^4.1.11"

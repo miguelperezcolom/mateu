@@ -1,4 +1,4 @@
-import { MateuApiClient } from '../api/MateuApiClient';
+import { MateuApiClient } from '../api/MateuApiClient.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 

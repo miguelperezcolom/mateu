@@ -1,13 +1,13 @@
-import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
-import { MateuSession, NavTarget } from './MateuSession';
-import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch';
-import { announce, announceLive } from '../a11y/a11y';
-import { presentDocument } from './documentEffects';
-import type { FileDownloadData } from './documents';
-import { isTimedOnLoad, PollingScheduler } from './polling';
-import { serverSideState } from './uxRules';
-import { isDev } from '../api/MateuApiClient';
-import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows';
+import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
+import { MateuSession, type NavTarget } from './MateuSession.ts';
+import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch.ts';
+import { announce, announceLive } from '../a11y/a11y.ts';
+import { presentDocument } from './documentEffects.ts';
+import type { FileDownloadData } from './documents.ts';
+import { isTimedOnLoad, PollingScheduler } from './polling.ts';
+import { serverSideState } from './uxRules.ts';
+import { isDev } from '../api/MateuApiClient.ts';
+import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {

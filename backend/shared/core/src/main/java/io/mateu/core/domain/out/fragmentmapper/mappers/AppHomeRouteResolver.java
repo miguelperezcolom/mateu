@@ -50,6 +50,7 @@ final class AppHomeRouteResolver {
     } else {
       if ("".equals(effectiveRoute)
           || "/".equals(effectiveRoute)
+          || isMountRoot(effectiveRoute, httpRequest)
           || effectiveRoute.endsWith("_page")
           || effectiveRoute.endsWith("_no_home_route")
           || effectiveRoute.equals(appRoute)) {
@@ -79,6 +80,25 @@ final class AppHomeRouteResolver {
       effectiveRoute = addQueryParams(effectiveRoute, httpRequest);
     }
     return effectiveRoute;
+  }
+
+  /**
+   * Whether {@code route} is the root of the mount this request was served by — the ROOT of a
+   * nested YAML mount ({@code /orders} for {@code basePath: orders}), whose routes travel with the
+   * mount on them. Without this its shell was aimed at itself (homeRoute {@code /orders}) and the
+   * content slot reloaded the shell forever.
+   */
+  private static boolean isMountRoot(String route, HttpRequest httpRequest) {
+    if (route == null || httpRequest == null) {
+      return false;
+    }
+    var baseUrl = httpRequest.getAttribute("baseUrl");
+    if (!(baseUrl instanceof String mount) || mount.isBlank() || mount.contains("://")) {
+      return false;
+    }
+    var normalizedMount = mount.startsWith("/") ? mount.substring(1) : mount;
+    var normalizedRoute = route.startsWith("/") ? route.substring(1) : route;
+    return !normalizedMount.isEmpty() && normalizedMount.equals(normalizedRoute);
   }
 
   static String getHomeConsumedRoute(

@@ -82,7 +82,11 @@ public class YamlMountAutoConfiguration {
     var httpRequest = requestOf(request, rq, baseUrl);
     io.mateu.dtos.UIIncrementDto increment;
     try {
-      increment = service.runAction(baseUrl, rq, baseUrl, httpRequest).next().block();
+      increment =
+          service
+              .runAction(baseUrl, YamlMounts.mountRequest(baseUrl, rq), baseUrl, httpRequest)
+              .next()
+              .block();
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
@@ -97,7 +101,7 @@ public class YamlMountAutoConfiguration {
         sseBuilder -> {
           try {
             service
-                .runAction(baseUrl, rq, baseUrl, httpRequest)
+                .runAction(baseUrl, YamlMounts.mountRequest(baseUrl, rq), baseUrl, httpRequest)
                 .subscribe(
                     increment -> {
                       try {

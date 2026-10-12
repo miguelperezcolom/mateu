@@ -109,13 +109,13 @@ jobs:
           npx --no -- vite build
           node scripts/check-bundle-budget.mjs
 
-      # The visual editor (embedded in both IDE plugins) has its own vitest suite (~120 tests, <1s)
-      # that only ran by hand. Same order as above: typecheck before the tests.
-      - name: Visual editor — typecheck and tests
+      # The visual editor (embedded in both IDE plugins) has its own vitest suite. Same order as
+      # above: typecheck before the tests; its coverage is a ratchet too (vitest.config.ts).
+      - name: Visual editor — typecheck and tests (with coverage thresholds)
         run: |
           cd frontend/web/monorepo/apps/visual-editor
           npx --no -- tsc --noEmit
-          npm test
+          npm run test:coverage
 
   # Small, dependency-light suites that existed but never ran in CI: the Redwood core's wire-contract
   # tests (node only, no install), the MCP server, prompt-to-app, the React Native renderer's pure
@@ -133,14 +133,21 @@ jobs:
         with:
           node-version: 24
 
-      - name: Redwood core contract tests
-        run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs && node test-pms.mjs && node test-display.mjs && node test-chains.mjs && node test-editor.mjs
-
-      # The embedded mode: the <mateu-ui> JET Custom Component a VB developer imports into their
-      # own app (poc/embedded.mjs + embedded/mateu-ui) — its runtime, its package and that it installs
-      # what the standalone shell installs. Node only, like the contract tests above.
-      - name: Redwood embedded component (<mateu-ui>) tests
-        run: cd frontend/web/monorepo/apps/redwood/poc && node test-embedded.mjs
+      # Every suite of the Redwood core, each run as a test file by node's own runner (so one failing
+      # suite fails the step), with a coverage ratchet over the poc sources: the wire-contract suites,
+      # the embedded <mateu-ui> JET Custom Component (test-embedded), live reload, the pattern gaps,
+      # the REST source catalogue and the DOM wiring (test-dom, over test-harness-dom's fake DOM).
+      # test-live-reload/test-patterns/test-sources existed but never ran here.
+      - name: Redwood core tests (with coverage thresholds)
+        run: >-
+          cd frontend/web/monorepo/apps/redwood/poc && node --test --experimental-test-coverage
+          --test-coverage-include='*.mjs' --test-coverage-include='core/*.mjs'
+          --test-coverage-exclude='test*.mjs' --test-coverage-exclude='make-*.mjs'
+          --test-coverage-exclude='capture*.mjs' --test-coverage-exclude='probe*.mjs'
+          --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
+          --test-coverage-lines=94 --test-coverage-functions=91 --test-coverage-branches=78
+          test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
+          test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -162,8 +169,13 @@ jobs:
       - name: prompt-to-app tests
         run: cd frontend/prompt-to-app && npm ci --ignore-scripts && node --test
 
-      - name: React Native renderer unit tests
-        run: cd frontend/app/react-native && node --test 'src/**/*.test.ts'
+      # The controller's suite mocks its two platform edges (a11y, document effects) with mock.module.
+      - name: React Native renderer unit tests (with coverage thresholds)
+        run: >-
+          cd frontend/app/react-native && node --test --experimental-test-module-mocks
+          --experimental-test-coverage --test-coverage-include='src/**/*.ts'
+          --test-coverage-exclude='src/**/*.test.ts' --test-coverage-lines=93
+          --test-coverage-branches=84 --test-coverage-functions=93 'src/**/*.test.ts'
 
       - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
         run: cd frontend/app/react-native && node scripts/parity-check.mjs
@@ -180,7 +192,7 @@ jobs:
           cd frontend/app/vscode-extension
           npm ci --ignore-scripts
           npm run compile
-          npm test
+          npm run test:coverage
           npm run package < /dev/null
           rm -f ./*.vsix
 
@@ -232,7 +244,7 @@ jobs:
       # tests run against the committed visual-editor bundle, which bundle-freshness guards.
       # The wrapper discards an incomplete index and retries ONCE on that one failure signature.
       - name: IntelliJ plugin tests
-        run: scripts/intellij-gradle.sh test --console=plain
+        run: scripts/intellij-gradle.sh test koverVerify --console=plain
 
       - name: Save the IntelliJ layout index (only a complete one)
         if: success() && steps.layout-index.outputs.cache-hit != 'true' && hashFiles('frontend/app/intellij-plugin/.intellijPlatform/layoutIndex/*.json') != ''
@@ -260,7 +272,10 @@ jobs:
         run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
       - name: Build SUT apps
-        run: mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml
+        run: |
+          mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml
+          # the YAML-only federation: a console, a served domain and a static bundle (README.md)
+          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/yaml-federation/pom.xml
 
       - name: Start SUT apps
         run: |
@@ -303,7 +318,7 @@ jobs:
       - name: Dump SUT logs on failure
         if: failure()
         run: |
-          for f in /tmp/*-app1.log /tmp/fed-*.log; do
+          for f in /tmp/*-app1.log /tmp/fed-*.log e2e/sut/yaml-federation/*.log; do
             [ -f "$f" ] || continue
             echo "===== $f ====="
             tail -n 60 "$f"
@@ -335,8 +350,12 @@ jobs:
       - name: Install Playwright browsers
         run: cd e2e && npx --no -- playwright install --with-deps chromium
 
+      # Its own script: two Spring Boot apps plus the static file host (node), waited for on start.
+      - name: Start the YAML-only federation
+        run: timeout 300 e2e/sut/yaml-federation/run.sh --no-build
+
       - name: Run Playwright tests
-        run: cd e2e && npx --no -- playwright test
+        run: cd e2e && YAML_FEDERATION=1 npx --no -- playwright test
 
       - name: Upload Playwright report
         if: always()

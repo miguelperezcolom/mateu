@@ -115,6 +115,7 @@ public class YamlMountWebFluxAutoConfiguration {
     return SpringHttpRequest.withPrincipalOf(
         request.exchange(),
         springRequest,
-        () -> service.runAction(baseUrl, rq, baseUrl, httpRequest));
+        () ->
+            service.runAction(baseUrl, YamlMounts.mountRequest(baseUrl, rq), baseUrl, httpRequest));
   }
 }

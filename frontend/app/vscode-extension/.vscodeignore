@@ -9,3 +9,4 @@ tsconfig.json
 vitest.config.*
 .gitignore
 *.vsix
+coverage/**

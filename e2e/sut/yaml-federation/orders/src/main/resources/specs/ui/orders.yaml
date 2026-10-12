@@ -1,0 +1,10 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Listing
+title: Open orders
+rowRoute: list/${row.id}
+rowRouteFields: [id]
+rowsSource:
+  ref: orders
+columns:
+  - {type: GridColumn, id: number, label: Number, identifier: true}
+  - {type: GridColumn, id: customer, label: Customer}

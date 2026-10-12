@@ -61,8 +61,12 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
             val row = javax.swing.JPanel(java.awt.BorderLayout(JBUI.scale(6), 0))
             row.isOpaque = false
             row.border = JBUI.Borders.empty(4, 8)
-            row.add(JBLabel(selector.text("label", fieldName)), java.awt.BorderLayout.WEST)
+            val caption = JBLabel(selector.text("label", fieldName))
+            row.add(caption, java.awt.BorderLayout.WEST)
             val combo = com.intellij.openapi.ui.ComboBox<Pair<String, String>>()
+            // The caption beside the combo was only visual: a screen reader announced an unnamed
+            // combo (and, under Metal, an unnamed arrow button) for the active hotel/company.
+            caption.labelling(combo)
             combo.renderer = javax.swing.DefaultListCellRenderer().let { base ->
                 javax.swing.ListCellRenderer<Any> { list, value, index, isSelected, cellHasFocus ->
                     @Suppress("UNCHECKED_CAST")
