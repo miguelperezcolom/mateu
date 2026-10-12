@@ -495,6 +495,24 @@ test('client rules on every surface: host, islands and the overlay on top', () =
   assert.ok(readFileSync(join(here, 'make-amd.mjs'), 'utf8').includes('setRulesContexts(reg)'))
 })
 
+test('a TaskQueue among other content is content: the queue page (queue + detail, nothing else) needs a page of its own', () => {
+  const queue = node({ type: 'TaskQueue', groups: [{ label: 'Today', items: [{ id: 'q1', title: 'Call Ada' }] }] })
+  // the front-office shape: the queue and the detail placeholder — the queue page
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, node({ type: 'EmptyState', title: 'Pick one' })])))
+  // the detail island (a nested ServerSide) does not count as other content
+  const island = { type: 'ServerSide', id: 'i', children: [node({ type: 'ProgressSteps', steps: [] })] }
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, island])))
+  // a page that also shows a gantt, a kanban, a calendar… kept only the queue
+  assert.equal(taskQueueOf(node({ type: 'VerticalLayout' }, [node({ type: 'Gantt', tasks: [] }), queue])), null)
+})
+
+test('an EmptyState with a call to action is content (the page band has no button and lost it)', () => {
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'Nothing here', actionId: 'newBooking', actionLabel: 'New booking' })])
+  assert.equal(emptyStateOf(tree), null)
+  const atom = atomsOf(tree, {}, {}, { kind: 'host' }).find((a) => a.isEmptyStateAtom)
+  assert.deepEqual([atom.actionId, atom.actionLabel], ['newBooking', 'New booking'])
+})
+
 test('slot templates: a CollectionDetail list is content (not the queue page), a form with @Aside shows its aside', () => {
   const slotted = (type, slot, md = {}) => ({ type: 'ClientSide', id: '', slot, metadata: { type, ...md }, children: [] })
   const cd = node({ type: 'ResponsiveGrid', gridTemplateAreas: '"list detail"' }, [slotted('TaskQueue', 'list', { groups: [] }), slotted('EmptyState', 'detail', { title: 'Select an item' })])
@@ -566,6 +584,29 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
+})
+
+// The display gallery: every display component as the Java server renders the YAML gallery
+// (libs/mateu expander fixture display-gallery.golden.json, written by YamlDisplayGallerySyncTest).
+test('display gallery: every display component projects to its atom, nothing left behind', () => {
+  const golden = JSON.parse(readFileSync(join(here, '..', '..', '..', 'libs', 'mateu', 'src', 'mateu', 'ui',
+    'infra', 'expander', '__fixtures__', 'display-gallery.golden.json'), 'utf8'))
+  const atoms = atomsOf(golden.fragments[0].component)
+  const flags = new Set(atoms.flatMap((a) => Object.keys(a).filter((k) => k.startsWith('is') && a[k] === true)))
+  for (const flag of ['isEntityHeader', 'isRichText', 'isImage', 'isBadge', 'isAvatar', 'isChart', 'isFunnel',
+    'isHeatmap', 'isGantt', 'isKanban', 'isPlanning', 'isMatrix', 'isActionPanel', 'isMap', 'isTimeline',
+    'isOrgChart', 'isBpmn', 'isStatusList', 'isBullets', 'isCollapsible', 'isPricing', 'isOffer', 'isTestimonials',
+    'isFeatureGrid', 'isProgress', 'isMeter', 'isEmptyStateAtom', 'isSkeleton', 'isNotice', 'isCallout',
+    'isSeparator', 'isHero', 'isStat', 'isComparison', 'isScoreboard', 'isCalendar', 'isQueue']) {
+    assert.ok(flags.has(flag), flag + ' missing')
+  }
+  // a ProgressSteps on a page that is no wizard is just a display: the ProgressBar beside it stays
+  // (it was dropped as the "wizard's own" bar)
+  assert.ok(atoms.some((a) => a.isProgressBar), 'the ProgressBar')
+  // a Notice keeps its own action and its content
+  const notice = atoms.find((a) => a.isNotice && a.text === 'Two complaints pending')
+  assert.deepEqual(notice.buttons.map((b) => [b.actionId, b.label]), [['reviewComplaints', 'Review']])
+  assert.ok(atoms.some((a) => a.isText && a.text === 'Inside the notice'))
 })
 
 console.log(`\n${passed} display tests OK`)
