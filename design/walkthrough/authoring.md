@@ -63,6 +63,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Routes editor: a route's `state:` / `appState:` seeds | 🔧 kept verbatim but neither shown nor editable → State (9408bb589) and App state (8cb26a898) columns, DOM tests |
 | Editor pickers (label → `${i18n.*}` keys, actionId → page + catalogue ids, route → registry) | ✅ |
 | Editor icon / image / source pickers, Board | ✅ (browser probe) icon picker: 240 Vaadin icons, filter, pick writes the property and the canvas paints it; image: free text writes `src` (standalone has no host images to list); source picker lists `sources.yaml` and writes `ref:`; Board: one card per route with its thumbnail, Edit/Play |
+| Editor Redwood canvas (`renderer: redwood`) | ✅ the real Redwood app boots in the frame ("ready", Oracle CDN reachable), paints the yaml starter's listing from `sample:` data with humanized status badges, and a click inside the frame selects the node (Properties → Listing); ❌ the listing's `filters:` field also paints as a bare **Status select below the table** — the served Redwood app shows it only in the smart search bar. The expander's shape matches the server's (`metadata.filters`), so it is in the preview path of the Redwood renderer — Redwood area (repro: yaml starter `products.yaml`, editor on `renderer: redwood`, no backend) |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
@@ -97,14 +98,14 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 7. ~~Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas~~ — re-checked: the canvas now paints "Available" / "Out of stock" like the served app (fixed by 24f26141b, pre-beta UX review).
 8. ~~The routes editor has no `appState:` column~~ — added (App state column, DOM test).
 9. CLAUDE.md still says Code + YAML is not offered on Micronaut/Helidon (owner's file, not edited).
+10. **Redwood canvas** paints a listing's filter as a stray select under the table (see the editors' rows) — Redwood area.
 
 ## 5. Not walked yet ⏳
 
-a real security module on the non-Spring adapters (Quarkus
-OIDC, Micronaut JWT, Helidon MP-JWT — only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
-the plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
-only); the editor's Redwood canvas; React Native for the YAML
-fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
+A real security module on the non-Spring adapters (Quarkus OIDC, Micronaut JWT, Helidon MP-JWT —
+only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by the
+plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
+only); React Native for the YAML fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
 
 ## 6. Permanent tests added
 
@@ -128,4 +129,4 @@ fixtures; compiling every Java sample of the docs (signatures of the code-twin s
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 24 fixed (20 fix commits + the routes-editor State / App state columns) · ❌ 6 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 24 fixed (20 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
