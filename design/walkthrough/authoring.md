@@ -26,12 +26,13 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | `layoutDelta:` | ⏳ (core tests only) | ⏳ | ⏳ | ⏳ | 🔧 rejected (ad22b0660) |
 | Partials (`partials/*.yaml`, `type: Partial`) | ✅ spliced (spec) | ✅ | 🔧 "Unknown metadata type Partial" (de1c198cf, `DefinitionInliner`) | 🔧 Play (8ca9cf96e); ❌ offline canvas shows the placeholder (see below) | 🔧 multi-component partial rejected (ad22b0660) |
 | Business components (`components.yaml`, `ComponentRef`) | ✅ (spec) | ✅ | 🔧 "Unknown business component" (de1c198cf) | 🔧 opened as an empty page + offered as a route layout (3123cb827); Play 🔧 (8ca9cf96e) | 🔧 no branch (ad22b0660, 1fcd29de5) |
-| Sources (`sources.yaml`, `sample:`, mock mode) | ✅ yaml starter sample mode on; off → live endpoint; 🔧 a missing endpoint answered index.html 200 → silent "Search to see results" (4d25240d9, parity contract on 5 adapters) | ⏳ | ✅ | ✅ sources editor; samples preview | ✅ |
+| Sources (`sources.yaml`, `sample:`, mock mode) | ✅ yaml starter sample mode on; off → live endpoint; 🔧 a missing endpoint answered index.html 200 → silent "Search to see results" (4d25240d9, parity contract on 5 adapters) | ✅ (static Redwood bundle lists the samples) | ✅ | ✅ sources editor; samples preview | ✅ |
+| Sources `proxy: true` + `${secret.X}` | 🔧 a YAML listing on a proxied entry never fetched (5680acea3) — ✅ against a keyed API, key from `MATEU_SECRET_API_KEY` server-side only; direct (non-proxy) ref ✅ | ⏳ | ✅ staticOnly refuses a proxied source | N/A (sample mode) | ✅ |
 | Actions catalogue (`actions.yaml`) + page `actions:` flows | ✅ (spec, both buttons navigate) | ✅ | 🔧 staticOnly failed the build on a flow / catalogue entry (de1c198cf) — ✅ runs | ✅ actions editor | 🔧 page `actions:` matched the Actions branch too (ad22b0660) |
 | Types (`types.yaml`, `fieldType:`) | ✅ label; 🔧 placeholder never rendered on Vaadin (1710d2fad) | ✅ | ✅ | ✅ types editor | ✅ |
 | Translations + `${i18n.key}` | ✅ en + es-ES (spec) | ✅ | ✅ | ✅ Play; ❌ offline canvas shows the key | ✅ |
 | Environments (`MATEU_ENVIRONMENT`, `-Dmateu.bundle.environment`) | ✅ served app re-pointed to a staging endpoint | ⏳ | ✅ manifest re-pointed | ✅ "data" summary | ✅ |
-| Project settings (`renderer:`) | ✅ (wizards write it) | ✅ | ✅ | ✅ project editor | ✅ |
+| Project settings (`renderer:`) | ✅ (wizards write it) | ✅ | ✅ `-Dmateu.bundle.renderer=redwood`: clear error without `mateu-redwood`; with it the Redwood bundle serves shell, listing and the walkthrough page (partial, component, seed) from a static server | ✅ project editor | ✅ |
 | Access keys (`eyesOnly`) | ✅ field absent for anonymous (spec) | ✅ hidden | ✅ staticOnly refuses it | ✅ shown, flagged | ✅ |
 | Live reload (`mateu.dev`) | ✅ yaml starter: spec edit re-renders in place, value kept, indicator (5/6 of `live-reload-probe.mjs`); ❌ the HotSwap reload posts an empty componentState for an unseeded definition-only page (it renders ClientSide, no `mateu-component` holds the typed values) — the value survives in the DOM, the probe's request check fails | ⏳ | N/A | N/A | N/A |
 
@@ -48,6 +49,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | … dotnet | ❌ not exercised: no .NET SDK on this machine |
 | … python | ✅ generated tests pass; 🔧 docs pointed at the removed Compose renderer and the starter said nothing about seeing it in a browser (de9d52296) — verified through the Vaadin dev server (`MATEU_BACKEND=…`) |
 | Maven archetype (code / yaml / static, JDK 21) | ✅ generated, built, code booted + CRUD walk; yaml booted |
+| IntelliJ renderer (`./gradlew renderProbe` over the walkthrough page wire, es) | ✅ translated title, partial fields, field type, business component, buttons, a11y names |
 | IntelliJ: schema provider, New › Mateu skeletons, New Project generator (`MateuProjectGeneratorTest`, byte-compares the TS engine) | ✅ `./gradlew test` (schema, newfile, newproject: 53 tests). IntelliJ itself NOT driven (no GUI): completion/validation inside the IDE not exercised |
 | VS Code: manifest, New File, Add Route, New Project, live run | ✅ vitest 167 + new `specsSchema.test.ts` |
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
@@ -81,7 +83,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 
 ## 5. Not walked yet ⏳
 
-`layoutDelta:` end to end; REST source `proxy: true` + `${secret.X}` on both legs; `PrincipalResolver`
+`layoutDelta:` end to end; a proxied `optionsSource` on a select; the bogus `declaredActions_*` / `nested-form-action-catalog-sources_*` ids a SeededYamlPage advertises (wire noise from its record fields); `PrincipalResolver`
 with a real security module per adapter; .NET everything (no SDK); Python served YAML in a browser;
 IntelliJ completion/validation inside the IDE and `renderProbe`; VS Code extension inside VS Code;
 editor dark mode, Board, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
@@ -92,7 +94,7 @@ the YAML fixtures; docs' Java code samples compiled.
 - `frontend/app/vscode-extension/src/specsSchema.test.ts` — schema vs shipped files, New File templates, docs.
 - `backend/shared/core/.../DocumentedYamlExamplesTest` — doc trees parse.
 - `e2e/tests/shared/yaml-authoring.spec.ts` + sample1 fixtures — all five Java adapters.
-- `DefinitionOnlyRouteSyncTest` (plain root), `StaticSafetyCheckTest` (flows), `DefinitionInlinerTest`,
+- `SeededYamlPageRestSourcesTest` (proxied listing rows), `DefinitionOnlyRouteSyncTest` (plain root), `StaticSafetyCheckTest` (flows), `DefinitionInlinerTest`,
   `SpaFallbackTest` + `AdapterParityITFoundation.doesNotAnswerADataFetchWithTheIndex` (5 adapters),
   Helidon `YamlMountRoutesTest` (root mount), `MateuStaticFacadesStartupTest` (Micronaut),
   `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder), editor
