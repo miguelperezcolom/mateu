@@ -1,0 +1,10 @@
+type: AppShell
+title: Remote shell
+menu:
+  - type: RouteLink
+    label: Overview
+    route: overview
+  - type: RemoteMenu
+    label: Workflow
+    baseUrl: http://console.example/_workflow
+    path: /_workflow

@@ -90,8 +90,19 @@ public class ActionInstanceCreator {
     // sub-routes.
     if (wrapsInAppShell(command)) {
       var app = shellFor(command);
-      return appMenuResolver
-          .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
+      // A route this deployment does not author may belong to one of the shell's remotes (a
+      // bookmarked remote screen): mounted from it, as an @UI class shell does.
+      Mono<?> remote =
+          isAuthoredHere(command.route())
+              ? Mono.empty()
+              : appMenuResolver.resolveRemoteDeepLink(finalCommand, app);
+      return remote
+          .switchIfEmpty(
+              (Mono)
+                  Mono.defer(
+                      () ->
+                          appMenuResolver.resolveMenuIfApp(
+                              finalCommand, app, routeInstanceCreator::findRouteResolver)))
           .switchIfEmpty((Mono) Mono.just(app));
     }
     return routeInstanceCreator
@@ -117,6 +128,9 @@ public class ActionInstanceCreator {
     return appMenuResolver
         .resolveMenuIfApp(command, app, routeInstanceCreator::findRouteResolver)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYamlPage(finalCommand)))
+        // nothing local claims it: one of the shell's remotes may (a remote screen's content load)
+        .switchIfEmpty(
+            (Mono) Mono.defer(() -> appMenuResolver.resolveRemoteDeepLink(finalCommand, app)))
         .switchIfEmpty(
             (Mono)
                 Mono.defer(
@@ -124,6 +138,11 @@ public class ActionInstanceCreator {
                         routeRegistry.isMountRoot(finalCommand.route())
                             ? Mono.just(app)
                             : Mono.empty()));
+  }
+
+  /** The route has an authored entry in this deployment's route registry (a local page). */
+  private boolean isAuthoredHere(String route) {
+    return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
 
   /**
