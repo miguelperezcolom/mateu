@@ -132,11 +132,11 @@ public class Products extends AutoCrud<Product> {
         return new ProductRepository();
     }
 
-    void setAsBlue(Product row) {
+    public void setAsBlue(Product row) {
       log.info("set as blue {}", row);
     }
 
-    void setAsGreen(Product row) {
+    public void setAsGreen(Product row) {
         log.info("set as green {}", row);
     }
 

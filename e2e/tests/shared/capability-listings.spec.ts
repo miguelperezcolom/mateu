@@ -203,5 +203,44 @@ test.describe('editable listing — create, edit in a drawer, delete', () => {
             .getByRole('button', { name: 'Delete', exact: true }).click()
         // gone from the rows on screen (the grid may keep a recycled, unassigned cell around)
         await expect(edited).toBeHidden()
+        await expect(page).toHaveURL(/\/capability-notes\/?$/)
+    })
+})
+
+test.describe('AutoCrud — create on its page, delete from the listing', () => {
+    test('a deleted row leaves the listing at once, and the url stays on the listing', async ({ page }) => {
+        const title = `Task ${Date.now()}-${Math.floor(Math.random() * 1000)}`
+        await page.goto('/full-crud/new')
+        await page.locator('vaadin-text-field', { hasText: 'Title' }).locator('input').fill(title)
+        await page.getByRole('button', { name: /^(Save|Create)$/ }).first().click()
+        await expect(page).toHaveURL(/\/full-crud\/[^/]+$/)
+        await page.goto('/full-crud')
+        const row = page.locator('vaadin-grid-cell-content', { hasText: title })
+        await expect(row).toBeVisible()
+
+        await page.evaluate((text) => {
+            const contents: Element[] = []
+            ;(function find(root: Document | ShadowRoot) {
+                for (const el of Array.from(root.querySelectorAll('*'))) {
+                    if (el.tagName === 'VAADIN-GRID-CELL-CONTENT') contents.push(el)
+                    if ((el as HTMLElement).shadowRoot) find((el as HTMLElement).shadowRoot!)
+                }
+            })(document)
+            const cell = contents.find(c => c.textContent?.trim() === text) as HTMLElement | undefined
+            const tr = cell?.assignedSlot?.closest('tr')
+            const firstSlot = tr?.querySelector('td slot') as HTMLSlotElement | null
+            firstSlot?.assignedElements()[0]?.querySelector('vaadin-checkbox')?.setAttribute('data-e2e-pick', '')
+        }, title)
+        await page.locator('vaadin-checkbox[data-e2e-pick]').click()
+        await page.getByRole('button', { name: 'Delete', exact: true }).first().click()
+        await page.locator('[role=dialog], [role=alertdialog]')
+            .getByRole('button', { name: 'Delete', exact: true }).click()
+        // the listing refreshes in place (it used to keep the deleted row until a reload) and the
+        // url is still the listing's (it became /full-crud/full-crud)
+        await expect(row).toBeHidden()
+        await expect(page).toHaveURL(/\/full-crud\/?$/)
+        await page.reload()
+        await expect(page.locator('vaadin-grid')).toBeVisible()
+        await expect(row).toBeHidden()
     })
 })

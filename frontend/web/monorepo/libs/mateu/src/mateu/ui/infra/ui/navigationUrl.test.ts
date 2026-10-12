@@ -80,6 +80,12 @@ describe('routeTargetUrl', () => {
         expect(path(routeTargetUrl('', '/books', '/books', origin))).toBe('/books')
     })
 
+    it('resolves the mount itself to the mount — a crud back on its listing', () => {
+        // the bug: after a delete or a bulk action the address bar became /products/products
+        expect(path(routeTargetUrl('/products', '/products', '/products', origin))).toBe('/products')
+        expect(path(routeTargetUrl('/products?page=1', '/products', '/products', origin))).toBe('/products?page=1')
+    })
+
     it('resolves an absolute route that already carries the mount', () => {
         expect(path(routeTargetUrl('/books/3', '/books', '/books', origin))).toBe('/books/3')
     })

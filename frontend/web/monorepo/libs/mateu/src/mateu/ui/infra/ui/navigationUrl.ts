@@ -88,6 +88,10 @@ export const routeTargetUrl = (
     }
     if (route.startsWith(pathPrefix + '/')) {
         route = route.substring(pathPrefix?.length ?? 0)
+    } else if (pathPrefix && (route === pathPrefix || route.startsWith(pathPrefix + '?'))) {
+        // the mount itself (a crud back on its listing after a delete or a bulk action pushes
+        // "/products"): it used to be appended to the mount, "/products/products"
+        route = route.substring(pathPrefix.length)
     }
     if (baseUrl.endsWith('/') && route.startsWith('/')) {
         route = route.substring(1)
