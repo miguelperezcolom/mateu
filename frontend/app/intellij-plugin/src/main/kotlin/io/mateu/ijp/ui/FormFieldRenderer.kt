@@ -165,9 +165,11 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         stereotype == "signature" -> signatureField(ctx, fieldId, value, enabled, label)
         stereotype == "image" -> imagePreviewField(value)
         stereotype == "link" && !enabled -> linkField(value)
-        stereotype in setOf("markdown", "html", "richText") && !enabled -> richTextField(value, stereotype)
+        // a legacy (Quill Delta JSON) richText value opens as its HTML, like on the web
+        stereotype in setOf("markdown", "html", "richText") && !enabled ->
+            richTextField(if (stereotype == "richText") RichTextValue.html(value) else value, stereotype)
         stereotype == "textarea" || (stereotype in setOf("markdown", "html", "richText") && enabled) ->
-            textArea(ctx, fieldId, value, enabled)
+            textArea(ctx, fieldId, if (stereotype == "richText") RichTextValue.html(value) else value, enabled)
         metadata.path("optionsSource").isObject -> restOptionsCombo(ctx, fieldId, metadata.path("optionsSource"), value, enabled)
         options.isNotEmpty() -> optionsCombo(ctx, fieldId, options, value, enabled)
         dataType == "reference" -> referenceCombo(ctx, fieldId, data, enabled)
