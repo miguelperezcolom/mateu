@@ -2698,7 +2698,12 @@ public class SyncHandlerTests
     [Fact]
     public void Action_returns_page_banner()
     {
-        var rq = new RunActionRqDto { ActionId = "warn", ServerSideType = typeof(SimpleForm).FullName };
+        // the form's required name is filled: a [Button] is checked against the form's constraints
+        var rq = new RunActionRqDto
+        {
+            ActionId = "warn", ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        };
         var json = Render(Handler().Handle(rq));
         Assert.Contains("\"theme\":\"WARNING\"", json);
         Assert.Contains("Heads up", json);
@@ -2707,7 +2712,12 @@ public class SyncHandlerTests
     [Fact]
     public void Action_returns_route_navigates()
     {
-        var rq = new RunActionRqDto { ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName };
+        // the form's required name is filled: a [Button] is checked against the form's constraints
+        var rq = new RunActionRqDto
+        {
+            ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        };
         var inc = Handler().Handle(rq);
         Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/things");
     }

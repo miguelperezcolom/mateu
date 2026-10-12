@@ -181,21 +181,27 @@ public List<Validation> validations() {
 
 ## Server-side validation
 
-For checks that require backend logic (uniqueness, business rules), throw `ValidationException` from `handleAction`:
+The Bean Validation constraints you declare on fields (`@NotEmpty`, `@NotNull`, `@Size`, `@Min`,
+`@Max`, `@Pattern`) are checked **twice**: by the browser before it sends an action marked
+`validationRequired` (every `@Button` / `@Toolbar`, an `@Action(validationRequired = true)`, a CRUD
+save), and again by the server before it runs that action — with the same messages. The browser is
+not to be trusted, nor the only client, so a request that skipped the client check is refused with
+"There are validation errors". Custom `Validation` conditions (the JavaScript expressions on this
+page) and a `ValidationSupplier` are evaluated by the client only.
+
+For checks that require backend logic (uniqueness, business rules), throw a `UserFacingException`
+from the action — its title and message are shown to the user as written:
 
 ```java
-@Override
-public Object handleAction(String actionId, HttpRequest httpRequest) {
-    String username = httpRequest.getString("username");
+@Button
+public Message save(HttpRequest httpRequest) {
     if (userRepository.existsByUsername(username)) {
-        throw new ValidationException("username", "Username already taken");
+        throw new UserFacingException("Cannot save", "Username already taken");
     }
     // proceed with save
     return new Message("Saved");
 }
 ```
-
-`ValidationException(fieldId, message)` behaves identically to a client-side validation failure — the error appears next to the field.
 
 ---
 
@@ -209,7 +215,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 | Length constraint | `condition("state.s.length >= min && state.s.length <= max")` |
 | Regex pattern | `condition("/pattern/.test(state.field)")` |
 | Form-level error | omit `fieldId` |
-| Backend rule | throw `ValidationException` from `handleAction` |
+| Backend rule | throw `UserFacingException` from the action |
 
 ---
 

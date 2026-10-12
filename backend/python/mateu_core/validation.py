@@ -50,17 +50,44 @@ def field_constraints(f) -> list[tuple[str, str]]:
             out.append((f"{ref} && {ref}.length < {size.min}", size.message or default))
         if size.max is not None:
             out.append((f"{ref} && {ref}.length > {size.max}", size.message or default))
+    # Bean Validation reads an absent value as valid for Min / Max / Pattern (requiring it is the
+    # not-empty constraint's job), so an optional bounded field left empty passes.
+    absent = f"{ref} == null || {ref} === ''"
     low = f.marker(Min)
     if low is not None:
-        out.append((f"{ref} >= {_num(low.value)}", low.message or f"Must be at least {_num(low.value)}"))
+        out.append((f"{absent} || {ref} >= {_num(low.value)}", low.message or f"Must be at least {_num(low.value)}"))
     high = f.marker(Max)
     if high is not None:
-        out.append((f"{ref} <= {_num(high.value)}", high.message or f"Must be at most {_num(high.value)}"))
+        out.append((f"{absent} || {ref} <= {_num(high.value)}", high.message or f"Must be at most {_num(high.value)}"))
     pattern = f.marker(Pattern)
     if pattern is not None:
-        out.append((f"/{pattern.regexp}/.test({ref})", pattern.message or "Invalid format"))
+        out.append((f"{absent} || /{pattern.regexp}/.test({ref})", pattern.message or "Invalid format"))
     if f.has(Required):
-        out.append((ref, "Cannot be empty"))
+        out.append((required_condition(ref), "Cannot be empty"))
+    return out
+
+
+def required_condition(ref: str) -> str:
+    """A required field holds a value: not null, not a cleared input, not an empty list — while
+    ``0`` and ``false`` ARE values (a bare ``state['x']`` rejected both). Java's
+    ConstraintValidationMapper.required, character for character."""
+    return f"{ref} != null && {ref} !== '' && ({ref}.length === undefined || {ref}.length > 0)"
+
+
+def validated_fields(mapper, cls, read_only: bool = False, fields: Iterable | None = None) -> list:
+    """The fields a form sends constraints for: the ones it renders as an input the user may edit.
+    A constraint on a field the user cannot type into would block the submit for ever."""
+    view_read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
+    plain_class = bool(class_flag(cls, "__mateu_plain_text__", False))
+    if view_read_only:
+        return []
+    out = []
+    for f in fields if fields is not None else view_fields(cls):
+        if not mapper.visible(f) or f.has(ReadOnly) or f.has(PlainText) or plain_class:
+            continue
+        if not _authorized_to_edit(mapper, f):
+            continue
+        out.append(f)
     return out
 
 
@@ -77,23 +104,16 @@ def client_validations(
             for v in instance.validations() or []
         ]
     out: list[ValidationRecord] = []
-    view_read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-    plain_class = bool(class_flag(cls, "__mateu_plain_text__", False))
-    if not view_read_only:
-        for f in fields if fields is not None else view_fields(cls):
-            if not mapper.visible(f) or f.has(ReadOnly) or f.has(PlainText) or plain_class:
-                continue
-            if not _authorized_to_edit(mapper, f):
-                continue
-            hidden = f.marker(Hidden)
-            for condition, message in field_constraints(f):
-                if hidden is not None and hidden.value:
-                    condition = f"({hidden.value}) || ({condition})"
-                out.append(
-                    ValidationRecord(
-                        condition=condition, field_id=camel_case(f.name), message=mapper.T(message)
-                    )
+    for f in validated_fields(mapper, cls, read_only, fields):
+        hidden = f.marker(Hidden)
+        for condition, message in field_constraints(f):
+            if hidden is not None and hidden.value:
+                condition = f"({hidden.value}) || ({condition})"
+            out.append(
+                ValidationRecord(
+                    condition=condition, field_id=camel_case(f.name), message=mapper.T(message)
                 )
+            )
     for v in getattr(cls, "__mateu_validations__", ()) or ():
         out.append(ValidationRecord(condition=v.condition, field_id=v.field_id, message=mapper.T(v.message)))
     return out
@@ -155,4 +175,41 @@ def violations(entity: Any, cls: type, fields: Iterable | None = None) -> list[t
     return out
 
 
-__all__ = ["client_validations", "field_constraints", "field_violations", "violations"]
+#: The title the client gives its own validation toast (Java's ServerConstraintCheck.TITLE).
+VALIDATION_TITLE = "There are validation errors"
+
+
+def form_violations(mapper, cls, instance) -> list[str]:
+    """``"<label>: <message>"`` for every constraint the hydrated view breaks, checked over exactly
+    the fields the client checks (a ``Hidden(expr)`` field is the browser's to judge, and a
+    ``ValidationSupplier`` replaces the field constraints). The server-side leg of a view action
+    the client is told to validate: the browser is not to be trusted, nor the only client."""
+    if isinstance(instance, ValidationSupplier):
+        return []
+    out = []
+    for f in validated_fields(mapper, cls):
+        hidden = f.marker(Hidden)
+        if hidden is not None and hidden.value:
+            continue
+        label = f.marker(Label).value if f.has(Label) else humanize(f.name)
+        for message in field_violations(f, getattr(instance, f.name, None)):
+            out.append(f"{label}: {mapper.T(message)}")
+    return out
+
+
+def describe(broken: list[str]) -> str:
+    """The violations as the one text the client shows for its own check."""
+    return "\n".join(f"• {b}" for b in broken)
+
+
+__all__ = [
+    "VALIDATION_TITLE",
+    "client_validations",
+    "describe",
+    "field_constraints",
+    "field_violations",
+    "form_violations",
+    "required_condition",
+    "validated_fields",
+    "violations",
+]

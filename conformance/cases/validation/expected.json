@@ -107,19 +107,19 @@
       "route" : "_empty",
       "type" : "ServerSide",
       "validations" : [ {
-        "condition" : "state['name']",
+        "condition" : "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined || state['name'].length > 0)",
         "fieldId" : "name",
         "message" : "Cannot be empty"
       }, {
-        "condition" : "state['email']",
+        "condition" : "state['email'] != null && state['email'] !== '' && (state['email'].length === undefined || state['email'].length > 0)",
         "fieldId" : "email",
         "message" : "Cannot be empty"
       }, {
-        "condition" : "state['age'] >= 18",
+        "condition" : "state['age'] == null || state['age'] === '' || state['age'] >= 18",
         "fieldId" : "age",
         "message" : "Must be at least 18"
       }, {
-        "condition" : "state['age'] <= 99",
+        "condition" : "state['age'] == null || state['age'] === '' || state['age'] <= 99",
         "fieldId" : "age",
         "message" : "Must be at most 99"
       } ]

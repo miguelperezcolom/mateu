@@ -31,6 +31,10 @@ class ClearedFieldsHydrationTest {
     Integer seats = 4;
     Long durationMs = 90L;
     BigDecimal price = new BigDecimal("25.50");
+    int nights = 3;
+    long points = 10L;
+    double ratio = 1.5;
+    boolean vip = true;
     String note = "kept as an empty string, because for a String empty IS a value";
   }
 
@@ -60,6 +64,23 @@ class ClearedFieldsHydrationTest {
     assertThat(booking.seats).isNull();
     assertThat(booking.durationMs).isNull();
     assertThat(booking.price).isNull();
+  }
+
+  @Test
+  void clearingAPrimitiveNumberSentAsNullZeroesIt() {
+    // The integer field commits a cleared input as null (an absence), not as "". A primitive
+    // cannot hold null, so writing it threw, hydration swallowed it, and the field silently kept
+    // its initializer: the screen showed an empty field while the server still had 3.
+    var state = new HashMap<String, Object>();
+    state.put("nights", null);
+    state.put("points", null);
+    state.put("ratio", null);
+    state.put("vip", null);
+    var booking = hydrated(state);
+    assertThat(booking.nights).isZero();
+    assertThat(booking.points).isZero();
+    assertThat(booking.ratio).isZero();
+    assertThat(booking.vip).isFalse();
   }
 
   @Test

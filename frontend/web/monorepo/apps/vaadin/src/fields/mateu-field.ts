@@ -9,7 +9,7 @@ import '@components/mateu-range-slider.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate, templateResolver } from '@components/interpolation'
-import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
+import { colorInputValue, isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
@@ -1733,8 +1733,9 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
                     >
-                        <input type="color" @input="${(e: Event) => {
+                        <input type="color" aria-label="${label ?? ''}" .value="${colorInputValue(value)}" @input="${(e: Event) => {
                             this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                                 detail: {
                                     value: (e.target as HTMLInputElement).value,

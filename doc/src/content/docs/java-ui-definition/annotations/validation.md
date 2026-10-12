@@ -4,7 +4,7 @@ description: "Annotations for cross-field validation rules and dynamic field rul
 ---
 
 :::tip[Field-level validation]
-For single-field constraints, use standard Jakarta Bean Validation annotations — `@NotNull`, `@NotEmpty`, `@Size`, `@Min`, `@Max`, `@Pattern` — directly on your fields. Mateu picks them up automatically. The annotations on this page handle cross-field logic and dynamic UI behaviour.
+For single-field constraints, use standard Jakarta Bean Validation annotations — `@NotNull`, `@NotEmpty`, `@Size`, `@Min`, `@Max`, `@Pattern` — directly on your fields. Mateu picks them up automatically and checks them on both sides: the browser refuses to send an action that needs validation (any `@Button` / `@Toolbar`, a CRUD save), and the server re-checks the same constraints before running it, with the same messages. They follow Bean Validation's reading — `0` and `false` satisfy `@NotNull`, and an empty optional value satisfies `@Min` / `@Max` / `@Pattern`. The annotations on this page handle cross-field logic and dynamic UI behaviour (evaluated in the browser).
 :::
 
 ![Bean validation in action — required fields and range constraints](/images/docs/annotations/validation.png)

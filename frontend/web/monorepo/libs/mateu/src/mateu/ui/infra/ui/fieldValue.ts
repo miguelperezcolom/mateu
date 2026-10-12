@@ -38,3 +38,19 @@ export const isNoOpCommit = (raw: unknown, current: unknown): boolean => {
     // eslint-disable-next-line eqeqeq
     return raw == current
 }
+
+/**
+ * The value an `<input type="color">` can show for a field value. The control only accepts
+ * `#rrggbb` (lowercase hex, six digits); anything else — no value, `#F00`, a CSS name — makes it
+ * silently fall back to black, so a field holding `#ff0000` used to be painted black and the
+ * user had no way to tell it already had a colour. Three-digit hex is expanded; anything that
+ * cannot be shown keeps the control's own default.
+ */
+export const colorInputValue = (value: unknown): string => {
+    if (typeof value !== 'string') return '#000000'
+    const v = value.trim().toLowerCase()
+    if (/^#[0-9a-f]{6}$/.test(v)) return v
+    const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec(v)
+    if (short) return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`
+    return '#000000'
+}

@@ -235,7 +235,10 @@ public class FieldMetadataExtractor {
   }
 
   static List<Option> getOptions(Field field, Object instance, HttpRequest httpRequest) {
-    if (instance instanceof OptionsSupplier optionsSupplier) {
+    // supports() scopes a supplier to the fields it answers for — honoured here as it is for grid
+    // cell editors, or a view feeding one select would replace every enum's constants.
+    if (instance instanceof OptionsSupplier optionsSupplier
+        && optionsSupplier.supports(field.getType(), field.getName(), field.getDeclaringClass())) {
       var supplied = optionsSupplier.options(field.getName(), httpRequest);
       if (supplied != null && !supplied.isEmpty()) {
         return supplied;
