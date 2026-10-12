@@ -194,6 +194,11 @@ jobs:
     needs: e2e
     if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
+    # NuGet Trusted Publishing: the job exchanges its GitHub OIDC token for a short-lived API key
+    # (policy on nuget.org: owner miguelperezcolom, repo mateu, workflow buid-and-publish.yml).
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -220,12 +225,19 @@ jobs:
             dotnet pack "$p" -c Release -o "$RUNNER_TEMP/nupkgs" -p:MateuVersion="$NUGET_VERSION"
           done
           ls -l "$RUNNER_TEMP/nupkgs"
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        if: vars.NUGET_USER != ''
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
       - name: Push to NuGet
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # Trusted Publishing when the NUGET_USER variable is set; else a classic NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
         run: |
           if [ -z "$NUGET_API_KEY" ]; then
-            echo "::notice::NUGET_API_KEY is not set — packages built, nothing pushed."
+            echo "::notice::Neither the NUGET_USER variable (Trusted Publishing) nor a NUGET_API_KEY secret is set — packages built, nothing pushed."
             exit 0
           fi
           dotnet nuget push "$RUNNER_TEMP/nupkgs/*.nupkg" --api-key "$NUGET_API_KEY" \
