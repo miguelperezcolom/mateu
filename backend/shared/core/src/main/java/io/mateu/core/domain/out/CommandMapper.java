@@ -123,18 +123,7 @@ public class CommandMapper {
    * component adapter renders carries the {@code @Title}, not the bridge.
    */
   private static Object titleSource(Object instance) {
-    if (instance
-        instanceof io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard d) {
-      return d.model();
-    }
-    if (instance
-        instanceof io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome w) {
-      return w.model();
-    }
-    if (instance instanceof io.mateu.core.infra.adapters.AdaptedComponentTree a) {
-      return a.model();
-    }
-    return instance;
+    return io.mateu.core.infra.ModelBridge.ownerOf(instance);
   }
 
   /** Whether the view names its own title — never a humanized class name or a toString. */

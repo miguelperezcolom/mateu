@@ -25,6 +25,16 @@ test.describe('page archetypes', () => {
     expect(problems).toEqual([]);
   });
 
+  test('@AutoPage: a plain class is composed as a dashboard, titled, and its metric drills in', async ({ page }) => {
+    const problems = watch(page);
+    await page.goto('/arch/auto-page');
+    await expect(page).toHaveTitle('Operations board');
+    await expect(page.getByText('Two VIPs arriving at noon')).toBeVisible();
+    await page.getByRole('button', { name: /Arrivals/ }).click();
+    await expect(page.locator('vaadin-notification-card').filter({ hasText: 'Arrivals drill-in' }).first()).toBeVisible();
+    expect(problems).toEqual([]);
+  });
+
   test('Welcome: the hero calls to action navigate', async ({ page }) => {
     const problems = watch(page);
     await page.goto('/arch/welcome');

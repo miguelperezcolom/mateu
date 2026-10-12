@@ -56,7 +56,10 @@ class ComposedPageWindowTitleSyncTest {
   @Title("Ops board")
   @io.mateu.uidl.annotations.AutoPage
   public static class Inferred {
-    public MetricCard revenue = MetricCard.builder().title("Revenue").value("1.2M").build();
+    public MetricCard revenue =
+        MetricCard.builder().title("Revenue").value("1.2M").actionId("drillRevenue").build();
+
+    public void drillRevenue() {}
   }
 
   static TestMateu mateu;
@@ -91,6 +94,16 @@ class ComposedPageWindowTitleSyncTest {
   @Test
   void anInferredDashboardNamesTheWindowFromItsModel() {
     assertThat(windowTitles("/composed-inferred")).containsExactly("Ops board");
+  }
+
+  @Test
+  void anInferredDashboardAdvertisesItsModelsDrillIns() {
+    // the harvester read the BRIDGE's methods: a composed dashboard advertised none of its
+    // metric actions and the browser dropped every drill-in click
+    var page =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/composed-inferred").fragments().get(0).component();
+    assertThat(page.actions()).extracting(io.mateu.dtos.ActionDto::id).contains("drillRevenue");
   }
 
   @Test

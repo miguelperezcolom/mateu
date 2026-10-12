@@ -19,7 +19,11 @@ import java.util.List;
  * on actions.
  */
 public class AdaptedComponentTree
-    implements ComponentTreeSupplier, StateSupplier, DataSupplier, ActionSupplier {
+    implements ComponentTreeSupplier,
+        StateSupplier,
+        DataSupplier,
+        ActionSupplier,
+        io.mateu.core.infra.ModelBridge {
 
   private final Object model;
 

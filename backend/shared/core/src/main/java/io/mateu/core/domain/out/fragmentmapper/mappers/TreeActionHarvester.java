@@ -68,9 +68,13 @@ public final class TreeActionHarvester {
     }
     // exactly the methods the server lets an actionId run (ActionMethods), so what is advertised
     // is what will be accepted: a public method of the view, or one marked as an action
+    // the methods of the page's OWNER: behind an @AutoPage bridge it is the plain class, whose
+    // methods the actions run — with the bridge's a composed dashboard advertised none of its
+    // drill-ins, and every metric click was dropped
+    var owner = io.mateu.core.infra.ModelBridge.ownerOf(view).getClass();
     Set<String> handled =
-        getAllMethods(view.getClass()).stream()
-            .filter(method -> ActionMethods.isInvocable(method, view.getClass()))
+        getAllMethods(owner).stream()
+            .filter(method -> ActionMethods.isInvocable(method, owner))
             .map(Method::getName)
             .collect(Collectors.toSet());
     var known = declared.stream().map(ActionDto::id).collect(Collectors.toSet());
