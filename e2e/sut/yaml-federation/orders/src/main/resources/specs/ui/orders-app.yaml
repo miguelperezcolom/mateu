@@ -1,0 +1,7 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Orders
+menu:
+  - type: RouteLink
+    label: Open orders
+    route: list

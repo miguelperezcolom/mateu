@@ -1,0 +1,10 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: ""
+    layout: orders-app.yaml
+  - route: list
+    layout: orders.yaml
+  - route: list/:id
+    layout: order.yaml
+    data: order

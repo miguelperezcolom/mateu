@@ -1,0 +1,8 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: Order ${state.number}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: number, label: Number, readOnly: true}
+      - {type: FormField, id: customer, label: Customer, readOnly: true}

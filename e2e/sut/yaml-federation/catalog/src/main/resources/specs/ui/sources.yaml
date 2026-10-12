@@ -1,0 +1,5 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+  - name: products
+    source:
+      url: http://localhost:18482/api/products.json
