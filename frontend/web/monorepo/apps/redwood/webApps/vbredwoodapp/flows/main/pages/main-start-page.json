@@ -654,6 +654,26 @@
         }
       ]
     },
+    "headerPreviousItem": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "__peerPrev"
+          }
+        }
+      ]
+    },
+    "headerNextItem": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "__peerNext"
+          }
+        }
+      ]
+    },
     "headerSecondary": {
       "chains": [
         {

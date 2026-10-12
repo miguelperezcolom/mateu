@@ -169,6 +169,9 @@ export const CHROME_TEXTS = {
     moreInformation: 'More information',
     previousSlide: 'Previous slide',
     nextSlide: 'Next slide',
+    // ── page header: peer navigation (the arrows' tooltips when the page names none) ──
+    previousItem: 'Previous',
+    nextItem: 'Next',
     slideN: 'Slide {n}',
     slides: 'Slides',
     pages: 'Pages',
@@ -366,6 +369,8 @@ export const CHROME_TEXTS = {
     moreInformation: 'Más información',
     previousSlide: 'Diapositiva anterior',
     nextSlide: 'Diapositiva siguiente',
+    previousItem: 'Anterior',
+    nextItem: 'Siguiente',
     slideN: 'Diapositiva {n}',
     slides: 'Diapositivas',
     pages: 'Páginas',

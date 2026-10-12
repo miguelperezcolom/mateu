@@ -2,9 +2,10 @@ import {
   wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
-  pageSwitcherOf, pageHeaderNodeOf,
+  pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
+import { chromeText } from './i18n.mjs'
 
 // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
 // content runMateuAction: an action's answer) assign to the VB variables once the registry is
@@ -141,11 +142,44 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
   const switcher = pageSwitcherOf(host)
   const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
+  const extras = pageHeaderExtrasOf(host)
+  const declaredTitle = hostEntity ? hostEntity.title : (summary.title || '')
+  // a titlePlaceholder stands in only while the title is EMPTY (and is dimmed: it must never read
+  // as a real title — the mateu-title-placeholder class)
+  const titleIsPlaceholder = !declaredTitle && !!extras.titlePlaceholder
+  // oj-sp's header has ONE badge (Redwood's status badge beside the title): the first page badge
+  // takes it, the rest follow the subtitle — the same way the EntityHeader's badges do
+  const [firstBadge, ...moreBadges] = extras.badges
+  const baseSubtitle = hostEntity ? hostEntity.subtitle : pageSubtitleOf(host)
+  const peer = extras.peerNav
+  // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
+  // the subtitle line instead — on the header's own row, scrolling and sticking with it
+  const stamp = headerTimestampOf(extras.timestamp)
+  const subtitle = [baseSubtitle].concat(moreBadges.map((b) => b.label), [stamp.text]).filter((t) => t).join(' · ')
   const header = {
     // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
     bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
-    title: hostEntity ? hostEntity.title : (summary.title || ''),
-    subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
+    title: titleIsPlaceholder ? extras.titlePlaceholder : declaredTitle,
+    titleIsPlaceholder,
+    headerClass: titleIsPlaceholder ? 'mateu-title-placeholder' : '',
+    subtitle,
+    // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
+    overline: extras.overline,
+    // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
+    // text went to the subtitle)
+    timestamp: stamp.iso,
+    // oj-sp's status badge (null = none)
+    badge: firstBadge ? { text: firstBadge.label, status: firstBadge.status } : null,
+    // PEER navigation: oj-sp's lateral previous/next item actions. A side without a route is
+    // disabled; without a peerNav both stay 'disabled' and the header draws no arrows
+    previousItem: peer
+      ? { label: peer.prevLabel || chromeText('previousItem'), display: peer.prevRoute ? 'on' : 'disabled' }
+      : { label: '', display: 'disabled' },
+    nextItem: peer
+      ? { label: peer.nextLabel || chromeText('nextItem'), display: peer.nextRoute ? 'on' : 'disabled' }
+      : { label: '', display: 'disabled' },
+    prevRoute: peer ? peer.prevRoute : '',
+    nextRoute: peer ? peer.nextRoute : '',
     // without an EntityHeader, the Page's @KPIs are its facts
     facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
     // the record/context switcher (pageSwitcherOf): select-object / select-context of the header

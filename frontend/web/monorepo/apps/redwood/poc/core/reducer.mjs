@@ -241,6 +241,11 @@ export function reduceContexts(reg, increment, opts = {}) {
         notificationsEnabled: !!md.notificationsEnabled,
         // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
         globalSearchEnabled: !!md.globalSearchEnabled,
+        // a data-authored shell's inbox and palette search from REST sources (type: AppShell
+        // notifications.source/markRead, globalSearch.source) instead of the app-level actions
+        notificationsSource: md.notificationsSource || null,
+        notificationsReadSource: md.notificationsReadSource || null,
+        globalSearchSource: md.globalSearchSource || null,
         // @Fab del App: botones flotantes globales (fabs.mjs)
         fabs: md.fabs || [],
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)

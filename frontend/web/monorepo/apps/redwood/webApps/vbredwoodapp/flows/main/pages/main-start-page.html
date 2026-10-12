@@ -73,7 +73,18 @@
   <div :class="[[ $application.variables.mateuPageHeader.bandClass || 'oj-bg-neutral-30 oj-sm-padding-10x-bottom' ]]">
     <div :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
       :style.margin="[[ $application.variables.mateuBandBoxMargin ]]">
-      <oj-sp-header-general-overview id="mateuPageHeaderEl"
+      <!-- the Redwood OVERLINE (the quiet line above the title): oj-sp's header has no element for
+           it, so the page draws it right above, aligned with the header's title -->
+      <oj-bind-if test="[[ !!$application.variables.mateuPageHeader.overline ]]">
+        <div class="mateu-header-overline oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.variables.mateuPageHeader.overline ]]"></oj-bind-text></div>
+      </oj-bind-if>
+      <oj-sp-header-general-overview id="mateuPageHeaderEl" :class="[[ $application.variables.mateuPageHeader.headerClass || '' ]]"
+        badge="[[ $application.variables.mateuPageHeader.badge ]]"
+        timestamp="[[ $application.variables.mateuPageHeader.timestamp ]]"
+        previous-item="[[ $application.variables.mateuPageHeader.previousItem ]]"
+        next-item="[[ $application.variables.mateuPageHeader.nextItem ]]"
+        on-sp-previous-item="[[ $listeners.headerPreviousItem ]]"
+        on-sp-next-item="[[ $listeners.headerNextItem ]]"
         page-title="[[ $application.variables.mateuPageHeader.title ]]"
         page-subtitle="[[ $application.variables.mateuPageHeader.subtitle ]]"
         contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
@@ -679,7 +690,18 @@
      integran: guided process, general overview, welcome banner y el
      smart-filter-search del listado -->
 <oj-bind-if test="[[ $application.variables.mateuPageHeader.showInline ]]">
-  <oj-sp-header-general-overview id="mateuPageHeaderInline" class="oj-bg-neutral-0"
+  <!-- the Redwood OVERLINE (the quiet line above the title): oj-sp's header has no element for
+       it, so the page draws it right above, aligned with the header's title -->
+  <oj-bind-if test="[[ !!$application.variables.mateuPageHeader.overline ]]">
+    <div class="mateu-header-overline oj-bg-neutral-30 oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.variables.mateuPageHeader.overline ]]"></oj-bind-text></div>
+  </oj-bind-if>
+  <oj-sp-header-general-overview id="mateuPageHeaderInline" :class="[[ 'oj-bg-neutral-0 ' + ($application.variables.mateuPageHeader.headerClass || '') ]]"
+    badge="[[ $application.variables.mateuPageHeader.badge ]]"
+    timestamp="[[ $application.variables.mateuPageHeader.timestamp ]]"
+    previous-item="[[ $application.variables.mateuPageHeader.previousItem ]]"
+    next-item="[[ $application.variables.mateuPageHeader.nextItem ]]"
+    on-sp-previous-item="[[ $listeners.headerPreviousItem ]]"
+    on-sp-next-item="[[ $listeners.headerNextItem ]]"
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     page-subtitle="[[ $application.variables.mateuPageHeader.subtitle ]]"
     contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"

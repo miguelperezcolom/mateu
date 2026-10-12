@@ -190,6 +190,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    // a data-authored shell's inbox/palette from REST sources (globalSearch.mjs)
+    adoptShellSources,
     installTileReorder,
     installRichText,
     setTileReorderSink,
