@@ -1188,6 +1188,25 @@ class AppContext(val session: AppSession) {
         return (rem * 16).toInt()
     }
 
+    /** Opens a route the way a server NavigateTo does (also the page header's previous/next
+     *  record links). */
+    fun openRoute(href: String) {
+        if (href.isBlank()) return
+        val opener = detailOpener
+        SwingUtilities.invokeLater {
+            when {
+                // A hosted listing (bottom tool window): navigation targets open as a
+                // detail — a central editor tab — never inside the listing panel.
+                opener != null -> opener(href.trim('/'), href, "", "")
+                // Any other hosted view: open through the host (auto-placement), so the
+                // page gets its own tab instead of hijacking this one.
+                nativeToolbarHost && session.openViewHandler != null ->
+                    session.openViewHandler?.invoke(href.trim('/'), href, "", null, null)
+                else -> navigate(href, "", null, "")
+            }
+        }
+    }
+
     private fun handleCommand(cmd: JsonNode) {
         val type = cmd.text("type")
         val cmdData = cmd.path("data")
@@ -1196,24 +1215,7 @@ class AppContext(val session: AppSession) {
                 val title = if (cmdData.isTextual) cmdData.asText() else cmdData.text("title")
                 if (title.isNotBlank() && !title.startsWith("[")) setWindowTitle(title)
             }
-            "NavigateTo" -> {
-                val href = if (cmdData.isTextual) cmdData.asText() else cmdData.text("href")
-                if (href.isNotBlank()) {
-                    val opener = detailOpener
-                    SwingUtilities.invokeLater {
-                        when {
-                            // A hosted listing (bottom tool window): navigation targets open as a
-                            // detail — a central editor tab — never inside the listing panel.
-                            opener != null -> opener(href.trim('/'), href, "", "")
-                            // Any other hosted view: open through the host (auto-placement), so the
-                            // page gets its own tab instead of hijacking this one.
-                            nativeToolbarHost && session.openViewHandler != null ->
-                                session.openViewHandler?.invoke(href.trim('/'), href, "", null, null)
-                            else -> navigate(href, "", null, "")
-                        }
-                    }
-                }
-            }
+            "NavigateTo" -> openRoute(if (cmdData.isTextual) cmdData.asText() else cmdData.text("href"))
             "RunAction" -> {
                 // E.g. a row action's follow-up `search` that refreshes the listing in place.
                 val actionId = cmdData.text("actionId")
