@@ -4,6 +4,7 @@ import {
     hasAppShell, parseApp, serializeApp, AppDoc,
     appActionIds, appActionSteps, setAppActionSteps, addAppFlowAction, removeAppAction,
     widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget,
+    menuItemLook, isCardsGroup, withMenuItemLook, type AppMenuItem,
 } from './appModel'
 
 const src = `type: AppShell
@@ -163,5 +164,75 @@ widgets:
         expect(doc.widgets).toEqual([{ type: 'Text', text: 'v1' }, { type: 'Button', label: 'Help' }, { type: 'Avatar', name: 'x' }])
         expect(setWidgetProp(doc, 2, 'nope')).toBe(doc) // an unknown widget is never edited lossily
         expect(removeWidget(doc, 0).widgets).toHaveLength(2)
+    })
+})
+
+describe('appModel — card menus (presentation + description on menu entries)', () => {
+    const cardsSrc = `type: AppShell
+menu:
+  - type: Menu
+    label: Quick access
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: Check-in
+        route: check-in
+        description: Sign the registration card and scan the ID
+        presentation: {icon: "vaadin:clipboard"}
+      - type: RouteLink
+        label: Floor plan
+        route: floor-plan
+        description: Rooms coloured by housekeeping status
+        presentation: {image: /img/floor.png}
+      - type: Menu
+        label: Billing
+        description: Folios, charges and payments
+        presentation: {icon: "vaadin:invoice"}
+        submenu:
+          - {type: RouteLink, label: Folio, route: billing}
+`
+
+    it('reads the look of the documented card menu and round-trips it untouched', () => {
+        const doc = parseApp(cardsSrc)
+        const group = doc.menu[0]
+        expect(isCardsGroup(group)).toBe(true)
+        const [checkIn, floorPlan, billing] = (group as any).submenu
+        expect(menuItemLook(checkIn)).toEqual({
+            display: undefined, description: 'Sign the registration card and scan the ID', icon: 'vaadin:clipboard', image: undefined,
+        })
+        expect(menuItemLook(floorPlan).image).toBe('/img/floor.png')
+        expect(menuItemLook(billing)).toMatchObject({ description: 'Folios, charges and payments', icon: 'vaadin:invoice' })
+        expect(parse(serializeApp(doc))).toEqual(parse(cardsSrc))
+    })
+
+    it('turns a group into cards and back, leaving no empty presentation behind', () => {
+        let group: AppMenuItem = { kind: 'group', label: 'Quick access', submenu: [], extra: {} }
+        group = withMenuItemLook(group, 'display', 'cards')
+        expect(isCardsGroup(group)).toBe(true)
+        expect((group as any).extra.presentation).toEqual({ display: 'cards' })
+        group = withMenuItemLook(group, 'display', '')
+        expect(isCardsGroup(group)).toBe(false)
+        expect((group as any).extra.presentation).toBeUndefined()
+    })
+
+    it('authors description, image and a group icon under presentation; a link icon on its own icon', () => {
+        let link: AppMenuItem = { kind: 'link', label: 'Check-in', route: 'check-in', extra: { presentation: { icon: 'vaadin:old' } } }
+        link = withMenuItemLook(link, 'description', ' Sign the card ')
+        link = withMenuItemLook(link, 'image', '/img/c.png')
+        link = withMenuItemLook(link, 'icon', 'vaadin:clipboard')
+        const doc = { fields: {}, actions: [], menu: [link], widgets: [], appRest: {} } as AppDoc
+        expect(parse(serializeApp(doc)).menu[0]).toEqual({
+            type: 'RouteLink', label: 'Check-in', route: 'check-in', icon: 'vaadin:clipboard',
+            description: 'Sign the card', presentation: { image: '/img/c.png' },
+        })
+        let group: AppMenuItem = { kind: 'group', label: 'Billing', submenu: [], extra: {} }
+        group = withMenuItemLook(group, 'icon', 'vaadin:invoice')
+        expect((group as any).extra.presentation).toEqual({ icon: 'vaadin:invoice' })
+        group = withMenuItemLook(group, 'icon', '')
+        expect((group as any).extra.presentation).toBeUndefined()
+        link = withMenuItemLook(link, 'description', '')
+        expect((link as any).extra.description).toBeUndefined()
+        // a separator has no look to set
+        expect(withMenuItemLook({ kind: 'separator' }, 'description', 'x')).toEqual({ kind: 'separator' })
     })
 })

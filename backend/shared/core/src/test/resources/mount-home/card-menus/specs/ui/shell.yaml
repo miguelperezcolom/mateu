@@ -1,0 +1,31 @@
+# Fixture for YamlCardMenusSyncTest (and golden source for the browser expander,
+# expandAppShellCardMenus.test.ts): the card menu of the navigation patterns page, as data.
+type: AppShell
+title: Front office
+variant: MENU_ON_TOP
+homeRoute: home
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: Menu
+    label: Quick access
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: Check-in
+        route: check-in
+        description: Sign the registration card and scan the ID
+        presentation: {icon: "vaadin:clipboard"}
+      - type: RouteLink
+        label: Floor plan
+        route: floor-plan
+        description: Rooms coloured by housekeeping status
+        presentation: {image: /img/floor.png}
+      - type: Menu
+        label: Billing
+        description: Folios, charges and payments
+        presentation: {icon: "vaadin:invoice"}
+        submenu:
+          - {type: RouteLink, label: Folio, route: billing}
+          - {type: RouteLink, label: New booking, route: bookings/new}

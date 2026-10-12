@@ -24,6 +24,22 @@ The menu is a list of entries, and every entry is one of these:
 A menu leaf is therefore a **route or a rule**. A leaf that routes somewhere the caller may not
 reach is not sent: a `RouteLink` inherits its route's [`access:`](/define/yaml/permissions/).
 
+A group can open as a panel of **cards**: `presentation: {display: cards}` on the `Menu`, and a
+`description` plus `presentation: {icon: …}` or `{image: …}` on each entry; an entry that is itself a
+`Menu` becomes a card whose entries are its actions. See [Card menus](/ux-patterns/navigation/#card-menus-a-group-that-opens-as-cards).
+
+```yaml
+  - type: Menu
+    label: Quick access
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: Check-in
+        route: check-in
+        description: Sign the registration card and scan the ID
+        presentation: {icon: "vaadin:clipboard"}
+```
+
 ## Authoring it
 
 The product catalogue's shell has one link and one leaf that runs the catalogue's `newProduct`

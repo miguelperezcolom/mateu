@@ -335,7 +335,10 @@ In code-built shells (`MenuSupplier`, `AppSupplier`, fluent `AppShell`):
 `HAMBURGER_SECTIONS` — on Vaadin and Redwood. React Native draws the cards inside its drawer
 (image, title, description and action chips); IntelliJ shows two-line rows with the icon and
 inline action links. The sidebar, drawer and rail variants on the web, and the narrow-viewport ☰
-button, keep the plain list. A group without `display: cards` renders exactly as before.
+button, keep the plain list. A group without `display: cards` renders exactly as before. On
+Redwood a `vaadin:` icon with no Redwood equivalent shows a generic icon, so the cards stay aligned
+(an `image` shows as is everywhere). In the visual editor a group's **Display** select switches it
+to cards, and its entries get description, icon and image fields.
 
 Full reference: [Navigation and menus › Card menus](/java-user-manual/build/navigation-and-menus/#card-menus-a-group-that-opens-as-cards).
 

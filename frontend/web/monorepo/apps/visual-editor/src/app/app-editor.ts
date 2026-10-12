@@ -4,6 +4,7 @@ import {
     AppDoc, AppFields, AppMenuItem, parseApp, serializeApp,
     appActionIds, appActionSteps, setAppActionSteps, addAppFlowAction, removeAppAction,
     WIDGET_KINDS, widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget, appExtra, withAppExtra,
+    menuItemLook, isCardsGroup, withMenuItemLook, type MenuItemLook,
 } from '../model/appModel'
 import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
@@ -60,6 +61,9 @@ export class AppEditor extends LitElement {
         .mini { height: 30px; min-width: 30px; border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; cursor: pointer; }
         .mini:disabled { opacity: .4; cursor: default; }
         .menu-row input.access { flex: 0 1 11rem; font-size: 12px; }
+        .menu-row ve-select.display { flex: 0 0 7.5rem; width: 7.5rem; font-size: 12px; }
+        .card-row { margin-top: 0.3rem; }
+        .card-row ve-image-picker { flex: 1; font-size: 12px; }
     `
 
     @property() yaml = ''
@@ -296,7 +300,12 @@ export class AppEditor extends LitElement {
 
     // --- menu (path = [i] at top level, [i, j] inside a group) ---
 
-    private menuItem(item: AppMenuItem, path: number[]): TemplateResult {
+    /**
+     * `inCards`: the entry sits in a group that opens as cards (`presentation: {display: cards}`), so
+     * it is a card — it gets a description and an image (a group inside it, an icon too: a link has
+     * its own icon picker).
+     */
+    private menuItem(item: AppMenuItem, path: number[], inCards = false): TemplateResult {
         if (item.kind === 'separator') {
             return html`<div class="menu-item"><div class="menu-row"><span class="kind">Separator</span><span class="sep"></span>${this.delBtn(path)}</div></div>`
         }
@@ -314,6 +323,7 @@ export class AppEditor extends LitElement {
                     ${this.accessInput(item, path)}
                     ${this.delBtn(path)}
                 </div>
+                ${inCards ? this.cardRow(item, path, true) : ''}
             </div>`
         }
         if (item.kind === 'link') {
@@ -323,30 +333,63 @@ export class AppEditor extends LitElement {
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
                     <ve-combo placeholder="route" .options=${this.routeOptions} empty-text="No routes yet — add them in a routes file"
                         .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)}></ve-combo>
-                    <ve-icon-picker class="icon" placeholder="icon" .renderer=${this.renderer} .value=${item.icon ?? ''}
-                        @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)}></ve-icon-picker>
+                    <ve-icon-picker class="icon" placeholder="icon" .renderer=${this.renderer} .value=${menuItemLook(item).icon ?? ''}
+                        @change=${(e: Event) => this.setLook(path, 'icon', (e.target as HTMLInputElement).value)}></ve-icon-picker>
                     ${this.accessInput(item, path)}
                     ${this.delBtn(path)}
                 </div>
+                ${inCards ? this.cardRow(item, path, false) : ''}
             </div>`
         }
         // group
+        const cards = isCardsGroup(item)
         return html`<div class="menu-item">
-            <span class="kind">Group</span>
+            <span class="kind">${inCards ? 'Card with actions' : 'Group'}</span>
             <div class="menu-row">
                 <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
+                <ve-select class="display" aria-label="Display" title="How the group opens: a plain list, or a panel of cards (title, description, icon or image)"
+                    @change=${(e: Event) => this.setLook(path, 'display', (e.target as HTMLSelectElement).value)}>
+                    <option value="" ?selected=${!cards}>List</option>
+                    <option value="cards" ?selected=${cards}>Cards</option>
+                </ve-select>
                 ${this.accessInput(item, path)}
                 ${this.delBtn(path)}
             </div>
+            ${inCards ? this.cardRow(item, path, true) : ''}
+            ${inCards ? html`<div class="note">Not a destination: its entries are the card's actions.</div>` : ''}
             <div class="sub">
-                ${item.submenu.map((child, j) => this.menuItem(child, [...path, j]))}
+                ${item.submenu.map((child, j) => this.menuItem(child, [...path, j], cards))}
                 <div class="adds">
                     <button @click=${() => this.addItem(path, 'link')}>+ Link</button>
                     <button @click=${() => this.addItem(path, 'action')}>+ Action</button>
+                    ${cards ? html`<button title="A card whose entries are its actions" @click=${() => this.addItem(path, 'group')}>+ Card with actions</button>` : ''}
                     <button @click=${() => this.addItem(path, 'separator')}>+ Separator</button>
                 </div>
             </div>
         </div>`
+    }
+
+    /** The card look of an entry inside a cards group: description, image and (unless it has its own) icon. */
+    private cardRow(item: AppMenuItem, path: number[], withIcon: boolean): TemplateResult {
+        const look = menuItemLook(item)
+        return html`<div class="menu-row card-row">
+            <input class="description" placeholder="Card description" aria-label="Description" .value=${look.description ?? ''}
+                @change=${(e: Event) => this.setLook(path, 'description', (e.target as HTMLInputElement).value)} />
+            ${withIcon ? html`<ve-icon-picker class="card-icon" placeholder="icon" .renderer=${this.renderer} .value=${look.icon ?? ''}
+                @change=${(e: Event) => this.setLook(path, 'icon', (e.target as HTMLInputElement).value)}></ve-icon-picker>` : ''}
+            <ve-image-picker class="card-image" aria-label="Image" .images=${this.images} ?can-add=${this.canAddImage} .value=${look.image ?? ''}
+                @change=${(e: Event) => this.setLook(path, 'image', (e.target as HTMLInputElement).value)}></ve-image-picker>
+        </div>`
+    }
+
+    private setLook(path: number[], key: keyof MenuItemLook, value: string) {
+        const menu = structuredClone(this.doc.menu)
+        const parentPath = path.slice(0, -1)
+        const list = parentPath.length === 0 ? menu : (this.at(menu, parentPath) as any)?.submenu
+        const idx = path[path.length - 1]
+        if (Array.isArray(list) && list[idx]) list[idx] = withMenuItemLook(list[idx], key, value ?? '')
+        this.doc = { ...this.doc, menu }
+        this.commit()
     }
 
     /**

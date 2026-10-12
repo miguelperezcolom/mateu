@@ -148,6 +148,70 @@ function menuItemToRaw(item: AppMenuItem): unknown {
     return item.raw
 }
 
+// --- the card look of a menu entry (`presentation:` + `description:`, kept in `extra`) ---
+// A group with `presentation: {display: cards}` opens as a panel of cards; each entry inside it is a
+// card with a `description` and a `presentation.icon` or `presentation.image` (a link's own `icon:`
+// is the same icon on the wire — the server takes `icon` first, then `presentation.icon`).
+
+export interface MenuItemLook {
+    /** `cards` on a group that opens as a card panel; undefined = the plain list. */
+    display?: string
+    description?: string
+    icon?: string
+    image?: string
+}
+
+const lookable = (item: AppMenuItem): item is Extract<AppMenuItem, { extra: Record<string, unknown> }> =>
+    item.kind === 'link' || item.kind === 'group' || item.kind === 'action'
+
+/** The card look an entry declares (empty for a separator or a raw item). */
+export function menuItemLook(item: AppMenuItem): MenuItemLook {
+    if (!lookable(item)) return {}
+    const p = (item.extra.presentation ?? {}) as Record<string, unknown>
+    const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
+    return {
+        display: str(p.display),
+        description: str(item.extra.description),
+        // a link's own icon wins, exactly as on the wire
+        icon: (item.kind === 'link' ? item.icon : undefined) || str(p.icon),
+        image: str(p.image),
+    }
+}
+
+/** Whether this entry is a group that opens as cards. */
+export function isCardsGroup(item: AppMenuItem): boolean {
+    return item.kind === 'group' && menuItemLook(item).display === 'cards'
+}
+
+/**
+ * The entry with one part of its look set (a blank value removes it). `presentation` is dropped when
+ * nothing is left in it, so a plain entry stays plain YAML. A link's icon is written to its own
+ * `icon:` (what the icon picker of a link has always written) and any `presentation.icon` removed.
+ */
+export function withMenuItemLook(item: AppMenuItem, key: keyof MenuItemLook, value: string): AppMenuItem {
+    if (!lookable(item)) return item
+    const v = value.trim()
+    const extra = { ...item.extra }
+    if (key === 'description') {
+        if (v) extra.description = v
+        else delete extra.description
+        return { ...item, extra } as AppMenuItem
+    }
+    const presentation = { ...((extra.presentation ?? {}) as Record<string, unknown>) }
+    let next: AppMenuItem = item
+    if (key === 'icon' && item.kind === 'link') {
+        delete presentation.icon
+        next = { ...item, icon: v || undefined }
+    } else if (key === 'display') {
+        if (v === 'cards') presentation.display = 'cards'
+        else delete presentation.display
+    } else if (v) presentation[key] = v
+    else delete presentation[key]
+    if (Object.keys(presentation).length) extra.presentation = presentation
+    else delete extra.presentation
+    return { ...next, extra } as AppMenuItem
+}
+
 function rest(obj: Record<string, unknown>, omit: string[]): Record<string, unknown> {
     const out: Record<string, unknown> = {}
     for (const k of Object.keys(obj)) if (!omit.includes(k)) out[k] = obj[k]
