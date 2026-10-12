@@ -44,9 +44,26 @@ public final class TreeActionHarvester {
       Object view,
       ComponentDto tree,
       io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    return withTreeActions(declared, view, tree, httpRequest, Set.of());
+  }
+
+  /**
+   * As {@link #withTreeActions(List, Object, ComponentDto, io.mateu.uidl.interfaces.HttpRequest)},
+   * for a view whose tree also carries buttons with a handler of their own ({@code new
+   * Button("Save", () -> ...)}, see {@code FluentHandlerButtons}): those ids are run by the server
+   * whether or not the view has a METHOD of that name, so they are advertised too — before, a
+   * lambda button whose label matched no public method was dropped by the browser ("no component on
+   * the page handles it") although the server would have run it.
+   */
+  public static List<ActionDto> withTreeActions(
+      List<ActionDto> declared,
+      Object view,
+      ComponentDto tree,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest,
+      Set<String> handlerButtonIds) {
     var referenced = new LinkedHashSet<String>();
     collect(tree, referenced, new java.util.IdentityHashMap<>());
-    if (referenced.isEmpty()) {
+    if (referenced.isEmpty() && handlerButtonIds.isEmpty()) {
       return declared;
     }
     // exactly the methods the server lets an actionId run (ActionMethods), so what is advertised
@@ -58,6 +75,11 @@ public final class TreeActionHarvester {
             .collect(Collectors.toSet());
     var known = declared.stream().map(ActionDto::id).collect(Collectors.toSet());
     var all = new ArrayList<>(declared);
+    for (var id : handlerButtonIds) {
+      if (known.add(id)) {
+        all.add(ActionDto.builder().id(id).build());
+      }
+    }
     for (var id : referenced) {
       if (handled.contains(id) && known.add(id)) {
         all.add(ActionDto.builder().id(id).build());

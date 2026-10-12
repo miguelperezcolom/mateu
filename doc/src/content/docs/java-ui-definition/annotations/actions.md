@@ -107,6 +107,8 @@ public class RoomDiary implements ComponentTreeSupplier {
 
 An id the screen has no method for is left alone, because it may belong to an enclosing component. The same rule holds on the .NET and Python backends.
 
+A `Button` that carries its own handler — `new Button("Increment", () -> new State(increment()))`, or a `Runnable` — needs no method at all: the server runs the handler of the button the action id names, so the screen always advertises the ids of those buttons, wherever they sit in the tree (a layout, a `Card`, a form's header or footer). A nested `ComponentTreeSupplier` advertises and runs its own.
+
 The one exception is an id of the [action catalogue](/concepts/action-catalogue/): a named, client-runnable flow or REST call declared once in `specs/ui/actions.yaml`. When the screen neither declares the id nor has a method for it, the catalogue's entry travels with the screen and runs in the browser. The screen's own method always wins.
 
 ## @Button
