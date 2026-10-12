@@ -159,6 +159,28 @@ class DashboardPage(Dashboard):
     notes: Annotated[Text, Panel("Notes", subtitle="Today")] = Text(text="All systems nominal")
 
 
+from mateu_uidl import GlobalSearchSupplier, NotificationsSupplier  # noqa: E402
+
+
+@ui("/conformance/app-extras")
+@app("Extras app", command_center=True)
+class ExtrasApp(NotificationsSupplier, GlobalSearchSupplier):
+    """The app-level shell extras as flags: command center, notification bell, global search."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+    def notifications(self, request):
+        return []
+
+    def mark_notifications_read(self, ids, request):
+        return None
+
+    def global_search(self, search_text):
+        return []
+
+
 @ui("/conformance/card-menu")
 @app("Card menu")
 class CardMenuApp(AppSupplier):
@@ -676,7 +698,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp)]
 
 
 def test_every_case_of_the_corpus_is_wired():

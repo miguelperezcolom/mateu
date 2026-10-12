@@ -171,6 +171,7 @@ public class WireConformanceTests
         { "peer-nav", typeof(PeerNavPage) },
         { "app-no-home-content", typeof(NoHomeApp) },
         { "card-menu", typeof(CardMenuApp) },
+        { "app-extras", typeof(ExtrasApp) },
     };
 
     [Fact]

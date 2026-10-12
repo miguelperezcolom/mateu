@@ -1,0 +1,36 @@
+{
+  "commands" : [ {
+    "data" : "Extras app",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "commandCenterEnabled" : true,
+        "globalSearchEnabled" : true,
+        "homeConsumedRoute" : "/conformance/app-extras",
+        "homeRoute" : "_no_home_route",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/app-extras",
+          "label" : "Home",
+          "path" : "/home",
+          "route" : "/conformance/app-extras/home",
+          "uriPrefix" : "/conformance/app-extras",
+          "visible" : true
+        } ],
+        "notificationsEnabled" : true,
+        "requiredCapabilities" : [ "command-center", "global-search", "notifications" ],
+        "rootRoute" : "/conformance/app-extras",
+        "route" : "/conformance/app-extras",
+        "title" : "Extras app",
+        "totalMenuOptions" : 1,
+        "type" : "App",
+        "variant" : "TABS"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -331,6 +331,36 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * The app-level shell extras as flags on the app metadata: the command center (an always-present
+   * palette FAB), the notification bell (an app implementing NotificationsSupplier) and the global
+   * entity search (GlobalSearchSupplier).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-extras")
+  @Title("Extras app")
+  @io.mateu.uidl.annotations.App(commandCenter = true)
+  public static class ExtrasApp
+      implements io.mateu.uidl.interfaces.NotificationsSupplier,
+          io.mateu.uidl.interfaces.GlobalSearchSupplier {
+
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+
+    @Override
+    public List<io.mateu.uidl.data.AppNotification> notifications(HttpRequest httpRequest) {
+      return List.of();
+    }
+
+    @Override
+    public void markNotificationsRead(List<String> ids, HttpRequest httpRequest) {}
+
+    @Override
+    public List<io.mateu.uidl.data.GlobalSearchResult> globalSearch(
+        String searchText, HttpRequest httpRequest) {
+      return List.of();
+    }
+  }
+
   /** An app whose shell and its whole menu are composed IN CODE via {@link AppSupplier}. */
   @SuppressWarnings("unused")
   @UI("/conformance/app-in-code")
@@ -887,7 +917,8 @@ class WireConformanceTest {
           "listing-columns",
           "peer-nav",
           "app-no-home-content",
-          "card-menu");
+          "card-menu",
+          "app-extras");
 
   static TestMateu mateu;
 
@@ -928,7 +959,8 @@ class WireConformanceTest {
             MeasurementsListing.class,
             PeerNavPage.class,
             NoHomeApp.class,
-            CardMenuApp.class);
+            CardMenuApp.class,
+            ExtrasApp.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

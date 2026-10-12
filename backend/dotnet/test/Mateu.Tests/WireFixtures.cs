@@ -540,3 +540,17 @@ public class CardMenuApp : IAppSupplier
         Variant = AppVariant.HamburgerMenu,
     };
 }
+
+/// <summary>The app-level shell extras as flags: command center, notification bell, global search.</summary>
+[UI("conformance/app-extras"), App("Extras app", CommandCenter = true)]
+public class ExtrasApp : INotificationsSupplier, IGlobalSearchSupplier
+{
+    [MenuItem("Home")]
+    public void Home() { }
+
+    public IReadOnlyList<AppNotification> Notifications() => [];
+
+    public void MarkNotificationsRead(IReadOnlyList<string> ids) { }
+
+    public IReadOnlyList<GlobalSearchResult> GlobalSearch(string searchText) => [];
+}
