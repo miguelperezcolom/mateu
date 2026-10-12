@@ -368,7 +368,7 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
 - **Security** — `[EyesOnly(Permissions = new[] { "x" })]` on a view class restricts it (403, and its
   menu entries hidden); the `[App]` shell can carry login/logout URLs. (`[Secured("x")]` is
-  deprecated: it was never enforced.) Field and action access is covered in
+  deprecated; it is enforced exactly like `[EyesOnly(Permissions = new[] { "x" })]`.) Field and action access is covered in
   [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp

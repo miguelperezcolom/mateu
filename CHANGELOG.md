@@ -115,7 +115,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
     `Size` is the sizing intent.
   - **Port idioms documented** in the parity matrix (menus, KPI, wizard steps and completion,
     progress style, edit-in-drawer, action options, toast variants). The port-only `[Secured]` /
-    `@secured`, which was never enforced, is deprecated in favour of `EyesOnly`.
+    `@secured`, which was silently ignored, is now **enforced** with the semantics of
+    `EyesOnly(permissions = …)` (view and actions 403, menu entries hidden) and deprecated in favour
+    of `EyesOnly` — a view that carried it is no longer open to everyone.
 - **The whole row opens the record**: on a navigable listing (a view per row, or `rowRoute`) a click
   anywhere on the row opens it — not only on the id link — in the web (Vaadin), Redwood, React
   Native and IntelliJ renderers. Clicks on the selection checkbox, on inline editors and on display

@@ -69,7 +69,12 @@ public sealed partial class ReflectionMapper
                 return submenus;
             }
             foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                         .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)))
+                         .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)
+                                     // an entry leading to a view the caller may not open (its
+                                     // class-level [EyesOnly] / deprecated [Secured]) is hidden,
+                                     // and the entry's own [EyesOnly] hides it too
+                                     && Authorized(m.Find<EyesOnlyAttribute>())
+                                     && ActionGuard.ViewGatesSatisfied(m.ReturnType, identity?.Invoke(), out _)))
             {
                 var attribute = m.Find<MenuItemAttribute>()!;
                 var entry = Presented(MapMenuItem(m), null, attribute.Description, attribute.Icon, attribute.Image);

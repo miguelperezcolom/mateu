@@ -116,7 +116,7 @@ def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
         Length(min=2, max=4)  # the replacement does not warn
 
 
-def test_secured_was_never_enforced_and_warns_naming_eyes_only():
+def test_secured_warns_naming_eyes_only():
     from mateu_uidl import secured
 
     with pytest.warns(DeprecationWarning, match="eyes_only"):
@@ -125,4 +125,4 @@ def test_secured_was_never_enforced_and_warns_naming_eyes_only():
         class Guarded:
             pass
 
-    assert Guarded.__mateu_secured__ == "admin"  # still accepted, as before
+    assert Guarded.__mateu_secured__ == "admin"  # still accepted (and enforced: test_secured_enforced)

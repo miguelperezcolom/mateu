@@ -7,7 +7,7 @@ using Xunit;
 namespace Mateu.Tests;
 
 // The pre-beta API freeze (design/api-freeze-review.md): the right spelling of the hamburger variant
-// is an alias of the old one on the wire, and every [Obsolete] element of the public surface names
+// is the wire value (since 3.0-alpha.412; the old spelling maps to it), and every [Obsolete] element of the public surface names
 // its replacement — the .NET side of Java's DeprecationsNameTheirReplacementTest.
 
 [App("Hamburger", Variant = AppVariant.HamburgerMenu)]
