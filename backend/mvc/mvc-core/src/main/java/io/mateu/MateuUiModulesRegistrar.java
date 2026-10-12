@@ -71,10 +71,13 @@ public class MateuUiModulesRegistrar
     for (String pkg : packages) {
       int found = scanner.scan(pkg);
       if (found == 0) {
+        // 0 = nothing NEW: none found, or every one was already registered (the application scans
+        // the package too, which is harmless) — say both
         log.warn(
-            "Mateu UI module '{}' ({}): no beans found in that package. Check the name — it must be"
-                + " the package of the module's @UI classes (where its generated controllers"
-                + " live) — and that the module's jar is on the classpath.",
+            "Mateu UI module '{}' ({}): no beans registered from that package — none found, or the"
+                + " application already scans it. Check the name: it must be the package of the"
+                + " module's @UI classes (where its generated controllers live), and the module's"
+                + " jar must be on the classpath.",
             pkg,
             source);
       } else {
