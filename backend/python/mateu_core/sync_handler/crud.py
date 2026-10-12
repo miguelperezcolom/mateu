@@ -105,7 +105,11 @@ class CrudHandlerMixin(MixinBase):
                     )
             if aid in ("cancel-new", "cancel-edit", "cancel-view"):
                 close = UICommand.close_modal()
-                return UIIncrement(commands=[close.model_copy(update={"target_component_id": self.target(rq)})])
+                # the drawer's form tracks unsaved changes: leaving it clears them (Java parity)
+                return UIIncrement(commands=[
+                    close.model_copy(update={"target_component_id": self.target(rq)}),
+                    UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
+                ])
         if aid == "view":
             # the id column's link (first column, actionId "view"): open the record's route
             row_id = self._row_id(rq)
@@ -425,6 +429,7 @@ class CrudHandlerMixin(MixinBase):
             close = UICommand.close_modal(SAVED_IN_DRAWER_EVENT)
             return UIIncrement(
                 commands=[
+                    UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
                     close.model_copy(update={"target_component_id": self.target(rq)}),
                     UICommand(
                         target_component_id=self.target(rq),

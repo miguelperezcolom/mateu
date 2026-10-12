@@ -135,6 +135,16 @@ def test_every_crud_form_button_is_advertised_and_save_validates():
     assert _advertised(_component("adv-items/1", Items))["edit"] is False
 
 
+def test_crud_create_and_edit_forms_are_form_pages_that_guard_unsaved_changes():
+    # Java's crud forms answer pageType "form" and opt into the dirty guard (found diffing a
+    # second-request conformance trial: the ports said "collection" and guarded nothing)
+    for route, guarded in (("adv-items/new", True), ("adv-items/1/edit", True), ("adv-items/1", False)):
+        component = _component(route, Items)
+        assert component.confirm_on_navigation_if_dirty is guarded, route
+        if guarded:
+            assert component.page_type == "form", route
+
+
 def test_every_capability_form_button_is_advertised():
     for route in ("adv-books/new", "adv-books/1", "adv-books/1/edit"):
         component = _component(route, Books)

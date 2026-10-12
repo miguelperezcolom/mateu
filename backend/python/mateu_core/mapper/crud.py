@@ -634,9 +634,12 @@ class CrudMapperMixin(MixinBase):
                 Button(label="Cancel", action_id="cancel-new"),
                 Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
+        # A create/edit form IS a form page (Java's crud forms answer pageType "form"); the
+        # crud's own type (collection) describes its listing, not the form.
+        form_page_type = page_type_of(crud_type) if mode == "view" else "form"
         page = self.client(
             PageMetadata(title=title, page_title=title, toolbar=toolbar,
-                         page_type=page_type_of(crud_type)),
+                         page_type=form_page_type),
             None,
             self.form_cards(element, entity, read_only=mode == "view"),
         )
@@ -659,7 +662,10 @@ class CrudMapperMixin(MixinBase):
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),
-            page_type=page_type_of(crud_type),
+            page_type=form_page_type,
+            # a create/edit form guards its unsaved changes, like Java's CRUD forms (the dirty
+            # guard is automatic there): leaving it half-typed asked nothing
+            confirm_on_navigation_if_dirty=mode != "view",
             validations=client_validations(self, element, entity, read_only=mode == "view"),
         )
 

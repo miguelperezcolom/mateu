@@ -62,6 +62,9 @@ public class StateCoercionTests
             .Handle(new RunActionRqDto { Route = route, ConsumedRoute = "", ServerSideType = typeof(CoercedProducts).FullName! })
             .Fragments[0].Component);
         Assert.Equal(expected, component.Validations.Count > 0);
+        // Java's crud create/edit forms are "form" pages that guard unsaved changes
+        Assert.Equal(expected, component.ConfirmOnNavigationIfDirty);
+        if (expected) Assert.Equal("form", component.PageType);
     }
 
     [Fact]

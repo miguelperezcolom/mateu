@@ -2073,9 +2073,9 @@ def test_crud_create_navigates_back_with_message():
             component_state={"name": "Gamma"},
         )
     )
-    assert len(inc.commands) == 1
-    assert inc.commands[0].type == "NavigateTo"
-    assert inc.commands[0].data == "/things"
+    # MarkAsClean first: leaving a saved form must not ask "unsaved changes?"
+    assert [c.type for c in inc.commands] == ["MarkAsClean", "NavigateTo"]
+    assert inc.commands[1].data == "/things"
     assert inc.messages[0].text == "Saved"
 
 

@@ -2359,8 +2359,9 @@ public class SyncHandlerTests
             ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Gamma") },
         });
 
-        var nav = Assert.Single(inc.Commands);
-        Assert.Equal("NavigateTo", nav.Type);
+        // MarkAsClean first: leaving a saved form must not ask "unsaved changes?"
+        Assert.Equal(["MarkAsClean", "NavigateTo"], inc.Commands.Select(c => c.Type));
+        var nav = inc.Commands[1];
         Assert.Equal("/things", nav.Data);
         Assert.Equal("Saved", Assert.Single(inc.Messages).Text);
     }

@@ -48,7 +48,10 @@ public sealed partial class ReflectionMapper
             // the entity's constraints, checked on the client before Save like on any form (Python
             // parity; without them a required field only failed on the server, with no field marked)
             Validations = mode == "view" ? [] : MapValidations(element),
-            PageType = PageTypeOf(crudType),
+            // A create/edit form IS a form page (Java's crud forms answer pageType "form") and
+            // guards its unsaved changes, like Java's (automatic there): leaving it half-typed asked nothing.
+            PageType = mode == "view" ? PageTypeOf(crudType) : "form",
+            ConfirmOnNavigationIfDirty = mode != "view",
         };
     }
 

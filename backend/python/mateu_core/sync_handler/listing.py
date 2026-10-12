@@ -146,9 +146,10 @@ class ListingHandlerMixin(MixinBase):
                 )
             if aid in ("cancel-new", "cancel-edit", "cancel-view"):
                 close = UICommand.close_modal()
-                return UIIncrement(
-                    commands=[close.model_copy(update={"target_component_id": self.target(rq)})]
-                )
+                return UIIncrement(commands=[
+                    close.model_copy(update={"target_component_id": self.target(rq)}),
+                    UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
+                ])
         if not drawer_editor and aid in ("new", "edit", "cancel-new", "cancel-edit", "cancel-view"):
             # The routed forms' toolbars move between the listing's routes (Java's mediator
             # answers them); without them New/Edit/Cancel/Back answered "Action not found".
@@ -233,6 +234,7 @@ class ListingHandlerMixin(MixinBase):
         close = UICommand.close_modal(SAVED_IN_DRAWER_EVENT)
         return UIIncrement(
             commands=[
+                UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
                 close.model_copy(update={"target_component_id": self.target(rq)}),
                 UICommand(
                     target_component_id=self.target(rq),

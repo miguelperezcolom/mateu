@@ -66,7 +66,8 @@ public sealed partial class SyncHandler
                 CrudDrawer(crudType, element, GetOrNew(crud, crudType, element, rowId), "edit",
                     $"{baseRoute}/{rowId}/edit", rq, crud),
             "cancel-new" or "cancel-edit" or "cancel-view" when EditInDrawer(crud) =>
-                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
+                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
+                    new UICommandDto(Target(rq), "MarkAsClean", null)]),
             // the id column's link (first column, actionId "view"): open the record's route
             "view" when RowId(rq, element) is { } viewId => Navigate($"{baseRoute}/{viewId}", null, rq),
             // The form's toolbar (New, Edit, Add another, Cancel, Back to list) moves between the
@@ -298,6 +299,7 @@ public sealed partial class SyncHandler
             return UIIncrementDto.Of(
                 commands:
                 [
+                    new UICommandDto(Target(rq), "MarkAsClean", null),
                     UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "RunAction",
                         new { actionId = "search", targetComponentId = Target(rq) }),

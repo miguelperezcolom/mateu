@@ -65,9 +65,9 @@ public sealed partial class SyncHandler
             "create" when profile.CanCreate => CapabilityCreate(profile, listing, baseRoute, rq),
             "delete" when profile.CanDelete => CapabilityDelete(profile, listing, rq),
             "cancel-new" or "cancel-edit" or "cancel-view" when profile.EditInDrawer =>
-                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
-            "cancel-new" or "cancel-edit" or "cancel-view" =>
-                UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", baseRoute)]),
+                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
+                    new UICommandDto(Target(rq), "MarkAsClean", null)]),
+            "cancel-new" or "cancel-edit" or "cancel-view" => Navigate(baseRoute, null, rq),
             null or "" => mode switch
             {
                 "new" when profile.CanCreate => CapabilityEntity(
@@ -186,6 +186,7 @@ public sealed partial class SyncHandler
             return UIIncrementDto.Of(
                 commands:
                 [
+                    new UICommandDto(Target(rq), "MarkAsClean", null),
                     UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "RunAction",
                         new { actionId = "search", targetComponentId = Target(rq) }),

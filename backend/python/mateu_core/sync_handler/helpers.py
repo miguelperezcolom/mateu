@@ -163,8 +163,14 @@ class ResponseHelpersMixin(MixinBase):
         return data
 
     def navigate(self, route: str, success_text: str | None, rq: RunActionRq | None = None) -> UIIncrement:
+        # A server-driven navigation LEAVES the form on purpose (after a save, a cancel): clear its
+        # unsaved-changes flag first, as Java's crud does — without it Save itself asked "you have
+        # unsaved changes, leave?" and a cancelled edit kept the whole app dirty.
         return UIIncrement.of(
-            commands=[UICommand(target_component_id=self.target(rq), type="NavigateTo", data=route)],
+            commands=[
+                UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
+                UICommand(target_component_id=self.target(rq), type="NavigateTo", data=route),
+            ],
             messages=[]
             if success_text is None
             else [MessageDto(variant="success", position="middle", title="", text=success_text, duration=3000)],

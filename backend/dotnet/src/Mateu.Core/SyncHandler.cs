@@ -826,7 +826,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
 
     private static UIIncrementDto Navigate(string route, string? successText, RunActionRqDto rq) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto(Target(rq), "NavigateTo", route)],
+            // A server-driven navigation LEAVES the form on purpose (after a save, a cancel): clear
+            // its unsaved-changes flag first, as Java's crud does — without it Save itself asked
+            // "you have unsaved changes, leave?" and a cancelled edit kept the whole app dirty.
+            commands: [new UICommandDto(Target(rq), "MarkAsClean", null), new UICommandDto(Target(rq), "NavigateTo", route)],
             messages: successText is null ? [] : [new MessageDto("success", "middle", "", successText, 3000)]);
 
     private static UIIncrementDto Error(string text) =>
