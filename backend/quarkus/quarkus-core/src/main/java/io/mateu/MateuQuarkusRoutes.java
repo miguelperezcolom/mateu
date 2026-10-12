@@ -39,6 +39,15 @@ public class MateuQuarkusRoutes {
   // Ahead of Quarkus REST (and of the static resources handler).
   private static final int EARLY = Integer.MIN_VALUE + 100;
 
+  /**
+   * After Quarkus' HTTP security (its filters run at route order {@code -priority}: authentication
+   * -200, authorization -100) and still ahead of Quarkus REST. A YAML mount serves the app's
+   * screens, so it must see who is calling: at {@link #EARLY} it ran before authentication — {@code
+   * access:} refused every caller, an admin included — and before authorization, so the app's own
+   * {@code quarkus.http.auth.permission} policies never applied to it.
+   */
+  static final int AFTER_SECURITY = -50;
+
   @Inject MateuService service;
   @Inject RouteRegistry routeRegistry;
   @Inject YamlAppLoader yamlAppLoader;
@@ -268,10 +277,10 @@ public class MateuQuarkusRoutes {
       RouteRegistry routeRegistry,
       YamlAppLoader yamlAppLoader) {
     for (var mount : mounts) {
-      router.get(mount.spaPath()).order(EARLY + 4).blockingHandler(rc -> index(rc, mount));
+      router.get(mount.spaPath()).order(AFTER_SECURITY).blockingHandler(rc -> index(rc, mount));
       router
           .get(mount.apiPrefix() + "/v3/manifest")
-          .order(EARLY + 4)
+          .order(AFTER_SECURITY)
           .blockingHandler(
               rc -> {
                 var response = rc.response();
@@ -281,7 +290,7 @@ public class MateuQuarkusRoutes {
               });
       router
           .postWithRegex(java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + ".*")
-          .order(EARLY + 5)
+          .order(AFTER_SECURITY + 1)
           .handler(BodyHandler.create())
           .blockingHandler(rc -> run(rc, mount, service));
       // Deep links answer the mount's index: AFTER Quarkus REST and the static resources, which
@@ -314,7 +323,8 @@ public class MateuQuarkusRoutes {
   private static void run(RoutingContext rc, YamlMounts.Mount mount, MateuService service) {
     try {
       var rq = WireMapper.shared().readValue(rc.body().asString(), RunActionRqDto.class);
-      var httpRequest = new QuarkusHttpRequest(rc.request()).storeRunActionRqDto(rq);
+      var httpRequest =
+          new QuarkusHttpRequest(rc.request()).withIdentityOf(rc).storeRunActionRqDto(rq);
       httpRequest.setAttribute("uiId", "");
       httpRequest.setAttribute("baseUrl", mount.basePath());
       var increments =
@@ -338,7 +348,27 @@ public class MateuQuarkusRoutes {
             .end(WireMapper.shared().writeValueAsString(increment));
       }
     } catch (Throwable t) {
-      rc.fail(t);
+      var forbidden = forbiddenIn(t);
+      if (forbidden != null) {
+        // what the JAX-RS MateuForbiddenExceptionMapper answers: a refused route is a 403, not a
+        // 500
+        rc.response()
+            .setStatusCode(403)
+            .putHeader("Content-Type", "text/plain")
+            .end(io.mateu.core.application.security.MateuForbiddenException.publicMessage());
+      } else {
+        rc.fail(t);
+      }
     }
+  }
+
+  private static io.mateu.core.application.security.MateuForbiddenException forbiddenIn(
+      Throwable t) {
+    for (var cause = t; cause != null; cause = cause.getCause()) {
+      if (cause instanceof io.mateu.core.application.security.MateuForbiddenException forbidden) {
+        return forbidden;
+      }
+    }
+    return null;
   }
 }
