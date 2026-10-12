@@ -53,7 +53,7 @@ class MateuYamlMountControllerTest {
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = controller.index(path);
+      var response = controller.index(path, "text/html");
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -63,9 +63,15 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(controller.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(controller.index(null, "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(controller.index("elsewhere", "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        controller.index("yaml-parity/mateu/v3/x", "text/html").status(),
+        equalTo(HttpStatus.NOT_FOUND));
+    // a data fetch is never answered the index (a REST source whose endpoint does not exist yet)
+    assertThat(
+        controller.index("yaml-parity/page", "application/json, */*").status(),
+        equalTo(HttpStatus.NOT_FOUND));
   }
 
   @Test

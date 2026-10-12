@@ -76,6 +76,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void doesNotAnswerADataFetchWithTheIndex() {
+    contract.doesNotAnswerADataFetchWithTheIndex();
+  }
+
+  @Test
   void servesTheMobileManifest() {
     contract.servesTheMobileManifest();
   }

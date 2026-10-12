@@ -29,7 +29,13 @@ public class ${simpleClassName}Controller {
     // mobile app's manifest (any UI's <base>/mateu/v3/manifest), which is JSON even when a browser
     // asks for HTML.
     @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[\\-a-zA-Z0-9/_]+}", produces = MediaType.TEXT_HTML)
-    public String getIndexAlways(String path) {
+    public String getIndexAlways(String path,
+            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept) {
+        // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
+        // whose endpoint does not exist yet) must not be answered a 200 of HTML.
+        if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
+            throw new io.micronaut.http.exceptions.HttpStatusException(io.micronaut.http.HttpStatus.NOT_FOUND, "Not found");
+        }
         return getIndex();
     }
 

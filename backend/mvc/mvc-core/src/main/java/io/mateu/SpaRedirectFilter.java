@@ -32,7 +32,8 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return !"GET".equalsIgnoreCase(request.getMethod())
-        || !SpaFallback.candidate(request.getRequestURI());
+        || !SpaFallback.candidate(request.getRequestURI())
+        || !SpaFallback.acceptsHtml(request.getHeader("Accept"));
   }
 
   @Override

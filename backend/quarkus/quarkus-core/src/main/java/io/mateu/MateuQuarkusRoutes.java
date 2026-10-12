@@ -286,7 +286,10 @@ public class MateuQuarkusRoutes {
           .order(Integer.MAX_VALUE - 100)
           .blockingHandler(
               rc -> {
-                if (rc.request().path().contains("/mateu/")) {
+                if (rc.request().path().contains("/mateu/")
+                    // a navigation, not a data fetch (see SpaFallback.acceptsHtml)
+                    || !io.mateu.core.infra.SpaFallback.acceptsHtml(
+                        rc.request().getHeader("Accept"))) {
                   rc.next();
                 } else {
                   index(rc, mount);

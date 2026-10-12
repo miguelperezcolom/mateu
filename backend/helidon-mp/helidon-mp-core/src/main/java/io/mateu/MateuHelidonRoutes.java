@@ -242,6 +242,8 @@ public class MateuHelidonRoutes {
             (req, res) -> {
               var path = req.path().path();
               if (io.mateu.core.infra.SpaFallback.candidate(path)
+                  && io.mateu.core.infra.SpaFallback.acceptsHtml(
+                      req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))
                   && !path.startsWith("/mateu")
                   && authoredHere(routeRegistry.get(), path)) {
                 index(res, mount);
@@ -254,7 +256,10 @@ public class MateuHelidonRoutes {
             mount.spaPath() + "/*",
             (req, res) -> {
               var path = req.path().path();
-              if (path.contains(".") || path.contains("/mateu/")) {
+              if (path.contains(".")
+                  || path.contains("/mateu/")
+                  || !io.mateu.core.infra.SpaFallback.acceptsHtml(
+                      req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))) {
                 res.next();
               } else {
                 index(res, mount);
