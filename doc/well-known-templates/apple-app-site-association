@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TODO_TEAM_ID.io.mateu.native"],
+        "components": [
+          { "/": "/add", "comment": "Add a UI: https://mateu.io/add?u=<base URL>[&r=<route>]" },
+          { "/": "/add/*" }
+        ]
+      }
+    ]
+  }
+}

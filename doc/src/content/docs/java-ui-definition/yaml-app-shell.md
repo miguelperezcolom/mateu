@@ -67,6 +67,7 @@ point.
 | `homeRoute` | what the mount loads at its root |
 | `actions` | the shell's **flows**: actions with `steps:`, run by a menu leaf — see [Flows on the shell](#flows-on-the-shell) |
 | `themeToggle`, `commandCenter`, `chromeless`, `accessKeys` | the header switches — the twins of the same `@App(...)` attributes. Absent: the `@App` class decides (no class: off). `chromeless` implies the command center |
+| `mobileQr` | the "Open on mobile" header button (experimental) — the twin of `@App(mobileQr)`; see [Mobile app](/ux-patterns/mobile-app/). Absent: the `@App` class decides (no class: off) |
 
 `menu:` and `widgets:` deserialize through the **same `type:` discriminator as page layouts**, so
 every navigation type (`RouteLink`, `Menu`, `RemoteMenu`, …) and every component of the catalog is
