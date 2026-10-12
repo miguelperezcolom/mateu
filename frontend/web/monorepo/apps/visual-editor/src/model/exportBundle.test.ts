@@ -16,8 +16,9 @@ describe('exportBundle', () => {
         const m = buildBundleManifest(files, '2026-09-20T00:00:00Z')
         expect(m.staticOnly).toBe(true)
         expect(m.generatedAt).toBe('2026-09-20T00:00:00Z')
-        // definitions keyed by BASENAME; shell/mount/routes/sources are not definitions
-        expect(Object.keys(m.definitions).sort()).toEqual(['about.yaml', 'person.yaml'])
+        // definitions keyed by their PATH under specs/ui (what a route's layout: names); the app
+        // shell ships too (it is what the bundle opens on); mount/routes/sources are not definitions
+        expect(Object.keys(m.definitions).sort()).toEqual(['about.yaml', 'shell.yaml', 'sub/person.yaml'])
         expect((m.definitions['about.yaml'] as any).type).toBe('VerticalLayout')
         expect(m.routes?.routes).toHaveLength(2)
         expect(m.sources?.sources).toHaveLength(1)
@@ -38,9 +39,23 @@ describe('exportBundle', () => {
         expect(buildBundleManifest([], 't').actions).toBeUndefined()
     })
 
+    it('normalises the route table to what the runtime reads (found: a layout: route exported to nothing)', () => {
+        const m = buildBundleManifest([
+            { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - route: ""\n    layout: app.yaml\n  - route: orders\n    layout: orders/list.yaml\n    data: orders-src\n' },
+            { path: 'app.yaml', content: 'type: AppShell\ntitle: Shop\n' },
+            { path: 'orders/list.yaml', content: 'type: Listing\ntitle: Orders\n' },
+        ], 't')
+        expect(m.routes?.routes).toEqual([
+            { route: '', definition: 'app.yaml' },
+            { route: 'orders', definition: 'orders/list.yaml', data: { ref: 'orders-src' } },
+        ])
+        expect(Object.keys(m.definitions).sort()).toEqual(['app.yaml', 'orders/list.yaml'])
+        expect((m as unknown as Record<string, unknown>).mockSources).toBeUndefined()
+    })
+
     it('tolerates an unparseable file and an empty project', () => {
         const m = buildBundleManifest([{ path: 'broken.yaml', content: ': : [' }], 't')
         expect(m.definitions).toEqual({})
-        expect(buildBundleManifest([], 't').routes).toBeUndefined()
+        expect(buildBundleManifest([], 't').routes?.routes ?? []).toEqual([])
     })
 })

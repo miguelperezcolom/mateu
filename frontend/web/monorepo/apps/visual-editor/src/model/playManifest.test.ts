@@ -91,3 +91,23 @@ describe('buildPlayManifest — field types and sample data', () => {
         expect(Object.keys(m.definitions)).toEqual(['page.yaml'])
     })
 })
+
+describe('Play resolves what the browser cannot (found walking the YAML kinds)', () => {
+    const files = [
+        { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - route: page\n    layout: page.yaml\n    state: {greeting: Hola}\n    appState: {hotel: H1}\n' },
+        { path: 'page.yaml', content: 'layout:\n  type: FormLayout\n  content:\n    - {type: FormField, id: name}\n    - {type: Partial, ref: address}\n    - {type: ComponentRef, ref: Hint}\n' },
+        { path: 'partials/address.yaml', content: 'content:\n  - {type: FormField, id: street}\n  - {type: FormField, id: city}\n' },
+        { path: 'components.yaml', content: 'components:\n  - name: Hint\n    component: {type: Notice, text: From the catalogue}\n' },
+    ]
+    const m = buildPlayManifest(files, 'now')
+
+    it('carries a route\'s state: and appState: seeds', () => {
+        expect(m.routes.routes[0]).toMatchObject({ route: 'page', state: { greeting: 'Hola' }, appState: { hotel: 'H1' } })
+    })
+
+    it('inlines partials (spliced) and business components; the catalogue is not a definition', () => {
+        const page = m.definitions['page.yaml'] as { layout: { content: { id?: string, type: string }[] } }
+        expect(page.layout.content.map((c) => c.id ?? c.type)).toEqual(['name', 'street', 'city', 'Notice'])
+        expect(Object.keys(m.definitions)).not.toContain('components.yaml')
+    })
+})
