@@ -65,6 +65,22 @@ test.describe('renderer-agnostic forms', () => {
     await expect(page.getByText('add address').first()).toBeVisible();
   });
 
+  test('autosave, action shortcuts and identity-gated fields', async ({ page }) => {
+    await page.goto('/walk-behaviour');
+    const name = page.getByRole('textbox', { name: 'Name', exact: true }).first();
+    await expect(name).toBeVisible({ timeout: 15000 });
+    // the hidden field never reaches the browser; the disabled one cannot be edited
+    await expect(page.getByText('only admins')).toHaveCount(0);
+    await expect(page.getByRole('textbox', { name: 'Disabled for guests' })).toBeDisabled();
+    // a field of the generic form autosaves (on Redwood it never did)
+    await name.fill('Bea');
+    await name.press('Tab');
+    await expect(page.getByText('auto-saved Bea amount=343.0').first()).toBeVisible();
+    await page.getByRole('heading', { name: 'Behaviour walk' }).first().click();
+    await page.keyboard.press('Control+Alt+g');
+    await expect(page.getByText('geocoded Gran Via 1').first()).toBeVisible();
+  });
+
   test('a YAML form with no view model renders its definition', async ({ page }) => {
     await page.goto('/walk-yaml');
     await expect(page.getByText('YAML booking').first()).toBeVisible({ timeout: 15000 });

@@ -57,6 +57,13 @@ define([
           await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: vcAction } });
           return;
         }
+        // @AutoSave: a field of the generic form saves the page too (value-changed of oj-input
+        // fires on blur/Enter — the natural debounce), as an input of the host blocks already did
+        // (hostInputChanged). Edited here, the autosave never ran.
+        const auto = bridge.autoSaveOf(vcHost);
+        if (auto) {
+          await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: auto.actionId } });
+        }
       }
     }
   }
