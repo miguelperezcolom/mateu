@@ -39,7 +39,7 @@ python3 -m http.server 8605        # or drop the folder on any CDN / static host
 ```
 
 Open <http://localhost:8605> — the form renders and the **Homeworld** / **Mentor** selects populate
-live from `swapi.ec1.mateu.io`, with no Mateu server anywhere in the picture.
+live from `swapi.mateu.io`, with no Mateu server anywhere in the picture.
 
 ## The step from Example 5
 

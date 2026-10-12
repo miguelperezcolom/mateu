@@ -8,7 +8,7 @@ describe('webview connect-src', () => {
   - name: people
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/people?page=\${state.page ?? 0}
+        https://swapi.mateu.io/api/people?page=\${state.page ?? 0}
   - name: vcn
     source: {url: "http://localhost:8790/api/vcns/\${state.id}"}
   - name: dynamic
@@ -19,7 +19,7 @@ describe('webview connect-src', () => {
             'type: Form\ntitle: not a sources file\n',
             ': : broken',
         ])
-        expect(origins).toEqual(['http://localhost:8790', 'https://swapi.ec1.mateu.io'])
+        expect(origins).toEqual(['http://localhost:8790', 'https://swapi.mateu.io'])
     })
 
     it('is the proxy, loopback, the backend origin and the source origins — never a bare https:', () => {
