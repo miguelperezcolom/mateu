@@ -25,10 +25,13 @@ test.describe('YAML actions (/yaml-actions)', () => {
     const sent = posts(page)
     await open(page)
     await box(page, 'Zip').fill('28001')
-    const fetched = page.waitForRequest(r => r.url().includes('/rest-action-demo.json?zip=28001'))
+    // the endpoint: answered here, so the spec runs on every adapter without a static file
+    await page.route('**/walk-address.json*', r => r.fulfill({ json: { address: { street: 'Gran Vía 1', city: 'Madrid' } } }))
+    const fetched = page.waitForRequest(r => r.url().includes('/walk-address.json?zip=28001'))
     await btn(page, 'Look up directly').click()
     await fetched
-    await expect(box(page, 'Street')).not.toHaveValue('')
+    await expect(box(page, 'Street')).toHaveValue('Gran Vía 1')
+    await expect(box(page, 'City')).toHaveValue('Madrid')
     await expect(page.getByText('Address found').first()).toBeVisible()
     // no server round trip for it
     expect(sent.filter(s => s.body.includes('lookupDirect'))).toEqual([])

@@ -35,11 +35,12 @@ buttons:
     label: Owner first
     actionId: walkOwnerFirst
 actions:
-  # the browser fetches a same-origin JSON and merges `address` into the form
+  # the browser fetches it and merges `address` into the form (the spec answers the url itself,
+  # so every adapter runs it without serving a static file)
   - id: lookupDirect
     restAction:
       source:
-        url: /rest-action-demo.json?zip=${state.zip}
+        url: /walk-address.json?zip=${state.zip}
         method: GET
       resultPath: address
       successMessage: Address found
