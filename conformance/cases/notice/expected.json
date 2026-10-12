@@ -1,4 +1,8 @@
 {
+  "commands" : [ {
+    "data" : "Notice",
+    "type" : "SetWindowTitle"
+  } ],
   "fragments" : [ {
     "action" : "Replace",
     "component" : {

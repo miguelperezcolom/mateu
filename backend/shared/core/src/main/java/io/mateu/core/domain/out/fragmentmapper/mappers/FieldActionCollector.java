@@ -156,6 +156,25 @@ final class FieldActionCollector {
                     .restAction(restActionOf(method))
                     .build())
         .forEach(fieldActions::add);
+    // A page-level @Fab method is a floating button the browser can only SEND if the page
+    // advertises its action: without this every page FAB was a dead click ("action … was
+    // requested but no component on the page handles it"). Not validated: a FAB is a page-wide
+    // shortcut (new, help…), not a submit of the form under it.
+    getAllMethods(serverSideObject.getClass()).stream()
+        .filter(
+            method ->
+                !MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Action.class)
+                    && !MetaAnnotations.isPresent(method, Button.class)
+                    && !MetaAnnotations.isPresent(method, Toolbar.class)
+                    && MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Fab.class))
+        .map(
+            method ->
+                Action.builder()
+                    .id(method.getName())
+                    .validationRequired(false)
+                    .sse(isFluxReturning(method))
+                    .build())
+        .forEach(fieldActions::add);
 
     return fieldActions;
   }

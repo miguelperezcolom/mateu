@@ -22,6 +22,11 @@ public class InferredWelcome implements ComponentTreeSupplier {
 
   private final Object model;
 
+  /** The plain class this bridge renders. */
+  public Object model() {
+    return model;
+  }
+
   public InferredWelcome(Object model) {
     this.model = model;
   }

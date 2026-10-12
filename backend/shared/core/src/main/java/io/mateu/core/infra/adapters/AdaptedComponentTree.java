@@ -29,6 +29,11 @@ public class AdaptedComponentTree
   private AdaptedView cached;
 
   @SuppressWarnings("rawtypes")
+  /** The domain object this bridge renders. */
+  public Object model() {
+    return model;
+  }
+
   public AdaptedComponentTree(Object model, ComponentAdapter adapter) {
     this.model = model;
     this.adapter = adapter;

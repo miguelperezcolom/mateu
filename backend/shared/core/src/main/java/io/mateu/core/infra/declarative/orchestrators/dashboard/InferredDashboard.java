@@ -20,6 +20,11 @@ public class InferredDashboard implements ComponentTreeSupplier {
 
   private final Object model;
 
+  /** The plain class this bridge renders. */
+  public Object model() {
+    return model;
+  }
+
   public InferredDashboard(Object model) {
     this.model = model;
   }

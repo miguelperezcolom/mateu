@@ -8,6 +8,7 @@ from mateu_uidl import (
     ComponentTreeSupplier,
 )
 
+from .. import page_inference
 from ..naming import snake_case
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -16,16 +17,20 @@ from ._common import RunActionRq
 class RenderHandlerMixin(MixinBase):
     def render(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
-        # A ComponentTreeSupplier view (and the archetypes on it) renders its tree directly with no
-        # Page wrapper and NO SetWindowTitle command — Java parity. A YAML layout_override is a
-        # reflected page and keeps both.
-        tree_supplier = layout_override is None and isinstance(instance, ComponentTreeSupplier)
+        # A ComponentTreeSupplier view (and the archetypes on it, and an @auto_page-composed
+        # dashboard/welcome) renders its tree directly with no Page wrapper — Java parity. It names
+        # the window only when the class DECLARES a title (@title): its class name is no title,
+        # but without the declared one the tab kept the previous page's title and screen readers
+        # heard no navigation. A YAML layout_override is a reflected page and keeps both.
+        composed = layout_override is None and (
+            isinstance(instance, ComponentTreeSupplier) or page_inference.composes(type_)
+        )
         return self.fragment_response(
             self.title(type_),
             self.mapper.map_view(type_, instance, route, layout_override),
             rq,
             self.lookup_labels(type_, instance, instance),
-            with_title_command=not tree_supplier,
+            with_title_command=not composed or "__mateu_title__" in vars(type_),
         )
 
     # ── Visual-builder live preview ────────────────────────────────────────────
