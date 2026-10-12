@@ -1,5 +1,6 @@
 import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
+import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -54,6 +55,9 @@ export class MateuSession {
 
   /** Host hook: dirty-guard confirmation — resolve true to discard unsaved changes and leave. */
   confirmDiscard: () => Promise<boolean> = async () => true;
+
+  /** Host hook: an @Action(confirmationRequired) question — resolve true to run the action. */
+  confirmAction: (texts: ConfirmationDialogTexts) => Promise<boolean> = async () => true;
 
   /** Host hook (hub sessions): sign out of THIS UI only. Absent → the global provider's sign-out. */
   signOut?: () => Promise<void>;

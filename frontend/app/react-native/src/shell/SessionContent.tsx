@@ -93,6 +93,18 @@ function DirtyGuardHost() {
           { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
         ]);
       });
+    // @Action(confirmationRequired): the declared question, with the declared button labels natively
+    session.confirmAction = (t) =>
+      new Promise<boolean>((resolve) => {
+        if (Platform.OS === 'web') {
+          resolve(window.confirm(`${t.header}\n\n${t.message}`));
+          return;
+        }
+        Alert.alert(t.header, t.message, [
+          { text: t.denialText, style: 'cancel', onPress: () => resolve(false) },
+          { text: t.confirmationText, style: t.destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
+        ], { cancelable: true, onDismiss: () => resolve(false) });
+      });
   }, [session]);
   return null;
 }

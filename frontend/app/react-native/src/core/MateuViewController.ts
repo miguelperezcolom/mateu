@@ -9,6 +9,7 @@ import { isTimedOnLoad, PollingScheduler } from './polling.ts';
 import { serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
+import { confirmationOf, type ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {
@@ -73,6 +74,7 @@ export class MateuViewController {
   private flowDepth = 0;
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
+  private actionConfirmation: Record<string, ConfirmationDialogTexts> = {};
   private actionBubble: Record<string, boolean> = {};
   /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
    *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -217,13 +219,18 @@ export class MateuViewController {
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
         const summary = Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; ');
-        this.session.notify('Revisa los campos', summary, 'warning');
+        this.session.notify('There are validation errors', summary, 'warning');
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
         // was refused, let alone why. Speak it.
-        announce(`Revisa los campos. ${summary}`);
+        announce(`There are validation errors. ${summary}`);
         return;
       }
     }
+
+    // @Action(confirmationRequired): ask first, with the declared texts — same order as the web's
+    // mateu-component (selection guard, validation, then the question).
+    const confirmation = this.actionConfirmation[actionId];
+    if (confirmation && !(await this.session.confirmAction(confirmation))) return;
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
     // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
@@ -398,6 +405,7 @@ export class MateuViewController {
     const actions: string[] = [];
     const validationFlags: Record<string, boolean> = {};
     const rowsSelectedFlags: Record<string, boolean> = {};
+    const confirmations: Record<string, ConfirmationDialogTexts> = {};
     const bubbleFlags: Record<string, boolean> = {};
     const restData: Record<string, Json> = {};
     for (const a of asArray(sscNode['actions'])) {
@@ -406,6 +414,8 @@ export class MateuViewController {
       actions.push(id);
       validationFlags[id] = a['validationRequired'] === true;
       rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
+      const confirmation = confirmationOf(a);
+      if (confirmation) confirmations[id] = confirmation;
       bubbleFlags[id] = a['bubble'] === true;
       if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
     }
@@ -413,6 +423,7 @@ export class MateuViewController {
     this.currentActionDefs = asArray(sscNode['actions']) as ShellAction[];
     this.actionValidationRequired = validationFlags;
     this.actionRowsSelectedRequired = rowsSelectedFlags;
+    this.actionConfirmation = confirmations;
     this.actionBubble = bubbleFlags;
     this.actionRestData = restData;
     this.currentValidations = asArray(sscNode['validations']);
