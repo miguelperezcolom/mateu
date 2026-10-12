@@ -22,7 +22,13 @@ from ._common import RunActionRq
 
 class AppHandlerMixin(MixinBase):
     # ── Plain views ─────────────────────────────────────────────────────────────
-    def render_app(self, app_type, rq: RunActionRq | None = None, request_base_url: str | None = None) -> UIIncrement:
+    def render_app(
+        self,
+        app_type,
+        rq: RunActionRq | None = None,
+        request_base_url: str | None = None,
+        home_route_override: str | None = None,
+    ) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
         # A reflected (@menu_item-method) app is a @UI-annotated instance → CommandMapper's isPage
         # is true → it emits SetWindowTitle. An AppSupplier app renders from a fluent AppShell (not
@@ -40,6 +46,10 @@ class AppHandlerMixin(MixinBase):
         # app's own type. Mirrors Java's AppHomeRouteResolver.get_home_server_side_type. Only the
         # conflated TYPE is fixed; the home-fragment mechanism is untouched.
         meta = getattr(app_component, "metadata", None)
+        if home_route_override and meta is not None:
+            # a fresh deep link to one of the app's menu routes: the shell opens ON that route
+            # (Java's AppMenuResolver answers the app with the deep-linked route as its home)
+            meta.home_route = home_route_override
         home_route = getattr(meta, "home_route", None) if meta is not None else None
         if home_route and not home_route.endswith("_page") and not home_route.endswith("_no_home_route"):
             home_type = self.registry.resolve(None, home_route)

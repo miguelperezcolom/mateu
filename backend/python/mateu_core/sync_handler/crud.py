@@ -99,14 +99,14 @@ class CrudHandlerMixin(MixinBase):
                 return UIIncrement(commands=[close.model_copy(update={"target_component_id": self.target(rq)})])
         if aid in (None, ""):
             if mode == "new":
-                return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new")
+                return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new", rq)
             if mode == "view":
                 return self.render_entity(
-                    crud_type, element, self.get_or_new(crud, element, id_), "view", f"{base_route}/{id_}"
+                    crud_type, element, self.get_or_new(crud, element, id_), "view", f"{base_route}/{id_}", rq
                 )
             if mode == "edit":
                 return self.render_entity(
-                    crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit"
+                    crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit", rq
                 )
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
         if aid.startswith("action-on-row-"):

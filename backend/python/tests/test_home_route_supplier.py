@@ -64,9 +64,15 @@ class LandingApp(HomeRouteSupplier):
 
 @app("Landing app without home")
 class LandingAppWithoutHome:
+    # (the registry's root app is the last one registered — alphabetically, this one — so it
+    # carries the same menu for the deep-link tests)
     @menu_item("Welcome")
     def welcome(self) -> LandingWelcome:
         return LandingWelcome()
+
+    @menu_item("Items")
+    def items(self) -> LandingItems:
+        return LandingItems()
 
 
 MODULE = sys.modules[__name__]
@@ -95,6 +101,36 @@ def test_loading_a_menu_route_with_the_app_type_loads_the_view_not_the_app():
     body = run(server_side_type=type_name(LandingApp), route="/landing-items")
     component = body["fragments"][0]["component"]
     assert component.get("serverSideType") == type_name(LandingItems)
+
+
+def test_a_fresh_deep_link_to_a_menu_route_opens_the_shell_on_that_route():
+    body = run(route="/landing-items", consumed_route="_empty")
+    meta = body["fragments"][0]["component"]["metadata"]
+    assert meta["type"] == "App"
+    assert meta["homeRoute"] == "/landing-items"
+    assert meta["homeServerSideType"] == type_name(LandingItems)
+
+
+def test_a_fresh_deep_link_under_a_menu_route_opens_the_shell_too():
+    meta = run(route="/landing-items/I-1", consumed_route="_empty")["fragments"][0]["component"]["metadata"]
+    assert meta["type"] == "App"
+    assert meta["homeRoute"] == "/landing-items/I-1"
+
+
+def test_a_content_load_of_a_menu_route_still_answers_the_screen():
+    # consumedRoute set (the shell's content area): no shell again
+    component = run(route="/landing-items", consumed_route="")["fragments"][0]["component"]
+    assert component.get("serverSideType") == type_name(LandingItems)
+
+
+def test_a_crud_record_page_answers_the_component_that_asked():
+    # the shell's content area asks for the record page: the fragment must target IT (it used to
+    # target the "ux_main" placeholder, so the record page never showed inside the shell)
+    body = run(
+        server_side_type=type_name(LandingApp), route="/landing-items/I-1",
+        initiator_component_id="content-area",
+    )
+    assert body["fragments"][0]["targetComponentId"] == "content-area"
 
 
 def test_a_crud_sub_route_under_a_menu_route_loads_the_crud():
