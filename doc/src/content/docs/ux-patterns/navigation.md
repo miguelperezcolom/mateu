@@ -249,6 +249,98 @@ Results are sourced from the same menu tree used for the main navigation, flatte
 
 ---
 
+### Card menus (a group that opens as cards)
+
+**Status:** ✅ Implemented — Vaadin, Redwood, React Native and IntelliJ; Java, .NET, Python and YAML
+
+A menu **group** can open as a panel of **cards** instead of a plain dropdown, like the product
+menus of a documentation site. Each entry is a card with a **title** (its label), a
+**description**, and an **icon** or an **image**. An entry that holds entries of its own is not a
+destination: its entries become **actions** (links) on its card.
+
+```
+┌ Bookings ▾ ─────────────────────────────────────────────────────────────┐
+│ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐ │
+│ │ 📋 Check-in          │ │ [floor plan image]   │ │ 🧾 Billing           │ │
+│ │ Sign the registration│ │ Floor plan           │ │ Folios, charges and  │ │
+│ │ card and scan the ID │ │ Rooms coloured by    │ │ payments             │ │
+│ │                      │ │ housekeeping status  │ │ Folio · New booking  │ │
+│ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+Use it when a group's entries need a word of explanation to be chosen well: a launcher for
+occasional tasks, a product menu, a "quick access" group. Keep plain lists for the everyday
+navigation, where the label alone is enough.
+
+**YAML** (app shell) — `presentation` on the group and on its entries, `description` on each entry:
+
+```yaml
+type: AppShell
+title: Front office
+variant: MENU_ON_TOP
+menu:
+  - type: Menu
+    label: Quick access
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: Check-in
+        route: check-in
+        description: Sign the registration card and scan the ID
+        presentation: {icon: "vaadin:clipboard"}
+      - type: RouteLink
+        label: Floor plan
+        route: floor-plan
+        description: Rooms coloured by housekeeping status
+        presentation: {image: /img/floor.png}
+      - type: Menu
+        label: Billing
+        description: Folios, charges and payments
+        presentation: {icon: "vaadin:invoice"}
+        submenu:          # not a destination: these are the card's actions
+          - {type: RouteLink, label: Folio, route: billing}
+          - {type: RouteLink, label: New booking, route: bookings/new}
+```
+
+**Java**:
+
+```java
+@Menu(display = MenuDisplay.cards)
+QuickAccess quickAccess;
+
+public class QuickAccess {
+    @Menu(description = "Sign the registration card and scan the ID")
+    @Icon(IconKey.Clipboard)
+    RegistrationCard checkIn;
+
+    @Menu(description = "Rooms coloured by housekeeping status", image = "/img/floor.png")
+    FloorPlan floorPlan;
+
+    @Menu(description = "Folios, charges and payments")
+    @Icon(IconKey.Invoice)
+    BillingActions billing;   // its own @Menu entries become the card's actions
+}
+```
+
+In code-built shells (`MenuSupplier`, `AppSupplier`, fluent `AppShell`):
+`menu.withPresentation(MenuPresentation.cards())` on the group, and
+`withPresentation(MenuPresentation.card(icon, image))` / `withDescription(...)` on its entries.
+**.NET**: `[MenuGroup("Quick access", Display = MenuDisplay.Cards)]` +
+`[MenuItem(..., Description = ..., Icon = ..., Image = ...)]`. **Python**:
+`@menu_group("Quick access", display=MenuDisplay.cards)` +
+`@menu_item(..., description=..., icon=..., image=...)`.
+
+**Where it shows.** In the top navigation bars — `MENU_ON_TOP` and the section band of
+`HAMBURGER_SECTIONS` — on Vaadin and Redwood. React Native draws the cards inside its drawer
+(image, title, description and action chips); IntelliJ shows two-line rows with the icon and
+inline action links. The sidebar, drawer and rail variants on the web, and the narrow-viewport ☰
+button, keep the plain list. A group without `display: cards` renders exactly as before.
+
+Full reference: [Navigation and menus › Card menus](/java-user-manual/build/navigation-and-menus/#card-menus-a-group-that-opens-as-cards).
+
+---
+
 ## Choosing a pattern
 
 | Situation | Recommended pattern |
@@ -260,6 +352,7 @@ Results are sourced from the same menu tree used for the main navigation, flatte
 | Compact, icon-familiar users | Rail |
 | Deep menu (> 2 levels) | Tiles hub (auto-inferred) |
 | Power users, keyboard-heavy | Command palette (always available) |
+| A group whose entries need a description to be chosen | Card menu (`display: cards` on the group) |
 
 ## Combining patterns
 
