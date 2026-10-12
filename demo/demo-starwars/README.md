@@ -8,7 +8,7 @@ holds end to end.
 
 A complete Mateu application — mount, app shell, pages and its REST source catalogue — authored
 **entirely as data** under `src/main/resources/specs/ui/`, reading live data from
-[swapi.ec1.mateu.io](https://swapi.ec1.mateu.io) ([swapi-service](https://github.com/miguelperezcolom/swapi-service)),
+[swapi.mateu.io](https://swapi.mateu.io) ([swapi-service](https://github.com/miguelperezcolom/swapi-service)),
 a writable clone of the Star Wars API. The only Java is `StarwarsApplication`, a Spring Boot `main`
 that boots the server; it declares nothing about the UI.
 
@@ -122,7 +122,7 @@ named options source.
 # sources.yaml — the options source, fetched ONCE and mapped whole
 - name: swapi-planet-options
   source:
-    url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+    url: https://swapi.mateu.io/api/planets?size=1000&sort=name
     itemsPath: content
     valuePath: id            # what the record stores
     labelPath: name          # what the user sees
