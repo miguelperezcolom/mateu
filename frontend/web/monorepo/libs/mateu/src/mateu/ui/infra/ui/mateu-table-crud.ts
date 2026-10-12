@@ -1,3 +1,4 @@
+import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import {customElement, property, state} from "lit/decorators.js";
@@ -469,7 +470,7 @@ export class MateuTableCrud extends LitElement {
             }
         })
         this.resizeObserver.observe(this)
-        this.addEventListener('mateu-selection-changed', this.selectionChangedListener)
+        this.addEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
     }
 
     // the grid writes the selection into the shared state in place — re-render the toolbar so
@@ -481,7 +482,7 @@ export class MateuTableCrud extends LitElement {
         clearTimeout(this.loadingTimer)
         window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
-        this.removeEventListener('mateu-selection-changed', this.selectionChangedListener)
+        this.removeEventListener(SELECTION_CHANGED_EVENT, this.selectionChangedListener)
     }
 
     /**
@@ -548,6 +549,8 @@ export class MateuTableCrud extends LitElement {
         this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: this._pageSizeOf(metadata), page: 0, crud_selected_items: [] }
+        // the selection was just reset: selection-gated toolbar buttons (here and in the page header)
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
         this._syncStateToUrl(metadata)
         // This is what the filter bar calls — Enter on the search box, a chip added or removed,
         // Apply on a range. A listing reading an external endpoint has no server `search` action to
@@ -697,6 +700,8 @@ export class MateuTableCrud extends LitElement {
     handleSearchRequested = (callback: (() => void) | undefined) => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state = { ...this.state, size: this._pageSizeOf(metadata), crud_selected_items: [] }
+        // the selection was just reset: selection-gated toolbar buttons (here and in the page header)
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
         this._syncStateToUrl(metadata)
         // @RestListing: fetch the rows CLIENT-SIDE from the external endpoint instead of dispatching
         // the server `search` action — the listing surface of consuming non-Mateu endpoints.
@@ -984,15 +989,17 @@ export class MateuTableCrud extends LitElement {
 
     /** Whether this toolbar button's action requires selected rows and none are selected. */
     needsSelection = (button: Button): boolean => {
-        const selected = this.state?.['crud_selected_items']
-        if (Array.isArray(selected) && selected.length > 0) return false
+        if (hasSelection(this.state?.['crud_selected_items'])) return false
+        // the guard the server put ON the button (every @ListToolbarButton carries it)
+        if (button.rowsSelectedRequired) return true
+        // older servers: look the advertised action up by the button's actionId
         type Walked = { tagName?: string, parentElement?: Walked | null, getRootNode?: () => { host?: Walked },
             component?: { actions?: Array<{ id?: string, rowsSelectedRequired?: boolean }> } }
         let node: Walked | null | undefined = this as unknown as Walked
         while (node) {
             const actions = node.tagName === 'MATEU-COMPONENT' ? node.component?.actions : undefined
             const action = Array.isArray(actions) ? actions.find(a => a?.id === button.actionId) : undefined
-            if (action) return !!action.rowsSelectedRequired
+            if (action) return requiresSelection(button, [action])
             node = node.parentElement ?? node.getRootNode?.()?.host ?? null
         }
         return false

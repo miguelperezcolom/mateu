@@ -304,7 +304,10 @@ public sealed partial class ReflectionMapper
         {
             var bulk = m.Find<ListToolbarButtonAttribute>()!;
             var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId));
+            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
+            {
+                RowsSelectedRequired = bulk.RowsSelectedRequired,
+            });
             actions.Add(new ActionDto(actionId, ValidationRequired: false,
                 ConfirmationRequired: bulk.ConfirmationRequired,
                 RowsSelectedRequired: bulk.RowsSelectedRequired,
@@ -399,7 +402,10 @@ public sealed partial class ReflectionMapper
         {
             var bulk = m.Find<ListToolbarButtonAttribute>()!;
             var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
-            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId));
+            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId)
+            {
+                RowsSelectedRequired = bulk.RowsSelectedRequired,
+            });
             actions.Add(new ActionDto(actionId, ValidationRequired: false,
                 ConfirmationRequired: bulk.ConfirmationRequired,
                 RowsSelectedRequired: bulk.RowsSelectedRequired,

@@ -37,6 +37,7 @@ public class ButtonMapper {
             .parameters(mapParameters(button.parameters()))
             .separatorBefore(button.separatorBefore())
             .route(routeOf(button))
+            .rowsSelectedRequired(button.rowsSelectedRequired())
             .build(),
         button.id() != null ? button.id() : UUID.randomUUID().toString(),
         List.of(),

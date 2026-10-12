@@ -71,6 +71,27 @@ public final class ToolbarButtons {
     return button.build();
   }
 
+  /**
+   * The button of a {@code @ListToolbarButton} method: {@link #toolbarButton} plus the selection
+   * guard, folded exactly as {@link #toolbarAction} folds it (OR of the placement's and the
+   * {@code @Action}'s flag). The guard travels ON the button so a renderer can disable it while no
+   * row is selected without looking the advertised action up by id — and the page header, which
+   * renders a plain listing's toolbar, has no advertised-actions list of its own to look it up in.
+   */
+  public static Button listToolbarButton(
+      String actionId,
+      String label,
+      Toolbar appearance,
+      io.mateu.uidl.annotations.ListToolbarButton placement,
+      io.mateu.uidl.annotations.Action behaviour) {
+    var guarded =
+        (placement != null && placement.rowsSelectedRequired())
+            || (behaviour != null && behaviour.rowsSelectedRequired());
+    return toolbarButton(actionId, label, appearance).toBuilder()
+        .rowsSelectedRequired(guarded)
+        .build();
+  }
+
   /** Declaration order for toolbar methods: {@code @Toolbar(order = N)}, 0 when undeclared. */
   public static int orderOf(Toolbar appearance) {
     return appearance != null ? appearance.order() : 0;

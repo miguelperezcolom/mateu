@@ -110,11 +110,13 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         .forEach(
             method ->
                 toolbar.add(
-                    ToolbarButtons.toolbarButton(
+                    ToolbarButtons.listToolbarButton(
                         "action-on-row-" + method.getName(),
                         io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel(
                             method),
-                        MetaAnnotations.find(method, Toolbar.class))));
+                        MetaAnnotations.find(method, Toolbar.class),
+                        MetaAnnotations.find(method, ListToolbarButton.class),
+                        MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class))));
   }
 
   public boolean readOnly() {
