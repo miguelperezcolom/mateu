@@ -48,6 +48,16 @@ class YamlDeclaredActionsSyncTest {
   }
 
   @Test
+  void onlyTheDeclaredActionsReachTheWireNotTheWrappersOwnFields() {
+    // the page wrapper's record components (declaredActions, the source catalogue) used to be
+    // harvested as editable list fields: declaredActions_add, nested-form-action-catalog-…
+    assertThat(page().actions())
+        .extracting(a -> a.id())
+        .noneMatch(id -> id.startsWith("declaredActions_") || id.startsWith("nested-form-action-"))
+        .noneMatch(id -> id.startsWith("declaredTriggers_"));
+  }
+
+  @Test
   void itCarriesTheRestCallTheClientWillMake() {
     var save =
         page().actions().stream().filter(a -> "save".equals(a.id())).findFirst().orElseThrow();
