@@ -182,9 +182,14 @@
             }
           } ]
         } ],
-        "actionCatalogue" : [ ]
+        "actionCatalogue" : [ ],
+        "mockSources" : null,
+        "shortcuts" : [ ],
+        "headerValues" : [ ],
+        "liveUpdates" : false,
+        "idleSession" : null
       },
-      "id" : "62a0a5b7-4835-4c6e-a678-85d50e81c395",
+      "id" : "f72f81e8-feef-4625-b720-7cc26f1052e6",
       "children" : [ {
         "type" : "ClientSide",
         "metadata" : {
@@ -195,7 +200,7 @@
           "size" : null,
           "noMargins" : false
         },
-        "id" : "f84bbe08-2fe6-44c2-967a-20beead29c4a",
+        "id" : "5e3d56f2-8174-463f-a800-2e7465743148",
         "children" : [ ],
         "style" : null,
         "cssClasses" : null,

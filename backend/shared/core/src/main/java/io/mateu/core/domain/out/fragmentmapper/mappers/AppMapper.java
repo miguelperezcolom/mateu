@@ -107,6 +107,10 @@ public final class AppMapper {
             .locale(getLocale(httpRequest))
             .actions(mapShellActions(app))
             .actionCatalogue(ActionCatalogMapper.mapCatalogue(httpRequest))
+            .shortcuts(AppShellExtrasMapper.shortcuts(app, appRouteForMenu))
+            .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
+            .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
+            .idleSession(AppShellExtrasMapper.idleSession(app))
             .build();
     return new ClientSideComponentDto(
         appDto,

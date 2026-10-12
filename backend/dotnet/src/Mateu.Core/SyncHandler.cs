@@ -275,6 +275,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // The notification inbox's app-level actions — dispatched with the app's serverSideType,
         // like the app header actions (mirrors Java's NotificationsActionRunner).
         if (rq.ActionId?.StartsWith("_notifications-") == true) return Notifications(instance, rq);
+        // The idle warning's keep-alive and the live-updates stream (its snapshot, on the sync
+        // endpoint) are app-level too (mirrors Java's KeepAlive/LiveUpdates action runners).
+        if (rq.ActionId == ReflectionMapper.KeepAliveActionId) return KeepAlive(instance);
+        if (rq.ActionId == ReflectionMapper.LiveUpdatesActionId) return LiveUpdatesSnapshot();
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);

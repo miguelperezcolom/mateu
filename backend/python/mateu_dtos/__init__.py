@@ -13,6 +13,9 @@ from .base import (  # noqa: F401
 from .app import (  # noqa: F401
     AppContextSelector,
     AppHeaderAction,
+    AppShortcut,
+    HeaderValue,
+    IdleSession,
     AppMetadata,
 )
 from .layout import (  # noqa: F401
@@ -106,6 +109,9 @@ from .ux import (  # noqa: F401
     TrendChartMetadata,
 )
 from .front_office import (  # noqa: F401
+    MergeFieldRecord,
+    MergeRecordRecord,
+    RecordMergeMetadata,
     ActionPanelCategoryRecord,
     ActionPanelItemRecord,
     ActionPanelMetadata,

@@ -1,0 +1,26 @@
+type: AppShell
+title: E2 shell
+variant: MENU_ON_TOP
+homeRoute: home
+liveUpdates: true
+idleTimeoutMinutes: 15
+idleWarningSeconds: 90
+idleSignOutUrl: /logout
+shortcuts:
+  - key: f9
+    route: guests
+    label: Guests
+    code: GST
+  - code: HOME
+    route: home
+headerValues:
+  - id: businessDate
+    label: Business date
+    value: 12 Oct 2026
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RouteLink
+    label: Guests
+    route: guests

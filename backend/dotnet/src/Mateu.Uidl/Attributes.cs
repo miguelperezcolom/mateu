@@ -296,6 +296,23 @@ public sealed class AppAttribute(string title) : Attribute
     /// @App(accessKeys=true).)</summary>
     public bool AccessKeys { get; set; }
 
+    /// <summary>LIVE UPDATES: every browser keeps one event stream open (shared by its tabs) through
+    /// which the server pushes header-value changes (<see cref="LiveHeaderValues.Publish"/>) to every
+    /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>
+    public bool LiveUpdates { get; set; }
+
+    /// <summary>IDLE-SESSION WARNING: after this many minutes without activity (any tab) a modal
+    /// counts down <see cref="IdleWarningSeconds"/>; "Stay signed in" runs the app-level
+    /// <c>_keep-alive</c> action (<see cref="IKeepAliveHandler"/>), "Sign out" goes to
+    /// <see cref="IdleSignOutUrl"/>. 0 (the default): off. EXPERIMENTAL.</summary>
+    public int IdleTimeoutMinutes { get; set; }
+
+    /// <summary>How long the idle warning counts down. Default 60 seconds.</summary>
+    public int IdleWarningSeconds { get; set; } = 60;
+
+    /// <summary>Where "Sign out" goes (a full page load); blank = the app's route, else "/".</summary>
+    public string IdleSignOutUrl { get; set; } = "";
+
     /// <summary>Extra capability tokens this app REQUIRES from its host renderer, beyond the ones
     /// derived from the app's own metadata — for anything the derivation cannot see. They are added
     /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES

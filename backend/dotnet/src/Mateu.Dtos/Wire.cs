@@ -61,6 +61,12 @@ public record UICommandDto(string TargetComponentId, string Type, object? Data)
     /// EXPERIMENTAL. (Mirrors Java's UICommand.print.)</summary>
     public static UICommandDto Print() => new("ux_main", "Print", null);
 
+    /// <summary>Changes the live header value <paramref name="id"/> (the business date…) in this tab
+    /// and in the other tabs of the same browser; to reach every OTHER session too, publish it with
+    /// LiveHeaderValues.Publish. EXPERIMENTAL. (Mirrors Java's UICommand.updateHeaderValue.)</summary>
+    public static UICommandDto UpdateHeaderValue(string id, string? value) =>
+        new("ux_main", "UpdateHeaderValue", new HeaderValueDto(id, null, value));
+
     /// <summary>Clears the dirty state (e.g. after a save). (Mirrors Java's UICommand.markAsClean.)</summary>
     public static UICommandDto MarkAsClean() => new("ux_main", "MarkAsClean", null);
 

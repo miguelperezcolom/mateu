@@ -61,6 +61,22 @@ public record AppMetadataDto(
     /// every visible button and tab and Alt+key activates it. (Mirrors AppDto.accessKeys.)</summary>
     public bool AccessKeys { get; init; }
 
+    /// <summary>App-wide keyboard shortcuts and quick-launch codes ([AppShortcut]). (Mirrors
+    /// io.mateu.dtos.AppDto.shortcuts.)</summary>
+    public IReadOnlyList<AppShortcutDto> Shortcuts { get; init; } = [];
+
+    /// <summary>Live values on the header (IHeaderValuesSupplier), changed by UpdateHeaderValue.
+    /// (Mirrors AppDto.headerValues.)</summary>
+    public IReadOnlyList<HeaderValueDto> HeaderValues { get; init; } = [];
+
+    /// <summary>[App(LiveUpdates)]: one app event stream per browser (the _live-updates app-level
+    /// action over the SSE endpoint). (Mirrors AppDto.liveUpdates.)</summary>
+    public bool LiveUpdates { get; init; }
+
+    /// <summary>[App(IdleTimeoutMinutes)]: the idle-session warning; null = off. (Mirrors
+    /// AppDto.idleSession.)</summary>
+    public IdleSessionDto? IdleSession { get; init; }
+
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>
@@ -124,6 +140,17 @@ public record ComponentEntryDto(string Name, ComponentDto? Component);
 /// every screen (the active hotel, the company…). The picked value lives in the app state under
 /// FieldName and travels with every request.</summary>
 public record AppContextSelectorDto(string FieldName, string Label, IReadOnlyList<OptionDto> Options);
+
+/// <summary>An app-wide keyboard shortcut / quick-launch code: Key and/or Code; it goes to Route or
+/// runs the app-level ActionId. (Mirrors io.mateu.dtos.AppShortcutDto.)</summary>
+public record AppShortcutDto(string? Key, string Label, string? Route, string? ActionId, string? Code);
+
+/// <summary>A live value on the app header ("Business date: 12 Oct"), addressed by Id. (Mirrors
+/// io.mateu.dtos.HeaderValueDto; also the data of an UpdateHeaderValue command.)</summary>
+public record HeaderValueDto(string Id, string? Label, string? Value);
+
+/// <summary>The idle-session warning. (Mirrors io.mateu.dtos.IdleSessionDto.)</summary>
+public record IdleSessionDto(int TimeoutSeconds, int WarningSeconds, string SignOutUrl, string KeepAliveActionId);
 
 /// <summary>An action button on the app header, next to the app-context selectors. An entry with
 /// Children renders as a dropdown menu: only the children dispatch.</summary>

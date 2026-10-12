@@ -45,6 +45,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Card menus (`@Menu(display = cards)` / `MenuGroup` / `menu_group`) | ✅ | ✅ | ✅ |
 | `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
+| `RecordMerge` (compare and merge: records side by side, a pick per field, `_merged`/`_choices`) | ✅ | ✅ | ✅ |
+| App shortcuts + quick-launch codes (`@AppShortcut` → `AppDto.shortcuts`) | ✅ | ✅ | ✅ |
+| Live header values (`HeaderValuesSupplier`, `UpdateHeaderValue`, `LiveHeaderValues.publish` + `liveUpdates` stream on `/mateu/v3/sse/…`) | ✅ | ✅ | ✅ |
+| Idle-session warning (`@App(idleTimeoutMinutes…)` → `AppDto.idleSession`, `_keep-alive`) | ✅ | ✅ | ✅ |
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
@@ -281,6 +285,10 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
 | Action panel ("I want to…": categorised actions, show more, hide unpopulated, shortcut) | ✅ | ✅ (`oj-dialog` + `oj-switch`) | ✅ (dialog; IDE keymap wins on a shared shortcut) | ✅ (modal; no keyboard shortcut) |
 | Matrix grid (rows × dates, collapsible sections, link cells, in-place editing) | ✅ | ✅ (`oj-data-grid`) | ✅ (`JBTable` + row header) | ✅ |
+| Compare and merge records (`RecordMerge`) | ✅ | ✅ | ✅ (Swing grid, a button group per row) | ✅ (one card per field) |
+| App shortcuts (`@AppShortcut`), `?` list, quick-launch codes | ✅ (⌘K palette + command center) | ✅ (Ask palette) | ✅ (view key bindings, dialog, "Go to code…") | 🟡 codes only (drawer field; no hardware keys) |
+| Live header values + `liveUpdates` stream (one per browser, tabs share it) | ✅ | ✅ | ✅ (navigator; one stream per session) | ✅ (drawer; foreground only, `expo/fetch`) |
+| Idle-session warning (countdown, stay / sign out, activity shared across tabs) | ✅ | ✅ | ✅ (IDE activity; one session) | ✅ (touches; background counts as idle) |
 | Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
@@ -293,7 +301,7 @@ render), so this table — not the feature rows above — is the authority on wh
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 95 rendered, 11 layout
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 96 rendered, 11 layout
 containers, 2 partial, 0 not rendered. A type the renderer does not know
 (one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
 renderers, and its children still render.
@@ -376,6 +384,7 @@ renderers, and its children still render.
 | `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
 | `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
+| `RecordMerge` | ✅ | compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
 | `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
@@ -428,7 +437,7 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
+native renderer — 89 rendered, 11 layout containers, 6 parts of another component,
 10 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
@@ -503,6 +512,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `ProcessMonitor` | ✅ |  |
 | `ProgressBar` | ✅ |  |
 | `ProgressSteps` | ✅ | vertical by design |
+| `RecordMerge` | ✅ | one card per field (records as rows of radios) |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | declared tracks + col spans; stacks below stackBelow (600 px default) |
 | `Result` | ✅ | icon by result type, links, next step |

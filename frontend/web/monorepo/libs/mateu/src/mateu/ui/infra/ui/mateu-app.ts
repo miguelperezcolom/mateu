@@ -7,6 +7,9 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
+import { runAppShortcut, syncAppExtras } from "@infra/ui/appExtrasMount.ts";
+import { keyLabel, shortcutsMatching } from "@infra/ui/appShortcuts.ts";
+import type { AppShortcut } from "@mateu/shared/apiClients/dtos/componentmetadata/AppShellExtras.ts";
 import { syncAccessKeys } from "@infra/a11y/accessKeys.ts";
 import { fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
@@ -426,10 +429,31 @@ export class MateuApp extends ComponentElement {
         return result
     }
 
+    /** QUICK LAUNCH: the app shortcuts whose code or label match, listed first (an exact code first of all). */
+    paletteShortcuts = (): AppShortcut[] => {
+        const metadata = (this.component as ClientSideComponent)?.metadata as App
+        const query = this.commandPaletteQuery.trim()
+        return query ? shortcutsMatching(metadata?.shortcuts, query).slice(0, 5) : []
+    }
+
+    private runPaletteShortcut(shortcut: AppShortcut) {
+        this.commandPaletteOpen = false
+        this.commandPaletteQuery = ''
+        runAppShortcut(shortcut, this)
+    }
+
     handleCommandPaletteKeydown = (e: KeyboardEvent, filtered: ReturnType<typeof this.flattenMenuForPalette>) => {
-        // the navigable list = up to 10 menu results followed by up to 8 entity hits
+        // the navigable list = the matching app shortcuts (quick launch), then up to 10 menu
+        // results, then up to 8 entity hits
+        const shortcuts = this.paletteShortcuts()
+        if (e.key === 'Enter' && this.commandPaletteSelectedIndex < shortcuts.length) {
+            e.preventDefault()
+            this.runPaletteShortcut(shortcuts[this.commandPaletteSelectedIndex])
+            return
+        }
+        const offset = shortcuts.length
         const menuCount = Math.min(filtered.length, 10)
-        const totalCount = menuCount + Math.min(this.commandPaletteDataHits.length, 8)
+        const totalCount = offset + menuCount + Math.min(this.commandPaletteDataHits.length, 8)
         if (e.key === 'ArrowDown') {
             e.preventDefault()
             this.commandPaletteSelectedIndex = Math.min(this.commandPaletteSelectedIndex + 1, totalCount - 1)
@@ -437,12 +461,13 @@ export class MateuApp extends ComponentElement {
             e.preventDefault()
             this.commandPaletteSelectedIndex = Math.max(this.commandPaletteSelectedIndex - 1, 0)
         } else if (e.key === 'Enter') {
-            if (this.commandPaletteSelectedIndex >= menuCount) {
-                const hit = this.commandPaletteDataHits[this.commandPaletteSelectedIndex - menuCount]
+            const index = this.commandPaletteSelectedIndex - offset
+            if (index >= menuCount) {
+                const hit = this.commandPaletteDataHits[index - menuCount]
                 if (hit) this.openDataHit(hit)
                 return
             }
-            const item = filtered[this.commandPaletteSelectedIndex]
+            const item = filtered[index]
             if (item) {
                 this.selectRoute(item.consumedRoute, item.route, item.actionId, item.baseUrl, item.serverSideType, item.uriPrefix)
                 this.commandPaletteOpen = false
@@ -464,6 +489,7 @@ export class MateuApp extends ComponentElement {
                 item.label.toLowerCase().includes(query) ||
                 item.breadcrumb.toLowerCase().includes(query))
             : allItems
+        const shortcutRows = this.paletteShortcuts()
 
         return html`
             <div class="cmd-backdrop" @click=${() => { this.commandPaletteOpen = false; this.commandPaletteQuery = '' }}>
@@ -483,7 +509,16 @@ export class MateuApp extends ComponentElement {
                         >
                     </div>
                     <div class="cmd-results">
-                        ${filtered.slice(0, 10).map((item, idx) => html`
+                        ${shortcutRows.map((shortcut, idx) => html`
+                            <div class="cmd-result ${idx === this.commandPaletteSelectedIndex ? 'cmd-result--selected' : ''}"
+                                @click=${() => this.runPaletteShortcut(shortcut)}
+                                @mouseenter=${() => { this.commandPaletteSelectedIndex = idx }}
+                            >
+                                <span class="cmd-result-label">${shortcut.label}</span>
+                                <span class="cmd-result-breadcrumb">${[shortcut.code, keyLabel(shortcut.key)].filter(Boolean).join(' · ')}</span>
+                            </div>
+                        `)}
+                        ${filtered.slice(0, 10).map((item, i) => { const idx = i + shortcutRows.length; return html`
                             <div class="cmd-result ${idx === this.commandPaletteSelectedIndex ? 'cmd-result--selected' : ''}"
                                 @click=${() => {
                                     this.selectRoute(item.consumedRoute, item.route, item.actionId, item.baseUrl, item.serverSideType, item.uriPrefix)
@@ -495,10 +530,10 @@ export class MateuApp extends ComponentElement {
                                 <span class="cmd-result-label">${item.label}</span>
                                 ${item.breadcrumb ? html`<span class="cmd-result-breadcrumb">${item.breadcrumb}</span>` : nothing}
                             </div>
-                        `)}
+                        `})}
                         ${query && this.commandPaletteDataHits.length > 0 ? html`
                             ${this.commandPaletteDataHits.slice(0, 8).map((hit, hitIndex) => {
-                                const idx = Math.min(filtered.length, 10) + hitIndex
+                                const idx = shortcutRows.length + Math.min(filtered.length, 10) + hitIndex
                                 const previous = this.commandPaletteDataHits[hitIndex - 1]
                                 return html`
                                     ${hit.category && hit.category !== previous?.category ? html`
@@ -511,7 +546,7 @@ export class MateuApp extends ComponentElement {
                                         ${hit.description ? html`<span class="cmd-result-breadcrumb">${hit.description}</span>` : nothing}
                                     </div>`
                             })}` : nothing}
-                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">${chromeTextf('noResultsFor', { query: this.commandPaletteQuery })}</div>` : nothing}
+                        ${filtered.length === 0 && shortcutRows.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">${chromeTextf('noResultsFor', { query: this.commandPaletteQuery })}</div>` : nothing}
                     </div>
                 </div>
             </div>
@@ -903,6 +938,8 @@ export class MateuApp extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         syncCommandCenter(this);
+        // app shortcuts + "?", live header values, the idle-session warning (E2 patterns)
+        syncAppExtras(this);
         if (this.component) {
             const clientSideComponent = this.component as ClientSideComponent
             const metadata = clientSideComponent.metadata

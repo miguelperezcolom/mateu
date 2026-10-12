@@ -142,6 +142,11 @@ public sealed partial class ReflectionMapper
             Chromeless = app.Chromeless,
             // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             AccessKeys = app.AccessKeys,
+            // E2 patterns: app-wide shortcuts, live header values, the idle-session warning
+            Shortcuts = MapShortcuts(appType, appRoute),
+            HeaderValues = MapHeaderValues(appType, app),
+            LiveUpdates = app.LiveUpdates,
+            IdleSession = MapIdleSession(app, appRoute),
             // The UI language: what the translator says (mirrors AppDto.locale).
             Locale = translator?.Locale,
         };

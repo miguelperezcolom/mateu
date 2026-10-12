@@ -119,4 +119,35 @@ public @interface App {
    * /customers/7}) — and drops the trail on the pages inside it.
    */
   BackLink backLink() default BackLink.BREADCRUMBS;
+
+  /**
+   * LIVE UPDATES: every browser running the app keeps one event stream open (shared by its tabs)
+   * through which the server pushes header-value changes to every session — {@code
+   * LiveHeaderValues.publish("businessDate", "13 Oct")} after the nightly close. Opt-in: without it
+   * a header value only changes through {@code UICommand.updateHeaderValue} in the browser that ran
+   * the action.
+   */
+  @Experimental("live header values (3.0-alpha, E2 patterns)")
+  boolean liveUpdates() default false;
+
+  /**
+   * IDLE-SESSION WARNING: after this many minutes without any activity (keyboard, pointer, scroll —
+   * in ANY tab of the app) a modal warns that the session is about to end and counts down {@link
+   * #idleWarningSeconds()}; "Stay signed in" runs the app-level {@code _keep-alive} action (hook it
+   * with {@link io.mateu.uidl.interfaces.KeepAliveHandler}), "Sign out" — or the countdown reaching
+   * zero — goes to {@link #idleSignOutUrl()}. 0 (the default): off.
+   */
+  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  int idleTimeoutMinutes() default 0;
+
+  /** How long the idle warning counts down before signing out. Default 60 seconds. */
+  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  int idleWarningSeconds() default 60;
+
+  /**
+   * Where "Sign out" goes — a full page load, typically the app's logout endpoint (Mateu does no
+   * authentication). Blank: the app's logout url when it has one, else the app's root.
+   */
+  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  String idleSignOutUrl() default "";
 }

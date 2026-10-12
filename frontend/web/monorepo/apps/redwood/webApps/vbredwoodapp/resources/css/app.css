@@ -1645,3 +1645,59 @@ html.mateu-theme-dark oj-data-grid, html.mateu-theme-dark .oj-datagrid-header-ce
 html.mateu-theme-dark .oj-datagrid-cell, html.mateu-theme-dark .mateu-cal-num { background-color: var(--oj-core-bg-color-content); }
 html.mateu-theme-dark .oj-table-body-row:hover > .oj-table-data-cell,
 html.mateu-theme-dark .oj-table-body-row.oj-selected > .oj-table-data-cell { background-color: rgba(255, 255, 255, .08); }
+
+/* ── E2: compare & merge (RecordMerge) — native radios in a table, Redwood tokens ── */
+.mateu-record-merge { display: block; width: 100%; }
+.mateu-rm-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--oj-core-spacing-2x); }
+.mateu-rm-bar h3 { margin: 0; }
+.mateu-rm-scroller { overflow-x: auto; margin-top: var(--oj-core-spacing-2x); }
+.mateu-rm-table { display: table; border-collapse: collapse; width: 100%; min-width: max-content; }
+.mateu-rm-table oj-bind-for-each, .mateu-rm-table oj-bind-if { display: contents; }
+.mateu-rm-tr { display: table-row; }
+.mateu-rm-th, .mateu-rm-td { display: table-cell; text-align: start; vertical-align: top;
+  padding: var(--oj-core-spacing-1x) var(--oj-core-spacing-2x); border-bottom: 1px solid var(--oj-core-divider-color); }
+.mateu-rm-head .mateu-rm-th { font-weight: 600; color: var(--oj-core-text-color-secondary); font-size: var(--oj-typography-body-sm-font-size); }
+.mateu-rm-record { display: block; color: var(--oj-core-text-color-primary); }
+.mateu-rm-caption { display: block; font-weight: 400; font-size: var(--oj-typography-body-xs-font-size); }
+.mateu-rm-rowhead { font-weight: 600; white-space: nowrap; }
+.mateu-rm-differs { background: color-mix(in srgb, var(--oj-core-warning-3, #c48b00) 10%, transparent); }
+.mateu-rm-differs > .mateu-rm-rowhead { box-shadow: inset 3px 0 0 var(--oj-core-warning-3, #c48b00); }
+.mateu-rm-badge { margin-inline-start: var(--oj-core-spacing-1x); }
+.mateu-rm-diff-only .mateu-rm-same { display: none; }
+.mateu-rm-diff-only oj-bind-for-each > .mateu-rm-same { display: none; }
+.mateu-rm-option { display: inline-flex; gap: var(--oj-core-spacing-1x); align-items: baseline; cursor: pointer; }
+.mateu-rm-picked .mateu-rm-value { font-weight: 600; }
+.mateu-rm-empty { color: var(--oj-core-text-color-disabled); font-style: italic; }
+.mateu-rm-custom { display: inline-flex; gap: var(--oj-core-spacing-1x); align-items: center; }
+.mateu-rm-custom-input { font: inherit; padding: var(--oj-core-spacing-1x); min-width: 10rem;
+  border: 1px solid var(--oj-core-border-color, currentColor); border-radius: var(--oj-core-border-radius-md); color: inherit; background: transparent; }
+.mateu-record-merge input:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, Highlight); outline-offset: 2px; }
+.mateu-rm-result h4 { margin: var(--oj-core-spacing-4x) 0 var(--oj-core-spacing-2x); }
+.mateu-rm-entries { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--oj-core-spacing-1x) var(--oj-core-spacing-4x); }
+.mateu-rm-entry { display: flex; flex-direction: column; }
+.mateu-rm-entry dt { font-size: var(--oj-typography-body-xs-font-size); color: var(--oj-core-text-color-secondary); }
+.mateu-rm-entry dd { margin: 0; }
+.mateu-rm-entry-differs .mateu-rm-result-value { font-weight: 600; }
+.mateu-rm-result-from { font-size: var(--oj-typography-body-xs-font-size); color: var(--oj-core-text-color-secondary); margin-inline-start: var(--oj-core-spacing-1x); }
+.mateu-rm-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--oj-core-spacing-2x); margin-top: var(--oj-core-spacing-4x); }
+
+/* ── E2: live header values, keyboard shortcuts dialog ── */
+.mateu-header-values { display: inline-flex; align-items: baseline; gap: var(--oj-core-spacing-4x); margin-inline-start: var(--oj-core-spacing-2x); white-space: nowrap; }
+.mateu-header-values[hidden] { display: none; }
+.mateu-header-value { display: inline-flex; gap: var(--oj-core-spacing-1x); align-items: baseline; font-size: var(--oj-typography-body-sm-font-size);
+  padding: 0 var(--oj-core-spacing-1x); border-radius: var(--oj-core-border-radius-sm); }
+.mateu-header-value-label { opacity: 0.8; }
+.mateu-header-value-changed { animation: mateu-hv-flash 1.5s ease-out; }
+@keyframes mateu-hv-flash { from { background: rgba(255, 255, 255, 0.3); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .mateu-header-value-changed { animation: none; } }
+.mateu-sc-body { min-width: min(30rem, 80vw); }
+.mateu-sc-list { list-style: none; margin: 0; padding: 0; }
+.mateu-sc-row { display: flex; width: 100%; align-items: center; gap: var(--oj-core-spacing-2x); padding: var(--oj-core-spacing-1x);
+  font: inherit; color: inherit; background: none; border: 0; text-align: start; border-radius: var(--oj-core-border-radius-sm); }
+button.mateu-sc-row { cursor: pointer; }
+button.mateu-sc-row:hover { background: var(--oj-core-bg-color-hover); }
+button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, Highlight); outline-offset: 1px; }
+.mateu-sc-label { flex: 1; }
+.mateu-sc-code { color: var(--oj-core-text-color-secondary); font-size: var(--oj-typography-body-xs-font-size); }
+.mateu-sc-key { font: inherit; font-size: var(--oj-typography-body-xs-font-size); padding: 0 var(--oj-core-spacing-1x);
+  border: 1px solid var(--oj-core-border-color, currentColor); border-radius: var(--oj-core-border-radius-sm); background: var(--oj-core-bg-color-hover); }

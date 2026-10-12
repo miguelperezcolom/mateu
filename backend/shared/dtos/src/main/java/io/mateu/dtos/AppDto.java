@@ -130,7 +130,18 @@ public record AppDto(
      * direct one (browser) — so the client needs to know. Null (absent) otherwise: never silently
      * in production.
      */
-    Boolean mockSources)
+    Boolean mockSources,
+    /** App-wide keyboard shortcuts and quick-launch codes ({@code @AppShortcut}). */
+    List<AppShortcutDto> shortcuts,
+    /** Live values on the header ({@code HeaderValuesSupplier}), changed by UpdateHeaderValue. */
+    List<HeaderValueDto> headerValues,
+    /**
+     * {@code @App(liveUpdates)}: the browser keeps one app event stream open (the {@code
+     * _live-updates} app-level action over the SSE endpoint) to receive header-value changes.
+     */
+    boolean liveUpdates,
+    /** {@code @App(idleTimeoutMinutes)}: the idle-session warning; null = off. */
+    IdleSessionDto idleSession)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -150,6 +161,8 @@ public record AppDto(
     actions = Collections.unmodifiableList(actions != null ? actions : List.of());
     actionCatalogue =
         Collections.unmodifiableList(actionCatalogue != null ? actionCatalogue : List.of());
+    shortcuts = Collections.unmodifiableList(shortcuts != null ? shortcuts : List.of());
+    headerValues = Collections.unmodifiableList(headerValues != null ? headerValues : List.of());
   }
 
   @Override

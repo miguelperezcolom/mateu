@@ -1,0 +1,6 @@
+# Fixture for E2ShellYamlSyncTest: a data-authored shell with app shortcuts, live header values
+# and the idle-session warning.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

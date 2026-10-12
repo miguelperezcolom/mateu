@@ -46,6 +46,26 @@ public sealed partial class SyncHandler
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
     }
 
+    /// <summary>The idle warning's "Stay signed in" (the _keep-alive app-level action): reaching the
+    /// server is most of it; an app implementing IKeepAliveHandler is called too. Empty increment.
+    /// (Mirrors Java's KeepAliveActionRunner.)</summary>
+    private static UIIncrementDto KeepAlive(object instance)
+    {
+        if (instance is IKeepAliveHandler handler) handler.KeepAlive();
+        return UIIncrementDto.Of();
+    }
+
+    /// <summary>The first increment of the live-updates stream: the last value published for each
+    /// header value, as UpdateHeaderValue commands (empty when nothing was published). (Mirrors the
+    /// catch-up of Java's LiveUpdatesActionRunner.)</summary>
+    public static UIIncrementDto LiveUpdatesSnapshot() =>
+        UIIncrementDto.Of(commands: LiveHeaderValues.Current
+            .Select(e => LiveUpdateCommand(e.Key, e.Value)).ToList());
+
+    /// <summary>One header-value change as it travels on the live-updates stream (no target).</summary>
+    public static UICommandDto LiveUpdateCommand(string id, string? value) =>
+        new(null!, "UpdateHeaderValue", new HeaderValueDto(id, null, value));
+
     /// <summary>The ids parameter of _notifications-read: an explicit list, "all" → every
     /// currently-unread notification's id, or a single bare id.</summary>
     private static List<string> ReadIds(INotificationsSupplier supplier, RunActionRqDto rq)

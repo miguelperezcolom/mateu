@@ -235,6 +235,14 @@ class DispatchMixin(MixinBase):
         if rq.action_id == "_globalsearch":
             return self.global_search_action(type_, rq)
 
+        # 2d. The idle warning's keep-alive and the live-updates stream are app-level too (mirrors
+        # Java's KeepAliveActionRunner / LiveUpdatesActionRunner; the stream itself is served by
+        # the adapter's SSE endpoint).
+        if rq.action_id == "_keep-alive":
+            return self.keep_alive_action(type_, rq)
+        if rq.action_id == "_live-updates":
+            return self.live_updates_snapshot()
+
         # 3. A wizard.
         if issubclass(type_, Wizard):
             return self.handle_wizard(type_, rq)

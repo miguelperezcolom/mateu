@@ -100,6 +100,16 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.Print, null);
   }
 
+  /**
+   * Changes the live header value {@code id} ({@link HeaderValue}, e.g. the business date) to
+   * {@code value}: in this tab and in every other tab of the same browser. To reach every OTHER
+   * session too, publish it with {@link io.mateu.uidl.LiveHeaderValues#publish(String, String)}.
+   */
+  @Experimental("live header values (3.0-alpha, E2 patterns)")
+  public static UICommand updateHeaderValue(String id, String value) {
+    return new UICommand(UICommandType.UpdateHeaderValue, new HeaderValue(id, null, value));
+  }
+
   /** Clears the dirty state; return this from a save action after persisting changes. */
   public static UICommand markAsClean() {
     return new UICommand(UICommandType.MarkAsClean, null);

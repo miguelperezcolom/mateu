@@ -118,6 +118,10 @@ Shortcuts are matched by physical key (`e.code`) as well as logical key, so `Ctr
 AltGr remaps `Ctrl+Alt+E` to `€` — and the numeric keypad works too. Buttons that carry a shortcut
 show it in their tooltip.
 
+## App-wide shortcuts
+
+Shortcuts that belong to the APP rather than to one screen — **F9 for reservations everywhere**, quick-launch codes typed in the command palette, a **?** list of every key — are declared with `@AppShortcut` on the app class. A screen's own shortcut wins on the same key. See [App-wide shortcuts and quick launch](/ux-patterns/app-shortcuts/).
+
 ## Recommended shortcuts
 
 Consistent conventions across the application reinforce the *Consistency* principle.

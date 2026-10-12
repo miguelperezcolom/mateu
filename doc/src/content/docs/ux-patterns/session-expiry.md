@@ -89,5 +89,6 @@ URL from the client — that case surfaces as a plain network error instead.
 
 ## Related
 
+- [Idle-session warning](/ux-patterns/idle-session/) — the client-side counterpart: warn before anything expires
 - [Autosave](/ux-patterns/autosave/) — shrink the window of unsaved work
 - [Undo](/ux-patterns/undo/) — recover from the opposite problem
