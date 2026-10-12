@@ -159,6 +159,32 @@ class DashboardPage(Dashboard):
     notes: Annotated[Text, Panel("Notes", subtitle="Today")] = Text(text="All systems nominal")
 
 
+@ui("/conformance/card-menu")
+@app("Card menu")
+class CardMenuApp(AppSupplier):
+    """A card menu authored in code: a group shown as CARDS, each entry a card with its
+    description, its own entries the card's actions."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="Card menu",
+            variant=AppVariant.HAMBURGER_MENU,
+            home_route="/plain",
+            menu=[
+                MenuItem(
+                    label="Bookings", route="/b", server_side_type="", display="cards",
+                    submenus=[
+                        MenuItem(
+                            label="Reservations", route="/b/r", server_side_type="",
+                            description="Search and modify reservations",
+                        )
+                    ],
+                ),
+                MenuItem(label="Plain", route="/plain", server_side_type=""),
+            ],
+        )
+
+
 @ui("/conformance/app-in-code")
 @app("App in code")
 class AppInCode(AppSupplier):
@@ -650,7 +676,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp)]
 
 
 def test_every_case_of_the_corpus_is_wired():

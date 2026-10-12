@@ -170,6 +170,7 @@ public class WireConformanceTests
         { "listing-columns", typeof(MeasurementsListing) },
         { "peer-nav", typeof(PeerNavPage) },
         { "app-no-home-content", typeof(NoHomeApp) },
+        { "card-menu", typeof(CardMenuApp) },
     };
 
     [Fact]

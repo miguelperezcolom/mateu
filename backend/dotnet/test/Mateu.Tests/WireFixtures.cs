@@ -517,3 +517,26 @@ public class NoHomeApp
     [MenuItem("Orders")]
     public void Orders() { }
 }
+
+/// <summary>A card menu authored in code: a group shown as CARDS, each entry a card with its
+/// description, its own entries the card's actions — mirrors the Java CardMenuApp fixture.</summary>
+[UI("conformance/card-menu"), App("Card menu")]
+public class CardMenuApp : IAppSupplier
+{
+    public AppShell GetApp() => new("Card menu", new List<MenuItemDto>
+    {
+        new("Bookings", "/b", "")
+        {
+            Display = "cards",
+            Submenus = new List<MenuItemDto>
+            {
+                new("Reservations", "/b/r", "") { Description = "Search and modify reservations" },
+            },
+        },
+        new("Plain", "/plain", ""),
+    })
+    {
+        HomeRoute = "/plain",
+        Variant = AppVariant.HamburgerMenu,
+    };
+}

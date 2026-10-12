@@ -279,6 +279,58 @@ class WireConformanceTest {
     public io.mateu.uidl.data.Text notes = new io.mateu.uidl.data.Text("All systems nominal");
   }
 
+  /**
+   * A card menu authored in code: a group that opens as a panel of CARDS (display "cards"), each
+   * entry a card with its description, its own entries the card's actions.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/card-menu")
+  @Title("Card menu")
+  public static class CardMenuApp implements AppSupplier {
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      var reservations =
+          new RouteLink(
+              "/b/r",
+              "/b/r",
+              "Reservations",
+              null,
+              false,
+              null,
+              null,
+              false,
+              false,
+              null,
+              null,
+              null,
+              "Search and modify reservations",
+              null,
+              false);
+      return AppShell.builder()
+          .title("Card menu")
+          .homeRoute("/plain")
+          .variant(AppVariant.HAMBURGER_MENU)
+          .menu(
+              List.of(
+                  new Menu(
+                      "/b",
+                      "Bookings",
+                      List.of(reservations),
+                      false,
+                      null,
+                      null,
+                      false,
+                      false,
+                      null,
+                      null,
+                      false,
+                      io.mateu.uidl.data.MenuPresentation.cards()),
+                  new RouteLink("/plain", "Plain")))
+          .build();
+    }
+  }
+
   /** An app whose shell and its whole menu are composed IN CODE via {@link AppSupplier}. */
   @SuppressWarnings("unused")
   @UI("/conformance/app-in-code")
@@ -834,7 +886,8 @@ class WireConformanceTest {
           "crud-grouped",
           "listing-columns",
           "peer-nav",
-          "app-no-home-content");
+          "app-no-home-content",
+          "card-menu");
 
   static TestMateu mateu;
 
@@ -874,7 +927,8 @@ class WireConformanceTest {
             SalesCrud.class,
             MeasurementsListing.class,
             PeerNavPage.class,
-            NoHomeApp.class);
+            NoHomeApp.class,
+            CardMenuApp.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
