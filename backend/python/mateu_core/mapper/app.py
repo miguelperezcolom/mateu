@@ -29,6 +29,7 @@ from mateu_uidl import (
     AppVariant,
     AppSupplier,
     GlobalSearchSupplier,
+    HomeRouteSupplier,
     MenuSupplier,
     NotificationsSupplier,
     Rule,
@@ -134,8 +135,17 @@ class AppMapperMixin(MixinBase):
         # The home route: an AppSupplier shell that sets one wins (app-in-code → "/a"); a reflected
         # @Menu-field app declares no explicit home, so it is "_no_home_route" (Java parity — the
         # home defaults to the first menu item, but the wire's homeRoute stays the sentinel).
+        # A @menu_item app names its landing route with HomeRouteSupplier (Java's
+        # HomeRouteSupplier); the sync handler then types the home with that screen's class.
+        supplied_home = (
+            (cls().home_route() or "").strip("/")
+            if shell is None and issubclass(cls, HomeRouteSupplier)
+            else ""
+        )
         home_route = (
-            shell.home_route if (shell and shell.home_route) else "_no_home_route"
+            shell.home_route
+            if (shell and shell.home_route)
+            else supplied_home or "_no_home_route"
         )
         # A reflected (@menu_item-method) app carries its own mount as the wire's `route`; an
         # AppSupplier shell leaves it None (AppShell has no route). Mirrors AppDto.route.

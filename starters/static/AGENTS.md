@@ -17,9 +17,10 @@ and calls the REST APIs named in `sources.yaml` itself.
 pom.xml                      the renderer jar + mateu-bundle-maven-plugin (staticOnly, specsOnly)
 .mvn/maven.config            -Dmateu.bundle.mock=true: ship the sources' sample data (remove to go live)
 src/main/resources/specs/ui/ THE UI
-  app.ui.yaml      type: UI — the mount ("/"), its route files and its home route
+  app.ui.yaml      type: UI — the mount ("/"), its route files and its home route (`home: home`)
   routes.yaml      type: Routes — each route bound to a `layout:` (a definition file here)
-  app.yaml         type: AppShell — title and menu
+  app.yaml         type: AppShell — title and menu (Home, Products)
+  home.yaml        the home page — a hero with a call to action to the products
   products.yaml    type: Listing — a page; every other page is another file like it
   sources.yaml     the REST source catalogue: every endpoint, named once, with `sample:` data
   project.yaml     type: Project — the renderer

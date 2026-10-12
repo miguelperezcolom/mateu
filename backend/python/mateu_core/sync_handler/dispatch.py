@@ -155,6 +155,17 @@ class DispatchMixin(MixinBase):
         if rq.action_id == "__restfetch__":
             return self._rest_fetch_response(rq)
 
+        # 0e. A menu leaf carries the APP's serverSideType (Java parity: there the app resolves its
+        # own menu routes), so loading a menu route the app does not render itself — a route owned
+        # by a registered view, or one of its CRUD sub-routes — loads that view, not the app again
+        # (which the shell would nest inside its own content area).
+        if not rq.action_id and rq.server_side_type:
+            app_t = self.registry.resolve(rq.server_side_type, None)
+            if app_t is not None and "__mateu_app__" in app_t.__dict__:
+                owner = self.registry.resolve_by_prefix(rq.route)
+                if owner is not None and owner[0] is not app_t:
+                    rq = rq.model_copy(update={"server_side_type": type_name(owner[0])})
+
         # 1. App shell at the root route.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)

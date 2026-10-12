@@ -1,9 +1,19 @@
-# The home page, declared as data. Open it in the Mateu visual editor (IntelliJ or VS Code) to build
-# it from the palette, or edit the YAML: the editors validate it against the published schema.
+# The home page: a hero with the app's title, a short intro and a call to action. The button
+# navigates because its actionable is a RouteLink — no code behind it. Open it in the Mateu visual
+# editor (IntelliJ or VS Code) to edit it on a canvas.
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: VerticalLayout
+fullWidth: true
+horizontalAlignment: STRETCH
 content:
   - type: HeroSection
     title: __APP_TITLE__
-    subtitle: This page is declared as data in src/main/resources/specs/ui/home.yaml.
+    subtitle: The shell, the routes and this page are data in src/main/resources/specs/ui; the products CRUD is a Java class.
     centered: true
+    content:
+      - type: Button
+        label: Browse products
+        buttonStyle: primary
+        actionable:
+          type: RouteLink
+          route: products

@@ -245,10 +245,13 @@ object MateuProjectGenerator {
         if (!keepSample) strings(lang.path("sampleFiles")).forEach { files.remove(it) }
         // (3) unmount it
         val unmount = lang.path("unmount")
-        if (keepSample && flavour.path("unmountsSample").asBoolean(false) && !unmount.isMissingNode && files.containsKey(unmount.path("file").asText())) {
-            val drop = strings(unmount.path("removeLines")).toSet()
+        if (keepSample && flavour.path("unmountsSample").asBoolean(false) && !unmount.isMissingNode) {
+            strings(unmount.path("removeFiles")).forEach { files.remove(it) }
             val file = unmount.path("file").asText()
-            files[file] = (files[file] as String).split("\n").filter { it.trim() !in drop }.joinToString("\n")
+            if (file.isNotEmpty() && files.containsKey(file)) {
+                val drop = strings(unmount.path("removeLines")).toSet()
+                files[file] = (files[file] as String).split("\n").filter { it.trim() !in drop }.joinToString("\n")
+            }
         }
         // (4) overlays: common, the language's own, the flavour's (by sample, else "*"), the renderer's
         val overlays = strings(lang.path("overlays")).toMutableList()

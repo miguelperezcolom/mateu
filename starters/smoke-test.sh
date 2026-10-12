@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Boots each packaged Java starter on its own port, loads the root route through the Mateu action
-# endpoint and checks the CRUD view model answered (the YAML-only starter: its app shell and the
-# sample rows of its listing). The static starter has no server: its bundle is checked on disk.
+# Boots each packaged Java starter on its own port and, through the Mateu action endpoint, checks
+# the building blocks of every starter: the app shell at the root opens on the home page
+# (homeRoute "home"), the home page answers with its "Browse products" call to action, and the
+# products screen answers (the CRUD view model; for the YAML-only starter, the listing). The static
+# starter has no server: its bundle is checked on disk.
 # Run after `mvn -f starters/pom.xml package`.
 #
 #   starters/smoke-test.sh                 # all of them
@@ -28,21 +30,37 @@ cmd_for() {
   esac
 }
 
-# What a healthy answer contains: the CRUD view model, or for the YAML starter the app shell (root)
-# and the listing's sample rows (route products, loaded by the shell).
-expect_of() {
+# The app shell's serverSideType: the code starters' Shell class; the YAML shell has none.
+shell_of() {
   case $1 in
-    yaml) echo '"type":"AppShell"|"title":"My app"' ;;
+    yaml) echo '' ;;
+    *) echo 'com.example.app.Shell' ;;
+  esac
+}
+
+# What the products screen answers with: the CRUD view model, or the YAML listing.
+products_of() {
+  case $1 in
+    yaml) echo '"type":"Listing"|rowsSource' ;;
     *) echo 'com.example.app.Products' ;;
   esac
+}
+
+# Loads <route> inside the app shell of starter <s> on port <p> (as the shell's content area does).
+load() {
+  curl -s -m 10 -X POST -H 'Content-Type: application/json' \
+    "http://localhost:$2/mateu/v3/components/_/action" \
+    -d "{\"serverSideType\":\"$(shell_of "$1")\",\"route\":\"$3\",\"consumedRoute\":\"\",\"actionId\":\"\",\"componentState\":{}}" \
+    2>/dev/null || true
 }
 
 check_static() {
   local b=static/target/mateu-bundle
   if [[ -f $b/index.html && -f $b/manifest.json ]] \
     && grep -q '"products"' $b/manifest.json && grep -q 'Espresso machine' $b/manifest.json \
+    && grep -q '"home"' $b/manifest.json && grep -q 'Browse products' $b/manifest.json \
     && grep -q '"mockSources" *: *true' $b/manifest.json; then
-    echo "✔ static: bundle written (index.html, manifest.json with the listing and its sample data)"
+    echo "✔ static: bundle written (index.html, manifest.json with the home page, the listing and its sample data)"
   else
     echo "✘ static: no complete bundle in $b"; ls -la $b 2>/dev/null; return 1
   fi
@@ -61,19 +79,17 @@ for s in "${@:-spring-mvc spring-webflux quarkus micronaut helidon-mp yaml stati
       body=$(curl -s -m 5 -X POST -H 'Content-Type: application/json' \
         "http://localhost:$p/mateu/v3/components/_/action" \
         -d '{"route":"","actionId":"","componentState":{}}' 2>/dev/null || true)
-      if [[ "$body" =~ $(expect_of "$one") ]]; then ok=1; break; fi
+      if [[ "$body" == *'"homeRoute":"home"'* ]]; then ok=1; break; fi
       sleep 2
     done
-    if [[ $ok == 1 && $one == yaml ]]; then
-      rows=$(curl -s -m 10 -X POST -H 'Content-Type: application/json' \
-        "http://localhost:$p/mateu/v3/components/_/action" \
-        -d '{"route":"/products","consumedRoute":"","actionId":"","componentState":{}}' 2>/dev/null || true)
-      [[ "$rows" == *'"type":"Listing"'* || "$rows" == *'rowsSource'* ]] || ok=0
+    if [[ $ok == 1 ]]; then
+      [[ "$(load "$one" "$p" /home)" == *'Browse products'* ]] || { echo "✘ $one: no home page"; ok=0; }
+      [[ "$(load "$one" "$p" /products)" =~ $(products_of "$one") ]] || { echo "✘ $one: no products screen"; ok=0; }
     fi
     page=$(curl -s -m 5 "http://localhost:$p/" || true)
     kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
     if [[ $ok == 1 && "$page" == *"<html"* ]]; then
-      echo "✔ $one (port $p): page served, UI answered"
+      echo "✔ $one (port $p): page served; shell opens on home; home and products answered"
     else
       echo "✘ $one (port $p) did not answer; log:"; tail -40 "$log"; failed=1
     fi

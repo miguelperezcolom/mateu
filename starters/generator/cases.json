@@ -21,6 +21,8 @@
         "CLAUDE.md",
         ".gitignore",
         "src/main/java/com/acme/shop/Application.java",
+        "src/main/java/com/acme/shop/Shell.java",
+        "src/main/java/com/acme/shop/Home.java",
         "src/main/java/com/acme/shop/Products.java",
         "src/main/java/com/acme/shop/ProductStore.java",
         "src/main/resources/application.properties"
@@ -37,9 +39,22 @@
           "<artifactId>mateu-vaadin</artifactId>",
           "<artifactId>mateu-annotation-processor-mvc</artifactId>"
         ],
+        "src/main/java/com/acme/shop/Shell.java": [
+          "package com.acme.shop;",
+          "@UI(\"\")",
+          "@Title(\"My shop\")",
+          "@Menu Home home;",
+          "@Menu Products products;",
+          "return \"home\";"
+        ],
+        "src/main/java/com/acme/shop/Home.java": [
+          "extends Welcome",
+          "return \"My shop\";",
+          "return URI.create(\"/products\");"
+        ],
         "src/main/java/com/acme/shop/Products.java": [
           "package com.acme.shop;",
-          "@UI(\"\")"
+          "extends AutoCrud<Product>"
         ],
         "src/main/java/com/acme/shop/Application.java": [
           "@SpringBootApplication"
@@ -52,6 +67,12 @@
         "pom.xml": [
           "mateu-starter",
           "<groupId>com.example</groupId>"
+        ],
+        "src/main/java/com/acme/shop/Products.java": [
+          "@UI("
+        ],
+        "src/main/java/com/acme/shop/Shell.java": [
+          "My app"
         ]
       }
     },
@@ -71,6 +92,7 @@
       },
       "files": [
         "pom.xml",
+        "src/main/java/org/example/hello/Shell.java",
         "src/main/java/org/example/hello/Home.java",
         "src/main/java/org/example/hello/Application.java"
       ],
@@ -82,14 +104,26 @@
         "pom.xml": [
           "<artifactId>mateu-redwood</artifactId>"
         ],
+        "src/main/java/org/example/hello/Shell.java": [
+          "package org.example.hello;",
+          "@Title(\"Hello\")",
+          "@Menu Home home;"
+        ],
         "src/main/java/org/example/hello/Home.java": [
           "package org.example.hello;",
-          "@Title(\"Hello\")"
+          "return \"Hello\";"
         ]
       },
       "lacks": {
         "pom.xml": [
           "<artifactId>mateu-vaadin</artifactId>"
+        ],
+        "src/main/java/org/example/hello/Shell.java": [
+          "Products"
+        ],
+        "src/main/java/org/example/hello/Home.java": [
+          "Products",
+          "browseProducts"
         ]
       }
     },
@@ -118,6 +152,7 @@
         "src/main/resources/specs/ui/app.ui.yaml",
         "src/main/resources/specs/ui/routes.yaml",
         "src/main/resources/specs/ui/app.yaml",
+        "src/main/resources/specs/ui/home.yaml",
         "src/main/resources/specs/ui/products.yaml",
         "src/main/resources/specs/ui/sources.yaml",
         "src/main/resources/specs/ui/project.yaml",
@@ -130,14 +165,24 @@
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: home\n    layout: home.yaml",
           "  - route: products\n    layout: products.yaml",
           "  - route: form\n    layout: form.yaml",
           "  - route: dashboard\n    layout: dashboard.yaml"
         ],
+        "src/main/resources/specs/ui/app.ui.yaml": [
+          "home: home"
+        ],
         "src/main/resources/specs/ui/app.yaml": [
           "title: Ops portal",
+          "    label: Home\n    route: home",
+          "    label: Products\n    route: products",
           "    label: Form\n    route: form",
           "    label: Dashboard\n    route: dashboard"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
+          "title: Ops portal",
+          "type: RouteLink\n          route: products"
         ],
         "src/main/resources/specs/ui/form.yaml": [
           "type: Form",
@@ -187,6 +232,7 @@
         "AGENTS.md",
         "CLAUDE.md",
         "src/main/resources/specs/ui/app.ui.yaml",
+        "src/main/resources/specs/ui/home.yaml",
         "src/main/resources/specs/ui/products.yaml",
         "src/main/resources/specs/ui/sources.yaml"
       ],
@@ -201,7 +247,14 @@
           "<pageTitle>Catalogue site</pageTitle>"
         ],
         "src/main/resources/specs/ui/app.yaml": [
+          "title: Catalogue site",
+          "    label: Home\n    route: home"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
           "title: Catalogue site"
+        ],
+        "src/main/resources/specs/ui/app.ui.yaml": [
+          "home: home"
         ],
         "AGENTS.md": [
           "npx serve -s target/mateu-bundle"
@@ -229,14 +282,28 @@
       },
       "files": [
         "src/main/java/io/acme/crm/Products.java",
-        "src/main/resources/specs/ui/routes.yaml"
+        "src/main/resources/specs/ui/routes.yaml",
+        "src/main/resources/specs/ui/home.yaml"
+      ],
+      "absent": [
+        "src/main/java/io/acme/crm/Shell.java",
+        "src/main/java/io/acme/crm/Home.java"
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: home\n    layout: home.yaml",
           "  - route: products\n    viewModel: io.acme.crm.Products"
         ],
+        "src/main/resources/specs/ui/app.ui.yaml": [
+          "home: home"
+        ],
         "src/main/resources/specs/ui/app.yaml": [
+          "    label: Home\n    route: home",
           "    label: Products\n    route: products"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
+          "title: Crm",
+          "type: RouteLink\n          route: products"
         ],
         "pom.xml": [
           "<artifactId>mateu-annotation-processor-quarkus</artifactId>",
@@ -293,6 +360,8 @@
       "files": [
         "MyShop.csproj",
         "Program.cs",
+        "Shell.cs",
+        "Home.cs",
         "Products.cs",
         "AGENTS.md",
         "CLAUDE.md"
@@ -307,6 +376,16 @@
         ],
         "Products.cs": [
           "namespace MyShop;"
+        ],
+        "Shell.cs": [
+          "namespace MyShop;",
+          "[App(\"My shop\")]",
+          "IHomeRouteSupplier",
+          "public string HomeRoute() => \"home\";"
+        ],
+        "Home.cs": [
+          "HeroTitle => \"My shop\";",
+          "public string Browse() => \"/products\";"
         ],
         "AGENTS.md": [
           "MyShop.csproj"
@@ -342,6 +421,12 @@
       "contains": {
         "requirements.txt": [
           "mateu-ui==3.0.0a999"
+        ],
+        "views.py": [
+          "@app(\"My shop\")",
+          "class Shell(HomeRouteSupplier):",
+          "return \"My shop\"",
+          "class Home(Welcome):"
         ]
       },
       "lacks": {
@@ -365,6 +450,7 @@
         "version": "3.0-alpha.999"
       },
       "files": [
+        "src/main/java/io/acme/crm/Shell.java",
         "src/main/java/io/acme/crm/Home.java",
         "src/main/java/io/acme/crm/Application.java"
       ],

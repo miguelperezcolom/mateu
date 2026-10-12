@@ -1,27 +1,29 @@
 package com.example.app;
 
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.data.Message;
-import jakarta.validation.constraints.NotEmpty;
+import io.mateu.core.infra.declarative.orchestrators.welcome.Welcome;
+import io.mateu.uidl.annotations.Panel;
+import io.mateu.uidl.data.Text;
 
 /**
- * The home screen, mounted at the app root. Fields become form fields, {@code @Button} methods
- * become buttons, and the bean-validation annotations are enforced on both sides. Add more screens
- * as {@code @UI("/path")} classes, or bind view models to routes in {@code
- * src/main/resources/specs/ui/routes.yaml}.
- *
- * <p>Created fresh for every request: keep data that must outlive it in a store or a service.
+ * The home page, a {@link Welcome}: a hero with a title and an intro, and {@code @Panel} fields as
+ * tiles below it ({@code Button} fields would become its calls to action). Reached through its menu
+ * entry in {@link Shell}, which also makes it the page the app opens on.
  */
-@UI("")
-@Title("__APP_TITLE__")
-public class Home {
+public class Home extends Welcome {
 
-  @NotEmpty String name;
+  @Panel(title = "Your first screen")
+  Text next =
+      new Text(
+          "Write a class for it (a form, an AutoCrud, a dashboard…) and add a @Menu field of that"
+              + " class to Shell.");
 
-  @Button
-  public Message greet() {
-    return Message.success("Hello, " + name + "!");
+  @Override
+  protected String heroTitle() {
+    return "My app";
+  }
+
+  @Override
+  protected String heroSubtitle() {
+    return "Every screen here is declared in Java; Mateu renders it.";
   }
 }

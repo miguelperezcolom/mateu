@@ -8,7 +8,7 @@
     <artifactId>mateu-starter-quarkus</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>mateu-starter-quarkus</name>
-    <description>Minimal Mateu app on Quarkus: one @UI class, a CRUD over a record.</description>
+    <description>Minimal Mateu app on Quarkus: an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>

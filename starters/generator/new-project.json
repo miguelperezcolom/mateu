@@ -2,7 +2,7 @@
   "$comment": [
     "New Mateu project — the SINGLE description of what every front door generates (IntelliJ New Project wizard, VS Code 'Mateu: New Project', the scripts/new-project.mjs CLI; the Maven archetype is built from the same starters). The templates ARE the starters (starters/<dir>), compiled and booted by CI on every change; this file only says how to turn one into a project of your own. Two engines apply it and are kept identical by the shared cases in cases.json: io.mateu.ijp.newproject.MateuProjectGenerator (Kotlin, IntelliJ) and src/newProject.ts (TypeScript, VS Code).",
     "The first choice is the AUTHORING flavour; it names the starter directory (`starter`, where ${runtime} is the chosen runtime) and the runtimes it is offered on (none = no runtime question).",
-    "Steps, in order: (1) copy starters/<starter> minus `exclude`; (2) drop the language's `sampleFiles` unless the flavour keeps the sample (keepsSample && sample != 'empty'); (3) apply `unmount` to the kept sample when unmountsSample (the class stops being an @UI mount: routes.yaml binds it instead); (4) copy the overlays (starters/generator/overlays/common — its `gitignore` is renamed to .gitignore, so packaging never treats it as an ignore file —, then overlays/<language>/<overlay>): the language's `overlays`, the flavour's (`overlays[sample]`, else `overlays['*']`) and the renderer's (`rendererOverlays[renderer]`) — an overlay file replaces the starter file at the same path; (5) for a flavour with `pages`, render the chosen page templates (new-file-kinds.json pageTemplates) into specsDir, add the sample's route when the flavour unmounts it, and expand the marker lines `# __ROUTES__` of routes.yaml and `# __MENU__` of app.yaml into their entries (removed when there are none); (6) apply `replacements` (in order, variables expanded in `from` and `to`) to every text file, then `renames` to paths, and move packageDir to sourceRoot/<package path>.",
+    "Steps, in order: (1) copy starters/<starter> minus `exclude`; (2) drop the language's `sampleFiles` unless the flavour keeps the sample (keepsSample && sample != 'empty'); (3) apply `unmount` to the kept sample when unmountsSample (drop its `removeFiles` — the code shell and home page, which the YAML ones replace — and its `removeLines` from `file`: routes.yaml binds the sample's view model instead); (4) copy the overlays (starters/generator/overlays/common — its `gitignore` is renamed to .gitignore, so packaging never treats it as an ignore file —, then overlays/<language>/<overlay>): the language's `overlays`, the flavour's (`overlays[sample]`, else `overlays['*']`) and the renderer's (`rendererOverlays[renderer]`) — an overlay file replaces the starter file at the same path; (5) for a flavour with `pages`, render the chosen page templates (new-file-kinds.json pageTemplates) into specsDir, add the sample's route when the flavour unmounts it, and expand the marker lines `# __ROUTES__` of routes.yaml and `# __MENU__` of app.yaml into their entries (removed when there are none); (6) apply `replacements` (in order, variables expanded in `from` and `to`) to every text file, then `renames` to paths, and move packageDir to sourceRoot/<package path>.",
     "Variables: ${groupId} ${artifactId} ${package} ${packagePath} ${namespace} ${appTitle} ${version} ${nugetVersion} ${pypiVersion} ${renderer} ${rendererArtifactId} ${runtime} ${starter}. `version` is the latest io.mateu:mateu-bom release on Maven Central (versionMetadataUrl), falling back to the <mateu.version> pinned in the starters."
   ],
   "versionMetadataUrl": "https://repo1.maven.org/maven2/io/mateu/mateu-bom/maven-metadata.xml",
@@ -33,9 +33,9 @@
     {"id": "redwood", "label": "Oracle Redwood (Visual Builder)", "artifactId": "mateu-redwood"}
   ],
   "samples": [
-    {"id": "crud", "label": "Product CRUD", "description": "A listing, create, detail, edit and delete over a Product record."},
-    {"id": "empty", "label": "Empty", "description": "A single home screen to start from."},
-    {"id": "listing", "label": "Product listing", "description": "A searchable, filterable listing over a REST source, with sample data until the API exists."}
+    {"id": "crud", "label": "Home + Product CRUD", "description": "An app shell with a home page and a Products menu entry: a listing, create, detail, edit and delete over a Product record."},
+    {"id": "empty", "label": "Home only", "description": "An app shell with just a home page, to add your screens to."},
+    {"id": "listing", "label": "Home + Product listing", "description": "An app shell with a home page and a searchable, filterable listing over a REST source, with sample data until the API exists."}
   ],
   "languages": {
     "java": {
@@ -45,7 +45,7 @@
         "src/main/java/com/example/app/ProductStore.java",
         "src/main/java/com/example/app/Products.java"
       ],
-      "unmount": {"file": "src/main/java/com/example/app/Products.java", "removeLines": ["@UI(\"\")", "import io.mateu.uidl.annotations.UI;"]},
+      "unmount": {"removeFiles": ["src/main/java/com/example/app/Shell.java", "src/main/java/com/example/app/Home.java"]},
       "sampleRoute": {"route": "products", "label": "Products", "viewModel": "com.example.app.Products"},
       "specsDir": "src/main/resources/specs/ui",
       "sourceRoot": "src/main/java",
@@ -61,6 +61,7 @@
         {"from": "<artifactId>mateu-vaadin</artifactId>", "to": "<artifactId>${rendererArtifactId}</artifactId>"},
         {"from": "renderer: vaadin", "to": "renderer: ${renderer}"},
         {"from": "title: My app", "to": "title: ${appTitle}"},
+        {"from": "\"My app\"", "to": "\"${appTitle}\""},
         {"from": "<pageTitle>My app</pageTitle>", "to": "<pageTitle>${appTitle}</pageTitle>"},
         {"from": "__APP_TITLE__", "to": "${appTitle}"}
       ],
@@ -70,6 +71,7 @@
       "sampleFiles": [],
       "replacements": [
         {"from": "MateuStarter", "to": "${namespace}"},
+        {"from": "\"My app\"", "to": "\"${appTitle}\""},
         {"from": "__NUGET_VERSION__", "to": "${nugetVersion}"}
       ],
       "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "MateuStarter.csproj", "to": "${namespace}.csproj"}],
@@ -78,7 +80,8 @@
     "python": {
       "sampleFiles": [],
       "replacements": [
-        {"from": "__PYPI_VERSION__", "to": "${pypiVersion}"}
+        {"from": "__PYPI_VERSION__", "to": "${pypiVersion}"},
+        {"from": "\"My app\"", "to": "\"${appTitle}\""}
       ],
       "renames": [{"from": "gitignore", "to": ".gitignore"}],
       "overlays": ["standalone"]

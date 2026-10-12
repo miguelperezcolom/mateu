@@ -6,6 +6,9 @@ title: My app
 variant: MENU_ON_TOP
 menu:
   - type: RouteLink
+    label: Home
+    route: home
+  - type: RouteLink
     label: Products
     route: products
   # __MENU__
