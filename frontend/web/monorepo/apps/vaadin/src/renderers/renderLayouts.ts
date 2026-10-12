@@ -392,7 +392,10 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
     if (metadata.fullWidth) {
         style = style?'width: 100%;' + style:'width: 100%;'
     }
-    let opened = 0;
+    // The panel the wire marks active is the open one; with none marked, every panel starts
+    // closed — what AccordionPanel.active=false says, and what a folded "More options" panel
+    // (layout inference) means. vaadin-accordion's own default opens the first one.
+    let opened: number | null = null;
     if (component.children) {
         for (let i = 0; i < component.children.length; i++) {
             if (((component.children[i] as ClientSideComponent).metadata as any)?.active) {
@@ -405,7 +408,7 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
                <vaadin-accordion
                        style="align-self: stretch; min-width: 0; ${component.style ?? ''}"
                        class="${component.cssClasses}"
-                       opened="${opened}"
+                       .opened=${opened}
                        slot="${component.slot??nothing}"
                >
                    ${component.children?.map(child => renderAccordionPanel(container, child as ClientSideComponent, baseUrl, state, data, appState, appData, metadata.variant))}

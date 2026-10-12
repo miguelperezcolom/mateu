@@ -116,6 +116,11 @@ export function takeUndoToasts(effects) {
  *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
  *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
 export function bannerNotificationOf(toast) {
+  // a PageBanner an action returned (the reducer turns it into a toast marked `banner`): always
+  // the shell's message band, with its title AND description, until the user closes it
+  if (toast && toast.banner) {
+    return { summary: toast.text || '', message: toast.description || '', type: toast.variant || 'info', displayMode: 'persist' }
+  }
   if (!toast || (toast.variant !== 'error' && toast.variant !== 'warning')) return null
   return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
 }
@@ -125,7 +130,8 @@ export function undoMessageOf(toast) {
   return {
     severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
     summary: toast.text || '',
-    autoTimeout: 10000,
+    // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12)
+    autoTimeout: toast.variant === 'error' ? 'off' : 10000,
     closeAffordance: 'defaults',
   }
 }

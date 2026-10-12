@@ -36,6 +36,7 @@ import { shortcutMatchesEvent } from './shortcuts'
 import { resolveComponentState } from './common'
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import { needsComposedHeading } from "@infra/ui/composedHeading.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
@@ -349,6 +350,15 @@ export class MateuComponent extends ComponentElement {
                 // ComponentElement._keepEditedFieldValues.
                 this.adoptEditedState(detail.fieldId, newState)
 
+                // Once a submit has been refused, the errors follow the user's typing: a field the
+                // user fixes stops showing its error AS they fix it. Left until the field lost focus,
+                // the error vanished in the middle of the click on the submit button — the blur
+                // removed the message, the button jumped up under the pointer, and the click that
+                // should have submitted the fixed form landed on nothing.
+                if (this.data?._valid === false) {
+                    this.checkValidations()
+                }
+
                 if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
                     if (this.component?.confirmOnNavigationIfDirty) {
                         this.dispatchEvent(new CustomEvent('dirty', {
@@ -441,6 +451,10 @@ export class MateuComponent extends ComponentElement {
             _originElement?: Element,
             // set by the shell for an id IT declares: the catalogue must not answer it (owner first)
             skipCatalogue?: boolean
+            // an id the SERVER named in an answer to this component (an undoable toast's undo, a
+            // returned ConfirmDialog's buttons): it belongs to this component's server side even
+            // when the component never advertised it, since it did not exist when it rendered
+            serverNamed?: boolean
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
         // bubbles up to an ancestor component carries the original control in the detail —
@@ -471,6 +485,12 @@ export class MateuComponent extends ComponentElement {
                 ?? (detail.skipCatalogue || this.ancestorClaims(detail.actionId)
                     ? undefined
                     : getCatalogueAction(detail.actionId))
+                // the server named it in its answer to THIS component (see `serverNamed`): run it
+                // here — before, the undo of an undoable toast and the buttons of a returned
+                // ConfirmDialog bubbled out unclaimed and were lost
+                ?? (detail.serverNamed && detail.actionId && !this.ancestorClaims(detail.actionId)
+                    ? { id: detail.actionId } as Action
+                    : undefined)
 
             if (action) {
 
@@ -1166,6 +1186,7 @@ export class MateuComponent extends ComponentElement {
                     @close-modal-requested="${this.closeModalRequestedListener}"
                     @filter-reset-requested="${this.resetFilters}"
                     @action-requested="${this.actionRequestedListener}">
+            ${needsComposedHeading(this.component as never) ? html`<mateu-composed-heading></mateu-composed-heading>` : nothing}
             ${this.component?.children?.map(child => {
                 if (child.type == ComponentType.ClientSide) {
                     const clientChild = child as ClientSideComponent

@@ -171,6 +171,7 @@
   "askSomething": "Ask something…",
   "assistantFailed": "The assistant could not answer: {message}",
   "formatting": "Formatting",
+  "preview": "Preview",
   "rteBold": "Bold",
   "rteItalic": "Italic",
   "rteUnderline": "Underline",

@@ -66,19 +66,17 @@ final class FieldValueConverter {
 
   static Object convert(Object value, Class<?> targetType) throws Exception {
     if (value == null) {
-      return null;
+      // A cleared numeric control commits null. A primitive cannot hold it — setting it threw,
+      // hydration swallowed that and the field kept its initializer while the screen showed it
+      // empty — so it gets its zero, exactly as a blank string does below.
+      return zeroOf(targetType);
     }
     // Same rule as the read side (TypeCoercionHelper): a blank string aimed at anything that
     // is not a String is an absence, not a value, and parsing it would throw and be swallowed
     // by hydration — leaving the field holding exactly what the user just cleared, with
     // nothing on screen saying so. A primitive cannot hold an absence, so it gets its zero.
     if (value instanceof String string && string.isBlank() && !String.class.equals(targetType)) {
-      if (int.class.equals(targetType)) return 0;
-      if (long.class.equals(targetType)) return 0L;
-      if (float.class.equals(targetType)) return 0f;
-      if (double.class.equals(targetType)) return 0.0;
-      if (boolean.class.equals(targetType)) return false;
-      return null;
+      return zeroOf(targetType);
     }
     if (targetType.equals(value.getClass())) {
       return value;
@@ -196,5 +194,17 @@ final class FieldValueConverter {
             + " to "
             + targetType.getSimpleName()
             + " is not supported.");
+  }
+
+  /** What an absence becomes in a field of this type: null, or the primitive's zero. */
+  private static Object zeroOf(Class<?> targetType) {
+    if (int.class.equals(targetType)) return 0;
+    if (long.class.equals(targetType)) return 0L;
+    if (float.class.equals(targetType)) return 0f;
+    if (double.class.equals(targetType)) return 0.0;
+    if (short.class.equals(targetType)) return (short) 0;
+    if (byte.class.equals(targetType)) return (byte) 0;
+    if (boolean.class.equals(targetType)) return false;
+    return null;
   }
 }

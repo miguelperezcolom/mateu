@@ -43,6 +43,16 @@ export const routeCovers = (route: string, path: string): boolean =>
     !!route && route !== '/' && (path === route || path.startsWith(route + '/'))
 
 /** A remote section still waiting for (or given up on) its remote's menu. */
+/**
+ * The URL path of the root of the app served at `baseUrl`: `/back-office` for a non-root mount,
+ * `/` for the root one (and for a remote base url, which is not a path of this page).
+ */
+export const mountRootPath = (baseUrl: string | undefined | null): string => {
+    if (!baseUrl || baseUrl.includes('://')) return '/'
+    const path = '/' + baseUrl.replace(/^\/+|\/+$/g, '')
+    return path === '/' ? '/' : path
+}
+
 export const isMount = (option: MenuOption | undefined): boolean => !!option && !!option.remote
 
 /**

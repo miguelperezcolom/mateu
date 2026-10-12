@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextHistoryUrl, isScreenChange } from './navigationUrl'
+import { nextHistoryUrl, isScreenChange, routeTargetUrl } from './navigationUrl'
 
 const at = (url: string) => {
     const [pathname, search] = url.split('?')
@@ -59,5 +59,34 @@ describe('isScreenChange', () => {
     })
     it('is not a screen change with no previous url', () => {
         expect(isScreenChange(undefined, { pathname: '/x', search: '' })).toBe(false)
+    })
+})
+
+describe('routeTargetUrl', () => {
+    const origin = 'http://localhost:8080'
+    const path = (u: URL) => u.pathname + u.search
+
+    it('keeps a deep-linked listing on its own path — a query-only route is the same mount', () => {
+        // the bug: /books?genre=NOVEL became /books/books?genre=NOVEL on opening
+        expect(path(routeTargetUrl('?genre=NOVEL', '/books', '/books', origin))).toBe('/books?genre=NOVEL')
+    })
+
+    it('resolves a query-only route at the root mount', () => {
+        expect(path(routeTargetUrl('?q=x', '', '', origin))).toBe('/?q=x')
+    })
+
+    it('resolves an absolute route against the mount', () => {
+        expect(path(routeTargetUrl('/3/edit', '/books', '/books', origin))).toBe('/books/3/edit')
+        expect(path(routeTargetUrl('', '/books', '/books', origin))).toBe('/books')
+    })
+
+    it('resolves the mount itself to the mount — a crud back on its listing', () => {
+        // the bug: after a delete or a bulk action the address bar became /products/products
+        expect(path(routeTargetUrl('/products', '/products', '/products', origin))).toBe('/products')
+        expect(path(routeTargetUrl('/products?page=1', '/products', '/products', origin))).toBe('/products?page=1')
+    })
+
+    it('resolves an absolute route that already carries the mount', () => {
+        expect(path(routeTargetUrl('/books/3', '/books', '/books', origin))).toBe('/books/3')
     })
 })

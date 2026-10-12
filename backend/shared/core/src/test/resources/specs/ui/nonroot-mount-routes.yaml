@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of a CLASS-declared NON-ROOT mount (@UI("/nrm"), NonRootMountRoutesSyncTest). The
+# browser on /nrm/orders posts route=/orders to /nrm/mateu/..., i.e. relative to the mount, while
+# this table is absolute (prefixed with nrm/ on load): resolution has to bridge the two.
+type: Routes
+basePath: /nrm
+routes:
+
+  - route: orders/pending
+    viewModel: io.mateu.core.application.NonRootMountRoutesSyncTest$Orders
+    fixedParams:
+      status: pending
+
+  - route: orders
+    viewModel: io.mateu.core.application.NonRootMountRoutesSyncTest$Orders
+    defaultParams:
+      status: open
+
+  - route: customers/:customerId
+    viewModel: io.mateu.core.application.NonRootMountRoutesSyncTest$CustomerMaster
+    defaultChild: orders
+    children:
+      - route: orders
+        viewModel: io.mateu.core.application.NonRootMountRoutesSyncTest$CustomerOrders
+      - route: notes
+        viewModel: io.mateu.core.application.NonRootMountRoutesSyncTest$CustomerNotes

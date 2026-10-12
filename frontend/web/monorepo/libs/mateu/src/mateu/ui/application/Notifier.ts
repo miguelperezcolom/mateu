@@ -32,6 +32,14 @@ export interface ToastMessage {
     onAction?: () => void
 }
 
+/**
+ * How long a toast stays, in ms (0 = until dismissed). An ERROR stays until the user dismisses it,
+ * whatever duration it arrived with — in every renderer and backend (owner, 2026-10-12): read in
+ * three seconds and gone, the reason a save failed was often never seen.
+ */
+export const toastDuration = (message: ToastMessage, fallback: number): number =>
+    message.variant === 'error' ? 0 : (message.duration ?? fallback)
+
 export interface Notifier {
     /**
      * Show a toast. When {@link ToastMessage.undoActionId} is set, the toast carries an Undo

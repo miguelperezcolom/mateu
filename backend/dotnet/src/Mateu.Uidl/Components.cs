@@ -1102,6 +1102,83 @@ public sealed record Text(string Content) : ComponentBase
 /// layout. Declaratively, mark a property with [SeparatorBefore] to paint one above it.</summary>
 public sealed record Separator : ComponentBase;
 
+/// <summary>Formatted text written in Markdown.</summary>
+public sealed record Markdown : ComponentBase
+{
+    public string MarkdownText { get; init; } = "";
+}
+
+/// <summary>An image, by url or data URI.</summary>
+public sealed record Image : ComponentBase
+{
+    public string Src { get; init; } = "";
+}
+
+/// <summary>A small status chip (Color: normal | success | error | warning | contrast).</summary>
+public sealed record Badge : ComponentBase
+{
+    public string Text { get; init; } = "";
+    public string? IconOnLeft { get; init; }
+    public string? IconOnRight { get; init; }
+    public string? Color { get; init; }
+    public bool Primary { get; init; }
+    public bool Small { get; init; }
+    public bool Pill { get; init; }
+}
+
+/// <summary>A person's picture, or their initials.</summary>
+public sealed record Avatar : ComponentBase
+{
+    public string? Name { get; init; }
+    public string? Abbreviation { get; init; }
+    public string? Image { get; init; }
+}
+
+/// <summary>Overlapping avatars; beyond MaxItemsVisible (0 = all) the rest show as +N.</summary>
+public sealed record AvatarGroup : ComponentBase
+{
+    public IReadOnlyList<Avatar> Avatars { get; init; } = [];
+    public int MaxItemsVisible { get; init; }
+}
+
+public sealed record ChartDataset
+{
+    public string? Label { get; init; }
+    public IReadOnlyList<double> Data { get; init; } = [];
+}
+
+public sealed record ChartData
+{
+    public IReadOnlyList<string> Labels { get; init; } = [];
+    public IReadOnlyList<ChartDataset> Datasets { get; init; } = [];
+}
+
+/// <summary>A chart (ChartType: bar | line | pie | doughnut | radar | polarArea | scatter | bubble).</summary>
+public sealed record Chart : ComponentBase
+{
+    public string ChartType { get; init; } = "bar";
+    public ChartData? ChartData { get; init; }
+    public IReadOnlyDictionary<string, object?>? ChartOptions { get; init; }
+}
+
+/// <summary>A BPMN 2.0 diagram from its XML (read-only).</summary>
+public sealed record Bpmn : ComponentBase
+{
+    public string Xml { get; init; } = "";
+}
+
+/// <summary>A progress bar: Value between Min and Max (or the state at ValueKey).</summary>
+public sealed record ProgressBar : ComponentBase
+{
+    public double Value { get; init; }
+    public double Min { get; init; }
+    public double Max { get; init; } = 1;
+    public bool Indeterminate { get; init; }
+    public string? ValueKey { get; init; }
+    public string? Text { get; init; }
+    public string? Theme { get; init; }
+}
+
 /// <summary>A hyperlink. Target "_blank" opens in a new tab (the renderer adds rel=noopener).
 /// (C# analogue of io.mateu.uidl.data.Anchor.)</summary>
 public sealed record Anchor(string Text, string Url) : ComponentBase

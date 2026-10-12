@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { toastLifetime } from '../core/toastLifetime';
 import { useAppContext } from '../context/AppContext';
 import { loadFailureMessage } from '../core/uxRules';
 import { theme } from '../theme';
@@ -44,9 +45,10 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
     session.notify = (title, text, variant, options) => {
       const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo };
       setToasts((t) => [...t, toast]);
-      // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed
-      const duration = options?.duration && options.duration > 0 ? options.duration : options?.undo ? 10000 : 4000;
-      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
+      // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed;
+      // an error stays until dismissed (toastLifetime)
+      const duration = toastLifetime(variant, options);
+      if (duration > 0) setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
     };
   }, [session]);
 
@@ -69,6 +71,16 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
                 }}
               >
                 <Text style={styles.toastUndoText}>{t.undo.label}</Text>
+              </TouchableOpacity>
+            )}
+            {toastLifetime(t.variant) === 0 && (
+              <TouchableOpacity
+                style={styles.toastUndo}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss"
+                onPress={() => dismiss(t.id)}
+              >
+                <Text style={styles.toastUndoText}>✕</Text>
               </TouchableOpacity>
             )}
           </View>

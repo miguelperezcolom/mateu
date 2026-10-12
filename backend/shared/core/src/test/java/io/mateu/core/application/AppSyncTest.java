@@ -302,13 +302,12 @@ class AppSyncTest {
   }
 
   @Test
-  void r2_anAppWithoutAnExplicitHomeCarriesTheNoHomeRouteSentinel() {
-    // An app that declares only @Menu items (no HomeRouteSupplier) carries the `_no_home_route`
-    // sentinel on the wire; the "home defaults to the first menu item" resolution happens later, in
-    // AppHomeRouteResolver.getHomeRoute at render time — not in this AppDto field. R2 should make
-    // the default uniform (the home is just the first menu item's Screen everywhere).
-    assertThat(appOf("/tabsapp").homeRoute()).isEqualTo("_no_home_route");
-    assertThat(appOf("/shop").homeRoute()).isEqualTo("_no_home_route");
+  void anAppWithoutAnExplicitHomeLandsOnItsFirstMenuItem() {
+    // An app that declares only @Menu items (no HomeRouteSupplier) lands on its FIRST menu item —
+    // the documented rule, on the wire so every renderer follows it (it used to carry the
+    // "_no_home_route" sentinel and only Redwood applied the rule, client-side).
+    assertThat(appOf("/tabsapp").homeRoute()).isEqualTo("/tabsapp/alpha");
+    assertThat(appOf("/shop").homeRoute()).isNotEqualTo("_no_home_route").startsWith("/shop/");
   }
 
   @Test

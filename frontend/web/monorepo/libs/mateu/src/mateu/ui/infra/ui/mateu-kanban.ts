@@ -1,8 +1,9 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import KanbanColumn from "@mateu/shared/apiClients/dtos/componentmetadata/KanbanColumn";
 import KanbanCard from "@mateu/shared/apiClients/dtos/componentmetadata/KanbanCard";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
@@ -120,7 +121,7 @@ export class MateuKanban extends LitElement {
                             <span class="count">${column.cards?.length ?? 0}</span>
                         </div>
                         ${(column.cards ?? []).map(card => html`
-                            <div role="button" tabindex="0" class="card ${card.actionId ? 'clickable' : ''}"
+                            <div role=${ifDefined(buttonRole(!!card.actionId))} tabindex=${ifDefined(tabStop(!!card.actionId))} class="card ${card.actionId ? 'clickable' : ''}"
                                  style="${card.color ? `--mateu-kanban-card-accent: ${card.color};` : ''}"
                                  @click="${() => this.clickCard(card)}" @keydown="${onActivate(() => this.clickCard(card))}">
                                 <span class="card-title">${card.title}</span>

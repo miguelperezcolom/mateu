@@ -38,8 +38,30 @@ export function taskQueueOf(tree) {
   // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
   // es contenido, y el detalle que llega al elegir se pinta a su lado
   if (!node || node.slot) return null
+  // …ni una cola que es UNA pieza más de una página con otro contenido: el modo cola pinta la
+  // cola + el detalle y NADA más, así que una página con una TaskQueue entre gráficos, tableros,
+  // calendarios… perdía todo lo demás (sólo quedaban la cola y un «Nothing here»)
+  if (holdsOtherContent(tree, true)) return null
   return queueProjectionOf(node.metadata)
 }
+
+/** Whether the page (not counting the detail island, a nested ServerSide) has a component that is
+ *  not part of a work-queue page. */
+function holdsOtherContent(n, root) {
+  if (!n || typeof n !== 'object') return false
+  if (!root && n.type === 'ServerSide') return false
+  const t = n.metadata && n.metadata.type
+  if (t && !QUEUE_PAGE_TYPES.has(t)) return true
+  const inner = n.metadata && n.metadata.content
+  return (n.children || []).some((c) => holdsOtherContent(c, false))
+    || (Array.isArray(inner) ? inner.some((c) => holdsOtherContent(c, false)) : holdsOtherContent(inner, false))
+}
+
+/** What a work-queue PAGE is made of (the front-office check-in queue): the queue, the detail
+ *  placeholder or island, the layouts and fields that hold them. Anything else is other content. */
+const QUEUE_PAGE_TYPES = new Set(['TaskQueue', 'EmptyState', 'Page', 'VerticalLayout', 'HorizontalLayout',
+  'FormLayout', 'FormRow', 'FormItem', 'FormField', 'FormSection', 'FormSubSection', 'CustomField', 'Card',
+  'Text', 'Button', 'Div', 'Container', 'Scroller', 'FullWidth', 'Separator', 'Badge'])
 
 /** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
 export function queueProjectionOf(md) {
@@ -84,7 +106,10 @@ export const pageEmptyStateNode = (tree) => {
     for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
   }
   findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
-  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+  // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
+  // was lost — such an empty state is content, painted with its action
+  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+    && !n.metadata.actionId))
 }
 export function emptyStateOf(tree) {
   const node = pageEmptyStateNode(tree)
@@ -880,13 +905,20 @@ export function islandContentOf(ctx, opts = {}) {
       // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
       // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
       const noticeText = interp(m.text)
-      if (!noticeText.trim() && !kidsOf(node).length) return
+      const kids = kidsOf(node)
+      if (!noticeText.trim() && !kids.length) return
+      const holdsButtons = (k) => collectButtons(k, []).length > 0
+      // its own right-aligned action (actionLabel + actionId) first, then the Buttons of its
+      // content (the band's actions); content WITHOUT buttons (any component) follows the band —
+      // the own action and that content used to be dropped: only the buttons survived
+      const own = m.actionId ? [buttonOf({ actionId: m.actionId, label: m.actionLabel || m.actionId })] : []
       atom({
         isNotice: true,
         text: noticeText,
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
-        buttons: collectButtons({ children: kidsOf(node) }, []),
+        buttons: [...own, ...collectButtons({ children: kids }, [])],
       }, container)
+      for (const child of kids) if (!holdsButtons(child)) visit(child, container)
       return
     }
     if (t === 'Markdown') {
@@ -1244,6 +1276,8 @@ export function islandContentOf(ctx, opts = {}) {
         label: m.label || '',
         value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
       }, container)
+      // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
+      if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
       return
     }
     if (t === 'Button') {
@@ -1428,6 +1462,33 @@ function hasFormField(node, isRoot = true) {
  *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
  *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
  *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+/**
+ * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
+ * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
+ * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
+ * editable grid had no way to submit. Actions a block already draws are not repeated.
+ */
+export function withFormActions(blocks, actions) {
+  if (!blocks || !blocks.length) return blocks
+  const drawn = {}
+  for (const block of blocks) {
+    for (const atom of block.items || []) {
+      if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+    }
+  }
+  const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+  if (!missing.length) return blocks
+  const buttons = missing.map((a) => ({
+    actionId: a.actionId,
+    label: a.label || a.actionId,
+    disabled: !!a.disabled,
+    chroming: a.chroming || 'outlined',
+    parameters: a.parameters || {},
+    ...(a.route ? { route: a.route } : {}),
+  }))
+  return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+}
+
 export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
@@ -1577,10 +1638,20 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
   const title = opts.title || ''
   let titleDropped = false
   let entityDropped = false
+  // a wizard step's forward button (Next, or the completion on the last step) rides the guided
+  // process footer (Continue): when the row also carries a Draftable's Save / Save and close, the
+  // row stayed whole and the step showed Next AND Continue (Check in twice on the last step).
+  // The row keeps Back and those side actions; the forward one leaves it.
+  const isSide = (b) => b.actionId === 'back' || WIZARD_SIDE_ACTIONS[b.actionId]
+  const withoutWizardNav = (atom) => (opts.forWizard && !opts.keepWizardNav && atom && atom.isButtons
+    && (atom.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next')
+    && (atom.buttons || []).some((b) => b.actionId !== 'back' && WIZARD_SIDE_ACTIONS[b.actionId])
+    ? { ...atom, wizardSideRow: true, buttons: atom.buttons.filter(isSide) }
+    : atom)
   merged = merged
     .map((block) => ({
       ...block,
-      items: block.items.filter((atom) => {
+      items: block.items.map(withoutWizardNav).filter((atom) => {
         // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
         if (!titleDropped && atom.isText && title && atom.text === title) {
           titleDropped = true
@@ -1606,7 +1677,7 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
           // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
           // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
-          if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+          if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
               && atom.buttons.some((b) => b.actionId === 'back')
               && !atom.buttons.some((b) => b.actionId === 'next')) return false
         }
@@ -1631,6 +1702,8 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
 /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
  *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
  *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
+
 export function wizardForwardOf(ctx) {
   const blocks = islandContentOf(ctx)
   if (!blocks) return null
@@ -1639,7 +1712,10 @@ export function wizardForwardOf(ctx) {
     for (const atomItem of block.items) {
       if (!atomItem.isButtons) continue
       const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
-      const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+      // Next when the row has it; else the completion — never a Draftable's Save / Save and
+      // close or Skip, which sit in the same row (Continue saved the draft instead of advancing)
+      const candidate = atomItem.buttons.find((b) => b.actionId === 'next')
+        || atomItem.buttons.find((b) => !WIZARD_SIDE_ACTIONS[b.actionId])
       if (candidate && (hasBack || candidate.actionId === 'next')) {
         forward = { actionId: candidate.actionId, label: candidate.label }
       }

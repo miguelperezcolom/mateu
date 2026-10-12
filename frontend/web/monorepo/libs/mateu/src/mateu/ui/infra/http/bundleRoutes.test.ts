@@ -47,6 +47,15 @@ describe('shipped route registry', () => {
         expect(state.page).toBe(1) // nobody supplied it, so the default stands
     })
 
+    it('seeds the route\'s `state:` at the defaults\' level (it was shipped and ignored)', () => {
+        __setBundleForTests(undefined, [], [
+            { route: 'yaml-page', state: { number: '4471', notes: 'Two chairs' } },
+        ] as never)
+        const state = stateOf(applyRouteParams('yaml-page', incrementWith({ notes: 'typed' })))
+        expect(state.number).toBe('4471')
+        expect(state.notes).toBe('typed') // what the increment carries wins over a seed
+    })
+
     it('reads path params off a parameterised route', () => {
         __setBundleForTests(undefined, [], [{ route: 'orders/:id' }])
         expect(stateOf(applyRouteParams('orders/42', incrementWith({})))).toMatchObject({ id: '42' })

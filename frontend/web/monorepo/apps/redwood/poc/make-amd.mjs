@@ -101,6 +101,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   defineCaptureField();
   // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
   defineRichTextField();
+  defineMarkupField();
   defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
@@ -208,6 +209,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setRulesContext,
     setRuleActionSink,
     valueChangeActionOf,
+    committedValueOf,
     triggerDownload,
     autoTrail,
     parentCrumb,
@@ -219,6 +221,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
     tabStripOf,
@@ -227,6 +230,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
     hostContentShown,
+    withFormActions,
     withSubresources,
     loadSubresources,
     appLevelOf,
@@ -258,6 +262,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     splitListingQuery,
     listingQueryOf,
     listingUrlOf,
+    listingUrlPagingOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -282,6 +287,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     confirmationOf,
     awaitConfirmation,
     answerConfirmation,
+    returnedConfirmDialogsOf,
     selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,
@@ -422,6 +428,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     announce,
     announceNavigation,
     focusIsInChat,
+    overlayIsOpen,
     focusContent,
     focusContentSoon,
     mountSkipLink,

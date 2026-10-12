@@ -57,7 +57,7 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | Annotation | Target | Description |
 |---|---|---|
 | [`@FormLayout`](layout/) | Class | Renders a multi-column form layout |
-| [`@FoldedLayout`](layout/) | Class | Renders each `@Section` as a collapsible panel |
+| [`@FoldedLayout`](layout/) | Class | Lays the `@Section` cards side by side, one column each, instead of stacking them |
 | [`@Compact`](layout/) | Class | High-density mode — tighter spacing and smaller controls |
 | [`@Zones` / `@Zone`](layout/) | Class | Declares side-by-side column zones for sections |
 | [`@Inline`](layout/) | Field | Expands a nested type's fields into the parent section inline |

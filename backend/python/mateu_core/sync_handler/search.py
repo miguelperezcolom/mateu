@@ -260,7 +260,13 @@ class SearchHandlerMixin(MixinBase):
         # The GroupBy() column is the implicit primary sort, so rows of the same group stay
         # contiguous in the listing (the user's own sort applies within groups; mirrors Java's
         # ListingSummarySpec.prependGroupSort).
-        sort = self._prepend_group_sort(list(state.get("sort") or []), spec)
+        # the grid sends {fieldId, direction} (the Sort record's own shape is {field, …}): reading
+        # only "field" dropped every sort a user clicked on a crud header
+        user_sort = [
+            {"field": s.get("field") or s.get("fieldId") or "", "direction": s.get("direction", "ascending")}
+            for s in (state.get("sort") or []) if isinstance(s, dict)
+        ]
+        sort = self._prepend_group_sort(user_sort, spec)
 
         # Database pushdown: an overridden find runs search+filter+sort+paginate as one query
         # and returns the page with its real total — skip the in-memory pipeline entirely

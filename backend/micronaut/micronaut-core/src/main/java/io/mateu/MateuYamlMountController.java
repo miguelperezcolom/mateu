@@ -10,7 +10,6 @@ import io.mateu.dtos.UIIncrementDto;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.condition.Condition;
 import io.micronaut.context.condition.ConditionContext;
-import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -28,22 +27,42 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * The YAML-mount surface ({@link YamlMounts}) on Micronaut: an SPA shell and a sync/SSE endpoint
- * per {@code type: UI} mount, for a deployment with no Java {@code @UI}. Only exists when the
- * classpath declares such a mount AND there is no generated controller (exactly like the Spring
- * adapters, which stand down as soon as a {@code @UI} exists).
+ * The YAML-mount API ({@link YamlMounts}) on Micronaut: the sync/SSE endpoints and the mobile
+ * manifest of every {@code type: UI} mount, served NEXT to the generated {@code @UI} controllers
+ * (only a base path a class already serves is left to the class). The mounts' SPA shell is {@link
+ * MateuYamlMountIndexController}, a separate bean because a ROOT {@code @UI}'s generated catch-all
+ * index already answers every path — the YAML deep links included ({@link
+ * YamlMounts#deepLinkIndex}) — while this API has no such stand-in: with a root {@code @UI} the
+ * mount's own {@code POST <base>/mateu/v3/…} answered 405 and its shell never rendered.
  */
 @Controller
 @Requires(condition = MateuYamlMountController.Present.class)
 public class MateuYamlMountController {
 
-  /** A {@code type: UI} mount on the classpath and no generated Mateu controller. */
+  /** A {@code type: UI} mount on the classpath. */
   public static class Present implements Condition {
     @Override
     public boolean matches(ConditionContext context) {
-      var classLoader = context.getBeanContext().getClassLoader();
-      return YamlMounts.present(classLoader)
-          && context.getBeanContext().getBeanDefinitions(MateuController.class).isEmpty();
+      return YamlMounts.present(context.getBeanContext().getClassLoader());
+    }
+  }
+
+  /**
+   * {@link Present} and no generated ROOT Mateu controller: a root {@code @UI}'s catch-all index
+   * and the YAML shell's would be equally specific, and that root index answers the YAML mounts'
+   * deep links itself ({@link YamlMounts#deepLinkIndex}).
+   */
+  public static class NoRootUi implements Condition {
+    @Override
+    public boolean matches(ConditionContext context) {
+      return new Present().matches(context)
+          && context.getBeanContext().getBeanDefinitions(MateuController.class).stream()
+              .noneMatch(
+                  definition ->
+                      definition
+                          .stringValue(io.micronaut.http.annotation.Controller.class)
+                          .map(path -> "/mateu".equals(path) || "mateu".equals(path))
+                          .orElse(false));
     }
   }
 
@@ -59,34 +78,20 @@ public class MateuYamlMountController {
     this.yamlAppLoader = yamlAppLoader;
   }
 
-  private List<YamlMounts.Mount> mounts() {
+  /** The mounts this deployment serves as YAML (a base path a class serves is left to it). */
+  public List<YamlMounts.Mount> mounts() {
     if (mounts == null) {
-      mounts = YamlMounts.mounts(routeRegistry, yamlAppLoader);
+      // served next to the @UI classes: a base path a class already serves is left to it
+      mounts =
+          YamlMounts.notServedByClasses(
+              YamlMounts.mounts(routeRegistry, yamlAppLoader),
+              io.mateu.uidl.di.MateuBeanProvider.isInitialized()
+                  ? io.mateu.uidl.di.MateuBeanProvider.getBeans(MateuController.class).stream()
+                      .map(MateuController::getBaseUrl)
+                      .toList()
+                  : List.of());
     }
     return mounts;
-  }
-
-  @Get(
-      uris = {"/", "/{+path:(?!.*mateu/v3/manifest$)[^.]*}"},
-      produces = MediaType.TEXT_HTML)
-  @ExecuteOn(TaskExecutors.BLOCKING)
-  public HttpResponse<String> index(@PathVariable("path") @Nullable String path) {
-    String requested = "/" + (path == null ? "" : path);
-    YamlMounts.Mount best = null;
-    for (var mount : mounts()) {
-      var spa = mount.spaPath();
-      boolean owns =
-          "/".equals(spa)
-              || requested.equals(spa)
-              || (requested.startsWith(spa + "/") && !requested.contains("/mateu/"));
-      if (owns && (best == null || spa.length() > best.spaPath().length())) {
-        best = mount;
-      }
-    }
-    if (best == null || requested.contains("/mateu/")) {
-      return HttpResponse.status(HttpStatus.NOT_FOUND);
-    }
-    return HttpResponse.ok(best.indexHtml()).contentType(MediaType.TEXT_HTML_TYPE);
   }
 
   /**
@@ -108,7 +113,10 @@ public class MateuYamlMountController {
     return response.contentType(MediaType.APPLICATION_JSON_TYPE);
   }
 
-  @Post("/{+path:(?!.*mateu/v3/sse/).*mateu/v3/.*}")
+  // client-log is excluded: served next to the generated controllers, this catch-all would be
+  // Micronaut's pick for a class's POST <base>/mateu/v3/client-log (both match, and only this one
+  // explicitly consumes JSON — the generated route consumes ALL) and answer it empty, a 404.
+  @Post("/{+path:(?!.*mateu/v3/sse/)(?!.*mateu/v3/client-log$).*mateu/v3/.*}")
   public Mono<UIIncrementDto> sync(
       @PathVariable("path") String path, @Body RunActionRqDto rq, HttpRequest<?> request)
       throws Throwable {

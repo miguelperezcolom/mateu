@@ -105,12 +105,22 @@ export function foldoutSummaryOf(slotNode) {
  *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
  *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
  *  tren de 4-5 rótulos no cabe en un móvil). */
+/** Whether some component of the tree advertises (or a button runs) the wizard's `next`. */
+function advertisesNext(tree) {
+  return !!findFirst(tree, (n) => (Array.isArray(n.actions) && n.actions.some((a) => a && a.id === 'next'))
+    || (n.metadata && n.metadata.type === 'Button' && n.metadata.actionId === 'next'))
+}
+
 /** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
 export const WIZARD_DONE_STEP = '_completed'
 
 export function wizardOf(ctx) {
   const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
   if (!node) return null
+  // A ProgressSteps is also a plain DISPLAY component (an order tracker): a page with one is a
+  // wizard only when something on it can step it — a Wizard always advertises `next`. Without
+  // this every page showing progress steps got the guided-process chrome and lost its ProgressBar.
+  if (!advertisesNext(ctx.tree)) return null
   const md = node.metadata
   const wire = md.steps || []
   const current = wire.find((s) => s.status === 'current')

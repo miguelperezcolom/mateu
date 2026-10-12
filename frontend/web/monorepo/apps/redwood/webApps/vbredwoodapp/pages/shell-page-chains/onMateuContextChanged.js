@@ -39,12 +39,23 @@ define([
             ? Object.assign({}, selector, { value: appState[fieldName] })
             : selector);
 
+      // the selectors array was just replaced: the drawer re-renders its pickers and the focus
+      // fell to <body> — Escape no longer closed the drawer and a keyboard user was lost behind its
+      // scrim. Give it back to the picker just changed.
+      const refocus = () => {
+        const picker = document.querySelector(`oj-select-one[data-field="${fieldName}"]`);
+        if (picker && typeof picker.focus === 'function') picker.focus();
+      };
+      setTimeout(refocus, 0);
+
       const route = $application.variables.mateuSelectedRoute;
       if (route) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: route } }, force: true },
         });
+        // the reload may have redrawn the drawer again
+        refocus();
       }
     }
   }

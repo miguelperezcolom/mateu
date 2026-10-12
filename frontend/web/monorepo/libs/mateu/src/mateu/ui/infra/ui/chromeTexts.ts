@@ -70,6 +70,7 @@ const en = {
     remove: 'Remove',
     delete: 'Delete',
     edit: 'Edit',
+    preview: 'Preview',
     add: 'Add',
     select: 'Select',
     view: 'View',
@@ -242,6 +243,8 @@ const en = {
     idleStay: 'Stay signed in',
     idleSignOut: 'Sign out',
     idleSigningOut: 'Signing out…',
+    // a diagram (Bpmn) the viewer could not import
+    diagramUnavailable: 'This diagram cannot be displayed: {reason}',
 }
 
 type Catalogue = Record<keyof typeof en, string>
@@ -300,6 +303,7 @@ const es: Catalogue = {
     remove: 'Quitar',
     delete: 'Eliminar',
     edit: 'Editar',
+    preview: 'Vista previa',
     add: 'Añadir',
     select: 'Seleccionar',
     view: 'Ver',
@@ -459,6 +463,7 @@ const es: Catalogue = {
     idleStay: 'Seguir conectado',
     idleSignOut: 'Cerrar sesión',
     idleSigningOut: 'Cerrando sesión…',
+    diagramUnavailable: 'Este diagrama no se puede mostrar: {reason}',
 }
 
 const TEXTS: Record<'en' | 'es', Catalogue> = { en, es }

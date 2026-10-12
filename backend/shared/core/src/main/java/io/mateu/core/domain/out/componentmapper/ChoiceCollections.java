@@ -14,8 +14,8 @@ import java.util.Set;
  * ({@code @Stereotype(multiSelect | checkbox | listBox | combobox | choice)}): ONE form field whose
  * options are the enum constants and whose value is the list of the chosen ones — e.g. a guest's
  * room preferences. Without this a {@code List<Enum>} became a grid (a crud of enum values) and a
- * {@code Set<Enum>} a nested form with nothing in it, so the field silently disappeared. Only an
- * explicit stereotype opts in: an undeclared collection keeps its previous rendering.
+ * {@code Set<Enum>} a nested form with nothing in it, so the field silently disappeared. With no
+ * stereotype it is a multi-select; another explicit stereotype (e.g. {@code grid}) keeps its own.
  */
 public final class ChoiceCollections {
 
@@ -32,7 +32,9 @@ public final class ChoiceCollections {
   public static boolean isChoiceCollection(Field field) {
     if (elementEnum(field) == null) return false;
     var stereotype = MetaAnnotations.find(field, Stereotype.class);
-    return stereotype != null && MULTI_CHOICE.contains(stereotype.value());
+    // no stereotype: a multi-select by default (owner, 2026-10-12) — an undeclared List<Enum>
+    // rendered as a grid of the constants' Name/Ordinal/Hash
+    return stereotype == null || MULTI_CHOICE.contains(stereotype.value());
   }
 
   /** The enum type of the elements, or null when the field is not a collection of enums. */

@@ -41,7 +41,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   const pressDay = (date: string) => void controller.runAction(meta.dayActionId!, { ...dayParameters(date) });
 
   /** A date-bearing box: a button when the day is actionable, else a plain view still named for screen readers. */
-  const dayBox = (date: string, style: object, children: React.ReactNode, key?: string) =>
+  const dayBox = (date: string, style: object | null, children: React.ReactNode, key?: string) =>
     dayActionable ? (
       <TouchableOpacity key={key} {...buttonA11y({ label: dayA11yLabel(meta, date) })} style={style} onPress={() => pressDay(date)}>
         {children}
@@ -89,16 +89,23 @@ export function CalendarRenderer({ component }: { component: unknown }) {
           {week.map((date, i) => {
             if (!date) return <View key={i} style={[styles.monthCell, styles.monthCellEmpty]} />;
             const events = eventsOn(meta, date);
-            return dayBox(date, [styles.monthCell, toneStyle(date)], (
-              <>
-                <Text style={styles.dayNumber}>{dayOfMonth(date)}</Text>
-                {dayLabel(date)}
+            // the day's own button holds only its number and label; the event chips (buttons too)
+            // are its SIBLINGS — a button inside a button is invalid (react-native-web warned) and
+            // a press on a chip also opened the day
+            return (
+              <View key={date} style={[styles.monthCell, toneStyle(date)]}>
+                {dayBox(date, null, (
+                  <>
+                    <Text style={styles.dayNumber}>{dayOfMonth(date)}</Text>
+                    {dayLabel(date)}
+                  </>
+                ))}
                 {events.slice(0, MONTH_CELL_EVENTS).map((e, j) => eventChip(e, `${e.id ?? j}`, true))}
                 {events.length > MONTH_CELL_EVENTS && (
                   <Text style={styles.more}>+{events.length - MONTH_CELL_EVENTS}</Text>
                 )}
-              </>
-            ), date);
+              </View>
+            );
           })}
         </View>
       ))}

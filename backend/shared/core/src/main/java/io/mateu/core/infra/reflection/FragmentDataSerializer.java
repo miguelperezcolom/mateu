@@ -31,7 +31,11 @@ final class FragmentDataSerializer {
     return fragment.component() != null
         && fragment.component() instanceof ClientSideComponentDto
         && (((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto
-            || ((ClientSideComponentDto) fragment.component()).metadata() instanceof DrawerDto);
+            || ((ClientSideComponentDto) fragment.component()).metadata() instanceof DrawerDto
+            // a ConfirmDialog returned by an action stacks on the page like a Dialog — as a
+            // Replace it swapped the whole page for a dialog that was never opened (blank page)
+            || ((ClientSideComponentDto) fragment.component()).metadata()
+                instanceof io.mateu.dtos.ConfirmDialogDto);
   }
 
   static Object toMap(Object data) {

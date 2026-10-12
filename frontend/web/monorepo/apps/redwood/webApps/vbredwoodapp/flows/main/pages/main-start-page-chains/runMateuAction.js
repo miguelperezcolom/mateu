@@ -157,9 +157,10 @@ define([
       // del foldout: comparar referencias/uuids no vale (proxies de VB, uuids estables).
       let hostRepainted = false;
       const touchesHost = bridge.touchesHost;
-      let lastIncrement = null;
+      let lastIncrement = null; const returnedConfirms = []; // ConfirmDialogs RETURNED: asked below
       const applyInc = (inc) => {
         lastIncrement = inc;
+        returnedConfirms.push(...bridge.returnedConfirmDialogsOf(inc));
         reg = bridge.reduceContexts(reg, inc);
         bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
@@ -316,6 +317,14 @@ define([
 
       $application.variables.mateuRegistry = reg;
 
+      if (returnedConfirms.length && !hostRepainted) { // a RETURNED ConfirmDialog: ask, run the pick
+        const ask = $page.variables.mateuConfirm = returnedConfirms[returnedConfirms.length - 1];
+        const answer = bridge.awaitConfirmation();
+        await Actions.callComponentMethod(context, { selector: '#mateuConfirm', method: 'open' });
+        const chosen = (await answer) ? ask.confirmActionId : ask.denyActionId; if (chosen) await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: chosen } });
+        return;
+      }
+
       // Una respuesta que SÓLO trae mensajes (p.ej. el «falta la tarifa» con el que un wizard
       // no deja salir del paso) no cambia la pantalla: re-proyectarla volvía a pintar el
       // formulario con el estado del servidor y se llevaba lo que el usuario había escrito.
@@ -413,12 +422,9 @@ define([
       assign(bridge.listHeaderVarsOf(listingSummary));
       // the floating action buttons (@Fab) of the page and of the app
       vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
-      const summary = bridge.summarizeHost(reg, route);
-      // dentro de un maestro (P1): la cabecera lleva su título cuando la pestaña no trae uno
-      const levels = reg.appLevels || [];
-      if (!summary.title && levels.length) {
-        summary.title = levels[levels.length - 1].title;
-      }
+      // dentro de un maestro (P1) la cabecera lleva el título del MAESTRO (el registro) y el
+      // rótulo propio de la pestaña pasa al subtítulo (withinAppLevels)
+      const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);
       vars.mateuHostTitle = summary.title;
       vars.mateuHostText = summary.text;
       vars.mateuFormMetadata = summary.formMetadata;
@@ -526,7 +532,8 @@ define([
       const gop2 = bridge.generalOverviewPageOf(hostEntity2, hostBlocks2);
       vars.mateuGop = gop2;
       const gopOn2 = gop2.on;
-      vars.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
+      // el form genérico se suprime: sus botones (@Button del form) van con los bloques
+      vars.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions) : null) || [];
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el

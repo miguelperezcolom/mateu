@@ -25,6 +25,9 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
 | Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | ✅ | ✅ |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
+| Action-returned banners with an explicit mode (`PageBanners.replace`/`append`; Python `PageBanners.replace(...)`/`.append(...)`) | ✅ | ✅ (a bare `PageBanner`/list replaces) | ✅ |
+| Fluent `Card` with component slots (title, subtitle, media, header…, content, footer) | ✅ | ✅ | ✅ |
+| An app with no declared home lands on its first menu item; an app under a sub-path accepts mount-absolute routes; the chrome language follows `Accept-Language`; an error toast stays until dismissed; a `List<Enum>` with no stereotype is a multi-select | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Redwood pattern gaps (2026-10-10): display records (`Toggle` + `WizardDisplay`/`CrudDisplay`/`GeneralOverviewDisplay`), wizard drafts/skip/early completion/`beforeStepNavigate` (ports: steps by number), edit-drawer save-and-next + error banner, `GeneralOverview` info slot, foldout `summary`, `DataManagement` docked panels, header `RecordSwitcherSupplier`, `@Section` edit/add/view-more, hero tone, `Announce` command, smart-search pre-search content — see [Page templates](/ux-patterns/page-templates/#display-options-one-tri-state-grammar) | ✅ | ✅ | ✅ |
@@ -52,6 +55,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
+| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`) | ✅ | ✅ | ✅ |
 | [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports have no app logo/favicon/accent, so `icon`/`themeColor` come only from `MobileApp` or the env vars there | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |

@@ -68,10 +68,26 @@ public sealed partial class SyncHandler
             if (!ActionGuard.MayWrite(p)) continue;
             var key = Naming.CamelCase(p.Name);
             if (!state.TryGetValue(key, out var raw) || raw is null) continue;
+            if (IsCleared(raw, p.PropertyType))
+            {
+                // A cleared input clears the property (Java's FieldValueConverter): keeping the
+                // initializer made the screen (empty) and the server disagree. A non-nullable
+                // value type cannot hold an absence, so it gets its default.
+                p.SetValue(instance, p.PropertyType.IsValueType && Nullable.GetUnderlyingType(p.PropertyType) is null
+                    ? Activator.CreateInstance(p.PropertyType)
+                    : null);
+                continue;
+            }
             var value = ConvertValue(raw, p.PropertyType);
             if (value is not null) p.SetValue(instance, value);
         }
     }
+
+    /// <summary>A null, or a blank string aimed at a non-text property: the user cleared it.</summary>
+    private static bool IsCleared(object raw, Type target) =>
+        raw is JsonElement { ValueKind: JsonValueKind.Null }
+        || (raw is JsonElement { ValueKind: JsonValueKind.String } el && target != typeof(string)
+            && string.IsNullOrWhiteSpace(el.GetString()));
 
     private static object? ConvertValue(object raw, Type target)
     {

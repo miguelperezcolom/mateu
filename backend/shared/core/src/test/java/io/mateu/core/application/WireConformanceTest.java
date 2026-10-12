@@ -972,6 +972,15 @@ class WireConformanceTest {
       if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
         c.remove("actions");
         c.remove("initialData");
+        // the mediator's own refresh subscriptions ("mateu-crud:*" events — a delete or a drawer
+        // save tells the listing to search again); the ports re-render the listing in place
+        if (c.get("triggers") instanceof com.fasterxml.jackson.databind.node.ArrayNode triggers) {
+          for (int i = triggers.size() - 1; i >= 0; i--) {
+            if (triggers.get(i).path("eventName").asText("").startsWith("mateu-crud:")) {
+              triggers.remove(i);
+            }
+          }
+        }
       }
     }
     return increment;

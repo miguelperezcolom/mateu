@@ -188,7 +188,120 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     if kind == "Form":
         return _form(node, partials, chain)
+    generic = _generic(kind, node, partials, chain)
+    if generic is not None:
+        return generic
     return fluent.Text(text=f"Unsupported component: {kind}")
+
+
+# ── Every other component, read generically off its fluent dataclass ─────────────────────────────
+# The YAML keys ARE the Java record's components (camelCase), the Python dataclass fields their
+# snake_case (``from`` → ``from_``): so a node of any type the fluent API has is built field by
+# field from the type hints — nested components, lists of them, nested value dataclasses, enums,
+# dates. Before this every display component (Card, MetricCard, Notice, Calendar, Kanban…) authored
+# in YAML rendered "Unsupported component" on the Python server.
+
+
+def _component_classes() -> dict[str, type]:
+    import dataclasses
+
+    out: dict[str, type] = {}
+
+    def walk(cls):
+        for sub in cls.__subclasses__():
+            if dataclasses.is_dataclass(sub):
+                out.setdefault(sub.__name__, sub)
+            walk(sub)
+
+    walk(fluent.Component)
+    return out
+
+
+def _generic(kind: Any, node: dict, partials: PartialRegistry, chain: list[str]):
+    cls = _component_classes().get(str(kind))
+    if cls is None:
+        return None
+    try:
+        return _dataclass_of(cls, node, partials, chain)
+    except Exception:  # a value the dataclass refuses: say so, as for an unknown type
+        return None
+
+
+def _dataclass_of(cls: type, raw: Any, partials: PartialRegistry, chain: list[str]):
+    import dataclasses
+    import typing
+
+    if not isinstance(raw, dict):
+        return None
+    hints = typing.get_type_hints(cls)
+    kwargs = {}
+    for f in dataclasses.fields(cls):
+        if not f.init:
+            continue
+        name = f.name.rstrip("_")
+        key = next((k for k in (camel_case_of(name), name, f.name) if k in raw), None)
+        if key is None:
+            continue
+        kwargs[f.name] = _value_of(hints.get(f.name, Any), raw[key], partials, chain)
+    return cls(**kwargs)
+
+
+def camel_case_of(s: str) -> str:
+    head, *rest = s.split("_")
+    return head + "".join(p[:1].upper() + p[1:] for p in rest)
+
+
+def _value_of(hint: Any, raw: Any, partials: PartialRegistry, chain: list[str]) -> Any:
+    import dataclasses
+    import types
+    import typing
+    from datetime import date, datetime
+    from enum import Enum
+
+    if raw is None:
+        return None
+    origin = typing.get_origin(hint)
+    args = typing.get_args(hint)
+    if origin in (typing.Union, types.UnionType):
+        options = [a for a in args if a is not type(None)]
+        return _value_of(options[0], raw, partials, chain) if options else raw
+    if origin in (tuple, list) or hint in (tuple, list):
+        elem = args[0] if args else Any
+        items = raw if isinstance(raw, list) else [raw]
+        if isinstance(elem, type) and issubclass(elem, fluent.Component):
+            out: list = []
+            for item in items:
+                out.extend(_in_list(item, partials, chain))
+            return tuple(out)
+        if origin is tuple and len(args) == 2 and args[1] is not Ellipsis and isinstance(raw, dict):
+            return raw  # a fixed pair: leave as authored
+        return tuple(_value_of(elem, item, partials, chain) for item in items)
+    if origin is dict or hint is dict:
+        return raw if isinstance(raw, dict) else {}
+    if not isinstance(hint, type):
+        return raw
+    if issubclass(hint, fluent.Component):
+        return _single(raw, partials, chain)
+    if issubclass(hint, Enum):
+        for member in hint:
+            if str(raw) in (member.name, str(member.value)):
+                return member
+        return raw
+    if dataclasses.is_dataclass(hint):
+        return _dataclass_of(hint, raw, partials, chain)
+    if hint is datetime:
+        return raw if isinstance(raw, datetime) else datetime.fromisoformat(str(raw))
+    if hint is date:
+        return raw if isinstance(raw, date) else date.fromisoformat(str(raw))
+    if hint is bool:
+        return bool(raw)
+    if hint is int:
+        return int(raw)
+    if hint is float:
+        return float(raw)
+    if hint is str:
+        return str(raw)
+    return raw
 
 
 def _str(value: Any) -> str | None:

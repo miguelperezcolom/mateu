@@ -126,10 +126,14 @@ public sealed partial class ReflectionMapper
         var homeRoute = !string.IsNullOrWhiteSpace(shell?.HomeRoute) ? shell!.HomeRoute!
             : isAppSupplier ? home?.Path ?? ""
             : !string.IsNullOrEmpty(suppliedHome) ? suppliedHome
-            : "_no_home_route";
+            // no declared home: the app lands on its FIRST navigable menu item (Java's
+            // AppMapper.withFirstMenuItemAsHome) — the sentinel only when there is none
+            : FirstNavigableLeaf(items)?.Route ?? "_no_home_route";
+        var firstLeaf = string.IsNullOrEmpty(suppliedHome) && !isAppSupplier && string.IsNullOrWhiteSpace(shell?.HomeRoute)
+            ? FirstNavigableLeaf(items) : null;
         var homeServerSideType = !string.IsNullOrEmpty(suppliedHome)
             ? FindMenuLeaf(items, Prepend(appRoute, "/" + suppliedHome))?.ServerSideType ?? appType.FullName!
-            : appType.FullName!;
+            : firstLeaf?.ServerSideType ?? appType.FullName!;
         var meta = new AppMetadataDto(T(shell?.Title ?? app.Title), variant, items)
         {
             Subtitle = shell?.Subtitle,
@@ -155,6 +159,8 @@ public sealed partial class ReflectionMapper
             Chromeless = app.Chromeless,
             // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             AccessKeys = app.AccessKeys,
+            // The header's light/dark switch: opt-in, mirrors AppDto.themeToggle.
+            ThemeToggle = app.ThemeToggle,
             // E2 patterns: app-wide shortcuts, live header values, the idle-session warning
             Shortcuts = MapShortcuts(appType, appRoute),
             HeaderValues = MapHeaderValues(appType, app),
@@ -202,6 +208,24 @@ public sealed partial class ReflectionMapper
         {
             if (item.Submenus.Count == 0 && item.Route == route) return item;
             if (FindMenuLeaf(item.Submenus, route) is { } nested) return nested;
+        }
+        return null;
+    }
+
+    /// <summary>The first menu leaf a click would NAVIGATE to — not a rule leaf, a remote menu, a
+    /// separator or a hidden entry (Java's AppMapper.firstNavigableLeaf).</summary>
+    internal static MenuItemDto? FirstNavigableLeaf(IEnumerable<MenuItemDto> items)
+    {
+        foreach (var item in items)
+        {
+            if (item.Separator || !item.Visible) continue;
+            if (item.Submenus.Count > 0)
+            {
+                if (FirstNavigableLeaf(item.Submenus) is { } nested) return nested;
+                continue;
+            }
+            if (item.Remote || item.Rules.Count > 0 || string.IsNullOrWhiteSpace(item.Route)) continue;
+            return item;
         }
         return null;
     }
@@ -262,7 +286,7 @@ public sealed partial class ReflectionMapper
 
     /// <summary>[AppContext] members of the app class become header context selectors: an enum
     /// property contributes its constants, a method its returned (value, label) pairs.</summary>
-    private IReadOnlyList<AppContextSelectorDto> MapContextSelectors(Type appType)
+    internal IReadOnlyList<AppContextSelectorDto> MapContextSelectors(Type appType)
     {
         var selectors = new List<AppContextSelectorDto>();
         foreach (var property in appType.GetProperties())
@@ -330,6 +354,14 @@ public sealed partial class ReflectionMapper
         var route = string.IsNullOrEmpty(uiRoute) ? "/" + Naming.CamelCase(m.Name) : "/" + uiRoute;
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
+
+    /// <summary>The rules of every rule leaf ([MenuItem] method typed Rule / a list of Rule) an app
+    /// type declares — what its menu RUNS (see ActionGuard.AdvertisedIds).</summary>
+    internal static IReadOnlyList<RuleDto> MenuRuleLeaves(Type appType) =>
+        appType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Where(m => m.Find<MenuItemAttribute>() != null)
+            .SelectMany(m => MenuRules(m) ?? [])
+            .ToList();
 
     /// <summary>The client-side rules of a [MenuItem] method whose return type is Rule or a list of
     /// Rule (a rule leaf), or null when it returns a view (a navigating entry). The method is

@@ -1,7 +1,8 @@
 import { Notification, NotificationPosition } from '@vaadin/notification'
-import { Notifier, ToastMessage } from '@application/Notifier.ts'
+import { Notifier, ToastMessage, toastDuration } from '@application/Notifier.ts'
 import { announce } from '@infra/a11y/announcer.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { requestActionOn } from '@infra/ui/requestAction.ts'
 
 /**
  * Vaadin {@link Notifier} adapter — renders toasts with vaadin-notification for full Lumo
@@ -30,11 +31,9 @@ function controlOf(message: ToastMessage, initiator: HTMLElement) {
     if (message.undoActionId) {
         return {
             label: message.undoLabel ?? chromeText('undo'),
-            run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                bubbles: true,
-                composed: true,
-            })),
+            run: () => requestActionOn(initiator, {
+                actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
+            }),
         }
     }
     return undefined
@@ -43,23 +42,37 @@ function controlOf(message: ToastMessage, initiator: HTMLElement) {
 function showWithControl(message: ToastMessage, initiator: HTMLElement) {
     const notification = new Notification()
     notification.position = mapPosition(message.position)
-    notification.duration = message.duration ?? 10000
+    const duration = toastDuration(message, 10000)
+    notification.duration = duration
     if (message.variant) notification.setAttribute('theme', message.variant)
     notification.renderer = (root: HTMLElement) => {
         if (root.firstElementChild) return
         const text = document.createElement('span')
         text.textContent = message.text
-        const control = controlOf(message, initiator)!
-        const button = document.createElement('button')
-        button.textContent = control.label
-        button.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
-            + ' border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer;'
-            + ' padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;'
-        button.addEventListener('click', () => {
-            control.run()
-            notification.opened = false
-        })
-        root.append(text, button)
+        root.append(text)
+        const control = controlOf(message, initiator)
+        if (control) {
+            const button = document.createElement('button')
+            button.textContent = control.label
+            button.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
+                + ' border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer;'
+                + ' padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;'
+            button.addEventListener('click', () => {
+                control.run()
+                notification.opened = false
+            })
+            root.append(button)
+        }
+        if (duration <= 0) {
+            // a toast that stays needs a way out
+            const close = document.createElement('button')
+            close.textContent = '✕'
+            close.setAttribute('aria-label', chromeText('dismiss'))
+            close.style.cssText = 'margin-left: 0.75rem; background: none; border: none; color: inherit;'
+                + ' cursor: pointer; font: inherit; font-weight: 600;'
+            close.addEventListener('click', () => { notification.opened = false })
+            root.append(close)
+        }
     }
     document.body.appendChild(notification)
     notification.opened = true
@@ -74,7 +87,7 @@ export const vaadinNotifier: Notifier = {
         // can appear and vanish without ever being announced. Announce it ourselves: errors
         // interrupt, everything else waits for a pause.
         announce(message.text, { politeness: message.variant === 'error' ? 'assertive' : 'polite' })
-        if (message.undoActionId || message.onAction) {
+        if (message.undoActionId || message.onAction || toastDuration(message, 5000) <= 0) {
             showWithControl(message, initiator)
             return
         }

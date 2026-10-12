@@ -93,10 +93,39 @@ const deferBootScripts = (html) => {
        + '\n<!-- HASTAAQUIJS -->' + deferred.slice(end)
 }
 
+/**
+ * The VB build leaves `services/catalog.json` (and the security provider's configuration) as
+ * placeholders (`"#{env.catalogJson}#"`, `%{env.userProfileUrl}%`) that only a Visual Builder host
+ * substitutes. Served by Mateu nothing does, so the runtime's catalog registry
+ * choked on it on EVERY page load (a console error + a 400). The app declares no service catalog:
+ * an empty one is the truth.
+ */
+export const fillVbEnvPlaceholders = (content) => content
+  .split('"\\"#{env.catalogJson}#\\""').join('"{}"')
+  .split('"#{env.catalogJson}#"').join('{}')
+  // …and the build fills the security provider's configuration with the same kind of placeholders
+  // (the user-profile url among them): served by Mateu the runtime FETCHED `%{env.userProfileUrl}%`
+  // — the 400 on every page load. Mateu authenticates nothing here (the host framework does): the
+  // provider reads a static anonymous user the jar ships (ANONYMOUS_USER below). Without a url it
+  // asks `<base>_currentuser`, which the server answers with the index page — a JSON parse error.
+  .replace(/(\\?"configuration\\?":)\{((?:[^{}]|[#%]\{env\.[^{}]*\})*)\}/g,
+    (whole, key, inner) => {
+      if (!/[#%]\{env\./.test(inner)) return whole
+      // the app's own `configuration` (a VB profile id): simply empty, as authored
+      if (!/userProfileUrl/.test(inner)) return key + '{}'
+      const q = key.startsWith('\\') ? '\\"' : '"'
+      return key + '{' + q + 'url' + q + ':' + q + ANONYMOUS_USER_URL + q + '}'
+    })
+
+/** Where the jar serves the anonymous user the VB security provider reads (see above). */
+export const ANONYMOUS_USER_URL = '/_redwood/resources/mateu-anonymous-user.json' // root: the jar's assets live at /_redwood whatever the page's path
+const ANONYMOUS_USER = { userId: 'anonymous', longId: 'anonymous', fullName: '', email: '', roles: [],
+  permissions: [], isAdmin: false, isAuthenticated: false }
+
 const transform = (file) => {
   if (!TEXT_EXTENSIONS.has(extname(file))) return
   const original = readFileSync(file, 'utf8')
-  let content = original.split(DEV_BASE_URL).join('')
+  let content = fillVbEnvPlaceholders(original.split(DEV_BASE_URL).join(''))
   if (file.endsWith('index.html')) {
     content = content
       // servida en rutas profundas (/checkin/3) los assets relativos (version_.../...)
@@ -188,5 +217,6 @@ walk(dest, transform)
 const indexFile = join(dest, 'index.html')
 writeFileSync(indexFile, restamp(readFileSync(indexFile, 'utf8'), versionDir, SOURCE_HASH))
 renameSync(indexFile, join(dest, '_index.html'))
+writeFileSync(join(dest, APP_DIR, 'resources', 'mateu-anonymous-user.json'), JSON.stringify(ANONYMOUS_USER) + '\n')
 writeFileSync(join(dest, 'mateu-build-info.json'), JSON.stringify({ sourceHash: SOURCE_HASH }, null, 2) + '\n')
 console.log(`Copiado ${src} -> ${dest} (${APP_DIR}/, sourceHash ${SOURCE_HASH})`)

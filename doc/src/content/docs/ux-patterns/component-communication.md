@@ -88,7 +88,7 @@ public class CheckInForm implements HeaderSupplier {
 
     @Hidden String id;
 
-    Object load(HttpRequest httpRequest) {
+    public Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
     }
 
@@ -261,7 +261,7 @@ but it needs no extra component:
 ```java
 @SubscribeTo(event = "pax-selected", action = "selectPax", source = SubscriptionSource.DOCUMENT)
 public class CheckInForm {
-    Object selectPax(HttpRequest rq) {
+    public Object selectPax(HttpRequest rq) {
         populate();
         clientInfo.applySelectedPax(rq.getParameters(Cardex.class));
         return new State(this);

@@ -14,7 +14,7 @@ import { sseService } from "@application/SSEService.ts";
  *
  * Throws on failure so each shell can show the error toast in its own design system's idiom.
  */
-const findComponent = (root: Element | ShadowRoot | DocumentFragment | null): HTMLElement | null => {
+export const findComponent = (root: Element | ShadowRoot | DocumentFragment | null): HTMLElement | null => {
     if (!root || !('querySelectorAll' in root)) return null
     for (const el of root.querySelectorAll('*')) {
         if (el.tagName?.toLowerCase() === 'mateu-component') return el as HTMLElement

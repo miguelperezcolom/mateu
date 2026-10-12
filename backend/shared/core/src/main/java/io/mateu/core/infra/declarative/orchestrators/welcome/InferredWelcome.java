@@ -18,9 +18,14 @@ import io.mateu.uidl.interfaces.HttpRequest;
  * {@code @PageTemplate(LANDING)} for the wire {@code pageType}.
  */
 @PageTemplate(PageType.LANDING)
-public class InferredWelcome implements ComponentTreeSupplier {
+public class InferredWelcome implements ComponentTreeSupplier, io.mateu.core.infra.ModelBridge {
 
   private final Object model;
+
+  /** The plain class this bridge renders. */
+  public Object model() {
+    return model;
+  }
 
   public InferredWelcome(Object model) {
     this.model = model;

@@ -3,12 +3,19 @@ package io.mateu;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.annotation.Context;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.List;
 
-@Singleton
+/**
+ * Backs the static {@link MateuBeanProvider} facade with the application context. {@code @Context},
+ * not a lazy singleton: the facade is read by generated code that cannot inject — a ROOT
+ * {@code @UI}'s index asking {@link io.mateu.core.infra.YamlMounts#deepLinkIndex} which YAML mount
+ * a deep link belongs to — and on a cold start nothing had instantiated this bean before that first
+ * GET, so the facade answered "not initialized" and the root UI swallowed the mount's deep link.
+ */
+@Context
 public class MicronautBeanProvider implements BeanProvider {
 
   private final ApplicationContext applicationContext;

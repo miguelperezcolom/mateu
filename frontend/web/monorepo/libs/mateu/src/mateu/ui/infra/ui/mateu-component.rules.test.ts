@@ -130,6 +130,28 @@ describe('validations', () => {
         el.checkValidations('a')
         expect(el.data.errors).toEqual({ a: ['a!'] })
     })
+
+    it('after a refused submit, fixing a field clears its error as the user types', () => {
+        // Left until blur, the message vanished in the middle of the click on the submit button:
+        // the button jumped up under the pointer and the click was lost.
+        const el = element({ validations: [
+            { fieldId: 'name', condition: "state['name']", message: 'Name is required' },
+            { fieldId: 'email', condition: "state['email']", message: 'Email is required' },
+        ] }, { name: '', email: '' })
+        el.checkValidations()
+        expect(el.data._valid).toBe(false)
+        el.valueChangedListener(new CustomEvent('value-changed', { detail: { fieldId: 'name', value: 'Ana' } }))
+        expect(el.data.errors.name).toEqual([])
+        expect(el.data.errors.email).toEqual(['Email is required'])
+        el.valueChangedListener(new CustomEvent('value-changed', { detail: { fieldId: 'email', value: 'a@b.c' } }))
+        expect(el.data._valid).toBe(true)
+    })
+
+    it('before any submit, typing does not start flagging errors', () => {
+        const el = element({ validations: [{ fieldId: 'name', condition: "state['name']", message: 'x' }] }, { name: 'A' })
+        el.valueChangedListener(new CustomEvent('value-changed', { detail: { fieldId: 'name', value: '' } }))
+        expect(el.data.errors).toBeUndefined()
+    })
 })
 
 describe('actions that run on the client', () => {

@@ -20,7 +20,8 @@ test.describe('MenuApp (/app UI)', () => {
 
   test('loads /app page', async ({ page }) => {
     await page.goto('/app');
-    await expect(page).toHaveTitle(/Menu App/);
+    // an app with no declared home lands on its first menu item (owner, 2026-10-12)
+    await expect(page).toHaveTitle(/Section 1/);
   });
 
   test('/app page renders mateu-ui with /app baseUrl', async ({ page }) => {

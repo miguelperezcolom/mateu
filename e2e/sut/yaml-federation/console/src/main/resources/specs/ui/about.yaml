@@ -1,0 +1,6 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: Form
+title: About the console
+content:
+  - type: Text
+    text: A console authored in YAML only.

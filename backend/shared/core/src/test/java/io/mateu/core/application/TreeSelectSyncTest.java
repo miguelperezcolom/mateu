@@ -39,11 +39,42 @@ class TreeSelectSyncTest {
     }
   }
 
+  /**
+   * A view that supplies options for ONE field, next to an enum field that must keep its constants.
+   */
+  @SuppressWarnings("unused")
+  @UI("/treesel-scoped")
+  @Title("Scoped")
+  public static class ScopedForm implements OptionsSupplier {
+
+    enum Amenity {
+      WIFI,
+      POOL
+    }
+
+    @TreeSelect String zone;
+
+    Amenity amenity;
+
+    @io.mateu.uidl.annotations.Stereotype(io.mateu.uidl.data.FieldStereotype.multiSelect)
+    java.util.Set<Amenity> amenities;
+
+    @Override
+    public boolean supports(Class<?> fieldType, String fieldName, Class<?> formType) {
+      return "zone".equals(fieldName);
+    }
+
+    @Override
+    public List<Option> options(String fieldName, HttpRequest httpRequest) {
+      return List.of(new Option("es", "Spain"), new Option("pt", "Portugal"));
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(TreeForm.class);
+    mateu = TestMateu.withUis(TreeForm.class, ScopedForm.class);
   }
 
   @AfterAll
@@ -72,5 +103,30 @@ class TreeSelectSyncTest {
     var leafZone =
         fields.stream().filter(f -> "leafZone".equals(f.fieldId())).findFirst().orElseThrow();
     assertThat(leafZone.treeLeavesOnly()).isTrue();
+  }
+
+  @Test
+  void anOptionsSupplierOnlyFeedsTheFieldsItSupports() {
+    // supports() used to be honoured by grid cell editors only: on a form, a view supplying the
+    // options of its tree select also replaced the constants of every enum field with them.
+    var increment = mateu.sync("/treesel-scoped");
+    var fields = new java.util.ArrayList<io.mateu.dtos.FormFieldDto>();
+    FieldKindsSyncTest.walk(
+        increment.fragments().get(0).component(), io.mateu.dtos.FormFieldDto.class, fields);
+    var byId =
+        fields.stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    io.mateu.dtos.FormFieldDto::fieldId, f -> f, (a, b) -> a));
+
+    assertThat(byId.get("zone").options())
+        .extracting(io.mateu.dtos.OptionDto::value)
+        .containsExactly("es", "pt");
+    assertThat(byId.get("amenity").options())
+        .extracting(io.mateu.dtos.OptionDto::value)
+        .containsExactly("WIFI", "POOL");
+    assertThat(byId.get("amenities").options())
+        .extracting(io.mateu.dtos.OptionDto::value)
+        .containsExactly("WIFI", "POOL");
   }
 }

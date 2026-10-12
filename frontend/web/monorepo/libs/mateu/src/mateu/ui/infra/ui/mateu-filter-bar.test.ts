@@ -169,6 +169,11 @@ describe('mateu-filter-bar (smart search)', () => {
         expect(events.at(-2)!.detail.value).toEqual(['B'])
     })
 
+    it('a boolean restored from the URL (the text "true") reads as Yes, not "true"', async () => {
+        const bar = await mount({ vip: 'true', paid: 'false' })
+        expect(chips(bar)).toEqual(['VIP: Yes', 'Paid: No'])
+    })
+
     it('a multi-select restored from the URL as a comma-joined string reads as its values', async () => {
         const bar = await mount({ kind: 'A,B' })
         expect(chips(bar)).toEqual(['Kind: Alpha, Beta'])

@@ -390,10 +390,10 @@ public sealed partial class ReflectionMapper
         var options = instance is IOptionsSupplier supplier
                       && supplier.Options(fieldId) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
-            : t.IsEnum
+            : (t.IsEnum ? t : ElementEnum(t)) is { } choices
                 // value = the constant name; label = its [Label], else the name humanized
-                // (Java: FieldMetadataExtractor.enumLabel)
-                ? Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList()
+                // (Java: FieldMetadataExtractor.enumLabel) — a List<Enum> offers its constants too
+                ? Enum.GetNames(choices).Select(n => new OptionDto(n, EnumLabel(choices, n))).ToList()
                 : new List<OptionDto>();
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
         var plainText = p.Find<PlainTextAttribute>() != null
@@ -474,6 +474,9 @@ public sealed partial class ReflectionMapper
         if (p.Find<RestOptionsAttribute>() != null) return "select";
         if (p.Find<LookupAttribute>() != null) return "combobox";
         if (p.Find<SearchableAttribute>() != null) return "searchable";
+        // a List/Set of enum constants with no stereotype: pick several (Java's ChoiceCollections;
+        // owner, 2026-10-12)
+        if (ElementEnum(p.PropertyType) is not null) return "multiSelect";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
             return p.Find<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
@@ -717,5 +720,14 @@ public sealed partial class ReflectionMapper
             return p?.Find<MoneyAttribute>() != null && plainText ? "money" : "number";
         if (t == typeof(DateOnly) || t == typeof(DateTime)) return "date";
         return "string";
+    }
+
+    /// <summary>The enum of a List/Set/array of enum constants, else null.</summary>
+    internal static Type? ElementEnum(Type t)
+    {
+        if (t.IsArray) return t.GetElementType() is { IsEnum: true } e ? e : null;
+        if (t == typeof(string) || !t.IsGenericType || !typeof(System.Collections.IEnumerable).IsAssignableFrom(t)) return null;
+        var args = t.GetGenericArguments();
+        return args.Length == 1 && args[0].IsEnum ? args[0] : null;
     }
 }

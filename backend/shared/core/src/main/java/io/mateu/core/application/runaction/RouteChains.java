@@ -33,17 +33,75 @@ public final class RouteChains {
   }
 
   /**
+   * The registry spelling of {@code path} for this request. Inside a CLASS-declared non-root mount
+   * ({@code @UI("/shop")}) the browser asks with routes RELATIVE to the mount ({@code
+   * /customers/7}) while a route file tagged {@code basePath: /shop} is loaded ABSOLUTE ({@code
+   * shop/customers/:id}): when the relative path has no chain and the mounted one does, the mounted
+   * one is used, and every path handed back is made relative again.
+   */
+  private record Lookup(String path, String consumed, String mount) {
+    String unmount(String absolute) {
+      return io.mateu.core.application.MountPaths.withoutMount(mount, absolute);
+    }
+  }
+
+  private static Lookup lookup(
+      RouteRegistry registry,
+      String path,
+      String consumedRoute,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var mount =
+        httpRequest == null
+            ? ""
+            : io.mateu.core.application.MountPaths.normalize(
+                httpRequest.getAttribute("baseUrl") instanceof String baseUrl ? baseUrl : null);
+    if (mount.isEmpty()
+        || path == null
+        || io.mateu.core.application.MountPaths.startsWithMount(path, mount)
+        || !registry.chain(path).isEmpty()) {
+      return new Lookup(path, consumedRoute, "");
+    }
+    var mounted = io.mateu.core.application.MountPaths.withMount(mount, path);
+    if (registry.chain(mounted).isEmpty()) {
+      return new Lookup(path, consumedRoute, "");
+    }
+    var consumed =
+        consumedRoute == null
+                || consumedRoute.isBlank()
+                || "_empty".equals(consumedRoute)
+                || io.mateu.core.application.MountPaths.startsWithMount(consumedRoute, mount)
+            ? consumedRoute
+            : io.mateu.core.application.MountPaths.withMount(mount, consumedRoute);
+    return new Lookup(mounted, consumed, mount);
+  }
+
+  private static ChainLink unmount(Lookup lookup, ChainLink link) {
+    return lookup.mount().isEmpty()
+        ? link
+        : new ChainLink(link.entry(), lookup.unmount(link.path()), link.pathParams());
+  }
+
+  /**
    * The ancestor of {@code path} that has to render it: the outermost level of its chain beyond
    * {@code consumedRoute}, when that level is an ANCESTOR (not the route itself) backed by an app
    * class — an app has a slot to render the rest into. Empty otherwise, which leaves resolution to
    * the class answering the full path, as before.
    */
   public static Optional<ChainLink> pendingAppAncestor(String path, String consumedRoute) {
+    return pendingAppAncestor(path, consumedRoute, null);
+  }
+
+  /** {@link #pendingAppAncestor(String, String)}, aware of the mount the request was served by. */
+  public static Optional<ChainLink> pendingAppAncestor(
+      String path, String consumedRoute, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var registry = registry();
     if (registry == null || path == null) {
       return Optional.empty();
     }
     try {
+      var lookup = lookup(registry, path, consumedRoute, httpRequest);
+      path = lookup.path();
+      consumedRoute = lookup.consumed();
       var chain = registry.chain(path);
       if (chain.size() < 2) {
         return Optional.empty();
@@ -64,7 +122,7 @@ public final class RouteChains {
             viewModel);
         return Optional.empty();
       }
-      return Optional.of(pending);
+      return Optional.of(unmount(lookup, pending));
     } catch (Throwable t) {
       log.debug("route chain of {}: {}", path, t.toString());
       return Optional.empty();
@@ -81,7 +139,7 @@ public final class RouteChains {
     if (type == null || httpRequest == null || httpRequest.runActionRq() == null) {
       return java.util.Map.of();
     }
-    var chain = chainOf(httpRequest.runActionRq().route());
+    var chain = chainOf(httpRequest.runActionRq().route(), httpRequest);
     if (chain.size() < 2) {
       return java.util.Map.of();
     }
@@ -103,12 +161,22 @@ public final class RouteChains {
 
   /** The chain answering {@code path} (outermost first), or empty — never throws. */
   public static List<ChainLink> chainOf(String path) {
+    return chainOf(path, null);
+  }
+
+  /**
+   * {@link #chainOf(String)}, aware of the mount the request was served by: the links' paths come
+   * back relative to it, like the route the request asked with.
+   */
+  public static List<ChainLink> chainOf(
+      String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var registry = registry();
     if (registry == null || path == null) {
       return List.of();
     }
     try {
-      return registry.chain(path);
+      var lookup = lookup(registry, path, null, httpRequest);
+      return registry.chain(lookup.path()).stream().map(link -> unmount(lookup, link)).toList();
     } catch (Throwable t) {
       return List.of();
     }
@@ -122,7 +190,13 @@ public final class RouteChains {
    * no say: a route with no parent, or one answered exactly by its own entry.
    */
   public static String screenFor(String path, String consumedRoute) {
-    var ancestor = pendingAppAncestor(path, consumedRoute);
+    return screenFor(path, consumedRoute, null);
+  }
+
+  /** {@link #screenFor(String, String)}, aware of the mount the request was served by. */
+  public static String screenFor(
+      String path, String consumedRoute, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var ancestor = pendingAppAncestor(path, consumedRoute, httpRequest);
     if (ancestor.isPresent()) {
       return ancestor.get().entry().viewModel();
     }
@@ -131,6 +205,9 @@ public final class RouteChains {
       return null;
     }
     try {
+      var lookup = lookup(registry, path, consumedRoute, httpRequest);
+      path = lookup.path();
+      consumedRoute = lookup.consumed();
       var chain = registry.chain(path);
       if (chain.size() < 2) {
         return null;
@@ -164,7 +241,7 @@ public final class RouteChains {
     }
     try {
       var route = httpRequest.runActionRq().route();
-      var chain = chainOf(route);
+      var chain = chainOf(route, httpRequest);
       if (chain.size() < 2) {
         return title;
       }
@@ -226,7 +303,7 @@ public final class RouteChains {
     if (httpRequest == null || httpRequest.runActionRq() == null) {
       return false;
     }
-    var chain = chainOf(httpRequest.runActionRq().route());
+    var chain = chainOf(httpRequest.runActionRq().route(), httpRequest);
     for (int i = 0; i < chain.size() - 1; i++) {
       var viewModel = chain.get(i).entry().viewModel();
       if (viewModel == null || viewModel.isBlank()) {
@@ -271,7 +348,9 @@ public final class RouteChains {
       if (children.isEmpty()) {
         return null;
       }
-      var normalized = io.mateu.core.infra.Slashes.trim(concretePath);
+      var normalized =
+          io.mateu.core.infra.Slashes.trim(
+              lookup(registry, concretePath, null, httpRequest).path());
       var match = registry.authored().match(normalized).orElse(null);
       var named = match == null ? null : match.entry().defaultChild();
       if (named != null && !named.isBlank()) {
@@ -294,7 +373,7 @@ public final class RouteChains {
    */
   public static List<ChildRoute> visibleChildrenOf(
       String concretePath, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
-    return childrenOf(concretePath).stream()
+    return childrenOf(concretePath, httpRequest).stream()
         .filter(
             child ->
                 io.mateu.core.domain.FeatureFlagGate.shows(child.entry().show(), httpRequest)
@@ -308,12 +387,22 @@ public final class RouteChains {
    * — what an app with no menu of its own offers as its tabs.
    */
   public static List<ChildRoute> childrenOf(String concretePath) {
+    return childrenOf(concretePath, null);
+  }
+
+  /**
+   * {@link #childrenOf(String)}, aware of the mount the request was served by: the children's paths
+   * come back relative to it.
+   */
+  public static List<ChildRoute> childrenOf(
+      String concretePath, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var registry = registry();
     if (registry == null || concretePath == null) {
       return List.of();
     }
     try {
-      var normalized = io.mateu.core.infra.Slashes.trim(concretePath);
+      var lookup = lookup(registry, concretePath, null, httpRequest);
+      var normalized = io.mateu.core.infra.Slashes.trim(lookup.path());
       var match = registry.authored().match(normalized).orElse(null);
       if (match == null) {
         return List.of();
@@ -328,7 +417,7 @@ public final class RouteChains {
                 if (!suffix.startsWith("/")) {
                   suffix = "/" + suffix;
                 }
-                return new ChildRoute(child, suffix, "/" + normalized + suffix);
+                return new ChildRoute(child, suffix, lookup.unmount("/" + normalized + suffix));
               })
           .toList();
     } catch (Throwable t) {

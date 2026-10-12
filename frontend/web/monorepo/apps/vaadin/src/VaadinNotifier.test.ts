@@ -55,14 +55,14 @@ describe('vaadinNotifier', () => {
         return { n, root }
     }
 
-    it('Retry: the control runs the closure once and closes the toast; it stays up 10s by default', () => {
+    it('Retry: the control runs the closure once and closes the toast; a non-error stays up 10s by default', () => {
         const retry = vi.fn()
-        vaadinNotifier.show({ text: 'Request failed', variant: 'error', onAction: retry, position: 'bottomStart' } as never, document.body)
+        vaadinNotifier.show({ text: 'Request failed', variant: 'warning', onAction: retry, position: 'bottomStart' } as never, document.body)
         const { n, root } = drawn()
         expect(n.opened).toBe(true)
         expect(n.duration).toBe(10000)
         expect(n.position).toBe('bottom-start')
-        expect(n.getAttribute('theme')).toBe('error')
+        expect(n.getAttribute('theme')).toBe('warning')
         const button = root.querySelector('button')!
         expect(button.textContent).toBe('Retry')
         expect(root.textContent).toContain('Request failed')
@@ -70,6 +70,18 @@ describe('vaadinNotifier', () => {
         expect(retry).toHaveBeenCalledTimes(1)
         expect(n.opened).toBe(false)
         expect(shown).toEqual([])
+    })
+
+    it('an error stays until dismissed, whatever duration it arrived with, and ✕ dismisses it', () => {
+        // owner, 2026-10-12: read in three seconds and gone, the reason a save failed was often never seen
+        vaadinNotifier.show({ text: 'Save failed', variant: 'error', duration: 3000, onAction: () => {} } as never, document.body)
+        const { n, root } = drawn()
+        expect(n.duration).toBe(0)
+        expect(n.getAttribute('theme')).toBe('error')
+        const buttons = [...root.querySelectorAll('button')].map(b => b.textContent)
+        expect(buttons).toEqual(['Retry', '✕'])
+        root.querySelectorAll('button')[1].click()
+        expect(n.opened).toBe(false)
     })
 
     it('the renderer does not draw twice into the same root', () => {
@@ -89,7 +101,9 @@ describe('vaadinNotifier', () => {
         const button = root.querySelector('button')!
         expect(button.textContent).toBe('Deshacer')
         button.click()
-        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 3 } }])
+        // serverNamed: the server named the action in its answer, so the component runs it even
+        // though it never advertised it (mateu-component)
+        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 3 }, serverNamed: true }])
     })
 
     it('closing the toast removes it from the document', () => {

@@ -108,3 +108,53 @@ test.describe('YAML-only federation', () => {
         await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible({ timeout: 20000 });
     });
 });
+
+// The app-shell walkthrough (design/walkthrough/app-shell.md): the console's own shell features,
+// authored in its app.yaml next to the federated sections — a group, a card group, a rule leaf
+// running a client-side flow, a header route action, a context picker and the theme toggle.
+test.describe('YAML shell', () => {
+    const about = (page: Page) => expect(page.getByText('A console authored in YAML only.')).toBeVisible({ timeout: 20000 });
+
+    test('a group entry navigates; deep link, reload and back work', async ({ page }) => {
+        await page.goto('/home');
+        await expect(page.getByRole('heading', { name: 'Welcome to the console' })).toBeVisible({ timeout: 20000 });
+        await menuItem(page, 'Help').click();
+        await menuItem(page, 'About').click();
+        await expect(page).toHaveURL(/\/help\/about$/);
+        await about(page);
+        await page.reload();
+        await about(page);
+        await page.goBack();
+        await expect(page).toHaveURL(/\/home$/);
+        await expect(page.getByRole('heading', { name: 'Welcome to the console' })).toBeVisible();
+    });
+
+    test('a card group opens as cards that navigate', async ({ page }) => {
+        await page.goto('/home');
+        await page.getByRole('navigation').getByRole('button', { name: 'Quick' }).click();
+        await expect(page.getByText('What this console is')).toBeVisible();
+        await page.getByText('About card', { exact: true }).click();
+        await expect(page).toHaveURL(/\/help\/about$/);
+        await about(page);
+    });
+
+    test('a rule leaf runs the shell\'s flow in the browser', async ({ page }) => {
+        await page.goto('/home');
+        await expect(page.getByRole('heading', { name: 'Welcome to the console' })).toBeVisible({ timeout: 20000 });
+        await menuItem(page, 'Open about').click();
+        await expect(page).toHaveURL(/\/help\/about$/);
+        await about(page);
+    });
+
+    test('header: a route action, the context picker and the theme toggle', async ({ page }) => {
+        await page.goto('/home');
+        await page.getByRole('button', { name: 'About this console' }).click();
+        await expect(page).toHaveURL(/\/help\/about$/);
+        await about(page);
+        await page.getByRole('button', { name: /^Desk/ }).click();
+        await page.getByRole('option', { name: 'Back office' }).click();
+        await expect(page.getByRole('button', { name: 'Desk: Back office' })).toBeVisible({ timeout: 20000 });
+        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        await expect(page.locator('html')).toHaveAttribute('theme', 'dark');
+    });
+});

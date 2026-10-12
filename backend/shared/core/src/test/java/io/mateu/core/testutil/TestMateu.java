@@ -124,6 +124,22 @@ public final class TestMateu implements AutoCloseable {
     return run(RunActionRqDto.builder().route(route).actionId("").build());
   }
 
+  /** The same, sent to the controller of a mount ({@code baseUrl}, e.g. {@code /books}). */
+  public UIIncrementDto runAt(String baseUrl, RunActionRqDto rq) {
+    try {
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", baseUrl);
+      var result = service.runAction("", rq, baseUrl, httpRequest).blockFirst();
+      if (result == null) {
+        throw new AssertionError("runAction produced no increment for " + rq);
+      }
+      return result;
+    } catch (RuntimeException | Error e) {
+      throw e;
+    } catch (Throwable t) {
+      throw new AssertionError("runAction failed for " + rq, t);
+    }
+  }
+
   /** Full-control variant: run any action with component state, serverSideType, etc. */
   public UIIncrementDto run(RunActionRqDto rq) {
     try {

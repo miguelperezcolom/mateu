@@ -8,9 +8,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
-import io.mateu.core.application.MateuService;
-import io.mateu.core.application.runaction.RouteRegistry;
-import io.mateu.core.application.runaction.YamlAppLoader;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.dtos.RunActionRqDto;
 import io.micronaut.context.ApplicationContext;
@@ -18,7 +15,6 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,34 +22,36 @@ import org.junit.jupiter.api.Test;
  * the YAML mount fixture ({@code specs/ui/yaml-parity.ui.yaml}: an app shell titled "YAML parity"
  * at {@code /yaml-parity} and a {@code page} route with the text "YAML parity page"). The same
  * expectations as {@code AdapterParityITFoundation.servesAYamlMount} on the other adapters. The
- * test app also has generated {@code @UI} controllers, so the controller rightly is not a bean here
- * ({@link MateuYamlMountController.Present}): it is built with the app's own beans and called
- * directly.
+ * test app also has generated {@code @UI} controllers at {@code /hello}, {@code /plain}… and the
+ * YAML mounts are served NEXT to them (every adapter, 2026-10-12), so both controllers are beans
+ * here: the API ({@link MateuYamlMountController.Present}) and, as there is no ROOT {@code @UI},
+ * the shell ({@link MateuYamlMountController.NoRootUi}).
  */
 @MicronautTest
 class MateuYamlMountControllerTest {
 
   @Inject ApplicationContext context;
-  @Inject MateuService service;
-  @Inject RouteRegistry routeRegistry;
-  @Inject YamlAppLoader yamlAppLoader;
+  @Inject MateuYamlMountController controller;
+  @Inject MateuYamlMountIndexController indexController;
 
-  MateuYamlMountController controller;
-
-  @BeforeEach
-  void setUp() {
-    controller = new MateuYamlMountController(service, routeRegistry, yamlAppLoader);
+  @Test
+  void isABeanNextToTheAppsGeneratedControllers() {
+    assertThat(context.containsBean(MateuYamlMountController.class), is(true));
+    assertThat(context.containsBean(MateuYamlMountIndexController.class), is(true));
   }
 
   @Test
-  void isNotABeanWhileTheAppHasGeneratedControllers() {
-    assertThat(context.containsBean(MateuYamlMountController.class), is(false));
+  void deepLinkIndexAnswersTheMountsShellThroughTheBeanProvider() {
+    // what a ROOT @UI's generated catch-all index calls for every path (YamlMounts.deepLinkIndex)
+    var html = io.mateu.core.infra.YamlMounts.deepLinkIndex("/yaml-parity/page");
+    assertThat(html, containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
+    assertThat(io.mateu.core.infra.YamlMounts.deepLinkIndex("/elsewhere"), is((String) null));
   }
 
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = controller.index(path);
+      var response = indexController.index(path);
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -63,9 +61,10 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(controller.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(indexController.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(indexController.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        indexController.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
   }
 
   @Test

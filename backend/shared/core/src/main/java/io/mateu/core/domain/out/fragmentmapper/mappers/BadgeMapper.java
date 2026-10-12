@@ -9,7 +9,12 @@ public class BadgeMapper {
 
   public static ClientSideComponentDto mapBadgeToDto(Badge badge) {
     return new ClientSideComponentDto(
-        mapBadgeToBadgeDto(badge), "fieldId", List.of(), badge.style(), badge.cssClasses(), null);
+        mapBadgeToBadgeDto(badge),
+        WireIds.idOf(badge, null),
+        List.of(),
+        badge.style(),
+        badge.cssClasses(),
+        null);
   }
 
   public static BadgeDto mapBadgeToBadgeDto(Badge badge) {

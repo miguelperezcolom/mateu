@@ -175,10 +175,13 @@ class DispatchMixin(MixinBase):
                 if owner is not None and owner[0] is not app_t:
                     rq = rq.model_copy(update={"server_side_type": type_name(owner[0])})
 
-        # 1. App shell at the root route.
+        # 1. App shell at the root route — unless this is the shell's own CONTENT load: an app with
+        # no home route aims its content area at the "_no_home_route" sentinel with its own type,
+        # and answering the shell again nested a second shell inside the first, which asked again
+        # (the browser's loop guard). That load renders the app as a page, as Java does.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)
-            if t0 is not None and "__mateu_app__" in t0.__dict__:
+            if t0 is not None and "__mateu_app__" in t0.__dict__ and not _is_home_content_load(rq):
                 return self.render_app(t0, rq, request_base_url)
 
         # 2. A Crud (by serverSideType or route prefix) — list / detail / new / edit + actions.
@@ -287,6 +290,11 @@ class DispatchMixin(MixinBase):
         # GlobalSearchActionRunner).
         if rq.action_id == "_globalsearch":
             return self.global_search_action(type_, rq)
+
+        # 2c'. The @app_context pickers' search — the same app-level rail (mirrors Java's
+        # AppContextSearchActionRunner).
+        if (rq.action_id or "").startswith(self.APP_CONTEXT_SEARCH_PREFIX):
+            return self.app_context_search_action(type_, rq)
 
         # 2d. The idle warning's keep-alive and the live-updates stream are app-level too (mirrors
         # Java's KeepAliveActionRunner / LiveUpdatesActionRunner; the stream itself is served by
@@ -413,6 +421,14 @@ class DispatchMixin(MixinBase):
         if isinstance(clicked, dict) and clicked.get("id") is not None:
             return str(clicked.get("id"))
         return None
+
+
+def _is_home_content_load(rq: RunActionRq) -> bool:
+    """The shell's content area loading the app's home when the app names none: its own type, aimed
+    at the ``_no_home_route`` (or ``_page``) sentinel. The page the app itself draws answers it, not
+    the shell (mirrors Java's AppHomeRouteResolver: the sentinel becomes ``_page``)."""
+    route = (rq.route or "").split("?")[0].strip("/")
+    return bool(rq.server_side_type) and route in ("_no_home_route", "_page")
 
 
 def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq):

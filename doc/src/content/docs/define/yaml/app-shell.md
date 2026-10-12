@@ -319,8 +319,9 @@ conventional single mount is used: `specs/ui/routes.yaml` loaded at base path `"
 
 For **Spring MVC**, `mateu-mvc` auto-configures the HTTP surface (the SPA at the mount's base path and
 sync under it) when the classpath declares at least one `type: UI` mount — the work the annotation
-processor normally does per `@UI` class, which cannot happen when there is no class. It stands down as
-soon as a generated controller exists, so adding an `@UI` class later changes nothing.
+processor normally does per `@UI` class, which cannot happen when there is no class. Adding an `@UI`
+class later changes nothing: the `type: UI` mounts keep being served next to it, on every Java adapter —
+only a base path the class itself is mounted at is left to the class.
 
 Your application is then a Spring Boot entry point plus resources:
 

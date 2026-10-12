@@ -41,6 +41,8 @@ interface RouteEntry {
     viewModel?: string | null
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    // `state:` literals the route seeds the page with (at the defaults' precedence level)
+    state?: Record<string, unknown>
     // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
     data?: { ref?: string | null, url?: string | null } | null
 }
@@ -184,7 +186,9 @@ export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIn
     const match = matchRouteEntry(syncPath)
     if (!match) return increment
     const { entry, pathParams } = match
-    const defaults = entry.defaultParams ?? {}
+    // a route's `state:` seeds sit at the defaults' level (the server's RouteSegmentUtils): the
+    // manifest shipped them and nothing applied them, so a bundled page lost its seeded state
+    const defaults = { ...(entry.defaultParams ?? {}), ...(entry.state ?? {}) }
     const fixed = entry.fixedParams ?? {}
     if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length) {
         return increment
@@ -206,7 +210,10 @@ export const getRouteEntry = (syncPath: string): RouteEntry | undefined =>
 /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors the server exporter's toSyncPath
  *  and AxiosMateuApiClient's URL building: leading slash stripped, blank/root → `_no_route`. */
 export const toSyncPath = (route: string | undefined): string => {
-    const r = route && route.startsWith('/') ? route.substring(1) : (route ?? '')
+    // the query string is a listing's filters, page and sort — never part of the screen: with it a
+    // deep link (/products?status=X) or a reload of a filtered listing answered nothing at all
+    const path = route && route.includes('?') ? route.substring(0, route.indexOf('?')) : route
+    const r = path && path.startsWith('/') ? path.substring(1) : (path ?? '')
     return r === '' ? '_no_route' : r
 }
 

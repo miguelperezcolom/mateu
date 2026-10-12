@@ -61,7 +61,7 @@ public class ChartMapper {
                         .build()
                     : null)
             .build(),
-        "fieldId",
+        WireIds.idOf(chart, null),
         List.of(),
         chart.style(),
         chart.cssClasses(),

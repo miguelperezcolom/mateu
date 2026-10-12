@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { inAppRoute, shellFlowFor } from './shellFlows'
+import { inAppRoute, shellActionTarget, shellFlowFor } from './shellFlows'
 
 describe('shell flows — the menu leaf that runs a declared flow', () => {
     const app = {
@@ -27,5 +27,30 @@ describe('shell flows — the menu leaf that runs a declared flow', () => {
         expect(inAppRoute('//evil.com/x')).toBeUndefined()
         expect(inAppRoute('mailto:a@b.c')).toBeUndefined()
         expect(inAppRoute(undefined)).toBeUndefined()
+    })
+})
+
+describe('shell actions — who runs the action a menu leaf names', () => {
+    const flow = { id: 'newOrder', commands: [{ type: 'NavigateTo', data: 'orders/new' }] }
+    const restCall = { id: 'refreshCache', restAction: { source: { url: '/api/refresh' } } }
+    const app = {
+        actions: [flow as never, { id: 'approve' } as never],
+        actionCatalogue: [restCall as never],
+    }
+
+    it('a declared flow runs in the browser', () => {
+        expect(shellActionTarget(app, 'newOrder')).toBe('flow')
+    })
+
+    it('a catalogue entry without steps is the on-screen component\'s (a REST call)', () => {
+        expect(shellActionTarget(app, 'refreshCache')).toBe('component')
+    })
+
+    it('the shell\'s own step-less action and an id nobody declares are the APP\'s', () => {
+        // a @Menu Rule leaf of a @UI class names a method of the app: it used to be sent to the
+        // on-screen component, which does not advertise it, and the click did nothing
+        expect(shellActionTarget(app, 'approve')).toBe('app')
+        expect(shellActionTarget(app, 'ping')).toBe('app')
+        expect(shellActionTarget(undefined, 'ping')).toBe('app')
     })
 })

@@ -242,6 +242,63 @@ export const RICH_TEXT_COMMANDS = [
 ]
 
 /**
+ * `<mateu-markup-field kind="markdown|html" value="…">`: the editor of an EDITABLE markdown / html
+ * field — the source in a textarea and a Preview toggle that shows it rendered (markdown through
+ * markdownToHtml, html sanitised). It was drawn as an oj-text-area with the raw source and no way
+ * to see the result, while Vaadin drew the result and could not edit it (owner, 2026-10-12: an
+ * editor with preview on both). Leaves as `valueChanged` {value, updatedFrom:'internal'}.
+ */
+export function markupPreviewHtml(kind, source) {
+  return kind === 'markdown' ? markdownToHtml(source || '') : sanitizeHtml(source || '')
+}
+
+export function defineMarkupField(win = typeof window !== 'undefined' ? window : null) {
+  if (!win || !win.customElements || win.customElements.get('mateu-markup-field')) return
+  const doc = win.document
+  class MateuMarkupField extends win.HTMLElement {
+    static get observedAttributes() { return ['value', 'kind', 'aria-label'] }
+    connectedCallback() { this.render() }
+    attributeChangedCallback() { if (this.isConnected && !this.editing) this.render() }
+    get value() { return this.getAttribute('value') || '' }
+    set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+    render() {
+      this.textContent = ''
+      this.classList.add('mateu-markup-field')
+      const bar = doc.createElement('div')
+      bar.className = 'mateu-markup-bar'
+      const toggle = doc.createElement('button')
+      toggle.type = 'button'
+      toggle.className = 'mateu-markup-toggle'
+      toggle.setAttribute('aria-pressed', this.previewing ? 'true' : 'false')
+      toggle.textContent = chromeText(this.previewing ? 'edit' : 'preview')
+      toggle.addEventListener('click', () => { this.previewing = !this.previewing; this.render() })
+      bar.appendChild(toggle)
+      this.appendChild(bar)
+      if (this.previewing) {
+        const view = doc.createElement('div')
+        view.className = 'mateu-atom-richtext mateu-markup-preview oj-typography-body-md'
+        view.innerHTML = markupPreviewHtml(this.getAttribute('kind'), this.value)
+        this.appendChild(view)
+        return
+      }
+      const area = doc.createElement('textarea')
+      area.className = 'mateu-markup-source'
+      area.value = this.value
+      area.setAttribute('aria-label', this.getAttribute('aria-label') || '')
+      area.addEventListener('input', () => {
+        this.editing = true
+        this.value = area.value
+        this.editing = false
+      })
+      area.addEventListener('change', () => this.dispatchEvent(new win.CustomEvent('valueChanged', {
+        detail: { value: area.value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true })))
+      this.appendChild(area)
+    }
+  }
+  win.customElements.define('mateu-markup-field', MateuMarkupField)
+}
+
+/**
  * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
  * JET/Redwood has no rich text editor (oj-text-area is plain text), and the web renderer's editor
  * (Tiptap) cannot be imported by the bridge — so a small one: a toolbar of oj-buttons over a

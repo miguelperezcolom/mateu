@@ -133,8 +133,8 @@ class AppMapperMixin(MixinBase):
             or getattr(cls, "__mateu_app_chromeless__", False)
         )
         # The home route: an AppSupplier shell that sets one wins (app-in-code → "/a"); a reflected
-        # @Menu-field app declares no explicit home, so it is "_no_home_route" (Java parity — the
-        # home defaults to the first menu item, but the wire's homeRoute stays the sentinel).
+        # @Menu-field app declares no explicit home, so it lands on its first navigable menu item
+        # (Java parity); "_no_home_route" only when it has none.
         # A @menu_item app names its landing route with HomeRouteSupplier (Java's
         # HomeRouteSupplier); the sync handler then types the home with that screen's class.
         supplied_home = (
@@ -145,7 +145,7 @@ class AppMapperMixin(MixinBase):
         home_route = (
             shell.home_route
             if (shell and shell.home_route)
-            else supplied_home or "_no_home_route"
+            else supplied_home or _first_navigable_route(items) or "_no_home_route"
         )
         # A reflected (@menu_item-method) app carries its own mount as the wire's `route`; an
         # AppSupplier shell leaves it None (AppShell has no route). Mirrors AppDto.route.
@@ -178,10 +178,13 @@ class AppMapperMixin(MixinBase):
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
             # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
+            # The header's light/dark switch: opt-in, mirrors AppDto.themeToggle.
+            theme_toggle=bool(getattr(cls, "__mateu_app_theme_toggle__", False)),
             # "Open on mobile" (experimental): opt-in, mirrors AppDto.mobileQr.
             mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
-            # The UI language: what the translator says (mirrors AppDto.locale).
-            locale=self._locale(),
+            # The UI language: what the translator says, else the request's Accept-Language — the
+            # chrome follows the browser, as on Java (DefaultTranslator.locale; mirrors AppDto.locale).
+            locale=self._locale() or _accept_language(),
             # The capability tokens this app requires from its host renderer: derived from the
             # app-scoped features it declares plus whatever @app(requires=[...]) adds. app-data /
             # rest-sources are not carried by this port at build time (app_data_source is applied
@@ -574,3 +577,27 @@ class AppMapperMixin(MixinBase):
             field_attribute=r.field_attribute, value=r.value, expression=r.expression,
             result=r.result, action_id=r.action_id,
         )
+
+
+def _first_navigable_route(items) -> str | None:
+    """The route of the first menu leaf a click would NAVIGATE to — an app that names no home lands
+    there (Java's AppMapper.withFirstMenuItemAsHome). Rule leaves, remote menus, separators and
+    hidden entries are skipped; None when there is no such leaf (the app draws itself)."""
+    for item in items or []:
+        if item.separator or not item.visible:
+            continue
+        if item.submenus:
+            nested = _first_navigable_route(item.submenus)
+            if nested:
+                return nested
+            continue
+        if item.remote or item.rules or not item.route:
+            continue
+        return item.route
+    return None
+
+
+def _accept_language() -> str | None:
+    from ..translations import accept_language
+
+    return accept_language()

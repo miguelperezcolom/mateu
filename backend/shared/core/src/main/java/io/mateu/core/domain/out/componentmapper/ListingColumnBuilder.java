@@ -44,12 +44,23 @@ final class ListingColumnBuilder {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     var columns = new ArrayList<GridColumn>();
+    // a grouped listing keeps its rows in group order (the group column is its primary sort): a
+    // header sort would reorder the rows across the group markers, so it offers none
+    boolean grouped =
+        getAllFields(rowClass).stream()
+            .anyMatch(
+                field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.GroupBy.class));
     columns.addAll(
         getAllFields(rowClass).stream()
             .filter(field -> filterColumn(field, instance, httpRequest))
             .map(
                 field ->
                     getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
+            .map(
+                column ->
+                    grouped
+                        ? column
+                        : column.toBuilder().sortable(isSortable(rowClass, column)).build())
             .toList());
     if (instance instanceof Selector<?>) {
       columns.add(
@@ -164,6 +175,31 @@ final class ListingColumnBuilder {
                 ? MetaAnnotations.find(field, Line.class).value()
                 : null)
         .build();
+  }
+
+  /**
+   * Whether the header of a reflected column sorts. A listing's sort is part of its contract — it
+   * arrives in {@code SearchRequest.pageable().sort()} and {@code CrudStore.find} applies it — but
+   * no reflected column ever said it was sortable, so there was no header to click and the sort
+   * never left the client: on every listing, AutoCrud included. A column sorts when its values have
+   * a natural order (text, numbers, booleans, enums, dates and times).
+   */
+  static boolean isSortable(Class<?> rowClass, GridColumn column) {
+    var field =
+        getAllFields(rowClass).stream()
+            .filter(candidate -> candidate.getName().equals(column.id()))
+            .findFirst()
+            .orElse(null);
+    if (field == null) return false;
+    var type = field.getType();
+    return type.isPrimitive()
+        || CharSequence.class.isAssignableFrom(type)
+        || Number.class.isAssignableFrom(type)
+        || Boolean.class.equals(type)
+        || Character.class.equals(type)
+        || type.isEnum()
+        || java.time.temporal.Temporal.class.isAssignableFrom(type)
+        || java.util.Date.class.isAssignableFrom(type);
   }
 
   private static String getColumnStyle(AccessibleObject field) {

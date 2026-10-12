@@ -126,7 +126,24 @@ export function rowButtonOf(b) {
 export function optionsOf(field, data) {
   const found = data && data[field.fieldId] && data[field.fieldId].content
   const raw = (field.options && field.options.length) ? field.options : (found || [])
+  if (field.stereotype === 'treeSelect') return treeOptionsOf(raw, !!field.treeLeavesOnly)
   return raw.map((o) => ({ value: o.value, label: o.label == null ? String(o.value) : o.label }))
+}
+
+/**
+ * A @TreeSelect's options flattened for the select, nested ones indented under their parent (a
+ * leaves-only tree offers its leaves only). Only the top level used to be offered: a nested value
+ * could not be picked, and a stored one (Mallorca) showed as the first option (Spain).
+ */
+export function treeOptionsOf(options, leavesOnly, depth = 0) {
+  const out = []
+  for (const o of options || []) {
+    const children = o.children || []
+    const label = (depth ? '\u2003'.repeat(depth) : '') + (o.label == null ? String(o.value) : o.label)
+    if (!(leavesOnly && children.length)) out.push({ value: o.value, label })
+    out.push(...treeOptionsOf(children, leavesOnly, depth + 1))
+  }
+  return out
 }
 
 /** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
@@ -183,7 +200,9 @@ export const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isT
 
 /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
 export const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
-  float: true, date: true, dateTime: true, bool: true, boolean: true }
+  float: true, date: true, dateTime: true, bool: true, boolean: true,
+  // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
+  time: true }
 
 /**
  * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
@@ -201,6 +220,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
   const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
   let value = raw == null || raw === '' ? null : raw
+  // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
+  if (widget.isMoney && value != null && typeof value === 'object') value = value.value
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -456,10 +477,32 @@ export function extraWidgetOf(f, options) {
     const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
     return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
   }
-  if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+  // five stars, as on Vaadin: the wire's sliderMax defaults to 100 on EVERY field, and a gauge of
+  // a hundred stars drew as a hairline — the rating was invisible. A small explicit max is kept.
+  if (st === 'stars') {
+    const max = Number(f.sliderMax)
+    return { isStars: true, max: max > 0 && max <= 10 ? max : 5 }
+  }
   if (st === 'color') return { isColor: true }
   if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
+  // an editable markdown / html: the source + a Preview toggle (mateu-markup-field)
+  if ((st === 'markdown' || st === 'html') && !f.readOnly) return { isMarkupEditor: true, markupKind: st }
   return null
+}
+
+/**
+ * What an edited field commits: the edited value, EXCEPT when the field held an Amount
+ * ({currency, value, locale}) — then the same Amount with the new value. The money input edits the
+ * NUMBER, and committing it bare lost the currency: the server could not pour a bare number into
+ * an Amount and kept the old one (the forms walkthrough).
+ */
+export function committedValueOf(previous, value) {
+  if (previous != null && typeof previous === 'object' && !Array.isArray(previous)
+      && 'currency' in previous && 'value' in previous
+      && (value == null || typeof value === 'number' || (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))))) {
+    return value == null ? null : { ...previous, value: Number(value) }
+  }
+  return value
 }
 
 /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
@@ -467,12 +510,19 @@ export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
     || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
     || (md.stereotype === 'richText' && !md.readOnly)
+    || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
     || CAPTURE_MODES[md.stereotype]
     || (md.dataType === 'array' && (md.options || []).length
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
 }
 
+/** Stereotypes that PRESENT a value and take no input (@PlainText, @Badge): drawn read-only.
+ *  They were drawn as editable inputs (a badge as a switch), so the user could change what the
+ *  server shows as a fact — and send it back. */
+export const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
+
 export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+  if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
   const extra = extraWidgetOf(f, optionsOf(f, data))
   if (extra) {
@@ -487,7 +537,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
       options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
       ...flags,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
-      isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
+      isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
       ...extra,
     }

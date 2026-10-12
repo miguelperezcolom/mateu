@@ -236,6 +236,30 @@ class StaticSafetyCheckTest {
   }
 
   @Test
+  void aDeclaredClientFlowIsAsStaticAsARestAction() throws Exception {
+    // the YAML display gallery's actions are `steps:` flows (Emit) — they run in the browser; the
+    // check took every one of them for a server action and refused the static bundle
+    var def =
+        JSON.readTree(
+            """
+            {"type":"VerticalLayout",
+             "content":[
+               {"type":"Map","markerActionId":"openMarker","markers":[]},
+               {"type":"Button","actionId":"save"},
+               {"type":"MetricCard","actionId":"chain"}],
+             "actions":[
+               {"id":"openMarker","steps":[{"type":"Emit","event":"picked"}]},
+               {"id":"save","steps":[{"type":"MarkClean"},{"type":"Navigate","route":"/x"}]},
+               {"id":"chain","steps":[{"type":"RunAction","actionId":"serverSide"}]}]}
+            """);
+    assertThat(StaticSafetyCheck.checkDefinition("/x", def, catalog()))
+        .extracting(StaticSafetyCheck.Violation::reason)
+        // only the flow that hands over to another action (and that action) is reported
+        .hasSize(2)
+        .allSatisfy(r -> assertThat(r).containsAnyOf("'chain'", "'serverSide'"));
+  }
+
+  @Test
   void aYamlShellsHeaderNeedsTheServerOnlyForProxiedSourcesAndUndeclaredActions() throws Exception {
     var def =
         JSON.readTree(

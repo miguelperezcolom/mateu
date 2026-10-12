@@ -707,6 +707,18 @@ class LayoutSyncTest {
     assertThat(fabs.get(1).id()).isEqualTo("createItem");
   }
 
+  @Test
+  void fabActionsAreAdvertisedSoTheBrowserSendsThem() {
+    // the web client only SENDS an action its component advertises: a page FAB used to be a
+    // dead click ("action … was requested but no component on the page handles it")
+    var page =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/layout/fabs").fragments().get(0).component();
+    assertThat(page.actions())
+        .extracting(io.mateu.dtos.ActionDto::id)
+        .contains("reload", "createItem");
+  }
+
   // ------------------------------------------------------------------ titles / KPIs
 
   @Test

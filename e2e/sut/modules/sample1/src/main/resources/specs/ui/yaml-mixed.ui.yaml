@@ -1,0 +1,7 @@
+# A YAML mount served NEXT TO the @UI classes of this module (owner decision 4, 2026-10-12): every
+# Java adapter used to stand the YAML surface down as soon as a generated controller existed (404).
+type: UI
+basePath: yaml-mixed
+home: welcome
+routes:
+  - yaml-mixed-routes.yaml

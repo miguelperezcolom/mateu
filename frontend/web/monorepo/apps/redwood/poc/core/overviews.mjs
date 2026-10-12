@@ -99,9 +99,26 @@ export function welcomeLookOf(key, previous, random = Math.random, tone = null) 
   }
 }
 
+const WELCOME_FRAME = new Set(['Page', 'VerticalLayout', 'HorizontalLayout', 'ResponsiveGrid', 'DashboardLayout',
+  'Div', 'Container', 'Scroller', 'FullWidth'])
+const WELCOME_PIECES = new Set(['HeroSection', 'DashboardPanel'])
+
+/** Whether the tree has something besides the welcome composition (a hero + its tiles in layouts). */
+function holdsMoreThanAWelcome(n, root) {
+  if (!n || typeof n !== 'object') return false
+  if (!root && n.type === 'ServerSide') return false
+  const t = n.metadata && n.metadata.type
+  if (t && WELCOME_PIECES.has(t)) return false
+  if (t && !WELCOME_FRAME.has(t)) return true
+  return (n.children || []).some((c) => holdsMoreThanAWelcome(c, false))
+}
+
 export function welcomeOf(ctx) {
   const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
   if (!hero) return null
+  // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
+  // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
+  if (holdsMoreThanAWelcome(ctx.tree, true)) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')
@@ -291,11 +308,28 @@ export function tabBarIdsOf(blocks) {
   return ids
 }
 
+/** The node whose children include `target` (null at the root or when absent). */
+function parentOfNode(node, target) {
+  if (!node || typeof node !== 'object') return null
+  for (const child of node.children || []) {
+    if (child === target) return node
+    const found = parentOfNode(child, target)
+    if (found) return found
+  }
+  return null
+}
+
 /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
 export function itemOverviewOf(ctx) {
   const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
   if (!tabLayout) return null
-  const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+  // the key panel is the tab bar's SIBLING (the archetype lays them side by side). Any card
+  // anywhere used to do: a sectioned form with tabs inside one section (its other sections are
+  // cards) was taken for an item overview and drawn as its first section + the tab bar — every
+  // other section, and the form's buttons, were gone
+  const parent = parentOfNode(ctx.tree, tabLayout)
+  const keyCard = ((parent && parent.children) || [])
+    .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
   // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
   // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
   // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos

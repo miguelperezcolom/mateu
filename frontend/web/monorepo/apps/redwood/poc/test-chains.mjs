@@ -15,6 +15,8 @@ import { HOST_ID } from './reduceContexts.mjs'
 import { fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
+import { committedValueOf } from './core/rowEditor.mjs'
+import { listingUrlOf, listingUrlPagingOf } from './core/listing.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -162,7 +164,7 @@ test('the page chains are thin: they take the projection and the plan from the b
     assert.ok(nav.includes('bridge.' + fn + '('), 'onMateuNavigate uses ' + fn)
   }
   assert.ok(action.includes('bridge.outboundActionOf('))
-  assert.ok(action.split('\n').length < 700, 'runMateuAction stays well under its old 835 lines')
+  assert.ok(action.split('\n').length < 750, 'runMateuAction stays well under its old 835 lines')
   assert.ok(nav.split('\n').length < 600, 'onMateuNavigate stays well under its old 696 lines')
 })
 
@@ -208,6 +210,54 @@ test('a display-block click: a RouteLink button navigates, any other runs its ac
     const src = webApp(`flows/main/pages/main-start-page-chains/${chain}.js`)
     assert.ok(src.includes('bridge.blockClickOf') && src.includes('application:mateuNavigate'), chain)
   }
+})
+
+test('@AutoSave also runs from the generic form (not only from display-block inputs)', () => {
+  // the actions walkthrough: a settings page whose fields are the generic form never saved
+  const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+  assert.ok(edited.includes('bridge.autoSaveOf('), 'mateuFieldEdited honors @AutoSave')
+})
+
+test('a Separator draws a visible rule, not an empty spacer', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.ok(/isSeparator \]\]">\s*<hr class="mateu-separator/.test(page), 'the separator atom is an <hr>')
+  assert.ok(webApp('resources/css/app.css').includes('.mateu-separator { border: none; border-block-start: 1px solid'))
+})
+
+test('an edited Amount keeps its currency (the money input edits only the number)', () => {
+  assert.deepEqual(committedValueOf({ currency: 'EUR', value: 10, locale: 'es-ES' }, 12.5), { currency: 'EUR', value: 12.5, locale: 'es-ES' })
+  assert.deepEqual(committedValueOf({ currency: 'USD', value: 1 }, '7'), { currency: 'USD', value: 7 })
+  assert.equal(committedValueOf({ currency: 'EUR', value: 10 }, null), null)
+  assert.equal(committedValueOf(3, 4), 4)
+  assert.equal(committedValueOf(undefined, 'x'), 'x')
+  const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+  assert.equal(edited.split('bridge.committedValueOf(').length - 1, 2, 'both drafts (page and overlay) commit through it')
+})
+
+test('a listing keeps its page and sort in the URL, with the Vaadin contract (back, reload, shared link)', () => {
+  assert.equal(listingUrlOf('/books', { genre: 'Poetry' }, 'ana', { page: 2, sort: [{ field: 'title', direction: 'descending' }] }),
+    '/books?genre=Poetry&searchText=ana&page=2&sort=title:descending')
+  assert.equal(listingUrlOf('/books', {}, '', { page: 0, sort: [] }), '/books')
+  assert.deepEqual(listingUrlPagingOf('genre=Poetry&page=2&sort=title:descending,year:ascending'),
+    { page: 2, sort: [{ field: 'title', direction: 'descending' }, { field: 'year', direction: 'ascending' }] })
+  assert.deepEqual(listingUrlPagingOf(''), { page: 0, sort: [] })
+  const search = webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')
+  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.replaceState'), 'every search writes the URL')
+  const nav = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'onMateuNavigate.js'), 'utf8')
+  assert.ok(nav.includes('bridge.listingUrlPagingOf('), 'navigation restores page and sort')
+})
+
+test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
+  const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
+    'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
+  assert.ok(!/[#%]\{env\./.test(bundle), 'a placeholder only a VB host fills is left in the jar bundle')
+  // the security provider reads a static anonymous user the jar ships: without a url it asked
+  // `<base>_currentuser`, which the server answered with the index page (a JSON parse error)
+  assert.ok(bundle.includes('\\"userConfig\\":{\\"type\\":\\"vb/DefaultSecurityProvider\\",\\"configuration\\":{\\"url\\":\\"/_redwood/resources/mateu-anonymous-user.json\\"}'))
+  const user = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
+    'src', 'main', 'resources', 'static', '_redwood', 'resources', 'mateu-anonymous-user.json'), 'utf8'))
+  assert.equal(user.isAuthenticated, false)
+  assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

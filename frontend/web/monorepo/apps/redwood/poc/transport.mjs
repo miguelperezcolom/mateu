@@ -3,7 +3,7 @@
 // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
-import { actionSucceeded } from './polling.mjs'
+import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
@@ -240,7 +240,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
   }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
     .then((inc) => {
       release()
-      if (inc) actionSucceeded(source, actionId)
+      if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
       return inc
     }, (e) => { release(); throw e })
 }

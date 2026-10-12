@@ -1,7 +1,8 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import OrgNode from "@mateu/shared/apiClients/dtos/componentmetadata/OrgNode";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
@@ -128,7 +129,7 @@ export class MateuOrgChart extends LitElement {
         const isImg = avatar && (avatar.startsWith('http') || avatar.startsWith('data:'))
         return html`
             <li>
-                <div role="button" tabindex="0" class="node ${node.actionId ? 'clickable' : ''}"
+                <div role=${ifDefined(buttonRole(!!node.actionId))} tabindex=${ifDefined(tabStop(!!node.actionId))} class="node ${node.actionId ? 'clickable' : ''}"
                      style="${node.color ? `--mateu-org-accent: ${node.color};` : ''}"
                      @click="${() => this.clickNode(node)}" @keydown="${onActivate(() => this.clickNode(node))}">
                     ${avatar ? html`<span class="avatar">${isImg ? html`<img src="${avatar}" alt="">` : avatar}</span>` : nothing}

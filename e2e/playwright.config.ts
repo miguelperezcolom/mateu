@@ -137,7 +137,11 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: process.env.RENDERER_VB_URL || 'http://localhost:8090',
       },
-      testMatch: '**/renderer/**/*.spec.ts',
+      // The YAML actions walkthrough asserts by roles and URLs only, so it is renderer-agnostic:
+      // this project runs it too (renderer-vaadin already does, through mvc-app1 on the same
+      // :8080). Listed here rather than re-exported from a renderer spec — Playwright refuses a
+      // test file that imports another test file of the same run.
+      testMatch: ['**/renderer/**/*.spec.ts', '**/shared/yaml-actions.spec.ts'],
     },
     ]),
   ],

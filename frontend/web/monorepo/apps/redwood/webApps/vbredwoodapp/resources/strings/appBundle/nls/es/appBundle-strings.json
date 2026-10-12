@@ -171,6 +171,7 @@
   "askSomething": "Pregunta lo que quieras…",
   "assistantFailed": "El asistente no ha podido responder: {message}",
   "formatting": "Formato",
+  "preview": "Vista previa",
   "rteBold": "Negrita",
   "rteItalic": "Cursiva",
   "rteUnderline": "Subrayado",

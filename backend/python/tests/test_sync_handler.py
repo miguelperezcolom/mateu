@@ -1138,6 +1138,58 @@ def test_app_context_selectors_on_the_wire():
     assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
 
 
+@ui("request-injection")
+@title("Request injection")
+class RequestInjection:
+    note: str | None = None
+
+    @button()
+    def who(self, request: "RunActionRq") -> Message:  # a quoted hint = `from __future__ import annotations`
+        return Message(f"injected={request is not None}")
+
+
+def test_the_request_is_injected_whatever_the_annotation_style():
+    # under `from __future__ import annotations` (or a quoted hint) the annotation is a string; it
+    # was compared to the class as it came, so the method got None instead of the request
+    inc = handler().handle(RunActionRq(
+        route="request-injection", server_side_type=_name(RequestInjection), action_id="who",
+    ))
+    assert [m.text for m in inc.messages] == ["injected=True"]
+
+
+def test_the_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_again():
+    # an app with no home route aims its content area at "_no_home_route" with its own type: the
+    # port answered the SHELL again, which the web client nested inside the first one and which
+    # asked again — the browser's loop guard aborted it with console errors
+    shell = handler().handle(RunActionRq(route="", consumed_route="_empty", server_side_type=_name(TestApp)))
+    assert shell.fragments[0].component.metadata.type == "App"
+    # the shell lands on its first menu item now; the sentinel load below still answers a page
+    assert shell.fragments[0].component.metadata.home_route != "_no_home_route"
+    content = handler().handle(RunActionRq(
+        route="/_no_home_route", consumed_route="", server_side_type=_name(TestApp),
+    ))
+    component = content.fragments[0].component
+    assert component.type == "ServerSide"
+    assert getattr(getattr(component, "metadata", None), "type", None) != "App"
+
+
+def test_an_app_context_picker_searches_its_options_on_the_app_level_rail():
+    # the web picker asks _appcontext-search-<field> whenever it opens or the user types; the port
+    # used to answer "Action not found" — an error toast on every picker of a Python app
+    def search(text):
+        inc = handler().handle(RunActionRq(
+            server_side_type=_name(TestApp), action_id="_appcontext-search-hotel",
+            initiator_component_id="appcontext-hotel", parameters={"searchText": text},
+        ))
+        assert not inc.messages
+        fragment = inc.fragments[0]
+        assert fragment.target_component_id == "appcontext-hotel"
+        return [o["label"] for o in fragment.data["_appcontext_hotel"]["content"]]
+
+    assert search("") == ["Hotel 1", "Hotel 2"]
+    assert search("2") == ["Hotel 2"]
+
+
 def test_app_header_actions_on_the_wire():
     inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
     j = json.loads(render(inc))
@@ -1294,6 +1346,19 @@ def test_find_override_pushes_search_down_and_skips_the_in_memory_pipeline():
     assert "From the DB" in j
     # …and the request's paging + sort reached the override.
     assert _LAST_PAGEABLE == [Pageable(page=2, size=25, sort=(SortSpec("name", True),))]
+
+
+def test_the_sort_a_grid_header_sends_reaches_the_crud_find():
+    # the grid sends {fieldId, direction}; reading only "field" dropped every header sort
+    _LAST_PAGEABLE.clear()
+    handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(DbOrders),
+            component_state={"sort": [{"fieldId": "name", "direction": "descending"}]},
+        )
+    )
+    assert _LAST_PAGEABLE[0].sort == (SortSpec("name", True),)
 
 
 def test_remote_menu_emits_a_federated_entry():
@@ -2110,6 +2175,29 @@ def test_events_emit_and_subscription():
     assert '"act"' in j
 
 
+@ui("plain-subscriber")
+@title("Plain subscriber")
+@subscribe_to("lab-ping", "on_ping")
+class PlainSubscriber:
+    heard: str | None = None
+
+    def on_ping(self):
+        self.heard = "pinged"
+        return self
+
+
+def test_a_subscription_naming_a_plain_method_is_advertised():
+    # the web client only sends what the component advertises: unadvertised, the subscription
+    # fired, bubbled out unclaimed and was lost (the actions walkthrough, 2026-10-12)
+    j = json.loads(render(handler().handle(RunActionRq(server_side_type=_name(PlainSubscriber)))))
+    component = j["fragments"][0]["component"]
+    assert "onPing" in [a["id"] for a in component["actions"]]
+    # …and the trigger names the same id, which the server runs
+    assert any(t.get("actionId") == "onPing" for t in component["triggers"])
+    ran = render(handler().handle(RunActionRq(server_side_type=_name(PlainSubscriber), action_id="onPing")))
+    assert "pinged" in ran
+
+
 def test_wizard_renders_and_completes():
     j1 = render(handler().handle(RunActionRq(server_side_type=_name(Wiz))))
     assert '"ProgressBar"' in j1
@@ -2171,6 +2259,13 @@ def test_link_supplier_wins_over_the_marker_and_none_falls_back_to_it():
 def test_fab_action_invoked():
     inc = handler().handle(RunActionRq(action_id="add", server_side_type=_name(Featured)))
     assert inc.messages[0].text == "Added"
+
+
+def test_fab_action_is_advertised_so_the_browser_sends_it():
+    # the web client only SENDS an advertised action: an unadvertised page FAB was a dead click
+    inc = handler().handle(RunActionRq(server_side_type=_name(Featured)))
+    actions = inc.fragments[0].component.actions
+    assert "add" in [a.id for a in actions]
 
 
 # ── Smart-search listing filters ─────────────────────────────────────────────
@@ -2309,7 +2404,7 @@ def test_crud_search_sorts_and_paginates():
 
 def test_action_returns_page_banner():
     inc = handler().handle(
-        RunActionRq(action_id="warn", server_side_type=_name(SimpleForm), component_state={})
+        RunActionRq(action_id="warn", server_side_type=_name(SimpleForm), component_state={"name": "Ann"})
     )
     assert len(inc.banners) == 1
     b = inc.banners[0]
@@ -2318,7 +2413,7 @@ def test_action_returns_page_banner():
 
 def test_action_returns_route_navigates():
     inc = handler().handle(
-        RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={})
+        RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={"name": "Ann"})
     )
     assert any(c.type == "NavigateTo" and c.data == "/things" for c in inc.commands)
 
@@ -2348,6 +2443,9 @@ class RuleMenuApp:
     def reset_both(self) -> list[Rule]:
         return [Rule.hide("a", "true"), Rule.disable("b")]
 
+    def refresh_all(self):  # the rule leaf's RunAction "refreshAll" (ids are camelCased)
+        return Message("refreshed")
+
 
 def _rule_menu() -> "list":
     reg = MateuRegistry(RuleMenuApp, RuleMenuCatalog)
@@ -2364,6 +2462,16 @@ def test_a_menu_item_returning_a_rule_becomes_a_rule_leaf_carrying_its_rules():
     assert len(refresh.rules) == 1
     assert refresh.rules[0].action == "RunAction"
     assert refresh.rules[0].action_id == "refreshAll"
+
+
+def test_a_rule_leafs_action_runs_on_the_app_whatever_screen_is_below():
+    # the web shell dispatches a menu rule's RunAction on the app-level rail (the app class, no
+    # route of its own), like a header action — the app's method must answer it
+    reg = MateuRegistry(RuleMenuApp, RuleMenuCatalog)
+    inc = SyncHandler(reg).handle(
+        RunActionRq(route="_no_route", server_side_type=_name(RuleMenuApp), action_id="refreshAll")
+    )
+    assert [m.text for m in inc.messages] == ["refreshed"]
 
 
 def test_a_menu_item_returning_a_list_of_rules_carries_all_of_them():
@@ -2481,3 +2589,27 @@ def test_a_route_app_data_ref_is_emitted_on_the_app_metadata(tmp_path):
     assert meta.type == "App"
     assert meta.app_data_source is not None
     assert meta.app_data_source.ref == "shop-catalog"
+
+
+def test_page_banners_replace_and_append():
+    # Java's PageBanners: append accumulates across actions, replace (the default) swaps them —
+    # the port had no way to say "append"
+    from mateu_uidl import BannerTheme, PageBanner, PageBanners
+
+    added = handler().map_result(PageBanners.append(PageBanner(BannerTheme.SUCCESS, "Saved")), None)
+    assert [b.title for b in added.banners] == ["Saved"] and added.append_banners is True
+    replaced = handler().map_result(PageBanners.replace(PageBanner(title="Only")), None)
+    assert [b.title for b in replaced.banners] == ["Only"] and replaced.append_banners is False
+    mixed = handler().map_result([Message("ok"), PageBanners.append(PageBanner(title="More"))], None)
+    assert mixed.append_banners is True and [b.title for b in mixed.banners] == ["More"]
+
+
+def test_an_error_message_stays_until_dismissed():
+    # owner, 2026-10-12: an error toast has duration 0 (sticky) in every backend — Java mapped any
+    # error to 3000 ms; a Message an action returns with a duration is no exception
+    from mateu_uidl import MessageVariant
+
+    inc = handler().map_result(Message("Boom", variant=MessageVariant.ERROR, duration=4000), None)
+    assert inc.messages[0].duration == 0
+    ok = handler().map_result(Message("Fine", duration=4000), None)
+    assert ok.messages[0].duration == 4000

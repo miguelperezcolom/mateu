@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the /shell mount (ShellApp), backing the app-shell walkthrough specs: one screen
+# at several routes (fixed vs default params) and a record master whose tabs are child routes.
+type: Routes
+basePath: /shell
+routes:
+
+  - route: orders/pending
+    viewModel: io.mateu.sample1.shell.ShellOrders
+    fixedParams:
+      status: pending
+
+  - route: orders
+    viewModel: io.mateu.sample1.shell.ShellOrders
+    defaultParams:
+      status: open
+
+  - route: customers/:customerId
+    viewModel: io.mateu.sample1.shell.ShellCustomerMaster
+    defaultChild: orders
+    children:
+      - route: orders
+        viewModel: io.mateu.sample1.shell.ShellCustomerOrders
+      - route: notes
+        viewModel: io.mateu.sample1.shell.ShellCustomerNotes

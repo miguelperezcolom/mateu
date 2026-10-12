@@ -51,14 +51,27 @@ public class RouteInstanceCreator {
     return Mono.defer(
             () ->
                 Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next())
-        // Longest-first: terminal direct classes (most-specific match wins)
+        // Longest-first: terminal direct classes (most-specific match wins) — unless routes.yaml
+        // authors the route itself as a definition-only page: then no class answers for it, and a
+        // shorter prefix's class (the root @UI("") view) must not either, or it hijacked the page.
         .switchIfEmpty(
             (Mono)
                 Mono.defer(
                     () ->
-                        Flux.fromIterable(segments.reversed())
-                            .concatMap(route -> resolveAsDirectClass(route, command))
-                            .next()));
+                        command.route() != null
+                                && routedClassResolver.authoredWithoutClass(
+                                    removeQueryParamsFromRoute(command.route()))
+                            ? Mono.empty()
+                            : Flux.fromIterable(segments.reversed())
+                                .concatMap(route -> resolveAsDirectClass(route, command))
+                                .next()));
+  }
+
+  /** Only the first half of {@link #findRouteResolver}: an App mounted on a prefix of the route. */
+  public Mono<?> findApp(RunActionCommand command) {
+    List<String> segments = createRoutes(command);
+    return Mono.defer(
+        () -> Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next());
   }
 
   /**

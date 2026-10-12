@@ -93,8 +93,12 @@ def test_a_supplied_home_route_and_its_view_model_reach_the_wire():
     assert meta["homeServerSideType"] == type_name(LandingWelcome)
 
 
-def test_without_a_supplier_a_menu_item_app_declares_no_home():
-    assert app_meta(LandingAppWithoutHome)["homeRoute"] == "_no_home_route"
+def test_without_a_supplier_a_menu_item_app_lands_on_its_first_menu_item():
+    # the documented default (Java's AppMapper.withFirstMenuItemAsHome); it used to be the
+    # "_no_home_route" sentinel, which left every renderer but Redwood on an empty page
+    meta = app_meta(LandingAppWithoutHome)
+    assert meta["homeRoute"] == meta["menu"][0]["route"]
+    assert meta["homeRoute"] != "_no_home_route"
 
 
 def test_loading_a_menu_route_with_the_app_type_loads_the_view_not_the_app():

@@ -18,19 +18,62 @@ public sealed partial class ReflectionMapper
         foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
         {
             var fieldId = Naming.CamelCase(p.Name);
+            var reference = $"state['{fieldId}']";
+            // An absent value satisfies a bound (Bean Validation's reading — requiring it is
+            // [Required]'s job), so an optional ranged field left empty passes.
+            var absent = $"{reference} == null || {reference} === ''";
             if (p.GetCustomAttributes(inherit: true)
                     .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute))
-                validations.Add(new ValidationDto($"state['{fieldId}']", fieldId, "Cannot be empty"));
+                validations.Add(new ValidationDto(RequiredCondition(reference), fieldId, "Cannot be empty"));
             if (p.GetCustomAttributes(inherit: true)
                     .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range)
             {
                 validations.Add(new ValidationDto(
-                    $"state['{fieldId}'] >= {range.Minimum}", fieldId, $"Must be at least {range.Minimum}"));
+                    $"{absent} || {reference} >= {range.Minimum}", fieldId, $"Must be at least {range.Minimum}"));
                 validations.Add(new ValidationDto(
-                    $"state['{fieldId}'] <= {range.Maximum}", fieldId, $"Must be at most {range.Maximum}"));
+                    $"{absent} || {reference} <= {range.Maximum}", fieldId, $"Must be at most {range.Maximum}"));
             }
         }
         return validations;
+    }
+
+    /// <summary>A required field holds a value: not null, not a cleared input, not an empty list —
+    /// while 0 and false ARE values (a bare <c>state['x']</c> rejected both). Java's
+    /// ConstraintValidationMapper.required, character for character.</summary>
+    internal static string RequiredCondition(string reference) =>
+        $"{reference} != null && {reference} !== '' && ({reference}.length === undefined || {reference}.length > 0)";
+
+    /// <summary>The title the client gives its own validation toast (Java's ServerConstraintCheck.TITLE).</summary>
+    public const string ValidationTitle = "There are validation errors";
+
+    /// <summary>The server's own check of the constraints <see cref="MapValidations"/> sends the
+    /// client — same properties, same messages: "• Label: message" per broken one, empty when the
+    /// instance is valid. Run before a [Button] action (advertised validationRequired), because the
+    /// browser is not to be trusted, nor the only client.</summary>
+    internal List<string> Violations(Type type, object instance)
+    {
+        var broken = new List<string>();
+        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
+        {
+            var value = p.GetValue(instance);
+            var label = T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
+            var absent = value is null || value is string { Length: 0 }
+                         || (value is System.Collections.ICollection { Count: 0 });
+            if (p.GetCustomAttributes(inherit: true)
+                    .Any(a => a is System.ComponentModel.DataAnnotations.RequiredAttribute) && absent)
+                broken.Add($"• {label}: {T("Cannot be empty")}");
+            if (!absent && p.GetCustomAttributes(inherit: true)
+                    .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range
+                && value is IConvertible)
+            {
+                var number = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+                if (number < Convert.ToDouble(range.Minimum, System.Globalization.CultureInfo.InvariantCulture))
+                    broken.Add($"• {label}: {T($"Must be at least {range.Minimum}")}");
+                if (number > Convert.ToDouble(range.Maximum, System.Globalization.CultureInfo.InvariantCulture))
+                    broken.Add($"• {label}: {T($"Must be at most {range.Maximum}")}");
+            }
+        }
+        return broken;
     }
 
     /// <summary>Client-side rules of a view (mirrors Java's RuleMapper.createRules): [Disabled]

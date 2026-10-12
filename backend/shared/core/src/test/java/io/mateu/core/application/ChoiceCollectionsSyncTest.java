@@ -44,6 +44,9 @@ class ChoiceCollectionsSyncTest {
     @Stereotype(FieldStereotype.checkbox)
     List<Preference> extras = List.of();
 
+    // no stereotype: a multi-select (owner, 2026-10-12) — it was a grid of Name/Ordinal/Hash
+    List<Preference> undeclared = List.of(Preference.NEAR_LIFT);
+
     @Button
     public Message echo() {
       return new Message(new TreeSet<>(preferences) + " / " + extras);
@@ -82,6 +85,16 @@ class ChoiceCollectionsSyncTest {
         .containsExactly("HIGH_FLOOR", "QUIET_ROOM", "NEAR_LIFT");
     assertThat(byId.get("extras").stereotype()).isEqualTo("checkbox");
     assertThat(byId.get("extras").options()).hasSize(3);
+  }
+
+  @Test
+  void anEnumCollectionWithNoStereotypeIsAMultiSelect() {
+    var undeclared =
+        fields().stream().filter(f -> "undeclared".equals(f.fieldId())).findFirst().orElseThrow();
+    assertThat(undeclared.stereotype()).isEqualTo("multiSelect");
+    assertThat(undeclared.options())
+        .extracting(o -> o.value())
+        .containsExactly("HIGH_FLOOR", "QUIET_ROOM", "NEAR_LIFT");
   }
 
   @Test

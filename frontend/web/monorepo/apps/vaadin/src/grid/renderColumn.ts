@@ -3,6 +3,7 @@ import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
 import { interpolate } from "@infra/ui/interpolation.ts";
+import { sortDirectionOf } from "@infra/ui/gridSort.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -26,8 +27,6 @@ import {
 } from "./menuColumnRenderer.ts";
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { uuidAwareText } from "@infra/ui/uuidCell.ts";
-import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
-import { GridSortColumn } from "@vaadin/grid/all-imports";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@vaadin/text-field";
 import "@vaadin/number-field";
@@ -177,12 +176,22 @@ const aggregateFooter = (footerText: string | undefined) =>
         ? columnFooterRenderer(() => html`<span style="font-weight: 600; white-space: nowrap;">${footerText}</span>`, [footerText])
         : nothing
 
-const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
+/**
+ * A header sort the USER asked for, re-dispatched as `sort-direction-changed` for the listing.
+ *
+ * <p>Listened on the grid's `sorter-changed` and filtered by `fromSorterClick`: the column's own
+ * `direction-changed` also fires when the direction is set programmatically — which is how a fresh
+ * grid (one is built after every search) gets the listing's current sort back — and treating that
+ * as a new sort answered every search with another one, a request loop.
+ */
+export const sorterChanged = (event: CustomEvent) => {
+    if (!event.detail?.fromSorterClick) return
+    const sorter = event.target as { path?: string; direction?: string | null }
     event.currentTarget?.dispatchEvent(new CustomEvent('sort-direction-changed', {
         detail: {
-            grid: (event.currentTarget as GridSortColumn).parentElement
+            grid: event.currentTarget,
+            path: sorter.path,
+            direction: sorter.direction ?? null
         },
         bubbles: true,
         composed: true
@@ -262,10 +271,11 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 flex-grow="${mateuColumn.flexGrow??nothing}"
                                 ?resizable="${mateuColumn.resizable}"
                                 width="${mateuColumn.width??nothing}"
-                                @direction-changed="${directionChanged}"
+                                .direction="${sortDirectionOf(state, mateuColumn.id)}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
-                                ${headerRenderer(colLabel)}
+                                .xcolumn="${mateuColumn}"
+                                header="${colLabel}"
                                 ${aggregateFooter(footerText)}
                                 ${columnBodyRenderer(
 

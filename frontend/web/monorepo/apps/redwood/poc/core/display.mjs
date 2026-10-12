@@ -659,6 +659,31 @@ export function confirmDialogAtomOf(m, id, state, interp = (x) => x, lines = [])
   }
 }
 
+/** A ConfirmDialog an ACTION returned arrives as an Add fragment (an overlay, like a Dialog): the
+ *  shell asks it through its own confirmation dialog (#mateuConfirm) and runs the action of the
+ *  button picked. Confirm → confirmActionId; No / Cancel / ✕ → rejectActionId, else cancelActionId.
+ *  [] when the increment returns none. */
+export function returnedConfirmDialogsOf(increment) {
+  const collect = (node) => (node ? [
+    ...(node.metadata && node.metadata.type === 'Text' && node.metadata.text ? [str(node.metadata.text)] : []),
+    ...(node.children || []).flatMap(collect),
+  ] : [])
+  return ((increment && increment.fragments) || [])
+    .filter((fr) => fr && fr.action === 'Add' && fr.component && fr.component.metadata
+      && fr.component.metadata.type === 'ConfirmDialog')
+    .map((fr) => {
+      const m = fr.component.metadata
+      return {
+        title: str(m.header),
+        message: collect(fr.component).join(' '),
+        confirmText: str(m.confirmText) || chromeText('ok'),
+        denyText: str(m.rejectText) || (m.canReject ? chromeText('confirmNo') : chromeText('cancel')),
+        confirmActionId: m.confirmActionId || '',
+        denyActionId: m.rejectActionId || m.cancelActionId || '',
+      }
+    })
+}
+
 // ── Breadcrumbs (the component in content; the shell keeps its own trail) ───────────────────────
 export function breadcrumbsAtomOf(m, interp = (x) => x) {
   const crumbs = (m.breadcrumbs || []).map((b) => ({ text: interp(str(b.text)), href: safeHref(b.link), hasHref: !!safeHref(b.link) }))

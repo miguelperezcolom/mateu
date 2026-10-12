@@ -39,6 +39,10 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
     var persistAction = saveAndNext ? "save" : actionId;
     Object savedId;
     try {
+      if (orchestrator.editInDrawer()) {
+        // the drawer's form is not validated in the browser (see DrawerFormValidator)
+        DrawerFormValidator.validate("create".equals(persistAction), httpRequest, orchestrator);
+      }
       savedId =
           "save".equals(persistAction)
               ? orchestrator.save(httpRequest)

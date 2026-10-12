@@ -49,7 +49,6 @@ public record Message(
         .variant(NotificationVariant.contrast)
         .text(text)
         .duration(10000)
-        .undoLabel("Deshacer")
         .undoActionId(undoActionId)
         .undoParameters(undoParameters)
         .build();

@@ -49,7 +49,8 @@ record SeededYamlPage(
         StateSupplier,
         ActionSupplier,
         RestSourceSupplier,
-        TriggersSupplier {
+        TriggersSupplier,
+        io.mateu.uidl.interfaces.ValidationSupplier {
 
   SeededYamlPage(
       Component layout,
@@ -134,5 +135,58 @@ record SeededYamlPage(
     // action is claimed and dispatched to the server, which is exactly wrong for a page that has no
     // server behind it. A page declaring nothing claims nothing.
     return declaredActions;
+  }
+
+  /**
+   * The checks the browser runs before an action marked {@code validationRequired}: one per {@code
+   * required: true} field of the definition, with the condition and message a Java form's
+   * {@code @NotEmpty} gets. A classless page had none, so its required fields only wore the
+   * required dot — the action ran with them empty.
+   */
+  @Override
+  public List<io.mateu.uidl.data.Validation> validations() {
+    var validations = new java.util.ArrayList<io.mateu.uidl.data.Validation>();
+    collectRequired(
+        layout,
+        validations,
+        java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()));
+    return validations;
+  }
+
+  private static void collectRequired(
+      Object node, List<io.mateu.uidl.data.Validation> out, java.util.Set<Object> seen) {
+    if (node == null || !seen.add(node)) {
+      return;
+    }
+    if (node instanceof java.util.Collection<?> collection) {
+      collection.forEach(child -> collectRequired(child, out, seen));
+      return;
+    }
+    if (node instanceof io.mateu.uidl.data.FormField field) {
+      if (field.required() && !field.readOnly() && field.id() != null && !field.id().isBlank()) {
+        out.add(
+            new io.mateu.uidl.data.Validation(
+                io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck
+                    .requiredCondition(field.id()),
+                field.id(),
+                "Cannot be empty"));
+      }
+      return;
+    }
+    if (!(node instanceof Component) || !node.getClass().isRecord()) {
+      return;
+    }
+    for (var component : node.getClass().getRecordComponents()) {
+      var type = component.getType();
+      if (!Component.class.isAssignableFrom(type)
+          && !java.util.Collection.class.isAssignableFrom(type)) {
+        continue;
+      }
+      try {
+        collectRequired(component.getAccessor().invoke(node), out, seen);
+      } catch (ReflectiveOperationException e) {
+        // a component we cannot read holds no field we could validate
+      }
+    }
   }
 }

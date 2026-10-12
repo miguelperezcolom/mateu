@@ -9,7 +9,7 @@ These annotations are placed on a class or field to control how its content is a
 
 ## @FoldedLayout
 
-Renders each `@Section` of the page as a collapsible panel. The user can expand or collapse individual sections independently, reducing visual noise on forms with many fields.
+Lays the page's `@Section` cards side by side — one column per section, in declaration order — instead of stacking them vertically. Each section keeps its card and its own fields; it suits a page of a few short, independent groups that read best next to each other (a record's data on one side, its contact details on the other). For collapsible groups use tabs (`@Tab`), and for a long stacked page the sections index (`@Toc`). `@Zones` takes precedence when both are present.
 
 No attributes.
 
@@ -48,9 +48,9 @@ routes:
     viewModel: com.example.CustomerForm
 ```
 
-Each `@Section` becomes a collapsible panel. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.
+Each `@Section` becomes a column. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.
 
-![FoldedLayout — sections as collapsible panels](/images/docs/annotations/folded.png)
+![FoldedLayout — sections side by side](/images/docs/annotations/folded.png)
 
 ---
 

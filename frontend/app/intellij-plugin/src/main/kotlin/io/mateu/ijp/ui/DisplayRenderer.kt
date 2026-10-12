@@ -1463,7 +1463,7 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
 }
 
 /** Gantt: labels column + proportional bars over the tasks' date range, with a today marker. */
-fun renderGantt(metadata: JsonNode): JComponent {
+fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null): JComponent {
     val tasks = metadata.arr("tasks")
     if (tasks.isEmpty()) return JPanel().apply { isOpaque = false }
     val starts = tasks.mapNotNull { runCatching { LocalDate.parse(it.text("start")) }.getOrNull() }
@@ -1506,6 +1506,40 @@ fun renderGantt(metadata: JsonNode): JComponent {
     }
     panel.isOpaque = false
     panel.preferredSize = Dimension(480, tasks.size * 26 + 8)
+    // A GanttPage selects a task (its drawer): a click on a row — or Up/Down + Enter — runs
+    // onTaskSelectionActionId with the task id. It used to be paint-only here.
+    val selectAction = metadata.text("onTaskSelectionActionId")
+    if (ctx != null && selectAction.isNotBlank()) {
+        var focused = 0
+        val select = { i: Int ->
+            tasks.getOrNull(i)?.text("id")?.takeIf { it.isNotBlank() }?.let {
+                ctx.runAction(selectAction, mapOf("_clickedTaskId" to it))
+            }
+        }
+        panel.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+        panel.isFocusable = true
+        panel.toolTipText = tasks.getOrNull(0)?.text("title")
+        panel.accessibleContext.accessibleName = "Gantt — " + tasks.joinToString(", ") { it.text("title") }
+        panel.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                panel.requestFocusInWindow()
+                focused = (e.y / 26).coerceIn(0, tasks.size - 1)
+                select(focused)
+            }
+        })
+        panel.addKeyListener(object : java.awt.event.KeyAdapter() {
+            override fun keyPressed(e: java.awt.event.KeyEvent) {
+                when (e.keyCode) {
+                    java.awt.event.KeyEvent.VK_DOWN -> focused = (focused + 1).coerceAtMost(tasks.size - 1)
+                    java.awt.event.KeyEvent.VK_UP -> focused = (focused - 1).coerceAtLeast(0)
+                    java.awt.event.KeyEvent.VK_ENTER, java.awt.event.KeyEvent.VK_SPACE -> { e.consume(); select(focused) }
+                    else -> return
+                }
+                panel.toolTipText = tasks.getOrNull(focused)?.text("title")
+                panel.accessibleContext.accessibleDescription = tasks.getOrNull(focused)?.text("title")
+            }
+        })
+    }
     return panel
 }
 
@@ -1525,6 +1559,12 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
         val scale = minOf(1.0, 360.0 / img.width)
         JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
     } else {
-        JBLabel(src)
+        // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be
+        // the src itself — a data URI dumped as a wall of base64 across the page.
+        val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
+        JBLabel("🖼 $shown").apply {
+            toolTipText = shown
+            accessibleContext.accessibleName = "Image"
+        }
     }
 }

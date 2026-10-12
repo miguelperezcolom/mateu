@@ -104,3 +104,22 @@ describe('expression evaluator — the sandbox', () => {
         expect(ev('state.age > 1')).toBe(true)
     })
 })
+
+// The validation conditions the three servers generate (Java's ConstraintValidationMapper — the
+// ports emit the same strings, pinned by the conformance corpus). They follow Bean Validation's
+// reading; what matters is that they evaluate so in the sandbox the client actually runs them in.
+describe('server-generated validation conditions', () => {
+    const required = "state['x'] != null && state['x'] !== '' && (state['x'].length === undefined || state['x'].length > 0)"
+    const min1 = "state['x'] == null || state['x'] === '' || state['x'] >= 1"
+    const passes = (condition: string, x: unknown) => !!evaluate(condition, { state: x === undefined ? {} : { x } })
+
+    it('a required field accepts 0 and false, and refuses blank, absent and empty lists', () => {
+        for (const ok of [0, false, 'a', ['a'], 7]) expect(passes(required, ok)).toBe(true)
+        for (const ko of [undefined, null, '', []]) expect(passes(required, ko)).toBe(false)
+    })
+
+    it('a bound lets an absent value through and checks a present one', () => {
+        for (const ok of [undefined, null, '', 1, 5]) expect(passes(min1, ok)).toBe(true)
+        for (const ko of [0, -3]) expect(passes(min1, ko)).toBe(false)
+    })
+})

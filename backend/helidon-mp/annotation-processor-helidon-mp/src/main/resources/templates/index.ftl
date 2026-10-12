@@ -32,7 +32,12 @@ public class ${simpleClassName}Controller {
     @Path("/{path: [^.]+}")
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public String getIndexAlways() {
+    public String getIndexAlways(@jakarta.ws.rs.PathParam("path") String path) {
+        // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        if (yaml != null) {
+            return yaml;
+        }
         return getIndex();
     }
 

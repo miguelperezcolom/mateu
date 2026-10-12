@@ -10,7 +10,7 @@ public class BpmnMapper {
   public static ClientSideComponentDto mapBpmnToDto(Bpmn bpmn) {
     return new ClientSideComponentDto(
         BpmnDto.builder().xml(bpmn.xml()).build(),
-        "fieldId",
+        WireIds.idOf(bpmn, null),
         List.of(),
         bpmn.style(),
         bpmn.cssClasses(),

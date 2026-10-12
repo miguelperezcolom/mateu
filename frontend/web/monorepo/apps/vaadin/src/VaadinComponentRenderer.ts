@@ -1,6 +1,7 @@
 import { LitElement, html, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
+import { updateMedata } from '@infra/ui/renderers/renderClientSideComponent'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts"
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts"
@@ -92,7 +93,11 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
         const type = component?.metadata?.type as ComponentMetadataType | undefined
         const widget = type ? VAADIN_WIDGETS[type] : undefined
         if (widget && component) {
-            return widget(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+            // The client-side rules' attributes (<id>.disabled in the data: @Disabled,
+            // @DisabledUnless, a rule disabling a button) — the core renderer applies them; these
+            // Vaadin widgets bypassed it, so what the server disabled stayed enabled.
+            const resolved = { ...component, metadata: updateMedata(component, data) } as ClientSideComponent
+            return widget(container, resolved, baseUrl, state, data, appState, appData, labelAlreadyRendered)
         }
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }

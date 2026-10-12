@@ -104,10 +104,51 @@ public class ActionInstanceCreator {
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
     }
+    // A route routes.yaml binds to a DEFINITION only (no view model): on a fresh deep link the
+    // mount's root CLASS (a plain @UI("") page) claimed it by prefix and answered itself — the
+    // browser showed the root page instead of the definition. An app on a prefix still answers
+    // first (it draws the chrome and loads the content inside); otherwise the definition does.
+    if (isAuthoredDefinitionOnly(command.route())) {
+      return routeInstanceCreator
+          .findApp(command)
+          .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
+          .switchIfEmpty(
+              (Mono) Mono.defer(() -> routeInstanceCreator.findRouteResolver(finalCommand)));
+    }
     return routeInstanceCreator
         .findRouteResolver(command)
+        .flatMap(
+            resolved ->
+                definesItsOwnPage(finalCommand, resolved)
+                    ? ((Mono<Object>) loadYaml(finalCommand)).defaultIfEmpty(resolved)
+                    : Mono.just(resolved))
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
         .switchIfEmpty((Mono) Mono.defer(() -> rootAppMenuContent(finalCommand)));
+  }
+
+  /**
+   * A route authored in routes.yaml with a definition and NO view model is its own page. On a fresh
+   * load (consumedRoute "_empty") the mount's root class still answers it — a deep link to a mount
+   * resolves to the mount's class, so its own sub-routes and an app's menu can take over — and a
+   * plain root view then rendered ITSELF instead of the definition: /walk-yaml under a root
+   * {@code @UI("")} form showed that form. An app keeps the route (it wraps it in its chrome).
+   */
+  private boolean definesItsOwnPage(RunActionCommand command, Object resolved) {
+    if (command.route() == null || resolved == null) {
+      return false;
+    }
+    var path = stripQuery(command.route()).replaceAll("^/+", "").replaceAll("/+$", "");
+    if (path.isEmpty()) {
+      return false;
+    }
+    var match = routeRegistry.authored().match(path).orElse(null);
+    if (match == null
+        || (match.entry().viewModel() != null && !match.entry().viewModel().isBlank())
+        || match.entry().definition() == null
+        || match.entry().definition().isBlank()) {
+      return false;
+    }
+    return !isApp(resolved.getClass(), command.route());
   }
 
   /**
@@ -172,6 +213,17 @@ public class ActionInstanceCreator {
    * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
    * is never offered to a remote, even when no menu entry claims it.
    */
+  private boolean isAuthoredDefinitionOnly(String route) {
+    if (route == null || stripQuery(route).replaceAll("^/+", "").isEmpty()) {
+      return false;
+    }
+    return routeRegistry
+        .authored()
+        .match(stripQuery(route))
+        .map(match -> match.entry().viewModel() == null || match.entry().viewModel().isBlank())
+        .orElse(false);
+  }
+
   private boolean isAuthoredHere(String route) {
     return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
@@ -391,12 +443,44 @@ public class ActionInstanceCreator {
         if (resolved != null
             && resolved.resolvedClass() != null
             && resolved.resolvedClass().getName().equals(command.serverSideType())) {
+          var own = n < segments.length ? ownAuthoredRoute(path, resolved, command) : null;
+          if (own != null) {
+            return own;
+          }
           return new io.mateu.core.application.ResolvedRoute(
               prefix, resolved.pattern(), resolved.resolvedClass(), resolved.entry());
         }
       } catch (Throwable t) {
         log.debug("mountOf {}: {}", prefix, t.toString());
       }
+    }
+    return null;
+  }
+
+  /**
+   * The routes.yaml entry answering the WHOLE {@code path} with the same class as the shorter route
+   * {@code shorter} — two authored entries sharing a view model with different parameters pinned
+   * ({@code orders/pending} pins status, {@code orders} only defaults it). The longer one is the
+   * screen's own route: taking the shorter made a reload of orders/pending (a load by type) answer
+   * the defaults of orders. Null in every other case (a crud's sub-route, a child tab…).
+   */
+  private io.mateu.core.application.ResolvedRoute ownAuthoredRoute(
+      String path, io.mateu.core.application.ResolvedRoute shorter, RunActionCommand command) {
+    if (shorter.entry() == null) {
+      return null;
+    }
+    try {
+      var exact = routedClassResolver.resolve(path, command).orElse(null);
+      if (exact != null
+          && exact.entry() != null
+          && exact.entry() != shorter.entry()
+          && !exact.entry().hasParent()
+          && shorter.resolvedClass().equals(exact.resolvedClass())) {
+        return new io.mateu.core.application.ResolvedRoute(
+            path, exact.pattern(), exact.resolvedClass(), exact.entry());
+      }
+    } catch (Throwable t) {
+      log.debug("mountOf {}: {}", path, t.toString());
     }
     return null;
   }
@@ -528,14 +612,31 @@ public class ActionInstanceCreator {
       if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
-      if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
+      // a menu RULE leaf's RunAction (@Menu Rule / List<Rule>) runs on the app too: the menu lives
+      // on the shell, whatever screen is below it (the header-action rail, like the FAB above)
+      if (isMenuRuleAction(appClass, actionId, command)) {
+        return true;
+      }
+      // a menu rule leaf's action (@Menu Rule … RunAction) is the app's too: the menu is on the
+      // shell — only worth an instance when the app has a method of that name to run
+      var hasMethod =
+          java.util.Arrays.stream(appClass.getMethods())
+              .anyMatch(m -> actionId.equals(m.getName()));
+      if (!hasMethod
+          && !io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }
-      var supplier =
-          (io.mateu.uidl.interfaces.AppActionsSupplier)
-              io.mateu.uidl.di.MateuBeanProvider.getBean(
-                      io.mateu.uidl.interfaces.InstanceFactory.class)
-                  .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+      var app =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.InstanceFactory.class)
+              .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+      if (hasMethod
+          && io.mateu.core.domain.out.componentmapper.MenuRuleActions.runs(
+              app, actionId, command.route(), command.httpRequest())) {
+        return true;
+      }
+      if (!(app instanceof io.mateu.uidl.interfaces.AppActionsSupplier supplier)) {
+        return false;
+      }
       var actions = supplier.appActions(command.httpRequest());
       // dropdown header actions dispatch their CHILDREN's ids — flatten before matching
       return actions != null
@@ -550,6 +651,40 @@ public class ActionInstanceCreator {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  private static boolean isMenuRuleAction(
+      Class<?> appClass, String actionId, RunActionCommand command) {
+    var menuFields =
+        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(appClass).stream()
+            .filter(
+                field ->
+                    io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                            field, io.mateu.uidl.annotations.Menu.class)
+                        && (io.mateu.uidl.data.Rule.class.equals(field.getType())
+                            || java.util.List.class.isAssignableFrom(field.getType())))
+            .toList();
+    if (menuFields.isEmpty()) {
+      return false;
+    }
+    var app =
+        io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.InstanceFactory.class)
+            .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+    for (var field : menuFields) {
+      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, app);
+      var rules =
+          value instanceof java.util.List<?> list
+              ? list
+              : java.util.List.of(value == null ? "" : value);
+      for (var item : rules) {
+        if (item instanceof io.mateu.uidl.data.Rule rule
+            && rule.action() == io.mateu.uidl.data.RuleAction.RunAction
+            && actionId.equals(rule.actionId())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

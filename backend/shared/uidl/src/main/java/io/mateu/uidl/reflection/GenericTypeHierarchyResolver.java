@@ -13,6 +13,89 @@ class GenericTypeHierarchyResolver {
       Class sourceClass,
       Class asClassOrInterface,
       String genericArgumentName) {
+    // Bind type variables along the real hierarchy first. The positional walk below loses track
+    // when a class passes its OWN type variables to an interface in another order — HeroSearch<F,
+    // R> implements Listing<R>: Listing's Row (position 0) was read as HeroSearch's position 0, the
+    // FILTERS, so a hero search's result cards were built from its filter fields.
+    var bound =
+        bindAlongHierarchy(
+            parameterizedType != null ? parameterizedType : sourceClass,
+            asClassOrInterface,
+            genericArgumentName,
+            new java.util.HashMap<>(),
+            new java.util.HashSet<>());
+    if (bound != null) {
+      return bound;
+    }
+    return resolveByPosition(
+        parameterizedType, sourceClass, asClassOrInterface, genericArgumentName);
+  }
+
+  /**
+   * The class bound to {@code target}'s type parameter {@code name} when walking up from {@code
+   * type}, substituting each level's type variables with what the level below passed; null when it
+   * does not resolve to a class (left raw, or still a variable).
+   */
+  private static Class bindAlongHierarchy(
+      Type type,
+      Class target,
+      String name,
+      java.util.Map<TypeVariable<?>, Type> bindings,
+      java.util.Set<Class<?>> visited) {
+    Class raw =
+        type instanceof Class<?> c
+            ? c
+            : type instanceof ParameterizedType pt && pt.getRawType() instanceof Class<?> r
+                ? r
+                : null;
+    if (raw == null || !visited.add(raw)) {
+      return null;
+    }
+    var local = new java.util.HashMap<>(bindings);
+    if (type instanceof ParameterizedType pt) {
+      var params = raw.getTypeParameters();
+      var args = pt.getActualTypeArguments();
+      for (int i = 0; i < params.length && i < args.length; i++) {
+        local.put(params[i], substitute(args[i], bindings));
+      }
+    }
+    if (raw.equals(target)) {
+      for (var param : raw.getTypeParameters()) {
+        if (param.getName().equals(name)) {
+          var value = local.get(param);
+          if (value instanceof Class<?> c) return c;
+          if (value instanceof ParameterizedType pt && pt.getRawType() instanceof Class<?> r) {
+            return r;
+          }
+          return null;
+        }
+      }
+      return null;
+    }
+    var supers = new ArrayList<Type>();
+    if (raw.getGenericSuperclass() != null) supers.add(raw.getGenericSuperclass());
+    supers.addAll(java.util.Arrays.asList(raw.getGenericInterfaces()));
+    for (var sup : supers) {
+      var found = bindAlongHierarchy(sup, target, name, local, visited);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  private static Type substitute(Type type, java.util.Map<TypeVariable<?>, Type> bindings) {
+    if (type instanceof TypeVariable<?> tv && bindings.containsKey(tv)) {
+      return bindings.get(tv);
+    }
+    return type;
+  }
+
+  static Class resolveByPosition(
+      ParameterizedType parameterizedType,
+      Class sourceClass,
+      Class asClassOrInterface,
+      String genericArgumentName) {
     Class c = null;
 
     if (asClassOrInterface.isInterface()) {
@@ -162,7 +245,17 @@ class GenericTypeHierarchyResolver {
           c = (Class) t;
         } else if (t instanceof TypeVariable) {
           genericArgumentName = ((TypeVariable) t).getName();
-          asClassOrInterface = tipoEnCurso;
+          // The variable belongs to the class that DECLARES it — the next step down — so its
+          // position is read off that class's type parameters, not off this parameterized type's
+          // arguments: for `SmartSearchPage<Filters, Row> implements Listing<Row>` the Row of
+          // Listing<Row> is SmartSearchPage's SECOND parameter, and reading it as the first
+          // resolved a listing's rows to its FILTERS class (wrong columns on every
+          // HeroSearch/SmartSearchPage).
+          if (((TypeVariable) t).getGenericDeclaration() instanceof Class declaring) {
+            asClassOrInterface = declaring;
+          } else {
+            asClassOrInterface = tipoEnCurso;
+          }
           argPos = getArgPos(asClassOrInterface, genericArgumentName);
         }
       }

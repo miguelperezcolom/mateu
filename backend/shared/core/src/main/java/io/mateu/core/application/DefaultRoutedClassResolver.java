@@ -34,10 +34,27 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
    * which has no server class to instantiate by definition. It falls through, and the renderer
    * resolves it from the shipped table.
    */
-  private Optional<ResolvedRoute> fromRegistry(String route) {
+  private Optional<ResolvedRoute> fromRegistry(String route, RunActionCommand command) {
+    var direct = fromRegistry(route, route, "");
+    if (direct.isPresent()) {
+      return direct;
+    }
+    // A CLASS-declared non-root mount (@UI("/shop")) is served by its own controller: the browser
+    // on /shop/orders posts route=/orders with baseUrl /shop, while the route file tagged
+    // `basePath: /shop` is loaded with the mount on every route (shop/orders). Look the route up
+    // with the mount in front, and answer a pattern RELATIVE to the mount again, since the callers
+    // read the path parameters by aligning that pattern with the route they asked for.
+    var mount = MountPaths.mountOf(command);
+    if (mount.isEmpty() || route == null || MountPaths.startsWithMount(route, mount)) {
+      return Optional.empty();
+    }
+    return fromRegistry(route, MountPaths.withMount(mount, route), mount);
+  }
+
+  private Optional<ResolvedRoute> fromRegistry(String route, String lookup, String mount) {
     return routeRegistry
         .authored()
-        .match(route)
+        .match(lookup)
         .flatMap(
             match -> {
               var viewModel = match.entry().viewModel();
@@ -47,7 +64,11 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
               try {
                 var resolvedClass = loadViewModel(viewModel);
                 return Optional.of(
-                    new ResolvedRoute(route, match.entry().route(), resolvedClass, match.entry()));
+                    new ResolvedRoute(
+                        route,
+                        MountPaths.withoutMount(mount, match.entry().route()),
+                        resolvedClass,
+                        match.entry()));
               } catch (Throwable t) {
                 // A route pointing at a class that is not on the classpath must not 500 every
                 // request: log it once per resolution and let the providers answer.
@@ -109,8 +130,23 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   }
 
   @Override
+  public boolean authoredWithoutClass(String route) {
+    return route != null
+        && routeRegistry
+            .authored()
+            .match(route)
+            .map(match -> match.entry())
+            .map(
+                entry ->
+                    (entry.viewModel() == null || entry.viewModel().isBlank())
+                        && entry.definition() != null
+                        && !entry.definition().isBlank())
+            .orElse(false);
+  }
+
+  @Override
   public Optional<ResolvedRoute> resolve(String route, RunActionCommand command) {
-    var authored = fromRegistry(route);
+    var authored = fromRegistry(route, command);
     if (authored.isPresent()) {
       return authored;
     }

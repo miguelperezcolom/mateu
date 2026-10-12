@@ -37,6 +37,21 @@ export function shellActionFor(app: ShellLike | undefined, actionId: string | un
 }
 
 /**
+ * Who runs an action a menu leaf / shell flow names:
+ * - `flow`: a flow (steps lowered to commands) declared by the shell or the catalogue — the browser;
+ * - `component`: a catalogue entry without steps (a REST call) — the on-screen component runs it;
+ * - `app`: the app's own action (a `@Menu Rule` leaf, the shell's step-less action, an id nobody
+ *   declares client-side) — the app-level rail, like a header action. It is never the on-screen
+ *   component's: that one does not advertise it, so the click used to do nothing at all.
+ */
+export function shellActionTarget(app: ShellLike | undefined, actionId: string | undefined): 'flow' | 'component' | 'app' {
+    const action = shellActionFor(app, actionId)
+    if (action?.commands && action.commands.length) return 'flow'
+    const ownedByShell = !!app?.actions?.some((a) => a && a.id === actionId)
+    return action && !ownedByShell ? 'component' : 'app'
+}
+
+/**
  * Where a shell flow's `Navigate` step goes, when it is a route OF THE APP: a path with no scheme
  * and no host (`orders/new`, `/orders/new`), relative to the mount like every `routes.yaml` route.
  * Answers the route without its leading slash, or undefined for a URL (`https://…`, `//host/…`,

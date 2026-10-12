@@ -17,8 +17,11 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf,
+  welcomeOf, returnedConfirmDialogsOf, reduceContexts, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
+  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf,
 } from './reduceContexts.mjs'
+import { bannerNotificationOf } from './notify.mjs'
+import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
@@ -421,11 +424,74 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   assert.deepEqual([slider.isSlider, slider.min, slider.max, slider.step, slider.value], [true, 10, 50, 5, 20])
   const stars = layoutFieldOf(md({ stereotype: 'stars' }), { x: 4 })
   assert.deepEqual([stars.isStars, stars.max, stars.value, stars.isNumber], [true, 5, 4, false])
+  // a tree select offers its nested options (leaves only when asked) and keeps a nested value
+  const tree = [{ value: 'es', label: 'Spain', children: [{ value: 'mca', label: 'Mallorca' }] }, { value: 'pt', label: 'Portugal' }]
+  const zone = layoutFieldOf(md({ dataType: 'string', stereotype: 'treeSelect', treeLeavesOnly: true, options: tree }), { x: 'mca' })
+  assert.deepEqual([zone.isSelect, zone.value, zone.options.map((o) => o.value)], [true, 'mca', ['mca', 'pt']])
+  // @PlainText / @Badge present a value: never an editable input
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'plainText' }), { x: 'R-1' }).readonly, true)
+  assert.equal(layoutFieldOf(md({ dataType: 'bool', stereotype: 'badge' }), { x: true }).readonly, true)
+  // the wire sends sliderMax 100 on every field: a rating is still five stars
+  assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
+  // a LocalTime is drawn (as text), and an Amount shows its value
+  const time = layoutFieldOf(md({ dataType: 'time' }), { x: '10:30' })
+  assert.deepEqual([!!time, time && time.value], [true, '10:30'])
+  const amount = layoutFieldOf(md({ dataType: 'money', stereotype: 'money' }), { x: { currency: 'EUR', value: 25.5, locale: 'de-DE' } })
+  assert.deepEqual([amount.isMoney, amount.value], [true, 25.5])
   assert.ok(layoutFieldOf(md({ dataType: 'string', stereotype: 'color' }), { x: '#fff' }).isColor)
   assert.ok(layoutFieldOf(md({ dataType: 'string', stereotype: 'richText' }), {}).isRichEditor)
   assert.equal(hexColorOf('#ABC'), '#aabbcc')
   assert.equal(hexColorOf('rgb(255, 0, 16)'), '#ff0010')
   assert.equal(hexColorOf('red'), '')
+})
+
+test('a wizard step leaves Next to the guided process but keeps Back and Save', () => {
+  // a Draftable wizard's row is Back | Save | Save and close | Next: kept whole, the step showed
+  // Next AND the guided process's Continue
+  const row = node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Button', actionId: 'back', label: 'Back' }), node({ type: 'Button', actionId: 'saveDraft', label: 'Save' }),
+    node({ type: 'Button', actionId: 'next', label: 'Next' }),
+  ])
+  const tree = { type: 'ServerSide', id: 'w', children: [row] }
+  const buttons = hostContentOf({ tree, state: {}, data: {} }, null, { forWizard: true })
+    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId))
+  assert.deepEqual(buttons, ['back', 'saveDraft'])
+  // and the guided process's Continue is Next, not the first button that is not Back
+  assert.equal(wizardForwardOf({ tree, state: {}, data: {} }).actionId, 'next')
+  // the last step: Back | Save | Check in — the completion is the footer's, not the row's
+  const last = { type: 'ServerSide', id: 'w', children: [node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Button', actionId: 'back', label: 'Back' }), node({ type: 'Button', actionId: 'saveDraft', label: 'Save' }),
+    node({ type: 'Button', actionId: 'checkIn', label: 'Check in' }),
+  ])] }
+  assert.deepEqual(hostContentOf({ tree: last, state: {}, data: {} }, null, { forWizard: true })
+    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId)), ['back', 'saveDraft'])
+  assert.equal(wizardForwardOf({ tree: last, state: {}, data: {} }).actionId, 'checkIn')
+})
+
+test('a sectioned form with tabs inside one section is not an item overview', () => {
+  // any card anywhere counted as the key panel: the form was drawn as its first section plus
+  // the tab bar, every other section gone
+  const card = (title, children) => node({ type: 'Card', title: { text: title } }, children)
+  const tabs = node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'Room' }, [node({ type: 'Text', text: 'r' })])])
+  const form = node({ type: 'VerticalLayout' }, [card('Guests', [node({ type: 'Text', text: 'g' })]), card('Preferences', [tabs]), card('Notes', [])])
+  assert.equal(itemOverviewOf({ tree: form, state: {}, data: {} }), null)
+  // the archetype: the key card and the tab bar side by side
+  const io = node({ type: 'HorizontalLayout' }, [card('Key', [node({ type: 'Text', text: 'k' })]), tabs])
+  assert.ok(itemOverviewOf({ tree: io, state: {}, data: {} }))
+})
+
+test('a form whose rich blocks replace the generic form keeps its action row', () => {
+  // a form with a grid field (or a capture field…) is drawn by its blocks and the generic form
+  // is cleared — with it, the form's @Button row: the page had no way to submit
+  const blocks = [{ blockClass: 'x', items: [{ isGrid: true }] }]
+  const actions = [{ actionId: 'echo', label: 'Echo', chroming: 'outlined' }]
+  const out = withFormActions(blocks, actions)
+  assert.equal(out.length, 2)
+  assert.ok(out[1].isPlain, 'a block the host loop draws')
+  assert.deepEqual(out[1].items[0].buttons.map((b) => b.label), ['Echo'])
+  // an action a block already draws is not repeated
+  const drawn = [{ items: [{ isButtons: true, buttons: [{ actionId: 'echo', label: 'Echo' }] }] }]
+  assert.equal(withFormActions(drawn, actions), drawn)
 })
 
 test('the new atoms are in every atoms surface of the page, with each variant its listeners', () => {
@@ -493,6 +559,64 @@ test('client rules on every surface: host, islands and the overlay on top', () =
   assert.equal(surfaceOfElement(el('data-mateu-surface')), 'island')
   assert.equal(surfaceOfElement(el('nothing-matches')), 'host')
   assert.ok(readFileSync(join(here, 'make-amd.mjs'), 'utf8').includes('setRulesContexts(reg)'))
+})
+
+test('a TaskQueue among other content is content: the queue page (queue + detail, nothing else) needs a page of its own', () => {
+  const queue = node({ type: 'TaskQueue', groups: [{ label: 'Today', items: [{ id: 'q1', title: 'Call Ada' }] }] })
+  // the front-office shape: the queue and the detail placeholder — the queue page
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, node({ type: 'EmptyState', title: 'Pick one' })])))
+  // the detail island (a nested ServerSide) does not count as other content
+  const island = { type: 'ServerSide', id: 'i', children: [node({ type: 'ProgressSteps', steps: [] })] }
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, island])))
+  // a page that also shows a gantt, a kanban, a calendar… kept only the queue
+  assert.equal(taskQueueOf(node({ type: 'VerticalLayout' }, [node({ type: 'Gantt', tasks: [] }), queue])), null)
+})
+
+test('a hero among other content is content: the welcome page is a hero over its tiles and nothing else', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' }, [node({ type: 'Button', label: 'Go', actionId: 'go' })])
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
+  assert.ok(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} }))
+  assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
+})
+
+test('a composed page (no Page, no Crud title) takes its header title from its window title', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
+  const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }
+  assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
+})
+
+test('a Welcome tile holding Markdown shows its text, markup dropped', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' })
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Markdown', markdown: 'Find the **booking**' })])])
+  const welcome = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
+  assert.deepEqual(welcome.tiles[0].texts, ['Find the booking'])
+})
+
+test('what a composed page puts before its listing (the HeroSearch hero) is painted above the table', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'HeroSection', title: 'Find your hotel' }),
+    node({ type: 'Crud', columns: [] })])] }
+  const blocks = listingHeaderBlocksOf({ tree, state: {}, data: {} })
+  assert.ok(blocks.flatMap((b) => b.items).some((a) => a.isHero && a.title === 'Find your hotel'))
+})
+
+test('a SmartSearchPage intro line is the page subtitle (the listing page shows only the table)', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    { type: 'ClientSide', id: 'page-subtitle', metadata: { type: 'Text', text: 'Find assets' }, children: [] },
+    node({ type: 'Crud', columns: [] })])] }
+  assert.equal(pageSubtitleOf({ tree, state: {} }), 'Find assets')
+})
+
+test('a Stat with an action drills in', () => {
+  const atoms = atomsOf(node({ type: 'VerticalLayout' }, [node({ type: 'Stat', label: 'Arrivals', value: '12', actionId: 'openArrivals' })]))
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((b) => b.actionId === 'openArrivals')))
+})
+
+test('an EmptyState with a call to action is content (the page band has no button and lost it)', () => {
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'Nothing here', actionId: 'newBooking', actionLabel: 'New booking' })])
+  assert.equal(emptyStateOf(tree), null)
+  const atom = atomsOf(tree, {}, {}, { kind: 'host' }).find((a) => a.isEmptyStateAtom)
+  assert.deepEqual([atom.actionId, atom.actionLabel], ['newBooking', 'New booking'])
 })
 
 test('slot templates: a CollectionDetail list is content (not the queue page), a form with @Aside shows its aside', () => {
@@ -566,6 +690,69 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
+})
+
+// ── the actions walkthrough (design/walkthrough/actions.md): answers the shell dropped ─────────────
+
+test('actions: PageBanners an action returns reach the message band, title and description', () => {
+  const reg = reduceContexts({ contexts: {}, stack: [] }, {
+    fragments: [], messages: [],
+    banners: [{ theme: 'SUCCESS', title: 'Checks passed', description: 'System is healthy' }, { theme: 'DANGER', title: 'Boom', description: '' }],
+  })
+  const notes = reg.effects.toasts.map(bannerNotificationOf)
+  assert.deepEqual(notes, [
+    { summary: 'Checks passed', message: 'System is healthy', type: 'confirmation', displayMode: 'persist' },
+    { summary: 'Boom', message: '', type: 'error', displayMode: 'persist' },
+  ])
+})
+
+test('actions: a returned ConfirmDialog is asked, not drawn as an empty drawer', () => {
+  const inc = { fragments: [{ action: 'Add', targetComponentId: 'x', component: {
+    type: 'ClientSide', id: 'fieldId',
+    metadata: { type: 'ConfirmDialog', header: 'Proceed?', confirmText: 'Yes', rejectText: 'No', canReject: true, canCancel: true,
+      confirmActionId: 'confirmed', rejectActionId: 'rejected', openedCondition: 'true' },
+    children: [{ type: 'ClientSide', metadata: { type: 'Text', text: 'Pick one' } }],
+  } }] }
+  assert.deepEqual(returnedConfirmDialogsOf(inc), [{
+    title: 'Proceed?', message: 'Pick one', confirmText: 'Yes', denyText: 'No', confirmActionId: 'confirmed', denyActionId: 'rejected',
+  }])
+  const reg = reduceContexts({ contexts: {}, stack: [] }, inc)
+  assert.equal(reg.stack.length, 0, 'no overlay stacked for it')
+  assert.deepEqual(returnedConfirmDialogsOf({ fragments: [] }), [])
+})
+
+test('actions: an answer carrying an error message FAILED — its OnError triggers apply, not its OnSuccess', () => {
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'error', text: 'fail ran' }] }), true)
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'success', text: 'ok' }] }), false)
+  assert.equal(isErrorAnswer(null), false)
+  const ctx = { tree: { triggers: [
+    { type: 'OnError', actionId: 'afterFail', calledActionId: 'fail' },
+    { type: 'OnSuccess', actionId: 'afterOk', calledActionId: 'fail' },
+  ] } }
+  assert.deepEqual(onErrorTriggers(ctx, 'fail').map((t) => t.actionId), ['afterFail'])
+})
+
+// The display gallery: every display component as the Java server renders the YAML gallery
+// (libs/mateu expander fixture display-gallery.golden.json, written by YamlDisplayGallerySyncTest).
+test('display gallery: every display component projects to its atom, nothing left behind', () => {
+  const golden = JSON.parse(readFileSync(join(here, '..', '..', '..', 'libs', 'mateu', 'src', 'mateu', 'ui',
+    'infra', 'expander', '__fixtures__', 'display-gallery.golden.json'), 'utf8'))
+  const atoms = atomsOf(golden.fragments[0].component)
+  const flags = new Set(atoms.flatMap((a) => Object.keys(a).filter((k) => k.startsWith('is') && a[k] === true)))
+  for (const flag of ['isEntityHeader', 'isRichText', 'isImage', 'isBadge', 'isAvatar', 'isChart', 'isFunnel',
+    'isHeatmap', 'isGantt', 'isKanban', 'isPlanning', 'isMatrix', 'isActionPanel', 'isMap', 'isTimeline',
+    'isOrgChart', 'isBpmn', 'isStatusList', 'isBullets', 'isCollapsible', 'isPricing', 'isOffer', 'isTestimonials',
+    'isFeatureGrid', 'isProgress', 'isMeter', 'isEmptyStateAtom', 'isSkeleton', 'isNotice', 'isCallout',
+    'isSeparator', 'isHero', 'isStat', 'isComparison', 'isScoreboard', 'isCalendar', 'isQueue']) {
+    assert.ok(flags.has(flag), flag + ' missing')
+  }
+  // a ProgressSteps on a page that is no wizard is just a display: the ProgressBar beside it stays
+  // (it was dropped as the "wizard's own" bar)
+  assert.ok(atoms.some((a) => a.isProgressBar), 'the ProgressBar')
+  // a Notice keeps its own action and its content
+  const notice = atoms.find((a) => a.isNotice && a.text === 'Two complaints pending')
+  assert.deepEqual(notice.buttons.map((b) => [b.actionId, b.label]), [['reviewComplaints', 'Review']])
+  assert.ok(atoms.some((a) => a.isText && a.text === 'Inside the notice'))
 })
 
 console.log(`\n${passed} display tests OK`)

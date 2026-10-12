@@ -20,7 +20,7 @@ describe('neutralNotifier', () => {
         expect(t.getAttribute('role')).toBe('alert')
         expect(t.getAttribute('aria-live')).toBe('assertive')
         expect(t.getAttribute('aria-atomic')).toBe('true')
-        expect(t.textContent).toBe('Save failed')
+        expect(t.querySelector('span')!.textContent).toBe('Save failed')
     })
 
     it('anything else is a polite status', () => {
@@ -56,7 +56,22 @@ describe('neutralNotifier', () => {
         const button = document.body.querySelector('button')!
         expect(button.textContent).toBe('Undo')
         button.click()
-        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 7 } }])
+        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 7 }, serverNamed: true }])
+    })
+
+    it('Undo is handed to a mateu-component directly (its listener lives inside its shadow root)', () => {
+        // the walkthrough found Undo dead in the browser: dispatched on the component's HOST, the
+        // event only bubbled up past every listener and was dropped
+        const component = document.createElement('div') as HTMLElement & { manageActionRequestedEvent?: unknown }
+        document.body.appendChild(component)
+        const handled: unknown[] = []
+        const bubbled: unknown[] = []
+        component.manageActionRequestedEvent = (e: CustomEvent) => handled.push(e.detail)
+        document.body.addEventListener('action-requested', e => bubbled.push((e as CustomEvent).detail))
+        neutralNotifier.show({ text: 'Deleted', undoActionId: 'restore', undoParameters: { id: 7 } } as never, component)
+        document.body.querySelector('button')!.click()
+        expect(handled).toEqual([{ actionId: 'restore', parameters: { id: 7 }, serverNamed: true }])
+        expect(bubbled).toEqual([])
     })
 
     it('the client-side closure wins over an undo', () => {
@@ -72,9 +87,22 @@ describe('neutralNotifier', () => {
         neutralNotifier.show({ text: 'with control', onAction: () => {} } as never, document.body)
         neutralNotifier.show({ text: 'sticky', duration: 0 } as never, document.body)
         vi.advanceTimersByTime(5300)
-        expect(toasts().map(t => t.textContent)).toEqual(['with controlRetry', 'sticky'])
+        expect(toasts().map(t => t.textContent)).toEqual(['with controlRetry', 'sticky✕'])
         vi.advanceTimersByTime(5000)
-        expect(toasts().map(t => t.textContent)).toEqual(['sticky'])
+        expect(toasts().map(t => t.textContent)).toEqual(['sticky✕'])
+    })
+
+    it('an error stays until dismissed, whatever duration it arrived with, and ✕ dismisses it', () => {
+        // owner, 2026-10-12: read in 3 s and gone, the reason a save failed was often never seen
+        vi.useFakeTimers()
+        neutralNotifier.show({ text: 'Save failed', variant: 'error', duration: 3000 } as never, document.body)
+        vi.advanceTimersByTime(60000)
+        expect(toasts()).toHaveLength(1)
+        const close = document.body.querySelector('button[aria-label]') as HTMLButtonElement
+        expect(close.getAttribute('aria-label')).toBe('Dismiss')
+        close.click()
+        vi.advanceTimersByTime(250)
+        expect(toasts()).toHaveLength(0)
     })
 
     it('is anchored where the message asks', () => {
@@ -88,6 +116,6 @@ describe('neutralNotifier', () => {
     it('registerNeutralNotifier installs it as the current notifier', () => {
         registerNeutralNotifier()
         notify({ text: 'through the port', variant: 'error' } as never, document.body)
-        expect(toasts().map(t => t.textContent)).toEqual(['through the port'])
+        expect(toasts().map(t => t.querySelector('span')!.textContent)).toEqual(['through the port'])
     })
 })

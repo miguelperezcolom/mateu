@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing
 from typing import Any
 
 import inspect
@@ -16,9 +17,11 @@ from mateu_dtos import (
 from mateu_uidl import (
     components as fluent,
     Document,
+    UserFacingException,
     FlowStep,
     Message,
     PageBanner,
+    PageBanners,
 )
 
 from .. import action_guard, documents
@@ -39,6 +42,14 @@ class ActionHandlerMixin(MixinBase):
         if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
+        if getattr(fn, "__mateu_button__", None):
+            # a @button / @toolbar is advertised validation_required: the client checks the
+            # form's constraints first, and the server does not take its word for it
+            from ..validation import VALIDATION_TITLE, describe, form_violations
+
+            broken = form_violations(self.mapper, type_, instance)
+            if broken:
+                raise UserFacingException(describe(broken), title=VALIDATION_TITLE)
         method = fn.__get__(instance, type_)
         result = method(*self._build_arguments(method, rq))
         if result is instance:
@@ -59,9 +70,15 @@ class ActionHandlerMixin(MixinBase):
         if not params:
             return []
         clicked = (rq.parameters or {}).get("_clickedRow")
+        # Under `from __future__ import annotations` (or a quoted hint) the annotation is a STRING:
+        # compared as it was, the request was never injected — the method got None.
+        try:
+            hints = typing.get_type_hints(method)
+        except Exception:  # noqa: BLE001 - an unresolvable hint keeps the raw annotation
+            hints = {}
         args: list[Any] = []
         for p in params:
-            ann = p.annotation
+            ann = hints.get(p.name, p.annotation)
             # The action request itself can be injected (the port's analogue of Java's
             # HttpRequest injection) — e.g. an undoable toast's undo action reads its
             # undoParameters from request.parameters.
@@ -114,6 +131,10 @@ class ActionHandlerMixin(MixinBase):
                     )
                 ]
             )
+        # PageBanners: the same banners with an explicit replace / append mode (Java parity).
+        if isinstance(result, PageBanners):
+            inc = self.map_result(list(result.banners), rq) if result.banners else UIIncrement.of()
+            return inc.model_copy(update={"append_banners": result.appending})
         # Action-returned page banner(s): PageBanner or a list of them → UIIncrement.banners.
         if isinstance(result, PageBanner) or (
             isinstance(result, list) and result and all(isinstance(b, PageBanner) for b in result)
@@ -170,6 +191,7 @@ class ActionHandlerMixin(MixinBase):
                     "messages": list(merged.messages) + list(part.messages),
                     "fragments": list(merged.fragments) + list(part.fragments),
                     "banners": list(merged.banners) + list(part.banners),
+                    "append_banners": merged.append_banners or part.append_banners,
                 })
             return merged
         return UIIncrement.of()

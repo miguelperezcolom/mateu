@@ -64,14 +64,22 @@ class ViewMapperMixin(MixinBase):
         buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)
         # A @rest_action button carries the client-side REST descriptor on its action.
-        # FAB actions are NOT advertised in the component's actions list (Java parity — the FAB
-        # carries its own actionId and the renderer dispatches it directly).
         actions = [
             with_action_options(
                 Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
             )
             for (n, f), b in zip(button_methods, buttons)
         ]
+        # A page FAB dispatches its actionId through the page's component like any button: the
+        # client only SENDS an advertised action, so an unadvertised FAB was a dead click (Java's
+        # FieldActionCollector advertises @Fab methods the same way, not validated).
+        for fab in fabs or []:
+            if all(a.id != fab.action_id for a in actions):
+                actions.append(
+                    with_action_options(
+                        Action(id=fab.action_id, validation_required=False), cls, fab.action_id
+                    )
+                )
         # Field-declared actions, in Java's FieldActionCollector order: list fields' row-editing
         # actions, OnRowSelected() row clicks (the renderer drops a click whose action is not
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
@@ -209,6 +217,19 @@ class ViewMapperMixin(MixinBase):
             server_children = [page]
             server_style = None
         triggers, emits = self.events_of(cls)
+        # The ids the view's own triggers name (@subscribe_to) are advertised too — the server
+        # already runs them (action_guard counts a subscription's action as declared), but the
+        # web client only SENDS what the component advertises, so the subscription fired, bubbled
+        # out unclaimed and was lost (Java's ActionMapper.triggeredActions; same rule).
+        trigger_ids: set[str] = {
+            aid
+            for aid in (getattr(t, "action_id", None) for t in triggers)
+            if isinstance(aid, str) and aid
+        }
+        known_ids = {a.id for a in actions}
+        for aid in sorted(trigger_ids - known_ids):
+            if resolve_action(cls, aid, lambda: trigger_ids) is not None:
+                actions = list(actions) + [Action(id=aid)]
         # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
         if rest_data_desc is not None:
             triggers = list(triggers) + [Trigger(type="OnLoad", action_id="__restdata__")]

@@ -31,6 +31,13 @@ class AccessKeysApp:
         return AkHome()
 
 
+@app("Theme toggle app", theme_toggle=True)
+class ThemeToggleApp:
+    @menu_item("Home")
+    def home(self) -> "AkHome":
+        return AkHome()
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -44,3 +51,10 @@ def meta(cls) -> dict:
 def test_access_keys_are_opt_in():
     assert meta(AkPlainApp)["accessKeys"] is False
     assert meta(AccessKeysApp)["accessKeys"] is True
+
+
+def test_the_theme_toggle_is_opt_in():
+    # @app(theme_toggle=True) draws the header's light/dark switch (Java's @App(themeToggle));
+    # the port had no way to ask for it
+    assert meta(AkPlainApp)["themeToggle"] is False
+    assert meta(ThemeToggleApp)["themeToggle"] is True

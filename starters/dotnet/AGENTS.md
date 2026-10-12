@@ -23,7 +23,7 @@ Products.cs             the model (Product) and a Crud<Product> mounted with [UI
 ## Run
 
 ```bash
-dotnet run                   # sync API on http://localhost:8080 (MATEU_URL overrides it)
+dotnet run                   # sync API on http://localhost:8080 (`--urls` or MATEU_URL override it)
 ```
 
 ## Rules to respect

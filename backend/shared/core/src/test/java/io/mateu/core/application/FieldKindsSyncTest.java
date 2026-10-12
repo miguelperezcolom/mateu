@@ -458,7 +458,11 @@ class FieldKindsSyncTest {
         .filteredOn(v -> "requiredName".equals(v.fieldId()))
         .extracting(ValidationDto::condition, ValidationDto::message)
         .containsExactly(
-            org.assertj.core.groups.Tuple.tuple("state['requiredName']", "Cannot be empty"));
+            org.assertj.core.groups.Tuple.tuple(
+                "state['requiredName'] != null && state['requiredName'] !== '' &&"
+                    + " (state['requiredName'].length === undefined"
+                    + " || state['requiredName'].length > 0)",
+                "Cannot be empty"));
   }
 
   @Test
@@ -468,8 +472,12 @@ class FieldKindsSyncTest {
         .filteredOn(v -> "age".equals(v.fieldId()))
         .extracting(ValidationDto::condition, ValidationDto::message)
         .containsExactlyInAnyOrder(
-            org.assertj.core.groups.Tuple.tuple("state['age'] >= 18", "Must be at least 18"),
-            org.assertj.core.groups.Tuple.tuple("state['age'] <= 99", "Must be at most 99"));
+            org.assertj.core.groups.Tuple.tuple(
+                "state['age'] == null || state['age'] === '' || state['age'] >= 18",
+                "Must be at least 18"),
+            org.assertj.core.groups.Tuple.tuple(
+                "state['age'] == null || state['age'] === '' || state['age'] <= 99",
+                "Must be at most 99"));
   }
 
   @Test

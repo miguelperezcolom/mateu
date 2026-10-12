@@ -128,6 +128,22 @@ class SmartSearchPageSyncTest {
   }
 
   @Test
+  void theColumnsAreTheRowsFieldsNotTheFilters() {
+    // SmartSearchPage<Filters, Row> implements Listing<Row>: the generic resolver read Row by its
+    // position in Listing<Row> (the first) instead of in SmartSearchPage (the second), so the
+    // columns were the FILTERS' fields — a filter that happened to share a name with a row field
+    // showed up, everything else vanished.
+    var columns = new ArrayList<io.mateu.dtos.GridColumnDto>();
+    listing()
+        .columns()
+        .forEach(
+            column -> FieldKindsSyncTest.walk(column, io.mateu.dtos.GridColumnDto.class, columns));
+    assertThat(columns.stream().map(io.mateu.dtos.GridColumnDto::id))
+        .contains("name", "zone", "acquired")
+        .doesNotContain("channels");
+  }
+
+  @Test
   void pageComposesTheSubtitleAboveTheSmartSearchListing() {
     var increment = pageLoad();
     var texts = new ArrayList<TextDto>();

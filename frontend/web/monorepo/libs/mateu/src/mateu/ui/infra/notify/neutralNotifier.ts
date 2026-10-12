@@ -5,7 +5,8 @@
  * carries zero `@vaadin` (or other DS) imports. Installed as the default by mateu-ui; a DS app
  * may override it via {@link setNotifier} (e.g. the Vaadin app's VaadinNotifier).
  */
-import { Notifier, ToastMessage, setNotifier } from '@application/Notifier.ts'
+import { Notifier, ToastMessage, setNotifier, toastDuration } from '@application/Notifier.ts'
+import { requestActionOn } from '@infra/ui/requestAction.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 type Corner = { top?: string; bottom?: string; left?: string; right?: string; transform?: string }
@@ -84,11 +85,9 @@ export const neutralNotifier: Notifier = {
             : message.undoActionId
                 ? {
                     label: message.undoLabel ?? chromeText('undo'),
-                    run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                        bubbles: true,
-                        composed: true,
-                    })),
+                    run: () => requestActionOn(initiator, {
+                        actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
+                    }),
                 }
                 : undefined
 
@@ -106,10 +105,21 @@ export const neutralNotifier: Notifier = {
             toast.appendChild(button)
         }
 
+        const duration = toastDuration(message, control ? 10000 : 5000)
+        if (duration <= 0) {
+            // a toast that stays needs a way out
+            const close = document.createElement('button')
+            close.textContent = '✕'
+            close.setAttribute('aria-label', chromeText('dismiss'))
+            close.style.cssText = 'margin-left: auto; background: none; border: none; color: inherit;'
+                + ' cursor: pointer; font: inherit; font-weight: 600; padding: 0 0.25rem;'
+            close.addEventListener('click', remove)
+            toast.appendChild(close)
+        }
+
         document.body.appendChild(toast)
         requestAnimationFrame(() => { toast.style.opacity = '1' })
 
-        const duration = message.duration ?? (control ? 10000 : 5000)
         if (duration > 0) setTimeout(remove, duration)
     },
 }

@@ -29,7 +29,8 @@ import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents } from './displayDom.mjs'
-import { registerCustomComponent } from './reduceContexts.mjs'
+import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
+import { defineMarkupField } from './richtext.mjs'
 
 // en el bridge todo comparte un scope: keys.mjs usa el shortcutMatches de actionPanels.mjs sin
 // importarlo. En Node, módulos separados — se le da por el global, como lo vería el bridge.
@@ -681,6 +682,34 @@ test('color field: el muestrario emite el hex; sólo lectura lo deshabilita', ()
   assert.equal(f.querySelector('.mateu-color-code').textContent, '#112233')
   f.setAttribute('readonly', '')
   assert.equal(f.querySelector('input').disabled, true)
+})
+
+test('markup field: an editable markdown/html edits its source and previews it rendered', () => {
+  // owner, 2026-10-12: an editor with preview on Vaadin and Redwood (Redwood showed the raw source
+  // in an oj-text-area, with no way to see the result)
+  const { doc, win, fire } = makeDom()
+  defineMarkupField(win)
+  const f = doc.createElement('mateu-markup-field')
+  f.setAttribute('kind', 'markdown')
+  f.setAttribute('value', '**bold**')
+  const values = []
+  f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(f)
+  const area = f.querySelector('textarea')
+  assert.equal(area.value, '**bold**')
+  area.value = '# Title'
+  fire(area, 'input')
+  fire(area, 'change')
+  assert.deepEqual(values, ['# Title'])
+  fire(f.querySelector('button'), 'click')
+  assert.equal(f.querySelector('textarea'), null)
+  assert.ok(f.querySelector('.mateu-markup-preview').innerHTML.includes('<h1'), 'rendered, not the source')
+  assert.equal(f.querySelector('button').getAttribute('aria-pressed'), 'true')
+  const widget = fieldWidgetOf({ fieldId: 'notes', stereotype: 'markdown', dataType: 'string' }, {}, { value: '' })
+  assert.equal(widget.isMarkupEditor, true)
+  assert.equal(widget.markupKind, 'markdown')
+  assert.equal(widget.isTextArea, false)
+  assert.ok(!fieldWidgetOf({ fieldId: 'notes', stereotype: 'html', readOnly: true }, {}, { value: '' }).isMarkupEditor)
 })
 
 // ── tabla ────────────────────────────────────────────────────────────────────────────────────

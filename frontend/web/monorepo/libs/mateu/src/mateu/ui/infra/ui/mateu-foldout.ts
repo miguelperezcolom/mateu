@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { onActivate } from '@infra/a11y/activate.ts'
 
 /**
  * Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels.
@@ -557,8 +558,9 @@ export class MateuFoldout extends LitElement {
                             </div>
                         </div>
                     ` : html`
-                        <div class="strip" role="button" title="${panel.title}" data-node-id="${panel.id ?? nothing}"
-                             data-anchor="${this.panelAnchor(panel, index)}" @click="${() => this.toggle(index)}">
+                        <div class="strip" role="button" tabindex="0" aria-expanded="false" title="${panel.title}" data-node-id="${panel.id ?? nothing}"
+                             data-anchor="${this.panelAnchor(panel, index)}" @click="${() => this.toggle(index)}"
+                             @keydown="${onActivate(() => this.toggle(index))}">
                             <button class="fold" tabindex="-1">⟩</button>
                             <span>${panel.title}</span>
                             <!-- the folded panel's digest (FoldoutPanel.summary, the Redwood foldout-panel

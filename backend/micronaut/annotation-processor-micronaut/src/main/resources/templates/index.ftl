@@ -30,6 +30,12 @@ public class ${simpleClassName}Controller {
     // asks for HTML.
     @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[\\-a-zA-Z0-9/_]+}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path) {
+        // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount: this
+        // catch-all and the YAML one would otherwise be equally specific
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        if (yaml != null) {
+            return yaml;
+        }
         return getIndex();
     }
 

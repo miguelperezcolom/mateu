@@ -22,7 +22,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
-import { activeSection, activeTopIndex, isActiveFor, isMount, sectionHome } from "@infra/ui/navTree.ts";
+import { activeSection, activeTopIndex, isActiveFor, isMount, mountRootPath, sectionHome } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -37,7 +37,11 @@ import { searchGlobally } from "@infra/ui/appSources.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
-import { inAppRoute, shellActionFor } from '@infra/ui/shellFlows.ts'
+import { dispatchAppHeaderAction, findComponent } from '@infra/ui/renderers/appHeaderActions.ts'
+import { notify } from '@application/Notifier.ts'
+import { onActivate } from '@infra/a11y/activate.ts'
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
+import { inAppRoute, shellActionFor, shellActionTarget } from '@infra/ui/shellFlows.ts'
 import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
@@ -279,8 +283,11 @@ export class MateuApp extends ComponentElement {
     }
 
     runAction = (actionId: string, ownedByShell = false) => {
-        const root = this.renderRoot as Element | ShadowRoot
-        const comp = root.querySelector?.('mateu-component') as HTMLElement | null
+        // the on-screen component lives inside the content mateu-ux's own shadow root: a plain
+        // querySelector from here never reached it, and the action was dropped without a word.
+        // With no content on screen (an app whose home is empty) the app itself — the event
+        // bubbles to the app's own component, which advertises its menu's rule-leaf actions
+        const comp = findComponent(this.renderRoot as Element | ShadowRoot) ?? this
         if (comp) {
             comp.dispatchEvent(new CustomEvent('action-requested', {
                 // an id the SHELL declares (a server action of its own) must not be answered by the
@@ -328,8 +335,22 @@ export class MateuApp extends ComponentElement {
         const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
         const resolved = shellActionFor(app, actionId)
         if (runDeclaredFlow(resolved, this.applyShellCommand)) return
-        const ownedByShell = !!app?.actions?.some((a) => a && a.id === actionId)
-        this.runAction(actionId, ownedByShell)
+        if (shellActionTarget(app, actionId) === 'component') {
+            // an action-catalogue entry (a REST call): the on-screen component runs it
+            this.runAction(actionId, false)
+            return
+        }
+        // The APP's own action: it lives on the shell whatever screen is below, so it goes on the
+        // app-level rail, exactly like a header action (see shellActionTarget).
+        this.runAppAction(actionId)
+    }
+
+    /** Runs one of the APP's own actions on the app-level rail (the header actions' one). */
+    runAppAction = (actionId: string) => {
+        const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+        if (!app) return
+        void dispatchAppHeaderAction(app, this, actionId).catch((e) =>
+            notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, this))
     }
 
     // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
@@ -339,6 +360,15 @@ export class MateuApp extends ComponentElement {
     runMenuRules = (rules: Rule[]) => {
         for (const rule of rules) {
             if (rule.action === RuleAction.RunAction && rule.actionId) {
+                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+                if (app && app.serverSideType && !shellActionFor(app, rule.actionId)) {
+                    // a server action of the app class: the header-action rail (against the APP,
+                    // whatever screen is below) — the on-screen component does not own it, and
+                    // dispatched there it bubbled out unclaimed and was lost
+                    dispatchAppHeaderAction(app, this as unknown as HTMLElement & { baseUrl?: string }, rule.actionId)
+                        .catch((e) => console.error('menu action failed', e))
+                    continue
+                }
                 this.runShellAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {
@@ -551,9 +581,9 @@ export class MateuApp extends ComponentElement {
 
     renderRail = (menu: MenuOption[]): TemplateResult => {
         return html`
-            <div class="nav-rail">
+            <nav class="nav-rail" aria-label="${((this.component as ClientSideComponent)?.metadata as App)?.title || chromeText('menu')}">
                 ${menu.map(option => this.renderRailItem(option))}
-            </div>
+            </nav>
         `
     }
 
@@ -561,16 +591,24 @@ export class MateuApp extends ComponentElement {
         const isActive = option.submenus?.length > 0
             ? this.railOpenOption?.label === option.label
             : option.selected
+        const isGroup = option.submenus && option.submenus.length > 0
+        const activate = () => {
+            if (isGroup) {
+                this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
+            } else {
+                this.railOpenOption = null
+                this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
+            }
+        }
+        // a button for the keyboard and the screen reader: it was a bare <div> with a click
+        // handler, so a rail shell could not be navigated without a mouse
         return html`
-            <div class="rail-item ${isActive ? 'rail-item--active' : ''}"
-                @click=${() => {
-                    if (option.submenus && option.submenus.length > 0) {
-                        this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
-                    } else {
-                        this.railOpenOption = null
-                        this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
-                    }
-                }}
+            <div class="rail-item ${isActive ? 'rail-item--active' : ''}" role="button" tabindex="0"
+                aria-label="${option.label}"
+                aria-expanded="${isGroup ? (isActive ? 'true' : 'false') : nothing}"
+                aria-current="${!isGroup && isActive ? 'page' : nothing}"
+                @click=${activate}
+                @keydown=${onActivate(activate)}
             >
                 ${option.icon
                     ? icon(option.icon, undefined, 'rail-icon')
@@ -585,17 +623,21 @@ export class MateuApp extends ComponentElement {
         return html`
             <div class="rail-sub-panel">
                 <div class="rail-sub-title">${option.label}</div>
-                ${option.submenus.map(sub => html`
-                    <div class="rail-sub-item ${sub.selected ? 'rail-sub-item--active' : ''}"
-                        @click=${() => {
-                            if (sub.submenus && sub.submenus.length > 0) {
-                                this.railOpenOption = sub
-                            } else {
-                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
-                            }
-                        }}
-                    >${sub.label}</div>
-                `)}
+                ${option.submenus.map(sub => {
+                    const activate = () => {
+                        if (sub.submenus && sub.submenus.length > 0) {
+                            this.railOpenOption = sub
+                        } else {
+                            this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
+                        }
+                    }
+                    return html`
+                    <div class="rail-sub-item ${sub.selected ? 'rail-sub-item--active' : ''}" role="button" tabindex="0"
+                        aria-current="${sub.selected ? 'page' : nothing}"
+                        @click=${activate}
+                        @keydown=${onActivate(activate)}
+                    >${sub.label}</div>`
+                })}
             </div>
         `
     }
@@ -605,22 +647,25 @@ export class MateuApp extends ComponentElement {
             <div style="padding: 2rem;">
                 <h2 style="margin-top: 0; margin-bottom: 1.5rem;">${option.label}</h2>
                 <div class="tiles-hub-grid">
-                    ${option.submenus.map(sub => html`
-                        <div class="nav-tile"
-                            @click=${() => {
-                                if (sub.submenus && sub.submenus.length > 0) {
-                                    this.tilesMenuOption = sub
-                                } else {
-                                    this.tilesMenuOption = null
-                                    this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
-                                }
-                            }}
+                    ${option.submenus.map(sub => {
+                        const activate = () => {
+                            if (sub.submenus && sub.submenus.length > 0) {
+                                this.tilesMenuOption = sub
+                            } else {
+                                this.tilesMenuOption = null
+                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
+                            }
+                        }
+                        return html`
+                        <div class="nav-tile" role="button" tabindex="0"
+                            @click=${activate}
+                            @keydown=${onActivate(activate)}
                         >
                             ${sub.icon ? icon(sub.icon, 'font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;') : nothing}
                             <div class="nav-tile-title">${sub.label}</div>
                             ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
-                        </div>
-                    `)}
+                        </div>`
+                    })}
                 </div>
             </div>
         `
@@ -634,7 +679,9 @@ export class MateuApp extends ComponentElement {
         if (!dirtyGuard.confirmLeave()) {
             return
         }
-        window.history.pushState(null, '', '/')
+        // the root of THIS app's mount: on a non-root mount (@UI("/back-office")) '/' is another
+        // app altogether — clicking the title used to leave the app
+        window.history.pushState(null, '', mountRootPath(this.baseUrl))
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
     }
 
@@ -1003,10 +1050,11 @@ export class MateuApp extends ComponentElement {
             }
         }
         if (_changedProperties.has('commandPaletteOpen') && this.commandPaletteOpen) {
-            setTimeout(() => {
-                const input = this.renderRoot.querySelector('.cmd-input') as HTMLInputElement
-                input?.focus()
-            }, 0)
+            // synchronously: the update runs as a microtask right after the ⌘K keydown, so the
+            // input owns the focus before the next key arrives. Deferred to a timeout, what a quick
+            // typist entered right after ⌘K went to the page instead of the palette.
+            const input = this.renderRoot.querySelector('.cmd-input') as HTMLInputElement
+            input?.focus()
         }
     }
 
@@ -1014,7 +1062,7 @@ export class MateuApp extends ComponentElement {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
     }
 
-    static styles = [css`
+    static styles = [activatableFocusStyles, css`
         /* DS-neutral app chrome (replaces vaadin-app-layout / menu-bar / tabs / side-nav). */
         .m-hl { display: flex; flex-direction: row; }
         .m-vl { display: flex; flex-direction: column; }

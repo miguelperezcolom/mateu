@@ -106,9 +106,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         var buttons = buttonMethods.Select(MapButton).ToList();
         var fabs = Fabs(type);
         // [Button] methods are server-side actions the renderer can invoke; a [RestAction] button
-        // carries the client-side REST descriptor on its action. A [Fab]'s action is NOT advertised
-        // in the component actions list — it travels only on the page metadata's fabs (Java parity:
-        // the fab golden carries no component.actions).
+        // carries the client-side REST descriptor on its action.
         // Field-declared actions first, in Java's FieldActionCollector order: the list fields' row
         // editing actions, the [OnRowSelected] grid actions (which must be advertised or the
         // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
@@ -120,6 +118,11 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // The section affordances ([Section(EditAction/AddAction/ViewMoreAction)]) dispatch the
         // named methods, and the header's record switcher dispatches _switchRecord — both must be
         // advertised or the renderer drops the click (mirrors Java's ActionMapper).
+        // A page [Fab] dispatches its action through the page's component like any button: the
+        // client only SENDS an advertised action, so an unadvertised FAB was a dead click (Java's
+        // FieldActionCollector advertises @Fab methods the same way, not validated).
+        foreach (var fab in fabs.Where(f => !string.IsNullOrEmpty(f.ActionId) && actions.All(x => x.Id != f.ActionId)))
+            actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
             actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
         if (instance is IRecordSwitcherSupplier)
@@ -287,6 +290,13 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // still says it runs embedded / [Inline] (Java seeds them into the island initialData).
         if (embedded) initialData[EmbeddedMarker] = true;
         if (inline) initialData[InlineMarker] = true;
+        // The actions the view's own [SubscribeTo]s name are advertised too: the server already
+        // runs them (ActionGuard counts them as declared), but the web client only SENDS what the
+        // component advertises — the subscription fired, bubbled out unclaimed and was lost
+        // (Java's ActionMapper.triggeredActions; same rule).
+        foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
+            if (s.Action.Length > 0 && actions.All(a => a.Id != s.Action) && ActionGuard.HandlesTreeAction(type, s.Action))
+                actions.Add(new ActionDto(s.Action, ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });

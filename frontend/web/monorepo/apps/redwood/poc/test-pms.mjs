@@ -469,8 +469,11 @@ test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValue
   assert.ok(/setAfterReduceHook\(\(reg\) => \{\s*setRulesContext/.test(readFileSync(join(here, 'make-amd.mjs'), 'utf8')), 'el hook de reducción fija el contexto de las reglas')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRules\(\)/)
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.applyDomEffects\(null, reg\)/)
-  for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js'])
+  for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js']) {
     assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.valueChangeActionOf\(/, rel)
+    // @AutoSave too: a field of the generic form (mateuFieldEdited) never autosaved
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.autoSaveOf\(/, rel)
+  }
 })
 
 // ── menú de tarjetas (@Menu(display = cards)) ──────────────────────────────────────────────────
@@ -1006,6 +1009,8 @@ test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de l
   assert.equal(reg.effects.toasts, same, 'la MISMA lista: las chains la leen después')
   assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Saved'])
   assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 10000, closeAffordance: 'defaults' })
+  // an error stays until dismissed (owner, 2026-10-12), even when it can be undone
+  assert.equal(undoMessageOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }).autoTimeout, 'off')
 })
 
 test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain; JET oj-message lleva el Undo', () => {
@@ -1067,10 +1072,10 @@ test('polling: dos éxitos seguidos del mismo trigger dejan UNA vuelta pendiente
   setPollingRunner(null)
 })
 
-test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito', () => {
+test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito (y de cada fallo: OnError)', () => {
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
-  assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) actionSucceeded\(source, actionId\)/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) \(isErrorAnswer\(inc\) \? actionFailed : actionSucceeded\)\(source, actionId\)/)
 })
 
 // ── P1 #15 atajos y teclas de acceso ─────────────────────────────────────────────────────────
@@ -1446,7 +1451,8 @@ test('seguridad: el selector de una regla escapa comillas y barras; una imagen s
 })
 
 test('proceso guiado terminado: un paso final «Completed» actual (título correcto) y la marca completed (sin pie)', () => {
-  const tree = (statuses) => ({ type: 'ClientSide', id: 'w', metadata: { type: 'VerticalLayout' }, children: [
+  // a Wizard always advertises `next` (the root carries its actions, as the ServerSide does)
+  const tree = (statuses) => ({ type: 'ClientSide', id: 'w', actions: [{ id: 'next' }], metadata: { type: 'VerticalLayout' }, children: [
     { type: 'ClientSide', id: 'p', metadata: { type: 'ProgressSteps', vertical: true,
       steps: statuses.map((st, i) => ({ id: 's' + i, title: 'Step ' + i, status: st })) }, children: [] }] })
   const running = wizardOf({ tree: tree(['done', 'current', 'upcoming']) })

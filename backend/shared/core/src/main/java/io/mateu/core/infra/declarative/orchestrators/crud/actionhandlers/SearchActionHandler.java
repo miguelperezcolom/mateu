@@ -78,10 +78,17 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
               if (item instanceof Sort sort) {
                 return sort;
               }
-              if (item instanceof Map<?, ?> map && map.get("field") != null) {
+              // the grid sends {fieldId, direction}; {field, direction} is the Sort record's own
+              // shape. Reading only "field" dropped every sort a user clicked on a crud: the
+              // listing looked sorted only because the grid re-sorted the one page it held.
+              var field =
+                  item instanceof Map<?, ?> m
+                      ? (m.get("fieldId") != null ? m.get("fieldId") : m.get("field"))
+                      : null;
+              if (item instanceof Map<?, ?> map && field != null) {
                 var direction = map.get("direction");
                 return new Sort(
-                    map.get("field").toString(),
+                    field.toString(),
                     direction == null
                         ? io.mateu.uidl.data.Direction.ascending
                         : io.mateu.uidl.data.Direction.valueOf(direction.toString()));

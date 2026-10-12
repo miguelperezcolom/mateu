@@ -71,10 +71,13 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
 export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
 
 /** A page's floating action buttons (a reflected page's `@Fab`s, a YAML page's `fabs:`): each
- *  dispatches its action like a button. Shared by the Page and the Form renderers. */
-export const renderPageFabs = (container: LitElement, fabs: Fab[] | undefined) => (fabs ?? []).map((fab, idx) => html`
+ *  dispatches its action like a button — FROM the button. Dispatched on the container (the page's
+ *  own mateu-component host) the event started OUTSIDE the component's listener, bubbled straight
+ *  to the shell and was dropped: every page FAB was a dead click. Shared by the Page and the Form
+ *  renderers. */
+export const renderPageFabs = (_container: LitElement, fabs: Fab[] | undefined) => (fabs ?? []).map((fab, idx) => html`
             <button class="page-fab" style="${pageFabPosition(idx)}" ${onFabRail('page', idx)} aria-label="${fab.label}"
-                @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
+                @click="${(e: Event) => (e.currentTarget as HTMLElement).dispatchEvent(new CustomEvent('action-requested', {
                     detail: { actionId: fab.actionId },
                     bubbles: true,
                     composed: true

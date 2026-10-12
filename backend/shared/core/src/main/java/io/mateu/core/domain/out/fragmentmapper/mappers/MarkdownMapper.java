@@ -10,7 +10,7 @@ public class MarkdownMapper {
   public static ClientSideComponentDto mapMarkdownToDto(Markdown markdown) {
     return new ClientSideComponentDto(
         new MarkdownDto(markdown.markdown()),
-        "fieldId",
+        WireIds.idOf(markdown, null),
         List.of(),
         markdown.style(),
         markdown.cssClasses(),

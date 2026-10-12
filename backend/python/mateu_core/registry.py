@@ -25,6 +25,10 @@ class MateuRegistry:
     def __init__(self, *sources: ModuleType | type):
         self._by_route: dict[str, type] = {}
         self._by_name: dict[str, type] = {}
+        #: The mounts of the registered apps (an app's own @ui/@app route): a route that arrives
+        #: WITH its mount (a notification / global-search hit, a deep link: "/shell/probe") resolves
+        #: like the mount-relative one ("probe"), as on Java, where the mount is stripped.
+        self._mounts: list[str] = []
         self.app_type: type | None = None
         # Routes contributed IN CODE by RouteEntrySupplier subclasses found among the sources,
         # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
@@ -65,6 +69,9 @@ class MateuRegistry:
         if "__mateu_app__" in cls.__dict__:
             self.app_type = cls
             self._by_name[type_name(cls)] = cls
+            mount = normalize(cls.__dict__.get("__mateu_app_route__") or cls.__dict__.get("__mateu_ui__") or "")
+            if mount and mount not in self._mounts:
+                self._mounts.append(mount)
         # The route a class declares (coherence-plan #5): @app(route="/x") wins over @ui("/x") (the
         # single "declare an app" decorator); a route-less @app carries no route. Register by it.
         app_route = cls.__dict__.get("__mateu_app_route__")
@@ -175,7 +182,20 @@ class MateuRegistry:
         norm = normalize(route)
         if norm in self._by_route:
             return self._by_route[norm]
+        relative = self.under_mount(norm)
+        if relative is not None and relative in self._by_route:
+            return self._by_route[relative]
         return self.app_type if norm == "" else None
+
+    def under_mount(self, norm: str) -> str | None:
+        """``norm`` (a normalized route) without the mount of a registered app it starts with, or
+        None when it starts with none — or names a registered route as it is (that one wins)."""
+        if norm in self._by_route:
+            return None
+        for mount in self._mounts:
+            if norm.startswith(mount + "/"):
+                return norm[len(mount) + 1:]
+        return None
 
     def type_by_name(self, full_name: str | None) -> type | None:
         """Resolve any class by full name (``module.QualName``) — used to instantiate a YAML page's
@@ -202,6 +222,9 @@ class MateuRegistry:
     def resolve_by_prefix(self, route: str | None) -> tuple[type, str] | None:
         """The registered view whose route is the longest prefix of ``route`` (for CRUD sub-routes)."""
         norm = normalize(route)
+        relative = self.under_mount(norm)
+        if relative is not None and self.resolve_by_prefix(relative) is not None:
+            return self.resolve_by_prefix(relative)
         parts = [] if norm == "" else norm.split("/")
         for n in range(len(parts), 0, -1):
             prefix = "/".join(parts[:n])

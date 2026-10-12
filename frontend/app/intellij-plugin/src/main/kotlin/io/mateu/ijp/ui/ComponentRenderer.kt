@@ -83,7 +83,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "EmptyState" -> renderEmptyState(this, metadata)
             "Skeleton" -> renderSkeleton(metadata)
             "FoldoutLayout" -> renderFoldout(this, component, metadata, state, data)
-            "Gantt" -> renderGantt(metadata)
+            "Gantt" -> renderGantt(metadata, ctx)
             "PlanningBoard" -> renderPlanningBoard(this, metadata)
             "Kanban" -> renderKanban(this, metadata)
             "Timeline" -> renderTimeline(this, metadata)

@@ -12,7 +12,7 @@ vi.hoisted(() => {
 
 import { render } from 'lit'
 import type { LitElement } from 'lit'
-import { renderFormLayout, renderTabLayout } from './renderLayouts'
+import { renderAccordionLayout, renderFormLayout, renderTabLayout } from './renderLayouts'
 
 /**
  * The Vaadin layouts' wire-driven details a user notices: labels beside the fields when the server
@@ -126,5 +126,29 @@ describe('renderTabLayout', () => {
     it('a tab badge (an eager @Subresource count) is shown next to its label', () => {
         const host = mountTemplate(renderTabLayout(container, tabLayout([tab('Subnets', { badge: '12' }), tab('B')]) as never, '', {}, {}, {}, {}))
         expect(host.querySelector('vaadin-tab [theme~="badge"]')!.textContent).toBe('12')
+    })
+})
+
+describe('renderAccordionLayout', () => {
+    const panel = (label: string, active: boolean) => ({
+        type: 'ClientSide', id: 'p-' + label, children: [],
+        metadata: { type: 'AccordionPanel', label, active },
+    })
+    const accordion = (panels: unknown[]) => ({
+        type: 'ClientSide', id: 'acc', children: panels, metadata: { type: 'AccordionLayout' },
+    })
+    const openedOf = (panels: unknown[]) => {
+        const host = mountTemplate(renderAccordionLayout(container, accordion(panels) as never, '', {}, {}, {}, {}))
+        return (host.querySelector('vaadin-accordion') as unknown as { opened: number | null }).opened
+    }
+
+    it('opens the panel the wire marks active', () => {
+        expect(openedOf([panel('A', false), panel('B', true)])).toBe(1)
+    })
+
+    it('with no panel active, every panel starts closed (a folded "More options" stays folded)', () => {
+        // vaadin-accordion's own default opened the first panel, so the optional fields the
+        // layout inference folded away were shown expanded
+        expect(openedOf([panel('More options', false)])).toBeNull()
     })
 })

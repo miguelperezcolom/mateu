@@ -63,6 +63,135 @@ class Separator(Component):
 
 
 @dataclass(frozen=True)
+class Card(Component):
+    """A card (Java's ``io.mateu.uidl.data.Card``): every slot is a component — a ``Text`` title,
+    an ``Image`` as media, buttons in the footer… ``variants`` as Java's ``CardVariant`` names
+    (``outlined``, ``elevated``, ``horizontal``, …); None keeps the renderer's default."""
+
+    content: Component | None = None
+    title: Component | None = None
+    subtitle: Component | None = None
+    media: Component | None = None
+    header_prefix: Component | None = None
+    header: Component | None = None
+    header_suffix: Component | None = None
+    footer: Component | None = None
+    variants: list[str] | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Markdown(Component):
+    """Formatted text written in Markdown."""
+
+    markdown: str = ""
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Image(Component):
+    """An image, by url or data URI."""
+
+    src: str = ""
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Badge(Component):
+    """A small status chip (``color``: normal | success | error | warning | contrast)."""
+
+    text: str = ""
+    icon_on_left: str | None = None
+    icon_on_right: str | None = None
+    color: str | None = None
+    primary: bool = False
+    small: bool = False
+    pill: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Avatar(Component):
+    """A person's picture, or their initials."""
+
+    name: str | None = None
+    abbreviation: str | None = None
+    image: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class AvatarGroup(Component):
+    """Overlapping avatars; beyond ``max_items_visible`` (0 = all) the rest show as +N."""
+
+    avatars: tuple[Avatar, ...] = ()
+    max_items_visible: int = 0
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class ChartDataset:
+    label: str | None = None
+    data: tuple[float, ...] = ()
+
+
+@dataclass(frozen=True)
+class ChartData:
+    labels: tuple[str, ...] = ()
+    datasets: tuple[ChartDataset, ...] = ()
+
+
+@dataclass(frozen=True)
+class Chart(Component):
+    """A chart (``chart_type``: bar | line | pie | doughnut | radar | polarArea | scatter | bubble)."""
+
+    chart_type: str = "bar"
+    chart_data: ChartData | None = None
+    chart_options: dict | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Bpmn(Component):
+    """A BPMN 2.0 diagram from its XML (read-only)."""
+
+    xml: str = ""
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class ProgressBar(Component):
+    """A progress bar: ``value`` between ``min`` and ``max`` (or the state at ``value_key``)."""
+
+    value: float = 0
+    min: float = 0
+    max: float = 1
+    indeterminate: bool = False
+    value_key: str | None = None
+    text: str | None = None
+    theme: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class Anchor(Component):
     """A hyperlink. ``target`` "_blank" opens in a new tab (the renderer adds rel=noopener).
     The Python analogue of Java's ``Anchor``."""

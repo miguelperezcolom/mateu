@@ -63,6 +63,79 @@ public final class YamlMounts {
   }
 
   /**
+   * The YAML mounts to serve NEXT TO the {@code @UI} classes of the deployment: all of them but the
+   * ones whose base path a class already serves (the class wins — its generated controller owns
+   * that path). The adapters used to stand the whole YAML surface down as soon as any {@code @UI}
+   * existed, so every YAML mount of a mixed deployment answered 404.
+   *
+   * @param classBaseUrls the base URLs of the generated controllers ({@code ""} or {@code "/"} for
+   *     a root {@code @UI})
+   */
+  public static List<Mount> notServedByClasses(
+      List<Mount> mounts, java.util.Collection<String> classBaseUrls) {
+    var taken = new java.util.HashSet<String>();
+    if (classBaseUrls != null) {
+      for (var baseUrl : classBaseUrls) {
+        taken.add(trimSlashes(baseUrl));
+      }
+    }
+    return mounts.stream().filter(mount -> !taken.contains(trimSlashes(mount.basePath()))).toList();
+  }
+
+  /**
+   * The index page of the YAML mount a deep link belongs to, for an adapter whose ROOT {@code @UI}
+   * answers every path itself (Micronaut's generated catch-all index): {@code /console/orders}
+   * under a {@code type: UI} mount {@code console} must open that mount, not the root UI. Null when
+   * no YAML mount (other than one a class serves) owns the path. Reads the beans through {@link
+   * io.mateu.uidl.di.MateuBeanProvider}, so generated code can call it with no injection.
+   */
+  public static String deepLinkIndex(String requestedPath) {
+    try {
+      if (requestedPath == null
+          || !io.mateu.uidl.di.MateuBeanProvider.isInitialized()
+          || !present(Thread.currentThread().getContextClassLoader())) {
+        return null;
+      }
+      var controllers =
+          io.mateu.uidl.di.MateuBeanProvider.getBeans(MateuController.class).stream()
+              .map(MateuController::getBaseUrl)
+              .toList();
+      var mounts =
+          notServedByClasses(
+              mounts(
+                  io.mateu.uidl.di.MateuBeanProvider.getBean(RouteRegistry.class),
+                  io.mateu.uidl.di.MateuBeanProvider.getBean(YamlAppLoader.class)),
+              controllers);
+      Mount best = null;
+      for (var mount : mounts) {
+        if (mount.basePath().isEmpty()) {
+          continue;
+        }
+        var spa = mount.spaPath();
+        if ((requestedPath.equals(spa) || requestedPath.startsWith(spa + "/"))
+            && !requestedPath.contains("/mateu/")
+            && (best == null || spa.length() > best.spaPath().length())) {
+          best = mount;
+        }
+      }
+      return best == null ? null : best.indexHtml();
+    } catch (RuntimeException e) {
+      return null;
+    }
+  }
+
+  private static String trimSlashes(String path) {
+    var p = path == null ? "" : path.trim();
+    while (p.startsWith("/")) {
+      p = p.substring(1);
+    }
+    while (p.endsWith("/")) {
+      p = p.substring(0, p.length() - 1);
+    }
+    return p;
+  }
+
+  /**
    * The mount whose API a request path belongs to — the longest {@link Mount#apiPrefix()} the path
    * starts with — or null.
    */

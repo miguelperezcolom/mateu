@@ -5,3 +5,5 @@ routes:
     layout: app.yaml
   - route: home
     layout: home.yaml
+  - route: help/about
+    layout: about.yaml

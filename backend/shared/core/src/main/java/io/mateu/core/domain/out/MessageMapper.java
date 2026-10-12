@@ -23,9 +23,17 @@ public class MessageMapper {
       return List.of(mapBanner(banner));
     }
     if (instance instanceof Collection<?> collection) {
+      // a PageBanners travels inside a list too (the new state AND appended banners, in one
+      // answer): it used to be dropped there, banners and append flag both
       return collection.stream()
-          .filter(o -> o instanceof PageBanner)
-          .map(o -> mapBanner((PageBanner) o))
+          .flatMap(
+              o ->
+                  o instanceof PageBanners pageBanners
+                      ? pageBanners.banners().stream()
+                      : o instanceof PageBanner banner
+                          ? java.util.stream.Stream.of(banner)
+                          : java.util.stream.Stream.empty())
+          .map(MessageMapper::mapBanner)
           .toList();
     }
     return List.of();
@@ -34,6 +42,9 @@ public class MessageMapper {
   public static boolean mapToAppendBanners(Object instance) {
     if (instance instanceof PageBanners pageBanners) {
       return pageBanners.append();
+    }
+    if (instance instanceof Collection<?> collection) {
+      return collection.stream().anyMatch(o -> o instanceof PageBanners b && b.append());
     }
     return false;
   }
@@ -81,7 +92,12 @@ public class MessageMapper {
                 : null)
         .title(message.title())
         .text(message.text())
-        .duration(message.duration() > 0 ? message.duration() : 3000)
+        // an ERROR stays until dismissed — in every backend and renderer (owner, 2026-10-12): read
+        // in 3 s and gone, the user often never saw why the save failed
+        .duration(
+            message.variant() == io.mateu.uidl.data.NotificationVariant.error
+                ? 0
+                : message.duration() > 0 ? message.duration() : 3000)
         .undoLabel(message.undoLabel())
         .undoActionId(message.undoActionId())
         .undoParameters(message.undoParameters())

@@ -67,13 +67,13 @@ def test_the_undoable_toast_carries_the_undo_action_and_parameters_on_the_wire()
     assert ARCHIVED == ["doc-7"]
     message = inc.messages[0]
     assert message.text == "Documento archivado"
-    assert message.undo_label == "Deshacer"
+    assert message.undo_label is None  # the client says "Undo" in the app's language
     assert message.undo_action_id == "restore"
     assert message.undo_parameters == {"docId": "doc-7"}
     assert message.duration == 10000
     # the undo fields serialize with the camelCase wire names
     wire = json.loads(render(inc))["messages"][0]
-    assert wire["undoLabel"] == "Deshacer"
+    assert wire.get("undoLabel") is None
     assert wire["undoActionId"] == "restore"
     assert wire["undoParameters"] == {"docId": "doc-7"}
     assert wire["variant"] == "contrast"

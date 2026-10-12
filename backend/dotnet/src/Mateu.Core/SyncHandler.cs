@@ -130,8 +130,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
-        // 1. App shell at the root route.
+        // 1. App shell at the root route — unless this is the shell's own CONTENT load: an app with
+        // no home route aims its content area at the "_no_home_route" sentinel with its own type,
+        // and answering the shell again nested a second shell inside the first, which asked again
+        // (the browser's loop guard). That load renders the app as a page, as Java does.
         if (string.IsNullOrEmpty(rq.ActionId)
+            && !IsHomeContentLoad(rq)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
         {
@@ -295,6 +299,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);
+        // The [AppContext] header pickers' search — same rail (mirrors Java's
+        // AppContextSearchActionRunner).
+        if (rq.ActionId?.StartsWith(AppContextSearchPrefix) == true) return AppContextSearch(type, rq);
         // The header record switcher's pick: runs SwitchTo with the picked value; null (or the
         // view itself / another routed view) re-renders in place, anything else maps as a regular
         // action result (mirrors Java's RecordSwitcherActionRunner).
@@ -435,6 +442,16 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     }
 
     // ── Plain views ─────────────────────────────────────────────────────────────
+    /// <summary>The shell's content area loading the app's home when the app names none: its own
+    /// type, aimed at the "_no_home_route" (or "_page") sentinel. The page the app itself draws
+    /// answers it, not the shell (mirrors Java's AppHomeRouteResolver: the sentinel becomes
+    /// "_page").</summary>
+    private static bool IsHomeContentLoad(RunActionRqDto rq)
+    {
+        var route = (rq.Route ?? "").Split('?')[0].Trim('/');
+        return !string.IsNullOrEmpty(rq.ServerSideType) && route is "_no_home_route" or "_page";
+    }
+
     private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl,
         string? homeRouteOverride = null, string? homeTypeOverride = null)
     {
@@ -542,8 +559,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // does (mirrors Java's ReflectionObjectToComponentMapper.pageTypeOf).
         if (isPage && view is ServerSideComponentDto page && DeclaredPageTypeFor(rq.Route, type) is { } declared)
             view = page with { PageType = declared };
+        // A composed page still names the window when it DECLARES a title ([Title]): without it the
+        // tab kept the previous page's title and screen readers heard no navigation (Java's
+        // CommandMapper does the same for a ComponentTreeSupplier / [AutoPage] bridge).
+        var namesWindow = isPage || type.Find<TitleAttribute>() is not null;
         return FragmentResponse(Title(type), view, rq,
-            LookupLabels(type, instance, instance), emitWindowTitle: isPage && !embedded);
+            LookupLabels(type, instance, instance), emitWindowTitle: namesWindow && !embedded);
     }
 
     /// <summary>The <c>pageType:</c> of the route's definition when it is bound to
@@ -577,6 +598,11 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
+        // A [Button] is advertised validationRequired: the client checks the form's constraints
+        // first, and the server does not take its word for it (Java's ServerConstraintCheck).
+        if (method.Find<ButtonAttribute>() != null
+            && _mapper.Violations(type, instance) is { Count: > 0 } broken)
+            throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));
         // An action returning a routed view (itself, or the model of the view's next state)
         // re-renders it in place — how a multi-state island switches between its states.

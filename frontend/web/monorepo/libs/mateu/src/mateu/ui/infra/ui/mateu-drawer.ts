@@ -10,6 +10,7 @@ import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { hasOverlayInside } from '@infra/ui/overlayStack.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -219,7 +220,10 @@ export class MateuDrawer extends ComponentElement {
         }
         const root = this.getRootNode() as Document | ShadowRoot
         const overlays = root.querySelectorAll('mateu-drawer, mateu-dialog')
-        if (overlays[overlays.length - 1] === this) {
+        // an overlay opened FROM this drawer (a dialog its form returned) lives in a shadow root
+        // inside it, out of reach of the query above: with the focus anywhere but in that dialog,
+        // Esc closed the drawer underneath and left the dialog open on top of nothing
+        if (overlays[overlays.length - 1] === this && !hasOverlayInside(this)) {
             e.stopPropagation()
             this.close()
         }

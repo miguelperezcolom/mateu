@@ -60,3 +60,21 @@ export const computePlanningMove = (i: PlanningMoveInput): PlanningMove | null =
   const end = addDaysIso(start, Math.max(1, i.durationDays) - 1);
   return { _blockId: i.blockId, _resourceId: i.resourceIds[targetResourceIndex], _start: start, _end: end };
 };
+
+/** The pixels a press may wander and still be a tap, not a drag. */
+export const DRAG_THRESHOLD = 4;
+
+/**
+ * How a draggable block treats a gesture: whether it claims the touch on START (a tap must, or the
+ * release that turns it into a selection never comes — a movable board's blocks could not be
+ * selected at all), whether a move claims it, and what a release means.
+ */
+export const blockGesture = (opts: { moveEnabled: boolean; selectEnabled: boolean }) => ({
+  claimsOnStart: opts.selectEnabled,
+  claimsOnMove: (dx: number, dy: number) =>
+    opts.moveEnabled && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD),
+  onRelease: (dx: number, dy: number): 'select' | 'move' | 'none' =>
+    Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD
+      ? (opts.selectEnabled ? 'select' : 'none')
+      : (opts.moveEnabled ? 'move' : 'none'),
+});

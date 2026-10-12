@@ -73,4 +73,19 @@ class YamlMountsTest {
         null,
         null);
   }
+
+  @Test
+  void yamlMountsAreServedNextToTheClassesButAPathAClassServesIsLeftToIt() {
+    var mounts =
+        List.of(
+            new YamlMounts.Mount("", "Root"),
+            new YamlMounts.Mount("console", "Console"),
+            new YamlMounts.Mount("admin", "Admin"));
+    // a root @UI and an @UI at /admin: only the console is the YAML surface's (it used to stand
+    // down entirely, so every YAML mount of a mixed deployment answered 404)
+    assertThat(YamlMounts.notServedByClasses(mounts, List.of("", "/admin")))
+        .extracting(YamlMounts.Mount::basePath)
+        .containsExactly("console");
+    assertThat(YamlMounts.notServedByClasses(mounts, List.of())).hasSize(3);
+  }
 }

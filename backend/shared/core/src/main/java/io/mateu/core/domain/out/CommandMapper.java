@@ -60,6 +60,18 @@ public class CommandMapper {
                   UICommandTypeDto.SetWindowTitle,
                   httpRequest.getAttribute("windowTitle")));
         }
+      } else if (httpRequest.getAttribute("windowTitle") == null
+          && instance instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier
+          && declaresTitle(titleSource(instance))) {
+        // A composed page (Dashboard, Welcome, HeroSearch, SmartSearchPage, Foldout,
+        // ItemOverview, GanttPage, DataManagement…) is not reflected as a page, so its @Title
+        // never reached the window: the tab kept the previous page's title, and the route-change
+        // announcement screen readers rely on (SetWindowTitle) never came.
+        result.add(
+            new UICommandDto(
+                targetComponentId,
+                UICommandTypeDto.SetWindowTitle,
+                getTitle(titleSource(instance))));
       }
     }
 
@@ -106,6 +118,21 @@ public class CommandMapper {
     return result;
   }
 
+  /**
+   * What names the window for a composed page: the plain class an {@code @AutoPage} bridge or a
+   * component adapter renders carries the {@code @Title}, not the bridge.
+   */
+  private static Object titleSource(Object instance) {
+    return io.mateu.core.infra.ModelBridge.ownerOf(instance);
+  }
+
+  /** Whether the view names its own title — never a humanized class name or a toString. */
+  private static boolean declaresTitle(Object instance) {
+    return instance instanceof io.mateu.uidl.interfaces.TitleSupplier
+        || io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+            instance.getClass(), io.mateu.uidl.annotations.Title.class);
+  }
+
   private static boolean isCommandResult(Object instance) {
     if (instance instanceof UICommand || instance instanceof Step || instance instanceof Document) {
       return true;
@@ -117,10 +144,10 @@ public class CommandMapper {
         || instance instanceof io.mateu.dtos.UIIncrementDto) {
       return true;
     }
-    return instance instanceof Collection<?> collection
-        && !collection.isEmpty()
-        && collection.stream()
-            .allMatch(o -> o instanceof UICommand || o instanceof Step || o instanceof Document);
+    // a collection is several results at once — a crud action answers [State, Message, commands…],
+    // a handler may answer [this, a command] — and its toString() is a dump, never a title: after
+    // every crud delete the tab read "[State[state=…CapabilityCrud@…, UICommand[…]]"
+    return instance instanceof Collection<?> collection && !collection.isEmpty();
   }
 
   // same marker check as EditableView.isEmbedded / EmbeddedOrchestratorFieldBuilder

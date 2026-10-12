@@ -14,6 +14,7 @@ const componentElement = (over: Record<string, any> = {}) => ({
     state: {} as Record<string, any>,
     data: {} as Record<string, any>,
     _locallyEdited: new Set<string>(),
+    _serverSaid: new Set<string>(),
     _lastOwnState: undefined as Record<string, any> | undefined,
     callbackToken: '',
     requestUpdate: () => {},
@@ -166,6 +167,7 @@ const withProto = (over: Record<string, any>) => ({
     _lastFragmentData: undefined as Record<string, any> | undefined,
     _lastOwnState: undefined as Record<string, any> | undefined,
     _locallyEdited: new Set<string>(),
+    _serverSaid: new Set<string>(),
     _lastViewKey: undefined as string | undefined,
     component: undefined as ServerSideComponent | undefined,
     willUpdate: WillUpdateProbe.hook,
@@ -317,5 +319,44 @@ describe('willUpdate keeps what the user typed', () => {
         ]) as any)
         expect(el.state.leadName).toBe('stale')
         expect(el._locallyEdited.size).toBe(0)
+    })
+})
+
+/**
+ * An island's own State answer against its host's re-render. The walkthrough (events lab): a
+ * listener island answered `new State(this)` ("heard from A"), its host page answered a moment
+ * later with a state of its own, re-rendered, and re-bound the island's `.state` from the copy it
+ * had rendered it with — the island snapped back to "heard nothing", depending on which answer
+ * arrived first.
+ */
+describe('an island keeps what its own server said when its host re-renders', () => {
+
+    it('restores the keys of a state-only answer over the host re-bind', () => {
+        const el = componentElement({ component: serverSide('FilteredListener'), state: { times: 0, last: 'nothing' } })
+        el.applyFragment({ targetComponentId: 'target', action: UIFragmentAction.Replace,
+            state: { times: 1, last: 'from A' } } as unknown as UIFragment)
+        expect(el._serverSaid.has('last')).toBe(true)
+        // the host re-renders: Lit assigns the host's stale copy, then willUpdate runs
+        const probe = withProto({
+            _lastViewKey: 'FilteredListener',
+            component: el.component,
+            _lastOwnState: el._lastOwnState,
+            _serverSaid: el._serverSaid,
+            state: { times: 0, last: 'nothing', hostField: 'ping from A' },
+        })
+        probe.willUpdate(new Map([['state', el.state]]) as any)
+        expect(probe.state).toEqual({ times: 1, last: 'from A', hostField: 'ping from A' })
+    })
+
+    it('lets the host hand a NEW component (re-rendered with `this`) start from its own state', () => {
+        const probe = withProto({
+            _lastViewKey: 'FilteredListener',
+            component: serverSide('FilteredListener'),
+            _lastOwnState: { times: 1, last: 'from A' },
+            _serverSaid: new Set(['times', 'last']),
+            state: { times: 0, last: 'nothing' },
+        })
+        probe.willUpdate(new Map<string, any>([['state', { times: 1, last: 'from A' }], ['component', serverSide('FilteredListener')]]) as any)
+        expect(probe.state).toEqual({ times: 0, last: 'nothing' })
     })
 })

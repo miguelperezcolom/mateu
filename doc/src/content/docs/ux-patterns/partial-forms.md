@@ -19,7 +19,7 @@ A customer record, a product sheet, or a booking with dozens of fields is overwh
 
 ## Solution
 
-Use `@FoldedLayout` on the page class and `@Section` to split fields into collapsible panels. Define each logical group as a **nested record or class** (a subform field). Methods annotated with `@Toolbar` or `@Button` inside those nested types become actions scoped to that section only.
+Use `@Section` to split fields into groups (and `@FoldedLayout` on the page class to lay those groups side by side). Define each logical group as a **nested record or class** (a subform field). Methods annotated with `@Toolbar` or `@Button` inside those nested types become actions scoped to that section only.
 
 ```
 Page
@@ -107,7 +107,7 @@ public record Subform2(
 
 | Element | Role |
 |---|---|
-| `@FoldedLayout` | Renders each `@Section` as a collapsible panel — the user expands only what is relevant |
+| `@FoldedLayout` | Lays the `@Section` cards side by side, one column each, instead of stacking them |
 | `@Section("name")` | Starts a new collapsible group; fields below it belong to this group until the next `@Section` |
 | Nested record/class field | Becomes the subform rendered inside the section |
 | `@Toolbar` on a subform method | Adds a button to that section's own toolbar, scoped to the subform's data |

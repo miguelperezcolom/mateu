@@ -132,7 +132,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                 else -> NotificationType.INFORMATION
             }
             val notification = NotificationGroupManager.getInstance()
-                .getNotificationGroup("Mateu")
+                .getNotificationGroup(MessageGroups.groupFor(variant))
                 .createNotification(title ?: "Mateu", text, type)
             if (undo != null) {
                 notification.addAction(

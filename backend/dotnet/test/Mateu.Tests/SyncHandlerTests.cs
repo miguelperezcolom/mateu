@@ -780,6 +780,13 @@ public class ChromelessApp
     [MenuItem("Things")] public Things Home() => new();
 }
 
+// The header's light/dark switch: opt-in, mirrors Java's @App(themeToggle).
+[App("Theme Toggle App", ThemeToggle = true)]
+public class ThemeToggleApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
 // Keyboard access keys (hold Alt to see them): opt-in, mirrors Java's AccessKeysSyncTest.
 [App("Access Keys App", AccessKeys = true)]
 public class AccessKeysApp
@@ -803,6 +810,12 @@ public class RuleMenuApp
         Rule.Hide("a", "true"),
         Rule.Disable("b"),
     ];
+
+    // a leaf that RUNS one of the app's own actions
+    [MenuItem("Refresh")]
+    public Rule Refresh() => new("true", "RunAction", null, null, null, null, ActionId: "refreshAll");
+
+    public Message RefreshAll() => new("refreshed");
 }
 
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
@@ -855,6 +868,13 @@ public class Decorated
 {
     [Banner(BannerTheme.Warning, "Careful")] public string Warn() => "be careful";
     public string? Field { get; set; }
+}
+
+[UI("plain-subscriber"), Title("Plain subscriber"), SubscribeTo("lab-ping", "onPing")]
+public class PlainSubscriber
+{
+    public string? Heard { get; set; }
+    public PlainSubscriber OnPing() { Heard = "pinged"; return this; }
 }
 
 [UI("wiz"), Title("Wiz")]
@@ -1311,6 +1331,56 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void The_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_again()
+    {
+        // an app with no home route aims its content area at "_no_home_route" with its own type:
+        // the port answered the SHELL again, which the web client nested inside the first one and
+        // which asked again — the browser's loop guard aborted it with console errors
+        var shell = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
+        var shellMeta = (AppMetadataDto)((ClientSideComponentDto)shell.Fragments.Single().Component!).Metadata;
+        // the shell lands on its first menu item now; the sentinel load below still answers a page
+        Assert.NotEqual("_no_home_route", shellMeta.HomeRoute);
+
+        var content = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(TestApp).FullName,
+            Route = "/_no_home_route",
+            ConsumedRoute = "",
+        });
+        var component = Assert.Single(content.Fragments).Component;
+        Assert.IsNotType<ClientSideComponentDto>(component);
+        Assert.DoesNotContain("\"type\":\"App\"", Render(content));
+    }
+
+    [Fact]
+    public void An_app_context_picker_searches_its_options_on_the_app_level_rail()
+    {
+        // the web picker asks _appcontext-search-<field> whenever it opens or the user types; the
+        // port used to answer "action not found" — an error toast on every picker of a .NET app
+        string Search(string text)
+        {
+            var inc = Handler().Handle(new RunActionRqDto
+            {
+                ServerSideType = typeof(TestApp).FullName,
+                ActionId = "_appcontext-search-hotel",
+                InitiatorComponentId = "appcontext-hotel",
+                Parameters = new Dictionary<string, object?> { ["searchText"] = text },
+            });
+            Assert.Empty(inc.Messages);
+            Assert.Equal("appcontext-hotel", Assert.Single(inc.Fragments).TargetComponentId);
+            return Render(inc);
+        }
+
+        var all = Search("");
+        Assert.Contains("\"_appcontext_hotel\"", all);
+        Assert.Contains("\"label\":\"Hotel 1\"", all);
+        Assert.Contains("\"label\":\"Hotel 2\"", all);
+        var narrowed = Search("2");
+        Assert.DoesNotContain("\"label\":\"Hotel 1\"", narrowed);
+        Assert.Contains("\"label\":\"Hotel 2\"", narrowed);
+    }
+
+    [Fact]
     public void Command_center_flag_reaches_the_wire_when_opted_in()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
@@ -1325,6 +1395,17 @@ public class SyncHandlerTests
         Assert.Contains("\"accessKeys\":false", plain);
         var on = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(AccessKeysApp).FullName }));
         Assert.Contains("\"accessKeys\":true", on);
+    }
+
+    [Fact]
+    public void The_theme_toggle_is_opt_in()
+    {
+        // [App(ThemeToggle = true)] draws the header's light/dark switch (Java's @App(themeToggle));
+        // the port had no way to ask for it
+        var plain = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
+        Assert.Contains("\"themeToggle\":false", plain);
+        var on = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ThemeToggleApp).FullName }));
+        Assert.Contains("\"themeToggle\":true", on);
     }
 
     [Fact]
@@ -1357,6 +1438,21 @@ public class SyncHandlerTests
         var many = app.Menu.Single(i => i.Label == "Reset");
         Assert.Equal("", many.Route);
         Assert.Equal(2, many.Rules.Count);
+    }
+
+    [Fact]
+    public void A_rule_leafs_action_runs_on_the_app_whatever_screen_is_below()
+    {
+        // the web shell dispatches a menu rule's RunAction on the app-level rail (the app class, no
+        // route of its own), like a header action: the app's method must answer it, not "not found"
+        var handler = new SyncHandler(new MateuRegistry(typeof(RuleMenuApp).Assembly));
+        var inc = handler.Handle(new RunActionRqDto
+        {
+            Route = "_no_route",
+            ServerSideType = typeof(RuleMenuApp).FullName,
+            ActionId = "refreshAll",
+        });
+        Assert.Equal("refreshed", Assert.Single(inc.Messages).Text);
     }
 
     [Fact]
@@ -1416,6 +1512,25 @@ public class SyncHandlerTests
         Assert.Equal(2, DbOrders.LastPageable!.Page);
         Assert.Equal(25, DbOrders.LastPageable.Size);
         Assert.Equal(new SortSpec("name", true), Assert.Single(DbOrders.LastPageable.Sort));
+    }
+
+    [Fact]
+    public void The_sort_a_grid_header_sends_reaches_the_crud_fetch()
+    {
+        // the grid sends {fieldId, direction}; reading only "field" dropped every header sort
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(DbOrders).FullName,
+            ComponentState = new()
+            {
+                ["sort"] = JsonSerializer.SerializeToElement(new[] { new { fieldId = "name", direction = "descending" } }),
+            },
+        };
+
+        Handler().Handle(rq);
+
+        Assert.Equal(new SortSpec("name", true), Assert.Single(DbOrders.LastPageable!.Sort));
     }
 
     [Fact]
@@ -2415,6 +2530,15 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void A_subscription_naming_a_plain_method_is_advertised()
+    {
+        // the web client only sends what the component advertises: unadvertised, the subscription
+        // fired, bubbled out unclaimed and was lost (the actions walkthrough, 2026-10-12)
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(PlainSubscriber).FullName }));
+        Assert.Contains("\"id\":\"onPing\"", json);
+    }
+
+    [Fact]
     public void Wizard_renders_steps_and_completes_on_finish()
     {
         var step1 = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Wiz).FullName }));
@@ -2485,6 +2609,15 @@ public class SyncHandlerTests
 
         // The supplier returned null for CustomerId → the [LinkTo] attribute applies.
         Assert.Contains("\"link\":{\"href\":\"/annotated/${state.customerId}\",\"icon\":\"\",\"title\":\"\",\"target\":\"\"}", json);
+    }
+
+    [Fact]
+    public void Fab_action_is_advertised_so_the_browser_sends_it()
+    {
+        // the web client only SENDS an advertised action: an unadvertised page FAB was a dead click
+        var inc = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Featured).FullName });
+        var page = Assert.IsType<ServerSideComponentDto>(inc.Fragments![0].Component);
+        Assert.Contains(page.Actions, a => a.Id == "add");
     }
 
     [Fact]
@@ -2698,7 +2831,12 @@ public class SyncHandlerTests
     [Fact]
     public void Action_returns_page_banner()
     {
-        var rq = new RunActionRqDto { ActionId = "warn", ServerSideType = typeof(SimpleForm).FullName };
+        // the form's required name is filled: a [Button] is checked against the form's constraints
+        var rq = new RunActionRqDto
+        {
+            ActionId = "warn", ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        };
         var json = Render(Handler().Handle(rq));
         Assert.Contains("\"theme\":\"WARNING\"", json);
         Assert.Contains("Heads up", json);
@@ -2707,7 +2845,12 @@ public class SyncHandlerTests
     [Fact]
     public void Action_returns_route_navigates()
     {
-        var rq = new RunActionRqDto { ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName };
+        // the form's required name is filled: a [Button] is checked against the form's constraints
+        var rq = new RunActionRqDto
+        {
+            ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        };
         var inc = Handler().Handle(rq);
         Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/things");
     }
@@ -2929,13 +3072,13 @@ public class SyncHandlerTests
         Assert.Equal(["doc-7"], ArchivePage.Archived);
         var message = Assert.Single(inc.Messages);
         Assert.Equal("Documento archivado", message.Text);
-        Assert.Equal("Deshacer", message.UndoLabel);
+        Assert.Null(message.UndoLabel); // the client says "Undo" in the app's language
         Assert.Equal("restore", message.UndoActionId);
         Assert.Equal("doc-7", message.UndoParameters!["docId"]);
         Assert.Equal(10000, message.Duration);
         // the undo fields serialize camelCase on the wire
         var json = Render(inc);
-        Assert.Contains("\"undoLabel\":\"Deshacer\"", json);
+        Assert.DoesNotContain("Deshacer", json);
         Assert.Contains("\"undoActionId\":\"restore\"", json);
         Assert.Contains("\"undoParameters\":{\"docId\":\"doc-7\"}", json);
         Assert.Contains("\"variant\":\"contrast\"", json);

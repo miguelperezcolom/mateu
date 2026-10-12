@@ -148,8 +148,8 @@ public class LandingWelcome { public string? Name { get; set; } }
 public class LandingOrders { public string? Name { get; set; } }
 
 /// <summary>An IHomeRouteSupplier names the route a [MenuItem] app opens on: the wire carries it as
-/// the home route, with the view model of the menu entry it leads to — without it the app declares
-/// no home ("_no_home_route") and opens on an empty content area.</summary>
+/// the home route, with the view model of the menu entry it leads to — without it the app opens on
+/// its first menu item.</summary>
 public class HomeRouteSupplierTests
 {
     private static AppMetadataDto Map(Type app) =>
@@ -164,10 +164,32 @@ public class HomeRouteSupplierTests
     }
 
     [Fact]
-    public void Without_a_supplier_a_menu_item_app_declares_no_home()
+    public void Without_a_supplier_a_menu_item_app_lands_on_its_first_menu_item()
     {
+        // the documented default (Java's AppMapper.withFirstMenuItemAsHome) — it used to be the
+        // "_no_home_route" sentinel, an empty page on every renderer but Redwood
         var app = Map(typeof(LandingAppWithoutHome));
-        Assert.Equal("_no_home_route", app.HomeRoute);
-        Assert.Equal(typeof(LandingAppWithoutHome).FullName, app.HomeServerSideType);
+        Assert.Equal(app.Menu[0].Route, app.HomeRoute);
+        Assert.NotEqual("_no_home_route", app.HomeRoute);
+        Assert.Equal(app.Menu[0].ServerSideType, app.HomeServerSideType);
+    }
+}
+
+/// <summary>A view the mount-absolute route test reaches through an existing app's mount.</summary>
+[UI("mounted-probe")]
+public class MountedProbe { public string? Name { get; set; } }
+
+/// <summary>An app mounted under a sub-path accepts routes WITH its mount, as Java does (there the
+/// mount is stripped): a notification / global-search hit or a deep link names
+/// "/conformance/app-in-code/mounted-probe", and the port answered "Route not found".</summary>
+public class MountAbsoluteRouteTests
+{
+    [Fact]
+    public void A_route_carrying_an_apps_mount_resolves_like_the_mount_relative_one()
+    {
+        var registry = new MateuRegistry(typeof(MountedProbe).Assembly);
+        Assert.Equal(typeof(MountedProbe), registry.Resolve(null, "/conformance/app-in-code/mounted-probe"));
+        Assert.Equal(typeof(MountedProbe), registry.ResolveByPrefix("/conformance/app-in-code/mounted-probe/7")?.Type);
+        Assert.Null(registry.Resolve(null, "/not-a-mount/mounted-probe"));
     }
 }

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
@@ -5464,6 +5464,13 @@ test('chat: una pantalla que abre el asistente no le quita el foco al chat', () 
   assert.equal(focusIsInChat(null), false)
 })
 
+test('a11y: navegar con un drawer abierto (el del contexto) no se lleva el foco al contenido', () => {
+  const doc = (opened) => ({ querySelectorAll: () => [{ opened: false }, { opened }] })
+  assert.equal(overlayIsOpen(doc(true)), true)
+  assert.equal(overlayIsOpen(doc(false)), false)
+  assert.equal(overlayIsOpen(null), false)
+})
+
 test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de la shell; el resto, el navegador', () => {
   const loc = { href: 'https://rw.ec1.mateu.io/booking/bookings/ZUAAKJ', origin: 'https://rw.ec1.mateu.io',
     pathname: '/booking/bookings/ZUAAKJ', search: '' }
@@ -5563,3 +5570,19 @@ test('wireVersion: mismo major vale; otro major se avisa UNA vez, en claro; sin 
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'wireVersion\.mjs'/)
 })
 
+
+import { withinAppLevels as p1WithinAppLevels } from './reduceContexts.mjs'
+test('P1: dentro de un maestro la cabecera nombra al MAESTRO y el rótulo de la pestaña pasa al subtítulo', () => {
+  const levels = [{ title: 'Customer 7', tabs: [] }]
+  // a tab with its own @Title: the record it belongs to still heads the page (it used to vanish)
+  assert.deepEqual(p1WithinAppLevels({ title: 'Customer orders', text: '' }, levels),
+    { title: 'Customer 7', text: '', levelSubtitle: 'Customer orders' })
+  // an untitled tab: the master's title, nothing to repeat
+  assert.deepEqual(p1WithinAppLevels({ title: '' }, levels), { title: 'Customer 7', levelSubtitle: '' })
+  // the same title on both: no echo in the subtitle
+  assert.equal(p1WithinAppLevels({ title: 'Customer 7' }, levels).levelSubtitle, '')
+  // no level (a plain screen): untouched
+  const plain = { title: 'Orders' }
+  assert.equal(p1WithinAppLevels(plain, []), plain)
+  assert.equal(p1WithinAppLevels(plain, undefined), plain)
+})

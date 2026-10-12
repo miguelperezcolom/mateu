@@ -30,6 +30,37 @@ public sealed partial class SyncHandler
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
     }
 
+    internal const string AppContextSearchPrefix = "_appcontext-search-";
+
+    /// <summary>The [AppContext] header picker's search (mirrors Java's
+    /// AppContextSearchActionRunner): the web picker asks _appcontext-search-&lt;field&gt; (with a
+    /// searchText parameter) whenever it opens or the user types; answers the selector's options
+    /// whose label contains the text, as a data-only page keyed _appcontext_&lt;field&gt;.
+    /// Unanswered, every picker the web shell drew for a .NET app greeted the user with an
+    /// "action not found" error toast.</summary>
+    private UIIncrementDto AppContextSearch(Type appType, RunActionRqDto rq)
+    {
+        var field = rq.ActionId![AppContextSearchPrefix.Length..];
+        var text = (StateString(GetState(rq.Parameters, "searchText")) ?? "").Trim();
+        var options = _mapper.MapContextSelectors(appType).FirstOrDefault(s => s.FieldName == field)?.Options ?? [];
+        var content = options
+            .Where(o => text.Length == 0 || o.Label.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Select(o => new Dictionary<string, object?> { ["value"] = o.Value, ["label"] = o.Label })
+            .ToList();
+        var data = new Dictionary<string, object?>
+        {
+            ["_appcontext_" + field] = new Dictionary<string, object?>
+            {
+                ["content"] = content,
+                ["totalElements"] = content.Count,
+                ["pageSize"] = content.Count,
+                ["pageNumber"] = 0,
+            },
+        };
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+    }
+
     /// <summary>The command palette's entity search (mirrors Java's GlobalSearchActionRunner):
     /// _globalsearch with a searchText parameter answers the app class's IGlobalSearchSupplier
     /// hits as a data-only fragment keyed _globalsearch.</summary>

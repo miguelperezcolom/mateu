@@ -296,6 +296,10 @@ public sealed class AppAttribute(string title) : Attribute
     /// @App(accessKeys=true).)</summary>
     public bool AccessKeys { get; set; }
 
+    /// <summary>A light/dark switch on the app header (the choice is remembered in the browser).
+    /// Opt-in. (C# analogue of Java's @App(themeToggle=true).)</summary>
+    public bool ThemeToggle { get; set; }
+
     /// <summary>LIVE UPDATES: every browser keeps one event stream open (shared by its tabs) through
     /// which the server pushes header-value changes (<see cref="LiveHeaderValues.Publish"/>) to every
     /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>

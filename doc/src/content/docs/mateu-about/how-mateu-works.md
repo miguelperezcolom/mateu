@@ -128,7 +128,7 @@ A few annotations control how fields are arranged:
 - `@Section("Shipping")` — groups fields under a heading
 - `@Colspan(2)` — makes a field span two columns
 - `@Zones` / `@Zone` — side-by-side column layout
-- `@Tab` / `@FoldedLayout` — tabbed or collapsible groupings
+- `@Tab` / `@FoldedLayout` — tabbed groupings, or sections side by side
 
 ### Navigation
 

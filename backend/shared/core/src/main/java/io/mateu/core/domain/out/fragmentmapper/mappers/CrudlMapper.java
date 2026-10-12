@@ -30,7 +30,8 @@ public class CrudlMapper {
       return names;
     }
     var names = new java.util.LinkedHashSet<String>();
-    io.mateu.core.application.runaction.RouteChains.chainOf(httpRequest.runActionRq().route())
+    io.mateu.core.application.runaction.RouteChains.chainOf(
+            httpRequest.runActionRq().route(), httpRequest)
         .forEach(link -> names.addAll(link.pathParams().keySet()));
     names.addAll(
         io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder.scopeOf(

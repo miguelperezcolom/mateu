@@ -155,6 +155,26 @@ class UidlSchemaTest {
   }
 
   @Test
+  void progressStepsDescribesItsOwnStepsNotTheFlowVerbs() {
+    // data.Step (a progress dot) and fluent.Step (a flow verb) share a simple name: keyed by it,
+    // ProgressSteps.steps used to point at the flow-verb union and an editor flagged every step.
+    var defs = UidlSchemaGenerator.generate().get("$defs");
+    var ref =
+        defs.get("ProgressSteps")
+            .get("properties")
+            .get("steps")
+            .get("items")
+            .get("$ref")
+            .asText()
+            .replace("#/$defs/", "");
+    var step = defs.get(ref).get("properties");
+    assertThat(step.has("title")).isTrue();
+    assertThat(step.has("status")).isTrue();
+    // the flow verbs keep their union for `steps:` on an action
+    assertThat(defs.get("Step").has("oneOf")).isTrue();
+  }
+
+  @Test
   void aFormFieldAndAGridColumnMayReferenceAFieldType() {
     var defs = UidlSchemaGenerator.generate().get("$defs");
     assertThat(defs.get("FormField").get("properties").has("fieldType")).isTrue();

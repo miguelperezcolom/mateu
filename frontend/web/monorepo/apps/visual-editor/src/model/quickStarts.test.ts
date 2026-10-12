@@ -50,14 +50,14 @@ describe('quickStarts', () => {
         const out = turnIntoListing(doc)
         expect(out.layout.type).toBe('Listing')
         expect((out.layout as any).columns).toEqual([
-            { type: 'GridColumn', id: 'name', label: 'Name' },
-            { type: 'GridColumn', id: 'status', label: 'status' },
+            { type: 'GridColumn', id: 'name', label: 'Name', sortable: true },
+            { type: 'GridColumn', id: 'status', label: 'status', sortable: true },
         ])
     })
 
     it('turnIntoListing falls back to a default column and is idempotent', () => {
         const empty = turnIntoListing(page('type: VerticalLayout\ncontent: []\n'))
-        expect((empty.layout as any).columns).toEqual([{ type: 'GridColumn', id: 'name', label: 'Name' }])
+        expect((empty.layout as any).columns).toEqual([{ type: 'GridColumn', id: 'name', label: 'Name', sortable: true }])
         expect(turnIntoListing(empty)).toBe(empty) // already a listing → unchanged
     })
 

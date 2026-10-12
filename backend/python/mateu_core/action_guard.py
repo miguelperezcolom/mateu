@@ -200,7 +200,7 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
             ids.add(camel_case(on_row.value))
     for _event, act in getattr(type_, "__mateu_subscriptions__", ()) or ():
         if act:
-            ids.add(act)
+            ids.add(camel_case(act))
     # Section(add_action / edit_action / view_more_action) affordance buttons
     from .mapper.layout import section_affordance_ids
 
@@ -226,6 +226,9 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     collect(lambda: layout_override if layout_override is not None else mapper.component_tree(instance))
     collect(lambda: instance.rules() if isinstance(instance, RuleSupplier) else None)
     collect(lambda: instance.app_actions() if isinstance(instance, AppActionsSupplier) else None)
+    # an app's menu: a rule leaf's RunAction names a method of the app (the shell dispatches it on
+    # the app-level rail, like a header action) — Java's MenuRuleActions
+    collect(lambda: mapper.map_app(type_) if "__mateu_app__" in getattr(type_, "__dict__", {}) else None)
     return ids
 
 

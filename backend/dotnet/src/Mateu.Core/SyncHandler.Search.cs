@@ -420,7 +420,10 @@ public sealed partial class SyncHandler
         {
             foreach (var el in je.EnumerateArray())
             {
-                var field = el.TryGetProperty("field", out var f) ? f.GetString() ?? "" : "";
+                // the grid sends {fieldId, direction}; {field, …} is the Sort record's own shape —
+                // reading only "field" dropped every sort a user clicked on a crud header
+                var field = el.TryGetProperty("field", out var f) ? f.GetString() ?? ""
+                    : el.TryGetProperty("fieldId", out var fid) ? fid.GetString() ?? "" : "";
                 var dir = el.TryGetProperty("direction", out var d) ? d.GetString() ?? "ascending" : "ascending";
                 if (field.Length > 0) yield return (field, dir == "descending");
             }

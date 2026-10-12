@@ -8,6 +8,7 @@ import {
     menuTrail,
     mergeRemoteMenus,
     mountPrefix,
+    mountRootPath,
     remoteMounts,
     sectionHome,
     unavailableHint,
@@ -207,5 +208,19 @@ describe('the navigation tree', () => {
             expect(inside[1].submenus.map((o: any) => o.label)).toEqual(['Page', 'Things'])
             expect(mergeRemoteMenus(menu, new Map([[remote, pages]]), 'en').map(o => o.label)).toEqual(['Page', 'Things', 'Admin'])
         })
+    })
+})
+
+describe('mountRootPath — where the app title takes you', () => {
+    it('is the mount of a non-root app, not the server root', () => {
+        expect(mountRootPath('/back-office')).toBe('/back-office')
+        expect(mountRootPath('back-office/')).toBe('/back-office')
+    })
+
+    it('is / for the root app and for a remote base url', () => {
+        expect(mountRootPath('')).toBe('/')
+        expect(mountRootPath('/')).toBe('/')
+        expect(mountRootPath(undefined)).toBe('/')
+        expect(mountRootPath('https://remote.example/app')).toBe('/')
     })
 })

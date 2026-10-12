@@ -207,6 +207,13 @@ export function reduceContexts(reg, increment, opts = {}) {
       ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
     })
 
+  // PageBanner(s) an ACTION returned (Vaadin draws them under the page header): they were left in
+  // effects.banners and nothing drew them. Each goes to the shell's message band as a toast marked
+  // `banner` (notify.mjs bannerNotificationOf), where every chain already sends errors and warnings.
+  const BANNER_VARIANTS = { SUCCESS: 'confirmation', WARNING: 'warning', DANGER: 'error' }
+  for (const b of increment.banners || [])
+    effects.toasts.push({ banner: true, text: b.title || '', description: b.description || '', variant: BANNER_VARIANTS[b.theme] || 'info' })
+
   // ── fragmentos → shell | superficies ──────────────────────────────────────
   for (const fr of increment.fragments || []) {
     const md = metaOf(fr)
@@ -269,6 +276,8 @@ export function reduceContexts(reg, increment, opts = {}) {
     }
 
     if (fr.action === 'Add') {
+      // a returned ConfirmDialog is not a drawer: the chain asks it (returnedConfirmDialogsOf)
+      if (md && md.type === 'ConfirmDialog') continue
       const ctx = buildOverlay(fr, opts.initiator)
       // the SAME overlay re-sent while it is open (a Drawer with the same id: the crud's edit
       // drawer after «Save and next», or with its error banner) REFRESHES IN PLACE — it takes the

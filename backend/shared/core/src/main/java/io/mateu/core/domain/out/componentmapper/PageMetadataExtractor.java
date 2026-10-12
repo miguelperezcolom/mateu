@@ -55,10 +55,30 @@ final class PageMetadataExtractor {
         }
       } catch (NoSuchMethodException ignored) {
       }
+      // A record's GENERATED toString is a field dump too ("Note[id=null, text=]"), and records
+      // are what a capability listing's rows, details and forms usually are — the detail and the
+      // New drawer were titled with it. Only a toString the record declares itself names it.
+      if (instance.getClass().isRecord() && isGeneratedRecordToString(instance)) {
+        return getPageTitle(instance);
+      }
       // toString() is DATA (a record's values), not a template: it must not be evaluated
       return io.mateu.uidl.Templates.literal(TranslatorContext.translate(instance.toString()));
     }
     return null;
+  }
+
+  /** Whether a record's toString is the one the compiler generates: {@code Name[a=1, b=2]}. */
+  private static boolean isGeneratedRecordToString(Object record) {
+    var text = String.valueOf(record);
+    var prefix = record.getClass().getSimpleName() + "[";
+    if (!text.startsWith(prefix) || !text.endsWith("]")) {
+      return false;
+    }
+    var components = record.getClass().getRecordComponents();
+    if (components == null || components.length == 0) {
+      return text.equals(prefix + "]");
+    }
+    return text.startsWith(prefix + components[0].getName() + "=");
   }
 
   static String getSubtitle(Object instance) {

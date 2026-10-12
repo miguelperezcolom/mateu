@@ -127,6 +127,39 @@ class AppHandlerMixin(MixinBase):
             "route": n.route, "unread": n.unread, "when": n.when,
         }
 
+    # ── @app_context pickers' search (mirrors Java's AppContextSearchActionRunner) ──
+    APP_CONTEXT_SEARCH_PREFIX = "_appcontext-search-"
+
+    def app_context_search_action(self, cls, rq: RunActionRq) -> UIIncrement:
+        """The header picker of an ``@app_context`` asks ``_appcontext-search-<field>`` (with a
+        ``searchText`` parameter) whenever it opens or the user types: answers the selector's
+        options whose label contains the text, as a data-only page under
+        ``_appcontext_<field>`` for the initiator. Unanswered, every picker the web shell drew for
+        a Python app greeted the user with an "Action not found" error toast."""
+        field = (rq.action_id or "")[len(self.APP_CONTEXT_SEARCH_PREFIX):]
+        text = str((rq.parameters or {}).get("searchText") or "").strip().lower()
+        options: list = next(
+            (s.options for s in self.mapper.map_context_selectors(cls) if s.field_name == field), []
+        )
+        content = [
+            {"value": o.value, "label": o.label}
+            for o in options
+            if not text or text in str(o.label or "").lower()
+        ]
+        page = {
+            "content": content, "totalElements": len(content),
+            "pageSize": len(content), "pageNumber": 0,
+        }
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=self.target(rq),
+                    data={f"_appcontext_{field}": page},
+                    action="Replace",
+                )
+            ]
+        )
+
     # ── Global entity search (GlobalSearchSupplier, mirrors Java's GlobalSearchActionRunner) ──
     def global_search_action(self, cls, rq: RunActionRq) -> UIIncrement:
         """The command palette's entity search: ``_globalsearch`` with a ``searchText``
