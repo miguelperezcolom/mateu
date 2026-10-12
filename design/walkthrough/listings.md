@@ -48,49 +48,57 @@ Legend: ✅ verified (how) · 🔧 was broken → fixed (commit) · ❌ broken, 
 | 20 | WebFlux/Quarkus/Helidon: a deep link with a listing's filters (`/books?x=y`) opened the APP root ui, empty | core `DirectClassResolver`, uidl `RouteResolver` | 377d1c453 |
 | 21 | Static bundle: a filtered listing (`/products?status=X`) answered nothing on reload / shared link | `bundleStore.toSyncPath` | 07feff813 |
 | 22 | HeroSearch / SmartSearchPage (`<Filters, Row>` bases): result columns/cards built from the FILTER fields | uidl `GenericTypeHierarchyResolver` | 88623485a |
+| 23 | Listings created in the visual editor (template, "turn into listing") had no sortable column | visual-editor `templates.ts`, `quickStarts.ts` (+ bundle) | d712a404c |
 
 ## Matrix
 
-Columns: **J/V mvc** = Java authored, Vaadin, Spring MVC · **J/V wf** = same on WebFlux · **Y/V** =
-YAML authored, Vaadin, served · **Y/static** = YAML static bundle (specsOnly) · **RW** = Redwood
-(Java, mvc) · **Y/RW** = YAML on Redwood · **.NET / Py** = ports (wire + port tests) · **RN / IJ** =
-React Native / IntelliJ · **Editor** = visual editor.
+Columns: **J/V** = Java authored, Vaadin — the shared spec `capability-listings.spec.ts` (+
+`bulk-action-buttons`) was run green on **all five adapters** (MVC, WebFlux, Quarkus, Micronaut,
+Helidon MP), the whole shared + renderer suite (354 tests) green on MVC · **Y/V** = YAML authored,
+Vaadin, served (`starters/yaml` sample mode, `demo-starwars` REST) · **Y/static** = YAML static bundle
+(`starters/static`, specsOnly) · **RW** = Redwood, Java (`mvc-app1` built for Redwood, `demo-vb`) ·
+**Y/RW** = YAML on Redwood (`starters/yaml` with the Redwood jar) · **.NET / Py** = the ports' starters
+served behind the Vaadin renderer (same-origin proxy) + port tests + conformance · **RN** = React Native
+· **IJ** = IntelliJ (`./gradlew renderProbe` over captured wire) · **Editor** = visual editor.
 
-| Feature | J/V mvc | J/V wf | Y/V | Y/static | RW | Y/RW | .NET | Py | RN | IJ | Editor |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bare `Listing<Row>` (no chrome, rows load on opening) | ✅ spec | ✅ spec | ✅ | ✅ | ✅ | ✅ | ✅ conf | ✅ conf | ⏳ | ⏳ | ⏳ |
-| `Searchable` — word search, any order | ✅ spec | ✅ spec | ✅ | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| `Filterable` text filter / chips | ✅ spec | ✅ spec | ✅ select | ✅ select | ✅ | ✅ select | ✅ tests | ✅ tests | ⏳ | ⏳ | ⏳ |
-| Typed filters (NumberRange, DateRange, Set<Enum>) | ✅ spec | ✅ spec | N/A | N/A | ✅ multi | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| AutoCrud criteria (date range default, enum multi, bool) | ✅ probe /products | ⏳ | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Header sort (asc/desc/off), server-side | 🔧 #1 #2 #4 spec | 🔧 spec | 🔧 #17 | 🔧 #17 | 🔧 #18 spec | ✅ | 🔧 #1 #3 | 🔧 #1 #3 | 🔧 #1 (now offered) ⏳ | 🔧 #1 (now offered) ⏳ | ⏳ |
-| Paging (server total) / pager | ✅ spec | ✅ spec | ✅ (starwars totalPath) | ✅ client paging | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| URL sync (page/sort/filters) + reload | ✅ spec | ✅ spec | ✅ | 🔧 #21 | ❌ (no listing state in URL) | ❌ | N/A | N/A | N/A | N/A | N/A |
-| Deep link with filters | 🔧 #5 spec | 🔧 #20 spec | ✅ | 🔧 #21 | ⏳ | ⏳ | N/A | N/A | N/A | N/A | N/A |
-| Row click (whole row) → record; back; forward | 🔧 #6 #7 spec | ✅ spec | ✅ rowRoute (starwars) | ⏳ | ✅ (back loses search, see URL row) | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Deep link to a record (`/books/B-07`) | 🔧 #7 spec | ✅ spec | ✅ | ✅ static-vcn | ⏳ | ⏳ | N/A | N/A | N/A | N/A | N/A |
-| Record title | 🔧 #11 spec | ✅ | N/A | N/A | ✅ ("Book") | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| Editable w/o Navigable → drawer, save refreshes | ✅ spec | ✅ spec | N/A | N/A | ✅ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Drawer validation (required field) | 🔧 #9 spec | 🔧 spec | N/A | N/A | 🔧 #9 (banner) | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| AutoCrud editInDrawer (open/cancel/save, url) | 🔧 #14 core test + probe | ⏳ | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Create (`/new` page or drawer) | ✅ spec | ✅ spec | ✅ starwars | ⏳ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Delete with confirmation + refresh | 🔧 #8 #15 spec | 🔧 spec | ✅ starwars (restAction) | ⏳ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Bulk actions (`@ListToolbarButton`, selection gate) | 🔧 #8 #15 spec + probe | ✅ spec | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Row action menu (ColumnActionGroup) | ✅ probe (+ demo #16) | ⏳ | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| Inline editing (`@InlineEditing`, update-row, no no-op commits) | ✅ probe /inline-crud-demo | ⏳ | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Aggregates + `@GroupBy` | 🔧 #19 probe | ⏳ | N/A | N/A | ⏳ | N/A | ✅ conf | ✅ conf | ⏳ | ⏳ | N/A |
-| Column chooser (persisted) | ✅ probe | ⏳ | ⏳ | ⏳ | ✅ (button present) | ⏳ | N/A | N/A | ⏳ | ⏳ | N/A |
-| Saved views ★ default | ✅ probe | ⏳ | ⏳ | ⏳ | ✅ (button present) | ⏳ | N/A | N/A | N/A | N/A | N/A |
-| Exports: CSV built-in, Excel/PDF only with an exporter | 🔧 #12 spec | ✅ spec | N/A | N/A | ✅ (button) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Grid layout cards (HeroSearch), `searchesOnOpening=false` | 🔧 #22 probe | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| Tree lookup selector (dialog, Select) | ✅ probe /tree-select | ⏳ | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| REST listing: proxy vs direct, `totalPath`, `rowRoute` | ✅ starwars (direct + server paging) | ⏳ | ✅ | ✅ sample | ⏳ | ✅ sample | N/A | N/A | ⏳ | ⏳ | ⏳ |
-| Sample data (`sample:` in sample mode) | N/A | N/A | ✅ | ✅ | N/A | ✅ | N/A | N/A | ⏳ | ⏳ | ⏳ |
-| CRUD labels / `@Not*` subtraction | ✅ existing features.spec | ✅ | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Optimistic locking (`@Version` dialog) | ✅ core test only (no app) | ⏳ | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
-| Audit history | ✅ core test only | ⏳ | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| `@DragRows` + DropZone | ✅ core test only | ⏳ | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| Empty states | ✅ (cap-books search w/o match shows the empty block) | ⏳ | ⏳ | ⏳ | ✅ (noData template) | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| Feature | J/V | Y/V | Y/static | RW | Y/RW | .NET | Py | RN | IJ | Editor |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Bare `Listing<Row>` (no chrome, loads on opening) | ✅ spec | ✅ | ✅ | ✅ | ✅ | ✅ browser | ✅ browser | ⏳ | ✅ probe | ✅ (template) |
+| `Searchable` — word search, any order | ✅ spec | ✅ | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Filter text/select, chips | ✅ spec | ✅ | ✅ | ✅ | ✅ select | ✅ browser | ✅ browser | ⏳ | ⏳ | ⏳ |
+| Typed filters (NumberRange, DateRange, Set<Enum>) | ✅ spec | N/A | N/A | ✅ multi | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| AutoCrud criteria (date-range default, enum multi, bool) | ✅ probe `/products` | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Header sort asc/desc/off, server-side | 🔧 #1 #2 #4 spec | 🔧 #17 | 🔧 #17 | 🔧 #18 spec | ✅ | 🔧 #1 #3 browser | 🔧 #1 #3 browser | 🔧 #1 (offered now) ⏳ | 🔧 #1 (offered now) ⏳ | 🔧 #23 |
+| Paging / pager | ✅ spec | ✅ starwars (`totalPath`) | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ✅ probe | N/A |
+| URL sync (page/sort/filters) + reload | ✅ spec | ✅ | 🔧 #21 | ❌ (see below) | ❌ | ✅ browser | ✅ browser | N/A | N/A | N/A |
+| Deep link with filters | 🔧 #5 #20 spec | ✅ | 🔧 #21 (+ static-vcn spec) | ❌ | ❌ | ✅ | ✅ | N/A | N/A | N/A |
+| Row click → record; back; forward | 🔧 #6 #7 spec | ✅ `rowRoute` | ⏳ | ✅ (back loses search) | ⏳ | ✅ browser | ✅ browser | ⏳ | ⏳ | N/A |
+| Deep link / reload on a record | 🔧 #7 spec | ✅ | ✅ static-vcn | ⏳ | ⏳ | ✅ browser | ✅ browser | N/A | N/A | N/A |
+| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ | ⚠ class title, not the record | ⏳ | ⏳ | N/A |
+| Editable w/o Navigable → drawer, save refreshes | ✅ spec | N/A | N/A | ✅ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Drawer validation (required field) | 🔧 #9 spec | N/A | N/A | 🔧 #9 | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| AutoCrud editInDrawer (open/cancel/save, url) | 🔧 #14 test + probe | N/A | N/A | ✅ (`demo-vb /products`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Create (`/new` page or drawer) | ✅ spec | ✅ starwars | ⏳ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Delete + confirmation + refresh | 🔧 #8 #15 spec | ✅ starwars | ⏳ | ✅ | ⏳ | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Bulk actions (`@ListToolbarButton`, selection gate) | 🔧 #8 #15 spec | N/A | N/A | ✅ (gate by message, overflow menu) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Row action menu (ColumnActionGroup) | ✅ probe (demo #16) | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| Inline editing (update-row, no no-op commits) | ✅ probe `/inline-crud-demo` | N/A | N/A | ✅ (`demo-vb /stock`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Aggregates + `@GroupBy` | 🔧 #19 probe | N/A | N/A | ⏳ | N/A | ✅ conf | ✅ conf | ⏳ | ⏳ | N/A |
+| Column chooser (persisted) | ✅ probe | ⏳ | ⏳ | ✅ button | ⏳ | ✅ (shared client) | ✅ (shared client) | ⏳ | ⏳ | N/A |
+| Saved views ★ default | ✅ probe | ⏳ | ⏳ | ✅ button | ⏳ | ✅ (shared client) | ✅ (shared client) | N/A | ✅ button | N/A |
+| Exports (CSV built-in; Excel/PDF only with an exporter) | 🔧 #12 spec | N/A | N/A | ✅ button | N/A | ✅ tests | ✅ tests | ⏳ | ✅ button | N/A |
+| Cards layout + `searchesOnOpening=false` (HeroSearch) | 🔧 #22 probe | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| Lookup selector / tree selector dialogs | ✅ probe `/proveedor-demo`, `/tree-select` | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| REST listing: direct + server paging, `rowRoute` | ✅ starwars | ✅ | ✅ sample | ⏳ | ✅ sample | N/A | N/A | ⏳ | ⏳ | ⏳ |
+| Sample data (`sample:` in sample mode) | N/A | ✅ | ✅ | N/A | ✅ | N/A | N/A | ⏳ | ⏳ | ⏳ |
+| CRUD labels / `@Not*` | ✅ existing `features.spec` | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Optimistic locking (`@Version`) | ✅ core test only (no app has one) | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
+| Audit history | ✅ core test only | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| `@DragRows` + DropZone | ✅ core test only | N/A | N/A | ⏳ | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| Empty state | ✅ (`?searchText=zzz` → "Nothing here yet.") | ⏳ | ⏳ | ✅ noData template | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+
+Counts (cells above): ✅ 111 · 🔧 23 · ❌ 4 · ⚠ 1 · N/A 89 · ⏳ 102.
+
 
 ## Doc claims found wrong (now true)
 
