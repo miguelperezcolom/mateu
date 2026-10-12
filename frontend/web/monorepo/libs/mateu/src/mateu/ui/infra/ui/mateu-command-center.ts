@@ -6,6 +6,7 @@ import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
 import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
 import { fabPosition, fabStyles, onFabRail } from "@infra/ui/layout/fabRail.ts";
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { icon } from '@infra/ui/renderers/neutralIcon.ts'
 
 // One hit of the app's GlobalSearchSupplier, mirrored from mateu-app's command palette.
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -26,6 +27,9 @@ interface FlatItem { label: string, breadcrumb: string, route: string }
  * `route-changed` + `navigate-to-requested` event pair every shell already honors, so this element
  * needs no shell-specific glue — a shell just drops `<mateu-command-center .app .baseUrl>` once.
  */
+const ICON_M = 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);'
+const ICON_S = 'width: var(--lumo-icon-size-s, 1.25rem); height: var(--lumo-icon-size-s, 1.25rem); flex-shrink: 0;'
+
 @customElement('mateu-command-center')
 export class MateuCommandCenter extends LitElement {
 
@@ -220,9 +224,7 @@ export class MateuCommandCenter extends LitElement {
     }
 
     private fabIcon() {
-        return html`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>`
+        return icon('vaadin:search', 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);')
     }
 
     private renderOverlay(): TemplateResult {
@@ -331,11 +333,12 @@ export class MateuCommandCenter extends LitElement {
         })}`
     }
 
-    // ---- inline icons (DS-neutral, no icon-set dependency) ----------------
-    private searchGlyph() { return html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` }
-    private backIcon() { return html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>` }
-    private clearIcon() { return html`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>` }
-    private aiIcon() { return html`<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2l1.9 4.7L19 8.5l-4.1 2.3L12 15l-1.9-4.2L6 8.5l5.1-1.8z"></path></svg>` }
+    // ---- icons: the renderer's own icon set (one icon family per renderer — these were inline
+    // SVGs drawn in a different stroke style from every vaadin-icon around them) ----------------
+    private searchGlyph() { return icon('vaadin:search', ICON_M) }
+    private backIcon() { return icon('vaadin:angle-left', ICON_M) }
+    private clearIcon() { return icon('vaadin:close-small', ICON_M) }
+    private aiIcon() { return icon('vaadin:magic', ICON_S) }
 
     static styles = [css`
         :host { --cc-accent: var(--lumo-primary-color, #3b82f6); }
@@ -394,7 +397,7 @@ export class MateuCommandCenter extends LitElement {
         .cc-tile-label { font-size: var(--lumo-font-size-m, 1rem); color: #fff; }
         .cc-sub { font-size: var(--lumo-font-size-xs, 0.75rem); color: rgba(255,255,255,0.6); }
         .cc-ask-ai { background: rgba(59,130,246,0.18); border-color: rgba(59,130,246,0.4); }
-        .cc-ask-ai svg { color: var(--cc-accent); flex-shrink: 0; }
+        .cc-ask-ai > :first-child { color: var(--cc-accent); flex-shrink: 0; }
 
         .cc-list { display: flex; flex-direction: column; }
         .cc-empty { padding: 1.5rem; text-align: center; color: rgba(255,255,255,0.6); font-size: var(--lumo-font-size-s, 0.875rem); }

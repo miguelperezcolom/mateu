@@ -37,6 +37,7 @@ import "@vaadin/date-picker";
 import "@vaadin/time-picker";
 import "@vaadin/date-time-picker";
 import "@vaadin/combo-box";
+import { columnAlign, formatNumberCell } from "@infra/ui/columnAlign.ts";
 
 // Per-row cache of lookup labels, keyed by the row object itself so the synthetic "<col>-label"
 // keys never end up on the row that round-trips to the server (the Java row class has no such
@@ -99,21 +100,24 @@ const renderEditableCell = (
     }
     const v = item[column.id]
     const s = v == null ? '' : String(v)
+    // An in-cell editor has no visible label of its own: name it after its column, or a screen
+    // reader announces a bare "edit text" (WCAG 4.1.2 / 1.3.1 — 12 unnamed inputs on one listing).
+    const name = column.label ?? column.id
     switch (column.editorType) {
         case 'boolean':
-            return html`<vaadin-checkbox ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
+            return html`<vaadin-checkbox accessible-name="${name}" ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
         case 'integer':
-            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value, true))}></vaadin-integer-field>`
+            return html`<vaadin-integer-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value, true))}></vaadin-integer-field>`
         case 'number':
-            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
+            return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
         case 'time':
-            return html`<vaadin-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
+            return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
         case 'datetime':
-            return html`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
+            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
         case 'select':
-            return html`<vaadin-combo-box
+            return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
                 .items=${(column.editorOptions ?? []).map(o => ({ label: o.label, value: String(o.value) }))}
                 item-label-path="label" item-value-path="value"
@@ -144,7 +148,7 @@ const renderEditableCell = (
                     composed: true,
                 }))
             }
-            return html`<vaadin-combo-box
+            return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
                 item-label-path="label" item-id-path="value"
                 .dataProvider=${dataProvider}
@@ -158,7 +162,7 @@ const renderEditableCell = (
                 }}></vaadin-combo-box>`
         }
         default:
-            return html`<vaadin-text-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
+            return html`<vaadin-text-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
     }
 }
 
@@ -251,7 +255,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-sort-column
                                 path="${mateuColumn.id}"
-                                text-align="${mateuColumn.align??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"
@@ -288,7 +292,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-filter-column
                                 path="${mateuColumn.id}"
-                                text-align="${mateuColumn.align??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"
@@ -324,7 +328,7 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-column
                                 path="${mateuColumn.id}"
-                                text-align="${mateuColumn.align??nothing}"
+                                text-align="${columnAlign(mateuColumn.align, mateuColumn.dataType)??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
                                 ?auto-width="${mateuColumn.autoWidth}"
@@ -457,7 +461,7 @@ export const columnRenderer = (item: any,
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
     // an enum column reads as its labels ("In house"); the row keeps the raw value
-    const cellValue = valueLabel(item[vaadinColumn.path!], column.valueLabels)
+    const cellValue = formatNumberCell(valueLabel(item[vaadinColumn.path!], column.valueLabels), column.dataType, document.documentElement.lang)
     // A listing that declares a rowRoute makes its IDENTIFIER column the way in, as a real anchor.
     // The row itself is clickable too, but a click target you cannot see is not an affordance: this
     // is the visible one, and being an <a> it also focuses with the keyboard, opens in a new tab and

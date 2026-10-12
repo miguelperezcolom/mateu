@@ -462,7 +462,7 @@ export class MateuDrawer extends ComponentElement {
             background: var(--lumo-primary-color-10pct, rgba(0,90,200,.1));
         }
         .guided-pager-item:disabled {
-            color: var(--lumo-tertiary-text-color, #9aa0a6);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
             cursor: default;
         }
         .guided-pager-item .pager-dot {

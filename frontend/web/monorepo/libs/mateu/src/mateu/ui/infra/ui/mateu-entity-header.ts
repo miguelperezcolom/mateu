@@ -52,7 +52,7 @@ export class MateuEntityHeader extends LitElement {
         .fact { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
         .fact .label {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            text-transform: uppercase; color: var(--lumo-secondary-text-color, #5f6b7a);
         }
         .fact .value {
             font-size: var(--lumo-font-size-s, .875rem); font-weight: 500;
@@ -68,7 +68,7 @@ export class MateuEntityHeader extends LitElement {
         }
         .metric .label {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            text-transform: uppercase; color: var(--lumo-secondary-text-color, #5f6b7a);
         }
         .metric .value {
             font-size: 1.7rem; font-weight: 700; line-height: 1.1;

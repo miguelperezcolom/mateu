@@ -1,0 +1,92 @@
+[
+ {
+  "route": "/full-crud",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/wizard",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/validation",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/tabs",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/all-types",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/app",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/patterns/rooms",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "sut"
+ },
+ {
+  "route": "/dashboard-demo",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "admin"
+ },
+ {
+  "route": "/welcome-demo",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "admin"
+ },
+ {
+  "route": "/calendar-demo",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "admin"
+ },
+ {
+  "route": "/typed-filters",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "admin"
+ },
+ {
+  "route": "/branching-wizard",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "admin"
+ },
+ {
+  "route": "/products",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "vb"
+ },
+ {
+  "route": "/person",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "vb"
+ },
+ {
+  "route": "/stock",
+  "zoom200Sideways": false,
+  "forcedInvisibleControls": 0,
+  "app": "vb"
+ }
+]

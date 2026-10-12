@@ -43,6 +43,39 @@ final class ColumnTypeMapper {
     return FieldDataType.string;
   }
 
+  /**
+   * A LISTING column keeps the number-ness of its field: integer / number instead of the coarse
+   * "string", so the renderers right-align it (GridColumnMapper.getAlignment, the web columnAlign,
+   * Redwood alignOf) — numbers in a data table line up at the end so magnitudes compare at a glance
+   * (NN/g "Data tables"). Form grid fields keep the coarse type (conformance case grid-field).
+   */
+  static FieldDataType getDataTypeForListingColumn(Field columnField) {
+    var coarse = getDataTypeForColumn(columnField);
+    if (coarse != FieldDataType.string
+        || MetaAnnotations.isPresent(columnField, MappedValue.class)
+        || MetaAnnotations.isPresent(columnField, Stereotype.class)) {
+      return coarse;
+    }
+    var type = columnField.getType();
+    if (type == int.class
+        || type == long.class
+        || type == short.class
+        || type == Integer.class
+        || type == Long.class
+        || type == Short.class
+        || type == java.math.BigInteger.class) {
+      return FieldDataType.integer;
+    }
+    if (type == double.class
+        || type == float.class
+        || type == Double.class
+        || type == Float.class
+        || type == java.math.BigDecimal.class) {
+      return FieldDataType.number;
+    }
+    return coarse;
+  }
+
   static FieldStereotype getStereotypeForColumn(Field columnField) {
     // A @PrimaryColumn field is the rich "primary" cell (coherence-plan #6): title + caption +
     // leading. Wins over an explicit @Stereotype so the annotation reads as the whole intent.

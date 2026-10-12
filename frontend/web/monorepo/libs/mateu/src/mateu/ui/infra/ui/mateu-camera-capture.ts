@@ -1,6 +1,7 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { icon as dsIcon } from '@infra/ui/renderers/neutralIcon.ts'
 
 /**
  * Photo capture for a @PhotoCapture String field: opens the camera (getUserMedia) with a live
@@ -112,7 +113,7 @@ export class MateuCameraCapture extends LitElement {
             ` : html`
                 ${hasValue
                     ? html`<img class="preview" src="${this.value}" alt="Photo"/>`
-                    : html`<div class="placeholder" aria-hidden="true">📷</div>`}
+                    : html`<div class="placeholder" aria-hidden="true">${dsIcon('vaadin:camera', 'width: var(--lumo-icon-size-l, 2.25rem); height: var(--lumo-icon-size-l, 2.25rem);')}</div>`}
                 <div class="actions">
                     <button class="button button--primary" @click="${this.openCamera}">
                         ${hasValue ? 'Retake' : 'Take photo'}

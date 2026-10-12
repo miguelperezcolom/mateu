@@ -25,7 +25,7 @@ export class MateuTaskQueue extends LitElement {
         .group { display: flex; flex-direction: column; gap: .45rem; }
         .group-label {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            text-transform: uppercase; color: var(--lumo-secondary-text-color, #5f6b7a);
         }
         .card {
             display: flex; flex-direction: column; gap: .25rem;
@@ -94,7 +94,7 @@ export class MateuTaskQueue extends LitElement {
         return html`
             <div class="rail">
                 ${this.groups.map(group => html`
-                    <div class="group" role="listbox">
+                    <div class="group" role="listbox" aria-label="${group.label || nothing}">
                         ${group.label ? html`<span class="group-label">${group.label}</span>` : nothing}
                         ${(group.items ?? []).map(item => html`
                             <div role="option" tabindex="0" aria-selected="${item.id === this.selectedId}" class="card ${item.id === this.selectedId ? 'selected' : ''}"

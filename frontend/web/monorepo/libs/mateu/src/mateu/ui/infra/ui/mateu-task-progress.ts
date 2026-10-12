@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { icon as dsIcon } from '@infra/ui/renderers/neutralIcon.ts'
 
 /**
  * Subtask completion banner (e.g. "pax 1/4 registered"): icon + label, one pill per subtask
@@ -40,8 +41,8 @@ export class MateuTaskProgress extends LitElement {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600;
             font-variant-numeric: tabular-nums;
             padding: .1rem .45rem; border-radius: 999px;
-            border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.15));
-            color: var(--lumo-secondary-text-color, #888);
+            border: 1px solid var(--lumo-contrast-30pct, rgba(0,0,0,.3));
+            color: var(--lumo-body-text-color, #1a1a1a);
             background: transparent;
         }
         .pill.filled {
@@ -75,7 +76,7 @@ export class MateuTaskProgress extends LitElement {
         const showButton = !complete && !!this.actionLabel && !!this.actionId
         return html`
             <div class="banner ${complete ? 'complete' : ''}">
-                <span class="icon">👥</span>
+                <span class="icon" aria-hidden="true">${dsIcon('vaadin:users', 'width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem);')}</span>
                 ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
                 <div class="pills">
                     ${Array.from({ length: this.total }, (_, index) => html`

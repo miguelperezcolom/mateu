@@ -403,7 +403,7 @@ test('status cells: a plain word gets the declared tone, else the word heuristic
   assert.match(b.status.badgeClass, /success/)
   assert.match(c.status.badgeClass, /danger/)
   assert.match(d.status.badgeClass, /neutral/)
-  assert.equal(a.status.message, 'OPEN')
+  assert.equal(a.status.message, 'Open') // a bare constant reads as words (the enum-label rule)
   assert.deepEqual(selectedRowsOf([a], { all: false, keys: ['a'], except: [] }), [{ status: 'OPEN', _rowNumber: 'a' }])
   // a server's {type, message} keeps its own type
   assert.match(statusBadgeRows([{ status: { type: 'DANGER', message: 'x' } }], columns)[0].status.badgeClass, /danger/)

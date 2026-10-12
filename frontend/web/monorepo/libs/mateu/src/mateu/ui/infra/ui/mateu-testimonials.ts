@@ -34,7 +34,6 @@ export class MateuTestimonials extends LitElement {
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .name { font-weight: 600; color: var(--lumo-body-text-color, #222); }
         .role { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .75rem); }
-        @media (prefers-color-scheme: dark) { .card { background: var(--lumo-contrast-5pct, #2a2a2a); } }
     `
 
     private stars(rating: number) {

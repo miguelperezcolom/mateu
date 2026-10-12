@@ -253,7 +253,9 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.deepEqual(onLoadTriggers(host()), ['search'])
   const before = listingOf(host())
   assert.equal(before.title, 'Products')
-  assert.deepEqual(before.columns.map((c) => c.field), ['id', 'name', 'price', 'active'])
+  // un booleano se lee Sí/No (su celda lee active__labelCell), el precio va alineado al final
+  assert.deepEqual(before.columns.map((c) => c.field), ['id', 'name', 'price', 'active__labelCell'])
+  assert.equal(before.columns.find((c) => c.id === 'price').className, 'oj-helper-text-align-end')
   assert.equal(before.isEmpty, true) // aún sin filas: el search no ha corrido
   const treeRef = host().tree
   const search = fx('search-listing')

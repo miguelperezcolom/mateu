@@ -108,9 +108,6 @@ export class MateuOrgChart extends LitElement {
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .title { font-weight: 600; color: var(--lumo-body-text-color, #222); }
         .subtitle { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .72rem); }
-        @media (prefers-color-scheme: dark) {
-            .node { background: var(--lumo-contrast-5pct, #2a2a2a); }
-        }
     
         ${activatableFocusStyles}
     `

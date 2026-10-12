@@ -367,6 +367,8 @@ export class MateuTable extends LitElement {
                             return
                         }
                         this.state[this.id + '_selected_items'] = selectedValue;
+                        // the enclosing listing re-renders its toolbar (selection-gated actions)
+                        this.dispatchEvent(new CustomEvent('mateu-selection-changed', { bubbles: true, composed: true }))
                         // multi-line rows: the extra lines (details area) mirror the row's selection
                         if (multiLine) this.grid?.requestContentUpdate()
                         if (this.metadata?.onRowSelectionChangedActionId) {
@@ -543,7 +545,7 @@ export class MateuTable extends LitElement {
             max-width: 100%;
         }
         .row-line-label {
-            color: var(--lumo-tertiary-text-color, var(--lumo-secondary-text-color));
+            color: var(--lumo-secondary-text-color, #5f6b7a);
             white-space: nowrap;
         }
         .row-line-value {

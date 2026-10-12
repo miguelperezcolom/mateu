@@ -13625,16 +13625,19 @@
         </template>
         <template slot="cellEditText">
           <oj-input-text class="oj-form-control-full-width"
+            label-edge="none" label-hint="[[ ($application.variables.mateuListing.editorLabels || {})[$current.columnKey] || '' ]]"
             value="[[ $current.data ]]"
             on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-input-text>
         </template>
         <template slot="cellEditNumber">
           <oj-input-number class="oj-form-control-full-width"
+            label-edge="none" label-hint="[[ ($application.variables.mateuListing.editorLabels || {})[$current.columnKey] || '' ]]"
             value="[[ $current.data ]]"
             on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-input-number>
         </template>
         <template slot="cellEditBoolean">
           <oj-switch
+            label-edge="none" label-hint="[[ ($application.variables.mateuListing.editorLabels || {})[$current.columnKey] || '' ]]"
             value="[[ $current.data ]]"
             on-value-changed="[[ $listeners.mateuCellEdited ]]"></oj-switch>
         </template>

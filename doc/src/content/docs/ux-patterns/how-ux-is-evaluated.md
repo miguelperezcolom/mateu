@@ -3,7 +3,7 @@ title: How Mateu's UX is evaluated
 description: The method behind Mateu's UX quality bar — heuristic reviews, task walkthroughs, synthetic users, task metrics and accessibility probes on every renderer — what it catches and what it cannot.
 ---
 
-**Status:** 🚧 Method defined; the GA review runs it on every renderer and publishes the findings here.
+**Status:** ✅ Method defined and run on the web renderers (October 2026, see [Results](#results)); the native renderers are reviewed separately.
 
 ## Intent
 
@@ -125,4 +125,40 @@ with a reason. Because the screens are generated, a fix applies to **every Mateu
 
 ## Results
 
-The findings of the GA review — and their fixes — will be published here when the review completes.
+### Web renderers (Vaadin and Redwood/VB) — pre-beta review, October 2026
+
+The first full run of the method covered **145 screens** of four apps (the e2e SUT, the admin demo,
+the VB demo and the PMS demo) in light and dark at desktop and phone width — 580 screenshots, each
+checked with axe —, seven tasks walked by four synthetic users (mouse, phone, keyboard-only and
+screen-reader), 200 % zoom and forced colours. Every finding, with its screen, method, reference
+and priority, is in
+[`design/ux-review/web-findings.md`](https://github.com/miguelperezcolom/mateu/blob/master/design/ux-review/web-findings.md).
+
+What changed in the generator, so in every Mateu app:
+
+- **Forms reflow on a phone.** Two-column forms used to keep both columns at 390 px and cut the
+  second one off; they now collapse to one column, and a page without an app shell keeps a side
+  gutter.
+- **Wizards finish.** A completion action that answers with a message now lands on the result step
+  (it left the last step open for editing under the toast).
+- **Destructive actions are guarded and explicit.** A selection-dependent action (Delete) is
+  disabled until rows are selected instead of answering with an error; its confirmation is a real
+  modal dialog that takes the focus and says what will happen ("Delete the selected items? — Cancel
+  / Delete").
+- **Accessible names and contrast.** Boolean cells, progress bars, in-cell editors, lookups, icon
+  buttons and hidden-label fields are named; informative text no longer uses placeholder grey; text
+  on data-supplied colours picks a readable ink. Redwood's dark mode no longer hides the page title
+  or paints tables white under white text.
+- **Tables read like tables.** Numeric columns are right-aligned and grouped in the page locale;
+  booleans read Yes/No; status constants read as words; the search box finds what the listing shows;
+  a search-first page invites a search instead of shimmering and then saying "Nothing here yet."
+- **One icon family per renderer.** Notices, the command center, file lists and the other
+  components that drew emoji or their own SVGs now use the design system's icon set.
+- **A guard against regressions.** `scripts/check-design-tokens.mjs` runs in CI and fails when a
+  hard-coded colour, spacing or font size is added to Mateu's own components outside the design
+  tokens (a ratchet over today's count).
+
+Task completion by the synthetic users went from **13/28 to 24/28** runs, and axe violations
+across the 580 screens fell from **1 193 to 136** (−89 %). All 15 P1 findings were fixed. What is still open —
+whole-row click on listings, dashboard timeframes, a few Redwood dark-mode surfaces — is listed in
+the findings file with the reason it is open.

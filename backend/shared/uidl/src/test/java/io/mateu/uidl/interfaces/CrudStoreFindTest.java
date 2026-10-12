@@ -209,4 +209,41 @@ class CrudStoreFindTest {
 
     assertThat(result.content()).extracting(Product::id).containsExactly("3", "1", "2");
   }
+
+  /** An entity whose toString() is only its name — what the old search was limited to. */
+  static class Employee implements Identifiable {
+    final String id;
+    final String name;
+    final String department;
+
+    Employee(String id, String name, String department) {
+      this.id = id;
+      this.name = name;
+      this.department = department;
+    }
+
+    @Override
+    public String id() {
+      return id;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  @Test
+  void searchTextAlsoMatchesTheValuesTheListingShows() {
+    // the search box searched only toString() (the name): "Engineering", visible in the
+    // Department column, found nothing (UX review W-V-SEARCH)
+    var repo =
+        repoOf(
+            List.of(
+                new Employee("e1", "Alice", "Engineering"),
+                new Employee("e2", "Bob", "Marketing"),
+                new Employee("e3", "Carol", "Engineering")));
+    var result = repo.find("engineering", null, page(0, 10));
+    assertThat(result.content()).extracting(Employee::id).containsExactly("e1", "e3");
+  }
 }

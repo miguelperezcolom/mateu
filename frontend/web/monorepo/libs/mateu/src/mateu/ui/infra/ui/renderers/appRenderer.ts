@@ -531,7 +531,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" aria-label="${metadata.title || chromeText('home')}" style="text-decoration: none; color: inherit;">
                         ${renderBrand({ ...metadata, title: '' }, false)}
                         </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
@@ -592,7 +592,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
                         ${renderSectionsToggle(container)}
-                        <button type="button" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" aria-label="${metadata.title || chromeText('home')}" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata, false)}
                         </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
@@ -638,7 +638,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <button type="button" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" aria-label="${metadata.title || chromeText('home')}" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata)}
                         </button>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
@@ -757,7 +757,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
                             ${renderBackLink(metadata, container)}
-                            <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                            <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" aria-label="${metadata.title || chromeText('home')}" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
                             </button>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;"

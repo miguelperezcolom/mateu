@@ -334,7 +334,7 @@ public abstract class CollectionDetail<TRow> : IComponentTreeSupplier, IRefreshO
     /// <summary>What the right pane shows before any selection.</summary>
     protected virtual IComponent EmptyDetail() => new EmptyState
     {
-        Icon = "👈", Title = "Select an item",
+        Icon = "vaadin:list-select", Title = "Select an item",
         Description = "Pick an item from the list to see its detail.",
         Style = "flex: 1; margin-top: 3rem;",
     };

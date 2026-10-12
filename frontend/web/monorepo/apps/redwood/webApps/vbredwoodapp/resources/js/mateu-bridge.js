@@ -5059,6 +5059,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // flexGrow 0 la columna no crece (min = max = width) y su texto se corta con elipsis,
         // entero en el tooltip (tooltipPath). Las demás columnas siguen a su contenido.
         Object.assign(def, columnWidthOf(c))
+        const align = alignOf(c)
+        if (align && !def.template) {
+          def.className = 'oj-helper-text-align-' + align
+          def.headerClassName = 'oj-helper-text-align-' + align
+          def.footerClassName = 'oj-helper-text-align-' + align
+        }
         if (!def.template && clipColumn(c)) {
           def.field = c.id + CLIP_CELL_SUFFIX
           def.template = 'cellClip'
@@ -5082,6 +5088,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       display: md.compact === true || (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
       // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
       editable: (md.columns || []).some((col) => (col.metadata || col).editable),
+      // the accessible NAME of an in-cell editor = its column header (the cellEdit* templates read it)
+      editorLabels: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
+        .filter((c) => c.editable).map((c) => [c.id, c.label || c.id])),
       // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
       // fila. Una fila NAVEGABLE (primera columna con actionId 'view') sigue abriendo el registro:
       // el detalle es para los listados de consulta, donde el clic no tenía otro destino.
@@ -5400,6 +5409,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** What a cell shows for a raw value: the column's label for it, or the value itself. */
   function valueLabelOf(c, value) {
+    // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
+    if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
     const labels = c && c.valueLabels
     if (!labels || value == null || typeof value === 'object') return value
     const label = labels[String(value)]
@@ -5407,8 +5418,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Whether a (non-status, non-editable) column reads its values through their labels. */
+  const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
+
+  /** Numbers and amounts line up at the END (NN/g data tables; Redwood/JET oj-helper-text-align-end). */
+  const LISTING_NUMERIC_TYPES = ['integer', 'number', 'double', 'decimal', 'long', 'float', 'money']
+  function alignOf(c) {
+    if (c && c.align) return c.align === 'end' || c.align === 'right' ? 'end' : c.align === 'center' ? 'center' : null
+    return c && LISTING_NUMERIC_TYPES.indexOf(c.dataType) >= 0 ? 'end' : null
+  }
+
   function labelColumn(c) {
-    return !!(c && c.valueLabels && Object.keys(c.valueLabels).length) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -5522,6 +5542,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return 'NONE'
   }
 
+  /** A bare CONSTANT with no label, read as words — the server's enum humanizer ("IN_PROGRESS" → "In progress"). */
+  function humanizeConstant(raw) {
+    if (typeof raw !== 'string' || raw.length < 2 || !/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/.test(raw)) return raw
+    const words = raw.toLowerCase().replace(/_/g, ' ').replace(/([a-z])(\d)/g, '$1 $2')
+    return words.charAt(0).toUpperCase() + words.slice(1)
+  }
+
   function statusBadgeRows(rows, columns) {
     const statusCols = columns
       .map((col) => col.metadata || col)
@@ -5540,7 +5567,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // the tone by the RAW value, the badge text by the column's label for it (an enum's);
           // `raw` is what selectedRowsOf hands back
           const type = statusTypeOfValue(value, c.tones)
-          out[id] = { type, message: String(valueLabelOf(c, value)), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
+          const shown = valueLabelOf(c, value)
+          // no label for it: a bare constant still reads as words (OUT_OF_STOCK → "Out of stock")
+          out[id] = { type, message: shown === value && typeof value === 'string' ? humanizeConstant(value) : String(shown), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
         }
       }
       return out

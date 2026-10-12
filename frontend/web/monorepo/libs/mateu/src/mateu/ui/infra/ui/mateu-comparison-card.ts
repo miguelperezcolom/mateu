@@ -35,10 +35,9 @@ export class MateuComparisonCard extends LitElement {
         .delta {
             font-weight: 700; font-size: .85rem; border-radius: 999px; padding: .1rem .55rem;
         }
-        .delta.up { color: var(--lumo-success-color, #12b76a); background: var(--lumo-success-color-10pct, rgba(18,183,106,.12)); }
-        .delta.down { color: var(--lumo-error-color, #e11d48); background: var(--lumo-error-color-10pct, rgba(225,29,72,.12)); }
+        .delta.up { color: var(--lumo-success-text-color, #12b76a); background: var(--lumo-success-color-10pct, rgba(18,183,106,.12)); }
+        .delta.down { color: var(--lumo-error-text-color, #e11d48); background: var(--lumo-error-color-10pct, rgba(225,29,72,.12)); }
         .delta.flat { color: var(--lumo-secondary-text-color, #888); background: var(--lumo-contrast-10pct, rgba(0,0,0,.06)); }
-        @media (prefers-color-scheme: dark) { .card { background: var(--lumo-contrast-5pct, #2a2a2a); } }
     `
 
     render() {

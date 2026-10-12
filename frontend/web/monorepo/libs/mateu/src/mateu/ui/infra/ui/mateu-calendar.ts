@@ -68,7 +68,7 @@ export class MateuCalendar extends LitElement {
             padding: .35rem .5rem;
             font-weight: 600;
             font-size: var(--lumo-font-size-xs, .72rem);
-            color: var(--lumo-secondary-text-color, #888);
+            color: var(--lumo-body-text-color, #1a1a1a);
             text-align: center;
             text-transform: uppercase;
         }
@@ -127,12 +127,8 @@ export class MateuCalendar extends LitElement {
         .tone-success { background-color: rgba(30, 140, 60, .10); }
         .tone-warning { background-color: rgba(220, 140, 0, .16); }
         .tone-danger { background-color: rgba(200, 40, 30, .10); }
-        .tone-danger .label { color: #b3261e; }
+        .tone-danger .label { color: var(--lumo-error-text-color, #b3261e); }
         .tone-neutral { background-color: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
-        @media (prefers-color-scheme: dark) {
-            .cell { background: var(--lumo-contrast-5pct, #2a2a2a); }
-            .dow { background: var(--lumo-contrast-10pct, #333); }
-        }
 
         ${activatableFocusStyles}
     `

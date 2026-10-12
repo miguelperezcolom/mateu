@@ -67,13 +67,10 @@ export class MateuStat extends LitElement {
             font-size: var(--lumo-font-size-s, .8rem);
             font-weight: 600;
         }
-        .delta.up { color: var(--lumo-success-color, #12b76a); }
-        .delta.down { color: var(--lumo-error-color, #e11d48); }
+        .delta.up { color: var(--lumo-success-text-color, #12b76a); }
+        .delta.down { color: var(--lumo-error-text-color, #e11d48); }
         .delta.flat { color: var(--lumo-secondary-text-color, #888); }
         svg { display: block; }
-        @media (prefers-color-scheme: dark) {
-            .tile { background: var(--lumo-contrast-5pct, #2a2a2a); }
-        }
     
         ${activatableFocusStyles}
     `

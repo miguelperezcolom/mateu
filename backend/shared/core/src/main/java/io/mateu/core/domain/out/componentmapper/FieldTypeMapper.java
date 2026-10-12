@@ -106,6 +106,10 @@ public class FieldTypeMapper {
     return ColumnTypeMapper.getDataTypeForColumn(columnField);
   }
 
+  public static FieldDataType getDataTypeForListingColumn(Field columnField) {
+    return ColumnTypeMapper.getDataTypeForListingColumn(columnField);
+  }
+
   public static FieldStereotype getStereotype(Field field) {
     if (MetaAnnotations.isPresent(field, PlainText.class)) {
       return FieldStereotype.plainText;

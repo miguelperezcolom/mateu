@@ -58,7 +58,13 @@ def test_a_validation_error_is_shown():
         Order(quantity="lots")
     message = error_boundary.describe(caught.value, detailed=False)
     assert message["title"] == "Validation error"
-    assert "quantity" in message["text"]
+    # the field as the user knows it, not its programmer id (UX review): "Quantity: ..."
+    assert message["text"].startswith("Quantity: ")
+
+
+def test_a_validation_error_names_the_field_humanized():
+    assert error_boundary._field_label(("start_date",)) == "Start date"
+    assert error_boundary._field_label(("guests", 0, "lastName")) == "Last name"
 
 
 def test_a_bug_is_generic_with_a_reference_that_the_error_log_carries(caplog):

@@ -63,8 +63,11 @@ test('a bulk button declaring no texts still gets the generic dialog', async ({ 
 });
 
 test('the selection guard survives adding an @Action to the button', async ({ page }) => {
-    // nothing selected: the click is refused before any dialog opens
-    await toolbarButton(page, 'Cancel').click();
-    await expect(page.getByText('You first need to select some rows').first()).toBeVisible();
+    // nothing selected: the action is DISABLED (prevented, not answered with an error toast —
+    // UX review W-V-DELETE), and no dialog can open
+    await expect(toolbarButton(page, 'Cancel')).toBeDisabled();
     await expect(page.getByText('Cancel processes')).toHaveCount(0);
+    // a selection enables it
+    await selectFirstRow(page);
+    await expect(toolbarButton(page, 'Cancel')).toBeEnabled();
 });

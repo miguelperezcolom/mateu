@@ -82,6 +82,25 @@ class WizardSyncTest {
     }
   }
 
+  // --- fixtures: a completion that answers with a success Message -------------------------------
+
+  @SuppressWarnings("unused")
+  @UI("/message-wizard")
+  @Title("Message signup")
+  public static class MessageWizard extends Wizard {
+    NameStep nameStep = new NameStep();
+    AgeStep ageStep = new AgeStep();
+    DoneStep done;
+
+    @WizardCompletionAction
+    @Label("Finish")
+    Object finish() {
+      done = new DoneStep();
+      done.message = "Welcome " + nameStep.name;
+      return io.mateu.uidl.data.Message.success("Registration complete!");
+    }
+  }
+
   // --- fixtures: a branching wizard (company step only applies for COMPANY accounts) -----------
 
   public enum AccountType {
@@ -207,6 +226,7 @@ class WizardSyncTest {
     mateu =
         TestMateu.withUis(
             SimpleWizard.class,
+            MessageWizard.class,
             BranchingWizard.class,
             ShortCircuitWizard.class,
             AccordionWizard.class,
@@ -343,6 +363,19 @@ class WizardSyncTest {
     assertThat(resultState).containsEntry("position", 2).containsEntry("message", "Hello Eva (42)");
     var progress = single(findAllMetadata(component(result), ProgressBarDto.class));
     assertThat(progress.value()).isEqualTo(progress.max());
+  }
+
+  @Test
+  void aCompletionAnsweringASuccessMessageLandsOnTheResultStepAndShowsTheMessage() {
+    // it used to return the message alone: a toast over the LAST step, still open for editing
+    var first = mateu.sync("/message-wizard");
+    var second = run("/message-wizard", MessageWizard.class, "next", mutableState(first));
+
+    var result = run("/message-wizard", MessageWizard.class, "finish", mutableState(second));
+
+    assertThat(state(result)).containsEntry("position", 2).containsEntry("message", "Welcome Ada");
+    assertThat(result.messages()).isNotEmpty();
+    assertThat(result.messages().get(0).text()).isEqualTo("Registration complete!");
   }
 
   @Test

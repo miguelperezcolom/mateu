@@ -1,6 +1,7 @@
 import { html } from "lit";
 import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
 import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/StatusType.ts";
+import { humanizeConstant } from '@infra/ui/renderers/columnRenderers/valueLabel.ts'
 
 export const renderStatusCell = (item: any,
                                  _model: GridItemModel<any>,
@@ -34,7 +35,8 @@ export const toStatus = (value: unknown, tones?: Record<string, string> | null,
     // the tone is picked by the RAW value; the badge reads as the column's label for it (an enum's)
     const status = toRawStatus(raw, tones)
     const label = valueLabels ? valueLabels[raw] : undefined
-    return label !== undefined && label !== null ? { ...status, message: label } : status
+    // no label for it: a bare constant still reads as words, never as OUT_OF_STOCK
+    return label !== undefined && label !== null ? { ...status, message: label } : { ...status, message: humanizeConstant(raw) }
 }
 
 const toRawStatus = (message: string, tones?: Record<string, string> | null): { type: StatusType, message: string } => {

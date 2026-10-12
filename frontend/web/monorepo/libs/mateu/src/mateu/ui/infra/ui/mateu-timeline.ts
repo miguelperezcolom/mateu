@@ -75,7 +75,7 @@ export class MateuTimeline extends LitElement {
             cursor: pointer;
         }
         .clickable:hover .title {
-            color: var(--lumo-primary-color, #1a73e8);
+            color: var(--lumo-primary-text-color, #1a73e8);
             text-decoration: underline;
         }
         .time {

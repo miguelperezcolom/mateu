@@ -24,7 +24,7 @@ export class MateuMeter extends LitElement {
         .meter { display: flex; flex-direction: column; gap: .35rem; }
         .label {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            text-transform: uppercase; color: var(--lumo-secondary-text-color, #5f6b7a);
         }
         .value {
             font-size: 1.6rem; font-weight: 700; line-height: 1.1;

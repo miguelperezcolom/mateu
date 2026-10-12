@@ -218,6 +218,15 @@ final class WizardActionDispatcher {
                     return Flux.just(wizard);
                   }));
         }
+        // A completion that answers with a success / info Message ("Registration complete!") has
+        // COMPLETED: the wizard lands on its result step AND shows the message. It used to return
+        // the message alone, so the toast appeared over the last step still open for editing — the
+        // user could not tell the work was done and could submit it again (UX review W-V-WIZARD).
+        // An error Message keeps the user on the step to fix it.
+        if (result instanceof Message message && message.variant() != NotificationVariant.error) {
+          wizard.position = wizard.numberOfSteps() - 1;
+          return java.util.List.of(message, wizard);
+        }
         if (result != null) {
           return result;
         }

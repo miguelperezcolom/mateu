@@ -33,16 +33,16 @@ export class MateuCalloutCard extends LitElement {
             align-self: flex-start; margin-top: .5rem;
             border: none; border-radius: var(--lumo-border-radius-m, 8px);
             padding: .55rem 1.1rem; font-weight: 600; cursor: pointer; font-size: .9rem;
-            background: var(--accent, var(--lumo-primary-color, #1a73e8)); color: #fff;
+            background: var(--accent, var(--lumo-primary-color, #1a73e8)); color: var(--accent-ink, var(--lumo-primary-contrast-color, #fff));
         }
         .cta:hover { filter: brightness(.95); }
     `
 
     private themeVars(): string {
         switch (this.theme) {
-            case 'success': return '--accent: var(--lumo-success-color, #12b76a); --bg: var(--lumo-success-color-10pct, rgba(18,183,106,.1));'
-            case 'warning': return '--accent: #f59e0b; --bg: rgba(245,158,11,.12);'
-            case 'danger': return '--accent: var(--lumo-error-color, #e11d48); --bg: var(--lumo-error-color-10pct, rgba(225,29,72,.1));'
+            case 'success': return '--accent: var(--lumo-success-color, #12b76a); --accent-ink: var(--lumo-success-contrast-color, #fff); --bg: var(--lumo-success-color-10pct, rgba(18,183,106,.1));'
+            case 'warning': return '--accent: var(--lumo-warning-color, #f59e0b); --accent-ink: var(--lumo-warning-contrast-color, #1a1a1a); --bg: var(--lumo-warning-color-10pct, rgba(245,158,11,.12));'
+            case 'danger': return '--accent: var(--lumo-error-color, #e11d48); --accent-ink: var(--lumo-error-contrast-color, #fff); --bg: var(--lumo-error-color-10pct, rgba(225,29,72,.1));'
             default: return '--accent: var(--lumo-primary-color, #1a73e8); --bg: var(--lumo-primary-color-10pct, rgba(26,115,232,.1));'
         }
     }

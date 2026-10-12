@@ -16,6 +16,20 @@ export const renderComponentInSlot = (container: LitElement, component: Componen
     return renderComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
 }
 
+/**
+ * A server-side component styled as a centred column (`max-width: 900px; margin: auto` — the wizard
+ * and form default) takes the width it is GIVEN, capped by its max-width. Without a width, the auto
+ * margins switch off the flex stretch and the element shrinks to its content's MIN width — two form
+ * columns side by side (~410px) — so on a 390px phone the second column was cut off at the edge and
+ * the form never collapsed to one column (WCAG 1.4.10 Reflow; UX review W-V-REFLOW).
+ */
+export const serverSideStyle = (style?: string): string | undefined => {
+    if (!style) return style
+    const centred = /margin\s*:\s*(?:0\s+)?auto/.test(style) && /max-width\s*:/.test(style)
+    const sized = /(^|[;\s])width\s*:/.test(style)
+    return centred && !sized ? `width: 100%; box-sizing: border-box; ${style}` : style
+}
+
 export const renderComponent = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered?: boolean | undefined): TemplateResult => {
     if (!component) {
         return html``;
@@ -34,7 +48,7 @@ export const renderComponent = (container: LitElement, component: Component, bas
                          consumedRoute="${consumedRoute}"
                          baseUrl="${baseUrl}"
                          slot="${component.slot??nothing}"
-                         style="${component.style}"
+                         style="${serverSideStyle(component.style)}"
                          class="${component.cssClasses}"
                          .state="${{...(component.initialData as Record<string, unknown> ?? {}), ...state}}"
                          .data="${{...data}}"

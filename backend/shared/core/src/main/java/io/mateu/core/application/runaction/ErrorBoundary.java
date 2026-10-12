@@ -101,11 +101,51 @@ public final class ErrorBoundary {
         .map(
             v ->
                 (v.getPropertyPath() != null && !v.getPropertyPath().toString().isBlank()
-                        ? v.getPropertyPath() + ": "
+                        ? labelOf(v) + ": "
                         : "")
                     + v.getMessage())
         .sorted()
         .collect(Collectors.joining("\n"));
+  }
+
+  /**
+   * The field a violation is about, as the USER knows it: its {@code @Label}, else its name
+   * humanized ("startDate" → "Start date"). The message used to name the field by its programmer id
+   * ("status: Cannot be empty") — the system's language, not the user's (Nielsen #2).
+   */
+  static String labelOf(jakarta.validation.ConstraintViolation<?> v) {
+    String leaf = null;
+    for (var node : v.getPropertyPath()) {
+      if (node.getName() != null) {
+        leaf = node.getName();
+      }
+    }
+    if (leaf == null) {
+      return v.getPropertyPath().toString();
+    }
+    var bean = v.getLeafBean() != null ? v.getLeafBean().getClass() : v.getRootBeanClass();
+    for (Class<?> c = bean; c != null && c != Object.class; c = c.getSuperclass()) {
+      try {
+        var field = c.getDeclaredField(leaf);
+        var label = field.getAnnotation(io.mateu.uidl.annotations.Label.class);
+        if (label != null && !label.value().isBlank()) {
+          return label.value();
+        }
+        break;
+      } catch (NoSuchFieldException e) {
+        // keep looking up the hierarchy
+      }
+    }
+    return humanize(leaf);
+  }
+
+  static String humanize(String id) {
+    var words =
+        id.replaceAll("[_-]+", " ")
+            .replaceAll("([a-z0-9])([A-Z])", "$1 $2")
+            .trim()
+            .toLowerCase(java.util.Locale.ROOT);
+    return words.isEmpty() ? id : Character.toUpperCase(words.charAt(0)) + words.substring(1);
   }
 
   /** The first throwable of {@code type} in the cause chain (cycle-safe), or null. */
