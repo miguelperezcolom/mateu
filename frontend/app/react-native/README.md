@@ -76,7 +76,7 @@ npm run ios        # macOS + Xcode only
 Builds go through [EAS](https://docs.expo.dev/build/introduction/) (Expo's build service — sign in
 once with a free Expo account: `npx eas-cli login`). Profiles live in `eas.json` (`development`,
 `preview`, `production` — each with its own EAS environment and EAS Update channel); application
-ids in `app.json`: **`io.mateu.mobile` on Android, `io.mateu.native` on iOS** (the `development`
+id in `app.json`: **`io.mateu.app` on both platforms** (the `development`
 profile adds `.dev`, via `app.config.ts`). Set the app-registry coordinates as variables of the
 profile's EAS environment:
 

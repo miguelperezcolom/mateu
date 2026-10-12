@@ -16,7 +16,7 @@ import { PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './comm
 // TODO(owner): the store listings, once they exist (App Store id is assigned by App Store Connect).
 const STORE_URL = Platform.select({
   ios: 'https://apps.apple.com/app/idTODO_APP_STORE_ID',
-  android: 'https://play.google.com/store/apps/details?id=io.mateu.mobile',
+  android: 'https://play.google.com/store/apps/details?id=io.mateu.app',
   default: 'https://mateu.io',
 });
 

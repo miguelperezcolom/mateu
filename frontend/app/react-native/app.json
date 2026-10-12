@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "io.mateu.native",
+      "bundleIdentifier": "io.mateu.app",
       "associatedDomains": [
         "applinks:mateu.io",
         "applinks:www.mateu.io"
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "io.mateu.mobile",
+      "package": "io.mateu.app",
       "permissions": [
         "android.permission.CAMERA"
       ],

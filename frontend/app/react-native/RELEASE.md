@@ -9,15 +9,15 @@ React Native renderer. Without a registry in `app.json` (`expo.extra.mateuRegist
 
 | What | Where it goes |
 |---|---|
-| Apple Developer Program membership (99 $/year), App Store Connect app record for `io.mateu.native` | — |
-| Google Play developer account (25 $ once), Play Console app for `io.mateu.mobile` | — |
+| Apple Developer Program membership (99 $/year), App Store Connect app record for `io.mateu.app` | — |
+| Google Play developer account (25 $ once), Play Console app for `io.mateu.app` | — |
 | **Apple Team ID** | `well-known/apple-app-site-association` (`TODO_APPLE_TEAM_ID`), served at `https://mateu.io/.well-known/apple-app-site-association` (`Content-Type: application/json`, no redirect) |
 | **Android signing SHA-256** (Play App Signing key, plus the EAS upload key for internal APKs) | `well-known/assetlinks.json`, served at `https://mateu.io/.well-known/assetlinks.json` |
 | `https://mateu.io/add` landing page (store badges + the QR again, for phones without the app) | mateu.io site |
 | App Store id for the "Update the app" button | `src/hub/ui/UiSession.tsx` → `STORE_URL` (`idTODO_APP_STORE_ID`) |
 | `https://demo.mateu.io/counter` must be up, public, with no login (it is the preinstalled "Try a demo" entry the reviewer uses) | demo deployment |
 | Privacy policy URL (required by both stores even for "no data collected") | store listings |
-| Bundle ids: iOS is `io.mateu.native`, Android is `io.mateu.mobile` — **they differ**. Kept as they are; unify before the first public release if wanted (changing one later means a new store listing) | `app.json` |
+| Bundle id: `io.mateu.app` on iOS and Android (decided 2026-10-12; it cannot change after the first store release) | `app.json` |
 | EAS: `eas login` as `miguelperezcolom` (the `owner` in app.json); project id already set | — |
 
 ## 1. Build
@@ -60,7 +60,7 @@ npx eas-cli submit --platform android --profile production  # Play "internal" tr
   (universal links only work once the AASA file is live and the build carries the Team ID); the custom
   scheme works regardless: `xcrun simctl openurl booted "mateu://add?u=demo.mateu.io/counter"`.
 - Android: `adb shell am start -a android.intent.action.VIEW -d "https://mateu.io/add?u=..."`;
-  `adb shell pm get-app-links io.mateu.mobile` must show `mateu.io: verified`.
+  `adb shell pm get-app-links io.mateu.app` must show `mateu.io: verified`.
 - The OIDC redirect is `mateu://auth` for every UI: each company registers that redirect URI for the
   `clientId` its manifest names.
 
