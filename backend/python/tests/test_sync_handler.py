@@ -1138,6 +1138,25 @@ def test_app_context_selectors_on_the_wire():
     assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
 
 
+@ui("request-injection")
+@title("Request injection")
+class RequestInjection:
+    note: str | None = None
+
+    @button()
+    def who(self, request: "RunActionRq") -> Message:  # a quoted hint = `from __future__ import annotations`
+        return Message(f"injected={request is not None}")
+
+
+def test_the_request_is_injected_whatever_the_annotation_style():
+    # under `from __future__ import annotations` (or a quoted hint) the annotation is a string; it
+    # was compared to the class as it came, so the method got None instead of the request
+    inc = handler().handle(RunActionRq(
+        route="request-injection", server_side_type=_name(RequestInjection), action_id="who",
+    ))
+    assert [m.text for m in inc.messages] == ["injected=True"]
+
+
 def test_the_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_again():
     # an app with no home route aims its content area at "_no_home_route" with its own type: the
     # port answered the SHELL again, which the web client nested inside the first one and which

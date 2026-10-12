@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing
 from typing import Any
 
 import inspect
@@ -59,9 +60,15 @@ class ActionHandlerMixin(MixinBase):
         if not params:
             return []
         clicked = (rq.parameters or {}).get("_clickedRow")
+        # Under `from __future__ import annotations` (or a quoted hint) the annotation is a STRING:
+        # compared as it was, the request was never injected — the method got None.
+        try:
+            hints = typing.get_type_hints(method)
+        except Exception:  # noqa: BLE001 - an unresolvable hint keeps the raw annotation
+            hints = {}
         args: list[Any] = []
         for p in params:
-            ann = p.annotation
+            ann = hints.get(p.name, p.annotation)
             # The action request itself can be injected (the port's analogue of Java's
             # HttpRequest injection) — e.g. an undoable toast's undo action reads its
             # undoParameters from request.parameters.
