@@ -41,13 +41,11 @@ public class ActionsLab {
   // ── where an action lives ──────────────────────────────────────────────────
 
   @Button
-  @Label("Greet")
   public Message greet() {
     return new Message("Hello " + name + "!");
   }
 
   @Toolbar
-  @Label("Count")
   public ActionsLab count() {
     counter++;
     outcome = "counted " + counter;
@@ -55,7 +53,6 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Shortcut")
   @Action(shortcut = "ctrl+alt+k")
   public Message shortcut() {
     return new Message("Shortcut ran");
@@ -93,7 +90,6 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Delete with undo")
   public List<Object> deleteWithUndo() {
     outcome = "deleted";
     return List.of(this, Message.undoable("Item 7 deleted", "restore", Map.of("itemId", "7")));
@@ -107,13 +103,11 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Banner")
   public PageBanner banner() {
     return new PageBanner(BannerTheme.SUCCESS, "Checks passed", "System is healthy");
   }
 
   @Button
-  @Label("Append banner")
   public List<Object> appendBanner() {
     counter++;
     return List.of(
@@ -122,7 +116,6 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("State and event")
   public List<Object> stateAndEvent() {
     counter++;
     outcome = "state+event " + counter;
@@ -130,7 +123,6 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Commands")
   public List<UICommand> commands() {
     return List.of(
         UICommand.announce("Announced politely"),
@@ -139,25 +131,21 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Run greet")
   public UICommand runGreet() {
     return UICommand.runAction("greet");
   }
 
   @Button
-  @Label("Mark dirty")
   public UICommand markDirty() {
     return UICommand.markAsDirty();
   }
 
   @Button
-  @Label("Mark clean")
   public UICommand markClean() {
     return UICommand.markAsClean();
   }
 
   @Button
-  @Label("Navigate command")
   public UICommand navigateCommand() {
     return UICommand.navigateTo("/fluent-counter");
   }
@@ -169,7 +157,6 @@ public class ActionsLab {
   }
 
   @Button
-  @Label("Download")
   public UICommand download() {
     return UICommand.downloadFile(
         "hello.txt", "text/plain", "Hello from Mateu".getBytes(StandardCharsets.UTF_8));
@@ -178,19 +165,16 @@ public class ActionsLab {
   // ── when an action fails ───────────────────────────────────────────────────
 
   @Button
-  @Label("User error")
   public Object userError() {
     throw new UserFacingException("Not allowed", "You cannot do that here");
   }
 
   @Button
-  @Label("Crash")
   public Object crash() {
     throw new IllegalStateException("internal detail that must not leak");
   }
 
   @Button
-  @Label("Too slow")
   @Action(timeoutMillis = 800)
   public Message tooSlow() throws InterruptedException {
     Thread.sleep(4000);

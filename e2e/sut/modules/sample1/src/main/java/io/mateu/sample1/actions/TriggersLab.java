@@ -2,7 +2,6 @@ package io.mateu.sample1.actions;
 
 import io.mateu.uidl.UserFacingException;
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -49,7 +48,6 @@ public class TriggersLab {
   }
 
   @Button
-  @Label("Ok")
   public Message ok() {
     return new Message("ok ran");
   }
@@ -60,7 +58,6 @@ public class TriggersLab {
   }
 
   @Button
-  @Label("Fail")
   public Object fail() {
     throw new UserFacingException("fail ran");
   }
@@ -76,7 +73,6 @@ public class TriggersLab {
   }
 
   @Button
-  @Label("Emit")
   public UICommand emit() {
     return UICommand.dispatchEvent("lab-custom", Map.of("k", "v"));
   }

@@ -1,7 +1,6 @@
 package io.mateu.sample1.actions;
 
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.SubscribeTo;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
@@ -31,7 +30,6 @@ public class OverlayLab {
   String received = "";
 
   @Button
-  @Label("Edit contact")
   public Drawer editContact() {
     return Drawer.builder()
         .headerTitle("Edit contact")
@@ -44,7 +42,6 @@ public class OverlayLab {
   }
 
   @Button
-  @Label("Bottom drawer")
   public Drawer bottomDrawer() {
     return Drawer.builder()
         .headerTitle("Bottom panel")
@@ -55,7 +52,6 @@ public class OverlayLab {
   }
 
   @Button
-  @Label("Modeless drawer")
   public Drawer modelessDrawer() {
     return Drawer.builder()
         .headerTitle("Side notes")
@@ -65,7 +61,6 @@ public class OverlayLab {
   }
 
   @Button
-  @Label("Confirm dialog")
   public ConfirmDialog confirmDialog() {
     return ConfirmDialog.builder()
         .header("Proceed?")
