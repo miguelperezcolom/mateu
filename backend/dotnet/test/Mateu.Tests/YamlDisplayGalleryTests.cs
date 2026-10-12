@@ -47,11 +47,14 @@ public class YamlDisplayGalleryTests
         var expected = new HashSet<string>();
         TypesOf(golden["fragments"]![0]!["component"], expected);
         // what the .NET fluent API does not have yet (design/walkthrough/pages.md)
-        var notInDotnet = new[] { "Markdown", "Image", "Badge", "Avatar", "AvatarGroup", "Chart", "Bpmn", "ProgressBar" };
+        var notInDotnet = Array.Empty<string>();
         Assert.Empty(expected.Except(notInDotnet).Except(found));
         var text = wire.ToJsonString();
         Assert.Contains("cancelBooking", text);
         Assert.Contains("Inside the notice", text);
         Assert.Contains("r101", text);
+        // the eight display components the port gained, with Java's member names
+        foreach (var member in new[] { "\"pill\":true", "\"maxItemsVisible\":2", "\"chartType\":\"bar\"", "\"markdown\":\"**Bold**", "\"text\":\"40 %\"" })
+            Assert.Contains(member, text);
     }
 }

@@ -212,6 +212,8 @@ public static class YamlComponentBuilder
                 Disabled = Bool(map, "disabled"),
             },
             "Text" => new Text(Str(map, "text") ?? ""),
+            // a C# member cannot share its record's name: the `markdown` key is MarkdownText
+            "Markdown" => new Markdown { MarkdownText = Str(map, "markdown") ?? "", Style = Str(map, "style"), CssClasses = Str(map, "cssClasses") },
             "Form" => BuildForm(map, partials, chain),
             // A reference to a named business component (components.yaml / [BusinessComponent]).
             "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
