@@ -176,6 +176,20 @@ def test_the_capability_form_toolbar_actions_move_between_the_listing_routes():
     assert _navigates_to("/adv-books/1/edit", Books, "cancel-edit") == "/adv-books/1"
 
 
+class Typed:
+    active: bool = True
+    count: int = 0
+    price: float = 0.0
+
+
+def test_text_typed_numbers_and_booleans_bind_to_their_types():
+    # the web number field sends "77"; a restored URL or a Yes/No option sends "false" — which
+    # bool() read as True
+    typed = Typed()
+    _handler().bind_state(typed, {"active": "false", "count": "3", "price": "77.5"})
+    assert typed.active is False and typed.count == 3 and typed.price == 77.5
+
+
 def test_a_button_shortcut_rides_on_its_advertised_action():
     # the web client scans the component's ACTIONS for shortcuts: on the button only, Ctrl+S did
     # nothing

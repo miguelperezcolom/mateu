@@ -229,6 +229,10 @@ class ResponseHelpersMixin(MixinBase):
             if target is str:
                 return raw if isinstance(raw, str) else str(raw)
             if target is bool:
+                # a text-typed boolean ("false", from a restored URL or a Yes/No option) is not
+                # truthy just because it is a non-empty string
+                if isinstance(raw, str):
+                    return raw.strip().lower() in ("true", "1", "yes", "on")
                 return bool(raw)
             if target is int:
                 return int(raw)

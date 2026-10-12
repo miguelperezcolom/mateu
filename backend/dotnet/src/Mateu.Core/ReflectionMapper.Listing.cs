@@ -484,6 +484,7 @@ public sealed partial class ReflectionMapper
             [], null, null, null)
         {
             Rules = MapRules(formType, entity),
+            Validations = readOnly ? [] : MapValidations(formType),
             PageType = PageTypeOf(listingType),
         };
     }
