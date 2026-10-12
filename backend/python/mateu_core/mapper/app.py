@@ -163,6 +163,8 @@ class AppMapperMixin(MixinBase):
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
             # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
+            # "Open on mobile" (experimental): opt-in, mirrors AppDto.mobileQr.
+            mobile_qr=bool(getattr(cls, "__mateu_app_mobile_qr__", False)),
             # The UI language: what the translator says (mirrors AppDto.locale).
             locale=self._locale(),
             # The capability tokens this app requires from its host renderer: derived from the

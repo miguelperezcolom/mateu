@@ -61,6 +61,10 @@ public record AppMetadataDto(
     /// every visible button and tab and Alt+key activates it. (Mirrors AppDto.accessKeys.)</summary>
     public bool AccessKeys { get; init; }
 
+    /// <summary>[App(MobileQr=true)] — the "Open on mobile" header action (a QR code of the app for
+    /// the generic Mateu mobile app). EXPERIMENTAL. (Mirrors AppDto.mobileQr.)</summary>
+    public bool MobileQr { get; init; }
+
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>
