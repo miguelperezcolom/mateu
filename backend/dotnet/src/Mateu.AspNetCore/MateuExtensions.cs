@@ -83,6 +83,10 @@ public static class MateuExtensions
     public static void MapMateu(this WebApplication app, string baseUrl = "")
     {
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
+        // The handler gets the MOUNT path, never an absolute origin (Java's controllers pass their
+        // relative baseUrl): the browser resolves it against the page, so the shell keeps working
+        // behind a TLS-terminating or Host-rewriting reverse proxy — an origin built from the
+        // request the app SAW made the shell load its home from an address the browser can't reach.
         app.MapPost(prefix + "/mateu/v3/sync/{**route}", async (HttpContext ctx, SyncHandler handler) =>
         {
             // Read INSIDE the boundary: a malformed body is an error toast, never a raw 500.
@@ -91,7 +95,7 @@ public static class MateuExtensions
             {
                 rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
-                return await handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted);
+                return await handler.HandleAsync(rq, prefix, ctx.RequestAborted);
             });
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
@@ -116,7 +120,7 @@ public static class MateuExtensions
             if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
             {
                 var increment = await RunGuarded(ctx, rq, () =>
-                    handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted));
+                    handler.HandleAsync(rq, prefix, ctx.RequestAborted));
                 await Send(increment, ctx.RequestAborted);
                 return;
             }

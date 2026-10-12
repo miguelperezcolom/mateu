@@ -160,9 +160,12 @@ def add_mateu(
     prefix = base_url.rstrip("/")
 
     def request_of(request: Request) -> MateuRequest:
-        request_base_url = str(request.base_url).rstrip("/") + (
-            f"/{base_url.strip('/')}" if base_url else ""
-        )
+        # The MOUNT path, never an absolute origin (Java's controllers pass their relative
+        # `baseUrl`): the browser resolves it against the page, so the shell keeps working behind a
+        # TLS-terminating or Host-rewriting reverse proxy — an origin built from the request the
+        # app SAW (http://internal-host:8000) made the shell load its home from an address the
+        # browser cannot reach (mixed content / CORS).
+        request_base_url = prefix
         return MateuRequest(
             headers=normalise_headers(request.headers.items()),
             base_url=request_base_url,

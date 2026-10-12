@@ -130,8 +130,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
-        // 1. App shell at the root route.
+        // 1. App shell at the root route. NOT for the shell's content slot loading the home of an
+        // app that declares none ("_no_home_route" / "_page"): Java renders the app class as a plain
+        // page there (ActionInstanceCreator.isTerminalRoute) — answering the shell again nested it
+        // inside its own content area, which reloaded it forever.
         if (string.IsNullOrEmpty(rq.ActionId)
+            && !IsTerminalRoute(rq.Route)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
         {
@@ -432,6 +436,14 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             return null;
         }
         return Find(meta.Menu);
+    }
+
+    /// <summary>A content load of a sentinel route — an app with no home answers
+    /// <c>_no_home_route</c> (Java's <c>ActionInstanceCreator.isTerminalRoute</c>).</summary>
+    private static bool IsTerminalRoute(string? route)
+    {
+        var r = (route ?? "").Split('?', 2)[0];
+        return r.EndsWith("_no_home_route", StringComparison.Ordinal) || r.EndsWith("_page", StringComparison.Ordinal);
     }
 
     // ── Plain views ─────────────────────────────────────────────────────────────
