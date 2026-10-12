@@ -34,7 +34,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Environments (`MATEU_ENVIRONMENT`, `-Dmateu.bundle.environment`) | ✅ served app re-pointed to a staging endpoint | ⏳ | ✅ manifest re-pointed | ✅ "data" summary | ✅ |
 | Project settings (`renderer:`) | ✅ (wizards write it) | ✅ | ✅ `-Dmateu.bundle.renderer=redwood`: clear error without `mateu-redwood`; with it the Redwood bundle serves shell, listing and the walkthrough page (partial, component, seed) from a static server | ✅ project editor | ✅ |
 | Access keys (`eyesOnly`) | ✅ field absent for anonymous (spec) | ✅ hidden | ✅ staticOnly refuses it | ✅ shown, flagged | ✅ |
-| Live reload (`mateu.dev`) | ✅ yaml starter: spec edit re-renders in place, value kept, indicator (5/6 of `live-reload-probe.mjs`); ❌ the HotSwap reload posts an empty componentState for an unseeded definition-only page (it renders ClientSide, no `mateu-component` holds the typed values) — the value survives in the DOM, the probe's request check fails | ⏳ | N/A | N/A | N/A |
+| Live reload (`mateu.dev`) | ✅ yaml starter: spec edit re-renders in place, value kept, indicator (5/6 of `live-reload-probe.mjs`); ❌ the HotSwap reload posts an empty componentState for an unseeded definition-only page (it renders ClientSide, no `mateu-component` holds the typed values) — the value survives in the DOM, the probe's request check fails — reclassified, see section 4 item 4 | ⏳ | N/A | N/A | N/A |
 
 ## 2. Tooling × runtimes
 
@@ -60,8 +60,9 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
 | Visual editor dark mode | ✅ routes and listing screens legible |
-| Routes editor: a route's `state:` seed | 🔧 kept verbatim but neither shown nor editable → a State column (9408bb589, DOM test); `appState:` still only via YAML |
+| Routes editor: a route's `state:` / `appState:` seeds | 🔧 kept verbatim but neither shown nor editable → State (9408bb589) and App state (8cb26a898) columns, DOM tests |
 | Editor pickers (label → `${i18n.*}` keys, actionId → page + catalogue ids, route → registry) | ✅ |
+| Editor icon / image / source pickers, Board | ✅ (browser probe) icon picker: 240 Vaadin icons, filter, pick writes the property and the canvas paints it; image: free text writes `src` (standalone has no host images to list); source picker lists `sources.yaml` and writes `ref:`; Board: one card per route with its thumbnail, Edit/Play |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
@@ -86,8 +87,9 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
    renderer against them; should the ports serve the web renderer themselves?
 3. **Redwood index**: unsubstituted Visual Builder tokens (`#{env.catalogJson}#`, `%{env.userProfileUrl}%`)
    log a 400 and a VB error on every page — Redwood area.
-4. **Live reload** of an unseeded definition-only page sends an empty componentState (the page renders
-   ClientSide, no `mateu-component` holds typed values; they survive in the DOM).
+4. ~~**Live reload** of an unseeded definition-only page sends an empty componentState~~ — not a bug: such
+   a page renders ClientSide with no action, so nothing could read the values, and they survive in the
+   DOM (a page with seeds, actions or a proxied source is server-side and does carry its state).
 5. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`,
    `Card`… served by a port shows "Unsupported component". Grow the builders or keep YAML pages Java-first?
 6. **VS Code schema performance** (see the editors' engines row): a per-editor schema shape, or accept it.
@@ -100,7 +102,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 `PrincipalResolver` with a real security module per
 adapter (only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
 the plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
-only); the editor's Board, image/icon/source pickers and Redwood canvas; React Native for the YAML
+only); the editor's Redwood canvas; React Native for the YAML
 fixtures; compiling every Java sample of the docs (signatures of the code-twin samples checked by hand).
 
 ## 6. Permanent tests added
@@ -125,4 +127,4 @@ fixtures; compiling every Java sample of the docs (signatures of the code-twin s
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 22 fixed (18 fix commits + the routes-editor State / App state columns) · ❌ 8 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 22 fixed (18 fix commits + the routes-editor State / App state columns) · ❌ 7 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
