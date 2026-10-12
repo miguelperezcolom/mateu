@@ -62,6 +62,26 @@ describe('specs-schema.json accepts what the loader accepts', () => {
         expect(failures).toEqual([])
     })
 
+    it('every shipped file that names its own schema ($schema: / yaml-language-server) validates against it', () => {
+        // a starter's routes.yaml points editors at routes-schema.json, a page at uidl-schema.json…:
+        // those narrower schemas must accept the file too, or the editor flags the starter itself
+        const compiled: Record<string, ReturnType<typeof ajv.compile>> = {}
+        const failures: string[] = []
+        let checked = 0
+        for (const file of walk(repo).filter(isShipped)) {
+            const text = readFileSync(file, 'utf8')
+            const m = /(?:\$schema:\s*|yaml-language-server:\s*\$schema=)\S*\/([a-z-]+-schema\.json)/.exec(text)
+            if (!m) continue
+            const doc = parse(text)
+            if (doc && typeof doc === 'object' && !Array.isArray(doc)) delete doc.$schema
+            compiled[m[1]] ??= new Ajv({ strict: false }).compile(JSON.parse(readFileSync(join(repo, 'backend/shared/uidl', m[1]), 'utf8')))
+            checked++
+            if (!compiled[m[1]](doc)) failures.push(`${relative(repo, file)} (${m[1]}): ${JSON.stringify(compiled[m[1]].errors?.slice(0, 2))}`)
+        }
+        expect(checked).toBeGreaterThan(20)
+        expect(failures).toEqual([])
+    })
+
     it('every file the New › Mateu wizards write', () => {
         const roots = templatesRoot(join(__dirname, '..'))
         const catalogue = loadCatalogue(roots.catalogue)
