@@ -187,4 +187,24 @@ class YamlDisplayGallerySyncTest {
             "openDay",
             "openItem");
   }
+
+  /** A plain (non-app) view mounted at the root, like the e2e SUT's SimpleForm. */
+  @io.mateu.uidl.annotations.UI("")
+  public static class RootView {
+    public String name = "root";
+  }
+
+  @Test
+  void aRootViewDoesNotHijackADefinitionOnlyRoute() throws Exception {
+    // A definition-only route has no class by design, so the prefix fallback reached the root
+    // @UI("") view and served IT for /display-gallery — the definition was never consulted. Own
+    // harness: a root view changes route resolution for every other fixture.
+    try (var rooted = TestMateu.withUis(RootView.class)) {
+      var served = MAPPER.writeValueAsString(rooted.sync("/display-gallery"));
+      assertThat(served).doesNotContain(RootView.class.getName());
+      assertThat(served).contains("EntityHeader");
+      // and the root itself still answers for the root
+      assertThat(MAPPER.writeValueAsString(rooted.sync("/"))).contains(RootView.class.getName());
+    }
+  }
 }

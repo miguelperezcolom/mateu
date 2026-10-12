@@ -109,6 +109,21 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   }
 
   @Override
+  public boolean authoredWithoutClass(String route) {
+    return route != null
+        && routeRegistry
+            .authored()
+            .match(route)
+            .map(match -> match.entry())
+            .map(
+                entry ->
+                    (entry.viewModel() == null || entry.viewModel().isBlank())
+                        && entry.definition() != null
+                        && !entry.definition().isBlank())
+            .orElse(false);
+  }
+
+  @Override
   public Optional<ResolvedRoute> resolve(String route, RunActionCommand command) {
     var authored = fromRegistry(route);
     if (authored.isPresent()) {
