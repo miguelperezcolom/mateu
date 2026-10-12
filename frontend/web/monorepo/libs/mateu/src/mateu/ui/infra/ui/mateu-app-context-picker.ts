@@ -10,6 +10,8 @@ import {
     writeAppContext
 } from "@infra/appContextStore.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { nextIndexForKey, onActivate } from '@infra/a11y/activate.ts'
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { contextOptionsOf, runAppSource } from '@infra/ui/appSources.ts'
 
 /**
@@ -170,42 +172,90 @@ export class MateuAppContextPicker extends LitElement {
 
     // ── rendering ────────────────────────────────────────────────────────────
 
+    // The options are a listbox: each one reachable with Tab/arrows and picked with Enter/Space.
+    // They used to be plain <div>s with a click handler — a keyboard or screen-reader user could
+    // open the picker and never choose anything in it.
+    private optionElements(): HTMLElement[] {
+        return Array.from(this.renderRoot.querySelectorAll<HTMLElement>('[role="option"]'))
+    }
+
+    private onOptionKeydown(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+            this.closePanel()
+            ;(this.renderRoot.querySelector('button.picker-button') as HTMLElement | null)?.focus()
+            return
+        }
+        const items = this.optionElements()
+        const next = nextIndexForKey(e.key, items.indexOf(e.currentTarget as HTMLElement), items.length)
+        if (next !== null) {
+            e.preventDefault()
+            items[next]?.focus()
+        }
+    }
+
+    private onSearchKeydown(e: KeyboardEvent) {
+        if (e.key === 'Escape') this.closePanel()
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            this.optionElements()[0]?.focus()
+        }
+    }
+
     private renderPanel(): TemplateResult {
         const value = this.currentValue()
         const options = this.visibleOptions()
         const searchable = this.searchText !== ''
             || options.length > MateuAppContextPicker.SEARCHABLE_THRESHOLD
+        const option = (label: string, selected: boolean, onPick: () => void, extra = '') => html`
+            <div class="option ${extra} ${selected ? 'option--selected' : ''}" role="option" tabindex="0"
+                 aria-selected="${selected ? 'true' : 'false'}"
+                 @click="${onPick}"
+                 @keydown="${(e: KeyboardEvent) => { onActivate(onPick)(e); this.onOptionKeydown(e) }}">${label}</div>`
         return html`
             <div class="panel">
                 ${searchable ? html`
                     <input class="picker-search" type="text" placeholder="${chromeText('search')}" aria-label="${chromeText('search')}"
                            .value="${this.searchText}"
                            @input="${this.onSearchInput}"
-                           @keydown="${(e: KeyboardEvent) => { if (e.key === 'Escape') this.closePanel() }}"/>` : nothing}
-                <div class="options">
-                    ${value ? html`
-                        <div class="option option--clear" @click="${() => this.pick('')}">— (clear)</div>` : nothing}
-                    ${options.map(option => html`
-                        <div class="option ${value === String(option.value) ? 'option--selected' : ''}"
-                             @click="${() => this.pick(option.value, option.label)}">${option.label}</div>`)}
+                           @keydown="${this.onSearchKeydown}"/>` : nothing}
+                <div class="options" role="listbox" aria-label="${this.selector.label}">
+                    ${value ? option(`— ${chromeText('clear')}`, false, () => this.pick(''), 'option--clear') : nothing}
+                    ${options.map(o => option(o.label, value === String(o.value), () => this.pick(o.value, o.label)))}
                 </div>
             </div>`
+    }
+
+    private togglePanel() {
+        if (this.opened) {
+            this.closePanel()
+            return
+        }
+        this.openPanel()
+        // with no search box the keyboard lands on the current option (else the first one)
+        this.updateComplete.then(() => {
+            if (this.renderRoot.querySelector('input.picker-search')) return
+            const items = this.optionElements()
+            ;(items.find((el) => el.getAttribute('aria-selected') === 'true') ?? items[0])?.focus()
+        })
     }
 
     render(): TemplateResult {
         if (!this.selector) return html``
         return html`
-            <label class="root">
-                <span class="label">${this.selector.label}</span>
+            <span class="root">
+                <span class="label" aria-hidden="true">${this.selector.label}</span>
                 <button class="picker-button"
-                        @click="${() => this.opened ? this.closePanel() : this.openPanel()}">
+                        aria-label="${this.selector.label}: ${this.currentLabel()}"
+                        aria-haspopup="listbox"
+                        aria-expanded="${this.opened ? 'true' : 'false'}"
+                        @click="${() => this.togglePanel()}">
                     ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
                 </button>
                 ${this.opened ? this.renderPanel() : nothing}
-            </label>`
+            </span>`
     }
 
-    static styles = css`
+    static styles = [activatableFocusStyles, css`
         :host {
             display: inline-flex;
             position: relative;
@@ -229,6 +279,10 @@ export class MateuAppContextPicker extends LitElement {
             cursor: pointer;
             outline: none;
             white-space: nowrap;
+        }
+        .picker-button:focus-visible {
+            outline: 2px solid var(--lumo-primary-color, #3b5bdb);
+            outline-offset: 2px;
         }
         .caret {
             opacity: 0.6;
@@ -277,7 +331,7 @@ export class MateuAppContextPicker extends LitElement {
         .option--clear {
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
         }
-    `
+    `]
 }
 
 declare global {

@@ -127,7 +127,10 @@ describe('menu-leaf rules', () => {
         vi.spyOn(console, 'warn').mockImplementation(() => {})
         const el = await mount(app())
         const ran: string[] = []
-        el.runAction = (actionId: string) => { ran.push(actionId) }
+        // the app's own action goes on the app-level rail (the header actions' one), not to the
+        // on-screen component, which does not advertise it
+        el.runAppAction = (actionId: string) => { ran.push(actionId) }
+        el.runAction = () => { throw new Error('a menu rule must not go to the on-screen component') }
         const w = window as unknown as { __menuRan?: boolean }
         el.runMenuRules([
             { action: RuleAction.RunAction, actionId: 'refresh' },

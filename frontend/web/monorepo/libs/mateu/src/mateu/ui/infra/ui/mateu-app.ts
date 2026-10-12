@@ -338,10 +338,15 @@ export class MateuApp extends ComponentElement {
         }
         // The APP's own action: it lives on the shell whatever screen is below, so it goes on the
         // app-level rail, exactly like a header action (see shellActionTarget).
-        if (app) {
-            void dispatchAppHeaderAction(app, this, actionId).catch((e) =>
-                notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, this))
-        }
+        this.runAppAction(actionId)
+    }
+
+    /** Runs one of the APP's own actions on the app-level rail (the header actions' one). */
+    runAppAction = (actionId: string) => {
+        const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+        if (!app) return
+        void dispatchAppHeaderAction(app, this, actionId).catch((e) =>
+            notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, this))
     }
 
     // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
@@ -1015,10 +1020,11 @@ export class MateuApp extends ComponentElement {
             }
         }
         if (_changedProperties.has('commandPaletteOpen') && this.commandPaletteOpen) {
-            setTimeout(() => {
-                const input = this.renderRoot.querySelector('.cmd-input') as HTMLInputElement
-                input?.focus()
-            }, 0)
+            // synchronously: the update runs as a microtask right after the ⌘K keydown, so the
+            // input owns the focus before the next key arrives. Deferred to a timeout, what a quick
+            // typist entered right after ⌘K went to the page instead of the palette.
+            const input = this.renderRoot.querySelector('.cmd-input') as HTMLInputElement
+            input?.focus()
         }
     }
 
