@@ -191,3 +191,22 @@ test("MCP unknown method yields -32601", async () => {
   const r = await handleRpc({ jsonrpc: "2.0", id: 5, method: "nope/nope" }, fakeWire);
   assert.equal(r.error.code, -32601);
 });
+
+test("messages keep their severity (the wire's `variant`) and title", () => {
+  // MessageDto carries the severity as `variant`: reading `type` reported every error and refusal
+  // to the agent as "info" and dropped the title.
+  const s = projectIncrement({
+    fragments: [],
+    commands: [],
+    messages: [
+      { variant: "error", title: "Refused", text: "Name is required", position: "bottom-end", duration: 3000 },
+      { variant: "success", text: "Saved" },
+      { text: "no severity at all" },
+    ],
+  });
+  assert.deepEqual(s.messages, [
+    { title: "Refused", text: "Name is required", type: "error" },
+    { text: "Saved", type: "success" },
+    { text: "no severity at all", type: "info" },
+  ]);
+});
