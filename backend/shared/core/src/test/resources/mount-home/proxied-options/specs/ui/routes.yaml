@@ -1,0 +1,4 @@
+type: Routes
+routes:
+  - route: pick
+    definition: pick.yaml

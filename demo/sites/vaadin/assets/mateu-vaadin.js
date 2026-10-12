@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/vendor.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/mateu-mobile-qr-dialog.js","assets/vendor-lit.js","assets/vendor-editor.js"])))=>i.map(i=>d[i]);
-/* mateu sources efcc807b2669d88c */
+/* mateu sources b9df412ddb3273c0 */
 import{_ as e,a as t,c as n,d as r,f as i,g as a,h as o,i as s,l as c,m as l,n as u,o as d,p as f,r as p,s as m,t as h,u as g,v as _}from"./vendor-vaadin.js";import{E as ee,_ as v,a as y,b,c as x,d as te,f as ne,g as S,i as C,n as re,o as w,p as ie,r as ae,s as T,t as oe,u as se,v as ce,w as E,x as D}from"./vendor-lit.js";import{a as le,c as ue,i as de,l as fe,s as pe}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})(),_(`vaadin-card`,E`
       :host(.mateu-section) {
         --vaadin-card-border-width: 0 !important;
@@ -10801,7 +10801,7 @@ ${i}
                             <vaadin-button theme="icon" aria-label="${A(`search`)}" @click="${e=>{this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`codesearch-`+this.field?.fieldId,parameters:{}},bubbles:!0,composed:!0}))}}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
                         </vaadin-horizontal-layout>
                     </vaadin-custom-field>
-                `;if(this.field?.stereotype==`select`){if(this.field?.optionsSource){let e=this.field.optionsSource,r=L(e.url,this.state,this.data)??e.url;this.data[this.id]?.sourceSignature!==r&&(this.data[this.id]={content:this.data[this.id]?.content??[],sourceSignature:r},e.proxy?this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`__restfetch__`,parameters:{_sourceKind:`options`,_sourceId:this.field.fieldId},callback:t=>{let n=t?.appData?._restfetch,i=Ps(n,e.itemsPath,e.valuePath,e.labelPath);this.data[this.id]={content:i,totalElements:i.length,sourceSignature:r},this.requestUpdate()},callbackonly:!0},bubbles:!0,composed:!0})):Ls(e,qo(this.state,this.data)).then(e=>{this.data[this.id]={content:e,totalElements:e.length,sourceSignature:r},this.requestUpdate()}).catch(e=>console.warn(`mateu: external options fetch failed`,e)));let i=t;return t&&t.value&&(i=t.value),b`
+                `;if(this.field?.stereotype==`select`){if(this.field?.optionsSource){let e=this.field.optionsSource,r=(je(e)??e).url,i=(L(r,this.state,this.data)??r)||`ref:${e.ref??``}`;this.data[this.id]?.sourceSignature!==i&&(this.data[this.id]={content:this.data[this.id]?.content??[],sourceSignature:i},Ie(e)?this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:`__restfetch__`,parameters:{_sourceKind:`options`,_sourceId:this.field.fieldId},callback:t=>{let n=t?.appData?._restfetch,r=je(e)??e,a=Ps(n,r.itemsPath,r.valuePath,r.labelPath);this.data[this.id]={content:a,totalElements:a.length,sourceSignature:i},this.requestUpdate()},callbackonly:!0},bubbles:!0,composed:!0})):Ls(e,qo(this.state,this.data)).then(e=>{this.data[this.id]={content:e,totalElements:e.length,sourceSignature:i},this.requestUpdate()}).catch(e=>console.warn(`mateu: external options fetch failed`,e)));let a=t;return t&&t.value&&(a=t.value),b`
                     <vaadin-select
                             id="${this.field.fieldId}"
                             placeholder="${this.field.placeholder??v}"
@@ -10811,7 +10811,7 @@ ${i}
                             .items="${this.data[this.id]?.content??[]}"
                             .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
-                            .value="${i}"
+                            .value="${a}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required||v}"
                             data-colspan="${this.field.colspan}"

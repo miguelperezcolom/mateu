@@ -46,4 +46,33 @@ class SeededYamlPageRestSourcesTest {
     assertThat(declared.get(0).source().proxy()).isTrue();
     assertThat(declared.get(0).source().url()).isEqualTo("https://api.example.test/products");
   }
+
+  @Test
+  void aSelectsProxiedOptionsSourceIsDeclaredByTheFieldsId() {
+    var catalog =
+        new RestSourceCatalog(
+            List.of(
+                new RestSourceEntry(
+                    "products",
+                    RestDataSource.builder()
+                        .url("https://api.example.test/p")
+                        .proxy(true)
+                        .build())));
+    var field =
+        io.mateu.uidl.data.FormField.builder()
+            .id("product")
+            .stereotype(io.mateu.uidl.data.FieldStereotype.select)
+            .optionsSource(RestDataSource.ref("products"))
+            .build();
+    var page =
+        new SeededYamlPage(
+            new VerticalLayout(List.of(field)), Map.of(), List.of(), List.of(), catalog, null);
+
+    var declared = page.declaredRestSources();
+
+    assertThat(declared).hasSize(1);
+    assertThat(declared.get(0).kind()).isEqualTo(RestSourceKind.OPTIONS);
+    assertThat(declared.get(0).id()).isEqualTo("product");
+    assertThat(declared.get(0).source().proxy()).isTrue();
+  }
 }

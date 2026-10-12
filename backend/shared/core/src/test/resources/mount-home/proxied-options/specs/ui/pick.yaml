@@ -1,0 +1,12 @@
+# Nothing seeds this page and it declares no action: only its proxied options source makes it
+# need a server-side component (the browser sends __restfetch__ to it).
+layout:
+  type: FormLayout
+  content:
+    - type: FormField
+      id: product
+      label: Product
+      dataType: string
+      stereotype: select
+      optionsSource:
+        ref: keyed-products

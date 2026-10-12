@@ -110,7 +110,8 @@ record SeededYamlPage(
                 new DeclaredRestSource(
                     RestSourceKind.ACTION, action.id(), resolved(action.restAction().source())))
         .forEach(out::add);
-    // The listings' rows too: a proxied `rowsSource` (proxy on the catalogue entry, `${secret.X}`
+    // The listings' rows and the fields' options too: a proxied `rowsSource` / `optionsSource`
+    // (proxy on the catalogue entry, `${secret.X}`
     // in its headers) is fetched through __restfetch__ with the listing's id. Without declaring it
     // the server never advertised the fetch, the browser had nobody to send it to and the listing
     // stayed on "Search to see results." with nothing in any log.
@@ -122,6 +123,14 @@ record SeededYamlPage(
       Object node, List<DeclaredRestSource> out, java.util.Map<Object, Boolean> seen) {
     if (node == null || seen.put(node, Boolean.TRUE) != null) {
       return;
+    }
+    // a select's options from a proxied entry: fetched through __restfetch__ by the field's id
+    if (node instanceof io.mateu.uidl.data.FormField field
+        && field.optionsSource() != null
+        && field.id() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.OPTIONS, field.id(), resolved(field.optionsSource())));
     }
     if (node instanceof io.mateu.uidl.fluent.Listing listing && listing.rowsSource() != null) {
       out.add(
