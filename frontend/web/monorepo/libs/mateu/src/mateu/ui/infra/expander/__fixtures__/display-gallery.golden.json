@@ -5,7 +5,7 @@
     "targetComponentId" : null,
     "component" : {
       "type" : "ServerSide",
-      "id" : "ab6a4544-e11b-4c17-85f9-b56085ec1463",
+      "id" : "7547a835-28cf-45cc-b2fc-1949deb00fda",
       "serverSideType" : "io.mateu.core.application.runaction.SeededYamlPage",
       "route" : "_empty",
       "children" : [ {
@@ -58,7 +58,7 @@
             "size" : "xl",
             "noMargins" : false
           },
-          "id" : "b2af1a9a-9070-430e-994f-57797a4ec630",
+          "id" : "0bb945aa-db67-4bee-8041-0dc4489168ac",
           "children" : [ ],
           "style" : null,
           "cssClasses" : null,
@@ -74,7 +74,7 @@
             "size" : "xs",
             "noMargins" : true
           },
-          "id" : "8c1065de-28d1-4275-a7e7-dd0cce0ca5ac",
+          "id" : "76bfee95-a333-4375-9bdc-555335903c96",
           "children" : [ ],
           "style" : null,
           "cssClasses" : null,
@@ -96,7 +96,7 @@
           "type" : "ClientSide",
           "metadata" : {
             "type" : "Image",
-            "src" : "/images/logo.png"
+            "src" : "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjMzM2Ii8+PC9zdmc+"
           },
           "id" : "fieldId",
           "children" : [ ],
@@ -181,7 +181,7 @@
                 "size" : null,
                 "noMargins" : false
               },
-              "id" : "1af60c17-8af3-4aea-91f7-13e06d18aabd",
+              "id" : "8cebfd54-89b0-40ce-b663-e2d9dbfd62b1",
               "children" : [ ],
               "style" : null,
               "cssClasses" : null,
@@ -200,7 +200,7 @@
                 "size" : null,
                 "noMargins" : false
               },
-              "id" : "b4617d54-31d5-4f3c-8a47-4a2853f90df3",
+              "id" : "ef2d7b20-2c1e-45db-af21-cb0cc4caa0a6",
               "children" : [ ],
               "style" : null,
               "cssClasses" : null,
@@ -520,7 +520,7 @@
           "type" : "ClientSide",
           "metadata" : {
             "type" : "Bpmn",
-            "xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" id=\"d\"><bpmn:process id=\"p\"><bpmn:startEvent id=\"s\"/></bpmn:process></bpmn:definitions>"
+            "xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" id=\"d\"><bpmn:process id=\"p\"><bpmn:startEvent id=\"s\" name=\"Start\"/></bpmn:process><bpmndi:BPMNDiagram id=\"dg\"><bpmndi:BPMNPlane id=\"pl\" bpmnElement=\"p\"><bpmndi:BPMNShape id=\"s_di\" bpmnElement=\"s\"><dc:Bounds x=\"100\" y=\"100\" width=\"36\" height=\"36\"/></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>"
           },
           "id" : "fieldId",
           "children" : [ ],
@@ -790,7 +790,7 @@
               "size" : null,
               "noMargins" : false
             },
-            "id" : "ebae0851-bbb7-4f69-a5f9-18e19a760f2c",
+            "id" : "45b35143-c3de-47b3-9096-7eb89c0a1389",
             "children" : [ ],
             "style" : null,
             "cssClasses" : null,
@@ -852,7 +852,7 @@
               "size" : null,
               "noMargins" : false
             },
-            "id" : "52fa2081-2d0a-43c7-ba5e-dd48e56f525e",
+            "id" : "39812289-093d-4838-9bef-b2c4a9553e27",
             "children" : [ ],
             "style" : null,
             "cssClasses" : null,
@@ -957,7 +957,7 @@
                 "size" : null,
                 "noMargins" : false
               },
-              "id" : "a0efd3ea-3f08-490a-806b-f3a8d0cb6dc5",
+              "id" : "0e15f227-9d8e-4e61-b107-7f331bd5dde4",
               "children" : [ ],
               "style" : null,
               "cssClasses" : null,
@@ -1047,7 +1047,7 @@
               "size" : null,
               "noMargins" : false
             },
-            "id" : "972588c1-2e27-4687-b2fd-0a0e423b0b58",
+            "id" : "390ba3e7-d490-45da-b111-0cee0b6ee6ff",
             "children" : [ ],
             "style" : null,
             "cssClasses" : null,
@@ -2230,7 +2230,7 @@
       "pageWidth" : null,
       "pageType" : "form",
       "staticView" : false,
-      "structureHash" : "8467b01a6f66363da8bff60aee6ad867a5656e12eaedf7bc57f09ec8f0ac7834"
+      "structureHash" : "d79177d45ab86d2a558e0120bc7e736ce7384a6c2111da9feadfb301ae330182"
     },
     "state" : { },
     "data" : { },

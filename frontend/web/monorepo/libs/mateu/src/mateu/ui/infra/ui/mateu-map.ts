@@ -1,4 +1,4 @@
-import { css, html, LitElement, PropertyValues } from "lit";
+import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query } from 'lit/decorators.js';
 import type OlMap from "ol/Map";
 import { planMapView, tileSourceOf } from "./mapPosition";
@@ -149,19 +149,31 @@ export class MateuMap extends LitElement {
         })
         map.on('singleclick', event => {
             const marker = markerAt(event.pixel)
-            if (!marker || !this.markerActionId) {
-                return
-            }
-            this.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId: this.markerActionId, parameters: { _markerId: marker.id } },
-                bubbles: true,
-                composed: true,
-            }))
+            if (marker) this.openMarker(marker)
         })
     }
 
+    private openMarker(marker: MapMarker) {
+        if (!this.markerActionId) {
+            return
+        }
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.markerActionId, parameters: { _markerId: marker.id } },
+            bubbles: true,
+            composed: true,
+        }))
+    }
+
     render() {
-        return html`<div id="map"></div>`
+        // The markers live on a canvas, which the keyboard and a screen reader cannot reach: when
+        // they do something, each is also a real button — out of sight until the keyboard gets
+        // there, then listed over the map's corner.
+        const actionable = !!this.markerActionId && (this.markers ?? []).length > 0
+        return html`<div id="map"></div>
+            ${actionable ? html`<ul class="marker-list">
+                ${this.markers.map(m => html`<li><button type="button" title="${m.description ?? ''}"
+                    @click="${() => this.openMarker(m)}">${m.label || m.id}</button></li>`)}
+            </ul>` : nothing}`
     }
 
     static styles = css`
@@ -170,9 +182,30 @@ export class MateuMap extends LitElement {
             width: 100%;
             height: 25rem;
         }
+        :host {
+            position: relative;
+        }
         #map {
             width: 100%;
             height: 100%;
+        }
+        .marker-list {
+            position: absolute;
+            top: var(--lumo-space-s, 0.5rem);
+            left: 3rem;
+            margin: 0;
+            padding: var(--lumo-space-xs, 0.25rem);
+            list-style: none;
+            background: var(--lumo-base-color, #fff);
+            border-radius: var(--lumo-border-radius-m, 0.25rem);
+            box-shadow: var(--lumo-box-shadow-s, 0 1px 3px rgba(0, 0, 0, 0.2));
+        }
+        .marker-list:not(:focus-within) {
+            clip-path: inset(50%);
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            padding: 0;
         }
     `
 }

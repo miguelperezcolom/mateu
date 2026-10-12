@@ -24,7 +24,7 @@ layout:
     - type: Markdown
       markdown: "**Bold** and a [link](https://example.com)"
     - type: Image
-      src: /images/logo.png
+      src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjMzM2Ii8+PC9zdmc+"
     - type: Badge
       text: Active
       color: success
@@ -98,7 +98,7 @@ layout:
         title: CEO
         children: [{id: cto, title: CTO}]
     - type: Bpmn
-      xml: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" id=\"d\"><bpmn:process id=\"p\"><bpmn:startEvent id=\"s\"/></bpmn:process></bpmn:definitions>"
+      xml: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" id=\"d\"><bpmn:process id=\"p\"><bpmn:startEvent id=\"s\" name=\"Start\"/></bpmn:process><bpmndi:BPMNDiagram id=\"dg\"><bpmndi:BPMNPlane id=\"pl\" bpmnElement=\"p\"><bpmndi:BPMNShape id=\"s_di\" bpmnElement=\"s\"><dc:Bounds x=\"100\" y=\"100\" width=\"36\" height=\"36\"/></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>"
     - type: StatusList
       items: [{id: s1, title: Payment, status: Done, statusColor: success}]
     - type: BulletedList

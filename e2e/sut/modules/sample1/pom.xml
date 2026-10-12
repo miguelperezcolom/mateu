@@ -26,6 +26,15 @@
             <version>${mateu.version}</version>
         </dependency>
 
+        <!-- The page archetypes (Dashboard, Welcome, CalendarPage, …) live in core; every adapter
+             app has it at runtime, so it is provided here, like reactor-core below -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-core</artifactId>
+            <version>${mateu.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mateu-annotation-processor-indexer</artifactId>

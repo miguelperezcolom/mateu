@@ -1,9 +1,10 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import StatusItem from "@mateu/shared/apiClients/dtos/componentmetadata/StatusItem";
 import { chipStyles } from "@infra/ui/uxShared.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
@@ -178,7 +179,7 @@ export class MateuStatusList extends LitElement {
                 <div class="list stacked ${this.compact ? 'compact' : ''} ${this.columns > 1 ? 'grid' : ''}"
                      style="${this.columns > 1 ? `grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));` : ''}">
                     ${this.items.map(item => html`
-                        <div role="button" tabindex="0" class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
+                        <div role=${ifDefined(buttonRole(!!this.rowActionId))} tabindex=${ifDefined(tabStop(!!this.rowActionId))} class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
                              @click="${() => this.rowClicked(item)}" @keydown="${onActivate(() => this.rowClicked(item))}">
                             <div class="cell-title-row">
                                 ${heading === 'h4'
@@ -202,7 +203,7 @@ export class MateuStatusList extends LitElement {
         return html`
             <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''}">
                 ${this.items.map(item => html`
-                    <div role="button" tabindex="0" class="row ${this.rowActionId ? 'clickable' : ''}"
+                    <div role=${ifDefined(buttonRole(!!this.rowActionId))} tabindex=${ifDefined(tabStop(!!this.rowActionId))} class="row ${this.rowActionId ? 'clickable' : ''}"
                          @click="${() => this.rowClicked(item)}" @keydown="${onActivate(() => this.rowClicked(item))}">
                         ${item.avatar
                             ? html`<span class="avatar">${item.avatar}</span>`

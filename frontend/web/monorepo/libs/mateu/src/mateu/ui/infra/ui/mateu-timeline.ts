@@ -1,7 +1,8 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import TimelineItem from "@mateu/shared/apiClients/dtos/componentmetadata/TimelineItem";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
@@ -110,7 +111,7 @@ export class MateuTimeline extends LitElement {
                             <div class="dot" style="${item.color ? `--mateu-timeline-dot: ${item.color};` : ''}">${item.icon ?? ''}</div>
                             <div class="line"></div>
                         </div>
-                        <div role="button" tabindex="0" class="body" @click="${() => this.clickItem(item)}" @keydown="${onActivate(() => this.clickItem(item))}">
+                        <div role=${ifDefined(buttonRole(!!item.actionId))} tabindex=${ifDefined(tabStop(!!item.actionId))} class="body" @click="${() => this.clickItem(item)}" @keydown="${onActivate(() => this.clickItem(item))}">
                             <div class="head">
                                 <span class="title">${item.title}</span>
                                 ${item.timestamp ? html`<span class="time">${item.timestamp}</span>` : nothing}
