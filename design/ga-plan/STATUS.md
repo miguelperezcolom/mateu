@@ -87,7 +87,8 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 | app shell & navigation | `walkthrough/app-shell` (16 commits) | `design/walkthrough/app-shell.md` | 63 | 33 (11 bugs) | 5 | RN, IntelliJ, static bundles, .NET in a browser, MicroFrontend, breadcrumbs, appState/appData in a browser, visual editor |
 | actions, events, overlays | `walkthrough/actions` (10 commits) | `design/walkthrough/actions.md` | 54 | 22 (14 bugs) | 3 | 170 cells ⏳ (mostly RN, IntelliJ, ports beyond unit level, static bundle, editor) |
 | forms, fields, layouts, wizards | `walkthrough/forms` (14 commits) | `design/walkthrough/forms.md` | ~45 ✅/🔧 of ~60 | 24 bugs | 6 | ~25 cells: RN, IntelliJ, visual editor, ImportWizard, YAML layout bound to a view model in a browser, Quarkus/Micronaut/Helidon locally (CI covers), static bundle beyond a unit test |
-| listings · pages · authoring · native-ports | `walkthrough/<area>` | — | running, hard stop 03:00 13 Oct | | | |
+| page archetypes & display | `walkthrough/pages` (29 commits) | `design/walkthrough/pages.md` | ~130 | ~30 (26 bugs) | 7 | ~60: mostly .NET/Python pages in a browser, MicroFrontend |
+| listings · authoring · native-ports | `walkthrough/<area>` | — | running, hard stop 03:00 13 Oct | | | |
 
 Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to resume (same brief).
 
@@ -100,9 +101,13 @@ Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to
 6. **Error toast duration**: Python never auto-closes, Java closes after 3 s → errors stay until dismissed, in all backends.
 7. **`List<Enum>` with no stereotype** renders as a grid of Name/Ordinal/Hash (kept on purpose) → default to a multi-select.
 8. **Editable markdown/html fields**: Redwood shows raw source as editable text, Vaadin shows rendered content → decide the contract (proposal: an editor with preview on both).
-9. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible.
+9. **Vaadin page heading on composed archetypes**: Dashboard, SmartSearchPage and ItemOverview show no heading on Vaadin (Redwood now does; docs assume one) → add it on Vaadin.
+10. **Python has no fluent `Card`** (and its card title is a string, Java's a component) → add it with Java's shape.
+11. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible; calendar event click runs nothing; map marker click unconfirmed; Gantt negative-width console errors; **every Redwood shell page load returns a 400 'invalid catalog JSON'** (check before any Redwood demo). IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed to a few px on long pages. RN web: calendar nests buttons (warning).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
+- `parity.md` claimed full server+YAML parity for the ports; it wasn't true (fixed in walkthrough/pages) and Python still lacks `Card` — keep parity.md honest.
+- Tooling: `npm ci` for the Redwood workspace wipes the other workspaces' node_modules and vice versa; RN `MateuViewController.test` fails on the local Node.
 - Behaviour change (walkthrough/forms): `@Button`/`@Toolbar` actions now get "There are validation errors" when the form breaks a bean-validation constraint (server re-checks what the browser enforced). Mention in the release notes.
 - Field types are read only from `specs/ui/types.yaml`; a Types file created from the IDE wizard under another name is silently ignored → fix or document.
 - `Callable<String>` renders as an empty editable text box; number fields store strings like "19.95" in the browser state.
