@@ -20,7 +20,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-vaadin-webflux:2026.10.12
+          image: miguelperezcolom/demo-vaadin-webflux:2026.10.12b
           env:
             - { name: SERVER_PORT, value: "8092" }
             - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }

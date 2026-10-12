@@ -67,7 +67,7 @@ batch closes the included PRs. Agent worktrees live under `.claude/worktrees/` �
 IntelliJ down; `.claude` is excluded in Miguel's IDE).
 
 ## State at last update
-- Latest release: **v3.0-alpha.414** (lambda `Button`s advertised again; YAML card menus; demo index page).
+- Latest release: **v3.0-alpha.414** (lambda `Button`s advertised again; YAML card menus; demo index page). Demos redeployed on it (image tag 2026.10.12b) and verified in a browser.
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
