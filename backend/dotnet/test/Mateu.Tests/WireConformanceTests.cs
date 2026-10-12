@@ -172,6 +172,7 @@ public class WireConformanceTests
         { "app-no-home-content", typeof(NoHomeApp) },
         { "card-menu", typeof(CardMenuApp) },
         { "app-extras", typeof(ExtrasApp) },
+        { "welcome-banner", typeof(WelcomeBannerPage) },
     };
 
     [Fact]

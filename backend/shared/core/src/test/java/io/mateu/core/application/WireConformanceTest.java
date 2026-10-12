@@ -121,6 +121,18 @@ class WireConformanceTest {
     public String notes = "";
   }
 
+  /**
+   * The Redwood welcome banner: a centered HeroSection (id "welcome-banner") prepended to the page
+   * content, its title falling back to the page title when the banner declares none.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/welcome-banner")
+  @Title("Onboarding")
+  @io.mateu.uidl.annotations.WelcomeBanner(subtitle = "Three steps and you are done")
+  public static class WelcomeBannerPage {
+    public String name = "";
+  }
+
   /** Consecutive fields under the same @Tab label group into one tab of a TabLayout strip. */
   @SuppressWarnings("unused")
   @UI("/conformance/tabs")
@@ -918,7 +930,8 @@ class WireConformanceTest {
           "peer-nav",
           "app-no-home-content",
           "card-menu",
-          "app-extras");
+          "app-extras",
+          "welcome-banner");
 
   static TestMateu mateu;
 
@@ -960,7 +973,8 @@ class WireConformanceTest {
             PeerNavPage.class,
             NoHomeApp.class,
             CardMenuApp.class,
-            ExtrasApp.class);
+            ExtrasApp.class,
+            WelcomeBannerPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

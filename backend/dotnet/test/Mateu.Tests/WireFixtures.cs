@@ -554,3 +554,10 @@ public class ExtrasApp : INotificationsSupplier, IGlobalSearchSupplier
 
     public IReadOnlyList<GlobalSearchResult> GlobalSearch(string searchText) => [];
 }
+
+/// <summary>The welcome banner: a centered HeroSection whose title falls back to the page title.</summary>
+[UI("conformance/welcome-banner"), Title("Onboarding"), WelcomeBanner(Subtitle = "Three steps and you are done")]
+public class WelcomeBannerPage
+{
+    public string? Name { get; set; } = "";
+}
