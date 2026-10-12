@@ -6,6 +6,7 @@ import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, Fa
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
+import { ganttSelection } from './ganttSelection';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -171,6 +172,14 @@ const parseDay = (s?: string): number | null => {
 };
 
 export function GanttRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  // a GanttPage selects a task (its drawer): the bar's row runs onTaskSelectionActionId with the
+  // task id — it used to be read-only here, so the gantt page's detail never opened on a phone
+  const selectAction = meta(component)['onTaskSelectionActionId'] as string | undefined;
+  const select = (t: GanttTask) => {
+    const selection = ganttSelection(selectAction, t.id);
+    if (selection) void controller.runAction(selection.actionId, selection.parameters);
+  };
   const tasks = ((meta(component)['tasks'] as GanttTask[]) ?? []).filter(
     (t) => parseDay(t.start) != null && parseDay(t.end) != null,
   );
@@ -201,9 +210,15 @@ export function GanttRenderer({ component }: { component: unknown }) {
       <View style={styles.ganttLabels}>
         <View style={{ height: GANTT_HEADER_H }} />
         {tasks.map((t, i) => (
-          <View key={t.id ?? i} style={styles.ganttLabelRow}>
-            <Text style={styles.ganttLabel} numberOfLines={1}>{t.title ?? t.id ?? ''}</Text>
-          </View>
+          selectAction ? (
+            <TouchableOpacity {...buttonA11y({ label: t.title ?? t.id ?? '' })} key={t.id ?? i} style={styles.ganttLabelRow} onPress={() => select(t)}>
+              <Text style={styles.ganttLabel} numberOfLines={1}>{t.title ?? t.id ?? ''}</Text>
+            </TouchableOpacity>
+          ) : (
+            <View key={t.id ?? i} style={styles.ganttLabelRow}>
+              <Text style={styles.ganttLabel} numberOfLines={1}>{t.title ?? t.id ?? ''}</Text>
+            </View>
+          )
         ))}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -222,9 +237,14 @@ export function GanttRenderer({ component }: { component: unknown }) {
               const progress = Math.max(0, Math.min(100, t.progress ?? 0));
               return (
                 <View key={t.id ?? i} style={styles.ganttRow}>
-                  <View style={[styles.ganttBar, { left, width, backgroundColor: t.color ?? '#b3d1f0' }]}>
+                  <TouchableOpacity
+                    disabled={!selectAction}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    onPress={() => select(t)}
+                    style={[styles.ganttBar, { left, width, backgroundColor: t.color ?? '#b3d1f0' }]}>
                     <View style={[styles.ganttProgress, { width: `${progress}%` }]} />
-                  </View>
+                  </TouchableOpacity>
                 </View>
               );
             })}
