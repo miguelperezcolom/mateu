@@ -126,6 +126,13 @@ test.describe('Overlay lab (/overlay-lab)', () => {
     await page.getByRole('button', { name: 'Edit contact' }).click()
     await page.getByRole('button', { name: 'Open nested dialog' }).click()
     await expect(page.getByText('Inner dialog')).toBeVisible()
+    // with the focus OUTSIDE the dialog (it had not moved in yet): the drawer under it used to
+    // close instead, leaving the dialog open over nothing
+    await page.evaluate(() => {
+      let el: Element | null = document.activeElement
+      while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement
+      ;(el as HTMLElement | null)?.blur()
+    })
     await page.keyboard.press('Escape')
     await expect(page.getByText('Inner dialog')).toHaveCount(0)
     await expect(page.locator('mateu-drawer').getByRole('button', { name: 'Save contact' })).toBeVisible()

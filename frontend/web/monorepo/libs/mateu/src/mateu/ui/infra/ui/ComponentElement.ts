@@ -55,6 +55,12 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      *  a parent re-bind in willUpdate; emptied per key as soon as a fragment carries that key. */
     private _locallyEdited = new Set<string>()
 
+    /** Keys this element's OWN server sent it in a state fragment (a `State` answer) while the
+     *  parent kept the same component — so a parent re-render, re-binding `.state` from its own
+     *  older copy, must not undo them. An island that answered `new State(this)` used to snap back
+     *  to its initial state whenever its host page refreshed a moment later. */
+    private _serverSaid = new Set<string>()
+
     /** `serverSideType` of the view this element last rendered — the stable identity of a view
      *  across renders (ids are fresh uuids). Tells a re-render of the same view apart from a
      *  different one arriving in this reused element (see willUpdate). */
@@ -202,6 +208,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         // A different component is taking this element over; whatever the previous
                         // one's user had typed is not ours to defend any more.
                         this._locallyEdited.clear()
+                        this._serverSaid.clear()
                     }
                 }
             }
@@ -212,6 +219,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 // willUpdate would keep re-applying the value the user typed over the one the
                 // server just sent, and a server-computed field could never change on screen.
                 Object.keys(fragment.state).forEach(key => this._locallyEdited.delete(key))
+                // a state-only answer (no view): what it says is ours against a parent re-bind
+                if (!fragment.component) {
+                    Object.keys(fragment.state).forEach(key => this._serverSaid.add(key))
+                }
                 this.state = { ...this.state, ...fragment.state }
             }
             // `_lastOwnState` is the value THIS element last committed — the authority
@@ -290,6 +301,11 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             && viewKey !== this._lastViewKey
         if (viewKey != undefined) this._lastViewKey = viewKey
         if (viewChanged) this._locallyEdited.clear()
+        // the parent handing us ANOTHER component (a host re-rendered with `this` sends its
+        // islands afresh): its initial state is the authority now, not our last State answer
+        if (viewChanged || (changed.has('component') && this.state !== this._lastOwnState)) {
+            this._serverSaid.clear()
+        }
         this._keepEditedFieldValues(changed, viewChanged)
         if (!changed.has('data') || this.data === this._lastFragmentData || viewChanged) return
         const incoming = this.data
@@ -322,7 +338,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
      * there — still takes the parent's value, and a server-computed field still updates on screen.
      */
     protected _keepEditedFieldValues(changed: PropertyValues, viewChanged: boolean) {
-        if (viewChanged || !changed.has('state') || this._locallyEdited.size === 0) return
+        if (viewChanged || !changed.has('state')
+            || (this._locallyEdited.size === 0 && this._serverSaid.size === 0)) return
         // Our own change (a fragment merge, or the keystroke that just happened) is authoritative.
         if (this.state === this._lastOwnState) return
         // Restore each edited field to the value THIS element last committed — `_lastOwnState`, its
@@ -335,8 +352,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         const own = this._lastOwnState as Record<string, any> | undefined
         if (!own) return
         let restored: Record<string, any> | undefined
-        this._locallyEdited.forEach(fieldId => {
-            if (own[fieldId] !== this.state?.[fieldId]) {
+        new Set([...this._locallyEdited, ...this._serverSaid]).forEach(fieldId => {
+            if ((this._locallyEdited.has(fieldId) || fieldId in own)
+                && own[fieldId] !== this.state?.[fieldId]) {
                 restored = restored ?? { ...this.state }
                 restored[fieldId] = own[fieldId]
             }
