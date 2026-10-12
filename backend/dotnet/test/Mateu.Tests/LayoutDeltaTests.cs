@@ -123,6 +123,22 @@ public class LayoutDeltaTests
         Assert.Equal(["email", "name"], IdsOf(applied));
     }
 
+    [Fact]
+    public void The_order_applies_across_the_rows_of_a_two_column_form()
+    {
+        // inference lays a two-column form out as rows of two; the editor records `order:` for the
+        // flat run of fields — reordering only within a row ignored a move between rows
+        ClientSideComponentDto Row(params ComponentDto[] fields) =>
+            new(new FormRowMetadataDto(), null, fields, null, null, null);
+        var tree = new ClientSideComponentDto(new FormLayoutMetadataDto(), null,
+            [Row(Field("count"), Field("secret")), Row(Field("note"))], null, null, null);
+        var applied = (ClientSideComponentDto)LayoutDeltaApplier.Apply(tree, new LayoutDelta(["note", "count"]));
+        var rows = applied.Children.Select(r => ((ClientSideComponentDto)r).Children
+            .Select(f => ((FormFieldMetadataDto)((ClientSideComponentDto)f).Metadata).FieldId).ToList()).ToList();
+        Assert.Equal(["note", "count"], rows[0]);
+        Assert.Equal(["secret"], rows[1]);
+    }
+
     // ── the YAML definition, end to end ───────────────────────────────────────
 
     [Fact]

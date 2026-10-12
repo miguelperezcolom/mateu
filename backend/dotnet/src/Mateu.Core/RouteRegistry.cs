@@ -305,10 +305,54 @@ public sealed class RouteRegistry : ISpecsCache
         return null;
     }
 
+    /// <summary>
+    /// Every authored route file, merged (a later file wins a route collision, as in Java): the
+    /// files each <c>type: UI</c> mount lists (relative to the mount's base path), then
+    /// <c>routes.yaml</c> and any other <c>type: Routes</c> file no mount lists (relative to their
+    /// own <c>basePath</c> header). Only routes.yaml used to be read, so a mount splitting its routes
+    /// over several files (what New › Mateu › Routes File creates) lost all but that one.
+    /// (Mirrors Python's RouteRegistry._load.)
+    /// </summary>
     private RouteTable Load()
     {
-        var path = Path.Combine(_dir, FileName);
-        if (!File.Exists(path)) return RouteTable.Empty;
+        if (!Directory.Exists(_dir)) return RouteTable.Empty;
+        var byRoute = new Dictionary<string, RouteEntry>();
+        var listed = new HashSet<string>();
+        foreach (var mount in ScanMounts())
+            foreach (var routeFile in mount.RouteFiles)
+            {
+                var path = Path.GetFullPath(Path.Combine(_dir, routeFile));
+                listed.Add(path);
+                foreach (var e in EntriesOf(path, mount.BasePath)) byRoute[e.Route] = e;
+            }
+        foreach (var file in Directory.EnumerateFiles(_dir, "*.*", SearchOption.AllDirectories)
+                     .Where(f => f.EndsWith(".yaml") || f.EndsWith(".yml"))
+                     .OrderBy(f => f, StringComparer.Ordinal))
+        {
+            var full = Path.GetFullPath(file);
+            if (listed.Contains(full)) continue;
+            if (Path.GetFileName(file) != FileName && !DeclaresRoutes(file)) continue;
+            foreach (var e in EntriesOf(full, null)) byRoute[e.Route] = e;
+        }
+        return new RouteTable(byRoute.Values.ToList());
+    }
+
+    private static bool DeclaresRoutes(string file)
+    {
+        try
+        {
+            return Yaml.Deserialize<object?>(File.ReadAllText(file)) is IDictionary<object, object> map
+                   && Str(map, "type") == "Routes";
+        }
+        catch (Exception)
+        {
+            return false; // not a route file then
+        }
+    }
+
+    private static List<RouteEntry> EntriesOf(string path, string? mountBase)
+    {
+        if (!File.Exists(path)) return [];
         try
         {
             var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
@@ -319,32 +363,29 @@ public sealed class RouteRegistry : ISpecsCache
                 IEnumerable<object> list => list,
                 _ => null,
             };
-            if (nodes is null) return RouteTable.Empty;
+            if (nodes is null) return [];
             // A standalone `type: Routes` file may tag itself with a `basePath` header (group/prefix),
-            // so a class-declared mount authors its inner routes with no separate descriptor. Routes
-            // are still relative here; the base path is applied when flattening. (Mirrors Java's
-            // MountRegistry.routeFileMounts / RouteRegistry basePath prefixing.)
-            var basePath = root is IDictionary<object, object> rootMap
-                ? Normalize(Str(rootMap, "basePath") ?? Str(rootMap, "base_path"))
-                : "";
+            // so a class-declared mount authors its inner routes with no separate descriptor; a file a
+            // mount lists is relative to that mount unless its own header says otherwise. Routes are
+            // still relative here; the base path is applied when flattening.
+            var declared = root is IDictionary<object, object> rootMap
+                ? Str(rootMap, "basePath") ?? Str(rootMap, "base_path")
+                : null;
+            var basePath = declared is { Length: > 0 } ? Normalize(declared) : mountBase ?? "";
             var entries = new List<RouteEntry>();
             foreach (var node in nodes)
             {
                 if (node is not IDictionary<object, object> entry) continue;
-                // Flatten this node and its nested `children` into flat entries, composing each
-                // child's route relative to its parent and prefixing the base path.
                 FlattenNode(entry, parentRoute: null, prefix: "", basePath: basePath, entries);
             }
-            return new RouteTable(entries);
+            return entries;
         }
         catch (Exception e)
         {
-            // A broken routes.yaml must not take the app down: the attribute-declared routes still
-            // work. Losing every route because of a syntax error in an optional file would be worse
-            // than the problem the file solves — but losing them SILENTLY is how a typo becomes a day
-            // of "why is my route 404".
+            // A broken route file must not take the app down: the attribute-declared routes still
+            // work — but losing them SILENTLY is how a typo becomes a day of "why is my route 404".
             MateuLogging.For("Mateu.Routes").LogWarning(e, "{Path} ignored, its routes are not served: {Error}", path, e.Message);
-            return RouteTable.Empty;
+            return [];
         }
     }
 
