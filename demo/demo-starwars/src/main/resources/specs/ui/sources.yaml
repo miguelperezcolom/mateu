@@ -1,6 +1,6 @@
 # The REST source catalogue: each external endpoint named ONCE, referenced by the pages.
 #
-# These point at https://swapi.ec1.mateu.io — a WRITABLE clone of the Star Wars API
+# These point at https://swapi.mateu.io — a WRITABLE clone of the Star Wars API
 # (github.com/miguelperezcolom/swapi-service), not the public swapi.info mirror. The mirror is
 # static: it ignores query parameters and accepts no writes, so every condition had to be evaluated
 # in the browser over the whole collection. This one answers them.
@@ -23,7 +23,7 @@ sources:
     description: Characters of the Star Wars saga
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/people?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/people?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&name=${encodeURIComponent(state.name ?? '')}&gender=${encodeURIComponent(state.gender
         ?? '')}&height_from=${state.height_from ?? ''}&height_to=${state.height_to ?? ''}
@@ -34,7 +34,7 @@ sources:
     description: Planets of the Star Wars galaxy
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/planets?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/planets?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&name=${encodeURIComponent(state.name ?? '')}&climate=${encodeURIComponent(state.climate
         ?? '')}&diameter_from=${state.diameter_from ?? ''}&diameter_to=${state.diameter_to ?? ''}
@@ -45,7 +45,7 @@ sources:
     description: The Star Wars films
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/films?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/films?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&title=${encodeURIComponent(state.title ?? '')}&director=${encodeURIComponent(state.director
         ?? '')}&releaseDate_from=${state.releaseDate_from ?? ''}&releaseDate_to=${state.releaseDate_to ?? ''}
@@ -56,7 +56,7 @@ sources:
     description: Sentient and non-sentient species
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/species?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/species?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&name=${encodeURIComponent(state.name ?? '')}&classification=${encodeURIComponent(state.classification
         ?? '')}&averageLifespan_from=${state.averageLifespan_from ?? ''}&averageLifespan_to=${state.averageLifespan_to ?? ''}
@@ -67,7 +67,7 @@ sources:
     description: Craft without hyperdrive
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/vehicles?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/vehicles?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&name=${encodeURIComponent(state.name ?? '')}&vehicleClass=${encodeURIComponent(state.vehicleClass
         ?? '')}&costInCredits_from=${state.costInCredits_from ?? ''}&costInCredits_to=${state.costInCredits_to ?? ''}
@@ -78,7 +78,7 @@ sources:
     description: Craft with hyperdrive
     source:
       url: >-
-        https://swapi.ec1.mateu.io/api/starships?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
+        https://swapi.mateu.io/api/starships?page=${state.page ?? 0}&size=${state.size ?? 20}&sort=${state.sort?.[0]?.fieldId
         ?? ''}${state.sort?.[0]?.direction === 'descending' ? ',desc' : ''}&search=${encodeURIComponent(state.searchText
         ?? '')}&name=${encodeURIComponent(state.name ?? '')}&starshipClass=${encodeURIComponent(state.starshipClass
         ?? '')}&hyperdriveRating_from=${state.hyperdriveRating_from ?? ''}&hyperdriveRating_to=${state.hyperdriveRating_to ?? ''}
@@ -96,7 +96,7 @@ sources:
   - name: swapi-planet-options
     description: Every planet as a choice (id → name) for a homeworld combo
     source:
-      url: https://swapi.ec1.mateu.io/api/planets?size=1000&sort=name
+      url: https://swapi.mateu.io/api/planets?size=1000&sort=name
       itemsPath: content
       valuePath: id
       labelPath: name
@@ -111,12 +111,12 @@ sources:
   - name: swapi-person
     description: One character by id
     source:
-      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+      url: https://swapi.mateu.io/api/people/${state.id}
 
   - name: swapi-person-create
     description: Create a character
     source:
-      url: https://swapi.ec1.mateu.io/api/people
+      url: https://swapi.mateu.io/api/people
       method: POST
       proxy: true
       headers:
@@ -131,7 +131,7 @@ sources:
   - name: swapi-person-update
     description: Replace a character
     source:
-      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+      url: https://swapi.mateu.io/api/people/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -146,7 +146,7 @@ sources:
   - name: swapi-person-delete
     description: Delete a character
     source:
-      url: https://swapi.ec1.mateu.io/api/people/${state.id}
+      url: https://swapi.mateu.io/api/people/${state.id}
       method: DELETE
       proxy: true
       headers:
@@ -155,12 +155,12 @@ sources:
   - name: swapi-planet
     description: One planet by id
     source:
-      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+      url: https://swapi.mateu.io/api/planets/${state.id}
 
   - name: swapi-planet-create
     description: Create a planet
     source:
-      url: https://swapi.ec1.mateu.io/api/planets
+      url: https://swapi.mateu.io/api/planets
       method: POST
       proxy: true
       headers:
@@ -171,7 +171,7 @@ sources:
   - name: swapi-planet-update
     description: Replace a planet
     source:
-      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+      url: https://swapi.mateu.io/api/planets/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -182,7 +182,7 @@ sources:
   - name: swapi-planet-delete
     description: Delete a planet
     source:
-      url: https://swapi.ec1.mateu.io/api/planets/${state.id}
+      url: https://swapi.mateu.io/api/planets/${state.id}
       method: DELETE
       proxy: true
       headers:
@@ -191,12 +191,12 @@ sources:
   - name: swapi-film
     description: One film by id
     source:
-      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+      url: https://swapi.mateu.io/api/films/${state.id}
 
   - name: swapi-film-create
     description: Create a film
     source:
-      url: https://swapi.ec1.mateu.io/api/films
+      url: https://swapi.mateu.io/api/films
       method: POST
       proxy: true
       headers:
@@ -207,7 +207,7 @@ sources:
   - name: swapi-film-update
     description: Replace a film
     source:
-      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+      url: https://swapi.mateu.io/api/films/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -218,7 +218,7 @@ sources:
   - name: swapi-film-delete
     description: Delete a film
     source:
-      url: https://swapi.ec1.mateu.io/api/films/${state.id}
+      url: https://swapi.mateu.io/api/films/${state.id}
       method: DELETE
       proxy: true
       headers:
@@ -229,12 +229,12 @@ sources:
   - name: swapi-species-record
     description: One species by id
     source:
-      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+      url: https://swapi.mateu.io/api/species/${state.id}
 
   - name: swapi-species-create
     description: Create a species
     source:
-      url: https://swapi.ec1.mateu.io/api/species
+      url: https://swapi.mateu.io/api/species
       method: POST
       proxy: true
       headers:
@@ -245,7 +245,7 @@ sources:
   - name: swapi-species-update
     description: Replace a species
     source:
-      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+      url: https://swapi.mateu.io/api/species/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -256,7 +256,7 @@ sources:
   - name: swapi-species-delete
     description: Delete a species
     source:
-      url: https://swapi.ec1.mateu.io/api/species/${state.id}
+      url: https://swapi.mateu.io/api/species/${state.id}
       method: DELETE
       proxy: true
       headers:
@@ -265,12 +265,12 @@ sources:
   - name: swapi-vehicle
     description: One vehicle by id
     source:
-      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+      url: https://swapi.mateu.io/api/vehicles/${state.id}
 
   - name: swapi-vehicle-create
     description: Create a vehicle
     source:
-      url: https://swapi.ec1.mateu.io/api/vehicles
+      url: https://swapi.mateu.io/api/vehicles
       method: POST
       proxy: true
       headers:
@@ -281,7 +281,7 @@ sources:
   - name: swapi-vehicle-update
     description: Replace a vehicle
     source:
-      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+      url: https://swapi.mateu.io/api/vehicles/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -292,7 +292,7 @@ sources:
   - name: swapi-vehicle-delete
     description: Delete a vehicle
     source:
-      url: https://swapi.ec1.mateu.io/api/vehicles/${state.id}
+      url: https://swapi.mateu.io/api/vehicles/${state.id}
       method: DELETE
       proxy: true
       headers:
@@ -301,12 +301,12 @@ sources:
   - name: swapi-starship
     description: One starship by id
     source:
-      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+      url: https://swapi.mateu.io/api/starships/${state.id}
 
   - name: swapi-starship-create
     description: Create a starship
     source:
-      url: https://swapi.ec1.mateu.io/api/starships
+      url: https://swapi.mateu.io/api/starships
       method: POST
       proxy: true
       headers:
@@ -317,7 +317,7 @@ sources:
   - name: swapi-starship-update
     description: Replace a starship
     source:
-      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+      url: https://swapi.mateu.io/api/starships/${state.id}
       method: PUT
       proxy: true
       headers:
@@ -328,7 +328,7 @@ sources:
   - name: swapi-starship-delete
     description: Delete a starship
     source:
-      url: https://swapi.ec1.mateu.io/api/starships/${state.id}
+      url: https://swapi.mateu.io/api/starships/${state.id}
       method: DELETE
       proxy: true
       headers:

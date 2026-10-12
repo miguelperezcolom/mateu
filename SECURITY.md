@@ -45,7 +45,7 @@ From 3.0 GA on, security fixes go to the **latest minor of the current major**; 
 In scope: the framework artifacts published from this repository (`io.mateu:*` on Maven Central, the
 .NET and Python packages, the web and native renderers, the Maven plugins and the IDE plugins).
 
-Out of scope: the demo applications and their hosted instances (`demo.mateu.io`, `swapi.ec1.mateu.io`),
+Out of scope: the demo applications and their hosted instances (`demo.mateu.io`, `swapi.mateu.io`),
 which run with throw-away data, and vulnerabilities in third-party dependencies that do not affect
 Mateu — report those upstream (we track them with Dependabot and CodeQL). The dependency
 advisories we cannot fix by upgrading, and the overrides we carry for the rest, are listed with
