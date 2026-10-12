@@ -27,6 +27,7 @@ import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
+import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 
 export default abstract class ConnectedElement extends LitElement {
@@ -156,7 +157,8 @@ export default abstract class ConnectedElement extends LitElement {
             clientSideComponent.metadata = { ...app, menu: withoutHidden(navMenu), navMenu } as App
             this.requestUpdate()
         }
-        Promise.allSettled(mounts.map(option => mateuApiClient.runAction(
+        // Tracked so a page mounted from a remote on a cold load can wait for that remote's sources.
+        const asking = Promise.allSettled(mounts.map(option => mateuApiClient.runAction(
             option.baseUrl,
             option.route,
             '_empty',
@@ -173,13 +175,18 @@ export default abstract class ConnectedElement extends LitElement {
         ).then(increment => {
             const remoteApp = this.remoteAppOf(increment?.fragments, option)
             if (!remoteApp) throw new Error('no app in the answer of ' + option.baseUrl)
+            // The remote's screens name the remote's REST sources, which only its own app knows:
+            // without them a federated listing fetched nothing ("no REST source named …").
+            setRemoteRestSources(option.baseUrl, remoteApp.restSources)
             answers.set(option, { app: remoteApp })
             merge()
         }).catch(() => {
             answers.set(option, { failed: true })
             failed.push(option)
             merge()
-        }))).then(() => {
+        })))
+        trackRemoteCatalogues(asking)
+        asking.then(() => {
             if (failed.length > 0) {
                 // Asked again on a timer while the back-off lasts, and whenever the user clicks
                 // an unavailable section (retryUnavailableMenus) — whichever comes first.
@@ -210,7 +217,7 @@ export default abstract class ConnectedElement extends LitElement {
             const metadata = (fragment.component as ClientSideComponent).metadata
             if (metadata?.type == ComponentMetadataType.App) {
                 const app = metadata as App
-                return { menu: app.menu ?? [], route: app.route, serverSideType: app.serverSideType }
+                return { menu: app.menu ?? [], route: app.route, serverSideType: app.serverSideType, restSources: app.restSources }
             }
         }
         return undefined

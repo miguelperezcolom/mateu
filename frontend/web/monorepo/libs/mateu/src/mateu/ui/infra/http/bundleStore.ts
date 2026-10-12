@@ -4,7 +4,7 @@
 // instead of POSTing to the Mateu server — so the UI runs from static assets with no backend. Live
 // data still comes from external endpoints (@RestOptions/@RestListing …); ACTIONS still need a
 // backend and degrade with the normal "request failed" path when it is absent.
-import { setRestSourceCatalogue, setSampleMode } from './restSourceCatalogue.ts'
+import { setRemoteRestSources, setRestSourceCatalogue, setSampleMode } from './restSourceCatalogue.ts'
 import { setActionCatalogue } from '../ui/actionCatalogue.ts'
 import { setFieldTypeCatalogue, type FieldTypeEntry } from '../expander/fieldTypes.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
@@ -210,6 +210,65 @@ export const toSyncPath = (route: string | undefined): string => {
     return r === '' ? '_no_route' : r
 }
 
+/** Everything a manifest says, parsed: the state the resolvers below read. */
+interface BundleState {
+    increments: Map<string, UIIncrement>
+    contents: Map<string, UIIncrement>
+    templates: BundleTemplate[]
+    routeEntries: RouteEntry[]
+    catalogueSources: RestSourceEntry[]
+    definitions: Record<string, DefinitionSpec>
+    translations: TranslationCatalogue
+    environment: string | undefined
+}
+
+/** A manifest, parsed (a malformed entry is skipped with a warning, never fatal). */
+const parseManifest = (manifest: BundleManifest): BundleState => {
+    const map = new Map<string, UIIncrement>()
+    const contentMap = new Map<string, UIIncrement>()
+    const tpls: BundleTemplate[] = []
+    for (const e of manifest.entries ?? []) {
+        if (!e.ok || !e.json) continue
+        try {
+            const inc = JSON.parse(e.json) as UIIncrement
+            const content = e.contentJson ? JSON.parse(e.contentJson) as UIIncrement : undefined
+            if (e.routePattern) {
+                tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames ?? [], increment: inc, content })
+            } else {
+                map.set(e.syncPath, inc)
+                if (content) contentMap.set(e.syncPath, content)
+            }
+        } catch (err) {
+            console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
+        }
+    }
+    return {
+        increments: map,
+        contents: contentMap,
+        templates: tpls,
+        routeEntries: manifest.routes?.routes ?? [],
+        definitions: manifest.definitions ?? {},
+        catalogueSources: manifest.sources?.sources ?? [],
+        translations: manifest.translations ?? {},
+        environment: manifest.environment ?? undefined,
+    }
+}
+
+const currentState = (): BundleState | undefined => increments === undefined ? undefined : ({
+    increments, contents, templates, routeEntries, catalogueSources, definitions, translations, environment,
+})
+
+const useState = (state: BundleState | undefined): void => {
+    increments = state?.increments
+    contents = state?.contents ?? new Map()
+    templates = state?.templates ?? []
+    routeEntries = state?.routeEntries ?? []
+    catalogueSources = state?.catalogueSources ?? []
+    definitions = state?.definitions ?? {}
+    translations = state?.translations ?? {}
+    environment = state?.environment
+}
+
 /** Load the bundle manifest once. A miss/malformed manifest silently leaves bundle mode off (the
  *  app falls back to the backend at baseUrl). Idempotent-ish: last call wins. */
 export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch): Promise<void> {
@@ -218,32 +277,7 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             const res = await fetchImpl(url)
             if (!res.ok) return
             const manifest = (await res.json()) as BundleManifest
-            const map = new Map<string, UIIncrement>()
-            const contentMap = new Map<string, UIIncrement>()
-            const tpls: BundleTemplate[] = []
-            for (const e of manifest.entries ?? []) {
-                if (!e.ok || !e.json) continue
-                try {
-                    const inc = JSON.parse(e.json) as UIIncrement
-                    const content = e.contentJson ? JSON.parse(e.contentJson) as UIIncrement : undefined
-                    if (e.routePattern) {
-                        tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames ?? [], increment: inc, content })
-                    } else {
-                        map.set(e.syncPath, inc)
-                        if (content) contentMap.set(e.syncPath, content)
-                    }
-                } catch (err) {
-                    console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
-                }
-            }
-            increments = map
-            contents = contentMap
-            templates = tpls
-            routeEntries = manifest.routes?.routes ?? []
-            definitions = manifest.definitions ?? {}
-            catalogueSources = manifest.sources?.sources ?? []
-            translations = manifest.translations ?? {}
-            environment = manifest.environment ?? undefined
+            useState(parseManifest(manifest))
             setRestSourceCatalogue(manifest.sources?.sources)
             // the action catalogue, shipped once and already lowered (BundleManifest.actions)
             setActionCatalogue(manifest.actions)
@@ -258,6 +292,88 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
         }
     })()
     return pending
+}
+
+// ── Static REMOTES ──────────────────────────────────────────────────────────────────────────────
+// A federated shell (RemoteMenu) can mount a domain that has no backend at all: its static bundle.
+// Its base URL then names the bundle's manifest (`https://cdn.example.com/catalog/manifest.json`)
+// instead of a server, and every load the shell aims at it is answered from that manifest — exactly
+// what the static site itself would answer — while its REST sources join the client catalogue as
+// that remote's layer. Each remote keeps its own parsed state; the page's own bundle (if any) is
+// untouched.
+
+const remoteBundles = new Map<string, Promise<BundleState | undefined>>()
+
+/** True when a base URL names a static bundle's manifest rather than a Mateu server. */
+export const isStaticBundleUrl = (baseUrl: string | undefined): boolean => {
+    if (!baseUrl) return false
+    const path = baseUrl.split('#')[0].split('?')[0]
+    return /\.json$/i.test(path)
+}
+
+/** Loads (once) the manifest a static remote's base URL names; undefined when it cannot be read. */
+export const loadRemoteBundle = (url: string, fetchImpl: typeof fetch = fetch): Promise<BundleState | undefined> => {
+    let loading = remoteBundles.get(url)
+    if (!loading) {
+        loading = (async () => {
+            try {
+                const res = await fetchImpl(url)
+                if (!res.ok) return undefined
+                const manifest = (await res.json()) as BundleManifest
+                const state = parseManifest(manifest)
+                setRemoteRestSources(url, manifest.sources?.sources)
+                return state
+            } catch (e) {
+                console.warn('mateu: static remote manifest load failed', url, e)
+                return undefined
+            }
+        })()
+        const settled = loading
+        // a failed load is asked again next time (the remote-menu retry), not cached forever
+        settled.then((state) => { if (!state && remoteBundles.get(url) === settled) remoteBundles.delete(url) })
+        remoteBundles.set(url, settled)
+    }
+    return loading
+}
+
+/**
+ * A static remote's answer to a route load — the same rules as the page's own bundle
+ * ({@link resolveBundledLoad}), read from that remote's manifest. undefined when the manifest cannot
+ * be read or does not answer the route.
+ */
+export const resolveRemoteBundledLoad = async (
+    url: string, syncPath: string, consumedRoute?: string, fetchImpl: typeof fetch = fetch,
+): Promise<UIIncrement | undefined> => {
+    const state = await loadRemoteBundle(url, fetchImpl)
+    if (!state) return undefined
+    // The resolvers read the module's state: swap the remote's in for this one synchronous call.
+    const own = currentState()
+    useState(state)
+    try {
+        const fresh = consumedRoute === undefined || consumedRoute === '_empty'
+        if (!fresh && syncPath === '_no_route') {
+            // The remote mounted at its ROOT as content (a deep link to the shell's menu path): that
+            // is its home screen, never its own app shell nested inside the shell's.
+            const root = getBundledIncrement('_no_route') ?? getExpandedIncrement('_no_route')
+            const home = appShellOf(root)?.homeRoute
+            if (typeof home !== 'string' || toSyncPath(home) === '_no_route') return undefined
+            return resolveBundledLoad(toSyncPath(home), consumedRoute)
+        }
+        return resolveBundledLoad(syncPath, consumedRoute)
+    } finally {
+        useState(own)
+    }
+}
+
+/** True when a base URL points at ANOTHER origin than the page's: a federated remote's server, which
+ *  the page's own bundle must never answer for (it would hand the remote's menu load the shell). */
+export const isForeignBaseUrl = (baseUrl: string | undefined): boolean => {
+    if (!baseUrl || !/^https?:\/\//i.test(baseUrl)) return false
+    try {
+        return typeof window === 'undefined' || new URL(baseUrl).origin !== window.location.origin
+    } catch {
+        return false
+    }
 }
 
 /** Await the in-flight manifest load (if any) — so a route load doesn't race the fetch and hit the
@@ -427,6 +543,7 @@ export const __setBundleForTests = (
 ): void => {
     translations = tr
     localeOverride = undefined
+    remoteBundles.clear()
     increments = m
     contents = c
     templates = t
