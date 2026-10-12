@@ -30,9 +30,14 @@ final class ActionableDispatcher {
     var httpRequest = command.httpRequest();
     var data = command.componentState();
 
-    if (actionable instanceof RouteLink) {
+    if (actionable instanceof RouteLink routeLink) {
       if (emptyIfRoute) return Mono.empty();
-      return findRouteResolverFn.apply(command.withConsumedRoute(route));
+      var target = targetOf(routeLink, command);
+      if (target == null || target.equals(command.route())) {
+        return findRouteResolverFn.apply(command.withConsumedRoute(route));
+      }
+      // resolved as a route of its own: from what the request had consumed, not from the entry
+      return findRouteResolverFn.apply(command.withRoute(target));
     }
     if (actionable instanceof ContentLink contentLink) {
       return Mono.just(contentLink.componentSupplier().component(httpRequest));
@@ -66,6 +71,50 @@ final class ActionableDispatcher {
       return Mono.just(new Text("Es un menu"));
     }
     return Mono.empty();
+  }
+
+  /**
+   * Where a route entry goes: the route it names ({@code @Menu String other = "/e2-demo/other"}),
+   * not the menu path it is reached by ({@code /other}, from the field name) — those only coincided
+   * while the field was called like the route's last segment, and any other name answered "Not
+   * found". Whatever the request carries below the entry (a record: {@code /orders/5} under {@code
+   * /orders}) is kept. A route naming the mount it is served from ({@code /e2-demo/...} to the
+   * {@code /e2-demo} controller) is read relative to it, as every route inside a mount is. The
+   * request's own route is kept when the entry names no in-app route (blank, or an external URL),
+   * or when it is not known which part of the request the entry consumed.
+   */
+  static String targetOf(RouteLink routeLink, RunActionCommand command) {
+    var route = command.route();
+    var target = routeLink.route();
+    if (route == null || target == null || !target.startsWith("/") || target.startsWith("//")) {
+      return route;
+    }
+    var entryPath =
+        command.httpRequest() != null
+            ? (String) command.httpRequest().getAttribute("resolvedPath")
+            : null;
+    if (entryPath == null || entryPath.isEmpty() || !route.startsWith(entryPath)) {
+      return route;
+    }
+    var rest = route.substring(entryPath.length());
+    if (!rest.isEmpty() && !rest.startsWith("/") && !rest.startsWith("?")) {
+      return route;
+    }
+    return relativeToMount(target, command.baseUrl()) + rest;
+  }
+
+  private static String relativeToMount(String target, String baseUrl) {
+    if (baseUrl == null || baseUrl.contains("://")) {
+      return target;
+    }
+    var mount = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+    if (mount.length() <= 1 || !mount.startsWith("/")) {
+      return target;
+    }
+    if (target.equals(mount)) {
+      return "";
+    }
+    return target.startsWith(mount + "/") ? target.substring(mount.length()) : target;
   }
 
   private static Object invokeIfCallable(Object object, HttpRequest httpRequest) {

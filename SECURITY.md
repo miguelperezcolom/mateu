@@ -54,4 +54,4 @@ their reasons in [SECURITY-DEPENDENCIES.md](SECURITY-DEPENDENCIES.md).
 ## Hardening guidance
 
 How to run a Mateu app safely — token verification, CSP, CORS, secrets in REST sources — is in
-[Deploy to production](https://mateu.io/java-user-manual/build/deploy-to-production/).
+[Deploy to production](https://mateu.io/deploy/production-checklist/).

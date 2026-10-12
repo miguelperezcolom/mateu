@@ -71,6 +71,54 @@ public final class TestMateu implements AutoCloseable {
     return new TestMateu(ctx);
   }
 
+  /**
+   * Boot a backend whose routes are served the way the WebFlux, Quarkus and Helidon annotation
+   * processors serve them: one pre-compiled {@link io.mateu.uidl.interfaces.RouteResolver} per
+   * mount, matching the mount's ABSOLUTE path with no parent route, and NO {@link
+   * RoutedClassProvider} — the MVC/Micronaut shape is {@link #withUis}.
+   */
+  public static TestMateu withCompiledRouteResolvers(Class<?>... uiClasses) {
+    var ctx = new AnnotationConfigApplicationContext();
+    ctx.registerBean(BeanProvider.class, () -> new ContextBeanProvider(ctx));
+    ctx.registerBean(
+        com.fasterxml.jackson.databind.ObjectMapper.class,
+        () -> new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules());
+    int i = 0;
+    for (Class<?> uiClass : uiClasses) {
+      var path = uiClass.getAnnotation(io.mateu.uidl.annotations.UI.class).value();
+      var patterns =
+          List.of(
+              new io.mateu.uidl.interfaces.CompiledRouteValue(
+                  path,
+                  "_empty",
+                  java.util.regex.Pattern.compile(path),
+                  java.util.regex.Pattern.compile("_empty")));
+      var name = "routeResolver_" + (i++) + "_" + uiClass.getSimpleName();
+      ctx.registerBean(
+          name,
+          io.mateu.uidl.interfaces.RouteResolver.class,
+          () ->
+              new io.mateu.uidl.interfaces.RouteResolver() {
+                @Override
+                public Class<?> resolveRoute(
+                    String route,
+                    String consumedRoute,
+                    io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+                  return uiClass;
+                }
+
+                @Override
+                public List<io.mateu.uidl.interfaces.CompiledRouteValue> supportedRoutesPatterns() {
+                  return patterns;
+                }
+              });
+    }
+    ctx.scan("io.mateu.core");
+    ctx.refresh();
+    MateuBeanProvider.setBeanProvider(ctx.getBean(BeanProvider.class));
+    return new TestMateu(ctx);
+  }
+
   /** Initial page load for a route — what the browser does when navigating to it. */
   public UIIncrementDto sync(String route) {
     return run(RunActionRqDto.builder().route(route).actionId("").build());

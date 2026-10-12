@@ -1,0 +1,6 @@
+type: AppShell
+title: YAML parity
+menu:
+  - type: RouteLink
+    label: Page
+    route: page

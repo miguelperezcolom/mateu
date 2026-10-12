@@ -90,7 +90,7 @@ Mateu is a great choice for:
 - internal tools
 - admin panels
 - enterprise backoffices
-- backend-driven UIs
+- UIs you want to define once and render on web, desktop and mobile — served by your backend or shipped as a static bundle
 
 ---
 
