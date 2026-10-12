@@ -17,7 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf, withFormActions, hostContentOf, wizardForwardOf,
+  welcomeOf, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -463,6 +463,18 @@ test('a wizard step leaves Next to the guided process but keeps Back and Save', 
   assert.deepEqual(hostContentOf({ tree: last, state: {}, data: {} }, null, { forWizard: true })
     .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId)), ['back', 'saveDraft'])
   assert.equal(wizardForwardOf({ tree: last, state: {}, data: {} }).actionId, 'checkIn')
+})
+
+test('a sectioned form with tabs inside one section is not an item overview', () => {
+  // any card anywhere counted as the key panel: the form was drawn as its first section plus
+  // the tab bar, every other section gone
+  const card = (title, children) => node({ type: 'Card', title: { text: title } }, children)
+  const tabs = node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'Room' }, [node({ type: 'Text', text: 'r' })])])
+  const form = node({ type: 'VerticalLayout' }, [card('Guests', [node({ type: 'Text', text: 'g' })]), card('Preferences', [tabs]), card('Notes', [])])
+  assert.equal(itemOverviewOf({ tree: form, state: {}, data: {} }), null)
+  // the archetype: the key card and the tab bar side by side
+  const io = node({ type: 'HorizontalLayout' }, [card('Key', [node({ type: 'Text', text: 'k' })]), tabs])
+  assert.ok(itemOverviewOf({ tree: io, state: {}, data: {} }))
 })
 
 test('a form whose rich blocks replace the generic form keeps its action row', () => {

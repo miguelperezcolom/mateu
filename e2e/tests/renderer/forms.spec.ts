@@ -53,6 +53,18 @@ test.describe('renderer-agnostic forms', () => {
     await expect(page.getByText('Checked in Ana, 1 nights, notes: late').first()).toBeVisible();
   });
 
+  test('a sectioned form with tabs in one section shows every section, the open tab and its buttons', async ({ page }) => {
+    // on Redwood a card + a tab bar anywhere was taken for an item overview: only the first
+    // section and the tab bar were drawn
+    await page.goto('/walk-layout');
+    await expect(page.getByText('X1234567').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('3 previous stays').or(page.getByRole('textbox', { name: 'History' })).first()).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Diet' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('button', { name: 'Echo' })).toBeVisible();
+    await page.getByRole('button', { name: 'Add' }).click();
+    await expect(page.getByText('add address').first()).toBeVisible();
+  });
+
   test('a YAML form with no view model renders its definition', async ({ page }) => {
     await page.goto('/walk-yaml');
     await expect(page.getByText('YAML booking').first()).toBeVisible({ timeout: 15000 });

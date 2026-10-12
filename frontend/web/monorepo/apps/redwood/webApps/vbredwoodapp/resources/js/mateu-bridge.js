@@ -2733,11 +2733,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ids
   }
 
+  /** The node whose children include `target` (null at the root or when absent). */
+  function parentOfNode(node, target) {
+    if (!node || typeof node !== 'object') return null
+    for (const child of node.children || []) {
+      if (child === target) return node
+      const found = parentOfNode(child, target)
+      if (found) return found
+    }
+    return null
+  }
+
   /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
   function itemOverviewOf(ctx) {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
     if (!tabLayout) return null
-    const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+    // the key panel is the tab bar's SIBLING (the archetype lays them side by side). Any card
+    // anywhere used to do: a sectioned form with tabs inside one section (its other sections are
+    // cards) was taken for an item overview and drawn as its first section + the tab bar — every
+    // other section, and the form's buttons, were gone
+    const parent = parentOfNode(ctx.tree, tabLayout)
+    const keyCard = ((parent && parent.children) || [])
+      .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
     // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
     // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
     // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
