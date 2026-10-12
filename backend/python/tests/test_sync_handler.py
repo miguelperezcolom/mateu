@@ -1163,7 +1163,8 @@ def test_the_shells_home_content_load_renders_the_app_as_a_page_not_the_shell_ag
     # asked again — the browser's loop guard aborted it with console errors
     shell = handler().handle(RunActionRq(route="", consumed_route="_empty", server_side_type=_name(TestApp)))
     assert shell.fragments[0].component.metadata.type == "App"
-    assert shell.fragments[0].component.metadata.home_route == "_no_home_route"
+    # the shell lands on its first menu item now; the sentinel load below still answers a page
+    assert shell.fragments[0].component.metadata.home_route != "_no_home_route"
     content = handler().handle(RunActionRq(
         route="/_no_home_route", consumed_route="", server_side_type=_name(TestApp),
     ))

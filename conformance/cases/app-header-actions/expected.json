@@ -23,7 +23,7 @@
           "label" : "Export"
         } ],
         "homeConsumedRoute" : "/conformance/app-header-actions",
-        "homeRoute" : "_no_home_route",
+        "homeRoute" : "/conformance/app-header-actions/home",
         "layout" : "SINGLE_SLOT",
         "menu" : [ {
           "consumedRoute" : "/conformance/app-header-actions",

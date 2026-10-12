@@ -93,10 +93,20 @@ const deferBootScripts = (html) => {
        + '\n<!-- HASTAAQUIJS -->' + deferred.slice(end)
 }
 
+/**
+ * The VB build leaves `services/catalog.json` as a placeholder (`"#{env.catalogJson}#"`) that only
+ * a Visual Builder host substitutes. Served by Mateu nothing does, so the runtime's catalog registry
+ * choked on it on EVERY page load (a console error + a 400). The app declares no service catalog:
+ * an empty one is the truth.
+ */
+export const fillVbEnvPlaceholders = (content) => content
+  .split('"\\"#{env.catalogJson}#\\""').join('"{}"')
+  .split('"#{env.catalogJson}#"').join('{}')
+
 const transform = (file) => {
   if (!TEXT_EXTENSIONS.has(extname(file))) return
   const original = readFileSync(file, 'utf8')
-  let content = original.split(DEV_BASE_URL).join('')
+  let content = fillVbEnvPlaceholders(original.split(DEV_BASE_URL).join(''))
   if (file.endsWith('index.html')) {
     content = content
       // servida en rutas profundas (/checkin/3) los assets relativos (version_.../...)

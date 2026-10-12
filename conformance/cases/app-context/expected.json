@@ -19,7 +19,7 @@
           } ]
         } ],
         "homeConsumedRoute" : "/conformance/app-context",
-        "homeRoute" : "_no_home_route",
+        "homeRoute" : "/conformance/app-context/home",
         "layout" : "SINGLE_SLOT",
         "menu" : [ {
           "consumedRoute" : "/conformance/app-context",

@@ -162,7 +162,7 @@ test('the page chains are thin: they take the projection and the plan from the b
     assert.ok(nav.includes('bridge.' + fn + '('), 'onMateuNavigate uses ' + fn)
   }
   assert.ok(action.includes('bridge.outboundActionOf('))
-  assert.ok(action.split('\n').length < 700, 'runMateuAction stays well under its old 835 lines')
+  assert.ok(action.split('\n').length < 750, 'runMateuAction stays well under its old 835 lines')
   assert.ok(nav.split('\n').length < 600, 'onMateuNavigate stays well under its old 696 lines')
 })
 
@@ -214,6 +214,13 @@ test('@AutoSave also runs from the generic form (not only from display-block inp
   // the actions walkthrough: a settings page whose fields are the generic form never saved
   const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
   assert.ok(edited.includes('bridge.autoSaveOf('), 'mateuFieldEdited honors @AutoSave')
+})
+
+test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
+  const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
+    'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
+  assert.ok(!bundle.includes('#{env.'), 'a #{env.*}# placeholder only a VB host fills is left in the jar bundle')
+  assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

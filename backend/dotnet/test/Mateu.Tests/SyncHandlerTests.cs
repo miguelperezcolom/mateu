@@ -1338,7 +1338,8 @@ public class SyncHandlerTests
         // which asked again — the browser's loop guard aborted it with console errors
         var shell = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
         var shellMeta = (AppMetadataDto)((ClientSideComponentDto)shell.Fragments.Single().Component!).Metadata;
-        Assert.Equal("_no_home_route", shellMeta.HomeRoute);
+        // the shell lands on its first menu item now; the sentinel load below still answers a page
+        Assert.NotEqual("_no_home_route", shellMeta.HomeRoute);
 
         var content = Handler().Handle(new RunActionRqDto
         {

@@ -38,6 +38,7 @@ class RuleMenuLeafSyncTest {
     public Message archiveAll() {
       return new Message("archived");
     }
+
     @Menu
     Rule ping =
         Rule.builder()

@@ -7,6 +7,10 @@ namespace Mateu.Core;
 public sealed class MateuRegistry
 {
     private readonly Dictionary<string, Type> _byRoute = new();
+    // The mounts of the registered apps: a route that arrives WITH its mount (a notification /
+    // global-search hit, a deep link: "/shell/probe") resolves like the mount-relative one, as on
+    // Java, where the mount is stripped.
+    private readonly List<string> _mounts = new();
     private readonly Dictionary<string, Type> _byName = new();
     private readonly Assembly[] _assemblies;
     private readonly List<IComponentAdapter> _adapters = [];
@@ -76,6 +80,8 @@ public sealed class MateuRegistry
             // [App] carries no route.
             var route = app is not null && !string.IsNullOrWhiteSpace(app.Route) ? app.Route : ui?.Route;
             if (route is null) continue;
+            if (app is not null && Normalize(route) is { Length: > 0 } mount && !_mounts.Contains(mount))
+                _mounts.Add(mount);
             _byRoute[Normalize(route)] = type;
             _byName[type.FullName!] = type;
         }
@@ -111,7 +117,18 @@ public sealed class MateuRegistry
             return t;
         var norm = Normalize(route);
         if (_byRoute.TryGetValue(norm, out var r)) return r;
+        if (UnderMount(norm) is { } relative && _byRoute.TryGetValue(relative, out var rel)) return rel;
         return norm == "" ? AppType : null;
+    }
+
+    /// <summary><paramref name="norm"/> without the mount of a registered app it starts with; null
+    /// when it starts with none, or names a registered route as it is (that one wins).</summary>
+    public string? UnderMount(string norm)
+    {
+        if (_byRoute.ContainsKey(norm)) return null;
+        foreach (var mount in _mounts)
+            if (norm.StartsWith(mount + "/", StringComparison.Ordinal)) return norm[(mount.Length + 1)..];
+        return null;
     }
 
     /// <summary>Resolves any type by full name across the scanned assemblies — used to instantiate a
@@ -128,6 +145,7 @@ public sealed class MateuRegistry
     public (Type Type, string BaseRoute)? ResolveByPrefix(string? route)
     {
         var norm = Normalize(route);
+        if (UnderMount(norm) is { } relative && ResolveByPrefix(relative) is { } underMount) return underMount;
         var parts = norm.Length == 0 ? [] : norm.Split('/');
         for (var n = parts.Length; n >= 1; n--)
         {

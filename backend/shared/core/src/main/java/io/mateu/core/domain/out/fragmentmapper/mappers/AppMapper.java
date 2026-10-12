@@ -46,6 +46,7 @@ public final class AppMapper {
     }
     var appRouteForMenu = appRoute;
     var menu = buildMenu(app, route, appRouteForMenu);
+    app = withFirstMenuItemAsHome(app, menu);
     var selectedOption = getSelectedOption(appRoute, route, app.menu(), httpRequest);
     var appDto =
         AppDto.builder()
@@ -671,5 +672,51 @@ public final class AppMapper {
                         httpRequest)
                     .setSlot("widgets"))
         .toList();
+  }
+
+  /**
+   * An app that names no home lands on its FIRST MENU ITEM — the documented rule (and what the
+   * Redwood shell already did on its own). The wire used to carry the "_no_home_route" sentinel, so
+   * the Vaadin shell, React Native and IntelliJ opened an empty page with just the app's title.
+   * Only a navigable leaf counts: a rule leaf (runs an action), a remote menu, a separator or a
+   * hidden/disabled entry is skipped. An app with no such leaf keeps the sentinel (it draws
+   * itself).
+   */
+  static AppShell withFirstMenuItemAsHome(AppShell app, List<MenuOptionDto> menu) {
+    var home = app.homeRoute();
+    if (home != null && !home.isBlank() && !home.endsWith("_no_home_route")) {
+      return app;
+    }
+    if (app.homeServerSideType() != null) {
+      return app;
+    }
+    var first = firstNavigableLeaf(menu);
+    return first == null ? app : app.withHomeRoute(first);
+  }
+
+  static String firstNavigableLeaf(List<MenuOptionDto> menu) {
+    if (menu == null) {
+      return null;
+    }
+    for (var option : menu) {
+      if (option == null || option.separator() || !option.visible() || option.disabled()) {
+        continue;
+      }
+      if (option.submenus() != null && !option.submenus().isEmpty()) {
+        var nested = firstNavigableLeaf(option.submenus());
+        if (nested != null) {
+          return nested;
+        }
+        continue;
+      }
+      if (option.remote()
+          || (option.rules() != null && !option.rules().isEmpty())
+          || option.route() == null
+          || option.route().isBlank()) {
+        continue;
+      }
+      return option.route();
+    }
+    return null;
   }
 }
