@@ -104,6 +104,19 @@ public class McpTests
     }
 
     [Fact]
+    public void A_message_keeps_its_severity_and_title()
+    {
+        // the wire's message carries "variant", not "type": every error used to project as "info"
+        var s = McpProjection.Project(JsonNode.Parse("""
+        {"messages":[{"variant":"error","title":"Something went wrong","text":"Reference: abc"},{"text":"plain"}]}
+        """));
+        Assert.Equal("error", (string?)s["messages"]![0]!["type"]);
+        Assert.Equal("Something went wrong", (string?)s["messages"]![0]!["title"]);
+        Assert.Equal("info", (string?)s["messages"]![1]!["type"]);
+        Assert.Null(s["messages"]![1]!["title"]);
+    }
+
+    [Fact]
     public void Empty_increment_does_not_throw()
     {
         var s = McpProjection.Project(new JsonObject());

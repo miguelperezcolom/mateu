@@ -104,6 +104,93 @@ public class AdapterParityITFoundation {
         .body(not(containsString("adminOnlyField")));
   }
 
+  /**
+   * The header each adapter's test app turns into an AUTHENTICATED principal carrying the listed
+   * roles, the way its framework does it (a Spring Security {@code Authentication}, a WebFlux
+   * exchange principal, Micronaut's request principal, a JAX-RS {@code SecurityContext}). The
+   * contract below then checks that the principal reaches Mateu's authorization — the positive path
+   * {@link #aForgedBearerTokenRevealsNothing} cannot see.
+   */
+  public static final String PARITY_ROLES_HEADER = "X-Parity-Roles";
+
+  private static String action(String actionId) {
+    return "{\"route\": \"\", \"consumedRoute\": \"_empty\", \"actionId\": \""
+        + actionId
+        + "\", \"componentState\": {}, \"parameters\": {}, \"appState\": {}}";
+  }
+
+  /**
+   * An {@code @EyesOnly(roles = "admin")} action of {@code @UI("/restricted")} ({@code
+   * adminAction}, answering the message {@code "admin action ran"}) is REFUSED with 403 for an
+   * anonymous caller — the method never runs — even though nothing on screen offers it.
+   */
+  public void refusesARestrictedActionToAnAnonymousCaller() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("adminAction"))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(403)
+        .body(not(containsString("admin action ran")));
+  }
+
+  /**
+   * A caller the framework authenticated with the {@code admin} role (sent as {@code headers}, e.g.
+   * {@link #PARITY_ROLES_HEADER}; empty when the test itself establishes the identity) sees the
+   * {@code @EyesOnly} field and may run the restricted action: the framework's principal reaches
+   * Mateu's authorization on this adapter.
+   */
+  public void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
+      java.util.Map<String, String> headers) {
+    given()
+        .headers(headers)
+        .contentType(ContentType.JSON)
+        .body(action(""))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("adminOnlyField"));
+    given()
+        .headers(headers)
+        .contentType(ContentType.JSON)
+        .body(action("adminAction"))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("admin action ran"));
+  }
+
+  /**
+   * The error boundary over HTTP. {@code @UI("/failing")} has an action {@code explode} that throws
+   * {@code IllegalStateException("db password is hunter2")} and one, {@code refuse}, that throws a
+   * {@code UserFacingException("The booking is already checked in")}: the first answers the generic
+   * text with a reference id and never its message; the second shows its message as written.
+   */
+  public void answersAnUnexpectedErrorWithAReferenceNeverItsMessage() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("explode"))
+        .when()
+        .post("/failing/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("Something went wrong"))
+        .body(containsString("Reference: "))
+        .body(not(containsString("hunter2")))
+        .body(not(containsString("IllegalStateException")));
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("refuse"))
+        .when()
+        .post("/failing/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("The booking is already checked in"));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()
@@ -205,6 +292,41 @@ public class AdapterParityITFoundation {
         .post("/mateu/mcp")
         .then()
         .statusCode(202);
+  }
+
+  private static io.restassured.response.ValidatableResponse mcpToolCall(
+      String tool, String arguments) {
+    return given()
+        .contentType(ContentType.JSON)
+        .body(
+            "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":\""
+                + tool
+                + "\",\"arguments\":"
+                + arguments
+                + "}}")
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200);
+  }
+
+  /**
+   * With {@code mateu.mcp.enabled=true}, a tool call goes through the same authorization and error
+   * boundary as the sync endpoint: an anonymous agent describing {@code /restricted} does not see
+   * the {@code @EyesOnly} field, cannot run its restricted action, and a failing action answers the
+   * generic text — never the exception's message.
+   */
+  public void mcpToolCallsApplyTheSameRbacAndErrorBoundary() {
+    mcpToolCall("mateu_describe_screen", "{\"route\":\"restricted\"}")
+        .body(containsString("visibleField"))
+        .body(not(containsString("adminOnlyField")))
+        .body(not(containsString("top-secret")));
+    mcpToolCall("mateu_run_action", "{\"route\":\"restricted\",\"actionId\":\"adminAction\"}")
+        .body(containsString("isError"))
+        .body(not(containsString("admin action ran")));
+    mcpToolCall("mateu_run_action", "{\"route\":\"failing\",\"actionId\":\"explode\"}")
+        .body(containsString("Something went wrong"))
+        .body(not(containsString("hunter2")));
   }
 
   /**

@@ -372,3 +372,17 @@ public class CompactPage
 
     public string? Email { get; set; } = "ada@example.com";
 }
+
+// The access attributes as an ANONYMOUS caller sees them: the [EyesOnly] field is not on the wire,
+// the [ReadOnlyUnless] one is read-only, the [DisabledUnless] button disabled.
+[UI("conformance/access-annotations"), Title("Access annotations")]
+public class AccessAnnotations
+{
+    public string? Name { get; set; } = "Ada";
+
+    [EyesOnly(Roles = ["hr"])] public string? Salary { get; set; } = "100k";
+
+    [ReadOnlyUnless(Roles = ["manager"])] public string? Notes { get; set; } = "n/a";
+
+    [Button, DisabledUnless(Roles = ["manager"])] public void Approve() { }
+}

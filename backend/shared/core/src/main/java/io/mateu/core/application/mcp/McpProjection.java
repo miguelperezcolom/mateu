@@ -194,7 +194,14 @@ public final class McpProjection {
         ObjectNode mo = ms.addObject();
         mo.put(
             "text", m.hasNonNull("text") ? m.get("text").asText() : m.path("message").asText(""));
-        mo.put("type", m.path("type").asText("info"));
+        // The wire's MessageDto names its severity "variant" (error/warning/success/info): reading
+        // only "type" told an agent every failure was "info".
+        mo.put(
+            "type",
+            m.hasNonNull("variant") ? m.get("variant").asText() : m.path("type").asText("info"));
+        if (!m.path("title").asText("").isBlank()) {
+          mo.put("title", m.get("title").asText());
+        }
       }
     }
     if (commands.isArray()) {

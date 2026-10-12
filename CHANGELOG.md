@@ -114,7 +114,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   which scans only Mateu's packages. Apps no longer need `scanBasePackages = "io.mateu"` — drop it
   (and scan your own packages if your code lives under `io.mateu.*`).
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
-- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
+- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`. Now also on the ports: .NET
+  `MateuOptions.Mcp = true` / Python `add_mateu(..., mcp=True)` (or `MATEU_MCP_ENABLED=true` on
+  both); a failing MCP tool call answers the error boundary's generic text + reference, never the
+  raw exception.
+- **.NET / Python proxied REST calls surface failures** like Java: a >=400 or transport error
+  answers `_restfetchError {status, message}` instead of an empty `_restfetch` the renderer read as
+  success; values interpolated into a JSON body are escaped; .NET sends a declared `Content-Type`
+  (it was dropped, so a JSON body travelled as `text/plain`); .NET answers a malformed sync body with
+  an error toast instead of a raw 500.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
 - **RunJS is opt-in** (`<meta name="mateu-allow-run-js" content="true">`).
 - **Quarkus** apps declare `quarkus-rest-jackson`; `quarkus-spring-di` is no longer brought in.

@@ -37,9 +37,11 @@ so every host produces the same result.
 - **Native endpoint** — the backend serves the same MCP projection directly, so an app can *also be an
   MCP* with no sidecar to deploy, enforcing permissions natively. Available on **Java** (every adapter:
   Spring MVC, Spring WebFlux, Micronaut, Quarkus, Helidon MP), **Python** (FastAPI) and **.NET** (ASP.NET
-  Core) — all at `POST /mateu/mcp`, all sharing one projection. On Java it is **off by default**: enable
-  it with `mateu.mcp.enabled=true` (it gives any caller holding a valid token a programmatic way to
-  drive every screen, which the application has to decide to expose).
+  Core) — all at `POST /mateu/mcp`, all sharing one projection. It is **off by default** everywhere:
+  enable it with `mateu.mcp.enabled=true` (Java), `MateuOptions.Mcp = true` (.NET),
+  `add_mateu(..., mcp=True)` (Python) or `MATEU_MCP_ENABLED=true` (.NET and Python). It gives any
+  caller holding a valid token a programmatic way to drive every screen, which the application has
+  to decide to expose.
 
 ## Permissions (RBAC)
 

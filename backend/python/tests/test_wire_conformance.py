@@ -33,6 +33,7 @@ from mateu_uidl import AppShell, AppSupplier, BannerTheme, Dashboard, Disabled, 
 from mateu_uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
 from mateu_uidl import Text as TextField  # noqa: E402
 from mateu_uidl import Max, Min  # noqa: E402
+from mateu_uidl import EyesOnly, ReadOnlyUnless, button, disabled_unless  # noqa: E402
 
 
 class Colour(str, Enum):
@@ -393,6 +394,19 @@ class CompactPage:
     email: str = "ada@example.com"
 
 
+@ui("/conformance/access-annotations")
+@title("Access annotations")
+class AccessAnnotations:
+    name: str = "Ada"
+    salary: Annotated[str, EyesOnly(roles=("hr",))] = "100k"
+    notes: Annotated[str, ReadOnlyUnless(roles=("manager",))] = "n/a"
+
+    @button()
+    @disabled_unless(roles=("manager",))
+    def approve(self):
+        return None
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -448,7 +462,12 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations)]
+
+
+def test_every_case_of_the_corpus_is_wired():
+    # a case directory missing here would be a spec this port silently never checks
+    assert {d.name for d in CORPUS.iterdir() if d.is_dir()} == {case for case, _ in CASES}
 
 
 @pytest.mark.parametrize("case,view", CASES)

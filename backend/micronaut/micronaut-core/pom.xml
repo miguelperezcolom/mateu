@@ -14,6 +14,9 @@
     <description>Runtime of the Mateu adapter for Micronaut.</description>
 
   <properties>
+    <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 56.6%
+         (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
+    <jacoco.min.bundle.coverage>55%</jacoco.min.bundle.coverage>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- aligned with the micronaut platform version used by the demos/starters/e2e app
          (micronaut-platform 4.10.21), so the generated bean definitions match the runtime that
