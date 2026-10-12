@@ -122,6 +122,7 @@ public class FormMapper {
           .size(resolveSize(button))
           .separatorBefore(button.separatorBefore())
           .route(routeOf(button))
+          .rowsSelectedRequired(button.rowsSelectedRequired())
           .build();
     }
     return null;

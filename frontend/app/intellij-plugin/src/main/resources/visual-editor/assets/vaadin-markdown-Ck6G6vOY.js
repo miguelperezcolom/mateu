@@ -1,0 +1,1 @@
+import"./vaadinCanvasRenderer-BlYcewyx.js";

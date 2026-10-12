@@ -27,7 +27,14 @@ public record Button(
     String cssClasses,
     Object parameters,
     String shortcut,
-    boolean separatorBefore)
+    boolean separatorBefore,
+    /**
+     * The button's action only makes sense over selected listing rows (a bulk action): the renderer
+     * disables it while nothing is selected. Carried by the BUTTON so the client needs no lookup of
+     * the advertised action by id — the id a toolbar dispatches and the one an action is advertised
+     * under are not always the same string.
+     */
+    boolean rowsSelectedRequired)
     implements Component, UserTrigger {
 
   @Override
@@ -38,13 +45,13 @@ public record Button(
   public Button(String label, String actionId) {
     this(
         actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
-        null, null, null, null, null, null, false);
+        null, null, null, null, null, null, false, false);
   }
 
   public Button(String label, String actionId, String shortcut) {
     this(
         actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
-        null, null, null, null, null, shortcut, false);
+        null, null, null, null, null, shortcut, false, false);
   }
 
   public Button(String label, Runnable runnable) {
@@ -68,6 +75,7 @@ public record Button(
         null,
         null,
         null,
+        false,
         false);
   }
 
@@ -92,6 +100,7 @@ public record Button(
         null,
         null,
         null,
+        false,
         false);
   }
 
@@ -148,6 +157,7 @@ public record Button(
         null,
         null,
         null,
+        false,
         false);
   }
 

@@ -242,8 +242,11 @@ export function listingBaseOf(ctx, opts = {}) {
     selectionMode: { row: md.rowsSelectionEnabled ? 'multiple' : 'none' },
     // las acciones que no tienen sentido sin selección (Action.rowsSelectedRequired: Delete…)
     // (las acciones declaradas del ServerSide host, no los botones)
+    // + los botones de la toolbar que traen la guarda ELLOS MISMOS (Button.rowsSelectedRequired, todo
+    // @ListToolbarButton): el id que dispara el botón y el de la acción anunciada no siempre coinciden
     selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
-      .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
+      .filter((a) => a.rowsSelectedRequired).map((a) => a.id)
+      .concat((md.toolbar || []).filter((b) => b && b.rowsSelectedRequired).map((b) => b.actionId)),
     // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
     // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
     rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),

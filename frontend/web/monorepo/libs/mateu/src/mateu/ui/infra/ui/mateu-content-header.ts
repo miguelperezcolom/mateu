@@ -1,3 +1,4 @@
+import { SELECTION_CHANGED_EVENT, withSelectionGate } from "@infra/ui/selectionGate";
 import { customElement, property, state } from "lit/decorators.js";
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
@@ -96,7 +97,12 @@ export class MateuContentHeader extends LitElement {
         // The automatic trail reads the shell's menu, which grows when the remote sections answer:
         // a header drawn on a cold load (the section alone) is drawn again with the whole trail.
         this._offShellMenu = onShellMenuChange(() => this.requestUpdate())
+        // a selection-gated toolbar button (a bulk action of the listing below) enables and
+        // disables with the listing's row selection
+        document.addEventListener(SELECTION_CHANGED_EVENT, this._onSelectionChanged)
     }
+
+    private _onSelectionChanged = () => this.requestUpdate()
 
     private _offShellMenu: (() => void) | undefined
 
@@ -104,6 +110,7 @@ export class MateuContentHeader extends LitElement {
         this._offShellMenu?.()
         this._offShellMenu = undefined
         document.removeEventListener('click', this._onDocClick)
+        document.removeEventListener(SELECTION_CHANGED_EVENT, this._onSelectionChanged)
         window.removeEventListener('resize', this._resetOverflow)
         this._ro?.disconnect()
         this._ro = undefined
@@ -233,8 +240,17 @@ export class MateuContentHeader extends LitElement {
         </button>`
     }
 
-    renderBtn = (button: Button) => {
-        if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
+    /**
+     * A ROUTED plain listing renders its toolbar HERE, so the bulk buttons' selection guard has to
+     * live here too: disabled while the sibling listing has no selected row (prevent the error
+     * instead of answering the click with a toast). The guard rides on the button.
+     */
+    private gated = (button: Button): Button =>
+        button.rowsSelectedRequired ? withSelectionGate(button, this.listingSelection()) : button
+
+    renderBtn = (shown: Button) => {
+        if ((this.data ?? {})[shown.actionId + '.hidden']) return nothing
+        const button = this.gated(shown)
         const label = this.evalLabel(button.label)
         // Renderers with their own design system provide the button through
         // the renderToolbarButton hook; the Vaadin default stays here.
@@ -276,7 +292,7 @@ export class MateuContentHeader extends LitElement {
                                 @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
                         ${this._overflowOpen ? html`
                             <div class="overflow-menu">
-                                ${menu.map(b => html`
+                                ${menu.map(this.gated).map(b => html`
                                     <button class="overflow-item" ?disabled="${b.disabled}"
                                             data-action-id="${b.actionId}"
                                             @click="${() => this.handleButtonClick(b)}">${this.evalLabel(b.label)}</button>

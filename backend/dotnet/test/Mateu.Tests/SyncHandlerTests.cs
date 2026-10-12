@@ -2210,6 +2210,11 @@ public class SyncHandlerTests
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
             + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
             + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+        // The BUTTON carries the selection guard too, so the renderer can disable it while nothing
+        // is selected without looking the advertised action up by id (Java's
+        // ButtonDto.rowsSelectedRequired); a button that is not gated omits it.
+        Assert.Matches("\"actionId\":\"action-on-row-deactivate\"[^{}]*\"rowsSelectedRequired\":true", json);
+        Assert.DoesNotMatch("\"actionId\":\"action-on-row-restockAll\"[^{}]*\"rowsSelectedRequired\"", json);
     }
 
     [Fact]

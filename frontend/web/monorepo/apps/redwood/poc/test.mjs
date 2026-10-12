@@ -468,6 +468,33 @@ test('listing: una columna de UUIDs se abrevia sin tocar la fila', () => {
   assert.ok(picked.every((r) => !('id__uuidCell' in r))) // la selección manda la fila tal cual
 })
 
+// 14 bis-b) La guarda de selección viaja EN EL BOTÓN (Button.rowsSelectedRequired): un botón de
+//     toolbar cuyo id no coincide con el de la acción anunciada (un @Action también se anuncia con
+//     su id nested-form-…) sigue sin dispararse sin filas marcadas.
+test('listing: un botón de toolbar con rowsSelectedRequired exige selección aunque su id no esté anunciado', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, search)
+  const ctx = reg.contexts[HOST_ID]
+  const md = (function find(n) {
+    if (!n || typeof n !== 'object') return null
+    if (n.metadata && n.metadata.type === 'Crud') return n.metadata
+    for (const c of (n.children || [])) { const f = find(c); if (f) return f }
+    return null
+  })(ctx.tree)
+  assert.ok(md, 'the fixture carries a Crud')
+  md.toolbar = (md.toolbar || []).concat([
+    { actionId: 'action-on-row-cancel', label: 'Cancel', rowsSelectedRequired: true },
+    { actionId: 'purgeAll', label: 'Purge all' },
+  ])
+  const listing = listingOf(ctx)
+  assert.ok(listing.selectionRequired.includes('action-on-row-cancel'))
+  assert.ok(!listing.selectionRequired.includes('purgeAll'))
+})
+
 // 14 ter) Selección de filas (Listing.rowsSelectionEnabled): la tabla pone casillas y una acción
 //     del host lleva las filas marcadas en crud_selected_items — el contrato de Vaadin, que
 //     HttpRequest.getSelectedRows lee del componentState.
