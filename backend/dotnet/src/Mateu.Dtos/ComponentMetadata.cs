@@ -58,6 +58,7 @@ namespace Mateu.Dtos;
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
+[JsonDerivedType(typeof(RecordMergeMetadataDto), "RecordMerge")]
 [JsonDerivedType(typeof(MatrixGridMetadataDto), "MatrixGrid")]
 [JsonDerivedType(typeof(MapMetadataDto), "Map")]
 [JsonDerivedType(typeof(DropZoneMetadataDto), "DropZone")]
@@ -364,6 +365,30 @@ public record ActionPanelMetadataDto(
     IReadOnlyList<ActionPanelCategoryDto> Categories,
     int MaxPerCategory,
     bool HideUnpopulatedToggle) : ComponentMetadataDto;
+
+/// <summary>Compare and merge: records side by side, a pick per field, a merge action. (Mirrors
+/// io.mateu.dtos.RecordMergeDto.)</summary>
+public record RecordMergeMetadataDto(
+    string? Title,
+    IReadOnlyList<MergeRecordDto> Records,
+    IReadOnlyList<MergeFieldDto> Fields,
+    string? MergeActionId,
+    string MergeLabel,
+    IReadOnlyDictionary<string, object?>? Parameters,
+    bool DifferencesOnly) : ComponentMetadataDto;
+
+/// <summary>A column of a RecordMerge. (Mirrors io.mateu.dtos.MergeRecordDto.)</summary>
+public record MergeRecordDto(string Id, string Label, string? Caption);
+
+/// <summary>A row of a RecordMerge: one value per record; Differs when they are not all the same;
+/// Chosen = the record picked to begin with. (Mirrors io.mateu.dtos.MergeFieldDto.)</summary>
+public record MergeFieldDto(
+    string FieldId,
+    string Label,
+    IReadOnlyList<object?> Values,
+    string? Chosen,
+    bool Editable,
+    bool Differs);
 
 public record ActionPanelCategoryDto(string? Title, IReadOnlyList<ActionPanelItemDto> Actions);
 

@@ -190,6 +190,10 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     from .mapper.layout import section_affordance_ids
 
     ids.update(section_affordance_ids(type_))
+    # @app_shortcut(action_id=...) on an app class: the shortcut runs that app-level method
+    for _key, _route, shortcut_action, _label, _code in getattr(type_, "__mateu_app_shortcuts__", ()) or ():
+        if shortcut_action:
+            ids.add(shortcut_action)
     refresh = getattr(type_, "__mateu_refresh_action__", None)
     if isinstance(refresh, str) and refresh:
         ids.add(refresh)

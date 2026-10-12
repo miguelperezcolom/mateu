@@ -79,7 +79,12 @@ from .security import (  # noqa: F401
     Identity,
     ReadOnlyUnless,
 )
+from .live_header_values import LiveHeaderValues  # noqa: F401
 from .suppliers import (  # noqa: F401
+    AppShortcutEntry,
+    HeaderValue,
+    HeaderValuesSupplier,
+    KeepAliveHandler,
     AppActionsSupplier,
     AppHeaderAction,
     AppNotification,
@@ -135,6 +140,7 @@ from .class_decorators import (  # noqa: F401
     plain_text,
     read_only,
     remote_menu,
+    app_shortcut,
     rest_action,
     rest_data,
     rest_listing,
@@ -355,4 +361,7 @@ __all__ = [
     "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
     # parity with the Java / .NET names
     "AppVariant", "BadgeInHeader", "PageWidthStyle",
+    # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
+    "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
+    "LiveHeaderValues",
 ]

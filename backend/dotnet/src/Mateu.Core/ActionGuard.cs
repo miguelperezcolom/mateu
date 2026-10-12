@@ -166,6 +166,9 @@ internal static class ActionGuard
                 ids.Add(Naming.CamelCase(onRow.Value));
         foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
             if (s.Action.Length > 0) ids.Add(s.Action);
+        // an app-wide shortcut's action runs on the app, whatever screen is below it
+        foreach (var shortcut in type.GetCustomAttributes<AppShortcutAttribute>())
+            if (!string.IsNullOrWhiteSpace(shortcut.ActionId)) ids.Add(shortcut.ActionId.Trim());
         if (instance is IRefreshOnChange refresh && !string.IsNullOrEmpty(refresh.RefreshActionId))
             ids.Add(refresh.RefreshActionId);
         // [Section(EditAction/AddAction/ViewMoreAction)] buttons dispatch the named methods

@@ -93,6 +93,48 @@ public static class MateuExtensions
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
         });
 
+        // Streamed actions (Java's v3/sse/**): one text/event-stream "data:" event per increment.
+        // The app event stream of [App(LiveUpdates)] (_live-updates) stays open — the snapshot of
+        // published header values, then every LiveHeaderValues.Publish, an empty heartbeat every
+        // 20 s, and it ENDS after 5 minutes (the browser reconnects at once). Any other action runs
+        // through the sync handler and streams its single increment.
+        app.MapPost(prefix + "/mateu/v3/sse/{**route}", async (HttpContext ctx, SyncHandler handler) =>
+        {
+            var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
+                     ?? new RunActionRqDto();
+            ctx.Response.ContentType = "text/event-stream";
+            ctx.Response.Headers.CacheControl = "no-cache";
+            async Task Send(UIIncrementDto increment, CancellationToken token)
+            {
+                await ctx.Response.WriteAsync("data: " + JsonSerializer.Serialize(increment, Json) + "\n\n", token);
+                await ctx.Response.Body.FlushAsync(token);
+            }
+            if (rq.ActionId != ReflectionMapper.LiveUpdatesActionId)
+            {
+                var increment = await RunGuarded(ctx, rq, () =>
+                    handler.HandleAsync(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}", ctx.RequestAborted));
+                await Send(increment, ctx.RequestAborted);
+                return;
+            }
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+            lifetime.CancelAfter(LiveUpdatesMaxDuration);
+            var queue = System.Threading.Channels.Channel.CreateUnbounded<UIIncrementDto>();
+            queue.Writer.TryWrite(SyncHandler.LiveUpdatesSnapshot());
+            using var subscription = LiveHeaderValues.Subscribe(change =>
+                queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.LiveUpdateCommand(change.Id, change.Value)])));
+            using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
+                LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+            try
+            {
+                await foreach (var increment in queue.Reader.ReadAllAsync(lifetime.Token))
+                    await Send(increment, lifetime.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // the browser went away, or the stream reached its maximum life
+            }
+        });
+
         // A document an action parked (Mateu.Core.DocumentStore), served ONCE. No auth beyond the
         // token: a new tab or a download link cannot carry a bearer token, and the 256-bit,
         // short-lived, single-use token was only handed out to a user allowed to run the action.
@@ -128,6 +170,13 @@ public static class MateuExtensions
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
         });
     }
+
+    /// <summary>Heartbeat of the live-updates stream (keeps proxies from closing an idle connection).</summary>
+    internal static TimeSpan LiveUpdatesHeartbeat = TimeSpan.FromSeconds(20);
+
+    /// <summary>Maximum life of one live-updates stream: an adapter does not always learn that its
+    /// browser went away, and a subscription nobody reads must not live forever.</summary>
+    internal static TimeSpan LiveUpdatesMaxDuration = TimeSpan.FromMinutes(5);
 
     /// <summary><c>GET /mateu/dev/events</c> (SSE: hello with the boot id, then every change, a ping
     /// every 15 s) and <c>POST /mateu/dev/reload[?scope=app]</c> (204), at the server root like Java's.</summary>

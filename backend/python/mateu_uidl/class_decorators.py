@@ -311,6 +311,10 @@ def app(
     access_keys: bool = False,
     requires: list[str] | None = None,
     route: str = "",
+    live_updates: bool = False,
+    idle_timeout_minutes: int = 0,
+    idle_warning_seconds: int = 60,
+    idle_sign_out_url: str = "",
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
@@ -331,7 +335,14 @@ def app(
     ``requires`` DECLARES extra capability tokens the app needs from its host renderer, for
     anything the derivation cannot see (most tokens are derived from the app's own metadata). They
     ride, sorted+deduped with the derived ones, on ``AppMetadata.requiredCapabilities`` — the
-    Python mirror of Java's ``@App(requires = {...})``."""
+    Python mirror of Java's ``@App(requires = {...})``.
+
+    ``live_updates=True`` keeps one app event stream per browser through which the server pushes
+    header-value changes to every session (``LiveHeaderValues.publish``). ``idle_timeout_minutes``
+    (> 0) turns on the idle-session warning: after that idleness (any tab) a modal counts down
+    ``idle_warning_seconds``; "Stay signed in" runs ``_keep-alive`` (``KeepAliveHandler``), "Sign
+    out" goes to ``idle_sign_out_url`` (blank = the app's route). EXPERIMENTAL; mirror Java's
+    ``@App(liveUpdates, idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)``."""
 
     raw = variant.value if isinstance(variant, AppVariant) else variant
     if raw in _DEPRECATED_VARIANTS:
@@ -350,11 +361,36 @@ def app(
         setattr(cls, "__mateu_app_chromeless__", chromeless)
         setattr(cls, "__mateu_app_access_keys__", access_keys)
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
+        setattr(cls, "__mateu_app_live_updates__", live_updates)
+        setattr(cls, "__mateu_app_idle__", (idle_timeout_minutes, idle_warning_seconds, idle_sign_out_url))
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
         # separate @ui on the same class; when both are set, @app(route) wins (see MateuRegistry).
         if route:
             setattr(cls, "__mateu_app_route__", route)
+        return cls
+
+    return deco
+
+
+def app_shortcut(
+    key: str = "",
+    route: str = "",
+    action_id: str = "",
+    label: str = "",
+    code: str = "",
+) -> Callable[[type], type]:
+    """An APP-WIDE keyboard shortcut on the ``@app`` class: active on every screen, listed in the
+    "Keyboard shortcuts" overlay (``?``) and the command palette. It goes to ``route`` (relative to
+    the app) or runs the app-level ``action_id`` (a method of the app class); ``code`` is a
+    QUICK-LAUNCH code typed in the palette ("RES" + Enter). A screen's own shortcut on the same key
+    wins. Stackable, in declaration order (EXPERIMENTAL; mirrors Java's ``@AppShortcut``)."""
+
+    def deco(cls: type) -> type:
+        entries = list(getattr(cls, "__mateu_app_shortcuts__", []))
+        # decorators apply bottom-up: prepend so the list keeps the order they are written in
+        entries.insert(0, (key, route, action_id, label, code))
+        setattr(cls, "__mateu_app_shortcuts__", entries)
         return cls
 
     return deco

@@ -123,6 +123,38 @@ class ActionPanelMetadata(Wire):
     hide_unpopulated_toggle: bool = False
 
 
+class MergeRecordRecord(Wire):
+    """A column of a record merge (mirrors ``MergeRecordDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    caption: str | None = None
+
+
+class MergeFieldRecord(Wire):
+    """A row of a record merge: one value per record (mirrors ``MergeFieldDto``)."""
+
+    field_id: str | None = None
+    label: str | None = None
+    values: list[object] = Field(default_factory=list)
+    chosen: str | None = None
+    editable: bool = False
+    differs: bool = False
+
+
+class RecordMergeMetadata(Wire):
+    """Compare and merge: records side by side, a pick per field (mirrors ``RecordMergeDto``)."""
+
+    type: Literal["RecordMerge"] = "RecordMerge"
+    title: str | None = None
+    records: list[MergeRecordRecord] = Field(default_factory=list)
+    fields: list[MergeFieldRecord] = Field(default_factory=list)
+    merge_action_id: str | None = None
+    merge_label: str = "Merge"
+    parameters: dict[str, object] | None = None
+    differences_only: bool = False
+
+
 class MatrixColumnRecord(Wire):
     """A matrix-grid column (mirrors ``MatrixColumnDto``)."""
 
