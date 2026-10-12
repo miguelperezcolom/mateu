@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
-import { loadFailureMessage } from '../core/uxRules';
+import { bootFailureOf, loadFailureMessage } from '../core/uxRules';
 import { theme } from '../theme';
 import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
@@ -163,6 +163,12 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
     api
       .initialLoad(initialRoute, appState)
       .then((result) => {
+        // Nothing to render: show WHY (the server's message) on the retry screen, not a blank one.
+        const failure = bootFailureOf(result);
+        if (failure) {
+          setError(failure);
+          return;
+        }
         // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
         const res = result as Record<string, unknown>;
         const fragments = (res['fragments'] as any[]) ?? [];

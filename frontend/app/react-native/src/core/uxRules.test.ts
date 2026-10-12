@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  buttonActionId, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
+  bootFailureOf, buttonActionId, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
   rowCheckboxLabel, serverSideState,
 } from './uxRules.ts';
 
@@ -92,4 +92,13 @@ test('RN-04 a row checkbox says which row it selects', () => {
   assert.equal(rowCheckboxLabel('Producto 10'), 'Select Producto 10');
   assert.equal(rowCheckboxLabel(''), 'Select row');
   assert.equal(rowCheckboxLabel(null), 'Select row');
+});
+
+test('a boot load with nothing to render says why instead of drawing a blank screen', () => {
+  assert.equal(bootFailureOf({ fragments: [{ component: { type: 'ClientSide' } }], messages: [] }), null);
+  assert.equal(
+    bootFailureOf({ fragments: [], messages: [{ variant: 'error', title: 'Something went wrong', text: 'Reference: 42' }] }),
+    'Something went wrong: Reference: 42',
+  );
+  assert.equal(bootFailureOf({ fragments: [] }), 'The server answered with nothing to show.');
 });

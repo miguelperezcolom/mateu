@@ -66,6 +66,20 @@ export function isCurrentDestination(item: { route?: string | null }, currentRou
  * transport text ("Failed to fetch", "Network request failed", an HTTP status). RN-05 / Nielsen #9:
  * say what happened and how to recover.
  */
+/**
+ * Why the BOOT load drew nothing: an increment with no fragment carries its reason as a message
+ * (the server's error boundary answers "Something went wrong / Reference: …", a 403, a missing
+ * route). Without this the first screen was blank — no message, nothing to press.
+ * Null when the increment has something to render.
+ */
+export function bootFailureOf(increment: unknown): string | null {
+  const res = (increment ?? {}) as { fragments?: unknown[]; messages?: { variant?: string; title?: string | null; text?: string }[] };
+  if ((res.fragments ?? []).some((f) => !!(f as { component?: unknown })?.component)) return null;
+  const message = (res.messages ?? []).find((m) => m.variant === 'error') ?? (res.messages ?? [])[0];
+  if (!message) return 'The server answered with nothing to show.';
+  return [message.title, message.text].filter((t) => !!t && t.trim()).join(': ') || 'The server answered with nothing to show.';
+}
+
 export function loadFailureMessage(raw: string | null | undefined): { title: string; detail: string } {
   const text = (raw ?? '').trim();
   if (/failed to fetch|network request failed|networkerror|load failed|ECONNREFUSED|ERR_CONNECTION/i.test(text)) {
