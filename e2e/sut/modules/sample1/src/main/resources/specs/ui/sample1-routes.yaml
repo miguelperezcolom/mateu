@@ -14,3 +14,11 @@ routes:
   # Forms walkthrough: a YAML form with no view model (fields, a field type, validation).
   - route: walk-yaml
     layout: walk-yaml-form.yaml
+  # Every display component on one definition-only page (YAML, no view model).
+  - route: display-gallery
+    layout: display-gallery.yaml
+
+  # The page header authored as data (YAML, no view model), seeded by the route's state.
+  - route: yaml-page
+    layout: yaml-page.yaml
+    state: {number: "4471", updatedAt: "2026-07-20 12:00", notes: Two chairs}

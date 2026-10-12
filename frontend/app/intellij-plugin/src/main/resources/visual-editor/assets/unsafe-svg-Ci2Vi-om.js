@@ -1,6 +1,12 @@
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./mateu-mobile-qr-dialog-DNG88LsL.js","./focusTrap-BiPAqUE5.js","./lit-Ca8Nedot.js"])))=>i.map(i=>d[i]);
 import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l as i,o as a,r as o,s,t as c}from"./focusTrap-BiPAqUE5.js";import{a as l,c as u,h as d,l as f,n as p,o as m,p as h,s as g,t as _}from"./lit-Ca8Nedot.js";import{t as v}from"./purify.es-DmVU2mR8.js";var ee=(e,t,n)=>(n.configurable=!0,n.enumerable=!0,Reflect.decorate&&typeof t!=`object`&&Object.defineProperty(e,t,n),n);function te(e,t){return(n,r,i)=>{let a=t=>t.renderRoot?.querySelector(e)??null;if(t){let{get:e,set:t}=typeof r==`object`?n:i??(()=>{let e=Symbol();return{get(){return this[e]},set(t){this[e]=t}}})();return ee(n,r,{get(){let n=e.call(this);return n===void 0&&(n=a(this),(n!==null||this.hasUpdated)&&t.call(this,n)),n}})}return ee(n,r,{get(){return a(this)}})}}function ne(e){let t=``;for(let n of e)switch(n){case`"`:t+=`\\"`;break;case`\\`:t+=`\\\\`;break;case`
 `:t+=`\\n`;break;case`\r`:t+=`\\r`;break;case`	`:t+=`\\t`;break;case`\b`:t+=`\\b`;break;case`\f`:t+=`\\f`;break;default:t+=n<` `?`\\u`+n.charCodeAt(0).toString(16).padStart(4,`0`):n}return t}function re(e){if(typeof e==`string`)return ne(e);if(Array.isArray(e))return e.map(re);if(e&&typeof e==`object`){let t={};for(let[n,r]of Object.entries(e))t[n]=re(r);return t}return e}function ie(e){return e?Object.entries(e).some(([e,t])=>e.toLowerCase()===`content-type`&&(t??``).toLowerCase().includes(`json`)):!1}var y=[],ae=new Map,oe=e=>{y=Array.isArray(e)?e:[]},se=(e,t)=>{e&&(Array.isArray(t)&&t.length>0?ae.set(e,t):ae.delete(e))},ce=e=>{if(!e)return;let t=y.find(t=>t.name===e);if(t)return t;for(let t of ae.values()){let n=t.find(t=>t.name===e);if(n)return n}},le=()=>y,ue=new Set,de=e=>{let t=e.then(()=>void 0,()=>void 0).finally(()=>{ue.delete(t)});ue.add(t)},b=()=>Promise.all([...ue]).then(()=>void 0),x=e=>e==null||e===``,S=e=>{if(!e?.ref)return e;let t=ce(e.ref);if(!t?.source)return console.warn(`mateu: no REST source named "${e.ref}" in the app's catalogue`),e;let n=t.source;return{...e,url:x(e.url)?n.url:e.url,method:x(e.method)?n.method:e.method,headers:e.headers&&Object.keys(e.headers).length>0?e.headers:n.headers,body:x(e.body)?n.body:e.body,itemsPath:x(e.itemsPath)?n.itemsPath:e.itemsPath,valuePath:x(e.valuePath)?n.valuePath:e.valuePath,labelPath:x(e.labelPath)?n.labelPath:e.labelPath,proxy:e.proxy||n.proxy,sample:e.sample!==void 0&&e.sample!==null?e.sample:t.sample??n.sample}},fe=!1,pe=e=>{fe=!!e},me=e=>{if(!fe||!e)return;let t=S(e);return t?.sample===null?void 0:t?.sample},C=e=>me(e)!==void 0,he=e=>!!e&&!!S(e)?.proxy&&!C(e),w=(e,t)=>{let n=ce(e?.ref)?.fields?.[t];return n&&n!==``?n:t},ge=e=>ce(e?.ref)?.totalPath||void 0,_e=h`
+========
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./mateu-mobile-qr-dialog-nlsoSEY2.js","./focusTrap--U-v7MHh.js","./lit-Ca8Nedot.js"])))=>i.map(i=>d[i]);
+import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l as i,o as a,r as o,s,t as c}from"./focusTrap--U-v7MHh.js";import{a as l,c as u,h as d,l as f,n as p,o as m,p as h,s as g,t as _}from"./lit-Ca8Nedot.js";import{t as v}from"./purify.es-DmVU2mR8.js";var ee=(e,t,n)=>(n.configurable=!0,n.enumerable=!0,Reflect.decorate&&typeof t!=`object`&&Object.defineProperty(e,t,n),n);function te(e,t){return(n,r,i)=>{let a=t=>t.renderRoot?.querySelector(e)??null;if(t){let{get:e,set:t}=typeof r==`object`?n:i??(()=>{let e=Symbol();return{get(){return this[e]},set(t){this[e]=t}}})();return ee(n,r,{get(){let n=e.call(this);return n===void 0&&(n=a(this),(n!==null||this.hasUpdated)&&t.call(this,n)),n}})}return ee(n,r,{get(){return a(this)}})}}function ne(e){let t=``;for(let n of e)switch(n){case`"`:t+=`\\"`;break;case`\\`:t+=`\\\\`;break;case`
+`:t+=`\\n`;break;case`\r`:t+=`\\r`;break;case`	`:t+=`\\t`;break;case`\b`:t+=`\\b`;break;case`\f`:t+=`\\f`;break;default:t+=n<` `?`\\u`+n.charCodeAt(0).toString(16).padStart(4,`0`):n}return t}function re(e){if(typeof e==`string`)return ne(e);if(Array.isArray(e))return e.map(re);if(e&&typeof e==`object`){let t={};for(let[n,r]of Object.entries(e))t[n]=re(r);return t}return e}function ie(e){return e?Object.entries(e).some(([e,t])=>e.toLowerCase()===`content-type`&&(t??``).toLowerCase().includes(`json`)):!1}var y=[],ae=new Map,oe=e=>{y=Array.isArray(e)?e:[]},se=(e,t)=>{e&&(Array.isArray(t)&&t.length>0?ae.set(e,t):ae.delete(e))},ce=e=>{if(!e)return;let t=y.find(t=>t.name===e);if(t)return t;for(let t of ae.values()){let n=t.find(t=>t.name===e);if(n)return n}},le=()=>y,ue=new Set,de=e=>{let t=e.then(()=>void 0,()=>void 0).finally(()=>{ue.delete(t)});ue.add(t)},b=()=>Promise.all([...ue]).then(()=>void 0),x=e=>e==null||e===``,S=e=>{if(!e?.ref)return e;let t=ce(e.ref);if(!t?.source)return console.warn(`mateu: no REST source named "${e.ref}" in the app's catalogue`),e;let n=t.source;return{...e,url:x(e.url)?n.url:e.url,method:x(e.method)?n.method:e.method,headers:e.headers&&Object.keys(e.headers).length>0?e.headers:n.headers,body:x(e.body)?n.body:e.body,itemsPath:x(e.itemsPath)?n.itemsPath:e.itemsPath,valuePath:x(e.valuePath)?n.valuePath:e.valuePath,labelPath:x(e.labelPath)?n.labelPath:e.labelPath,proxy:e.proxy||n.proxy,sample:e.sample!==void 0&&e.sample!==null?e.sample:t.sample??n.sample}},fe=!1,pe=e=>{fe=!!e},me=e=>{if(!fe||!e)return;let t=S(e);return t?.sample===null?void 0:t?.sample},C=e=>me(e)!==void 0,w=e=>!!e&&!!S(e)?.proxy&&!C(e),T=(e,t)=>{let n=ce(e?.ref)?.fields?.[t];return n&&n!==``?n:t},he=e=>ce(e?.ref)?.totalPath||void 0,ge=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
   [theme~='badge'] {
     display: inline-flex;
     align-items: center;
@@ -131,10 +137,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 `),n=t===-1?-1:r.indexOf(`
 `,t+1),i=n===-1?``:r.slice(n+1);String(e.stack).endsWith(i)||(e.stack+=`
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `+r)}}catch{}throw e}}_request(e,t){typeof e==`string`?(t||={},t.url=e):t=e||{},t=Ei(this.defaults,t);let{transitional:n,paramsSerializer:r,headers:i}=t;n!==void 0&&ma.assertOptions(n,{silentJSONParsing:N.transitional(N.boolean),forcedJSONParsing:N.transitional(N.boolean),clarifyTimeoutError:N.transitional(N.boolean),legacyInterceptorReqResOrdering:N.transitional(N.boolean),advertiseZstdAcceptEncoding:N.transitional(N.boolean),validateStatusUndefinedResolves:N.transitional(N.boolean)},!1),r!=null&&(k.isFunction(r)?t.paramsSerializer={serialize:r}:ma.assertOptions(r,{encode:N.function,serialize:N.function},!0)),t.allowAbsoluteUrls!==void 0||(this.defaults.allowAbsoluteUrls===void 0?t.allowAbsoluteUrls=!0:t.allowAbsoluteUrls=this.defaults.allowAbsoluteUrls),ma.assertOptions(t,{baseUrl:N.spelling(`baseURL`),withXsrfToken:N.spelling(`withXSRFToken`)},!0),t.method=(k.getSafeProp(t,`method`)||k.getSafeProp(this.defaults,`method`)||`get`).toLowerCase();let a=i&&k.merge(i.common,i[t.method]);i&&k.forEach($r.concat(`common`),e=>{delete i[e]}),t.headers=A.concat(a,i);let o=[],s=!0;this.interceptors.request.forEach(function(e){if(typeof e.runWhen==`function`&&e.runWhen(t)===!1)return;s&&=e.synchronous;let n=t.transitional||zr;n&&n.legacyInterceptorReqResOrdering?o.unshift(e.fulfilled,e.rejected):o.push(e.fulfilled,e.rejected)});let c=[];this.interceptors.response.forEach(function(e){c.push(e.fulfilled,e.rejected)});let l,u=0,d;if(!s){let e=[ua.bind(this),void 0];for(e.unshift(...o),e.push(...c),d=e.length,l=Promise.resolve(t);u<d;)l=l.then(e[u++],e[u++]);return l}d=o.length;let f=t;for(;u<d;){let e=o[u++],t=o[u++];try{f=e?e(f):f}catch(e){if(!t){l=Promise.reject(e);break}try{let n=t.call(this,e);k.isThenable(n)&&(l=Promise.resolve(n).then(()=>ua.call(this,f)))}catch(e){l=Promise.reject(e)}break}}if(!l)try{l=ua.call(this,f)}catch(e){l=Promise.reject(e)}for(u=0,d=c.length;u<d;)l=l.then(c[u++],c[u++]);return l}getUri(e){return e=Ei(this.defaults,e),Nr(Ci(e.baseURL,e.url,e.allowAbsoluteUrls,e),e.params,e.paramsSerializer)}};k.forEach([`delete`,`get`,`head`,`options`],function(e){ha.prototype[e]=function(t,n){return this.request(Ei(n||{},{method:e,url:t,data:n&&k.hasOwnProp(n,`data`)?n.data:void 0}))}}),k.forEach([`post`,`put`,`patch`,`query`],function(e){function t(t){return function(n,r,i){return this.request(Ei(i||{},{method:e,headers:t?{"Content-Type":`multipart/form-data`}:{},url:n,data:r}))}}ha.prototype[e]=t(),e!==`query`&&(ha.prototype[e+`Form`]=t(!0))});var ga=class e{constructor(e){if(typeof e!=`function`)throw TypeError(`executor must be a function.`);let t;this.promise=new Promise(function(e){t=e});let n=this;this.promise.then(e=>{if(!n._listeners)return;let t=n._listeners.length;for(;t-->0;)n._listeners[t](e);n._listeners=null}),this.promise.then=e=>{let t,r=new Promise(e=>{n.subscribe(e),t=e}).then(e);return r.cancel=function(){n.unsubscribe(t)},r},e(function(e,r,i){n.reason||(n.reason=new ai(e,r,i),t(n.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(e){if(this.reason){e(this.reason);return}this._listeners?this._listeners.push(e):this._listeners=[e]}unsubscribe(e){if(!this._listeners)return;let t=this._listeners.indexOf(e);t!==-1&&this._listeners.splice(t,1)}toAbortSignal(){let e=new AbortController,t=t=>{e.abort(t)};return this.subscribe(t),e.signal.unsubscribe=()=>this.unsubscribe(t),e.signal}static source(){let t;return{token:new e(function(e){t=e}),cancel:t}}};function _a(e){return function(t){return e.apply(null,t)}}function va(e){return k.isObject(e)&&e.isAxiosError===!0}var ya={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,ContentTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,UnprocessableContent:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511,WebServerReturnsAnUnknownError:520,WebServerIsDown:521,ConnectionTimedOut:522,OriginIsUnreachable:523,TimeoutOccurred:524,SslHandshakeFailed:525,InvalidSslCertificate:526};Object.entries(ya).forEach(([e,t])=>{ya[t]===void 0&&(ya[t]=e)});function ba(e){let t=new ha(e),n=jt(ha.prototype.request,t);return k.extend(n,ha.prototype,t,{allOwnKeys:!0}),k.extend(n,t,null,{allOwnKeys:!0}),n.create=function(t){return ba(Ei(e,t))},n}var P=ba(ni);P.Axios=ha,P.CanceledError=ai,P.CancelToken=ga,P.isCancel=ii,P.VERSION=qi,P.toFormData=Or,P.AxiosError=j,P.Cancel=P.CanceledError,P.all=function(e){return Promise.all(e)},P.spread=_a,P.isAxiosError=va,P.mergeConfig=Ei,P.AxiosHeaders=A,P.formToJSON=e=>Qr(k.isHTMLForm(e)?new FormData(e):e),P.getAdapter=ca.getAdapter,P.HttpStatusCode=ya,P.default=P;var xa=`mateu-app-context`,Sa=`mateu-app-context-labels`,Ca=e=>{try{return JSON.parse(localStorage.getItem(e)??`{}`)}catch{return{}}},wa=(e,t)=>{try{localStorage.setItem(e,JSON.stringify(t))}catch{}},Ta=()=>Ca(xa),Ea=()=>Ca(Sa),Da=(e,t,n)=>{let r=Ta(),i=Ea();t==null||t===``?(delete r[e],delete i[e]):(r[e]=t,n!==void 0&&(i[e]=n)),wa(xa,r),wa(Sa,i)},Oa=!1,ka=()=>{Oa||(Oa=!0,window.addEventListener(`storage`,e=>{e.key===xa&&e.newValue!==e.oldValue&&window.location.reload()}))},Aa,ja=(e,t)=>new Promise((n,r)=>{let i=!1,a={retry:()=>{i||(i=!0,t().then(n,r))},giveUp:()=>{i||(i=!0,r(e))}};if(Aa){Aa(a);return}let o=new CustomEvent(`mateu-session-expired`,{detail:a,cancelable:!0,bubbles:!1});typeof document<`u`&&!document.dispatchEvent(o)||a.giveUp()}),Ma=(e,t)=>e.includes(`json`)?!0:typeof t==`object`&&!!t,Na=(e,t)=>{let n=e.finalUrl;if(!n)return;let r=t??(typeof window<`u`?window.location.href:void 0),i;try{i=new URL(e.requestedUrl,r).href}catch{return}if(i!==n&&!Ma(e.contentType??``,e.data))return n},Pa=new class{constructor(){this.windowMs=4e3,this.threshold=12,this.events=[],this.reported=new Set}check(e,t=Date.now()){this.events.push({sig:e,t});let n=t-this.windowMs;this.events=this.events.filter(e=>e.t>=n);let r=0;for(let t of this.events)t.sig===e&&r++;if(r>=this.threshold){let t=!this.reported.has(e);return this.reported.add(e),{blocked:!0,firstTrip:t}}return this.reported.delete(e),{blocked:!1,firstTrip:!1}}reset(){this.events=[],this.reported.clear()}configure(e){e.windowMs!==void 0&&(this.windowMs=e.windowMs),e.threshold!==void 0&&(this.threshold=e.threshold)}},Fa=e=>{let t=(e.split(`.`).filter(e=>e&&!/^\d+$/.test(e)).pop()??e).replace(/[_-]+/g,` `).replace(/([a-z0-9])([A-Z])/g,`$1 $2`).replace(/([A-Z]+)([A-Z][a-z])/g,`$1 $2`).trim().toLowerCase();return t?t.charAt(0).toUpperCase()+t.slice(1):e},Ia=[`eyesOnly`,`readOnlyUnless`,`disabledUnless`,`access`],La=!1,Ra=(e,t)=>{if(Array.isArray(e))return e.map(e=>Ra(e,t));if(e&&typeof e==`object`){let n={};for(let[r,i]of Object.entries(e)){if(Ia.includes(r)){t.any=!0;continue}n[r]=Ra(i,t)}return n}return e};function za(e){let t={any:!1},n=Ra(e,t);return t.any?(La||(La=!0,console.warn(`mateu: access rules (eyesOnly/readOnlyUnless/disabledUnless/access) need a server to check who is asking — with none, the page renders unrestricted`)),n):e}var Ba=function(e){return e.Add=`Add`,e.Replace=`Replace`,e.ReplaceKeepData=`ReplaceKeepData`,e}({}),Va=e=>Array.isArray(e)?e.filter(e=>!!e&&typeof e==`object`):[],Ha=e=>typeof e==`string`&&e.trim()!==``?e:void 0;function Ua(e){for(let t of[`overline`,`titlePlaceholder`,`timestamp`])t in e&&!Ha(e[t])&&delete e[t];if(`badges`in e&&(e.badges=Va(e.badges).map(e=>({text:e.label,iconOnLeft:null,iconOnRight:null,color:Ha(e.color)??`normal`,primary:!1,small:!1,pill:!1}))),`kpis`in e){let t=Va(e.kpis);t.length?e.kpis=t.map(e=>({title:e.label,text:e.value})):delete e.kpis}if(`recordSwitcher`in e){let t=e.recordSwitcher;delete e.recordSwitcher,t&&typeof t==`object`&&(e.switcher={options:Va(t.options).map(e=>({value:e.value,label:e.label,description:e.description})),value:t.value,type:t.type===`context`?`context`:`object`,label:t.label,searchable:t.searchable===!0,disabled:t.disabled===!0,actionId:Ha(t.actionId)??`_switchRecord`,optionsSource:t.optionsSource??null,route:Ha(t.route)??null})}if(`banners`in e&&(e.banners=Va(e.banners).map(e=>({theme:typeof e.theme==`string`?e.theme.toUpperCase():`NONE`,hasIcon:!1,hasCloseButton:e.closeable===!0,title:e.title,description:e.description,timeoutSeconds:typeof e.timeoutSeconds==`number`?e.timeoutSeconds:0}))),`fabs`in e){let t=Va(e.fabs).map((e,t)=>({fab:e,index:t})).sort((e,t)=>Number(e.fab.order??0)-Number(t.fab.order??0)||e.index-t.index).map(({fab:e})=>({id:e.actionId,label:e.label,icon:e.icon,actionId:e.actionId,buttonStyle:Ha(e.buttonStyle)??`primary`}));t.length?e.fabs=t:delete e.fabs}}var Wa=[],Ga=e=>{Wa=Array.isArray(e)?e:[]},Ka=e=>e?Wa.find(t=>t.name===e)?.component:void 0,qa={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},Ja=e=>(...t)=>({_$litDirective$:e,values:t}),Ya=class{constructor(e){}get _$AU(){return this._$AM._$AU}_$AT(e,t,n){this._$Ct=e,this._$AM=t,this._$Ci=n}_$AS(e,t){return this.update(e,t)}update(e,t){return this.render(...t)}},Xa=!1,Za=e=>{Xa=e},Qa=()=>Xa,$a=e=>Xa&&e?.id?e.id:p,eo=e=>{let t=e.startNode?e.startNode.nextSibling:e.parentNode?.firstChild??null;for(;t&&t!==e.endNode;){if(t.nodeType===1)return t;t=t.nextSibling}return null},to=Ja(class extends Ya{constructor(e){if(super(e),e.type!==qa.CHILD)throw Error(`stampNodeId only works in a child position`)}render(e,t){return t}update(e,[t,n]){return queueMicrotask(()=>{let n=eo(e);n&&n.getAttribute(`data-node-id`)!==t&&n.setAttribute(`data-node-id`,t)}),n}}),no=e=>Xa&&typeof e.id==`string`&&e.id?e.id:e.actionId,ro=(e,t)=>Xa&&typeof e.id==`string`&&e.id?l`${to(e.id,t)}`:t,io=new Set([`id`,`style`,`cssClasses`,`slot`,`initialData`,`confirmOnNavigationIfDirty`,`sizing`]),ao=new Set([`Form`,`FormLayout`,`VerticalLayout`,`HorizontalLayout`,`Div`,`FlexLayout`,`CustomComponent`]),oo={Card:[`content`,`title`,`subtitle`,`footer`,`header`,`media`,`headerPrefix`,`headerSuffix`],Form:[`header`,`footer`,`avatar`]},so={HeroSection:`content`,DashboardLayout:`items`,DashboardPanel:`content`,Scoreboard:`metrics`,TabLayout:`tabs`,Tab:`content`},co=new Set([`Listing`,`Crudl`,`Crud`]);function lo(e){let{note:t,...n}=e;if(co.has(n.type))return ho(n);if(n.type===`FoldoutLayout`)return mo(n);if(n.type===`ComponentRef`)return Ka(n.ref)||{type:T.ClientSide,metadata:{type:`Text`,text:`Unknown business component: ${n.ref}`},children:[]};let{type:r,content:i,children:a,...o}=n.type===`Button`?vo(n):n,s={},c={type:r};for(let[e,t]of Object.entries(o))io.has(e)?s[e]=t:c[e]=(e===`toolbar`||e===`buttons`)&&Array.isArray(t)?t.map(vo):t;r===`FormField`&&(o.id!==void 0&&(c.fieldId=o.id),delete c.id,c.dataType=c.dataType??`string`,c.stereotype=c.stereotype??`regular`),r===`Form`&&Ua(c),r===`HeroSection`&&c.tone===`auto`&&delete c.tone;let l=[];if(so[r]){let e=so[r],t=e===`content`?i:o[e];delete c[e],l=t==null?[]:Array.isArray(t)?t:[t]}else if(ao.has(r)){let e=i??a??[];l=Array.isArray(e)?e:[e]}for(let e of oo[r]??[]){let t=po(e===`content`?i:c[e]);t!==void 0&&(c[e]=t)}if(r===`Form`&&fo(c.avatar)){let e=c.avatar;e.style=(typeof e.style==`string`?e.style:``)+`;width: 4rem;height: 4rem;`}return{...s,type:T.ClientSide,metadata:c,children:l.map(lo)}}var uo=e=>!!e&&typeof e==`object`&&!Array.isArray(e)&&typeof e.type==`string`,fo=e=>!!e&&typeof e==`object`&&!Array.isArray(e);function po(e){if(uo(e))return lo(e);if(Array.isArray(e))return e.map(e=>uo(e)?lo(e):e)}function mo(e){let{type:t,content:n,children:r,overview:i,panels:a,badges:o,...s}=e,c={},l={type:t};for(let[e,t]of Object.entries(s))io.has(e)?c[e]=t:l[e]=t;let u=[];return uo(i)&&u.push({...lo(i),slot:`overview`}),l.panels=(Array.isArray(a)?a:[]).map((e,t)=>(uo(e.content)&&u.push({...lo(e.content),slot:`panel-`+t}),uo(e.summary)&&u.push({...lo(e.summary),slot:`summary-`+t}),Object.fromEntries(Object.entries({title:e.title,subtitle:e.subtitle,icon:e.icon,open:!!e.open,width:e.width,id:Qa()&&typeof e.id==`string`?e.id:void 0}).filter(([,e])=>e!==void 0)))),Array.isArray(o)&&(l.badges=o.map(e=>e?.text).filter(e=>typeof e==`string`&&e.trim()!==``)),{...c,type:T.ClientSide,metadata:l,children:u}}function ho(e){let{type:t,content:n,children:r,...i}=e,a={id:`crud`,sizing:`fill`},o={type:`Crud`,crudlType:i.crudlType??i.listingType??`table`,pageSize:10,searchOnEnter:!0,autoFocusOnSearchText:!0,filtersLayout:`auto`,gridLayout:`auto`};for(let[e,t]of Object.entries(i))e!==`crudlType`&&e!==`listingType`&&(io.has(e)?a[e]=t:e===`columns`&&Array.isArray(t)?o[e]=t.map(go):e===`toolbar`&&Array.isArray(t)?o[e]=t.map(vo):e===`filters`&&Array.isArray(t)?o[e]=t.map(yo):e===`preSearch`&&Array.isArray(t)?t.length>0&&(o[e]=t.map(lo)):o[e]=t);return{...a,type:T.ClientSide,metadata:o,children:[]}}function go(e){let t=lo(e);return e.id!==void 0&&t.metadata&&(t.metadata.id=e.id),t}var _o=e=>e.replace(/[^\p{L}\p{N}]+/gu,` `).trim().split(/\s+/).filter(Boolean).map((e,t)=>t===0?e.charAt(0).toLowerCase()+e.slice(1):e.charAt(0).toUpperCase()+e.slice(1)).join(``);function vo(e){if(!e||e.type!==`Button`)return e;let{actionable:t,...n}=e,r={...n};return t?.type===`RouteLink`&&t.route&&(r.route=t.route),!r.actionId&&typeof r.label==`string`&&(r.actionId=_o(r.label)),r}function yo(e){if(!e||e.type!==`FormField`)return e;let{id:t,...n}=e;return{...n,fieldId:n.fieldId??t,dataType:n.dataType??`string`,stereotype:n.stereotype??`regular`}}var bo=[],xo=e=>{bo=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`&&e.id.trim()!==``):[]},So=()=>bo,Co=[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],wo={GridColumn:[`label`,`dataType`,`stereotype`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],FormField:[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`]},To=e=>e==null||e===``||Array.isArray(e)&&e.length===0||typeof e==`object`&&!Array.isArray(e)&&Object.keys(e).length===0,Eo=`fieldType`,Do=e=>{if(Array.isArray(e))return e.some(Do);if(!e||typeof e!=`object`)return!1;let t=e;return typeof t.fieldType==`string`||Object.values(t).some(Do)},Oo=e=>e===void 0?e:JSON.parse(JSON.stringify(e));function ko(e,t=bo){if(!Do(e))return e;let n=new Map(t.map(e=>[e.id.trim(),e])),r=new Set,i=e=>{if(Array.isArray(e))return e.map(i);if(!e||typeof e!=`object`)return e;let t={};for(let[n,r]of Object.entries(e))n!==`fieldType`&&(t[n]=i(r));let a=e[Eo];if(typeof a==`string`){let e=n.get(a.trim());if(!e)r.has(a)||(r.add(a),console.warn(`mateu: unknown field type '${a}' (on '${String(t.id??``)}') — rendered as declared`));else{let n=wo[String(t.type??``)]??Co;for(let r of n){let n=e[r];To(n)||(t[r]===void 0||t[r]===null)&&(t[r]=Oo(n))}}}return t};return i(e)}var Ao=`ux_main`;function jo(e){return!(e.viewModel??e.modelView)&&!!Mo(e)}function Mo(e){if(e.layout&&typeof e.layout==`object`)return e.layout;if(typeof e.type==`string`){let{pageType:t,...n}=e;return n}}var No=[`landing`,`collection`,`detail`,`form`,`process`,`dashboard`];function Po(e){let t=typeof e.pageType==`string`?e.pageType.trim().toLowerCase():``;return No.includes(t)?t:void 0}function Fo(e,t,n,r={}){e=za(e),e=ko(e);let i=Mo(e);if(!i)throw Error(`Definition for route "${t}" has no layout to expand`);if(i.type===`AppShell`)return Qo(i);let a=n??(typeof i.title==`string`?i.title:t),o=lo(i);return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:a}],messages:[],fragments:[{targetComponentId:Ao,component:Lo(e,o,r),data:void 0,state:void 0,action:Ba.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}function Io(e){return e.ref?{ref:e.ref}:Object.fromEntries(Object.entries(e).filter(([,e])=>e!=null))}function Lo(e,t,n){let r=(e.actions??[]).map(zo);r.push(...os(e.layout??t,r));let i=[...e.triggers??[]];n.data&&(n.data.ref||n.data.url)&&(r.push({id:`__restdata__`,restAction:{source:Io(n.data),resultPath:``}}),i.push({type:`OnLoad`,actionId:`__restdata__`,times:1}));let a=Po(e);if(!r.length&&!i.length)return a?{...t,pageType:a}:t;let o=n.path??``;return{type:T.ServerSide,id:`page_`+(o||`root`).replace(/[^A-Za-z0-9_-]/g,`_`),serverSideType:void 0,route:`/`+o,initialData:{},actions:r,triggers:i,rules:[],validations:[],children:[t],...a?{pageType:a}:{}}}function Ro(e){let t=(e,t)=>({targetComponentId:null,type:e,data:t}),n=(e,t)=>({eventName:e,detail:t??null});switch(e?.type){case`Navigate`:return t(`NavigateTo`,e.route??null);case`Emit`:return t(`DispatchEvent`,n(e.event,e.payload));case`CloseOverlay`:return t(`CloseModal`,e.event?n(e.event,null):null);case`RunAction`:return t(`RunAction`,{actionId:e.actionId});case`MarkClean`:return t(`MarkAsClean`,null);case`MarkDirty`:return t(`MarkAsDirty`,null);default:return}}function zo(e){if(!e||typeof e!=`object`||!(`description`in e)&&!Array.isArray(e.steps))return e;let{description:t,...n}=e;if(!Array.isArray(n.steps))return n;let{steps:r,...i}=n,a=r.map(Ro).filter(Boolean);return a.length?{...i,commands:a}:i}function Bo(e){if(typeof e!=`string`||!e)return``;let t=e.replace(/\./g,` `).replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g,` `).toLowerCase().replace(/ +/g,` `);return t.length<=1?t:t.split(` `).map((e,t)=>t>0&&e?e[0].toUpperCase()+e.substring(1):e).join(``)}function Vo(e){return e.type!==`RuleLink`||!Array.isArray(e.rules)?[]:e.rules.map(e=>({filter:e.filter??null,action:e.action??null,fieldName:e.fieldName??null,fieldAttribute:e.fieldAttribute??null,value:e.value??null,expression:e.expression??null,result:e.result??null,actionId:e.actionId??null}))}function Ho(e){let t=`/`+(typeof e.route==`string`&&e.route?e.route:typeof e.path==`string`?e.path:Bo(e.label)).replace(/^\/+/,``),n=e.submenu??e.submenus??e.menu,r=e.presentation??void 0;return{label:e.label,icon:e.icon??r?.icon??void 0,description:e.description??void 0,display:r?.display===`cards`?`cards`:void 0,image:r?.image??void 0,path:t,route:t,consumedRoute:``,uriPrefix:``,visible:!e.hidden,selected:!1,disabled:!1,separator:e.type===`MenuSeparator`,remote:!1,rules:Vo(e),submenus:Array.isArray(n)?n.map(Ho):[]}}function Uo(e){for(let t of e){if(t.type===`RouteLink`&&(t.route||t.path))return t.route??t.path;let e=t.submenu??t.submenus??t.menu;if(Array.isArray(e)){let t=Uo(e);if(t)return t}}}var Wo=e=>{let t=e.submenu??e.submenus??e.menu;return Array.isArray(t)?t:void 0},Go=e=>e.type===`Menu`||!e.type&&!!Wo(e),Ko=e=>e.some(e=>e.type===`RemoteMenu`||Go(e)&&Ko(Wo(e)??[]));function qo(e,t){return typeof e==`string`&&e.trim()&&e.trim().toUpperCase()!==`AUTO`?e.trim():Ko(t)?`MENU_ON_TOP`:t.some(Go)?t.some(e=>Go(e)&&(Wo(e)??[]).some(Go))?`TILES`:t.length>7?`HAMBURGER_MENU`:`MENU_ON_TOP`:`TABS`}function Jo(e){let t=e=>typeof e==`string`&&e.trim()?e.trim():void 0;return(e??[]).filter(e=>e&&typeof e==`object`).map(e=>({key:t(e.key)?.toLowerCase(),code:t(e.code),route:t(e.route),actionId:t(e.actionId),label:t(e.label)})).filter(e=>(e.key||e.code)&&(e.route||e.actionId)).map(e=>{let t=e.route?`/`+e.route.replace(/^\/+/,``):void 0,n=t?.replace(/\/+$/,``).split(`/`).pop()??``,r=e.label??(t?n?n.charAt(0).toUpperCase()+n.slice(1).replace(/-/g,` `):`Home`:e.actionId);return{key:e.key??null,label:r,route:t??null,actionId:e.actionId??null,code:e.code??null}})}function Yo(e){let t=Number(e.idleTimeoutMinutes??0);if(!(t>0))return null;let n=t*60;return{timeoutSeconds:n,warningSeconds:Math.max(5,Math.min(Number(e.idleWarningSeconds??60)||60,n)),signOutUrl:typeof e.idleSignOutUrl==`string`&&e.idleSignOutUrl.trim()?e.idleSignOutUrl.trim():`/`,keepAliveActionId:null}}function Xo(e){let t=typeof e.route==`string`&&e.route.trim()?`/`+e.route.trim().replace(/^\/+/,``):null,n=Array.isArray(e.children)?e.children.filter(e=>e&&typeof e==`object`).map(Xo):null;return{actionId:e.actionId??null,label:e.label,icon:e.icon??null,children:n,route:t}}function Zo(e){let t=e=>(Array.isArray(e)?e:[]).filter(e=>e&&typeof e==`object`),n=t(e.contextSelectors).filter(e=>typeof e.fieldName==`string`&&e.fieldName.trim()).map(e=>({fieldName:e.fieldName,label:typeof e.label==`string`&&e.label.trim()?e.label:Fa(String(e.fieldName)),options:t(e.options).map(e=>({value:e.value,label:e.label})),optionsSource:e.optionsSource??null})),r=e.notifications,i=e.globalSearch;return{contextSelectors:n,contextActions:t(e.headerActions).map(Xo),notificationsEnabled:!!r?.source,notificationsSource:r?.source??null,notificationsReadSource:r?.markRead??null,globalSearchEnabled:!!i?.source,globalSearchSource:i?.source??null}}function Qo(e){let t=e.menu??[],n=(e.widgets??[]).filter(e=>e&&typeof e==`object`),r=t=>e[t]===!0||e[t]===`true`;return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:e.title??``}],messages:[],fragments:[{targetComponentId:Ao,component:{type:T.ClientSide,id:`app`,metadata:{type:`App`,route:``,rootRoute:``,variant:qo(e.variant,t),layout:`SINGLE_SLOT`,title:e.title,subtitle:e.subtitle,logo:e.logo,favicon:e.favicon,themeToggle:r(`themeToggle`),commandCenterEnabled:r(`commandCenter`)||r(`chromeless`),chromeless:r(`chromeless`),accessKeys:r(`accessKeys`),mobileQr:r(`mobileQr`),drawerClosed:r(`drawerClosed`),style:typeof e.style==`string`?e.style:void 0,cssClasses:typeof e.cssClasses==`string`?e.cssClasses:void 0,accentColor:typeof e.accentColor==`string`&&e.accentColor.trim()?e.accentColor.trim():void 0,menu:t.map(Ho),totalMenuOptions:t.length,homeRoute:(typeof e.homeRoute==`string`&&e.homeRoute.trim()?e.homeRoute.trim().replace(/^\/+/,``):Uo(t))??``,homeConsumedRoute:``,homeBaseUrl:``,apps:[],fabs:[],...Zo(e),actions:(e.actions??[]).filter(e=>e&&typeof e==`object`).map(zo),actionCatalogue:rs(),shortcuts:Jo(e.shortcuts),headerValues:(e.headerValues??[]).filter(e=>e&&typeof e.id==`string`).map(e=>({id:e.id,label:typeof e.label==`string`&&e.label.trim()?e.label:null,value:e.value??``})),liveUpdates:!1,idleSession:Yo(e)},children:n.map(e=>({...lo(e),slot:`widgets`}))},data:void 0,state:void 0,action:Ba.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}var $o=[],es=e=>{$o=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`):[]},ts=e=>{let t=new Map;for(let n of Array.isArray(e)?e:[]){if(!n||typeof n!=`object`)continue;let e=n;if(!(typeof e.id!=`string`||!e.id)){if(!(Array.isArray(e.steps)&&e.steps.length>0||e.restAction)){console.warn(`mateu: action catalogue entry "${e.id}" is not client-runnable (no steps, no restAction) — ignored`);continue}t.set(e.id,zo(e))}}return[...t.values()]},ns=e=>e?$o.find(t=>t.id===e):void 0,rs=()=>$o,is=(e,t,n)=>t?(e??[]).find(e=>e&&e.id===t)||((n??[]).find(e=>e&&e.id===t)??ns(t)):void 0,as=(e,t=new Set)=>{if(Array.isArray(e))e.forEach(e=>as(e,t));else if(e&&typeof e==`object`)for(let[n,r]of Object.entries(e))typeof r==`string`&&(n===`actionId`||n.endsWith(`ActionId`))&&r?t.add(r):r&&typeof r==`object`&&as(r,t);return t},os=(e,t=[],n=$o)=>{if(!n.length)return[];let r=new Set(t.map(e=>e?.id).filter(Boolean)),i=[...as([e,t])],a=[];for(;i.length;){let e=i.shift();if(r.has(e))continue;let t=n.find(t=>t.id===e);t&&(r.add(e),a.push(t),i.push(...as(t)))}return a},ss=/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g,cs=`en`,ls=e=>(e??``).trim().replace(/_/g,`-`).toLowerCase(),us=(e,t)=>Object.keys(e).find(e=>ls(e)===t);function ds(e,t){if(!e)return;let n=Object.keys(e);if(n.length){for(let n of t){let t=ls(n);if(!t)continue;let r=us(e,t);if(r)return r;let i=us(e,t.split(`-`)[0]);if(i)return i}return us(e,ls(cs))??us(e,ls(cs).split(`-`)[0])??n[0]}}var fs=new Set;function ps(e,t,n){return typeof e!=`string`||!e.includes(`i18n.`)?e:e.replace(ss,(e,r)=>{let i=t?.[r]??n?.[r];return i===void 0?(fs.has(r)||(fs.add(r),console.warn(`mateu: missing translation '${r}' — showing the key`)),r):i})}function ms(e,t,n){let r=e=>{if(typeof e==`string`)return ps(e,t,n);if(Array.isArray(e))return e.map(r);if(e&&typeof e==`object`){let t={};for(let[n,i]of Object.entries(e))t[n]=r(i);return t}return e};return r(e)}var hs=e=>{if(e==null)return!1;let t=typeof e==`string`?e:JSON.stringify(e);return ss.lastIndex=0,ss.test(t)},gs=()=>{let e=globalThis.navigator;return e?[...e.languages??[],...e.language?[e.language]:[]]:[]},_s,vs=new Map,ys=[],bs,xs=[],Ss=[],Cs={},ws={},Ts,Es,Ds=e=>{Es=e||void 0},Os=()=>{let e=$s(_s?.get(`_no_route`));return typeof e?.locale==`string`&&e.locale?e.locale:void 0},ks=()=>ds(ws,[Es,Os(),...gs()]),As=e=>{if(e===void 0||!Object.keys(ws).length||!hs(e))return e;let t=ks(),n=ds(ws,[]);return ms(e,t?ws[t]:void 0,n&&n!==t?ws[n]:void 0)},js=e=>e.split(`/`).filter(e=>e.startsWith(`:`)&&e.length>1).map(e=>e.substring(1)),Ms=e=>{let t=e=>e.replace(/^\/+/,``).replace(/\/+$/,``),n=t(e===`_no_route`?``:e),r=n===``?[]:n.split(`/`),i;for(let e of xs){let n=t(e.route??``),a=n===``?[]:n.split(`/`);if(a.length!==r.length)continue;let o={},s=!0;for(let e=0;e<a.length;e++){let t=a[e];if(t.startsWith(`:`)&&t.length>1)o[t.substring(1)]=r[e];else if(t!==r[e]){s=!1;break}}if(!s)continue;let c={entry:e,pathParams:o};(!i||js(n).length<js(t(i.entry.route??``)).length)&&(i=c)}return i},Ns=(e,t)=>{let n=Ms(e);if(!n)return t;let{entry:r,pathParams:i}=n,a=r.defaultParams??{},o=r.fixedParams??{};return!Object.keys(a).length&&!Object.keys(o).length&&!Object.keys(i).length?t:{...t,fragments:(t.fragments??[]).map(e=>({...e,state:{...a,...e.state??{},...i,...o},data:{...a,...e.data??{},...i,...o}}))}},Ps=e=>{let t=e&&e.startsWith(`/`)?e.substring(1):e??``;return t===``?`_no_route`:t},Fs=e=>{let t=new Map,n=new Map,r=[];for(let i of e.entries??[])if(!(!i.ok||!i.json))try{let e=JSON.parse(i.json),a=i.contentJson?JSON.parse(i.contentJson):void 0;i.routePattern?r.push({regex:new RegExp(i.routePattern),paramNames:i.paramNames??[],increment:e,content:a}):(t.set(i.syncPath,e),a&&n.set(i.syncPath,a))}catch(e){console.warn(`mateu: bundle entry parse failed for`,i.syncPath,e)}return{increments:t,contents:n,templates:r,routeEntries:e.routes?.routes??[],definitions:e.definitions??{},catalogueSources:e.sources?.sources??[],translations:e.translations??{},environment:e.environment??void 0}},Is=()=>_s===void 0?void 0:{increments:_s,contents:vs,templates:ys,routeEntries:xs,catalogueSources:Ss,definitions:Cs,translations:ws,environment:Ts},Ls=e=>{_s=e?.increments,vs=e?.contents??new Map,ys=e?.templates??[],xs=e?.routeEntries??[],Ss=e?.catalogueSources??[],Cs=e?.definitions??{},ws=e?.translations??{},Ts=e?.environment};function Rs(e,t=fetch){return bs=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json();Ls(Fs(r)),oe(r.sources?.sources),es(r.actions),r.mockSources&&pe(!0),r.types&&xo(r.types.types)}catch(e){console.warn(`mateu: bundle manifest load failed`,e)}})(),bs}var zs=new Map,Bs=e=>{if(!e)return!1;let t=e.split(`#`)[0].split(`?`)[0];return/\.json$/i.test(t)},Vs=(e,t=fetch)=>{let n=zs.get(e);if(!n){n=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json(),i=Fs(r);return se(e,r.sources?.sources),i}catch(t){console.warn(`mateu: static remote manifest load failed`,e,t);return}})();let r=n;r.then(t=>{!t&&zs.get(e)===r&&zs.delete(e)}),zs.set(e,r)}return n},Hs=async(e,t,n,r=fetch)=>{let i=await Vs(e,r);if(!i)return;let a=Is();Ls(i);try{if(n!==void 0&&n!==`_empty`&&t===`_no_route`){let e=$s(Ys(`_no_route`)??Qs(`_no_route`))?.homeRoute;return typeof e!=`string`||Ps(e)===`_no_route`?void 0:tc(Ps(e),n)}return tc(t,n)}finally{Ls(a)}},Us,Ws=(e,t)=>e.replace(/\/+$/,``)===t.replace(/\/+$/,``);function Gs(e){Us=e||void 0}var Ks=e=>{if(!e||!/^https?:\/\//i.test(e)||Us&&Ws(e,Us))return!1;try{return typeof window>`u`||new URL(e).origin!==window.location.origin}catch{return!1}},qs=()=>bs??Promise.resolve(),Js=()=>_s!==void 0&&_s.size>0||ys.length>0||Object.keys(Cs).length>0,Ys=e=>{let t=_s?.get(e);return t===void 0?void 0:Ns(e,t)},Xs=(e,t=!1)=>{for(let n of ys){let r=n.regex.exec(e);if(!r)continue;let i=t?n.content:n.increment;if(!i)return;let a={};return n.paramNames.forEach((e,t)=>{a[e]=r[t+1]}),Ns(e,{...i,fragments:(i.fragments??[]).map(e=>({...e,component:Zs(e.component,a),state:{...e.state??{},...a},data:{...e.data??{},...a}}))})}},Zs=(e,t)=>{let n=e;return!n||!n.initialData||typeof n.initialData!=`object`?e:{...n,initialData:{...n.initialData,...t}}},Qs=e=>{let t=Ms(e),n=t?.entry.definition;if(!n)return;let r=Cs[n];if(!r||!jo(r))return;let i=Fo(As(r),t.entry.route,void 0,{data:t.entry.data??void 0,path:e===`_no_route`?``:e});return Ns(e,{...i,fragments:(i.fragments??[]).map(e=>{let t=$s({fragments:[e]}),n=t?{...e.component,metadata:{...t,restSources:Ss}}:e.component;return{...e,component:n,targetComponentId:void 0}})})},$s=e=>{let t=e?.fragments?.[0]?.component;return t?.metadata?.type===`App`?t.metadata:void 0},ec=(e,t)=>{if(t===`_no_route`)return e;let[n,...r]=e.fragments??[],i=n.component;return{...e,fragments:[{...n,component:{...i,metadata:{...i.metadata,homeRoute:`/`+t}}},...r]}},tc=(e,t)=>As(nc(e,t)),nc=(e,t)=>{let n=t===void 0||t===`_empty`,r=()=>Ys(e)??Xs(e)??Qs(e);if(n){let t=r();if(t&&$s(t))return ec(t,e);if(e!==`_no_route`&&(Ms(e)||!t)){let t=Ys(`_no_route`)??Qs(`_no_route`);if(t&&$s(t))return ec(t,e)}return t}let i=vs.get(e)===void 0?Xs(e,!0):Ns(e,vs.get(e));if(i)return i;let a=r();return a&&$s(a)?void 0:a},rc=e=>e?r(`errorStatus`,{status:e}):``,ic={offline:()=>o(`failOffline`),timeout:()=>o(`failTimeout`),server:e=>r(`failServer`,{status:rc(e)}),unauthorized:()=>o(`failUnauthorized`),forbidden:()=>o(`forbidden`),notFound:()=>o(`failNotFound`),client:e=>r(`failClient`,{status:rc(e)}),cancelled:()=>``,unknown:()=>o(`failUnknown`)},ac=new Set([`offline`,`timeout`,`server`]),oc=(e,t={})=>{let n=e??{},r=n.response?.status,i=n.code,a=t.online??(typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0),o=e=>({kind:e,message:ic[e](r),retryable:ac.has(e),status:r});return i===`ERR_CANCELED`?o(`cancelled`):i===`ECONNABORTED`||i===`ETIMEDOUT`||/timeout/i.test(n.message??``)?o(`timeout`):r===void 0?!a||i===`ERR_NETWORK`||/network error/i.test(n.message??``)?o(`offline`):o(`unknown`):o(r===401?`unauthorized`:r===403?`forbidden`:r===404||r===410?`notFound`:r===408||r===429?`timeout`:r>=500?`server`:r>=400?`client`:`unknown`)},sc=e=>e.kind!==`forbidden`,cc=new Set([``,`__load__`,`search`,`_globalsearch`,`_notifications-list`]),lc=[`_appcontext-search-`,`search-`],uc=(e,t)=>t===!0?!0:e==null?!1:cc.has(e)?!0:lc.some(t=>e.startsWith(t)),dc=(e,t=Math.random)=>{let n=300*3**Math.max(0,e-1);return Math.round(n*(.75+t()*.5))},fc=(e,t,n)=>!n.idempotent||t>2||!e.retryable?!1:e.kind===`timeout`||e.kind===`server`,pc=new class{constructor(){this.linkUp=!0,this.listeners=new Set,this.waiters=new Set,this.started=!1}start(){this.started||typeof window>`u`||(this.started=!0,this.linkUp=typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0,window.addEventListener(`online`,()=>{this.linkUp=!0,this.reachable=void 0,this.changed(),this.releaseWaiters()}),window.addEventListener(`offline`,()=>{this.linkUp=!1,this.changed()}))}isOnline(){return this.linkUp?this.reachable!==!1:!1}noteReachable(){let e=this.isOnline();this.reachable=!0,e||(this.changed(),this.releaseWaiters())}noteUnreachable(){let e=this.isOnline();this.reachable=!1,e&&this.changed()}subscribe(e){return this.listeners.add(e),()=>this.listeners.delete(e)}whenBack(e){return this.isOnline()?(e(),()=>{}):(this.waiters.add(e),()=>this.waiters.delete(e))}reset(){this.linkUp=!0,this.reachable=void 0,this.waiters.clear()}changed(){let e=this.isOnline();this.listeners.forEach(t=>t(e))}releaseWaiters(){let e=Array.from(this.waiters);this.waiters.clear(),e.forEach(e=>e())}};pc.start();var mc=`useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict`,hc=(e=21)=>{let t=``,n=crypto.getRandomValues(new Uint8Array(e|=0));for(;e--;)t+=mc[n[e]&63];return t},gc=`__mateu_auth_token`,_c=`__mateu_sesion_id`,vc,yc,bc=null,xc=()=>{try{let e=typeof document<`u`?document.querySelector(`meta[name="mateu-auth-token-storage"]`)?.getAttribute(`content`):void 0;return e===`localStorage`||e===`sessionStorage`||e===`memory`?e:void 0}catch{return}},Sc=()=>vc??xc()??`localStorage`,Cc=()=>{if(yc)try{let e=yc();if(e)return e}catch{}switch(Sc()){case`memory`:return bc;case`sessionStorage`:return Ee.get(gc);default:return Te.get(gc)}},wc=()=>{let e=Cc();return e?{Authorization:`Bearer `+e}:{}},Tc,Ec=(e=!0)=>{let t=Ee.get(_c);if(t)return t;if(Tc)return Tc;if(!e)return null;let n=hc();return Ee.set(`__mateu_sesion_id`,n)||(Tc=n),n},Dc=(e,t,n)=>{let r=t??{},i=!!r.config||!!r.response,a=r.config?.headers?.traceparent;return{kind:e.kind,message:e.message,status:e.status??r.response?.status,detail:typeof t==`string`?t:r.message,url:r.config?.url,actionId:n,traceparent:typeof a==`string`?a:void 0,stack:i?void 0:r.stack}},Oc=null,kc=e=>{Oc?.report(e)},Ac=(e,t)=>`${e??``}|${t??``}`,jc=(e,t,n)=>!n||e===void 0||e===t,Mc=(e,t)=>{let n=e.generation,r=e.callbackToken,i=e.connected;return()=>e.generation!==n||t&&e.callbackToken!==r||i&&!e.connected},Nc=class extends Error{constructor(e,t){super(`response to '${e}' arrived for a view no longer on screen`),this.actionId=e,this.outcome=t,this.__mateuStale=!0,this.__mateuReported=!0,this.code=`ERR_CANCELED`}},Pc=e=>!!e&&typeof e==`object`&&e.__mateuStale===!0,Fc={show:e=>console.debug(`[mateu] no notifier registered, dropping toast:`,e.text)};function Ic(e){Fc=e}function Lc(e,t){Fc.show(e,t)}function Rc(e,t=3){if(typeof e!=`string`||e.trim()===``)return{ok:!0};let n=parseInt(e.trim().split(`.`)[0]??``,10);return Number.isFinite(n)?n===t?{ok:!0}:{ok:!1,serverMajor:n,received:e.trim()}:{ok:!0}}function zc(e,t=3){return r(`wireVersionMismatch`,{server:`${e}.x`,supported:`${t}.x`})}var Bc=!1,Vc=e=>{console.error(`[mateu] `+e),typeof document<`u`&&document.body&&Lc({text:e,variant:`error`,position:`topStretch`,duration:0,actionLabel:o(`dismiss`),onAction:()=>void 0},document.body)};function Hc(e,t=Vc){if(!e||typeof e!=`object`)return{ok:!0};let n=Rc(e.wireVersion);return!n.ok&&!Bc&&(Bc=!0,t(zc(n.serverMajor))),n}var Uc=[],Wc=6e4,Gc=e=>new Promise(t=>setTimeout(t,e)),Kc=new class{constructor(){this.axiosInstance=P.create({timeout:Wc}),this.axiosInstance.interceptors.request.use(e=>(this.addAuthToken(e),this.addSessionId(e),e)),this.axiosInstance.interceptors.response.use(e=>{let t=Na({requestedUrl:this.axiosInstance.getUri(e.config),finalUrl:e.request?.responseURL,contentType:String(e.headers?.[`content-type`]??``),data:e.data});if(t)throw window.location.assign(t),Object.assign(Error(`session lost — redirecting to `+t),{code:`ERR_CANCELED`});return e},e=>{let t=e;if(t?.response?.status===401&&t.config&&!t.config.__mateuRetried&&!t.config.__mateuIsStale?.()){let n=t.config;return n.__mateuRetried=!0,ja(e,()=>this.axiosInstance.request(n))}throw e})}addSessionId(e){let t=Ec();t&&(e.headers[`X-Session-Id`]=t)}addAuthToken(e){let t=Cc();t&&(e.headers.Authorization=`Bearer `+t)}async wrap(e,t,n,r,i,a=!1,o){n||t.dispatchEvent(new CustomEvent(`backend-called-event`,{bubbles:!0,composed:!0,detail:{}}));let s=e=>{throw t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),new Nc(r,e)};return e().then(e=>(o?.()&&s(`answered`),t.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),e),e=>{o?.()&&s(`failed`);let n=oc(e,{online:pc.isOnline()});throw a||(n.kind==`cancelled`?t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})):(e&&typeof e==`object`&&(e.__mateuReported=!0),t.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(e),failure:n,retry:i}})))),e})}async sendWithRetry(e,t,n=!1,r){let i=0;for(;;)try{let t=await e();return n||pc.noteReachable(),t}catch(e){let a=oc(e,{online:pc.isOnline()});if(a.kind==`offline`&&!n&&pc.noteUnreachable(),i++,r?.()||!fc(a,i,{idempotent:t}))throw e;await Gc(dc(i))}}serialize(e){return e?.message?e:JSON.stringify(e)}release(e){Uc=Uc.filter(t=>t!==e)}async get(e){let t=new AbortController;return Uc=[...Uc,t],this.axiosInstance.get(e,{signal:t.signal}).finally(()=>this.release(t))}async post(e,t,n,r){let i=new AbortController;return Uc=[...Uc,i],this.axiosInstance.post(e,t,{signal:i.signal,...r?{__mateuIsStale:r}:{},...n&&n>0?{timeout:n}:{}}).finally(()=>this.release(i))}async abortAll(){Uc.forEach(e=>e.abort()),Uc=[]}async runAction(e,t,n,r,i,a,s,c,l,u,d,f={}){if(t&&t.startsWith(`/`)&&(t=t.substring(1)),Bs(e)){let a=r===``?await Hs(e,Ps(t),n):void 0;return await this.wrap(()=>a?Promise.resolve({...a,fragments:(a.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})}):Promise.reject(Error(r===``?`the static bundle ${e} does not answer the route "${t}"`:`the static bundle ${e} has no server to run "${r}"`)),u,d,r,f.retry,!1,f.isStale)}if(r===``&&!Ks(e)&&(await qs(),Js())){let e=tc(Ps(t),n);if(e){let t={...e,fragments:(e.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})};return await this.wrap(()=>Promise.resolve(t),u,d,r,f.retry,!1,f.isStale)}}let p=[e,t,n,s??``,r,i].join(``),m=Pa.check(p);if(m.blocked)return await this.abortAll(),m.firstTrip&&(console.error(`[mateu] request loop detected — aborting repeated request`,p),kc({kind:`request-loop`,message:`A repeating request was detected and stopped`,url:e+`/mateu/v3/sync/`+(t||`_no_route`),actionId:r})),{messages:m.firstTrip?[{title:``,text:o(`repeatingRequest`),position:`bottom-end`,variant:`error`,duration:6e3}]:[],commands:[],fragments:[],banners:[],appendBanners:!1,appData:void 0,appState:void 0};a={...Ta(),...a};let h=e+`/mateu/v3/sync/`+(t&&t!=``?t:`_no_route`),g={serverSideType:s,appState:a,componentState:c,parameters:l,initiatorComponentId:i,consumedRoute:n,route:t&&t!=``?`/`+t:``,actionId:r,knownStructureHash:f.knownStructureHash},_=uc(r,f.idempotent),v=()=>this.post(h,g,f.timeoutMillis,f.isStale).then(e=>(Hc(e.data),e.data));return await this.wrap(()=>this.sendWithRetry(v,_,f.quiet,f.isStale),u,d,r,f.retry,f.quiet,f.isStale)}},qc=e=>{let t=(e??``).trim(),n=t.search(/[?#]/);for(n>=0&&(t=t.slice(0,n)),t&&!t.startsWith(`/`)&&(t=`/`+t);t.length>1&&t.endsWith(`/`);)t=t.slice(0,-1);return t},Jc=e=>{let t=e??``,n;do n=t,t=t.replace(/<[^<>]*>/g,``);while(t!==n);return t.replace(/[<>]/g,``).replace(/\s+/g,` `).trim()},Yc=(e,t)=>!!e&&e!==`/`&&(t===e||t.startsWith(e+`/`)),Xc=e=>!!e&&!!e.remote,Zc=e=>Xc(e)?qc(e.routePrefix||e.path||e.route):``,Qc=(e,t)=>{if(!e||e.separator)return-1;let n=qc(t);if(Xc(e)){let t=Zc(e);return Yc(t,n)?t.length:-1}let r=-1,i=qc(e.route);Yc(i,n)&&(r=i.length);for(let t of e.submenus??[])r=Math.max(r,Qc(t,n));return r},$c=(e,t)=>Qc(e,t)>=0;function el(e,t){let n=NaN,r=-1;return(e??[]).forEach((e,i)=>{let a=Qc(e,t);a>r&&(r=a,n=i)}),n}function tl(e,t){let n=qc(t),r,i=nl(e),a=(e,t,n)=>{(!r||e.length>r.route.length||e.length===r.route.length&&r.pending&&!n)&&(r={crumbs:t,route:e,pending:n})},o=(e,t)=>{for(let r of e??[]){if(!r||r.separator)continue;let e=Jc(r.label);if(Xc(r)){let i=Zc(r);Yc(i,n)&&a(i,[...t,{text:e}],!0);continue}let s=qc(r.route),c=r.submenus??[];if(c.length>0){o(c,[...t,s&&s!==`/`&&i.has(s)?{text:e,route:s}:{text:e}]);continue}Yc(s,n)&&a(s,[...t,{text:e,route:s}],!1)}};return o(e,[]),r?{crumbs:r.crumbs,matched:r.route,...r.pending?{pending:!0}:{}}:{crumbs:[]}}function nl(e){let t=new Set,n=e=>{for(let r of e??[]){if(!r||r.separator||Xc(r))continue;let e=r.submenus??[];if(e.length>0){n(e);continue}let i=qc(r.route);i&&i!==`/`&&t.add(i)}};return n(e),t}function rl(e,t){let n=qc(t),r,i=e=>{for(let t of e??[]){if(!t||t.separator||Xc(t))continue;let e=t.submenus??[];if(e.length>0){i(e);continue}let a=qc(t.route);Yc(a,n)&&(!r||a.length>r.route.length)&&(r={option:t,route:a})}};return i(e),r?.option}var il=(e,t)=>{let n=!1,r=e.map(e=>{if(Xc(e)){let r=t(e);return r!==e&&(n=!0),r}if(e.submenus&&e.submenus.length>0){let r=il(e.submenus,t);if(r!==e.submenus)return n=!0,{...e,submenus:r}}return e});return n?r:e};function al(e,t,n){let r=qc(n);if(!t||!r||r===`/`)return e;let i=`/`+r.split(`/`)[1];return il(e,e=>e.baseUrl===t&&!Yc(Zc(e),r)?{...e,routePrefix:i}:e)}function ol(e,t){return r(`sectionUnavailable`,{name:Jc(e)},t)}var sl=e=>e.map(e=>({...e,visible:!1,...e.submenus&&e.submenus.length>0?{submenus:sl(e.submenus)}:{}})),cl=(e,t,n)=>{let r=t.serverSideType&&t.serverSideType!==``?t.serverSideType:n.serverSideType;return e.map(e=>e.baseUrl?e:e.submenus&&e.submenus.length>0?{...e,submenus:cl(e.submenus,t,n)}:{...e,consumedRoute:n.route??``,baseUrl:t.baseUrl,serverSideType:r,uriPrefix:t.route})};function ll(e,t,n,r={},i=0){let a=[];for(let o of e)if(Xc(o)){let e=t.get(o);if(!e)a.push(o);else if(`failed`in e)a.push({...o,unavailable:!0,disabled:!0,description:ol(o.label,n)});else{let t=cl(e.app.menu??[],o,e.app),n=t.length===1&&(t[0].submenus?.length??0)>0;r.sections&&i===0&&!n&&t.length>0?t=[ul(o,t)]:o.shellLabel&&o.label&&t.length===1&&(t=[{...t[0],label:o.label,icon:o.icon||t[0].icon}]),a.push(...o.visible===!1?sl(t):t)}}else o.submenus&&o.submenus.length>0?a.push({...o,submenus:ll(o.submenus,t,n,r,i+1)}):a.push(o);return a}var ul=(e,t)=>({label:e.label,icon:e.icon,path:e.path,route:``,separator:!1,visible:e.visible,description:void 0,submenus:t});function dl(e){let t=[];for(let n of e??[])Xc(n)?t.push(n):n.submenus&&n.submenus.length>0&&t.push(...dl(n.submenus));return t}function fl(e){let t=!1,n=[];for(let r of e){if(r.visible===!1){t=!0;continue}if(r.submenus&&r.submenus.length>0){let e=fl(r.submenus);if(e!==r.submenus){t=!0,n.push({...r,submenus:e});continue}}n.push(r)}return t?n:e}function pl(e,t){let n=el(e,t);return Number.isNaN(n)?void 0:e[n]}function ml(e){if(!e||e.separator||e.visible===!1||Xc(e)||e.unavailable)return;let t=e.submenus??[];if(t.length===0)return e;for(let e of t){let t=ml(e);if(t)return t}}var hl=new Set;function gl(e){return hl.add(e),()=>{hl.delete(e)}}function _l(){let e=[...hl];hl.clear(),e.forEach(e=>e())}function vl(e,t){return!t.callbackToken||!e.callbackToken||t.callbackToken===e.callbackToken||t.initiator!=null&&t.initiator!==e}var yl=new Set([`http:`,`https:`]),bl=()=>typeof window<`u`&&window.location?window.location.href:void 0,xl=(e,t=bl())=>{if(typeof e!=`string`||e.trim()===``)return;let n;try{n=t?new URL(e,t):new URL(e)}catch{return}if(!yl.has(n.protocol))return;let r=!1;try{r=!!t&&new URL(t).origin===n.origin}catch{r=!1}return{href:n.href,sameOrigin:r}},Sl=e=>{console.warn(`mateu: refused to navigate to a URL that is not http(s) or relative:`,e)},Cl=(e,t={})=>{let n=xl(e);return n?(n.sameOrigin&&!t.newTab?window.location.assign(n.href):window.open(n.href,`_blank`,`noopener,noreferrer`),!0):(Sl(e),!1)},wl=new Set([`http`,`https`,`mailto`,`tel`]),Tl=(e,t={})=>{if(e==null)return;let n=String(e).replace(/[\t\n\r]/g,``).replace(/^[\u0000- ]+/,``).trimEnd();if(n===``)return;let r=/^([a-z][a-z0-9+.-]*):/i.exec(n)?.[1]?.toLowerCase();if(!r||wl.has(r)||r===`data`&&t.allowData)return n},El=class{get signal(){return(!this.controller||this.controller.signal.aborted)&&(this.controller=new AbortController),this.controller.signal}abort(){this.controller?.abort(),this.controller=void 0}},Dl=class{replace(){return this.controller?.abort(),this.controller=new AbortController,this.controller.signal}get active(){return!!this.controller&&!this.controller.signal.aborted}clear(){this.controller?.abort(),this.controller=void 0}},Ol=6e4;function kl(e,t){if(e){if(/^https?:\/\//i.test(e))return e;if(!(!e.startsWith(`/`)||e.startsWith(`//`))){if(t&&/^https?:\/\//i.test(t))try{return new URL(e,new URL(t).origin).toString()}catch{return e}return e}}}function Al(e,t){let n=t(e),r=new Uint8Array(n.length);for(let e=0;e<n.length;e++)r[e]=n.charCodeAt(e);return r}function jl(e,t,n){if(e.base64Content){let n=new t.Blob([Al(e.base64Content,t.atob)],{type:e.mimeType||`application/octet-stream`});return{href:t.URL.createObjectURL(n),objectUrl:!0}}let r=kl(e.url,n);return r?{href:r,objectUrl:!1}:void 0}function Ml(e,t,n){e.objectUrl&&t.setTimeout(()=>t.URL.revokeObjectURL(e.href),n)}function Nl(e,t,n){let r=n.document.createElement(`a`);r.href=e,r.download=t,r.rel=`noopener`,r.style.display=`none`,n.document.body.appendChild(r),r.click(),r.remove()}function Pl(e,t,n){let r=t.document.createElement(`iframe`);r.setAttribute(`aria-hidden`,`true`),r.setAttribute(`tabindex`,`-1`),r.style.cssText=`position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden`,r.addEventListener(`load`,()=>{try{let e=r.contentWindow;if(!e)throw Error(`no frame window`);e.focus(),e.print()}catch{n()}t.setTimeout(()=>r.remove(),Ol)},{once:!0}),r.src=e,t.document.body.appendChild(r)}function Fl(e,t=window,n){if(!e||typeof e!=`object`||!t?.document)return`none`;let r=jl(e,t,n);if(!r)return`none`;let i=e.filename||`download`,a=e.disposition===`inline`;if(a&&e.print)return Pl(r.href,t,()=>{r.objectUrl&&t.open(r.href,`_blank`)}),Ml(r,t,Ol),`printing`;if(a){let e=t.open(r.href,`_blank`);if(e){try{e.opener=null}catch{}return Ml(r,t,Ol),`opened`}}return Nl(r.href,i,t),Ml(r,t,1e3),`downloaded`}var Il=`
 ========
 `+r)}}catch{}throw e}}_request(e,t){typeof e==`string`?(t||={},t.url=e):t=e||{},t=Ei(this.defaults,t);let{transitional:n,paramsSerializer:r,headers:i}=t;n!==void 0&&ma.assertOptions(n,{silentJSONParsing:N.transitional(N.boolean),forcedJSONParsing:N.transitional(N.boolean),clarifyTimeoutError:N.transitional(N.boolean),legacyInterceptorReqResOrdering:N.transitional(N.boolean),advertiseZstdAcceptEncoding:N.transitional(N.boolean),validateStatusUndefinedResolves:N.transitional(N.boolean)},!1),r!=null&&(k.isFunction(r)?t.paramsSerializer={serialize:r}:ma.assertOptions(r,{encode:N.function,serialize:N.function},!0)),t.allowAbsoluteUrls!==void 0||(this.defaults.allowAbsoluteUrls===void 0?t.allowAbsoluteUrls=!0:t.allowAbsoluteUrls=this.defaults.allowAbsoluteUrls),ma.assertOptions(t,{baseUrl:N.spelling(`baseURL`),withXsrfToken:N.spelling(`withXSRFToken`)},!0),t.method=(k.getSafeProp(t,`method`)||k.getSafeProp(this.defaults,`method`)||`get`).toLowerCase();let a=i&&k.merge(i.common,i[t.method]);i&&k.forEach($r.concat(`common`),e=>{delete i[e]}),t.headers=A.concat(a,i);let o=[],s=!0;this.interceptors.request.forEach(function(e){if(typeof e.runWhen==`function`&&e.runWhen(t)===!1)return;s&&=e.synchronous;let n=t.transitional||zr;n&&n.legacyInterceptorReqResOrdering?o.unshift(e.fulfilled,e.rejected):o.push(e.fulfilled,e.rejected)});let c=[];this.interceptors.response.forEach(function(e){c.push(e.fulfilled,e.rejected)});let l,u=0,d;if(!s){let e=[ua.bind(this),void 0];for(e.unshift(...o),e.push(...c),d=e.length,l=Promise.resolve(t);u<d;)l=l.then(e[u++],e[u++]);return l}d=o.length;let f=t;for(;u<d;){let e=o[u++],t=o[u++];try{f=e?e(f):f}catch(e){if(!t){l=Promise.reject(e);break}try{let n=t.call(this,e);k.isThenable(n)&&(l=Promise.resolve(n).then(()=>ua.call(this,f)))}catch(e){l=Promise.reject(e)}break}}if(!l)try{l=ua.call(this,f)}catch(e){l=Promise.reject(e)}for(u=0,d=c.length;u<d;)l=l.then(c[u++],c[u++]);return l}getUri(e){return e=Ei(this.defaults,e),Nr(Ci(e.baseURL,e.url,e.allowAbsoluteUrls,e),e.params,e.paramsSerializer)}};k.forEach([`delete`,`get`,`head`,`options`],function(e){ha.prototype[e]=function(t,n){return this.request(Ei(n||{},{method:e,url:t,data:n&&k.hasOwnProp(n,`data`)?n.data:void 0}))}}),k.forEach([`post`,`put`,`patch`,`query`],function(e){function t(t){return function(n,r,i){return this.request(Ei(i||{},{method:e,headers:t?{"Content-Type":`multipart/form-data`}:{},url:n,data:r}))}}ha.prototype[e]=t(),e!==`query`&&(ha.prototype[e+`Form`]=t(!0))});var ga=class e{constructor(e){if(typeof e!=`function`)throw TypeError(`executor must be a function.`);let t;this.promise=new Promise(function(e){t=e});let n=this;this.promise.then(e=>{if(!n._listeners)return;let t=n._listeners.length;for(;t-->0;)n._listeners[t](e);n._listeners=null}),this.promise.then=e=>{let t,r=new Promise(e=>{n.subscribe(e),t=e}).then(e);return r.cancel=function(){n.unsubscribe(t)},r},e(function(e,r,i){n.reason||(n.reason=new ai(e,r,i),t(n.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(e){if(this.reason){e(this.reason);return}this._listeners?this._listeners.push(e):this._listeners=[e]}unsubscribe(e){if(!this._listeners)return;let t=this._listeners.indexOf(e);t!==-1&&this._listeners.splice(t,1)}toAbortSignal(){let e=new AbortController,t=t=>{e.abort(t)};return this.subscribe(t),e.signal.unsubscribe=()=>this.unsubscribe(t),e.signal}static source(){let t;return{token:new e(function(e){t=e}),cancel:t}}};function _a(e){return function(t){return e.apply(null,t)}}function va(e){return k.isObject(e)&&e.isAxiosError===!0}var ya={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,ContentTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,UnprocessableContent:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511,WebServerReturnsAnUnknownError:520,WebServerIsDown:521,ConnectionTimedOut:522,OriginIsUnreachable:523,TimeoutOccurred:524,SslHandshakeFailed:525,InvalidSslCertificate:526};Object.entries(ya).forEach(([e,t])=>{ya[t]===void 0&&(ya[t]=e)});function ba(e){let t=new ha(e),n=jt(ha.prototype.request,t);return k.extend(n,ha.prototype,t,{allOwnKeys:!0}),k.extend(n,t,null,{allOwnKeys:!0}),n.create=function(t){return ba(Ei(e,t))},n}var P=ba(ni);P.Axios=ha,P.CanceledError=ai,P.CancelToken=ga,P.isCancel=ii,P.VERSION=qi,P.toFormData=Or,P.AxiosError=j,P.Cancel=P.CanceledError,P.all=function(e){return Promise.all(e)},P.spread=_a,P.isAxiosError=va,P.mergeConfig=Ei,P.AxiosHeaders=A,P.formToJSON=e=>Qr(k.isHTMLForm(e)?new FormData(e):e),P.getAdapter=ca.getAdapter,P.HttpStatusCode=ya,P.default=P;var xa=`mateu-app-context`,Sa=`mateu-app-context-labels`,Ca=e=>{try{return JSON.parse(localStorage.getItem(e)??`{}`)}catch{return{}}},wa=(e,t)=>{try{localStorage.setItem(e,JSON.stringify(t))}catch{}},Ta=()=>Ca(xa),Ea=()=>Ca(Sa),Da=(e,t,n)=>{let r=Ta(),i=Ea();t==null||t===``?(delete r[e],delete i[e]):(r[e]=t,n!==void 0&&(i[e]=n)),wa(xa,r),wa(Sa,i)},Oa=!1,ka=()=>{Oa||(Oa=!0,window.addEventListener(`storage`,e=>{e.key===xa&&e.newValue!==e.oldValue&&window.location.reload()}))},Aa,ja=(e,t)=>new Promise((n,r)=>{let i=!1,a={retry:()=>{i||(i=!0,t().then(n,r))},giveUp:()=>{i||(i=!0,r(e))}};if(Aa){Aa(a);return}let o=new CustomEvent(`mateu-session-expired`,{detail:a,cancelable:!0,bubbles:!1});typeof document<`u`&&!document.dispatchEvent(o)||a.giveUp()}),Ma=(e,t)=>e.includes(`json`)?!0:typeof t==`object`&&!!t,Na=(e,t)=>{let n=e.finalUrl;if(!n)return;let r=t??(typeof window<`u`?window.location.href:void 0),i;try{i=new URL(e.requestedUrl,r).href}catch{return}if(i!==n&&!Ma(e.contentType??``,e.data))return n},Pa=new class{constructor(){this.windowMs=4e3,this.threshold=12,this.events=[],this.reported=new Set}check(e,t=Date.now()){this.events.push({sig:e,t});let n=t-this.windowMs;this.events=this.events.filter(e=>e.t>=n);let r=0;for(let t of this.events)t.sig===e&&r++;if(r>=this.threshold){let t=!this.reported.has(e);return this.reported.add(e),{blocked:!0,firstTrip:t}}return this.reported.delete(e),{blocked:!1,firstTrip:!1}}reset(){this.events=[],this.reported.clear()}configure(e){e.windowMs!==void 0&&(this.windowMs=e.windowMs),e.threshold!==void 0&&(this.threshold=e.threshold)}},Fa=e=>{let t=(e.split(`.`).filter(e=>e&&!/^\d+$/.test(e)).pop()??e).replace(/[_-]+/g,` `).replace(/([a-z0-9])([A-Z])/g,`$1 $2`).replace(/([A-Z]+)([A-Z][a-z])/g,`$1 $2`).trim().toLowerCase();return t?t.charAt(0).toUpperCase()+t.slice(1):e},Ia=[`eyesOnly`,`readOnlyUnless`,`disabledUnless`,`access`],La=!1,Ra=(e,t)=>{if(Array.isArray(e))return e.map(e=>Ra(e,t));if(e&&typeof e==`object`){let n={};for(let[r,i]of Object.entries(e)){if(Ia.includes(r)){t.any=!0;continue}n[r]=Ra(i,t)}return n}return e};function za(e){let t={any:!1},n=Ra(e,t);return t.any?(La||(La=!0,console.warn(`mateu: access rules (eyesOnly/readOnlyUnless/disabledUnless/access) need a server to check who is asking — with none, the page renders unrestricted`)),n):e}var Ba=function(e){return e.Add=`Add`,e.Replace=`Replace`,e.ReplaceKeepData=`ReplaceKeepData`,e}({}),Va=e=>Array.isArray(e)?e.filter(e=>!!e&&typeof e==`object`):[],Ha=e=>typeof e==`string`&&e.trim()!==``?e:void 0;function Ua(e){for(let t of[`overline`,`titlePlaceholder`,`timestamp`])t in e&&!Ha(e[t])&&delete e[t];if(`badges`in e&&(e.badges=Va(e.badges).map(e=>({text:e.label,iconOnLeft:null,iconOnRight:null,color:Ha(e.color)??`normal`,primary:!1,small:!1,pill:!1}))),`kpis`in e){let t=Va(e.kpis);t.length?e.kpis=t.map(e=>({title:e.label,text:e.value})):delete e.kpis}if(`recordSwitcher`in e){let t=e.recordSwitcher;delete e.recordSwitcher,t&&typeof t==`object`&&(e.switcher={options:Va(t.options).map(e=>({value:e.value,label:e.label,description:e.description})),value:t.value,type:t.type===`context`?`context`:`object`,label:t.label,searchable:t.searchable===!0,disabled:t.disabled===!0,actionId:Ha(t.actionId)??`_switchRecord`,optionsSource:t.optionsSource??null,route:Ha(t.route)??null})}if(`banners`in e&&(e.banners=Va(e.banners).map(e=>({theme:typeof e.theme==`string`?e.theme.toUpperCase():`NONE`,hasIcon:!1,hasCloseButton:e.closeable===!0,title:e.title,description:e.description,timeoutSeconds:typeof e.timeoutSeconds==`number`?e.timeoutSeconds:0}))),`fabs`in e){let t=Va(e.fabs).map((e,t)=>({fab:e,index:t})).sort((e,t)=>Number(e.fab.order??0)-Number(t.fab.order??0)||e.index-t.index).map(({fab:e})=>({id:e.actionId,label:e.label,icon:e.icon,actionId:e.actionId,buttonStyle:Ha(e.buttonStyle)??`primary`}));t.length?e.fabs=t:delete e.fabs}}var Wa=[],Ga=e=>{Wa=Array.isArray(e)?e:[]},Ka=e=>e?Wa.find(t=>t.name===e)?.component:void 0,qa={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},Ja=e=>(...t)=>({_$litDirective$:e,values:t}),Ya=class{constructor(e){}get _$AU(){return this._$AM._$AU}_$AT(e,t,n){this._$Ct=e,this._$AM=t,this._$Ci=n}_$AS(e,t){return this.update(e,t)}update(e,t){return this.render(...t)}},Xa=!1,Za=e=>{Xa=e},Qa=()=>Xa,$a=e=>Xa&&e?.id?e.id:p,eo=e=>{let t=e.startNode?e.startNode.nextSibling:e.parentNode?.firstChild??null;for(;t&&t!==e.endNode;){if(t.nodeType===1)return t;t=t.nextSibling}return null},to=Ja(class extends Ya{constructor(e){if(super(e),e.type!==qa.CHILD)throw Error(`stampNodeId only works in a child position`)}render(e,t){return t}update(e,[t,n]){return queueMicrotask(()=>{let n=eo(e);n&&n.getAttribute(`data-node-id`)!==t&&n.setAttribute(`data-node-id`,t)}),n}}),no=e=>Xa&&typeof e.id==`string`&&e.id?e.id:e.actionId,ro=(e,t)=>Xa&&typeof e.id==`string`&&e.id?l`${to(e.id,t)}`:t,io=new Set([`id`,`style`,`cssClasses`,`slot`,`initialData`,`confirmOnNavigationIfDirty`,`sizing`]),ao=new Set([`Form`,`FormLayout`,`VerticalLayout`,`HorizontalLayout`,`Div`,`FlexLayout`,`CustomComponent`]),oo={Card:[`content`,`title`,`subtitle`,`footer`,`header`,`media`,`headerPrefix`,`headerSuffix`],Form:[`header`,`footer`,`avatar`]},so={HeroSection:`content`,DashboardLayout:`items`,DashboardPanel:`content`,Scoreboard:`metrics`,TabLayout:`tabs`,Tab:`content`},co=new Set([`Listing`,`Crudl`,`Crud`]);function lo(e){let{note:t,...n}=e;if(co.has(n.type))return ho(n);if(n.type===`FoldoutLayout`)return mo(n);if(n.type===`ComponentRef`)return Ka(n.ref)||{type:T.ClientSide,metadata:{type:`Text`,text:`Unknown business component: ${n.ref}`},children:[]};let{type:r,content:i,children:a,...o}=n.type===`Button`?vo(n):n,s={},c={type:r};for(let[e,t]of Object.entries(o))io.has(e)?s[e]=t:c[e]=(e===`toolbar`||e===`buttons`)&&Array.isArray(t)?t.map(vo):t;r===`FormField`&&(o.id!==void 0&&(c.fieldId=o.id),delete c.id,c.dataType=c.dataType??`string`,c.stereotype=c.stereotype??`regular`),r===`Form`&&Ua(c),r===`HeroSection`&&c.tone===`auto`&&delete c.tone;let l=[];if(so[r]){let e=so[r],t=e===`content`?i:o[e];delete c[e],l=t==null?[]:Array.isArray(t)?t:[t]}else if(ao.has(r)){let e=i??a??[];l=Array.isArray(e)?e:[e]}for(let e of oo[r]??[]){let t=po(e===`content`?i:c[e]);t!==void 0&&(c[e]=t)}if(r===`Form`&&fo(c.avatar)){let e=c.avatar;e.style=(typeof e.style==`string`?e.style:``)+`;width: 4rem;height: 4rem;`}return{...s,type:T.ClientSide,metadata:c,children:l.map(lo)}}var uo=e=>!!e&&typeof e==`object`&&!Array.isArray(e)&&typeof e.type==`string`,fo=e=>!!e&&typeof e==`object`&&!Array.isArray(e);function po(e){if(uo(e))return lo(e);if(Array.isArray(e))return e.map(e=>uo(e)?lo(e):e)}function mo(e){let{type:t,content:n,children:r,overview:i,panels:a,badges:o,...s}=e,c={},l={type:t};for(let[e,t]of Object.entries(s))io.has(e)?c[e]=t:l[e]=t;let u=[];return uo(i)&&u.push({...lo(i),slot:`overview`}),l.panels=(Array.isArray(a)?a:[]).map((e,t)=>(uo(e.content)&&u.push({...lo(e.content),slot:`panel-`+t}),uo(e.summary)&&u.push({...lo(e.summary),slot:`summary-`+t}),Object.fromEntries(Object.entries({title:e.title,subtitle:e.subtitle,icon:e.icon,open:!!e.open,width:e.width,id:Qa()&&typeof e.id==`string`?e.id:void 0}).filter(([,e])=>e!==void 0)))),Array.isArray(o)&&(l.badges=o.map(e=>e?.text).filter(e=>typeof e==`string`&&e.trim()!==``)),{...c,type:T.ClientSide,metadata:l,children:u}}function ho(e){let{type:t,content:n,children:r,...i}=e,a={id:`crud`,sizing:`fill`},o={type:`Crud`,crudlType:i.crudlType??i.listingType??`table`,pageSize:10,searchOnEnter:!0,autoFocusOnSearchText:!0,filtersLayout:`auto`,gridLayout:`auto`};for(let[e,t]of Object.entries(i))e!==`crudlType`&&e!==`listingType`&&(io.has(e)?a[e]=t:e===`columns`&&Array.isArray(t)?o[e]=t.map(go):e===`toolbar`&&Array.isArray(t)?o[e]=t.map(vo):e===`filters`&&Array.isArray(t)?o[e]=t.map(yo):e===`preSearch`&&Array.isArray(t)?t.length>0&&(o[e]=t.map(lo)):o[e]=t);return{...a,type:T.ClientSide,metadata:o,children:[]}}function go(e){let t=lo(e);return e.id!==void 0&&t.metadata&&(t.metadata.id=e.id),t}var _o=e=>e.replace(/[^\p{L}\p{N}]+/gu,` `).trim().split(/\s+/).filter(Boolean).map((e,t)=>t===0?e.charAt(0).toLowerCase()+e.slice(1):e.charAt(0).toUpperCase()+e.slice(1)).join(``);function vo(e){if(!e||e.type!==`Button`)return e;let{actionable:t,...n}=e,r={...n};return t?.type===`RouteLink`&&t.route&&(r.route=t.route),!r.actionId&&typeof r.label==`string`&&(r.actionId=_o(r.label)),r}function yo(e){if(!e||e.type!==`FormField`)return e;let{id:t,...n}=e;return{...n,fieldId:n.fieldId??t,dataType:n.dataType??`string`,stereotype:n.stereotype??`regular`}}var bo=[],xo=e=>{bo=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`&&e.id.trim()!==``):[]},So=()=>bo,Co=[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],wo={GridColumn:[`label`,`dataType`,`stereotype`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],FormField:[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`]},To=e=>e==null||e===``||Array.isArray(e)&&e.length===0||typeof e==`object`&&!Array.isArray(e)&&Object.keys(e).length===0,Eo=`fieldType`,Do=e=>{if(Array.isArray(e))return e.some(Do);if(!e||typeof e!=`object`)return!1;let t=e;return typeof t.fieldType==`string`||Object.values(t).some(Do)},Oo=e=>e===void 0?e:JSON.parse(JSON.stringify(e));function ko(e,t=bo){if(!Do(e))return e;let n=new Map(t.map(e=>[e.id.trim(),e])),r=new Set,i=e=>{if(Array.isArray(e))return e.map(i);if(!e||typeof e!=`object`)return e;let t={};for(let[n,r]of Object.entries(e))n!==`fieldType`&&(t[n]=i(r));let a=e[Eo];if(typeof a==`string`){let e=n.get(a.trim());if(!e)r.has(a)||(r.add(a),console.warn(`mateu: unknown field type '${a}' (on '${String(t.id??``)}') — rendered as declared`));else{let n=wo[String(t.type??``)]??Co;for(let r of n){let n=e[r];To(n)||(t[r]===void 0||t[r]===null)&&(t[r]=Oo(n))}}}return t};return i(e)}var Ao=`ux_main`;function jo(e){return!(e.viewModel??e.modelView)&&!!Mo(e)}function Mo(e){if(e.layout&&typeof e.layout==`object`)return e.layout;if(typeof e.type==`string`){let{pageType:t,...n}=e;return n}}var No=[`landing`,`collection`,`detail`,`form`,`process`,`dashboard`];function Po(e){let t=typeof e.pageType==`string`?e.pageType.trim().toLowerCase():``;return No.includes(t)?t:void 0}function Fo(e,t,n,r={}){e=za(e),e=ko(e);let i=Mo(e);if(!i)throw Error(`Definition for route "${t}" has no layout to expand`);if(i.type===`AppShell`)return $o(i);let a=n??(typeof i.title==`string`?i.title:t),o=lo(i);return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:a}],messages:[],fragments:[{targetComponentId:Ao,component:Ro(e,o,r),data:void 0,state:void 0,action:Ba.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}function Io(e){return e.ref?{ref:e.ref}:Object.fromEntries(Object.entries(e).filter(([,e])=>e!=null))}function Lo(e){let t=[],n=new Set,r=e=>{if(!e||typeof e!=`object`||n.has(e))return;if(n.add(e),Array.isArray(e)){e.forEach(r);return}let i=e,a=i.metadata&&typeof i.metadata==`object`?i.metadata:i,o=a.fieldId??a.id;if(a.type===`FormField`&&a.required&&!a.readOnly&&typeof o==`string`&&o){let e=`state['${o}']`;t.push({fieldId:o,condition:`${e} != null && ${e} !== '' && (${e}.length === undefined || ${e}.length > 0)`,message:`Cannot be empty`})}Object.values(i).forEach(r)};return r(e),t.filter((e,n)=>t.findIndex(t=>t.fieldId===e.fieldId)===n)}function Ro(e,t,n){let r=(e.actions??[]).map(Bo);r.push(...ss(e.layout??t,r));let i=[...e.triggers??[]];n.data&&(n.data.ref||n.data.url)&&(r.push({id:`__restdata__`,restAction:{source:Io(n.data),resultPath:``}}),i.push({type:`OnLoad`,actionId:`__restdata__`,times:1}));let a=Po(e);if(!r.length&&!i.length)return a?{...t,pageType:a}:t;let o=n.path??``;return{type:T.ServerSide,id:`page_`+(o||`root`).replace(/[^A-Za-z0-9_-]/g,`_`),serverSideType:void 0,route:`/`+o,initialData:{},actions:r,triggers:i,rules:[],validations:Lo(t),children:[t],...a?{pageType:a}:{}}}function zo(e){let t=(e,t)=>({targetComponentId:null,type:e,data:t}),n=(e,t)=>({eventName:e,detail:t??null});switch(e?.type){case`Navigate`:return t(`NavigateTo`,e.route??null);case`Emit`:return t(`DispatchEvent`,n(e.event,e.payload));case`CloseOverlay`:return t(`CloseModal`,e.event?n(e.event,null):null);case`RunAction`:return t(`RunAction`,{actionId:e.actionId});case`MarkClean`:return t(`MarkAsClean`,null);case`MarkDirty`:return t(`MarkAsDirty`,null);default:return}}function Bo(e){if(!e||typeof e!=`object`||!(`description`in e)&&!Array.isArray(e.steps))return e;let{description:t,...n}=e;if(!Array.isArray(n.steps))return n;let{steps:r,...i}=n,a=r.map(zo).filter(Boolean);return a.length?{...i,commands:a}:i}function Vo(e){if(typeof e!=`string`||!e)return``;let t=e.replace(/\./g,` `).replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g,` `).toLowerCase().replace(/ +/g,` `);return t.length<=1?t:t.split(` `).map((e,t)=>t>0&&e?e[0].toUpperCase()+e.substring(1):e).join(``)}function Ho(e){return e.type!==`RuleLink`||!Array.isArray(e.rules)?[]:e.rules.map(e=>({filter:e.filter??null,action:e.action??null,fieldName:e.fieldName??null,fieldAttribute:e.fieldAttribute??null,value:e.value??null,expression:e.expression??null,result:e.result??null,actionId:e.actionId??null}))}function Uo(e){let t=`/`+(typeof e.route==`string`&&e.route?e.route:typeof e.path==`string`?e.path:Vo(e.label)).replace(/^\/+/,``),n=e.submenu??e.submenus??e.menu,r=e.presentation??void 0;return{label:e.label,icon:e.icon??r?.icon??void 0,description:e.description??void 0,display:r?.display===`cards`?`cards`:void 0,image:r?.image??void 0,path:t,route:t,consumedRoute:``,uriPrefix:``,visible:!e.hidden,selected:!1,disabled:!1,separator:e.type===`MenuSeparator`,remote:!1,rules:Ho(e),submenus:Array.isArray(n)?n.map(Uo):[]}}function Wo(e){for(let t of e){if(t.type===`RouteLink`&&(t.route||t.path))return t.route??t.path;let e=t.submenu??t.submenus??t.menu;if(Array.isArray(e)){let t=Wo(e);if(t)return t}}}var Go=e=>{let t=e.submenu??e.submenus??e.menu;return Array.isArray(t)?t:void 0},Ko=e=>e.type===`Menu`||!e.type&&!!Go(e),qo=e=>e.some(e=>e.type===`RemoteMenu`||Ko(e)&&qo(Go(e)??[]));function Jo(e,t){return typeof e==`string`&&e.trim()&&e.trim().toUpperCase()!==`AUTO`?e.trim():qo(t)?`MENU_ON_TOP`:t.some(Ko)?t.some(e=>Ko(e)&&(Go(e)??[]).some(Ko))?`TILES`:t.length>7?`HAMBURGER_MENU`:`MENU_ON_TOP`:`TABS`}function Yo(e){let t=e=>typeof e==`string`&&e.trim()?e.trim():void 0;return(e??[]).filter(e=>e&&typeof e==`object`).map(e=>({key:t(e.key)?.toLowerCase(),code:t(e.code),route:t(e.route),actionId:t(e.actionId),label:t(e.label)})).filter(e=>(e.key||e.code)&&(e.route||e.actionId)).map(e=>{let t=e.route?`/`+e.route.replace(/^\/+/,``):void 0,n=t?.replace(/\/+$/,``).split(`/`).pop()??``,r=e.label??(t?n?n.charAt(0).toUpperCase()+n.slice(1).replace(/-/g,` `):`Home`:e.actionId);return{key:e.key??null,label:r,route:t??null,actionId:e.actionId??null,code:e.code??null}})}function Xo(e){let t=Number(e.idleTimeoutMinutes??0);if(!(t>0))return null;let n=t*60;return{timeoutSeconds:n,warningSeconds:Math.max(5,Math.min(Number(e.idleWarningSeconds??60)||60,n)),signOutUrl:typeof e.idleSignOutUrl==`string`&&e.idleSignOutUrl.trim()?e.idleSignOutUrl.trim():`/`,keepAliveActionId:null}}function Zo(e){let t=typeof e.route==`string`&&e.route.trim()?`/`+e.route.trim().replace(/^\/+/,``):null,n=Array.isArray(e.children)?e.children.filter(e=>e&&typeof e==`object`).map(Zo):null;return{actionId:e.actionId??null,label:e.label,icon:e.icon??null,children:n,route:t}}function Qo(e){let t=e=>(Array.isArray(e)?e:[]).filter(e=>e&&typeof e==`object`),n=t(e.contextSelectors).filter(e=>typeof e.fieldName==`string`&&e.fieldName.trim()).map(e=>({fieldName:e.fieldName,label:typeof e.label==`string`&&e.label.trim()?e.label:Fa(String(e.fieldName)),options:t(e.options).map(e=>({value:e.value,label:e.label})),optionsSource:e.optionsSource??null})),r=e.notifications,i=e.globalSearch;return{contextSelectors:n,contextActions:t(e.headerActions).map(Zo),notificationsEnabled:!!r?.source,notificationsSource:r?.source??null,notificationsReadSource:r?.markRead??null,globalSearchEnabled:!!i?.source,globalSearchSource:i?.source??null}}function $o(e){let t=e.menu??[],n=(e.widgets??[]).filter(e=>e&&typeof e==`object`),r=t=>e[t]===!0||e[t]===`true`;return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:e.title??``}],messages:[],fragments:[{targetComponentId:Ao,component:{type:T.ClientSide,id:`app`,metadata:{type:`App`,route:``,rootRoute:``,variant:Jo(e.variant,t),layout:`SINGLE_SLOT`,title:e.title,subtitle:e.subtitle,logo:e.logo,favicon:e.favicon,themeToggle:r(`themeToggle`),commandCenterEnabled:r(`commandCenter`)||r(`chromeless`),chromeless:r(`chromeless`),accessKeys:r(`accessKeys`),mobileQr:r(`mobileQr`),drawerClosed:r(`drawerClosed`),style:typeof e.style==`string`?e.style:void 0,cssClasses:typeof e.cssClasses==`string`?e.cssClasses:void 0,accentColor:typeof e.accentColor==`string`&&e.accentColor.trim()?e.accentColor.trim():void 0,menu:t.map(Uo),totalMenuOptions:t.length,homeRoute:(typeof e.homeRoute==`string`&&e.homeRoute.trim()?e.homeRoute.trim().replace(/^\/+/,``):Wo(t))??``,homeConsumedRoute:``,homeBaseUrl:``,apps:[],fabs:[],...Qo(e),actions:(e.actions??[]).filter(e=>e&&typeof e==`object`).map(Bo),actionCatalogue:is(),shortcuts:Yo(e.shortcuts),headerValues:(e.headerValues??[]).filter(e=>e&&typeof e.id==`string`).map(e=>({id:e.id,label:typeof e.label==`string`&&e.label.trim()?e.label:null,value:e.value??``})),liveUpdates:!1,idleSession:Xo(e)},children:n.map(e=>({...lo(e),slot:`widgets`}))},data:void 0,state:void 0,action:Ba.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}var es=[],ts=e=>{es=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`):[]},ns=e=>{let t=new Map;for(let n of Array.isArray(e)?e:[]){if(!n||typeof n!=`object`)continue;let e=n;if(!(typeof e.id!=`string`||!e.id)){if(!(Array.isArray(e.steps)&&e.steps.length>0||e.restAction)){console.warn(`mateu: action catalogue entry "${e.id}" is not client-runnable (no steps, no restAction) — ignored`);continue}t.set(e.id,Bo(e))}}return[...t.values()]},rs=e=>e?es.find(t=>t.id===e):void 0,is=()=>es,as=(e,t,n)=>t?(e??[]).find(e=>e&&e.id===t)||((n??[]).find(e=>e&&e.id===t)??rs(t)):void 0,os=(e,t=new Set)=>{if(Array.isArray(e))e.forEach(e=>os(e,t));else if(e&&typeof e==`object`)for(let[n,r]of Object.entries(e))typeof r==`string`&&(n===`actionId`||n.endsWith(`ActionId`))&&r?t.add(r):r&&typeof r==`object`&&os(r,t);return t},ss=(e,t=[],n=es)=>{if(!n.length)return[];let r=new Set(t.map(e=>e?.id).filter(Boolean)),i=[...os([e,t])],a=[];for(;i.length;){let e=i.shift();if(r.has(e))continue;let t=n.find(t=>t.id===e);t&&(r.add(e),a.push(t),i.push(...os(t)))}return a},cs=/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g,ls=`en`,us=e=>(e??``).trim().replace(/_/g,`-`).toLowerCase(),ds=(e,t)=>Object.keys(e).find(e=>us(e)===t);function fs(e,t){if(!e)return;let n=Object.keys(e);if(n.length){for(let n of t){let t=us(n);if(!t)continue;let r=ds(e,t);if(r)return r;let i=ds(e,t.split(`-`)[0]);if(i)return i}return ds(e,us(ls))??ds(e,us(ls).split(`-`)[0])??n[0]}}var ps=new Set;function ms(e,t,n){return typeof e!=`string`||!e.includes(`i18n.`)?e:e.replace(cs,(e,r)=>{let i=t?.[r]??n?.[r];return i===void 0?(ps.has(r)||(ps.add(r),console.warn(`mateu: missing translation '${r}' — showing the key`)),r):i})}function hs(e,t,n){let r=e=>{if(typeof e==`string`)return ms(e,t,n);if(Array.isArray(e))return e.map(r);if(e&&typeof e==`object`){let t={};for(let[n,i]of Object.entries(e))t[n]=r(i);return t}return e};return r(e)}var gs=e=>{if(e==null)return!1;let t=typeof e==`string`?e:JSON.stringify(e);return cs.lastIndex=0,cs.test(t)},_s=()=>{let e=globalThis.navigator;return e?[...e.languages??[],...e.language?[e.language]:[]]:[]},vs,ys=new Map,bs=[],xs,Ss=[],Cs=[],ws={},Ts={},Es,Ds,Os=e=>{Ds=e||void 0},ks=()=>{let e=ec(vs?.get(`_no_route`));return typeof e?.locale==`string`&&e.locale?e.locale:void 0},As=()=>fs(Ts,[Ds,ks(),..._s()]),js=e=>{if(e===void 0||!Object.keys(Ts).length||!gs(e))return e;let t=As(),n=fs(Ts,[]);return hs(e,t?Ts[t]:void 0,n&&n!==t?Ts[n]:void 0)},Ms=e=>e.split(`/`).filter(e=>e.startsWith(`:`)&&e.length>1).map(e=>e.substring(1)),Ns=e=>{let t=e=>e.replace(/^\/+/,``).replace(/\/+$/,``),n=t(e===`_no_route`?``:e),r=n===``?[]:n.split(`/`),i;for(let e of Ss){let n=t(e.route??``),a=n===``?[]:n.split(`/`);if(a.length!==r.length)continue;let o={},s=!0;for(let e=0;e<a.length;e++){let t=a[e];if(t.startsWith(`:`)&&t.length>1)o[t.substring(1)]=r[e];else if(t!==r[e]){s=!1;break}}if(!s)continue;let c={entry:e,pathParams:o};(!i||Ms(n).length<Ms(t(i.entry.route??``)).length)&&(i=c)}return i},Ps=(e,t)=>{let n=Ns(e);if(!n)return t;let{entry:r,pathParams:i}=n,a=r.defaultParams??{},o=r.fixedParams??{};return!Object.keys(a).length&&!Object.keys(o).length&&!Object.keys(i).length?t:{...t,fragments:(t.fragments??[]).map(e=>({...e,state:{...a,...e.state??{},...i,...o},data:{...a,...e.data??{},...i,...o}}))}},Fs=e=>{let t=e&&e.startsWith(`/`)?e.substring(1):e??``;return t===``?`_no_route`:t},Is=e=>{let t=new Map,n=new Map,r=[];for(let i of e.entries??[])if(!(!i.ok||!i.json))try{let e=JSON.parse(i.json),a=i.contentJson?JSON.parse(i.contentJson):void 0;i.routePattern?r.push({regex:new RegExp(i.routePattern),paramNames:i.paramNames??[],increment:e,content:a}):(t.set(i.syncPath,e),a&&n.set(i.syncPath,a))}catch(e){console.warn(`mateu: bundle entry parse failed for`,i.syncPath,e)}return{increments:t,contents:n,templates:r,routeEntries:e.routes?.routes??[],definitions:e.definitions??{},catalogueSources:e.sources?.sources??[],translations:e.translations??{},environment:e.environment??void 0}},Ls=()=>vs===void 0?void 0:{increments:vs,contents:ys,templates:bs,routeEntries:Ss,catalogueSources:Cs,definitions:ws,translations:Ts,environment:Es},Rs=e=>{vs=e?.increments,ys=e?.contents??new Map,bs=e?.templates??[],Ss=e?.routeEntries??[],Cs=e?.catalogueSources??[],ws=e?.definitions??{},Ts=e?.translations??{},Es=e?.environment};function zs(e,t=fetch){return xs=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json();Rs(Is(r)),oe(r.sources?.sources),ts(r.actions),r.mockSources&&pe(!0),r.types&&xo(r.types.types)}catch(e){console.warn(`mateu: bundle manifest load failed`,e)}})(),xs}var Bs=new Map,Vs=e=>{if(!e)return!1;let t=e.split(`#`)[0].split(`?`)[0];return/\.json$/i.test(t)},Hs=(e,t=fetch)=>{let n=Bs.get(e);if(!n){n=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json(),i=Is(r);return se(e,r.sources?.sources),i}catch(t){console.warn(`mateu: static remote manifest load failed`,e,t);return}})();let r=n;r.then(t=>{!t&&Bs.get(e)===r&&Bs.delete(e)}),Bs.set(e,r)}return n},Us=async(e,t,n,r=fetch)=>{let i=await Hs(e,r);if(!i)return;let a=Ls();Rs(i);try{if(n!==void 0&&n!==`_empty`&&t===`_no_route`){let e=ec(Xs(`_no_route`)??$s(`_no_route`))?.homeRoute;return typeof e!=`string`||Fs(e)===`_no_route`?void 0:nc(Fs(e),n)}return nc(t,n)}finally{Rs(a)}},Ws,Gs=(e,t)=>e.replace(/\/+$/,``)===t.replace(/\/+$/,``);function Ks(e){Ws=e||void 0}var qs=e=>{if(!e||!/^https?:\/\//i.test(e)||Ws&&Gs(e,Ws))return!1;try{return typeof window>`u`||new URL(e).origin!==window.location.origin}catch{return!1}},Js=()=>xs??Promise.resolve(),Ys=()=>vs!==void 0&&vs.size>0||bs.length>0||Object.keys(ws).length>0,Xs=e=>{let t=vs?.get(e);return t===void 0?void 0:Ps(e,t)},Zs=(e,t=!1)=>{for(let n of bs){let r=n.regex.exec(e);if(!r)continue;let i=t?n.content:n.increment;if(!i)return;let a={};return n.paramNames.forEach((e,t)=>{a[e]=r[t+1]}),Ps(e,{...i,fragments:(i.fragments??[]).map(e=>({...e,component:Qs(e.component,a),state:{...e.state??{},...a},data:{...e.data??{},...a}}))})}},Qs=(e,t)=>{let n=e;return!n||!n.initialData||typeof n.initialData!=`object`?e:{...n,initialData:{...n.initialData,...t}}},$s=e=>{let t=Ns(e),n=t?.entry.definition;if(!n)return;let r=ws[n];if(!r||!jo(r))return;let i=Fo(js(r),t.entry.route,void 0,{data:t.entry.data??void 0,path:e===`_no_route`?``:e});return Ps(e,{...i,fragments:(i.fragments??[]).map(e=>{let t=ec({fragments:[e]}),n=t?{...e.component,metadata:{...t,restSources:Cs}}:e.component;return{...e,component:n,targetComponentId:void 0}})})},ec=e=>{let t=e?.fragments?.[0]?.component;return t?.metadata?.type===`App`?t.metadata:void 0},tc=(e,t)=>{if(t===`_no_route`)return e;let[n,...r]=e.fragments??[],i=n.component;return{...e,fragments:[{...n,component:{...i,metadata:{...i.metadata,homeRoute:`/`+t}}},...r]}},nc=(e,t)=>js(rc(e,t)),rc=(e,t)=>{let n=t===void 0||t===`_empty`,r=()=>Xs(e)??Zs(e)??$s(e);if(n){let t=r();if(t&&ec(t))return tc(t,e);if(e!==`_no_route`&&(Ns(e)||!t)){let t=Xs(`_no_route`)??$s(`_no_route`);if(t&&ec(t))return tc(t,e)}return t}let i=ys.get(e)===void 0?Zs(e,!0):Ps(e,ys.get(e));if(i)return i;let a=r();return a&&ec(a)?void 0:a},ic=e=>e?r(`errorStatus`,{status:e}):``,ac={offline:()=>o(`failOffline`),timeout:()=>o(`failTimeout`),server:e=>r(`failServer`,{status:ic(e)}),unauthorized:()=>o(`failUnauthorized`),forbidden:()=>o(`forbidden`),notFound:()=>o(`failNotFound`),client:e=>r(`failClient`,{status:ic(e)}),cancelled:()=>``,unknown:()=>o(`failUnknown`)},oc=new Set([`offline`,`timeout`,`server`]),sc=(e,t={})=>{let n=e??{},r=n.response?.status,i=n.code,a=t.online??(typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0),o=e=>({kind:e,message:ac[e](r),retryable:oc.has(e),status:r});return i===`ERR_CANCELED`?o(`cancelled`):i===`ECONNABORTED`||i===`ETIMEDOUT`||/timeout/i.test(n.message??``)?o(`timeout`):r===void 0?!a||i===`ERR_NETWORK`||/network error/i.test(n.message??``)?o(`offline`):o(`unknown`):o(r===401?`unauthorized`:r===403?`forbidden`:r===404||r===410?`notFound`:r===408||r===429?`timeout`:r>=500?`server`:r>=400?`client`:`unknown`)},cc=e=>e.kind!==`forbidden`,lc=new Set([``,`__load__`,`search`,`_globalsearch`,`_notifications-list`]),uc=[`_appcontext-search-`,`search-`],dc=(e,t)=>t===!0?!0:e==null?!1:lc.has(e)?!0:uc.some(t=>e.startsWith(t)),fc=(e,t=Math.random)=>{let n=300*3**Math.max(0,e-1);return Math.round(n*(.75+t()*.5))},pc=(e,t,n)=>!n.idempotent||t>2||!e.retryable?!1:e.kind===`timeout`||e.kind===`server`,mc=new class{constructor(){this.linkUp=!0,this.listeners=new Set,this.waiters=new Set,this.started=!1}start(){this.started||typeof window>`u`||(this.started=!0,this.linkUp=typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0,window.addEventListener(`online`,()=>{this.linkUp=!0,this.reachable=void 0,this.changed(),this.releaseWaiters()}),window.addEventListener(`offline`,()=>{this.linkUp=!1,this.changed()}))}isOnline(){return this.linkUp?this.reachable!==!1:!1}noteReachable(){let e=this.isOnline();this.reachable=!0,e||(this.changed(),this.releaseWaiters())}noteUnreachable(){let e=this.isOnline();this.reachable=!1,e&&this.changed()}subscribe(e){return this.listeners.add(e),()=>this.listeners.delete(e)}whenBack(e){return this.isOnline()?(e(),()=>{}):(this.waiters.add(e),()=>this.waiters.delete(e))}reset(){this.linkUp=!0,this.reachable=void 0,this.waiters.clear()}changed(){let e=this.isOnline();this.listeners.forEach(t=>t(e))}releaseWaiters(){let e=Array.from(this.waiters);this.waiters.clear(),e.forEach(e=>e())}};mc.start();var hc=`useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict`,gc=(e=21)=>{let t=``,n=crypto.getRandomValues(new Uint8Array(e|=0));for(;e--;)t+=hc[n[e]&63];return t},_c=`__mateu_auth_token`,vc=`__mateu_sesion_id`,yc,bc,xc=null,Sc=()=>{try{let e=typeof document<`u`?document.querySelector(`meta[name="mateu-auth-token-storage"]`)?.getAttribute(`content`):void 0;return e===`localStorage`||e===`sessionStorage`||e===`memory`?e:void 0}catch{return}},Cc=()=>yc??Sc()??`localStorage`,wc=()=>{if(bc)try{let e=bc();if(e)return e}catch{}switch(Cc()){case`memory`:return xc;case`sessionStorage`:return Ee.get(_c);default:return Te.get(_c)}},Tc=()=>{let e=wc();return e?{Authorization:`Bearer `+e}:{}},Ec,Dc=(e=!0)=>{let t=Ee.get(vc);if(t)return t;if(Ec)return Ec;if(!e)return null;let n=gc();return Ee.set(`__mateu_sesion_id`,n)||(Ec=n),n},Oc=(e,t,n)=>{let r=t??{},i=!!r.config||!!r.response,a=r.config?.headers?.traceparent;return{kind:e.kind,message:e.message,status:e.status??r.response?.status,detail:typeof t==`string`?t:r.message,url:r.config?.url,actionId:n,traceparent:typeof a==`string`?a:void 0,stack:i?void 0:r.stack}},kc=null,Ac=e=>{kc?.report(e)},jc=(e,t)=>`${e??``}|${t??``}`,Mc=(e,t,n)=>!n||e===void 0||e===t,Nc=(e,t)=>{let n=e.generation,r=e.callbackToken,i=e.connected;return()=>e.generation!==n||t&&e.callbackToken!==r||i&&!e.connected},Pc=class extends Error{constructor(e,t){super(`response to '${e}' arrived for a view no longer on screen`),this.actionId=e,this.outcome=t,this.__mateuStale=!0,this.__mateuReported=!0,this.code=`ERR_CANCELED`}},Fc=e=>!!e&&typeof e==`object`&&e.__mateuStale===!0,Ic={show:e=>console.debug(`[mateu] no notifier registered, dropping toast:`,e.text)};function Lc(e){Ic=e}function Rc(e,t){Ic.show(e,t)}function zc(e,t=3){if(typeof e!=`string`||e.trim()===``)return{ok:!0};let n=parseInt(e.trim().split(`.`)[0]??``,10);return Number.isFinite(n)?n===t?{ok:!0}:{ok:!1,serverMajor:n,received:e.trim()}:{ok:!0}}function Bc(e,t=3){return r(`wireVersionMismatch`,{server:`${e}.x`,supported:`${t}.x`})}var Vc=!1,Hc=e=>{console.error(`[mateu] `+e),typeof document<`u`&&document.body&&Rc({text:e,variant:`error`,position:`topStretch`,duration:0,actionLabel:o(`dismiss`),onAction:()=>void 0},document.body)};function Uc(e,t=Hc){if(!e||typeof e!=`object`)return{ok:!0};let n=zc(e.wireVersion);return!n.ok&&!Vc&&(Vc=!0,t(Bc(n.serverMajor))),n}var Wc=[],Gc=6e4,Kc=e=>new Promise(t=>setTimeout(t,e)),qc=new class{constructor(){this.axiosInstance=P.create({timeout:Gc}),this.axiosInstance.interceptors.request.use(e=>(this.addAuthToken(e),this.addSessionId(e),e)),this.axiosInstance.interceptors.response.use(e=>{let t=Na({requestedUrl:this.axiosInstance.getUri(e.config),finalUrl:e.request?.responseURL,contentType:String(e.headers?.[`content-type`]??``),data:e.data});if(t)throw window.location.assign(t),Object.assign(Error(`session lost — redirecting to `+t),{code:`ERR_CANCELED`});return e},e=>{let t=e;if(t?.response?.status===401&&t.config&&!t.config.__mateuRetried&&!t.config.__mateuIsStale?.()){let n=t.config;return n.__mateuRetried=!0,ja(e,()=>this.axiosInstance.request(n))}throw e})}addSessionId(e){let t=Dc();t&&(e.headers[`X-Session-Id`]=t)}addAuthToken(e){let t=wc();t&&(e.headers.Authorization=`Bearer `+t)}async wrap(e,t,n,r,i,a=!1,o){n||t.dispatchEvent(new CustomEvent(`backend-called-event`,{bubbles:!0,composed:!0,detail:{}}));let s=e=>{throw t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),new Pc(r,e)};return e().then(e=>(o?.()&&s(`answered`),t.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),e),e=>{o?.()&&s(`failed`);let n=sc(e,{online:mc.isOnline()});throw a||(n.kind==`cancelled`?t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})):(e&&typeof e==`object`&&(e.__mateuReported=!0),t.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(e),failure:n,retry:i}})))),e})}async sendWithRetry(e,t,n=!1,r){let i=0;for(;;)try{let t=await e();return n||mc.noteReachable(),t}catch(e){let a=sc(e,{online:mc.isOnline()});if(a.kind==`offline`&&!n&&mc.noteUnreachable(),i++,r?.()||!pc(a,i,{idempotent:t}))throw e;await Kc(fc(i))}}serialize(e){return e?.message?e:JSON.stringify(e)}release(e){Wc=Wc.filter(t=>t!==e)}async get(e){let t=new AbortController;return Wc=[...Wc,t],this.axiosInstance.get(e,{signal:t.signal}).finally(()=>this.release(t))}async post(e,t,n,r){let i=new AbortController;return Wc=[...Wc,i],this.axiosInstance.post(e,t,{signal:i.signal,...r?{__mateuIsStale:r}:{},...n&&n>0?{timeout:n}:{}}).finally(()=>this.release(i))}async abortAll(){Wc.forEach(e=>e.abort()),Wc=[]}async runAction(e,t,n,r,i,a,s,c,l,u,d,f={}){if(t&&t.startsWith(`/`)&&(t=t.substring(1)),Vs(e)){let a=r===``?await Us(e,Fs(t),n):void 0;return await this.wrap(()=>a?Promise.resolve({...a,fragments:(a.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})}):Promise.reject(Error(r===``?`the static bundle ${e} does not answer the route "${t}"`:`the static bundle ${e} has no server to run "${r}"`)),u,d,r,f.retry,!1,f.isStale)}if(r===``&&!qs(e)&&(await Js(),Ys())){let e=nc(Fs(t),n);if(e){let t={...e,fragments:(e.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})};return await this.wrap(()=>Promise.resolve(t),u,d,r,f.retry,!1,f.isStale)}}let p=[e,t,n,s??``,r,i].join(``),m=Pa.check(p);if(m.blocked)return await this.abortAll(),m.firstTrip&&(console.error(`[mateu] request loop detected — aborting repeated request`,p),Ac({kind:`request-loop`,message:`A repeating request was detected and stopped`,url:e+`/mateu/v3/sync/`+(t||`_no_route`),actionId:r})),{messages:m.firstTrip?[{title:``,text:o(`repeatingRequest`),position:`bottom-end`,variant:`error`,duration:6e3}]:[],commands:[],fragments:[],banners:[],appendBanners:!1,appData:void 0,appState:void 0};a={...Ta(),...a};let h=e+`/mateu/v3/sync/`+(t&&t!=``?t:`_no_route`),g={serverSideType:s,appState:a,componentState:c,parameters:l,initiatorComponentId:i,consumedRoute:n,route:t&&t!=``?`/`+t:``,actionId:r,knownStructureHash:f.knownStructureHash},_=dc(r,f.idempotent),v=()=>this.post(h,g,f.timeoutMillis,f.isStale).then(e=>(Uc(e.data),e.data));return await this.wrap(()=>this.sendWithRetry(v,_,f.quiet,f.isStale),u,d,r,f.retry,f.quiet,f.isStale)}},Jc=e=>{let t=(e??``).trim(),n=t.search(/[?#]/);for(n>=0&&(t=t.slice(0,n)),t&&!t.startsWith(`/`)&&(t=`/`+t);t.length>1&&t.endsWith(`/`);)t=t.slice(0,-1);return t},Yc=e=>{let t=e??``,n;do n=t,t=t.replace(/<[^<>]*>/g,``);while(t!==n);return t.replace(/[<>]/g,``).replace(/\s+/g,` `).trim()},Xc=(e,t)=>!!e&&e!==`/`&&(t===e||t.startsWith(e+`/`)),Zc=e=>!!e&&!!e.remote,Qc=e=>Zc(e)?Jc(e.routePrefix||e.path||e.route):``,$c=(e,t)=>{if(!e||e.separator)return-1;let n=Jc(t);if(Zc(e)){let t=Qc(e);return Xc(t,n)?t.length:-1}let r=-1,i=Jc(e.route);Xc(i,n)&&(r=i.length);for(let t of e.submenus??[])r=Math.max(r,$c(t,n));return r},el=(e,t)=>$c(e,t)>=0;function tl(e,t){let n=NaN,r=-1;return(e??[]).forEach((e,i)=>{let a=$c(e,t);a>r&&(r=a,n=i)}),n}function nl(e,t){let n=Jc(t),r,i=rl(e),a=(e,t,n)=>{(!r||e.length>r.route.length||e.length===r.route.length&&r.pending&&!n)&&(r={crumbs:t,route:e,pending:n})},o=(e,t)=>{for(let r of e??[]){if(!r||r.separator)continue;let e=Yc(r.label);if(Zc(r)){let i=Qc(r);Xc(i,n)&&a(i,[...t,{text:e}],!0);continue}let s=Jc(r.route),c=r.submenus??[];if(c.length>0){o(c,[...t,s&&s!==`/`&&i.has(s)?{text:e,route:s}:{text:e}]);continue}Xc(s,n)&&a(s,[...t,{text:e,route:s}],!1)}};return o(e,[]),r?{crumbs:r.crumbs,matched:r.route,...r.pending?{pending:!0}:{}}:{crumbs:[]}}function rl(e){let t=new Set,n=e=>{for(let r of e??[]){if(!r||r.separator||Zc(r))continue;let e=r.submenus??[];if(e.length>0){n(e);continue}let i=Jc(r.route);i&&i!==`/`&&t.add(i)}};return n(e),t}function il(e,t){let n=Jc(t),r,i=e=>{for(let t of e??[]){if(!t||t.separator||Zc(t))continue;let e=t.submenus??[];if(e.length>0){i(e);continue}let a=Jc(t.route);Xc(a,n)&&(!r||a.length>r.route.length)&&(r={option:t,route:a})}};return i(e),r?.option}var al=(e,t)=>{let n=!1,r=e.map(e=>{if(Zc(e)){let r=t(e);return r!==e&&(n=!0),r}if(e.submenus&&e.submenus.length>0){let r=al(e.submenus,t);if(r!==e.submenus)return n=!0,{...e,submenus:r}}return e});return n?r:e};function ol(e,t,n){let r=Jc(n);if(!t||!r||r===`/`)return e;let i=`/`+r.split(`/`)[1];return al(e,e=>e.baseUrl===t&&!Xc(Qc(e),r)?{...e,routePrefix:i}:e)}function sl(e,t){return r(`sectionUnavailable`,{name:Yc(e)},t)}var cl=e=>e.map(e=>({...e,visible:!1,...e.submenus&&e.submenus.length>0?{submenus:cl(e.submenus)}:{}})),ll=(e,t,n)=>{let r=t.serverSideType&&t.serverSideType!==``?t.serverSideType:n.serverSideType;return e.map(e=>e.baseUrl?e:e.submenus&&e.submenus.length>0?{...e,submenus:ll(e.submenus,t,n)}:{...e,consumedRoute:n.route??``,baseUrl:t.baseUrl,serverSideType:r,uriPrefix:t.route})};function ul(e,t,n,r={},i=0){let a=[];for(let o of e)if(Zc(o)){let e=t.get(o);if(!e)a.push(o);else if(`failed`in e)a.push({...o,unavailable:!0,disabled:!0,description:sl(o.label,n)});else{let t=ll(e.app.menu??[],o,e.app),n=t.length===1&&(t[0].submenus?.length??0)>0;r.sections&&i===0&&!n&&t.length>0?t=[dl(o,t)]:o.shellLabel&&o.label&&t.length===1&&(t=[{...t[0],label:o.label,icon:o.icon||t[0].icon}]),a.push(...o.visible===!1?cl(t):t)}}else o.submenus&&o.submenus.length>0?a.push({...o,submenus:ul(o.submenus,t,n,r,i+1)}):a.push(o);return a}var dl=(e,t)=>({label:e.label,icon:e.icon,path:e.path,route:``,separator:!1,visible:e.visible,description:void 0,submenus:t});function fl(e){let t=[];for(let n of e??[])Zc(n)?t.push(n):n.submenus&&n.submenus.length>0&&t.push(...fl(n.submenus));return t}function pl(e){let t=!1,n=[];for(let r of e){if(r.visible===!1){t=!0;continue}if(r.submenus&&r.submenus.length>0){let e=pl(r.submenus);if(e!==r.submenus){t=!0,n.push({...r,submenus:e});continue}}n.push(r)}return t?n:e}function ml(e,t){let n=tl(e,t);return Number.isNaN(n)?void 0:e[n]}function hl(e){if(!e||e.separator||e.visible===!1||Zc(e)||e.unavailable)return;let t=e.submenus??[];if(t.length===0)return e;for(let e of t){let t=hl(e);if(t)return t}}var gl=new Set;function _l(e){return gl.add(e),()=>{gl.delete(e)}}function vl(){let e=[...gl];gl.clear(),e.forEach(e=>e())}function yl(e,t){return!t.callbackToken||!e.callbackToken||t.callbackToken===e.callbackToken||t.initiator!=null&&t.initiator!==e}var bl=new Set([`http:`,`https:`]),xl=()=>typeof window<`u`&&window.location?window.location.href:void 0,Sl=(e,t=xl())=>{if(typeof e!=`string`||e.trim()===``)return;let n;try{n=t?new URL(e,t):new URL(e)}catch{return}if(!bl.has(n.protocol))return;let r=!1;try{r=!!t&&new URL(t).origin===n.origin}catch{r=!1}return{href:n.href,sameOrigin:r}},Cl=e=>{console.warn(`mateu: refused to navigate to a URL that is not http(s) or relative:`,e)},wl=(e,t={})=>{let n=Sl(e);return n?(n.sameOrigin&&!t.newTab?window.location.assign(n.href):window.open(n.href,`_blank`,`noopener,noreferrer`),!0):(Cl(e),!1)},Tl=new Set([`http`,`https`,`mailto`,`tel`]),El=(e,t={})=>{if(e==null)return;let n=String(e).replace(/[\t\n\r]/g,``).replace(/^[\u0000- ]+/,``).trimEnd();if(n===``)return;let r=/^([a-z][a-z0-9+.-]*):/i.exec(n)?.[1]?.toLowerCase();if(!r||Tl.has(r)||r===`data`&&t.allowData)return n},Dl=class{get signal(){return(!this.controller||this.controller.signal.aborted)&&(this.controller=new AbortController),this.controller.signal}abort(){this.controller?.abort(),this.controller=void 0}},Ol=class{replace(){return this.controller?.abort(),this.controller=new AbortController,this.controller.signal}get active(){return!!this.controller&&!this.controller.signal.aborted}clear(){this.controller?.abort(),this.controller=void 0}},kl=6e4;function Al(e,t){if(e){if(/^https?:\/\//i.test(e))return e;if(!(!e.startsWith(`/`)||e.startsWith(`//`))){if(t&&/^https?:\/\//i.test(t))try{return new URL(e,new URL(t).origin).toString()}catch{return e}return e}}}function jl(e,t){let n=t(e),r=new Uint8Array(n.length);for(let e=0;e<n.length;e++)r[e]=n.charCodeAt(e);return r}function Ml(e,t,n){if(e.base64Content){let n=new t.Blob([jl(e.base64Content,t.atob)],{type:e.mimeType||`application/octet-stream`});return{href:t.URL.createObjectURL(n),objectUrl:!0}}let r=Al(e.url,n);return r?{href:r,objectUrl:!1}:void 0}function Nl(e,t,n){e.objectUrl&&t.setTimeout(()=>t.URL.revokeObjectURL(e.href),n)}function Pl(e,t,n){let r=n.document.createElement(`a`);r.href=e,r.download=t,r.rel=`noopener`,r.style.display=`none`,n.document.body.appendChild(r),r.click(),r.remove()}function Fl(e,t,n){let r=t.document.createElement(`iframe`);r.setAttribute(`aria-hidden`,`true`),r.setAttribute(`tabindex`,`-1`),r.style.cssText=`position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden`,r.addEventListener(`load`,()=>{try{let e=r.contentWindow;if(!e)throw Error(`no frame window`);e.focus(),e.print()}catch{n()}t.setTimeout(()=>r.remove(),kl)},{once:!0}),r.src=e,t.document.body.appendChild(r)}function Il(e,t=window,n){if(!e||typeof e!=`object`||!t?.document)return`none`;let r=Ml(e,t,n);if(!r)return`none`;let i=e.filename||`download`,a=e.disposition===`inline`;if(a&&e.print)return Fl(r.href,t,()=>{r.objectUrl&&t.open(r.href,`_blank`)}),Nl(r,t,kl),`printing`;if(a){let e=t.open(r.href,`_blank`);if(e){try{e.opener=null}catch{}return Nl(r,t,kl),`opened`}}return Pl(r.href,i,t),Nl(r,t,1e3),`downloaded`}var Ll=`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+`+r)}}catch{}throw e}}_request(e,t){typeof e==`string`?(t||={},t.url=e):t=e||{},t=Ti(this.defaults,t);let{transitional:n,paramsSerializer:r,headers:i}=t;n!==void 0&&pa.assertOptions(n,{silentJSONParsing:P.transitional(P.boolean),forcedJSONParsing:P.transitional(P.boolean),clarifyTimeoutError:P.transitional(P.boolean),legacyInterceptorReqResOrdering:P.transitional(P.boolean),advertiseZstdAcceptEncoding:P.transitional(P.boolean),validateStatusUndefinedResolves:P.transitional(P.boolean)},!1),r!=null&&(A.isFunction(r)?t.paramsSerializer={serialize:r}:pa.assertOptions(r,{encode:P.function,serialize:P.function},!0)),t.allowAbsoluteUrls!==void 0||(this.defaults.allowAbsoluteUrls===void 0?t.allowAbsoluteUrls=!0:t.allowAbsoluteUrls=this.defaults.allowAbsoluteUrls),pa.assertOptions(t,{baseUrl:P.spelling(`baseURL`),withXsrfToken:P.spelling(`withXSRFToken`)},!0),t.method=(A.getSafeProp(t,`method`)||A.getSafeProp(this.defaults,`method`)||`get`).toLowerCase();let a=i&&A.merge(i.common,i[t.method]);i&&A.forEach(Qr.concat(`common`),e=>{delete i[e]}),t.headers=j.concat(a,i);let o=[],s=!0;this.interceptors.request.forEach(function(e){if(typeof e.runWhen==`function`&&e.runWhen(t)===!1)return;s&&=e.synchronous;let n=t.transitional||Rr;n&&n.legacyInterceptorReqResOrdering?o.unshift(e.fulfilled,e.rejected):o.push(e.fulfilled,e.rejected)});let c=[];this.interceptors.response.forEach(function(e){c.push(e.fulfilled,e.rejected)});let l,u=0,d;if(!s){let e=[la.bind(this),void 0];for(e.unshift(...o),e.push(...c),d=e.length,l=Promise.resolve(t);u<d;)l=l.then(e[u++],e[u++]);return l}d=o.length;let f=t;for(;u<d;){let e=o[u++],t=o[u++];try{f=e?e(f):f}catch(e){if(!t){l=Promise.reject(e);break}try{let n=t.call(this,e);A.isThenable(n)&&(l=Promise.resolve(n).then(()=>la.call(this,f)))}catch(e){l=Promise.reject(e)}break}}if(!l)try{l=la.call(this,f)}catch(e){l=Promise.reject(e)}for(u=0,d=c.length;u<d;)l=l.then(c[u++],c[u++]);return l}getUri(e){return e=Ti(this.defaults,e),Mr(Si(e.baseURL,e.url,e.allowAbsoluteUrls,e),e.params,e.paramsSerializer)}};A.forEach([`delete`,`get`,`head`,`options`],function(e){ma.prototype[e]=function(t,n){return this.request(Ti(n||{},{method:e,url:t,data:n&&A.hasOwnProp(n,`data`)?n.data:void 0}))}}),A.forEach([`post`,`put`,`patch`,`query`],function(e){function t(t){return function(n,r,i){return this.request(Ti(i||{},{method:e,headers:t?{"Content-Type":`multipart/form-data`}:{},url:n,data:r}))}}ma.prototype[e]=t(),e!==`query`&&(ma.prototype[e+`Form`]=t(!0))});var ha=class e{constructor(e){if(typeof e!=`function`)throw TypeError(`executor must be a function.`);let t;this.promise=new Promise(function(e){t=e});let n=this;this.promise.then(e=>{if(!n._listeners)return;let t=n._listeners.length;for(;t-->0;)n._listeners[t](e);n._listeners=null}),this.promise.then=e=>{let t,r=new Promise(e=>{n.subscribe(e),t=e}).then(e);return r.cancel=function(){n.unsubscribe(t)},r},e(function(e,r,i){n.reason||(n.reason=new ii(e,r,i),t(n.reason))})}throwIfRequested(){if(this.reason)throw this.reason}subscribe(e){if(this.reason){e(this.reason);return}this._listeners?this._listeners.push(e):this._listeners=[e]}unsubscribe(e){if(!this._listeners)return;let t=this._listeners.indexOf(e);t!==-1&&this._listeners.splice(t,1)}toAbortSignal(){let e=new AbortController,t=t=>{e.abort(t)};return this.subscribe(t),e.signal.unsubscribe=()=>this.unsubscribe(t),e.signal}static source(){let t;return{token:new e(function(e){t=e}),cancel:t}}};function ga(e){return function(t){return e.apply(null,t)}}function _a(e){return A.isObject(e)&&e.isAxiosError===!0}var va={Continue:100,SwitchingProtocols:101,Processing:102,EarlyHints:103,Ok:200,Created:201,Accepted:202,NonAuthoritativeInformation:203,NoContent:204,ResetContent:205,PartialContent:206,MultiStatus:207,AlreadyReported:208,ImUsed:226,MultipleChoices:300,MovedPermanently:301,Found:302,SeeOther:303,NotModified:304,UseProxy:305,Unused:306,TemporaryRedirect:307,PermanentRedirect:308,BadRequest:400,Unauthorized:401,PaymentRequired:402,Forbidden:403,NotFound:404,MethodNotAllowed:405,NotAcceptable:406,ProxyAuthenticationRequired:407,RequestTimeout:408,Conflict:409,Gone:410,LengthRequired:411,PreconditionFailed:412,PayloadTooLarge:413,ContentTooLarge:413,UriTooLong:414,UnsupportedMediaType:415,RangeNotSatisfiable:416,ExpectationFailed:417,ImATeapot:418,MisdirectedRequest:421,UnprocessableEntity:422,UnprocessableContent:422,Locked:423,FailedDependency:424,TooEarly:425,UpgradeRequired:426,PreconditionRequired:428,TooManyRequests:429,RequestHeaderFieldsTooLarge:431,UnavailableForLegalReasons:451,InternalServerError:500,NotImplemented:501,BadGateway:502,ServiceUnavailable:503,GatewayTimeout:504,HttpVersionNotSupported:505,VariantAlsoNegotiates:506,InsufficientStorage:507,LoopDetected:508,NotExtended:510,NetworkAuthenticationRequired:511,WebServerReturnsAnUnknownError:520,WebServerIsDown:521,ConnectionTimedOut:522,OriginIsUnreachable:523,TimeoutOccurred:524,SslHandshakeFailed:525,InvalidSslCertificate:526};Object.entries(va).forEach(([e,t])=>{va[t]===void 0&&(va[t]=e)});function ya(e){let t=new ma(e),n=At(ma.prototype.request,t);return A.extend(n,ma.prototype,t,{allOwnKeys:!0}),A.extend(n,t,null,{allOwnKeys:!0}),n.create=function(t){return ya(Ti(e,t))},n}var F=ya(ti);F.Axios=ma,F.CanceledError=ii,F.CancelToken=ha,F.isCancel=ri,F.VERSION=Ki,F.toFormData=Dr,F.AxiosError=M,F.Cancel=F.CanceledError,F.all=function(e){return Promise.all(e)},F.spread=ga,F.isAxiosError=_a,F.mergeConfig=Ti,F.AxiosHeaders=j,F.formToJSON=e=>Zr(A.isHTMLForm(e)?new FormData(e):e),F.getAdapter=sa.getAdapter,F.HttpStatusCode=va,F.default=F;var ba=`mateu-app-context`,xa=`mateu-app-context-labels`,Sa=e=>{try{return JSON.parse(localStorage.getItem(e)??`{}`)}catch{return{}}},Ca=(e,t)=>{try{localStorage.setItem(e,JSON.stringify(t))}catch{}},wa=()=>Sa(ba),Ta=()=>Sa(xa),Ea=(e,t,n)=>{let r=wa(),i=Ta();t==null||t===``?(delete r[e],delete i[e]):(r[e]=t,n!==void 0&&(i[e]=n)),Ca(ba,r),Ca(xa,i)},Da=!1,Oa=()=>{Da||(Da=!0,window.addEventListener(`storage`,e=>{e.key===ba&&e.newValue!==e.oldValue&&window.location.reload()}))},ka,Aa=(e,t)=>new Promise((n,r)=>{let i=!1,a={retry:()=>{i||(i=!0,t().then(n,r))},giveUp:()=>{i||(i=!0,r(e))}};if(ka){ka(a);return}let o=new CustomEvent(`mateu-session-expired`,{detail:a,cancelable:!0,bubbles:!1});typeof document<`u`&&!document.dispatchEvent(o)||a.giveUp()}),ja=(e,t)=>e.includes(`json`)?!0:typeof t==`object`&&!!t,Ma=(e,t)=>{let n=e.finalUrl;if(!n)return;let r=t??(typeof window<`u`?window.location.href:void 0),i;try{i=new URL(e.requestedUrl,r).href}catch{return}if(i!==n&&!ja(e.contentType??``,e.data))return n},Na=new class{constructor(){this.windowMs=4e3,this.threshold=12,this.events=[],this.reported=new Set}check(e,t=Date.now()){this.events.push({sig:e,t});let n=t-this.windowMs;this.events=this.events.filter(e=>e.t>=n);let r=0;for(let t of this.events)t.sig===e&&r++;if(r>=this.threshold){let t=!this.reported.has(e);return this.reported.add(e),{blocked:!0,firstTrip:t}}return this.reported.delete(e),{blocked:!1,firstTrip:!1}}reset(){this.events=[],this.reported.clear()}configure(e){e.windowMs!==void 0&&(this.windowMs=e.windowMs),e.threshold!==void 0&&(this.threshold=e.threshold)}},Pa=e=>{let t=(e.split(`.`).filter(e=>e&&!/^\d+$/.test(e)).pop()??e).replace(/[_-]+/g,` `).replace(/([a-z0-9])([A-Z])/g,`$1 $2`).replace(/([A-Z]+)([A-Z][a-z])/g,`$1 $2`).trim().toLowerCase();return t?t.charAt(0).toUpperCase()+t.slice(1):e},Fa=[`eyesOnly`,`readOnlyUnless`,`disabledUnless`,`access`],Ia=!1,La=(e,t)=>{if(Array.isArray(e))return e.map(e=>La(e,t));if(e&&typeof e==`object`){let n={};for(let[r,i]of Object.entries(e)){if(Fa.includes(r)){t.any=!0;continue}n[r]=La(i,t)}return n}return e};function Ra(e){let t={any:!1},n=La(e,t);return t.any?(Ia||(Ia=!0,console.warn(`mateu: access rules (eyesOnly/readOnlyUnless/disabledUnless/access) need a server to check who is asking — with none, the page renders unrestricted`)),n):e}var za=function(e){return e.Add=`Add`,e.Replace=`Replace`,e.ReplaceKeepData=`ReplaceKeepData`,e}({}),Ba=e=>Array.isArray(e)?e.filter(e=>!!e&&typeof e==`object`):[],Va=e=>typeof e==`string`&&e.trim()!==``?e:void 0;function Ha(e){for(let t of[`overline`,`titlePlaceholder`,`timestamp`])t in e&&!Va(e[t])&&delete e[t];if(`badges`in e&&(e.badges=Ba(e.badges).map(e=>({text:e.label,iconOnLeft:null,iconOnRight:null,color:Va(e.color)??`normal`,primary:!1,small:!1,pill:!1}))),`kpis`in e){let t=Ba(e.kpis);t.length?e.kpis=t.map(e=>({title:e.label,text:e.value})):delete e.kpis}if(`recordSwitcher`in e){let t=e.recordSwitcher;delete e.recordSwitcher,t&&typeof t==`object`&&(e.switcher={options:Ba(t.options).map(e=>({value:e.value,label:e.label,description:e.description})),value:t.value,type:t.type===`context`?`context`:`object`,label:t.label,searchable:t.searchable===!0,disabled:t.disabled===!0,actionId:Va(t.actionId)??`_switchRecord`,optionsSource:t.optionsSource??null,route:Va(t.route)??null})}if(`banners`in e&&(e.banners=Ba(e.banners).map(e=>({theme:typeof e.theme==`string`?e.theme.toUpperCase():`NONE`,hasIcon:!1,hasCloseButton:e.closeable===!0,title:e.title,description:e.description,timeoutSeconds:typeof e.timeoutSeconds==`number`?e.timeoutSeconds:0}))),`fabs`in e){let t=Ba(e.fabs).map((e,t)=>({fab:e,index:t})).sort((e,t)=>Number(e.fab.order??0)-Number(t.fab.order??0)||e.index-t.index).map(({fab:e})=>({id:e.actionId,label:e.label,icon:e.icon,actionId:e.actionId,buttonStyle:Va(e.buttonStyle)??`primary`}));t.length?e.fabs=t:delete e.fabs}}var Ua=[],Wa=e=>{Ua=Array.isArray(e)?e:[]},Ga=e=>e?Ua.find(t=>t.name===e)?.component:void 0,Ka={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},qa=e=>(...t)=>({_$litDirective$:e,values:t}),Ja=class{constructor(e){}get _$AU(){return this._$AM._$AU}_$AT(e,t,n){this._$Ct=e,this._$AM=t,this._$Ci=n}_$AS(e,t){return this.update(e,t)}update(e,t){return this.render(...t)}},Ya=!1,Xa=e=>{Ya=e},Za=()=>Ya,Qa=e=>Ya&&e?.id?e.id:p,$a=e=>{let t=e.startNode?e.startNode.nextSibling:e.parentNode?.firstChild??null;for(;t&&t!==e.endNode;){if(t.nodeType===1)return t;t=t.nextSibling}return null},eo=qa(class extends Ja{constructor(e){if(super(e),e.type!==Ka.CHILD)throw Error(`stampNodeId only works in a child position`)}render(e,t){return t}update(e,[t,n]){return queueMicrotask(()=>{let n=$a(e);n&&n.getAttribute(`data-node-id`)!==t&&n.setAttribute(`data-node-id`,t)}),n}}),to=e=>Ya&&typeof e.id==`string`&&e.id?e.id:e.actionId,no=(e,t)=>Ya&&typeof e.id==`string`&&e.id?l`${eo(e.id,t)}`:t,ro=new Set([`id`,`style`,`cssClasses`,`slot`,`initialData`,`confirmOnNavigationIfDirty`,`sizing`]),io=new Set([`Form`,`FormLayout`,`VerticalLayout`,`HorizontalLayout`,`Div`,`FlexLayout`,`CustomComponent`]),ao={Card:[`content`,`title`,`subtitle`,`footer`,`header`,`media`,`headerPrefix`,`headerSuffix`],Form:[`header`,`footer`,`avatar`]},oo={HeroSection:`content`,DashboardLayout:`items`,DashboardPanel:`content`,Scoreboard:`metrics`,TabLayout:`tabs`,Tab:`content`,Notice:`content`},so=new Set([`Listing`,`Crudl`,`Crud`]);function co(e){let{note:t,...n}=e;if(so.has(n.type))return ho(n);if(n.type===`FoldoutLayout`)return mo(n);if(n.type===`ComponentRef`)return Ga(n.ref)||{type:E.ClientSide,metadata:{type:`Text`,text:`Unknown business component: ${n.ref}`},children:[]};let{type:r,content:i,children:a,...o}=n.type===`Button`?vo(n):n,s={},c={type:r};for(let[e,t]of Object.entries(o))ro.has(e)?s[e]=t:c[e]=(e===`toolbar`||e===`buttons`)&&Array.isArray(t)?t.map(vo):t;r===`FormField`&&(o.id!==void 0&&(c.fieldId=o.id),delete c.id,c.dataType=c.dataType??`string`,c.stereotype=c.stereotype??`regular`),r===`Form`&&Ha(c),r===`HeroSection`&&c.tone===`auto`&&delete c.tone,r===`MatrixGrid`&&lo(c);let l=[];if(oo[r]){let e=oo[r],t=e===`content`?i:o[e];delete c[e],l=t==null?[]:Array.isArray(t)?t:[t]}else if(io.has(r)){let e=i??a??[];l=Array.isArray(e)?e:[e]}for(let e of ao[r]??[]){let t=po(e===`content`?i:c[e]);t!==void 0&&(c[e]=t)}if(r===`Form`&&fo(c.avatar)){let e=c.avatar;e.style=(typeof e.style==`string`?e.style:``)+`;width: 4rem;height: 4rem;`}return{...s,type:E.ClientSide,metadata:c,children:l.map(co)}}function lo(e){let t=Array.isArray(e.columns)?e.columns.length:0;Array.isArray(e.sections)&&(e.sections=e.sections.map((e,n)=>({...e,id:typeof e.id==`string`&&e.id.trim()!==``?e.id:`section${n}`,rows:(Array.isArray(e.rows)?e.rows:[]).map(e=>{let n=Array.isArray(e.cells)?e.cells:[];return{...e,cells:Array.from({length:t},(e,t)=>{let r=n[t];return r?{...r,value:r.value??``}:{value:``,link:!1}})}})})))}var uo=e=>!!e&&typeof e==`object`&&!Array.isArray(e)&&typeof e.type==`string`,fo=e=>!!e&&typeof e==`object`&&!Array.isArray(e);function po(e){if(uo(e))return co(e);if(Array.isArray(e))return e.map(e=>uo(e)?co(e):e)}function mo(e){let{type:t,content:n,children:r,overview:i,panels:a,badges:o,...s}=e,c={},l={type:t};for(let[e,t]of Object.entries(s))ro.has(e)?c[e]=t:l[e]=t;let u=[];return uo(i)&&u.push({...co(i),slot:`overview`}),l.panels=(Array.isArray(a)?a:[]).map((e,t)=>(uo(e.content)&&u.push({...co(e.content),slot:`panel-`+t}),uo(e.summary)&&u.push({...co(e.summary),slot:`summary-`+t}),Object.fromEntries(Object.entries({title:e.title,subtitle:e.subtitle,icon:e.icon,open:!!e.open,width:e.width,id:Za()&&typeof e.id==`string`?e.id:void 0}).filter(([,e])=>e!==void 0)))),Array.isArray(o)&&(l.badges=o.map(e=>e?.text).filter(e=>typeof e==`string`&&e.trim()!==``)),{...c,type:E.ClientSide,metadata:l,children:u}}function ho(e){let{type:t,content:n,children:r,...i}=e,a={id:`crud`,sizing:`fill`},o={type:`Crud`,crudlType:i.crudlType??i.listingType??`table`,pageSize:10,searchOnEnter:!0,autoFocusOnSearchText:!0,filtersLayout:`auto`,gridLayout:`auto`};for(let[e,t]of Object.entries(i))e!==`crudlType`&&e!==`listingType`&&(ro.has(e)?a[e]=t:e===`columns`&&Array.isArray(t)?o[e]=t.map(go):e===`toolbar`&&Array.isArray(t)?o[e]=t.map(vo):e===`filters`&&Array.isArray(t)?o[e]=t.map(yo):e===`preSearch`&&Array.isArray(t)?t.length>0&&(o[e]=t.map(co)):o[e]=t);return{...a,type:E.ClientSide,metadata:o,children:[]}}function go(e){let t=co(e);return e.id!==void 0&&t.metadata&&(t.metadata.id=e.id),t}var _o=e=>e.replace(/[^\p{L}\p{N}]+/gu,` `).trim().split(/\s+/).filter(Boolean).map((e,t)=>t===0?e.charAt(0).toLowerCase()+e.slice(1):e.charAt(0).toUpperCase()+e.slice(1)).join(``);function vo(e){if(!e||e.type!==`Button`)return e;let{actionable:t,...n}=e,r={...n};return t?.type===`RouteLink`&&t.route&&(r.route=t.route),!r.actionId&&typeof r.label==`string`&&(r.actionId=_o(r.label)),r}function yo(e){if(!e||e.type!==`FormField`)return e;let{id:t,...n}=e;return{...n,fieldId:n.fieldId??t,dataType:n.dataType??`string`,stereotype:n.stereotype??`regular`}}var bo=[],xo=e=>{bo=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`&&e.id.trim()!==``):[]},So=()=>bo,Co=[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],wo={GridColumn:[`label`,`dataType`,`stereotype`,`style`,`cssClasses`,`align`,`width`,`autoWidth`,`tones`],FormField:[`label`,`dataType`,`stereotype`,`placeholder`,`description`,`required`,`readOnly`,`options`,`optionsSource`,`min`,`max`,`step`,`colspan`,`style`,`cssClasses`]},To=e=>e==null||e===``||Array.isArray(e)&&e.length===0||typeof e==`object`&&!Array.isArray(e)&&Object.keys(e).length===0,Eo=`fieldType`,Do=e=>{if(Array.isArray(e))return e.some(Do);if(!e||typeof e!=`object`)return!1;let t=e;return typeof t.fieldType==`string`||Object.values(t).some(Do)},Oo=e=>e===void 0?e:JSON.parse(JSON.stringify(e));function ko(e,t=bo){if(!Do(e))return e;let n=new Map(t.map(e=>[e.id.trim(),e])),r=new Set,i=e=>{if(Array.isArray(e))return e.map(i);if(!e||typeof e!=`object`)return e;let t={};for(let[n,r]of Object.entries(e))n!==`fieldType`&&(t[n]=i(r));let a=e[Eo];if(typeof a==`string`){let e=n.get(a.trim());if(!e)r.has(a)||(r.add(a),console.warn(`mateu: unknown field type '${a}' (on '${String(t.id??``)}') — rendered as declared`));else{let n=wo[String(t.type??``)]??Co;for(let r of n){let n=e[r];To(n)||(t[r]===void 0||t[r]===null)&&(t[r]=Oo(n))}}}return t};return i(e)}var Ao=`ux_main`;function jo(e){return!(e.viewModel??e.modelView)&&!!Mo(e)}function Mo(e){if(e.layout&&typeof e.layout==`object`)return e.layout;if(typeof e.type==`string`){let{pageType:t,...n}=e;return n}}var No=[`landing`,`collection`,`detail`,`form`,`process`,`dashboard`];function Po(e){let t=typeof e.pageType==`string`?e.pageType.trim().toLowerCase():``;return No.includes(t)?t:void 0}function Fo(e,t,n,r={}){e=Ra(e),e=ko(e);let i=Mo(e);if(!i)throw Error(`Definition for route "${t}" has no layout to expand`);if(i.type===`AppShell`)return Qo(i);let a=n??(typeof i.title==`string`?i.title:t),o=co(i);return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:a}],messages:[],fragments:[{targetComponentId:Ao,component:Lo(e,o,r),data:void 0,state:void 0,action:za.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}function Io(e){return e.ref?{ref:e.ref}:Object.fromEntries(Object.entries(e).filter(([,e])=>e!=null))}function Lo(e,t,n){let r=(e.actions??[]).map(zo);r.push(...os(e.layout??t,r));let i=[...e.triggers??[]];n.data&&(n.data.ref||n.data.url)&&(r.push({id:`__restdata__`,restAction:{source:Io(n.data),resultPath:``}}),i.push({type:`OnLoad`,actionId:`__restdata__`,times:1}));let a=Po(e);if(!r.length&&!i.length)return a?{...t,pageType:a}:t;let o=n.path??``;return{type:E.ServerSide,id:`page_`+(o||`root`).replace(/[^A-Za-z0-9_-]/g,`_`),serverSideType:void 0,route:`/`+o,initialData:{},actions:r,triggers:i,rules:[],validations:[],children:[t],...a?{pageType:a}:{}}}function Ro(e){let t=(e,t)=>({targetComponentId:null,type:e,data:t}),n=(e,t)=>({eventName:e,detail:t??null});switch(e?.type){case`Navigate`:return t(`NavigateTo`,e.route??null);case`Emit`:return t(`DispatchEvent`,n(e.event,e.payload));case`CloseOverlay`:return t(`CloseModal`,e.event?n(e.event,null):null);case`RunAction`:return t(`RunAction`,{actionId:e.actionId});case`MarkClean`:return t(`MarkAsClean`,null);case`MarkDirty`:return t(`MarkAsDirty`,null);default:return}}function zo(e){if(!e||typeof e!=`object`||!(`description`in e)&&!Array.isArray(e.steps))return e;let{description:t,...n}=e;if(!Array.isArray(n.steps))return n;let{steps:r,...i}=n,a=r.map(Ro).filter(Boolean);return a.length?{...i,commands:a}:i}function Bo(e){if(typeof e!=`string`||!e)return``;let t=e.replace(/\./g,` `).replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g,` `).toLowerCase().replace(/ +/g,` `);return t.length<=1?t:t.split(` `).map((e,t)=>t>0&&e?e[0].toUpperCase()+e.substring(1):e).join(``)}function Vo(e){return e.type!==`RuleLink`||!Array.isArray(e.rules)?[]:e.rules.map(e=>({filter:e.filter??null,action:e.action??null,fieldName:e.fieldName??null,fieldAttribute:e.fieldAttribute??null,value:e.value??null,expression:e.expression??null,result:e.result??null,actionId:e.actionId??null}))}function Ho(e){let t=`/`+(typeof e.route==`string`&&e.route?e.route:typeof e.path==`string`?e.path:Bo(e.label)).replace(/^\/+/,``),n=e.submenu??e.submenus??e.menu,r=e.presentation??void 0;return{label:e.label,icon:e.icon??r?.icon??void 0,description:e.description??void 0,display:r?.display===`cards`?`cards`:void 0,image:r?.image??void 0,path:t,route:t,consumedRoute:``,uriPrefix:``,visible:!e.hidden,selected:!1,disabled:!1,separator:e.type===`MenuSeparator`,remote:!1,rules:Vo(e),submenus:Array.isArray(n)?n.map(Ho):[]}}function Uo(e){for(let t of e){if(t.type===`RouteLink`&&(t.route||t.path))return t.route??t.path;let e=t.submenu??t.submenus??t.menu;if(Array.isArray(e)){let t=Uo(e);if(t)return t}}}var Wo=e=>{let t=e.submenu??e.submenus??e.menu;return Array.isArray(t)?t:void 0},Go=e=>e.type===`Menu`||!e.type&&!!Wo(e),Ko=e=>e.some(e=>e.type===`RemoteMenu`||Go(e)&&Ko(Wo(e)??[]));function qo(e,t){return typeof e==`string`&&e.trim()&&e.trim().toUpperCase()!==`AUTO`?e.trim():Ko(t)?`MENU_ON_TOP`:t.some(Go)?t.some(e=>Go(e)&&(Wo(e)??[]).some(Go))?`TILES`:t.length>7?`HAMBURGER_MENU`:`MENU_ON_TOP`:`TABS`}function Jo(e){let t=e=>typeof e==`string`&&e.trim()?e.trim():void 0;return(e??[]).filter(e=>e&&typeof e==`object`).map(e=>({key:t(e.key)?.toLowerCase(),code:t(e.code),route:t(e.route),actionId:t(e.actionId),label:t(e.label)})).filter(e=>(e.key||e.code)&&(e.route||e.actionId)).map(e=>{let t=e.route?`/`+e.route.replace(/^\/+/,``):void 0,n=t?.replace(/\/+$/,``).split(`/`).pop()??``,r=e.label??(t?n?n.charAt(0).toUpperCase()+n.slice(1).replace(/-/g,` `):`Home`:e.actionId);return{key:e.key??null,label:r,route:t??null,actionId:e.actionId??null,code:e.code??null}})}function Yo(e){let t=Number(e.idleTimeoutMinutes??0);if(!(t>0))return null;let n=t*60;return{timeoutSeconds:n,warningSeconds:Math.max(5,Math.min(Number(e.idleWarningSeconds??60)||60,n)),signOutUrl:typeof e.idleSignOutUrl==`string`&&e.idleSignOutUrl.trim()?e.idleSignOutUrl.trim():`/`,keepAliveActionId:null}}function Xo(e){let t=typeof e.route==`string`&&e.route.trim()?`/`+e.route.trim().replace(/^\/+/,``):null,n=Array.isArray(e.children)?e.children.filter(e=>e&&typeof e==`object`).map(Xo):null;return{actionId:e.actionId??null,label:e.label,icon:e.icon??null,children:n,route:t}}function Zo(e){let t=e=>(Array.isArray(e)?e:[]).filter(e=>e&&typeof e==`object`),n=t(e.contextSelectors).filter(e=>typeof e.fieldName==`string`&&e.fieldName.trim()).map(e=>({fieldName:e.fieldName,label:typeof e.label==`string`&&e.label.trim()?e.label:Pa(String(e.fieldName)),options:t(e.options).map(e=>({value:e.value,label:e.label})),optionsSource:e.optionsSource??null})),r=e.notifications,i=e.globalSearch;return{contextSelectors:n,contextActions:t(e.headerActions).map(Xo),notificationsEnabled:!!r?.source,notificationsSource:r?.source??null,notificationsReadSource:r?.markRead??null,globalSearchEnabled:!!i?.source,globalSearchSource:i?.source??null}}function Qo(e){let t=e.menu??[],n=(e.widgets??[]).filter(e=>e&&typeof e==`object`),r=t=>e[t]===!0||e[t]===`true`;return{commands:[{targetComponentId:Ao,type:`SetWindowTitle`,data:e.title??``}],messages:[],fragments:[{targetComponentId:Ao,component:{type:E.ClientSide,id:`app`,metadata:{type:`App`,route:``,rootRoute:``,variant:qo(e.variant,t),layout:`SINGLE_SLOT`,title:e.title,subtitle:e.subtitle,logo:e.logo,favicon:e.favicon,themeToggle:r(`themeToggle`),commandCenterEnabled:r(`commandCenter`)||r(`chromeless`),chromeless:r(`chromeless`),accessKeys:r(`accessKeys`),mobileQr:r(`mobileQr`),drawerClosed:r(`drawerClosed`),style:typeof e.style==`string`?e.style:void 0,cssClasses:typeof e.cssClasses==`string`?e.cssClasses:void 0,accentColor:typeof e.accentColor==`string`&&e.accentColor.trim()?e.accentColor.trim():void 0,menu:t.map(Ho),totalMenuOptions:t.length,homeRoute:(typeof e.homeRoute==`string`&&e.homeRoute.trim()?e.homeRoute.trim().replace(/^\/+/,``):Uo(t))??``,homeConsumedRoute:``,homeBaseUrl:``,apps:[],fabs:[],...Zo(e),actions:(e.actions??[]).filter(e=>e&&typeof e==`object`).map(zo),actionCatalogue:rs(),shortcuts:Jo(e.shortcuts),headerValues:(e.headerValues??[]).filter(e=>e&&typeof e.id==`string`).map(e=>({id:e.id,label:typeof e.label==`string`&&e.label.trim()?e.label:null,value:e.value??``})),liveUpdates:!1,idleSession:Yo(e)},children:n.map(e=>({...co(e),slot:`widgets`}))},data:void 0,state:void 0,action:za.Replace,containerId:void 0}],banners:[],appendBanners:!1,appData:void 0,appState:void 0}}var $o=[],es=e=>{$o=Array.isArray(e)?e.filter(e=>e&&typeof e.id==`string`):[]},ts=e=>{let t=new Map;for(let n of Array.isArray(e)?e:[]){if(!n||typeof n!=`object`)continue;let e=n;if(!(typeof e.id!=`string`||!e.id)){if(!(Array.isArray(e.steps)&&e.steps.length>0||e.restAction)){console.warn(`mateu: action catalogue entry "${e.id}" is not client-runnable (no steps, no restAction) — ignored`);continue}t.set(e.id,zo(e))}}return[...t.values()]},ns=e=>e?$o.find(t=>t.id===e):void 0,rs=()=>$o,is=(e,t,n)=>t?(e??[]).find(e=>e&&e.id===t)||((n??[]).find(e=>e&&e.id===t)??ns(t)):void 0,as=(e,t=new Set)=>{if(Array.isArray(e))e.forEach(e=>as(e,t));else if(e&&typeof e==`object`)for(let[n,r]of Object.entries(e))typeof r==`string`&&(n===`actionId`||n.endsWith(`ActionId`))&&r?t.add(r):r&&typeof r==`object`&&as(r,t);return t},os=(e,t=[],n=$o)=>{if(!n.length)return[];let r=new Set(t.map(e=>e?.id).filter(Boolean)),i=[...as([e,t])],a=[];for(;i.length;){let e=i.shift();if(r.has(e))continue;let t=n.find(t=>t.id===e);t&&(r.add(e),a.push(t),i.push(...as(t)))}return a},ss=/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g,cs=`en`,ls=e=>(e??``).trim().replace(/_/g,`-`).toLowerCase(),us=(e,t)=>Object.keys(e).find(e=>ls(e)===t);function ds(e,t){if(!e)return;let n=Object.keys(e);if(n.length){for(let n of t){let t=ls(n);if(!t)continue;let r=us(e,t);if(r)return r;let i=us(e,t.split(`-`)[0]);if(i)return i}return us(e,ls(cs))??us(e,ls(cs).split(`-`)[0])??n[0]}}var fs=new Set;function ps(e,t,n){return typeof e!=`string`||!e.includes(`i18n.`)?e:e.replace(ss,(e,r)=>{let i=t?.[r]??n?.[r];return i===void 0?(fs.has(r)||(fs.add(r),console.warn(`mateu: missing translation '${r}' — showing the key`)),r):i})}function ms(e,t,n){let r=e=>{if(typeof e==`string`)return ps(e,t,n);if(Array.isArray(e))return e.map(r);if(e&&typeof e==`object`){let t={};for(let[n,i]of Object.entries(e))t[n]=r(i);return t}return e};return r(e)}var hs=e=>{if(e==null)return!1;let t=typeof e==`string`?e:JSON.stringify(e);return ss.lastIndex=0,ss.test(t)},gs=()=>{let e=globalThis.navigator;return e?[...e.languages??[],...e.language?[e.language]:[]]:[]},_s,vs=new Map,ys=[],bs,xs=[],Ss=[],Cs={},ws={},Ts,Es,Ds=e=>{Es=e||void 0},Os=()=>{let e=$s(_s?.get(`_no_route`));return typeof e?.locale==`string`&&e.locale?e.locale:void 0},ks=()=>ds(ws,[Es,Os(),...gs()]),As=e=>{if(e===void 0||!Object.keys(ws).length||!hs(e))return e;let t=ks(),n=ds(ws,[]);return ms(e,t?ws[t]:void 0,n&&n!==t?ws[n]:void 0)},js=e=>e.split(`/`).filter(e=>e.startsWith(`:`)&&e.length>1).map(e=>e.substring(1)),Ms=e=>{let t=e=>e.replace(/^\/+/,``).replace(/\/+$/,``),n=t(e===`_no_route`?``:e),r=n===``?[]:n.split(`/`),i;for(let e of xs){let n=t(e.route??``),a=n===``?[]:n.split(`/`);if(a.length!==r.length)continue;let o={},s=!0;for(let e=0;e<a.length;e++){let t=a[e];if(t.startsWith(`:`)&&t.length>1)o[t.substring(1)]=r[e];else if(t!==r[e]){s=!1;break}}if(!s)continue;let c={entry:e,pathParams:o};(!i||js(n).length<js(t(i.entry.route??``)).length)&&(i=c)}return i},Ns=(e,t)=>{let n=Ms(e);if(!n)return t;let{entry:r,pathParams:i}=n,a={...r.defaultParams??{},...r.state??{}},o=r.fixedParams??{};return!Object.keys(a).length&&!Object.keys(o).length&&!Object.keys(i).length?t:{...t,fragments:(t.fragments??[]).map(e=>({...e,state:{...a,...e.state??{},...i,...o},data:{...a,...e.data??{},...i,...o}}))}},Ps=e=>{let t=e&&e.startsWith(`/`)?e.substring(1):e??``;return t===``?`_no_route`:t},Fs=e=>{let t=new Map,n=new Map,r=[];for(let i of e.entries??[])if(!(!i.ok||!i.json))try{let e=JSON.parse(i.json),a=i.contentJson?JSON.parse(i.contentJson):void 0;i.routePattern?r.push({regex:new RegExp(i.routePattern),paramNames:i.paramNames??[],increment:e,content:a}):(t.set(i.syncPath,e),a&&n.set(i.syncPath,a))}catch(e){console.warn(`mateu: bundle entry parse failed for`,i.syncPath,e)}return{increments:t,contents:n,templates:r,routeEntries:e.routes?.routes??[],definitions:e.definitions??{},catalogueSources:e.sources?.sources??[],translations:e.translations??{},environment:e.environment??void 0}},Is=()=>_s===void 0?void 0:{increments:_s,contents:vs,templates:ys,routeEntries:xs,catalogueSources:Ss,definitions:Cs,translations:ws,environment:Ts},Ls=e=>{_s=e?.increments,vs=e?.contents??new Map,ys=e?.templates??[],xs=e?.routeEntries??[],Ss=e?.catalogueSources??[],Cs=e?.definitions??{},ws=e?.translations??{},Ts=e?.environment};function Rs(e,t=fetch){return bs=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json();Ls(Fs(r)),oe(r.sources?.sources),es(r.actions),r.mockSources&&pe(!0),r.types&&xo(r.types.types)}catch(e){console.warn(`mateu: bundle manifest load failed`,e)}})(),bs}var zs=new Map,Bs=e=>{if(!e)return!1;let t=e.split(`#`)[0].split(`?`)[0];return/\.json$/i.test(t)},Vs=(e,t=fetch)=>{let n=zs.get(e);if(!n){n=(async()=>{try{let n=await t(e);if(!n.ok)return;let r=await n.json(),i=Fs(r);return se(e,r.sources?.sources),i}catch(t){console.warn(`mateu: static remote manifest load failed`,e,t);return}})();let r=n;r.then(t=>{!t&&zs.get(e)===r&&zs.delete(e)}),zs.set(e,r)}return n},Hs=async(e,t,n,r=fetch)=>{let i=await Vs(e,r);if(!i)return;let a=Is();Ls(i);try{if(n!==void 0&&n!==`_empty`&&t===`_no_route`){let e=$s(Ys(`_no_route`)??Qs(`_no_route`))?.homeRoute;return typeof e!=`string`||Ps(e)===`_no_route`?void 0:tc(Ps(e),n)}return tc(t,n)}finally{Ls(a)}},Us,Ws=(e,t)=>e.replace(/\/+$/,``)===t.replace(/\/+$/,``);function Gs(e){Us=e||void 0}var Ks=e=>{if(!e||!/^https?:\/\//i.test(e)||Us&&Ws(e,Us))return!1;try{return typeof window>`u`||new URL(e).origin!==window.location.origin}catch{return!1}},qs=()=>bs??Promise.resolve(),Js=()=>_s!==void 0&&_s.size>0||ys.length>0||Object.keys(Cs).length>0,Ys=e=>{let t=_s?.get(e);return t===void 0?void 0:Ns(e,t)},Xs=(e,t=!1)=>{for(let n of ys){let r=n.regex.exec(e);if(!r)continue;let i=t?n.content:n.increment;if(!i)return;let a={};return n.paramNames.forEach((e,t)=>{a[e]=r[t+1]}),Ns(e,{...i,fragments:(i.fragments??[]).map(e=>({...e,component:Zs(e.component,a),state:{...e.state??{},...a},data:{...e.data??{},...a}}))})}},Zs=(e,t)=>{let n=e;return!n||!n.initialData||typeof n.initialData!=`object`?e:{...n,initialData:{...n.initialData,...t}}},Qs=e=>{let t=Ms(e),n=t?.entry.definition;if(!n)return;let r=Cs[n];if(!r||!jo(r))return;let i=Fo(As(r),t.entry.route,void 0,{data:t.entry.data??void 0,path:e===`_no_route`?``:e});return Ns(e,{...i,fragments:(i.fragments??[]).map(e=>{let t=$s({fragments:[e]}),n=t?{...e.component,metadata:{...t,restSources:Ss}}:e.component;return{...e,component:n,targetComponentId:void 0}})})},$s=e=>{let t=e?.fragments?.[0]?.component;return t?.metadata?.type===`App`?t.metadata:void 0},ec=(e,t)=>{if(t===`_no_route`)return e;let[n,...r]=e.fragments??[],i=n.component;return{...e,fragments:[{...n,component:{...i,metadata:{...i.metadata,homeRoute:`/`+t}}},...r]}},tc=(e,t)=>As(nc(e,t)),nc=(e,t)=>{let n=t===void 0||t===`_empty`,r=()=>Ys(e)??Xs(e)??Qs(e);if(n){let t=r();if(t&&$s(t))return ec(t,e);if(e!==`_no_route`&&(Ms(e)||!t)){let t=Ys(`_no_route`)??Qs(`_no_route`);if(t&&$s(t))return ec(t,e)}return t}let i=vs.get(e)===void 0?Xs(e,!0):Ns(e,vs.get(e));if(i)return i;let a=r();return a&&$s(a)?void 0:a},rc=e=>e?r(`errorStatus`,{status:e}):``,ic={offline:()=>o(`failOffline`),timeout:()=>o(`failTimeout`),server:e=>r(`failServer`,{status:rc(e)}),unauthorized:()=>o(`failUnauthorized`),forbidden:()=>o(`forbidden`),notFound:()=>o(`failNotFound`),client:e=>r(`failClient`,{status:rc(e)}),cancelled:()=>``,unknown:()=>o(`failUnknown`)},ac=new Set([`offline`,`timeout`,`server`]),oc=(e,t={})=>{let n=e??{},r=n.response?.status,i=n.code,a=t.online??(typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0),o=e=>({kind:e,message:ic[e](r),retryable:ac.has(e),status:r});return i===`ERR_CANCELED`?o(`cancelled`):i===`ECONNABORTED`||i===`ETIMEDOUT`||/timeout/i.test(n.message??``)?o(`timeout`):r===void 0?!a||i===`ERR_NETWORK`||/network error/i.test(n.message??``)?o(`offline`):o(`unknown`):o(r===401?`unauthorized`:r===403?`forbidden`:r===404||r===410?`notFound`:r===408||r===429?`timeout`:r>=500?`server`:r>=400?`client`:`unknown`)},sc=e=>e.kind!==`forbidden`,cc=new Set([``,`__load__`,`search`,`_globalsearch`,`_notifications-list`]),lc=[`_appcontext-search-`,`search-`],uc=(e,t)=>t===!0?!0:e==null?!1:cc.has(e)?!0:lc.some(t=>e.startsWith(t)),dc=(e,t=Math.random)=>{let n=300*3**Math.max(0,e-1);return Math.round(n*(.75+t()*.5))},fc=(e,t,n)=>!n.idempotent||t>2||!e.retryable?!1:e.kind===`timeout`||e.kind===`server`,pc=new class{constructor(){this.linkUp=!0,this.listeners=new Set,this.waiters=new Set,this.started=!1}start(){this.started||typeof window>`u`||(this.started=!0,this.linkUp=typeof navigator<`u`&&typeof navigator.onLine==`boolean`?navigator.onLine:!0,window.addEventListener(`online`,()=>{this.linkUp=!0,this.reachable=void 0,this.changed(),this.releaseWaiters()}),window.addEventListener(`offline`,()=>{this.linkUp=!1,this.changed()}))}isOnline(){return this.linkUp?this.reachable!==!1:!1}noteReachable(){let e=this.isOnline();this.reachable=!0,e||(this.changed(),this.releaseWaiters())}noteUnreachable(){let e=this.isOnline();this.reachable=!1,e&&this.changed()}subscribe(e){return this.listeners.add(e),()=>this.listeners.delete(e)}whenBack(e){return this.isOnline()?(e(),()=>{}):(this.waiters.add(e),()=>this.waiters.delete(e))}reset(){this.linkUp=!0,this.reachable=void 0,this.waiters.clear()}changed(){let e=this.isOnline();this.listeners.forEach(t=>t(e))}releaseWaiters(){let e=Array.from(this.waiters);this.waiters.clear(),e.forEach(e=>e())}};pc.start();var mc=`useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict`,hc=(e=21)=>{let t=``,n=crypto.getRandomValues(new Uint8Array(e|=0));for(;e--;)t+=mc[n[e]&63];return t},gc=`__mateu_auth_token`,_c=`__mateu_sesion_id`,vc,yc,bc=null,xc=()=>{try{let e=typeof document<`u`?document.querySelector(`meta[name="mateu-auth-token-storage"]`)?.getAttribute(`content`):void 0;return e===`localStorage`||e===`sessionStorage`||e===`memory`?e:void 0}catch{return}},Sc=()=>vc??xc()??`localStorage`,Cc=()=>{if(yc)try{let e=yc();if(e)return e}catch{}switch(Sc()){case`memory`:return bc;case`sessionStorage`:return Te.get(gc);default:return we.get(gc)}},wc=()=>{let e=Cc();return e?{Authorization:`Bearer `+e}:{}},Tc,Ec=(e=!0)=>{let t=Te.get(_c);if(t)return t;if(Tc)return Tc;if(!e)return null;let n=hc();return Te.set(`__mateu_sesion_id`,n)||(Tc=n),n},Dc=(e,t,n)=>{let r=t??{},i=!!r.config||!!r.response,a=r.config?.headers?.traceparent;return{kind:e.kind,message:e.message,status:e.status??r.response?.status,detail:typeof t==`string`?t:r.message,url:r.config?.url,actionId:n,traceparent:typeof a==`string`?a:void 0,stack:i?void 0:r.stack}},Oc=null,kc=e=>{Oc?.report(e)},Ac=(e,t)=>`${e??``}|${t??``}`,jc=(e,t,n)=>!n||e===void 0||e===t,Mc=(e,t)=>{let n=e.generation,r=e.callbackToken,i=e.connected;return()=>e.generation!==n||t&&e.callbackToken!==r||i&&!e.connected},Nc=class extends Error{constructor(e,t){super(`response to '${e}' arrived for a view no longer on screen`),this.actionId=e,this.outcome=t,this.__mateuStale=!0,this.__mateuReported=!0,this.code=`ERR_CANCELED`}},Pc=e=>!!e&&typeof e==`object`&&e.__mateuStale===!0,Fc={show:e=>console.debug(`[mateu] no notifier registered, dropping toast:`,e.text)};function Ic(e){Fc=e}function Lc(e,t){Fc.show(e,t)}function Rc(e,t=3){if(typeof e!=`string`||e.trim()===``)return{ok:!0};let n=parseInt(e.trim().split(`.`)[0]??``,10);return Number.isFinite(n)?n===t?{ok:!0}:{ok:!1,serverMajor:n,received:e.trim()}:{ok:!0}}function zc(e,t=3){return r(`wireVersionMismatch`,{server:`${e}.x`,supported:`${t}.x`})}var Bc=!1,Vc=e=>{console.error(`[mateu] `+e),typeof document<`u`&&document.body&&Lc({text:e,variant:`error`,position:`topStretch`,duration:0,actionLabel:o(`dismiss`),onAction:()=>void 0},document.body)};function Hc(e,t=Vc){if(!e||typeof e!=`object`)return{ok:!0};let n=Rc(e.wireVersion);return!n.ok&&!Bc&&(Bc=!0,t(zc(n.serverMajor))),n}var Uc=[],Wc=6e4,Gc=e=>new Promise(t=>setTimeout(t,e)),Kc=new class{constructor(){this.axiosInstance=F.create({timeout:Wc}),this.axiosInstance.interceptors.request.use(e=>(this.addAuthToken(e),this.addSessionId(e),e)),this.axiosInstance.interceptors.response.use(e=>{let t=Ma({requestedUrl:this.axiosInstance.getUri(e.config),finalUrl:e.request?.responseURL,contentType:String(e.headers?.[`content-type`]??``),data:e.data});if(t)throw window.location.assign(t),Object.assign(Error(`session lost — redirecting to `+t),{code:`ERR_CANCELED`});return e},e=>{let t=e;if(t?.response?.status===401&&t.config&&!t.config.__mateuRetried&&!t.config.__mateuIsStale?.()){let n=t.config;return n.__mateuRetried=!0,Aa(e,()=>this.axiosInstance.request(n))}throw e})}addSessionId(e){let t=Ec();t&&(e.headers[`X-Session-Id`]=t)}addAuthToken(e){let t=Cc();t&&(e.headers.Authorization=`Bearer `+t)}async wrap(e,t,n,r,i,a=!1,o){n||t.dispatchEvent(new CustomEvent(`backend-called-event`,{bubbles:!0,composed:!0,detail:{}}));let s=e=>{throw t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),new Nc(r,e)};return e().then(e=>(o?.()&&s(`answered`),t.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})),e),e=>{o?.()&&s(`failed`);let n=oc(e,{online:pc.isOnline()});throw a||(n.kind==`cancelled`?t.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:r}})):(e&&typeof e==`object`&&(e.__mateuReported=!0),t.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(e),failure:n,retry:i}})))),e})}async sendWithRetry(e,t,n=!1,r){let i=0;for(;;)try{let t=await e();return n||pc.noteReachable(),t}catch(e){let a=oc(e,{online:pc.isOnline()});if(a.kind==`offline`&&!n&&pc.noteUnreachable(),i++,r?.()||!fc(a,i,{idempotent:t}))throw e;await Gc(dc(i))}}serialize(e){return e?.message?e:JSON.stringify(e)}release(e){Uc=Uc.filter(t=>t!==e)}async get(e){let t=new AbortController;return Uc=[...Uc,t],this.axiosInstance.get(e,{signal:t.signal}).finally(()=>this.release(t))}async post(e,t,n,r){let i=new AbortController;return Uc=[...Uc,i],this.axiosInstance.post(e,t,{signal:i.signal,...r?{__mateuIsStale:r}:{},...n&&n>0?{timeout:n}:{}}).finally(()=>this.release(i))}async abortAll(){Uc.forEach(e=>e.abort()),Uc=[]}async runAction(e,t,n,r,i,a,s,c,l,u,d,f={}){if(t&&t.startsWith(`/`)&&(t=t.substring(1)),Bs(e)){let a=r===``?await Hs(e,Ps(t),n):void 0;return await this.wrap(()=>a?Promise.resolve({...a,fragments:(a.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})}):Promise.reject(Error(r===``?`the static bundle ${e} does not answer the route "${t}"`:`the static bundle ${e} has no server to run "${r}"`)),u,d,r,f.retry,!1,f.isStale)}if(r===``&&!Ks(e)&&(await qs(),Js())){let e=tc(Ps(t),n);if(e){let t={...e,fragments:(e.fragments??[]).map(e=>e.targetComponentId?e:{...e,targetComponentId:i})};return await this.wrap(()=>Promise.resolve(t),u,d,r,f.retry,!1,f.isStale)}}let p=[e,t,n,s??``,r,i].join(``),m=Na.check(p);if(m.blocked)return await this.abortAll(),m.firstTrip&&(console.error(`[mateu] request loop detected — aborting repeated request`,p),kc({kind:`request-loop`,message:`A repeating request was detected and stopped`,url:e+`/mateu/v3/sync/`+(t||`_no_route`),actionId:r})),{messages:m.firstTrip?[{title:``,text:o(`repeatingRequest`),position:`bottom-end`,variant:`error`,duration:6e3}]:[],commands:[],fragments:[],banners:[],appendBanners:!1,appData:void 0,appState:void 0};a={...wa(),...a};let h=e+`/mateu/v3/sync/`+(t&&t!=``?t:`_no_route`),g={serverSideType:s,appState:a,componentState:c,parameters:l,initiatorComponentId:i,consumedRoute:n,route:t&&t!=``?`/`+t:``,actionId:r,knownStructureHash:f.knownStructureHash},_=uc(r,f.idempotent),v=()=>this.post(h,g,f.timeoutMillis,f.isStale).then(e=>(Hc(e.data),e.data));return await this.wrap(()=>this.sendWithRetry(v,_,f.quiet,f.isStale),u,d,r,f.retry,f.quiet,f.isStale)}},qc=e=>{let t=(e??``).trim(),n=t.search(/[?#]/);for(n>=0&&(t=t.slice(0,n)),t&&!t.startsWith(`/`)&&(t=`/`+t);t.length>1&&t.endsWith(`/`);)t=t.slice(0,-1);return t},Jc=e=>{let t=e??``,n;do n=t,t=t.replace(/<[^<>]*>/g,``);while(t!==n);return t.replace(/[<>]/g,``).replace(/\s+/g,` `).trim()},Yc=(e,t)=>!!e&&e!==`/`&&(t===e||t.startsWith(e+`/`)),Xc=e=>!!e&&!!e.remote,Zc=e=>Xc(e)?qc(e.routePrefix||e.path||e.route):``,Qc=(e,t)=>{if(!e||e.separator)return-1;let n=qc(t);if(Xc(e)){let t=Zc(e);return Yc(t,n)?t.length:-1}let r=-1,i=qc(e.route);Yc(i,n)&&(r=i.length);for(let t of e.submenus??[])r=Math.max(r,Qc(t,n));return r},$c=(e,t)=>Qc(e,t)>=0;function el(e,t){let n=NaN,r=-1;return(e??[]).forEach((e,i)=>{let a=Qc(e,t);a>r&&(r=a,n=i)}),n}function tl(e,t){let n=qc(t),r,i=nl(e),a=(e,t,n)=>{(!r||e.length>r.route.length||e.length===r.route.length&&r.pending&&!n)&&(r={crumbs:t,route:e,pending:n})},o=(e,t)=>{for(let r of e??[]){if(!r||r.separator)continue;let e=Jc(r.label);if(Xc(r)){let i=Zc(r);Yc(i,n)&&a(i,[...t,{text:e}],!0);continue}let s=qc(r.route),c=r.submenus??[];if(c.length>0){o(c,[...t,s&&s!==`/`&&i.has(s)?{text:e,route:s}:{text:e}]);continue}Yc(s,n)&&a(s,[...t,{text:e,route:s}],!1)}};return o(e,[]),r?{crumbs:r.crumbs,matched:r.route,...r.pending?{pending:!0}:{}}:{crumbs:[]}}function nl(e){let t=new Set,n=e=>{for(let r of e??[]){if(!r||r.separator||Xc(r))continue;let e=r.submenus??[];if(e.length>0){n(e);continue}let i=qc(r.route);i&&i!==`/`&&t.add(i)}};return n(e),t}function rl(e,t){let n=qc(t),r,i=e=>{for(let t of e??[]){if(!t||t.separator||Xc(t))continue;let e=t.submenus??[];if(e.length>0){i(e);continue}let a=qc(t.route);Yc(a,n)&&(!r||a.length>r.route.length)&&(r={option:t,route:a})}};return i(e),r?.option}var il=(e,t)=>{let n=!1,r=e.map(e=>{if(Xc(e)){let r=t(e);return r!==e&&(n=!0),r}if(e.submenus&&e.submenus.length>0){let r=il(e.submenus,t);if(r!==e.submenus)return n=!0,{...e,submenus:r}}return e});return n?r:e};function al(e,t,n){let r=qc(n);if(!t||!r||r===`/`)return e;let i=`/`+r.split(`/`)[1];return il(e,e=>e.baseUrl===t&&!Yc(Zc(e),r)?{...e,routePrefix:i}:e)}function ol(e,t){return r(`sectionUnavailable`,{name:Jc(e)},t)}var sl=e=>e.map(e=>({...e,visible:!1,...e.submenus&&e.submenus.length>0?{submenus:sl(e.submenus)}:{}})),cl=(e,t,n)=>{let r=t.serverSideType&&t.serverSideType!==``?t.serverSideType:n.serverSideType;return e.map(e=>e.baseUrl?e:e.submenus&&e.submenus.length>0?{...e,submenus:cl(e.submenus,t,n)}:{...e,consumedRoute:n.route??``,baseUrl:t.baseUrl,serverSideType:r,uriPrefix:t.route})};function ll(e,t,n,r={},i=0){let a=[];for(let o of e)if(Xc(o)){let e=t.get(o);if(!e)a.push(o);else if(`failed`in e)a.push({...o,unavailable:!0,disabled:!0,description:ol(o.label,n)});else{let t=cl(e.app.menu??[],o,e.app),n=t.length===1&&(t[0].submenus?.length??0)>0;r.sections&&i===0&&!n&&t.length>0?t=[ul(o,t)]:o.shellLabel&&o.label&&t.length===1&&(t=[{...t[0],label:o.label,icon:o.icon||t[0].icon}]),a.push(...o.visible===!1?sl(t):t)}}else o.submenus&&o.submenus.length>0?a.push({...o,submenus:ll(o.submenus,t,n,r,i+1)}):a.push(o);return a}var ul=(e,t)=>({label:e.label,icon:e.icon,path:e.path,route:``,separator:!1,visible:e.visible,description:void 0,submenus:t});function dl(e){let t=[];for(let n of e??[])Xc(n)?t.push(n):n.submenus&&n.submenus.length>0&&t.push(...dl(n.submenus));return t}function fl(e){let t=!1,n=[];for(let r of e){if(r.visible===!1){t=!0;continue}if(r.submenus&&r.submenus.length>0){let e=fl(r.submenus);if(e!==r.submenus){t=!0,n.push({...r,submenus:e});continue}}n.push(r)}return t?n:e}function pl(e,t){let n=el(e,t);return Number.isNaN(n)?void 0:e[n]}function ml(e){if(!e||e.separator||e.visible===!1||Xc(e)||e.unavailable)return;let t=e.submenus??[];if(t.length===0)return e;for(let e of t){let t=ml(e);if(t)return t}}var hl=new Set;function gl(e){return hl.add(e),()=>{hl.delete(e)}}function _l(){let e=[...hl];hl.clear(),e.forEach(e=>e())}function vl(e,t){return!t.callbackToken||!e.callbackToken||t.callbackToken===e.callbackToken||t.initiator!=null&&t.initiator!==e}var yl=new Set([`http:`,`https:`]),bl=()=>typeof window<`u`&&window.location?window.location.href:void 0,xl=(e,t=bl())=>{if(typeof e!=`string`||e.trim()===``)return;let n;try{n=t?new URL(e,t):new URL(e)}catch{return}if(!yl.has(n.protocol))return;let r=!1;try{r=!!t&&new URL(t).origin===n.origin}catch{r=!1}return{href:n.href,sameOrigin:r}},Sl=e=>{console.warn(`mateu: refused to navigate to a URL that is not http(s) or relative:`,e)},Cl=(e,t={})=>{let n=xl(e);return n?(n.sameOrigin&&!t.newTab?window.location.assign(n.href):window.open(n.href,`_blank`,`noopener,noreferrer`),!0):(Sl(e),!1)},wl=new Set([`http`,`https`,`mailto`,`tel`]),Tl=(e,t={})=>{if(e==null)return;let n=String(e).replace(/[\t\n\r]/g,``).replace(/^[\u0000- ]+/,``).trimEnd();if(n===``)return;let r=/^([a-z][a-z0-9+.-]*):/i.exec(n)?.[1]?.toLowerCase();if(!r||wl.has(r)||r===`data`&&t.allowData)return n},El=class{get signal(){return(!this.controller||this.controller.signal.aborted)&&(this.controller=new AbortController),this.controller.signal}abort(){this.controller?.abort(),this.controller=void 0}},Dl=class{replace(){return this.controller?.abort(),this.controller=new AbortController,this.controller.signal}get active(){return!!this.controller&&!this.controller.signal.aborted}clear(){this.controller?.abort(),this.controller=void 0}},Ol=6e4;function kl(e,t){if(e){if(/^https?:\/\//i.test(e))return e;if(!(!e.startsWith(`/`)||e.startsWith(`//`))){if(t&&/^https?:\/\//i.test(t))try{return new URL(e,new URL(t).origin).toString()}catch{return e}return e}}}function Al(e,t){let n=t(e),r=new Uint8Array(n.length);for(let e=0;e<n.length;e++)r[e]=n.charCodeAt(e);return r}function jl(e,t,n){if(e.base64Content){let n=new t.Blob([Al(e.base64Content,t.atob)],{type:e.mimeType||`application/octet-stream`});return{href:t.URL.createObjectURL(n),objectUrl:!0}}let r=kl(e.url,n);return r?{href:r,objectUrl:!1}:void 0}function Ml(e,t,n){e.objectUrl&&t.setTimeout(()=>t.URL.revokeObjectURL(e.href),n)}function Nl(e,t,n){let r=n.document.createElement(`a`);r.href=e,r.download=t,r.rel=`noopener`,r.style.display=`none`,n.document.body.appendChild(r),r.click(),r.remove()}function Pl(e,t,n){let r=t.document.createElement(`iframe`);r.setAttribute(`aria-hidden`,`true`),r.setAttribute(`tabindex`,`-1`),r.style.cssText=`position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden`,r.addEventListener(`load`,()=>{try{let e=r.contentWindow;if(!e)throw Error(`no frame window`);e.focus(),e.print()}catch{n()}t.setTimeout(()=>r.remove(),Ol)},{once:!0}),r.src=e,t.document.body.appendChild(r)}function Fl(e,t=window,n){if(!e||typeof e!=`object`||!t?.document)return`none`;let r=jl(e,t,n);if(!r)return`none`;let i=e.filename||`download`,a=e.disposition===`inline`;if(a&&e.print)return Pl(r.href,t,()=>{r.objectUrl&&t.open(r.href,`_blank`)}),Ml(r,t,Ol),`printing`;if(a){let e=t.open(r.href,`_blank`);if(e){try{e.opener=null}catch{}return Ml(r,t,Ol),`opened`}}return Nl(r.href,i,t),Ml(r,t,1e3),`downloaded`}var Il=`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
 @media print {
     vaadin-app-layout::part(navbar), vaadin-app-layout::part(drawer),
     [slot="navbar"], [slot="drawer"], vaadin-drawer-toggle,
@@ -155,12 +165,17 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     * { box-shadow: none !important; }
 }
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,Ll=new WeakSet;function Rl(e){if(Ll.has(e))return;Ll.add(e);let t=e;if(typeof CSSStyleSheet<`u`&&Array.isArray(t.adoptedStyleSheets))try{let e=new CSSStyleSheet;e.replaceSync(Il),t.adoptedStyleSheets=[...t.adoptedStyleSheets,e];return}catch{}let n=e instanceof Document?e.head:e;if(!n)return;let r=(e instanceof Document?e:e.ownerDocument).createElement(`style`);r.setAttribute(`data-mateu-print`,`styles`),r.textContent=Il,n.appendChild(r)}function zl(e){let t=[],n=e=>{(e.querySelectorAll?e.querySelectorAll(`*`):[]).forEach(e=>{let r=e.shadowRoot;r&&(t.push(r),n(r))})};return n(e),t}function Bl(e=document){Rl(e);let t=zl(e);return t.forEach(Rl),t.length+1}function Vl(e=window){e?.document&&(Bl(e.document),e.print())}var Hl=class e extends _{constructor(...e){super(...e),this.id=``,this.baseUrl=``,this.callbackToken=``,this.connection=new El,this.createElement=e=>{let t=e.data,n=document.createElement(t.name);for(let e in t.attributes)n.setAttribute(e,t.attributes[e]);for(let e in t.on)n.addEventListener(e,n=>{this.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.on[e],parameters:{event:n}},bubbles:!0,composed:!0}))},{signal:this.connection.signal});return n},this.closeModal=()=>{let e=(this.shadowRoot??this).querySelectorAll(`mateu-dialog, mateu-drawer`);if(e&&e.length>0){e[e.length-1].close();return}this.dispatchEvent(new CustomEvent(`close-modal-requested`,{bubbles:!0,composed:!0}))},this.changeFavicon=e=>{let t=document.querySelector(`link[rel="icon"]`);t===null?(t=document.createElement(`link`),t.setAttribute(`rel`,`icon`),t.setAttribute(`href`,e),document.head.appendChild(t)):t.setAttribute(`href`,e)}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=Dt.subscribe(e=>{if(e.command){let t=e.command;this.id==t.targetComponentId&&this.applyCommand(t)}if(vl(this,e)&&e.fragment){let t=e.fragment;this.id==t.targetComponentId&&(this.applyFragment(t),this.completeMenu(t))}})}completeMenu(e){if(e.component&&e.component.type==T.ClientSide){let t=e.component,n=t.metadata;if(n?.type==E.App){this.pendingMenuRetries?.forEach(e=>e()),this.pendingMenuRetries=new Set;let e=n,r=typeof window<`u`?window.location.pathname:``,i=al(e.menu??[],e.homeBaseUrl,r),a=fl(i);(a!==e.menu||i!==e.menu)&&(t.metadata={...e,menu:a,navMenu:i});let o=dl(i).filter(t=>t.visible!==!1||$c(t,r)||!!e.homeBaseUrl&&t.baseUrl===e.homeBaseUrl);o.length>0&&this.askRemotes(t,i,o,new Map,0)}}}static{this.remoteMenuTimeoutMillis=2e4}static{this.remoteRetryDelays=[1e4,3e4,6e4]}askRemotes(t,n,r,i,a){let o=[],s=()=>{let e=ll(n,i,void 0,{sections:t.metadata.variant===At.HAMBURGER_SECTIONS});t.metadata={...t.metadata,menu:fl(e),navMenu:e},this.requestUpdate()},c=Promise.allSettled(r.map(t=>Kc.runAction(t.baseUrl,t.route,`_empty`,``,t.baseUrl+`#`+t.route,void 0,void 0,void 0,t.params,this,!0,{quiet:!0,timeoutMillis:e.remoteMenuTimeoutMillis}).then(e=>{let n=this.remoteAppOf(e?.fragments,t);if(!n)throw Error(`no app in the answer of `+t.baseUrl);se(t.baseUrl,n.restSources),i.set(t,{app:n}),s()}).catch(()=>{i.set(t,{failed:!0}),o.push(t),s()})));de(c),c.then(()=>{if(o.length>0){let r=e.remoteRetryDelays[a],s,c=()=>{s!==void 0&&clearTimeout(s),u(),this.pendingMenuRetries?.delete(c)},l=()=>{c(),this.isConnected&&this.askRemotes(t,n,o,i,Math.min(a+1,e.remoteRetryDelays.length))},u=gl(l);this.pendingMenuRetries?.add(c),r!==void 0&&(s=setTimeout(l,r))}})}remoteAppOf(e,t){let n=(e??[]).find(e=>e?.targetComponentId==t.baseUrl+`#`+t.route);if(n?.component?.type==T.ClientSide){let e=n.component.metadata;if(e?.type==E.App){let t=e;return{menu:t.menu??[],route:t.route,serverSideType:t.serverSideType,restSources:t.restSources}}}}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.connection.abort()}applyCommand(e){if(e.type==`SetWindowTitle`&&(document.title=e.data,t(document.title)),e.type==`Announce`){let n=e.data;n?.text&&t(n.text,{politeness:n.assertive?`assertive`:`polite`})}if(e.type==`UpdateHeaderValue`){let t=e.data;t?.id&&Fe(t.id,t.value)}if(e.type==`SetFavicon`&&this.changeFavicon(e.data),e.type==`DispatchEvent`&&this.dispatchNamedEvent(e.data),e.type==`NavigateTo`){let t=e.data;t&&Cl(t)}if(e.type==`PushStateToHistory`){let t=e.data;t!==void 0&&this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0}))}if(e.type==`RunAction`){let t=e.data;if(t&&t.actionId){if(t.targetComponentId){let e={command:{type:`RunAction`,data:{actionId:t.actionId},targetComponentId:t.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:``};setTimeout(()=>Dt.next(e))}else this.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:{}},bubbles:!0,composed:!0}))}}if(e.type==`MarkAsDirty`&&this.dispatchEvent(new CustomEvent(`dirty`,{detail:{},bubbles:!0,composed:!0})),e.type==`MarkAsClean`&&this.dispatchEvent(new CustomEvent(`clean`,{detail:{},bubbles:!0,composed:!0})),e.type==`DownloadFile`&&Fl(e.data,void 0,this.baseUrl),e.type==`Print`&&Vl(),e.type==`CloseModal`&&(this.closeModal(),this.dispatchNamedEvent(e.data)),e.type==`AddContentToHead`){let t=e.data;if(t&&t.name){if(t.attributes&&t.attributes.id&&document.getElementById(t.attributes.id))return;document.head.appendChild(this.createElement(e))}}if(e.type==`AddContentToBody`){let t=e.data;if(t&&t.name){if(t.attributes&&t.attributes.id&&document.getElementById(t.attributes.id))return;document.body.appendChild(this.createElement(e))}}}dispatchNamedEvent(e){if(e&&e.eventName){let t=this.component,n=t?.emitsName??t?.serverSideType,r=e.payload??e.detail;n&&r&&typeof r==`object`&&(r={...r,__source:n}),this.dispatchEvent(new CustomEvent(e.eventName,{detail:r,bubbles:!0,composed:!0}))}}};a([n()],Hl.prototype,`id`,void 0),a([n()],Hl.prototype,`baseUrl`,void 0);var Ul=class extends Hl{applyFragment(e){}manageActionRequestedEvent(e){}};a([n()],Ul.prototype,`component`,void 0);var Wl=(e,t)=>e.rowsSelectedRequired?!0:!!t?.find(t=>t?.id===e.actionId)?.rowsSelectedRequired,Gl=e=>Array.isArray(e)&&e.length>0,Kl=(e,t,n)=>!Gl(t)&&Wl(e,n)?{...e,disabled:!0}:e,ql=`mateu-selection-changed`,Jl=class extends Ya{constructor(e){if(super(e),this.it=g,e.type!==qa.CHILD)throw Error(this.constructor.directiveName+`() can only be used in child bindings`)}render(e){if(e===g||e==null)return this._t=void 0,this.it=e;if(e===u)return e;if(typeof e!=`string`)throw Error(this.constructor.directiveName+`() called with a non-string value`);if(e===this.it)return this._t;this.it=e;let t=[e];return t.raw=t,this._t={_$litType$:this.constructor.resultType,strings:t,values:[]}}};Jl.directiveName=`unsafeHTML`,Jl.resultType=1;var Yl=Ja(Jl),Xl=e=>v.sanitize(e,{USE_PROFILES:{html:!0,svg:!0,svgFilters:!0},CUSTOM_ELEMENT_HANDLING:{tagNameCheck:e=>!0,attributeNameCheck:e=>!/^on/i.test(e),allowCustomizedBuiltInElements:!1}}),F=e=>Yl(e==null?e:Xl(String(e))),Zl=`>>>= ... === !== **= <<= >>= >>> &&= ||= ??= => == != <= >= && || ?? ?. ++ -- ** << >> += -= *= /= %= &= |= ^= { } ( ) [ ] ; , < > + - * / % & | ^ ! ~ ? : = .`.split(` `),Ql=e=>/[A-Za-z_$À-￿]/.test(e),$l=e=>/[A-Za-z0-9_$À-￿]/.test(e),eu=class extends SyntaxError{constructor(e,t,n){super(`${e} at ${n} in: ${t}`),this.source=t,this.position=n,this.name=`SyntaxError`}},tu=(e,t)=>{let n=e[t];switch(n){case`n`:return[`
+========
+`,Ll=new WeakSet;function Rl(e){if(Ll.has(e))return;Ll.add(e);let t=e;if(typeof CSSStyleSheet<`u`&&Array.isArray(t.adoptedStyleSheets))try{let e=new CSSStyleSheet;e.replaceSync(Il),t.adoptedStyleSheets=[...t.adoptedStyleSheets,e];return}catch{}let n=e instanceof Document?e.head:e;if(!n)return;let r=(e instanceof Document?e:e.ownerDocument).createElement(`style`);r.setAttribute(`data-mateu-print`,`styles`),r.textContent=Il,n.appendChild(r)}function zl(e){let t=[],n=e=>{(e.querySelectorAll?e.querySelectorAll(`*`):[]).forEach(e=>{let r=e.shadowRoot;r&&(t.push(r),n(r))})};return n(e),t}function Bl(e=document){Rl(e);let t=zl(e);return t.forEach(Rl),t.length+1}function Vl(e=window){e?.document&&(Bl(e.document),e.print())}var Hl=class e extends _{constructor(...e){super(...e),this.id=``,this.baseUrl=``,this.callbackToken=``,this.connection=new El,this.createElement=e=>{let t=e.data,n=document.createElement(t.name);for(let e in t.attributes)n.setAttribute(e,t.attributes[e]);for(let e in t.on)n.addEventListener(e,n=>{this.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.on[e],parameters:{event:n}},bubbles:!0,composed:!0}))},{signal:this.connection.signal});return n},this.closeModal=()=>{let e=(this.shadowRoot??this).querySelectorAll(`mateu-dialog, mateu-drawer`);if(e&&e.length>0){e[e.length-1].close();return}this.dispatchEvent(new CustomEvent(`close-modal-requested`,{bubbles:!0,composed:!0}))},this.changeFavicon=e=>{let t=document.querySelector(`link[rel="icon"]`);t===null?(t=document.createElement(`link`),t.setAttribute(`rel`,`icon`),t.setAttribute(`href`,e),document.head.appendChild(t)):t.setAttribute(`href`,e)}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=Et.subscribe(e=>{if(e.command){let t=e.command;this.id==t.targetComponentId&&this.applyCommand(t)}if(vl(this,e)&&e.fragment){let t=e.fragment;this.id==t.targetComponentId&&(this.applyFragment(t),this.completeMenu(t))}})}completeMenu(e){if(e.component&&e.component.type==E.ClientSide){let t=e.component,n=t.metadata;if(n?.type==D.App){this.pendingMenuRetries?.forEach(e=>e()),this.pendingMenuRetries=new Set;let e=n,r=typeof window<`u`?window.location.pathname:``,i=al(e.menu??[],e.homeBaseUrl,r),a=fl(i);(a!==e.menu||i!==e.menu)&&(t.metadata={...e,menu:a,navMenu:i});let o=dl(i).filter(t=>t.visible!==!1||$c(t,r)||!!e.homeBaseUrl&&t.baseUrl===e.homeBaseUrl);o.length>0&&this.askRemotes(t,i,o,new Map,0)}}}static{this.remoteMenuTimeoutMillis=2e4}static{this.remoteRetryDelays=[1e4,3e4,6e4]}askRemotes(t,n,r,i,a){let o=[],s=()=>{let e=ll(n,i,void 0,{sections:t.metadata.variant===kt.HAMBURGER_SECTIONS});t.metadata={...t.metadata,menu:fl(e),navMenu:e},this.requestUpdate()},c=Promise.allSettled(r.map(t=>Kc.runAction(t.baseUrl,t.route,`_empty`,``,t.baseUrl+`#`+t.route,void 0,void 0,void 0,t.params,this,!0,{quiet:!0,timeoutMillis:e.remoteMenuTimeoutMillis}).then(e=>{let n=this.remoteAppOf(e?.fragments,t);if(!n)throw Error(`no app in the answer of `+t.baseUrl);se(t.baseUrl,n.restSources),i.set(t,{app:n}),s()}).catch(()=>{i.set(t,{failed:!0}),o.push(t),s()})));de(c),c.then(()=>{if(o.length>0){let r=e.remoteRetryDelays[a],s,c=()=>{s!==void 0&&clearTimeout(s),u(),this.pendingMenuRetries?.delete(c)},l=()=>{c(),this.isConnected&&this.askRemotes(t,n,o,i,Math.min(a+1,e.remoteRetryDelays.length))},u=gl(l);this.pendingMenuRetries?.add(c),r!==void 0&&(s=setTimeout(l,r))}})}remoteAppOf(e,t){let n=(e??[]).find(e=>e?.targetComponentId==t.baseUrl+`#`+t.route);if(n?.component?.type==E.ClientSide){let e=n.component.metadata;if(e?.type==D.App){let t=e;return{menu:t.menu??[],route:t.route,serverSideType:t.serverSideType,restSources:t.restSources}}}}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.connection.abort()}applyCommand(e){if(e.type==`SetWindowTitle`&&(document.title=e.data,t(document.title)),e.type==`Announce`){let n=e.data;n?.text&&t(n.text,{politeness:n.assertive?`assertive`:`polite`})}if(e.type==`UpdateHeaderValue`){let t=e.data;t?.id&&Pe(t.id,t.value)}if(e.type==`SetFavicon`&&this.changeFavicon(e.data),e.type==`DispatchEvent`&&this.dispatchNamedEvent(e.data),e.type==`NavigateTo`){let t=e.data;t&&Cl(t)}if(e.type==`PushStateToHistory`){let t=e.data;t!==void 0&&this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0}))}if(e.type==`RunAction`){let t=e.data;if(t&&t.actionId){if(t.targetComponentId){let e={command:{type:`RunAction`,data:{actionId:t.actionId},targetComponentId:t.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:``};setTimeout(()=>Et.next(e))}else this.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:{}},bubbles:!0,composed:!0}))}}if(e.type==`MarkAsDirty`&&this.dispatchEvent(new CustomEvent(`dirty`,{detail:{},bubbles:!0,composed:!0})),e.type==`MarkAsClean`&&this.dispatchEvent(new CustomEvent(`clean`,{detail:{},bubbles:!0,composed:!0})),e.type==`DownloadFile`&&Fl(e.data,void 0,this.baseUrl),e.type==`Print`&&Vl(),e.type==`CloseModal`&&(this.closeModal(),this.dispatchNamedEvent(e.data)),e.type==`AddContentToHead`){let t=e.data;if(t&&t.name){if(t.attributes&&t.attributes.id&&document.getElementById(t.attributes.id))return;document.head.appendChild(this.createElement(e))}}if(e.type==`AddContentToBody`){let t=e.data;if(t&&t.name){if(t.attributes&&t.attributes.id&&document.getElementById(t.attributes.id))return;document.body.appendChild(this.createElement(e))}}}dispatchNamedEvent(e){if(e&&e.eventName){let t=this.component,n=t?.emitsName??t?.serverSideType,r=e.payload??e.detail;n&&r&&typeof r==`object`&&(r={...r,__source:n}),this.dispatchEvent(new CustomEvent(e.eventName,{detail:r,bubbles:!0,composed:!0}))}}};a([n()],Hl.prototype,`id`,void 0),a([n()],Hl.prototype,`baseUrl`,void 0);var Ul=class extends Hl{applyFragment(e){}manageActionRequestedEvent(e){}};a([n()],Ul.prototype,`component`,void 0);var Wl=(e,t)=>e.rowsSelectedRequired?!0:!!t?.find(t=>t?.id===e.actionId)?.rowsSelectedRequired,Gl=e=>Array.isArray(e)&&e.length>0,Kl=(e,t,n)=>!Gl(t)&&Wl(e,n)?{...e,disabled:!0}:e,ql=`mateu-selection-changed`,Jl=class extends Ja{constructor(e){if(super(e),this.it=g,e.type!==Ka.CHILD)throw Error(this.constructor.directiveName+`() can only be used in child bindings`)}render(e){if(e===g||e==null)return this._t=void 0,this.it=e;if(e===u)return e;if(typeof e!=`string`)throw Error(this.constructor.directiveName+`() called with a non-string value`);if(e===this.it)return this._t;this.it=e;let t=[e];return t.raw=t,this._t={_$litType$:this.constructor.resultType,strings:t,values:[]}}};Jl.directiveName=`unsafeHTML`,Jl.resultType=1;var Yl=qa(Jl),Xl=e=>v.sanitize(e,{USE_PROFILES:{html:!0,svg:!0,svgFilters:!0},CUSTOM_ELEMENT_HANDLING:{tagNameCheck:e=>!0,attributeNameCheck:e=>!/^on/i.test(e),allowCustomizedBuiltInElements:!1}}),I=e=>Yl(e==null?e:Xl(String(e))),Zl=`>>>= ... === !== **= <<= >>= >>> &&= ||= ??= => == != <= >= && || ?? ?. ++ -- ** << >> += -= *= /= %= &= |= ^= { } ( ) [ ] ; , < > + - * / % & | ^ ! ~ ? : = .`.split(` `),Ql=e=>/[A-Za-z_$À-￿]/.test(e),$l=e=>/[A-Za-z0-9_$À-￿]/.test(e),eu=class extends SyntaxError{constructor(e,t,n){super(`${e} at ${n} in: ${t}`),this.source=t,this.position=n,this.name=`SyntaxError`}},tu=(e,t)=>{let n=e[t];switch(n){case`n`:return[`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
 `,t+1];case`t`:return[`	`,t+1];case`r`:return[`\r`,t+1];case`b`:return[`\b`,t+1];case`f`:return[`\f`,t+1];case`v`:return[`\v`,t+1];case`0`:return[`\0`,t+1];case`x`:return[String.fromCharCode(parseInt(e.substr(t+1,2),16)),t+3];case`u`:if(e[t+1]===`{`){let n=e.indexOf(`}`,t);return[String.fromCodePoint(parseInt(e.substring(t+2,n),16)),n+1]}return[String.fromCharCode(parseInt(e.substr(t+1,4),16)),t+5];case`\r`:return[``,e[t+1]===`
 `?t+2:t+1];case`
 `:case`\u2028`:case`\u2029`:return[``,t+1];default:return[n,t+1]}},nu=(e,t)=>{let n=0;for(;t<e.length;){let r=e[t];if(r===`'`||r===`"`){let n=r;for(t++;t<e.length&&e[t]!==n;)t+=e[t]===`\\`?2:1;t++;continue}if(r==="`"){for(t++;t<e.length&&e[t]!=="`";){if(e[t]===`\\`){t+=2;continue}if(e[t]===`$`&&e[t+1]===`{`){t=nu(e,t+2)+1;continue}t++}t++;continue}if(r===`{`&&n++,r===`}`){if(n===0)return t;n--}t++}throw new eu(`Unterminated template expression`,e,t)},ru=e=>{let t=[],n=0,r=()=>{let e=t[t.length-1];return e?e.t===`num`||e.t===`str`||e.t===`tpl`||e.t===`re`?!1:e.t===`id`?[`typeof`,`void`,`in`,`instanceof`,`new`,`return`,`delete`].includes(e.v):e.t!==`p`||![`)`,`]`,`}`].includes(e.v):!0};for(;n<e.length;){let i=e[n];if(/\s/.test(i)){n++;continue}if(i===`/`&&e[n+1]===`/`){for(;n<e.length&&e[n]!==`
 `;)n++;continue}if(i===`/`&&e[n+1]===`*`){let t=e.indexOf(`*/`,n+2);if(t<0)throw new eu(`Unterminated comment`,e,n);n=t+2;continue}let a=n;if(/[0-9]/.test(i)||i===`.`&&/[0-9]/.test(e[n+1]??``)){let r=/^(0[xX][0-9a-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+|(?:[0-9][0-9_]*)?\.?[0-9_]*(?:[eE][+-]?[0-9]+)?)(n?)/.exec(e.slice(n)),i=r[1].replace(/_/g,``);n+=r[0].length,t.push({t:`num`,v:r[2]?BigInt(i):Number(i),s:a});continue}if(i===`'`||i===`"`){let r=``;for(n++;n<e.length&&e[n]!==i;)if(e[n]===`\\`){let[t,i]=tu(e,n+1);r+=t,n=i}else{if(e[n]===`
 `)throw new eu(`Unterminated string`,e,a);r+=e[n++]}if(n>=e.length)throw new eu(`Unterminated string`,e,a);n++,t.push({t:`str`,v:r,s:a});continue}if(i==="`"){let r=[],i=[],o=``;for(n++;;){if(n>=e.length)throw new eu(`Unterminated template literal`,e,a);let t=e[n];if(t==="`"){n++;break}if(t===`\\`){let[t,r]=tu(e,n+1);o+=t,n=r;continue}if(t===`$`&&e[n+1]===`{`){let t=nu(e,n+2);r.push(o),o=``,i.push(e.substring(n+2,t)),n=t+1;continue}o+=t,n++}r.push(o),t.push({t:`tpl`,quasis:r,exprs:i,s:a});continue}if(i===`/`&&r()){let r=n+1,i=!1;for(;r<e.length;){let t=e[r];if(t===`\\`){r+=2;continue}if(t===`[`)i=!0;else if(t===`]`)i=!1;else if(t===`/`&&!i)break;else if(t===`
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `)break;r++}if(e[r]!==`/`)throw new eu(`Unterminated regular expression`,e,a);let o=e.substring(n+1,r);r++;let s=``;for(;r<e.length&&/[a-z]/i.test(e[r]);)s+=e[r++];n=r,t.push({t:`re`,pattern:o,flags:s,s:a});continue}if(Ql(i)){let r=n+1;for(;r<e.length&&$l(e[r]);)r++;t.push({t:`id`,v:e.substring(n,r),s:a}),n=r;continue}let o=Zl.find(t=>e.startsWith(t,n));if(!o)throw new eu(`Unexpected character '${i}'`,e,n);if(o===`?.`&&/[0-9]/.test(e[n+2]??``)){t.push({t:`p`,v:`?`,s:a}),n+=1;continue}t.push({t:`p`,v:o,s:a}),n+=o.length}return t.push({t:`eof`,s:n}),t},iu={"??":1,"||":2,"&&":3,"|":4,"^":5,"&":6,"==":7,"!=":7,"===":7,"!==":7,"<":8,">":8,"<=":8,">=":8,in:8,instanceof:8,"<<":9,">>":9,">>>":9,"+":10,"-":10,"*":11,"/":11,"%":11,"**":12},au=new Set([`=`,`+=`,`-=`,`*=`,`/=`,`%=`,`**=`,`<<=`,`>>=`,`>>>=`,`&=`,`|=`,`^=`,`&&=`,`||=`,`??=`]),ou=class{constructor(e,t){this.tokens=e,this.src=t,this.i=0}peek(e=0){return this.tokens[Math.min(this.i+e,this.tokens.length-1)]}next(){return this.tokens[this.i++]}isP(e,t=0){let n=this.peek(t);return n.t===`p`&&n.v===e}isId(e,t=0){let n=this.peek(t);return n.t===`id`&&n.v===e}fail(e,t=this.peek()){throw new eu(e,this.src,t.s)}expectP(e){this.isP(e)||this.fail(`Expected '${e}'`),this.i++}parseAll(){let e=this.sequence();if(this.isP(`;`)&&this.i++,this.peek().t!==`eof`){let e=this.peek();e.t===`p`&&(au.has(e.v)||e.v===`++`||e.v===`--`)&&this.fail(`Assignments are not allowed in expressions`),this.fail(`Unexpected token`)}return e}sequence(){let e=this.assignment();if(!this.isP(`,`))return e;let t=[e];for(;this.isP(`,`);)this.i++,t.push(this.assignment());return{k:`seq`,items:t}}assignment(){let e=this.tryArrow();if(e)return e;let t=this.conditional(),n=this.peek();return n.t===`p`&&au.has(n.v)&&this.fail(`Assignments are not allowed in expressions`),t}tryArrow(){let e=this.peek();if(e.t===`id`&&this.isP(`=>`,1)&&!iu[e.v])return this.i+=2,{k:`arrow`,params:[e.v],rest:void 0,body:this.arrowBody()};if(!this.isP(`(`))return;let t=1,n=[],r;if(!this.isP(`)`,t))for(;;){if(this.isP(`...`,t)){let e=this.peek(t+1);if(e.t!==`id`)return;r=e.v,t+=2;break}let e=this.peek(t);if(e.t!==`id`)return;if(n.push(e.v),t++,this.isP(`,`,t)){t++;continue}break}if(!(!this.isP(`)`,t)||!this.isP(`=>`,t+1)))return this.i+=t+2,{k:`arrow`,params:n,rest:r,body:this.arrowBody()}}arrowBody(){return this.isP(`{`)&&this.fail(`Arrow functions with a block body are not supported; use an expression body`),this.assignment()}conditional(){let e=this.binary(0);if(!this.isP(`?`))return e;this.i++;let t=this.assignment();return this.expectP(`:`),{k:`cond`,test:e,consequent:t,alternate:this.assignment()}}binaryOp(){let e=this.peek();if(e.t===`p`&&iu[e.v]!==void 0||e.t===`id`&&(e.v===`in`||e.v===`instanceof`))return e.v}binary(e){let t=this.unary();for(;;){let n=this.binaryOp();if(!n)return t;let r=iu[n];if(r<e)return t;this.i++;let i=n===`**`?this.binary(r):this.binary(r+1);t=n===`&&`||n===`||`||n===`??`?{k:`logic`,op:n,left:t,right:i}:{k:`bin`,op:n,left:t,right:i}}}unary(){let e=this.peek();if(e.t===`p`&&[`!`,`-`,`+`,`~`].includes(e.v)||(e.t===`p`&&(e.v===`++`||e.v===`--`)&&this.fail(`Assignments are not allowed in expressions`),e.t===`id`&&(e.v===`typeof`||e.v===`void`)))return this.i++,{k:`unary`,op:e.v,arg:this.unary()};e.t===`id`&&e.v===`delete`&&this.fail(`'delete' is not allowed in expressions`);let t=this.postfix();return(this.isP(`++`)||this.isP(`--`))&&this.fail(`Assignments are not allowed in expressions`),t}args(){this.expectP(`(`);let e=[];for(;!this.isP(`)`);)this.isP(`...`)?(this.i++,e.push({k:`spread`,arg:this.assignment()})):e.push(this.assignment()),this.isP(`)`)||this.expectP(`,`);return this.i++,e}postfix(){let e;if(this.isId(`new`)){this.i++;let t=this.primary();for(;this.isP(`.`);){this.i++;let e=this.next();e.t!==`id`&&this.fail(`Expected a property name`,e),t={k:`member`,obj:t,prop:e.v,optional:!1}}let n=this.isP(`(`)?this.args():[];e={k:`new`,callee:t,args:n}}else e=this.primary();let t=!1;for(;;)if(this.isP(`.`)){this.i++;let t=this.next();t.t!==`id`&&this.fail(`Expected a property name`,t),e={k:`member`,obj:e,prop:t.v,optional:!1}}else if(this.isP(`?.`)){if(this.i++,t=!0,this.isP(`(`))e={k:`call`,callee:e,args:this.args(),optional:!0};else if(this.isP(`[`)){this.i++;let t=this.sequence();this.expectP(`]`),e={k:`member`,obj:e,prop:t,optional:!0}}else{let t=this.next();t.t!==`id`&&this.fail(`Expected a property name`,t),e={k:`member`,obj:e,prop:t.v,optional:!0}}}else if(this.isP(`[`)){this.i++;let t=this.sequence();this.expectP(`]`),e={k:`member`,obj:e,prop:t,optional:!1}}else if(this.isP(`(`))e={k:`call`,callee:e,args:this.args(),optional:!1};else if(this.peek().t===`tpl`)this.fail(`Tagged templates are not supported`);else break;return t?{k:`chain`,expr:e}:e}primary(){let e=this.next();switch(e.t){case`num`:return{k:`lit`,v:e.v};case`str`:return{k:`lit`,v:e.v};case`re`:return{k:`re`,pattern:e.pattern,flags:e.flags};case`tpl`:return{k:`tpl`,quasis:e.quasis,exprs:e.exprs.map(e=>su(e))};case`id`:switch(e.v){case`true`:return{k:`lit`,v:!0};case`false`:return{k:`lit`,v:!1};case`null`:return{k:`lit`,v:null};case`undefined`:return{k:`lit`,v:void 0};case`this`:return{k:`lit`,v:void 0};case`function`:case`class`:case`import`:case`await`:case`yield`:case`super`:this.fail(`'${e.v}' is not allowed in expressions`,e)}return{k:`id`,name:e.v};case`p`:if(e.v===`(`){let e=this.sequence();return this.expectP(`)`),e}if(e.v===`[`){let e=[];for(;!this.isP(`]`);){if(this.isP(`,`)){this.i++,e.push(null);continue}this.isP(`...`)?(this.i++,e.push({k:`spread`,arg:this.assignment()})):e.push(this.assignment()),this.isP(`]`)||this.expectP(`,`)}return this.i++,{k:`arr`,items:e}}if(e.v===`{`){let e=[];for(;!this.isP(`}`);){if(this.isP(`...`))this.i++,e.push({k:`spread`,arg:this.assignment()});else{let t=this.next(),n;t.t===`id`||t.t===`str`?n=t.v:t.t===`num`?n=String(t.v):t.t===`p`&&t.v===`[`?(n=this.assignment(),this.expectP(`]`)):this.fail(`Unexpected token in object literal`,t),this.isP(`:`)?(this.i++,e.push({key:n,value:this.assignment()})):t.t===`id`?e.push({key:n,value:{k:`id`,name:t.v}}):this.fail(`Expected ':'`)}this.isP(`}`)||this.expectP(`,`)}return this.i++,{k:`obj`,props:e}}}this.fail(`Unexpected token`,e)}},su=e=>new ou(ru(e),e).parseAll(),cu=new Set([`constructor`,`__proto__`,`prototype`,`__defineGetter__`,`__defineSetter__`,`__lookupGetter__`,`__lookupSetter__`]),lu=new Set([`call`,`apply`,`bind`,`caller`,`arguments`]),uu=Object.freeze({Math,JSON,Number,String,Boolean,Array,Object,Date,Intl,RegExp,Set,Map,parseInt,parseFloat,isNaN,isFinite,encodeURIComponent,decodeURIComponent,encodeURI,decodeURI,NaN:NaN,Infinity:1/0}),du=new Set([Date,RegExp,Set,Map,Array,Number,String,Boolean,Object,Intl.NumberFormat,Intl.DateTimeFormat,Intl.Collator,Intl.PluralRules,Intl.RelativeTimeFormat,Intl.ListFormat]),fu=new Set([Function,eval,Object.defineProperty,Object.defineProperties,Object.setPrototypeOf,Object.assign,Object.freeze,Object.seal,Object.preventExtensions,Reflect?.set,Reflect?.defineProperty,Reflect?.setPrototypeOf,Reflect?.deleteProperty].filter(Boolean)),pu=Symbol(`mateu.expression.shortCircuit`),mu=e=>typeof e==`symbol`?e:String(e),hu=e=>{if(typeof e==`string`&&cu.has(e))throw TypeError(`Access to '${e}' is not allowed in expressions`)},gu=e=>e.k===`id`?e.name:e.k===`member`?gu(e.obj)+(typeof e.prop==`string`?`.`+e.prop:`[…]`):e.k===`call`?gu(e.callee)+`(…)`:`expression`,_u=(e,t)=>{for(let n=e;n;n=n.parent)if(Object.prototype.hasOwnProperty.call(n.vars,t))return{found:!0,value:n.vars[t]};return Object.prototype.hasOwnProperty.call(uu,t)?{found:!0,value:uu[t]}:{found:!1,value:void 0}},vu=(e,t,n)=>{if(hu(t),typeof e==`function`&&typeof t==`string`&&lu.has(t))throw TypeError(`Access to '${t}' is not allowed in expressions`);if(e==null)throw TypeError(`Cannot read properties of ${e} (reading '${String(t)}') in ${gu(n)}`);return e[t]},yu=(e,t)=>{let n=[];for(let r of e)r.k===`spread`?n.push(...I(r.arg,t)):n.push(I(r,t));return n},bu=(e,t,n,r)=>{if(typeof e!=`function`)throw TypeError(`${gu(r)} is not a function`);if(fu.has(e))throw TypeError(`${gu(r)} is not allowed in expressions`);return Reflect.apply(e,t,n)},xu=(e,t,n)=>{let r=t,i=n;switch(e){case`+`:return r+i;case`-`:return r-i;case`*`:return r*i;case`/`:return r/i;case`%`:return r%i;case`**`:return r**i;case`==`:return r==i;case`!=`:return r!=i;case`===`:return r===i;case`!==`:return r!==i;case`<`:return r<i;case`>`:return r>i;case`<=`:return r<=i;case`>=`:return r>=i;case`|`:return r|i;case`^`:return r^i;case`&`:return r&i;case`<<`:return r<<i;case`>>`:return r>>i;case`>>>`:return r>>>i;case`in`:return mu(r)in Object(i);case`instanceof`:return r instanceof i}throw SyntaxError(`Unknown operator `+e)},I=(e,t)=>{switch(e.k){case`lit`:return e.v;case`re`:return new RegExp(e.pattern,e.flags);case`id`:{let{found:n,value:r}=_u(t,e.name);if(!n)throw ReferenceError(`${e.name} is not defined`);return r}case`tpl`:{let n=e.quasis[0];for(let r=0;r<e.exprs.length;r++)n+=String(I(e.exprs[r],t))+e.quasis[r+1];return n}case`arr`:{let n=[];for(let r of e.items)r===null?n.length++:r.k===`spread`?n.push(...I(r.arg,t)):n.push(I(r,t));return n}case`obj`:{let n={};for(let r of e.props){if(`k`in r&&r.k===`spread`){Object.assign(n,I(r.arg,t));continue}let e=r,i=typeof e.key==`string`?e.key:mu(I(e.key,t));hu(i),n[i]=I(e.value,t)}return n}case`chain`:try{return I(e.expr,t)}catch(e){if(e===pu)return;throw e}case`member`:{let n=I(e.obj,t);if(e.optional&&n==null)throw pu;return vu(n,typeof e.prop==`string`?e.prop:mu(I(e.prop,t)),e)}case`call`:{let n,r;if(e.callee.k===`member`){let i=e.callee;if(n=I(i.obj,t),i.optional&&n==null)throw pu;let a=typeof i.prop==`string`?i.prop:mu(I(i.prop,t));r=vu(n,a,i)}else r=I(e.callee,t);if(e.optional&&r==null)throw pu;return bu(r,n,yu(e.args,t),e.callee)}case`new`:{let n=I(e.callee,t);if(!du.has(n))throw TypeError(`'new ${gu(e.callee)}' is not allowed in expressions`);return Reflect.construct(n,yu(e.args,t))}case`unary`:{if(e.op===`typeof`)return e.arg.k===`id`&&!_u(t,e.arg.name).found?`undefined`:typeof I(e.arg,t);let n=I(e.arg,t);switch(e.op){case`!`:return!n;case`-`:return-n;case`+`:return+n;case`~`:return~n;case`void`:return}throw SyntaxError(`Unknown operator `+e.op)}case`logic`:{let n=I(e.left,t);return e.op===`&&`?n&&I(e.right,t):e.op===`||`?n||I(e.right,t):n??I(e.right,t)}case`bin`:return xu(e.op,I(e.left,t),I(e.right,t));case`cond`:return I(e.test,t)?I(e.consequent,t):I(e.alternate,t);case`seq`:{let n;for(let r of e.items)n=I(r,t);return n}case`arrow`:{let{params:n,rest:r,body:i}=e;return(...e)=>{let a=Object.create(null);return n.forEach((t,n)=>{a[t]=e[n]}),r&&(a[r]=e.slice(n.length)),I(i,{vars:a,parent:t})}}case`spread`:throw SyntaxError(`Unexpected spread`)}},Su=500,Cu=new Map,wu=e=>{let t=Cu.get(e);return t||(t=su(e),Cu.size>=Su&&Cu.delete(Cu.keys().next().value),Cu.set(e,t)),t},Tu=(e,t={},n={})=>{let r=n.cache===!1?su(e):wu(e),i=Object.create(null);for(let e of Object.keys(t))i[e]=t[e];return I(r,{vars:i})},Eu=(e,t)=>{let n=e[t];for(let r=t+1;r<e.length;r++){let t=e[r];if(t===`\\`){r++;continue}if(t===n)return r+1}throw SyntaxError(`Unterminated string literal in template expression`)},Du=(e,t)=>{for(let n=t+1;n<e.length;n++){let t=e[n];if(t===`\\`){n++;continue}if(t==="`")return n+1;t===`$`&&e[n+1]===`{`&&(n=Ou(e,n+2))}throw SyntaxError(`Unterminated template literal in template expression`)},Ou=(e,t)=>{let n=0,r=t;for(;r<e.length;){let t=e[r];if(t===`'`||t===`"`){r=Eu(e,r);continue}if(t==="`"){r=Du(e,r);continue}if(t===`{`)n++;else if(t===`}`){if(n===0)return r;n--}r++}throw SyntaxError('Unterminated ${ expression in "'+e+`"`)},ku=e=>{let t=[],n=``,r=0;for(;r<e.length;){let i=e[r];if(i===`\\`&&e[r+1]===`\\`){n+=`\\`,r+=2;continue}if(i===`\\`&&e[r+1]===`$`&&e[r+2]===`{`){n+="${",r+=3;continue}if(i===`$`&&e[r+1]===`{`){let i=Ou(e,r+2);n&&t.push({lit:n}),n=``,t.push({expr:e.substring(r+2,i)}),r=i+1;continue}n+=i,r++}return n&&t.push({lit:n}),t},Au=(e,t)=>Tu(e,t),ju=(e,t)=>{let n=``;for(let r of ku(e)){if(`lit`in r){n+=r.lit;continue}let e=Mu.exec(r.expr);n+=e?e[1]:String(Au(r.expr,t)??``)}return n},Mu=/^\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*$/,Nu=(e,t,n)=>({state:e??{},data:t??{},...n});function L(e,t,n,r){if(!e?.includes("${"))return e;try{return ju(e,Nu(t,n,r))}catch(t){return console.warn(`Mateu: could not interpolate "${e}":`,t),e}}var R=(e,t,n)=>{if(e&&e.indexOf("${")>=0)try{return ju(e,Nu(t,n))}catch(e){return e.message}return e},Pu=(e,t,n,r,i)=>{if(!e?.includes("${"))return e;let a=Nu(t,n,{appState:r??{},appData:i??{}}),o=e;try{o=ju(e,a)}catch(a){o=`when evaluating `+e+` :`+a+`, where data is `+n+` and state is `+t+` and app state is `+r+` and app data is `+i,console.error(a,o,t,n,r,i)}return o},Fu=(e,t)=>{for(let n=0;n<e.length;n++){let r=e[n];t===`code`?(r===`'`||r===`"`||r==="`")&&(t=r):r===`\\`?n++:r===t&&(t=`code`)}return t},Iu=e=>e.replace(/[\\'"`\n\r\u2028\u2029]|\$\{/g,e=>{switch(e){case`
 `:return`\\n`;case`\r`:return`\\r`;case`\u2028`:return`\\u2028`;case`\u2029`:return`\\u2029`;case"${":return"\\${";default:return`\\`+e}}),Lu=e=>e===null?`null`:e===void 0?`undefined`:typeof e==`number`||typeof e==`boolean`?String(e):typeof e==`bigint`?e+`n`:JSON.stringify(e)??`undefined`,Ru=(e,t,n,r,i,a)=>{let o=Nu(t,n,{appState:r??{},appData:i??{},...a}),s=``,c=`code`;for(let t of ku(e))if(`lit`in t)s+=t.lit,c=Fu(t.lit,c);else{let e=Au(t.expr,o);s+=c===`code`?Lu(e):Iu(String(e))}return Tu(s,o,{cache:!1})},zu=(e,t,n,r)=>Tu(e,Nu(t,n,r)),Bu=(e,t,n,r)=>ju(e,Nu(t,n,r)),Vu=e=>encodeURIComponent(e).replace(/[!'()*]/g,e=>`%`+e.charCodeAt(0).toString(16).toUpperCase());function Hu(e,t,n,r){if(!e?.includes("${"))return e;let i=Nu(t,n,r),a=ku(e),o=a[0],s=!!o&&`lit`in o&&o.lit.includes(`://`),c=``,l=``;return a.forEach((t,n)=>{if(`lit`in t){if(s){let e=c===``?t.lit.indexOf(`://`)+3:0;/[/?#]/.test(t.lit.substring(e))&&(s=!1)}c+=t.lit,l+=t.lit;return}let r=String(Au(t.expr,i)??``);if(s||n===0){if(/^\s*state\b/.test(t.expr))throw Error(`A client state value cannot choose the origin of a URL: `+e);l+=r}else if(/[?#]/.test(c))l+=Vu(r);else{if(r===`.`||r===`..`)throw Error(`A dot segment is not a valid path value: `+r);l+=Vu(r)}}),l}function Uu(e,t,n){let r=r=>L(r,e,t,n);return r.url=r=>Hu(r,e,t,n),r}var Wu=`display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:50%; background:var(--lumo-contrast-10pct,#e0e0e0); color:var(--lumo-secondary-text-color,#555); font-size:.8rem; font-weight:600; overflow:hidden; flex:none;`,Gu=(e,t)=>t||(typeof e==`string`&&e?e.trim().split(/\s+/).map(e=>e[0]).slice(0,2).join(``).toUpperCase():``),Ku=(e,t,n)=>{let r=e.metadata,i=qu(r.name,t,n);return l`<span style="${Wu}${e.style}" class="${e.cssClasses}"
                       title="${i||p}" slot="${e.slot??p}">
@@ -183,15 +198,28 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         ${i.map(e=>l`<span style="${Gu}${o}" title="${e.name||p}">
             ${e.img?l`<img src="${e.img}" style="width:100%;height:100%;object-fit:cover;">`:Ku(e.name??``,e.abbr)}
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+`)break;r++}if(e[r]!==`/`)throw new eu(`Unterminated regular expression`,e,a);let o=e.substring(n+1,r);r++;let s=``;for(;r<e.length&&/[a-z]/i.test(e[r]);)s+=e[r++];n=r,t.push({t:`re`,pattern:o,flags:s,s:a});continue}if(Ql(i)){let r=n+1;for(;r<e.length&&$l(e[r]);)r++;t.push({t:`id`,v:e.substring(n,r),s:a}),n=r;continue}let o=Zl.find(t=>e.startsWith(t,n));if(!o)throw new eu(`Unexpected character '${i}'`,e,n);if(o===`?.`&&/[0-9]/.test(e[n+2]??``)){t.push({t:`p`,v:`?`,s:a}),n+=1;continue}t.push({t:`p`,v:o,s:a}),n+=o.length}return t.push({t:`eof`,s:n}),t},iu={"??":1,"||":2,"&&":3,"|":4,"^":5,"&":6,"==":7,"!=":7,"===":7,"!==":7,"<":8,">":8,"<=":8,">=":8,in:8,instanceof:8,"<<":9,">>":9,">>>":9,"+":10,"-":10,"*":11,"/":11,"%":11,"**":12},au=new Set([`=`,`+=`,`-=`,`*=`,`/=`,`%=`,`**=`,`<<=`,`>>=`,`>>>=`,`&=`,`|=`,`^=`,`&&=`,`||=`,`??=`]),ou=class{constructor(e,t){this.tokens=e,this.src=t,this.i=0}peek(e=0){return this.tokens[Math.min(this.i+e,this.tokens.length-1)]}next(){return this.tokens[this.i++]}isP(e,t=0){let n=this.peek(t);return n.t===`p`&&n.v===e}isId(e,t=0){let n=this.peek(t);return n.t===`id`&&n.v===e}fail(e,t=this.peek()){throw new eu(e,this.src,t.s)}expectP(e){this.isP(e)||this.fail(`Expected '${e}'`),this.i++}parseAll(){let e=this.sequence();if(this.isP(`;`)&&this.i++,this.peek().t!==`eof`){let e=this.peek();e.t===`p`&&(au.has(e.v)||e.v===`++`||e.v===`--`)&&this.fail(`Assignments are not allowed in expressions`),this.fail(`Unexpected token`)}return e}sequence(){let e=this.assignment();if(!this.isP(`,`))return e;let t=[e];for(;this.isP(`,`);)this.i++,t.push(this.assignment());return{k:`seq`,items:t}}assignment(){let e=this.tryArrow();if(e)return e;let t=this.conditional(),n=this.peek();return n.t===`p`&&au.has(n.v)&&this.fail(`Assignments are not allowed in expressions`),t}tryArrow(){let e=this.peek();if(e.t===`id`&&this.isP(`=>`,1)&&!iu[e.v])return this.i+=2,{k:`arrow`,params:[e.v],rest:void 0,body:this.arrowBody()};if(!this.isP(`(`))return;let t=1,n=[],r;if(!this.isP(`)`,t))for(;;){if(this.isP(`...`,t)){let e=this.peek(t+1);if(e.t!==`id`)return;r=e.v,t+=2;break}let e=this.peek(t);if(e.t!==`id`)return;if(n.push(e.v),t++,this.isP(`,`,t)){t++;continue}break}if(!(!this.isP(`)`,t)||!this.isP(`=>`,t+1)))return this.i+=t+2,{k:`arrow`,params:n,rest:r,body:this.arrowBody()}}arrowBody(){return this.isP(`{`)&&this.fail(`Arrow functions with a block body are not supported; use an expression body`),this.assignment()}conditional(){let e=this.binary(0);if(!this.isP(`?`))return e;this.i++;let t=this.assignment();return this.expectP(`:`),{k:`cond`,test:e,consequent:t,alternate:this.assignment()}}binaryOp(){let e=this.peek();if(e.t===`p`&&iu[e.v]!==void 0||e.t===`id`&&(e.v===`in`||e.v===`instanceof`))return e.v}binary(e){let t=this.unary();for(;;){let n=this.binaryOp();if(!n)return t;let r=iu[n];if(r<e)return t;this.i++;let i=n===`**`?this.binary(r):this.binary(r+1);t=n===`&&`||n===`||`||n===`??`?{k:`logic`,op:n,left:t,right:i}:{k:`bin`,op:n,left:t,right:i}}}unary(){let e=this.peek();if(e.t===`p`&&[`!`,`-`,`+`,`~`].includes(e.v)||(e.t===`p`&&(e.v===`++`||e.v===`--`)&&this.fail(`Assignments are not allowed in expressions`),e.t===`id`&&(e.v===`typeof`||e.v===`void`)))return this.i++,{k:`unary`,op:e.v,arg:this.unary()};e.t===`id`&&e.v===`delete`&&this.fail(`'delete' is not allowed in expressions`);let t=this.postfix();return(this.isP(`++`)||this.isP(`--`))&&this.fail(`Assignments are not allowed in expressions`),t}args(){this.expectP(`(`);let e=[];for(;!this.isP(`)`);)this.isP(`...`)?(this.i++,e.push({k:`spread`,arg:this.assignment()})):e.push(this.assignment()),this.isP(`)`)||this.expectP(`,`);return this.i++,e}postfix(){let e;if(this.isId(`new`)){this.i++;let t=this.primary();for(;this.isP(`.`);){this.i++;let e=this.next();e.t!==`id`&&this.fail(`Expected a property name`,e),t={k:`member`,obj:t,prop:e.v,optional:!1}}let n=this.isP(`(`)?this.args():[];e={k:`new`,callee:t,args:n}}else e=this.primary();let t=!1;for(;;)if(this.isP(`.`)){this.i++;let t=this.next();t.t!==`id`&&this.fail(`Expected a property name`,t),e={k:`member`,obj:e,prop:t.v,optional:!1}}else if(this.isP(`?.`)){if(this.i++,t=!0,this.isP(`(`))e={k:`call`,callee:e,args:this.args(),optional:!0};else if(this.isP(`[`)){this.i++;let t=this.sequence();this.expectP(`]`),e={k:`member`,obj:e,prop:t,optional:!0}}else{let t=this.next();t.t!==`id`&&this.fail(`Expected a property name`,t),e={k:`member`,obj:e,prop:t.v,optional:!0}}}else if(this.isP(`[`)){this.i++;let t=this.sequence();this.expectP(`]`),e={k:`member`,obj:e,prop:t,optional:!1}}else if(this.isP(`(`))e={k:`call`,callee:e,args:this.args(),optional:!1};else if(this.peek().t===`tpl`)this.fail(`Tagged templates are not supported`);else break;return t?{k:`chain`,expr:e}:e}primary(){let e=this.next();switch(e.t){case`num`:return{k:`lit`,v:e.v};case`str`:return{k:`lit`,v:e.v};case`re`:return{k:`re`,pattern:e.pattern,flags:e.flags};case`tpl`:return{k:`tpl`,quasis:e.quasis,exprs:e.exprs.map(e=>su(e))};case`id`:switch(e.v){case`true`:return{k:`lit`,v:!0};case`false`:return{k:`lit`,v:!1};case`null`:return{k:`lit`,v:null};case`undefined`:return{k:`lit`,v:void 0};case`this`:return{k:`lit`,v:void 0};case`function`:case`class`:case`import`:case`await`:case`yield`:case`super`:this.fail(`'${e.v}' is not allowed in expressions`,e)}return{k:`id`,name:e.v};case`p`:if(e.v===`(`){let e=this.sequence();return this.expectP(`)`),e}if(e.v===`[`){let e=[];for(;!this.isP(`]`);){if(this.isP(`,`)){this.i++,e.push(null);continue}this.isP(`...`)?(this.i++,e.push({k:`spread`,arg:this.assignment()})):e.push(this.assignment()),this.isP(`]`)||this.expectP(`,`)}return this.i++,{k:`arr`,items:e}}if(e.v===`{`){let e=[];for(;!this.isP(`}`);){if(this.isP(`...`))this.i++,e.push({k:`spread`,arg:this.assignment()});else{let t=this.next(),n;t.t===`id`||t.t===`str`?n=t.v:t.t===`num`?n=String(t.v):t.t===`p`&&t.v===`[`?(n=this.assignment(),this.expectP(`]`)):this.fail(`Unexpected token in object literal`,t),this.isP(`:`)?(this.i++,e.push({key:n,value:this.assignment()})):t.t===`id`?e.push({key:n,value:{k:`id`,name:t.v}}):this.fail(`Expected ':'`)}this.isP(`}`)||this.expectP(`,`)}return this.i++,{k:`obj`,props:e}}}this.fail(`Unexpected token`,e)}},su=e=>new ou(ru(e),e).parseAll(),cu=new Set([`constructor`,`__proto__`,`prototype`,`__defineGetter__`,`__defineSetter__`,`__lookupGetter__`,`__lookupSetter__`]),lu=new Set([`call`,`apply`,`bind`,`caller`,`arguments`]),uu=Object.freeze({Math,JSON,Number,String,Boolean,Array,Object,Date,Intl,RegExp,Set,Map,parseInt,parseFloat,isNaN,isFinite,encodeURIComponent,decodeURIComponent,encodeURI,decodeURI,NaN:NaN,Infinity:1/0}),du=new Set([Date,RegExp,Set,Map,Array,Number,String,Boolean,Object,Intl.NumberFormat,Intl.DateTimeFormat,Intl.Collator,Intl.PluralRules,Intl.RelativeTimeFormat,Intl.ListFormat]),fu=new Set([Function,eval,Object.defineProperty,Object.defineProperties,Object.setPrototypeOf,Object.assign,Object.freeze,Object.seal,Object.preventExtensions,Reflect?.set,Reflect?.defineProperty,Reflect?.setPrototypeOf,Reflect?.deleteProperty].filter(Boolean)),pu=Symbol(`mateu.expression.shortCircuit`),mu=e=>typeof e==`symbol`?e:String(e),hu=e=>{if(typeof e==`string`&&cu.has(e))throw TypeError(`Access to '${e}' is not allowed in expressions`)},gu=e=>e.k===`id`?e.name:e.k===`member`?gu(e.obj)+(typeof e.prop==`string`?`.`+e.prop:`[…]`):e.k===`call`?gu(e.callee)+`(…)`:`expression`,_u=(e,t)=>{for(let n=e;n;n=n.parent)if(Object.prototype.hasOwnProperty.call(n.vars,t))return{found:!0,value:n.vars[t]};return Object.prototype.hasOwnProperty.call(uu,t)?{found:!0,value:uu[t]}:{found:!1,value:void 0}},vu=(e,t,n)=>{if(hu(t),typeof e==`function`&&typeof t==`string`&&lu.has(t))throw TypeError(`Access to '${t}' is not allowed in expressions`);if(e==null)throw TypeError(`Cannot read properties of ${e} (reading '${String(t)}') in ${gu(n)}`);return e[t]},yu=(e,t)=>{let n=[];for(let r of e)r.k===`spread`?n.push(...L(r.arg,t)):n.push(L(r,t));return n},bu=(e,t,n,r)=>{if(typeof e!=`function`)throw TypeError(`${gu(r)} is not a function`);if(fu.has(e))throw TypeError(`${gu(r)} is not allowed in expressions`);return Reflect.apply(e,t,n)},xu=(e,t,n)=>{let r=t,i=n;switch(e){case`+`:return r+i;case`-`:return r-i;case`*`:return r*i;case`/`:return r/i;case`%`:return r%i;case`**`:return r**i;case`==`:return r==i;case`!=`:return r!=i;case`===`:return r===i;case`!==`:return r!==i;case`<`:return r<i;case`>`:return r>i;case`<=`:return r<=i;case`>=`:return r>=i;case`|`:return r|i;case`^`:return r^i;case`&`:return r&i;case`<<`:return r<<i;case`>>`:return r>>i;case`>>>`:return r>>>i;case`in`:return mu(r)in Object(i);case`instanceof`:return r instanceof i}throw SyntaxError(`Unknown operator `+e)},L=(e,t)=>{switch(e.k){case`lit`:return e.v;case`re`:return new RegExp(e.pattern,e.flags);case`id`:{let{found:n,value:r}=_u(t,e.name);if(!n)throw ReferenceError(`${e.name} is not defined`);return r}case`tpl`:{let n=e.quasis[0];for(let r=0;r<e.exprs.length;r++)n+=String(L(e.exprs[r],t))+e.quasis[r+1];return n}case`arr`:{let n=[];for(let r of e.items)r===null?n.length++:r.k===`spread`?n.push(...L(r.arg,t)):n.push(L(r,t));return n}case`obj`:{let n={};for(let r of e.props){if(`k`in r&&r.k===`spread`){Object.assign(n,L(r.arg,t));continue}let e=r,i=typeof e.key==`string`?e.key:mu(L(e.key,t));hu(i),n[i]=L(e.value,t)}return n}case`chain`:try{return L(e.expr,t)}catch(e){if(e===pu)return;throw e}case`member`:{let n=L(e.obj,t);if(e.optional&&n==null)throw pu;return vu(n,typeof e.prop==`string`?e.prop:mu(L(e.prop,t)),e)}case`call`:{let n,r;if(e.callee.k===`member`){let i=e.callee;if(n=L(i.obj,t),i.optional&&n==null)throw pu;let a=typeof i.prop==`string`?i.prop:mu(L(i.prop,t));r=vu(n,a,i)}else r=L(e.callee,t);if(e.optional&&r==null)throw pu;return bu(r,n,yu(e.args,t),e.callee)}case`new`:{let n=L(e.callee,t);if(!du.has(n))throw TypeError(`'new ${gu(e.callee)}' is not allowed in expressions`);return Reflect.construct(n,yu(e.args,t))}case`unary`:{if(e.op===`typeof`)return e.arg.k===`id`&&!_u(t,e.arg.name).found?`undefined`:typeof L(e.arg,t);let n=L(e.arg,t);switch(e.op){case`!`:return!n;case`-`:return-n;case`+`:return+n;case`~`:return~n;case`void`:return}throw SyntaxError(`Unknown operator `+e.op)}case`logic`:{let n=L(e.left,t);return e.op===`&&`?n&&L(e.right,t):e.op===`||`?n||L(e.right,t):n??L(e.right,t)}case`bin`:return xu(e.op,L(e.left,t),L(e.right,t));case`cond`:return L(e.test,t)?L(e.consequent,t):L(e.alternate,t);case`seq`:{let n;for(let r of e.items)n=L(r,t);return n}case`arrow`:{let{params:n,rest:r,body:i}=e;return(...e)=>{let a=Object.create(null);return n.forEach((t,n)=>{a[t]=e[n]}),r&&(a[r]=e.slice(n.length)),L(i,{vars:a,parent:t})}}case`spread`:throw SyntaxError(`Unexpected spread`)}},Su=500,Cu=new Map,wu=e=>{let t=Cu.get(e);return t||(t=su(e),Cu.size>=Su&&Cu.delete(Cu.keys().next().value),Cu.set(e,t)),t},Tu=(e,t={},n={})=>{let r=n.cache===!1?su(e):wu(e),i=Object.create(null);for(let e of Object.keys(t))i[e]=t[e];return L(r,{vars:i})},Eu=(e,t)=>{let n=e[t];for(let r=t+1;r<e.length;r++){let t=e[r];if(t===`\\`){r++;continue}if(t===n)return r+1}throw SyntaxError(`Unterminated string literal in template expression`)},Du=(e,t)=>{for(let n=t+1;n<e.length;n++){let t=e[n];if(t===`\\`){n++;continue}if(t==="`")return n+1;t===`$`&&e[n+1]===`{`&&(n=Ou(e,n+2))}throw SyntaxError(`Unterminated template literal in template expression`)},Ou=(e,t)=>{let n=0,r=t;for(;r<e.length;){let t=e[r];if(t===`'`||t===`"`){r=Eu(e,r);continue}if(t==="`"){r=Du(e,r);continue}if(t===`{`)n++;else if(t===`}`){if(n===0)return r;n--}r++}throw SyntaxError('Unterminated ${ expression in "'+e+`"`)},ku=e=>{let t=[],n=``,r=0;for(;r<e.length;){let i=e[r];if(i===`\\`&&e[r+1]===`\\`){n+=`\\`,r+=2;continue}if(i===`\\`&&e[r+1]===`$`&&e[r+2]===`{`){n+="${",r+=3;continue}if(i===`$`&&e[r+1]===`{`){let i=Ou(e,r+2);n&&t.push({lit:n}),n=``,t.push({expr:e.substring(r+2,i)}),r=i+1;continue}n+=i,r++}return n&&t.push({lit:n}),t},Au=(e,t)=>Tu(e,t),ju=(e,t)=>{let n=``;for(let r of ku(e)){if(`lit`in r){n+=r.lit;continue}let e=Mu.exec(r.expr);n+=e?e[1]:String(Au(r.expr,t)??``)}return n},Mu=/^\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*$/,Nu=(e,t,n)=>({state:e??{},data:t??{},...n});function R(e,t,n,r){if(!e?.includes("${"))return e;try{return ju(e,Nu(t,n,r))}catch(t){return console.warn(`Mateu: could not interpolate "${e}":`,t),e}}var Pu=(e,t,n)=>{if(e&&e.indexOf("${")>=0)try{return ju(e,Nu(t,n))}catch(e){return e.message}return e},Fu=(e,t,n,r,i)=>{if(!e?.includes("${"))return e;let a=Nu(t,n,{appState:r??{},appData:i??{}}),o=e;try{o=ju(e,a)}catch(a){o=`when evaluating `+e+` :`+a+`, where data is `+n+` and state is `+t+` and app state is `+r+` and app data is `+i,console.error(a,o,t,n,r,i)}return o},Iu=(e,t)=>{for(let n=0;n<e.length;n++){let r=e[n];t===`code`?(r===`'`||r===`"`||r==="`")&&(t=r):r===`\\`?n++:r===t&&(t=`code`)}return t},Lu=e=>e.replace(/[\\'"`\n\r\u2028\u2029]|\$\{/g,e=>{switch(e){case`
+`:return`\\n`;case`\r`:return`\\r`;case`\u2028`:return`\\u2028`;case`\u2029`:return`\\u2029`;case"${":return"\\${";default:return`\\`+e}}),Ru=e=>e===null?`null`:e===void 0?`undefined`:typeof e==`number`||typeof e==`boolean`?String(e):typeof e==`bigint`?e+`n`:JSON.stringify(e)??`undefined`,zu=(e,t,n,r,i,a)=>{let o=Nu(t,n,{appState:r??{},appData:i??{},...a}),s=``,c=`code`;for(let t of ku(e))if(`lit`in t)s+=t.lit,c=Iu(t.lit,c);else{let e=Au(t.expr,o);s+=c===`code`?Ru(e):Lu(String(e))}return Tu(s,o,{cache:!1})},Bu=(e,t,n,r)=>Tu(e,Nu(t,n,r)),Vu=(e,t,n,r)=>ju(e,Nu(t,n,r)),Hu=e=>encodeURIComponent(e).replace(/[!'()*]/g,e=>`%`+e.charCodeAt(0).toString(16).toUpperCase());function Uu(e,t,n,r){if(!e?.includes("${"))return e;let i=Nu(t,n,r),a=ku(e),o=a[0],s=!!o&&`lit`in o&&o.lit.includes(`://`),c=``,l=``;return a.forEach((t,n)=>{if(`lit`in t){if(s){let e=c===``?t.lit.indexOf(`://`)+3:0;/[/?#]/.test(t.lit.substring(e))&&(s=!1)}c+=t.lit,l+=t.lit;return}let r=String(Au(t.expr,i)??``);if(s||n===0){if(/^\s*state\b/.test(t.expr))throw Error(`A client state value cannot choose the origin of a URL: `+e);l+=r}else if(/[?#]/.test(c))l+=Hu(r);else{if(r===`.`||r===`..`)throw Error(`A dot segment is not a valid path value: `+r);l+=Hu(r)}}),l}function Wu(e,t,n){let r=r=>R(r,e,t,n);return r.url=r=>Uu(r,e,t,n),r}var Gu=`display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:50%; background:var(--lumo-contrast-10pct,#e0e0e0); color:var(--lumo-secondary-text-color,#555); font-size:.8rem; font-weight:600; overflow:hidden; flex:none;`,Ku=(e,t)=>t||(typeof e==`string`&&e?e.trim().split(/\s+/).map(e=>e[0]).slice(0,2).join(``).toUpperCase():``),qu=(e,t,n)=>{let r=e.metadata,i=Ju(r.name,t,n);return l`<span style="${Gu}${e.style}" class="${e.cssClasses}"
+                      title="${i||p}" slot="${e.slot??p}">
+        ${r.image?l`<img src="${r.image}" alt="${i}" style="width:100%;height:100%;object-fit:cover;">`:Ku(i,r.abbreviation)}
+    </span>`},Ju=(e,t,n)=>typeof e==`string`&&e.includes("${")?R(e,t,n):e,Yu=e=>{let t=e.metadata,n=t.avatars??[],r=t.maxItemsVisible&&t.maxItemsVisible>0?t.maxItemsVisible:n.length,i=n.slice(0,r),a=n.length-i.length,o=`margin-left:-0.4rem; border:2px solid var(--lumo-base-color,#fff);`;return l`<span style="display:inline-flex; ${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
+        ${i.map(e=>l`<span style="${Gu}${o}" title="${e.name||p}">
+            ${e.img?l`<img src="${e.img}" style="width:100%;height:100%;object-fit:cover;">`:Ku(e.name??``,e.abbr)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         </span>`)}
         ${a>0?l`<span style="${Gu}${o}">+${a}</span>`:p}
     </span>`},Xu=(e,t,n)=>{let r=e.metadata;return l`<span theme="badge ${r.color} ${r.pill?`pill`:``} ${r.small?`small`:``} ${r.primary?`primary`:``}"
                       style="${e.style}" class="${e.cssClasses}"
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                       slot="${e.slot??p}">${qu(r.text,t,n)}</span>`},Xu=(e,t,n,r)=>{let i=qu(e.text,t,n);if(!i)return p;let a=qu(e.color,t,n);a==`SUCCESS`&&(a=`success`),a==`ERROR`&&(a=`error`),a==`DANGER`&&(a=`error`),a==`WARNING`&&(a=`warning`),a==`INFO`&&(a=`info`),a==`PRIMARY`&&(a=`primary`),a==`SECONDARY`&&(a=`secondary`),a==`TERTIARY`&&(a=`tertiary`),a==`QUATERNARY`&&(a=`quaternary`),a==`LIGHT`&&(a=`light`),a==`DARK`&&(a=`dark`);let o=e.pill||r?.pill;return l`<span theme="badge ${a} ${o?`pill`:``} ${e.small?`small`:``} ${e.primary?`primary`:``}">${i}</span>`},z=new class{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(e){if(this.componentRenderer=e,typeof window<`u`){let t=e.supportedClientSideTypes?.();window.__mateuRendererInfo={name:e.rendererName?.()??e.constructor?.name??`unknown`,supportedTypes:t?[...t].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(e){this.useShadowRoot=e}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(e){this.afterRenderHook=e}getAfterRenderHook(){return this.afterRenderHook}},Zu=(e,t,n,r,i,a,o,s,c)=>(t.slot=s,B(e,t,n,r,i,a,o,c)),Qu=e=>{if(!e)return e;let t=/margin\s*:\s*(?:0\s+)?auto/.test(e)&&/max-width\s*:/.test(e),n=/(^|[;\s])width\s*:/.test(e);return t&&!n?`width: 100%; box-sizing: border-box; ${e}`:e},B=(e,t,n,r,i,a,o,s)=>{if(!t)return l``;if(t.type==T.ClientSide){let c=z.get().renderClientSideComponent(e,t,n,r,i,a,o,s);return Qa()&&t.id?l`${to(t.id,c)}`:c}let c=e.route,u=e.consumedRoute;return l`
 ========
                       slot="${e.slot??p}">${Ju(r.text,t,n)}</span>`},Zu=(e,t,n,r)=>{let i=Ju(e.text,t,n);if(!i)return p;let a=Ju(e.color,t,n);a==`SUCCESS`&&(a=`success`),a==`ERROR`&&(a=`error`),a==`DANGER`&&(a=`error`),a==`WARNING`&&(a=`warning`),a==`INFO`&&(a=`info`),a==`PRIMARY`&&(a=`primary`),a==`SECONDARY`&&(a=`secondary`),a==`TERTIARY`&&(a=`tertiary`),a==`QUATERNARY`&&(a=`quaternary`),a==`LIGHT`&&(a=`light`),a==`DARK`&&(a=`dark`);let o=e.pill||r?.pill;return l`<span theme="badge ${a} ${o?`pill`:``} ${e.small?`small`:``} ${e.primary?`primary`:``}">${i}</span>`},z=new class{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(e){if(this.componentRenderer=e,typeof window<`u`){let t=e.supportedClientSideTypes?.();window.__mateuRendererInfo={name:e.rendererName?.()??e.constructor?.name??`unknown`,supportedTypes:t?[...t].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(e){this.useShadowRoot=e}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(e){this.afterRenderHook=e}getAfterRenderHook(){return this.afterRenderHook}},Qu=(e,t,n,r,i,a,o,s,c)=>(t.slot=s,B(e,t,n,r,i,a,o,c)),$u=e=>{if(!e)return e;let t=/margin\s*:\s*(?:0\s+)?auto/.test(e)&&/max-width\s*:/.test(e),n=/(^|[;\s])width\s*:/.test(e);return t&&!n?`width: 100%; box-sizing: border-box; ${e}`:e},B=(e,t,n,r,i,a,o,s)=>{if(!t)return l``;if(t.type==T.ClientSide){let c=z.get().renderClientSideComponent(e,t,n,r,i,a,o,s);return Qa()&&t.id?l`${to(t.id,c)}`:c}let c=e.route,u=e.consumedRoute;return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+                      slot="${e.slot??p}">${Ju(r.text,t,n)}</span>`},Zu=(e,t,n,r)=>{let i=Ju(e.text,t,n);if(!i)return p;let a=Ju(e.color,t,n);a==`SUCCESS`&&(a=`success`),a==`ERROR`&&(a=`error`),a==`DANGER`&&(a=`error`),a==`WARNING`&&(a=`warning`),a==`INFO`&&(a=`info`),a==`PRIMARY`&&(a=`primary`),a==`SECONDARY`&&(a=`secondary`),a==`TERTIARY`&&(a=`tertiary`),a==`QUATERNARY`&&(a=`quaternary`),a==`LIGHT`&&(a=`light`),a==`DARK`&&(a=`dark`);let o=e.pill||r?.pill;return l`<span theme="badge ${a} ${o?`pill`:``} ${e.small?`small`:``} ${e.primary?`primary`:``}">${i}</span>`},z=new class{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(e){if(this.componentRenderer=e,typeof window<`u`){let t=e.supportedClientSideTypes?.();window.__mateuRendererInfo={name:e.rendererName?.()??e.constructor?.name??`unknown`,supportedTypes:t?[...t].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(e){this.useShadowRoot=e}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(e){this.afterRenderHook=e}getAfterRenderHook(){return this.afterRenderHook}},Qu=(e,t,n,r,i,a,o,s,c)=>(t.slot=s,B(e,t,n,r,i,a,o,c)),$u=e=>{if(!e)return e;let t=/margin\s*:\s*(?:0\s+)?auto/.test(e)&&/max-width\s*:/.test(e),n=/(^|[;\s])width\s*:/.test(e);return t&&!n?`width: 100%; box-sizing: border-box; ${e}`:e},B=(e,t,n,r,i,a,o,s)=>{if(!t)return l``;if(t.type==E.ClientSide){let c=z.get().renderClientSideComponent(e,t,n,r,i,a,o,s);return Za()&&t.id?l`${eo(t.id,c)}`:c}let c=e.route,u=e.consumedRoute;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-component id="${t.id}"
                          .component="${t}"
                         route="${c}"
@@ -206,10 +234,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                          .appData="${o}"
         >
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
        </mateu-component>`},$u=e=>e===`back`||e===`backToList`||e===`cancel-view`,ed=e=>!!e&&e.startsWith(`cancel`)&&!$u(e),td=e=>$u(e)||ed(e);function nd(e,t,n,r){if(!e||t==null)return;let i=L(e,n,r,{row:t});if(!(!i||i===e||i.includes("${")))return i}function rd(e,t){for(let n of[`route-changed`,`navigate-to-requested`])e.dispatchEvent(new CustomEvent(n,{detail:{route:t},bubbles:!0,composed:!0}))}function id(e){if(!e)return[];let t=new Set;for(let n of e.matchAll(/\$\{\s*row\.([A-Za-z0-9_]+)/g))t.add(n[1]);return[...t]}var ad=qc,od=Jc,sd=e=>(e||typeof document<`u`&&document.documentElement?.lang||typeof navigator<`u`&&navigator.language||``).toLowerCase().startsWith(`es`),cd=new Map;function ld(e,t,n={}){let{crumbs:r,matched:i,pending:a}=tl(e,t);if(!i)return[];let s=[...r];if(a){let e=od(n.title);return e&&e!==s[s.length-1]?.text&&s.push({text:e}),s.length<2?[]:s}let c=ad(t).slice(i.length).split(`/`).filter(Boolean),l=sd(n.lang);if(c.length>0){let e=decodeURIComponent(c[0]);if(e===`new`||e===`create`)s.push({text:o(`newRecord`,l?`es`:`en`)});else{let t=i+`/`+c[0],r=od(n.title);c.length===1&&r&&cd.set(t,r),s.push({text:cd.get(t)||e,route:t}),c[1]===`edit`?s.push({text:o(`edit`,l?`es`:`en`)}):c.length>1&&s.push({text:r||decodeURIComponent(c[c.length-1])})}}if(s.length<2)return[];let u=s[s.length-1];return s[s.length-1]={text:u.text},s}var ud,dd=!1,fd,pd,md=new Set;function hd(e,t,n,r){if(fd&&fd!==e&&fd.isConnected!==!1)return;fd=e;let i=ud!==t||dd!==!!n;ud=t,dd=!!n,pd=r,i&&md.forEach(e=>e())}function gd(e){return md.add(e),()=>{md.delete(e)}}function _d(e){if(!pd)return!1;let t=rl(ud,e);return t?(pd(t,e),!0):!1}function vd(e,t){return dd?[]:ld(ud,e,t)}var yd=new WeakMap,bd=e=>{let t=yd.get(e);return t===void 0&&(t=typeof window<`u`?window.location.pathname:``,yd.set(e,t)),t},xd=new class{constructor(){this._dirty=!1,this._installed=!1,this.message=o(`unsavedChanges`),this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=e=>{this._dirty&&(e.preventDefault(),e.returnValue=``)}}install(){this._installed||(this._installed=!0,document.addEventListener(`dirty`,this._onDirty),document.addEventListener(`clean`,this._onClean),window.addEventListener(`beforeunload`,this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;let e=window.confirm(this.message);return e&&(this._dirty=!1),e}},Sd=`_record`,Cd=e=>String(e??``).normalize(`NFD`).replace(/[̀-ͯ]/g,``).toLowerCase().trim(),wd=(e,t)=>{let n=Cd(t).split(/\s+/).filter(Boolean);return n.length===0?e:e.filter(e=>{let t=Cd(e.label)+` `+Cd(e.description);return n.every(e=>t.includes(e))})},Td=e=>(e.options??[]).find(t=>String(t.value)===String(e.value??``)),Ed=(e,t)=>e.disabled||t==null||String(t)===String(e.value??``)?null:{actionId:e.actionId,parameters:{[Sd]:t}},Dd=(e,t,n,r)=>{if(!e.route||!Ed(e,t))return null;let i=r(e.route,{...n,[Sd]:t});return i&&!i.includes("${")?i:null},Od;async function kd(e){if(!Od)return{};try{return await Od(e)??{}}catch(e){return console.warn(`mateu: external auth provider failed`,e),{}}}function Ad(e,t){return t?t.split(`.`).reduce((e,t)=>typeof e==`object`&&e?e[t]:void 0,e):e}function jd(e,t,n=`value`,r=`label`){let i=Ad(e,t);return Array.isArray(i)?i.map(e=>{if(typeof e==`object`&&e){let t=Ad(e,n),i=Ad(e,r);return{value:t??i,label:String(i??t??``)}}return{value:e,label:String(e)}}):[]}function Md(e,t,n,r=e=>e){let i=Ad(e,t);return Array.isArray(i)?i.map(e=>{let t={};for(let i of n)t[i]=Ad(e,r(i));return t}):[]}var Nd=null;function Pd(e){Nd=e}async function Fd(e,t=e=>e,n=fetch,r){e?.ref&&!ce(e.ref)&&await b();let i=S(e),a=(i.method||`GET`).toUpperCase(),o=t.url??t;if(Nd){let t=i.url?o(i.url)??i.url:``,n=Nd({url:t,ref:e.ref,method:a});if(n!==void 0)return n}if(C(e))return a!==`GET`&&a!==`HEAD`?null:structuredClone(me(e));if(!i.url)throw Error(`External REST fetch has no url${e.ref?` (unknown source "${e.ref}")`:``}`);let s=o(i.url)??i.url,c={};for(let[e,n]of Object.entries(i.headers??{}))c[e]=t(n)??n;Object.assign(c,await kd({url:s,method:a}));let l={method:a,headers:c};a!==`GET`&&a!==`HEAD`&&i.body&&(l.body=(r&&ie(c)?r:t)(i.body)??i.body);let u=await n(s,l);if(!u.ok)throw Error(`External REST fetch failed: ${u.status}`);if(u.status===204||u.status===205)return null;if(typeof u.text!=`function`)return u.json();let d=await u.text();return d.trim()===``?null:JSON.parse(d)}async function Id(e,t=e=>e,n=fetch){let r=await Fd(e,t,n),i=S(e);return jd(r,i.itemsPath,i.valuePath,i.labelPath)}async function Ld(e,t,n=e=>e,r=fetch){return Md(await Fd(e,n,r),S(e).itemsPath,t,t=>w(e,t))}async function Rd(e,t,n=e=>e,r=fetch){return zd(await Fd(e,n,r),e,t)}function zd(e,t,n){let r=Md(e,S(t).itemsPath,n,e=>w(t,e)),i=Ad(e,ge(t)),a=typeof i==`number`?i:Number(i);return{rows:r,total:Number.isFinite(a)?a:null}}async function Bd(e,t,n,r,i,a,o){if(he(r)){let r=(await Kc.runAction(t??``,e.rootRoute??``,``,`_appsource`,`app-source`,void 0,e.serverSideType,{},{...i,_appSource:n,...o?{_field:o}:{}},a,!0))?.appData??{},s=r._restfetchError;if(s)throw Error(s.message??`Request failed`);return r._restfetch}return Fd(r,Uu(i,{}))}function Vd(e,t){let n=S(t),r=n?.itemsPath?Ad(e,n.itemsPath):e;return Array.isArray(r)?r:[]}var Hd=e=>e==null||e===``?null:String(e);function Ud(e,t){let n=(e,n)=>Ad(e,w(t,n));return Vd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>{let t=n(e,`unread`);return{id:String(n(e,`id`)??``),title:String(n(e,`title`)??``),text:Hd(n(e,`text`)),route:Hd(n(e,`route`)),unread:t==null||t===!0||t===`true`,when:Hd(n(e,`when`))}})}function Wd(e,t){let n=(e,n)=>Ad(e,w(t,n));return Vd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>({label:String(n(e,`label`)??``),description:Hd(n(e,`description`)),route:String(n(e,`route`)??``),category:Hd(n(e,`category`))})).filter(e=>e.route!==``)}function Gd(e,t){let n=S(t)??t;return jd(e,n.itemsPath,n.valuePath||`value`,n.labelPath||`label`)}function Kd(e,t){return{ids:e.join(`,`),id:e[0]??``,all:t}}async function qd(e,t,n,r,i){let a=e.globalSearchSource;return a?Wd(await Bd(e,t,`globalSearch`,a,{searchText:n},r),a):(await Kc.runAction(t??``,e.rootRoute??``,``,`_globalsearch`,i,void 0,e.serverSideType,{},{searchText:n},r,!0))?.fragments?.map(e=>e.data).find(e=>e&&e._globalsearch)?._globalsearch??[]}var V=h`
 ========
        </mateu-component>`},ed=e=>e===`back`||e===`backToList`||e===`cancel-view`,td=e=>!!e&&e.startsWith(`cancel`)&&!ed(e),nd=e=>ed(e)||td(e);function rd(e,t,n,r){if(!e||t==null)return;let i=L(e,n,r,{row:t});if(!(!i||i===e||i.includes("${")))return i}function id(e,t){for(let n of[`route-changed`,`navigate-to-requested`])e.dispatchEvent(new CustomEvent(n,{detail:{route:t},bubbles:!0,composed:!0}))}function ad(e){if(!e)return[];let t=new Set;for(let n of e.matchAll(/\$\{\s*row\.([A-Za-z0-9_]+)/g))t.add(n[1]);return[...t]}var od=Jc,sd=Yc,cd=e=>(e||typeof document<`u`&&document.documentElement?.lang||typeof navigator<`u`&&navigator.language||``).toLowerCase().startsWith(`es`),ld=new Map;function ud(e,t,n={}){let{crumbs:r,matched:i,pending:a}=nl(e,t);if(!i)return[];let s=[...r];if(a){let e=sd(n.title);return e&&e!==s[s.length-1]?.text&&s.push({text:e}),s.length<2?[]:s}let c=od(t).slice(i.length).split(`/`).filter(Boolean),l=cd(n.lang);if(c.length>0){let e=decodeURIComponent(c[0]);if(e===`new`||e===`create`)s.push({text:o(`newRecord`,l?`es`:`en`)});else{let t=i+`/`+c[0],r=sd(n.title);c.length===1&&r&&ld.set(t,r),s.push({text:ld.get(t)||e,route:t}),c[1]===`edit`?s.push({text:o(`edit`,l?`es`:`en`)}):c.length>1&&s.push({text:r||decodeURIComponent(c[c.length-1])})}}if(s.length<2)return[];let u=s[s.length-1];return s[s.length-1]={text:u.text},s}var dd,fd=!1,pd,md,hd=new Set;function gd(e,t,n,r){if(pd&&pd!==e&&pd.isConnected!==!1)return;pd=e;let i=dd!==t||fd!==!!n;dd=t,fd=!!n,md=r,i&&hd.forEach(e=>e())}function _d(e){return hd.add(e),()=>{hd.delete(e)}}function vd(e){if(!md)return!1;let t=il(dd,e);return t?(md(t,e),!0):!1}function yd(e,t){return fd?[]:ud(dd,e,t)}var bd=new WeakMap,xd=e=>{let t=bd.get(e);return t===void 0&&(t=typeof window<`u`?window.location.pathname:``,bd.set(e,t)),t},Sd=new class{constructor(){this._dirty=!1,this._installed=!1,this.message=o(`unsavedChanges`),this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=e=>{this._dirty&&(e.preventDefault(),e.returnValue=``)}}install(){this._installed||(this._installed=!0,document.addEventListener(`dirty`,this._onDirty),document.addEventListener(`clean`,this._onClean),window.addEventListener(`beforeunload`,this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;let e=window.confirm(this.message);return e&&(this._dirty=!1),e}},Cd=`_record`,wd=e=>String(e??``).normalize(`NFD`).replace(/[̀-ͯ]/g,``).toLowerCase().trim(),Td=(e,t)=>{let n=wd(t).split(/\s+/).filter(Boolean);return n.length===0?e:e.filter(e=>{let t=wd(e.label)+` `+wd(e.description);return n.every(e=>t.includes(e))})},Ed=e=>(e.options??[]).find(t=>String(t.value)===String(e.value??``)),Dd=(e,t)=>e.disabled||t==null||String(t)===String(e.value??``)?null:{actionId:e.actionId,parameters:{[Cd]:t}},Od=(e,t,n,r)=>{if(!e.route||!Dd(e,t))return null;let i=r(e.route,{...n,[Cd]:t});return i&&!i.includes("${")?i:null},kd;async function Ad(e){if(!kd)return{};try{return await kd(e)??{}}catch(e){return console.warn(`mateu: external auth provider failed`,e),{}}}function jd(e,t){return t?t.split(`.`).reduce((e,t)=>typeof e==`object`&&e?e[t]:void 0,e):e}function Md(e,t,n=`value`,r=`label`){let i=jd(e,t);return Array.isArray(i)?i.map(e=>{if(typeof e==`object`&&e){let t=jd(e,n),i=jd(e,r);return{value:t??i,label:String(i??t??``)}}return{value:e,label:String(e)}}):[]}function Nd(e,t,n,r=e=>e){let i=jd(e,t);return Array.isArray(i)?i.map(e=>{let t={};for(let i of n)t[i]=jd(e,r(i));return t}):[]}var Pd=null;function Fd(e){Pd=e}async function Id(e,t=e=>e,n=fetch,r){e?.ref&&!ce(e.ref)&&await b();let i=S(e),a=(i.method||`GET`).toUpperCase(),o=t.url??t;if(Pd){let t=i.url?o(i.url)??i.url:``,n=Pd({url:t,ref:e.ref,method:a});if(n!==void 0)return n}if(C(e))return a!==`GET`&&a!==`HEAD`?null:structuredClone(me(e));if(!i.url)throw Error(`External REST fetch has no url${e.ref?` (unknown source "${e.ref}")`:``}`);let s=o(i.url)??i.url,c={};for(let[e,n]of Object.entries(i.headers??{}))c[e]=t(n)??n;Object.assign(c,await Ad({url:s,method:a}));let l={method:a,headers:c};a!==`GET`&&a!==`HEAD`&&i.body&&(l.body=(r&&ie(c)?r:t)(i.body)??i.body);let u=await n(s,l);if(!u.ok)throw Error(`External REST fetch failed: ${u.status}`);if(u.status===204||u.status===205)return null;if(typeof u.text!=`function`)return u.json();let d=await u.text();return d.trim()===``?null:JSON.parse(d)}async function Ld(e,t=e=>e,n=fetch){let r=await Id(e,t,n),i=S(e);return Md(r,i.itemsPath,i.valuePath,i.labelPath)}async function Rd(e,t,n=e=>e,r=fetch){return Nd(await Id(e,n,r),S(e).itemsPath,t,t=>w(e,t))}async function zd(e,t,n=e=>e,r=fetch){return Bd(await Id(e,n,r),e,t)}function Bd(e,t,n){let r=Nd(e,S(t).itemsPath,n,e=>w(t,e)),i=jd(e,ge(t)),a=typeof i==`number`?i:Number(i);return{rows:r,total:Number.isFinite(a)?a:null}}async function Vd(e,t,n,r,i,a,o){if(he(r)){let r=(await qc.runAction(t??``,e.rootRoute??``,``,`_appsource`,`app-source`,void 0,e.serverSideType,{},{...i,_appSource:n,...o?{_field:o}:{}},a,!0))?.appData??{},s=r._restfetchError;if(s)throw Error(s.message??`Request failed`);return r._restfetch}return Id(r,Wu(i,{}))}function Hd(e,t){let n=S(t),r=n?.itemsPath?jd(e,n.itemsPath):e;return Array.isArray(r)?r:[]}var Ud=e=>e==null||e===``?null:String(e);function Wd(e,t){let n=(e,n)=>jd(e,w(t,n));return Hd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>{let t=n(e,`unread`);return{id:String(n(e,`id`)??``),title:String(n(e,`title`)??``),text:Ud(n(e,`text`)),route:Ud(n(e,`route`)),unread:t==null||t===!0||t===`true`,when:Ud(n(e,`when`))}})}function Gd(e,t){let n=(e,n)=>jd(e,w(t,n));return Hd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>({label:String(n(e,`label`)??``),description:Ud(n(e,`description`)),route:String(n(e,`route`)??``),category:Ud(n(e,`category`))})).filter(e=>e.route!==``)}function Kd(e,t){let n=S(t)??t;return Md(e,n.itemsPath,n.valuePath||`value`,n.labelPath||`label`)}function qd(e,t){return{ids:e.join(`,`),id:e[0]??``,all:t}}async function Jd(e,t,n,r,i){let a=e.globalSearchSource;return a?Gd(await Vd(e,t,`globalSearch`,a,{searchText:n},r),a):(await qc.runAction(t??``,e.rootRoute??``,``,`_globalsearch`,i,void 0,e.serverSideType,{},{searchText:n},r,!0))?.fragments?.map(e=>e.data).find(e=>e&&e._globalsearch)?._globalsearch??[]}var V=h`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+       </mateu-component>`},ed=e=>e===`back`||e===`backToList`||e===`cancel-view`,td=e=>!!e&&e.startsWith(`cancel`)&&!ed(e),nd=e=>ed(e)||td(e);function rd(e,t,n,r){if(!e||t==null)return;let i=R(e,n,r,{row:t});if(!(!i||i===e||i.includes("${")))return i}function id(e,t){for(let n of[`route-changed`,`navigate-to-requested`])e.dispatchEvent(new CustomEvent(n,{detail:{route:t},bubbles:!0,composed:!0}))}function ad(e){if(!e)return[];let t=new Set;for(let n of e.matchAll(/\$\{\s*row\.([A-Za-z0-9_]+)/g))t.add(n[1]);return[...t]}var od=qc,sd=Jc,cd=e=>(e||typeof document<`u`&&document.documentElement?.lang||typeof navigator<`u`&&navigator.language||``).toLowerCase().startsWith(`es`),ld=new Map;function ud(e,t,n={}){let{crumbs:r,matched:i,pending:a}=tl(e,t);if(!i)return[];let s=[...r];if(a){let e=sd(n.title);return e&&e!==s[s.length-1]?.text&&s.push({text:e}),s.length<2?[]:s}let c=od(t).slice(i.length).split(`/`).filter(Boolean),l=cd(n.lang);if(c.length>0){let e=decodeURIComponent(c[0]);if(e===`new`||e===`create`)s.push({text:o(`newRecord`,l?`es`:`en`)});else{let t=i+`/`+c[0],r=sd(n.title);c.length===1&&r&&ld.set(t,r),s.push({text:ld.get(t)||e,route:t}),c[1]===`edit`?s.push({text:o(`edit`,l?`es`:`en`)}):c.length>1&&s.push({text:r||decodeURIComponent(c[c.length-1])})}}if(s.length<2)return[];let u=s[s.length-1];return s[s.length-1]={text:u.text},s}var dd,fd=!1,pd,md,hd=new Set;function gd(e,t,n,r){if(pd&&pd!==e&&pd.isConnected!==!1)return;pd=e;let i=dd!==t||fd!==!!n;dd=t,fd=!!n,md=r,i&&hd.forEach(e=>e())}function _d(e){return hd.add(e),()=>{hd.delete(e)}}function vd(e){if(!md)return!1;let t=rl(dd,e);return t?(md(t,e),!0):!1}function yd(e,t){return fd?[]:ud(dd,e,t)}var bd=new WeakMap,xd=e=>{let t=bd.get(e);return t===void 0&&(t=typeof window<`u`?window.location.pathname:``,bd.set(e,t)),t},Sd=new class{constructor(){this._dirty=!1,this._installed=!1,this.message=o(`unsavedChanges`),this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=e=>{this._dirty&&(e.preventDefault(),e.returnValue=``)}}install(){this._installed||(this._installed=!0,document.addEventListener(`dirty`,this._onDirty),document.addEventListener(`clean`,this._onClean),window.addEventListener(`beforeunload`,this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;let e=window.confirm(this.message);return e&&(this._dirty=!1),e}},Cd=`_record`,wd=e=>String(e??``).normalize(`NFD`).replace(/[̀-ͯ]/g,``).toLowerCase().trim(),Td=(e,t)=>{let n=wd(t).split(/\s+/).filter(Boolean);return n.length===0?e:e.filter(e=>{let t=wd(e.label)+` `+wd(e.description);return n.every(e=>t.includes(e))})},Ed=e=>(e.options??[]).find(t=>String(t.value)===String(e.value??``)),Dd=(e,t)=>e.disabled||t==null||String(t)===String(e.value??``)?null:{actionId:e.actionId,parameters:{[Cd]:t}},Od=(e,t,n,r)=>{if(!e.route||!Dd(e,t))return null;let i=r(e.route,{...n,[Cd]:t});return i&&!i.includes("${")?i:null},kd;async function Ad(e){if(!kd)return{};try{return await kd(e)??{}}catch(e){return console.warn(`mateu: external auth provider failed`,e),{}}}function jd(e,t){return t?t.split(`.`).reduce((e,t)=>typeof e==`object`&&e?e[t]:void 0,e):e}function Md(e,t,n=`value`,r=`label`){let i=jd(e,t);return Array.isArray(i)?i.map(e=>{if(typeof e==`object`&&e){let t=jd(e,n),i=jd(e,r);return{value:t??i,label:String(i??t??``)}}return{value:e,label:String(e)}}):[]}function Nd(e,t,n,r=e=>e){let i=jd(e,t);return Array.isArray(i)?i.map(e=>{let t={};for(let i of n)t[i]=jd(e,r(i));return t}):[]}var Pd=null;function Fd(e){Pd=e}async function Id(e,t=e=>e,n=fetch,r){e?.ref&&!ce(e.ref)&&await b();let i=S(e),a=(i.method||`GET`).toUpperCase(),o=t.url??t;if(Pd){let t=i.url?o(i.url)??i.url:``,n=Pd({url:t,ref:e.ref,method:a});if(n!==void 0)return n}if(C(e))return a!==`GET`&&a!==`HEAD`?null:structuredClone(me(e));if(!i.url)throw Error(`External REST fetch has no url${e.ref?` (unknown source "${e.ref}")`:``}`);let s=o(i.url)??i.url,c={};for(let[e,n]of Object.entries(i.headers??{}))c[e]=t(n)??n;Object.assign(c,await Ad({url:s,method:a}));let l={method:a,headers:c};a!==`GET`&&a!==`HEAD`&&i.body&&(l.body=(r&&ie(c)?r:t)(i.body)??i.body);let u=await n(s,l);if(!u.ok)throw Error(`External REST fetch failed: ${u.status}`);if(u.status===204||u.status===205)return null;if(typeof u.text!=`function`)return u.json();let d=await u.text();return d.trim()===``?null:JSON.parse(d)}async function Ld(e,t=e=>e,n=fetch){let r=await Id(e,t,n),i=S(e);return Md(r,i.itemsPath,i.valuePath,i.labelPath)}async function Rd(e,t,n=e=>e,r=fetch){return Nd(await Id(e,n,r),S(e).itemsPath,t,t=>T(e,t))}async function zd(e,t,n=e=>e,r=fetch){return Bd(await Id(e,n,r),e,t)}function Bd(e,t,n){let r=Nd(e,S(t).itemsPath,n,e=>T(t,e)),i=jd(e,he(t)),a=typeof i==`number`?i:Number(i);return{rows:r,total:Number.isFinite(a)?a:null}}async function Vd(e,t,n,r,i,a,o){if(w(r)){let r=(await Kc.runAction(t??``,e.rootRoute??``,``,`_appsource`,`app-source`,void 0,e.serverSideType,{},{...i,_appSource:n,...o?{_field:o}:{}},a,!0))?.appData??{},s=r._restfetchError;if(s)throw Error(s.message??`Request failed`);return r._restfetch}return Id(r,Wu(i,{}))}function Hd(e,t){let n=S(t),r=n?.itemsPath?jd(e,n.itemsPath):e;return Array.isArray(r)?r:[]}var Ud=e=>e==null||e===``?null:String(e);function Wd(e,t){let n=(e,n)=>jd(e,T(t,n));return Hd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>{let t=n(e,`unread`);return{id:String(n(e,`id`)??``),title:String(n(e,`title`)??``),text:Ud(n(e,`text`)),route:Ud(n(e,`route`)),unread:t==null||t===!0||t===`true`,when:Ud(n(e,`when`))}})}function Gd(e,t){let n=(e,n)=>jd(e,T(t,n));return Hd(e,t).filter(e=>typeof e==`object`&&!!e).map(e=>({label:String(n(e,`label`)??``),description:Ud(n(e,`description`)),route:String(n(e,`route`)??``),category:Ud(n(e,`category`))})).filter(e=>e.route!==``)}function Kd(e,t){let n=S(t)??t;return Md(e,n.itemsPath,n.valuePath||`value`,n.labelPath||`label`)}function qd(e,t){return{ids:e.join(`,`),id:e[0]??``,all:t}}async function Jd(e,t,n,r,i){let a=e.globalSearchSource;return a?Gd(await Vd(e,t,`globalSearch`,a,{searchText:n},r),a):(await Kc.runAction(t??``,e.rootRoute??``,``,`_globalsearch`,i,void 0,e.serverSideType,{},{searchText:n},r,!0))?.fragments?.map(e=>e.data).find(e=>e&&e._globalsearch)?._globalsearch??[]}var V=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     [role="button"]:focus-visible,
     [role="option"]:focus-visible,
     [role="treeitem"]:focus-visible,
@@ -221,10 +253,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         border-radius: var(--lumo-border-radius-s, 4px);
     }
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,Jd=class extends _{constructor(...e){super(...e),this.state={},this.data={},this.open=!1,this.filter=``,this.active=0}effective(){let e=this.switcher;return!e||(e.options?.length??0)>0||!e.optionsSource?e:{...e,options:this.fetched??[]}}willUpdate(){let e=this.switcher?.optionsSource;!e||(this.switcher?.options?.length??0)>0||this.fetchedFrom===e||(this.fetchedFrom=e,Fd(e,Uu(this.state,this.data)).then(t=>{this.fetched=Gd(t,e)}).catch(()=>{this.fetched=[]}))}pick(e){let t=this.effective();if(!t)return;let n=Ed(t,e);if(this.open=!1,this.filter=``,!n)return;let r=Dd(t,e,this.state??{},(e,t)=>L(e,t,this.data));if(r){if(!xd.confirmLeave())return;rd(this,r);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:n,bubbles:!0,composed:!0}))}visible(){return wd(this.effective()?.options??[],this.filter)}onKey(e){let t=this.visible();e.key===`ArrowDown`?(e.preventDefault(),this.open=!0,this.active=Math.min(t.length-1,this.active+1)):e.key===`ArrowUp`?(e.preventDefault(),this.active=Math.max(0,this.active-1)):e.key===`Enter`?(e.preventDefault(),this.open&&t[this.active]&&this.pick(t[this.active].value)):e.key===`Escape`&&(this.open=!1,this.filter=``)}render(){let e=this.effective();if(!e)return p;let t=Td(e),n=e.label??(e.type===`context`?o(`context`):``);if(!e.searchable)return l`
 ========
 `,Yd=class extends _{constructor(...e){super(...e),this.state={},this.data={},this.open=!1,this.filter=``,this.active=0}effective(){let e=this.switcher;return!e||(e.options?.length??0)>0||!e.optionsSource?e:{...e,options:this.fetched??[]}}willUpdate(){let e=this.switcher?.optionsSource;!e||(this.switcher?.options?.length??0)>0||this.fetchedFrom===e||(this.fetchedFrom=e,Id(e,Wu(this.state,this.data)).then(t=>{this.fetched=Kd(t,e)}).catch(()=>{this.fetched=[]}))}pick(e){let t=this.effective();if(!t)return;let n=Dd(t,e);if(this.open=!1,this.filter=``,!n)return;let r=Od(t,e,this.state??{},(e,t)=>L(e,t,this.data));if(r){if(!Sd.confirmLeave())return;id(this,r);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:n,bubbles:!0,composed:!0}))}visible(){return Td(this.effective()?.options??[],this.filter)}onKey(e){let t=this.visible();e.key===`ArrowDown`?(e.preventDefault(),this.open=!0,this.active=Math.min(t.length-1,this.active+1)):e.key===`ArrowUp`?(e.preventDefault(),this.active=Math.max(0,this.active-1)):e.key===`Enter`?(e.preventDefault(),this.open&&t[this.active]&&this.pick(t[this.active].value)):e.key===`Escape`&&(this.open=!1,this.filter=``)}render(){let e=this.effective();if(!e)return p;let t=Ed(e),n=e.label??(e.type===`context`?o(`context`):``);if(!e.searchable)return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+`,Yd=class extends _{constructor(...e){super(...e),this.state={},this.data={},this.open=!1,this.filter=``,this.active=0}effective(){let e=this.switcher;return!e||(e.options?.length??0)>0||!e.optionsSource?e:{...e,options:this.fetched??[]}}willUpdate(){let e=this.switcher?.optionsSource;!e||(this.switcher?.options?.length??0)>0||this.fetchedFrom===e||(this.fetchedFrom=e,Id(e,Wu(this.state,this.data)).then(t=>{this.fetched=Kd(t,e)}).catch(()=>{this.fetched=[]}))}pick(e){let t=this.effective();if(!t)return;let n=Dd(t,e);if(this.open=!1,this.filter=``,!n)return;let r=Od(t,e,this.state??{},(e,t)=>R(e,t,this.data));if(r){if(!Sd.confirmLeave())return;id(this,r);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:n,bubbles:!0,composed:!0}))}visible(){return Td(this.effective()?.options??[],this.filter)}onKey(e){let t=this.visible();e.key===`ArrowDown`?(e.preventDefault(),this.open=!0,this.active=Math.min(t.length-1,this.active+1)):e.key===`ArrowUp`?(e.preventDefault(),this.active=Math.max(0,this.active-1)):e.key===`Enter`?(e.preventDefault(),this.open&&t[this.active]&&this.pick(t[this.active].value)):e.key===`Escape`&&(this.open=!1,this.filter=``)}render(){let e=this.effective();if(!e)return p;let t=Ed(e),n=e.label??(e.type===`context`?o(`context`):``);if(!e.searchable)return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 <label class="switcher ${e.type??`object`}">
                     ${n?l`<span class="hint">${n}</span>`:p}
                     <select ?disabled=${!!e.disabled} aria-label="${n||o(`switchRecord`)}"
@@ -285,10 +321,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         li small { color: var(--lumo-secondary-text-color, #6b7280); }
         li.none { color: var(--lumo-secondary-text-color, #6b7280); cursor: default; }
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `]}};a([n({attribute:!1})],Jd.prototype,`switcher`,void 0),a([n({attribute:!1})],Jd.prototype,`state`,void 0),a([n({attribute:!1})],Jd.prototype,`data`,void 0),a([s()],Jd.prototype,`fetched`,void 0),a([s()],Jd.prototype,`open`,void 0),a([s()],Jd.prototype,`filter`,void 0),a([s()],Jd.prototype,`active`,void 0),Jd=a([i(`mateu-record-switcher`)],Jd);var Yd=e=>{let t=[];return e.color&&e.color!==`normal`&&e.color!==`none`&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle===`tertiaryInline`?`tertiary-inline`:e.buttonStyle),e.size&&e.size!==`none`&&e.size!==`normal`&&t.push(e.size),t.length?t.join(` `):void 0},Xd=e=>{let t=Yd(e)??``,n=[];return t.includes(`primary`)&&n.push(`primary`),t.includes(`tertiary`)&&n.push(`tertiary`),(t.includes(`error`)||e.color===`error`)&&n.push(`danger`),n.join(` `)},Zd=class extends _{constructor(...e){super(...e),this.appState={},this.appData={},this._overflowOpen=!1,this._overflowN=0,this._secCount=0,this._onDocClick=e=>{e.composedPath().includes(this)||(this._overflowOpen=!1)},this._onSelectionChanged=()=>this.requestUpdate(),this._resetOverflow=()=>{this._overflowN===0?this.requestUpdate():this._overflowN=0},this.handleButtonClick=e=>{this._overflowOpen=!1;let t=e.route?L(e.route,this.state,this.data):void 0;if(t&&!t.includes("${")){rd(this,t);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{crud_selected_items:this.listingSelection()}},bubbles:!0,composed:!0}))},this.listingSelection=()=>{let e=this.findSiblingCrud()?.state?.crud_selected_items;return Array.isArray(e)?e:[]},this.findSiblingCrud=()=>{let e=t=>{for(let n of Array.from(t.querySelectorAll(`*`))){if(n.tagName===`MATEU-TABLE-CRUD`)return n;if(n.shadowRoot){let t=e(n.shadowRoot);if(t)return t}}return null},t=this;for(;t;){let n=t,r=n.parentElement??(n.getRootNode?.()instanceof ShadowRoot?n.getRootNode().host:null);if(!r)break;let i=e(r);if(i)return i;t=r}return null},this.evalLabel=e=>L(e,this.state,this.data),this.renderBackChevron=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.evalLabel(e.label);return l`
 ========
     `]}};a([n({attribute:!1})],Yd.prototype,`switcher`,void 0),a([n({attribute:!1})],Yd.prototype,`state`,void 0),a([n({attribute:!1})],Yd.prototype,`data`,void 0),a([s()],Yd.prototype,`fetched`,void 0),a([s()],Yd.prototype,`open`,void 0),a([s()],Yd.prototype,`filter`,void 0),a([s()],Yd.prototype,`active`,void 0),Yd=a([i(`mateu-record-switcher`)],Yd);var Xd=e=>{let t=[];return e.color&&e.color!==`normal`&&e.color!==`none`&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle===`tertiaryInline`?`tertiary-inline`:e.buttonStyle),e.size&&e.size!==`none`&&e.size!==`normal`&&t.push(e.size),t.length?t.join(` `):void 0},Zd=e=>{let t=Xd(e)??``,n=[];return t.includes(`primary`)&&n.push(`primary`),t.includes(`tertiary`)&&n.push(`tertiary`),(t.includes(`error`)||e.color===`error`)&&n.push(`danger`),n.join(` `)},Qd=class extends _{constructor(...e){super(...e),this.appState={},this.appData={},this._overflowOpen=!1,this._overflowN=0,this._secCount=0,this._onDocClick=e=>{e.composedPath().includes(this)||(this._overflowOpen=!1)},this._onSelectionChanged=()=>this.requestUpdate(),this._resetOverflow=()=>{this._overflowN===0?this.requestUpdate():this._overflowN=0},this.handleButtonClick=e=>{this._overflowOpen=!1;let t=e.route?L(e.route,this.state,this.data):void 0;if(t&&!t.includes("${")){id(this,t);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{crud_selected_items:this.listingSelection()}},bubbles:!0,composed:!0}))},this.listingSelection=()=>{let e=this.findSiblingCrud()?.state?.crud_selected_items;return Array.isArray(e)?e:[]},this.findSiblingCrud=()=>{let e=t=>{for(let n of Array.from(t.querySelectorAll(`*`))){if(n.tagName===`MATEU-TABLE-CRUD`)return n;if(n.shadowRoot){let t=e(n.shadowRoot);if(t)return t}}return null},t=this;for(;t;){let n=t,r=n.parentElement??(n.getRootNode?.()instanceof ShadowRoot?n.getRootNode().host:null);if(!r)break;let i=e(r);if(i)return i;t=r}return null},this.evalLabel=e=>L(e,this.state,this.data),this.renderBackChevron=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.evalLabel(e.label);return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `]}};a([n({attribute:!1})],Yd.prototype,`switcher`,void 0),a([n({attribute:!1})],Yd.prototype,`state`,void 0),a([n({attribute:!1})],Yd.prototype,`data`,void 0),a([s()],Yd.prototype,`fetched`,void 0),a([s()],Yd.prototype,`open`,void 0),a([s()],Yd.prototype,`filter`,void 0),a([s()],Yd.prototype,`active`,void 0),Yd=a([i(`mateu-record-switcher`)],Yd);var Xd=e=>{let t=[];return e.color&&e.color!==`normal`&&e.color!==`none`&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle===`tertiaryInline`?`tertiary-inline`:e.buttonStyle),e.size&&e.size!==`none`&&e.size!==`normal`&&t.push(e.size),t.length?t.join(` `):void 0},Zd=e=>{let t=Xd(e)??``,n=[];return t.includes(`primary`)&&n.push(`primary`),t.includes(`tertiary`)&&n.push(`tertiary`),(t.includes(`error`)||e.color===`error`)&&n.push(`danger`),n.join(` `)},Qd=(e,t,n,r)=>n.right>r.right+1||t.some(t=>t.height>0&&e.top>=t.bottom-1),$d=class extends _{constructor(...e){super(...e),this.appState={},this.appData={},this._overflowOpen=!1,this._overflowN=0,this._secCount=0,this._onDocClick=e=>{e.composedPath().includes(this)||(this._overflowOpen=!1)},this._onSelectionChanged=()=>this.requestUpdate(),this._resetOverflow=()=>{this._overflowN===0?this.requestUpdate():this._overflowN=0},this.handleButtonClick=e=>{this._overflowOpen=!1;let t=e.route?R(e.route,this.state,this.data):void 0;if(t&&!t.includes("${")){id(this,t);return}this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{crud_selected_items:this.listingSelection()}},bubbles:!0,composed:!0}))},this.listingSelection=()=>{let e=this.findSiblingCrud()?.state?.crud_selected_items;return Array.isArray(e)?e:[]},this.findSiblingCrud=()=>{let e=t=>{for(let n of Array.from(t.querySelectorAll(`*`))){if(n.tagName===`MATEU-TABLE-CRUD`)return n;if(n.shadowRoot){let t=e(n.shadowRoot);if(t)return t}}return null},t=this;for(;t;){let n=t,r=n.parentElement??(n.getRootNode?.()instanceof ShadowRoot?n.getRootNode().host:null);if(!r)break;let i=e(r);if(i)return i;t=r}return null},this.evalLabel=e=>R(e,this.state,this.data),this.renderBackChevron=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.evalLabel(e.label);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <button class="back-chevron"
                 data-action-id="${e.id}"
                 title="${t}"
@@ -299,12 +339,17 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         </button>`},this.gated=e=>e.rowsSelectedRequired?Kl(e,this.listingSelection()):e,this.renderBtn=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.gated(e),n=this.evalLabel(t.label),r=z.get()?.renderToolbarButton?.(t,n,()=>this.handleButtonClick(t));return r?ro(t,r):ro(t,l`
         <button class="mtb ${Xd(t)}"
 ========
         </button>`},this.gated=e=>e.rowsSelectedRequired?ql(e,this.listingSelection()):e,this.renderBtn=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.gated(e),n=this.evalLabel(t.label),r=z.get()?.renderToolbarButton?.(t,n,()=>this.handleButtonClick(t));return r?ro(t,r):ro(t,l`
         <button class="mtb ${Zd(t)}"
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+        </button>`},this.gated=e=>e.rowsSelectedRequired?Kl(e,this.listingSelection()):e,this.renderBtn=e=>{if((this.data??{})[e.actionId+`.hidden`])return p;let t=this.gated(e),n=this.evalLabel(t.label),r=z.get()?.renderToolbarButton?.(t,n,()=>this.handleButtonClick(t));return r?no(t,r):no(t,l`
+        <button class="mtb ${Zd(t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 data-action-id="${t.id}"
                 @click="${()=>this.handleButtonClick(t)}"
                 ?disabled="${t.disabled}"
@@ -337,14 +382,19 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         aria-label="${t.prevLabel??o(`previous`)}"
                         ?disabled="${!t.prevRoute}"
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         @click="${()=>{t.prevRoute&&Cl(t.prevRoute)}}">‹</button>
 ========
                         @click="${()=>{t.prevRoute&&wl(t.prevRoute)}}">‹</button>
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+                        @click="${()=>{t.prevRoute&&Cl(t.prevRoute)}}">‹</button>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 <button class="mtb tertiary peer-nav-next"
                         title="${t.nextLabel??o(`next`)}"
                         aria-label="${t.nextLabel??o(`next`)}"
                         ?disabled="${!t.nextRoute}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         @click="${()=>{t.nextRoute&&Cl(t.nextRoute)}}">›</button>
             </div>
@@ -354,6 +404,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             </div>
         `},this.peerRoute=e=>L(e,this.state,this.data)??e,this.renderSwitcher=e=>{let t=z.get()?.renderRecordSwitcher?.(e);if(t)return t;let n=typeof e.value==`string`&&e.value.includes("${")?{...e,value:L(e.value,this.state,this.data)}:e;return l`<mateu-record-switcher .switcher=${n} .state=${this.state} .data=${this.data}></mateu-record-switcher>`}}connectedCallback(){super.connectedCallback(),document.addEventListener(`click`,this._onDocClick),this._ro=new ResizeObserver(()=>this._resetOverflow()),this._ro.observe(this),window.addEventListener(`resize`,this._resetOverflow),this._offShellMenu=_d(()=>this.requestUpdate()),document.addEventListener(Jl,this._onSelectionChanged)}disconnectedCallback(){this._offShellMenu?.(),this._offShellMenu=void 0,document.removeEventListener(`click`,this._onDocClick),document.removeEventListener(Jl,this._onSelectionChanged),window.removeEventListener(`resize`,this._resetOverflow),this._ro?.disconnect(),this._ro=void 0,super.disconnectedCallback()}updated(e){if(e.has(`_overflowOpen`)&&this._overflowOpen&&this._placeOverflowMenu(),e.has(`metadata`)||e.has(`data`)){this._resetOverflow();return}if(this._inDialog()){this._overflowN!==0&&(this._overflowN=0);return}let t=this.renderRoot.querySelector(`.actions-cluster`);if(!t||this._secCount===0)return;let n=t.closest(`.form-header, .no-header-row`);if(!n)return;let r=t.getBoundingClientRect(),i=n.getBoundingClientRect();(r.top-i.top>8||r.right>i.right+1)&&this._overflowN<this._secCount&&(this._overflowN+=1)}_inDialog(){let e=this;for(;e;){let t=e.tagName;if(t===`VAADIN-DIALOG-OVERLAY`||t===`DIALOG`||e.getAttribute?.(`role`)===`dialog`)return!0;e=e.parentElement??e.getRootNode?.()?.host}return!1}_placeOverflowMenu(){let e=this.renderRoot.querySelector(`.overflow-menu`);e&&(e.classList.remove(`flip`),e.getBoundingClientRect().left<0&&e.classList.add(`flip`))}crumbsOf(e,t){return e?.breadcrumbs&&e.breadcrumbs.length>0?e.breadcrumbs.map(e=>({text:e.text,route:e.link||void 0})):t>0||e?.type!==E.Page||e.noBreadcrumbs?[]:yd(xd(e),{title:e.title,pageType:e.pageType})}goToCrumb(e){if(/^[a-z][a-z0-9+.-]*:/i.test(e)){wl(e);return}Sd.confirmLeave()&&(vd(e)||id(this,e))}render(){let e=this.metadata;if(!e)return l``;let t=e.peerNav&&(e.peerNav.prevRoute||e.peerNav.nextRoute)?e.peerNav:void 0,n=e.toolbar??[],r=!e.noHeader,i=n.filter(e=>nd(e.actionId)&&!(r&&ed(e.actionId))),a=r?n.filter(e=>ed(e.actionId)):[],s=n.filter(e=>!nd(e.actionId)),c=i.length>0&&s.length>0?l`<span class="toolbar-divider"></span>`:p,u=e.overline,d=e.title?void 0:e.titlePlaceholder,f=e.avatar||e.title||e.subtitle||u||d||e.kpis?.length>0||e.header?.length>0||n.length>0||!!t||!!e.switcher,m=e.level??0;m>0?this.setAttribute(`data-nested`,``):this.removeAttribute(`data-nested`);let h=this.crumbsOf(e,m);return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+                        @click="${()=>{t.nextRoute&&Cl(t.nextRoute)}}">›</button>
+            </div>
+        `},this.peerRoute=e=>R(e,this.state,this.data)??e,this.renderSwitcher=e=>{let t=z.get()?.renderRecordSwitcher?.(e);if(t)return t;let n=typeof e.value==`string`&&e.value.includes("${")?{...e,value:R(e.value,this.state,this.data)}:e;return l`<mateu-record-switcher .switcher=${n} .state=${this.state} .data=${this.data}></mateu-record-switcher>`}}connectedCallback(){super.connectedCallback(),document.addEventListener(`click`,this._onDocClick),this._ro=new ResizeObserver(()=>this._resetOverflow()),this._ro.observe(this),window.addEventListener(`resize`,this._resetOverflow),this._offShellMenu=_d(()=>this.requestUpdate()),document.addEventListener(ql,this._onSelectionChanged)}disconnectedCallback(){this._offShellMenu?.(),this._offShellMenu=void 0,document.removeEventListener(`click`,this._onDocClick),document.removeEventListener(ql,this._onSelectionChanged),window.removeEventListener(`resize`,this._resetOverflow),this._ro?.disconnect(),this._ro=void 0,super.disconnectedCallback()}updated(e){if(e.has(`_overflowOpen`)&&this._overflowOpen&&this._placeOverflowMenu(),e.has(`metadata`)||e.has(`data`)){this._resetOverflow();return}if(this._inDialog()){this._overflowN!==0&&(this._overflowN=0);return}let t=this.renderRoot.querySelector(`.actions-cluster`);if(!t||this._secCount===0)return;let n=t.closest(`.form-header, .no-header-row`);if(!n)return;let r=t;for(;r.parentElement&&r.parentElement!==n;)r=r.parentElement;let i=r===t&&t.parentElement!==n?[]:[...n.children].filter(e=>e!==r).map(e=>e.getBoundingClientRect());Qd(r.getBoundingClientRect(),i,t.getBoundingClientRect(),n.getBoundingClientRect())&&this._overflowN<this._secCount&&(this._overflowN+=1)}_inDialog(){let e=this;for(;e;){let t=e.tagName;if(t===`VAADIN-DIALOG-OVERLAY`||t===`DIALOG`||e.getAttribute?.(`role`)===`dialog`)return!0;e=e.parentElement??e.getRootNode?.()?.host}return!1}_placeOverflowMenu(){let e=this.renderRoot.querySelector(`.overflow-menu`);e&&(e.classList.remove(`flip`),e.getBoundingClientRect().left<0&&e.classList.add(`flip`))}crumbsOf(e,t){return e?.breadcrumbs&&e.breadcrumbs.length>0?e.breadcrumbs.map(e=>({text:e.text,route:e.link||void 0})):t>0||e?.type!==D.Page||e.noBreadcrumbs?[]:yd(xd(e),{title:e.title,pageType:e.pageType})}goToCrumb(e){if(/^[a-z][a-z0-9+.-]*:/i.test(e)){Cl(e);return}Sd.confirmLeave()&&(vd(e)||id(this,e))}render(){let e=this.metadata;if(!e)return l``;let t=e.peerNav&&(e.peerNav.prevRoute||e.peerNav.nextRoute)?e.peerNav:void 0,n=e.toolbar??[],r=!e.noHeader,i=n.filter(e=>nd(e.actionId)&&!(r&&ed(e.actionId))),a=r?n.filter(e=>ed(e.actionId)):[],s=n.filter(e=>!nd(e.actionId)),c=i.length>0&&s.length>0?l`<span class="toolbar-divider"></span>`:p,u=e.overline,d=e.title?void 0:e.titlePlaceholder,f=e.avatar||e.title||e.subtitle||u||d||e.kpis?.length>0||e.header?.length>0||n.length>0||!!t||!!e.switcher,m=e.level??0;m>0?this.setAttribute(`data-nested`,``):this.removeAttribute(`data-nested`);let h=this.crumbsOf(e,m);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             ${h.length>0?l`
                 <nav class="breadcrumbs-bar" aria-label="${o(`breadcrumb`)}">
                     ${h.map((e,t)=>l`
@@ -376,6 +431,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${a.map(this.renderBackChevron)}
                     ${e.avatar?B(this,e.avatar,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData):p}
                     <div style="flex: 1; min-width: min(22rem, 100%); overflow: ${e.switcher?`visible`:`hidden`};">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         ${u?l`<div class="page-overline">${F(R(u,this.state??{},this.data??{}))}</div>`:p}
                         ${(e?.title||d)&&m==0?l`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
@@ -395,12 +451,33 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 
                         ${e?.subtitle?l`<span style="display: inline-block; margin-block-end: 0.83em;">${F(R(e?.subtitle,this.state??{},this.data??{}))}</span>`:p}
                         ${e?.timestamp?l`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${F(R(e.timestamp,this.state??{},this.data??{}))}</span>`:p}
+========
+                        ${u?l`<div class="page-overline">${I(Pu(u,this.state??{},this.data??{}))}</div>`:p}
+                        ${(e?.title||d)&&m==0?l`
+                            <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
+                                <h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${e?.title?I(Pu(e?.title,this.state??{},this.data??{})):l`<span class="page-title-placeholder">${I(Pu(d,this.state??{},this.data??{}))}</span>`}</h2>
+                                ${e.kpisBelow&&e.badges?.length?e.badges.map(e=>Zu(e,this.state??{},this.data??{},{pill:!0})):p}
+                                ${e.switcher?this.renderSwitcher(e.switcher):p}
+                            </div>`:p}
+                        ${e.switcher&&!((e?.title||d)&&m==0)?this.renderSwitcher(e.switcher):p}
+                        ${e?.title&&m==1?l`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${I(Pu(e?.title,this.state??{},this.data??{}))}</h3>`:p}
+                        ${e?.title&&m==2?l`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${I(Pu(e?.title,this.state??{},this.data??{}))}</h4>`:p}
+                        ${e?.title&&m==3?l`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${I(Pu(e?.title,this.state??{},this.data??{}))}</h5>`:p}
+                        ${e?.title&&m>3?l`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${I(Pu(e?.title,this.state??{},this.data??{}))}</h6>`:p}
+
+                        ${e?.subtitle?l`<span style="display: inline-block; margin-block-end: 0.83em;">${I(Pu(e?.subtitle,this.state??{},this.data??{}))}</span>`:p}
+                        ${e?.timestamp?l`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${I(Pu(e.timestamp,this.state??{},this.data??{}))}</span>`:p}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${e.kpisBelow?p:e?.kpis?.map(e=>l`
                             <div class="header-fact">
                                 <span class="header-fact-label">${this.evalLabel(e.title)}</span>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                 <span class="header-fact-value">${F(R(e.text,this.state??{},this.data??{}))}</span>
+========
+                                <span class="header-fact-value">${I(Pu(e.text,this.state??{},this.data??{}))}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             </div>
                         `)}
                         ${e?.header?.map(e=>B(this,e,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
@@ -416,7 +493,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${e.kpis.map(e=>l`
                         <div class="kpi-pair">
                             <span class="kpi-label">${this.evalLabel(e.title)}</span>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             <span class="kpi-value">${F(R(e.text,this.state??{},this.data??{}))}</span>
+========
+                            <span class="kpi-value">${I(Pu(e.text,this.state??{},this.data??{}))}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     `)}
                 </div>
@@ -622,12 +703,17 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .mtb.danger { color: var(--lumo-error-text-color, #c0392b); border-color: var(--lumo-error-color-50pct, rgba(192,57,43,.5)); }
         .mtb.danger.primary { background: var(--lumo-error-color, #c0392b); color: #fff; border-color: transparent; }
 
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         ${_e}
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `,ve]}};a([n()],Zd.prototype,`metadata`,void 0),a([n()],Zd.prototype,`baseUrl`,void 0),a([n()],Zd.prototype,`state`,void 0),a([n()],Zd.prototype,`data`,void 0),a([n()],Zd.prototype,`appState`,void 0),a([n()],Zd.prototype,`appData`,void 0),a([s()],Zd.prototype,`_overflowOpen`,void 0),a([s()],Zd.prototype,`_overflowN`,void 0),Zd=a([i(`mateu-content-header`)],Zd);var Qd=e=>{let t=e?.line;return typeof t==`number`&&t>1?Math.floor(t):1};function $d(e,t=e=>e){let n=[],r=new Map;for(let i of e??[]){let e=Qd(t(i));e===1?n.push(i):(r.has(e)||r.set(e,[]),r.get(e).push(i))}return{first:n,extra:[...r.keys()].sort((e,t)=>e-t).map(e=>r.get(e))}}function ef(e,t=e=>e){let{first:n,extra:r}=$d(e,t);return[...n,...r.flat()]}var tf=class extends _{constructor(...e){super(...e),this.variant=`text`,this.count=3}static{this.styles=h`
 ========
     `,ve]}};a([n()],Qd.prototype,`metadata`,void 0),a([n()],Qd.prototype,`baseUrl`,void 0),a([n()],Qd.prototype,`state`,void 0),a([n()],Qd.prototype,`data`,void 0),a([n()],Qd.prototype,`appState`,void 0),a([n()],Qd.prototype,`appData`,void 0),a([s()],Qd.prototype,`_overflowOpen`,void 0),a([s()],Qd.prototype,`_overflowN`,void 0),Qd=a([i(`mateu-content-header`)],Qd);var $d=e=>{let t=e?.line;return typeof t==`number`&&t>1?Math.floor(t):1};function ef(e,t=e=>e){let n=[],r=new Map;for(let i of e??[]){let e=$d(t(i));e===1?n.push(i):(r.has(e)||r.set(e,[]),r.get(e).push(i))}return{first:n,extra:[...r.keys()].sort((e,t)=>e-t).map(e=>r.get(e))}}function tf(e,t=e=>e){let{first:n,extra:r}=ef(e,t);return[...n,...r.flat()]}var nf=class extends _{constructor(...e){super(...e),this.variant=`text`,this.count=3}static{this.styles=h`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+        ${ge}
+    `,_e]}};a([n()],$d.prototype,`metadata`,void 0),a([n()],$d.prototype,`baseUrl`,void 0),a([n()],$d.prototype,`state`,void 0),a([n()],$d.prototype,`data`,void 0),a([n()],$d.prototype,`appState`,void 0),a([n()],$d.prototype,`appData`,void 0),a([s()],$d.prototype,`_overflowOpen`,void 0),a([s()],$d.prototype,`_overflowN`,void 0),$d=a([i(`mateu-content-header`)],$d);var ef=e=>{let t=e?.line;return typeof t==`number`&&t>1?Math.floor(t):1};function tf(e,t=e=>e){let n=[],r=new Map;for(let i of e??[]){let e=ef(t(i));e===1?n.push(i):(r.has(e)||r.set(e,[]),r.get(e).push(i))}return{first:n,extra:[...r.keys()].sort((e,t)=>e-t).map(e=>r.get(e))}}function nf(e,t=e=>e){let{first:n,extra:r}=tf(e,t);return[...n,...r.flat()]}var rf=class extends _{constructor(...e){super(...e),this.variant=`text`,this.count=3}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             flex: 1 1 0;
@@ -661,15 +747,24 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <div class="bone label"></div>
                     <div class="bone field"></div>
                 </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `)}`:l`${e.map(()=>l`<div class="bone line"></div>`)}`}};a([n()],nf.prototype,`variant`,void 0),a([n({type:Number})],nf.prototype,`count`,void 0),nf=a([i(`mateu-skeleton`)],nf);var H=(e,t,n,r)=>{if(!e)return l``;let i=z.get()?.renderIcon;if(i){let a=i.call(z.get(),e,t,n);return r?l`<span slot="${r}">${a}</span>`:a}return l`<span class="mateu-icon ${n??``}" data-icon="${e}" aria-hidden="true"
                       style="display:inline-block; width:1em; height:1em; ${t??``}" slot="${r??p}"></span>`},rf=`vaadin:ban`,af=e=>{let t=e??rf;return t.includes(`:`)?z.get()?.renderIcon?H(t,`width: 1.8rem; height: 1.8rem;`):l`${e?p:`🗂`}`:l`${t}`},of=(e,t)=>{t&&e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},sf=(e,t,n,r,i,a)=>l`
         <div class="mateu-empty-state"
              style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; padding: var(--lumo-space-l, 1.5rem); text-align: center; color: var(--lumo-secondary-text-color, #666);">
             <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${af(t)}</span>
+========
+            `)}`:l`${e.map(()=>l`<div class="bone line"></div>`)}`}};a([n()],rf.prototype,`variant`,void 0),a([n({type:Number})],rf.prototype,`count`,void 0),rf=a([i(`mateu-skeleton`)],rf);var H=(e,t,n,r)=>{if(!e)return l``;let i=z.get()?.renderIcon;if(i){let a=i.call(z.get(),e,t,n);return r?l`<span slot="${r}">${a}</span>`:a}return l`<span class="mateu-icon ${n??``}" data-icon="${e}" aria-hidden="true"
+                      style="display:inline-block; width:1em; height:1em; ${t??``}" slot="${r??p}"></span>`},af=`vaadin:ban`,of=e=>{let t=e??af;return t.includes(`:`)?z.get()?.renderIcon?H(t,`width: 1.8rem; height: 1.8rem;`):l`${e?p:`🗂`}`:l`${t}`},sf=(e,t)=>{t&&e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},cf=(e,t,n,r,i,a)=>l`
+        <div class="mateu-empty-state"
+             style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; padding: var(--lumo-space-l, 1.5rem); text-align: center; color: var(--lumo-secondary-text-color, #666);">
+            <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${of(t)}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             ${n?l`<span style="font-weight: 600; color: var(--lumo-body-text-color, #333);">${n}</span>`:p}
             <span style="font-size: var(--lumo-font-size-s, .875rem);">${r??e??o(`nothingHere`)}</span>
             ${i&&a?l`
                 <button style="margin-top: .25rem; font: inherit; font-weight: 500; cursor: pointer; padding: .4rem .9rem; border: none; border-radius: var(--lumo-border-radius-m, 6px); background: transparent; color: var(--lumo-primary-text-color, #3b5bdb);"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         @click="${e=>of(e,i)}">${a}</button>
             `:p}
         </div>
@@ -678,6 +773,16 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${sf(void 0,t.icon,t.title,t.description,t.actionId,t.actionLabel)}
         </div>
     `},lf=e=>{let t=e.metadata;return l`
+========
+                        @click="${e=>sf(e,i)}">${a}</button>
+            `:p}
+        </div>
+    `,lf=e=>{let t=e.metadata;return l`
+        <div style="${e.style??p}" class="${e.cssClasses??p}" slot="${e.slot??p}">
+            ${cf(void 0,t.icon,t.title,t.description,t.actionId,t.actionLabel)}
+        </div>
+    `},uf=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-skeleton
                 variant="${t.variant??`text`}"
                 count="${t.count&&t.count>0?t.count:3}"
@@ -685,6 +790,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-skeleton>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},uf=`view`,df=new Set([`action`,`actionGroup`,`menu`,`component`,`link`,`button`]),ff=new Set([`button`,`link`,`html`]);function pf(e){if(e){if(e.rowRoute)return{kind:`route`,template:e.rowRoute};if((e.columns??[]).some(e=>e?.actionId===`view`))return{kind:`action`,actionId:uf}}}function mf(e){return!!(!e||e.editable||e.dataType&&df.has(e.dataType)||e.stereotype&&ff.has(e.stereotype)||e.actionId&&e.actionId!==`view`)}function hf(e){if(typeof e!=`object`||!e)return!1;let t=e;return!t.__mateuGroup&&t.viewable!==!1}function gf(e,t,n,r){if(!(!e||!hf(t))){if(e.kind===`route`){let i=rd(e.template,t,n,r);return i?{kind:`route`,route:i}:void 0}return{kind:`action`,actionId:e.actionId,parameters:t}}}var _f=/^(A|BUTTON|INPUT|SELECT|TEXTAREA|LABEL|OPTION|DETAILS|SUMMARY)$/,vf=/^VAADIN-(BUTTON|CHECKBOX|CHECKBOX-GROUP|MENU-BAR|MENU-BAR-BUTTON|CONTEXT-MENU|COMBO-BOX|MULTI-SELECT-COMBO-BOX|SELECT|RADIO-BUTTON|RADIO-GROUP|TEXT-AREA|DETAILS|UPLOAD|GRID-TREE-TOGGLE|GRID-SORTER|[A-Z-]+-FIELD|[A-Z-]+-PICKER)$/,yf=new Set([`button`,`link`,`checkbox`,`menuitem`,`menu`,`menubar`,`switch`,`radio`,`combobox`,`textbox`,`option`,`slider`,`spinbutton`,`tab`]);function bf(e){let t=e;if(!t||typeof t.tagName!=`string`)return!1;let n=t.tagName.toUpperCase();if(_f.test(n)||vf.test(n)||n.startsWith(`OJ-`)&&/^OJ-(C-)?(BUTTON|INPUT|SELECT|CHECKBOX|MENU|SWITCH|COMBOBOX)/.test(n))return!0;let r=t.getAttribute?.(`role`);return!!(r&&yf.has(r)||t.isContentEditable)}function xf(e,t){for(let n of e){if(t!==void 0&&n===t)break;if(bf(n))return!1}return!0}function Sf(e){if(e.open&&!mf(e.column)&&xf(e.path,e.stopAt))return gf(e.open,e.row,e.state,e.data)}var Cf=(e,t,n=!1)=>e&&e>1||n?l`<div style="grid-column: span ${e&&e>1?e:1}; min-width: 0;">${t}</div>`:t,wf=`var(--lumo-space-m, 1rem)`,Tf=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.columnWidth||`13rem`,u=`display: grid; grid-template-columns: ${s.maxColumns&&s.maxColumns>0?`repeat(${s.maxColumns}, minmax(0, 1fr))`:`repeat(auto-fill, minmax(min(100%, ${c}), 1fr))`}; gap: ${wf} var(--lumo-space-l, 1.5rem); align-items: start;`;return s.labelsAside&&(u+=` --mateu-label-width: 10rem;`),s.fullWidth&&(u+=` width: 100%;`),u+=t.style??``,l`
         <div id="${t.id??p}" style="${u}" class="${t.cssClasses}" slot="${t.slot||p}">
             ${t.children?.map(t=>Ef(s,e,t,n,r,i,a,o))}
@@ -708,16 +814,44 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${n.children?.map(e=>B(t,e,r,i,a,o,s))}
         </div>
     `},jf=(e,t,n,r,i,a,o)=>Af(`row`,e,t,n,r,i,a,o),Mf=(e,t,n,r,i,a,o)=>Af(`column`,e,t,n,r,i,a,o),Nf=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=`display: flex; flex-direction: ${s.orientation===`vertical`?`column`:`row`}; gap: var(--lumo-space-s, 0.5rem);`;return s.fullWidth&&(c+=` width: 100%;`),c+=t.style??``,l`
+========
+    `},df=`view`,ff=new Set([`action`,`actionGroup`,`menu`,`component`,`link`,`button`]),pf=new Set([`button`,`link`,`html`]);function mf(e){if(e){if(e.rowRoute)return{kind:`route`,template:e.rowRoute};if((e.columns??[]).some(e=>e?.actionId===`view`))return{kind:`action`,actionId:df}}}function hf(e){return!!(!e||e.editable||e.dataType&&ff.has(e.dataType)||e.stereotype&&pf.has(e.stereotype)||e.actionId&&e.actionId!==`view`)}function gf(e){if(typeof e!=`object`||!e)return!1;let t=e;return!t.__mateuGroup&&t.viewable!==!1}function _f(e,t,n,r){if(!(!e||!gf(t))){if(e.kind===`route`){let i=rd(e.template,t,n,r);return i?{kind:`route`,route:i}:void 0}return{kind:`action`,actionId:e.actionId,parameters:t}}}var vf=/^(A|BUTTON|INPUT|SELECT|TEXTAREA|LABEL|OPTION|DETAILS|SUMMARY)$/,yf=/^VAADIN-(BUTTON|CHECKBOX|CHECKBOX-GROUP|MENU-BAR|MENU-BAR-BUTTON|CONTEXT-MENU|COMBO-BOX|MULTI-SELECT-COMBO-BOX|SELECT|RADIO-BUTTON|RADIO-GROUP|TEXT-AREA|DETAILS|UPLOAD|GRID-TREE-TOGGLE|GRID-SORTER|[A-Z-]+-FIELD|[A-Z-]+-PICKER)$/,bf=new Set([`button`,`link`,`checkbox`,`menuitem`,`menu`,`menubar`,`switch`,`radio`,`combobox`,`textbox`,`option`,`slider`,`spinbutton`,`tab`]);function xf(e){let t=e;if(!t||typeof t.tagName!=`string`)return!1;let n=t.tagName.toUpperCase();if(vf.test(n)||yf.test(n)||n.startsWith(`OJ-`)&&/^OJ-(C-)?(BUTTON|INPUT|SELECT|CHECKBOX|MENU|SWITCH|COMBOBOX)/.test(n))return!0;let r=t.getAttribute?.(`role`);return!!(r&&bf.has(r)||t.isContentEditable)}function Sf(e,t){for(let n of e){if(t!==void 0&&n===t)break;if(xf(n))return!1}return!0}function Cf(e){if(e.open&&!hf(e.column)&&Sf(e.path,e.stopAt))return _f(e.open,e.row,e.state,e.data)}var wf=(e,t,n=!1)=>e&&e>1||n?l`<div style="grid-column: span ${e&&e>1?e:1}; min-width: 0;">${t}</div>`:t,Tf=`var(--lumo-space-m, 1rem)`,Ef=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.columnWidth||`13rem`,u=`display: grid; grid-template-columns: ${s.maxColumns&&s.maxColumns>0?`repeat(${s.maxColumns}, minmax(0, 1fr))`:`repeat(auto-fill, minmax(min(100%, ${c}), 1fr))`}; gap: ${Tf} var(--lumo-space-l, 1.5rem); align-items: start;`;return s.labelsAside&&(u+=` --mateu-label-width: 10rem;`),s.fullWidth&&(u+=` width: 100%;`),u+=t.style??``,l`
+        <div id="${t.id??p}" style="${u}" class="${t.cssClasses}" slot="${t.slot||p}">
+            ${t.children?.map(t=>Df(s,e,t,n,r,i,a,o))}
+        </div>
+    `},Df=(e,t,n,r,i,a,o,s)=>n.type==E.ClientSide&&n.metadata?.type==D.FormRow?Af(e,t,n,r,i,a,o,s):wf(Of(n),e.labelsAside?kf(t,n,r,i,a,o,s):B(t,n,r,i,a,o,s),!0),Of=e=>{if(e.type==E.ClientSide){let t=e.metadata;if(t?.type==D.FormField)return t.colspan||1}return 1},kf=(e,t,n,r,i,a,o)=>{if(t.type==E.ClientSide&&t.metadata?.type==D.FormField&&t.metadata.label){let s=t.metadata,c=s.label?.includes("${")?e._evalTemplate(s.label):s.label;return l`
+            <div style="display: flex; gap: ${Tf}; align-items: baseline;">
+                <label style="flex: 0 0 var(--mateu-label-width, 10rem); color: var(--lumo-secondary-text-color, #667);">${c}</label>
+                <div style="flex: 1; min-width: 0;">${B(e,t,n,r,i,a,o,!0)}</div>
+            </div>
+        `}return B(e,t,n,r,i,a,o)},Af=(e,t,n,r,i,a,o,s)=>l`
+        <div style="grid-column: 1 / -1; display: flex; gap: ${Tf}; flex-wrap: wrap;">
+            ${n.children?.map(c=>l`<div style="flex: 1 1 ${100/Math.max(1,n.children.length)}%; min-width: min(100%, 13rem);">${Df(e,t,c,r,i,a,o,s)}</div>`)}
+        </div>
+    `,jf=(e,t,n,r,i,a,o,s)=>{let c=n.metadata,u=`display: flex; flex-direction: ${e};`;c.spacing&&(u+=` gap: ${Tf};`),c.padding&&(u+=` padding: var(--lumo-space-m, 1rem);`),c.wrap&&(u+=` flex-wrap: wrap;`),c.fullWidth&&(u+=` width: 100%;`),c.justification&&(u+=` justify-content: ${c.justification};`);let d=e===`row`?c.verticalAlignment:c.horizontalAlignment;return d&&(u+=` align-items: ${d};`),u+=n.style??``,l`
+        <div id="${n.id??p}" style="${u}" class="${n.cssClasses}" slot="${n.slot??p}">
+            ${n.children?.map(e=>B(t,e,r,i,a,o,s))}
+        </div>
+    `},Mf=(e,t,n,r,i,a,o)=>jf(`row`,e,t,n,r,i,a,o),Nf=(e,t,n,r,i,a,o)=>jf(`column`,e,t,n,r,i,a,o),Pf=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=`display: flex; flex-direction: ${s.orientation===`vertical`?`column`:`row`}; gap: var(--lumo-space-s, 0.5rem);`;return s.fullWidth&&(c+=` width: 100%;`),c+=t.style??``,l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div id="${t.id??p}" style="${c}" class="${t.cssClasses}" slot="${t.slot??p}">
             <div style="flex: 1; min-width: 0; min-height: 0;">${B(e,t.children[0],n,r,i,a,o)}</div>
             <div style="flex: 1; min-width: 0; min-height: 0;">${B(e,t.children[1],n,r,i,a,o)}</div>
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Pf=(e,t,n,r,i,a,s)=>{let c=t.children&&t.children.length>1?t.children[1]:null,u=i?.detailComponent??null,d=!!i?.hasDetail||!!c,f=u??c;return l`
+========
+    `},Ff=(e,t,n,r,i,a,s)=>{let c=t.children&&t.children.length>1?t.children[1]:null,u=i?.detailComponent??null,d=!!i?.hasDetail||!!c,f=u??c;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div id="${t.id??p}" style="display: flex; gap: var(--lumo-space-m, 1rem); ${t.style??``}" class="${t.cssClasses}" slot="${t.slot??p}">
             <div style="flex: 1; min-width: 0;">${B(e,t.children[0],n,r,i,a,s)}</div>
             ${d&&f?l`<div style="flex: 1; min-width: 0;">${B(e,f,n,r,i,a,s)}</div>`:l`<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem);">${o(`selectItemForDetails`)}</div>`}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Ff=(e,t,n,r,i,a,o)=>{let s=t.style??``;t.metadata.fullWidth&&(s+=` width: 100%;`);let c=Math.max(0,(t.children??[]).findIndex(e=>e.metadata.active));return l`
+========
+    `},If=(e,t,n,r,i,a,o)=>{let s=t.style??``;t.metadata.fullWidth&&(s+=` width: 100%;`);let c=Math.max(0,(t.children??[]).findIndex(e=>e.metadata.active));return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div id="${t.id??p}" style="${s}" class="${t.cssClasses}" slot="${t.slot??p}">
             ${t.children?.map((t,s)=>{let u=t,d=u.metadata.label,f=d?.includes("${")?e._evalTemplate(d):d;return l`
                     <details data-node-id="${$a(u)}" ?open="${s===c}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));">
@@ -728,6 +862,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </details>
                 `})}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},If=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style??``;return s.fullWidth&&(c+=` width: 100%;`),l`
         <div style="${c}" class="${t.cssClasses}" slot="${t.slot??p}">
             ${t.children?.map(t=>Lf(e,t,n,r,i,a,o,s.variant))}
@@ -738,11 +873,20 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     `},Lf=(e,t,n,r,i,a,o,s)=>{let c=t.metadata,u=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
         <details data-node-id="${$a(t)}" ?open="${c.active}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); ${t.style??``}" class="${t.cssClasses}">
+========
+    `},Lf=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.style??``;return s.fullWidth&&(c+=` width: 100%;`),l`
+        <div style="${c}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${t.children?.map(t=>Rf(e,t,n,r,i,a,o,s.variant))}
+        </div>
+    `},Rf=(e,t,n,r,i,a,o,s)=>{let c=t.metadata,u=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return l`
+        <details data-node-id="${Qa(t)}" ?open="${c.active}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); ${t.style??``}" class="${t.cssClasses}">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <summary style="cursor: pointer; padding: var(--lumo-space-s, .5rem) 0; font-weight: 600; ${c.disabled?`pointer-events: none; opacity: .5;`:``}">${u}</summary>
             <div style="padding: var(--lumo-space-s, .5rem) 0;">
                 ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
             </div>
         </details>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Rf=(e,t,n,r,i,a,o)=>l`
         <div style="overflow: auto; ${t.style??``}" class="${t.cssClasses}" slot="${t.slot??p}">
             ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
@@ -768,6 +912,33 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
         </div>
     `},Wf=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+========
+    `},zf=(e,t,n,r,i,a,o)=>l`
+        <div style="overflow: auto; ${t.style??``}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `,Bf=(e,t,n,r,i,a,o)=>l`
+        <div style="width: 100%; ${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `,Vf=(e,t,n,r,i,a,o)=>l`
+        <div style="max-width: min(100%, 1200px); margin: auto; ${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `,Hf=(e,t,n,r,i,a,o)=>l`
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: ${Tf}; ${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `,Uf=(e,t,n,r,i,a,o)=>l`
+        <div style="display: flex; gap: ${Tf}; flex-wrap: wrap; ${t.style}" class="${t.cssClasses}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `,Wf=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+        <div style="flex: ${s.boardCols??1} 1 0; min-width: min(100%, 12rem); ${t.style}" class="${t.cssClasses}">
+            ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+        </div>
+    `},Gf=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div
                 style="display: flex; flex-direction: column; overflow: auto; ${t.style}"
                 class="${t.cssClasses}"
@@ -775,17 +946,30 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         >
             ${s.page.content.map(t=>B(e,t,n,r,i,a,o))}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Gf=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,Kf=e=>typeof e==`string`&&Gf.test(e),qf=e=>Kf(e)?`…-`+e.substring(e.lastIndexOf(`-`)+1):e,Jf=e=>t=>{t.clipboardData&&(t.clipboardData.setData(`text/plain`,e),t.preventDefault())},Yf=e=>Kf(e)?l`<span class="mateu-uuid" data-uuid="${e}" title="${e}"
                      @copy="${Jf(e)}">${qf(e)}</span>`:e,Xf=e=>{let t=e.metadata;return(t?.content??t?.columns??[]).filter(e=>e&&e.metadata).map(e=>{let t=e.metadata;return{id:e.id??``,label:t?.label??e.id??``,autoWidth:t?.autoWidth,width:t?.width}})},Zf=(e,t)=>{let n=e?.[t];return n==null?``:typeof n==`object`?n.text??n.label??n.value??``:String(n)},Qf=(e,t,n)=>{let r=Xf(e);return l`
+========
+    `},Kf=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,qf=e=>typeof e==`string`&&Kf.test(e),Jf=e=>qf(e)?`…-`+e.substring(e.lastIndexOf(`-`)+1):e,Yf=e=>t=>{t.clipboardData&&(t.clipboardData.setData(`text/plain`,e),t.preventDefault())},Xf=e=>qf(e)?l`<span class="mateu-uuid" data-uuid="${e}" title="${e}"
+                     @copy="${Yf(e)}">${Jf(e)}</span>`:e,Zf=e=>{let t=e.metadata;return(t?.content??t?.columns??[]).filter(e=>e&&e.metadata).map(e=>{let t=e.metadata;return{id:e.id??``,label:t?.label??e.id??``,autoWidth:t?.autoWidth,width:t?.width}})},Qf=(e,t)=>{let n=e?.[t];return n==null?``:typeof n==`object`?n.text??n.label??n.value??``:String(n)},$f=(e,t,n)=>{let r=Zf(e);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div style="overflow:auto; width:100%; ${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
             <table style="border-collapse:collapse; width:100%; font-size: var(--lumo-font-size-s,.875rem);">
                 <thead><tr>${r.map(e=>l`<th style="${`text-align:left; padding:.45rem .6rem; border-bottom:2px solid var(--lumo-contrast-20pct,rgba(0,0,0,.2)); font-weight:600; white-space:nowrap; color: var(--lumo-secondary-text-color,#556);`}">${e.label}</th>`)}</tr></thead>
                 <tbody>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     ${(t??[]).length===0?l`<tr><td colspan="${Math.max(1,r.length)}" style="padding:1.5rem; text-align:center; color: var(--lumo-secondary-text-color,#888);">${n??o(`noData`)}</td></tr>`:t.map(e=>l`<tr>${r.map(t=>l`<td style="${`padding:.4rem .6rem; border-bottom:1px solid var(--lumo-contrast-10pct,rgba(0,0,0,.08)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:24rem;`}" title="${Zf(e,t.id)}">${Yf(Zf(e,t.id))}</td>`)}</tr>`)}
                 </tbody>
             </table>
         </div>
     `},$f=(e,t)=>{let n=e.metadata;return e.id&&t&&t[e.id]?t[e.id]:n?.page?.content??[]},ep=e=>{let t=e.metadata.items??[];return l`
+========
+                    ${(t??[]).length===0?l`<tr><td colspan="${Math.max(1,r.length)}" style="padding:1.5rem; text-align:center; color: var(--lumo-secondary-text-color,#888);">${n??o(`noData`)}</td></tr>`:t.map(e=>l`<tr>${r.map(t=>l`<td style="${`padding:.4rem .6rem; border-bottom:1px solid var(--lumo-contrast-10pct,rgba(0,0,0,.08)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:24rem;`}" title="${Qf(e,t.id)}">${Xf(Qf(e,t.id))}</td>`)}</tr>`)}
+                </tbody>
+            </table>
+        </div>
+    `},ep=(e,t)=>{let n=e.metadata;return e.id&&t&&t[e.id]?t[e.id]:n?.page?.content??[]},tp=e=>{let t=e.metadata.items??[];return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-message-list ${e.cssClasses??``}"
              style="display:flex; flex-direction:column; gap:.75rem; ${e.style??``}"
              slot="${e.slot??p}">
@@ -804,7 +988,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 </div>
             `)}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},tp=(e,t,n,r,i,a,o)=>t.separator?l`<span style="align-self: stretch; width: 1px; background: var(--lumo-contrast-20pct, rgba(0,0,0,.2));"></span>`:t.submenus?l`
+========
+    `},np=(e,t,n,r,i,a,o)=>t.separator?l`<span style="align-self: stretch; width: 1px; background: var(--lumo-contrast-20pct, rgba(0,0,0,.2));"></span>`:t.submenus?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <details style="position: relative;">
                 <summary style="cursor: pointer; list-style: none; padding: .35rem .7rem; border-radius: var(--lumo-border-radius-m, 6px);">
                     ${t.component?B(e,t.component,n,r,i,a,o):t.label} ▾
@@ -812,7 +1000,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <div style="display: flex; flex-direction: column; gap: .1rem; padding: .3rem; min-width: 10rem;
                             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); border-radius: var(--lumo-border-radius-m, 6px);
                             background: var(--lumo-base-color, #fff); box-shadow: var(--lumo-box-shadow-s, 0 2px 8px rgba(0,0,0,.15));">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     ${t.submenus.map(t=>tp(e,t,n,r,i,a,o))}
+========
+                    ${t.submenus.map(t=>np(e,t,n,r,i,a,o))}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 </div>
             </details>
         `:l`
@@ -822,6 +1014,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                      ${t.selected?`background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12));`:``}">
             ${t.component?B(e,t.component,n,r,i,a,o):t.label}
         </span>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `,np=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
         <div style="display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; ${t.style}"
              class="${t.cssClasses}" slot="${t.slot??p}">
@@ -836,6 +1029,18 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 ========
     `},ip=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.content?.metadata,u=c?.type==E.Notice&&c.fullWidth===!0;return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `,rp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+        <div style="display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; ${t.style}"
+             class="${t.cssClasses}" slot="${t.slot??p}">
+            ${s.options?.map(t=>np(e,t,n,r,i,a??{},o??{}))}
+        </div>
+    `},ip=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+        <div style="${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+            ${B(e,s.wrapped,n,r,i,a,o)}
+        </div>
+    `},ap=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.content?.metadata,u=c?.type==D.Notice&&c.fullWidth===!0;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div style="display:flex; flex-direction:column; ${u?`width: 100%; `:``}${t.style}"
              class="${t.cssClasses}"
              slot="${t.slot??p}"
@@ -844,7 +1049,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${s.label?l`<label style="font-size: var(--lumo-font-size-s,.875rem); color: var(--lumo-secondary-text-color,#667); margin-bottom:.15rem;">${s.label}</label>`:p}
             ${B(e,s.content,n,r,i,a,o)}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `},ap=e=>{let t=e.metadata,n=e=>{let n=e.closest(`.mateu-message-input`)?.querySelector(`input`),r=n?.value??``;!t.actionId||!r.trim()||(e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:{message:r}},bubbles:!0,composed:!0})),n&&(n.value=``))};return l`
+========
+            `},op=e=>{let t=e.metadata,n=e=>{let n=e.closest(`.mateu-message-input`)?.querySelector(`input`),r=n?.value??``;!t.actionId||!r.trim()||(e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId,parameters:{message:r}},bubbles:!0,composed:!0})),n&&(n.value=``))};return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-message-input ${e.cssClasses??``}"
              style="display:flex; gap:.5rem; align-items:center; ${e.style??``}"
              slot="${e.slot??p}">
@@ -855,60 +1064,90 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     @click="${e=>n(e.currentTarget)}">${o(`send`)}</button>
         </div>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},ap=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`<span title="${s.text}" style="${t.style}" class="${t.cssClasses}" slot="${t.slot??p}"
         >${B(e,s.wrapped,n,r,i,a,o)}</span>`},U=e=>e??g,op=e=>{if(e instanceof CustomEvent)return e.detail;let t={};for(let n in e){let r=e[n];[`number`,`string`,`boolean`].indexOf(typeof r)>=0&&(t[n]=e[n])}return t},sp=(e,t,n,r,i)=>{let a={appState:r??{},appData:i??{}},o={};for(let r in e.attributes)o[r]=L(e.attributes[r],t,n,a);return{attributes:o,content:L(e.content,t,n,a)}},cp=(e,t,n,r)=>{for(let t in r.attributes)e.setAttribute(t,r.attributes[t]);n.style&&e.setAttribute(`style`,n.style),n.cssClasses&&e.setAttribute(`class`,n.cssClasses),n.slot&&e.setAttribute(`slot`,n.slot),r.content&&(t.html?e.innerHTML=t.content?.includes("${")?Xl(r.content):r.content:e.append(r.content))},lp=e=>/^https?:\/\//i.test(e),up=(e,t=globalThis.location?.origin??``)=>{let n=[],r=e;for(let e=0;r&&e<500;e++)typeof r.baseUrl==`string`&&n.push(r.baseUrl),r=r.parentNode??r.host??null;let i=n.find(e=>e);if(!i||!lp(i))return;let a=n[n.length-1];try{let e=a&&lp(a)?new URL(a).origin:t,n=new URL(i).origin;return n===e?void 0:n}catch{return}},dp=(e,t)=>!t||!e.startsWith(`/`)||e.startsWith(`//`)?e:t+e,fp=(e,t)=>{let n=e.name,r=e.attributes?e.attributes.import:void 0;r&&n.includes(`-`)&&!customElements.get(n)&&Se(()=>import(dp(r,t)),[],import.meta.url)},pp=(e,t,n,r,i,a,o)=>{fp(t,up(e));let s=sp(t,r,i,a,o),c=t.name;s.attributes.id&&(c=`#`+s.attributes.id);let u=n.id?`.element-container[data-element-id="${n.id}"]`:`.element-container`;return setTimeout(()=>{let r=e.shadowRoot?.querySelector(u),i=r?.querySelector(c);if(i){for(;i.firstChild;)i.removeChild(i.lastChild);cp(i,t,n,s)}else{let i=document.createElement(t.name);cp(i,t,n,s);for(let n in t.on)i.addEventListener(n,r=>{let i=op(r);e.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.on[n],parameters:{event:i}},bubbles:!0,composed:!0}))});r?.appendChild(i)}}),l`<div class="element-container" data-element-id="${U(n.id)}"></div>`},mp=function(e){return e.div=`div`,e.p=`p`,e.h1=`h1`,e.h2=`h2`,e.h3=`h3`,e.h4=`h4`,e.h5=`h5`,e.h6=`h6`,e.span=`span`,e}({}),hp=(e,t,n,r,i)=>{let a={...e.metadata};a.container??=mp.div;let o=a.attributes?.[`data-colspan`],s=Pu(a.text,t,n,r,i),c={xl:`var(--lumo-font-size-xl, 1.375rem)`,l:`var(--lumo-font-size-l, 1.125rem)`,s:`var(--lumo-font-size-s, .875rem)`,xs:`var(--lumo-font-size-xs, .8125rem)`},u=(a.size&&c[a.size]?`font-size: ${c[a.size]}; `:``)+(a.noMargins?`margin-block-start: 0; margin-block-end: 0; `:``);return mp.h1==a.container?l`
 ========
     `},op=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`<span title="${s.text}" style="${t.style}" class="${t.cssClasses}" slot="${t.slot??p}"
         >${B(e,s.wrapped,n,r,i,a,o)}</span>`},U=e=>e??g,sp=e=>{if(e instanceof CustomEvent)return e.detail;let t={};for(let n in e){let r=e[n];[`number`,`string`,`boolean`].indexOf(typeof r)>=0&&(t[n]=e[n])}return t},cp=(e,t,n,r,i)=>{let a={appState:r??{},appData:i??{}},o={};for(let r in e.attributes)o[r]=L(e.attributes[r],t,n,a);return{attributes:o,content:L(e.content,t,n,a)}},lp=(e,t,n,r)=>{for(let t in r.attributes)e.setAttribute(t,r.attributes[t]);n.style&&e.setAttribute(`style`,n.style),n.cssClasses&&e.setAttribute(`class`,n.cssClasses),n.slot&&e.setAttribute(`slot`,n.slot),r.content&&(t.html?e.innerHTML=t.content?.includes("${")?Zl(r.content):r.content:e.append(r.content))},up=e=>/^https?:\/\//i.test(e),dp=(e,t=globalThis.location?.origin??``)=>{let n=[],r=e;for(let e=0;r&&e<500;e++)typeof r.baseUrl==`string`&&n.push(r.baseUrl),r=r.parentNode??r.host??null;let i=n.find(e=>e);if(!i||!up(i))return;let a=n[n.length-1];try{let e=a&&up(a)?new URL(a).origin:t,n=new URL(i).origin;return n===e?void 0:n}catch{return}},fp=(e,t)=>!t||!e.startsWith(`/`)||e.startsWith(`//`)?e:t+e,pp=(e,t)=>{let n=e.name,r=e.attributes?e.attributes.import:void 0;r&&n.includes(`-`)&&!customElements.get(n)&&Se(()=>import(fp(r,t)),[],import.meta.url)},mp=(e,t,n,r,i,a,o)=>{pp(t,dp(e));let s=cp(t,r,i,a,o),c=t.name;s.attributes.id&&(c=`#`+s.attributes.id);let u=n.id?`.element-container[data-element-id="${n.id}"]`:`.element-container`;return setTimeout(()=>{let r=e.shadowRoot?.querySelector(u),i=r?.querySelector(c);if(i){for(;i.firstChild;)i.removeChild(i.lastChild);lp(i,t,n,s)}else{let i=document.createElement(t.name);lp(i,t,n,s);for(let n in t.on)i.addEventListener(n,r=>{let i=sp(r);e.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.on[n],parameters:{event:i}},bubbles:!0,composed:!0}))});r?.appendChild(i)}}),l`<div class="element-container" data-element-id="${U(n.id)}"></div>`},hp=function(e){return e.div=`div`,e.p=`p`,e.h1=`h1`,e.h2=`h2`,e.h3=`h3`,e.h4=`h4`,e.h5=`h5`,e.h6=`h6`,e.span=`span`,e}({}),gp=(e,t,n,r,i)=>{let a={...e.metadata};a.container??=hp.div;let o=a.attributes?.[`data-colspan`],s=Fu(a.text,t,n,r,i),c={xl:`var(--lumo-font-size-xl, 1.375rem)`,l:`var(--lumo-font-size-l, 1.125rem)`,s:`var(--lumo-font-size-s, .875rem)`,xs:`var(--lumo-font-size-xs, .8125rem)`},u=(a.size&&c[a.size]?`font-size: ${c[a.size]}; `:``)+(a.noMargins?`margin-block-start: 0; margin-block-end: 0; `:``);return hp.h1==a.container?l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `},sp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`<span title="${s.text}" style="${t.style}" class="${t.cssClasses}" slot="${t.slot??p}"
+        >${B(e,s.wrapped,n,r,i,a,o)}</span>`},U=e=>e??g,cp=e=>{if(e instanceof CustomEvent)return e.detail;let t={};for(let n in e){let r=e[n];[`number`,`string`,`boolean`].indexOf(typeof r)>=0&&(t[n]=e[n])}return t},lp=(e,t,n,r,i)=>{let a={appState:r??{},appData:i??{}},o={};for(let r in e.attributes)o[r]=R(e.attributes[r],t,n,a);return{attributes:o,content:R(e.content,t,n,a)}},up=(e,t,n,r)=>{for(let t in r.attributes)e.setAttribute(t,r.attributes[t]);n.style&&e.setAttribute(`style`,n.style),n.cssClasses&&e.setAttribute(`class`,n.cssClasses),n.slot&&e.setAttribute(`slot`,n.slot),r.content&&(t.html?e.innerHTML=t.content?.includes("${")?Xl(r.content):r.content:e.append(r.content))},dp=e=>/^https?:\/\//i.test(e),fp=(e,t=globalThis.location?.origin??``)=>{let n=[],r=e;for(let e=0;r&&e<500;e++)typeof r.baseUrl==`string`&&n.push(r.baseUrl),r=r.parentNode??r.host??null;let i=n.find(e=>e);if(!i||!dp(i))return;let a=n[n.length-1];try{let e=a&&dp(a)?new URL(a).origin:t,n=new URL(i).origin;return n===e?void 0:n}catch{return}},pp=(e,t)=>!t||!e.startsWith(`/`)||e.startsWith(`//`)?e:t+e,mp=(e,t)=>{let n=e.name,r=e.attributes?e.attributes.import:void 0;r&&n.includes(`-`)&&!customElements.get(n)&&xe(()=>import(pp(r,t)),[],import.meta.url)},hp=(e,t,n,r,i,a,o)=>{mp(t,fp(e));let s=lp(t,r,i,a,o),c=t.name;s.attributes.id&&(c=`#`+s.attributes.id);let u=n.id?`.element-container[data-element-id="${n.id}"]`:`.element-container`;return setTimeout(()=>{let r=e.shadowRoot?.querySelector(u),i=r?.querySelector(c);if(i){for(;i.firstChild;)i.removeChild(i.lastChild);up(i,t,n,s)}else{let i=document.createElement(t.name);up(i,t,n,s);for(let n in t.on)i.addEventListener(n,r=>{let i=cp(r);e.manageActionRequestedEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.on[n],parameters:{event:i}},bubbles:!0,composed:!0}))});r?.appendChild(i)}}),l`<div class="element-container" data-element-id="${U(n.id)}"></div>`},gp=function(e){return e.div=`div`,e.p=`p`,e.h1=`h1`,e.h2=`h2`,e.h3=`h3`,e.h4=`h4`,e.h5=`h5`,e.h6=`h6`,e.span=`span`,e}({}),_p=(e,t,n,r,i)=>{let a={...e.metadata};a.container??=gp.div;let o=a.attributes?.[`data-colspan`],s=Fu(a.text,t,n,r,i),c={xl:`var(--lumo-font-size-xl, 1.375rem)`,l:`var(--lumo-font-size-l, 1.125rem)`,s:`var(--lumo-font-size-s, .875rem)`,xs:`var(--lumo-font-size-xs, .8125rem)`},u=(a.size&&c[a.size]?`font-size: ${c[a.size]}; `:``)+(a.noMargins?`margin-block-start: 0; margin-block-end: 0; `:``);return gp.h1==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h1 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h1>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.h2==a.container?l`
+========
+        `:gp.h2==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h2 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h2>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.h3==a.container?l`
+========
+        `:gp.h3==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h3 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h3>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.h4==a.container?l`
+========
+        `:gp.h4==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h4 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h4>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.h5==a.container?l`
+========
+        `:gp.h5==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h5 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h5>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.h6==a.container?l`
+========
+        `:gp.h6==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <h6 style="${u}${e.style}" class="${e.cssClasses}"
                 id="${U(e.id)}"
                 data-colspan="${U(o)}"
                 slot="${e.slot??p}">
                 ${s??p}
             </h6>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `:hp.p==a.container?l`
+========
+        `:gp.p==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                <p style="${u}${e.style}" class="${e.cssClasses}"
                   id="${U(e.id)}"
                   data-colspan="${U(o)}"
                   slot="${e.slot??p}">
                    ${s??p}
                </p>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `:hp.div==a.container?l`
                <div style="${u}${e.style}" class="${e.cssClasses}"
                     id="${U(e.id)}"
@@ -919,6 +1158,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 ========
             `:hp.span==a.container?l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+            `:gp.div==a.container?l`
+               <div style="${u}${e.style}" class="${e.cssClasses}"
+                    id="${U(e.id)}"
+                    data-colspan="${U(o)}"
+                    slot="${e.slot??p}">${s?I(s):p}</div>
+            `:gp.span==a.container?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                <span style="${u}${e.style}" class="${e.cssClasses}"
                      id="${U(e.id)}"
                      data-colspan="${U(o)}"
@@ -930,6 +1177,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                        slot="${e.slot??p}">
                    Unknown text container: ${a.container} 
                </p>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `},gp=e=>{let t=e.metadata;return l`<a href="${U(Tl(t.url))}" target="${t.target??p}"
                    rel="${t.target===`_blank`?`noopener`:p}"
@@ -953,6 +1201,24 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             slot="${e.slot??p}"
     >${r.iconOnLeft?H(r.iconOnLeft):p}${i}${r.iconOnRight?H(r.iconOnRight):p}</button>`},Ep=`display:block; box-sizing:border-box; background:var(--lumo-base-color,#fff); border:1px solid var(--lumo-contrast-10pct,rgba(0,0,0,.1)); border-radius:var(--lumo-border-radius-l,12px); box-shadow:var(--lumo-box-shadow-xs,0 1px 3px rgba(0,0,0,.08)); overflow:hidden;`,Dp=(e,t,n,r,i,a,o)=>{let s=t.metadata;if(!s)return l``;let c=t=>t?B(e,t,n,r,i,a,o,!1):p,u=s.header||s.headerPrefix||s.headerSuffix||s.title||s.subtitle;return l`
         <div id="${t.id??p}" style="${Ep}${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+========
+            `},vp=e=>{let t=e.metadata;return l`<a href="${U(Tl(t.url))}" target="${t.target??p}"
+                   rel="${t.target===`_blank`?`noopener`:p}"
+                   style="${e.style}" class="${e.cssClasses}"
+                   slot="${e.slot??p}">${t.text}</a>`},yp=(e,t)=>{let n=e.toLowerCase().split(`+`);return t.ctrlKey===n.includes(`ctrl`)&&t.altKey===n.includes(`alt`)&&t.shiftKey===n.includes(`shift`)&&t.metaKey===n.includes(`meta`)},bp=(e,t)=>{if(!yp(e,t))return!1;let n=e.toLowerCase().split(`+`),r=n[n.length-1];return!!(t.key.toLowerCase()===r||/^[a-z]$/.test(r)&&t.code===`Key`+r.toUpperCase()||/^[0-9]$/.test(r)&&(t.code===`Digit`+r||t.code===`Numpad`+r))},xp=e=>e?e.split(`+`).map(e=>e.length<=1?e.toUpperCase():e.charAt(0).toUpperCase()+e.slice(1)).join(`+`):void 0,Sp=(e,t)=>{let n=e.currentTarget,r=n.dataset.route;if(r){id(n,r);return}n.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:n.dataset.actionId,parameters:t.parameters},bubbles:!0,composed:!0}))},Cp=(e,t,n)=>{if(!e.route)return;let r=R(e.route,t,n);return!r||r.includes("${")?void 0:r},wp=`display:inline-flex; align-items:center; justify-content:center; gap:.4em; box-sizing:border-box; font:inherit; font-weight:500; cursor:pointer; border-radius:var(--lumo-border-radius-m,6px); border:1px solid transparent; line-height:1; white-space:nowrap;`,Tp=e=>{let t=e.buttonStyle??``,n=e.color&&e.color!==`none`&&e.color!==`normal`?e.color:``,r=e.size,i=n===`success`?`var(--lumo-success-color,#1a7f37)`:n===`error`?`var(--lumo-error-color,#c5221f)`:n===`contrast`?`var(--lumo-contrast,#161513)`:`var(--lumo-primary-color,#3b5bdb)`,a=n===`success`?`var(--lumo-success-contrast-color,#fff)`:n===`error`?`var(--lumo-error-contrast-color,#fff)`:n===`contrast`?`var(--lumo-base-color,#fff)`:`var(--lumo-primary-contrast-color,#fff)`,o=n===`success`?`var(--lumo-success-text-color,#1a7f37)`:n===`error`?`var(--lumo-error-text-color,#c5221f)`:n===`contrast`?`var(--lumo-body-text-color,#161513)`:`var(--lumo-primary-text-color,#3b5bdb)`,s;return s=t===`primary`?`background:${i}; color:${a};`:t===`tertiary`||t===`tertiaryInline`?`background:transparent; color:${o};`:`background:var(--lumo-contrast-5pct,rgba(0,0,0,.04)); color:${o}; border-color:var(--lumo-contrast-20pct,rgba(0,0,0,.16));`,`${wp}${s}${r===`small`?`padding:.25rem .6rem; font-size:var(--lumo-font-size-s,.875rem);`:r===`large`?`padding:.65rem 1.4rem; font-size:var(--lumo-font-size-l,1.125rem);`:`padding:.45rem 1rem; font-size:var(--lumo-font-size-m,1rem);`}`},Ep=(e,t,n)=>{let r=e.metadata,i=R(r.label,t,n);return l`<button
+            id="${e.id}"
+            data-action-id="${r.actionId}"
+            data-route="${Cp(r,t,n)??p}"
+            @click="${e=>Sp(e,r)}"
+            style="${Tp(r)}${e.style}"
+            class="${e.cssClasses}"
+            ?disabled="${r.disabled}"
+            data-shortcut="${r.shortcut??p}"
+            title="${r.shortcut?`${i} (${xp(r.shortcut)})`:p}"
+            slot="${e.slot??p}"
+    >${r.iconOnLeft?H(r.iconOnLeft):p}${i}${r.iconOnRight?H(r.iconOnRight):p}</button>`},Dp=`display:block; box-sizing:border-box; background:var(--lumo-base-color,#fff); border:1px solid var(--lumo-contrast-10pct,rgba(0,0,0,.1)); border-radius:var(--lumo-border-radius-l,12px); box-shadow:var(--lumo-box-shadow-xs,0 1px 3px rgba(0,0,0,.08)); overflow:hidden;`,Op=(e,t,n,r,i,a,o)=>{let s=t.metadata;if(!s)return l``;let c=t=>t?B(e,t,n,r,i,a,o,!1):p,u=s.header||s.headerPrefix||s.headerSuffix||s.title||s.subtitle;return l`
+        <div id="${t.id??p}" style="${Dp}${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             ${s.media?c(s.media):p}
             ${u?l`<div style="display:flex; align-items:flex-start; gap:.75rem; padding:1rem 1.25rem ${s.content||s.footer?`0`:`1rem`};">
                 ${s.headerPrefix?c(s.headerPrefix):p}
@@ -966,7 +1232,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${s.content?l`<div style="padding:1rem 1.25rem;">${c(s.content)}</div>`:p}
             ${s.footer?l`<div style="padding:0 1.25rem 1rem;">${c(s.footer)}</div>`:p}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Op=e=>{let t=e.metadata;return l`
+========
+    `},kp=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-chart 
                 style="${e.style}" 
                 class="${e.cssClasses}"
@@ -977,10 +1247,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         >
         </mateu-chart>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Op=e=>{let t=e.metadata;return H(t.icon,e.style,e.cssClasses,e.slot)},kp=new WeakSet,Ap=(e,t,n,r)=>{kp.add(n),r.requestUpdate(),!(!e||!t)&&e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t,serverNamed:!0},bubbles:!0,composed:!0}))},jp=`font:inherit; font-weight:500; cursor:pointer; padding:.45rem 1rem; border-radius:var(--lumo-border-radius-m,6px);`,Mp=`${jp} background:var(--lumo-contrast-5pct,rgba(0,0,0,.04)); color:var(--lumo-body-text-color,#161513); border:1px solid var(--lumo-contrast-20pct,rgba(0,0,0,.16));`,Np=`${jp} background:var(--lumo-primary-color,#3b5bdb); color:var(--lumo-primary-contrast-color,#fff); border:1px solid transparent;`,Pp=(e,t,n,r,i,a,s)=>{let c=t.metadata,u=!c.openedCondition;if(c.openedCondition)try{u=Ru(c.openedCondition,r,i,a,s)}catch(e){console.error(`when evaluating `+c.openedCondition+` :`+e+`, where data is `+i+` and state is `+r)}return kp.has(c)&&(u=!1),u?l`
 ========
     `},kp=e=>{let t=e.metadata;return H(t.icon,e.style,e.cssClasses,e.slot)},Ap=(e,t)=>{e&&e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},jp=`font:inherit; font-weight:500; cursor:pointer; padding:.45rem 1rem; border-radius:var(--lumo-border-radius-m,6px);`,Mp=`${jp} background:var(--lumo-contrast-5pct,rgba(0,0,0,.04)); color:var(--lumo-body-text-color,#161513); border:1px solid var(--lumo-contrast-20pct,rgba(0,0,0,.16));`,Np=`${jp} background:var(--lumo-primary-color,#3b5bdb); color:var(--lumo-primary-contrast-color,#fff); border:1px solid transparent;`,Pp=(e,t,n,r,i,a,s)=>{let c=t.metadata,u=!1;if(c.openedCondition)try{u=zu(c.openedCondition,r,i,a,s)}catch(e){console.error(`when evaluating `+c.openedCondition+` :`+e+`, where data is `+i+` and state is `+r)}return u?l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `},Ap=e=>{let t=e.metadata;return H(t.icon,e.style,e.cssClasses,e.slot)},jp=(e,t)=>{e&&e.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t},bubbles:!0,composed:!0}))},Mp=`font:inherit; font-weight:500; cursor:pointer; padding:.45rem 1rem; border-radius:var(--lumo-border-radius-m,6px);`,Np=`${Mp} background:var(--lumo-contrast-5pct,rgba(0,0,0,.04)); color:var(--lumo-body-text-color,#161513); border:1px solid var(--lumo-contrast-20pct,rgba(0,0,0,.16));`,Pp=`${Mp} background:var(--lumo-primary-color,#3b5bdb); color:var(--lumo-primary-contrast-color,#fff); border:1px solid transparent;`,Fp=(e,t,n,r,i,a,s)=>{let c=t.metadata,u=!1;if(c.openedCondition)try{u=zu(c.openedCondition,r,i,a,s)}catch(e){console.error(`when evaluating `+c.openedCondition+` :`+e+`, where data is `+i+` and state is `+r)}return u?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-confirm-dialog ${t.cssClasses??``}"
              style="position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.4); ${t.style??``}"
              slot="${t.slot??p}">
@@ -988,6 +1262,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${c.header?l`<h3 style="margin:0 0 .75rem; font-size:1.15rem;">${c.header}</h3>`:p}
                 <div>${t.children?.map(t=>B(e,t,n,r,i,a,s))}</div>
                 <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1.25rem;">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     ${c.canCancel?l`<button style="${Mp}" @click="${t=>Ap(t.currentTarget,c.cancelActionId,c,e)}">${c.rejectText&&!c.canReject?c.rejectText:o(`cancel`)}</button>`:p}
                     ${c.canReject?l`<button style="${Mp}" @click="${t=>Ap(t.currentTarget,c.rejectActionId,c,e)}">${c.rejectText||o(`no`)}</button>`:p}
@@ -1001,6 +1276,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             </div>
         </div>
     `:l``},Fp=e=>{let t=e.metadata,n;return t.position&&(n={Top:`top`,Bottom:`bottom`,TopLeft:`top-left`,TopRight:`top-right`,BottomLeft:`bottom-left`,BottomRight:`bottom-right`}[t.position]),l`
+========
+                    ${c.canCancel?l`<button style="${Np}" @click="${e=>jp(e.currentTarget,c.cancelActionId)}">${c.rejectText&&!c.canReject?c.rejectText:o(`cancel`)}</button>`:p}
+                    ${c.canReject?l`<button style="${Np}" @click="${e=>jp(e.currentTarget,c.rejectActionId)}">${c.rejectText||o(`no`)}</button>`:p}
+                    <button style="${Pp}" @click="${e=>jp(e.currentTarget,c.confirmActionId)}">${c.confirmText||o(`ok`)}</button>
+                </div>
+            </div>
+        </div>
+    `:l``},Ip=e=>{let t=e.metadata,n;return t.position&&(n={Top:`top`,Bottom:`bottom`,TopLeft:`top-left`,TopRight:`top-right`,BottomLeft:`bottom-left`,BottomRight:`bottom-right`}[t.position]),l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-cookie-consent style="${e.style}" class="${e.cssClasses}"
                                slot="${e.slot??p}"
                                position="${n??p}"
@@ -1011,7 +1295,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                .learnMoreLink="${t.learnMoreLink??p}"
                                .dismiss="${t.dismiss??p}"
         ></mateu-cookie-consent>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Ip=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+========
+    `},Lp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <details
                 ?open="${s.opened}"
                 style="${t.style}"
@@ -1021,7 +1309,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <summary>${B(e,s.summary,n,r,i,a,o)}</summary>
             ${B(e,s.content,n,r,i,a,o)}
         </details>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `},Lp=(e,t,n,r,i,a)=>l`
+========
+            `},Rp=(e,t,n,r,i,a)=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-dialog
                 id="${e.metadata.id}"
             .component="${e}"
@@ -1031,7 +1323,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             .appState="${i}"
             .appdata="${a}"
         ></mateu-dialog>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `,Rp=(e,t,n,r,i,a)=>l`
+========
+            `,zp=(e,t,n,r,i,a)=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-drawer
                 id="${e.metadata.id}"
             .component="${e}"
@@ -1041,23 +1337,39 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             .appState="${i}"
             .appdata="${a}"
         ></mateu-drawer>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `,zp=e=>`mfe_`+[e.baseUrl,e.route,e.consumedRoute,e.serverSideType].map(e=>e??``).join(`|`).replace(/[^a-zA-Z0-9]/g,`_`),Bp=e=>{let t=e.metadata;return l`
+========
+            `,Bp=e=>`mfe_`+[e.baseUrl,e.route,e.consumedRoute,e.serverSideType].map(e=>e??``).join(`|`).replace(/[^a-zA-Z0-9]/g,`_`),Vp=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-api-caller>
         <mateu-ux baseUrl="${t.baseUrl}"
                   route="${t.route}"
                   consumedRoute="${t.consumedRoute}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                   id="${zp(t)}"
+========
+                  id="${Bp(t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                   serverSideType="${t.serverSideType}"
                   .appState="${t.appState}"
                   style="${e.style}" class="${e.cssClasses}"
                   slot="${e.slot??p}"
         ></mateu-ux>
         </mateu-api-caller>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `},Vp=e=>{let t=e.metadata;return l`
         <mateu-markdown .content=${t.markdown}
                         style="display:block; max-width: 72ch; ${e.style??``}" class="${e.cssClasses}"
                         slot="${e.slot??p}"></mateu-markdown>
             `},Hp=e=>{let t=e.metadata;return l`
+========
+            `},Hp=e=>{let t=e.metadata;return l`
+        <mateu-markdown .content=${t.markdown}
+                        style="display:block; max-width: 72ch; ${e.style??``}" class="${e.cssClasses}"
+                        slot="${e.slot??p}"></mateu-markdown>
+            `},Up=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div
             role="status"
             slot="${e.slot??p}"
@@ -1070,7 +1382,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${t.title?l`<strong>${t.title}</strong>`:p}
             ${t.text?l`<span>${t.text}</span>`:p}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Up=(e,t={})=>{let n=e.metadata,r=n.valueKey?t[n.valueKey]:n.value,i=n.max&&n.max!=0?n.max:1,a=!n.indeterminate&&r!=null;return l`
+========
+    `},Wp=(e,t={})=>{let n=e.metadata,r=n.valueKey?t[n.valueKey]:n.value,i=n.max&&n.max!=0?n.max:1,a=!n.indeterminate&&r!=null;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div style="${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
             <progress
                     style="width:100%;"
@@ -1081,7 +1397,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     ${n.text}
   </span>`:p}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Wp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+========
+    `},Gp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <details style="position: relative; ${t.style}" class="${t.cssClasses}" slot="${t.slot??p}">
             <summary style="list-style: none; cursor: pointer;">${B(e,s.wrapped,n,r,i,a,o)}</summary>
             <div style="position: absolute; z-index: 100; min-width: 300px; margin-top: .25rem; padding: .6rem .8rem;
@@ -1090,7 +1410,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${B(e,s.content,n,r,i,a,o)}
             </div>
         </details>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Gp=e=>{let t=e.metadata;return l`
+========
+    `},Kp=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-map id="${e.id??p}"
                    position="${t.position??p}" zoom="${t.zoom??p}"
                    .markers=${t.markers??[]}
@@ -1099,6 +1423,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                    .attribution=${t.attribution??void 0}
                    style="${e.style??p}" class="${e.cssClasses??p}"
                    slot="${e.slot??p}"></mateu-map>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             `},Kp=e=>{let t=e.metadata;return l`
         <img src="${t.src}" style="${e.style}" class="${e.cssClasses}"
              slot="${e.slot??p}">
@@ -1113,6 +1438,18 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         `)}
         <span style="${e.style}" class="${e.cssClasses}">${t.currentItemText}</span>
     </div>`},Jp=(e,t,n,r)=>{if(n<=0)return 0;let i=e+t;return r?(i%n+n)%n:Math.max(0,Math.min(n-1,i))},Yp=class extends _{constructor(...e){super(...e),this.dots=!1,this.nav=!1,this.loop=!1,this.auto=!1,this.duration=4e3,this.disableKeys=!1,this.selected=0,this.total=0,this.paused=!1,this.syncSlides=()=>{let e=this.slides;this.total!==e.length&&(this.total=e.length),this.selected>=e.length&&e.length>0&&(this.selected=e.length-1),e.forEach((t,n)=>{t.hidden=n!==this.selected,t.setAttribute(`aria-roledescription`,`slide`),t.setAttribute(`aria-label`,`${n+1} / ${e.length}`)})},this.onKey=e=>{this.disableKeys||(e.key===`ArrowRight`&&(this.go(1),e.preventDefault()),e.key===`ArrowLeft`&&(this.go(-1),e.preventDefault()))}}get slides(){return Array.from(this.children)}go(e){this.selected=Jp(this.selected,e,this.total,this.loop)}connectedCallback(){super.connectedCallback(),this.restartTimer()}disconnectedCallback(){super.disconnectedCallback(),this.stopTimer()}stopTimer(){this.timer&&clearInterval(this.timer),this.timer=void 0}restartTimer(){this.stopTimer(),this.auto&&this.isConnected&&(this.timer=setInterval(()=>{this.paused||(this.selected=Jp(this.selected,1,this.total,!0))},Math.max(500,this.duration||4e3)))}updated(e){(e.has(`auto`)||e.has(`duration`))&&this.restartTimer(),this.syncSlides()}render(){let e=!this.loop&&this.selected<=0,t=!this.loop&&this.selected>=this.total-1;return l`
+========
+            `},qp=e=>{let t=e.metadata;return l`
+        <img src="${t.src}" style="${e.style}" class="${e.cssClasses}"
+             slot="${e.slot??p}">
+            `},Jp=e=>{let t=e.metadata;return l`<div style="display:flex; align-items:center; gap:0.5rem;" slot="${e.slot??p}">
+        ${t.breadcrumbs.map(e=>l`
+            <a href="${U(Tl(e.link))}">${e.text}</a>
+            <span>/</span>
+        `)}
+        <span style="${e.style}" class="${e.cssClasses}">${t.currentItemText}</span>
+    </div>`},Yp=(e,t,n,r)=>{if(n<=0)return 0;let i=e+t;return r?(i%n+n)%n:Math.max(0,Math.min(n-1,i))},Xp=class extends _{constructor(...e){super(...e),this.dots=!1,this.nav=!1,this.loop=!1,this.auto=!1,this.duration=4e3,this.disableKeys=!1,this.selected=0,this.total=0,this.paused=!1,this.syncSlides=()=>{let e=this.slides;this.total!==e.length&&(this.total=e.length),this.selected>=e.length&&e.length>0&&(this.selected=e.length-1),e.forEach((t,n)=>{t.hidden=n!==this.selected,t.setAttribute(`aria-roledescription`,`slide`),t.setAttribute(`aria-label`,`${n+1} / ${e.length}`)})},this.onKey=e=>{this.disableKeys||(e.key===`ArrowRight`&&(this.go(1),e.preventDefault()),e.key===`ArrowLeft`&&(this.go(-1),e.preventDefault()))}}get slides(){return Array.from(this.children)}go(e){this.selected=Yp(this.selected,e,this.total,this.loop)}connectedCallback(){super.connectedCallback(),this.restartTimer()}disconnectedCallback(){super.disconnectedCallback(),this.stopTimer()}stopTimer(){this.timer&&clearInterval(this.timer),this.timer=void 0}restartTimer(){this.stopTimer(),this.auto&&this.isConnected&&(this.timer=setInterval(()=>{this.paused||(this.selected=Yp(this.selected,1,this.total,!0))},Math.max(500,this.duration||4e3)))}updated(e){(e.has(`auto`)||e.has(`duration`))&&this.restartTimer(),this.syncSlides()}render(){let e=!this.loop&&this.selected<=0,t=!this.loop&&this.selected>=this.total-1;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="frame" role="region" aria-roledescription="carousel" tabindex="0"
                  @keydown="${this.onKey}"
                  @mouseenter="${()=>{this.paused=!0}}" @mouseleave="${()=>{this.paused=!1}}"
@@ -1141,7 +1478,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .dot { width: .6rem; height: .6rem; padding: 0; border-radius: 50%; border: none; cursor: pointer;
                background: var(--lumo-contrast-30pct, #bbb); }
         .dot.active { background: var(--lumo-primary-color, #1676f3); }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({type:Boolean})],Yp.prototype,`dots`,void 0),a([n({type:Boolean})],Yp.prototype,`nav`,void 0),a([n({type:Boolean})],Yp.prototype,`loop`,void 0),a([n({type:Boolean})],Yp.prototype,`auto`,void 0),a([n({type:Number})],Yp.prototype,`duration`,void 0),a([n({type:Boolean,attribute:`disable-keys`})],Yp.prototype,`disableKeys`,void 0),a([n({type:Number,reflect:!0})],Yp.prototype,`selected`,void 0),a([s()],Yp.prototype,`total`,void 0),Yp=a([i(`mateu-carousel`)],Yp);var Xp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+========
+    `}};a([n({type:Boolean})],Xp.prototype,`dots`,void 0),a([n({type:Boolean})],Xp.prototype,`nav`,void 0),a([n({type:Boolean})],Xp.prototype,`loop`,void 0),a([n({type:Boolean})],Xp.prototype,`auto`,void 0),a([n({type:Number})],Xp.prototype,`duration`,void 0),a([n({type:Boolean,attribute:`disable-keys`})],Xp.prototype,`disableKeys`,void 0),a([n({type:Number,reflect:!0})],Xp.prototype,`selected`,void 0),a([s()],Xp.prototype,`total`,void 0),Xp=a([i(`mateu-carousel`)],Xp);var Zp=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-carousel
                 id="${t.id}"
                 ?dots="${s.dots}"
@@ -1156,15 +1497,24 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         >
             ${t.children?.map(t=>l`<div>${B(e,t,n,r,i,a,o)}</div>`)}
         </mateu-carousel>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Zp=(e,t,n,r)=>{let i=e.metadata;return l`
         <div style="display: flex; gap: 3rem; ${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
             ${i.menu.map(e=>Qp(e))}
         </div>
             `},Qp=e=>l`
+========
+    `},Qp=(e,t,n,r)=>{let i=e.metadata;return l`
+        <div style="display: flex; gap: 3rem; ${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
+            ${i.menu.map(e=>$p(e))}
+        </div>
+            `},$p=e=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         ${e.submenus?l`
                 <details open>
                     <summary>${e.label}</summary>
                     <div style="display:flex; flex-direction:column; gap:0.25rem; padding-left:0.5rem;">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         ${e.submenus.map(e=>Qp(e))}
                     </div>
                 </details>
@@ -1180,6 +1530,19 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 style="${t.style}" class="${t.cssClasses}"
         >${s.content?F(s.content):p}${t.children?.map(t=>B(e,t,n,r,i,a,o))}</div>
     `},em=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.title?.includes("${")?e._evalTemplate(s.title):s.title;return l`<div
+========
+                        ${e.submenus.map(e=>$p(e))}
+                    </div>
+                </details>
+            `:l`
+                <a href="${U(Tl(e.path))}">${e.label}</a>
+        `}
+        `,em=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`<div
+                slot="${t.slot??p}"
+                style="${t.style}" class="${t.cssClasses}"
+        >${s.content?I(s.content):p}${t.children?.map(t=>B(e,t,n,r,i,a,o))}</div>
+    `},tm=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.title?.includes("${")?e._evalTemplate(s.title):s.title;return l`<div
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 id="${t.id??p}"
                 slot="${t.slot??p}"
                 style="width: 100%; margin-bottom: var(--lumo-space-m); ${t.style}"
@@ -1188,29 +1551,51 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         ${c?l`<div style="font-size: var(--lumo-font-size-l); font-weight: 600; color: var(--lumo-header-text-color); margin-bottom: var(--lumo-space-s);">${c}</div>`:p}
         ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
     </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},tm=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.title?.includes("${")?e._evalTemplate(s.title):s.title;return l`
+========
+    `},nm=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.title?.includes("${")?e._evalTemplate(s.title):s.title;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div
                 slot="${t.slot??p}"
                 style="${t.style}" class="${t.cssClasses}"
         >
         <h4>${c}</h4>
         ${t.children?.map(t=>B(e,t,n,r,i,a,o))}</div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},nm=(e,t,n)=>{n.dispatchEvent(new CustomEvent(`value-changed`,{detail:{fieldId:e,value:t},bubbles:!0,composed:!0}))},rm=e=>t=>{let n=t.target,r=n.type===`checkbox`?n.checked:n.value;nm(e.fieldId,r,n)},im=(e,t)=>{let n=e.metadata,r=t?.[n.fieldId]??``,i=n,a=i.dataType,o=i.stereotype,s=!!i.readOnly,c=!!i.disabled,u=i.options,d=n.label?l`<label style="display:block; font-size: var(--lumo-font-size-s,.875rem); color: var(--lumo-secondary-text-color,#667); margin-bottom:.15rem;">${n.label}</label>`:p,f=`width:100%; box-sizing:border-box; padding:.4rem .6rem; border:1px solid var(--lumo-contrast-30pct,rgba(0,0,0,.3)); border-radius: var(--lumo-border-radius-m,6px); font:inherit; background: var(--lumo-base-color,#fff); color: var(--lumo-body-text-color,#1a1a1a);`,m;return m=s||o===`plainText`?l`<div style="padding:.4rem 0;">${String(r??``)}</div>`:a===`boolean`||a===`bool`||o===`checkbox`||o===`badge`?l`<input type="checkbox" ?checked="${!!r}" ?disabled="${c}" @change="${rm(n)}">`:u&&u.length?l`
             <select style="${f}" ?disabled="${c}" @change="${rm(n)}">
                 <option value="">—</option>
                 ${u.map(e=>l`<option value="${e.value}" ?selected="${e.value===r}">${e.label}</option>`)}
             </select>`:o===`textarea`||o===`richText`||o===`html`?l`<textarea style="${f}" rows="3" ?disabled="${c}" @input="${rm(n)}">${String(r??``)}</textarea>`:l`<input type="${a===`integer`||a===`number`||a===`double`||a===`money`?`number`:a===`date`?`date`:a===`datetime`?`datetime-local`:a===`time`?`time`:o===`password`?`password`:a===`email`?`email`:`text`}" style="${f}" .value="${String(r??``)}"
                               placeholder="${i.placeholder??p}" ?disabled="${c}" @input="${rm(n)}">`,l`
+========
+    `},rm=(e,t,n)=>{n.dispatchEvent(new CustomEvent(`value-changed`,{detail:{fieldId:e,value:t},bubbles:!0,composed:!0}))},im=e=>t=>{let n=t.target,r=n.type===`checkbox`?n.checked:n.value;rm(e.fieldId,r,n)},am=(e,t)=>{let n=e.metadata,r=t?.[n.fieldId]??``,i=n,a=i.dataType,o=i.stereotype,s=!!i.readOnly,c=!!i.disabled,u=i.options,d=n.label?l`<label style="display:block; font-size: var(--lumo-font-size-s,.875rem); color: var(--lumo-secondary-text-color,#667); margin-bottom:.15rem;">${n.label}</label>`:p,f=`width:100%; box-sizing:border-box; padding:.4rem .6rem; border:1px solid var(--lumo-contrast-30pct,rgba(0,0,0,.3)); border-radius: var(--lumo-border-radius-m,6px); font:inherit; background: var(--lumo-base-color,#fff); color: var(--lumo-body-text-color,#1a1a1a);`,m;return m=s||o===`plainText`?l`<div style="padding:.4rem 0;">${String(r??``)}</div>`:a===`boolean`||a===`bool`||o===`checkbox`||o===`badge`?l`<input type="checkbox" ?checked="${!!r}" ?disabled="${c}" @change="${im(n)}">`:u&&u.length?l`
+            <select style="${f}" ?disabled="${c}" @change="${im(n)}">
+                <option value="">—</option>
+                ${u.map(e=>l`<option value="${e.value}" ?selected="${e.value===r}">${e.label}</option>`)}
+            </select>`:o===`textarea`||o===`richText`||o===`html`?l`<textarea style="${f}" rows="3" ?disabled="${c}" @input="${im(n)}">${String(r??``)}</textarea>`:l`<input type="${a===`integer`||a===`number`||a===`double`||a===`money`?`number`:a===`date`?`date`:a===`datetime`?`datetime-local`:a===`time`?`time`:o===`password`?`password`:a===`email`?`email`:`text`}" style="${f}" .value="${String(r??``)}"
+                              placeholder="${i.placeholder??p}" ?disabled="${c}" @input="${im(n)}">`,l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div id="${e.id??p}" style="${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
             ${d}
             ${m}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},{I:am}=f,om=e=>e,sm={HTML:1,SVG:2,MATHML:3},cm=(e,t)=>t===void 0?e?._$litType$!==void 0:e?._$litType$===t,lm=e=>e.strings===void 0,um=()=>document.createComment(``),dm=(e,t,n)=>{let r=e._$AA.parentNode,i=t===void 0?e._$AB:t._$AA;if(n===void 0)n=new am(r.insertBefore(um(),i),r.insertBefore(um(),i),e,e.options);else{let t=n._$AB.nextSibling,a=n._$AM,o=a!==e;if(o){let t;n._$AQ?.(e),n._$AM=e,n._$AP!==void 0&&(t=e._$AU)!==a._$AU&&n._$AP(t)}if(t!==i||o){let e=n._$AA;for(;e!==t;){let t=om(e).nextSibling;om(r).insertBefore(e,i),e=t}}}return n},fm=(e,t,n=e)=>(e._$AI(t,n),e),pm={},mm=(e,t=pm)=>e._$AH=t,hm=e=>e._$AH,gm=e=>{e._$AR(),e._$AA.remove()},_m=(e,t)=>{let n=e._$AN;if(n===void 0)return!1;for(let e of n)e._$AO?.(t,!1),_m(e,t);return!0},vm=e=>{let t,n;do{if((t=e._$AM)===void 0)break;n=t._$AN,n.delete(e),e=t}while(n?.size===0)},ym=e=>{for(let t;t=e._$AM;e=t){let n=t._$AN;if(n===void 0)t._$AN=n=new Set;else if(n.has(e))break;n.add(e),Sm(t)}};function bm(e){this._$AN===void 0?this._$AM=e:(vm(this),this._$AM=e,ym(this))}function xm(e,t=!1,n=0){let r=this._$AH,i=this._$AN;if(i!==void 0&&i.size!==0){if(t){if(Array.isArray(r))for(let e=n;e<r.length;e++)_m(r[e],!1),vm(r[e]);else r!=null&&(_m(r,!1),vm(r))}else _m(this,e)}}var Sm=e=>{e.type==qa.CHILD&&(e._$AP??=xm,e._$AQ??=bm)},Cm=class extends Ya{constructor(){super(...arguments),this._$AN=void 0}_$AT(e,t,n){super._$AT(e,t,n),ym(this),this.isConnected=e._$AU}_$AO(e,t=!0){e!==this.isConnected&&(this.isConnected=e,e?this.reconnected?.():this.disconnected?.()),t&&(_m(this,e),vm(this))}setValue(e){if(lm(this._$Ct))this._$Ct._$AI(e,this);else{let t=[...this._$Ct._$AH];t[this._$Ci]=e,this._$Ct._$AI(t,this,0)}}disconnected(){}reconnected(){}},wm=`var(--mateu-fab-size, var(--lumo-size-l, 2.75rem))`,Tm=`var(--mateu-fab-gap, var(--lumo-space-s, 0.5rem))`,Em=`var(--mateu-fab-inset-bottom, var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)))`,Dm=`var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem))`,Om={inset:1,size:2.75,gap:.5,toc:15,tocGap:2},km=e=>`calc(${Em} + ${e} * (${wm} + ${Tm}))`,Am=e=>`calc(${Em} + (var(--mateu-fab-shell-slots, 0) + ${e}) * (${wm} + ${Tm}))`,jm=e=>`bottom: ${km(e)}; right: ${Dm};`,Mm=e=>`bottom: ${Am(e)}; right: ${Dm};`,Nm=e=>h`
     ${sh(e)} {
         position: fixed;
         box-sizing: border-box;
         width: ${oh(wm)};
         height: ${oh(wm)};
+========
+    `},{I:om}=f,sm=e=>e,cm={HTML:1,SVG:2,MATHML:3},lm=(e,t)=>t===void 0?e?._$litType$!==void 0:e?._$litType$===t,um=e=>e.strings===void 0,dm=()=>document.createComment(``),fm=(e,t,n)=>{let r=e._$AA.parentNode,i=t===void 0?e._$AB:t._$AA;if(n===void 0)n=new om(r.insertBefore(dm(),i),r.insertBefore(dm(),i),e,e.options);else{let t=n._$AB.nextSibling,a=n._$AM,o=a!==e;if(o){let t;n._$AQ?.(e),n._$AM=e,n._$AP!==void 0&&(t=e._$AU)!==a._$AU&&n._$AP(t)}if(t!==i||o){let e=n._$AA;for(;e!==t;){let t=sm(e).nextSibling;sm(r).insertBefore(e,i),e=t}}}return n},pm=(e,t,n=e)=>(e._$AI(t,n),e),mm={},hm=(e,t=mm)=>e._$AH=t,gm=e=>e._$AH,_m=e=>{e._$AR(),e._$AA.remove()},vm=(e,t)=>{let n=e._$AN;if(n===void 0)return!1;for(let e of n)e._$AO?.(t,!1),vm(e,t);return!0},ym=e=>{let t,n;do{if((t=e._$AM)===void 0)break;n=t._$AN,n.delete(e),e=t}while(n?.size===0)},bm=e=>{for(let t;t=e._$AM;e=t){let n=t._$AN;if(n===void 0)t._$AN=n=new Set;else if(n.has(e))break;n.add(e),Cm(t)}};function xm(e){this._$AN===void 0?this._$AM=e:(ym(this),this._$AM=e,bm(this))}function Sm(e,t=!1,n=0){let r=this._$AH,i=this._$AN;if(i!==void 0&&i.size!==0){if(t){if(Array.isArray(r))for(let e=n;e<r.length;e++)vm(r[e],!1),ym(r[e]);else r!=null&&(vm(r,!1),ym(r))}else vm(this,e)}}var Cm=e=>{e.type==Ka.CHILD&&(e._$AP??=Sm,e._$AQ??=xm)},wm=class extends Ja{constructor(){super(...arguments),this._$AN=void 0}_$AT(e,t,n){super._$AT(e,t,n),bm(this),this.isConnected=e._$AU}_$AO(e,t=!0){e!==this.isConnected&&(this.isConnected=e,e?this.reconnected?.():this.disconnected?.()),t&&(vm(this,e),ym(this))}setValue(e){if(um(this._$Ct))this._$Ct._$AI(e,this);else{let t=[...this._$Ct._$AH];t[this._$Ci]=e,this._$Ct._$AI(t,this,0)}}disconnected(){}reconnected(){}},Tm=`var(--mateu-fab-size, var(--lumo-size-l, 2.75rem))`,Em=`var(--mateu-fab-gap, var(--lumo-space-s, 0.5rem))`,Dm=`var(--mateu-fab-inset-bottom, var(--mateu-fab-inset-block, var(--lumo-space-m, 1rem)))`,Om=`var(--mateu-fab-inset-end, var(--lumo-space-m, 1rem))`,km={inset:1,size:2.75,gap:.5,toc:15,tocGap:2},Am=e=>`calc(${Dm} + ${e} * (${Tm} + ${Em}))`,jm=e=>`calc(${Dm} + (var(--mateu-fab-shell-slots, 0) + ${e}) * (${Tm} + ${Em}))`,Mm=e=>`bottom: ${Am(e)}; right: ${Om};`,Nm=e=>`bottom: ${jm(e)}; right: ${Om};`,Pm=e=>h`
+    ${ch(e)} {
+        position: fixed;
+        box-sizing: border-box;
+        width: ${sh(Tm)};
+        height: ${sh(Tm)};
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         padding: 0;
         border: none;
         border-radius: var(--lumo-border-radius-m, 0.25rem);
@@ -1225,6 +1610,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         z-index: 900;
         transition: background-color 0.15s, bottom 0.2s ease, right 0.2s ease;
     }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     ${sh(e)}:hover {
         background-image: linear-gradient(var(--lumo-tint-10pct, rgba(255, 255, 255, 0.1)), var(--lumo-tint-10pct, rgba(255, 255, 255, 0.1)));
     }
@@ -1242,6 +1628,25 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${H(t.icon)}
             </button>
         `),dh=(e,t,n,r,i,a,o,s)=>{let c=ch(t),u=c.metadata,d=u?.fabs??[];return l`<mateu-page
+========
+    ${ch(e)}:hover {
+        background-image: linear-gradient(var(--lumo-tint-10pct, rgba(255, 255, 255, 0.1)), var(--lumo-tint-10pct, rgba(255, 255, 255, 0.1)));
+    }
+    ${ch(e)}:active {
+        background-image: linear-gradient(var(--lumo-shade-10pct, rgba(0, 0, 0, 0.1)), var(--lumo-shade-10pct, rgba(0, 0, 0, 0.1)));
+    }
+    ${ch(e)}:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--lumo-base-color, #fff), 0 0 0 4px var(--lumo-primary-color-50pct, rgba(22, 118, 243, 0.5));
+    }
+`,Fm=new Map,Im=new Map,Lm=new Set,Rm=!1,zm=()=>parseFloat(getComputedStyle(document.documentElement).fontSize||`16`)||16,Bm=()=>{let e=document.documentElement.style,t=[...Fm.values()],n=t.filter(e=>e.kind===`shell`).reduce((e,t)=>Math.max(e,t.slot+1),0),r=t.filter(e=>e.kind===`page`).length;e.setProperty(`--mateu-fab-shell-slots`,String(n)),e.setProperty(`--mateu-fab-slots`,String(n+r))},Vm=()=>{Rm||(Rm=!0,queueMicrotask(()=>{Rm=!1,Bm(),Lm.forEach(e=>e())}))},Hm=(e,t)=>{let n=Fm.get(e);(n?.kind!==t.kind||n.slot!==t.slot)&&(Fm.set(e,t),Vm())},Um=e=>{Fm.delete(e)&&Vm()},Wm=qa(class extends wm{constructor(e){if(super(e),e.type!==Ka.ELEMENT)throw Error(`onFabRail goes on the FAB element`)}render(e,t){return p}update(e,[t,n]){return this.element&&this.element!==e.element&&Um(this.element),this.element=e.element,this.entry={kind:t,slot:n??0},this.isConnected&&Hm(this.element,this.entry),p}disconnected(){this.element&&Um(this.element)}reconnected(){this.element&&this.entry&&Hm(this.element,this.entry)}}),Gm=(e,t)=>(Im.set(e,t),t(Km,qm),Vm(),()=>{Im.delete(e)&&Vm()}),Km=`column`,qm,Jm=(e,t)=>{Km=e,qm=t,Im.forEach(n=>n(e,t))},Ym=e=>{let{mode:t,viewportWidth:n,contentEnd:r,hasFabs:i,hasToc:a,rem:o}=e,s=km.inset*o,c=(km.size+km.gap)*o;if(t===`edge`)return{channel:0,toc:`bar`,insetEnd:0,insetBottom:0};if(n<600)return{channel:0,toc:`bar`,insetEnd:s};let l=a&&n>=1200,u=Math.max(i?s+c:0,l?s+(km.toc+km.tocGap)*o:0),d=l?`aside`:`bar`;if(t===`full`)return{channel:u,toc:d,insetEnd:s,padEnd:u>0?Math.max(24,Math.round(u-(n-r))):void 0};let f=u>0?Math.max(0,Math.round(u-(n-(e.containerEnd??r)))):void 0,p=Math.max(c,u-s);return{channel:u,toc:d,insetEnd:Math.max(s,Math.round(n-r-p)),squeeze:f}},Xm=new Map,Zm=0,W,Qm,$m=(e,t)=>{let n=t;for(;n;)if(n=n.parentNode??n.host??null,n===e)return!0;return!1},eh=()=>{let e=[...Xm.values()].filter(e=>e.element.isConnected);return e.filter(t=>!e.some(e=>e!==t&&$m(e.element,t.element))).sort((e,t)=>t.order-e.order)[0]?.element},th=e=>{e.removeAttribute(`data-aside`),e.style.removeProperty(`--mateu-aside-squeeze`),e.style.removeProperty(`--mateu-aside-pad-end`)},nh=()=>{let e=document.documentElement,t=eh();if(W&&W!==t&&(Qm?.unobserve(W),th(W)),t&&t!==W&&Qm?.observe(t),W=t,!W){e.style.removeProperty(`--mateu-fab-inset-end`),e.style.removeProperty(`--mateu-fab-inset-bottom`),Bm(),Jm(`column`);return}let n=Xm.get(W),r=zm(),i=e.clientWidth||window.innerWidth,a=W.getBoundingClientRect().right,o=Ym({mode:n.mode,viewportWidth:i,contentEnd:a,containerEnd:a+(parseFloat(getComputedStyle(W).marginRight)||0),hasFabs:Fm.size>0,hasToc:Im.size>0,rem:r});o.channel>0?(W.setAttribute(`data-aside`,``),W.style.setProperty(`--mateu-aside-squeeze`,`${o.squeeze??0}px`),o.padEnd===void 0?W.style.removeProperty(`--mateu-aside-pad-end`):W.style.setProperty(`--mateu-aside-pad-end`,`${o.padEnd}px`)):th(W),e.style.setProperty(`--mateu-fab-inset-end`,`${o.insetEnd}px`),Bm(),o.insetBottom===void 0?e.style.removeProperty(`--mateu-fab-inset-bottom`):e.style.setProperty(`--mateu-fab-inset-bottom`,`${o.insetBottom}px`),Jm(o.toc,a-(parseFloat(getComputedStyle(W).paddingRight)||0))},rh=!1,ih=()=>{rh||(rh=!0,Qm=typeof ResizeObserver<`u`?new ResizeObserver(()=>nh()):void 0,window.addEventListener(`resize`,nh),Lm.add(nh))},ah=()=>{rh&&(rh=!1,Qm?.disconnect(),Qm=void 0,window.removeEventListener(`resize`,nh),Lm.delete(nh))},oh=(e,t)=>(Xm.set(e,{element:e,mode:t,order:++Zm}),ih(),nh(),()=>{Xm.get(e)?.element===e&&(Xm.delete(e),th(e),nh(),Xm.size===0&&ah())}),sh=e=>d(e),ch=e=>d(e),lh=e=>{let t=e.metadata;if((t?.level??0)>0)return e;let n=e=>{if(e?.metadata?.type===D.EntityHeader)return e;let t=e?.metadata?.content,r=[...e?.children??[],...Array.isArray(t)?t:t?[t]:[]];for(let e of r){let t=n(e);if(t)return t}},r;for(let t of e.children??[])if(r=n(t),r)break;if(!r)return e;let i=r.metadata;r.__hoistedToPageHeader=!0;let a=[...(i.facts??[]).filter(e=>e.label||e.value).map(e=>({title:e.label??``,text:e.value??``})),...i.metricLabel?[{title:i.metricLabel,text:i.metricValue??``}]:[]],o=(i.badges??[]).filter(e=>e.label).map(e=>({text:e.label,color:e.color})),s={...t,title:i.title||t.title,subtitle:i.subtitle??t.subtitle,kpis:[...t.kpis??[],...a],kpisBelow:!0,badges:[...t.badges??[],...o]};return{...e,metadata:s}},uh=e=>`width: 100%; box-sizing: border-box; ${e??``}`,dh=(e,t)=>(t??[]).map((e,t)=>l`
+            <button class="page-fab" style="${Nm(t)}" ${Wm(`page`,t)} aria-label="${e.label}"
+                @click="${t=>t.currentTarget.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}"
+                title="${e.label}">
+                ${H(e.icon)}
+            </button>
+        `),fh=(e,t,n,r,i,a,o,s)=>{let c=lh(t),u=c.metadata,d=u?.fabs??[];return l`<mateu-page
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             .component="${c}"
             baseUrl="${n}"
             .state="${r}"
@@ -1249,7 +1654,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             .appState="${a}"
             .appdata="${o}"
             slot="${c.slot??p}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             style="${lh(c.style)}"
+========
+            style="${uh(c.style)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             class="${c.cssClasses}"
             ?standalone="${s??!1}"
     >
@@ -1257,9 +1666,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         ${u?.buttons?.map(t=>l`
                    ${B(e,{id:no(t),metadata:t,type:T.ClientSide,slot:`buttons`},void 0,r,i,a,o)}
 `)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         ${uh(e,d)}
 </mateu-page>
     `},fh=(e,t,n,r,i,a,o,s)=>l`<mateu-table-crud
+========
+        ${dh(e,d)}
+</mateu-page>
+    `},ph=(e,t,n,r,i,a,o,s)=>l`<mateu-table-crud
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             id="${t.id}"
             baseUrl="${n}"
             .component="${t}"
@@ -1274,7 +1689,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ?standalone="${s??!1}"
     >
         ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     </mateu-table-crud>`,ph=e=>{let t=e.metadata;return l`
+========
+    </mateu-table-crud>`,mh=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-bpmn
                 style="${e.style}"
                 class="${e.cssClasses}"
@@ -1282,29 +1701,45 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 xml="${t.xml}"
         >
         </mateu-bpmn>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},mh=(e,t,n)=>{let r=e.metadata;return l`<mateu-chat sseUrl="${r.sseUrl}"
                             style="${e.style}" 
                             class="${e.cssClasses}" 
                             slot="${e.slot??p}"></mateu-chat>`},hh=e=>{let t=e.metadata;return l`
+========
+    `},hh=(e,t,n)=>{let r=e.metadata;return l`<mateu-chat sseUrl="${r.sseUrl}"
+                            style="${e.style}" 
+                            class="${e.cssClasses}" 
+                            slot="${e.slot??p}"></mateu-chat>`},gh=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-workflow
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
                 value="${t.value??`{"name":"New Workflow","steps":[]}`}"
         ></mateu-workflow>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},gh=e=>{let t=e.metadata;return l`
+========
+    `},_h=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-form-editor
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
                 value="${t.value??`{"name":"New Form","fields":[]}`}"
         ></mateu-form-editor>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},_h=`
+========
+    `},vh=`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     background: var(--lumo-base-color, #fff);
     border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
     border-radius: var(--lumo-border-radius-l, 12px);
     padding: var(--lumo-space-m, 1rem);
     box-sizing: border-box;
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,vh=e=>e==`up`?`var(--lumo-success-text-color, #1a7f37)`:e==`down`?`var(--lumo-error-text-color, #c5221f)`:`var(--lumo-secondary-text-color, #666)`,yh=e=>e==`up`?`▲`:e==`down`?`▼`:``,bh=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},xh=e=>e!=null&&String(e).trim()!=``,Sh=e=>{let t=[e.value,e.unit].filter(xh).map(e=>String(e).trim()).join(` `);return[e.title,t,e.timeframe,e.trendLabel,e.description].filter(xh).map(e=>String(e).trim()).join(`, `)},Ch=e=>{let t=e.metadata,n=!!t.actionId,r=xh(t.timeframe)?t.timeframe.trim():void 0;return l`
         <div class="mateu-metric-card ${e.cssClasses??``}"
              style="${_h} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${n?`cursor: pointer;`:``} ${e.style??``}"
@@ -1312,6 +1747,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
              role="${n?`button`:`group`}"
              aria-label="${Sh(t)}"
              @click="${e=>bh(e,t)}"
+========
+`,yh=e=>e==`up`?`var(--lumo-success-text-color, #1a7f37)`:e==`down`?`var(--lumo-error-text-color, #c5221f)`:`var(--lumo-secondary-text-color, #666)`,bh=e=>e==`up`?`▲`:e==`down`?`▼`:``,xh=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},Sh=e=>e!=null&&String(e).trim()!=``,Ch=e=>{let t=[e.value,e.unit].filter(Sh).map(e=>String(e).trim()).join(` `);return[e.title,t,e.timeframe,e.trendLabel,e.description].filter(Sh).map(e=>String(e).trim()).join(`, `)},wh=e=>{let t=e.metadata,n=!!t.actionId,r=Sh(t.timeframe)?t.timeframe.trim():void 0;return l`
+        <div class="mateu-metric-card ${e.cssClasses??``}"
+             style="${vh} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${n?`cursor: pointer;`:``} ${e.style??``}"
+             slot="${e.slot??p}"
+             role="${n?`button`:`group`}"
+             aria-label="${Ch(t)}"
+             @click="${e=>xh(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         >
             <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666);">${t.title}</span>
@@ -1323,25 +1767,42 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             </div>
             ${r?l`<span class="mateu-metric-timeframe" style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-secondary-text-color, #666);">${r}</span>`:p}
             ${t.trend||t.trendLabel?l`
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${vh(t.trend)};">
                     ${yh(t.trend)} ${t.trendLabel??p}
+========
+                <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${yh(t.trend)};">
+                    ${bh(t.trend)} ${t.trendLabel??p}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 </span>
             `:p}
             ${t.description?l`<span style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-secondary-text-color, #5f6b7a);">${t.description}</span>`:p}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},wh=(e,t,n,r,i,a,o)=>l`
+========
+    `},Th=(e,t,n,r,i,a,o)=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-scoreboard ${t.cssClasses??``}"
              style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); grid-column: 1 / -1; ${t.style??``}"
              slot="${t.slot??p}"
         >
             ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `,Th=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.colSpan&&s.colSpan>1?`grid-column: span ${s.colSpan};`:``,u=s.rowSpan&&s.rowSpan>1?`grid-row: span ${s.rowSpan};`:``,d=t.children??[];return d.length===1&&d[0].metadata?.type===`MetricCard`?l`
+========
+    `,Eh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.colSpan&&s.colSpan>1?`grid-column: span ${s.colSpan};`:``,u=s.rowSpan&&s.rowSpan>1?`grid-row: span ${s.rowSpan};`:``,d=t.children??[];return d.length===1&&d[0].metadata?.type===`MetricCard`?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div style="min-width: 0; ${c} ${u} ${t.style??``}" slot="${t.slot??p}">
                 ${B(e,d[0],n,r,i,a,o)}
             </div>`:l`
         <div class="mateu-dashboard-panel ${t.cssClasses??``}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
              style="${_h} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${u} ${t.style??``}"
+========
+             style="${vh} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${u} ${t.style??``}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
              slot="${t.slot??p}"
         >
             ${s.title?l`
@@ -1354,14 +1815,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
             </div>
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Eh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.columns&&s.columns>0?`repeat(${s.columns}, minmax(0, 1fr))`:`repeat(auto-fit, minmax(20rem, 1fr))`;return l`
+========
+    `},Dh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.columns&&s.columns>0?`repeat(${s.columns}, minmax(0, 1fr))`:`repeat(auto-fit, minmax(20rem, 1fr))`;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-dashboard ${t.cssClasses??``}"
              style="display: grid; grid-template-columns: ${c}; gap: var(--lumo-space-m, 1rem); align-items: stretch; ${t.style??``}"
              slot="${t.slot??p}"
         >
             ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Dh=class extends _{constructor(...e){super(...e),this.panels=[],this.headerTitle=``,this.badges=[],this.orientation=`vertical`,this.navigation=null,this.overviewEditActionId=``,this.openPanels=new Set,this.expandedPanel=null,this._onPopState=()=>{let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(e.startsWith(`expand=`)){let t=e.slice(7),n=this.panels.findIndex((e,n)=>this.panelAnchor(e,n)===t);this.expandedPanel=n>=0?n:null}else this.expandedPanel=null},this.initialized=!1}navAction(e){e&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{}},bubbles:!0,composed:!0}))}connectedCallback(){super.connectedCallback(),window.addEventListener(`popstate`,this._onPopState)}disconnectedCallback(){window.removeEventListener(`popstate`,this._onPopState),super.disconnectedCallback()}willUpdate(){if(!this.initialized&&this.panels.length){this.openPanels=new Set(this.panels.map((e,t)=>e.open?t:-1).filter(e=>e>=0));let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(e.startsWith(`expand=`)){let t=e.slice(7),n=this.panels.findIndex((e,n)=>this.panelAnchor(e,n)===t);n>=0&&(this.expandedPanel=n)}else if(e){let t=this.panels.findIndex((t,n)=>this.panelAnchor(t,n)===e);t>=0&&this.openPanels.add(t)}this.initialized=!0}}firstUpdated(){let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(!e)return;let t=this.renderRoot.querySelector(`[data-anchor="${CSS.escape(e)}"]`);t&&t.scrollIntoView({block:`nearest`})}panelAnchor(e,t){return(e.title??``).toLowerCase().replace(/[^a-z0-9]+/g,`-`).replace(/^-|-$/g,``)||`panel-${t}`}bookmarkPanel(e){let t=this.panelAnchor(this.panels[e],e);try{history.replaceState(history.state,``,`#`+t)}catch{}}clearBookmark(e){let t=this.panelAnchor(this.panels[e],e);if(decodeURIComponent((location.hash||``).replace(/^#/,``))===t)try{history.replaceState(history.state,``,location.pathname+location.search)}catch{}}expandPanel(e,t){t?.stopPropagation(),this.expandedPanel=e;let n=this.panelAnchor(this.panels[e],e);try{history.pushState(history.state,``,`#expand=`+n)}catch{}}collapsePanel(){try{history.back()}catch{this.expandedPanel=null}}toggle(e){let t=new Set(this.openPanels);t.has(e)?(t.delete(e),this.clearBookmark(e)):(t.add(e),this.bookmarkPanel(e)),this.openPanels=t}static{this.styles=h`
+========
+    `},G=e=>t=>{if(t.key===`Enter`){e(t);return}(t.key===` `||t.key===`Spacebar`)&&(t.preventDefault(),e(t))},Oh=e=>e?`button`:void 0,kh=e=>e?`0`:void 0,Ah=class extends _{constructor(...e){super(...e),this.panels=[],this.headerTitle=``,this.badges=[],this.orientation=`vertical`,this.navigation=null,this.overviewEditActionId=``,this.openPanels=new Set,this.expandedPanel=null,this._onPopState=()=>{let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(e.startsWith(`expand=`)){let t=e.slice(7),n=this.panels.findIndex((e,n)=>this.panelAnchor(e,n)===t);this.expandedPanel=n>=0?n:null}else this.expandedPanel=null},this.initialized=!1}navAction(e){e&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{}},bubbles:!0,composed:!0}))}connectedCallback(){super.connectedCallback(),window.addEventListener(`popstate`,this._onPopState)}disconnectedCallback(){window.removeEventListener(`popstate`,this._onPopState),super.disconnectedCallback()}willUpdate(){if(!this.initialized&&this.panels.length){this.openPanels=new Set(this.panels.map((e,t)=>e.open?t:-1).filter(e=>e>=0));let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(e.startsWith(`expand=`)){let t=e.slice(7),n=this.panels.findIndex((e,n)=>this.panelAnchor(e,n)===t);n>=0&&(this.expandedPanel=n)}else if(e){let t=this.panels.findIndex((t,n)=>this.panelAnchor(t,n)===e);t>=0&&this.openPanels.add(t)}this.initialized=!0}}firstUpdated(){let e=decodeURIComponent((location.hash||``).replace(/^#/,``));if(!e)return;let t=this.renderRoot.querySelector(`[data-anchor="${CSS.escape(e)}"]`);t&&t.scrollIntoView({block:`nearest`})}panelAnchor(e,t){return(e.title??``).toLowerCase().replace(/[^a-z0-9]+/g,`-`).replace(/^-|-$/g,``)||`panel-${t}`}bookmarkPanel(e){let t=this.panelAnchor(this.panels[e],e);try{history.replaceState(history.state,``,`#`+t)}catch{}}clearBookmark(e){let t=this.panelAnchor(this.panels[e],e);if(decodeURIComponent((location.hash||``).replace(/^#/,``))===t)try{history.replaceState(history.state,``,location.pathname+location.search)}catch{}}expandPanel(e,t){t?.stopPropagation(),this.expandedPanel=e;let n=this.panelAnchor(this.panels[e],e);try{history.pushState(history.state,``,`#expand=`+n)}catch{}}collapsePanel(){try{history.back()}catch{this.expandedPanel=null}}toggle(e){let t=new Set(this.openPanels);t.has(e)?(t.delete(e),this.clearBookmark(e)):(t.add(e),this.bookmarkPanel(e)),this.openPanels=t}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: flex;
             flex-direction: column;
@@ -1748,8 +2217,9 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             </div>
                         </div>
                     `:l`
-                        <div class="strip" role="button" title="${e.title}" data-node-id="${e.id??p}"
-                             data-anchor="${this.panelAnchor(e,t)}" @click="${()=>this.toggle(t)}">
+                        <div class="strip" role="button" tabindex="0" aria-expanded="false" title="${e.title}" data-node-id="${e.id??p}"
+                             data-anchor="${this.panelAnchor(e,t)}" @click="${()=>this.toggle(t)}"
+                             @keydown="${G(()=>this.toggle(t))}">
                             <button class="fold" tabindex="-1">⟩</button>
                             <span>${e.title}</span>
                             <!-- the folded panel's digest (FoldoutPanel.summary, the Redwood foldout-panel
@@ -1759,7 +2229,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     `)}
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Dh.prototype,`panels`,void 0),a([n({type:String})],Dh.prototype,`headerTitle`,void 0),a([n({type:Array})],Dh.prototype,`badges`,void 0),a([n({type:String,reflect:!0})],Dh.prototype,`orientation`,void 0),a([n({attribute:!1})],Dh.prototype,`navigation`,void 0),a([n({type:String})],Dh.prototype,`overviewEditActionId`,void 0),a([s()],Dh.prototype,`openPanels`,void 0),a([s()],Dh.prototype,`expandedPanel`,void 0),Dh=a([i(`mateu-foldout`)],Dh);var Oh=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+========
+        `}};a([n({type:Array})],Ah.prototype,`panels`,void 0),a([n({type:String})],Ah.prototype,`headerTitle`,void 0),a([n({type:Array})],Ah.prototype,`badges`,void 0),a([n({type:String,reflect:!0})],Ah.prototype,`orientation`,void 0),a([n({attribute:!1})],Ah.prototype,`navigation`,void 0),a([n({type:String})],Ah.prototype,`overviewEditActionId`,void 0),a([s()],Ah.prototype,`openPanels`,void 0),a([s()],Ah.prototype,`expandedPanel`,void 0),Ah=a([i(`mateu-foldout`)],Ah);var jh=(e,t,n,r,i,a,o)=>{let s=t.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-foldout
                 .panels="${s.panels??[]}"
                 .headerTitle="${s.headerTitle??``}"
@@ -1773,6 +2247,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         >
             ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
         </mateu-foldout>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},kh=`mateu-tile-order`,Ah=()=>{try{let e=JSON.parse(localStorage.getItem(kh)??`{}`);return e&&typeof e==`object`&&!Array.isArray(e)?e:{}}catch{return{}}},jh=(e,t)=>e?.id?String(e.id):`#`+t,Mh=e=>{let t=Ah()[e];return Array.isArray(t)?t.filter(e=>typeof e==`string`):null},Nh=(e,t)=>{try{let n=Ah();n[e]=t,localStorage.setItem(kh,JSON.stringify(n))}catch{}},Ph=(e,t)=>{if(!t||!t.length)return e.map((e,t)=>t);let n=t.map(t=>e.indexOf(t)).filter(e=>e>=0),r=new Set(n);return[...n,...e.map((e,t)=>t).filter(e=>!r.has(e))]},Fh=(e,t,n)=>{let r=e.indexOf(t),i=e.indexOf(n);if(r<0||i<0||r===i)return e;let a=e.filter(e=>e!==t);return a.splice(i,0,t),a},Ih=(e,t)=>{if(e?.type===`Scoreboard`)return`grid-column: 1 / -1;`;let n=e?.type===`DashboardPanel`?e.colSpan:t,r=e?.type===`DashboardPanel`?e.rowSpan:void 0;return(n&&n>1?`grid-column: span ${n};`:``)+(r&&r>1?` grid-row: span ${r};`:``)},Lh=(e,t,n)=>{let r=e.indexOf(t),i=r+n;return r<0||i<0||i>=e.length?e:Fh(e,t,e[i])},Rh=`application/x-mateu-tile`,zh=(e,t,n,r)=>{let i=t.children??[],a=(typeof location<`u`?location.pathname:``)+`#`+(t.id??`grid`),s=i.map((e,t)=>jh(e,t)),c=Ph(s,Mh(a)),u=c.map(e=>s[e]),d=t=>{t!==u&&(Nh(a,t),e.requestUpdate())};return c.map(e=>{let t=s[e],c=i[e].metadata;return l`<div class="mateu-tile" draggable="true" tabindex="0" data-tile-key="${t}"
                          aria-roledescription="draggable tile"
                          title="${o(`dragToRearrange`)}"
@@ -1788,6 +2263,19 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 ========
         >${n(e)}</div>`})},Bh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateAreas,u=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:c&&c.trim().length?null:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,d=s.gap??`var(--lumo-space-m, 1rem)`,f=s.colSpans??[],m=s.stickyAreas??[],h=`display: grid;${u?` grid-template-columns: ${u};`:``} gap: ${d}; align-items: start;${c&&c.trim().length?` grid-template-areas: ${c};`:``} ${t.style??``}`,g=s.reorderable&&!(c&&c.trim().length)?zh(e,t,s=>B(e,t.children[s],n,r,i,a,o),f):t.children?.map((t,s)=>{let u=B(e,t,n,r,i,a,o);if(c&&t.slot){let e=m.includes(t.slot)?` position: sticky; top: 1rem; align-self: start; height: fit-content;`:``;return l`<div style="grid-area: ${t.slot}; min-width: 0;${e}">${u}</div>`}return Cf(f[s],u)});if(!s.stackBelow)return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `},Mh=`mateu-tile-order`,Nh=()=>{try{let e=JSON.parse(localStorage.getItem(Mh)??`{}`);return e&&typeof e==`object`&&!Array.isArray(e)?e:{}}catch{return{}}},Ph=(e,t)=>e?.id?String(e.id):`#`+t,Fh=e=>{let t=Nh()[e];return Array.isArray(t)?t.filter(e=>typeof e==`string`):null},Ih=(e,t)=>{try{let n=Nh();n[e]=t,localStorage.setItem(Mh,JSON.stringify(n))}catch{}},Lh=(e,t)=>{if(!t||!t.length)return e.map((e,t)=>t);let n=t.map(t=>e.indexOf(t)).filter(e=>e>=0),r=new Set(n);return[...n,...e.map((e,t)=>t).filter(e=>!r.has(e))]},Rh=(e,t,n)=>{let r=e.indexOf(t),i=e.indexOf(n);if(r<0||i<0||r===i)return e;let a=e.filter(e=>e!==t);return a.splice(i,0,t),a},zh=(e,t)=>{if(e?.type===`Scoreboard`)return`grid-column: 1 / -1;`;let n=e?.type===`DashboardPanel`?e.colSpan:t,r=e?.type===`DashboardPanel`?e.rowSpan:void 0;return(n&&n>1?`grid-column: span ${n};`:``)+(r&&r>1?` grid-row: span ${r};`:``)},Bh=(e,t,n)=>{let r=e.indexOf(t),i=r+n;return r<0||i<0||i>=e.length?e:Rh(e,t,e[i])},Vh=`application/x-mateu-tile`,Hh=(e,t,n,r)=>{let i=t.children??[],a=(typeof location<`u`?location.pathname:``)+`#`+(t.id??`grid`),s=i.map((e,t)=>Ph(e,t)),c=Lh(s,Fh(a)),u=c.map(e=>s[e]),d=t=>{t!==u&&(Ih(a,t),e.requestUpdate())};return c.map(e=>{let t=s[e],c=i[e].metadata;return l`<div class="mateu-tile" draggable="true" tabindex="0" data-tile-key="${t}"
+                         aria-roledescription="draggable tile"
+                         title="${o(`dragToRearrange`)}"
+                         style="min-width: 0; cursor: grab; ${zh(c,r[e])}"
+                         @dragstart=${e=>{e.dataTransfer?.setData(Vh,a+`
+`+t),e.dataTransfer&&(e.dataTransfer.effectAllowed=`move`)}}
+                         @dragover=${e=>{e.dataTransfer?.types.includes(Vh)&&e.preventDefault()}}
+                         @drop=${e=>{let[n,r]=(e.dataTransfer?.getData(Vh)??``).split(`
+`);n!==a||!r||(e.preventDefault(),d(Rh(u,r,t)))}}
+                         @keydown=${e=>{if(!e.altKey||e.key!==`ArrowLeft`&&e.key!==`ArrowRight`||e.target!==e.currentTarget)return;e.preventDefault(),d(Bh(u,t,e.key===`ArrowLeft`?-1:1));let n=e.currentTarget;requestAnimationFrame(()=>(n.parentElement?.querySelector(`[data-tile-key="${CSS.escape(t)}"]`))?.focus())}}
+        >${n(e)}</div>`})},Uh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=s.gridTemplateAreas,u=s.gridTemplateColumns&&s.gridTemplateColumns.trim().length?s.gridTemplateColumns:c&&c.trim().length?null:`repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`,d=s.gap??`var(--lumo-space-m, 1rem)`,f=s.colSpans??[],m=s.stickyAreas??[],h=`display: grid;${u?` grid-template-columns: ${u};`:``} gap: ${d}; align-items: start;${c&&c.trim().length?` grid-template-areas: ${c};`:``} ${t.style??``}`,g=s.reorderable&&!(c&&c.trim().length)?Hh(e,t,s=>B(e,t.children[s],n,r,i,a,o),f):t.children?.map((t,s)=>{let u=B(e,t,n,r,i,a,o);if(c&&t.slot){let e=m.includes(t.slot)?` position: sticky; top: 1rem; align-self: start; height: fit-content;`:``;return l`<div style="grid-area: ${t.slot}; min-width: 0;${e}">${u}</div>`}return wf(f[s],u)});if(!s.stackBelow)return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="mateu-responsive-grid ${t.cssClasses??``}"
                  style="${h}"
                  slot="${t.slot??p}"
@@ -1809,7 +2297,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                  style="${h}"
             >${g}</div>
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Vh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children??[],u=e=>c.filter(t=>(t.slot??``).startsWith(e)),d=u(`main-`),f=u(`aside-`),m=u(`footer-`),h=s.asideWidth&&s.asideWidth.trim()?s.asideWidth:`32%`,g=s.asidePosition===`start`,_=s.asideSticky!==!1,v=t=>t.map(t=>B(e,t,n,r,i,a,o)),ee=l`
+========
+    `},Wh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children??[],u=e=>c.filter(t=>(t.slot??``).startsWith(e)),d=u(`main-`),f=u(`aside-`),m=u(`footer-`),h=s.asideWidth&&s.asideWidth.trim()?s.asideWidth:`32%`,g=s.asidePosition===`start`,_=s.asideSticky!==!1,v=t=>t.map(t=>B(e,t,n,r,i,a,o)),ee=l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <div class="mateu-content-main"
              style="flex: 1 1 0; min-width: min(20rem, 100%); box-sizing: border-box;">
             ${v(d)}
@@ -1830,9 +2322,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${v(m)}
                 </div>`:p}
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Hh={ocean:`#1f4e79`,pine:`#2d5a3d`,lilac:`#5b4a7a`,teal:`#1f5c5c`,rose:`#7a3b4f`,pebble:`#5a5550`,slate:`#3d4a57`,plum:`#5e3557`,sienna:`#7a4a2e`},Uh=`--lumo-primary-text-color: var(--mateu-hero-ink, #fff); --lumo-body-text-color: var(--mateu-hero-ink, #fff); --lumo-secondary-text-color: var(--mateu-hero-ink-secondary, rgba(255, 255, 255, .88)); --lumo-contrast-5pct: rgba(255, 255, 255, .12); --lumo-contrast-10pct: rgba(255, 255, 255, .18);`,Wh=e=>(e&&Hh[e])??`var(--mateu-hero-background, color-mix(in srgb, var(--mateu-accent, #1f6f8f) 78%, #0b1a24))`,Gh=e=>e&&/^[\w\s/.:%~?&=#+,@-]+$/.test(e.trim())?`url("${e.trim()}")`:void 0,Kh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=Gh(s.image),u=!c&&s.centered!==!1,d=u?`center`:`flex-start`,f=u?`center`:`start`;return l`
         <div class="mateu-hero ${t.cssClasses??``}" data-tone="${s.tone??p}"
              style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${s.height??`12rem`}; box-sizing: border-box; background: ${Wh(s.tone)}; color: var(--mateu-hero-ink, #fff); ${Uh} ${t.style??``}"
+========
+    `},Gh={ocean:`#1f4e79`,pine:`#2d5a3d`,lilac:`#5b4a7a`,teal:`#1f5c5c`,rose:`#7a3b4f`,pebble:`#5a5550`,slate:`#3d4a57`,plum:`#5e3557`,sienna:`#7a4a2e`},Kh=`--lumo-primary-text-color: var(--mateu-hero-ink, #fff); --lumo-body-text-color: var(--mateu-hero-ink, #fff); --lumo-secondary-text-color: var(--mateu-hero-ink-secondary, rgba(255, 255, 255, .88)); --lumo-contrast-5pct: rgba(255, 255, 255, .12); --lumo-contrast-10pct: rgba(255, 255, 255, .18);`,qh=e=>(e&&Gh[e])??`var(--mateu-hero-background, color-mix(in srgb, var(--mateu-accent, #1f6f8f) 78%, #0b1a24))`,Jh=e=>e&&/^[\w\s/.:%~?&=#+,@-]+$/.test(e.trim())?`url("${e.trim()}")`:void 0,Yh=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=Jh(s.image),u=!c&&s.centered!==!1,d=u?`center`:`flex-start`,f=u?`center`:`start`;return l`
+        <div class="mateu-hero ${t.cssClasses??``}" data-tone="${s.tone??p}"
+             style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${s.height??`12rem`}; box-sizing: border-box; background: ${qh(s.tone)}; color: var(--mateu-hero-ink, #fff); ${Kh} ${t.style??``}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
              slot="${t.slot??p}"
         >
             ${c?l`<div class="mateu-hero-image" aria-hidden="true"
@@ -1850,7 +2348,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <div class="mateu-hero-strip" aria-hidden="true"
                  style="position: relative; flex-shrink: 0; height: var(--mateu-page-band-h, 0px); background-image: var(--mateu-page-band-image, none); background-repeat: repeat-x; background-size: auto 100%;"></div>
         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},G=e=>t=>{if(t.key===`Enter`){e(t);return}(t.key===` `||t.key===`Spacebar`)&&(t.preventDefault(),e(t))},qh=864e5,Jh=class extends _{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=h`
+========
+    `},Xh=864e5,Zh=class extends _{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -1926,7 +2428,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         }
     
         ${V}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}range(){let e=this.tasks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>new Date(e+`T00:00:00`).getTime());return e.length?{min:Math.min(...e)-qh,max:Math.max(...e)+2*qh}:null}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let e=this.range();if(!e)return l``;let t=e.max-e.min,n=n=>(n-e.min)/t*100,r=Date.now();return l`
+========
+    `}range(){let e=this.tasks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>new Date(e+`T00:00:00`).getTime());return e.length?{min:Math.min(...e)-Xh,max:Math.max(...e)+2*Xh}:null}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let e=this.range();if(!e)return l``;let t=e.max-e.min,n=n=>(n-e.min)/t*100,r=Date.now();return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="frame">
                 <div class="head">${o(`task`)}</div>
                 <div class="head months">
@@ -1934,11 +2440,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         <div class="month" style="width: ${(e.to-e.from)/t*100}%;">${e.label}</div>
                     `)}
                 </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${this.tasks.map(i=>{let a=new Date(i.start+`T00:00:00`).getTime(),o=new Date(i.end+`T00:00:00`).getTime()+qh;return l`
+========
+                ${this.tasks.map(i=>{let a=new Date(i.start+`T00:00:00`).getTime(),o=new Date(i.end+`T00:00:00`).getTime()+Xh;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         <div class="label" title="${i.title}">${i.title}</div>
                         <div class="lane">
                             ${r>=e.min&&r<=e.max?l`<div class="today" style="left: ${n(r)}%;"></div>`:p}
-                            <div role="button" tabindex="0"
+                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${U(kh(!!this.onTaskSelectionActionId))}
                                  aria-label="${i.title}, ${i.start} to ${i.end}${i.progress?`, ${i.progress}% complete`:``}"
                                  class="bar ${this.onTaskSelectionActionId?`clickable`:``}"
                                  title="${i.title} · ${i.start} → ${i.end}${i.progress?` · ${i.progress}%`:``}"
@@ -1949,7 +2459,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Jh.prototype,`tasks`,void 0),a([n()],Jh.prototype,`onTaskSelectionActionId`,void 0),Jh=a([i(`mateu-gantt`)],Jh);var Yh=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],Zh.prototype,`tasks`,void 0),a([n()],Zh.prototype,`onTaskSelectionActionId`,void 0),Zh=a([i(`mateu-gantt`)],Zh);var Qh=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-gantt
                 .tasks="${t.tasks??[]}"
                 .onTaskSelectionActionId="${t.onTaskSelectionActionId??``}"
@@ -1957,7 +2471,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-gantt>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Xh=`#1a1a1a`,Zh=`#fff`,Qh=e=>{let t=e.trim().toLowerCase(),n=t.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);if(n){let e=n[1].length===3?n[1].split(``).map(e=>e+e).join(``):n[1];return[0,2,4].map(t=>parseInt(e.slice(t,t+2),16))}let r=t.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);return r?[+r[1],+r[2],+r[3]]:void 0},$h=([e,t,n])=>{let r=e=>{let t=e/255;return t<=.03928?t/12.92:((t+.055)/1.055)**2.4};return .2126*r(e)+.7152*r(t)+.0722*r(n)},eg=(e,t)=>{let n=Qh(e),r=Qh(t);if(!n||!r)return;let[i,a]=[$h(n),$h(r)].sort((e,t)=>t-e);return(i+.05)/(a+.05)},tg=e=>{if(!(!e||!Qh(e)))return(eg(e,Zh)??0)>=(eg(e,Xh)??0)?Zh:Xh},K,ng=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),rg=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},q=class extends _{static{K=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=h`
+========
+    `},$h=`#1a1a1a`,eg=`#fff`,tg=e=>{let t=e.trim().toLowerCase(),n=t.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);if(n){let e=n[1].length===3?n[1].split(``).map(e=>e+e).join(``):n[1];return[0,2,4].map(t=>parseInt(e.slice(t,t+2),16))}let r=t.match(/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);return r?[+r[1],+r[2],+r[3]]:void 0},ng=([e,t,n])=>{let r=e=>{let t=e/255;return t<=.03928?t/12.92:((t+.055)/1.055)**2.4};return .2126*r(e)+.7152*r(t)+.0722*r(n)},rg=(e,t)=>{let n=tg(e),r=tg(t);if(!n||!r)return;let[i,a]=[ng(n),ng(r)].sort((e,t)=>t-e);return(i+.05)/(a+.05)},ig=e=>{if(!(!e||!tg(e)))return(rg(e,eg)??0)>=(rg(e,$h)??0)?eg:$h},K,ag=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),og=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},q=class extends _{static{K=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2121,7 +2639,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             pointer-events: none;
             z-index: 2;
         }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}static parse(e){return new Date(e+`T00:00:00`)}static iso(e){let t=e=>String(e).padStart(2,`0`);return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}`}static addDays(e,t){return new Date(e.getFullYear(),e.getMonth(),e.getDate()+t)}static daysBetween(e,t){return Math.round((t.getTime()-e.getTime())/864e5)}window(){if(this.from&&this.to){let e=K.parse(this.from),t=K.daysBetween(e,K.parse(this.to))+1;return t>0?{from:e,days:t}:null}let e=this.blocks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>K.parse(e));if(!e.length)return null;let t=new Date(Math.min(...e.map(e=>e.getTime()))),n=new Date(Math.max(...e.map(e=>e.getTime())));return{from:t,days:K.daysBetween(t,n)+1}}onBlockPointerDown(e,t,n){if(!this.moveActionId&&!this.selectActionId||(e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.dragStartX=e.clientX,this.dragStartY=e.clientY,!this.window()))return;let r=K.parse(t.start),i=K.parse(t.end),a=Math.max(1,K.daysBetween(r,i)+1);this.laneRects=[...this.renderRoot.querySelectorAll(`.lane[data-resource-id]`)].map(e=>({resourceId:e.dataset.resourceId,rect:e.getBoundingClientRect()}));let o=this.dayAt(t.resourceId,e.clientX)??n;this.drag={blockId:t.id,duration:a,grabOffsetDays:o-n,originResourceId:t.resourceId,originStartIdx:n,targetResourceId:t.resourceId,targetStartIdx:n,moved:!1},window.addEventListener(`keydown`,this.onDragKeydown)}dayAt(e,t){let n=this.laneRects.find(t=>t.resourceId===e),r=this.window();if(!n||!r||n.rect.width===0)return null;let i=Math.floor((t-n.rect.left)/n.rect.width*r.days);return Math.max(0,Math.min(r.days-1,i))}onBlockPointerMove(e){if(!this.drag||!this.drag.moved&&Math.abs(e.clientX-this.dragStartX)<4&&Math.abs(e.clientY-this.dragStartY)<4||!this.moveActionId)return;let t=this.window();if(!t)return;let n=this.laneRects.find(t=>e.clientY>=t.rect.top&&e.clientY<=t.rect.bottom)??this.laneRects.find(e=>e.resourceId===this.drag.targetResourceId);if(!n)return;let r=this.dayAt(n.resourceId,e.clientX);if(r==null)return;let i=Math.max(0,Math.min(t.days-this.drag.duration,r-this.drag.grabOffsetDays));this.drag={...this.drag,moved:!0,targetResourceId:n.resourceId,targetStartIdx:i}}onBlockPointerUp(e){let t=this.drag;if(this.endDrag(),!t)return;if(!t.moved){this.selectActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.selectActionId,parameters:{_blockId:e.id}},bubbles:!0,composed:!0}));return}if(!this.moveActionId||t.targetResourceId===t.originResourceId&&t.targetStartIdx===t.originStartIdx)return;let n=this.window();if(!n)return;let r=K.addDays(n.from,t.targetStartIdx),i=K.addDays(r,t.duration-1);this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.moveActionId,parameters:{_blockId:t.blockId,_resourceId:t.targetResourceId,_start:K.iso(r),_end:K.iso(i)}},bubbles:!0,composed:!0}))}emit(e,t){this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:t},bubbles:!0,composed:!0}))}measureLanes(){this.laneRects=[...this.renderRoot.querySelectorAll(`.lane[data-resource-id]`)].map(e=>({resourceId:e.dataset.resourceId,rect:e.getBoundingClientRect()}))}onHandlePointerDown(e,t,n,r,i){this.resizeActionId&&(e.preventDefault(),e.stopPropagation(),e.currentTarget.setPointerCapture(e.pointerId),this.measureLanes(),this.resize={blockId:t.id,resourceId:t.resourceId,edge:n,startIdx:r,endIdx:i,originStartIdx:r,originEndIdx:i},window.addEventListener(`keydown`,this.onDragKeydown))}onHandlePointerMove(e){if(!this.resize)return;e.stopPropagation();let t=this.dayAt(this.resize.resourceId,e.clientX);t!=null&&(this.resize={...this.resize,...rg(this.resize.edge,this.resize.originStartIdx,this.resize.originEndIdx,t)})}onHandlePointerUp(e){e.stopPropagation();let t=this.resize;this.endDrag();let n=this.window();!t||!n||!this.resizeActionId||(t.startIdx!==t.originStartIdx||t.endIdx!==t.originEndIdx)&&this.emit(this.resizeActionId,{_blockId:t.blockId,_resourceId:t.resourceId,_start:K.iso(K.addDays(n.from,t.startIdx)),_end:K.iso(K.addDays(n.from,t.endIdx))})}onCellsPointerDown(e,t){if(!this.rangeSelectActionId||e.button>0)return;e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.measureLanes();let n=this.dayAt(t,e.clientX);n!=null&&(this.range={resourceId:t,anchorIdx:n,currentIdx:n},window.addEventListener(`keydown`,this.onDragKeydown))}onCellsPointerMove(e){if(!this.range)return;let t=this.dayAt(this.range.resourceId,e.clientX);t!=null&&t!==this.range.currentIdx&&(this.range={...this.range,currentIdx:t})}onCellsPointerUp(){let e=this.range;this.endDrag();let t=this.window();if(!e||!t||!this.rangeSelectActionId)return;let{startIdx:n,endIdx:r}=ng(e.anchorIdx,e.currentIdx);this.emit(this.rangeSelectActionId,{_resourceId:e.resourceId,_start:K.iso(K.addDays(t.from,n)),_end:K.iso(K.addDays(t.from,r))})}endDrag(){this.drag=null,this.resize=null,this.range=null,window.removeEventListener(`keydown`,this.onDragKeydown)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener(`keydown`,this.onDragKeydown)}render(){let e=this.window();if(!e||!this.resources.length)return l``;let t=[...Array(e.days).keys()].map(t=>K.addDays(e.from,t)),n=new Date,r=K.daysBetween(e.from,new Date(n.getFullYear(),n.getMonth(),n.getDate())),i=r>=0&&r<e.days,a=[],s;return this.resources.forEach(n=>{n.group&&n.group!==s&&a.push(l`<div class="group">${n.group}</div>`),s=n.group,a.push(this.renderRow(n,e,t,i?r:null))}),l`
+========
+    `}static parse(e){return new Date(e+`T00:00:00`)}static iso(e){let t=e=>String(e).padStart(2,`0`);return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}`}static addDays(e,t){return new Date(e.getFullYear(),e.getMonth(),e.getDate()+t)}static daysBetween(e,t){return Math.round((t.getTime()-e.getTime())/864e5)}window(){if(this.from&&this.to){let e=K.parse(this.from),t=K.daysBetween(e,K.parse(this.to))+1;return t>0?{from:e,days:t}:null}let e=this.blocks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>K.parse(e));if(!e.length)return null;let t=new Date(Math.min(...e.map(e=>e.getTime()))),n=new Date(Math.max(...e.map(e=>e.getTime())));return{from:t,days:K.daysBetween(t,n)+1}}onBlockPointerDown(e,t,n){if(!this.moveActionId&&!this.selectActionId||(e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.dragStartX=e.clientX,this.dragStartY=e.clientY,!this.window()))return;let r=K.parse(t.start),i=K.parse(t.end),a=Math.max(1,K.daysBetween(r,i)+1);this.laneRects=[...this.renderRoot.querySelectorAll(`.lane[data-resource-id]`)].map(e=>({resourceId:e.dataset.resourceId,rect:e.getBoundingClientRect()}));let o=this.dayAt(t.resourceId,e.clientX)??n;this.drag={blockId:t.id,duration:a,grabOffsetDays:o-n,originResourceId:t.resourceId,originStartIdx:n,targetResourceId:t.resourceId,targetStartIdx:n,moved:!1},window.addEventListener(`keydown`,this.onDragKeydown)}dayAt(e,t){let n=this.laneRects.find(t=>t.resourceId===e),r=this.window();if(!n||!r||n.rect.width===0)return null;let i=Math.floor((t-n.rect.left)/n.rect.width*r.days);return Math.max(0,Math.min(r.days-1,i))}onBlockPointerMove(e){if(!this.drag||!this.drag.moved&&Math.abs(e.clientX-this.dragStartX)<4&&Math.abs(e.clientY-this.dragStartY)<4||!this.moveActionId)return;let t=this.window();if(!t)return;let n=this.laneRects.find(t=>e.clientY>=t.rect.top&&e.clientY<=t.rect.bottom)??this.laneRects.find(e=>e.resourceId===this.drag.targetResourceId);if(!n)return;let r=this.dayAt(n.resourceId,e.clientX);if(r==null)return;let i=Math.max(0,Math.min(t.days-this.drag.duration,r-this.drag.grabOffsetDays));this.drag={...this.drag,moved:!0,targetResourceId:n.resourceId,targetStartIdx:i}}onBlockPointerUp(e){let t=this.drag;if(this.endDrag(),!t)return;if(!t.moved){this.selectActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.selectActionId,parameters:{_blockId:e.id}},bubbles:!0,composed:!0}));return}if(!this.moveActionId||t.targetResourceId===t.originResourceId&&t.targetStartIdx===t.originStartIdx)return;let n=this.window();if(!n)return;let r=K.addDays(n.from,t.targetStartIdx),i=K.addDays(r,t.duration-1);this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.moveActionId,parameters:{_blockId:t.blockId,_resourceId:t.targetResourceId,_start:K.iso(r),_end:K.iso(i)}},bubbles:!0,composed:!0}))}emit(e,t){this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:t},bubbles:!0,composed:!0}))}measureLanes(){this.laneRects=[...this.renderRoot.querySelectorAll(`.lane[data-resource-id]`)].map(e=>({resourceId:e.dataset.resourceId,rect:e.getBoundingClientRect()}))}onHandlePointerDown(e,t,n,r,i){this.resizeActionId&&(e.preventDefault(),e.stopPropagation(),e.currentTarget.setPointerCapture(e.pointerId),this.measureLanes(),this.resize={blockId:t.id,resourceId:t.resourceId,edge:n,startIdx:r,endIdx:i,originStartIdx:r,originEndIdx:i},window.addEventListener(`keydown`,this.onDragKeydown))}onHandlePointerMove(e){if(!this.resize)return;e.stopPropagation();let t=this.dayAt(this.resize.resourceId,e.clientX);t!=null&&(this.resize={...this.resize,...og(this.resize.edge,this.resize.originStartIdx,this.resize.originEndIdx,t)})}onHandlePointerUp(e){e.stopPropagation();let t=this.resize;this.endDrag();let n=this.window();!t||!n||!this.resizeActionId||(t.startIdx!==t.originStartIdx||t.endIdx!==t.originEndIdx)&&this.emit(this.resizeActionId,{_blockId:t.blockId,_resourceId:t.resourceId,_start:K.iso(K.addDays(n.from,t.startIdx)),_end:K.iso(K.addDays(n.from,t.endIdx))})}onCellsPointerDown(e,t){if(!this.rangeSelectActionId||e.button>0)return;e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.measureLanes();let n=this.dayAt(t,e.clientX);n!=null&&(this.range={resourceId:t,anchorIdx:n,currentIdx:n},window.addEventListener(`keydown`,this.onDragKeydown))}onCellsPointerMove(e){if(!this.range)return;let t=this.dayAt(this.range.resourceId,e.clientX);t!=null&&t!==this.range.currentIdx&&(this.range={...this.range,currentIdx:t})}onCellsPointerUp(){let e=this.range;this.endDrag();let t=this.window();if(!e||!t||!this.rangeSelectActionId)return;let{startIdx:n,endIdx:r}=ag(e.anchorIdx,e.currentIdx);this.emit(this.rangeSelectActionId,{_resourceId:e.resourceId,_start:K.iso(K.addDays(t.from,n)),_end:K.iso(K.addDays(t.from,r))})}endDrag(){this.drag=null,this.resize=null,this.range=null,window.removeEventListener(`keydown`,this.onDragKeydown)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener(`keydown`,this.onDragKeydown)}render(){let e=this.window();if(!e||!this.resources.length)return l``;let t=[...Array(e.days).keys()].map(t=>K.addDays(e.from,t)),n=new Date,r=K.daysBetween(e.from,new Date(n.getFullYear(),n.getMonth(),n.getDate())),i=r>=0&&r<e.days,a=[],s;return this.resources.forEach(n=>{n.group&&n.group!==s&&a.push(l`<div class="group">${n.group}</div>`),s=n.group,a.push(this.renderRow(n,e,t,i?r:null))}),l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="frame" style="grid-template-columns: minmax(${8+4.5*this.attributeColumns.length}rem, ${12+4.5*this.attributeColumns.length}rem) repeat(${e.days}, minmax(2.2rem, 1fr));">
                 <div class="corner"><span class="res-name">${o(`resource`)}</span>${this.attributeColumns.map(e=>l`<span class="attr">${e}</span>`)}</div>
                 ${t.map((e,t)=>l`
@@ -2149,7 +2671,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${a.map(e=>{let n=K.daysBetween(t.from,K.parse(e.start)),r=K.daysBetween(t.from,K.parse(e.end));if(r<0||n>=t.days)return p;let a=Math.max(0,n),o=Math.min(t.days-1,r),s=this.drag?.moved&&this.drag.blockId===e.id,c=this.resize?.blockId===e.id?this.resize:null,u=c?Math.max(0,c.startIdx):a,d=c?Math.min(t.days-1,c.endIdx):o,f=e.summary??`${e.label??``} · ${e.start} → ${e.end}${e.status?` · ${e.status}`:``}`;return l`
                         <div class="block ${this.selectActionId?`clickable`:``} ${this.moveActionId?`draggable`:``} ${s?`dragging`:``}"
                              title="${f}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                              style="left: ${u*i}%; width: ${(d-u+1)*i}%; ${e.color?`--mateu-planning-block: ${e.color}; ${tg(e.color)?`--mateu-planning-block-ink: ${tg(e.color)};`:``}`:``}"
+========
+                             style="left: ${u*i}%; width: ${(d-u+1)*i}%; ${e.color?`--mateu-planning-block: ${e.color}; ${ig(e.color)?`--mateu-planning-block-ink: ${ig(e.color)};`:``}`:``}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                              @dblclick="${this.openActionId?()=>this.emit(this.openActionId,{_blockId:e.id}):p}"
                              @pointerdown="${t=>this.onBlockPointerDown(t,e,n)}"
                              @pointermove="${e=>this.onBlockPointerMove(e)}"
@@ -2163,13 +2689,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
                                 @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:p}</div>
                     `})}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${this.range&&this.range.resourceId===e.id?(()=>{let{startIdx:e,endIdx:t}=ng(this.range.anchorIdx,this.range.currentIdx);return l`<div class="range" style="left: ${e*i}%; width: ${(t-e+1)*i}%;"></div>`})():p}
+========
+                ${this.range&&this.range.resourceId===e.id?(()=>{let{startIdx:e,endIdx:t}=ag(this.range.anchorIdx,this.range.currentIdx);return l`<div class="range" style="left: ${e*i}%; width: ${(t-e+1)*i}%;"></div>`})():p}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 ${o?l`
                     <div class="ghost"
                          style="left: ${o.targetStartIdx*i}%; width: ${Math.min(o.duration,t.days-o.targetStartIdx)*i}%;"></div>
                 `:p}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],q.prototype,`resources`,void 0),a([n({type:Array})],q.prototype,`blocks`,void 0),a([n()],q.prototype,`from`,void 0),a([n()],q.prototype,`to`,void 0),a([n()],q.prototype,`moveActionId`,void 0),a([n()],q.prototype,`selectActionId`,void 0),a([n({type:Array})],q.prototype,`attributeColumns`,void 0),a([n()],q.prototype,`resizeActionId`,void 0),a([n()],q.prototype,`openActionId`,void 0),a([n()],q.prototype,`rangeSelectActionId`,void 0),a([s()],q.prototype,`resize`,void 0),a([s()],q.prototype,`range`,void 0),a([s()],q.prototype,`drag`,void 0),q=K=a([i(`mateu-planning-board`)],q);var ig=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],q.prototype,`resources`,void 0),a([n({type:Array})],q.prototype,`blocks`,void 0),a([n()],q.prototype,`from`,void 0),a([n()],q.prototype,`to`,void 0),a([n()],q.prototype,`moveActionId`,void 0),a([n()],q.prototype,`selectActionId`,void 0),a([n({type:Array})],q.prototype,`attributeColumns`,void 0),a([n()],q.prototype,`resizeActionId`,void 0),a([n()],q.prototype,`openActionId`,void 0),a([n()],q.prototype,`rangeSelectActionId`,void 0),a([s()],q.prototype,`resize`,void 0),a([s()],q.prototype,`range`,void 0),a([s()],q.prototype,`drag`,void 0),q=K=a([i(`mateu-planning-board`)],q);var sg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-planning-board
                 .resources="${t.resources??[]}"
                 .blocks="${t.blocks??[]}"
@@ -2185,7 +2719,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-planning-board>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},ag=class extends _{constructor(...e){super(...e),this.columns=[]}static{this.styles=h`
+========
+    `},cg=class extends _{constructor(...e){super(...e),this.columns=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2275,7 +2813,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             <span class="count">${e.cards?.length??0}</span>
                         </div>
                         ${(e.cards??[]).map(e=>l`
-                            <div role="button" tabindex="0" class="card ${e.actionId?`clickable`:``}"
+                            <div role=${U(Oh(!!e.actionId))} tabindex=${U(kh(!!e.actionId))} class="card ${e.actionId?`clickable`:``}"
                                  style="${e.color?`--mateu-kanban-card-accent: ${e.color};`:``}"
                                  @click="${()=>this.clickCard(e)}" @keydown="${G(()=>this.clickCard(e))}">
                                 <span class="card-title">${e.title}</span>
@@ -2286,14 +2824,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],ag.prototype,`columns`,void 0),ag=a([i(`mateu-kanban`)],ag);var og=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],cg.prototype,`columns`,void 0),cg=a([i(`mateu-kanban`)],cg);var lg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-kanban
                 .columns="${t.columns??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-kanban>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},sg=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+========
+    `},ug=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2374,7 +2920,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             <div class="dot" style="${e.color?`--mateu-timeline-dot: ${e.color};`:``}">${e.icon??``}</div>
                             <div class="line"></div>
                         </div>
-                        <div role="button" tabindex="0" class="body" @click="${()=>this.clickItem(e)}" @keydown="${G(()=>this.clickItem(e))}">
+                        <div role=${U(Oh(!!e.actionId))} tabindex=${U(kh(!!e.actionId))} class="body" @click="${()=>this.clickItem(e)}" @keydown="${G(()=>this.clickItem(e))}">
                             <div class="head">
                                 <span class="title">${e.title}</span>
                                 ${e.timestamp?l`<span class="time">${e.timestamp}</span>`:p}
@@ -2384,14 +2930,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],sg.prototype,`items`,void 0),sg=a([i(`mateu-timeline`)],sg);var cg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],ug.prototype,`items`,void 0),ug=a([i(`mateu-timeline`)],ug);var dg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-timeline
                 .items="${t.items??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-timeline>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},lg=class extends _{constructor(...e){super(...e),this.steps=[],this.vertical=!1}static{this.styles=h`
+========
+    `},fg=class extends _{constructor(...e){super(...e),this.steps=[],this.vertical=!1}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2505,7 +3059,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],lg.prototype,`steps`,void 0),a([n({type:Boolean,reflect:!0})],lg.prototype,`vertical`,void 0),lg=a([i(`mateu-progress-steps`)],lg);var ug=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],fg.prototype,`steps`,void 0),a([n({type:Boolean,reflect:!0})],fg.prototype,`vertical`,void 0),fg=a([i(`mateu-progress-steps`)],fg);var pg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-progress-steps
                 .steps="${t.steps??[]}"
                 ?vertical="${t.vertical??!1}"
@@ -2513,7 +3071,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-progress-steps>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},dg=class extends _{constructor(...e){super(...e),this.spark=[]}static{this.styles=h`
+========
+    `},mg=class extends _{constructor(...e){super(...e),this.spark=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
         }
@@ -2573,7 +3135,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                       stroke-linejoin="round" stroke-linecap="round"></path>
             </svg>
         `}dispatchAction(){this.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){let e=this.trend??`up`;return l`
-            <div role="button" tabindex="0" class="tile ${this.actionId?`clickable`:``}" @click="${()=>this.dispatchAction()}" @keydown="${G(()=>this.dispatchAction())}">
+            <div role=${U(Oh(!!this.actionId))} tabindex=${U(kh(!!this.actionId))} class="tile ${this.actionId?`clickable`:``}" @click="${()=>this.dispatchAction()}" @keydown="${G(()=>this.dispatchAction())}">
                 ${this.label?l`<span class="label">${this.label}</span>`:p}
                 <span class="value">${this.value}${this.unit?l`<span class="unit">${this.unit}</span>`:p}</span>
                 <div class="foot">
@@ -2581,7 +3143,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${this.sparkline()}
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],dg.prototype,`label`,void 0),a([n()],dg.prototype,`value`,void 0),a([n()],dg.prototype,`unit`,void 0),a([n()],dg.prototype,`delta`,void 0),a([n()],dg.prototype,`trend`,void 0),a([n({type:Array})],dg.prototype,`spark`,void 0),a([n()],dg.prototype,`actionId`,void 0),dg=a([i(`mateu-stat`)],dg);var fg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],mg.prototype,`label`,void 0),a([n()],mg.prototype,`value`,void 0),a([n()],mg.prototype,`unit`,void 0),a([n()],mg.prototype,`delta`,void 0),a([n()],mg.prototype,`trend`,void 0),a([n({type:Array})],mg.prototype,`spark`,void 0),a([n()],mg.prototype,`actionId`,void 0),mg=a([i(`mateu-stat`)],mg);var hg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-stat
                 label="${t.label??p}"
                 value="${t.value??p}"
@@ -2594,7 +3160,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-stat>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},pg=e=>{let[t,n,r]=e.split(`-`).map(Number);return Date.UTC(t,n-1,r)},mg=e=>new Date(e).toISOString().slice(0,10),hg=(e,t)=>mg(pg(e)+t*864e5),gg=e=>(new Date(pg(e)).getUTCDay()+6)%7,_g=e=>e.slice(0,8)+`01`,vg=e=>{let[t,n]=e.split(`-`).map(Number);return mg(Date.UTC(t,n,0))},yg=()=>{let e=new Date;return mg(Date.UTC(e.getFullYear(),e.getMonth(),e.getDate()))},bg=(e,t)=>{if(e===`day`)return{from:t,to:t};if(e===`week`){let e=hg(t,-gg(t));return{from:e,to:hg(e,6)}}return{from:_g(t),to:vg(t)}},xg=(e,t)=>{let n=[];for(let r=e;r<=t;r=hg(r,1))n.push(r);return n},Sg=e=>{let t=_g(e),n=Array(gg(t)).fill(null);for(n.push(...xg(t,vg(e)));n.length%7;)n.push(null);let r=[];for(let e=0;e<n.length;e+=7)r.push(n.slice(e,e+7));return r},Cg=(e,t)=>e.filter(e=>e.date&&e.date<=t&&(e.endDate||e.date)>=t).map((e,t)=>({e,i:t})).sort((e,t)=>(e.e.startTime||``).localeCompare(t.e.startTime||``)||e.i-t.i).map(({e})=>e),wg=(e,t,n)=>xg(t,n).map(t=>({date:t,events:Cg(e,t)})).filter(e=>e.events.length),Tg=(e,t)=>(e||[]).find(e=>e.date===t),Eg=e=>e.startTime?e.startTime+(e.endTime?`–`+e.endTime:``):``,Dg=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),Og=e=>e&&Dg.has(e)?`tone-`+e:``,kg=class extends _{constructor(...e){super(...e),this.events=[],this.views=[],this.days=[]}willUpdate(e){(e.has(`view`)||!this.shown)&&(this.shown=this.view||`month`)}static{this.styles=h`
+========
+    `},gg=e=>{let[t,n,r]=e.split(`-`).map(Number);return Date.UTC(t,n-1,r)},_g=e=>new Date(e).toISOString().slice(0,10),vg=(e,t)=>_g(gg(e)+t*864e5),yg=e=>(new Date(gg(e)).getUTCDay()+6)%7,bg=e=>e.slice(0,8)+`01`,xg=e=>{let[t,n]=e.split(`-`).map(Number);return _g(Date.UTC(t,n,0))},Sg=()=>{let e=new Date;return _g(Date.UTC(e.getFullYear(),e.getMonth(),e.getDate()))},Cg=(e,t)=>{if(e===`day`)return{from:t,to:t};if(e===`week`){let e=vg(t,-yg(t));return{from:e,to:vg(e,6)}}return{from:bg(t),to:xg(t)}},wg=(e,t)=>{let n=[];for(let r=e;r<=t;r=vg(r,1))n.push(r);return n},Tg=e=>{let t=bg(e),n=Array(yg(t)).fill(null);for(n.push(...wg(t,xg(e)));n.length%7;)n.push(null);let r=[];for(let e=0;e<n.length;e+=7)r.push(n.slice(e,e+7));return r},Eg=(e,t)=>e.filter(e=>e.date&&e.date<=t&&(e.endDate||e.date)>=t).map((e,t)=>({e,i:t})).sort((e,t)=>(e.e.startTime||``).localeCompare(t.e.startTime||``)||e.i-t.i).map(({e})=>e),Dg=(e,t,n)=>wg(t,n).map(t=>({date:t,events:Eg(e,t)})).filter(e=>e.events.length),Og=(e,t)=>(e||[]).find(e=>e.date===t),kg=e=>e.startTime?e.startTime+(e.endTime?`–`+e.endTime:``):``,Ag=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),jg=e=>e&&Ag.has(e)?`tone-`+e:``,Mg=class extends _{constructor(...e){super(...e),this.events=[],this.views=[],this.days=[]}willUpdate(e){(e.has(`view`)||!this.shown)&&(this.shown=this.view||`month`)}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2691,6 +3261,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .tone-neutral { background-color: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
 
         ${V}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}clickEvent(e,t){t?.stopPropagation(),e.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{_clickedEvent:e}},bubbles:!0,composed:!0}))}clickDay(e){this.dayActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.dayActionId,parameters:{_date:e}},bubbles:!0,composed:!0}))}chip(e,t){let n=t?Eg(e):``;return l`
             <span role="button" tabindex="0" class="chip ${e.actionId?`clickable`:``}"
                   style="${e.color?`--mateu-cal-accent: ${e.color};`:``}"
@@ -2698,6 +3269,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                   @click="${t=>this.clickEvent(e,t)}"
                   @keydown="${G(()=>this.clickEvent(e))}">${n?l`<span class="time">${n}</span>`:p}${e.title}</span>`}dayCell(e,t,n=!0){let r=Tg(this.days,e),i=!!this.dayActionId,a=Cg(this.events,e),o=new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})+(r?.label?`, `+r.label:``)+(a.length?`, `+a.length+` event`+(a.length>1?`s`:``):``);return l`
             <div class="cell ${e===yg()?`today`:``} ${Og(r?.tone)} ${i?`clickable`:``}"
+========
+    `}clickEvent(e,t){e.actionId&&(t?.stopPropagation(),this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{_clickedEvent:e}},bubbles:!0,composed:!0})))}clickDay(e){this.dayActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.dayActionId,parameters:{_date:e}},bubbles:!0,composed:!0}))}chip(e,t){let n=t?kg(e):``;return l`
+            <span role=${U(Oh(!!e.actionId))} tabindex=${U(kh(!!e.actionId))} class="chip ${e.actionId?`clickable`:``}"
+                  style="${e.color?`--mateu-cal-accent: ${e.color};`:``}"
+                  title="${(n?n+` `:``)+(e.title??``)}"
+                  @click="${t=>this.clickEvent(e,t)}"
+                  @keydown="${G(()=>this.clickEvent(e))}">${n?l`<span class="time">${n}</span>`:p}${e.title}</span>`}dayCell(e,t,n=!0){let r=Og(this.days,e),i=!!this.dayActionId,a=Eg(this.events,e),o=new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})+(r?.label?`, `+r.label:``)+(a.length?`, `+a.length+` event`+(a.length>1?`s`:``):``);return l`
+            <div class="cell ${e===Sg()?`today`:``} ${jg(r?.tone)} ${i?`clickable`:``}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                  role="${i?`button`:p}" tabindex="${i?`0`:p}"
                  aria-label="${i?o:p}"
                  @click="${i?()=>this.clickDay(e):p}"
@@ -2710,8 +3290,13 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             </div>`}renderMonth(e){return l`
             <div class="grid month">
                 ${[`Mon`,`Tue`,`Wed`,`Thu`,`Fri`,`Sat`,`Sun`].map(e=>l`<div class="dow">${e}</div>`)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${Sg(e).flat().map(e=>e?this.dayCell(e,!1):l`<div class="cell blank"></div>`)}
             </div>`}renderWeek(e){let{from:t,to:n}=bg(`week`,e),r=xg(t,n);return l`
+========
+                ${Tg(e).flat().map(e=>e?this.dayCell(e,!1):l`<div class="cell blank"></div>`)}
+            </div>`}renderWeek(e){let{from:t,to:n}=Cg(`week`,e),r=wg(t,n);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="grid week">
                 ${r.map(e=>l`<div class="dow">${new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`short`,day:`numeric`})}</div>`)}
                 ${r.map(e=>this.dayCell(e,!0,!1))}
@@ -2719,15 +3304,26 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <div class="grid day">
                 <div class="dow">${new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})}</div>
                 ${this.dayCell(e,!0,!1)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             </div>`}renderList(e){let{from:t,to:n}=bg(`list`,e),r=wg(this.events,t,n);return r.length?l`
             <div class="agenda">
                 ${r.map(({date:e,events:t})=>{let n=Tg(this.days,e);return l`
                         <div class="date ${Og(n?.tone)}">
+========
+            </div>`}renderList(e){let{from:t,to:n}=Cg(`list`,e),r=Dg(this.events,t,n);return r.length?l`
+            <div class="agenda">
+                ${r.map(({date:e,events:t})=>{let n=Og(this.days,e);return l`
+                        <div class="date ${jg(n?.tone)}">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             <span>${new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})}</span>
                             ${n?.label?l`<span class="label">${n.label}</span>`:p}
                         </div>
                         <div class="entries">${t.map(e=>this.chip(e,!0))}</div>`})}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             </div>`:l`<div class="agenda"><div class="empty">${o(`noEvents`)}</div></div>`}titleOf(e,t){let n=new Date(t+`T00:00:00`);if(e===`day`)return n.toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`,year:`numeric`});if(e===`week`){let{from:e,to:n}=bg(`week`,t),r=new Date(e+`T00:00:00`),i=new Date(n+`T00:00:00`);return r.toLocaleDateString(void 0,{day:`numeric`,month:`short`})+` – `+i.toLocaleDateString(void 0,{day:`numeric`,month:`short`,year:`numeric`})}return n.toLocaleDateString(void 0,{month:`long`,year:`numeric`})}render(){let e=this.month||yg(),t=this.shown||`month`;return l`
+========
+            </div>`:l`<div class="agenda"><div class="empty">${o(`noEvents`)}</div></div>`}titleOf(e,t){let n=new Date(t+`T00:00:00`);if(e===`day`)return n.toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`,year:`numeric`});if(e===`week`){let{from:e,to:n}=Cg(`week`,t),r=new Date(e+`T00:00:00`),i=new Date(n+`T00:00:00`);return r.toLocaleDateString(void 0,{day:`numeric`,month:`short`})+` – `+i.toLocaleDateString(void 0,{day:`numeric`,month:`short`,year:`numeric`})}return n.toLocaleDateString(void 0,{month:`long`,year:`numeric`})}render(){let e=this.month||Sg(),t=this.shown||`month`;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="head">
                 <div class="title">${this.titleOf(t,e)}</div>
                 ${this.views&&this.views.length>1?l`
@@ -2737,7 +3333,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>`:p}
             </div>
             ${t===`week`?this.renderWeek(e):t===`day`?this.renderDay(e):t===`list`?this.renderList(e):this.renderMonth(e)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],kg.prototype,`month`,void 0),a([n({type:Array})],kg.prototype,`events`,void 0),a([n()],kg.prototype,`view`,void 0),a([n({type:Array})],kg.prototype,`views`,void 0),a([n({type:Array})],kg.prototype,`days`,void 0),a([n()],kg.prototype,`dayActionId`,void 0),a([s()],kg.prototype,`shown`,void 0),kg=a([i(`mateu-calendar`)],kg);var Ag=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],Mg.prototype,`month`,void 0),a([n({type:Array})],Mg.prototype,`events`,void 0),a([n()],Mg.prototype,`view`,void 0),a([n({type:Array})],Mg.prototype,`views`,void 0),a([n({type:Array})],Mg.prototype,`days`,void 0),a([n()],Mg.prototype,`dayActionId`,void 0),a([s()],Mg.prototype,`shown`,void 0),Mg=a([i(`mateu-calendar`)],Mg);var Ng=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-calendar
                 month="${t.month??p}"
                 .events="${t.events??[]}"
@@ -2749,7 +3349,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-calendar>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},jg=class extends _{constructor(...e){super(...e),this.plans=[]}static{this.styles=h`
+========
+    `},Pg=class extends _{constructor(...e){super(...e),this.plans=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2858,14 +3462,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],jg.prototype,`plans`,void 0),jg=a([i(`mateu-pricing-table`)],jg);var Mg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],Pg.prototype,`plans`,void 0),Pg=a([i(`mateu-pricing-table`)],Pg);var Fg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-pricing-table
                 .plans="${t.plans??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-pricing-table>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Ng=class extends _{static{this.styles=h`
+========
+    `},Ig=class extends _{static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -2961,7 +3573,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         ${V}
     `}clickNode(e){e.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{_clickedNode:e}},bubbles:!0,composed:!0}))}renderNode(e){let t=e.avatar,n=t&&(t.startsWith(`http`)||t.startsWith(`data:`));return l`
             <li>
-                <div role="button" tabindex="0" class="node ${e.actionId?`clickable`:``}"
+                <div role=${U(Oh(!!e.actionId))} tabindex=${U(kh(!!e.actionId))} class="node ${e.actionId?`clickable`:``}"
                      style="${e.color?`--mateu-org-accent: ${e.color};`:``}"
                      @click="${()=>this.clickNode(e)}" @keydown="${G(()=>this.clickNode(e))}">
                     ${t?l`<span class="avatar">${n?l`<img src="${t}" alt="">`:t}</span>`:p}
@@ -2970,14 +3582,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 </div>
                 ${e.children&&e.children.length?l`<ul>${e.children.map(e=>this.renderNode(e))}</ul>`:p}
             </li>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}render(){return this.root?l`<div class="tree"><ul>${this.renderNode(this.root)}</ul></div>`:l``}};a([n({attribute:!1})],Ng.prototype,`root`,void 0),Ng=a([i(`mateu-org-chart`)],Ng);var Pg=e=>{let t=e.metadata;return l`
+========
+        `}render(){return this.root?l`<div class="tree"><ul>${this.renderNode(this.root)}</ul></div>`:l``}};a([n({attribute:!1})],Ig.prototype,`root`,void 0),Ig=a([i(`mateu-org-chart`)],Ig);var Lg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-org-chart
                 .root="${t.root}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-org-chart>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Fg=864e5,Ig=class extends _{constructor(...e){super(...e),this.cells=[]}static{this.styles=h`
+========
+    `},Rg=864e5,zg=class extends _{constructor(...e){super(...e),this.cells=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block;
             width: 100%;
@@ -3001,7 +3621,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             margin-top: .15rem;
         }
         .legend .cell { width: 10px; height: 10px; }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}color(e,t){if(e<=0||t<=0)return`var(--lumo-contrast-10pct, #ebedf0)`;let n=e/t;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round((n>.75?1:n>.5?.75:n>.25?.5:.3)*100)}%, transparent)`}render(){let e=this.cells.filter(e=>!!e.date);if(!e.length)return l``;let t=e.map(e=>new Date(e.date+`T00:00:00`).getTime()),n=Math.min(...t),r=Math.max(...t),i=new Date(n);i.setDate(i.getDate()-(i.getDay()+6)%7);let a={};for(let t of e)a[t.date]=t;let s=Math.max(...e.map(e=>e.value??0),1),c=[];for(let e=i.getTime();e<=r;e+=Fg){let t=new Date(e),n=t.toISOString().slice(0,10),r=a[n],i=r?.value??0,o=(t.getDay()+6)%7+1,u=r?.label??`${n}: ${i}`;c.push(l`
+========
+    `}color(e,t){if(e<=0||t<=0)return`var(--lumo-contrast-10pct, #ebedf0)`;let n=e/t;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round((n>.75?1:n>.5?.75:n>.25?.5:.3)*100)}%, transparent)`}render(){let e=this.cells.filter(e=>!!e.date);if(!e.length)return l``;let t=e.map(e=>new Date(e.date+`T00:00:00`).getTime()),n=Math.min(...t),r=Math.max(...t),i=new Date(n);i.setDate(i.getDate()-(i.getDay()+6)%7);let a={};for(let t of e)a[t.date]=t;let s=Math.max(...e.map(e=>e.value??0),1),c=[];for(let e=i.getTime();e<=r;e+=Rg){let t=new Date(e),n=t.toISOString().slice(0,10),r=a[n],i=r?.value??0,o=(t.getDay()+6)%7+1,u=r?.label??`${n}: ${i}`;c.push(l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 <div class="cell" style="grid-row: ${o}; --cell: ${this.color(i,s)};" title="${u}"></div>
             `)}return l`
             <div class="wrap">
@@ -3016,14 +3640,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <span>${o(`more`)}</span>
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Ig.prototype,`cells`,void 0),Ig=a([i(`mateu-heatmap`)],Ig);var Lg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],zg.prototype,`cells`,void 0),zg=a([i(`mateu-heatmap`)],zg);var Bg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-heatmap
                 .cells="${t.cells??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-heatmap>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Rg=class extends _{constructor(...e){super(...e),this.stages=[]}static{this.styles=h`
+========
+    `},Vg=class extends _{constructor(...e){super(...e),this.stages=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .funnel { display: flex; flex-direction: column; gap: .35rem; }
         .stage { display: flex; flex-direction: column; align-items: center; gap: .1rem; }
@@ -3050,20 +3682,32 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <span class="label">${r.label}</span>
                                 ${i>0?l`<span class="conv">${c} of previous</span>`:p}
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             <div class="bar" style="width: ${o}%; ${r.color?`--bar: ${r.color}; ${tg(r.color)?`--bar-ink: ${tg(r.color)};`:``}`:``}">
+========
+                            <div class="bar" style="width: ${o}%; ${r.color?`--bar: ${r.color}; ${ig(r.color)?`--bar-ink: ${ig(r.color)};`:``}`:``}">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                 ${a.toLocaleString()}
                             </div>
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Rg.prototype,`stages`,void 0),Rg=a([i(`mateu-funnel`)],Rg);var zg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],Vg.prototype,`stages`,void 0),Vg=a([i(`mateu-funnel`)],Vg);var Hg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-funnel
                 .stages="${t.stages??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-funnel>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Bg=class extends _{constructor(...e){super(...e),this.values=[],this.labels=[],this.area=!1}static{this.styles=h`
+========
+    `},Ug=class extends _{constructor(...e){super(...e),this.values=[],this.labels=[],this.area=!1}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .title { font-weight: 600; margin-bottom: .35rem; color: var(--lumo-body-text-color, #222); }
         svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -3076,7 +3720,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${a.map((t,n)=>n===u||n===d?m`<circle cx="${t[0]}" cy="${t[1]}" r="3.2" fill="${c}"><title>${this.labels[n]??``}: ${e[n]}</title></circle>`:m`<circle cx="${t[0]}" cy="${t[1]}" r="6" fill="transparent"><title>${this.labels[n]??``}: ${e[n]}</title></circle>`)}
             </svg>
             ${this.labels&&this.labels.length?l`<div class="labels"><span>${this.labels[0]}</span><span>${this.labels[this.labels.length-1]}</span></div>`:p}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],Bg.prototype,`heading`,void 0),a([n({type:Array})],Bg.prototype,`values`,void 0),a([n({type:Array})],Bg.prototype,`labels`,void 0),a([n()],Bg.prototype,`color`,void 0),a([n({type:Boolean})],Bg.prototype,`area`,void 0),Bg=a([i(`mateu-trend-chart`)],Bg);var Vg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],Ug.prototype,`heading`,void 0),a([n({type:Array})],Ug.prototype,`values`,void 0),a([n({type:Array})],Ug.prototype,`labels`,void 0),a([n()],Ug.prototype,`color`,void 0),a([n({type:Boolean})],Ug.prototype,`area`,void 0),Ug=a([i(`mateu-trend-chart`)],Ug);var Wg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-trend-chart
                 heading="${t.title??p}"
                 color="${t.color??p}"
@@ -3087,7 +3735,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-trend-chart>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Hg=class extends _{constructor(...e){super(...e),this.features=[],this.columns=0}static{this.styles=h`
+========
+    `},Gg=class extends _{constructor(...e){super(...e),this.features=[],this.columns=0}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .grid {
             display: grid;
@@ -3118,14 +3770,18 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     `}clickFeature(e){e.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}render(){let e=this.columns&&this.columns>0?`repeat(${this.columns}, minmax(0, 1fr))`:`repeat(auto-fit, minmax(15rem, 1fr))`;return l`
             <div class="grid" style="grid-template-columns: ${e};">
                 ${this.features.map(e=>l`
-                    <div role="button" tabindex="0" class="card ${e.actionId?`clickable`:``}" @click="${()=>this.clickFeature(e)}" @keydown="${G(()=>this.clickFeature(e))}">
+                    <div role=${U(Oh(!!e.actionId))} tabindex=${U(kh(!!e.actionId))} class="card ${e.actionId?`clickable`:``}" @click="${()=>this.clickFeature(e)}" @keydown="${G(()=>this.clickFeature(e))}">
                         ${e.icon?l`<span class="icon">${e.icon}</span>`:p}
                         <span class="title">${e.title}</span>
                         ${e.description?l`<span class="desc">${e.description}</span>`:p}
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Hg.prototype,`features`,void 0),a([n({type:Number})],Hg.prototype,`columns`,void 0),Hg=a([i(`mateu-feature-grid`)],Hg);var Ug=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],Gg.prototype,`features`,void 0),a([n({type:Number})],Gg.prototype,`columns`,void 0),Gg=a([i(`mateu-feature-grid`)],Gg);var Kg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-feature-grid
                 .features="${t.features??[]}"
                 .columns="${t.columns??0}"
@@ -3133,7 +3789,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-feature-grid>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Wg=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+========
+    `},qg=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: var(--lumo-space-m, 1rem); }
         .card {
@@ -3172,14 +3832,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Wg.prototype,`items`,void 0),Wg=a([i(`mateu-testimonials`)],Wg);var Gg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],qg.prototype,`items`,void 0),qg=a([i(`mateu-testimonials`)],qg);var Jg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-testimonials
                 .items="${t.items??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-testimonials>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Kg=class extends _{constructor(...e){super(...e),this.items=[],this.openSet=new Set,this.seeded=!1}static{this.styles=h`
+========
+    `},Yg=class extends _{constructor(...e){super(...e),this.items=[],this.openSet=new Set,this.seeded=!1}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-m, 1rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -3215,14 +3883,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],Kg.prototype,`items`,void 0),a([s()],Kg.prototype,`openSet`,void 0),Kg=a([i(`mateu-faq`)],Kg);var qg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],Yg.prototype,`items`,void 0),a([s()],Yg.prototype,`openSet`,void 0),Yg=a([i(`mateu-faq`)],Yg);var Xg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-faq
                 .items="${t.items??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-faq>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Jg=class extends _{static{this.styles=h`
+========
+    `},Zg=class extends _{static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .callout {
             display: flex; gap: 1rem; align-items: flex-start;
@@ -3251,7 +3927,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${this.ctaLabel?l`<button class="cta" @click="${()=>this.cta()}">${this.ctaLabel}</button>`:p}
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],Jg.prototype,`heading`,void 0),a([n()],Jg.prototype,`description`,void 0),a([n()],Jg.prototype,`icon`,void 0),a([n()],Jg.prototype,`ctaLabel`,void 0),a([n()],Jg.prototype,`actionId`,void 0),a([n()],Jg.prototype,`theme`,void 0),Jg=a([i(`mateu-callout-card`)],Jg);var Yg=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],Zg.prototype,`heading`,void 0),a([n()],Zg.prototype,`description`,void 0),a([n()],Zg.prototype,`icon`,void 0),a([n()],Zg.prototype,`ctaLabel`,void 0),a([n()],Zg.prototype,`actionId`,void 0),a([n()],Zg.prototype,`theme`,void 0),Zg=a([i(`mateu-callout-card`)],Zg);var Qg=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-callout-card
                 heading="${t.title??p}"
                 description="${t.description??p}"
@@ -3263,7 +3943,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-callout-card>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Xg=class extends _{constructor(...e){super(...e),this.comments=[]}static{this.styles=h`
+========
+    `},$g=class extends _{constructor(...e){super(...e),this.comments=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .thread { display: flex; flex-direction: column; gap: 1rem; }
         .replies {
@@ -3295,14 +3979,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${e.replies&&e.replies.length?l`<div class="replies">${e.replies.map(e=>this.renderComment(e))}</div>`:p}
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}render(){return l`<div class="thread">${this.comments.map(e=>this.renderComment(e))}</div>`}};a([n({type:Array})],Xg.prototype,`comments`,void 0),Xg=a([i(`mateu-comment-thread`)],Xg);var Zg=e=>{let t=e.metadata;return l`
+========
+        `}render(){return l`<div class="thread">${this.comments.map(e=>this.renderComment(e))}</div>`}};a([n({type:Array})],$g.prototype,`comments`,void 0),$g=a([i(`mateu-comment-thread`)],$g);var e_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-comment-thread
                 .comments="${t.comments??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-comment-thread>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Qg={pdf:`vaadin:file-text-o`,image:`vaadin:file-picture`,img:`vaadin:file-picture`,doc:`vaadin:file-text-o`,docx:`vaadin:file-text-o`,word:`vaadin:file-text-o`,xls:`vaadin:file-table`,xlsx:`vaadin:file-table`,excel:`vaadin:file-table`,sheet:`vaadin:file-table`,zip:`vaadin:file-zip`,archive:`vaadin:file-zip`,video:`vaadin:file-movie`,audio:`vaadin:file-sound`,code:`vaadin:file-code`,csv:`vaadin:file-table`,txt:`vaadin:file-text-o`},$g=class extends _{constructor(...e){super(...e),this.files=[]}static{this.styles=h`
+========
+    `},t_={pdf:`vaadin:file-text-o`,image:`vaadin:file-picture`,img:`vaadin:file-picture`,doc:`vaadin:file-text-o`,docx:`vaadin:file-text-o`,word:`vaadin:file-text-o`,xls:`vaadin:file-table`,xlsx:`vaadin:file-table`,excel:`vaadin:file-table`,sheet:`vaadin:file-table`,zip:`vaadin:file-zip`,archive:`vaadin:file-zip`,video:`vaadin:file-movie`,audio:`vaadin:file-sound`,code:`vaadin:file-code`,csv:`vaadin:file-table`,txt:`vaadin:file-text-o`},n_=class extends _{constructor(...e){super(...e),this.files=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -3319,7 +4011,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .dl { color: var(--lumo-primary-text-color, #1a73e8); flex: 0 0 auto; }
     
         ${V}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}icon(e){return H(e&&Qg[e.toLowerCase()]||`vaadin:file-o`,`width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);`)}clickFile(e,t){e.url||e.actionId&&(t.preventDefault(),this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{_file:e}},bubbles:!0,composed:!0})))}render(){return l`
+========
+    `}icon(e){return H(e&&t_[e.toLowerCase()]||`vaadin:file-o`,`width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);`)}clickFile(e,t){e.url||e.actionId&&(t.preventDefault(),this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:{_file:e}},bubbles:!0,composed:!0})))}render(){return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="list">
                 ${this.files.map(e=>{let t=!!e.url||!!e.actionId,n=l`
                         <span class="icon" aria-hidden="true">${this.icon(e.type)}</span>
@@ -3327,19 +4023,29 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         ${e.size?l`<span class="size">${e.size}</span>`:p}
                         ${e.url?l`<span class="dl" aria-hidden="true">${H(`vaadin:download`,`width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem);`)}</span>`:p}
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     `;return e.url?l`<a class="file clickable" href="${U(Tl(e.url,{allowData:!0}))}" download target="_blank" rel="noopener">${n}</a>`:l`<div role="button" tabindex="0" class="file ${t?`clickable`:``}" @click="${t=>this.clickFile(e,t)}" @keydown="${G(t=>this.clickFile(e,t))}">${n}</div>`})}
 ========
                     `;return e.url?l`<a class="file clickable" href="${U(El(e.url,{allowData:!0}))}" download target="_blank" rel="noopener">${n}</a>`:l`<div role="button" tabindex="0" class="file ${t?`clickable`:``}" @click="${t=>this.clickFile(e,t)}" @keydown="${G(t=>this.clickFile(e,t))}">${n}</div>`})}
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
             </div>
         `}};a([n({type:Array})],$g.prototype,`files`,void 0),$g=a([i(`mateu-file-list`)],$g);var e_=e=>{let t=e.metadata;return l`
+========
+                    `;return e.url?l`<a class="file clickable" href="${U(Tl(e.url,{allowData:!0}))}" download target="_blank" rel="noopener">${n}</a>`:l`<div role="button" tabindex="0" class="file ${t?`clickable`:``}" @click="${t=>this.clickFile(e,t)}" @keydown="${G(t=>this.clickFile(e,t))}">${n}</div>`})}
+            </div>
+        `}};a([n({type:Array})],n_.prototype,`files`,void 0),n_=a([i(`mateu-file-list`)],n_);var r_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-file-list
                 .files="${t.files??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-file-list>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},t_=class extends _{constructor(...e){super(...e),this.items=[],this.localDone=new Map}static{this.styles=h`
+========
+    `},i_=class extends _{constructor(...e){super(...e),this.items=[],this.localDone=new Map}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .5rem; }
         .title { font-weight: 700; color: var(--lumo-body-text-color, #222); }
@@ -3369,7 +4075,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         <span class="label">${e.label}</span>
                     </div>
                 `})}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],t_.prototype,`heading`,void 0),a([n({type:Array})],t_.prototype,`items`,void 0),a([s()],t_.prototype,`localDone`,void 0),t_=a([i(`mateu-checklist`)],t_);var n_=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],i_.prototype,`heading`,void 0),a([n({type:Array})],i_.prototype,`items`,void 0),a([s()],i_.prototype,`localDone`,void 0),i_=a([i(`mateu-checklist`)],i_);var a_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-checklist
                 heading="${t.title??p}"
                 .items="${t.items??[]}"
@@ -3377,7 +4087,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-checklist>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},r_=class extends _{static{this.styles=h`
+========
+    `},o_=class extends _{static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .card {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -3416,7 +4130,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],r_.prototype,`heading`,void 0),a([n()],r_.prototype,`leftLabel`,void 0),a([n()],r_.prototype,`leftValue`,void 0),a([n()],r_.prototype,`rightLabel`,void 0),a([n()],r_.prototype,`rightValue`,void 0),a([n()],r_.prototype,`delta`,void 0),a([n()],r_.prototype,`trend`,void 0),r_=a([i(`mateu-comparison-card`)],r_);var i_=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],o_.prototype,`heading`,void 0),a([n()],o_.prototype,`leftLabel`,void 0),a([n()],o_.prototype,`leftValue`,void 0),a([n()],o_.prototype,`rightLabel`,void 0),a([n()],o_.prototype,`rightValue`,void 0),a([n()],o_.prototype,`delta`,void 0),a([n()],o_.prototype,`trend`,void 0),o_=a([i(`mateu-comparison-card`)],o_);var s_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-comparison-card
                 heading="${t.title??p}"
                 leftLabel="${t.leftLabel??p}"
@@ -3429,7 +4147,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-comparison-card>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},a_=h`
+========
+    `},c_=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     .chip {
         display: inline-flex;
         align-items: center;
@@ -3459,7 +4181,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         color: var(--lumo-contrast-80pct, #333);
         background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .08));
     }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,o_=new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}),s_=e=>Number.isFinite(e)?o_.format(e):``,c_=(e,t)=>{let n=e<0?`-`:``,r=s_(Math.abs(e));return t?`${n}${t} ${r}`:`${n}${r}`},l_=(e,t)=>t?`${s_(e)} ${t}`:s_(e),u_=class extends _{constructor(...e){super(...e),this.title=``,this.badges=[],this.facts=[]}static{this.styles=[a_,h`
+========
+`,l_=new Intl.NumberFormat(`de-DE`,{minimumFractionDigits:2,maximumFractionDigits:2}),u_=e=>Number.isFinite(e)?l_.format(e):``,d_=(e,t)=>{let n=e<0?`-`:``,r=u_(Math.abs(e));return t?`${n}${t} ${r}`:`${n}${r}`},f_=(e,t)=>t?`${u_(e)} ${t}`:u_(e),p_=class extends _{constructor(...e){super(...e),this.title=``,this.badges=[],this.facts=[]}static{this.styles=[c_,h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .card {
             display: flex;
@@ -3542,7 +4268,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `:p}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],u_.prototype,`title`,void 0),a([n({type:Array})],u_.prototype,`badges`,void 0),a([n()],u_.prototype,`subtitle`,void 0),a([n({type:Array})],u_.prototype,`facts`,void 0),a([n()],u_.prototype,`metricLabel`,void 0),a([n()],u_.prototype,`metricValue`,void 0),a([n()],u_.prototype,`metricCaption`,void 0),u_=a([i(`mateu-entity-header`)],u_);var d_=e=>{if(e.__hoistedToPageHeader)return l``;let t=e.metadata;return l`
+========
+        `}};a([n()],p_.prototype,`title`,void 0),a([n({type:Array})],p_.prototype,`badges`,void 0),a([n()],p_.prototype,`subtitle`,void 0),a([n({type:Array})],p_.prototype,`facts`,void 0),a([n()],p_.prototype,`metricLabel`,void 0),a([n()],p_.prototype,`metricValue`,void 0),a([n()],p_.prototype,`metricCaption`,void 0),p_=a([i(`mateu-entity-header`)],p_);var m_=e=>{if(e.__hoistedToPageHeader)return l``;let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-entity-header
                 .title="${t.title??``}"
                 .badges="${t.badges??[]}"
@@ -3555,7 +4285,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-entity-header>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},f_=class extends _{constructor(...e){super(...e),this.value=0,this.max=0}static{this.styles=h`
+========
+    `},h_=class extends _{constructor(...e){super(...e),this.value=0,this.max=0}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .meter { display: flex; flex-direction: column; gap: .35rem; }
         .label {
@@ -3580,13 +4314,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     `}fillColor(){return this.dangerAt!=null&&this.value>=this.dangerAt?`error`:this.warnAt!=null&&this.value>=this.warnAt?`warning`:this.warnAt!=null||this.dangerAt!=null?`success`:`primary`}render(){let e=this.max>0?Math.min(Math.max(this.value/this.max,0),1):0,t=Math.round(e*100);return l`
             <div class="meter">
                 ${this.label?l`<span class="label">${this.label}</span>`:p}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <span class="value">${l_(this.value,this.unit)}</span>
+========
+                <span class="value">${f_(this.value,this.unit)}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 <div class="track">
                     <div class="fill ${this.fillColor()}" style="width: ${t}%"></div>
                 </div>
                 <span class="caption">${this.caption?this.caption:`${t}%`}</span>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],f_.prototype,`label`,void 0),a([n({type:Number})],f_.prototype,`value`,void 0),a([n({type:Number})],f_.prototype,`max`,void 0),a([n()],f_.prototype,`unit`,void 0),a([n()],f_.prototype,`caption`,void 0),a([n({type:Number})],f_.prototype,`warnAt`,void 0),a([n({type:Number})],f_.prototype,`dangerAt`,void 0),f_=a([i(`mateu-meter`)],f_);var p_=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],h_.prototype,`label`,void 0),a([n({type:Number})],h_.prototype,`value`,void 0),a([n({type:Number})],h_.prototype,`max`,void 0),a([n()],h_.prototype,`unit`,void 0),a([n()],h_.prototype,`caption`,void 0),a([n({type:Number})],h_.prototype,`warnAt`,void 0),a([n({type:Number})],h_.prototype,`dangerAt`,void 0),h_=a([i(`mateu-meter`)],h_);var g_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-meter
                 .label="${t.label}"
                 .value="${t.value??0}"
@@ -3599,7 +4341,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-meter>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},m_=class extends _{constructor(...e){super(...e),this.total=0,this.done=0}static{this.styles=h`
+========
+    `},__=class extends _{constructor(...e){super(...e),this.total=0,this.done=0}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .banner {
             display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
@@ -3654,7 +4400,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <span class="spacer"></span>
                 ${t?l`<button @click="${()=>this.runAction()}">${this.actionLabel} →</button>`:p}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],m_.prototype,`label`,void 0),a([n({type:Number})],m_.prototype,`total`,void 0),a([n({type:Number})],m_.prototype,`done`,void 0),a([n()],m_.prototype,`actionLabel`,void 0),a([n()],m_.prototype,`actionId`,void 0),m_=a([i(`mateu-task-progress`)],m_);var h_=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],__.prototype,`label`,void 0),a([n({type:Number})],__.prototype,`total`,void 0),a([n({type:Number})],__.prototype,`done`,void 0),a([n()],__.prototype,`actionLabel`,void 0),a([n()],__.prototype,`actionId`,void 0),__=a([i(`mateu-task-progress`)],__);var v_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-task-progress
                 .label="${t.label}"
                 .total="${t.total??0}"
@@ -3665,7 +4415,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-task-progress>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},g_=class extends _{constructor(...e){super(...e),this.items=[],this.compact=!1,this.frameless=!1,this.columns=0,this.itemHeadingLevel=3}static{this.styles=[a_,V,h`
+========
+    `},y_=class extends _{constructor(...e){super(...e),this.items=[],this.compact=!1,this.frameless=!1,this.columns=0,this.itemHeadingLevel=3}static{this.styles=[c_,V,h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -3779,7 +4533,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <div class="list stacked ${this.compact?`compact`:``} ${this.columns>1?`grid`:``}"
                      style="${this.columns>1?`grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));`:``}">
                     ${this.items.map(e=>l`
-                        <div role="button" tabindex="0" class="cell ${(e.lines?.length??0)>0?`with-lines`:``} ${this.rowActionId?`clickable`:``}"
+                        <div role=${U(Oh(!!this.rowActionId))} tabindex=${U(kh(!!this.rowActionId))} class="cell ${(e.lines?.length??0)>0?`with-lines`:``} ${this.rowActionId?`clickable`:``}"
                              @click="${()=>this.rowClicked(e)}" @keydown="${G(()=>this.rowClicked(e))}">
                             <div class="cell-title-row">
                                 ${t===`h4`?l`<h4 class="cell-title">${e.title}</h4>`:l`<h3 class="cell-title">${e.title}</h3>`}
@@ -3799,7 +4553,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             `:l`
             <div class="list ${this.compact?`compact`:``} ${this.frameless?`frameless`:``}">
                 ${this.items.map(e=>l`
-                    <div role="button" tabindex="0" class="row ${this.rowActionId?`clickable`:``}"
+                    <div role=${U(Oh(!!this.rowActionId))} tabindex=${U(kh(!!this.rowActionId))} class="row ${this.rowActionId?`clickable`:``}"
                          @click="${()=>this.rowClicked(e)}" @keydown="${G(()=>this.rowClicked(e))}">
                         ${e.avatar?l`<span class="avatar">${e.avatar}</span>`:e.icon?l`<span class="icon">${e.icon}</span>`:p}
                         <div class="body">
@@ -3810,7 +4564,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],g_.prototype,`items`,void 0),a([n({type:Boolean})],g_.prototype,`compact`,void 0),a([n({type:Boolean})],g_.prototype,`frameless`,void 0),a([n()],g_.prototype,`rowActionId`,void 0),a([n({type:Number})],g_.prototype,`columns`,void 0),a([n({type:Number})],g_.prototype,`itemHeadingLevel`,void 0),g_=a([i(`mateu-status-list`)],g_);var __=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],y_.prototype,`items`,void 0),a([n({type:Boolean})],y_.prototype,`compact`,void 0),a([n({type:Boolean})],y_.prototype,`frameless`,void 0),a([n()],y_.prototype,`rowActionId`,void 0),a([n({type:Number})],y_.prototype,`columns`,void 0),a([n({type:Number})],y_.prototype,`itemHeadingLevel`,void 0),y_=a([i(`mateu-status-list`)],y_);var b_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-status-list
                 .items="${t.items??[]}"
                 ?compact="${t.compact??!1}"
@@ -3822,7 +4580,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-status-list>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},v_=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+========
+    `},x_=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         ul {
             margin: 0; padding-inline-start: 1.2rem;
@@ -3837,14 +4599,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <ul>
                 ${this.items.map(e=>l`<li>${e}</li>`)}
             </ul>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],v_.prototype,`items`,void 0),v_=a([i(`mateu-bulleted-list`)],v_);var y_=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],x_.prototype,`items`,void 0),x_=a([i(`mateu-bulleted-list`)],x_);var S_=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-bulleted-list
                 .items="${t.items??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-bulleted-list>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},b_=e=>(e.label??``)+((e.count??0)>0?` (${(e.count??0)>25?`25+`:e.count})`:``),x_=(e,t={})=>{let n=(e.maxPerCategory??0)>0?e.maxPerCategory:10;return(e.categories??[]).map((e,r)=>{let i=(e.actions??[]).map((e,t)=>({a:e,i:t})).sort((e,t)=>Number(!!t.a.populated)-Number(!!e.a.populated)||e.i-t.i).map(({a:e})=>({label:b_(e),actionId:e.actionId??``,parameters:e.parameters??{},populated:!!e.populated,disabled:!!e.disabled}));t.hideUnpopulated&&(i=i.filter(e=>e.populated));let a=t.showAll?.has(r)?i:i.slice(0,n);return{title:e.title??``,actions:a,hiddenCount:i.length-a.length,index:r}}).filter(e=>e.actions.length>0)},S_=(e,t)=>{let n=String(e??``).toLowerCase().split(`+`).map(e=>e.trim()).filter(Boolean);if(!n.length)return!1;let r=e=>n.includes(e),i=n.find(e=>![`ctrl`,`control`,`alt`,`shift`,`meta`,`cmd`].includes(e));return!i||t.ctrlKey!==(r(`ctrl`)||r(`control`))||t.altKey!==r(`alt`)||t.shiftKey!==r(`shift`)||t.metaKey!==(r(`meta`)||r(`cmd`))?!1:t.key?.toLowerCase()===i||t.code===`Key`+i.toUpperCase()||t.code===`Digit`+i||t.code===`Numpad`+i},C_=class extends _{constructor(...e){super(...e),this.open=!1,this.hideUnpopulated=!1,this.showAll=new Set,this.keydown=e=>{if(this.open&&e.key===`Escape`){e.preventDefault(),this.close();return}!this.open&&this.panel?.shortcut&&this.isConnected&&this.getClientRects().length&&S_(this.panel.shortcut,e)&&(e.preventDefault(),this.show())}}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this.keydown,!0)}disconnectedCallback(){document.removeEventListener(`keydown`,this.keydown,!0),this.focusTrap?.release(),this.focusTrap=void 0,super.disconnectedCallback()}show(){this.showAll=new Set,this.open=!0}close(){this.open=!1,this.focusTrap?.release(),this.focusTrap=void 0}updated(){let e=this.renderRoot.querySelector(`[role="dialog"]`);this.open&&e&&!this.focusTrap?this.focusTrap=c(e):this.open&&this.focusTrap?.refresh()}pick(e){e.disabled||(this.close(),this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:e.parameters},bubbles:!0,composed:!0})))}render(){let e=this.panel;if(!e)return p;let t=e.label||`I want to…`,n=x_(e,{showAll:this.showAll,hideUnpopulated:this.hideUnpopulated});return l`
+========
+    `},C_=e=>(e.label??``)+((e.count??0)>0?` (${(e.count??0)>25?`25+`:e.count})`:``),w_=(e,t={})=>{let n=(e.maxPerCategory??0)>0?e.maxPerCategory:10;return(e.categories??[]).map((e,r)=>{let i=(e.actions??[]).map((e,t)=>({a:e,i:t})).sort((e,t)=>Number(!!t.a.populated)-Number(!!e.a.populated)||e.i-t.i).map(({a:e})=>({label:C_(e),actionId:e.actionId??``,parameters:e.parameters??{},populated:!!e.populated,disabled:!!e.disabled}));t.hideUnpopulated&&(i=i.filter(e=>e.populated));let a=t.showAll?.has(r)?i:i.slice(0,n);return{title:e.title??``,actions:a,hiddenCount:i.length-a.length,index:r}}).filter(e=>e.actions.length>0)},T_=(e,t)=>{let n=String(e??``).toLowerCase().split(`+`).map(e=>e.trim()).filter(Boolean);if(!n.length)return!1;let r=e=>n.includes(e),i=n.find(e=>![`ctrl`,`control`,`alt`,`shift`,`meta`,`cmd`].includes(e));return!i||t.ctrlKey!==(r(`ctrl`)||r(`control`))||t.altKey!==r(`alt`)||t.shiftKey!==r(`shift`)||t.metaKey!==(r(`meta`)||r(`cmd`))?!1:t.key?.toLowerCase()===i||t.code===`Key`+i.toUpperCase()||t.code===`Digit`+i||t.code===`Numpad`+i},E_=class extends _{constructor(...e){super(...e),this.open=!1,this.hideUnpopulated=!1,this.showAll=new Set,this.keydown=e=>{if(this.open&&e.key===`Escape`){e.preventDefault(),this.close();return}!this.open&&this.panel?.shortcut&&this.isConnected&&this.getClientRects().length&&T_(this.panel.shortcut,e)&&(e.preventDefault(),this.show())}}connectedCallback(){super.connectedCallback(),document.addEventListener(`keydown`,this.keydown,!0)}disconnectedCallback(){document.removeEventListener(`keydown`,this.keydown,!0),this.focusTrap?.release(),this.focusTrap=void 0,super.disconnectedCallback()}show(){this.showAll=new Set,this.open=!0}close(){this.open=!1,this.focusTrap?.release(),this.focusTrap=void 0}updated(){let e=this.renderRoot.querySelector(`[role="dialog"]`);this.open&&e&&!this.focusTrap?this.focusTrap=c(e):this.open&&this.focusTrap?.refresh()}pick(e){e.disabled||(this.close(),this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.actionId,parameters:e.parameters},bubbles:!0,composed:!0})))}render(){let e=this.panel;if(!e)return p;let t=e.label||`I want to…`,n=w_(e,{showAll:this.showAll,hideUnpopulated:this.hideUnpopulated});return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <button class="trigger" type="button" aria-haspopup="dialog" aria-expanded="${this.open?`true`:`false`}"
                     title="${e.shortcut?`${t} (${e.shortcut})`:t}"
                     @click="${()=>this.show()}">${t}</button>
@@ -3908,14 +4678,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .action.populated { font-weight: 700; }
         .action[disabled] { color: var(--lumo-disabled-text-color, #999); cursor: default; }
         .action.more { color: var(--lumo-secondary-text-color, #555); }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({attribute:!1})],C_.prototype,`panel`,void 0),a([s()],C_.prototype,`open`,void 0),a([s()],C_.prototype,`hideUnpopulated`,void 0),a([s()],C_.prototype,`showAll`,void 0),C_=a([i(`mateu-action-panel`)],C_);var w_=e=>l`
+========
+    `}};a([n({attribute:!1})],E_.prototype,`panel`,void 0),a([s()],E_.prototype,`open`,void 0),a([s()],E_.prototype,`hideUnpopulated`,void 0),a([s()],E_.prototype,`showAll`,void 0),E_=a([i(`mateu-action-panel`)],E_);var D_=e=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <mateu-action-panel
             .panel="${e.metadata}"
             style="${e.style??p}"
             class="${e.cssClasses??p}"
             slot="${e.slot??p}"
     ></mateu-action-panel>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,T_=(e,t,n)=>{let r=new Map;for(let i=t;i<=n;i++)r.set(e[i],i);return r},E_=Ja(class extends Ya{constructor(e){if(super(e),e.type!==qa.CHILD)throw Error(`repeat() can only be used in text expressions`)}dt(e,t,n){let r;n===void 0?n=t:t!==void 0&&(r=t);let i=[],a=[],o=0;for(let t of e)i[o]=r?r(t,o):o,a[o]=n(t,o),o++;return{values:a,keys:i}}render(e,t,n){return this.dt(e,t,n).values}update(e,[t,n,r]){let i=hm(e),{values:a,keys:o}=this.dt(t,n,r);if(!Array.isArray(i))return this.ut=o,a;let s=this.ut??=[],c=[],l,d,f=0,p=i.length-1,m=0,h=a.length-1;for(;f<=p&&m<=h;)if(i[f]===null)f++;else if(i[p]===null)p--;else if(s[f]===o[m])c[m]=fm(i[f],a[m]),f++,m++;else if(s[p]===o[h])c[h]=fm(i[p],a[h]),p--,h--;else if(s[f]===o[h])c[h]=fm(i[f],a[h]),dm(e,c[h+1],i[f]),f++,h--;else if(s[p]===o[m])c[m]=fm(i[p],a[m]),dm(e,i[f],i[p]),p--,m++;else if(l===void 0&&(l=T_(o,m,h),d=T_(s,f,p)),l.has(s[f])){if(l.has(s[p])){let t=d.get(o[m]),n=t===void 0?null:i[t];if(n===null){let t=dm(e,i[f]);fm(t,a[m]),c[m]=t}else c[m]=fm(n,a[m]),dm(e,i[f],n),i[t]=null;m++}else gm(i[p]),p--}else gm(i[f]),f++;for(;m<=h;){let t=dm(e,c[h+1]);fm(t,a[m]),c[m++]=t}for(;f<=p;){let e=i[f++];e!==null&&gm(e)}return this.ut=o,mm(e,c),u}}),D_=`custom`,O_=e=>e==null?``:typeof e==`object`?JSON.stringify(e):String(e),k_=e=>{let t={},n=(e.records??[]).map(e=>e.id);for(let r of e.fields??[]){let e=r.chosen&&n.includes(r.chosen)?r.chosen:void 0;if(!e){let t=(r.values??[]).findIndex(e=>O_(e).trim()!==``);e=n[t>=0?t:0]}e&&(t[r.fieldId]=e)}return t},A_=(e,t,n,r)=>{let i=n[t.fieldId];if(i===`custom`)return r[t.fieldId]??``;let a=(e.records??[]).findIndex(e=>e.id===i);return a>=0?(t.values??[])[a]??null:null},j_=(e,t,n)=>{let r={},i={};for(let a of e.fields??[])r[a.fieldId]=A_(e,a,t,n),i[a.fieldId]=t[a.fieldId]??``;return{...e.parameters??{},_merged:r,_choices:i}},M_=(e,t)=>(e.fields??[]).filter(e=>!t||e.differs),N_=(e,t)=>({fields:(e.fields??[]).length,differ:(e.fields??[]).filter(e=>e.differs).length,custom:Object.values(t).filter(e=>e===D_).length}),P_=class extends _{constructor(...e){super(...e),this.picks={},this.custom={},this.differencesOnly=!1}willUpdate(){this.merge&&this.merge!==this.seeded&&(this.seeded=this.merge,this.picks=k_(this.merge),this.custom={},this.differencesOnly=!!this.merge.differencesOnly)}pick(e,t){this.picks={...this.picks,[e.fieldId]:t}}type(e,t){this.custom={...this.custom,[e.fieldId]:t},this.pick(e,D_)}doMerge(){let e=this.merge;e?.mergeActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.mergeActionId,parameters:j_(e,this.picks,this.custom)},bubbles:!0,composed:!0}))}recordLabel(e){return e===`custom`?o(`mergeCustom`):this.merge?.records.find(t=>t.id===e)?.label??``}render(){let e=this.merge;if(!e)return p;let t=e.records??[],n=(e.fields??[]).some(e=>e.editable),i=M_(e,this.differencesOnly),a=N_(e,this.picks);return l`
+========
+`,O_=(e,t,n)=>{let r=new Map;for(let i=t;i<=n;i++)r.set(e[i],i);return r},k_=qa(class extends Ja{constructor(e){if(super(e),e.type!==Ka.CHILD)throw Error(`repeat() can only be used in text expressions`)}dt(e,t,n){let r;n===void 0?n=t:t!==void 0&&(r=t);let i=[],a=[],o=0;for(let t of e)i[o]=r?r(t,o):o,a[o]=n(t,o),o++;return{values:a,keys:i}}render(e,t,n){return this.dt(e,t,n).values}update(e,[t,n,r]){let i=gm(e),{values:a,keys:o}=this.dt(t,n,r);if(!Array.isArray(i))return this.ut=o,a;let s=this.ut??=[],c=[],l,d,f=0,p=i.length-1,m=0,h=a.length-1;for(;f<=p&&m<=h;)if(i[f]===null)f++;else if(i[p]===null)p--;else if(s[f]===o[m])c[m]=pm(i[f],a[m]),f++,m++;else if(s[p]===o[h])c[h]=pm(i[p],a[h]),p--,h--;else if(s[f]===o[h])c[h]=pm(i[f],a[h]),fm(e,c[h+1],i[f]),f++,h--;else if(s[p]===o[m])c[m]=pm(i[p],a[m]),fm(e,i[f],i[p]),p--,m++;else if(l===void 0&&(l=O_(o,m,h),d=O_(s,f,p)),l.has(s[f])){if(l.has(s[p])){let t=d.get(o[m]),n=t===void 0?null:i[t];if(n===null){let t=fm(e,i[f]);pm(t,a[m]),c[m]=t}else c[m]=pm(n,a[m]),fm(e,i[f],n),i[t]=null;m++}else _m(i[p]),p--}else _m(i[f]),f++;for(;m<=h;){let t=fm(e,c[h+1]);pm(t,a[m]),c[m++]=t}for(;f<=p;){let e=i[f++];e!==null&&_m(e)}return this.ut=o,hm(e,c),u}}),A_=`custom`,j_=e=>e==null?``:typeof e==`object`?JSON.stringify(e):String(e),M_=e=>{let t={},n=(e.records??[]).map(e=>e.id);for(let r of e.fields??[]){let e=r.chosen&&n.includes(r.chosen)?r.chosen:void 0;if(!e){let t=(r.values??[]).findIndex(e=>j_(e).trim()!==``);e=n[t>=0?t:0]}e&&(t[r.fieldId]=e)}return t},N_=(e,t,n,r)=>{let i=n[t.fieldId];if(i===`custom`)return r[t.fieldId]??``;let a=(e.records??[]).findIndex(e=>e.id===i);return a>=0?(t.values??[])[a]??null:null},P_=(e,t,n)=>{let r={},i={};for(let a of e.fields??[])r[a.fieldId]=N_(e,a,t,n),i[a.fieldId]=t[a.fieldId]??``;return{...e.parameters??{},_merged:r,_choices:i}},F_=(e,t)=>(e.fields??[]).filter(e=>!t||e.differs),I_=(e,t)=>({fields:(e.fields??[]).length,differ:(e.fields??[]).filter(e=>e.differs).length,custom:Object.values(t).filter(e=>e===A_).length}),L_=class extends _{constructor(...e){super(...e),this.picks={},this.custom={},this.differencesOnly=!1}willUpdate(){this.merge&&this.merge!==this.seeded&&(this.seeded=this.merge,this.picks=M_(this.merge),this.custom={},this.differencesOnly=!!this.merge.differencesOnly)}pick(e,t){this.picks={...this.picks,[e.fieldId]:t}}type(e,t){this.custom={...this.custom,[e.fieldId]:t},this.pick(e,A_)}doMerge(){let e=this.merge;e?.mergeActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e.mergeActionId,parameters:P_(e,this.picks,this.custom)},bubbles:!0,composed:!0}))}recordLabel(e){return e===`custom`?o(`mergeCustom`):this.merge?.records.find(t=>t.id===e)?.label??``}render(){let e=this.merge;if(!e)return p;let t=e.records??[],n=(e.fields??[]).some(e=>e.editable),i=F_(e,this.differencesOnly),a=I_(e,this.picks);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="bar">
                 ${e.title?l`<h3 id="title">${e.title}</h3>`:p}
                 <label class="switch">
@@ -3938,14 +4716,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </tr>
                     </thead>
                     <tbody>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         ${E_(i,e=>e.fieldId,e=>this.renderRow(e,n))}
+========
+                        ${k_(i,e=>e.fieldId,e=>this.renderRow(e,n))}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     </tbody>
                 </table>
             </div>
             <section class="result" aria-label="${o(`mergeResult`)}">
                 <h4>${o(`mergeResult`)}</h4>
                 <dl>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     ${(e.fields??[]).map(t=>{let n=O_(A_(e,t,this.picks,this.custom));return l`
+========
+                    ${(e.fields??[]).map(t=>{let n=j_(N_(e,t,this.picks,this.custom));return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             <div class="entry ${t.differs?`differs`:``}">
                                 <dt>${t.label}</dt>
                                 <dd>${n||o(`mergeEmpty`)}
@@ -3965,7 +4751,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     ${e.label}
                     ${e.differs?l`<span class="badge">${o(`mergeDiffers`)}</span>`:p}
                 </th>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${n.records.map((t,n)=>{let a=O_((e.values??[])[n]),s=this.picks[e.fieldId]===t.id;return l`
+========
+                ${n.records.map((t,n)=>{let a=j_((e.values??[])[n]),s=this.picks[e.fieldId]===t.id;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         <td class="${s?`picked`:``}">
                             <label>
                                 <input type="radio" name="${i}" .checked="${s}"
@@ -3978,9 +4768,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <td class="${this.picks[e.fieldId]===`custom`?`picked`:``}">
                         ${e.editable?l`
                             <span class="custom">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                 <input type="radio" name="${i}" .checked="${this.picks[e.fieldId]===D_}"
                                        aria-label="${r(`mergeCustomValue`,{field:e.label})}"
                                        @change="${()=>this.pick(e,D_)}" />
+========
+                                <input type="radio" name="${i}" .checked="${this.picks[e.fieldId]===A_}"
+                                       aria-label="${r(`mergeCustomValue`,{field:e.label})}"
+                                       @change="${()=>this.pick(e,A_)}" />
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                 <input type="text" .value="${this.custom[e.fieldId]??``}"
                                        aria-label="${r(`mergeCustomValue`,{field:e.label})}"
                                        @input="${t=>this.type(e,t.target.value)}" />
@@ -4025,20 +4821,32 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             border: 0; border-radius: var(--lumo-border-radius-m, 6px);
             background: var(--lumo-primary-color, Highlight); color: var(--lumo-primary-contrast-color, HighlightText); }
         .merge:focus-visible { outline: 2px solid var(--lumo-primary-color, Highlight); outline-offset: 2px; }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({attribute:!1})],P_.prototype,`merge`,void 0),a([s()],P_.prototype,`picks`,void 0),a([s()],P_.prototype,`custom`,void 0),a([s()],P_.prototype,`differencesOnly`,void 0),P_=a([i(`mateu-record-merge`)],P_);var F_=e=>l`
+========
+    `}};a([n({attribute:!1})],L_.prototype,`merge`,void 0),a([s()],L_.prototype,`picks`,void 0),a([s()],L_.prototype,`custom`,void 0),a([s()],L_.prototype,`differencesOnly`,void 0),L_=a([i(`mateu-record-merge`)],L_);var R_=e=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <mateu-record-merge
             .merge="${e.metadata}"
             style="${e.style??p}"
             class="${e.cssClasses??p}"
             slot="${e.slot??p}"
     ></mateu-record-merge>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,I_=(e,t)=>{let n=[];for(let r of e.sections??[]){let e=!!r.title,i=e&&t.has(r.id);if(e&&n.push({kind:`section`,id:r.id,title:r.title,collapsed:i}),!i)for(let t of r.rows??[])n.push({kind:`row`,row:t,sectionId:r.id,indented:e})}return n},L_=e=>new Set((e.sections??[]).filter(e=>e.title&&e.collapsed).map(e=>e.id)),R_=e=>{let t=e.columns??[];if(!t.some(e=>e.group))return[];let n=[];for(let e of t){let t=e.group??``,r=n[n.length-1];r&&r.label===t?r.span++:n.push({label:t,span:1})}return n},z_=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),B_=(e,t)=>e&&z_.has(e)?e:t&&z_.has(t)?t:``,V_=class extends _{constructor(...e){super(...e),this.collapsed=new Set}willUpdate(e){e.has(`grid`)&&this.grid&&!this.seenGrid&&(this.collapsed=L_(this.grid)),e.has(`grid`)&&(this.seenGrid=this.grid,this.editing=void 0)}toggle(e){let t=new Set(this.collapsed);t.has(e)?t.delete(e):t.add(e),this.collapsed=t}dispatch(e,t,n,r){let i=this.grid?.columns?.[n];this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{_rowId:t,_columnId:i?.id,_value:r}},bubbles:!0,composed:!0}))}commit(e,t,n){if(!this.editing)return;this.editing=void 0;let r=e.cells?.[t]?.value??``;n.value!==r&&this.grid?.editActionId&&this.dispatch(this.grid.editActionId,e.id,t,n.value)}renderCell(e,t){let n=this.grid,r=e.cells?.[t]??{},i=n.columns?.[t],a=B_(r.tone,i?.tone),o=!!(e.editable&&n.editActionId),s=`${e.label??``}, ${i?.label??``}: ${r.value??``}`;if(this.editing&&this.editing.rowId===e.id&&this.editing.columnIndex===t)return l`<td class="cell ${a} editing"><input aria-label="${s}" .value="${r.value??``}"
+========
+`,z_=(e,t)=>{let n=[];for(let r of e.sections??[]){let e=!!r.title,i=e&&t.has(r.id);if(e&&n.push({kind:`section`,id:r.id,title:r.title,collapsed:i}),!i)for(let t of r.rows??[])n.push({kind:`row`,row:t,sectionId:r.id,indented:e})}return n},B_=e=>new Set((e.sections??[]).filter(e=>e.title&&e.collapsed).map(e=>e.id)),V_=e=>{let t=e.columns??[];if(!t.some(e=>e.group))return[];let n=[];for(let e of t){let t=e.group??``,r=n[n.length-1];r&&r.label===t?r.span++:n.push({label:t,span:1})}return n},H_=new Set([`info`,`success`,`warning`,`danger`,`neutral`]),U_=(e,t)=>e&&H_.has(e)?e:t&&H_.has(t)?t:``,W_=class extends _{constructor(...e){super(...e),this.collapsed=new Set}willUpdate(e){e.has(`grid`)&&this.grid&&!this.seenGrid&&(this.collapsed=B_(this.grid)),e.has(`grid`)&&(this.seenGrid=this.grid,this.editing=void 0)}toggle(e){let t=new Set(this.collapsed);t.has(e)?t.delete(e):t.add(e),this.collapsed=t}dispatch(e,t,n,r){let i=this.grid?.columns?.[n];this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:e,parameters:{_rowId:t,_columnId:i?.id,_value:r}},bubbles:!0,composed:!0}))}commit(e,t,n){if(!this.editing)return;this.editing=void 0;let r=e.cells?.[t]?.value??``;n.value!==r&&this.grid?.editActionId&&this.dispatch(this.grid.editActionId,e.id,t,n.value)}renderCell(e,t){let n=this.grid,r=e.cells?.[t]??{},i=n.columns?.[t],a=U_(r.tone,i?.tone),o=!!(e.editable&&n.editActionId),s=`${e.label??``}, ${i?.label??``}: ${r.value??``}`;if(this.editing&&this.editing.rowId===e.id&&this.editing.columnIndex===t)return l`<td class="cell ${a} editing"><input aria-label="${s}" .value="${r.value??``}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 @keydown="${n=>{n.key===`Enter`&&this.commit(e,t,n.target),n.key===`Escape`&&(this.editing=void 0)}}"
                 @blur="${n=>this.commit(e,t,n.target)}" /></td>`;let c=()=>{this.editing={rowId:e.id,columnIndex:t}};return r.link&&n.cellActionId?l`<td class="cell ${a}"><button class="link" type="button" aria-label="${s}"
                 @click="${()=>this.dispatch(n.cellActionId,e.id,t,r.value??``)}">${r.value}</button></td>`:l`<td class="cell ${a} ${o?`editable`:``}" tabindex="${o?`0`:p}"
             aria-label="${o?s:p}"
             @dblclick="${o?c:p}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             @keydown="${o?e=>{(e.key===`Enter`||e.key===`F2`)&&(e.preventDefault(),c())}:p}">${r.value}</td>`}updated(){this.renderRoot.querySelector(`td.editing input`)?.focus()}render(){let e=this.grid;if(!e)return p;let t=e.columns??[],n=R_(e);return l`
+========
+            @keydown="${o?e=>{(e.key===`Enter`||e.key===`F2`)&&(e.preventDefault(),c())}:p}">${r.value}</td>`}updated(){this.renderRoot.querySelector(`td.editing input`)?.focus()}render(){let e=this.grid;if(!e)return p;let t=e.columns??[],n=V_(e);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="scroller">
                 <table>
                     <thead>
@@ -4048,11 +4856,19 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </tr>`:p}
                         <tr>
                             ${n.length?p:l`<th class="corner">${e.rowHeaderLabel??``}</th>`}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${t.map(e=>l`<th class="col ${B_(null,e.tone)}" scope="col">${e.label??e.id}</th>`)}
                         </tr>
                     </thead>
                     <tbody>
                         ${I_(e,this.collapsed).map(e=>e.kind===`section`?l`<tr class="section"><th scope="rowgroup" class="rowhead">
+========
+                            ${t.map(e=>l`<th class="col ${U_(null,e.tone)}" scope="col">${e.label??e.id}</th>`)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${z_(e,this.collapsed).map(e=>e.kind===`section`?l`<tr class="section"><th scope="rowgroup" class="rowhead">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                     <button type="button" class="toggle" aria-expanded="${e.collapsed?`false`:`true`}"
                                             @click="${()=>this.toggle(e.id)}"><span class="chevron" aria-hidden="true">${e.collapsed?`▸`:`▾`}</span>${e.title}</button>
                                 </th>${t.map(()=>l`<td class="cell section-cell"></td>`)}</tr>`:l`<tr class="${e.row.emphasis?`emphasis`:``}">
@@ -4087,14 +4903,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .warning { background-color: rgba(220, 140, 0, 0.16); }
         .danger { background-color: rgba(200, 40, 30, 0.10); color: #b3261e; }
         .neutral { background-color: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({attribute:!1})],V_.prototype,`grid`,void 0),a([s()],V_.prototype,`collapsed`,void 0),a([s()],V_.prototype,`editing`,void 0),V_=a([i(`mateu-matrix-grid`)],V_);var H_=e=>l`
+========
+    `}};a([n({attribute:!1})],W_.prototype,`grid`,void 0),a([s()],W_.prototype,`collapsed`,void 0),a([s()],W_.prototype,`editing`,void 0),W_=a([i(`mateu-matrix-grid`)],W_);var G_=e=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <mateu-matrix-grid
             .grid="${e.metadata}"
             style="${e.style??p}"
             class="${e.cssClasses??p}"
             slot="${e.slot??p}"
     ></mateu-matrix-grid>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,U_=e=>e?`application/x-mateu-`+String(e).toLowerCase().replace(/[^a-z0-9.+-]/g,`-`):``,W_=e=>{let t;try{t=JSON.parse(e)}catch{return[]}return(Array.isArray(t)?t:[t]).map(e=>{if(e==null)return null;if(typeof e!=`object`)return String(e);let t=e,n=(t.data&&typeof t.data==`object`?t.data:t).id??t.key;return n==null?null:String(n)}).filter(e=>e!=null)},G_=(e,t,n)=>({...e??{},_draggedIds:t,_dragType:n}),K_=class extends _{constructor(...e){super(...e),this.ready=!1,this.over=!1,this.onDocumentDragStart=e=>{setTimeout(()=>{this.ready=this.accepts(e)})},this.onDocumentDragEnd=()=>{this.ready=!1,this.over=!1}}get mime(){return U_(this.zone?.accept)}accepts(e){let t=e.dataTransfer?Array.from(e.dataTransfer.types):[];return!!this.mime&&t.includes(this.mime)}connectedCallback(){super.connectedCallback(),document.addEventListener(`dragstart`,this.onDocumentDragStart,!0),document.addEventListener(`dragend`,this.onDocumentDragEnd,!0)}disconnectedCallback(){document.removeEventListener(`dragstart`,this.onDocumentDragStart,!0),document.removeEventListener(`dragend`,this.onDocumentDragEnd,!0),super.disconnectedCallback()}onDragOver(e){this.accepts(e)&&(e.preventDefault(),e.dataTransfer&&(e.dataTransfer.dropEffect=`move`),this.over=!0)}onDrop(e){if(!this.accepts(e))return;e.preventDefault(),this.over=!1,this.ready=!1;let t=W_(e.dataTransfer?.getData(this.mime)??``);!t.length||!this.zone?.actionId||this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.zone.actionId,parameters:G_(this.zone.parameters,t,this.zone.accept??``)},bubbles:!0,composed:!0}))}render(){let e=this.zone;return e?l`
+========
+`,K_=e=>e?`application/x-mateu-`+String(e).toLowerCase().replace(/[^a-z0-9.+-]/g,`-`):``,q_=e=>{let t;try{t=JSON.parse(e)}catch{return[]}return(Array.isArray(t)?t:[t]).map(e=>{if(e==null)return null;if(typeof e!=`object`)return String(e);let t=e,n=(t.data&&typeof t.data==`object`?t.data:t).id??t.key;return n==null?null:String(n)}).filter(e=>e!=null)},J_=(e,t,n)=>({...e??{},_draggedIds:t,_dragType:n}),Y_=class extends _{constructor(...e){super(...e),this.ready=!1,this.over=!1,this.onDocumentDragStart=e=>{setTimeout(()=>{this.ready=this.accepts(e)})},this.onDocumentDragEnd=()=>{this.ready=!1,this.over=!1}}get mime(){return K_(this.zone?.accept)}accepts(e){let t=e.dataTransfer?Array.from(e.dataTransfer.types):[];return!!this.mime&&t.includes(this.mime)}connectedCallback(){super.connectedCallback(),document.addEventListener(`dragstart`,this.onDocumentDragStart,!0),document.addEventListener(`dragend`,this.onDocumentDragEnd,!0)}disconnectedCallback(){document.removeEventListener(`dragstart`,this.onDocumentDragStart,!0),document.removeEventListener(`dragend`,this.onDocumentDragEnd,!0),super.disconnectedCallback()}onDragOver(e){this.accepts(e)&&(e.preventDefault(),e.dataTransfer&&(e.dataTransfer.dropEffect=`move`),this.over=!0)}onDrop(e){if(!this.accepts(e))return;e.preventDefault(),this.over=!1,this.ready=!1;let t=q_(e.dataTransfer?.getData(this.mime)??``);!t.length||!this.zone?.actionId||this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.zone.actionId,parameters:J_(this.zone.parameters,t,this.zone.accept??``)},bubbles:!0,composed:!0}))}render(){let e=this.zone;return e?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="zone ${this.ready?`ready`:``} ${this.over?`over`:``}" role="group"
                  aria-label="${(e.title??``)+(e.subtitle?`, `+e.subtitle:``)} — drop target"
                  @dragover="${this.onDragOver}" @dragleave="${()=>{this.over=!1}}" @drop="${this.onDrop}">
@@ -4114,20 +4938,32 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .title { font-weight: 600; }
         .subtitle { font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666); margin-bottom: .25rem; }
         .hint { margin-top: .5rem; font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-primary-text-color, #1a73e8); }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({attribute:!1})],K_.prototype,`zone`,void 0),a([s()],K_.prototype,`ready`,void 0),a([s()],K_.prototype,`over`,void 0),K_=a([i(`mateu-drop-zone`)],K_);var q_=(e,t,n,r,i,a,o)=>l`
+========
+    `}};a([n({attribute:!1})],Y_.prototype,`zone`,void 0),a([s()],Y_.prototype,`ready`,void 0),a([s()],Y_.prototype,`over`,void 0),Y_=a([i(`mateu-drop-zone`)],Y_);var X_=(e,t,n,r,i,a,o)=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <mateu-drop-zone
             .zone="${t.metadata}"
             style="${t.style??p}"
             class="${t.cssClasses??p}"
             slot="${t.slot??p}"
     >${(t.children??[]).map(t=>B(e,t,n,r,i,a,o))}</mateu-drop-zone>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
 `,J_=e=>{let t=e.metadata.attributes?.[`data-colspan`];return l`
+========
+`,Z_=e=>{let t=e.metadata.attributes?.[`data-colspan`];return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <hr style="border: none; border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); width: 100%; margin: var(--lumo-space-s, .5rem) 0; ${e.style??``}"
             class="${e.cssClasses??p}"
             id="${U(e.id??void 0)}"
             data-colspan="${U(t)}"
             slot="${e.slot??p}"/>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Y_=new Map,X_=e=>Y_.get(e),Z_=(e,t)=>t!=null&&e!=null&&!e.has(t),Q_=typeof HTMLElement<`u`?HTMLElement:class{},$_=class extends Q_{static get observedAttributes(){return[`type`,`renderer`]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){let e=this.getAttribute(`type`)??`unknown`,t=this.getAttribute(`renderer`)??`unknown`;this.shadowRoot||this.attachShadow({mode:`open`}),this.shadowRoot.innerHTML=`
+========
+    `},Q_=new Map,$_=e=>Q_.get(e),ev=(e,t)=>t!=null&&e!=null&&!e.has(t),tv=typeof HTMLElement<`u`?HTMLElement:class{},nv=class extends tv{static get observedAttributes(){return[`type`,`renderer`]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){let e=this.getAttribute(`type`)??`unknown`,t=this.getAttribute(`renderer`)??`unknown`;this.shadowRoot||this.attachShadow({mode:`open`}),this.shadowRoot.innerHTML=`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <style>
                 :host { display: block; }
                 .mateu-unsupported {
@@ -4146,12 +4982,20 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <div class="mateu-unsupported" role="note">
                 ⚠ Component “${e}” is not supported by the “${t}” renderer yet.
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};typeof customElements<`u`&&!customElements.get(`mateu-unsupported`)&&customElements.define(`mateu-unsupported`,$_);var ev=new Set,tv=(e,t,n)=>{let r=`${n}/${t}`;return ev.has(r)||(ev.add(r),console.warn(`[mateu] Component type "${t}" is not supported by the "${n}" renderer — rendering <mateu-unsupported> placeholder.`)),l`<mateu-unsupported
+========
+        `}};typeof customElements<`u`&&!customElements.get(`mateu-unsupported`)&&customElements.define(`mateu-unsupported`,nv);var rv=new Set,iv=(e,t,n)=>{let r=`${n}/${t}`;return rv.has(r)||(rv.add(r),console.warn(`[mateu] Component type "${t}" is not supported by the "${n}" renderer — rendering <mateu-unsupported> placeholder.`)),l`<mateu-unsupported
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             type="${t}"
             renderer="${n}"
             data-component-id="${e?.id??p}"
             slot="${e?.slot??p}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     ></mateu-unsupported>`},nv=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children?.map(t=>B(e,t,n,r,i,a,o,!1))??[],l=X_(s.name);return l?l(s.props??{},c):tv(t,`${E.CustomComponent}:${s.name}`,`custom-component-registry`)},rv={info:`vaadin:info-circle`,success:`vaadin:check-circle`,warning:`vaadin:warning`,danger:`vaadin:exclamation-circle`},iv=e=>!!e&&/^[a-z][\w-]*:[\w-]+$/.test(e),J=class extends _{constructor(...e){super(...e),this.text=``,this.theme=`info`,this.noIcon=!1,this.slim=!1,this.fullWidth=!1,this.hasContent=!1,this.inlineContent=!1}static{this.styles=h`
+========
+    ></mateu-unsupported>`},av=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=t.children?.map(t=>B(e,t,n,r,i,a,o,!1))??[],l=$_(s.name);return l?l(s.props??{},c):iv(t,`${D.CustomComponent}:${s.name}`,`custom-component-registry`)},ov={info:`vaadin:info-circle`,success:`vaadin:check-circle`,warning:`vaadin:warning`,danger:`vaadin:exclamation-circle`},sv=e=>!!e&&/^[a-z][\w-]*:[\w-]+$/.test(e),J=class extends _{constructor(...e){super(...e),this.text=``,this.theme=`info`,this.noIcon=!1,this.slim=!1,this.fullWidth=!1,this.hasContent=!1,this.inlineContent=!1}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .notice {
             display: flex;
@@ -4211,7 +5055,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .danger .text, .danger .status, .danger .icon { color: var(--lumo-error-text-color, #a5502e); }
     `}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){let e=!!this.text&&!!this.text.trim();if(!e&&!this.hasContent)return l``;let t=[`info`,`success`,`warning`,`danger`].includes(this.theme)?this.theme:`info`;return l`
             <div class="notice ${t} ${this.slim?`slim`:``}">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${this.noIcon?p:this.icon&&!iv(this.icon)?l`<span class="icon custom" aria-hidden="true">${this.icon}</span>`:l`<span class="icon" aria-hidden="true">${H(this.icon||rv[t])}</span>`}
+========
+                ${this.noIcon?p:this.icon&&!sv(this.icon)?l`<span class="icon custom" aria-hidden="true">${this.icon}</span>`:l`<span class="icon" aria-hidden="true">${H(this.icon||ov[t])}</span>`}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 <div class="body ${this.inlineContent?`inline`:``}">
                     ${e?l`<span class="text">${this.text}</span>`:p}
                     ${this.hasContent?l`<div class="content"><slot></slot></div>`:p}
@@ -4219,10 +5067,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 ${this.actionLabel&&this.actionId?l`<button class="notice-action" @click="${()=>this.runAction()}">${this.actionLabel}</button>`:this.status?l`<span class="status">${this.status}</span>`:p}
             </div>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],J.prototype,`text`,void 0),a([n()],J.prototype,`theme`,void 0),a([n()],J.prototype,`icon`,void 0),a([n({type:Boolean})],J.prototype,`noIcon`,void 0),a([n()],J.prototype,`actionLabel`,void 0),a([n()],J.prototype,`actionId`,void 0),a([n()],J.prototype,`status`,void 0),a([n({type:Boolean})],J.prototype,`slim`,void 0),a([n({type:Boolean})],J.prototype,`fullWidth`,void 0),a([n({type:Boolean})],J.prototype,`hasContent`,void 0),a([n({type:Boolean})],J.prototype,`inlineContent`,void 0),J=a([i(`mateu-notice`)],J);var av=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=Pu(s.text??``,r,i,a,o)??``,u=t.children??[];return l`
 ========
         `}};a([n()],J.prototype,`text`,void 0),a([n()],J.prototype,`theme`,void 0),a([n()],J.prototype,`icon`,void 0),a([n({type:Boolean})],J.prototype,`noIcon`,void 0),a([n()],J.prototype,`actionLabel`,void 0),a([n()],J.prototype,`actionId`,void 0),a([n()],J.prototype,`status`,void 0),a([n({type:Boolean})],J.prototype,`slim`,void 0),a([n({type:Boolean})],J.prototype,`fullWidth`,void 0),a([n({type:Boolean})],J.prototype,`hasContent`,void 0),a([n({type:Boolean})],J.prototype,`inlineContent`,void 0),J=a([i(`mateu-notice`)],J);var av=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=Fu(s.text??``,r,i,a,o)??``,u=t.children??[];return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+        `}};a([n()],J.prototype,`text`,void 0),a([n()],J.prototype,`theme`,void 0),a([n()],J.prototype,`icon`,void 0),a([n({type:Boolean})],J.prototype,`noIcon`,void 0),a([n()],J.prototype,`actionLabel`,void 0),a([n()],J.prototype,`actionId`,void 0),a([n()],J.prototype,`status`,void 0),a([n({type:Boolean})],J.prototype,`slim`,void 0),a([n({type:Boolean})],J.prototype,`fullWidth`,void 0),a([n({type:Boolean})],J.prototype,`hasContent`,void 0),a([n({type:Boolean})],J.prototype,`inlineContent`,void 0),J=a([i(`mateu-notice`)],J);var cv=(e,t,n,r,i,a,o)=>{let s=t.metadata,c=Fu(s.text??``,r,i,a,o)??``,u=t.children??[];return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-notice
                 text="${c}"
                 theme="${s.theme??`info`}"
@@ -4240,7 +5092,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${t.cssClasses??p}"
                 slot="${t.slot??p}"
         >${u.map(t=>B(e,t,n,r,i,a,o))}</mateu-notice>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},ov=class extends _{constructor(...e){super(...e),this.groups=[]}static{this.styles=[a_,V,h`
+========
+    `},lv=class extends _{constructor(...e){super(...e),this.groups=[]}static{this.styles=[c_,V,h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .rail { display: flex; flex-direction: column; gap: var(--lumo-space-m, 1rem); }
         .group { display: flex; flex-direction: column; gap: .45rem; }
@@ -4303,7 +5159,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],ov.prototype,`actionId`,void 0),a([n({type:Array})],ov.prototype,`groups`,void 0),a([s()],ov.prototype,`selectedId`,void 0),ov=a([i(`mateu-task-queue`)],ov);var sv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],lv.prototype,`actionId`,void 0),a([n({type:Array})],lv.prototype,`groups`,void 0),a([s()],lv.prototype,`selectedId`,void 0),lv=a([i(`mateu-task-queue`)],lv);var uv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-task-queue
                 .actionId="${t.actionId}"
                 .groups="${t.groups??[]}"
@@ -4311,7 +5171,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-task-queue>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},cv=class extends _{constructor(...e){super(...e),this.columns=0,this.items=[]}static{this.styles=[a_,V,h`
+========
+    `},dv=class extends _{constructor(...e){super(...e),this.columns=0,this.items=[]}static{this.styles=[c_,V,h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         /* explicit line-height: inside a form field wrapper the inherited one is the 44px
            field height, which blows up every text row */
         :host { display: block; width: 100%; line-height: var(--lumo-line-height-m, 1.4); }
@@ -4375,7 +5239,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],cv.prototype,`actionId`,void 0),a([n({type:Number})],cv.prototype,`columns`,void 0),a([n()],cv.prototype,`recommendedLabel`,void 0),a([n({type:Array})],cv.prototype,`items`,void 0),a([s()],cv.prototype,`selectedId`,void 0),cv=a([i(`mateu-resource-grid`)],cv);var lv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],dv.prototype,`actionId`,void 0),a([n({type:Number})],dv.prototype,`columns`,void 0),a([n()],dv.prototype,`recommendedLabel`,void 0),a([n({type:Array})],dv.prototype,`items`,void 0),a([s()],dv.prototype,`selectedId`,void 0),dv=a([i(`mateu-resource-grid`)],dv);var fv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-resource-grid
                 .actionId="${t.actionId}"
                 .columns="${t.columns??0}"
@@ -4473,7 +5341,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         `:p}
                 </div>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],Y.prototype,`tag`,void 0),a([n()],Y.prototype,`title`,void 0),a([n()],Y.prototype,`subtitle`,void 0),a([n()],Y.prototype,`image`,void 0),a([n({type:Array})],Y.prototype,`features`,void 0),a([n()],Y.prototype,`priceLabel`,void 0),a([n()],Y.prototype,`actionLabel`,void 0),a([n()],Y.prototype,`actionId`,void 0),a([n({type:Boolean})],Y.prototype,`current`,void 0),a([n()],Y.prototype,`currentLabel`,void 0),a([n({type:Boolean})],Y.prototype,`added`,void 0),a([n()],Y.prototype,`addedLabel`,void 0),Y=a([i(`mateu-offer-card`)],Y);var uv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],Y.prototype,`tag`,void 0),a([n()],Y.prototype,`title`,void 0),a([n()],Y.prototype,`subtitle`,void 0),a([n()],Y.prototype,`image`,void 0),a([n({type:Array})],Y.prototype,`features`,void 0),a([n()],Y.prototype,`priceLabel`,void 0),a([n()],Y.prototype,`actionLabel`,void 0),a([n()],Y.prototype,`actionId`,void 0),a([n({type:Boolean})],Y.prototype,`current`,void 0),a([n()],Y.prototype,`currentLabel`,void 0),a([n({type:Boolean})],Y.prototype,`added`,void 0),a([n()],Y.prototype,`addedLabel`,void 0),Y=a([i(`mateu-offer-card`)],Y);var pv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-offer-card
                 .tag="${t.tag}"
                 .title="${t.title??``}"
@@ -4491,7 +5363,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-offer-card>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},dv=class extends _{constructor(...e){super(...e),this.items=[],this.added=new Set}static{this.styles=h`
+========
+    `},mv=class extends _{constructor(...e){super(...e),this.items=[],this.added=new Set}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .header { display: flex; align-items: baseline; justify-content: flex-end; gap: .4rem; margin-bottom: .6rem; }
         .total-label { font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #888); }
@@ -4559,7 +5435,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
     `}willUpdate(e){e.has(`items`)&&(this.added=new Set(this.items.filter(e=>e.added).map(e=>e.id)))}total(){return this.items.filter(e=>e.id!=null&&this.added.has(e.id)).reduce((e,t)=>e+(t.price??0),0)}toggle(e){if(e.id==null)return;let t=new Set(this.added),n=!t.has(e.id);n?t.add(e.id):t.delete(e.id),this.added=t,this.actionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.actionId,parameters:{_item:e.id,_added:n,_total:this.total()}},bubbles:!0,composed:!0}))}render(){return l`
             <div class="header">
                 ${this.totalLabel?l`<span class="total-label">${this.totalLabel}:</span>`:p}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <span class="total">${c_(this.total(),this.currency)}</span>
+========
+                <span class="total">${d_(this.total(),this.currency)}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             </div>
             <div class="grid">
                 ${this.items.map(e=>{let t=e.id!=null&&this.added.has(e.id);return l`
@@ -4569,7 +5449,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             ${e.description?l`<span class="description">${e.description}</span>`:p}
                             ${e.includedLabel?l`<span class="included">${e.includedLabel}</span>`:l`
                                     ${e.price==null?p:l`
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                         <span class="price">${c_(e.price,this.currency)}${e.unit?` / ${e.unit}`:``}</span>
+========
+                                        <span class="price">${d_(e.price,this.currency)}${e.unit?` / ${e.unit}`:``}</span>
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                     `}
                                     <button class="toggle ${t?`on`:``}" @click="${()=>this.toggle(e)}"
                                             aria-pressed="${t}">${t?`✓`:`+`}</button>
@@ -4577,7 +5461,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </div>
                     `})}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],dv.prototype,`totalLabel`,void 0),a([n()],dv.prototype,`currency`,void 0),a([n()],dv.prototype,`actionId`,void 0),a([n({type:Array})],dv.prototype,`items`,void 0),a([s()],dv.prototype,`added`,void 0),dv=a([i(`mateu-addon-picker`)],dv);var fv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],mv.prototype,`totalLabel`,void 0),a([n()],mv.prototype,`currency`,void 0),a([n()],mv.prototype,`actionId`,void 0),a([n({type:Array})],mv.prototype,`items`,void 0),a([s()],mv.prototype,`added`,void 0),mv=a([i(`mateu-addon-picker`)],mv);var hv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-addon-picker
                 .totalLabel="${t.totalLabel}"
                 .currency="${t.currency}"
@@ -4587,7 +5475,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-addon-picker>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},pv=class extends _{constructor(...e){super(...e),this.lines=[]}static{this.styles=h`
+========
+    `},gv=class extends _{constructor(...e){super(...e),this.lines=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host {
             display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem);
             /* an ancestor (e.g. a form-layout row) may set an inherited line-height like 44px —
@@ -4629,14 +5521,24 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <div class="row">
                     <span class="dot"></span>
                     <span class="concept">${e.concept}</span>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     ${e.included?l`<span class="included-label">${e.includedLabel||`Included`}</span>`:l`<span class="amount ${(e.amount??0)<0?`negative`:``}">${c_(e.amount??0,this.currency)}</span>`}
+========
+                    ${e.included?l`<span class="included-label">${e.includedLabel||`Included`}</span>`:l`<span class="amount ${(e.amount??0)<0?`negative`:``}">${d_(e.amount??0,this.currency)}</span>`}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                 </div>
             `)}
             <div class="total-row">
                 <span class="total-label">${this.totalLabel||`Total`}</span>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <span class="total">${c_(this.computedTotal(),this.currency)}</span>
             </div>
         `}};a([n()],pv.prototype,`currency`,void 0),a([n()],pv.prototype,`totalLabel`,void 0),a([n({type:Array})],pv.prototype,`lines`,void 0),a([n({type:Number})],pv.prototype,`total`,void 0),pv=a([i(`mateu-ledger`)],pv);var mv=e=>{let t=e.metadata;return l`
+========
+                <span class="total">${d_(this.computedTotal(),this.currency)}</span>
+            </div>
+        `}};a([n()],gv.prototype,`currency`,void 0),a([n()],gv.prototype,`totalLabel`,void 0),a([n({type:Array})],gv.prototype,`lines`,void 0),a([n({type:Number})],gv.prototype,`total`,void 0),gv=a([i(`mateu-ledger`)],gv);var _v=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-ledger
                 .currency="${t.currency}"
                 .totalLabel="${t.totalLabel}"
@@ -4646,7 +5548,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-ledger>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},hv=class extends _{constructor(...e){super(...e),this.methods=[]}static{this.styles=h`
+========
+    `},vv=class extends _{constructor(...e){super(...e),this.methods=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; }
         .bar { display: flex; align-items: stretch; gap: .6rem; flex-wrap: wrap; }
         .methods { display: flex; gap: .4rem; flex-wrap: wrap; }
@@ -4708,7 +5614,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <span class="spacer"></span>
                 ${this.confirmLabel&&this.actionId?l`<button class="confirm" @click="${()=>this.confirm()}">${this.confirmLabel}</button>`:p}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n()],hv.prototype,`actionId`,void 0),a([n()],hv.prototype,`methodActionId`,void 0),a([n({type:Array})],hv.prototype,`methods`,void 0),a([n()],hv.prototype,`selected`,void 0),a([n()],hv.prototype,`contextLabel`,void 0),a([n()],hv.prototype,`contextValue`,void 0),a([n()],hv.prototype,`confirmLabel`,void 0),a([s()],hv.prototype,`selectedId`,void 0),hv=a([i(`mateu-payment-picker`)],hv);var gv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n()],vv.prototype,`actionId`,void 0),a([n()],vv.prototype,`methodActionId`,void 0),a([n({type:Array})],vv.prototype,`methods`,void 0),a([n()],vv.prototype,`selected`,void 0),a([n()],vv.prototype,`contextLabel`,void 0),a([n()],vv.prototype,`contextValue`,void 0),a([n()],vv.prototype,`confirmLabel`,void 0),a([s()],vv.prototype,`selectedId`,void 0),vv=a([i(`mateu-payment-picker`)],vv);var yv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-payment-picker
                 .actionId="${t.actionId}"
                 .methodActionId="${t.methodActionId}"
@@ -4721,7 +5631,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-payment-picker>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},_v=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+========
+    `},bv=class extends _{constructor(...e){super(...e),this.items=[]}static{this.styles=h`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -4775,13 +5689,18 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     </div>
                 `)}
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}};a([n({type:Array})],_v.prototype,`items`,void 0),_v=a([i(`mateu-process-monitor`)],_v);var vv=e=>{let t=e.metadata;return l`
+========
+        `}};a([n({type:Array})],bv.prototype,`items`,void 0),bv=a([i(`mateu-process-monitor`)],bv);var xv=e=>{let t=e.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-process-monitor
                 .items="${t.items??[]}"
                 style="${e.style??p}"
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-process-monitor>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},yv=m`<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
@@ -4789,6 +5708,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 ========
     <circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>`,bv=()=>z.get()?.renderIcon?H(`vaadin:search`,`width: 100%; height: 100%;`):l`${yv}`,xv=(e,t)=>{e.ctrlKey||e.metaKey||e.shiftKey||(e.preventDefault(),id(e.currentTarget,t))},Sv=e=>{let t=e.metadata??{},n=t.title||o(`notFound`),r=t.message||o(`notFoundMessage`),i=t.backRoute;return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `},Sv=m`<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>`,Cv=()=>z.get()?.renderIcon?H(`vaadin:search`,`width: 100%; height: 100%;`):l`${Sv}`,wv=(e,t)=>{e.ctrlKey||e.metaKey||e.shiftKey||(e.preventDefault(),id(e.currentTarget,t))},Tv=e=>{let t=e.metadata??{},n=t.title||o(`notFound`),r=t.message||o(`notFoundMessage`),i=t.backRoute;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <section class="mateu-not-found ${e.cssClasses??``}"
                  slot="${e.slot??p}"
                  style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
@@ -4798,7 +5722,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                   style="display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
                          width: 4.5rem; height: 4.5rem; padding: 1.1rem; margin-bottom: var(--lumo-space-s, .5rem); border-radius: 50%;
                          color: var(--lumo-primary-text-color, #1676f3); background: var(--lumo-primary-color-10pct, rgba(22, 118, 243, .1));">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 ${bv()}
+========
+                ${Cv()}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             </span>
             <h2 class="mateu-not-found-title"
                 style="margin: 0; font-size: var(--lumo-font-size-xl, 1.375rem); font-weight: 600; line-height: var(--lumo-line-height-s, 1.375);
@@ -4806,19 +5734,27 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <p class="mateu-not-found-message" style="margin: 0; max-width: 32rem; font-size: var(--lumo-font-size-m, 1rem);">${r}</p>
             ${i?l`
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <a class="mateu-not-found-back" href="${U(Tl(i))}" @click="${e=>xv(e,i)}"
 ========
                 <a class="mateu-not-found-back" href="${U(El(i))}" @click="${e=>xv(e,i)}"
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+                <a class="mateu-not-found-back" href="${U(Tl(i))}" @click="${e=>wv(e,i)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                    style="margin-top: var(--lumo-space-m, 1rem); font-weight: 500; text-decoration: none;
                           color: var(--lumo-primary-text-color, #1676f3);">← ${t.backLabel||o(`goBack`)}</a>
             `:p}
         </section>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `},Cv=(e,t)=>{let n=e.style;return e.id&&(n&&!n.endsWith(`;`)&&(n+=`;`),n??=``,t[e.id+`.hidden`]==1&&(n+=`display: none;`)),n},wv=(e,t)=>{let n={...e.metadata};if(e.id&&n){if(n.type==E.Button){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}if(n.type==E.FormField){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}}return n},X=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Tv={[E.Bpmn]:({component:e})=>ph(e),[E.Workflow]:({component:e})=>hh(e),[E.FormEditor]:({component:e})=>gh(e),[E.Page]:X(dh),[E.Div]:X($p),[E.Directory]:({component:e,baseUrl:t,state:n,data:r})=>Zp(e,t,n,r),[E.FormLayout]:X(wf),[E.HorizontalLayout]:X(Af),[E.VerticalLayout]:X(jf),[E.SplitLayout]:X(Mf),[E.MasterDetailLayout]:X(Nf),[E.TabLayout]:X(Pf),[E.AccordionLayout]:X(Ff),[E.BoardLayout]:X(Bf),[E.BoardLayoutRow]:X(Vf),[E.BoardLayoutItem]:X(Hf),[E.Scroller]:X(Lf),[E.FullWidth]:X(Rf),[E.Container]:X(zf),[E.Form]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>{let s=t.metadata;return l`<mateu-form
 ========
     `},Cv=(e,t)=>{let n=e.style;return e.id&&(n&&!n.endsWith(`;`)&&(n+=`;`),n??=``,t[e.id+`.hidden`]==1&&(n+=`display: none;`)),n},wv=(e,t)=>{let n={...e.metadata};if(e.id&&n){if(n.type==E.Button){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}if(n.type==E.FormField){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}}return n},X=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Tv={[E.Bpmn]:({component:e})=>ph(e),[E.Workflow]:({component:e})=>hh(e),[E.FormEditor]:({component:e})=>gh(e),[E.Page]:X(dh),[E.Div]:X($p),[E.Directory]:({component:e,baseUrl:t,state:n,data:r})=>Zp(e,t,n,r),[E.FormLayout]:X(Tf),[E.HorizontalLayout]:X(jf),[E.VerticalLayout]:X(Mf),[E.SplitLayout]:X(Nf),[E.MasterDetailLayout]:X(Pf),[E.TabLayout]:X(Ff),[E.AccordionLayout]:X(If),[E.BoardLayout]:X(Vf),[E.BoardLayoutRow]:X(Hf),[E.BoardLayoutItem]:X(Uf),[E.Scroller]:X(Rf),[E.FullWidth]:X(zf),[E.Container]:X(Bf),[E.Form]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>{let s=t.metadata;return l`<mateu-form
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `},Ev=(e,t)=>{let n=e.style;return e.id&&(n&&!n.endsWith(`;`)&&(n+=`;`),n??=``,t[e.id+`.hidden`]==1&&(n+=`display: none;`)),n},Dv=(e,t)=>{let n={...e.metadata};if(e.id&&n){if(n.type==D.Button){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}if(n.type==D.FormField){let r=n;t[e.id+`.disabled`]==1&&(r.disabled=!0)}}return n},X=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Ov={[D.Bpmn]:({component:e})=>mh(e),[D.Workflow]:({component:e})=>gh(e),[D.FormEditor]:({component:e})=>_h(e),[D.Page]:X(fh),[D.Div]:X(em),[D.Directory]:({component:e,baseUrl:t,state:n,data:r})=>Qp(e,t,n,r),[D.FormLayout]:X(Ef),[D.HorizontalLayout]:X(Mf),[D.VerticalLayout]:X(Nf),[D.SplitLayout]:X(Pf),[D.MasterDetailLayout]:X(Ff),[D.TabLayout]:X(If),[D.AccordionLayout]:X(Lf),[D.BoardLayout]:X(Hf),[D.BoardLayoutRow]:X(Uf),[D.BoardLayoutItem]:X(Wf),[D.Scroller]:X(zf),[D.FullWidth]:X(Bf),[D.Container]:X(Vf),[D.Form]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>{let s=t.metadata;return l`<mateu-form
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             id="${t.id}"
         baseUrl="${n}"
             .component="${t}"
@@ -4835,12 +5771,17 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             ${s?.buttons?.map(t=>l`
                ${B(e,{id:no(t),metadata:t,type:T.ClientSide,slot:`buttons`},void 0,r,i,a,o)}
 `)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             ${uh(e,s?.fabs)}
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
             </mateu-form>`},[E.Table]:({component:e,state:t,data:n})=>Zf(e,(e.id?n?.[e.id]:void 0)?.page?.content??Qf(e,t)),[E.Crud]:X(fh),[E.App]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>l`
 ========
             </mateu-form>`},[E.Table]:({component:e,state:t,data:n})=>Qf(e,(e.id?n?.[e.id]:void 0)?.page?.content??$f(e,t)),[E.Crud]:X(fh),[E.App]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+            ${dh(e,s?.fabs)}
+            </mateu-form>`},[D.Table]:({component:e,state:t,data:n})=>$f(e,(e.id?n?.[e.id]:void 0)?.page?.content??ep(e,t)),[D.Crud]:X(ph),[D.App]:({container:e,component:t,baseUrl:n,state:r,data:i,appState:a,appData:o})=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <mateu-app
                         id="${t.id}"
                         baseUrl="${n}"
@@ -4854,6 +5795,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             >
              ${t.children?.map(t=>B(e,t,n,r,i,a,o))}
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
          </mateu-app>`,[E.Element]:({container:e,component:t,state:n,data:r,appState:i,appData:a})=>pp(e,t.metadata,t,n,r,i,a),[E.FormField]:({component:e,state:t})=>im(e,t),[E.Text]:({component:e,state:t,data:n,appState:r,appData:i})=>hp(e,t,n,r,i),[E.Avatar]:({component:e,state:t,data:n})=>Ku(e,t,n),[E.Chat]:({component:e,state:t,data:n})=>mh(e,t,n),[E.AvatarGroup]:({component:e})=>Ju(e),[E.Badge]:({component:e,state:t,data:n})=>Yu(e,t,n),[E.Breadcrumbs]:({component:e})=>qp(e),[E.Anchor]:({component:e})=>gp(e),[E.Button]:({component:e,state:t,data:n})=>wp(e,t,n),[E.Card]:X(Ep),[E.Chart]:({component:e})=>Dp(e),[E.Icon]:({component:e})=>Op(e),[E.ConfirmDialog]:X(Pp),[E.ContextMenu]:X(np),[E.CookieConsent]:({component:e})=>Fp(e),[E.Details]:X(Ip),[E.Dialog]:({component:e,baseUrl:t,state:n,data:r,appState:i,appData:a})=>Lp(e,t,n,r,i,a),[E.Drawer]:({component:e,baseUrl:t,state:n,data:r,appState:i,appData:a})=>Rp(e,t,n,r,i,a),[E.Image]:({component:e})=>Kp(e),[E.Map]:({component:e})=>Gp(e),[E.Markdown]:({component:e})=>Vp(e),[E.MicroFrontend]:({component:e})=>Bp(e),[E.Notification]:({component:e})=>Hp(e),[E.ProgressBar]:({component:e,state:t})=>Up(e,t),[E.Popover]:X(Wp),[E.CarouselLayout]:X(Xp),[E.Tooltip]:X(ap),[E.MessageInput]:({component:e})=>ip(e),[E.MessageList]:({component:e})=>$f(e),[E.CustomField]:X(rp),[E.MenuBar]:({container:e,component:t,baseUrl:n,state:r,data:i})=>tp(e,t,n,r,i),[E.Grid]:({component:e,state:t})=>Zf(e,Qf(e,t)),[E.VirtualList]:X(Uf),[E.FormSection]:X(em),[E.FormSubSection]:X(tm),[E.MetricCard]:({component:e})=>Ch(e),[E.Scoreboard]:X(wh),[E.DashboardPanel]:X(Th),[E.DashboardLayout]:X(Eh),[E.ResponsiveGrid]:X(Bh),[E.FoldoutLayout]:X(Oh),[E.ContentLayout]:X(Vh),[E.HeroSection]:X(Kh),[E.EmptyState]:({component:e})=>sf(e),[E.Skeleton]:({component:e})=>cf(e),[E.Gantt]:({component:e})=>Yh(e),[E.PlanningBoard]:({component:e})=>ig(e),[E.Kanban]:({component:e})=>og(e),[E.Timeline]:({component:e})=>cg(e),[E.ProgressSteps]:({component:e})=>ug(e),[E.Stat]:({component:e})=>fg(e),[E.Calendar]:({component:e})=>Ag(e),[E.PricingTable]:({component:e})=>Mg(e),[E.OrgChart]:({component:e})=>Pg(e),[E.Heatmap]:({component:e})=>Lg(e),[E.Funnel]:({component:e})=>zg(e),[E.TrendChart]:({component:e})=>Vg(e),[E.FeatureGrid]:({component:e})=>Ug(e),[E.Testimonials]:({component:e})=>Gg(e),[E.Faq]:({component:e})=>qg(e),[E.CalloutCard]:({component:e})=>Yg(e),[E.CommentThread]:({component:e})=>Zg(e),[E.FileList]:({component:e})=>e_(e),[E.Checklist]:({component:e})=>n_(e),[E.ComparisonCard]:({component:e})=>i_(e),[E.EntityHeader]:({component:e})=>d_(e),[E.Meter]:({component:e})=>p_(e),[E.TaskProgress]:({component:e})=>h_(e),[E.StatusList]:({component:e})=>__(e),[E.BulletedList]:({component:e})=>y_(e),[E.ActionPanel]:({component:e})=>w_(e),[E.RecordMerge]:({component:e})=>F_(e),[E.MatrixGrid]:({component:e})=>H_(e),[E.DropZone]:X(q_),[E.Separator]:({component:e})=>J_(e),[E.CustomComponent]:X(nv),[E.Notice]:X(av),[E.TaskQueue]:({component:e})=>sv(e),[E.ResourceGrid]:({component:e})=>lv(e),[E.OfferCard]:({component:e})=>uv(e),[E.AddOnPicker]:({component:e})=>fv(e),[E.Ledger]:({component:e})=>mv(e),[E.PaymentPicker]:({component:e})=>gv(e),[E.ProcessMonitor]:({component:e})=>vv(e),[E.NotFound]:({component:e})=>Sv(e)},Ev=(e,t,n,r,i,a,o,s)=>{if(!t?.metadata)return t==null?(console.warn(`No metadata for component`,t),l`<p>No metadata for component</p>`):Ev(e,{id:hc(),metadata:t,type:T.ClientSide},n,r,i,a,o,s);let c=t.metadata.type,u={...t,style:Cv(t,i),metadata:wv(t,i)},d=Tv[c];return d?d({container:e,component:u,baseUrl:n,state:r,data:i,appState:a,appData:o,labelAlreadyRendered:s}):l`<p ${u?.slot??p}>Unknown metadata type ${c} for component ${u?.id}</p>`},Z=function(e){return e.NONE=`NONE`,e.INFO=`INFO`,e.SUCCESS=`SUCCESS`,e.WARNING=`WARNING`,e.DANGER=`DANGER`,e}({}),Dv=(e,t)=>!t||e==null||typeof e!=`string`&&typeof e!=`number`&&typeof e!=`boolean`?e:t[String(e)]??e,Ov=e=>{if(!/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/.test(e)||e.length<2)return e;let t=e.toLowerCase().replace(/_/g,` `).replace(/([a-z])(\d)/g,`$1 $2`);return t.charAt(0).toUpperCase()+t.slice(1)},kv=(e,t,n,r,i)=>{let a=Nv(e[n.path],r,i);return a?l`<span theme="badge pill ${Fv(a.type)}">${a.message}</span>`:l``},Av=new Set([`AVAILABLE`,`ACTIVE`,`RUNNING`,`SUCCEEDED`,`SUCCESS`,`OK`,`ENABLED`,`READY`,`HEALTHY`,`COMPLETED`,`DONE`,`ATTACHED`,`UP`]),jv=new Set([`PROVISIONING`,`UPDATING`,`PENDING`,`STARTING`,`STOPPING`,`IN_PROGRESS`,`TERMINATING`,`DELETING`,`CREATING`,`MOVING`,`WAITING`,`ACCEPTED`,`WARNING`,`DEGRADED`,`RESTORING`,`SCALING`]),Mv=new Set([`FAILED`,`TERMINATED`,`ERROR`,`DELETED`,`STOPPED`,`DISABLED`,`UNHEALTHY`,`DOWN`,`CANCELED`,`CANCELLED`,`REJECTED`,`INACTIVE`]),Nv=(e,t,n)=>{if(e==null||e===``)return;if(typeof e==`object`)return e;let r=String(e),i=Pv(r,t),a=n?n[r]:void 0;return a==null?{...i,message:Ov(r)}:{...i,message:a}},Pv=(e,t)=>{let n=t?t[e]??t[e.trim().toUpperCase()]:void 0,r=n?Iv(n):void 0;if(r)return{type:r,message:e};let i=e.trim().toUpperCase().replace(/[\s-]+/g,`_`);return{type:Av.has(i)?Z.SUCCESS:jv.has(i)?Z.WARNING:Mv.has(i)?Z.DANGER:Z.NONE,message:e}},Fv=e=>{switch(e){case Z.SUCCESS:return`success`;case Z.WARNING:return`warning`;case Z.DANGER:return`error`;case Z.NONE:return`contrast`}return``},Iv=e=>{switch(String(e).trim().toLowerCase()){case`success`:return Z.SUCCESS;case`warning`:return Z.WARNING;case`danger`:case`error`:return Z.DANGER;case`info`:return Z.INFO;case`neutral`:case`none`:return Z.NONE}},Lv=new class{constructor(){this.handleUIIncrement=(e,t,n)=>{if(e?.messages?.forEach(e=>{Lc({text:e.text,position:e.position,variant:e.variant,duration:e.duration,undoLabel:e.undoLabel,undoActionId:e.undoActionId,undoParameters:e.undoParameters},t)}),e?.banners&&e.banners.length>0&&document.dispatchEvent(new CustomEvent(`page-banners-received`,{detail:{banners:e.banners,append:e.appendBanners??!1},bubbles:!1,composed:!1})),e?.commands?.forEach(e=>{Dt.next({command:e,fragment:void 0,ui:void 0,error:void 0,callbackToken:n,initiator:t})}),e?.fragments?.forEach(e=>{Dt.next({command:void 0,fragment:e,ui:void 0,error:void 0,callbackToken:n,initiator:t})}),e?.appState&&(Ot.value={...e.appState},t.dispatchEvent(new CustomEvent(`app-data-updated`,{bubbles:!0,composed:!0}))),e?.appData){let n=e?.appData;kt.value={...e.appData,...n},t.dispatchEvent(new CustomEvent(`app-data-updated`,{bubbles:!0,composed:!0}))}}}async runAction(e,t,n,r,i,a,o,s,c,l,u,d,f,p,m,h={}){let g=()=>{this.runAction(e,t,n,r,i,a,o,s,c,l,u,d,f,p,m,h)};n||=`_no_route`,n&&n.startsWith(`/`)&&(n=n.substring(1));let _={serverSideType:s,appState:Ot.value,componentState:c,parameters:l,initiatorComponentId:a,consumedRoute:r,route:`/`+n,actionId:i};d||u.dispatchEvent(new CustomEvent(`backend-called-event`,{bubbles:!0,composed:!0,detail:{}}));let v={Accept:`text/event-stream`,"Content-Type":`application/json`};Object.assign(v,wc());let ee=Ec(!1);ee&&(v[`X-Session-Id`]=ee),fetch(t+`/mateu/v3/sse/`+n,{method:`POST`,headers:v,body:JSON.stringify(_)}).then(async e=>{let t,n=e=>{if(h.isStale?.())throw t?.cancel().catch(()=>void 0),new Nc(i,e)};if(n(`answered`),e.ok===!1){let t=`HTTP ${e.status}`;try{let n=await e.text();try{t=JSON.parse(n)?.message||t}catch{n.trim()&&(t=n.trim())}}catch{}throw Error(t)}if(t=e.body?.pipeThrough(new TextDecoderStream).getReader(),t){let e=``;for(;;){let{value:r,done:a}=await t.read();if(a)break;e+=r;let o=e.split(`
 
 `);e=o.pop()??``;for(let e of o){let t=e.trim();if(t){if(t.startsWith(`data:`)){n(`answered`);let e=JSON.parse(t.substring(5).trim());Hc(e),f&&f(e),p||this.handleUIIncrement(e,u,m),e.messages&&e.messages.length==1&&e.messages[0].variant==`error`&&u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))}else{let e=t;try{let n=JSON.parse(t);e=n.message,n._embedded?.errors?.length>0&&n._embedded.errors[0].message&&(e=n._embedded.errors[0].message)}catch{}throw n(`failed`),Error(e)}}}}}d||u.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:i}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-succeeded`,{detail:{actionId:i},bubbles:!0,composed:!0}))}).catch(e=>{if(Pc(e)||h.isStale?.()){console.debug?.(`mateu: dropped a streamed answer to an action of a view no longer on screen`,i,s,t),u.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:i}}));return}u.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:i,reason:this.serialize(e),retry:g}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))})}serialize(e){return e?.message?e:JSON.stringify(e)}},Rv=e=>{if(!e||!(`querySelectorAll`in e))return null;for(let t of e.querySelectorAll(`*`)){if(t.tagName?.toLowerCase()===`mateu-component`)return t;let e=Rv(t.shadowRoot);if(e)return e}return null},zv=async(e,t,n)=>{let r=Rv(t.renderRoot??t);await Lv.runAction(Kc,t.baseUrl??``,e.rootRoute||`_no_route`,``,n,r?.id??`app-header-action`,{},e.serverSideType??``,{},{},r??t,!0,void 0,!1,``)};function Bv(e,t){if(!(!e||!t))return is(e.actions,t,e.actionCatalogue)}function Vv(e){if(typeof e!=`string`)return;let t=e.trim();if(!t.startsWith(`//`)&&!/^[a-z][a-z0-9+.-]*:/i.test(t))return t.replace(/^\/+/,``)}var Hv,Uv=class extends _{static{Hv=this}constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.searchText=``}static{this.SEARCHABLE_THRESHOLD=7}connectedCallback(){super.connectedCallback(),ka()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Ta()[this.selector.fieldName]??``)}currentLabel(){let e=this.currentValue();if(!e)return`—`;let t=(this.searchedOptions??this.selector.options)?.find(t=>String(t.value)===e);if(t)return t.label;let n=Ea()[this.selector.fieldName];return n===void 0?e:String(n)}pick(e,t){Da(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText=``,this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector(`input.picker-search`)?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){let e=this.app,t=this.selector.optionsSource;if(e&&t){try{let n=await Bd(e,this.baseUrl??``,`contextOptions`,t,{searchText:this.searchText},this,this.selector.fieldName);this.searchedOptions=Gd(n,t)}catch{}return}if(e?.serverSideType)try{let t=await Kc.runAction(this.baseUrl??``,e.rootRoute??e.initialRoute??``,``,`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(let e of t?.fragments??[]){let t=e.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(t)){this.searchedOptions=t.map(e=>({value:e.value,label:e.label??String(e.value)}));return}}}catch{}}visibleOptions(){let e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(e=>e.label.toLowerCase().includes(t)):e}renderPanel(){let e=this.currentValue(),t=this.visibleOptions(),n=this.searchText!==``||t.length>Hv.SEARCHABLE_THRESHOLD;return l`
@@ -4862,6 +5804,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
 
 `);e=o.pop()??``;for(let e of o){let t=e.trim();if(t){if(t.startsWith(`data:`)){n(`answered`);let e=JSON.parse(t.substring(5).trim());Uc(e),f&&f(e),p||this.handleUIIncrement(e,u,m),e.messages&&e.messages.length==1&&e.messages[0].variant==`error`&&u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))}else{let e=t;try{let n=JSON.parse(t);e=n.message,n._embedded?.errors?.length>0&&n._embedded.errors[0].message&&(e=n._embedded.errors[0].message)}catch{}throw n(`failed`),Error(e)}}}}}d||u.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:i}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-succeeded`,{detail:{actionId:i},bubbles:!0,composed:!0}))}).catch(e=>{if(Fc(e)||h.isStale?.()){console.debug?.(`mateu: dropped a streamed answer to an action of a view no longer on screen`,i,s,t),u.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:i}}));return}u.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:i,reason:this.serialize(e),retry:g}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))})}serialize(e){return e?.message?e:JSON.stringify(e)}},Rv=e=>{if(!e||!(`querySelectorAll`in e))return null;for(let t of e.querySelectorAll(`*`)){if(t.tagName?.toLowerCase()===`mateu-component`)return t;let e=Rv(t.shadowRoot);if(e)return e}return null},zv=async(e,t,n)=>{let r=Rv(t.renderRoot??t);await Lv.runAction(qc,t.baseUrl??``,e.rootRoute||`_no_route`,``,n,r?.id??`app-header-action`,{},e.serverSideType??``,{},{},r??t,!0,void 0,!1,``)};function Bv(e,t){if(!(!e||!t))return as(e.actions,t,e.actionCatalogue)}function Vv(e){if(typeof e!=`string`)return;let t=e.trim();if(!t.startsWith(`//`)&&!/^[a-z][a-z0-9+.-]*:/i.test(t))return t.replace(/^\/+/,``)}var Hv,Uv=class extends _{static{Hv=this}constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.searchText=``}static{this.SEARCHABLE_THRESHOLD=7}connectedCallback(){super.connectedCallback(),ka()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Ta()[this.selector.fieldName]??``)}currentLabel(){let e=this.currentValue();if(!e)return`—`;let t=(this.searchedOptions??this.selector.options)?.find(t=>String(t.value)===e);if(t)return t.label;let n=Ea()[this.selector.fieldName];return n===void 0?e:String(n)}pick(e,t){Da(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText=``,this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector(`input.picker-search`)?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){let e=this.app,t=this.selector.optionsSource;if(e&&t){try{let n=await Vd(e,this.baseUrl??``,`contextOptions`,t,{searchText:this.searchText},this,this.selector.fieldName);this.searchedOptions=Kd(n,t)}catch{}return}if(e?.serverSideType)try{let t=await qc.runAction(this.baseUrl??``,e.rootRoute??e.initialRoute??``,``,`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(let e of t?.fragments??[]){let t=e.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(t)){this.searchedOptions=t.map(e=>({value:e.value,label:e.label??String(e.value)}));return}}}catch{}}visibleOptions(){let e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(e=>e.label.toLowerCase().includes(t)):e}renderPanel(){let e=this.currentValue(),t=this.visibleOptions(),n=this.searchText!==``||t.length>Hv.SEARCHABLE_THRESHOLD;return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+         </mateu-app>`,[D.Element]:({container:e,component:t,state:n,data:r,appState:i,appData:a})=>hp(e,t.metadata,t,n,r,i,a),[D.FormField]:({component:e,state:t})=>am(e,t),[D.Text]:({component:e,state:t,data:n,appState:r,appData:i})=>_p(e,t,n,r,i),[D.Avatar]:({component:e,state:t,data:n})=>qu(e,t,n),[D.Chat]:({component:e,state:t,data:n})=>hh(e,t,n),[D.AvatarGroup]:({component:e})=>Yu(e),[D.Badge]:({component:e,state:t,data:n})=>Xu(e,t,n),[D.Breadcrumbs]:({component:e})=>Jp(e),[D.Anchor]:({component:e})=>vp(e),[D.Button]:({component:e,state:t,data:n})=>Ep(e,t,n),[D.Card]:X(Op),[D.Chart]:({component:e})=>kp(e),[D.Icon]:({component:e})=>Ap(e),[D.ConfirmDialog]:X(Fp),[D.ContextMenu]:X(ip),[D.CookieConsent]:({component:e})=>Ip(e),[D.Details]:X(Lp),[D.Dialog]:({component:e,baseUrl:t,state:n,data:r,appState:i,appData:a})=>Rp(e,t,n,r,i,a),[D.Drawer]:({component:e,baseUrl:t,state:n,data:r,appState:i,appData:a})=>zp(e,t,n,r,i,a),[D.Image]:({component:e})=>qp(e),[D.Map]:({component:e})=>Kp(e),[D.Markdown]:({component:e})=>Hp(e),[D.MicroFrontend]:({component:e})=>Vp(e),[D.Notification]:({component:e})=>Up(e),[D.ProgressBar]:({component:e,state:t})=>Wp(e,t),[D.Popover]:X(Gp),[D.CarouselLayout]:X(Zp),[D.Tooltip]:X(sp),[D.MessageInput]:({component:e})=>op(e),[D.MessageList]:({component:e})=>tp(e),[D.CustomField]:X(ap),[D.MenuBar]:({container:e,component:t,baseUrl:n,state:r,data:i})=>rp(e,t,n,r,i),[D.Grid]:({component:e,state:t})=>$f(e,ep(e,t)),[D.VirtualList]:X(Gf),[D.FormSection]:X(tm),[D.FormSubSection]:X(nm),[D.MetricCard]:({component:e})=>wh(e),[D.Scoreboard]:X(Th),[D.DashboardPanel]:X(Eh),[D.DashboardLayout]:X(Dh),[D.ResponsiveGrid]:X(Uh),[D.FoldoutLayout]:X(jh),[D.ContentLayout]:X(Wh),[D.HeroSection]:X(Yh),[D.EmptyState]:({component:e})=>lf(e),[D.Skeleton]:({component:e})=>uf(e),[D.Gantt]:({component:e})=>Qh(e),[D.PlanningBoard]:({component:e})=>sg(e),[D.Kanban]:({component:e})=>lg(e),[D.Timeline]:({component:e})=>dg(e),[D.ProgressSteps]:({component:e})=>pg(e),[D.Stat]:({component:e})=>hg(e),[D.Calendar]:({component:e})=>Ng(e),[D.PricingTable]:({component:e})=>Fg(e),[D.OrgChart]:({component:e})=>Lg(e),[D.Heatmap]:({component:e})=>Bg(e),[D.Funnel]:({component:e})=>Hg(e),[D.TrendChart]:({component:e})=>Wg(e),[D.FeatureGrid]:({component:e})=>Kg(e),[D.Testimonials]:({component:e})=>Jg(e),[D.Faq]:({component:e})=>Xg(e),[D.CalloutCard]:({component:e})=>Qg(e),[D.CommentThread]:({component:e})=>e_(e),[D.FileList]:({component:e})=>r_(e),[D.Checklist]:({component:e})=>a_(e),[D.ComparisonCard]:({component:e})=>s_(e),[D.EntityHeader]:({component:e})=>m_(e),[D.Meter]:({component:e})=>g_(e),[D.TaskProgress]:({component:e})=>v_(e),[D.StatusList]:({component:e})=>b_(e),[D.BulletedList]:({component:e})=>S_(e),[D.ActionPanel]:({component:e})=>D_(e),[D.RecordMerge]:({component:e})=>R_(e),[D.MatrixGrid]:({component:e})=>G_(e),[D.DropZone]:X(X_),[D.Separator]:({component:e})=>Z_(e),[D.CustomComponent]:X(av),[D.Notice]:X(cv),[D.TaskQueue]:({component:e})=>uv(e),[D.ResourceGrid]:({component:e})=>fv(e),[D.OfferCard]:({component:e})=>pv(e),[D.AddOnPicker]:({component:e})=>hv(e),[D.Ledger]:({component:e})=>_v(e),[D.PaymentPicker]:({component:e})=>yv(e),[D.ProcessMonitor]:({component:e})=>xv(e),[D.NotFound]:({component:e})=>Tv(e)},kv=(e,t,n,r,i,a,o,s)=>{if(!t?.metadata)return t==null?(console.warn(`No metadata for component`,t),l`<p>No metadata for component</p>`):kv(e,{id:hc(),metadata:t,type:E.ClientSide},n,r,i,a,o,s);let c=t.metadata.type,u={...t,style:Ev(t,i),metadata:Dv(t,i)},d=Ov[c];return d?d({container:e,component:u,baseUrl:n,state:r,data:i,appState:a,appData:o,labelAlreadyRendered:s}):l`<p ${u?.slot??p}>Unknown metadata type ${c} for component ${u?.id}</p>`},Z=function(e){return e.NONE=`NONE`,e.INFO=`INFO`,e.SUCCESS=`SUCCESS`,e.WARNING=`WARNING`,e.DANGER=`DANGER`,e}({}),Av=(e,t)=>!t||e==null||typeof e!=`string`&&typeof e!=`number`&&typeof e!=`boolean`?e:t[String(e)]??e,jv=e=>{if(!/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/.test(e)||e.length<2)return e;let t=e.toLowerCase().replace(/_/g,` `).replace(/([a-z])(\d)/g,`$1 $2`);return t.charAt(0).toUpperCase()+t.slice(1)},Mv=(e,t,n,r,i)=>{let a=Iv(e[n.path],r,i);return a?l`<span theme="badge pill ${Rv(a.type)}">${a.message}</span>`:l``},Nv=new Set([`AVAILABLE`,`ACTIVE`,`RUNNING`,`SUCCEEDED`,`SUCCESS`,`OK`,`ENABLED`,`READY`,`HEALTHY`,`COMPLETED`,`DONE`,`ATTACHED`,`UP`]),Pv=new Set([`PROVISIONING`,`UPDATING`,`PENDING`,`STARTING`,`STOPPING`,`IN_PROGRESS`,`TERMINATING`,`DELETING`,`CREATING`,`MOVING`,`WAITING`,`ACCEPTED`,`WARNING`,`DEGRADED`,`RESTORING`,`SCALING`]),Fv=new Set([`FAILED`,`TERMINATED`,`ERROR`,`DELETED`,`STOPPED`,`DISABLED`,`UNHEALTHY`,`DOWN`,`CANCELED`,`CANCELLED`,`REJECTED`,`INACTIVE`]),Iv=(e,t,n)=>{if(e==null||e===``)return;if(typeof e==`object`)return e;let r=String(e),i=Lv(r,t),a=n?n[r]:void 0;return a==null?{...i,message:jv(r)}:{...i,message:a}},Lv=(e,t)=>{let n=t?t[e]??t[e.trim().toUpperCase()]:void 0,r=n?zv(n):void 0;if(r)return{type:r,message:e};let i=e.trim().toUpperCase().replace(/[\s-]+/g,`_`);return{type:Nv.has(i)?Z.SUCCESS:Pv.has(i)?Z.WARNING:Fv.has(i)?Z.DANGER:Z.NONE,message:e}},Rv=e=>{switch(e){case Z.SUCCESS:return`success`;case Z.WARNING:return`warning`;case Z.DANGER:return`error`;case Z.NONE:return`contrast`}return``},zv=e=>{switch(String(e).trim().toLowerCase()){case`success`:return Z.SUCCESS;case`warning`:return Z.WARNING;case`danger`:case`error`:return Z.DANGER;case`info`:return Z.INFO;case`neutral`:case`none`:return Z.NONE}},Bv=new class{constructor(){this.handleUIIncrement=(e,t,n)=>{if(e?.messages?.forEach(e=>{Lc({text:e.text,position:e.position,variant:e.variant,duration:e.duration,undoLabel:e.undoLabel,undoActionId:e.undoActionId,undoParameters:e.undoParameters},t)}),e?.banners&&e.banners.length>0&&document.dispatchEvent(new CustomEvent(`page-banners-received`,{detail:{banners:e.banners,append:e.appendBanners??!1},bubbles:!1,composed:!1})),e?.commands?.forEach(e=>{Et.next({command:e,fragment:void 0,ui:void 0,error:void 0,callbackToken:n,initiator:t})}),e?.fragments?.forEach(e=>{Et.next({command:void 0,fragment:e,ui:void 0,error:void 0,callbackToken:n,initiator:t})}),e?.appState&&(Dt.value={...e.appState},t.dispatchEvent(new CustomEvent(`app-data-updated`,{bubbles:!0,composed:!0}))),e?.appData){let n=e?.appData;Ot.value={...e.appData,...n},t.dispatchEvent(new CustomEvent(`app-data-updated`,{bubbles:!0,composed:!0}))}}}async runAction(e,t,n,r,i,a,o,s,c,l,u,d,f,p,m,h={}){let g=()=>{this.runAction(e,t,n,r,i,a,o,s,c,l,u,d,f,p,m,h)};n||=`_no_route`,n&&n.startsWith(`/`)&&(n=n.substring(1));let _={serverSideType:s,appState:Dt.value,componentState:c,parameters:l,initiatorComponentId:a,consumedRoute:r,route:`/`+n,actionId:i};d||u.dispatchEvent(new CustomEvent(`backend-called-event`,{bubbles:!0,composed:!0,detail:{}}));let v={Accept:`text/event-stream`,"Content-Type":`application/json`};Object.assign(v,wc());let ee=Ec(!1);ee&&(v[`X-Session-Id`]=ee),fetch(t+`/mateu/v3/sse/`+n,{method:`POST`,headers:v,body:JSON.stringify(_)}).then(async e=>{let t,n=e=>{if(h.isStale?.())throw t?.cancel().catch(()=>void 0),new Nc(i,e)};if(n(`answered`),e.ok===!1){let t=`HTTP ${e.status}`;try{let n=await e.text();try{t=JSON.parse(n)?.message||t}catch{n.trim()&&(t=n.trim())}}catch{}throw Error(t)}if(t=e.body?.pipeThrough(new TextDecoderStream).getReader(),t){let e=``;for(;;){let{value:r,done:a}=await t.read();if(a)break;e+=r;let o=e.split(`
+
+`);e=o.pop()??``;for(let e of o){let t=e.trim();if(t){if(t.startsWith(`data:`)){n(`answered`);let e=JSON.parse(t.substring(5).trim());Hc(e),f&&f(e),p||this.handleUIIncrement(e,u,m),e.messages&&e.messages.length==1&&e.messages[0].variant==`error`&&u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))}else{let e=t;try{let n=JSON.parse(t);e=n.message,n._embedded?.errors?.length>0&&n._embedded.errors[0].message&&(e=n._embedded.errors[0].message)}catch{}throw n(`failed`),Error(e)}}}}}d||u.dispatchEvent(new CustomEvent(`backend-succeeded-event`,{bubbles:!0,composed:!0,detail:{actionId:i}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-succeeded`,{detail:{actionId:i},bubbles:!0,composed:!0}))}).catch(e=>{if(Pc(e)||h.isStale?.()){console.debug?.(`mateu: dropped a streamed answer to an action of a view no longer on screen`,i,s,t),u.dispatchEvent(new CustomEvent(`backend-cancelled-event`,{bubbles:!0,composed:!0,detail:{actionId:i}}));return}u.dispatchEvent(new CustomEvent(`backend-failed-event`,{bubbles:!0,composed:!0,detail:{actionId:i,reason:this.serialize(e),retry:g}})),u.shadowRoot?.dispatchEvent(new CustomEvent(`backend-call-failed`,{detail:{actionId:i},bubbles:!0,composed:!0}))})}serialize(e){return e?.message?e:JSON.stringify(e)}},Vv=e=>{if(!e||!(`querySelectorAll`in e))return null;for(let t of e.querySelectorAll(`*`)){if(t.tagName?.toLowerCase()===`mateu-component`)return t;let e=Vv(t.shadowRoot);if(e)return e}return null},Hv=async(e,t,n)=>{let r=Vv(t.renderRoot??t);await Bv.runAction(Kc,t.baseUrl??``,e.rootRoute||`_no_route`,``,n,r?.id??`app-header-action`,{},e.serverSideType??``,{},{},r??t,!0,void 0,!1,``)};function Uv(e,t){if(!(!e||!t))return is(e.actions,t,e.actionCatalogue)}function Wv(e){if(typeof e!=`string`)return;let t=e.trim();if(!t.startsWith(`//`)&&!/^[a-z][a-z0-9+.-]*:/i.test(t))return t.replace(/^\/+/,``)}var Gv,Kv=class extends _{static{Gv=this}constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.searchText=``}static{this.SEARCHABLE_THRESHOLD=7}connectedCallback(){super.connectedCallback(),Oa()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(wa()[this.selector.fieldName]??``)}currentLabel(){let e=this.currentValue();if(!e)return`—`;let t=(this.searchedOptions??this.selector.options)?.find(t=>String(t.value)===e);if(t)return t.label;let n=Ta()[this.selector.fieldName];return n===void 0?e:String(n)}pick(e,t){Ea(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText=``,this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector(`input.picker-search`)?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){let e=this.app,t=this.selector.optionsSource;if(e&&t){try{let n=await Vd(e,this.baseUrl??``,`contextOptions`,t,{searchText:this.searchText},this,this.selector.fieldName);this.searchedOptions=Kd(n,t)}catch{}return}if(e?.serverSideType)try{let t=await Kc.runAction(this.baseUrl??``,e.rootRoute??e.initialRoute??``,``,`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(let e of t?.fragments??[]){let t=e.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(t)){this.searchedOptions=t.map(e=>({value:e.value,label:e.label??String(e.value)}));return}}}catch{}}visibleOptions(){let e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(e=>e.label.toLowerCase().includes(t)):e}renderPanel(){let e=this.currentValue(),t=this.visibleOptions(),n=this.searchText!==``||t.length>Gv.SEARCHABLE_THRESHOLD;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="panel">
                 ${n?l`
                     <input class="picker-search" type="text" placeholder="${o(`search`)}" aria-label="${o(`search`)}"
@@ -4956,10 +5903,14 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
         }
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n()],Uv.prototype,`selector`,void 0),a([n()],Uv.prototype,`app`,void 0),a([n()],Uv.prototype,`baseUrl`,void 0),a([s()],Uv.prototype,`opened`,void 0),a([s()],Uv.prototype,`searchText`,void 0),a([s()],Uv.prototype,`searchedOptions`,void 0),Uv=Hv=a([i(`mateu-app-context-picker`)],Uv);var Wv=class extends _{constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&(this.app?.serverSideType||this.app?.notificationsSource)&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){let n=this.app;if(n?.serverSideType)try{let r=await Kc.runAction(this.baseUrl??``,n.rootRoute??n.initialRoute??``,``,e,`notification-bell`,void 0,n.serverSideType,{},t,this,!0);for(let e of r?.fragments??[]){let t=e.data?._notifications;if(Array.isArray(t)){this.notifications=t;return}}}catch{}}refresh(){let e=this.app?.notificationsSource;return this.app&&e?Bd(this.app,this.baseUrl??``,`notifications`,e,{},this).then(t=>{this.notifications=Ud(t,e)}).catch(()=>void 0):this.runNotificationsAction(`_notifications-list`,{})}async markRead(e){if(this.app?.notificationsSource){let t=this.app.notificationsReadSource,n=e===`all`,r=n?this.notifications.filter(e=>e.unread).map(e=>e.id):e;if(this.notifications=this.notifications.map(e=>r.includes(e.id)?{...e,unread:!1}:e),t)try{await Bd(this.app,this.baseUrl??``,`notificationsRead`,t,Kd(r,n),this),await this.refresh()}catch{}return}return this.runNotificationsAction(`_notifications-read`,{ids:e})}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);let t=e.route;if(t){if(!xd.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return l`
 ========
     `}};a([n()],Uv.prototype,`selector`,void 0),a([n()],Uv.prototype,`app`,void 0),a([n()],Uv.prototype,`baseUrl`,void 0),a([s()],Uv.prototype,`opened`,void 0),a([s()],Uv.prototype,`searchText`,void 0),a([s()],Uv.prototype,`searchedOptions`,void 0),Uv=Hv=a([i(`mateu-app-context-picker`)],Uv);var Wv=class extends _{constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&(this.app?.serverSideType||this.app?.notificationsSource)&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){let n=this.app;if(n?.serverSideType)try{let r=await qc.runAction(this.baseUrl??``,n.rootRoute??n.initialRoute??``,``,e,`notification-bell`,void 0,n.serverSideType,{},t,this,!0);for(let e of r?.fragments??[]){let t=e.data?._notifications;if(Array.isArray(t)){this.notifications=t;return}}}catch{}}refresh(){let e=this.app?.notificationsSource;return this.app&&e?Vd(this.app,this.baseUrl??``,`notifications`,e,{},this).then(t=>{this.notifications=Wd(t,e)}).catch(()=>void 0):this.runNotificationsAction(`_notifications-list`,{})}async markRead(e){if(this.app?.notificationsSource){let t=this.app.notificationsReadSource,n=e===`all`,r=n?this.notifications.filter(e=>e.unread).map(e=>e.id):e;if(this.notifications=this.notifications.map(e=>r.includes(e.id)?{...e,unread:!1}:e),t)try{await Vd(this.app,this.baseUrl??``,`notificationsRead`,t,qd(r,n),this),await this.refresh()}catch{}return}return this.runNotificationsAction(`_notifications-read`,{ids:e})}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);let t=e.route;if(t){if(!Sd.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `}};a([n()],Kv.prototype,`selector`,void 0),a([n()],Kv.prototype,`app`,void 0),a([n()],Kv.prototype,`baseUrl`,void 0),a([s()],Kv.prototype,`opened`,void 0),a([s()],Kv.prototype,`searchText`,void 0),a([s()],Kv.prototype,`searchedOptions`,void 0),Kv=Gv=a([i(`mateu-app-context-picker`)],Kv);var qv=class extends _{constructor(...e){super(...e),this.baseUrl=``,this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&(this.app?.serverSideType||this.app?.notificationsSource)&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){let n=this.app;if(n?.serverSideType)try{let r=await Kc.runAction(this.baseUrl??``,n.rootRoute??n.initialRoute??``,``,e,`notification-bell`,void 0,n.serverSideType,{},t,this,!0);for(let e of r?.fragments??[]){let t=e.data?._notifications;if(Array.isArray(t)){this.notifications=t;return}}}catch{}}refresh(){let e=this.app?.notificationsSource;return this.app&&e?Vd(this.app,this.baseUrl??``,`notifications`,e,{},this).then(t=>{this.notifications=Wd(t,e)}).catch(()=>void 0):this.runNotificationsAction(`_notifications-list`,{})}async markRead(e){if(this.app?.notificationsSource){let t=this.app.notificationsReadSource,n=e===`all`,r=n?this.notifications.filter(e=>e.unread).map(e=>e.id):e;if(this.notifications=this.notifications.map(e=>r.includes(e.id)?{...e,unread:!1}:e),t)try{await Vd(this.app,this.baseUrl??``,`notificationsRead`,t,qd(r,n),this),await this.refresh()}catch{}return}return this.runNotificationsAction(`_notifications-read`,{ids:e})}detachOutsideClick(){this.outsideClick&&=(document.removeEventListener(`mousedown`,this.outsideClick),void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener(`mousedown`,this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);let t=e.route;if(t){if(!Sd.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent(`route-changed`,{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent(`navigate-to-requested`,{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div role="button" tabindex="0" class="entry ${e.unread?`entry--unread`:``}"
                  @click="${()=>this.entryClicked(e)}" @keydown="${G(()=>this.entryClicked(e))}">
                 <span class="unread-dot" aria-hidden="true"></span>
@@ -5150,7 +6101,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         }
     
         ${V}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n()],Wv.prototype,`app`,void 0),a([n()],Wv.prototype,`baseUrl`,void 0),a([s()],Wv.prototype,`opened`,void 0),a([s()],Wv.prototype,`notifications`,void 0),Wv=a([i(`mateu-notification-bell`)],Wv);var Gv=class extends _{constructor(...e){super(...e),this.version=0,this.previous=new Map,this.changed=new Set}connectedCallback(){super.connectedCallback(),this.remember(),this.unsubscribe=Ne(()=>{this.changed=new Set(Me().filter(e=>this.previous.has(e.id)&&this.previous.get(e.id)!==(e.value??``)).map(e=>e.id)),this.remember(),this.version++,setTimeout(()=>{this.changed=new Set,this.version++},1600)})}disconnectedCallback(){this.unsubscribe?.(),super.disconnectedCallback()}remember(){this.previous=new Map(Me().map(e=>[e.id,e.value??``]))}render(){this.version;let e=Me();return e.length?l`${e.map(e=>l`
+========
+    `}};a([n()],qv.prototype,`app`,void 0),a([n()],qv.prototype,`baseUrl`,void 0),a([s()],qv.prototype,`opened`,void 0),a([s()],qv.prototype,`notifications`,void 0),qv=a([i(`mateu-notification-bell`)],qv);var Jv=class extends _{constructor(...e){super(...e),this.version=0,this.previous=new Map,this.changed=new Set}connectedCallback(){super.connectedCallback(),this.remember(),this.unsubscribe=Me(()=>{this.changed=new Set(je().filter(e=>this.previous.has(e.id)&&this.previous.get(e.id)!==(e.value??``)).map(e=>e.id)),this.remember(),this.version++,setTimeout(()=>{this.changed=new Set,this.version++},1600)})}disconnectedCallback(){this.unsubscribe?.(),super.disconnectedCallback()}remember(){this.previous=new Map(je().map(e=>[e.id,e.value??``]))}render(){this.version;let e=je();return e.length?l`${e.map(e=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <span class="value ${this.changed.has(e.id)?`changed`:``}" data-header-value="${e.id}">
                 ${e.label?l`<span class="label">${e.label}</span>`:p}<strong>${e.value}</strong>
             </span>`)}`:p}static{this.styles=h`
@@ -5163,7 +6118,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         .changed { animation: flash 1.5s ease-out; }
         @keyframes flash { from { background: var(--lumo-primary-color-10pct, rgba(0, 100, 200, 0.15)); } to { background: transparent; } }
         @media (prefers-reduced-motion: reduce) { .changed { animation: none; } }
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([s()],Gv.prototype,`version`,void 0),Gv=a([i(`mateu-header-values`)],Gv);var Kv=class extends _{constructor(...e){super(...e),this.shown=!1}createRenderRoot(){return this}connectedCallback(){if(super.connectedCallback(),!this.shown){if(typeof IntersectionObserver>`u`){this.shown=!0;return}this.observer=new IntersectionObserver(e=>{e.some(e=>e.isIntersecting)&&(this.shown=!0,this.observer?.disconnect(),this.observer=void 0)}),this.observer.observe(this)}}disconnectedCallback(){super.disconnectedCallback(),this.observer?.disconnect(),this.observer=void 0}render(){return this.shown&&this.content?this.content():l`<div class="mateu-when-visible-placeholder" style="min-height: 1px;">${p}</div>`}};a([n({attribute:!1})],Kv.prototype,`content`,void 0),a([s()],Kv.prototype,`shown`,void 0),Kv=a([i(`mateu-when-visible`)],Kv);var qv=e=>!!e&&/[?&]_lazy=1(&|$)/.test(e),Jv=e=>(e.children??[]).filter(e=>e&&e.component!==`hr`&&e.text).map(e=>{let t=(e.children??[]).filter(e=>e&&e.text&&e.component!==`hr`);return{item:e,title:String(e.text??``),description:String(e.description??``),icon:String(e.icon??``),image:String(e.image??``),navigable:t.length===0,actions:t}}),Yv=e=>!!e&&e.display===`cards`&&(e.children?.length??0)>0,Xv=class extends _{constructor(...e){super(...e),this.open=!1,this.outside=e=>{e.composedPath().includes(this)||(this.open=!1)},this.escape=e=>{e.key===`Escape`&&this.open&&(this.open=!1,this.renderRoot.querySelector(`.trigger`)?.focus())}}connectedCallback(){super.connectedCallback(),document.addEventListener(`click`,this.outside,!0),document.addEventListener(`keydown`,this.escape)}disconnectedCallback(){document.removeEventListener(`click`,this.outside,!0),document.removeEventListener(`keydown`,this.escape),super.disconnectedCallback()}select(e,t){t?.stopPropagation(),this.open=!1,this.onSelect?.(e)}renderIcon(e){return e.image?l`<img class="visual image" src="${e.image}" alt="" />`:e.icon&&customElements.get(`vaadin-icon`)?l`<vaadin-icon class="visual icon" icon="${e.icon}"></vaadin-icon>`:p}render(){let e=this.item;if(!e)return p;let t=Jv(e);return l`
+========
+    `}};a([s()],Jv.prototype,`version`,void 0),Jv=a([i(`mateu-header-values`)],Jv);var Yv=class extends _{constructor(...e){super(...e),this.shown=!1}createRenderRoot(){return this}connectedCallback(){if(super.connectedCallback(),!this.shown){if(typeof IntersectionObserver>`u`){this.shown=!0;return}this.observer=new IntersectionObserver(e=>{e.some(e=>e.isIntersecting)&&(this.shown=!0,this.observer?.disconnect(),this.observer=void 0)}),this.observer.observe(this)}}disconnectedCallback(){super.disconnectedCallback(),this.observer?.disconnect(),this.observer=void 0}render(){return this.shown&&this.content?this.content():l`<div class="mateu-when-visible-placeholder" style="min-height: 1px;">${p}</div>`}};a([n({attribute:!1})],Yv.prototype,`content`,void 0),a([s()],Yv.prototype,`shown`,void 0),Yv=a([i(`mateu-when-visible`)],Yv);var Xv=e=>!!e&&/[?&]_lazy=1(&|$)/.test(e),Zv=e=>(e.children??[]).filter(e=>e&&e.component!==`hr`&&e.text).map(e=>{let t=(e.children??[]).filter(e=>e&&e.text&&e.component!==`hr`);return{item:e,title:String(e.text??``),description:String(e.description??``),icon:String(e.icon??``),image:String(e.image??``),navigable:t.length===0,actions:t}}),Qv=e=>!!e&&e.display===`cards`&&(e.children?.length??0)>0,$v=class extends _{constructor(...e){super(...e),this.open=!1,this.outside=e=>{e.composedPath().includes(this)||(this.open=!1)},this.escape=e=>{e.key===`Escape`&&this.open&&(this.open=!1,this.renderRoot.querySelector(`.trigger`)?.focus())}}connectedCallback(){super.connectedCallback(),document.addEventListener(`click`,this.outside,!0),document.addEventListener(`keydown`,this.escape)}disconnectedCallback(){document.removeEventListener(`click`,this.outside,!0),document.removeEventListener(`keydown`,this.escape),super.disconnectedCallback()}select(e,t){t?.stopPropagation(),this.open=!1,this.onSelect?.(e)}renderIcon(e){return e.image?l`<img class="visual image" src="${e.image}" alt="" />`:e.icon&&customElements.get(`vaadin-icon`)?l`<vaadin-icon class="visual icon" icon="${e.icon}"></vaadin-icon>`:p}render(){let e=this.item;if(!e)return p;let t=Zv(e);return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <button class="trigger ${e.selected?`active`:``}" type="button" data-access-key-target
                     aria-haspopup="true" aria-expanded="${this.open?`true`:`false`}"
                     @click="${()=>{this.open=!this.open}}">
@@ -5232,16 +6191,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         }
         .action:hover { text-decoration: underline; }
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     `}};a([n({attribute:!1})],Xv.prototype,`item`,void 0),a([n({attribute:!1})],Xv.prototype,`onSelect`,void 0),a([s()],Xv.prototype,`open`,void 0),Xv=a([i(`mateu-card-menu`)],Xv);var Zv=(e,t)=>e?l`<mateu-when-visible style="display: block; width: 100%;" .content="${t}"></mateu-when-visible>`:t(),Qv=async(e,t,n)=>{if(n.route){if(!xd.confirmLeave())return;rd(t,n.route);return}let i=n.actionId;if(i){if(Bv(e,i)){t.runShellAction(i);return}try{await zv(e,t,i)}catch(e){Lc({text:r(`actionFailed`,{error:e}),position:`bottomStart`,duration:6e3,variant:`error`},t)}}},$v=(e,t)=>{let n=e.contextSelectors??[],r=e.contextActions??[],i=(e.headerValues?.length??0)>0;return n.length===0&&r.length===0&&!e.notificationsEnabled&&!i?p:l`${i?l`<mateu-header-values></mateu-header-values>`:p}${e.notificationsEnabled?l`
 ========
     `}};a([n({attribute:!1})],Xv.prototype,`item`,void 0),a([n({attribute:!1})],Xv.prototype,`onSelect`,void 0),a([s()],Xv.prototype,`open`,void 0),Xv=a([i(`mateu-card-menu`)],Xv);var Zv=(e,t)=>e?l`<mateu-when-visible style="display: block; width: 100%;" .content="${t}"></mateu-when-visible>`:t(),Qv=async(e,t,n)=>{if(n.route){if(!Sd.confirmLeave())return;id(t,n.route);return}let i=n.actionId;if(i){if(Bv(e,i)){t.runShellAction(i);return}try{await zv(e,t,i)}catch(e){Rc({text:r(`actionFailed`,{error:e}),position:`bottomStart`,duration:6e3,variant:`error`},t)}}},$v=(e,t)=>{let n=e.contextSelectors??[],r=e.contextActions??[],i=(e.headerValues?.length??0)>0;return n.length===0&&r.length===0&&!e.notificationsEnabled&&!i?p:l`${i?l`<mateu-header-values></mateu-header-values>`:p}${e.notificationsEnabled?l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+    `}};a([n({attribute:!1})],$v.prototype,`item`,void 0),a([n({attribute:!1})],$v.prototype,`onSelect`,void 0),a([s()],$v.prototype,`open`,void 0),$v=a([i(`mateu-card-menu`)],$v);var ey=(e,t)=>e?l`<mateu-when-visible style="display: block; width: 100%;" .content="${t}"></mateu-when-visible>`:t(),ty=async(e,t,n)=>{if(n.route){if(!Sd.confirmLeave())return;id(t,n.route);return}let i=n.actionId;if(i){if(Uv(e,i)){t.runShellAction(i);return}try{await Hv(e,t,i)}catch(e){Lc({text:r(`actionFailed`,{error:e}),position:`bottomStart`,duration:6e3,variant:`error`},t)}}},ny=(e,t)=>{let n=e.contextSelectors??[],r=e.contextActions??[],i=(e.headerValues?.length??0)>0;return n.length===0&&r.length===0&&!e.notificationsEnabled&&!i?p:l`${i?l`<mateu-header-values></mateu-header-values>`:p}${e.notificationsEnabled?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <mateu-notification-bell .app="${e}" .baseUrl="${t.baseUrl??``}"></mateu-notification-bell>`:p}${n.map(n=>l`
         <mateu-app-context-picker .selector="${n}" .app="${e}" .baseUrl="${t.baseUrl??``}"></mateu-app-context-picker>`)}${r.map(n=>(n.children?.length??0)>0?l`
         <details class="mateu-nav-group" style="flex-shrink: 0;">
             <summary class="app-header-action-btn">${n.label} ▾</summary>
             <div class="mateu-nav-panel" style="right: 0; left: auto;">
                 ${n.children.map(n=>l`
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     <button class="mateu-nav-item" @click="${()=>Qv(e,t,n)}">${n.label}</button>`)}
             </div>
         </details>`:l`
@@ -5255,10 +6219,26 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         ${e.logo?l`<img src="${e.logo}" alt="logo" height="28px" style="margin-left: ${t?`10px`:`0`}; align-self: center;">`:p}
         ${e.title?l`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${e.title}</h2>`:p}
     </div>`,ny=`flex: 1; min-width: 0; align-items: baseline;`,ry=`m-hl mateu-app-header`,iy=(e,t,n=``)=>l`
+========
+                    <button class="mateu-nav-item" @click="${()=>ty(e,t,n)}">${n.label}</button>`)}
+            </div>
+        </details>`:l`
+        <button class="app-header-action-btn" style="flex-shrink: 0;"
+            @click="${()=>ty(e,t,n)}" title="${n.label}">${n.icon?H(n.icon):p}${n.label}</button>`)}`},ry=(e,t)=>l`
+    <button class="mateu-nav-item ${e.selected?`mateu-nav-item--active`:``} ${e.className??``}"
+            ?disabled="${e.disabled}"
+            title="${e.title??p}"
+            @click="${()=>t(e)}">${e.text}</button>`,iy=(e,t=!0)=>l`
+    <div class="m-hl" style="align-items: ${e.title?`baseline`:`center`}; min-width: 0;">
+        ${e.logo?l`<img src="${e.logo}" alt="logo" height="28px" style="margin-left: ${t?`10px`:`0`}; align-self: center;">`:p}
+        ${e.title?l`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${e.title}</h2>`:p}
+    </div>`,ay=`flex: 1; min-width: 0; align-items: baseline;`,oy=`m-hl mateu-app-header`,sy=(e,t,n=``)=>l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <nav class="mateu-nav ${n}">
         ${e.map(e=>(e.children?.length??0)>0?l`<details class="mateu-nav-group">
                        <summary class="mateu-nav-item">${e.text} ▾</summary>
                        <div class="mateu-nav-panel">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                            ${e.children.map(e=>ey(e,t))}
                        </div>
                    </details>`:ey(e,t))}
@@ -5272,16 +6252,32 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
            style="align-self: center; margin-left: 10px; white-space: nowrap; font-size: var(--lumo-font-size-s, .875rem);"
            @click="${n=>{n.preventDefault(),Sd.confirmLeave()&&id(t,e.backRoute)}}">← ${e.backLabel??o(`back`)}</a>`:p,ly=e=>z.get()?.renderHeaderIconButton?.(e)??l`
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+                           ${e.children.map(e=>ry(e,t))}
+                       </div>
+                   </details>`:ry(e,t))}
+    </nav>`,cy=(e,t,n)=>{let r=e=>z.get()?.renderTopNav?.(e,t,n)??sy(e,t,n);if(!e.some(Qv))return r(e);let i=[],a=[];for(let n of e)Qv(n)?(a.length&&i.push(r(a)),a=[],i.push(l`<mateu-card-menu .item=${n} .onSelect=${t}></mateu-card-menu>`)):a.push(n);return a.length&&i.push(r(a)),l`<div class="mateu-nav-with-cards" style="display: flex; align-items: center; flex-wrap: wrap; min-width: 0;">${i}</div>`},ly=(e,t)=>{let n=[{text:`☰`,children:e,className:`mateu-menu-button-root`,"aria-label":o(`menu`)}];return z.get()?.renderTopNav?.(n,t,`menu-button`)??sy(n,t,`menu-button`)},uy=(e,t)=>n=>t.call(e,{detail:{value:n}}),dy=(e,t)=>e.backRoute?l`
+        <a href="${U(Tl(e.backRoute))}" class="mateu-back-link"
+           style="align-self: center; margin-left: 10px; white-space: nowrap; font-size: var(--lumo-font-size-s, .875rem);"
+           @click="${n=>{n.preventDefault(),Sd.confirmLeave()&&id(t,e.backRoute)}}">← ${e.backLabel??o(`back`)}</a>`:p,fy=e=>z.get()?.renderHeaderIconButton?.(e)??l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
         <button class="app-chrome-icon-btn ${e.cssClasses??``}" @click="${e.onClick}"
             title="${e.title??e.label}" aria-label="${e.label}"
             aria-pressed="${e.pressed===void 0?p:String(e.pressed)}"
             aria-expanded="${e.expanded===void 0?p:String(e.expanded)}"
             aria-controls="${e.controls??p}">
             ${H(e.icon,`width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem); color: currentColor;`)}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         </button>`,uy=(e,t)=>e.themeToggle?ly({icon:t.isDark?`vaadin:sun-o`:`vaadin:moon-o`,label:o(t.isDark?`lightMode`:`darkMode`),cssClasses:`mateu-theme-toggle`,onClick:()=>t.toggleTheme()}):p,dy=(e,t)=>e.mobileQr?ly({icon:`vaadin:qrcode`,label:o(`openOnMobile`),cssClasses:`mateu-mobile-qr`,onClick:()=>{Se(async()=>{let{openMobileQrDialog:e}=await import(`./mateu-mobile-qr-dialog-DNG88LsL.js`);return{openMobileQrDialog:e}},__vite__mapDeps([0,1,2]),import.meta.url).then(({openMobileQrDialog:n})=>n({appTitle:e.title,baseUrl:t.baseUrl??``}))}}):p,fy=(e,t)=>e.sseUrl?ly({icon:`vaadin:comments-o`,label:o(`chat`),title:o(t.chatOpen?`closeChat`:`openChat`),pressed:!!t.chatOpen,cssClasses:`mateu-chat-toggle`+(t.chatOpen?` mateu-chat-toggle--open`:``),onClick:()=>t.showHideIa()}):p,py=(e,t)=>l`
     ${fy(e,t)}
     <slot name="widgets"></slot>
     ${$v(e,t)}${dy(e,t)}${uy(e,t)}`,my=(e,t,n,r)=>e.sseUrl?l`<mateu-chat slot="${t.chatOpen?`detail`:`detail-hidden`}" sseurl="${e.sseUrl}" .label="${e.askLabel}" .mcpUrl="${e.mcpUrl}" .uploadUrl="${e.uploadUrl}" .menu="${e.menu}" .contextProvider="${()=>({url:window.location.pathname+window.location.search,screenTitle:document.title,appState:n,appData:r,componentState:t.state,componentData:t.data})}" @navigation-requested="${t.updateRoute}" @close-requested="${t.showHideIa}"></mateu-chat>`:p,hy=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},gy=(e,t,n)=>{let r=_y(e,t,n),i=Q(t,n);return r==`list`||r==i?`new`:r},_y=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=Q(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},Q=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,vy=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,$=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,yy=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,by=(e,t)=>`ux_`+((Q(e,t)||`root`)+`|`+($(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),xy=e=>ly({icon:e.sectionsOpen?`lumo:cross`:`lumo:menu`,label:o(`sections`),expanded:!!e.sectionsOpen,controls:`mateu-sections-panel`,cssClasses:`mateu-sections-toggle`+(e.sectionsOpen?` mateu-sections-toggle--open`:``),onClick:()=>{e.sectionsOpen=!e.sectionsOpen}}),Sy=(e,t,n)=>n.sectionsOpen?l`
+========
+        </button>`,py=(e,t)=>e.themeToggle?fy({icon:t.isDark?`vaadin:sun-o`:`vaadin:moon-o`,label:o(t.isDark?`lightMode`:`darkMode`),cssClasses:`mateu-theme-toggle`,onClick:()=>t.toggleTheme()}):p,my=(e,t)=>e.mobileQr?fy({icon:`vaadin:qrcode`,label:o(`openOnMobile`),cssClasses:`mateu-mobile-qr`,onClick:()=>{xe(async()=>{let{openMobileQrDialog:e}=await import(`./mateu-mobile-qr-dialog-nlsoSEY2.js`);return{openMobileQrDialog:e}},__vite__mapDeps([0,1,2]),import.meta.url).then(({openMobileQrDialog:n})=>n({appTitle:e.title,baseUrl:t.baseUrl??``}))}}):p,hy=(e,t)=>e.sseUrl?fy({icon:`vaadin:comments-o`,label:o(`chat`),title:o(t.chatOpen?`closeChat`:`openChat`),pressed:!!t.chatOpen,cssClasses:`mateu-chat-toggle`+(t.chatOpen?` mateu-chat-toggle--open`:``),onClick:()=>t.showHideIa()}):p,gy=(e,t)=>l`
+    ${hy(e,t)}
+    <slot name="widgets"></slot>
+    ${ny(e,t)}${my(e,t)}${py(e,t)}`,_y=(e,t,n,r)=>e.sseUrl?l`<mateu-chat slot="${t.chatOpen?`detail`:`detail-hidden`}" sseurl="${e.sseUrl}" .label="${e.askLabel}" .mcpUrl="${e.mcpUrl}" .uploadUrl="${e.uploadUrl}" .menu="${e.menu}" .contextProvider="${()=>({url:window.location.pathname+window.location.search,screenTitle:document.title,appState:n,appData:r,componentState:t.state,componentData:t.data})}" @navigation-requested="${t.updateRoute}" @close-requested="${t.showHideIa}"></mateu-chat>`:p,vy=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},yy=(e,t,n)=>{let r=by(e,t,n),i=Q(t,n);return r==`list`||r==i?`new`:r},by=(e,t,n)=>{let r=e?._route;if(r!=null&&(r===``||r.startsWith(`/`))){let e=n.homeRoute??``,i=e.indexOf(`?`),a=i>=0?e.substring(i+1):``,o=Q(t,n)+r;return a?o+(o.indexOf(`?`)>=0?`&`:`?`)+a:o}return t.selectedRoute?t.selectedRoute:n.homeRoute},Q=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,xy=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:e.baseUrl||t.homeBaseUrl,$=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Sy=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Cy=(e,t)=>`ux_`+((Q(e,t)||`root`)+`|`+($(e,t)??``)).replace(/[^a-zA-Z0-9]/g,`_`),wy=e=>fy({icon:e.sectionsOpen?`lumo:cross`:`lumo:menu`,label:o(`sections`),expanded:!!e.sectionsOpen,controls:`mateu-sections-panel`,cssClasses:`mateu-sections-toggle`+(e.sectionsOpen?` mateu-sections-toggle--open`:``),onClick:()=>{e.sectionsOpen=!e.sectionsOpen}}),Ty=(e,t,n)=>n.sectionsOpen?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
     <div class="mateu-sections-scrim" @click="${()=>{n.sectionsOpen=!1}}"></div>
     <nav class="mateu-sections-panel" id="mateu-sections-panel" aria-label="${o(`sections`)}"
          @keydown="${e=>{e.key===`Escape`&&(n.sectionsOpen=!1)}}">
@@ -5294,6 +6290,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 <span>${e.label}</span>
             </button>`)}
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
     </nav>`:p,Cy=(e,t)=>{if(!e)return p;let n=sy(t,t.itemSelected),r=Xc(e)?[]:t.mapItems(e.submenus??[],``);return l`
 ========
     </nav>`:p,Cy=(e,t)=>{if(!e)return p;let n=sy(t,t.itemSelected),r=Zc(e)?[]:t.mapItems(e.submenus??[],``);return l`
@@ -5301,6 +6298,12 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
         <button type="button" class="mateu-app-band-title mateu-section-title"
            @click="${()=>t.selectSection(e)}">${e.label}</button>
         ${r.length>0?ay(r,n,`menu-on-top sections-band`):p}`},wy=(e,t,n,r,i,a,s)=>{let c=by(e,t);if(t.chromeless)return l`
+========
+    </nav>`:p,Ey=(e,t)=>{if(!e)return p;let n=uy(t,t.itemSelected),r=Xc(e)?[]:t.mapItems(e.submenus??[],``);return l`
+        <button type="button" class="mateu-app-band-title mateu-section-title"
+           @click="${()=>t.selectSection(e)}">${e.label}</button>
+        ${r.length>0?cy(r,n,`menu-on-top sections-band`):p}`},Dy=(e,t,n,r,i,a,s)=>{let c=Cy(e,t);if(t.chromeless)return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <div class="app chromeless">
                 <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}" style="height: 100%;">
                     <div class="m-md">
@@ -5308,12 +6311,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             <mateu-api-caller>
                                 <mateu-ux
                                         data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                         route="${_y(r,e,t)}"
                                         id="${c}"
                                         baseUrl="${vy(e,t)}"
                                         consumedRoute="${Q(e,t)}"
                                         serverSideType="${$(e,t)}"
                                         uriPrefix="${yy(e,t)}"
+========
+                                        route="${by(r,e,t)}"
+                                        id="${c}"
+                                        baseUrl="${xy(e,t)}"
+                                        consumedRoute="${Q(e,t)}"
+                                        serverSideType="${$(e,t)}"
+                                        uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                         style="width: 100%;"
                                         .appState="${a}"
                                         .appData="${s}"
@@ -5322,13 +6334,22 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 ></mateu-ux>
                             </mateu-api-caller>
                         </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         ${my(t,e,a,s)}
+========
+                        ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     </div>
                 </div>
                 <slot></slot>
             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `;let u=e.mapItems(t.menu,e.filter?.toLowerCase()??``),d=Q(e,t),f=gy(r,e,t),m=f&&f!==`new`&&f.startsWith(d+`/`)?f.substring(d.length+1).split(`/`)[0]:void 0;return l`
                     ${t.variant==At.MEDIATOR?l`
+========
+        `;let u=e.mapItems(t.menu,e.filter?.toLowerCase()??``),d=Q(e,t),f=yy(r,e,t),m=f&&f!==`new`&&f.startsWith(d+`/`)?f.substring(d.length+1).split(`/`)[0]:void 0;return l`
+                    ${t.variant==kt.MEDIATOR?l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
 
                         ${t.layout==`SPLIT`?l`
                             <div class="m-md">
@@ -5338,10 +6359,17 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                             data-content-view
                                             route="${Q(e,t)}"
                                             id="${c}"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${{...a,_splitDetailId:m}}"
                                             .appData="${s}"
@@ -5354,12 +6382,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${gy(r,e,t)}"
                                             id="${c}_detail"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${yy(r,e,t)}"
+                                            id="${c}_detail"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5370,6 +6407,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 </mateu-api-caller>
 
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         `:Zv(qv(t.homeRoute),()=>l`
                             <mateu-api-caller>
                                 <mateu-ux
@@ -5380,6 +6418,18 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                         consumedRoute="${Q(e,t)}"
                                         serverSideType="${$(e,t)}"
                                         uriPrefix="${yy(e,t)}"
+========
+                        `:ey(Xv(t.homeRoute),()=>l`
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        data-content-view
+                                        route="${by(r,e,t)}"
+                                        id="${c}"
+                                        baseUrl="${xy(e,t)}"
+                                        consumedRoute="${Q(e,t)}"
+                                        serverSideType="${$(e,t)}"
+                                        uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                         style="width: 100%;"
                                         .appState="${a}"
                                         .appData="${s}"
@@ -5400,7 +6450,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </button>
                         <h2 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin: 0 .5rem;">${t.title}</h2><p style="margin: 0;">${t.subtitle}</p>
                         <div class="m-hl" style="margin-left: auto; align-items: center;">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${py(t,e)}
+========
+                            ${gy(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </header>
                     <div class="app-body">
@@ -5408,7 +6462,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             ${t.menu&&t.totalMenuOptions>10?l`
                                 <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
                                     <input class="drawer-search" placeholder="${o(`searchMenu`)}" aria-label="${o(`searchMenu`)}" style="width: calc(100% - 20px); margin: 0 10px;"
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                            @input="${t=>hy({detail:{value:t.target.value}},e)}">
+========
+                                           @input="${t=>vy({detail:{value:t.target.value}},e)}">
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                 </div>
                                 `:p}
                             <nav class="side-nav">
@@ -5421,12 +6479,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     <mateu-api-caller>
                                         <mateu-ux
                                                 data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                                 route="${_y(r,e,t)}"
                                                 id="${c}"
                                                 baseUrl="${vy(e,t)}"
                                                 consumedRoute="${Q(e,t)}"
                                                 serverSideType="${$(e,t)}"
                                                 uriPrefix="${yy(e,t)}"
+========
+                                                route="${by(r,e,t)}"
+                                                id="${c}"
+                                                baseUrl="${xy(e,t)}"
+                                                consumedRoute="${Q(e,t)}"
+                                                serverSideType="${$(e,t)}"
+                                                uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                                 style="width: 100%;"
                                                 .appState="${a}"
                                                 .appData="${s}"
@@ -5435,7 +6502,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                         ></mateu-ux>
                                     </mateu-api-caller>
                                 </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                 ${my(t,e,a,s)}
+========
+                                ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             </div>
                         </div>
                     </div>
@@ -5451,22 +6522,38 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <div class="m-hl mateu-app-band1"
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${e.updateRoute}">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     <div class="${ry}" style="${ny}" theme="spacing">
                         <button type="button" @click="${()=>e.goHome()}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
                         ${ty({...t,title:``},!1)}
                         </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${py(t,e)}
+========
+                    <div class="${oy}" style="${ay}" theme="spacing">
+                        <button type="button" @click="${()=>e.goHome()}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
+                        ${iy({...t,title:``},!1)}
+                        </button>
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
+                            ${gy(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                     </div>
                     <nav class="mateu-app-band2" aria-label="${t.title||o(`menu`)}"
                             @navigation-requested="${e.updateRoute}">
                         <div class="mateu-app-menu-button">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${oy(u,sy(e,e.itemSelected))}
                         </div>
                         ${t.title?l`<button type="button" @click="${()=>e.goHome()}" class="mateu-app-band-title">${t.title}</button>`:p}
                         ${(()=>{let t=sy(e,e.itemSelected);return ay(u,t,`menu-on-top menu-band`)})()}
+========
+                            ${ly(u,uy(e,e.itemSelected))}
+                        </div>
+                        ${t.title?l`<button type="button" @click="${()=>e.goHome()}" class="mateu-app-band-title">${t.title}</button>`:p}
+                        ${(()=>{let t=uy(e,e.itemSelected);return cy(u,t,`menu-on-top menu-band`)})()}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     </nav>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
@@ -5474,12 +6561,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5488,7 +6584,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                 </div>
@@ -5500,6 +6600,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <div class="m-hl mateu-app-band1"
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${e.updateRoute}">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     <div class="${ry}" style="${ny}" theme="spacing">
                         ${xy(e)}
                         <button type="button" @click="${()=>{e.sectionsOpen=!1,e.goHome()}}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
@@ -5507,27 +6608,51 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${py(t,e)}
+========
+                    <div class="${oy}" style="${ay}" theme="spacing">
+                        ${wy(e)}
+                        <button type="button" @click="${()=>{e.sectionsOpen=!1,e.goHome()}}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
+                        ${iy(t,!1)}
+                        </button>
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
+                            ${gy(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                     </div>
                     <nav class="mateu-app-band2 mateu-section-band ${n?``:`mateu-section-band--empty`}"
                             aria-label="${n?.label||t.title||o(`menu`)}" ?inert="${!n}"
                             @navigation-requested="${e.updateRoute}">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         ${Cy(n,e)}
                     </nav>
                     ${Sy(t.menu??[],n,e)}
+========
+                        ${Ey(n,e)}
+                    </nav>
+                    ${Ty(t.menu??[],n,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
                             <div role="main" class="m-scroll mateu-content-gutter" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5536,7 +6661,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                 </div>
@@ -5547,6 +6676,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                     <div class="m-hl"
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             @navigation-requested="${e.updateRoute}">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                     <div class="${ry}" style="${ny}" theme="spacing">
                         <button type="button" @click="${()=>{e.goHome(),e.tilesMenuOption=null}}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
                         ${ty(t)}
@@ -5554,6 +6684,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         ${iy(e.mapItemsForTiles(t.menu),sy(e,e.itemSelectedTiles),`menu-on-top`)}
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${py(t,e)}
+========
+                    <div class="${oy}" style="${ay}" theme="spacing">
+                        <button type="button" @click="${()=>{e.goHome(),e.tilesMenuOption=null}}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
+                        ${iy(t)}
+                        </button>
+                        ${sy(e.mapItemsForTiles(t.menu),uy(e,e.itemSelectedTiles),`menu-on-top`)}
+                        <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
+                            ${gy(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                     </div>
@@ -5564,12 +6703,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5578,7 +6726,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                         `}
                     </div>
@@ -5595,12 +6747,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5609,7 +6770,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                 </div>
@@ -5622,7 +6787,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         <div class="m-vl"
                                 @navigation-requested="${e.updateRoute}">
                             ${t.menu.map(t=>e.renderOptionOnLeftMenu(t))}
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${fy(t,e)}${$v(t,e)}${uy(t,e)}
+========
+                            ${hy(t,e)}${ny(t,e)}${py(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                     <div role="main" class="${`app-content`+(e.pageCompact?` no-padding`:``)}">
@@ -5631,12 +6800,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%; padding: 1em;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5645,7 +6823,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                 </div>
@@ -5662,6 +6844,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 
                 <div>
                     <div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                         <div class="${ry}" 
                                 style="width: 100%; ${ny} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
@@ -5669,6 +6852,15 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                             ${cy(t,e)}
                             <button type="button" @click="${()=>e.goHome()}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
                             ${ty(t)}
+========
+                        <div class="${oy}" 
+                                style="width: 100%; ${ay} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
+                                theme="spacing"
+                                @navigation-requested="${e.updateRoute}">
+                            ${dy(t,e)}
+                            <button type="button" @click="${()=>e.goHome()}" class="mateu-app-brand" aria-label="${t.title||o(`home`)}" style="text-decoration: none; color: inherit;">
+                            ${iy(t)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             </button>
                             <nav class="mateu-tabs ${e.component?.cssClasses??``}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;"
                                  role="${(t.menu?.length??0)<2?p:`tablist`}">
@@ -5680,7 +6872,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 >${n.label}</button>`)}
                             </nav>
                             <div class="m-hl mateu-app-widgets" style="align-items: center;">
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                 ${py(t,e)}
+========
+                                ${gy(t,e)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                             </div>
                         </div>
                     </div>
@@ -5690,12 +6886,21 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                                             route="${_y(r,e,t)}"
                                             id="${c}"
                                             baseUrl="${vy(e,t)}"
                                             consumedRoute="${Q(e,t)}"
                                             serverSideType="${$(e,t)}"
                                             uriPrefix="${yy(e,t)}"
+========
+                                            route="${by(r,e,t)}"
+                                            id="${c}"
+                                            baseUrl="${xy(e,t)}"
+                                            consumedRoute="${Q(e,t)}"
+                                            serverSideType="${$(e,t)}"
+                                            uriPrefix="${Sy(e,t)}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                                             style="width: 100%;"
                                             .appState="${a}"
                                             .appData="${s}"
@@ -5704,7 +6909,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </div>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                             ${my(t,e,a,s)}
+========
+                            ${_y(t,e,a,s)}
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                         </div>
                     </div>
                 </div>
@@ -5712,7 +6921,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             `:p}
 
             ${t.fabs?.map((t,n)=>l`
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
                 <button class="app-fab" style="${jm(n)}" ${Um(`shell`,n)} aria-label="${t.label}"
+========
+                <button class="app-fab" style="${Mm(n)}" ${Wm(`shell`,n)} aria-label="${t.label}"
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
                     @click="${()=>e.runAction(t.actionId)}"
                     title="${t.label}">
                     ${H(t.icon)}
@@ -5720,7 +6933,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             `)}
             ${e.renderCommandPalette()}
             <slot></slot>
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
        `},Ty=class{renderFilterBar(e,t,n,r,i,a,o,s){let c=t?.metadata;return l`
+========
+       `},Oy=class{renderFilterBar(e,t,n,r,i,a,o,s){let c=t?.metadata;return l`
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js
             <mateu-filter-bar
                 .metadata="${c}"
                 @search-requested="${e.search}"
@@ -5744,7 +6961,11 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 .pageNumber="${e.data[t?.id]?.page?.pageNumber??0}"
         ></mateu-pagination>
 <<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
+<<<<<<<< HEAD:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-Ci2Vi-om.js
         `}renderTableComponent(e,t,n,r,i,a,o){return Zf(t,(e.data?.[e.id])?.page?.content??[],r[t?.id]?.emptyStateMessage)}rendererName(){return this.constructor?.name??`unknown`}supportedClientSideTypes(){}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type??t?.type,l=Object.values(E).includes(c)?c:void 0;return Z_(this.supportedClientSideTypes(),l)?tv(t,l,this.rendererName()):Ev(e,t,n,r,i,a,o,s)}renderAppComponent(e,t,n,r,i,a,o){return wy(e,t?.metadata,n,r,i,a,o)}};function Ey(e,t){let n=new CustomEvent(`action-requested`,{detail:t,bubbles:!0,composed:!0}),r=e;typeof r.manageActionRequestedEvent==`function`?r.manageActionRequestedEvent(n):e.dispatchEvent(n)}var Dy=class extends Jl{};Dy.directiveName=`unsafeSVG`,Dy.resultType=2;var Oy=Ja(Dy);export{xd as $,ns as $t,_p as A,oe as An,ml as At,$d as B,wc as Bt,Cm as C,Fe as Cn,Tl as Ct,bp as D,_e as Dn,el as Dt,mm as E,ve as En,pl as Et,ff as F,te as Fn,Pc as Ft,Fd as G,oc as Gt,Xd as H,hc as Ht,hf as I,Mc as It,Ld as J,ks as Jt,Id as K,sc as Kt,of as L,Ac as Lt,U as M,ge as Mn,Lc as Mt,Jf as N,he as Nn,Ic as Nt,xp as O,C as On,$c as Ot,xf as P,re as Pn,jc as Pt,Pd as Q,Ds as Qt,H as R,Dc as Rt,ah as S,Pe as Sn,Dl as St,cm as T,Se as Tn,_l as Tt,V as U,pc as Ut,Yd as V,Ec as Vt,qd as W,uc as Wt,jd as X,tc as Xt,Ad as Y,Rs as Yt,zd as Z,Gs as Zt,dh as _,T as _n,ql as _t,Bv as a,xo as an,td as at,Um as b,Dt as bn,Ul as bt,Fv as c,ro as cn,z as ct,Dv as d,qa as dn,Bu as dt,ts as en,hd as et,Ev as f,Ga as fn,L as ft,fh as g,E as gn,F as gt,G as h,ja as hn,Uu as ht,Vv as i,So as in,$u as it,vp as j,pe as jn,Kc as jt,yp as k,le as kn,Xc as kt,kv as l,Ja as ln,qu as lt,U_ as m,Fa as mn,Pu as mt,Ey as n,Fo as nn,id as nt,zv as o,$a as on,B as ot,Cv as p,Ba as pn,Ru as pt,Rd as q,qs as qt,Ty as r,jo as rn,nd as rt,Lv as s,Za as sn,Zu as st,Oy as t,es as tn,rd as tt,Nv as u,Ya as un,zu as ut,jm as v,kt as vn,Gl as vt,sm as w,Te as wn,Cl as wt,Wm as x,Le as xn,Hl as xt,Nm as y,Ot as yn,Wl as yt,ef as z,kc as zt};
 ========
         `}renderTableComponent(e,t,n,r,i,a,o){return Qf(t,(e.data?.[e.id])?.page?.content??[],r[t?.id]?.emptyStateMessage)}rendererName(){return this.constructor?.name??`unknown`}supportedClientSideTypes(){}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type??t?.type,l=Object.values(E).includes(c)?c:void 0;return Z_(this.supportedClientSideTypes(),l)?tv(t,l,this.rendererName()):Ev(e,t,n,r,i,a,o,s)}renderAppComponent(e,t,n,r,i,a,o){return wy(e,t?.metadata,n,r,i,a,o)}},Ey=class extends Yl{};Ey.directiveName=`unsafeSVG`,Ey.resultType=2;var Dy=Ja(Ey);export{Sd as $,rs as $t,vp as A,oe as An,hl as At,ef as B,Tc as Bt,Cm as C,Fe as Cn,El as Ct,xp as D,_e as Dn,tl as Dt,mm as E,ve as En,ml as Et,pf as F,te as Fn,Fc as Ft,Id as G,sc as Gt,Zd as H,gc as Ht,gf as I,Nc as It,Rd as J,As as Jt,Ld as K,cc as Kt,sf as L,jc as Lt,U as M,ge as Mn,Rc as Mt,Yf as N,he as Nn,Lc as Nt,Sp as O,C as On,el as Ot,Sf as P,re as Pn,Mc as Pt,Fd as Q,Os as Qt,H as R,Oc as Rt,ah as S,Pe as Sn,Ol as St,cm as T,Se as Tn,vl as Tt,V as U,mc as Ut,Xd as V,Dc as Vt,Jd as W,dc as Wt,Md as X,nc as Xt,jd as Y,zs as Yt,Bd as Z,Ks as Zt,dh as _,T as _n,Jl as _t,zv as a,xo as an,nd as at,Um as b,Dt as bn,Wl as bt,kv as c,ro as cn,z as ct,Ev as d,qa as dn,Vu as dt,ns as en,gd as et,wv as f,Ga as fn,L as ft,fh as g,E as gn,F as gt,G as h,ja as hn,Wu as ht,Bv as i,So as in,ed as it,yp as j,pe as jn,qc as jt,bp as k,le as kn,Zc as kt,Nv as l,Ja as ln,Ju as lt,U_ as m,Fa as mn,Fu as mt,Ty as n,Fo as nn,ad as nt,Lv as o,$a as on,B as ot,Cv as p,Ba as pn,zu as pt,zd as q,Js as qt,Vv as r,jo as rn,rd as rt,Fv as s,Za as sn,Qu as st,Dy as t,ts as tn,id as tt,Dv as u,Ya as un,Bu as ut,jm as v,kt as vn,Kl as vt,sm as w,Te as wn,wl as wt,Wm as x,Le as xn,Ul as xt,Nm as y,Ot as yn,Gl as yt,tf as z,Ac as zt};
 >>>>>>>> origin/walkthrough/forms:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-owYtQDwS.js
+========
+        `}renderTableComponent(e,t,n,r,i,a,o){return $f(t,(e.data?.[e.id])?.page?.content??[],r[t?.id]?.emptyStateMessage)}rendererName(){return this.constructor?.name??`unknown`}supportedClientSideTypes(){}renderClientSideComponent(e,t,n,r,i,a,o,s){let c=t?.metadata?.type??t?.type,l=Object.values(D).includes(c)?c:void 0;return ev(this.supportedClientSideTypes(),l)?iv(t,l,this.rendererName()):kv(e,t,n,r,i,a,o,s)}renderAppComponent(e,t,n,r,i,a,o){return Dy(e,t?.metadata,n,r,i,a,o)}},ky=class extends Jl{};ky.directiveName=`unsafeSVG`,ky.resultType=2;var Ay=qa(ky);export{gd as $,ts as $t,bp as A,pe as An,Kc as At,Xd as B,Ec as Bt,cm as C,we as Cn,Cl as Ct,Cp as D,C as Dn,$c as Dt,Sp as E,ge as En,el as Et,_f as F,Mc as Ft,Ld as G,sc as Gt,V as H,pc as Ht,cf as I,Ac as It,jd as J,Rs as Jt,zd as K,qs as Kt,H as L,Dc as Lt,Xf as M,w as Mn,Ic as Mt,Cf as N,re as Nn,jc as Nt,xp as O,le as On,Xc as Ot,mf as P,te as Pn,Pc as Pt,Sd as Q,ns as Qt,nf as R,kc as Rt,wm as S,Pe as Sn,Tl as St,hm as T,_e as Tn,pl as Tt,Jd as U,uc as Ut,Zd as V,hc as Vt,Id as W,oc as Wt,Bd as X,Gs as Xt,Md as Y,tc as Yt,Fd as Z,Ds as Zt,Mm as _,Ot as _n,Gl as _t,Hv as a,Qa as an,B as at,Gm as b,Ie as bn,Hl as bt,Mv as c,qa as cn,Ju as ct,kv as d,Wa as dn,R as dt,es as en,id as et,Ev as f,za as fn,zu as ft,fh as g,E as gn,ql as gt,ph as h,D as hn,I as ht,Uv as i,xo as in,nd as it,U as j,he as jn,Lc as jt,yp as k,oe as kn,ml as kt,Iv as l,Ja as ln,Bu as lt,G as m,Aa as mn,Wu as mt,Oy as n,jo as nn,rd as nt,Bv as o,Xa as on,Qu as ot,K_ as p,Pa as pn,Fu as pt,Rd as q,ks as qt,Wv as r,So as rn,ed as rt,Rv as s,no as sn,z as st,Ay as t,Fo as tn,ad as tt,Av as u,Ka as un,Vu as ut,Pm as v,Dt as vn,Wl as vt,lm as w,xe as wn,_l as wt,oh as x,Ne as xn,Dl as xt,Wm as y,Et as yn,Ul as yt,tf as z,wc as zt};
+>>>>>>>> origin/walkthrough/pages:frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/unsafe-svg-BjRUSYx1.js

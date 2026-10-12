@@ -1,8 +1,9 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import CalendarEvent from "@mateu/shared/apiClients/dtos/componentmetadata/CalendarEvent";
 import type { CalendarDay, CalendarViewName } from "@mateu/shared/apiClients/dtos/componentmetadata/Calendar";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import {
     agendaOf, datesBetween, dayOf, eventsOn, monthWeeks, periodOf, timeRangeOf, todayIso, toneClassOf,
@@ -134,10 +135,12 @@ export class MateuCalendar extends LitElement {
     `
 
     private clickEvent(event: CalendarEvent, e?: Event) {
-        e?.stopPropagation()
+        // an event without its own action is part of its day: let the click reach the day cell
+        // (dayActionId) instead of swallowing it
         if (!event.actionId) {
             return
         }
+        e?.stopPropagation()
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: event.actionId, parameters: { _clickedEvent: event } },
             bubbles: true,
@@ -157,7 +160,7 @@ export class MateuCalendar extends LitElement {
     private chip(ev: CalendarEvent, withTime: boolean) {
         const time = withTime ? timeRangeOf(ev) : ''
         return html`
-            <span role="button" tabindex="0" class="chip ${ev.actionId ? 'clickable' : ''}"
+            <span role=${ifDefined(buttonRole(!!ev.actionId))} tabindex=${ifDefined(tabStop(!!ev.actionId))} class="chip ${ev.actionId ? 'clickable' : ''}"
                   style="${ev.color ? `--mateu-cal-accent: ${ev.color};` : ''}"
                   title="${(time ? time + ' ' : '') + (ev.title ?? '')}"
                   @click="${(e: Event) => this.clickEvent(ev, e)}"

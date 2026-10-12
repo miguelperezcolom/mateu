@@ -1,7 +1,8 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import Feature from "@mateu/shared/apiClients/dtos/componentmetadata/Feature";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, buttonRole, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 
 /**
@@ -63,7 +64,7 @@ export class MateuFeatureGrid extends LitElement {
         return html`
             <div class="grid" style="grid-template-columns: ${cols};">
                 ${this.features.map(feature => html`
-                    <div role="button" tabindex="0" class="card ${feature.actionId ? 'clickable' : ''}" @click="${() => this.clickFeature(feature)}" @keydown="${onActivate(() => this.clickFeature(feature))}">
+                    <div role=${ifDefined(buttonRole(!!feature.actionId))} tabindex=${ifDefined(tabStop(!!feature.actionId))} class="card ${feature.actionId ? 'clickable' : ''}" @click="${() => this.clickFeature(feature)}" @keydown="${onActivate(() => this.clickFeature(feature))}">
                         ${feature.icon ? html`<span class="icon">${feature.icon}</span>` : nothing}
                         <span class="title">${feature.title}</span>
                         ${feature.description ? html`<span class="desc">${feature.description}</span>` : nothing}

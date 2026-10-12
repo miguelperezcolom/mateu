@@ -60,6 +60,18 @@ public class CommandMapper {
                   UICommandTypeDto.SetWindowTitle,
                   httpRequest.getAttribute("windowTitle")));
         }
+      } else if (httpRequest.getAttribute("windowTitle") == null
+          && instance instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier
+          && declaresTitle(titleSource(instance))) {
+        // A composed page (Dashboard, Welcome, HeroSearch, SmartSearchPage, Foldout,
+        // ItemOverview, GanttPage, DataManagement…) is not reflected as a page, so its @Title
+        // never reached the window: the tab kept the previous page's title, and the route-change
+        // announcement screen readers rely on (SetWindowTitle) never came.
+        result.add(
+            new UICommandDto(
+                targetComponentId,
+                UICommandTypeDto.SetWindowTitle,
+                getTitle(titleSource(instance))));
       }
     }
 
@@ -104,6 +116,21 @@ public class CommandMapper {
               .toList());
     }
     return result;
+  }
+
+  /**
+   * What names the window for a composed page: the plain class an {@code @AutoPage} bridge or a
+   * component adapter renders carries the {@code @Title}, not the bridge.
+   */
+  private static Object titleSource(Object instance) {
+    return io.mateu.core.infra.ModelBridge.ownerOf(instance);
+  }
+
+  /** Whether the view names its own title — never a humanized class name or a toString. */
+  private static boolean declaresTitle(Object instance) {
+    return instance instanceof io.mateu.uidl.interfaces.TitleSupplier
+        || io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+            instance.getClass(), io.mateu.uidl.annotations.Title.class);
   }
 
   private static boolean isCommandResult(Object instance) {

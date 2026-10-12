@@ -64,14 +64,22 @@ class ViewMapperMixin(MixinBase):
         buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)
         # A @rest_action button carries the client-side REST descriptor on its action.
-        # FAB actions are NOT advertised in the component's actions list (Java parity — the FAB
-        # carries its own actionId and the renderer dispatches it directly).
         actions = [
             with_action_options(
                 Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
             )
             for (n, f), b in zip(button_methods, buttons)
         ]
+        # A page FAB dispatches its actionId through the page's component like any button: the
+        # client only SENDS an advertised action, so an unadvertised FAB was a dead click (Java's
+        # FieldActionCollector advertises @Fab methods the same way, not validated).
+        for fab in fabs or []:
+            if all(a.id != fab.action_id for a in actions):
+                actions.append(
+                    with_action_options(
+                        Action(id=fab.action_id, validation_required=False), cls, fab.action_id
+                    )
+                )
         # Field-declared actions, in Java's FieldActionCollector order: list fields' row-editing
         # actions, OnRowSelected() row clicks (the renderer drops a click whose action is not
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.

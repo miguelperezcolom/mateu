@@ -162,7 +162,17 @@ class GenericTypeHierarchyResolver {
           c = (Class) t;
         } else if (t instanceof TypeVariable) {
           genericArgumentName = ((TypeVariable) t).getName();
-          asClassOrInterface = tipoEnCurso;
+          // The variable belongs to the class that DECLARES it — the next step down — so its
+          // position is read off that class's type parameters, not off this parameterized type's
+          // arguments: for `SmartSearchPage<Filters, Row> implements Listing<Row>` the Row of
+          // Listing<Row> is SmartSearchPage's SECOND parameter, and reading it as the first
+          // resolved a listing's rows to its FILTERS class (wrong columns on every
+          // HeroSearch/SmartSearchPage).
+          if (((TypeVariable) t).getGenericDeclaration() instanceof Class declaring) {
+            asClassOrInterface = declaring;
+          } else {
+            asClassOrInterface = tipoEnCurso;
+          }
           argPos = getArgPos(asClassOrInterface, genericArgumentName);
         }
       }

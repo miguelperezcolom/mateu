@@ -1,0 +1,27 @@
+# The canonical page header authored as DATA (a definition-only `type: Form`, no view model):
+# e2e/tests/shared/page-anatomy.spec.ts walks it like the Java PageAnatomy. Every action is a
+# declared client flow (an Emit the spec listens for), so nothing needs a server class.
+layout:
+  type: Form
+  title: Requisition ${state.number}
+  subtitle: Pending approval
+  overline: Requisitions
+  timestamp: Last updated ${state.updatedAt}
+  badges:
+    - {label: Approved, color: success}
+  kpis:
+    - {label: Amount, value: "1,240 €"}
+  peerNav: {prevLabel: Previous, nextLabel: Welcome, nextRoute: /arch/welcome}
+  banners:
+    - {theme: INFO, title: Heads up, description: Static banner text}
+  fabs:
+    - {icon: "vaadin:plus", label: Add, actionId: addOne}
+  toolbar:
+    - {type: Button, label: Warn, actionId: warn}
+  content:
+    - type: FormLayout
+      content:
+        - {type: FormField, id: notes, label: Notes, dataType: string}
+actions:
+  - {id: addOne, steps: [{type: Emit, event: yaml-page-fab}]}
+  - {id: warn, steps: [{type: Emit, event: yaml-page-warn}]}

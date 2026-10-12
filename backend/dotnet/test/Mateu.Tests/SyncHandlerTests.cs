@@ -2592,6 +2592,15 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Fab_action_is_advertised_so_the_browser_sends_it()
+    {
+        // the web client only SENDS an advertised action: an unadvertised page FAB was a dead click
+        var inc = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Featured).FullName });
+        var page = Assert.IsType<ServerSideComponentDto>(inc.Fragments![0].Component);
+        Assert.Contains(page.Actions, a => a.Id == "add");
+    }
+
+    [Fact]
     public void Fab_action_is_invoked_by_method_name()
     {
         var inc = Handler().Handle(new RunActionRqDto

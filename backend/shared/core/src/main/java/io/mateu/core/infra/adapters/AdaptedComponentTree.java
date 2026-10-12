@@ -19,7 +19,11 @@ import java.util.List;
  * on actions.
  */
 public class AdaptedComponentTree
-    implements ComponentTreeSupplier, StateSupplier, DataSupplier, ActionSupplier {
+    implements ComponentTreeSupplier,
+        StateSupplier,
+        DataSupplier,
+        ActionSupplier,
+        io.mateu.core.infra.ModelBridge {
 
   private final Object model;
 
@@ -29,6 +33,11 @@ public class AdaptedComponentTree
   private AdaptedView cached;
 
   @SuppressWarnings("rawtypes")
+  /** The domain object this bridge renders. */
+  public Object model() {
+    return model;
+  }
+
   public AdaptedComponentTree(Object model, ComponentAdapter adapter) {
     this.model = model;
     this.adapter = adapter;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Animated, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';
-import { computePlanningMove } from './planningDrag';
+import { blockGesture, computePlanningMove } from './planningDrag';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 
@@ -189,8 +189,6 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
   );
 }
 
-const DRAG_THRESHOLD = 4;
-
 /** A planning block: draggable (PanResponder) when moveEnabled, else a plain tap-to-select cell.
  *  A drag under the threshold is treated as a tap → select. */
 function DraggableBlock({
@@ -205,15 +203,19 @@ function DraggableBlock({
   onMove: (dx: number, dy: number) => void;
 }) {
   const pan = React.useRef(new Animated.ValueXY()).current;
+  const gesture = blockGesture({ moveEnabled, selectEnabled });
   const responder = React.useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_e, g) =>
-        moveEnabled && (Math.abs(g.dx) > DRAG_THRESHOLD || Math.abs(g.dy) > DRAG_THRESHOLD),
+      // a TAP must claim the gesture too (blockGesture): granted only on a move, the release that
+      // turns a tap into a selection never came, and a movable board's blocks were unselectable
+      onStartShouldSetPanResponder: () => gesture.claimsOnStart,
+      onMoveShouldSetPanResponder: (_e, g) => gesture.claimsOnMove(g.dx, g.dy),
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
       onPanResponderRelease: (_e, g) => {
         pan.setValue({ x: 0, y: 0 });
-        if (Math.abs(g.dx) < DRAG_THRESHOLD && Math.abs(g.dy) < DRAG_THRESHOLD) onSelect();
-        else onMove(g.dx, g.dy);
+        const outcome = gesture.onRelease(g.dx, g.dy);
+        if (outcome === 'select') onSelect();
+        else if (outcome === 'move') onMove(g.dx, g.dy);
       },
     }),
   ).current;

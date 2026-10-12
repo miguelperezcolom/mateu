@@ -169,8 +169,21 @@ export function pageHeaderExtrasOf(ctx) {
  *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
 export function pageSubtitleOf(ctx) {
   const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
-  const subtitle = page && page.metadata ? page.metadata.subtitle : ''
+  let subtitle = page && page.metadata ? page.metadata.subtitle : ''
+  // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
+  // listing page shows only the table, so the line was lost — it is the page's subtitle
+  if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
   return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+}
+
+function textWithId(n, id) {
+  if (!n || typeof n !== 'object') return ''
+  if (n.id === id && n.metadata && n.metadata.type === 'Text') return n.metadata.text || ''
+  for (const c of n.children || []) {
+    const found = textWithId(c, id)
+    if (found) return found
+  }
+  return ''
 }
 
 /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
@@ -432,7 +445,10 @@ export function summarizeHost(reg, route) {
   return {
     // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
     // está, en el rótulo del menú
-    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label)) || ''),
+    // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
+    // only through its window title: without it the header read «…»
+    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
+      || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
     // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
     // @NoBreadcrumbs en la página o en la shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)

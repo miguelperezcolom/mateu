@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computePlanningMove, addDaysIso, type PlanningMoveInput } from './planningDrag.ts';
+import { computePlanningMove, addDaysIso, blockGesture, type PlanningMoveInput } from './planningDrag.ts';
 
 const base: PlanningMoveInput = {
   blockId: 'b1',
@@ -50,4 +50,13 @@ test('clamps the end within the window (start cannot push a 3-day block past day
   // maxStart = dayCount(10) - duration(3) = 7 → start = 2026-03-08, end = 2026-03-10
   assert.equal(right?._start, '2026-03-08');
   assert.equal(right?._end, '2026-03-10');
+});
+
+test('a tap on a MOVABLE block still selects it: the gesture is claimed on start, released as a select', () => {
+  const g = blockGesture({ moveEnabled: true, selectEnabled: true });
+  assert.equal(g.claimsOnStart, true);
+  assert.equal(g.onRelease(1, 0), 'select');
+  assert.equal(g.onRelease(40, 0), 'move');
+  assert.equal(g.claimsOnMove(1, 1), false);
+  assert.equal(blockGesture({ moveEnabled: true, selectEnabled: false }).onRelease(1, 0), 'none');
 });

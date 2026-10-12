@@ -64,6 +64,28 @@ public final class UidlSchemaGenerator {
   /** Every UIDL class, scanned once: needed to resolve an interface into its implementations. */
   private final List<Class<?>> catalog = classesUnder("io.mateu.uidl");
 
+  /** Which class owns each $def name — two UIDL types may share a simple name. */
+  private final Map<String, Class<?>> owners = new java.util.HashMap<>();
+
+  /**
+   * The $def name of a type: its simple name, unless another UIDL type already claimed it — {@code
+   * data.Step} (a ProgressSteps dot) and {@code fluent.Step} (a flow verb) both exist, and keying
+   * by simple name alone made ProgressSteps.steps point at the flow verbs, so an editor flagged
+   * every valid step. The later claimant gets its package as a prefix ({@code DataStep}).
+   */
+  private String defName(Class<?> type) {
+    var name = type.getSimpleName();
+    var owner = owners.putIfAbsent(name, type);
+    if (owner == null || owner.equals(type)) {
+      return name;
+    }
+    var pkg = type.getPackageName();
+    var segment = pkg.substring(pkg.lastIndexOf('.') + 1);
+    var qualified = Character.toUpperCase(segment.charAt(0)) + segment.substring(1) + name;
+    owners.putIfAbsent(qualified, type);
+    return qualified;
+  }
+
   private UidlSchemaGenerator() {}
 
   /** Generates the whole schema document. */
@@ -228,7 +250,7 @@ public final class UidlSchemaGenerator {
               "Who may see this menu item: it is not sent to a caller whose token does not"
                   + " satisfy it. A RouteLink with none inherits its route's `access:`."));
     }
-    defs.put(type.getSimpleName(), node);
+    defs.put(defName(type), node);
   }
 
   /** A {@code $ref} to the {@code Access} record, with a description. */
@@ -285,7 +307,7 @@ public final class UidlSchemaGenerator {
     }
     if (raw.isEnum()) {
       defineEnum(raw);
-      return node.put("$ref", "#/$defs/" + raw.getSimpleName());
+      return node.put("$ref", "#/$defs/" + defName(raw));
     }
     if (Collection.class.isAssignableFrom(raw)) {
       node.put("type", "array");
@@ -299,13 +321,13 @@ public final class UidlSchemaGenerator {
     }
     if (raw.isRecord() && raw.getName().startsWith("io.mateu.uidl")) {
       defineValueRecord(raw);
-      return node.put("$ref", "#/$defs/" + raw.getSimpleName());
+      return node.put("$ref", "#/$defs/" + defName(raw));
     }
     // A UIDL interface used as a field type is a second polymorphic family (Actionable, UserTrigger
     // …): describe it as a union of its record implementations, exactly like Component.
     if (raw.isInterface() && raw.getName().startsWith("io.mateu.uidl")) {
       definePolymorphic(raw);
-      return node.put("$ref", "#/$defs/" + raw.getSimpleName());
+      return node.put("$ref", "#/$defs/" + defName(raw));
     }
     // Callables, Suppliers, Object, java.time, anything else: describe nothing rather than wrongly.
     return node;
@@ -318,10 +340,10 @@ public final class UidlSchemaGenerator {
    * union, which would reject every value.
    */
   private void definePolymorphic(Class<?> type) {
-    if (defs.containsKey(type.getSimpleName())) {
+    if (defs.containsKey(defName(type))) {
       return;
     }
-    defs.put(type.getSimpleName(), MAPPER.createObjectNode()); // placeholder: breaks cycles
+    defs.put(defName(type), MAPPER.createObjectNode()); // placeholder: breaks cycles
     var implementations =
         catalog.stream()
             .filter(Class::isRecord)
@@ -337,13 +359,13 @@ public final class UidlSchemaGenerator {
     var oneOf = node.putArray("oneOf");
     for (var implementation : implementations) {
       defineDiscriminated(implementation);
-      oneOf.addObject().put("$ref", "#/$defs/" + implementation.getSimpleName());
+      oneOf.addObject().put("$ref", "#/$defs/" + defName(implementation));
     }
-    defs.put(type.getSimpleName(), node);
+    defs.put(defName(type), node);
   }
 
   private void defineEnum(Class<?> type) {
-    if (defs.containsKey(type.getSimpleName())) {
+    if (defs.containsKey(defName(type))) {
       return;
     }
     var node = MAPPER.createObjectNode();
@@ -352,7 +374,7 @@ public final class UidlSchemaGenerator {
     for (var constant : type.getEnumConstants()) {
       values.add(((Enum<?>) constant).name());
     }
-    defs.put(type.getSimpleName(), node);
+    defs.put(defName(type), node);
   }
 
   /**
@@ -360,10 +382,10 @@ public final class UidlSchemaGenerator {
    * list: these are authored piecemeal in YAML and an over-strict schema would reject valid files.
    */
   private void defineValueRecord(Class<?> type) {
-    if (defs.containsKey(type.getSimpleName())) {
+    if (defs.containsKey(defName(type))) {
       return;
     }
-    defs.put(type.getSimpleName(), MAPPER.createObjectNode()); // placeholder: breaks record cycles
+    defs.put(defName(type), MAPPER.createObjectNode()); // placeholder: breaks record cycles
     var node = MAPPER.createObjectNode();
     node.put("type", "object");
     var properties = node.putObject("properties");
@@ -372,7 +394,7 @@ public final class UidlSchemaGenerator {
           recordComponent.getName(),
           schemaFor(recordComponent.getType(), recordComponent.getGenericType()));
     }
-    defs.put(type.getSimpleName(), node);
+    defs.put(defName(type), node);
   }
 
   private static Class<?> typeArgument(Type generic, int index) {

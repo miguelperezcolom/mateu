@@ -10,7 +10,7 @@ public class AvatarMapper {
   public static ClientSideComponentDto mapAvatarToDto(Avatar avatar) {
     return new ClientSideComponentDto(
         new AvatarDto(avatar.name(), avatar.abbreviation(), avatar.image()),
-        "fieldId",
+        WireIds.idOf(avatar, null),
         List.of(),
         avatar.style(),
         avatar.cssClasses(),

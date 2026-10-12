@@ -1834,6 +1834,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
       out.push(node.metadata.text)
     }
+    // a Markdown (the Welcome tiles') is text too — as plain text, its markup dropped: the tiles
+    // used to show their titles only
+    if (node.metadata && node.metadata.type === 'Markdown' && node.metadata.markdown) {
+      out.push(String(node.metadata.markdown).replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]/g, '').trim())
+    }
     for (const v of Object.values(node)) {
       if (Array.isArray(v)) v.forEach((x) => collectTexts(x, out))
       else if (v && typeof v === 'object') collectTexts(v, out)
@@ -1949,12 +1954,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
    *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
    *  tren de 4-5 rótulos no cabe en un móvil). */
+  /** Whether some component of the tree advertises (or a button runs) the wizard's `next`. */
+  function advertisesNext(tree) {
+    return !!findFirst(tree, (n) => (Array.isArray(n.actions) && n.actions.some((a) => a && a.id === 'next'))
+      || (n.metadata && n.metadata.type === 'Button' && n.metadata.actionId === 'next'))
+  }
+
   /** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
   const WIZARD_DONE_STEP = '_completed'
 
   function wizardOf(ctx) {
     const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
     if (!node) return null
+    // A ProgressSteps is also a plain DISPLAY component (an order tracker): a page with one is a
+    // wizard only when something on it can step it — a Wizard always advertises `next`. Without
+    // this every page showing progress steps got the guided-process chrome and lost its ProgressBar.
+    if (!advertisesNext(ctx.tree)) return null
     const md = node.metadata
     const wire = md.steps || []
     const current = wire.find((s) => s.status === 'current')
@@ -2541,9 +2556,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  const WELCOME_FRAME = new Set(['Page', 'VerticalLayout', 'HorizontalLayout', 'ResponsiveGrid', 'DashboardLayout',
+    'Div', 'Container', 'Scroller', 'FullWidth'])
+  const WELCOME_PIECES = new Set(['HeroSection', 'DashboardPanel'])
+
+  /** Whether the tree has something besides the welcome composition (a hero + its tiles in layouts). */
+  function holdsMoreThanAWelcome(n, root) {
+    if (!n || typeof n !== 'object') return false
+    if (!root && n.type === 'ServerSide') return false
+    const t = n.metadata && n.metadata.type
+    if (t && WELCOME_PIECES.has(t)) return false
+    if (t && !WELCOME_FRAME.has(t)) return true
+    return (n.children || []).some((c) => holdsMoreThanAWelcome(c, false))
+  }
+
   function welcomeOf(ctx) {
     const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
     if (!hero) return null
+    // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
+    // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
+    if (holdsMoreThanAWelcome(ctx.tree, true)) return null
     const md = hero.metadata
     const ctas = actionsOf(hero)
     const panels = findAllByType(ctx.tree, 'DashboardPanel')
@@ -3107,8 +3139,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
     // es contenido, y el detalle que llega al elegir se pinta a su lado
     if (!node || node.slot) return null
+    // …ni una cola que es UNA pieza más de una página con otro contenido: el modo cola pinta la
+    // cola + el detalle y NADA más, así que una página con una TaskQueue entre gráficos, tableros,
+    // calendarios… perdía todo lo demás (sólo quedaban la cola y un «Nothing here»)
+    if (holdsOtherContent(tree, true)) return null
     return queueProjectionOf(node.metadata)
   }
+
+  /** Whether the page (not counting the detail island, a nested ServerSide) has a component that is
+   *  not part of a work-queue page. */
+  function holdsOtherContent(n, root) {
+    if (!n || typeof n !== 'object') return false
+    if (!root && n.type === 'ServerSide') return false
+    const t = n.metadata && n.metadata.type
+    if (t && !QUEUE_PAGE_TYPES.has(t)) return true
+    const inner = n.metadata && n.metadata.content
+    return (n.children || []).some((c) => holdsOtherContent(c, false))
+      || (Array.isArray(inner) ? inner.some((c) => holdsOtherContent(c, false)) : holdsOtherContent(inner, false))
+  }
+
+  /** What a work-queue PAGE is made of (the front-office check-in queue): the queue, the detail
+   *  placeholder or island, the layouts and fields that hold them. Anything else is other content. */
+  const QUEUE_PAGE_TYPES = new Set(['TaskQueue', 'EmptyState', 'Page', 'VerticalLayout', 'HorizontalLayout',
+    'FormLayout', 'FormRow', 'FormItem', 'FormField', 'FormSection', 'FormSubSection', 'CustomField', 'Card',
+    'Text', 'Button', 'Div', 'Container', 'Scroller', 'FullWidth', 'Separator', 'Badge'])
 
   /** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
   function queueProjectionOf(md) {
@@ -3153,7 +3207,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
     }
     findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
-    return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+    // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
+    // was lost — such an empty state is content, painted with its action
+    return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+      && !n.metadata.actionId))
   }
   function emptyStateOf(tree) {
     const node = pageEmptyStateNode(tree)
@@ -3949,13 +4006,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
         // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
         const noticeText = interp(m.text)
-        if (!noticeText.trim() && !kidsOf(node).length) return
+        const kids = kidsOf(node)
+        if (!noticeText.trim() && !kids.length) return
+        const holdsButtons = (k) => collectButtons(k, []).length > 0
+        // its own right-aligned action (actionLabel + actionId) first, then the Buttons of its
+        // content (the band's actions); content WITHOUT buttons (any component) follows the band —
+        // the own action and that content used to be dropped: only the buttons survived
+        const own = m.actionId ? [buttonOf({ actionId: m.actionId, label: m.actionLabel || m.actionId })] : []
         atom({
           isNotice: true,
           text: noticeText,
           noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
-          buttons: collectButtons({ children: kidsOf(node) }, []),
+          buttons: [...own, ...collectButtons({ children: kids }, [])],
         }, container)
+        for (const child of kids) if (!holdsButtons(child)) visit(child, container)
         return
       }
       if (t === 'Markdown') {
@@ -4313,6 +4377,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: m.label || '',
           value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
         }, container)
+        // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
+        if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
         return
       }
       if (t === 'Button') {
@@ -4931,8 +4997,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
   function pageSubtitleOf(ctx) {
     const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
-    const subtitle = page && page.metadata ? page.metadata.subtitle : ''
+    let subtitle = page && page.metadata ? page.metadata.subtitle : ''
+    // a SmartSearchPage (all three backends) composes its intro line as a Text with this id: the
+    // listing page shows only the table, so the line was lost — it is the page's subtitle
+    if (!subtitle && ctx && ctx.tree) subtitle = textWithId(ctx.tree, 'page-subtitle')
     return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+  }
+
+  function textWithId(n, id) {
+    if (!n || typeof n !== 'object') return ''
+    if (n.id === id && n.metadata && n.metadata.type === 'Text') return n.metadata.text || ''
+    for (const c of n.children || []) {
+      const found = textWithId(c, id)
+      if (found) return found
+    }
+    return ''
   }
 
   /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
@@ -5194,7 +5273,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
       // está, en el rótulo del menú
-      title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label)) || ''),
+      // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
+      // only through its window title: without it the header read «…»
+      title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
+        || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
       // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
       // @NoBreadcrumbs en la página o en la shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
@@ -5333,9 +5415,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
    *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+  /** The siblings that precede the first node of `type` in its parent (none when it is the root or
+   *  inside a Page — a Page's own header is metadata.header). */
+  function siblingsBefore(tree, type) {
+    let out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return false
+      const kids = n.children || []
+      const i = kids.findIndex((k) => k && k.metadata && k.metadata.type === type)
+      if (i >= 0) {
+        if (!(n.metadata && n.metadata.type === 'Page')) out = kids.slice(0, i)
+        return true
+      }
+      return kids.some(walk)
+    }
+    walk(tree)
+    return out
+  }
+
   function listingHeaderBlocksOf(ctx) {
     const pageNode = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
-    const header = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    // …and what a composed page puts BEFORE its listing (the HeroSearch hero): the listing page
+    // paints only the table, so it was lost. The SmartSearchPage intro line is the subtitle instead.
+    const before = ctx && ctx.tree ? siblingsBefore(ctx.tree, 'Crud')
+      .filter((n) => !(n.id === 'page-subtitle' && n.metadata && n.metadata.type === 'Text')) : []
+    const header = [...declared, ...before]
     if (!header.length) return []
     const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: header } }) || []
     return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))

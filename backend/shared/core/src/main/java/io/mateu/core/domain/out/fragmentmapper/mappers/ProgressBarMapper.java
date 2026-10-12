@@ -17,7 +17,7 @@ public class ProgressBarMapper {
             progressBar.valueKey(),
             progressBar.text(),
             progressBar.theme()),
-        "fieldId",
+        WireIds.idOf(progressBar, null),
         List.of(),
         progressBar.style(),
         progressBar.cssClasses(),

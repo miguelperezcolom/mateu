@@ -38,8 +38,30 @@ export function taskQueueOf(tree) {
   // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
   // es contenido, y el detalle que llega al elegir se pinta a su lado
   if (!node || node.slot) return null
+  // …ni una cola que es UNA pieza más de una página con otro contenido: el modo cola pinta la
+  // cola + el detalle y NADA más, así que una página con una TaskQueue entre gráficos, tableros,
+  // calendarios… perdía todo lo demás (sólo quedaban la cola y un «Nothing here»)
+  if (holdsOtherContent(tree, true)) return null
   return queueProjectionOf(node.metadata)
 }
+
+/** Whether the page (not counting the detail island, a nested ServerSide) has a component that is
+ *  not part of a work-queue page. */
+function holdsOtherContent(n, root) {
+  if (!n || typeof n !== 'object') return false
+  if (!root && n.type === 'ServerSide') return false
+  const t = n.metadata && n.metadata.type
+  if (t && !QUEUE_PAGE_TYPES.has(t)) return true
+  const inner = n.metadata && n.metadata.content
+  return (n.children || []).some((c) => holdsOtherContent(c, false))
+    || (Array.isArray(inner) ? inner.some((c) => holdsOtherContent(c, false)) : holdsOtherContent(inner, false))
+}
+
+/** What a work-queue PAGE is made of (the front-office check-in queue): the queue, the detail
+ *  placeholder or island, the layouts and fields that hold them. Anything else is other content. */
+const QUEUE_PAGE_TYPES = new Set(['TaskQueue', 'EmptyState', 'Page', 'VerticalLayout', 'HorizontalLayout',
+  'FormLayout', 'FormRow', 'FormItem', 'FormField', 'FormSection', 'FormSubSection', 'CustomField', 'Card',
+  'Text', 'Button', 'Div', 'Container', 'Scroller', 'FullWidth', 'Separator', 'Badge'])
 
 /** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
 export function queueProjectionOf(md) {
@@ -84,7 +106,10 @@ export const pageEmptyStateNode = (tree) => {
     for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
   }
   findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
-  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+  // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
+  // was lost — such an empty state is content, painted with its action
+  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+    && !n.metadata.actionId))
 }
 export function emptyStateOf(tree) {
   const node = pageEmptyStateNode(tree)
@@ -880,13 +905,20 @@ export function islandContentOf(ctx, opts = {}) {
       // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
       // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
       const noticeText = interp(m.text)
-      if (!noticeText.trim() && !kidsOf(node).length) return
+      const kids = kidsOf(node)
+      if (!noticeText.trim() && !kids.length) return
+      const holdsButtons = (k) => collectButtons(k, []).length > 0
+      // its own right-aligned action (actionLabel + actionId) first, then the Buttons of its
+      // content (the band's actions); content WITHOUT buttons (any component) follows the band —
+      // the own action and that content used to be dropped: only the buttons survived
+      const own = m.actionId ? [buttonOf({ actionId: m.actionId, label: m.actionLabel || m.actionId })] : []
       atom({
         isNotice: true,
         text: noticeText,
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
-        buttons: collectButtons({ children: kidsOf(node) }, []),
+        buttons: [...own, ...collectButtons({ children: kids }, [])],
       }, container)
+      for (const child of kids) if (!holdsButtons(child)) visit(child, container)
       return
     }
     if (t === 'Markdown') {
@@ -1244,6 +1276,8 @@ export function islandContentOf(ctx, opts = {}) {
         label: m.label || '',
         value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
       }, container)
+      // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
+      if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
       return
     }
     if (t === 'Button') {

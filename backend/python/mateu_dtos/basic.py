@@ -21,6 +21,80 @@ class ProgressBarMetadata(Wire):
     value: float
     min: float = 0
     max: float = 1
+    indeterminate: bool = False
+    value_key: str | None = None
+    text: str | None = None
+    theme: str | None = None
+
+
+class MarkdownMetadata(Wire):
+    """Formatted text from Markdown (mirrors ``MarkdownDto``)."""
+
+    type: Literal["Markdown"] = "Markdown"
+    markdown: str | None = None
+
+
+class ImageMetadata(Wire):
+    """An image by url or data URI (mirrors ``ImageDto``)."""
+
+    type: Literal["Image"] = "Image"
+    src: str | None = None
+
+
+class BadgeMetadata(Wire):
+    """A small status chip (mirrors ``BadgeDto``)."""
+
+    type: Literal["Badge"] = "Badge"
+    text: str | None = None
+    icon_on_left: str | None = None
+    icon_on_right: str | None = None
+    color: str | None = None
+    primary: bool = False
+    small: bool = False
+    pill: bool = False
+
+
+class AvatarMetadata(Wire):
+    """A person's picture or initials (mirrors ``AvatarDto``)."""
+
+    type: Literal["Avatar"] = "Avatar"
+    name: str | None = None
+    abbreviation: str | None = None
+    image: str | None = None
+
+
+class AvatarGroupMetadata(Wire):
+    """Overlapping avatars, the rest as +N (mirrors ``AvatarGroupDto``)."""
+
+    type: Literal["AvatarGroup"] = "AvatarGroup"
+    avatars: list[AvatarMetadata] = Field(default_factory=list)
+    max_items_visible: int = 0
+
+
+class ChartDatasetRecord(Wire):
+    label: str | None = None
+    data: list[float] = Field(default_factory=list)
+
+
+class ChartDataRecord(Wire):
+    labels: list[str] = Field(default_factory=list)
+    datasets: list[ChartDatasetRecord] = Field(default_factory=list)
+
+
+class ChartMetadata(Wire):
+    """A chart: bar, line, pie, doughnut, radar, polar area, scatter, bubble (mirrors ``ChartDto``)."""
+
+    type: Literal["Chart"] = "Chart"
+    chart_type: str | None = None
+    chart_data: ChartDataRecord | None = None
+    chart_options: dict | None = None
+
+
+class BpmnMetadata(Wire):
+    """A BPMN diagram from its XML (mirrors ``BpmnDto``)."""
+
+    type: Literal["Bpmn"] = "Bpmn"
+    xml: str | None = None
 
 
 class TextMetadata(Wire):

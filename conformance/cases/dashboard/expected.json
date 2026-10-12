@@ -1,4 +1,8 @@
 {
+  "commands" : [ {
+    "data" : "Ops dashboard",
+    "type" : "SetWindowTitle"
+  } ],
   "fragments" : [ {
     "action" : "Replace",
     "component" : {

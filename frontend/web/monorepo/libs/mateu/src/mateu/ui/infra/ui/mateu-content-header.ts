@@ -48,6 +48,18 @@ export const neutralButtonClass = (button: Button): string => {
 // module of their own now that the crud shares them. See toolbarButtonKinds.
 export { isNavButton, isBackButton, isCancelButton } from './toolbarButtonKinds'
 
+type Box = Pick<DOMRect, 'top' | 'bottom' | 'right' | 'height'>
+
+/**
+ * Whether the header's action cluster does NOT fit (pure, so it is testable without layout): it ran
+ * past the row's right edge, or its flex item WRAPPED onto a line below the title block. It used to
+ * be "its top is more than 8px below the row's top" — but the cluster is vertically CENTRED, so a
+ * header whose title block is merely taller (an overline, a subtitle, a timestamp) read as wrapped
+ * and every secondary toolbar action collapsed into "…" with plenty of room left.
+ */
+export const actionsOverflow = (item: Box, siblings: Box[], cluster: Box, row: Box): boolean =>
+    cluster.right > row.right + 1 || siblings.some((s) => s.height > 0 && item.top >= s.bottom - 1)
+
 @customElement('mateu-content-header')
 export class MateuContentHeader extends LitElement {
 
@@ -136,9 +148,14 @@ export class MateuContentHeader extends LitElement {
         if (!cluster || this._secCount === 0) return
         const row = cluster.closest('.form-header, .no-header-row') as HTMLElement | null
         if (!row) return
-        const cr = cluster.getBoundingClientRect()
-        const rr = row.getBoundingClientRect()
-        const overflowing = cr.top - rr.top > 8 || cr.right > rr.right + 1
+        // the flex item of the row holding the cluster (the row itself in the no-header layout)
+        let item: HTMLElement = cluster
+        while (item.parentElement && item.parentElement !== row) item = item.parentElement
+        const siblings = item === cluster && cluster.parentElement !== row
+            ? []
+            : [...row.children].filter((c) => c !== item).map((c) => c.getBoundingClientRect())
+        const overflowing = actionsOverflow(
+            item.getBoundingClientRect(), siblings, cluster.getBoundingClientRect(), row.getBoundingClientRect())
         if (overflowing && this._overflowN < this._secCount) this._overflowN += 1
     }
 

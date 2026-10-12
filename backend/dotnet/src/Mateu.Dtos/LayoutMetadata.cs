@@ -71,7 +71,44 @@ public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto
 {
     public double Min { get; init; }
     public double Max { get; init; } = 1;
+    public bool Indeterminate { get; init; }
+    public string? ValueKey { get; init; }
+    public string? Text { get; init; }
+    public string? Theme { get; init; }
 }
+
+/// <summary>Formatted text from Markdown (mirrors Java's MarkdownDto).</summary>
+public record MarkdownMetadataDto(string? Markdown) : ComponentMetadataDto;
+
+/// <summary>An image by url or data URI (mirrors Java's ImageDto).</summary>
+public record ImageMetadataDto(string? Src) : ComponentMetadataDto;
+
+/// <summary>A small status chip (mirrors Java's BadgeDto).</summary>
+public record BadgeMetadataDto(string? Text) : ComponentMetadataDto
+{
+    public string? IconOnLeft { get; init; }
+    public string? IconOnRight { get; init; }
+    public string? Color { get; init; }
+    public bool Primary { get; init; }
+    public bool Small { get; init; }
+    public bool Pill { get; init; }
+}
+
+/// <summary>A person's picture or initials (mirrors Java's AvatarDto).</summary>
+public record AvatarMetadataDto(string? Name, string? Abbreviation = null, string? Image = null) : ComponentMetadataDto;
+
+/// <summary>Overlapping avatars, the rest as +N (mirrors Java's AvatarGroupDto).</summary>
+public record AvatarGroupMetadataDto(IReadOnlyList<ComponentMetadataDto> Avatars, int MaxItemsVisible) : ComponentMetadataDto;
+
+public record ChartDatasetDto(string? Label, IReadOnlyList<double> Data);
+
+public record ChartDataDto(IReadOnlyList<string> Labels, IReadOnlyList<ChartDatasetDto> Datasets);
+
+/// <summary>A chart (mirrors Java's ChartDto).</summary>
+public record ChartMetadataDto(string? ChartType, ChartDataDto? ChartData, object? ChartOptions = null) : ComponentMetadataDto;
+
+/// <summary>A BPMN diagram from its XML (mirrors Java's BpmnDto).</summary>
+public record BpmnMetadataDto(string? Xml) : ComponentMetadataDto;
 
 public record TextMetadataDto(string Text) : ComponentMetadataDto
 {

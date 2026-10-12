@@ -18,6 +18,7 @@ import {
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
   welcomeOf, returnedConfirmDialogsOf, reduceContexts, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
+  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf,
 } from './reduceContexts.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
@@ -560,6 +561,64 @@ test('client rules on every surface: host, islands and the overlay on top', () =
   assert.ok(readFileSync(join(here, 'make-amd.mjs'), 'utf8').includes('setRulesContexts(reg)'))
 })
 
+test('a TaskQueue among other content is content: the queue page (queue + detail, nothing else) needs a page of its own', () => {
+  const queue = node({ type: 'TaskQueue', groups: [{ label: 'Today', items: [{ id: 'q1', title: 'Call Ada' }] }] })
+  // the front-office shape: the queue and the detail placeholder — the queue page
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, node({ type: 'EmptyState', title: 'Pick one' })])))
+  // the detail island (a nested ServerSide) does not count as other content
+  const island = { type: 'ServerSide', id: 'i', children: [node({ type: 'ProgressSteps', steps: [] })] }
+  assert.ok(taskQueueOf(node({ type: 'VerticalLayout' }, [queue, island])))
+  // a page that also shows a gantt, a kanban, a calendar… kept only the queue
+  assert.equal(taskQueueOf(node({ type: 'VerticalLayout' }, [node({ type: 'Gantt', tasks: [] }), queue])), null)
+})
+
+test('a hero among other content is content: the welcome page is a hero over its tiles and nothing else', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' }, [node({ type: 'Button', label: 'Go', actionId: 'go' })])
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
+  assert.ok(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} }))
+  assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
+})
+
+test('a composed page (no Page, no Crud title) takes its header title from its window title', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
+  const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }
+  assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
+})
+
+test('a Welcome tile holding Markdown shows its text, markup dropped', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' })
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Markdown', markdown: 'Find the **booking**' })])])
+  const welcome = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
+  assert.deepEqual(welcome.tiles[0].texts, ['Find the booking'])
+})
+
+test('what a composed page puts before its listing (the HeroSearch hero) is painted above the table', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'HeroSection', title: 'Find your hotel' }),
+    node({ type: 'Crud', columns: [] })])] }
+  const blocks = listingHeaderBlocksOf({ tree, state: {}, data: {} })
+  assert.ok(blocks.flatMap((b) => b.items).some((a) => a.isHero && a.title === 'Find your hotel'))
+})
+
+test('a SmartSearchPage intro line is the page subtitle (the listing page shows only the table)', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    { type: 'ClientSide', id: 'page-subtitle', metadata: { type: 'Text', text: 'Find assets' }, children: [] },
+    node({ type: 'Crud', columns: [] })])] }
+  assert.equal(pageSubtitleOf({ tree, state: {} }), 'Find assets')
+})
+
+test('a Stat with an action drills in', () => {
+  const atoms = atomsOf(node({ type: 'VerticalLayout' }, [node({ type: 'Stat', label: 'Arrivals', value: '12', actionId: 'openArrivals' })]))
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((b) => b.actionId === 'openArrivals')))
+})
+
+test('an EmptyState with a call to action is content (the page band has no button and lost it)', () => {
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'Nothing here', actionId: 'newBooking', actionLabel: 'New booking' })])
+  assert.equal(emptyStateOf(tree), null)
+  const atom = atomsOf(tree, {}, {}, { kind: 'host' }).find((a) => a.isEmptyStateAtom)
+  assert.deepEqual([atom.actionId, atom.actionLabel], ['newBooking', 'New booking'])
+})
+
 test('slot templates: a CollectionDetail list is content (not the queue page), a form with @Aside shows its aside', () => {
   const slotted = (type, slot, md = {}) => ({ type: 'ClientSide', id: '', slot, metadata: { type, ...md }, children: [] })
   const cd = node({ type: 'ResponsiveGrid', gridTemplateAreas: '"list detail"' }, [slotted('TaskQueue', 'list', { groups: [] }), slotted('EmptyState', 'detail', { title: 'Select an item' })])
@@ -671,6 +730,29 @@ test('actions: an answer carrying an error message FAILED — its OnError trigge
     { type: 'OnSuccess', actionId: 'afterOk', calledActionId: 'fail' },
   ] } }
   assert.deepEqual(onErrorTriggers(ctx, 'fail').map((t) => t.actionId), ['afterFail'])
+})
+
+// The display gallery: every display component as the Java server renders the YAML gallery
+// (libs/mateu expander fixture display-gallery.golden.json, written by YamlDisplayGallerySyncTest).
+test('display gallery: every display component projects to its atom, nothing left behind', () => {
+  const golden = JSON.parse(readFileSync(join(here, '..', '..', '..', 'libs', 'mateu', 'src', 'mateu', 'ui',
+    'infra', 'expander', '__fixtures__', 'display-gallery.golden.json'), 'utf8'))
+  const atoms = atomsOf(golden.fragments[0].component)
+  const flags = new Set(atoms.flatMap((a) => Object.keys(a).filter((k) => k.startsWith('is') && a[k] === true)))
+  for (const flag of ['isEntityHeader', 'isRichText', 'isImage', 'isBadge', 'isAvatar', 'isChart', 'isFunnel',
+    'isHeatmap', 'isGantt', 'isKanban', 'isPlanning', 'isMatrix', 'isActionPanel', 'isMap', 'isTimeline',
+    'isOrgChart', 'isBpmn', 'isStatusList', 'isBullets', 'isCollapsible', 'isPricing', 'isOffer', 'isTestimonials',
+    'isFeatureGrid', 'isProgress', 'isMeter', 'isEmptyStateAtom', 'isSkeleton', 'isNotice', 'isCallout',
+    'isSeparator', 'isHero', 'isStat', 'isComparison', 'isScoreboard', 'isCalendar', 'isQueue']) {
+    assert.ok(flags.has(flag), flag + ' missing')
+  }
+  // a ProgressSteps on a page that is no wizard is just a display: the ProgressBar beside it stays
+  // (it was dropped as the "wizard's own" bar)
+  assert.ok(atoms.some((a) => a.isProgressBar), 'the ProgressBar')
+  // a Notice keeps its own action and its content
+  const notice = atoms.find((a) => a.isNotice && a.text === 'Two complaints pending')
+  assert.deepEqual(notice.buttons.map((b) => [b.actionId, b.label]), [['reviewComplaints', 'Review']])
+  assert.ok(atoms.some((a) => a.isText && a.text === 'Inside the notice'))
 })
 
 console.log(`\n${passed} display tests OK`)

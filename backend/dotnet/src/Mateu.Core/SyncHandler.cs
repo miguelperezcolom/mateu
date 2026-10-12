@@ -559,8 +559,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // does (mirrors Java's ReflectionObjectToComponentMapper.pageTypeOf).
         if (isPage && view is ServerSideComponentDto page && DeclaredPageTypeFor(rq.Route, type) is { } declared)
             view = page with { PageType = declared };
+        // A composed page still names the window when it DECLARES a title ([Title]): without it the
+        // tab kept the previous page's title and screen readers heard no navigation (Java's
+        // CommandMapper does the same for a ComponentTreeSupplier / [AutoPage] bridge).
+        var namesWindow = isPage || type.Find<TitleAttribute>() is not null;
         return FragmentResponse(Title(type), view, rq,
-            LookupLabels(type, instance, instance), emitWindowTitle: isPage && !embedded);
+            LookupLabels(type, instance, instance), emitWindowTitle: namesWindow && !embedded);
     }
 
     /// <summary>The <c>pageType:</c> of the route's definition when it is bound to

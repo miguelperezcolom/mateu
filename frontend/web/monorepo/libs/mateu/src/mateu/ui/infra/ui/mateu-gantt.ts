@@ -1,7 +1,8 @@
+import { ifDefined } from 'lit/directives/if-defined.js'
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import GanttTask from "@mateu/shared/apiClients/dtos/componentmetadata/GanttTask";
-import { onActivate } from '@infra/a11y/activate.ts';
+import { onActivate, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -161,7 +162,7 @@ export class MateuGantt extends LitElement {
                         <div class="label" title="${task.title}">${task.title}</div>
                         <div class="lane">
                             ${now >= range.min && now <= range.max ? html`<div class="today" style="left: ${pct(now)}%;"></div>` : nothing}
-                            <div role="button" tabindex="0"
+                            <div role="${this.onTaskSelectionActionId ? 'button' : 'img'}" tabindex=${ifDefined(tabStop(!!this.onTaskSelectionActionId))}
                                  aria-label="${task.title}, ${task.start} to ${task.end}${task.progress ? `, ${task.progress}% complete` : ''}"
                                  class="bar ${this.onTaskSelectionActionId ? 'clickable' : ''}"
                                  title="${task.title} · ${task.start} → ${task.end}${task.progress ? ` · ${task.progress}%` : ''}"

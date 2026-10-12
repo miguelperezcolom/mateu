@@ -2247,6 +2247,13 @@ def test_fab_action_invoked():
     assert inc.messages[0].text == "Added"
 
 
+def test_fab_action_is_advertised_so_the_browser_sends_it():
+    # the web client only SENDS an advertised action: an unadvertised page FAB was a dead click
+    inc = handler().handle(RunActionRq(server_side_type=_name(Featured)))
+    actions = inc.fragments[0].component.actions
+    assert "add" in [a.id for a in actions]
+
+
 # ── Smart-search listing filters ─────────────────────────────────────────────
 
 

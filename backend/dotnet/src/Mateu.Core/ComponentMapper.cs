@@ -221,6 +221,26 @@ public static class ComponentMapper
         Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins, Container = t.Container ?? "div" }),
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
+        Markdown md => Dto(md, new MarkdownMetadataDto(md.MarkdownText)),
+        Image img => Dto(img, new ImageMetadataDto(img.Src)),
+        Badge bd => Dto(bd, new BadgeMetadataDto(bd.Text)
+        {
+            IconOnLeft = bd.IconOnLeft, IconOnRight = bd.IconOnRight, Color = bd.Color,
+            Primary = bd.Primary, Small = bd.Small, Pill = bd.Pill,
+        }),
+        Avatar av => Dto(av, new AvatarMetadataDto(av.Name, av.Abbreviation, av.Image)),
+        AvatarGroup ag => Dto(ag, new AvatarGroupMetadataDto(
+            ag.Avatars.Select(a => (ComponentMetadataDto)new AvatarMetadataDto(a.Name, a.Abbreviation, a.Image)).ToList(),
+            ag.MaxItemsVisible)),
+        Chart ch => Dto(ch, new ChartMetadataDto(ch.ChartType, ch.ChartData is null ? null
+            : new ChartDataDto(ch.ChartData.Labels, ch.ChartData.Datasets.Select(d => new ChartDatasetDto(d.Label, d.Data)).ToList()),
+            ch.ChartOptions)),
+        Bpmn bp => Dto(bp, new BpmnMetadataDto(bp.Xml)),
+        ProgressBar pb2 => Dto(pb2, new ProgressBarMetadataDto(pb2.Value)
+        {
+            Min = pb2.Min, Max = pb2.Max, Indeterminate = pb2.Indeterminate, ValueKey = pb2.ValueKey,
+            Text = pb2.Text, Theme = pb2.Theme,
+        }),
         Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId)
         {

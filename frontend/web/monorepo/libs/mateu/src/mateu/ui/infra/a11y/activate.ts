@@ -41,6 +41,17 @@ export const onActivate = (handler: (event: KeyboardEvent) => void) => (event: K
 }
 
 /**
+ * The `role` and `tabindex` of an item that is ACTIVATABLE ONLY SOMETIMES — a kanban card, a
+ * timeline entry, a stat tile: they do something only when the server gave them an action. With an
+ * unconditional `role="button" tabindex="0"` an inert item is announced as a button, takes a tab
+ * stop and does nothing when pressed. Bind with `ifDefined`:
+ *
+ *   <div role=${ifDefined(buttonRole(!!item.actionId))} tabindex=${ifDefined(tabStop(!!item.actionId))}>
+ */
+export const buttonRole = (active: boolean): 'button' | undefined => (active ? 'button' : undefined)
+export const tabStop = (active: boolean): '0' | undefined => (active ? '0' : undefined)
+
+/**
  * Roving-tabindex arrow navigation for a list or grid of activatable items.
  *
  * A list of twenty cards where every card is tabbable costs the keyboard user twenty presses to

@@ -1449,7 +1449,8 @@ test('seguridad: el selector de una regla escapa comillas y barras; una imagen s
 })
 
 test('proceso guiado terminado: un paso final «Completed» actual (título correcto) y la marca completed (sin pie)', () => {
-  const tree = (statuses) => ({ type: 'ClientSide', id: 'w', metadata: { type: 'VerticalLayout' }, children: [
+  // a Wizard always advertises `next` (the root carries its actions, as the ServerSide does)
+  const tree = (statuses) => ({ type: 'ClientSide', id: 'w', actions: [{ id: 'next' }], metadata: { type: 'VerticalLayout' }, children: [
     { type: 'ClientSide', id: 'p', metadata: { type: 'ProgressSteps', vertical: true,
       steps: statuses.map((st, i) => ({ id: 's' + i, title: 'Step ' + i, status: st })) }, children: [] }] })
   const running = wizardOf({ tree: tree(['done', 'current', 'upcoming']) })

@@ -16,9 +16,14 @@ import io.mateu.uidl.interfaces.HttpRequest;
  * model declares {@code @Style}); extending {@link Dashboard} remains the way to override them.
  */
 @PageTemplate(PageType.DASHBOARD)
-public class InferredDashboard implements ComponentTreeSupplier {
+public class InferredDashboard implements ComponentTreeSupplier, io.mateu.core.infra.ModelBridge {
 
   private final Object model;
+
+  /** The plain class this bridge renders. */
+  public Object model() {
+    return model;
+  }
 
   public InferredDashboard(Object model) {
     this.model = model;

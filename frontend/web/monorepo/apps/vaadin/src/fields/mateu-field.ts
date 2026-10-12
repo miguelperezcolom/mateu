@@ -70,6 +70,11 @@ interface FileLike {
     name: string
 }
 
+/** A string field with no stereotype of its own that nonetheless brings options: a select. */
+export const offersItsOptions = (field: { stereotype?: string, options?: unknown[] } | undefined): boolean =>
+    !!field && (!field.stereotype || field.stereotype === 'regular')
+    && Array.isArray(field.options) && field.options.length > 0
+
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
@@ -1021,7 +1026,10 @@ export class MateuField extends LitElement {
                     </vaadin-custom-field>
                 `
             }
-            if (this.field?.stereotype == 'select') {
+            // a plain string field that comes WITH options (a fluent FormField built with them — the
+            // GeneralOverview record switcher — or an OptionsSupplier's) is a choice among them: as a
+            // text field it showed the raw value ("r1") and the options went nowhere
+            if (this.field?.stereotype == 'select' || offersItsOptions(this.field)) {
                 if (this.field?.optionsSource) {
                     // Options from an arbitrary REST endpoint, fetched CLIENT-SIDE (no Mateu server
                     // mediating). Refetch only when the interpolated url changes (a state-dependent

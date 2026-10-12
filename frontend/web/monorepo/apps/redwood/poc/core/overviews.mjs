@@ -99,9 +99,26 @@ export function welcomeLookOf(key, previous, random = Math.random, tone = null) 
   }
 }
 
+const WELCOME_FRAME = new Set(['Page', 'VerticalLayout', 'HorizontalLayout', 'ResponsiveGrid', 'DashboardLayout',
+  'Div', 'Container', 'Scroller', 'FullWidth'])
+const WELCOME_PIECES = new Set(['HeroSection', 'DashboardPanel'])
+
+/** Whether the tree has something besides the welcome composition (a hero + its tiles in layouts). */
+function holdsMoreThanAWelcome(n, root) {
+  if (!n || typeof n !== 'object') return false
+  if (!root && n.type === 'ServerSide') return false
+  const t = n.metadata && n.metadata.type
+  if (t && WELCOME_PIECES.has(t)) return false
+  if (t && !WELCOME_FRAME.has(t)) return true
+  return (n.children || []).some((c) => holdsMoreThanAWelcome(c, false))
+}
+
 export function welcomeOf(ctx) {
   const hero = ctx && ctx.tree ? findByType(ctx.tree, 'HeroSection') : null
   if (!hero) return null
+  // the welcome page is a hero over its tiles and nothing else: a page that merely CONTAINS a hero
+  // (among cards, charts, notices…) is not one — taken for it, everything but the tiles vanished
+  if (holdsMoreThanAWelcome(ctx.tree, true)) return null
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')
