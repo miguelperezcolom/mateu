@@ -1,4 +1,5 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import type RestSourceEntry from "@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry";
 import { chromeTextf } from './chromeTexts'
 
 /**
@@ -222,6 +223,8 @@ export interface RemoteApp {
     menu: MenuOption[]
     route?: string
     serverSideType?: string
+    /** The remote's REST source catalogue: the screens it serves name these sources. */
+    restSources?: RestSourceEntry[]
 }
 
 /** A remote's answer, or the fact that it did not answer. */

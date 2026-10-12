@@ -101,10 +101,7 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
             if (badge.isNotBlank()) cardPanel.addStacked(JBLabel(badge), 0)
             val actionId = card.text("actionId")
             if (actionId.isNotBlank()) {
-                cardPanel.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-                cardPanel.addMouseListener(object : java.awt.event.MouseAdapter() {
-                    override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-                })
+                cardPanel.activatable { r.ctx.runAction(actionId, null) }
             }
             col.addStacked(cardPanel, 6)
         }
@@ -137,10 +134,7 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.add(body, BorderLayout.CENTER)
         val actionId = item.text("actionId")
         if (actionId.isNotBlank()) {
-            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            row.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-            })
+            row.activatable { r.ctx.runAction(actionId, null) }
         }
         panel.addStacked(row, 10)
     }
@@ -258,10 +252,7 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     tile.addStacked(foot, 0)
     val actionId = metadata.text("actionId")
     if (actionId.isNotBlank()) {
-        tile.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-        tile.addMouseListener(object : java.awt.event.MouseAdapter() {
-            override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-        })
+        tile.activatable { r.ctx.runAction(actionId, null) }
     }
     return tile
 }
@@ -322,10 +313,7 @@ private fun orgNodeRow(r: ComponentRenderer, panel: JPanel, node: JsonNode, dept
     row.add(label)
     val actionId = node.text("actionId")
     if (actionId.isNotBlank()) {
-        row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-        row.addMouseListener(object : java.awt.event.MouseAdapter() {
-            override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-        })
+        row.activatable { r.ctx.runAction(actionId, null) }
     }
     panel.addStacked(row, 2)
     for (child in node.arr("children")) orgNodeRow(r, panel, child, depth + 1)
@@ -467,10 +455,7 @@ fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
         }
         val actionId = feature.text("actionId")
         if (actionId.isNotBlank()) {
-            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            card.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-            })
+            card.activatable { r.ctx.runAction(actionId, null) }
         }
         panel.addStacked(card, 8)
     }
@@ -590,10 +575,7 @@ fun renderFileList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         }, BorderLayout.EAST)
         val actionId = file.text("actionId")
         if (actionId.isNotBlank()) {
-            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            row.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-            })
+            row.activatable { r.ctx.runAction(actionId, null) }
         }
         panel.addStacked(row, 0)
     }
@@ -616,10 +598,7 @@ fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
         if (isDone) row.foreground = ToneColors.secondaryText()
         val actionId = item.text("actionId")
         if (actionId.isNotBlank()) {
-            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            row.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
-            })
+            row.activatable { r.ctx.runAction(actionId, null) }
         }
         panel.addStacked(row, 3)
     }
@@ -947,12 +926,9 @@ private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: Stri
     uxItemActions(r, item)?.let { card.addStacked(it, 2) }
     if (rowActionId.isNotBlank()) {
         val itemId = item.text("id")
-        card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-        card.addMouseListener(object : java.awt.event.MouseAdapter() {
-            override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
-            }
-        })
+        card.activatable {
+            r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
+        }
     }
     return card
 }
@@ -987,12 +963,9 @@ fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.border = if (compact) JBUI.Borders.empty(4, 8) else JBUI.Borders.empty(8, 10)
         if (rowActionId.isNotBlank()) {
             val itemId = item.text("id")
-            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            row.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                    r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
-                }
-            })
+            row.activatable(item.text("title")) { // named up front: the labels are added below
+                r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
+            }
         }
         val avatar = item.text("avatar")
         val icon = item.text("icon")
@@ -1084,14 +1057,11 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
             if (caption.isNotBlank()) foot.add(JBLabel(caption).apply { foreground = uxMuted() })
             for (badge in item.arr("badges")) foot.add(uxChip(badge.text("label"), badge.text("color")))
             if (foot.componentCount > 0) card.addStacked(foot, 0)
-            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            card.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                    selectedId = id
-                    restyle()
-                    if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
-                }
-            })
+            card.activatable {
+                selectedId = id
+                restyle()
+                if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
+            }
             cards += id to card
             panel.addStacked(card, 6)
         }
@@ -1152,14 +1122,11 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
             font = font.deriveFont(10f)
         }, 0)
         if (!disabled) {
-            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
-            card.addMouseListener(object : java.awt.event.MouseAdapter() {
-                override fun mouseClicked(e: java.awt.event.MouseEvent) {
-                    selectedId = id
-                    restyle()
-                    if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
-                }
-            })
+            card.activatable {
+                selectedId = id
+                restyle()
+                if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
+            }
         }
         cards += Triple(id, card, recommended)
         grid.add(card)

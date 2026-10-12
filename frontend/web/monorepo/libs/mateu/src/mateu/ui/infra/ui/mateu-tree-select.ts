@@ -3,6 +3,7 @@ import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * A select whose dropdown is a TREE (stereotype `treeSelect`, see @TreeSelect): the options carry
@@ -116,7 +117,7 @@ export class MateuTreeSelect extends LitElement {
                  @mousedown="${(e: Event) => e.preventDefault()}"
                  @click="${() => selectable ? this.pick(option) : this.toggle(option)}" @keydown="${onActivate(() => selectable ? this.pick(option) : this.toggle(option))}">
                 ${hasChildren ? html`
-                    <span role="button" tabindex="0" class="caret" @click="${(e: Event) => { e.stopPropagation(); this.toggle(option) }}" @keydown="${onActivate((e: Event) => { e.stopPropagation(); this.toggle(option) })}"
+                    <span role="button" tabindex="0" class="caret" aria-expanded="${isExpanded ? 'true' : 'false'}" @click="${(e: Event) => { e.stopPropagation(); this.toggle(option) }}" @keydown="${onActivate((e: Event) => { e.stopPropagation(); this.toggle(option) })}"
                     >${isExpanded ? '▾' : '▸'}</span>` : html`<span class="caret caret--empty"></span>`}
                 ${option.label}
             </div>
@@ -129,7 +130,7 @@ export class MateuTreeSelect extends LitElement {
         const currentLabel = this.value ? (this.labelOf(String(this.value), this.options) ?? String(this.value)) : ''
         return html`
             <div class="root">
-                <button class="control" @click="${() => this.opened ? this.close() : this.open()}">
+                <button class="control" aria-haspopup="tree" aria-expanded="${this.opened ? 'true' : 'false'}" @click="${() => this.opened ? this.close() : this.open()}">
                     <span class="${currentLabel ? '' : 'placeholder'}">${currentLabel || '—'}</span>
                     <span class="chevron" aria-hidden="true">▾</span>
                 </button>
@@ -138,7 +139,7 @@ export class MateuTreeSelect extends LitElement {
                         ${this.value ? html`
                             <div role="button" tabindex="0" class="node node--clear"
                                  @mousedown="${(e: Event) => e.preventDefault()}"
-                                 @click="${this.clear}" @keydown="${onActivate(this.clear)}">— (clear)</div>` : nothing}
+                                 @click="${this.clear}" @keydown="${onActivate(this.clear)}">— ${chromeText('clear')}</div>` : nothing}
                         ${this.options.map(option => this.renderNode(option, 0))}
                     </div>` : nothing}
             </div>`

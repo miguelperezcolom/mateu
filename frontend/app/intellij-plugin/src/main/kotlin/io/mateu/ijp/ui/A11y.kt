@@ -23,7 +23,16 @@ import javax.swing.JLabel
 
 /** Sets the name a screen reader announces for this component. Blank names are ignored. */
 fun <T : JComponent> T.accessibleName(name: String?): T {
-    if (!name.isNullOrBlank()) accessibleContext.accessibleName = name
+    if (!name.isNullOrBlank()) {
+        accessibleContext.accessibleName = name
+        // A combo box is a composite too: its look-and-feel adds an arrow button (Metal — the L&F
+        // of a headless or Linux IDE — a MetalComboBoxButton covering the whole control) that is a
+        // button of its own with no text. Unnamed, a screen reader announced a bare "button" there.
+        if (this is javax.swing.JComboBox<*>) {
+            components.filterIsInstance<javax.swing.AbstractButton>()
+                .forEach { it.accessibleContext.accessibleName = name }
+        }
+    }
     return this
 }
 
@@ -50,9 +59,68 @@ fun JLabel.labelling(component: JComponent): JLabel {
         // stepper is a spinner wrapping a formatted field. The screen reader follows the focus,
         // which lands on the inner control, so a name on the wrapper alone is never read. Name
         // the thing that actually takes focus as well.
-        component.firstFocusableDescendant()?.accessibleName(name)
+        component.focusTarget()?.accessibleName(name)
+        // A spinner's arrow buttons are buttons with no text: give them what they do.
+        if (component is javax.swing.JSpinner) {
+            // BasicSpinnerUI adds next, then previous; some UIs also name them.
+            component.components.filterIsInstance<javax.swing.AbstractButton>().forEachIndexed { i, b ->
+                val increase = b.name == "Spinner.nextButton" || (b.name != "Spinner.previousButton" && i == 0)
+                b.accessibleName(if (increase) "Increase $name" else "Decrease $name")
+            }
+        }
     }
     return this
+}
+
+/**
+ * The control inside a composite that the user actually types into. A spinner's arrow buttons and
+ * a scroll pane's scroll bars can come first in the child order (and some look-and-feels make them
+ * focusable), so "first focusable descendant" named an arrow button and left the editor unnamed —
+ * found by rendering the conformance corpus (ConformanceCorpusRenderTest).
+ */
+private fun JComponent.focusTarget(): JComponent? = when (this) {
+    is javax.swing.JSpinner -> (editor as? javax.swing.JSpinner.DefaultEditor)?.textField ?: firstFocusableDescendant()
+    is javax.swing.JScrollPane -> (viewport?.view as? JComponent) ?: firstFocusableDescendant()
+    else -> firstFocusableDescendant()
+}
+
+/**
+ * Makes a clickable panel/label (a card, a list row, a tile) operable like a button: it takes
+ * keyboard focus, Enter or Space activate it, a click does too, and it gets an accessible name —
+ * [name], or the text of the labels it shows. Mouse-only click targets were how several display
+ * components (kanban cards, metric tiles, status-list rows, task-queue cards, checklists…) were
+ * built, which left their actions out of reach of anyone not using a mouse.
+ */
+fun <T : JComponent> T.activatable(name: String? = null, onActivate: () -> Unit): T {
+    cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+    isFocusable = true
+    addMouseListener(object : java.awt.event.MouseAdapter() {
+        override fun mouseClicked(e: java.awt.event.MouseEvent) {
+            requestFocusInWindow()
+            onActivate()
+        }
+    })
+    addKeyListener(object : java.awt.event.KeyAdapter() {
+        override fun keyPressed(e: java.awt.event.KeyEvent) {
+            if (e.keyCode == java.awt.event.KeyEvent.VK_ENTER || e.keyCode == java.awt.event.KeyEvent.VK_SPACE) {
+                e.consume()
+                onActivate()
+            }
+        }
+    })
+    accessibleName(name ?: visibleText())
+    return this
+}
+
+/** The text of the labels inside a component (HTML stripped), as a screen reader would want it. */
+internal fun JComponent.visibleText(): String {
+    val parts = ArrayList<String>()
+    fun walk(c: java.awt.Component) {
+        if (c is JLabel) c.text?.replace(Regex("<[^>]*>"), "")?.trim()?.takeIf { it.isNotEmpty() }?.let { parts.add(it) }
+        if (c is java.awt.Container) c.components.forEach { walk(it) }
+    }
+    walk(this)
+    return parts.joinToString(", ")
 }
 
 /** The first descendant that can take keyboard focus — what a screen reader will actually read. */

@@ -1,7 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
-import { isSampled, pathOfField, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
+import { getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
 
 /**
@@ -107,7 +107,10 @@ export async function fetchExternalJson(
     resolveJson?: (tpl: string | undefined) => string | undefined,
 ): Promise<unknown> {
     // A descriptor may name a catalogue entry instead of carrying a url. Resolving HERE covers every
-    // surface at once — options, rows and actions all come through this function.
+    // surface at once — options, rows and actions all come through this function. A name nobody
+    // knows YET may belong to a federated remote whose app is still being asked (a cold deep link
+    // into it): wait for those answers before deciding it is unknown.
+    if (declared?.ref && !getRestSource(declared.ref)) await remoteCataloguesSettled()
     const source = resolveRestSource(declared)
     const method = (source.method || 'GET').toUpperCase()
     // The url is resolved with its values percent-encoded by position (`templateResolver(...).url`,

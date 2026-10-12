@@ -187,9 +187,18 @@ fun starsField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean
     panel.isOpaque = false
     var current = value.toDoubleOrNull()?.toInt() ?: 0
     val labels = ArrayList<JBLabel>()
-    fun refresh() = labels.forEachIndexed { i, l ->
-        l.text = if (i < current) "★" else "☆"
-        l.foreground = if (i < current) Color(0xF5, 0xA6, 0x23) else Color.GRAY
+    fun refresh() {
+        labels.forEachIndexed { i, l ->
+            l.text = if (i < current) "★" else "☆"
+            l.foreground = if (i < current) Color(0xF5, 0xA6, 0x23) else Color.GRAY
+        }
+        // the state a screen reader reads after the field's name (the stars are glyphs)
+        panel.accessibleContext.accessibleDescription = "$current of 5"
+    }
+    fun set(rating: Int) {
+        current = rating.coerceIn(0, 5)
+        ctx.putState(fieldId, current)
+        refresh()
     }
     for (i in 1..5) {
         val star = JBLabel("☆")
@@ -197,14 +206,32 @@ fun starsField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean
         if (enabled) {
             star.addMouseListener(object : MouseAdapter() {
                 override fun mouseClicked(e: MouseEvent) {
-                    current = if (current == i) 0 else i
-                    ctx.putState(fieldId, current)
-                    refresh()
+                    panel.requestFocusInWindow()
+                    set(if (current == i) 0 else i)
                 }
             })
         }
         labels.add(star)
         panel.add(star)
+    }
+    // Clicking stars was the ONLY way to rate: a keyboard user could reach the field's caption and
+    // nothing else. The panel takes focus, Left/Right (Down/Up) step the rating, Home clears it and
+    // End/1-5 set it directly, like a slider.
+    panel.isFocusable = enabled
+    if (enabled) {
+        panel.addKeyListener(object : java.awt.event.KeyAdapter() {
+            override fun keyPressed(e: java.awt.event.KeyEvent) {
+                when (e.keyCode) {
+                    java.awt.event.KeyEvent.VK_RIGHT, java.awt.event.KeyEvent.VK_UP -> set(current + 1)
+                    java.awt.event.KeyEvent.VK_LEFT, java.awt.event.KeyEvent.VK_DOWN -> set(current - 1)
+                    java.awt.event.KeyEvent.VK_HOME, java.awt.event.KeyEvent.VK_0 -> set(0)
+                    java.awt.event.KeyEvent.VK_END -> set(5)
+                    in java.awt.event.KeyEvent.VK_1..java.awt.event.KeyEvent.VK_5 -> set(e.keyCode - java.awt.event.KeyEvent.VK_0)
+                    else -> return
+                }
+                e.consume()
+            }
+        })
     }
     refresh()
     return panel

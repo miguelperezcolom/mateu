@@ -79,6 +79,16 @@ export class SSEService implements Service {
                 }
             }
             dropIfStale('answered')
+            // fetch does not reject on an HTTP error: a 401/403/500 whose body carries no stream
+            // used to read as an empty stream and report SUCCESS — the action silently did nothing.
+            if (response.ok === false) {
+                let message = `HTTP ${response.status}`
+                try {
+                    const text = await response.text()
+                    try { message = JSON.parse(text)?.message || message } catch { if (text.trim()) message = text.trim() }
+                } catch { /* no body */ }
+                throw new Error(message)
+            }
             reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
             if (reader) {
                 let buffer = ''

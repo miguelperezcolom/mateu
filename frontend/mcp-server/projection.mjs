@@ -165,9 +165,13 @@ export function projectIncrement(increment) {
   }
 
   if (messages.length) {
+    // The wire's severity is `variant` (MessageDto: success | error | warning | info…); reading only
+    // `type` reported every error and refusal to the agent as "info". `type` is still honoured for
+    // a hand-built message, and the title travels when there is one.
     screen.messages = messages.map((m) => ({
+      ...(m.title ? { title: m.title } : {}),
       text: m.text ?? m.message ?? "",
-      type: m.type ?? "info",
+      type: m.variant ?? m.type ?? "info",
     }));
   }
   // Navigation / side effects the agent should know about (navigateTo, dispatchEvent, ...).
