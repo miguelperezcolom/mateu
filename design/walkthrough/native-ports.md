@@ -95,6 +95,7 @@ N/A (why) · — not walked yet.
 |---|---|
 | App shell, dashboard, calendar, wizard, capture, drawer CRUD, foldout | ✅ renders, no unsupported/exception |
 | .NET shell: global search, notification bell (1), Hotel context combo (named, labelled), card-menu entries with descriptions | ✅ render probe (a11y names + labelFor) |
+| .NET screens: DataManagement, GanttPage, Featured (tabs, KPI, FAB as header button, Save), TodoList (grouped, badges, caption), rail wizard, editable listing | ✅ render probe, no unsupported/exception |
 | Page header overline / placeholder / timestamp / peer nav | 🔧 dropped → 97af34a04 (`PageSlotsRenderTest`) |
 | EmptyState icon token | 🔧 printed as text → 2ae7068f2 (`DisplayComponentsRenderTest`) |
 | CollectionDetail queue cards | 🔧 captions clipped → see commit "task-queue cards no longer clip" |
