@@ -2589,3 +2589,27 @@ def test_a_route_app_data_ref_is_emitted_on_the_app_metadata(tmp_path):
     assert meta.type == "App"
     assert meta.app_data_source is not None
     assert meta.app_data_source.ref == "shop-catalog"
+
+
+def test_page_banners_replace_and_append():
+    # Java's PageBanners: append accumulates across actions, replace (the default) swaps them —
+    # the port had no way to say "append"
+    from mateu_uidl import BannerTheme, PageBanner, PageBanners
+
+    added = handler().map_result(PageBanners.append(PageBanner(BannerTheme.SUCCESS, "Saved")), None)
+    assert [b.title for b in added.banners] == ["Saved"] and added.append_banners is True
+    replaced = handler().map_result(PageBanners.replace(PageBanner(title="Only")), None)
+    assert [b.title for b in replaced.banners] == ["Only"] and replaced.append_banners is False
+    mixed = handler().map_result([Message("ok"), PageBanners.append(PageBanner(title="More"))], None)
+    assert mixed.append_banners is True and [b.title for b in mixed.banners] == ["More"]
+
+
+def test_an_error_message_stays_until_dismissed():
+    # owner, 2026-10-12: an error toast has duration 0 (sticky) in every backend — Java mapped any
+    # error to 3000 ms; a Message an action returns with a duration is no exception
+    from mateu_uidl import MessageVariant
+
+    inc = handler().map_result(Message("Boom", variant=MessageVariant.ERROR, duration=4000), None)
+    assert inc.messages[0].duration == 0
+    ok = handler().map_result(Message("Fine", duration=4000), None)
+    assert ok.messages[0].duration == 4000

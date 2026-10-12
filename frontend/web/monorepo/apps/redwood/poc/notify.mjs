@@ -130,7 +130,8 @@ export function undoMessageOf(toast) {
   return {
     severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
     summary: toast.text || '',
-    autoTimeout: 10000,
+    // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12)
+    autoTimeout: toast.variant === 'error' ? 'off' : 10000,
     closeAffordance: 'defaults',
   }
 }

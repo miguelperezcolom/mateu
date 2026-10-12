@@ -21,6 +21,7 @@ from mateu_uidl import (
     FlowStep,
     Message,
     PageBanner,
+    PageBanners,
 )
 
 from .. import action_guard, documents
@@ -130,6 +131,10 @@ class ActionHandlerMixin(MixinBase):
                     )
                 ]
             )
+        # PageBanners: the same banners with an explicit replace / append mode (Java parity).
+        if isinstance(result, PageBanners):
+            inc = self.map_result(list(result.banners), rq) if result.banners else UIIncrement.of()
+            return inc.model_copy(update={"append_banners": result.appending})
         # Action-returned page banner(s): PageBanner or a list of them → UIIncrement.banners.
         if isinstance(result, PageBanner) or (
             isinstance(result, list) and result and all(isinstance(b, PageBanner) for b in result)
@@ -186,6 +191,7 @@ class ActionHandlerMixin(MixinBase):
                     "messages": list(merged.messages) + list(part.messages),
                     "fragments": list(merged.fragments) + list(part.fragments),
                     "banners": list(merged.banners) + list(part.banners),
+                    "append_banners": merged.append_banners or part.append_banners,
                 })
             return merged
         return UIIncrement.of()

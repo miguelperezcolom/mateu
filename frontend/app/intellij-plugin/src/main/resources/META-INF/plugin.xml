@@ -59,6 +59,8 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
                              instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
+        <!-- an error stays until dismissed, in every renderer (owner, 2026-10-12) -->
+        <notificationGroup id="Mateu errors" displayType="STICKY_BALLOON"/>
         <!-- File | New | Project… › Mateu: the shared project generator over the bundled starters
              (io.mateu.ijp.newproject; same data as the VS Code "Mateu: New Project" command). -->
         <newProjectWizard.generator implementation="io.mateu.ijp.newproject.MateuNewProjectWizard"/>

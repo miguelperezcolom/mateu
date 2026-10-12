@@ -91,7 +91,12 @@ public record MessageDto(
     int Duration,
     string? UndoLabel = null,
     string? UndoActionId = null,
-    IReadOnlyDictionary<string, object?>? UndoParameters = null);
+    IReadOnlyDictionary<string, object?>? UndoParameters = null)
+{
+    /// <summary>An ERROR stays until dismissed (duration 0) — in every backend and renderer (Java's
+    /// MessageDto mapping, Python's error boundary); the rest keep the duration they were given.</summary>
+    public int Duration { get; init; } = Variant == "error" ? 0 : Duration;
+}
 
 public record UIFragmentDto(
     string TargetComponentId,

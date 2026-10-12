@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .base import (
     Wire,
@@ -102,6 +102,14 @@ class Message(Wire):
     undo_label: str | None = None
     undo_action_id: str | None = None
     undo_parameters: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def _errors_stay(self) -> "Message":
+        # An ERROR stays until dismissed (duration 0) in every backend and renderer (Java's
+        # MessageMapper, .NET's MessageDto); the rest keep the duration they were given.
+        if self.variant == "error" and self.duration != 0:
+            object.__setattr__(self, "duration", 0)
+        return self
 
 
 class UIFragment(Wire):

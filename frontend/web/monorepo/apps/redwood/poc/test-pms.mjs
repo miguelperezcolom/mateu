@@ -1009,6 +1009,8 @@ test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de l
   assert.equal(reg.effects.toasts, same, 'la MISMA lista: las chains la leen después')
   assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Saved'])
   assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 10000, closeAffordance: 'defaults' })
+  // an error stays until dismissed (owner, 2026-10-12), even when it can be undone
+  assert.equal(undoMessageOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }).autoTimeout, 'off')
 })
 
 test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain; JET oj-message lleva el Undo', () => {

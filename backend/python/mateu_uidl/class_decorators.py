@@ -29,6 +29,23 @@ class PageBanner:
 
 
 @dataclass(frozen=True)
+class PageBanners:
+    """Action-returned page banners with an explicit mode (Java's ``PageBanners``):
+    ``PageBanners.replace(...)`` swaps the banners earlier actions showed (what a bare
+    ``PageBanner`` / list does), ``PageBanners.append(...)`` adds to them."""
+    banners: tuple = ()
+    appending: bool = False
+
+    @staticmethod
+    def replace(*banners: "PageBanner") -> "PageBanners":
+        return PageBanners(tuple(banners), False)
+
+    @staticmethod
+    def append(*banners: "PageBanner") -> "PageBanners":
+        return PageBanners(tuple(banners), True)
+
+
+@dataclass(frozen=True)
 class _Fab:
     icon: str
     label: str | None

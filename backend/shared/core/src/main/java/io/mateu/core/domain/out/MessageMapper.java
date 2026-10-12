@@ -92,7 +92,12 @@ public class MessageMapper {
                 : null)
         .title(message.title())
         .text(message.text())
-        .duration(message.duration() > 0 ? message.duration() : 3000)
+        // an ERROR stays until dismissed — in every backend and renderer (owner, 2026-10-12): read
+        // in 3 s and gone, the user often never saw why the save failed
+        .duration(
+            message.variant() == io.mateu.uidl.data.NotificationVariant.error
+                ? 0
+                : message.duration() > 0 ? message.duration() : 3000)
         .undoLabel(message.undoLabel())
         .undoActionId(message.undoActionId())
         .undoParameters(message.undoParameters())
