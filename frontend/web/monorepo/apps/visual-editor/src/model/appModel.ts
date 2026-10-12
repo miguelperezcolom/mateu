@@ -217,3 +217,20 @@ export function moveWidget(doc: AppDoc, index: number, delta: number): AppDoc {
 export function removeWidget(doc: AppDoc, index: number): AppDoc {
     return { ...doc, widgets: doc.widgets.filter((_, i) => i !== index) }
 }
+
+// --- the header extras (contextSelectors, headerActions, notifications, globalSearch) ---
+// Kept in `appRest` like every key the shell model does not type, so their authored order and any
+// key the editor does not model round-trip; the app-shell editor edits them through these two.
+
+/** The value of a header-extras key of the shell (undefined when absent). */
+export function appExtra(doc: AppDoc, key: string): unknown {
+    return doc.appRest[key]
+}
+
+/** The shell with `key` set to `value`; a blank value (`''`, an empty list) removes the key. */
+export function withAppExtra(doc: AppDoc, key: string, value: unknown): AppDoc {
+    const appRest = { ...doc.appRest }
+    if (value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) delete appRest[key]
+    else appRest[key] = value
+    return { ...doc, appRest }
+}

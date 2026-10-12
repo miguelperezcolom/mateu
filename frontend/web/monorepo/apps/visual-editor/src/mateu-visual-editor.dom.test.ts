@@ -240,6 +240,45 @@ describe('<mateu-visual-editor> — the project\'s renderer, Play, page settings
         expect(props.shadowRoot.querySelector('ve-select.page-type')).toBeNull()
     })
 
+    it('a Form\'s Properties carry the page header editor, and its edits reach the file', async () => {
+        const el = await mount('type: Form\ntitle: Orders\nbadges:\n  - {label: VIP, color: success}\ncontent:\n  - type: Text\n    text: Hello\n')
+        el.selectedPath = []
+        await el.updateComplete
+        const props = el.shadowRoot.querySelector('editor-properties') as any
+        await props.updateComplete
+        const header = props.shadowRoot.querySelector('page-header-editor') as any
+        expect(header).toBeTruthy()
+        await header.updateComplete
+        // the header keys are edited there — not listed as "edited on the canvas", not repeated as text
+        expect(props.shadowRoot.querySelector('.muted')?.textContent ?? '').not.toMatch(/badges|kpis|banners|fabs|peerNav|recordSwitcher/)
+        const overline = header.shadowRoot.querySelector('input.overline') as HTMLInputElement
+        overline.value = 'Sales'
+        overline.dispatchEvent(new Event('change', { bubbles: true, composed: true }))
+        await el.updateComplete
+        const yaml = posted.filter((m) => m.type === 'contentChanged').at(-1).yaml
+        expect(yaml).toContain('overline: Sales')
+        expect(yaml).toContain('  - {label: VIP, color: success}')
+        // a child that is not a Form gets no page header
+        el.selectedPath = [0]
+        await el.updateComplete
+        await props.updateComplete
+        expect(props.shadowRoot.querySelector('page-header-editor')).toBeNull()
+    })
+
+    it('the app shell editor writes the header extras', async () => {
+        const el = await mount('type: AppShell\ntitle: Shop\nmenu: []\n', 'app.yaml')
+        const app = el.shadowRoot.querySelector('app-editor') as any
+        await app.updateComplete
+        const extras = app.shadowRoot.querySelector('app-header-extras') as any
+        expect(extras).toBeTruthy()
+        await extras.updateComplete
+        extras.shadowRoot.querySelector('button[data-add=headerActions]').click()
+        await el.updateComplete
+        const yaml = posted.filter((m) => m.type === 'contentChanged').at(-1).yaml
+        expect(yaml).toContain('headerActions:')
+        expect(yaml).toContain('title: Shop')
+    })
+
     it('an icon property is free text plus a picker of the project\'s icons', async () => {
         const el = await mount('type: Form\ntitle: Orders\ncontent:\n  - type: Button\n    label: Buy\n    iconOnLeft: vaadin:cart\n')
         send({ type: 'files', files: MOUNT_FILES('redwood') })
