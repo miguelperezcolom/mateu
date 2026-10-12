@@ -6,7 +6,7 @@ import { headerValues } from './appShellExtras.ts';
 import { presentDocument } from './documentEffects.ts';
 import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
-import { serverSideState } from './uxRules.ts';
+import { mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
 import { confirmationOf, type ConfirmationDialogTexts } from './actionConfirmation.ts';
@@ -58,7 +58,8 @@ export class MateuViewController {
   currentComponentState: Json = {};
 
   /** The mediator's inner route currently rendered (stay-in-place detection). */
-  private currentInnerRoute = '';
+  /** The crud mediator's inner route this screen's own load seeded (`null`: its load carried none). */
+  private currentInnerRoute: string | null = null;
   /** The sst this view was NAVIGATED with (crud orchestrator) — bubbling fallback. */
   private navigationServerSideType = '';
   private orchestratorServerSideType = '';
@@ -107,6 +108,8 @@ export class MateuViewController {
   onRender: (view: RenderedView) => void = () => {};
   /** Detail navigations (row → detail/new/edit) open as a NEW screen through this; unset → in place. */
   detailOpener: ((target: NavTarget) => void) | null = null;
+  /** Host hook: go back to the listing at `listRoute` (pops the native stack to it). */
+  listReturner: ((listRoute: string) => void) | null = null;
   /** Errors/messages silenced (embedded islands). */
   silentErrors = false;
 
@@ -685,9 +688,17 @@ export class MateuViewController {
         const stateComp = str(state['_componentRoute']);
         const base = stateComp || this.currentConsumedRoute;
         const routeSuffix = str(state['_route']);
-        if (this.currentInnerRoute && trimSlashes(routeSuffix) === this.currentInnerRoute) {
-          // Same inner route: stay put — a RunAction command in the same increment refreshes data.
+        const move = mediatorMove(routeSuffix, this.currentInnerRoute, !!this.detailOpener);
+        if (move === 'stay') {
+          // Same inner route (the listing answers to "" and "list"): stay put — a RunAction command
+          // in the same increment refreshes the data.
           Object.assign(this.currentComponentState, state);
+          return;
+        }
+        if (move === 'backToList' && this.listReturner) {
+          // A record screen sent to the list (Back to list, Cancel, a delete from the record): back
+          // to the listing it was opened from, not a second listing stacked on top of it.
+          this.listReturner(base);
           return;
         }
         const fullRoute = base + routeSuffix;
@@ -695,8 +706,7 @@ export class MateuViewController {
           this.orchestratorServerSideType && this.orchestratorComponentRoute === stateComp
             ? this.orchestratorServerSideType
             : this.navigationServerSideType || this.currentServerSideType;
-        const isDetail = routeSuffix !== '' && fullRoute !== base;
-        if (this.detailOpener && isDetail) {
+        if (this.detailOpener && move === 'detail') {
           this.detailOpener({ label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst });
         } else {
           this.currentInnerRoute = trimSlashes(routeSuffix);

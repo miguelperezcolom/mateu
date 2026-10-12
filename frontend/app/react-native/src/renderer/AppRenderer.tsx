@@ -104,6 +104,18 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
+  // A record screen sent back to its listing: pop to the screen showing that listing (the base, or
+  // a stacked one) — a fresh mount, so it reloads; with none in the stack, push it.
+  const returnToList = useCallback(
+    (listRoute: string) =>
+      setStack((s) => {
+        const same = (r: string) => r.replace(/^\/+|\/+$/g, '') === listRoute.replace(/^\/+|\/+$/g, '');
+        for (let i = s.length - 1; i >= 0; i--) if (same(s[i].route)) return s.slice(0, i + 1);
+        if (same(routeArg)) return [];
+        return [...s, { label: '', route: listRoute, consumedRoute: listRoute, serverSideType }];
+      }),
+    [routeArg, serverSideType],
+  );
   const pop = useCallback(async () => {
     const c = topController.current;
     if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
@@ -148,6 +160,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
         session={session}
         target={top}
         onOpenDetail={push}
+        onReturnToList={returnToList}
         onController={(c) => (topController.current = c)}
       />
     </View>

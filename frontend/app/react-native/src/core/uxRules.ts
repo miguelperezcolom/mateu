@@ -185,3 +185,22 @@ export function rowCheckboxLabel(rowTitle: unknown): string {
   const t = rowTitle == null ? '' : String(rowTitle).trim();
   return t ? `Select ${t}` : 'Select row';
 }
+
+/**
+ * Where a crud mediator's state-only `_route` move (view / cancel / save / delete answers) takes a
+ * native screen stack. `current` is the inner route this screen was seeded with by its own load
+ * (`null` when its load carried none — a pushed record screen). The listing answers to two names,
+ * `""` and `"list"`, so a delete on the listing STAYS (the RunAction search in the same increment
+ * refreshes it) instead of pushing a copy of itself; and a record screen sent to the list goes BACK
+ * to the listing it was opened from instead of stacking a second listing on top of it.
+ */
+export type MediatorMove = 'stay' | 'backToList' | 'detail' | 'inPlace';
+
+export function mediatorMove(routeSuffix: string, current: string | null, canStack: boolean): MediatorMove {
+  const trim = (s: string) => s.replace(/^\/+|\/+$/g, '');
+  const next = trim(routeSuffix);
+  const isList = (r: string) => r === '' || r === 'list';
+  if (current !== null && (trim(current) === next || (isList(trim(current)) && isList(next)))) return 'stay';
+  if (isList(next)) return canStack ? 'backToList' : 'inPlace';
+  return canStack ? 'detail' : 'inPlace';
+}

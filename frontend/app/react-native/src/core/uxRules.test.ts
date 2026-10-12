@@ -2,8 +2,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState,
+  rowCheckboxLabel, serverSideState, mediatorMove,
 } from './uxRules.ts';
+
+test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
+  // the Java SUT's /bulk-actions: seeded with "" and its delete answers "/list" — same screen
+  assert.equal(mediatorMove('/list', '', true), 'stay');
+  assert.equal(mediatorMove('/list', 'list', true), 'stay');
+  // a pushed record screen (its load seeded nothing): Back to list / Cancel return to the listing
+  assert.equal(mediatorMove('/list', null, true), 'backToList');
+  assert.equal(mediatorMove('', null, true), 'backToList');
+  // the listing opening a record, and a record screen opening its edit form, stack
+  assert.equal(mediatorMove('/1', 'list', true), 'detail');
+  assert.equal(mediatorMove('/1/edit', null, true), 'detail');
+  // the same record route again stays
+  assert.equal(mediatorMove('/1', '1', true), 'stay');
+  // no stack to push onto (an embedded island): everything happens in place
+  assert.equal(mediatorMove('/1', 'list', false), 'inPlace');
+  assert.equal(mediatorMove('/list', null, false), 'inPlace');
+});
 
 test('RN-01 a toolbar button dispatches its actionId (the crud New/Delete buttons carry no id)', () => {
   // the exact shape the Products crud toolbar sends
