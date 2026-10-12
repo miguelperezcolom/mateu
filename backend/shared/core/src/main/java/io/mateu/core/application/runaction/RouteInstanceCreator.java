@@ -61,6 +61,13 @@ public class RouteInstanceCreator {
                             .next()));
   }
 
+  /** Only the first half of {@link #findRouteResolver}: an App mounted on a prefix of the route. */
+  public Mono<?> findApp(RunActionCommand command) {
+    List<String> segments = createRoutes(command);
+    return Mono.defer(
+        () -> Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next());
+  }
+
   /**
    * Resolves a route segment to an App / RouteResolver class (shortest-first favoured by {@link
    * #findRouteResolver}). Returns the instantiated app after remote-menu resolution so the UI can

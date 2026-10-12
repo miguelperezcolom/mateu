@@ -1,0 +1,66 @@
+# The actions walkthrough (design/walkthrough/actions.md), authored as DATA: a definition-only page
+# (no view model) whose buttons run what a YAML `actions:` can declare — a REST call made by the
+# browser (direct), one made by the server (proxy, the only leg that injects ${secret.X}), a flow
+# of steps, and an id resolved from the action catalogue (walk-actions.yaml), owner first.
+# Driven by e2e/tests/shared/yaml-actions.spec.ts on every adapter.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: YAML actions
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: zip
+        label: Zip
+      - type: FormField
+        id: street
+        label: Street
+      - type: FormField
+        id: city
+        label: City
+buttons:
+  - type: Button
+    label: Look up directly
+    actionId: lookupDirect
+  - type: Button
+    label: Look up through the server
+    actionId: lookupProxied
+  - type: Button
+    label: Run a flow
+    actionId: localFlow
+  - type: Button
+    label: Catalogue flow
+    actionId: walkCatalogueFlow
+  - type: Button
+    label: Owner first
+    actionId: walkOwnerFirst
+actions:
+  # the browser fetches a same-origin JSON and merges `address` into the form
+  - id: lookupDirect
+    restAction:
+      source:
+        url: /rest-action-demo.json?zip=${state.zip}
+        method: GET
+      resultPath: address
+      successMessage: Address found
+  # the SERVER calls it: the browser only posts __restfetch__, never the url nor the secret. The
+  # upstream is unreachable on purpose — what is asserted is the leg, and that the user is told.
+  - id: lookupProxied
+    restAction:
+      source:
+        url: http://127.0.0.1:9/never?key=${secret.WALK_KEY}
+        method: GET
+        proxy: true
+      resultPath: address
+      successMessage: Should not happen
+  # a flow: runs in the browser, no server round trip
+  - id: localFlow
+    steps:
+      - type: MarkDirty
+      - type: Navigate
+        route: /fluent-counter
+  # the catalogue declares walkOwnerFirst too (→ /actions-lab); the page's own wins (→ /overlay-lab)
+  - id: walkOwnerFirst
+    steps:
+      - type: Navigate
+        route: /overlay-lab

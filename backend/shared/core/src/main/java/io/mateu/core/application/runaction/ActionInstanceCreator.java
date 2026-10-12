@@ -104,6 +104,17 @@ public class ActionInstanceCreator {
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
     }
+    // A route routes.yaml binds to a DEFINITION only (no view model): on a fresh deep link the
+    // mount's root CLASS (a plain @UI("") page) claimed it by prefix and answered itself — the
+    // browser showed the root page instead of the definition. An app on a prefix still answers
+    // first (it draws the chrome and loads the content inside); otherwise the definition does.
+    if (isAuthoredDefinitionOnly(command.route())) {
+      return routeInstanceCreator
+          .findApp(command)
+          .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
+          .switchIfEmpty(
+              (Mono) Mono.defer(() -> routeInstanceCreator.findRouteResolver(finalCommand)));
+    }
     return routeInstanceCreator
         .findRouteResolver(command)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
@@ -172,6 +183,17 @@ public class ActionInstanceCreator {
    * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
    * is never offered to a remote, even when no menu entry claims it.
    */
+  private boolean isAuthoredDefinitionOnly(String route) {
+    if (route == null || stripQuery(route).replaceAll("^/+", "").isEmpty()) {
+      return false;
+    }
+    return routeRegistry
+        .authored()
+        .match(stripQuery(route))
+        .map(match -> match.entry().viewModel() == null || match.entry().viewModel().isBlank())
+        .orElse(false);
+  }
+
   private boolean isAuthoredHere(String route) {
     return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
