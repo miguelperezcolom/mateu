@@ -38,6 +38,18 @@ describe('mateu-field', () => {
         expect(input.getAttribute('label') ?? input.label).toBe('Field')
     })
 
+    it('passes the declared placeholder to the input (a FormField / field type `placeholder:`)', async () => {
+        // the wire always carried it (fluent FormField, types.yaml) and no Vaadin input ever showed it
+        for (const over of [{ dataType: 'string' }, { dataType: 'number' }, { dataType: 'integer' }, { stereotype: 'textarea' }, { stereotype: 'email' }]) {
+            const { root } = await mount({ ...over, placeholder: 'AB-123' }, { f: '' })
+            const input = root.querySelector('vaadin-text-field, vaadin-number-field, vaadin-integer-field, vaadin-text-area, vaadin-email-field')
+            expect(input?.getAttribute('placeholder'), JSON.stringify(over)).toBe('AB-123')
+            document.body.innerHTML = ''
+        }
+        const { root } = await mount({ dataType: 'string' }, { f: '' })
+        expect(root.querySelector('vaadin-text-field')?.hasAttribute('placeholder')).toBe(false)
+    })
+
     it('interpolates the label against the state', async () => {
         const { root } = await mount({ dataType: 'string', label: 'Hi ${state.name}' }, { name: 'Ana', f: '' })
         expect(root.querySelector('vaadin-text-field')?.getAttribute('label')).toBe('Hi Ana')
