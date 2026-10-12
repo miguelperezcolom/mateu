@@ -519,6 +519,13 @@ test('a composed page (no Page, no Crud title) takes its header title from its w
   assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
 })
 
+test('a Welcome tile holding Markdown shows its text, markup dropped', () => {
+  const hero = node({ type: 'HeroSection', title: 'Welcome' })
+  const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Markdown', markdown: 'Find the **booking**' })])])
+  const welcome = welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} })
+  assert.deepEqual(welcome.tiles[0].texts, ['Find the booking'])
+})
+
 test('what a composed page puts before its listing (the HeroSearch hero) is painted above the table', () => {
   const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
     node({ type: 'HeroSection', title: 'Find your hotel' }),

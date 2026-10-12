@@ -414,6 +414,11 @@ export function collectTexts(node, out = []) {
   if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
     out.push(node.metadata.text)
   }
+  // a Markdown (the Welcome tiles') is text too — as plain text, its markup dropped: the tiles
+  // used to show their titles only
+  if (node.metadata && node.metadata.type === 'Markdown' && node.metadata.markdown) {
+    out.push(String(node.metadata.markdown).replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]/g, '').trim())
+  }
   for (const v of Object.values(node)) {
     if (Array.isArray(v)) v.forEach((x) => collectTexts(x, out))
     else if (v && typeof v === 'object') collectTexts(v, out)
