@@ -141,6 +141,11 @@ test.describe('SpecialFieldsWalkForm (/walk-special) — choices, captures and p
       name: 'b.csv', mimeType: 'text/csv', buffer: Buffer.from('a,b\n1,2'),
     });
     const canvas = field(page, 'signature').locator('canvas');
+    // measure the pad once the uploads above have re-rendered the form (a layout shift after the
+    // measurement made the stroke miss the canvas)
+    await expect(field(page, 'avatar').locator('img')).toBeVisible();
+    await canvas.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
     const box = await canvas.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box!.x + 20, box!.y + 20);

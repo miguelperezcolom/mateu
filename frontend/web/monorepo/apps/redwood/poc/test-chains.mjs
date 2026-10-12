@@ -250,7 +250,13 @@ test('a listing keeps its page and sort in the URL, with the Vaadin contract (ba
 test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
   const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
     'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
-  assert.ok(!bundle.includes('#{env.catalogJson}#'), 'the service-catalogue placeholder only a VB host fills is left in the jar bundle')
+  assert.ok(!/[#%]\{env\./.test(bundle), 'a placeholder only a VB host fills is left in the jar bundle')
+  // the security provider reads a static anonymous user the jar ships: without a url it asked
+  // `<base>_currentuser`, which the server answered with the index page (a JSON parse error)
+  assert.ok(bundle.includes('\\"userConfig\\":{\\"type\\":\\"vb/DefaultSecurityProvider\\",\\"configuration\\":{\\"url\\":\\"/_redwood/resources/mateu-anonymous-user.json\\"}'))
+  const user = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
+    'src', 'main', 'resources', 'static', '_redwood', 'resources', 'mateu-anonymous-user.json'), 'utf8'))
+  assert.equal(user.isAuthenticated, false)
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 

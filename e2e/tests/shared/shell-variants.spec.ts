@@ -124,7 +124,8 @@ test.describe('Shell variants', () => {
   test('chromeless: no navigation chrome; the command center navigates and searches', async ({ page }) => {
     const problems = watchConsole(page);
     await page.goto('/shell-cc');
-    await expect(page.getByRole('heading', { name: 'Shell chromeless' })).toBeVisible();
+    // an app with no declared home lands on its first menu item (owner, 2026-10-12)
+    await expect(page).toHaveTitle(/Section 1/);
     await expect(page.getByRole('navigation')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Command center' }).click();

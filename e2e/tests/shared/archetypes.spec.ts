@@ -78,7 +78,8 @@ test.describe('page archetypes', () => {
     await expect(page.getByText('Find assets by name, zone or acquisition date')).toBeVisible();
     await expect(page).toHaveTitle('Smart Search');
     for (const header of ['Name', 'Zone', 'Acquired', 'Units']) {
-      await expect(page.locator('vaadin-grid-sorter, vaadin-grid-cell-content').filter({ hasText: new RegExp(`^${header}$`) }).first()).toBeVisible();
+      // a sortable column's header also carries its sort indicator, so match the header by role
+      await expect(page.getByRole('columnheader', { name: new RegExp(`^${header}\\b`) }).first()).toBeVisible();
     }
     const search = page.getByRole('textbox', { name: /Search/ }).first();
     await search.fill('van');
