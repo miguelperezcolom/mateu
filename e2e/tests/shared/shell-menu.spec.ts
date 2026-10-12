@@ -118,6 +118,16 @@ test.describe('Shell routes from routes.yaml (/shell)', () => {
     expect(problems).toEqual([]);
   });
 
+  test('a pinned param survives a reload (a load by type)', async ({ page }) => {
+    // orders/pending and orders share a view model: reloaded, the page used to take the defaults
+    // of the shorter route (status=open)
+    await page.goto('/shell/orders/pending');
+    await expect(page.getByRole('button', { name: 'Show status' })).toBeVisible();
+    await page.reload();
+    await page.getByRole('button', { name: 'Show status' }).click();
+    await expect(page.getByText('status=pending').first()).toBeVisible();
+  });
+
   test('a pinned param is not overridable by the query', async ({ page }) => {
     await page.goto('/shell/orders/pending?status=open');
     await page.getByRole('button', { name: 'Show status' }).click();

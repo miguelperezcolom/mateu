@@ -100,6 +100,16 @@ class NonRootMountRoutesSyncTest {
   }
 
   @Test
+  void aPinnedRouteReloadedByItsTypeKeepsItsPinNotTheDefaultsOfAShorterRouteOfTheSameClass()
+      throws Exception {
+    // orders/pending (fixed status) and orders (default status) are the same view model: a load
+    // by type (a reload, which carries the type) picked the SHORTEST route of the class as its
+    // mount and answered the defaults of `orders` — the pinned page showed status=open
+    var wire = wire(content("/orders/pending", Orders.class, ""));
+    assertThat(wire).contains("\"status\":\"pending\"").doesNotContain("\"status\":\"open\"");
+  }
+
+  @Test
   void aDefaultParamSeedsTheRoute() throws Exception {
     // (the query overriding it is a browser concern: e2e shell-menu.spec.ts)
     assertThat(wire(content("/orders", NrmApp.class, ""))).contains("\"status\":\"open\"");

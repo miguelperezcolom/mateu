@@ -391,12 +391,44 @@ public class ActionInstanceCreator {
         if (resolved != null
             && resolved.resolvedClass() != null
             && resolved.resolvedClass().getName().equals(command.serverSideType())) {
+          var own = n < segments.length ? ownAuthoredRoute(path, resolved, command) : null;
+          if (own != null) {
+            return own;
+          }
           return new io.mateu.core.application.ResolvedRoute(
               prefix, resolved.pattern(), resolved.resolvedClass(), resolved.entry());
         }
       } catch (Throwable t) {
         log.debug("mountOf {}: {}", prefix, t.toString());
       }
+    }
+    return null;
+  }
+
+  /**
+   * The routes.yaml entry answering the WHOLE {@code path} with the same class as the shorter route
+   * {@code shorter} — two authored entries sharing a view model with different parameters pinned
+   * ({@code orders/pending} pins status, {@code orders} only defaults it). The longer one is the
+   * screen's own route: taking the shorter made a reload of orders/pending (a load by type) answer
+   * the defaults of orders. Null in every other case (a crud's sub-route, a child tab…).
+   */
+  private io.mateu.core.application.ResolvedRoute ownAuthoredRoute(
+      String path, io.mateu.core.application.ResolvedRoute shorter, RunActionCommand command) {
+    if (shorter.entry() == null) {
+      return null;
+    }
+    try {
+      var exact = routedClassResolver.resolve(path, command).orElse(null);
+      if (exact != null
+          && exact.entry() != null
+          && exact.entry() != shorter.entry()
+          && !exact.entry().hasParent()
+          && shorter.resolvedClass().equals(exact.resolvedClass())) {
+        return new io.mateu.core.application.ResolvedRoute(
+            path, exact.pattern(), exact.resolvedClass(), exact.entry());
+      }
+    } catch (Throwable t) {
+      log.debug("mountOf {}: {}", path, t.toString());
     }
     return null;
   }
