@@ -63,7 +63,7 @@ N/A (why) · — not walked yet.
 | Section affordances, draft save | ✅ | ✅ |
 | Card menu, app context picker, header action, notification bell, command-center palette + global search | ✅ shell-walk | ✅ shell-walk |
 | Security principal (identity from the host) | — | — |
-| YAML pages served by the ports | — | — |
+| YAML pages served by the ports (the yaml starter's specs) | ❌ 8: only 8 YAML component types build — `home.yaml` (HeroSection) and `products.yaml` (Listing) show "Unsupported component"; `app.yaml` (AppShell) is documented as Java-only | ❌ 8: same 8 types in `YamlComponentBuilder` |
 | Ports behind **Redwood** | ❌ 1 (no way to serve it) | ❌ 1 |
 
 ### React Native (Expo web)
@@ -159,6 +159,18 @@ listed above.
 7. Known structural divergences not worth a case yet: the ports' CollectionDetail is a
    VerticalLayout + ResponsiveGrid, Java's a form with an island; the Java wizard advertises a `*`
    catch-all where the ports list `next/back/skip`.
+
+8. **YAML pages in the ports** build only VerticalLayout, HorizontalLayout, FormLayout, FormField,
+   Button, Text, Form and ComponentRef (Python `yaml_preview._build`, .NET `YamlComponentBuilder`) —
+   the yaml starter's own pages render "Unsupported component: HeroSection / Listing". The port
+   manuals do not state the subset. Owner: extend the builders (or map YAML through the fluent
+   catalogue generically), or document the subset.
+
+## Permanent harnesses added
+
+- `e2e/rn-starter-probe.mjs` — the starters' screens on React Native (any runtime).
+- `e2e/dead-button-probe.mjs` — every `data-action-id` on the page must be advertised by an
+  enclosing component; backend-agnostic. (Java SUT routes of `conformance-fixtures.json`: all pass.)
 
 ## For other areas
 
