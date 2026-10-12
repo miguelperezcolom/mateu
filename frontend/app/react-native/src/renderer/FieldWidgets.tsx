@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { buttonA11y } from '../a11y/a11y';
+import { decimalDraft, moneyText } from '../core/uxRules';
 import { stripHtml } from './htmlText';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
@@ -129,19 +130,21 @@ export function SliderField({ min, max, step, value, editable, onChange }: {
 }
 
 export function StepperField({ value, step, editable, onChange }: {
-  value: number;
+  /** null = unset: shown empty (not as a 0 nobody entered); a step starts from 0 */
+  value: number | null;
   step: number;
   editable: boolean;
   onChange: (v: number) => void;
 }) {
   const delta = step > 0 ? step : 1;
+  const base = value ?? 0;
   return (
     <View style={styles.stepperRow}>
-      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value - delta)}>
+      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(base - delta)}>
         <Text style={styles.stepperButtonText}>−</Text>
       </TouchableOpacity>
-      <Text style={styles.stepperValue}>{value}</Text>
-      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(value + delta)}>
+      <Text style={styles.stepperValue}>{value ?? ''}</Text>
+      <TouchableOpacity {...buttonA11y()} style={styles.stepperButton} disabled={!editable} onPress={() => onChange(base + delta)}>
         <Text style={styles.stepperButtonText}>+</Text>
       </TouchableOpacity>
     </View>
@@ -245,14 +248,24 @@ export function ImagePreview({ value }: { value: string }) {
 
 // ── read-only text renderings ────────────────────────────────────────────────────────────────
 
+/** A decimal TextInput that keeps the text being typed (see decimalDraft). */
+export function DecimalInput({ text, onChangeText, ...rest }: React.ComponentProps<typeof TextInput> & { text: string; onChangeText: (t: string) => void }) {
+  const [draft, setDraft] = useState(text);
+  const shown = decimalDraft(draft, text);
+  return (
+    <TextInput
+      {...rest}
+      value={shown}
+      onChangeText={(t) => {
+        setDraft(t);
+        onChangeText(t);
+      }}
+    />
+  );
+}
+
 export function formatMoney(value: unknown): string {
-  const n = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
-  if (isNaN(n)) return String(value ?? '');
-  try {
-    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-  } catch {
-    return n.toFixed(2);
-  }
+  return moneyText(value);
 }
 
 export function LinkText({ value }: { value: string }) {

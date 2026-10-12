@@ -23,6 +23,7 @@ import {
   SliderField,
   StarsField,
   StepperField,
+  DecimalInput,
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
@@ -33,6 +34,7 @@ import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 import { fieldPlaceholder } from '../core/uxRules';
 import { richTextHtml } from '../core/richTextValue';
+import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
 
 interface Option {
   children?: Option[];
@@ -418,7 +420,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       if (metadata.stepButtonsVisible) {
         return (
           <StepperField
-            value={Number(rawValue) || 0}
+            value={stepperValue(rawValue)}
             step={metadata.step ?? 1}
             editable={editable}
             onChange={(v) => commit(fieldId, v)}
@@ -444,12 +446,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       if (!editable && (dataType === 'money' || ['money', 'currency'].includes(stereotype))) {
         return <Text style={styles.plainText}>{formatMoney(rawValue)}</Text>;
       }
+      const money = dataType === 'money' || ['money', 'currency'].includes(stereotype);
       return (
-        <TextInput
+        <DecimalInput
           {...a11y}
           style={styles.input}
-          value={stringValue}
-          onChangeText={(v) => commit(fieldId, v === '' ? null : parseFloat(v))}
+          text={money ? moneyInputText(rawValue) : stringValue}
+          onChangeText={(v) => commit(fieldId, money ? moneyInputCommit(rawValue, v) : v === '' ? null : parseFloat(v.replace(',', '.')))}
           keyboardType="decimal-pad"
           editable={editable}
           placeholder={placeholder}

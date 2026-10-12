@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction,
+  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft,
 } from './uxRules.ts';
 
 test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
@@ -130,4 +130,33 @@ test('a progress bar reads its state key, and a 0 max means the 0..1 default (th
   assert.equal(progressFraction({ min: 0, max: 0, value: 0, valueKey: 'progressValue' }, { progressValue: 0.4 }), 0.4);
   assert.equal(progressFraction({ min: 0, max: 5, value: 2 }, {}), 0.4);
   assert.equal(progressFraction({ value: 3 }, {}), 1);
+});
+
+test('an Amount field edits its value and keeps currency/locale (nullable-numbers spec)', () => {
+  const price = { currency: 'EUR', value: 25.5, locale: 'de-DE' };
+  assert.equal(moneyInputText(price), '25.5');
+  assert.deepEqual(moneyInputCommit(price, ''), { currency: 'EUR', value: 0, locale: 'de-DE' });
+  assert.deepEqual(moneyInputCommit(price, '12,5'), { currency: 'EUR', value: 12.5, locale: 'de-DE' });
+  assert.equal(moneyInputText(7), '7');
+  assert.equal(moneyInputCommit(7, ''), null);
+  assert.equal(moneyInputText(null), '');
+  assert.equal(moneyText(price).replace(/\s/g, ' '), '25,50 €');
+  assert.equal(moneyText(1234.5), '1.234,50');
+});
+
+test('an unset integer stepper is empty, not 0', () => {
+  assert.equal(stepperValue(null), null);
+  assert.equal(stepperValue(undefined), null);
+  assert.equal(stepperValue(''), null);
+  assert.equal(stepperValue(0), 0);
+  assert.equal(stepperValue('3'), 3);
+});
+
+test('a decimal input keeps the text being typed (12. → 12.5, not 125)', () => {
+  assert.equal(decimalDraft('12.', '12'), '12.');
+  assert.equal(decimalDraft('12,', '12'), '12,');
+  assert.equal(decimalDraft('', '0'), '');      // a cleared Amount commits 0: the field stays empty
+  assert.equal(decimalDraft('', ''), '');
+  assert.equal(decimalDraft('12.5', '12.5'), '12.5');
+  assert.equal(decimalDraft('12.5', '30'), '30'); // changed from elsewhere (a reload, an action)
 });

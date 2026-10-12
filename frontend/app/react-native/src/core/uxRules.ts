@@ -219,3 +219,62 @@ export function progressFraction(metadata: Record<string, unknown>, state: Recor
   if (max - min === 0 || Number.isNaN(raw)) return 0;
   return Math.max(0, Math.min(1, (raw - min) / (max - min)));
 }
+
+/**
+ * Money values. A field typed `Amount` travels as an OBJECT `{value, currency, locale}` (the web's
+ * mateu-money-field edits its `value` and keeps the rest); a plain numeric money field as a
+ * number. Showing the object as text printed "[object Object]" in the input.
+ */
+type AmountValue = { value?: unknown; currency?: unknown; locale?: unknown };
+const isAmount = (raw: unknown): raw is AmountValue => !!raw && typeof raw === 'object' && !Array.isArray(raw) && 'value' in (raw as object);
+
+/** What a money input shows: the amount's number, or the plain value; '' when unset. */
+export function moneyInputText(raw: unknown): string {
+  const v = isAmount(raw) ? raw.value : raw;
+  return v === null || v === undefined ? '' : String(v);
+}
+
+/** The value a money input commits: an Amount keeps its currency/locale (a cleared amount is 0,
+ *  as on the web); a plain money number is null when cleared. */
+export function moneyInputCommit(raw: unknown, text: string): unknown {
+  const n = text.trim() === '' ? null : parseFloat(text.replace(',', '.'));
+  if (isAmount(raw)) return { ...raw, value: n === null || Number.isNaN(n) ? 0 : n };
+  return n === null || Number.isNaN(n) ? null : n;
+}
+
+/** Read-only money text: an Amount formats with its OWN locale and currency, a number as de-DE 2dp. */
+export function moneyText(raw: unknown): string {
+  const amount = isAmount(raw) ? raw : null;
+  const v = amount ? amount.value : raw;
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
+  if (Number.isNaN(n)) return v === null || v === undefined ? '' : String(v);
+  const locale = (amount && typeof amount.locale === 'string' && amount.locale) || 'de-DE';
+  const currency = amount && typeof amount.currency === 'string' && amount.currency ? amount.currency : null;
+  try {
+    return new Intl.NumberFormat(locale, currency
+      ? { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  } catch {
+    return n.toFixed(2);
+  }
+}
+
+/** A stepper's value: null (unset — shown empty, as the web's integer field) or a number. */
+export function stepperValue(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
+}
+
+/**
+ * A decimal input keeps what the user is TYPING ("12.", "0,", "") while the committed value is the
+ * parsed number: re-deriving the text from the number turned "12." into "12" (so 12.5 became 125)
+ * and a cleared amount into "0". The draft gives way only when the value changes from elsewhere.
+ */
+export function decimalDraft(draft: string, externalText: string): string {
+  const num = (t: string) => (t.trim() === '' ? null : parseFloat(t.replace(',', '.')));
+  const a = num(draft);
+  const b = num(externalText);
+  const same = (a === null || Number.isNaN(a)) ? b === null || b === 0 || Number.isNaN(b as number) : a === b;
+  return same ? draft : externalText;
+}
