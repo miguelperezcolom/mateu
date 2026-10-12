@@ -83,6 +83,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void answersDeepLinksWithEncodedSegments() {
+      contract.answersDeepLinksWithEncodedSegments();
+    }
+
+    @Test
     void doesNotAnswerADataFetchWithTheIndex() {
       contract.doesNotAnswerADataFetchWithTheIndex();
     }

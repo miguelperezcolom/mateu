@@ -454,6 +454,21 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * A deep link whose record id carries a space, an accent, a {@code +}, {@code ~}, {@code :} or
+   * {@code @} answers the index like any other (Micronaut answered 404 for them).
+   */
+  public void answersDeepLinksWithEncodedSegments() {
+    given()
+        .urlEncodingEnabled(false)
+        .accept("text/html")
+        .when()
+        .get("/hello/stays/Jos%C3%A9%20A+B~c:d@e")
+        .then()
+        .statusCode(200)
+        .body(containsString("<mateu-ui baseUrl=\"/hello\""));
+  }
+
+  /**
    * A DATA fetch of a path nobody serves (a REST source pointing at an endpoint that does not exist
    * yet) is NOT answered with the index page: a 200 of HTML made the missing endpoint look like an
    * empty one, with nothing in any log. Only a navigation (Accept: text/html) gets the index.
