@@ -27,7 +27,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Partials (`partials/*.yaml`, `type: Partial`) | ✅ spliced (spec) | ✅ | 🔧 "Unknown metadata type Partial" (de1c198cf, `DefinitionInliner`) | 🔧 Play (8ca9cf96e); ❌ offline canvas shows the placeholder (see below) | 🔧 multi-component partial rejected (ad22b0660) |
 | Business components (`components.yaml`, `ComponentRef`) | ✅ (spec) | ✅ | 🔧 "Unknown business component" (de1c198cf) | 🔧 opened as an empty page + offered as a route layout (3123cb827); Play 🔧 (8ca9cf96e) | 🔧 no branch (ad22b0660, 1fcd29de5) |
 | Sources (`sources.yaml`, `sample:`, mock mode) | ✅ yaml starter sample mode on; off → live endpoint; 🔧 a missing endpoint answered index.html 200 → silent "Search to see results" (4d25240d9, parity contract on 5 adapters) | ✅ (static Redwood bundle lists the samples) | ✅ | ✅ sources editor; samples preview | ✅ |
-| Sources `proxy: true` + `${secret.X}` | 🔧 a YAML listing on a proxied entry never fetched (5680acea3) — ✅ against a keyed API, key from `MATEU_SECRET_API_KEY` server-side only; direct (non-proxy) ref ✅ | ⏳ | ✅ staticOnly refuses a proxied source | N/A (sample mode) | ✅ |
+| Sources `proxy: true` + `${secret.X}` | 🔧 a YAML listing on a proxied entry never fetched (5680acea3) — ✅ against a keyed API, key from `MATEU_SECRET_API_KEY` server-side only; direct (non-proxy) ref ✅; 🔧 a select's `optionsSource` on a proxied entry was fetched by the browser with the `${secret.X}` placeholder (401), and an unseeded page had no component to answer `__restfetch__` (269d24324, `MountHomeSyncTest` proxied-options + `mateu-field.test.ts`) — ✅ against the keyed API | ⏳ | ✅ staticOnly refuses a proxied source | N/A (sample mode) | ✅ |
 | Actions catalogue (`actions.yaml`) + page `actions:` flows | ✅ (spec, both buttons navigate) | ✅ | 🔧 staticOnly failed the build on a flow / catalogue entry (de1c198cf) — ✅ runs | ✅ actions editor | 🔧 page `actions:` matched the Actions branch too (ad22b0660) |
 | Types (`types.yaml`, `fieldType:`) | ✅ label; 🔧 placeholder never rendered on Vaadin (1710d2fad) | ✅ | ✅ | ✅ types editor | ✅ |
 | Translations + `${i18n.key}` | ✅ en + es-ES (spec) | ✅ | ✅ | ✅ Play; ❌ offline canvas shows the key | ✅ |
@@ -92,12 +92,12 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
    `Card`… served by a port shows "Unsupported component". Grow the builders or keep YAML pages Java-first?
 6. **VS Code schema performance** (see the editors' engines row): a per-editor schema shape, or accept it.
 7. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available` served.
-8. The routes editor has no `appState:` column (`state:` added).
+8. ~~The routes editor has no `appState:` column~~ — added (App state column, DOM test).
 9. CLAUDE.md still says Code + YAML is not offered on Micronaut/Helidon (owner's file, not edited).
 
 ## 5. Not walked yet ⏳
 
-A proxied `optionsSource` on a select field; `PrincipalResolver` with a real security module per
+`PrincipalResolver` with a real security module per
 adapter (only the parity contracts ran); IntelliJ completion/validation inside a running IDE (covered by
 the plugin's `JsonSchemaService` tests only) and VS Code inside VS Code (headless yaml-language-server
 only); the editor's Board, image/icon/source pickers and Redwood canvas; React Native for the YAML
@@ -109,7 +109,8 @@ fixtures; compiling every Java sample of the docs (signatures of the code-twin s
   schema they name, New File templates, docs examples); `MateuSchemaProviderTest` +2 (IntelliJ nested
   `type:` values and keys); core `DocumentedYamlExamplesTest` (doc trees parse with the loader's mapper).
 - Served YAML: `e2e/tests/shared/yaml-authoring.spec.ts` + sample1 fixtures (8 tests × 5 Java adapters).
-- Core: `DefinitionOnlyRouteSyncTest` (plain root), `SeededYamlPageRestSourcesTest` (proxied rows),
+- Core: `DefinitionOnlyRouteSyncTest` (plain root), `SeededYamlPageRestSourcesTest` (proxied rows +
+  options), `MountHomeSyncTest` (+ a page reading a proxied source is server-side),
   `YamlDeclaredActionsSyncTest` (+declared actions only), `StaticSafetyCheckTest` (flows/catalogue),
   `DefinitionInlinerTest`, `LayoutDeltaApplierTest` (+rows), `RootAppMenuContentCompiledResolversSyncTest`,
   `NothingToServeCheckTest` (+resolvers), `SpaFallbackTest` (+navigation only).
@@ -118,10 +119,10 @@ fixtures; compiling every Java sample of the docs (signatures of the code-twin s
   `MateuStaticFacadesStartupTest`, `MateuYamlMountControllerTest` (+data fetch).
 - Ports: Python `test_route_files.py`, `test_definition_only_seeds.py`, `test_layout_delta.py` (rows);
   .NET `RouteFilesTests`, `DefinitionOnlySeedsTests`, `LayoutDeltaTests` (rows).
-- Frontend: `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder), editor
+- Frontend: `bundleRoutes.test.ts` (state seeds), `mateu-field.test.ts` (placeholder, proxied options), editor
   `componentCatalogue.test.ts`, `playManifest.test.ts`, `exportBundle.test.ts`, DOM tests (State
-  column, components.yaml); generator `cases.json` +2, `newProject.test.ts`.
+  and App state columns, components.yaml); generator `cases.json` +2, `newProject.test.ts`.
 
 ## 7. Counts
 
-Cells (counted from the tables above): ✅ ≈40 verified · 🔧 21 fixed (17 fix commits + the routes-editor State column) · ❌ 9 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
+Cells (counted from the tables above): ✅ ≈40 verified · 🔧 22 fixed (18 fix commits + the routes-editor State / App state columns) · ❌ 8 open (section 4) · N/A 5 · ⏳ 6 areas (section 5).
