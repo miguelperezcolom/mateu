@@ -215,6 +215,9 @@ class Action(Wire):
     #: Comma-separated ids of the fields to validate before the action runs (a list field's
     #: row editor validates the row's constrained fields; mirrors ActionDto.fieldsToValidate).
     fields_to_validate: str | None = None
+    #: The keyboard shortcut that runs this action (``ctrl+s``): the web client scans the
+    #: component's ACTIONS for it, not the buttons (mirrors io.mateu.dtos.ActionDto.shortcut).
+    shortcut: str | None = None
     # Client-side request ceiling in ms; 0 keeps the client default (60s). One global timeout
     # cannot serve both a type-ahead lookup and a report export.
     timeout_millis: int = 0

@@ -71,10 +71,15 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
 export const pageStyle = (style?: string): string => `width: 100%; box-sizing: border-box; ${style ?? ''}`
 
 /** A page's floating action buttons (a reflected page's `@Fab`s, a YAML page's `fabs:`): each
- *  dispatches its action like a button. Shared by the Page and the Form renderers. */
-export const renderPageFabs = (container: LitElement, fabs: Fab[] | undefined) => (fabs ?? []).map((fab, idx) => html`
+ *  dispatches its action like a button. Shared by the Page and the Form renderers.
+ *
+ *  The event is dispatched FROM THE BUTTON, like every other button's: the component listens for
+ *  `action-requested` on the element that wraps its content, BELOW its own host, so an event fired
+ *  on the host (`container`) went straight past it to the ancestors — "no component on the page
+ *  handles it" — and the floating button did nothing on any backend. */
+export const renderPageFabs = (_container: LitElement, fabs: Fab[] | undefined) => (fabs ?? []).map((fab, idx) => html`
             <button class="page-fab" style="${pageFabPosition(idx)}" ${onFabRail('page', idx)} aria-label="${fab.label}"
-                @click="${() => container.dispatchEvent(new CustomEvent('action-requested', {
+                @click="${(e: Event) => (e.currentTarget as HTMLElement).dispatchEvent(new CustomEvent('action-requested', {
                     detail: { actionId: fab.actionId },
                     bubbles: true,
                     composed: true

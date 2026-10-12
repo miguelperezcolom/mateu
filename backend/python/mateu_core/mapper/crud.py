@@ -643,7 +643,19 @@ class CrudMapperMixin(MixinBase):
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
             # The entity's field values ride in initialData / fragment state (Java parity).
-            initial_data=self.form_initial_data(element, entity), actions=[], triggers=[],
+            initial_data=self.form_initial_data(element, entity),
+            # The toolbar's actions, advertised: this port answers them in place (there is no
+            # mediator above the form for them to bubble to, as in Java), and the web client only
+            # SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
+            # Saving validates the form on the client first.
+            actions=[
+                *self.field_actions(element),
+                *(
+                    Action(id=b.action_id, validation_required=b.action_id == save_action_id)
+                    for b in toolbar
+                ),
+            ],
+            triggers=[],
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),

@@ -69,6 +69,13 @@ public sealed partial class SyncHandler
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
             // the id column's link (first column, actionId "view"): open the record's route
             "view" when RowId(rq, element) is { } viewId => Navigate($"{baseRoute}/{viewId}", null, rq),
+            // The form's toolbar (New, Edit, Add another, Cancel, Back to list) moves between the
+            // crud's routes. Java's mediator answers them (NewActionHandler, CancelToListActionHandler…);
+            // without them here every one of those buttons answered "Action not found".
+            "new" => Navigate($"{baseRoute.TrimEnd('/')}/new", null, rq),
+            "edit" when id is not null => Navigate($"{baseRoute.TrimEnd('/')}/{id}/edit", null, rq),
+            "cancel-new" or "cancel-view" => Navigate(baseRoute, null, rq),
+            "cancel-edit" => Navigate(id is null ? baseRoute : $"{baseRoute.TrimEnd('/')}/{id}", null, rq),
             null or "" => mode switch
             {
                 "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new", rq),

@@ -1,0 +1,183 @@
+"""Every button the port draws is an action its component ADVERTISES. The web client only sends an
+action some component on the page claims — anything else bubbles out unclaimed and is lost — and
+this port answers the CRUD form's, the wizard's and a page FAB's actions in place (there is no
+mediator above them, as in Java). Found walking the demo in the Vaadin renderer: Save, Edit,
+Cancel, Back and the FAB did nothing."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Annotated
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_uidl import (  # noqa: E402
+    Creatable,
+    Crud,
+    Editable,
+    Listing,
+    Message,
+    Navigable,
+    Step,
+    Wizard,
+    button,
+    fab,
+    shortcut,
+    title,
+    ui,
+)
+
+MODULE = sys.modules[__name__]
+
+
+class Item:
+    id: str = ""
+    name: str = ""
+
+    def __init__(self, id="", name=""):
+        self.id, self.name = id, name
+
+
+ITEMS = [Item("1", "One")]
+
+
+@ui("adv-items")
+@title("Items")
+class Items(Crud[Item]):
+    def fetch(self, search):
+        return list(ITEMS)
+
+    def get(self, id):
+        return ITEMS[0]
+
+    def save(self, entity):
+        pass
+
+    def delete(self, id):
+        pass
+
+
+@ui("adv-books")
+@title("Books")
+class Books(Listing[Item], Navigable[Item, str], Editable[Item, str], Creatable[Item, str]):
+    def search(self, request, http=None):
+        return list(ITEMS)
+
+    def view(self, id, http=None):
+        return ITEMS[0]
+
+    def edit(self, id, http=None):
+        return ITEMS[0]
+
+    def save(self, editor, http=None):
+        return "1"
+
+    def creation_form(self, http=None):
+        return Item()
+
+    def create(self, form, http=None):
+        return "1"
+
+
+@ui("adv-wizard")
+@title("Signup")
+class Signup(Wizard):
+    email: Annotated[str | None, Step(1)] = None
+    company: Annotated[str | None, Step(2)] = None
+
+    def complete(self) -> Message:
+        return Message("done")
+
+
+@ui("adv-fab")
+@title("Fab page")
+class FabPage:
+    name: str = "Ada"
+
+    @fab("vaadin:plus", "Add")
+    def add(self) -> Message:
+        return Message("Added")
+
+    @button()
+    @shortcut("ctrl+s")
+    def save(self) -> Message:
+        return Message("Saved")
+
+
+def _handler() -> SyncHandler:
+    return SyncHandler(MateuRegistry(MODULE))
+
+
+def _component(route: str, view, action: str = "", state: dict | None = None):
+    inc = _handler().handle(RunActionRq(
+        route=route, consumed_route="", server_side_type=type_name(view), action_id=action,
+        component_state=state or {},
+    ))
+    return inc.fragments[0].component
+
+
+def _toolbar_ids(component) -> list[str]:
+    return [b.action_id for b in component.children[0].metadata.toolbar]
+
+
+def _advertised(component) -> dict[str, bool]:
+    return {a.id: a.validation_required for a in component.actions}
+
+
+def test_every_crud_form_button_is_advertised_and_save_validates():
+    for route in ("adv-items/new", "adv-items/1", "adv-items/1/edit"):
+        component = _component(route, Items)
+        advertised = _advertised(component)
+        assert set(_toolbar_ids(component)) <= set(advertised), route
+    assert _advertised(_component("adv-items/new", Items))["create"] is True
+    assert _advertised(_component("adv-items/1", Items))["edit"] is False
+
+
+def test_every_capability_form_button_is_advertised():
+    for route in ("adv-books/new", "adv-books/1", "adv-books/1/edit"):
+        component = _component(route, Books)
+        assert set(_toolbar_ids(component)) <= set(_advertised(component)), route
+
+
+def test_the_wizard_advertises_back_and_next():
+    advertised = _advertised(_component("adv-wizard", Signup))
+    assert advertised["next"] is True
+    assert advertised["back"] is False
+
+
+def test_a_page_fab_is_advertised_without_validation():
+    assert _advertised(_component("adv-fab", FabPage))["add"] is False
+
+
+def _navigates_to(route: str, view, action: str) -> str | None:
+    inc = _handler().handle(RunActionRq(
+        route=route, consumed_route=route, server_side_type=type_name(view), action_id=action,
+    ))
+    assert not inc.messages or inc.messages[0].variant != "error", inc.messages
+    return next((c.data for c in inc.commands if c.type == "NavigateTo"), None)
+
+
+def test_the_crud_toolbar_actions_move_between_the_crud_routes():
+    # answered "Action not found" until they were advertised and the browser started sending them
+    assert _navigates_to("/adv-items", Items, "new") == "/adv-items/new"
+    assert _navigates_to("/adv-items/1", Items, "new") == "/adv-items/new"
+    assert _navigates_to("/adv-items/1", Items, "edit") == "/adv-items/1/edit"
+    assert _navigates_to("/adv-items/1", Items, "cancel-view") == "/adv-items"
+    assert _navigates_to("/adv-items/new", Items, "cancel-new") == "/adv-items"
+    assert _navigates_to("/adv-items/1/edit", Items, "cancel-edit") == "/adv-items/1"
+
+
+def test_the_capability_form_toolbar_actions_move_between_the_listing_routes():
+    assert _navigates_to("/adv-books", Books, "new") == "/adv-books/new"
+    assert _navigates_to("/adv-books/1", Books, "edit") == "/adv-books/1/edit"
+    assert _navigates_to("/adv-books/1", Books, "cancel-view") == "/adv-books"
+    assert _navigates_to("/adv-books/1/edit", Books, "cancel-edit") == "/adv-books/1"
+
+
+def test_a_button_shortcut_rides_on_its_advertised_action():
+    # the web client scans the component's ACTIONS for shortcuts: on the button only, Ctrl+S did
+    # nothing
+    actions = {a.id: a for a in _component("adv-fab", FabPage).actions}
+    assert actions["save"].shortcut == "ctrl+s"

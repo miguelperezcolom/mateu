@@ -476,7 +476,12 @@ public sealed partial class ReflectionMapper
         // detail/edit/create form arrives prefilled.
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), listingType.FullName!, route, [page],
-            InitialDataOf(formType, entity), [], [], null, null, null)
+            InitialDataOf(formType, entity),
+            // the toolbar's actions, advertised (answered in place — see MapEntityForm): the web
+            // client only SENDS what the component advertises
+            [.. FieldActions(formType), .. toolbar.Select(b => new ActionDto(b.ActionId,
+                ValidationRequired: b.ActionId is "create" or "save"))],
+            [], null, null, null)
         {
             Rules = MapRules(formType, entity),
             PageType = PageTypeOf(listingType),

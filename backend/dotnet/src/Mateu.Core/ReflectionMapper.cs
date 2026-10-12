@@ -106,15 +106,14 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         var buttons = buttonMethods.Select(MapButton).ToList();
         var fabs = Fabs(type);
         // [Button] methods are server-side actions the renderer can invoke; a [RestAction] button
-        // carries the client-side REST descriptor on its action. A [Fab]'s action is NOT advertised
-        // in the component actions list — it travels only on the page metadata's fabs (Java parity:
-        // the fab golden carries no component.actions).
+        // carries the client-side REST descriptor on its action.
         // Field-declared actions first, in Java's FieldActionCollector order: the list fields' row
         // editing actions, the [OnRowSelected] grid actions (which must be advertised or the
         // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
         var actions = FieldActions(type);
         actions.AddRange(buttonMethods.Select(m =>
-                WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
+                WithActionOptions(new ActionDto(Naming.CamelCase(m.Name))
+                    { RestAction = RestActionOf(m), Shortcut = m.Find<ShortcutAttribute>()?.Keys },
                     type, Naming.CamelCase(m.Name)))
             .Where(a => actions.All(x => x.Id != a.Id)));
         // The section affordances ([Section(EditAction/AddAction/ViewMoreAction)]) dispatch the
@@ -122,6 +121,12 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // advertised or the renderer drops the click (mirrors Java's ActionMapper).
         foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
             actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
+        // A page [Fab] dispatches its method like a button, and the web client only SENDS what the
+        // component advertises: unadvertised, a click on the floating button did nothing. No client
+        // validation — a floating "Add" acts on the page, not on a filled-in form (Java's
+        // FieldActionCollector).
+        foreach (var fab in fabs.Where(f => actions.All(x => x.Id != f.ActionId)))
+            actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         if (instance is IRecordSwitcherSupplier)
             actions.Add(new ActionDto(IRecordSwitcherSupplier.ActionId, ValidationRequired: false));
 

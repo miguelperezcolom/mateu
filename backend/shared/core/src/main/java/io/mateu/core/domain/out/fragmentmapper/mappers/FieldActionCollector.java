@@ -156,6 +156,24 @@ final class FieldActionCollector {
                     .restAction(restActionOf(method))
                     .build())
         .forEach(fieldActions::add);
+    // A page @Fab dispatches its method like a button, and the web client only SENDS what the
+    // component advertises — unadvertised, a click on the floating button did nothing. No client
+    // validation: a floating "Add" acts on the page, not on a filled-in form.
+    getAllMethods(serverSideObject.getClass()).stream()
+        .filter(
+            method ->
+                !MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Action.class)
+                    && !MetaAnnotations.isPresent(method, Button.class)
+                    && !MetaAnnotations.isPresent(method, Toolbar.class)
+                    && MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Fab.class))
+        .map(
+            method ->
+                Action.builder()
+                    .id(method.getName())
+                    .validationRequired(false)
+                    .sse(isFluxReturning(method))
+                    .build())
+        .forEach(fieldActions::add);
 
     return fieldActions;
   }

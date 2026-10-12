@@ -111,6 +111,18 @@ class CrudHandlerMixin(MixinBase):
             row_id = self._row_id(rq)
             if row_id is not None:
                 return self.navigate(f"{base_route}/{row_id}", None, rq)
+        # The form's toolbar (New, Edit, Add another, Cancel, Back to list) moves between the
+        # crud's routes. Java's mediator answers them (NewActionHandler, CancelToListActionHandler…);
+        # without them here every one of those buttons answered "Action not found".
+        base = base_route.rstrip("/")
+        if aid == "new":
+            return self.navigate(f"{base}/new", None, rq)
+        if aid == "edit" and id_ is not None:
+            return self.navigate(f"{base}/{id_}/edit", None, rq)
+        if aid in ("cancel-new", "cancel-view"):
+            return self.navigate(base_route, None, rq)
+        if aid == "cancel-edit":
+            return self.navigate(base_route if id_ is None else f"{base}/{id_}", None, rq)
         if aid in (None, ""):
             if mode == "new":
                 return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new", rq)
