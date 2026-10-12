@@ -378,7 +378,7 @@ renderers, and its children still render.
 | `Notification` | ✅ | an info band (title — text); action messages show as toasts |
 | `OfferCard` | ✅ |  |
 | `OrgChart` | ✅ | the tree as an indented outline (VB templates cannot recurse) with oj-avatar; nodes with an action are oj-action-cards (_clickedNode) |
-| `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners) |
+| `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners, status badge, peer arrows, timestamp; overline + title placeholder drawn over it) |
 | `PaymentPicker` | ✅ |  |
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
 | `Popover` | ✅ | trigger + the content WITH its structure (headings, lists, links, badges, markdown) as sanitised HTML in a shared oj-popup (hover/focus or click) |

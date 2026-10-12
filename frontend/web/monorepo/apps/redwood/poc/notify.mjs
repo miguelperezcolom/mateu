@@ -1,5 +1,6 @@
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
+import { markReadVars, runShellSource, shellSourcesOf, sourcedNotificationsOf } from './globalSearch.mjs'
 // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
 //
 // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
@@ -49,8 +50,41 @@ export function notificationsOf(list) {
   }
 }
 
-/** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista). */
-export async function fetchNotifications(base, serverSideType, appState, ids) {
+// the inbox last listed from a shell SOURCE: "mark as read" acts on it locally (a source may have
+// no markRead call, and the list a source answers is not re-asked for every click)
+let sourcedInbox = []
+
+/** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista).
+ *  A data-authored shell's `notifications.source` answers instead of the app-level actions
+ *  (globalSearch.mjs shellSources): listed from the source, marked read LOCALLY at once and then
+ *  through `markRead` when the shell declares it (re-listing after it; a failed call keeps the
+ *  local read state until the next listing says otherwise). */
+export async function fetchNotifications(base, serverSideType, appState, ids, opts = {}) {
+  const sources = shellSourcesOf()
+  if (sources.notifications) {
+    const list = async () => {
+      sourcedInbox = sourcedNotificationsOf(
+        await runShellSource(base, serverSideType, appState, 'notifications', sources.notifications, {}, opts),
+        sources.notifications)
+    }
+    if (!ids) {
+      try { await list() } catch (e) { /* inbox unavailable: keep whatever list we had */ }
+      return notificationsOf(sourcedInbox)
+    }
+    const all = ids === 'all'
+    const which = all ? sourcedInbox.filter((n) => n.unread).map((n) => n.id) : [].concat(ids).map(String)
+    sourcedInbox = sourcedInbox.map((n) => (which.includes(n.id) ? { ...n, unread: false } : n))
+    if (sources.notificationsRead && which.length) {
+      try {
+        await runShellSource(base, serverSideType, appState, 'notificationsRead', sources.notificationsRead, markReadVars(which, all), opts)
+        const local = sourcedInbox
+        await list()
+        // a source that does not persist the read state must not undo what the user just read
+        sourcedInbox = sourcedInbox.map((n) => (local.some((l) => l.id === n.id && !l.unread) ? { ...n, unread: false } : n))
+      } catch (e) { /* the server keeps them unread; the next listing says so */ }
+    }
+    return notificationsOf(sourcedInbox)
+  }
   const increment = await callMateu(base, {
     route: '',
     actionId: ids ? '_notifications-read' : '_notifications-list',

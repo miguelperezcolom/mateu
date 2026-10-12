@@ -622,6 +622,20 @@
         "title": "",
         "subtitle": "",
         "facts": [],
+        "overline": "",
+        "timestamp": "",
+        "badge": null,
+        "headerClass": "",
+        "previousItem": {
+          "label": "",
+          "display": "disabled"
+        },
+        "nextItem": {
+          "label": "",
+          "display": "disabled"
+        },
+        "prevRoute": "",
+        "nextRoute": "",
         "showBand": false,
         "showInline": false,
         "showListBand": false,

@@ -74,6 +74,18 @@ define([
         }
         return;
       }
+      // the header's PEER arrows (PeerNavigationSupplier / a YAML `peerNav:`): they navigate like
+      // a breadcrumb — a side without a route is drawn disabled, so it never gets here
+      if (id === '__peerPrev' || id === '__peerNext') {
+        const header = $application.variables.mateuPageHeader || {};
+        const peerRoute = id === '__peerPrev' ? header.prevRoute : header.nextRoute;
+        if (peerRoute) {
+          document.dispatchEvent(new CustomEvent('navigation-requested', {
+            detail: { route: peerRoute }, bubbles: true, composed: true,
+          }));
+        }
+        return;
+      }
 
       // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
       // hablando con ESE backend, no con el de la shell.

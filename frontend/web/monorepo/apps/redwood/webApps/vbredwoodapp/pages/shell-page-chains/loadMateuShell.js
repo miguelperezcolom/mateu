@@ -271,13 +271,16 @@ define([
       });
       // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
       // GlobalSearchSupplier: the Ask palette also searches the app's entities (askOracleTyped)
-      $application.variables.mateuGlobalSearch = !!(reg.shell && reg.shell.globalSearchEnabled);
+      $application.variables.mateuGlobalSearch = !!(reg.shell && (reg.shell.globalSearchEnabled || reg.shell.globalSearchSource));
+      // a data-authored shell (type: AppShell) feeds the bell and the palette from REST sources:
+      // direct ones fetched here, proxied ones through `_appsource` (bridge: globalSearch.mjs)
+      bridge.adoptShellSources(reg.shell);
       // @App(themeToggle): the header switch; the stored choice (or the OS preference) applies anyway
       $application.variables.mateuThemeToggle = !!(reg.shell && reg.shell.themeToggle);
       // @App(mobileQr): "Open on mobile" — the QR of the mateu.io/add link (openMateuMobileQr)
       $application.variables.mateuMobileQr = !!(reg.shell && reg.shell.mobileQr);
       bridge.applyInitialTheme();
-      if (reg.shell && reg.shell.notificationsEnabled) {
+      if (reg.shell && (reg.shell.notificationsEnabled || reg.shell.notificationsSource)) {
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
           .then((model) => { $application.variables.mateuNotifications = model; })
           .catch(() => { /* sin bandeja: la cabecera sigue sin campana */ });

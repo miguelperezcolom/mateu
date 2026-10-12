@@ -95,6 +95,13 @@ Three notes on how to read the table:
   line in the header (the Redwood timestamp element); the field's value renders as text and the
   field is dropped from the form body. Header key/value facts come from `@KPI` fields the same way.
   Ported to .NET (`[Timestamp]`) and Python (`Timestamp()`).
+- **On Redwood** these elements use the `oj-sp` page header's own: the peer arrows are its
+  previous/next item actions, the first header badge is its status badge (more badges follow the
+  subtitle), and a timestamp whose value is a date (`2026-10-12T10:42`, label empty or "Last
+  updated") is its timestamp element, which writes its own translated "Last updated …"; any other
+  timestamp text ends the subtitle line. The header has no overline or placeholder element, so
+  the renderer draws the overline above the title and dims the placeholder title. Demo:
+  `demo-vb` `/header-extras` (Java) and `/yaml-header` (the same page in YAML).
 - **Backend parity.** Everything on this page also works on the .NET and Python backends — see
   the [parity matrix](/reference/parity/) for the per-feature detail.
 - **Composition beats templates.** When no template fits, the same pieces compose freely:

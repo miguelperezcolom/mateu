@@ -1898,3 +1898,10 @@ del welcome banner; **summary-N** del foldout → slot `summary` de `oj-sp-foldo
 **preSearch** del Crudl → en lugar de la tabla hasta la primera búsqueda. Composición: un Drawer
 reenviado con el MISMO id sustituye al abierto; `disabled` llega a todos los botones; las rejillas
 con plantilla de slots ordenan sus hijos por área. Detalle en DESIGN-NOTES.en.md.
+
+**Cabecera de página y fuentes de la shell (2026-10-12)**: el header oj-sp pinta overline, title
+placeholder, timestamp, badges y peerNav de una página Java o YAML (`pageHeaderExtrasOf`): peerNav →
+previousItem/nextItem, el primer badge → `badge`, el timestamp → `timestamp` SOLO si es una fecha
+(con texto oj-sp revienta; si no, cierra la línea del subtítulo); overline y placeholder los dibuja
+la página. La bandeja y la búsqueda de una `type: AppShell` leen `notifications.source` /
+`globalSearch.source` (directa o por `_appsource`). Detalle en DESIGN-NOTES.en.md.

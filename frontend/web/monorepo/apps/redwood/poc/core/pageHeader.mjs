@@ -2,6 +2,7 @@ import { autoTrail } from '../breadcrumbs.mjs'
 import { HOST_ID, actionsOf, dynFormMetadataOf, fieldListOf, formSectionsOf } from './tree.mjs'
 import { interpolate } from './content.mjs'
 import { findByType } from './listing.mjs'
+import { evaluateTemplate } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
 /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
@@ -85,6 +86,83 @@ export function pageKpisOf(ctx) {
       label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
       value: interpolate(k.text == null ? '' : String(k.text), state),
     }))
+}
+
+/** A header badge colour of the wire (Lumo chip themes, or a @Status tone) → the oj-sp badge status. */
+export function badgeStatusOf(color) {
+  const c = String(color == null ? '' : color).trim().toLowerCase()
+  if (c === 'success') return 'success'
+  if (c === 'error' || c === 'danger') return 'danger'
+  if (c === 'warning') return 'warning'
+  if (c === 'normal' || c === 'info' || c === 'primary') return 'info'
+  return 'neutral'
+}
+
+/**
+ * The Redwood header TEXT and NAVIGATION elements a page declares beside its title — the same wire
+ * fields for a reflected Java page (PageDto) and a YAML `type: Form` (FormDto):
+ *  - `overline`: the quiet line above the title (a category, the parent context);
+ *  - `titlePlaceholder`: what stands in while the title is still EMPTY — a placeholder, never a
+ *    default (the projection only uses it when the title is blank);
+ *  - `timestamp`: the "last updated" text;
+ *  - `badges`: the header chips ({label, status}); one whose label is blank or still an unresolved
+ *    template is dropped, so a YAML `${state.status}` with no status hides its chip;
+ *  - `peerNav`: lateral navigation across peer records — `prevRoute`/`nextRoute` (a null route
+ *    disables that side; both null = no arrows), `${state.x}` resolved.
+ * Every text may be a template — a YAML page's `${state.x}`, and a reflected page's badges too
+ * (`@BadgeInHeader` travels as `${state.status}` / `${state.vip ? 'VIP' : ''}`) — resolved against
+ * the page state with the CSP-safe evaluator of rules.mjs; one that stays unresolved is blank.
+ */
+/**
+ * A header timestamp → what oj-sp's own timestamp element can take. That element only takes a DATE
+ * (it writes its own "Last updated …" with a relative time, and a non-date value breaks its
+ * binding), while the wire carries TEXT (`@Timestamp("Last updated")` = label + the field's value).
+ * So: `iso` when the text is an ISO-8601 date-time with no label, or a "last updated"-like one —
+ * oj-sp says the same thing, translated —; otherwise the text stays text (`iso` empty) and the page
+ * draws it itself where oj-sp would.
+ */
+const ISO_IN_TEXT = /(\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?)/
+const UPDATED_LABEL = /^(last\s+)?(updated|modified|saved|edited)|^(última\s+)?(actualizaci|modificaci)|^(actualizad|modificad|guardad)/i
+export function headerTimestampOf(text) {
+  const s = String(text == null ? '' : text).trim()
+  const m = s.match(ISO_IN_TEXT)
+  if (!m) return { iso: '', text: s }
+  const label = s.replace(m[1], '').replace(/[\s:,.-]+$/, '').trim()
+  const iso = m[1].replace(' ', 'T')
+  if (Number.isNaN(Date.parse(iso))) return { iso: '', text: s }
+  return label === '' || UPDATED_LABEL.test(label) ? { iso, text: '' } : { iso: '', text: s }
+}
+
+export function pageHeaderExtrasOf(ctx) {
+  const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
+  const md = (page && page.metadata) || {}
+  const state = (ctx && ctx.state) || {}
+  const scope = { state, data: (ctx && ctx.data) || {} }
+  const text = (v) => {
+    if (v == null) return ''
+    let s = String(v)
+    if (s.includes('${')) s = interpolate(s, state)
+    if (s.includes('${')) {
+      const value = evaluateTemplate(s, scope)
+      s = value == null || value === false ? '' : String(value)
+    }
+    return s.includes('${') ? '' : s.trim()
+  }
+  const badges = (md.badges || [])
+    .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(b && b.color) }))
+    .filter((b) => b.label)
+  const pn = md.peerNav || null
+  const prevRoute = pn ? text(pn.prevRoute) : ''
+  const nextRoute = pn ? text(pn.nextRoute) : ''
+  return {
+    overline: text(md.overline),
+    titlePlaceholder: text(md.titlePlaceholder),
+    timestamp: text(md.timestamp),
+    badges,
+    peerNav: prevRoute || nextRoute
+      ? { prevRoute, nextRoute, prevLabel: text(pn.prevLabel), nextLabel: text(pn.nextLabel) }
+      : null,
+  }
 }
 
 /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
@@ -346,10 +424,15 @@ export function summarizeHost(reg, route) {
   const state = host.state || {}
   const fields = formMetadata ? fieldListOf(host.tree, state, host.data) : []
   const sections = formMetadata ? formSectionsOf(host.tree, state, host.data) : []
+  // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
+  // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
+  // borrowing the crud's or the menu's label (pageHeaderOf)
+  const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+  const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
   return {
     // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
     // está, en el rótulo del menú
-    title: pageMetadata.title || crudTitleOf(host) || (option && (option.caption || option.label)) || '',
+    title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label)) || ''),
     // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
     // @NoBreadcrumbs en la página o en la shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)

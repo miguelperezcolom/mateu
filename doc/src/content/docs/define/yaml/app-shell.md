@@ -198,9 +198,13 @@ globalSearch:
   .globalSearch(…)`) carries the same. When the mount also has an `@App` class, its pickers and
   supplier actions are added after the shell's; its `NotificationsSupplier` /
   `GlobalSearchSupplier` keep answering when the shell declares no source of its own.
-- **Renderers**: Vaadin draws all four. Redwood draws the pickers (static options, and a source
-  — direct or proxied), the header actions (`route` navigates) and, as before, the inbox and
-  search of an `@App` class; it does not read `notifications.source` / `globalSearch.source` yet.
+- **Renderers**: Vaadin and Redwood draw all four. On Redwood the pickers take static options or a
+  source (direct or proxied), the header actions navigate on `route`, the bell lists
+  `notifications.source` (opening an entry, or *Mark all read*, marks it read on screen at once and
+  then through `markRead`) and the Ask palette searches `globalSearch.source` — a direct source
+  fetched by the browser, a proxied one through `_appsource`, exactly as on Vaadin. Without a
+  source, the inbox and search of an `@App` class (`_notifications-list` / `_globalsearch`) answer
+  as before.
 - **Ports**: the .NET and Python servers have no `type: AppShell`, so these keys are Java-only
   (their app classes keep `[AppContext]` / `IAppActionsSupplier` / … and `@app_context` / …).
 

@@ -1701,3 +1701,13 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
 .mateu-sc-code { color: var(--oj-core-text-color-secondary); font-size: var(--oj-typography-body-xs-font-size); }
 .mateu-sc-key { font: inherit; font-size: var(--oj-typography-body-xs-font-size); padding: 0 var(--oj-core-spacing-1x);
   border: 1px solid var(--oj-core-border-color, currentColor); border-radius: var(--oj-core-border-radius-sm); background: var(--oj-core-bg-color-hover); }
+
+/* ── page header: the Redwood text elements oj-sp's header has no element for ─────────────────
+   OVERLINE: the quiet line above the title. Drawn right before the header and pulled into its top
+   padding, at the header's own title indent (24px inside the header box), so it reads as part of it. */
+.mateu-header-overline { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
+oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
+/* the dark theme drops the header's light background: the overline follows it */
+html.mateu-theme-dark .mateu-header-overline { background-color: transparent !important; }
+/* TITLE PLACEHOLDER: shown only while the title is empty — dimmed so it never reads as a real title */
+.mateu-title-placeholder .oj-sp-header-general-overview-page-title { color: var(--oj-core-text-color-secondary); font-style: italic; }

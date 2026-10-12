@@ -167,9 +167,14 @@ content: [...]
   `titlePlaceholder`, `timestamp`, `badges`, `kpis`, `peerNav`, `switcher`, `banners`, `fabs`), so
   every renderer draws them alike — served by **Java, .NET or Python**, pre-rendered into a static
   bundle, or expanded in the browser from a `specsOnly` bundle.
-- **Redwood** draws the KPIs, subtitle, switcher (listed or from a direct source; `route` picks
-  navigate), banners and FABs of a YAML page; like for a Java page it does not draw the overline,
-  title placeholder, timestamp, previous/next arrows or header badges yet.
+- **Redwood** draws every one of them, for a YAML page and a Java page alike: KPIs, subtitle,
+  switcher (listed or from a direct source; `route` picks navigate), banners and FABs, and on its
+  `oj-sp` page header the status badge (the first header badge — the rest follow the subtitle,
+  and a badge whose label resolves blank is not drawn), the previous/next arrows (a side with no
+  route is drawn disabled; both empty, no arrows), the timestamp (the header's own "last updated"
+  element when the value is a date — `2026-10-12T10:42` — otherwise the text ends the subtitle
+  line), the overline above the title and the title placeholder (dimmed, only while the title
+  resolves empty).
 
 ## Available types
 
