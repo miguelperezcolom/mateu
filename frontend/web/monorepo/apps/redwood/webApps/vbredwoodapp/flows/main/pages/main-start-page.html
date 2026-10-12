@@ -14396,7 +14396,7 @@
       </div>
       <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"
         display="[[ $application.variables.mateuListing.display ]]"
-        data="[[ $variables.listingADP ]]"
+        data="[[ $functions.serverSorted($variables.listingADP) ]]"
         columns="[[ $application.variables.mateuListing.columns ]]"
         selection-mode="[[ $application.variables.mateuListing.selectionMode ]]"
         dnd.drag.rows.data-types="[[ $application.variables.mateuListing.dragTypes || [] ]]"
