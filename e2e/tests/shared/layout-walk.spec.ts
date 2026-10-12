@@ -92,11 +92,14 @@ test.describe('InlineGridForm (/inline-grid-form) — editable grid fields in th
     await page.getByLabel('Concept').fill('Breakfast');
     await page.getByLabel('Qty').fill('2');
     await page.getByRole('button', { name: 'Save and add another' }).click();
+    const rows = () => page.locator('mateu-field#extras vaadin-grid').evaluate(
+      (g: any) => (g.items || []).map((i: any) => `${i.concept}:${i.qty}`));
+    // the editor comes back empty for the next row once the first one is in the grid
+    await expect.poll(rows).toEqual(['Breakfast:2']);
+    await expect(page.getByLabel('Concept')).toHaveValue('');
     await page.getByLabel('Concept').fill('Parking');
     await page.getByLabel('Qty').fill('1');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
-    const rows = () => page.locator('mateu-field#extras vaadin-grid').evaluate(
-      (g: any) => (g.items || []).map((i: any) => `${i.concept}:${i.qty}`));
     await expect.poll(rows).toEqual(['Breakfast:2', 'Parking:1']);
   });
 
