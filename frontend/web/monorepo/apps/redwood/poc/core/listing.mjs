@@ -69,6 +69,38 @@ export function rowClickOpensRecord(listing) {
   return !listing || listing.navigable !== false
 }
 
+/**
+ * Whole-row click (decision U1, the same rule as libs/mateu rowOpen.ts): a navigable row opens its
+ * record wherever it is clicked, EXCEPT on the cells that have a click of their own — inline
+ * editors, buttons, links, menus, action groups, components, any column with its own actionId (not
+ * the row-open `view`). Those columns carry NO_OPEN_CELL_CLASS on their cells (oj-table column
+ * className), and a click inside one never opens the row.
+ */
+export const NO_OPEN_CELL_CLASS = 'mateu-cell-noopen'
+const DISPLAY_DATA_TYPES = ['action', 'actionGroup', 'menu', 'component', 'link', 'button']
+const DISPLAY_STEREOTYPES = ['button', 'link', 'html']
+export function isDisplayColumn(c) {
+  if (!c) return true
+  if (c.editable) return true
+  if (c.dataType && DISPLAY_DATA_TYPES.indexOf(c.dataType) >= 0) return true
+  if (c.stereotype && DISPLAY_STEREOTYPES.indexOf(c.stereotype) >= 0) return true
+  if (c.actionId && c.actionId !== 'view') return true
+  return false
+}
+
+/** What a click inside the table must never turn into a row open: a control (button, link,
+ *  input, the selection checkbox, an editor) or a cell of a display column. */
+export const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
+  + 'oj-selector, oj-c-selector, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
+  + 'oj-input-text, oj-input-number, oj-switch, oj-select-single, oj-c-select-single, oj-menu-button, oj-c-menu-button'
+
+/** Whether a row action that started on `origin` (the original event target) is the ROW's — a
+ *  click on a plain cell — rather than a control's or a display column's. */
+export function rowActionIsRows(origin) {
+  if (!origin || typeof origin.closest !== 'function') return true
+  return !origin.closest(ROW_CLICK_EXCLUDED)
+}
+
 /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
 export function listingSearchedOf(ctx) {
   const crud = ctx && ctx.data ? ctx.data.crud : null
@@ -177,6 +209,9 @@ export function listingBaseOf(ctx, opts = {}) {
       if (!def.template && labelColumn(c)) {
         def.field = c.id + LABEL_CELL_SUFFIX
       }
+      // CLIC DE FILA ENTERA: una celda con clic propio (editor, botones, enlace, menú, componente,
+      // columna con su propia acción) lleva la clase que mateuRowClicked respeta — ver isDisplayColumn
+      if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
     // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio

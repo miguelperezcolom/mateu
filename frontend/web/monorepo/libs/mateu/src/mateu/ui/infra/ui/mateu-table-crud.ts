@@ -14,6 +14,7 @@ import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
 import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
+import { rowOpenTargetOf } from '@infra/ui/rowOpen.ts'
 import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
@@ -1098,6 +1099,16 @@ export class MateuTableCrud extends LitElement {
             return html`${valueLabel(val, col.valueLabels)}`
         }
 
+        // A listing that declares a rowRoute opens a row by its route in EVERY layout (the table
+        // does it in mateu-table): the list and card layouts used to run `view` regardless.
+        const openByRoute = (item: unknown): boolean => {
+            const target = rowOpenTargetOf(metadata.rowRoute ? { kind: 'route', template: metadata.rowRoute } : undefined,
+                item, this.state, this.data)
+            if (target?.kind !== 'route') return false
+            navigateToRoute(this, target.route)
+            return true
+        }
+
         const renderTwoLineList = () => {
             const idField = this.identifierFieldName
             const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
@@ -1153,11 +1164,13 @@ export class MateuTableCrud extends LitElement {
                         <div role="button" tabindex="0" class="m-item"
                             ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             @click="${() => {
+                                if (openByRoute(item)) return
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
                                 this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'view', parameters: item }, bubbles: true, composed: true }))
                             }}" @keydown="${onActivate(() => {
+                                if (openByRoute(item)) return
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
@@ -1176,6 +1189,7 @@ export class MateuTableCrud extends LitElement {
         }
 
         const handleCardClick = (dispatcher: HTMLElement, actionId: string, item: any) => {
+            if (actionId === 'view' && openByRoute(item)) return
             const idField = this.identifierFieldName
             if (idField && item[idField] !== undefined) {
                 this.state = { ...this.state, _selectedId: String(item[idField]) }
