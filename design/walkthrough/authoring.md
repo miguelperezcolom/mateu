@@ -41,7 +41,9 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Feature | Result |
 |---|---|
 | New Project (VS Code CLI front door, `scripts/new-project.mjs`) × code on spring-mvc/webflux/quarkus/micronaut/helidon-mp | ✅ generated, packaged, booted on :18610, home + products rendered |
-| … code + `empty` sample, code + Redwood | ✅ (Redwood: ❌ console errors `#{env.catalogJson}#` / `%{env.userProfileUrl}%` 400 — unsubstituted VB tokens, Redwood area) |
+| … code + Redwood on WebFlux | 🔧 every menu page "Page not found" (root app only looked up through RoutedClassProviders) + a false "Mateu found no UI to serve … every URL will answer 404" at every WebFlux start, Vaadin too (fed4b5cfd) — ✅ home + products |
+| … Redwood on Quarkus/Micronaut/Helidon | N/A: the wizard offers Redwood on Spring only (`new-project.json`) |
+| … code + `empty` sample, code + Redwood (MVC) | ✅ (Redwood: ❌ console errors `#{env.catalogJson}#` / `%{env.userProfileUrl}%` 400 — unsubstituted VB tokens, Redwood area) |
 | … yaml (+pages), yaml + Redwood | ✅ |
 | … static | ✅ `mvn package` + `npx serve -s`, CTA navigates |
 | … both on spring-mvc/webflux/quarkus | ✅ CRUD list → open → edit+save → New (validation) → create → deep link `/products/new` → back |
@@ -57,6 +59,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
 | Visual editor dark mode | ✅ routes and listing screens legible |
 | Routes editor: a route's `state:` seed | 🔧 kept verbatim but neither shown nor editable → a State column (9408bb589, DOM test); `appState:` still only via YAML |
+| Editor pickers (label → `${i18n.*}` keys, actionId → page + catalogue ids, route → registry) | ✅ |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
@@ -91,7 +94,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 a proxied `optionsSource` on a select; the bogus `declaredActions_*` / `nested-form-action-catalog-sources_*` ids a SeededYamlPage advertises (wire noise from its record fields); `PrincipalResolver`
 with a real security module per adapter; .NET everything (no SDK); Python served YAML in a browser;
 IntelliJ completion/validation inside the IDE and `renderProbe`; VS Code extension inside VS Code;
-editor Board, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
+editor Board, image/icon/source pickers, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
 the YAML fixtures; docs' Java code samples compiled.
 
 ## 6. Permanent tests added
