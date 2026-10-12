@@ -16,6 +16,9 @@ import { canSignOut, signOut } from '../core/auth';
 import { isRuleLeaf, menuLeafEffects, registerActionCatalogue, type ShellAction } from '../core/shellFlows';
 import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
+import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
+import { headerValues } from '../core/appShellExtras';
+import type { AppShortcut } from '../core/appShellExtras';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -45,7 +48,7 @@ interface AppContextSelector {
   options?: { value: unknown; label?: string }[];
 }
 
-interface AppMeta {
+interface AppMeta extends ShellExtrasMeta {
   title?: string;
   sseUrl?: string | null;
   themeToggle?: boolean;
@@ -562,7 +565,7 @@ function MenuCards({ group, onNavigate }: { group: MenuItem; onNavigate: (item: 
   );
 }
 
-function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged }: { appMeta: AppMeta; currentRoute: string; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
+function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, onLaunch }: { appMeta: AppMeta; currentRoute: string; onNavigate: (item: MenuItem) => void; onContextChanged: () => void; onLaunch: (shortcut: AppShortcut) => void }) {
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
     return items.map((item, i) => {
       if (item.separator) {
@@ -594,6 +597,8 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged }:
   return (
     <DrawerContentScrollView style={styles.sidebar}>
       <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
+      <HeaderValuesView />
+      <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
@@ -682,6 +687,33 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // The catalogue is app-wide: register it so every screen's controller resolves ids against it.
   React.useEffect(() => registerActionCatalogue(appMeta.actionCatalogue), [appMeta.actionCatalogue]);
 
+  // live header values: seeded from the shell, changed by UpdateHeaderValue / the event stream
+  React.useEffect(() => headerValues.seed(appMeta.headerValues), [appMeta.headerValues]);
+  useLiveUpdates(appMeta);
+
+  // QUICK LAUNCH: a shortcut's route goes there (mount-absolute, like a menu route); an actionId
+  // runs app-level, like a header action
+  const launch = (shortcut: AppShortcut) => {
+    if (shortcut.route) {
+      setCurrentNav({ route: shortcut.route, consumedRoute: appMeta.rootRoute ?? '', serverSideType: '' });
+    } else if (shortcut.actionId) {
+      void runAppAction(shortcut.actionId);
+    }
+  };
+  const goHome = React.useCallback(() => {
+    setCurrentNav({
+      route: appMeta.homeRoute ?? '',
+      consumedRoute: appMeta.homeConsumedRoute ?? '',
+      serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
+    });
+    setContextVersion((v) => v + 1);
+  }, [appMeta.homeRoute, appMeta.homeConsumedRoute, appMeta.homeServerSideType, appMeta.serverSideType]);
+  const guard = (content: React.ReactNode) => (
+    <IdleSessionGuard meta={appMeta} runAppAction={(id) => void runAppAction(id)} onSignOut={goHome}>
+      {content}
+    </IdleSessionGuard>
+  );
+
   const runMenuLeaf = (item: MenuItem) => {
     for (const effect of menuLeafEffects(item, appMeta.actions, appMeta.actionCatalogue ?? [])) {
       switch (effect.kind) {
@@ -760,7 +792,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   );
 
   if (variant === 'TABS' && menuItems.length > 0) {
-    return (
+    return guard(
       <NavigationContainer theme={navTheme}>
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           {menuItems.map((item, i) => (
@@ -787,7 +819,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // A Drawer is the native equivalent of a hamburger/side menu, so all menu-bearing variants
   // (including HAMBURGUER_MENU and AUTO) render through it.
   if (variant !== 'TABS' && menuItems.length > 0) {
-    return (
+    return guard(
       <NavigationContainer theme={navTheme}>
         <Drawer.Navigator
           drawerContent={(props) => (
@@ -799,6 +831,10 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                 props.navigation.closeDrawer();
               }}
               onContextChanged={() => setContextVersion((v) => v + 1)}
+              onLaunch={(shortcut) => {
+                launch(shortcut);
+                props.navigation.closeDrawer();
+              }}
             />
           )}
           screenOptions={{
@@ -825,7 +861,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   }
 
   // MEDIATOR / no menu
-  return (
+  return guard(
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main" children={() => mainScreen} />

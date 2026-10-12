@@ -30,6 +30,7 @@ import {
 } from './DisplayRenderer';
 import { PlanningBoardRenderer } from './PlanningBoardRenderer';
 import { ActionPanelRenderer } from './ActionPanelRenderer';
+import { RecordMergeRenderer } from './RecordMergeRenderer';
 import { MatrixGridRenderer } from './MatrixGridRenderer';
 import { MapRenderer } from './MapRenderer';
 import { DropZoneRenderer } from './DropZoneRenderer';
@@ -323,6 +324,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <ProcessMonitorRenderer component={component} />;
     case 'ActionPanel':
       return <ActionPanelRenderer metadata={metadata} state={state} />;
+    case 'RecordMerge':
+      return <RecordMergeRenderer metadata={metadata} />;
     case 'MatrixGrid':
       return <MatrixGridRenderer metadata={metadata} />;
     case 'Map':

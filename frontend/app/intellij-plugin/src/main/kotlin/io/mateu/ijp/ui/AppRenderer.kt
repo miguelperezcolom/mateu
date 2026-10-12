@@ -39,10 +39,33 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appServerSideType = metadata.text("serverSideType").ifBlank { null }
         // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
         session.accessKeys = metadata.bool("accessKeys")
+        // E2 patterns: app-wide shortcuts, live header values (+ the event stream), idle warning.
+        session.appShortcuts = io.mateu.ijp.state.AppShortcuts.of(metadata)
+        session.seedHeaderValues(io.mateu.ijp.state.HeaderValues.of(metadata))
+        session.syncLiveUpdates(metadata.bool("liveUpdates"))
+        val idle = io.mateu.ijp.state.IdleClock.of(metadata)
+        val watcher = session.idleWatcher
+        when {
+            idle == null -> { watcher?.close(); session.idleWatcher = null }
+            watcher is IdleWatcher -> watcher.update(idle)
+            else -> session.idleWatcher = IdleWatcher(session, idle)
+        }
         session.onAppMenuChanged?.invoke()
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
     val sidebar = verticalPanel(4)
+    // Live header values ("Business date: 12 Oct") at the very top, repainted when they change.
+    if (r.ctx.appShell && session.headerValues.isNotEmpty()) {
+        sidebar.addStacked(headerValuesPanel(session), 2)
+    }
+    // App shortcuts: quick launch by code, the shortcuts list, and the keys bound on the navigator.
+    if (r.ctx.appShell && session.appShortcuts.isNotEmpty()) {
+        sidebar.addStacked(quickLaunchField(session), 0)
+        val listLink = ActionLink("Keyboard shortcuts…") { showShortcutsDialog(session, sidebar) }
+        listLink.border = JBUI.Borders.empty(0, 8, 4, 8)
+        sidebar.addStacked(listLink, 2)
+        r.ctx.bindAppShortcuts()
+    }
     // ⌘K global search (App.globalSearchEnabled): a search field at the very top of the navigator
     // mixing menu-entry matches with the app-level _globalsearch entity hits.
     if (metadata.bool("globalSearchEnabled")) {

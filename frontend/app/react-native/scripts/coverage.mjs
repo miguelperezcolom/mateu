@@ -116,6 +116,7 @@ export const RN_COVERAGE = {
   Checklist: { status: 'full' },
   ComparisonCard: { status: 'full' },
   ActionPanel: { status: 'full', note: 'modal; no keyboard shortcut' },
+  RecordMerge: { status: 'full', note: 'one card per field (records as rows of radios)' },
   MatrixGrid: { status: 'full' },
   PlanningBoard: { status: 'full', note: 'drag + select (PanResponder)' },
   DropZone: { status: 'partial', note: '"Move to…" picker (no drag on touch)' },

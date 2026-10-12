@@ -2,6 +2,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch';
 import { announce, announceLive } from '../a11y/a11y';
+import { headerValues } from './appShellExtras';
 import { presentDocument } from './documentEffects';
 import type { FileDownloadData } from './documents';
 import { isTimedOnLoad, PollingScheduler } from './polling';
@@ -911,6 +912,12 @@ export class MateuViewController {
         // no native print of a rendered screen: said, not silently dropped (see the docs)
         announceLive('Printing is not available in the mobile app', false);
         break;
+      case 'UpdateHeaderValue': {
+        // a live header value (the business date…): repaint the drawer's header values and say so
+        const change = headerValues.update(str((cmdData as Json)?.['id']), str((cmdData as Json)?.['value']));
+        if (change) announceLive(change, false);
+        break;
+      }
       case 'Announce': {
         // Tell assistive tech what happened (the Redwood `announcement` slot). Draws nothing.
         const text = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['text']);
