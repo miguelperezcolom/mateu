@@ -23,7 +23,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Route `access:` | ✅ 403 + "You are not allowed" (spec) | ⏳ | ✅ staticOnly refuses it (no identity) | ✅ "access rules not applied in Play" | ✅ |
 | App shell (`type: AppShell`) | ✅ yaml starter (menu, home, products) | ✅ | ✅ | ✅ shell editor + Play | ✅ |
 | Page definition (bare tree / `layout:` envelope) | ✅ | ✅ | ✅ | ✅ canvas, Layers↔canvas selection, Properties, YAML dock, Play | 🔧 `layout:` envelope rejected (ad22b0660) |
-| `layoutDelta:` | ⏳ (core tests only) | ⏳ | ⏳ | ⏳ | 🔧 rejected (ad22b0660) |
+| `layoutDelta:` (over a Java view model) | 🔧 label + hidden ✅, but `order:` never crossed the FormRows inference lays a two-column form out in, while the editor applies it to the flat run — the page silently ignored what the editor showed (8261e24f9, Java + Python; ❌ .NET not ported: no SDK) — ✅ spec on 5 adapters | ⏳ | N/A (needs the view model) | ✅ editor model already flat | 🔧 rejected (ad22b0660) |
 | Partials (`partials/*.yaml`, `type: Partial`) | ✅ spliced (spec) | ✅ | 🔧 "Unknown metadata type Partial" (de1c198cf, `DefinitionInliner`) | 🔧 Play (8ca9cf96e); ❌ offline canvas shows the placeholder (see below) | 🔧 multi-component partial rejected (ad22b0660) |
 | Business components (`components.yaml`, `ComponentRef`) | ✅ (spec) | ✅ | 🔧 "Unknown business component" (de1c198cf) | 🔧 opened as an empty page + offered as a route layout (3123cb827); Play 🔧 (8ca9cf96e) | 🔧 no branch (ad22b0660, 1fcd29de5) |
 | Sources (`sources.yaml`, `sample:`, mock mode) | ✅ yaml starter sample mode on; off → live endpoint; 🔧 a missing endpoint answered index.html 200 → silent "Search to see results" (4d25240d9, parity contract on 5 adapters) | ✅ (static Redwood bundle lists the samples) | ✅ | ✅ sources editor; samples preview | ✅ |
@@ -54,6 +54,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | VS Code: manifest, New File, Add Route, New Project, live run | ✅ vitest 167 + new `specsSchema.test.ts` |
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
+| Visual editor dark mode | ✅ routes and listing screens legible; ❌ the routes editor has no column for a route's `state:` / `appState:` seeds (kept verbatim, not editable) |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
@@ -77,16 +78,17 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
    renderer against them; should the ports serve the web renderer themselves?
 3. **Redwood index**: unsubstituted Visual Builder tokens (`#{env.catalogJson}#`, `%{env.userProfileUrl}%`)
    log a 400 and a VB error on every page — Redwood area.
-4. **Live reload** of an unseeded definition-only page sends an empty componentState (it is ClientSide).
-5. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
+4. **.NET layoutDelta** still reorders within a FormRow only (Java and Python now treat a form's rows as one run) — port when an SDK is at hand.
+5. **Live reload** of an unseeded definition-only page sends an empty componentState (it is ClientSide).
+6. Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas and `Available`
    served.
 
 ## 5. Not walked yet ⏳
 
-`layoutDelta:` end to end; a proxied `optionsSource` on a select; the bogus `declaredActions_*` / `nested-form-action-catalog-sources_*` ids a SeededYamlPage advertises (wire noise from its record fields); `PrincipalResolver`
+a proxied `optionsSource` on a select; the bogus `declaredActions_*` / `nested-form-action-catalog-sources_*` ids a SeededYamlPage advertises (wire noise from its record fields); `PrincipalResolver`
 with a real security module per adapter; .NET everything (no SDK); Python served YAML in a browser;
 IntelliJ completion/validation inside the IDE and `renderProbe`; VS Code extension inside VS Code;
-editor dark mode, Board, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
+editor Board, image/icon/source/route pickers, Redwood canvas; RN/IntelliJ renderers for
 the YAML fixtures; docs' Java code samples compiled.
 
 ## 6. Permanent tests added
