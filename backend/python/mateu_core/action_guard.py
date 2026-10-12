@@ -226,6 +226,9 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     collect(lambda: layout_override if layout_override is not None else mapper.component_tree(instance))
     collect(lambda: instance.rules() if isinstance(instance, RuleSupplier) else None)
     collect(lambda: instance.app_actions() if isinstance(instance, AppActionsSupplier) else None)
+    # an app's menu: a rule leaf's RunAction names a method of the app (the shell dispatches it on
+    # the app-level rail, like a header action) — Java's MenuRuleActions
+    collect(lambda: mapper.map_app(type_) if "__mateu_app__" in getattr(type_, "__dict__", {}) else None)
     return ids
 
 

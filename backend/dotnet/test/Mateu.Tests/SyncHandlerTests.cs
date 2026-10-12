@@ -803,6 +803,12 @@ public class RuleMenuApp
         Rule.Hide("a", "true"),
         Rule.Disable("b"),
     ];
+
+    // a leaf that RUNS one of the app's own actions
+    [MenuItem("Refresh")]
+    public Rule Refresh() => new("true", "RunAction", null, null, null, null, ActionId: "refreshAll");
+
+    public Message RefreshAll() => new("refreshed");
 }
 
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
@@ -1357,6 +1363,21 @@ public class SyncHandlerTests
         var many = app.Menu.Single(i => i.Label == "Reset");
         Assert.Equal("", many.Route);
         Assert.Equal(2, many.Rules.Count);
+    }
+
+    [Fact]
+    public void A_rule_leafs_action_runs_on_the_app_whatever_screen_is_below()
+    {
+        // the web shell dispatches a menu rule's RunAction on the app-level rail (the app class, no
+        // route of its own), like a header action: the app's method must answer it, not "not found"
+        var handler = new SyncHandler(new MateuRegistry(typeof(RuleMenuApp).Assembly));
+        var inc = handler.Handle(new RunActionRqDto
+        {
+            Route = "_no_route",
+            ServerSideType = typeof(RuleMenuApp).FullName,
+            ActionId = "refreshAll",
+        });
+        Assert.Equal("refreshed", Assert.Single(inc.Messages).Text);
     }
 
     [Fact]

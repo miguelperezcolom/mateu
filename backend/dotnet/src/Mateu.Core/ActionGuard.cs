@@ -212,6 +212,11 @@ internal static class ActionGuard
             : null, ids, seen);
         Collect(() => instance is IRuleSupplier rules ? rules.Rules() : null, ids, seen);
         Collect(() => instance is IAppActionsSupplier app ? app.AppActions() : null, ids, seen);
+        // an app's menu: a rule leaf's RunAction names a method of the app (the shell dispatches it
+        // on the app-level rail, like a header action) — Java's MenuRuleActions
+        Collect(() => ReflectionMapper.MenuRuleLeaves(type), ids, seen);
+        Collect(() => instance is IMenuSupplier menu ? menu.Menu() : null, ids, seen);
+        Collect(() => instance is IAppSupplier shell ? shell.GetApp().Menu : null, ids, seen);
         return ids;
     }
 

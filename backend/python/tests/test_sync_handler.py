@@ -2348,6 +2348,9 @@ class RuleMenuApp:
     def reset_both(self) -> list[Rule]:
         return [Rule.hide("a", "true"), Rule.disable("b")]
 
+    def refresh_all(self):  # the rule leaf's RunAction "refreshAll" (ids are camelCased)
+        return Message("refreshed")
+
 
 def _rule_menu() -> "list":
     reg = MateuRegistry(RuleMenuApp, RuleMenuCatalog)
@@ -2364,6 +2367,16 @@ def test_a_menu_item_returning_a_rule_becomes_a_rule_leaf_carrying_its_rules():
     assert len(refresh.rules) == 1
     assert refresh.rules[0].action == "RunAction"
     assert refresh.rules[0].action_id == "refreshAll"
+
+
+def test_a_rule_leafs_action_runs_on_the_app_whatever_screen_is_below():
+    # the web shell dispatches a menu rule's RunAction on the app-level rail (the app class, no
+    # route of its own), like a header action — the app's method must answer it
+    reg = MateuRegistry(RuleMenuApp, RuleMenuCatalog)
+    inc = SyncHandler(reg).handle(
+        RunActionRq(route="_no_route", server_side_type=_name(RuleMenuApp), action_id="refreshAll")
+    )
+    assert [m.text for m in inc.messages] == ["refreshed"]
 
 
 def test_a_menu_item_returning_a_list_of_rules_carries_all_of_them():

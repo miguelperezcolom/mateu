@@ -331,6 +331,14 @@ public sealed partial class ReflectionMapper
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
 
+    /// <summary>The rules of every rule leaf ([MenuItem] method typed Rule / a list of Rule) an app
+    /// type declares — what its menu RUNS (see ActionGuard.AdvertisedIds).</summary>
+    internal static IReadOnlyList<RuleDto> MenuRuleLeaves(Type appType) =>
+        appType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Where(m => m.Find<MenuItemAttribute>() != null)
+            .SelectMany(m => MenuRules(m) ?? [])
+            .ToList();
+
     /// <summary>The client-side rules of a [MenuItem] method whose return type is Rule or a list of
     /// Rule (a rule leaf), or null when it returns a view (a navigating entry). The method is
     /// invoked on a fresh app instance to read the declared rules.</summary>
