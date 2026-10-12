@@ -104,6 +104,8 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
+  // a saved create/edit form: the record takes the form's place (a base-screen form is pushed over)
+  const replaceTop = useCallback((target: NavTarget) => setStack((s) => (s.length > 0 ? [...s.slice(0, -1), target] : [target])), []);
   // A record screen sent back to its listing: pop to the screen showing that listing (the base, or
   // a stacked one) — a fresh mount, so it reloads; with none in the stack, push it.
   const returnToList = useCallback(
@@ -161,6 +163,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
         target={top}
         onOpenDetail={push}
         onReturnToList={returnToList}
+        onReplaceDetail={replaceTop}
         onController={(c) => (topController.current = c)}
       />
     </View>

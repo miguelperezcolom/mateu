@@ -6,7 +6,7 @@ import { headerValues } from './appShellExtras.ts';
 import { presentDocument } from './documentEffects.ts';
 import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
-import { mediatorMove, serverSideState } from './uxRules.ts';
+import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
 import { confirmationOf, type ConfirmationDialogTexts } from './actionConfirmation.ts';
@@ -110,6 +110,8 @@ export class MateuViewController {
   onRender: (view: RenderedView) => void = () => {};
   /** Detail navigations (row → detail/new/edit) open as a NEW screen through this; unset → in place. */
   detailOpener: ((target: NavTarget) => void) | null = null;
+  /** Host hook: replace the current (pushed) screen with `target` instead of stacking it. */
+  detailReplacer: ((target: NavTarget) => void) | null = null;
   /** Host hook: go back to the listing at `listRoute` (pops the native stack to it). */
   listReturner: ((listRoute: string) => void) | null = null;
   /** Errors/messages silenced (embedded islands). */
@@ -735,7 +737,10 @@ export class MateuViewController {
             ? this.orchestratorServerSideType
             : this.navigationServerSideType || this.currentServerSideType;
         if (this.detailOpener && move === 'detail') {
-          this.detailOpener({ label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst });
+          const target = { label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst };
+          // a saved create/edit form gives its place to the record (Back must not return to it)
+          if (this.detailReplacer && isFormRoute(this.currentRoute) && !isFormRoute(fullRoute)) this.detailReplacer(target);
+          else this.detailOpener(target);
         } else {
           this.currentInnerRoute = trimSlashes(routeSuffix);
           void this.navigate(fullRoute, base, sst);

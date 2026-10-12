@@ -30,6 +30,8 @@ interface Props {
   onOpenDetail?: (target: NavTarget) => void;
   /** A record screen sent back to its listing pops the stack to it through this. */
   onReturnToList?: (listRoute: string) => void;
+  /** A saved create/edit form gives its place to the record through this. */
+  onReplaceDetail?: (target: NavTarget) => void;
   /** Errors shown as inline text instead of toasts (embedded islands). */
   silent?: boolean;
   /** Hands the live controller to the host (dirty checks on back navigation). */
@@ -41,7 +43,7 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, onReturnToList, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, onReturnToList, onReplaceDetail, silent, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
@@ -50,6 +52,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     controller.silentErrors = !!silent;
     controller.detailOpener = onOpenDetail ?? null;
     controller.listReturner = onReturnToList ?? null;
+    controller.detailReplacer = onReplaceDetail ?? null;
     controller.confirmDiscard = () => session.confirmDiscard();
     onController?.(controller);
     if (serverSideNode) {

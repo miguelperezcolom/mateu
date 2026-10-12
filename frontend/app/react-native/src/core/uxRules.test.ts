@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft,
+  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute,
 } from './uxRules.ts';
 
 test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
@@ -159,4 +159,14 @@ test('a decimal input keeps the text being typed (12. → 12.5, not 125)', () =>
   assert.equal(decimalDraft('', ''), '');
   assert.equal(decimalDraft('12.5', '12.5'), '12.5');
   assert.equal(decimalDraft('12.5', '30'), '30'); // changed from elsewhere (a reload, an action)
+});
+
+test('a saved create/edit form is replaced by its record, not stacked under it', () => {
+  assert.ok(isFormRoute('/items/new'));
+  assert.ok(isFormRoute('/items/1/edit'));
+  assert.ok(isFormRoute('/items/1/edit/'));
+  assert.ok(!isFormRoute('/items/1'));
+  assert.ok(!isFormRoute('/items'));
+  assert.ok(!isFormRoute('/news'));
+  assert.ok(!isFormRoute(null));
 });

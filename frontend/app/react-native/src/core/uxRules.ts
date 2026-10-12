@@ -278,3 +278,12 @@ export function decimalDraft(draft: string, externalText: string): string {
   const same = (a === null || Number.isNaN(a)) ? b === null || b === 0 || Number.isNaN(b as number) : a === b;
   return same ? draft : externalText;
 }
+
+/**
+ * A crud's create/edit form screen (`…/new`, `…/edit`). When its save lands on the record, the
+ * record REPLACES the form on the native stack: Back then returns to where the user came from (the
+ * listing, or the record before Edit), not to a form already submitted.
+ */
+export function isFormRoute(route: string | null | undefined): boolean {
+  return /\/(new|edit)\/?$/.test((route ?? '').trim());
+}
