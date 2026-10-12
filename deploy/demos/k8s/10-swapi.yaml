@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swapi
+  namespace: mateu-demos
+  labels: { app: swapi }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }   # in-memory H2: two replicas would be two databases
+  selector:
+    matchLabels: { app: swapi }
+  template:
+    metadata:
+      labels: { app: swapi }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: swapi
+          image: miguelperezcolom/swapi-service:2026.10.12
+          env:
+            - { name: SERVER_PORT, value: "8120" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            - name: WRITE_KEY
+              valueFrom:
+                secretKeyRef: { name: swapi-write-key, key: WRITE_KEY }
+          ports:
+            - { name: http, containerPort: 8120 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { memory: "448Mi", cpu: "100m" }
+            limits:   { memory: "640Mi" }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8120 }
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8120 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8120 }
+            periodSeconds: 20
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: swapi
+  namespace: mateu-demos
+spec:
+  selector: { app: swapi }
+  ports:
+    - { name: http, port: 8120, targetPort: 8120 }

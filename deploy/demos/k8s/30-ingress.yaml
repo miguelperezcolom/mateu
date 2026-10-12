@@ -1,0 +1,76 @@
+# Production issuer everywhere. While a host's DNS does not point at the ingress LB, cert-manager's
+# HTTP-01 self-check keeps the Challenge pending (nothing is presented to Let's Encrypt, so no rate
+# limit is burnt); it completes by itself once DNS points here.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: swapi
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # the service is an API: its root sends people to the interactive API docs
+    nginx.ingress.kubernetes.io/app-root: /swagger-ui/index.html
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [swapi.mateu.io, swapi.ec1.mateu.io]   # swapi.mateu.io primary; ec1 kept for transition
+      secretName: swapi-tls
+  rules:
+    - host: swapi.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: swapi, port: { number: 8120 } }
+    - host: swapi.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: swapi, port: { number: 8120 } }
+---
+# One Ingress (and certificate) per host, so demo.ec1.mateu.io gets its certificate even while
+# demo.mateu.io still points at the old server.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-ec1
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [demo.ec1.mateu.io]
+      secretName: demo-ec1-tls
+  rules:
+    - host: demo.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-vaadin-webflux, port: { number: 8092 } }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-mateu-io
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [demo.mateu.io]
+      secretName: demo-mateu-io-tls
+  rules:
+    - host: demo.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-vaadin-webflux, port: { number: 8092 } }
