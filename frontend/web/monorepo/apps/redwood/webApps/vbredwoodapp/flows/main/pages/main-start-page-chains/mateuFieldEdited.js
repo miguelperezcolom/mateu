@@ -57,6 +57,13 @@ define([
           await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: vcAction } });
           return;
         }
+        // @AutoSave on a page whose fields are the generic form: only display-block inputs
+        // (hostInputChanged) honored it — a settings form never saved. value-changed fires on
+        // blur/Enter, which is the debounce
+        const auto = bridge.autoSaveOf(vcHost);
+        if (auto) {
+          await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: auto.actionId } });
+        }
       }
     }
   }

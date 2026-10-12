@@ -118,7 +118,52 @@ test.describe('triggers (any renderer)', () => {
   })
 })
 
+test.describe('event bus and value triggers (any renderer)', () => {
+
+  test('@SubscribeTo: DOCUMENT hears any island, COMPONENT only its source, SELF what bubbles up', async ({ page }) => {
+    // ❌ in design/walkthrough/actions.md: the VB shell paints a form page through its generic
+    // form, and the component-holder fields holding islands are not painted at all
+    test.fixme(test.info().project.name === 'renderer-vb', 'VB does not paint islands held by a form field')
+    await open(page, '/events-lab', 'Events lab')
+    await expect(text(page, 'Listener heard nothing (0)')).toBeVisible()
+    await btn(page, 'Ping B').click()
+    await expect(box(page, 'Heard by page')).toHaveValue('ping from B')
+    await expect(text(page, 'Listener heard nothing (0)')).toBeVisible()
+    await btn(page, 'Ping A').click()
+    await expect(text(page, 'Listener heard from A (1)')).toBeVisible()
+    await btn(page, 'Child ping A').click()
+    await expect(box(page, 'Heard from child')).toHaveValue('child ping from A')
+  })
+
+  test('OnValueChange runs when the watched field changes', async ({ page }) => {
+    await open(page, '/triggers-lab', 'Triggers lab')
+    await expect(box(page, 'On load')).toHaveValue('loaded')
+    await box(page, 'Watched').fill('abc')
+    await box(page, 'Watched').blur()
+    await expect(box(page, 'On value change')).toHaveValue('changed to abc')
+  })
+
+  test('@AutoSave runs once the user stops typing', async ({ page }) => {
+    await open(page, '/autosave-lab', 'Autosave lab')
+    await box(page, 'Draft').pressSequentially('hello', { delay: 30 })
+    await box(page, 'Draft').blur()
+    await expect(box(page, 'Saved')).toHaveValue(/^saved 'hello' \(\d+\)$/)
+  })
+})
+
 test.describe('overlays (any renderer)', () => {
+
+  test('a dialog opened from a drawer closes alone, leaving the drawer open', async ({ page }) => {
+    // ❌ in design/walkthrough/actions.md: on VB closing the dialog leaves the drawer hidden
+    test.fixme(test.info().project.name === 'renderer-vb', 'VB hides the drawer under a closed dialog')
+    await open(page, '/overlay-lab', 'Overlay lab')
+    await btn(page, 'Edit contact').click()
+    await btn(page, 'Open nested dialog').click()
+    await expect(text(page, 'Inner dialog')).toBeVisible()
+    await page.getByRole('dialog', { name: 'Nested dialog' }).getByRole('button', { name: 'Close inner' }).click()
+    await expect(page.getByText('Inner dialog')).toBeHidden()
+    await expect(btn(page, 'Save contact')).toBeVisible()
+  })
 
   test('a drawer closes with a result the page receives', async ({ page }) => {
     await open(page, '/overlay-lab', 'Overlay lab')

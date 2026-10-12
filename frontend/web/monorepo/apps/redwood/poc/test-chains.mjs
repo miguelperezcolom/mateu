@@ -210,4 +210,10 @@ test('a display-block click: a RouteLink button navigates, any other runs its ac
   }
 })
 
+test('@AutoSave also runs from the generic form (not only from display-block inputs)', () => {
+  // the actions walkthrough: a settings page whose fields are the generic form never saved
+  const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+  assert.ok(edited.includes('bridge.autoSaveOf('), 'mateuFieldEdited honors @AutoSave')
+})
+
 console.log(`\n${passed} chain-logic tests OK`)
