@@ -61,9 +61,9 @@ export class AppEditor extends LitElement {
         .mini { height: 30px; min-width: 30px; border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; cursor: pointer; }
         .mini:disabled { opacity: .4; cursor: default; }
         .menu-row input.access { flex: 0 1 11rem; font-size: 12px; }
-        .menu-row ve-select.display { flex: 0 0 7.5rem; width: 7.5rem; font-size: 12px; }
+        .menu-row ve-select.display { flex: 0 0 7.5rem; width: 7.5rem; font-size: var(--lumo-font-size-xs, 12px); }
         .card-row { margin-top: 0.3rem; }
-        .card-row ve-image-picker { flex: 1; font-size: 12px; }
+        .card-row ve-image-picker { flex: 1; font-size: var(--lumo-font-size-xs, 12px); }
     `
 
     @property() yaml = ''
