@@ -132,10 +132,20 @@ core `mvn verify` 1790 ✅ (JaCoCo gate ok) · libs/mateu vitest 1506 ✅ · Red
 home, sortable headers, a layout-shift race) · WebFlux 482 ✅ · renderer-vaadin 63 ✅ · renderer-vb 59 ✅ / **1 ❌**
 (below) · lint 415/420 · design tokens OK (baseline ratcheted 555→553) · licences OK · bundle freshness OK.
 
+### CI of PR #802 made green locally (2026-10-12, night)
+Every failing job reproduced locally first, then fixed at the root (one commit per job): Python mypy (two typed
+sets) · bundle-freshness = the **annotation-density ratchet** (23 `@Label`s that only repeated the humanized name
+removed from the new lab fixtures; ceiling 5.3 → 5.45 with the reason in `annotation-density.json`: the 43
+walkthrough fixtures are catalogues by design, the 331 pre-existing screens are unchanged at 5.18) · backend-tests
+(Micronaut: the YAML mount controller's sync catch-all swallowed `POST …/client-log` → 404, excluded; the test that
+pinned "not a bean next to generated controllers" now pins the opposite, decision 4) · frontend-lib
+(`VaadinNotifier.test` pinned the 3 s error toast and the undo detail before `serverNamed`) · e2e (a renderer spec
+re-exported a shared spec, which Playwright refuses; the renderer-vb project lists it instead) · renderer-vb
+(Redwood record master: the header took the master's title only when the tab had none — now always, the tab's own
+title as subtitle; `withinAppLevels` in poc/core). Verified: the five adapters' suites, mvc-app1 Vaadin shared +
+renderer 400+ specs, renderer-vb 60/60 on the rebuilt bundle, lint/tokens/licences/bundle freshness.
+
 ### Left for the next session (not done — budget)
-- ❌ **renderer-vb `shell.spec.ts` "routes.yaml of the mount: … record master with its default tab"**: `/shell/customers/7`
-  on Redwood shows the child tab ("Customer orders") but not the master's "Customer 7" text. Appeared on the
-  integration (Vaadin passes) — diagnose which merged branch changed the Redwood header for record masters.
 - Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog
   over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
   nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —
