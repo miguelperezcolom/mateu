@@ -94,7 +94,7 @@ N/A (why) · — not walked yet.
 | .NET shell: global search, notification bell (1), Hotel context combo (named, labelled), card-menu entries with descriptions | ✅ render probe (a11y names + labelFor) |
 | Page header overline / placeholder / timestamp / peer nav | 🔧 dropped → 97af34a04 (`PageSlotsRenderTest`) |
 | EmptyState icon token | 🔧 printed as text → 2ae7068f2 (`DisplayComponentsRenderTest`) |
-| CollectionDetail queue cards | ❌ 4: captions clipped |
+| CollectionDetail queue cards | 🔧 captions clipped → see commit "task-queue cards no longer clip" |
 | App shell whose app has no home | ❌ 5: content area empty |
 | Interactions (clicks/typing), mobile hub | — / N/A (no hub on desktop) |
 
@@ -153,7 +153,7 @@ listed above.
 3. **.NET starter on a .NET 9 SDK**: `starters/dotnet` (net8.0) references the sources, which
    multi-target net8.0+net10.0 — `dotnet run` fails without the .NET 10 SDK unless
    `-p:TargetFrameworks=net8.0`. Generated projects use NuGet, so only the in-repo starter.
-4. IntelliJ CollectionDetail cards clip their caption line (cosmetic).
+4. (fixed) IntelliJ CollectionDetail cards clipped their caption line.
 5. IntelliJ: an app whose shell has no home renders an empty content area (same as Java/Vaadin,
    where it is an empty page titled with the class name — the "home defaults to the first menu
    item" claim in CLAUDE.md holds only for RN, which opens the first tab).
