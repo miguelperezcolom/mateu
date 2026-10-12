@@ -63,6 +63,26 @@ class Separator(Component):
 
 
 @dataclass(frozen=True)
+class Card(Component):
+    """A card (Java's ``io.mateu.uidl.data.Card``): every slot is a component — a ``Text`` title,
+    an ``Image`` as media, buttons in the footer… ``variants`` as Java's ``CardVariant`` names
+    (``outlined``, ``elevated``, ``horizontal``, …); None keeps the renderer's default."""
+
+    content: Component | None = None
+    title: Component | None = None
+    subtitle: Component | None = None
+    media: Component | None = None
+    header_prefix: Component | None = None
+    header: Component | None = None
+    header_suffix: Component | None = None
+    footer: Component | None = None
+    variants: list[str] | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class Markdown(Component):
     """Formatted text written in Markdown."""
 

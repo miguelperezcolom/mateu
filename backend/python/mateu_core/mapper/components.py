@@ -8,6 +8,7 @@ import dataclasses
 
 from mateu_dtos import (
     Badge,
+    CardMetadata,
     Banner,
     Button,
     Fab,
@@ -156,6 +157,24 @@ class ComponentMapperMixin(MixinBase):
             if entry is None or entry.component is None:
                 return self.map_component(fluent.Text(text=f"Unknown business component: {c.ref}"))
             return self.map_component(entry.component)
+        if isinstance(c, fluent.Card):
+            # Java's CardMapper: each slot maps as a component of its own
+            def slot(x):
+                return self.map_component(x) if x is not None else None
+
+            meta = CardMetadata(
+                content=slot(c.content),
+                title=slot(c.title),
+                subtitle=slot(c.subtitle),
+                media=slot(c.media),
+                header_prefix=slot(c.header_prefix),
+                header=slot(c.header),
+                header_suffix=slot(c.header_suffix),
+                footer=slot(c.footer),
+            )
+            if c.variants is not None:
+                meta = meta.model_copy(update={"variants": list(c.variants)})
+            return self._fluent_client(meta, c)
         if isinstance(c, fluent.MetricCard):
             meta = MetricCardMetadata(
                 title=c.title,

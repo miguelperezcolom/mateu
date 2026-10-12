@@ -85,9 +85,18 @@ class FormMetadata(Wire):
 
 
 class CardMetadata(Wire):
+    """Mirrors io.mateu.dtos.CardDto: every slot is a COMPONENT (the title too — it was a string
+    here, so a Python card could not carry the title Java's carries)."""
+
     type: Literal["Card"] = "Card"
-    content: "Component"
-    title: str | None = None
+    content: "Component | None" = None
+    media: "Component | None" = None
+    header_prefix: "Component | None" = None
+    header: "Component | None" = None
+    title: "Component | None" = None
+    subtitle: "Component | None" = None
+    header_suffix: "Component | None" = None
+    footer: "Component | None" = None
     variants: list[str] = Field(default_factory=lambda: ["outlined"])
 
 
