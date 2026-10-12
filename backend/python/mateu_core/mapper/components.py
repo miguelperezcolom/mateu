@@ -104,6 +104,16 @@ from mateu_dtos import (
     ResponsiveGridMetadata,
     ScoreboardMetadata,
     SeparatorMetadata,
+    MarkdownMetadata,
+    ImageMetadata,
+    BadgeMetadata,
+    AvatarMetadata,
+    AvatarGroupMetadata,
+    ChartMetadata,
+    ChartDataRecord,
+    ChartDatasetRecord,
+    BpmnMetadata,
+    ProgressBarMetadata,
     SkeletonMetadata,
     StatMetadata,
     StatusItemRecord,
@@ -866,6 +876,61 @@ class ComponentMapperMixin(MixinBase):
             )
         if isinstance(c, fluent.Separator):
             return self._fluent_client(SeparatorMetadata(), c)
+        if isinstance(c, fluent.Markdown):
+            return self._fluent_client(MarkdownMetadata(markdown=c.markdown), c)
+        if isinstance(c, fluent.Image):
+            return self._fluent_client(ImageMetadata(src=c.src), c)
+        if isinstance(c, fluent.Badge):
+            return self._fluent_client(
+                BadgeMetadata(
+                    text=c.text, icon_on_left=c.icon_on_left, icon_on_right=c.icon_on_right,
+                    color=c.color, primary=c.primary, small=c.small, pill=c.pill,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.Avatar):
+            return self._fluent_client(
+                AvatarMetadata(name=c.name, abbreviation=c.abbreviation, image=c.image), c
+            )
+        if isinstance(c, fluent.AvatarGroup):
+            return self._fluent_client(
+                AvatarGroupMetadata(
+                    avatars=[
+                        AvatarMetadata(name=a.name, abbreviation=a.abbreviation, image=a.image)
+                        for a in c.avatars
+                    ],
+                    max_items_visible=c.max_items_visible,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.Chart):
+            data = c.chart_data
+            return self._fluent_client(
+                ChartMetadata(
+                    chart_type=c.chart_type,
+                    chart_data=None
+                    if data is None
+                    else ChartDataRecord(
+                        labels=list(data.labels),
+                        datasets=[
+                            ChartDatasetRecord(label=d.label, data=[float(x) for x in d.data])
+                            for d in data.datasets
+                        ],
+                    ),
+                    chart_options=c.chart_options,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.Bpmn):
+            return self._fluent_client(BpmnMetadata(xml=c.xml), c)
+        if isinstance(c, fluent.ProgressBar):
+            return self._fluent_client(
+                ProgressBarMetadata(
+                    value=c.value, min=c.min, max=c.max, indeterminate=c.indeterminate,
+                    value_key=c.value_key, text=c.text, theme=c.theme,
+                ),
+                c,
+            )
         if isinstance(c, fluent.CustomComponent):
             return self._fluent_client(
                 CustomComponentMetadata(name=c.name, props=dict(c.props)),

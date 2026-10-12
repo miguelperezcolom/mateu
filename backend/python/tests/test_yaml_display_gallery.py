@@ -42,6 +42,6 @@ def test_every_display_component_of_the_gallery_reaches_the_wire():
     ]
     golden = set(types_of(json.loads(GOLDEN.read_text())["fragments"][0]["component"], []))
     # what the Python fluent API does not have yet (tracked in design/walkthrough/pages.md)
-    not_in_python = {"Markdown", "Image", "Badge", "Avatar", "AvatarGroup", "Chart", "Bpmn", "ProgressBar", "Card"}
+    not_in_python = {"Card"}
     assert golden - not_in_python - found == set()
     assert len(unsupported) <= len(not_in_python)
