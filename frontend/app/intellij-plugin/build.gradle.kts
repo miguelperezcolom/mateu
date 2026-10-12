@@ -611,3 +611,15 @@ tasks.register<JavaExec>("renderProbe") {
         if (jnaDir != null) jvmArgs("-Djna.boot.library.path=${jnaDir.absolutePath}", "-Djna.nosys=true")
     }
 }
+
+// The suite runs HEADLESS everywhere, as it does in CI: with a display (a developer's Mac) Swing
+// picks the platform look-and-feel, headless it falls back to Metal, whose composites carry extra
+// buttons (a combo box's arrow, a scroll bar's arrows). A11y assertions that passed on a Mac failed
+// on the Linux runner; one environment for both removes that class of "works on my machine".
+tasks.test {
+    jvmArgs("-Djava.awt.headless=true")
+    // ConformanceCorpusRenderTest reads the repo's corpus at run time: declare it, or a cached test
+    // result outlives a change to the cases.
+    inputs.dir(rootProject.file("../../../conformance/cases"))
+        .withPropertyName("conformanceCorpus").withPathSensitivity(PathSensitivity.RELATIVE)
+}

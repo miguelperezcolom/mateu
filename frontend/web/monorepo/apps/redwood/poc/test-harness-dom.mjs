@@ -131,17 +131,23 @@ function parseHtml(doc, html) {
   const root = new FakeElement('#root')
   root.ownerDocument = doc
   let cur = root
-  const re = /<(\/?)([a-zA-Z][\w-]*)((?:\s+[^\s=>/]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(\/?)>|([^<]+)|</g
+  // The tag's attribute text is one run of quoted strings or other non-'>' characters — disjoint
+  // alternatives, so no input can be matched more than one way (no catastrophic backtracking).
+  // Attributes are read out of it below; a trailing '/' marks a self-closing tag.
+  const re = /<(\/?)([a-zA-Z][\w-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>|([^<]+)|</g
   let m
   while ((m = re.exec(html))) {
-    if (m[5] !== undefined || m[0] === '<') { cur.childNodes.push(Object.assign(new FakeText(decode(m[5] ?? '<')), { parentNode: cur })); continue }
+    if (m[4] !== undefined || m[0] === '<') { cur.childNodes.push(Object.assign(new FakeText(decode(m[4] ?? '<')), { parentNode: cur })); continue }
+    const rawAttrs = m[3].trimEnd()
+    const selfClosing = rawAttrs.endsWith('/')
+    const attrText = selfClosing ? rawAttrs.slice(0, -1) : rawAttrs
     const tag = m[2].toLowerCase()
     if (m[1]) { for (let n = cur; n !== root; n = n.parentNode) if (n.tagName === tag) { cur = n.parentNode; break } continue }
     const el = doc.createElement(tag)
-    for (const a of m[3].matchAll(/([^\s=>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) el._attrs.set(a[1], decode(a[2] ?? a[3] ?? a[4] ?? ''))
+    for (const a of attrText.matchAll(/([^\s=>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g)) el._attrs.set(a[1], decode(a[2] ?? a[3] ?? a[4] ?? ''))
     el.parentNode = cur
     cur.childNodes.push(el)
-    if (!m[4] && !VOID.has(tag)) cur = el
+    if (!selfClosing && !VOID.has(tag)) cur = el
   }
   const nodes = root.childNodes
   nodes.forEach((n) => { n.parentNode = null })

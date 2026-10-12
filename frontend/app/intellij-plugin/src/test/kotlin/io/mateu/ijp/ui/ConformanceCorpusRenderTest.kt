@@ -76,6 +76,9 @@ class ConformanceCorpusRenderTest : BasePlatformTestCase() {
             val (_, pane) = render(increment)
             all(pane).filterIsInstance<JComponent>()
                 .filter { (it is JTextComponent && it.isEditable && it.isEnabled) || it is AbstractButton }
+                // A scroll bar's arrow buttons (Metal: MetalScrollButton) are parts of ONE accessible
+                // control, the scroll bar, and never take focus — not controls of the screen.
+                .filter { javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JScrollBar::class.java, it) == null }
                 .filter { it.accessibleContext?.accessibleName.isNullOrBlank() }
                 .forEach { failures.add("$name: unnamed ${it.javaClass.simpleName}") }
         }

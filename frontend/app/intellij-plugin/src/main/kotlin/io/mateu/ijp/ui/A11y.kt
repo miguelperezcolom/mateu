@@ -23,7 +23,16 @@ import javax.swing.JLabel
 
 /** Sets the name a screen reader announces for this component. Blank names are ignored. */
 fun <T : JComponent> T.accessibleName(name: String?): T {
-    if (!name.isNullOrBlank()) accessibleContext.accessibleName = name
+    if (!name.isNullOrBlank()) {
+        accessibleContext.accessibleName = name
+        // A combo box is a composite too: its look-and-feel adds an arrow button (Metal — the L&F
+        // of a headless or Linux IDE — a MetalComboBoxButton covering the whole control) that is a
+        // button of its own with no text. Unnamed, a screen reader announced a bare "button" there.
+        if (this is javax.swing.JComboBox<*>) {
+            components.filterIsInstance<javax.swing.AbstractButton>()
+                .forEach { it.accessibleContext.accessibleName = name }
+        }
+    }
     return this
 }
 
