@@ -29,12 +29,14 @@ public class SalesDashboard extends Dashboard {
     MetricCard revenue = MetricCard.builder()
             .title("Revenue").value("1.2").unit("M€")
             .trend(MetricTrend.up).trendLabel("+8% vs last month")
+            .timeframe("This month")
             .icon("vaadin:dollar")
             .build();
 
     MetricCard orders = MetricCard.builder()
             .title("Orders").value("3,421")
             .trend(MetricTrend.up).trendLabel("+112")
+            .timeframe("Last 7 days")
             .build();
 
     @Panel(title = "Monthly sales", subtitle = "Units sold per month", colSpan = 2)
@@ -103,6 +105,17 @@ public Component component(HttpRequest request) {
 }
 ```
 
+### Checklist for KPIs
+
+A number on a dashboard is only useful if the reader knows what it measures and over which period. Before shipping a dashboard, check that:
+
+- **Every metric is named and explained.** Give each `MetricCard` a `title` and a `description` (or a panel subtitle) that says what is counted, so the tile reads without asking anyone.
+- **Every number carries its timeframe.** Set `timeframe` to the period the value covers, e.g. `MetricCard.builder().title("Revenue").value("12.4k").timeframe("Last 7 days")`. The renderers show it under the value, small and in the secondary text colour, and add it to the tile's accessible name ("Revenue, 12.4k, Last 7 days, …"). A blank timeframe shows nothing. "1,204 orders" without a period is ambiguous; "1,204 orders · This month" is not.
+- **One date format per locale.** Format the dates in titles, timeframes and panels the same way across the dashboard (format them from the request locale), rather than mixing `07/10`, `Oct 7` and `2026-10-07` on one screen.
+- **Every listing on the dashboard has a meaningful default sort**, such as most recent first or largest amount first, so the rows that matter are at the top without a click.
+
+`timeframe` is **experimental** (`@Experimental`): its name and shape may still change before it is declared stable. To help adoption, Mateu logs a one-time INFO hint when a dashboard's `MetricCard`s carry no timeframe.
+
 ## Redwood parameter and slot reference
 
 What the Redwood `dashboard-landing-page` template (plus `dashboard-grid`, `dashboard-panel` and
@@ -132,6 +145,7 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 |---|---|---|---|---|---|---|---|
 | `Dashboard` archetype (scoreboard band + panels) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `MetricCard.actionId` drill-in | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `MetricCard.timeframe` (under the value + in the accessible name) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `@AutoPage` inference (MetricCard fields → dashboard) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Reorderable tiles | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
 
