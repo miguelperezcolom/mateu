@@ -264,7 +264,7 @@ public final class StaticSafetyCheck {
     }
     var restActions = new java.util.HashSet<String>();
     for (var action : component.path("actions")) {
-      if (action.hasNonNull("restAction")) {
+      if (action.hasNonNull("restAction") || isClientFlow(action)) {
         restActions.add(action.path("id").asText());
       }
     }
@@ -284,11 +284,29 @@ public final class StaticSafetyCheck {
     return out;
   }
 
+  /**
+   * A declared FLOW ({@code steps:} — navigate, emit, close an overlay, mark clean/dirty) runs in
+   * the browser with no server: it is as static as a {@code restAction}. Only a {@code RunAction}
+   * step hands over to another action, which may need one — such a flow is not counted.
+   */
+  static boolean isClientFlow(JsonNode action) {
+    var steps = action.path("steps");
+    if (!steps.isArray() || steps.isEmpty()) {
+      return false;
+    }
+    for (var step : steps) {
+      if ("RunAction".equals(step.path("type").asText())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static List<Violation> checkDefinition(String route, JsonNode def, RestSourceCatalog catalog) {
     var out = new ArrayList<Violation>();
     Set<String> restActions = new java.util.HashSet<>();
     for (var action : def.path("actions")) {
-      if (action.has("restAction")) {
+      if (action.has("restAction") || isClientFlow(action)) {
         restActions.add(action.path("id").asText());
       }
     }
