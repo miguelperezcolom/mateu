@@ -83,8 +83,8 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
 | `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
-| `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](/java-user-manual/build/static-ui/#the-static-safety-report) and **fails the build** if any route still needs a server |
-| `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](/java-user-manual/build/static-ui/#two-ways-to-build-it)) |
+| `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](/deploy/static-ui/#the-static-safety-report) and **fails the build** if any route still needs a server |
+| `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](/deploy/static-ui/#two-ways-to-build-it)) |
 
 ### Knowing which bundle you are looking at
 
@@ -172,7 +172,7 @@ skipped, exactly like a static view that needs a live backend. See `demo/demo-st
   `restAction`) posts to the server. Without one it degrades with a clear "request failed" message.
   A **`@RestAction`** (or a YAML `restAction`) is different: the browser makes the call itself, so a
   confirmed delete or a save against your API works with no backend — see the
-  [100 % static UI guide](/java-user-manual/build/static-ui/). `staticOnly` turns any leftover server action into a build
+  [100 % static UI guide](/deploy/static-ui/). `staticOnly` turns any leftover server action into a build
   error.
 - **Parameterised routes** (`/orders/:id`) — skipped by default; can be bundled as
   [templates](#param-route-templates) when the structure is param-independent (data fetched
@@ -218,7 +218,7 @@ route. (Shipping only the first is what made a bundled deep link "render HOME", 
 
 - The manifest carries only screen **structure** (never business data), so nothing stale is baked in;
   data is always fetched live.
-- The manifest also carries the mount's [route registry](/java-ui-definition/route-registry/) when
+- The manifest also carries the mount's [route registry](/concepts/routes-and-mounts/) when
   the app declares one — a statically deployed mount has no server left to ask what a URL means, so
   the renderer resolves routes and their parameters from shipped data. Only the authored half
   travels: the annotation-derived half is route→class, and a class is what a bundle with no backend

@@ -117,4 +117,4 @@ With no server nobody resolves the expressions on the way out, so the browser do
 ## See also
 
 - [Internationalization](/java-user-manual/advanced/i18n/) — `Translator` and the code side.
-- [Permissions in YAML](/java-ui-definition/yaml-security/) and [Environments](/java-ui-definition/environments/).
+- [Permissions in YAML](/define/yaml/permissions/) and [Environments](/deploy/environments/).

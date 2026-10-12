@@ -29,9 +29,9 @@ the static bundle always used Vaadin. They now read the project's choice:
 
 | Where | What it does with `renderer` |
 |---|---|
-| **Visual editor** | The canvas opens in the project's renderer. The toolbar switch still lets you *peek* at another renderer for the session. The peek is labelled **preview — project: …** and never changes the file. Opening `project.yaml` itself shows a small settings form. See [the visual editor](/java-ui-definition/visual-editor#the-projects-renderer). |
+| **Visual editor** | The canvas opens in the project's renderer. The toolbar switch still lets you *peek* at another renderer for the session. The peek is labelled **preview — project: …** and never changes the file. Opening `project.yaml` itself shows a small settings form. See [the visual editor](/define/yaml/visual-editor#the-projects-renderer). |
 | **Play** | Plays the mount in the project's renderer. With Redwood, the whole mount runs in the real Redwood app, including the menu, routes and Play's back/forward. |
-| **Static bundle** | `mateu-bundle:bundle` ships the project's renderer, and the editor's **Export** writes a manifest that renderer can read. See [static UI](/java-user-manual/build/static-ui#choosing-the-renderer). |
+| **Static bundle** | `mateu-bundle:bundle` ships the project's renderer, and the editor's **Export** writes a manifest that renderer can read. See [static UI](/deploy/static-ui#choosing-the-renderer). |
 | **IDEs** | IntelliJ (**Settings → Tools → Mateu**) and VS Code (the `mateu.renderer` setting, or **Mateu: Project Settings…**) have a project-level renderer selector. The selector reads and writes this file, and the file is the source of truth. See [IDE tooling](/native/ide-tooling#the-projects-renderer-projectyaml). |
 
 ## A served app: the dependency decides, the server warns
@@ -64,6 +64,6 @@ To switch a served app, change the dependency **and** the descriptor together:
 
 ## See also
 
-- [Route registry](/java-ui-definition/route-registry) and [REST source catalogue](/java-ui-definition/rest-source-catalogue), the other `specs/ui` kinds.
-- [Authoring with the visual editor](/java-ui-definition/visual-editor).
-- [Static UI](/java-user-manual/build/static-ui).
+- [Route registry](/concepts/routes-and-mounts) and [REST source catalogue](/concepts/data-sources), the other `specs/ui` kinds.
+- [Authoring with the visual editor](/define/yaml/visual-editor).
+- [Static UI](/deploy/static-ui).

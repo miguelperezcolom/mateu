@@ -67,7 +67,7 @@ public @interface App {
 
 An `@App` with **no menu of its own** that answers a `routes.yaml` route with `children` offers
 those children as its options — the tabs of a record master. See the
-[recipe](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
+[recipe](/concepts/routes-and-mounts/#recipe-a-record-master-whose-tabs-are-pages).
 
 **`AppVariant` values:**
 

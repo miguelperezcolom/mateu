@@ -17,8 +17,8 @@ src/main/resources/specs/ui/
 ```
 
 A fully data-driven mount needs no `@UI` class at all: it is declared by a
-[`type: UI`](/java-ui-definition/yaml-app-shell/#the-mount-that-ties-it-together) file (base path +
-the route files it serves), and its chrome is a [`type: AppShell`](/java-ui-definition/yaml-app-shell/)
+[`type: UI`](/define/yaml/app-shell/#the-mount-that-ties-it-together) file (base path +
+the route files it serves), and its chrome is a [`type: AppShell`](/define/yaml/app-shell/)
 definition bound to the root route. The route registry below is the same either way — it is what binds
 URLs to definitions and view models, whether the mount is a class or a file.
 
@@ -42,7 +42,7 @@ That unlocks the cases an annotation cannot express:
   told apart by a pinned parameter — instead of two classes or an artificial `:param` in the path.
 - **One definition, several view models.** A shared list layout serving books and films.
 - **A route with no server class at all** — which is what a
-  [statically deployed](/java-user-manual/build/static-bundle/) mount is.
+  [statically deployed](/deploy/static-bundle/) mount is.
 
 ## Which one do I use?
 
@@ -63,15 +63,15 @@ The registry also expresses what a one-class-one-path annotation never could:
 | Seed a screen with overridable defaults (`?status=open&page=1`) | `routes.yaml` (`defaultParams`) | An annotation has nowhere to put seed values |
 | One layout serving several view models (books and films over one list) | `routes.yaml` (`definition` + `viewModel`) | An annotation binds a class to a path, not a layout to many classes |
 | A route with **no** view model — a bare layout | `routes.yaml` (`definition`, no `viewModel`) | An annotation needs a class to hang off |
-| A [data-driven mount](/java-ui-definition/yaml-app-shell/#the-mount-that-ties-it-together) with no `@UI` class | `type: UI` + `routes.yaml` | There is no class to annotate |
-| A [statically deployed](/java-user-manual/build/static-bundle/) route (no backend) | `routes.yaml` | Only the authored table ships in the bundle; a class is useless without a server |
+| A [data-driven mount](/define/yaml/app-shell/#the-mount-that-ties-it-together) with no `@UI` class | `type: UI` + `routes.yaml` | There is no class to annotate |
+| A [statically deployed](/deploy/static-bundle/) route (no backend) | `routes.yaml` | Only the authored table ships in the bundle; a class is useless without a server |
 | Re-point or rename a route without touching Java | `routes.yaml` (authored wins) | Editing an annotation means recompiling |
 
 ### They also compose
 
 Because the authored entry **replaces** the derived one outright, a `routes.yaml` entry for the
 mount's root route (`""`) can even re-point what the `@UI` class answers — for instance to bind an
-[app shell](/java-ui-definition/yaml-app-shell/) definition.
+[app shell](/define/yaml/app-shell/) definition.
 
 ### Rules of thumb
 
@@ -125,7 +125,7 @@ routes:
 
 | Field | Meaning |
 |---|---|
-| `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view, which typically binds the [app shell](/java-ui-definition/yaml-app-shell/). |
+| `route` | Path **relative to the mount**, with `:name` segments for path parameters. `""` is the mount's root view, which typically binds the [app shell](/define/yaml/app-shell/). |
 | `layout` | The layout file, relative to `specs/ui/` (a leading `/` addresses the classpath root). Optional — omit it and the view model supplies its own tree. This is the **canonical** key (part of the 5-noun vocabulary); **`definition`** is a deprecated alias kept for backward compatibility (`layout` wins if both are given). |
 | `viewModel` | Fully qualified name of the server class. **Optional**: a statically deployed route has no server behind it. |
 | `fixedParams` | Pinned. **Not overridable by the request.** |
@@ -134,7 +134,7 @@ routes:
 | `parent` | Set automatically when `children` is flattened: the absolute route of the screen whose slot a sub-route fills. You normally author `children`, not `parent`. |
 | `state` | Literal values that seed the **component/route** state on entry — see [What a route carries](#what-a-route-carries). |
 | `appState` | Literal values that seed the **app** state on entry (merged under the persisted `@AppContext`). |
-| `data` | The route's **component** data, as a **reference** to a named [source](/java-ui-definition/rest-source-catalogue/). Fetched when the route loads. |
+| `data` | The route's **component** data, as a **reference** to a named [source](/concepts/data-sources/). Fetched when the route loads. |
 | `appData` | The route's **app-scope** data, a reference to a named source, fetched **once** on app boot and shared across routes. |
 
 ### What a route carries
@@ -146,7 +146,7 @@ four a menu leaf brings when it navigates here. They split by nature:
   at the *defaults* level, so anything the client sent — including the persisted `@AppContext` in
   `appState` — still wins. `state` is component-scoped and replaced on navigation; `appState` is
   app-scoped and persists.
-- **`data` / `appData` are references** into the [REST source catalogue](/java-ui-definition/rest-source-catalogue/)
+- **`data` / `appData` are references** into the [REST source catalogue](/concepts/data-sources/)
   — there is no literal data channel, so data is always *sourced*. `data: countries` is shorthand
   for `{ref: countries}`. `data` is fetched at route load (it reuses the `@RestData` load path);
   `appData` is fetched once at app scope.
@@ -184,7 +184,7 @@ routes:
 
 When the mount authors no `route: ""`, its root resolves to the `home` entry — same definition, view
 model and pinned/default parameters — so `/` renders the dashboard. An authored `route: ""` always
-wins (explicit beats derived); when that root is an [app shell](/java-ui-definition/yaml-app-shell/),
+wins (explicit beats derived); when that root is an [app shell](/define/yaml/app-shell/),
 the shell's `homeRoute` defaults to `home` instead (its own `homeRoute:` still wins). A `home` that
 names no route of the mount is warned about at startup and ignored. A static bundle ships the same
 behaviour: the root alias travels in the route table, and a shell definition shipped raw carries
@@ -341,7 +341,7 @@ Or per file, as the first line:
 ```
 
 The definitions themselves have their own schema — see
-[YAML UI Definition](/java-ui-definition/yaml-ui-definition/#intellisense-setup).
+[YAML UI Definition](/define/yaml/pages/#intellisense-setup).
 
 ## Precedence
 
@@ -371,7 +371,7 @@ authorisation where it already lives.
 ## The definition is layout only
 
 When an entry names a `definition`, that file is loaded instead of the
-[`specs/ui/<route>.yaml` convention](/java-ui-definition/yaml-ui-definition/) — which ties a
+[`specs/ui/<route>.yaml` convention](/define/yaml/pages/) — which ties a
 screen's layout to its URL and is exactly why one definition could not serve two routes.
 
 A definition shared by several routes must **not** declare `modelView:`, or it can only ever serve
@@ -393,7 +393,7 @@ page that works today is unaffected.
 
 The authored half has two producers of its own: the YAML (`routes.yaml` and the `type: UI` mounts),
 and **code** — a `RouteEntrySupplier` bean returning `List<RouteEntry>`. It is the programmatic twin
-of the [REST source catalogue supplier](/java-ui-definition/rest-source-catalogue/), for routes that
+of the [REST source catalogue supplier](/concepts/data-sources/), for routes that
 come from configuration, a database, or that differ per environment. A supplied entry expresses the
 full model the YAML can — a route binding a definition, a view model and pinned parameters
 independently, one definition serving several routes, and a route with **no view model at all**.
@@ -426,7 +426,7 @@ flattens to.) App shells and their menus are likewise code-authorable — see
 
 ## Static deployments
 
-The authored table travels in the [static bundle](/java-user-manual/build/static-bundle/)'s
+The authored table travels in the [static bundle](/deploy/static-bundle/)'s
 `manifest.json`, and the renderer resolves routes from it — a statically deployed mount has no server
 left to ask what a URL means. Only the authored half is shipped: the derived half is route→class,
 and a class is what a bundle with no backend cannot use.
@@ -440,7 +440,7 @@ other route and a static host serves it with no backend.
 
 A route entry can say who may reach it — `access: {roles: [admin]}` — and anybody else gets 403 for
 it and for every route nested under it, while a menu link to it is hidden. Same dimensions and
-matching as `@EyesOnly`; see [Permissions in YAML](/java-ui-definition/yaml-security/). Such a route
+matching as `@EyesOnly`; see [Permissions in YAML](/define/yaml/permissions/). Such a route
 is identity-dependent, so a static bundle keeps it backend-served (and `staticOnly` refuses it).
 
 ## Failure behaviour

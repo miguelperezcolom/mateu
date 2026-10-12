@@ -27,7 +27,7 @@ Place YAML files under `src/main/resources/specs/ui/`, mirroring the route struc
 :::note
 This convention ties a page's layout to its URL, so one definition cannot serve two routes. To name
 the file explicitly — and to bind parameters or reuse one layout across several routes — declare the
-route in a [`routes.yaml` registry](/java-ui-definition/route-registry/) instead. The convention
+route in a [`routes.yaml` registry](/concepts/routes-and-mounts/) instead. The convention
 stays as the default when no entry mentions the route.
 :::
 
@@ -157,7 +157,7 @@ of them, usable anywhere a component is:
   ref: address-block
 ```
 
-See [Partials](/java-ui-definition/partials/).
+See [Partials](/define/yaml/partials/).
 
 ## `layoutDelta:` — keep inference alive
 
@@ -174,7 +174,7 @@ layoutDelta:
 ```
 
 > **Vocabulary:** the key that names the view model is **`viewModel:`** (the canonical noun of the
-> [5-noun model](/java-ui-definition/route-registry/)). The older **`modelView:`** is still accepted
+> [5-noun model](/concepts/routes-and-mounts/)). The older **`modelView:`** is still accepted
 > as a deprecated alias so existing definitions keep working; prefer `viewModel:` in new files.
 
 A `layout:` is a **snapshot**: it takes the screen out of the inference regime for good, because

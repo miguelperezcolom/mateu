@@ -89,7 +89,7 @@ Nothing about a restriction is decided in the browser. For every request the ser
 caller's identity, rewrites the definition (or the app shell) for it **before** mapping it to the
 wire, and strips the keys: what reaches the client is what this caller may see. A restriction the
 browser enforced would be a suggestion — the same reason [pinned route
-parameters](/java-ui-definition/route-registry/#precedence) are re-applied on the server.
+parameters](/concepts/routes-and-mounts/#precedence) are re-applied on the server.
 
 Hiding is UX, not authorization. As with the annotations, the REST endpoints your screens call must
 still check who is calling.
@@ -111,6 +111,6 @@ there the keys are cosmetic:
 ## See also
 
 - [Security](/java-user-manual/advanced/security/) — the annotations and the token.
-- [Route registry](/java-ui-definition/route-registry/) — where `access:` on a route lives.
-- [App shell as data](/java-ui-definition/yaml-app-shell/) — the menu `access:` filters.
-- [Translations in YAML](/java-ui-definition/yaml-i18n/) and [Environments](/java-ui-definition/environments/) — the other two pieces a YAML-only app needs.
+- [Route registry](/concepts/routes-and-mounts/) — where `access:` on a route lives.
+- [App shell as data](/define/yaml/app-shell/) — the menu `access:` filters.
+- [Translations in YAML](/define/yaml/translations/) and [Environments](/deploy/environments/) — the other two pieces a YAML-only app needs.

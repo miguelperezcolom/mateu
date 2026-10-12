@@ -62,7 +62,7 @@ This is intentional: the read-only view serves as a safe preview before the user
 
 ## Binding a custom editor page
 
-You can replace the auto-generated edit form with a custom page by declaring a [`routes.yaml`](/java-ui-definition/route-registry/) entry at the CRUD's edit sub-route (`users/:id/edit`).
+You can replace the auto-generated edit form with a custom page by declaring a [`routes.yaml`](/concepts/routes-and-mounts/) entry at the CRUD's edit sub-route (`users/:id/edit`).
 
 ```java
 @Service

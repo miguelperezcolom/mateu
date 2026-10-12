@@ -2,7 +2,7 @@
 title: "ComponentTreeSupplier"
 ---
 
-The primary interface for building a fully fluent page. Implement it to return a component tree for a given HTTP request. Bind it to a URL with a [`routes.yaml`](/java-ui-definition/route-registry/) entry.
+The primary interface for building a fully fluent page. Implement it to return a component tree for a given HTTP request. Bind it to a URL with a [`routes.yaml`](/concepts/routes-and-mounts/) entry.
 
 ```java
 public interface ComponentTreeSupplier extends Component {

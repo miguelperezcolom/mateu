@@ -94,7 +94,7 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
   Security, MicroProfile JWT) or a `PrincipalResolver` you register. Without one, restricted UI is
   hidden for everyone — see [Security](/java-user-manual/advanced/security/#how-authorization-works).
 - A YAML-authored app restricts routes, menu items, actions and components with the same rules —
-  see [Permissions in YAML](/java-ui-definition/yaml-security/).
+  see [Permissions in YAML](/define/yaml/permissions/).
 - Enforce permissions in your **services** too. Hiding a button is UX; the action method behind it
   must still check who is calling.
 
@@ -103,7 +103,7 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
 Screens that need no server logic can ship as a **static bundle** — `mvn package` with the
 `mateu-bundle-maven-plugin`'s `bundle` goal bound (a generated static project has it; the demos put
 it behind a `bundle` profile, hence `mvn -Pbundle package` there) — and be served by any CDN or object store with no Mateu backend at runtime. See
-[Static bundle](/java-user-manual/build/static-bundle/) and [100% static UI](/java-user-manual/build/static-ui/).
+[Static bundle](/deploy/static-bundle/) and [100% static UI](/deploy/static-ui/).
 
 For production:
 
@@ -122,7 +122,7 @@ For production:
 
 ### Environments and secrets
 
-Keep one `sources.yaml` and one [environment file](/java-ui-definition/environments/) per
+Keep one `sources.yaml` and one [environment file](/deploy/environments/) per
 deployment (`specs/ui/environments/pre.yaml`, `pro.yaml`), and select it with `MATEU_ENVIRONMENT`
 (or `-Dmateu.environment`) on the server, `-Dmateu.bundle.environment` for a bundle. Environment
 files hold base URLs, URLs, headers and the proxy flag — **never a secret**: write `${secret.X}` and

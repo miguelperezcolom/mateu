@@ -719,7 +719,7 @@ loader.Partials.Register("legal-notice",
 ```
 
 Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
-[Partials](/java-ui-definition/partials/).
+[Partials](/define/yaml/partials/).
 
 ## Route registry (`routes.yaml`)
 
@@ -748,7 +748,7 @@ ones are re-applied on the server over everything, including the state the clien
 file is the same one a Java or Python app consumes.
 
 See the full reference, including the JSON Schema for editor completion, in
-[Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
+[Route registry](/concepts/routes-and-mounts/). Not available in this port: the static-bundle
 exporter, so nothing ships the table to a browser.
 
 ## Status

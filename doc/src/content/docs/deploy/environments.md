@@ -3,7 +3,7 @@ title: "Environments"
 description: "Point the REST source catalogue at pre, pro or a local stack without editing sources.yaml."
 ---
 
-The [REST source catalogue](/java-ui-definition/rest-source-catalogue/) declares each endpoint
+The [REST source catalogue](/concepts/data-sources/) declares each endpoint
 once. An **environment** says where those endpoints live in one deployment — `pre`, `pro`, a
 developer's laptop — **without editing `sources.yaml`**:
 
@@ -89,6 +89,6 @@ when the file is read.
 
 ## See also
 
-- [The REST source catalogue](/java-ui-definition/rest-source-catalogue/).
-- [Deploy to production](/java-user-manual/build/deploy-to-production/) — environments and secrets.
-- [Permissions in YAML](/java-ui-definition/yaml-security/) and [Translations in YAML](/java-ui-definition/yaml-i18n/).
+- [The REST source catalogue](/concepts/data-sources/).
+- [Deploy to production](/deploy/production-checklist/) — environments and secrets.
+- [Permissions in YAML](/define/yaml/permissions/) and [Translations in YAML](/define/yaml/translations/).

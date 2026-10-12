@@ -2,7 +2,7 @@
 title: "Model vs Pages"
 ---
 
-Most Mateu UIs should be defined at the model level. Explicit routed pages (a class bound to a URL by a [`routes.yaml` entry](/java-ui-definition/route-registry/)) are the exception, not the default.
+Most Mateu UIs should be defined at the model level. Explicit routed pages (a class bound to a URL by a [`routes.yaml` entry](/concepts/routes-and-mounts/)) are the exception, not the default.
 
 ---
 

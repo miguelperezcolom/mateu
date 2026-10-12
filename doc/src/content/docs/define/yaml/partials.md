@@ -93,7 +93,7 @@ That is not an implementation detail — it is why the feature works everywhere 
 
 - No renderer has to learn the concept. Vaadin, Redwood, React Native and both IDE plugins support
   partials without a line of renderer code, and a renderer added next year does too.
-- A [static bundle](/java-user-manual/build/static-bundle/) stays self-contained. A partial node
+- A [static bundle](/deploy/static-bundle/) stays self-contained. A partial node
   on the wire would be a reference the bundle has no server to follow.
 
 ## Partials in Java

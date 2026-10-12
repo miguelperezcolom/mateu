@@ -80,7 +80,7 @@ static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SP
 ## Choosing the renderer
 
 The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see
-[project settings](/java-ui-definition/project-settings)). The goal chooses it in this order:
+[project settings](/define/yaml/project-settings)). The goal chooses it in this order:
 
 1. `<renderer>vaadin|redwood</renderer>` (`-Dmateu.bundle.renderer`), when set;
 2. otherwise `renderer:` in `project.yaml`;
@@ -155,9 +155,9 @@ backend at `baseUrl`. That is a legitimate deployment too.
   check on purpose (a bundle also reveals structure).
 - **YAML access rules** (`access:`, `eyesOnly:`, `readOnlyUnless:`, `disabledUnless:`) are refused
   by the static check the same way, and a hybrid bundle keeps those routes backend-served — see
-  [Permissions in YAML](/java-ui-definition/yaml-security/#static-bundles-and-play).
+  [Permissions in YAML](/define/yaml/permissions/#static-bundles-and-play).
 - **Translations work statically**: the catalogue travels in `manifest.json` and the browser
-  resolves `${i18n.…}` for the visitor's language — see [Translations in YAML](/java-ui-definition/yaml-i18n/#static-bundles-and-play).
+  resolves `${i18n.…}` for the visitor's language — see [Translations in YAML](/define/yaml/translations/#static-bundles-and-play).
 - **No secrets in the bundle.** An API key belongs on a server: use the proxy (a hybrid deploy) or a
   token the user's session obtains.
 

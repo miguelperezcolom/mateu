@@ -22,7 +22,7 @@ Products products;
 Changes changes;
 ```
 
-- The class is a mount (`@UI`) or is bound to a route in [`routes.yaml`](/java-ui-definition/route-registry/)
+- The class is a mount (`@UI`) or is bound to a route in [`routes.yaml`](/concepts/routes-and-mounts/)
 - Mateu uses the class name (or `@Title`) as the menu label
 - The instance is created and managed by Mateu (or Spring, if it is a bean)
 
@@ -104,7 +104,7 @@ public class NestedApp {
 `NestedApp` becomes a menu section header. `Page1` and `Page2` appear under it.
 
 Route nesting (a sub-route that renders inside a parent screen's slot) is declared as data in
-[`routes.yaml`](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)
+[`routes.yaml`](/concepts/routes-and-mounts/#nested-routes-a-sub-route-in-a-parents-slot)
 with `children:`, not by an annotation.
 
 ### Card menus (a group that opens as cards)
@@ -200,7 +200,7 @@ Rule refresh =
 - Clicking the leaf runs the rules; it does **not** navigate.
 
 So the whole menu-leaf surface reduces to two things: a **route** (with the parameters, state and
-data it carries — see [the route registry](/java-ui-definition/route-registry/)) or a **rule**.
+data it carries — see [the route registry](/concepts/routes-and-mounts/)) or a **rule**.
 
 ### A leaf that runs a flow
 
@@ -226,7 +226,7 @@ menu:
 In code, `AppShell.builder().action(Action.builder().id("newOrder").steps(List.of(new
 Step.Navigate("orders/new"))).build())` plus the same `RuleLink`. A `Navigate` to a route of the app
 stays inside the shell; an id the shell does not declare with steps is dispatched to the server as
-before. See [App shell as data → Flows on the shell](/java-ui-definition/yaml-app-shell/#flows-on-the-shell).
+before. See [App shell as data → Flows on the shell](/define/yaml/app-shell/#flows-on-the-shell).
 
 ---
 
@@ -268,7 +268,7 @@ public class Home2 {
 
 When a class is navigated to from a menu, Mateu needs to know where it sits in the route tree.
 
-Declare it as an inner route of the parent mount — a [`type: Routes`](/java-ui-definition/route-registry/) file tagged with the mount's `basePath` (routes are relative to it; use `children` to nest a route in another route's slot):
+Declare it as an inner route of the parent mount — a [`type: Routes`](/concepts/routes-and-mounts/) file tagged with the mount's `basePath` (routes are relative to it; use `children` to nest a route in another route's slot):
 
 ```java
 public class NestedApp {
@@ -395,7 +395,7 @@ plus `Menu` sub-trees and `RemoteMenu` federated entries.
 and `AppSupplier`/`MenuSupplier` + `AppShell` (Python) all compose the shell + menu in code,
 overriding the static declarations; a field the shell leaves unset falls back to the declared
 `@App`/`[App]`/`@app` value. Routes are likewise code-authorable — see the
-[route registry](/java-ui-definition/route-registry/#authoring-routes-in-code).
+[route registry](/concepts/routes-and-mounts/#authoring-routes-in-code).
 
 ## Mental model
 

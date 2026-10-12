@@ -23,7 +23,7 @@ The first choice is **how you author the UI**:
 | Authoring | What you get | Runtimes |
 |---|---|---|
 | **Code** | Screens are classes: `@UI` (Java), `[UI]` (C#) or `@ui` (Python). A Product CRUD, or an empty home screen. | Spring Boot MVC/WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python |
-| **YAML only, served by a backend** | **No UI code at all**: the Spring Boot main class plus `src/main/resources/specs/ui/` — a `type: UI` mount, `routes.yaml`, an app shell, a listing and `sources.yaml` with sample data. See the [YAML quickstart](/java-user-manual/start-here/quickstart-yaml/). | Spring Boot MVC |
+| **YAML only, served by a backend** | **No UI code at all**: the Spring Boot main class plus `src/main/resources/specs/ui/` — a `type: UI` mount, `routes.yaml`, an app shell, a listing and `sources.yaml` with sample data. See the [YAML quickstart](/define/yaml/quickstart/). | Spring Boot MVC |
 | **YAML only, static** | **No backend**: the same YAML, bundled at build time into a folder of static files for any CDN. | none — `mvn package` writes `target/mateu-bundle/` |
 | **Code + YAML** | App shell, routes and pages as YAML; the Product CRUD as a Java view model bound in `routes.yaml`. | Spring Boot MVC/WebFlux, Quarkus |
 
