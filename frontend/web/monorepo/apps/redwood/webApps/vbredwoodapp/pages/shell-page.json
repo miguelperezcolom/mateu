@@ -24,6 +24,11 @@
       "type": "any",
       "defaultValue": [],
       "description": "destinos de la paleta Ask Oracle (navegación + vistas rápidas), filtrados por el buscador"
+    },
+    "mateuMobileQrModel": {
+      "type": "any",
+      "defaultValue": { "url": "", "img": "", "alt": "", "phone": false },
+      "description": "@App(mobileQr): what the 'Open on mobile' dialog shows (bridge.mobileQrModelOf)"
     }
   },
   "metadata": {},
@@ -227,6 +232,20 @@
       "chains": [
         {
           "chain": "askOracleOpen"
+        }
+      ]
+    },
+    "mobileQrOpen": {
+      "chains": [
+        {
+          "chain": "openMateuMobileQr"
+        }
+      ]
+    },
+    "mobileQrCopy": {
+      "chains": [
+        {
+          "chain": "copyMateuMobileQr"
         }
       ]
     },

@@ -245,6 +245,8 @@ define([
       $application.variables.mateuGlobalSearch = !!(reg.shell && reg.shell.globalSearchEnabled);
       // @App(themeToggle): the header switch; the stored choice (or the OS preference) applies anyway
       $application.variables.mateuThemeToggle = !!(reg.shell && reg.shell.themeToggle);
+      // @App(mobileQr): "Open on mobile" — the QR of the mateu.io/add link (openMateuMobileQr)
+      $application.variables.mateuMobileQr = !!(reg.shell && reg.shell.mobileQr);
       bridge.applyInitialTheme();
       if (reg.shell && reg.shell.notificationsEnabled) {
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})

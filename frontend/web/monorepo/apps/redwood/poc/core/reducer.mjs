@@ -229,6 +229,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         themeToggle: md.themeToggle,
         // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
         accessKeys: !!md.accessKeys,
+        // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
+        mobileQr: !!md.mobileQr,
         // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
         // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
