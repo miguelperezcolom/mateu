@@ -17,7 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf,
+  welcomeOf, summarizeHost, pageSubtitleOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -511,6 +511,19 @@ test('a hero among other content is content: the welcome page is a hero over its
   const tiles = node({ type: 'ResponsiveGrid' }, [node({ type: 'DashboardPanel', title: 'P' }, [node({ type: 'Text', text: 't' })])])
   assert.ok(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles]), state: {}, data: {} }))
   assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
+})
+
+test('a composed page (no Page, no Crud title) takes its header title from its window title', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
+  const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }
+  assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
+})
+
+test('a SmartSearchPage intro line is the page subtitle (the listing page shows only the table)', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    { type: 'ClientSide', id: 'page-subtitle', metadata: { type: 'Text', text: 'Find assets' }, children: [] },
+    node({ type: 'Crud', columns: [] })])] }
+  assert.equal(pageSubtitleOf({ tree, state: {} }), 'Find assets')
 })
 
 test('a Stat with an action drills in', () => {
