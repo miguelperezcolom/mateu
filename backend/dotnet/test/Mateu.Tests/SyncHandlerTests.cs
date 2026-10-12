@@ -1419,6 +1419,25 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void The_sort_a_grid_header_sends_reaches_the_crud_fetch()
+    {
+        // the grid sends {fieldId, direction}; reading only "field" dropped every header sort
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(DbOrders).FullName,
+            ComponentState = new()
+            {
+                ["sort"] = JsonSerializer.SerializeToElement(new[] { new { fieldId = "name", direction = "descending" } }),
+            },
+        };
+
+        Handler().Handle(rq);
+
+        Assert.Equal(new SortSpec("name", true), Assert.Single(DbOrders.LastPageable!.Sort));
+    }
+
+    [Fact]
     public void Remote_menu_emits_a_federated_entry()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
