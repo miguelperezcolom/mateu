@@ -98,7 +98,14 @@ export class MateuPage extends LitElement {
     private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
     private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
 
+    // Set while the answer that brought banners is still being applied: its fragments (the same
+    // view re-rendered — an action returning `this` AND banners) change `component` in that same
+    // task, and the reset below must not wipe the banners that came with them.
+    private _bannersJustArrived = false
+
     private _bannersHandler = (e: Event) => {
+        this._bannersJustArrived = true
+        setTimeout(() => { this._bannersJustArrived = false })
         const detail = (e as CustomEvent).detail
         const newBanners: Banner[] = detail.banners ?? []
         const append: boolean = detail.append ?? false
@@ -188,9 +195,11 @@ export class MateuPage extends LitElement {
         this.toggleAttribute('data-crud-page', this._hasCrud())
         if (changedProperties.has('_activeToc')) this._revealActiveInBar()
         if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
-            this._clearAllTimers()
-            this.actionBanners = []
             this.dismissedStaticBannerIndices = new Set()
+            if (!this._bannersJustArrived) {
+                this._clearAllTimers()
+                this.actionBanners = []
+            }
         }
         if (changedProperties.has('component')) {
             // Embedded (level>0) pages — e.g. a ModelViewComponent inside a drawer/dialog — sit

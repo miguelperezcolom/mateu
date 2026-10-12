@@ -9,6 +9,7 @@ import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideCompone
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import OnLoadTrigger from "@mateu/shared/apiClients/dtos/componentmetadata/OnLoadTrigger.ts";
+import { carryOnLoadCounts, claimOnLoadFiring } from "@infra/ui/onLoadTimes.ts";
 import {nanoid} from "nanoid";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
@@ -158,6 +159,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             c0.actions = c1.actions
                             c0.type = c1.type
                             c0.rules = c1.rules
+                            // an in-place re-render keeps counting its OnLoad firings: `times`
+                            // is per component on screen, not per render (onLoadTimes.ts)
+                            if (inPlace) carryOnLoadCounts(c0.triggers, c1.triggers)
                             c0.triggers = c1.triggers
                             c0.serverSideType = c1.serverSideType
                             c0.route = c1.route
@@ -358,12 +362,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
-                if ((!trigger.condition || this._evalExpr(trigger.condition)) && !((trigger as OnLoadTrigger).triggered)) {
+                if ((!trigger.condition || this._evalExpr(trigger.condition)) && claimOnLoadFiring(trigger as OnLoadTrigger)) {
                     const onloadTrigger = trigger as OnLoadTrigger
-                    onloadTrigger.triggered = true
-                    var times = onloadTrigger.times - 1;
                     if (onloadTrigger.timeoutMillis > 0) {
-                        this.scheduleOnload(onloadTrigger, times, this.id);
+                        this.scheduleOnload(onloadTrigger, onloadTrigger.times - 1, this.id);
                     } else {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {

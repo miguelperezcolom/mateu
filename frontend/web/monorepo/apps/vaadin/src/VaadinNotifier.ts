@@ -2,6 +2,7 @@ import { Notification, NotificationPosition } from '@vaadin/notification'
 import { Notifier, ToastMessage } from '@application/Notifier.ts'
 import { announce } from '@infra/a11y/announcer.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { requestActionOn } from '@infra/ui/requestAction.ts'
 
 /**
  * Vaadin {@link Notifier} adapter — renders toasts with vaadin-notification for full Lumo
@@ -30,11 +31,9 @@ function controlOf(message: ToastMessage, initiator: HTMLElement) {
     if (message.undoActionId) {
         return {
             label: message.undoLabel ?? chromeText('undo'),
-            run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                bubbles: true,
-                composed: true,
-            })),
+            run: () => requestActionOn(initiator, {
+                actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
+            }),
         }
     }
     return undefined

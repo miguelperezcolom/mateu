@@ -6,6 +6,7 @@
  * may override it via {@link setNotifier} (e.g. the Vaadin app's VaadinNotifier).
  */
 import { Notifier, ToastMessage, setNotifier } from '@application/Notifier.ts'
+import { requestActionOn } from '@infra/ui/requestAction.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 type Corner = { top?: string; bottom?: string; left?: string; right?: string; transform?: string }
@@ -84,11 +85,9 @@ export const neutralNotifier: Notifier = {
             : message.undoActionId
                 ? {
                     label: message.undoLabel ?? chromeText('undo'),
-                    run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
-                        bubbles: true,
-                        composed: true,
-                    })),
+                    run: () => requestActionOn(initiator, {
+                        actionId: message.undoActionId, parameters: message.undoParameters ?? {}, serverNamed: true,
+                    }),
                 }
                 : undefined
 

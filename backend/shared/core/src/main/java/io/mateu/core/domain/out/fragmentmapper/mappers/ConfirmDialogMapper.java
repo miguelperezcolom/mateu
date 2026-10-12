@@ -31,15 +31,18 @@ public class ConfirmDialogMapper {
             .rejectText(confirmDialog.rejectText())
             .build(),
         "fieldId",
-        List.of(
-            mapComponentToDto(
-                null,
-                confirmDialog.content(),
-                baseUrl,
-                route,
-                consumedRoute,
-                initiatorComponentId,
-                httpRequest)),
+        // the content is optional (a header-only "Sure?"): a null one crashed the action
+        confirmDialog.content() == null
+            ? List.of()
+            : List.of(
+                mapComponentToDto(
+                    null,
+                    confirmDialog.content(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest)),
         confirmDialog.style(),
         confirmDialog.cssClasses(),
         null);

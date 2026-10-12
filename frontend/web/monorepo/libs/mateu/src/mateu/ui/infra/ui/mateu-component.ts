@@ -441,6 +441,10 @@ export class MateuComponent extends ComponentElement {
             _originElement?: Element,
             // set by the shell for an id IT declares: the catalogue must not answer it (owner first)
             skipCatalogue?: boolean
+            // an id the SERVER named in an answer to this component (an undoable toast's undo, a
+            // returned ConfirmDialog's buttons): it belongs to this component's server side even
+            // when the component never advertised it, since it did not exist when it rendered
+            serverNamed?: boolean
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
         // bubbles up to an ancestor component carries the original control in the detail —
@@ -471,6 +475,12 @@ export class MateuComponent extends ComponentElement {
                 ?? (detail.skipCatalogue || this.ancestorClaims(detail.actionId)
                     ? undefined
                     : getCatalogueAction(detail.actionId))
+                // the server named it in its answer to THIS component (see `serverNamed`): run it
+                // here — before, the undo of an undoable toast and the buttons of a returned
+                // ConfirmDialog bubbled out unclaimed and were lost
+                ?? (detail.serverNamed && detail.actionId && !this.ancestorClaims(detail.actionId)
+                    ? { id: detail.actionId } as Action
+                    : undefined)
 
             if (action) {
 
