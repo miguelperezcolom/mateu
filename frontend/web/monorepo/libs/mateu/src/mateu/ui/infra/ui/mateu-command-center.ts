@@ -95,8 +95,9 @@ export class MateuCommandCenter extends LitElement {
 
     updated(changed: PropertyValues) {
         if (changed.has('open') && this.open) {
-            // focus the search field once the overlay is in the DOM
-            requestAnimationFrame(() => this.inputEl?.focus())
+            // focus the search field now: the overlay is already in the DOM (updated runs after the
+            // render), and waiting for a frame sent what a quick typist entered first to the page
+            this.inputEl?.focus()
         }
     }
 

@@ -78,6 +78,36 @@ describe('the app shell variants', () => {
         expect(all).toContain('Customers')
     })
 
+    it('RAIL items are a navigation of buttons operable from the keyboard', async () => {
+        // they were bare <div>s with a click handler: a RAIL shell could not be used without a mouse
+        const el = await mount(app({ variant: AppVariant.RAIL }))
+        const nav = el.shadowRoot!.querySelector('nav.nav-rail')
+        expect(nav?.getAttribute('aria-label')).toBe('Back office')
+        const items = Array.from(el.shadowRoot!.querySelectorAll<HTMLElement>('.rail-item'))
+        expect(items.map((i) => [i.getAttribute('role'), i.tabIndex])).toEqual([['button', 0], ['button', 0]])
+        const picked = vi.fn()
+        el.selectRoute = picked
+        await el.updateComplete
+        el.shadowRoot!.querySelectorAll<HTMLElement>('.rail-item')[1]
+            .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+        expect(picked).toHaveBeenCalledTimes(1)
+    })
+
+    it('⌘K: the palette input owns the focus as soon as it opens — no key typed after ⌘K is lost', async () => {
+        const el = await mount(app({ variant: AppVariant.MENU_ON_TOP }))
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
+        await el.updateComplete
+        expect(el.shadowRoot!.activeElement).toBe(el.shadowRoot!.querySelector('.cmd-input'))
+    })
+
+    it('the title goes to the root of the app\'s own mount, not of the server', async () => {
+        const el = await mount(app({ variant: AppVariant.MENU_ON_TOP }))
+        el.baseUrl = '/back-office'
+        const push = vi.spyOn(window.history, 'pushState')
+        el.goHome()
+        expect(push).toHaveBeenCalledWith(null, '', '/back-office')
+    })
+
     it('the brand that goes home is a button, not a javascript: link', async () => {
         const el = await mount(app({ variant: AppVariant.MENU_ON_TOP }))
         const brand = el.shadowRoot!.querySelector('.mateu-app-brand')

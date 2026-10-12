@@ -58,6 +58,13 @@ describe('mateu-command-center', () => {
         expect($$(cc, '.cc-tile .cc-sub').map(s => s.textContent)).toEqual(['Setup', 'Setup'])
     })
 
+    it('its search field owns the focus as soon as it opens — no frame for typed keys to get lost in', async () => {
+        const cc = await mount()
+        await openIt(cc)
+        // no await of a frame: the keys a quick typist sends right after opening must land here
+        expect(cc.shadowRoot!.activeElement).toBe($(cc, '.cc-input'))
+    })
+
     it('Ctrl/⌘+K toggles it, Esc closes it', async () => {
         const cc = await mount()
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))

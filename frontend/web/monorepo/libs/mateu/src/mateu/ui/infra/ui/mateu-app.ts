@@ -22,7 +22,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
-import { activeSection, activeTopIndex, isActiveFor, isMount, sectionHome } from "@infra/ui/navTree.ts";
+import { activeSection, activeTopIndex, isActiveFor, isMount, mountRootPath, sectionHome } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -39,6 +39,8 @@ import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
 import { dispatchAppHeaderAction, findComponent } from '@infra/ui/renderers/appHeaderActions.ts'
 import { notify } from '@application/Notifier.ts'
+import { onActivate } from '@infra/a11y/activate.ts'
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { inAppRoute, shellActionFor, shellActionTarget } from '@infra/ui/shellFlows.ts'
 import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
@@ -568,9 +570,9 @@ export class MateuApp extends ComponentElement {
 
     renderRail = (menu: MenuOption[]): TemplateResult => {
         return html`
-            <div class="nav-rail">
+            <nav class="nav-rail" aria-label="${((this.component as ClientSideComponent)?.metadata as App)?.title || chromeText('menu')}">
                 ${menu.map(option => this.renderRailItem(option))}
-            </div>
+            </nav>
         `
     }
 
@@ -578,16 +580,24 @@ export class MateuApp extends ComponentElement {
         const isActive = option.submenus?.length > 0
             ? this.railOpenOption?.label === option.label
             : option.selected
+        const isGroup = option.submenus && option.submenus.length > 0
+        const activate = () => {
+            if (isGroup) {
+                this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
+            } else {
+                this.railOpenOption = null
+                this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
+            }
+        }
+        // a button for the keyboard and the screen reader: it was a bare <div> with a click
+        // handler, so a rail shell could not be navigated without a mouse
         return html`
-            <div class="rail-item ${isActive ? 'rail-item--active' : ''}"
-                @click=${() => {
-                    if (option.submenus && option.submenus.length > 0) {
-                        this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
-                    } else {
-                        this.railOpenOption = null
-                        this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)
-                    }
-                }}
+            <div class="rail-item ${isActive ? 'rail-item--active' : ''}" role="button" tabindex="0"
+                aria-label="${option.label}"
+                aria-expanded="${isGroup ? (isActive ? 'true' : 'false') : nothing}"
+                aria-current="${!isGroup && isActive ? 'page' : nothing}"
+                @click=${activate}
+                @keydown=${onActivate(activate)}
             >
                 ${option.icon
                     ? icon(option.icon, undefined, 'rail-icon')
@@ -602,17 +612,21 @@ export class MateuApp extends ComponentElement {
         return html`
             <div class="rail-sub-panel">
                 <div class="rail-sub-title">${option.label}</div>
-                ${option.submenus.map(sub => html`
-                    <div class="rail-sub-item ${sub.selected ? 'rail-sub-item--active' : ''}"
-                        @click=${() => {
-                            if (sub.submenus && sub.submenus.length > 0) {
-                                this.railOpenOption = sub
-                            } else {
-                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
-                            }
-                        }}
-                    >${sub.label}</div>
-                `)}
+                ${option.submenus.map(sub => {
+                    const activate = () => {
+                        if (sub.submenus && sub.submenus.length > 0) {
+                            this.railOpenOption = sub
+                        } else {
+                            this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
+                        }
+                    }
+                    return html`
+                    <div class="rail-sub-item ${sub.selected ? 'rail-sub-item--active' : ''}" role="button" tabindex="0"
+                        aria-current="${sub.selected ? 'page' : nothing}"
+                        @click=${activate}
+                        @keydown=${onActivate(activate)}
+                    >${sub.label}</div>`
+                })}
             </div>
         `
     }
@@ -622,22 +636,25 @@ export class MateuApp extends ComponentElement {
             <div style="padding: 2rem;">
                 <h2 style="margin-top: 0; margin-bottom: 1.5rem;">${option.label}</h2>
                 <div class="tiles-hub-grid">
-                    ${option.submenus.map(sub => html`
-                        <div class="nav-tile"
-                            @click=${() => {
-                                if (sub.submenus && sub.submenus.length > 0) {
-                                    this.tilesMenuOption = sub
-                                } else {
-                                    this.tilesMenuOption = null
-                                    this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
-                                }
-                            }}
+                    ${option.submenus.map(sub => {
+                        const activate = () => {
+                            if (sub.submenus && sub.submenus.length > 0) {
+                                this.tilesMenuOption = sub
+                            } else {
+                                this.tilesMenuOption = null
+                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix, sub.rules)
+                            }
+                        }
+                        return html`
+                        <div class="nav-tile" role="button" tabindex="0"
+                            @click=${activate}
+                            @keydown=${onActivate(activate)}
                         >
                             ${sub.icon ? icon(sub.icon, 'font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;') : nothing}
                             <div class="nav-tile-title">${sub.label}</div>
                             ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
-                        </div>
-                    `)}
+                        </div>`
+                    })}
                 </div>
             </div>
         `
@@ -651,7 +668,9 @@ export class MateuApp extends ComponentElement {
         if (!dirtyGuard.confirmLeave()) {
             return
         }
-        window.history.pushState(null, '', '/')
+        // the root of THIS app's mount: on a non-root mount (@UI("/back-office")) '/' is another
+        // app altogether — clicking the title used to leave the app
+        window.history.pushState(null, '', mountRootPath(this.baseUrl))
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
     }
 
@@ -1032,7 +1051,7 @@ export class MateuApp extends ComponentElement {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
     }
 
-    static styles = [css`
+    static styles = [activatableFocusStyles, css`
         /* DS-neutral app chrome (replaces vaadin-app-layout / menu-bar / tabs / side-nav). */
         .m-hl { display: flex; flex-direction: row; }
         .m-vl { display: flex; flex-direction: column; }
