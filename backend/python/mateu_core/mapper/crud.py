@@ -134,7 +134,7 @@ class CrudMapperMixin(MixinBase):
         # Class-level @inline_editing: every data column (except ReadOnly() ones) is edited in
         # place; each committed cell dispatches the crud's update-row action (Java parity).
         inline = getattr(cls, "__mateu_inline_editing__", False)
-        columns = []
+        columns: list[GridColumn] = []
         for f in view_fields(element):
             if not self.visible(f):
                 continue

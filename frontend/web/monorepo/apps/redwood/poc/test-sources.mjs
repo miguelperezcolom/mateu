@@ -573,7 +573,7 @@ test('shell sources: a PROXIED source goes through _appsource naming the ROLE, n
   assert.equal(asked[0].body.actionId, '_appsource')
   assert.deepEqual(asked[0].body.parameters, { searchText: 'ad', _appSource: 'globalSearch' })
   assert.deepEqual(asked[0].body.appState, { hotel: 'H1' })
-  assert.equal(JSON.stringify(asked[0].body).includes('crm.example.com'), false)
+  assert.equal(/crm\.example\.com/.test(JSON.stringify(asked[0].body)), false, 'the browser never sends the source URL')
   assert.equal(f.calls.length, 0)
   // the palette rows group the hits by category, after the destinations
   assert.deepEqual(paletteRowsOfHits(hits).map((r) => [r.label, r.route, r.kind]), [['Ada — VIP', '/customers/1', 'Customers']])
