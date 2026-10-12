@@ -7,7 +7,7 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { theme } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
-import { switcherOf } from './patternGaps';
+import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 
 interface ButtonDto {
   actionId?: string;
@@ -96,13 +96,21 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const children = (component['children'] as unknown[]) ?? [];
   // Record/context switcher (PageDto.switcher): a compact selector under the title.
   const switcher = switcherOf(metadata);
+  // overline / title placeholder / "last updated" / previous-next record (the canonical header)
+  const extras = pageHeaderExtrasOf(metadata, title);
+  const openPeer = (label: string, route: string) =>
+    controller.session.openView({ label, route, consumedRoute: '', serverSideType: '' });
 
   const handleAction = (actionId: string) => runAction(actionId);
 
   return (
     <View style={styles.root}>
-      {(!!title || !!subtitle || toolbar.length > 0 || !!switcher) && (
+      {(!!title || !!subtitle || toolbar.length > 0 || !!switcher || !!extras.overline || !!extras.placeholder || !!extras.peers) && (
         <View style={styles.header}>
+          {!!extras.overline && <Text style={styles.overline}>{extras.overline}</Text>}
+          {!title && !!extras.placeholder && (
+            <Text style={[styles.title, styles.placeholder]} {...headingA11y(1)}>{extras.placeholder}</Text>
+          )}
           {!!title && (
             // Marked as a heading so the rotor / reading controls can jump between screens'
             // sections instead of forcing a linear read from the top.
@@ -110,6 +118,27 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           )}
           {!!switcher && <RecordSwitcherRenderer switcher={switcher} />}
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {!!extras.timestamp && <Text style={styles.timestamp}>{extras.timestamp}</Text>}
+          {!!extras.peers && (
+            <View style={styles.peers}>
+              {(['prev', 'next'] as const).map((side) => {
+                const peer = extras.peers![side];
+                if (!peer) return null;
+                const disabled = !peer.route;
+                return (
+                  <TouchableOpacity
+                    key={side}
+                    {...buttonA11y({ label: `${side === 'prev' ? 'Previous' : 'Next'}: ${peer.label}`, disabled })}
+                    disabled={disabled}
+                    style={[styles.btnDefault, disabled && styles.btnDisabled]}
+                    onPress={() => peer.route && openPeer(peer.label, peer.route)}
+                  >
+                    <Text style={styles.btnDefaultText}>{side === 'prev' ? `‹ ${peer.label}` : `${peer.label} ›`}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
           {badges.length > 0 && (
             <View style={styles.badges}>
               {badges.map((b, i) => (
@@ -189,6 +218,10 @@ const styles = StyleSheet.create({
   header: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.divider },
   title: { fontSize: 22, fontWeight: '700', color: theme.ink },
   subtitle: { fontSize: 14, color: theme.muted, marginTop: 4 },
+  overline: { fontSize: 12, color: theme.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
+  placeholder: { opacity: 0.45 },
+  timestamp: { fontSize: 12, color: theme.muted, marginTop: 4 },
+  peers: { flexDirection: 'row', gap: 8, marginTop: 8 },
   toolbar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
   body: { padding: 16, paddingBottom: 24 },
   banners: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },

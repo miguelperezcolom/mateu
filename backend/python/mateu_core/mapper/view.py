@@ -254,6 +254,11 @@ class ViewMapperMixin(MixinBase):
                         "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
                     }
                 ]
+                # ...and the action it fires is the view's own: unadvertised, the client let it
+                # bubble (web: lost; native: sent to the APP type → "Action not found"), so typing
+                # in a CollectionDetail / GeneralOverview search field never filtered anything
+                if all(a.id != refresh for a in actions):
+                    actions = list(actions) + [Action(id=refresh, validation_required=False)]
         else:
             initial_data = self.form_initial_data(cls, instance)
         # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the

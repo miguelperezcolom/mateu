@@ -192,6 +192,20 @@ def test_archetype_toolbars_are_advertised():
     assert {"switchToGrid", "switchToGantt"} <= {a.id for a in board.actions}
 
 
+def test_the_refresh_on_change_action_is_advertised():
+    # the CollectionDetail search fires filterCollection through an AutoSave trigger; unadvertised,
+    # the web dropped it and React Native sent it to the APP type ("Action not found")
+    from tests.test_archetypes_collection_overview import HotelDirectory, RequisitionOverview
+
+    module = sys.modules["tests.test_archetypes_collection_overview"]
+    for view, route, action in ((HotelDirectory, "hotel-directory", "filterCollection"),
+                                (RequisitionOverview, "requisition-overview", "switchRecord")):
+        component = SyncHandler(MateuRegistry(module)).handle(
+            RunActionRq(route=route, server_side_type=type_name(view))
+        ).fragments[0].component
+        assert action in {a.id for a in component.actions}, view
+
+
 class Typed:
     active: bool = True
     count: int = 0

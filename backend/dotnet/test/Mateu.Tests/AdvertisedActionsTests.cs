@@ -81,7 +81,8 @@ public class AdvertisedActionsTests
     [Theory]
     [InlineData(typeof(TeamCalendar), "previousCalendarMonth,goCalendarToday,nextCalendarMonth")]
     [InlineData(typeof(ScheduleBoard), "switchToGrid,switchToGantt")]
-    [InlineData(typeof(HotelDirectory), "selectCollectionItem")]
+    [InlineData(typeof(HotelDirectory), "selectCollectionItem,filterCollection")]
+    [InlineData(typeof(RequisitionOverview), "switchRecord")]
     [InlineData(typeof(MyTasks), "openTodoItem")]
     public void Archetype_toolbars_are_advertised(Type type, string ids)
     {

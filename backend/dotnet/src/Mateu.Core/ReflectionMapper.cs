@@ -276,6 +276,11 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
                     type = "AutoSave", actionId = refresh.RefreshActionId,
                     debounceMillis = refresh.RefreshDebounceMillis,
                 }];
+                // ...and the action it fires is the view's own: unadvertised, the client let it
+                // bubble (web: lost; native: sent to the APP type → "Action not found"), so typing
+                // in a CollectionDetail / GeneralOverview search field never filtered anything
+                if (!string.IsNullOrEmpty(refresh.RefreshActionId) && actions.All(a => a.Id != refresh.RefreshActionId))
+                    actions.Add(new ActionDto(refresh.RefreshActionId, ValidationRequired: false));
             }
         }
         else if (tree is null)
