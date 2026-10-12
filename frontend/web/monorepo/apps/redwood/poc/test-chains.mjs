@@ -16,6 +16,7 @@ import { fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
+import { listingUrlOf, listingUrlPagingOf } from './core/listing.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -217,13 +218,6 @@ test('@AutoSave also runs from the generic form (not only from display-block inp
   assert.ok(edited.includes('bridge.autoSaveOf('), 'mateuFieldEdited honors @AutoSave')
 })
 
-test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
-  const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
-    'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
-  assert.ok(!bundle.includes('#{env.'), 'a #{env.*}# placeholder only a VB host fills is left in the jar bundle')
-  assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
-})
-
 test('a Separator draws a visible rule, not an empty spacer', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.ok(/isSeparator \]\]">\s*<hr class="mateu-separator/.test(page), 'the separator atom is an <hr>')
@@ -238,6 +232,26 @@ test('an edited Amount keeps its currency (the money input edits only the number
   assert.equal(committedValueOf(undefined, 'x'), 'x')
   const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
   assert.equal(edited.split('bridge.committedValueOf(').length - 1, 2, 'both drafts (page and overlay) commit through it')
+})
+
+test('a listing keeps its page and sort in the URL, with the Vaadin contract (back, reload, shared link)', () => {
+  assert.equal(listingUrlOf('/books', { genre: 'Poetry' }, 'ana', { page: 2, sort: [{ field: 'title', direction: 'descending' }] }),
+    '/books?genre=Poetry&searchText=ana&page=2&sort=title:descending')
+  assert.equal(listingUrlOf('/books', {}, '', { page: 0, sort: [] }), '/books')
+  assert.deepEqual(listingUrlPagingOf('genre=Poetry&page=2&sort=title:descending,year:ascending'),
+    { page: 2, sort: [{ field: 'title', direction: 'descending' }, { field: 'year', direction: 'ascending' }] })
+  assert.deepEqual(listingUrlPagingOf(''), { page: 0, sort: [] })
+  const search = webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')
+  assert.ok(search.includes('bridge.listingUrlOf(') && search.includes('history.replaceState'), 'every search writes the URL')
+  const nav = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'onMateuNavigate.js'), 'utf8')
+  assert.ok(nav.includes('bridge.listingUrlPagingOf('), 'navigation restores page and sort')
+})
+
+test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.catalogJson}#" 400 on every load)', () => {
+  const bundle = readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'backend', 'shared', 'frontend', 'redwood',
+    'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
+  assert.ok(!bundle.includes('#{env.'), 'a #{env.*}# placeholder only a VB host fills is left in the jar bundle')
+  assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

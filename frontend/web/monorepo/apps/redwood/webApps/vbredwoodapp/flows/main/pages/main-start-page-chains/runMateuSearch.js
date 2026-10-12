@@ -51,6 +51,22 @@ define([
       bridge.applyDomEffects(reg.effects, reg);
       $application.variables.mateuRegistry = reg;
 
+      // la URL dice el estado del listado — filtros, texto, PÁGINA y ORDEN — como en Vaadin y en
+      // el bundle estático: volver de una ficha, recargar o compartir el enlace lo conserva.
+      // replaceState: paginar u ordenar no es una pantalla nueva en el historial
+      const full = bridge.listingUrlOf(route || '', $application.variables.mateuFilterValues || {},
+        $application.variables.mateuLastSearchText || '',
+        { page: page || 0, sort: $application.variables.mateuListingSort || [] });
+      window.__mateuLoadedFull = full;
+      if (window.__mateuUrlPathMode) {
+        if (bridge.currentRoutePathOf(window.location) === full.split('?')[0]
+            && bridge.currentRouteOf(window.location) !== full) {
+          window.history.replaceState(window.history.state, '', bridge.urlOfRoute(full));
+        }
+      } else if (window.location.hash !== '#' + full) {
+        window.history.replaceState(window.history.state, '', '#' + full);
+      }
+
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];

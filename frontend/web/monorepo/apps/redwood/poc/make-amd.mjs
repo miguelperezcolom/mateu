@@ -261,6 +261,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     splitListingQuery,
     listingQueryOf,
     listingUrlOf,
+    listingUrlPagingOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,

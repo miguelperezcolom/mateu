@@ -947,11 +947,45 @@ export function listingQueryOf(values, searchText) {
   return parts.join('&')
 }
 
-/** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. */
-export function listingUrlOf(route, values, searchText) {
+/** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. Con
+ *  `paging` ({page, sort}) también la página (si no es la primera) y el orden, con el contrato de
+ *  Vaadin y del bundle estático: `page=N`, `sort=campo:ascending,otro:descending` — así volver de
+ *  una ficha, recargar o compartir el enlace conserva la página y el orden, no sólo los filtros. */
+export function listingUrlOf(route, values, searchText, paging) {
   const bare = String(route || '').split('?')[0]
+  const parts = []
   const query = listingQueryOf(values, searchText)
-  return query ? bare + '?' + query : bare
+  if (query) parts.push(query)
+  const page = paging && Number(paging.page)
+  if (page > 0) parts.push('page=' + page)
+  const sort = paging && Array.isArray(paging.sort)
+    ? paging.sort.filter((x) => x && x.field && x.direction).map((x) => x.field + ':' + x.direction).join(',')
+    : ''
+  if (sort) parts.push('sort=' + encodeURIComponent(sort).replace(/%2C/gi, ',').replace(/%3A/gi, ':'))
+  return parts.length ? bare + '?' + parts.join('&') : bare
+}
+
+/** La página y el orden que trae la query de un listado (`page=2&sort=name:descending`) →
+ *  { page, sort: [{field, direction}] }; la primera página y ningún orden si no vienen. */
+export function listingUrlPagingOf(query) {
+  const out = { page: 0, sort: [] }
+  for (const part of String(query || '').replace(/^\?/, '').split('&')) {
+    const eq = part.indexOf('=')
+    if (eq <= 0) continue
+    let value = part.slice(eq + 1)
+    try { value = decodeURIComponent(value.replace(/\+/g, ' ')) } catch (e) { /* as it came */ }
+    const key = part.slice(0, eq)
+    if (key === 'page') {
+      const n = parseInt(value, 10)
+      if (n > 0) out.page = n
+    } else if (key === 'sort') {
+      out.sort = value.split(',').map((x) => {
+        const [field, direction] = x.split(':')
+        return field && (direction === 'ascending' || direction === 'descending') ? { field, direction } : null
+      }).filter(Boolean)
+    }
+  }
+  return out
 }
 
 export const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)

@@ -117,6 +117,9 @@ define([
       route = target.route;
       // el texto libre (?searchText= o ?q=) va al buscador como chip keyword, no como filtro
       const fromQuery = bridge.splitListingQuery(target.filters);
+      // …y la página y el orden (?page=2&sort=name:descending): back desde una ficha, una recarga
+      // o un enlace compartido vuelven a ESA página con ESE orden
+      const pagingFromQuery = bridge.listingUrlPagingOf(target.full.split('?')[1] || '');
       let pendingSearchText = null;
       if (Object.keys(fromQuery.values).length || fromQuery.searchText) {
         $application.variables.mateuFilterValues = fromQuery.values;
@@ -197,7 +200,8 @@ define([
       for (const triggerActionId of bridge.onLoadTriggers(loaded)) {
         const listing = bridge.listingOf(loaded);
         const componentState = Object.assign(
-          {}, loaded.state, { page: 0, size: (listing && listing.pageSize) || 20 });
+          {}, loaded.state, { page: pagingFromQuery.page, size: (listing && listing.pageSize) || 20 });
+        if (pagingFromQuery.sort.length) componentState.sort = pagingFromQuery.sort;
         for (const key of Object.keys(quickNav)) {
           componentState[key] = quickNav[key];
         }
@@ -289,8 +293,8 @@ define([
       }
       // otra pantalla, otra tabla: la selección de la anterior no se hereda
       $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
-      // ni el orden que se pidió en su cabecera (la carga ya llegó sin él, en la primera página)
-      $application.variables.mateuListingSort = [];
+      // ni el orden que se pidió en su cabecera — salvo el que trae la URL (la carga ya llegó con él)
+      $application.variables.mateuListingSort = pagingFromQuery.sort;
 
       // mismo remontaje que en runMateuAction: si venimos de OTRO foldout, recrear el
       // subárbol para que los bindings internos no se queden con los bloques viejos
