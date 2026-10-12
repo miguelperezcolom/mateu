@@ -80,6 +80,15 @@ test.describe('YAML authoring served by the backend', () => {
     expect(problems).toEqual([]);
   });
 
+  test('a layoutDelta adjusts the form inferred from the view model', async ({ page }) => {
+    await page.goto('/walkthrough/delta');
+    await expect(page.getByLabel('Total')).toHaveValue('7'); // relabelled
+    await expect(page.getByLabel('Extra')).toHaveCount(0); // hidden
+    const secret = await page.getByLabel('Secret').boundingBox();
+    const total = await page.getByLabel('Total').boundingBox();
+    expect(secret && total && secret.x < total.x).toBeTruthy(); // reordered within its row
+  });
+
   test('a route restricted with access: is refused to an anonymous caller', async ({ page }) => {
     const refused = page.waitForResponse((r) => r.url().includes('/walkthrough/restricted') && r.request().method() === 'POST');
     await page.goto('/walkthrough/restricted');

@@ -30,6 +30,11 @@ routes:
     layout: walkthrough/bound.yaml
     viewModel: io.mateu.sample1.WalkthroughCounter
 
+  # The same kind of view model, its inferred form adjusted by a layoutDelta (order, hidden, label).
+  - route: walkthrough/delta
+    layout: walkthrough/delta.yaml
+    viewModel: io.mateu.sample1.WalkthroughDeltaForm
+
   # A route only an admin may open: the SUT has no security, so the caller is anonymous → refused.
   - route: walkthrough/restricted
     layout: walkthrough/pinned.yaml

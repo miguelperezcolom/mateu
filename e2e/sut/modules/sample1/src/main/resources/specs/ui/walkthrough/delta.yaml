@@ -1,0 +1,10 @@
+# What the visual editor writes for a page whose layout is INFERRED from its Java view model: a
+# delta anchored to field ids (order, hidden, per-field label) instead of a layout snapshot.
+# NB `order:` reorders fields within the container holding them; inference lays this two-column
+# form out as rows of two ([count, secret], [note, extra]), so it reorders within the first row.
+layoutDelta:
+  order: [secret, count]
+  hidden: [extra]
+  overrides:
+    count:
+      label: Total
