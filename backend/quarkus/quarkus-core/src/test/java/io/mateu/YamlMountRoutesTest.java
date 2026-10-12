@@ -95,12 +95,14 @@ class YamlMountRoutesTest {
             + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}";
     try {
       RestAssured.port = server.actualPort();
-      RestAssured.given()
-          .contentType("application/json")
-          .body(rq)
-          .post("/yaml-parity/mateu/v3/sync/restricted")
-          .then()
-          .statusCode(403);
+      for (var api : java.util.List.of("sync", "sse")) {
+        RestAssured.given()
+            .contentType("application/json")
+            .body(rq)
+            .post("/yaml-parity/mateu/v3/" + api + "/restricted")
+            .then()
+            .statusCode(403);
+      }
       RestAssured.given()
           .contentType("application/json")
           .header("X-Test-Role", "admin")

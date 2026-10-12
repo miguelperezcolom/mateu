@@ -325,20 +325,45 @@ public class MateuHelidonRoutes {
       var increments = service.get().runAction(uiId, rq, baseUrl, httpRequest);
       writeEvents(res, increments);
     } catch (Exception e) {
-      throw e;
+      if (!refused(res, e)) {
+        throw e;
+      }
     } catch (Throwable t) {
       throw new IllegalStateException(t);
     }
   }
 
+  /**
+   * Answers a refusal ({@code access:}, a refused action) as the JAX-RS {@code
+   * MateuForbiddenExceptionMapper} does — 403 with the public message. These routes run on
+   * Helidon's own routing, which that mapper does not cover: a refusal surfaced as a 500.
+   */
+  private static boolean refused(ServerResponse res, Throwable t) {
+    for (var cause = t; cause != null; cause = cause.getCause()) {
+      if (cause instanceof io.mateu.core.application.security.MateuForbiddenException) {
+        if (!res.isSent()) {
+          res.status(Status.FORBIDDEN_403)
+              .header("Content-Type", "text/plain")
+              .send(io.mateu.core.application.security.MateuForbiddenException.publicMessage());
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Writes each increment as one {@code data:} event, flushed as soon as it is produced. */
   private static void writeEvents(ServerResponse res, Flux<UIIncrementDto> increments)
       throws IOException {
+    // the first event BEFORE anything is committed: the request is guarded lazily, and once the
+    // output stream is open a refusal can no longer be answered as a 403
+    var events = increments.toIterable().iterator();
+    events.hasNext();
     res.header("Content-Type", "text/event-stream");
     res.header("Cache-Control", "no-cache");
     try (OutputStream out = res.outputStream()) {
-      for (var increment : increments.toIterable()) {
-        out.write(WireMapper.sseEvent(increment).getBytes(StandardCharsets.UTF_8));
+      while (events.hasNext()) {
+        out.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
         out.flush();
       }
     }
@@ -386,7 +411,9 @@ public class MateuHelidonRoutes {
             .send(WireMapper.shared().writeValueAsString(increments.blockFirst()));
       }
     } catch (Exception e) {
-      throw e;
+      if (!refused(res, e)) {
+        throw e;
+      }
     } catch (Throwable t) {
       throw new IllegalStateException(t);
     }

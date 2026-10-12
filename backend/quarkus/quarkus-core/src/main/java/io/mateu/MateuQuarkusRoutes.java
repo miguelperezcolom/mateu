@@ -335,12 +335,30 @@ public class MateuQuarkusRoutes {
               httpRequest);
       var response = rc.response();
       if (rc.request().path().startsWith(mount.apiPrefix() + "/v3/sse/")) {
-        response.setChunked(true).putHeader("Content-Type", "text/event-stream");
-        increments
-            .doOnNext(increment -> response.write(WireMapper.sseEvent(increment)))
-            .doOnError(rc::fail)
-            .doOnComplete(response::end)
-            .subscribe();
+        // the stream's head goes out with its first event: the request is guarded lazily, and a
+        // refusal arriving before it is still answered as a 403 (once committed, it cannot be)
+        Runnable head =
+            () -> {
+              if (!response.headWritten()) {
+                response.setChunked(true).putHeader("Content-Type", "text/event-stream");
+              }
+            };
+        increments.subscribe(
+            increment -> {
+              head.run();
+              response.write(WireMapper.sseEvent(increment));
+            },
+            error -> {
+              if (forbiddenIn(error) != null && !response.headWritten()) {
+                forbid(response);
+              } else {
+                rc.fail(error);
+              }
+            },
+            () -> {
+              head.run();
+              response.end();
+            });
       } else {
         var increment = increments.blockFirst();
         response
@@ -350,16 +368,19 @@ public class MateuQuarkusRoutes {
     } catch (Throwable t) {
       var forbidden = forbiddenIn(t);
       if (forbidden != null) {
-        // what the JAX-RS MateuForbiddenExceptionMapper answers: a refused route is a 403, not a
-        // 500
-        rc.response()
-            .setStatusCode(403)
-            .putHeader("Content-Type", "text/plain")
-            .end(io.mateu.core.application.security.MateuForbiddenException.publicMessage());
+        forbid(rc.response());
       } else {
         rc.fail(t);
       }
     }
+  }
+
+  /** What the JAX-RS MateuForbiddenExceptionMapper answers: a refusal is a 403, not a 500. */
+  private static void forbid(io.vertx.core.http.HttpServerResponse response) {
+    response
+        .setStatusCode(403)
+        .putHeader("Content-Type", "text/plain")
+        .end(io.mateu.core.application.security.MateuForbiddenException.publicMessage());
   }
 
   private static io.mateu.core.application.security.MateuForbiddenException forbiddenIn(
