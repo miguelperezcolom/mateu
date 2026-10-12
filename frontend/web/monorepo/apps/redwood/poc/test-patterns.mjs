@@ -18,6 +18,7 @@ import {
   reduceContexts, HOST_ID, overlayOf, foldoutOf, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
+  pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
 } from './reduceContexts.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
@@ -497,6 +498,124 @@ test('YAML wiring: the VB chains navigate on a switcher/header route and load so
   assert.ok(boot.indexOf('bridge.loadContextSelectorOptions') > 0)
   assert.ok(boot.indexOf('bridge.loadContextSelectorOptions') < boot.indexOf('bridge.shellNavOf(reg)'))
   assert.match(boot, /runAppLevelAction\(base, reg\.shell\.serverSideType, ctxAppState, '_appsource', parameters\)/)
+})
+
+// ── header text + navigation elements: overline, titlePlaceholder, timestamp, badges, peerNav ──
+
+const headerOf = (ctx, extra = {}) => pageHeaderOf({
+  host: ctx, hostEntity: null, summary: summarizeHost({ contexts: { [HOST_ID]: ctx }, shell: { menu: [] } }, '/p'),
+  hostToolbar: [], showHeader: true, pageWidth: 'fixed', gopOn: false, listing: null, ...extra,
+}).header
+
+test('header extras (Java page): overline, timestamp, first badge in oj-sp\'s badge, the rest after the subtitle', () => {
+  const ctx = host(page({
+    subtitle: 'Since 2019', overline: 'Customers', timestamp: 'Last updated 12 Oct',
+    badges: [{ text: 'VIP', color: 'success' }, { text: 'Blocked', color: 'error' }, { text: '', color: 'warning' }],
+  }))
+  const h = headerOf(ctx)
+  assert.equal(h.title, 'Room 101')
+  assert.equal(h.overline, 'Customers')
+  assert.equal(h.timestamp, '') // text, not a date: oj-sp's element never gets it…
+  assert.deepEqual(h.badge, { text: 'VIP', status: 'success' })
+  assert.equal(h.subtitle, 'Since 2019 · Blocked · Last updated 12 Oct') // …it ends the subtitle line
+  assert.equal(h.titleIsPlaceholder, false)
+  assert.equal(h.headerClass, '')
+  // nothing declared: no badge, no overline, no arrows
+  const bare = headerOf(host(page({})))
+  assert.deepEqual([bare.badge, bare.overline, bare.timestamp, bare.previousItem.display, bare.nextItem.display, bare.prevRoute],
+    [null, '', '', 'disabled', 'disabled', ''])
+})
+
+test('header extras (Java page): @BadgeInHeader travels as templates — ${state.x} and a ternary resolve', () => {
+  const tree = page({ badges: [
+    { type: 'Badge', text: '${state.status}', color: 'success' },
+    { type: 'Badge', text: "${state.vip ? 'VIP' : ''}", color: 'warning' },
+  ] })
+  assert.deepEqual(pageHeaderExtrasOf(host(tree, { status: 'Active', vip: true })).badges,
+    [{ label: 'Active', status: 'success' }, { label: 'VIP', status: 'warning' }])
+  // a false boolean / a missing status: no chip
+  assert.deepEqual(pageHeaderExtrasOf(host(tree, { vip: false })).badges, [])
+})
+
+test('header extras: oj-sp\'s timestamp only ever gets a DATE (a non-date breaks its binding)', () => {
+  assert.deepEqual(headerTimestampOf('2026-10-12T09:00:00Z'), { iso: '2026-10-12T09:00:00Z', text: '' })
+  assert.deepEqual(headerTimestampOf('Last updated 2026-10-12T09:00'), { iso: '2026-10-12T09:00', text: '' })
+  assert.deepEqual(headerTimestampOf('Actualizado 2026-10-12 09:00'), { iso: '2026-10-12T09:00', text: '' })
+  // a label oj-sp would not say (it writes its own "Last updated"), or no date at all: text
+  assert.deepEqual(headerTimestampOf('Created 2026-10-12'), { iso: '', text: 'Created 2026-10-12' })
+  assert.deepEqual(headerTimestampOf('Last updated 12 Oct 2026, 10:42'), { iso: '', text: 'Last updated 12 Oct 2026, 10:42' })
+  assert.deepEqual(headerTimestampOf('2026-13-45'), { iso: '', text: '2026-13-45' })
+  assert.deepEqual(headerTimestampOf(''), { iso: '', text: '' })
+  const h = headerOf(host(page({ timestamp: 'Last updated 2026-10-12T09:00:00' })))
+  assert.deepEqual([h.timestamp, h.subtitle], ['2026-10-12T09:00:00', ''])
+})
+
+test('header extras: badge colours map onto the oj-sp badge statuses', () => {
+  assert.deepEqual(['success', 'error', 'danger', 'WARNING', 'normal', 'contrast', undefined].map(badgeStatusOf),
+    ['success', 'danger', 'danger', 'warning', 'info', 'neutral', 'neutral'])
+})
+
+test('header extras: peerNav → oj-sp previous/next item, a side without a route is disabled', () => {
+  const h = headerOf(host(page({ peerNav: { prevLabel: 'Ada', prevRoute: '/employees/1', nextLabel: null, nextRoute: null } })))
+  assert.deepEqual(h.previousItem, { label: 'Ada', display: 'on' })
+  assert.deepEqual(h.nextItem, { label: 'Next', display: 'disabled' }) // chrome text when unnamed
+  assert.deepEqual([h.prevRoute, h.nextRoute], ['/employees/1', ''])
+  // both routes null: no lateral navigation at all
+  const none = headerOf(host(page({ peerNav: { prevLabel: 'a', prevRoute: null, nextLabel: 'b', nextRoute: null } })))
+  assert.deepEqual([none.previousItem.display, none.nextItem.display], ['disabled', 'disabled'])
+})
+
+test('header extras: the titlePlaceholder stands in only while the title is EMPTY, dimmed', () => {
+  const filled = headerOf(host(page({ title: 'Ada', titlePlaceholder: 'New customer…' })))
+  assert.deepEqual([filled.title, filled.titleIsPlaceholder], ['Ada', false])
+  const blank = host(page({ title: '', titlePlaceholder: 'New customer…' }))
+  // the placeholder wins over the menu's label: summarizeHost keeps the empty title empty
+  assert.equal(summarizeHost({ contexts: { [HOST_ID]: blank }, shell: { menu: [{ route: '/p', label: 'Customers' }] } }, '/p').title, '')
+  const h = headerOf(blank)
+  assert.deepEqual([h.title, h.titleIsPlaceholder, h.headerClass], ['New customer…', true, 'mateu-title-placeholder'])
+})
+
+test('header extras (YAML Form): ${state.x} resolved; a blank chip hides; peer routes resolved', () => {
+  const ctx = host(yamlPage({
+    overline: '${state.who} desk', titlePlaceholder: 'New customer…', timestamp: 'Last updated ${state.updatedAt}',
+    badges: [{ text: '${state.status}', color: 'success' }, { text: 'VIP', color: null }, { text: '${state.missing}', color: 'error' }],
+    peerNav: { prevLabel: 'Previous', prevRoute: 'customers/${state.prevId}', nextLabel: 'Next', nextRoute: null },
+  }), { ...YAML_STATE, updatedAt: 'today', prevId: '1' })
+  const x = pageHeaderExtrasOf(ctx)
+  assert.equal(x.overline, 'Ops desk')
+  assert.equal(x.timestamp, 'Last updated today')
+  assert.deepEqual(x.badges, [{ label: 'Active', status: 'success' }, { label: 'VIP', status: 'neutral' }])
+  assert.deepEqual(x.peerNav, { prevRoute: 'customers/1', nextRoute: '', prevLabel: 'Previous', nextLabel: 'Next' })
+  const h = headerOf(ctx)
+  assert.deepEqual([h.title, h.titleIsPlaceholder], ['Grace', false]) // `${state.name}` resolved
+  // the same page while creating: no name yet → the placeholder
+  const fresh = headerOf(host(ctx.tree, { id: '', name: '' }))
+  assert.deepEqual([fresh.title, fresh.titleIsPlaceholder, fresh.badge], ['New customer…', true, { text: 'VIP', status: 'neutral' }])
+})
+
+test('header extras wiring: both page headers bind them, the arrows navigate like a breadcrumb', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  for (const id of ['mateuPageHeaderEl', 'mateuPageHeaderInline']) {
+    const tag = html.slice(html.indexOf(`<oj-sp-header-general-overview id="${id}"`), html.indexOf('</oj-sp-header-general-overview>', html.indexOf(`id="${id}"`)))
+    for (const attr of ['badge="[[ $application.variables.mateuPageHeader.badge ]]"', 'timestamp="[[ $application.variables.mateuPageHeader.timestamp ]]"',
+      'previous-item="[[ $application.variables.mateuPageHeader.previousItem ]]"', 'next-item="[[ $application.variables.mateuPageHeader.nextItem ]]"',
+      'on-sp-previous-item="[[ $listeners.headerPreviousItem ]]"', 'on-sp-next-item="[[ $listeners.headerNextItem ]]"', 'headerClass']) {
+      assert.ok(tag.includes(attr), id + ' binds ' + attr)
+    }
+  }
+  assert.equal((html.match(/class="mateu-header-overline /g) || []).length, 2)
+  const listeners = JSON.parse(webApp('flows/main/pages/main-start-page.json')).eventListeners
+  assert.equal(listeners.headerPreviousItem.chains[0].parameters.actionId, '__peerPrev')
+  assert.equal(listeners.headerNextItem.chains[0].parameters.actionId, '__peerNext')
+  const run = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
+  assert.match(run, /id === '__peerPrev' \? header\.prevRoute : header\.nextRoute[\s\S]*'navigation-requested'/)
+  // the default header (before any page) carries every field the bindings read
+  const def = JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue
+  assert.deepEqual([def.badge, def.timestamp, def.overline, def.previousItem.display, def.nextItem.display], [null, '', '', 'disabled', 'disabled'])
+  // the shell adopts the App's sources before the bell is first listed
+  const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') > 0)
+  assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') < boot.indexOf('bridge.fetchNotifications('))
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)

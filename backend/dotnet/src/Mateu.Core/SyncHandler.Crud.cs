@@ -51,7 +51,9 @@ public sealed partial class SyncHandler
             // CrudDisplay: a Disabled (or Off) New/Delete cannot be forced from the client either
             "delete" or "new" when !Allowed(DisplayOf(crud), rq.ActionId!) =>
                 Error($"Action not available: {rq.ActionId}"),
-            "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
+            // Delete on the LISTING: the rows selected in the grid (Java's DeleteActionHandler)
+            "delete" when id is null => DeleteSelected(crud, element, rq),
+            "delete" => Navigate(baseRoute, Delete(crud, id), rq),
             // Crud.CsvExportable / ExcelExportable / PdfExportable: only a crud that offers the
             // export answers its export-* action (the id is wire input).
             { } exportId when ExportKind(crud, exportId) is { } kind => Export(kind, crud, element, rq),
@@ -65,6 +67,8 @@ public sealed partial class SyncHandler
                     $"{baseRoute}/{rowId}/edit", rq, crud),
             "cancel-new" or "cancel-edit" or "cancel-view" when EditInDrawer(crud) =>
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
+            // the id column's link (first column, actionId "view"): open the record's route
+            "view" when RowId(rq, element) is { } viewId => Navigate($"{baseRoute}/{viewId}", null, rq),
             null or "" => mode switch
             {
                 "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new", rq),
@@ -432,6 +436,24 @@ public sealed partial class SyncHandler
     {
         crud.GetType().GetMethod("Delete")!.Invoke(crud, [id]);
         return "Deleted";
+    }
+
+    /// <summary>Delete on the listing: every row selected in the grid (componentState
+    /// crud_selected_items, by its id field), then the listing searches again in place.</summary>
+    private static UIIncrementDto DeleteSelected(object crud, Type element, RunActionRqDto rq)
+    {
+        var idField = Naming.CamelCase(element.GetProperty("Id")?.Name ?? "Id");
+        if (GetState(rq.ComponentState, "crud_selected_items")
+            is JsonElement { ValueKind: JsonValueKind.Array } selected)
+            foreach (var row in selected.EnumerateArray())
+                if (row.ValueKind == JsonValueKind.Object
+                    && row.TryGetProperty(idField, out var idEl)
+                    && StateString(idEl) is { } rowId)
+                    Delete(crud, rowId);
+        var refreshed = CrudSearch(crud, element, rq);
+        return UIIncrementDto.Of(
+            fragments: refreshed.Fragments,
+            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
     }
 
     private static List<string> RequiredMissing(object entity, Type element) =>

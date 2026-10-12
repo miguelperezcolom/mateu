@@ -1,0 +1,138 @@
+{
+  "commands" : [ {
+    "data" : "Sales",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "autoFocusOnSearchText" : true,
+            "columns" : [ {
+              "metadata" : {
+                "actionId" : "view",
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Id",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Region",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "aggregate" : "sum",
+                "align" : "end",
+                "autoWidth" : true,
+                "dataType" : "number",
+                "label" : "Amount",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 2.0
+              },
+              "type" : "ClientSide"
+            }, {
+              "metadata" : {
+                "aggregate" : "count",
+                "autoWidth" : true,
+                "dataType" : "string",
+                "label" : "Invoice",
+                "resizable" : true,
+                "stereotype" : "regular",
+                "type" : "GridColumn",
+                "weight" : 3.0
+              },
+              "type" : "ClientSide"
+            } ],
+            "crudlType" : "table",
+            "filters" : [ {
+              "colspan" : 1,
+              "dataType" : "string",
+              "fieldId" : "id",
+              "label" : "Id",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            }, {
+              "colspan" : 1,
+              "dataType" : "string",
+              "fieldId" : "region",
+              "label" : "Region",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            }, {
+              "colspan" : 1,
+              "dataType" : "number",
+              "fieldId" : "amount",
+              "label" : "Amount",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            }, {
+              "colspan" : 1,
+              "dataType" : "string",
+              "fieldId" : "invoice",
+              "label" : "Invoice",
+              "sliderMax" : 100,
+              "stereotype" : "regular",
+              "type" : "FormField"
+            } ],
+            "filtersLayout" : "auto",
+            "gridLayout" : "auto",
+            "groupBy" : "region",
+            "pageSize" : 10,
+            "rowsSelectionEnabled" : true,
+            "searchOnEnter" : true,
+            "searchable" : true,
+            "title" : "Sales",
+            "toolbar" : [ {
+              "actionId" : "new",
+              "label" : "New",
+              "type" : "Button"
+            }, {
+              "actionId" : "delete",
+              "color" : "error",
+              "label" : "Delete",
+              "type" : "Button"
+            } ],
+            "type" : "Crud"
+          },
+          "sizing" : "fill",
+          "style" : "min-width: min(30rem, 100%); display: block;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "Page"
+        },
+        "style" : "width: 100%;",
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "collection",
+      "route" : "/conformance/crud-grouped",
+      "style" : "width: 100%;",
+      "triggers" : [ {
+        "actionId" : "search",
+        "times" : 1,
+        "type" : "OnLoad"
+      } ],
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

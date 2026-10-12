@@ -74,6 +74,12 @@ public class VbHome implements AppActionsSupplier, GlobalSearchSupplier {
 
   @Menu String customerOverview = "/customer-overview/3";
 
+  // the page-header elements (overline, badges, timestamp, peer arrows, title placeholder) — Java
+  // here, and the same page authored in YAML at /yaml-header (specs/ui/yaml-header.yaml)
+  @Menu io.mateu.mdd.demovb.infra.in.ui.headerextras.CustomerRecordPage headerExtras;
+
+  @Menu String yamlHeader = "/yaml-header";
+
   @Override
   public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
     return List.of(

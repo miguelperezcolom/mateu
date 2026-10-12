@@ -1,0 +1,19 @@
+# The Redwood page-header elements authored as data on a `type: Form` — the YAML twin of the Java
+# CustomerRecordPage: overline, a title from the state (and its placeholder while it is empty),
+# the "last updated" timestamp, header badges (a blank one hides) and the peer arrows (a side
+# without a route is disabled).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+overline: Customers
+titlePlaceholder: New customer…
+timestamp: ${state.lastUpdated}
+badges:
+  - {label: "${state.status}", color: success}
+  - {label: Since 2019}
+peerNav: {prevLabel: Grace Hopper, prevRoute: "${state.prevRoute}", nextLabel: New customer, nextRoute: "${state.nextRoute}"}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, dataType: string}
+      - {type: FormField, id: email, label: Email, dataType: string}

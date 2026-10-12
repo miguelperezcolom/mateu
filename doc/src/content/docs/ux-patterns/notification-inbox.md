@@ -66,7 +66,9 @@ through the server when the source is `proxy: true`). See
 
 Every renderer. On **Redwood** the bell sits in the global header (badge with the unread count) and
 opens an `oj-popup` holding JET's `oj-list-view`; activating an entry marks it read and navigates to
-its route. Demo: `demo-vb-pms` (`PmsHome` implements `NotificationsSupplier`).
+its route. Demo: `demo-vb-pms` (`PmsHome` implements `NotificationsSupplier`). A data-authored
+shell's `notifications.source` works there too: the same bell lists it (a proxied source through
+`_appsource`), and opening an entry or *Mark all read* calls `markRead`.
 
 ## Related
 

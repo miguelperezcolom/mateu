@@ -81,6 +81,13 @@ from ._common import (
 )
 
 
+#: The listing box (Java's PageListingBuilder.LISTING_BOX_STYLE): it never pushes a phone-width
+#: page sideways, and it is a block so it takes the width it is given.
+LISTING_BOX_STYLE = "min-width: min(30rem, 100%); display: block;"
+#: The frame around a crud listing (Java: the crud mediator's content and its page).
+FULL_WIDTH = "width: 100%;"
+
+
 class CrudMapperMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
     def _exportable(self, cls, instance, action_id: str) -> bool:
@@ -127,12 +134,12 @@ class CrudMapperMixin(MixinBase):
         # Class-level @inline_editing: every data column (except ReadOnly() ones) is edited in
         # place; each committed cell dispatches the crud's update-row action (Java parity).
         inline = getattr(cls, "__mateu_inline_editing__", False)
-        columns = []
+        columns: list[GridColumn] = []
         for f in view_fields(element):
             if not self.visible(f):
                 continue
             editable = inline and not f.has(ReadOnly)
-            columns.append(GridColumn(metadata=self.typed_column(GridColumnMeta(
+            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 editable=editable,
@@ -148,7 +155,9 @@ class CrudMapperMixin(MixinBase):
                 leading_path=self.leading_path_of(f),
                 tooltip_path=self.tooltip_path_of(f),
                 value_labels=value_labels_of(f.type),
-            ), f)))
+                # the first column opens the record (Java: ListRouteResolver.withViewOnFirstColumn)
+                action_id="view" if not columns else None,
+            ), f), f.type)))
         # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
         # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
         display = self._crud_display(cls, instance)
@@ -157,7 +166,8 @@ class CrudMapperMixin(MixinBase):
             toolbar.append(Button(label="New", action_id="new", disabled=not display.create.enabled()))
         if display.delete.shown():
             toolbar.append(
-                Button(label="Delete", action_id="delete", disabled=not display.delete.enabled())
+                Button(label="Delete", action_id="delete", color="error",
+                       disabled=not display.delete.enabled())
             )
         # Export the listing (Crud.csv/excel/pdf_exportable): the whole filtered set as a file
         # download (mirrors Java's ListRouteResolver export buttons).
@@ -204,7 +214,7 @@ class CrudMapperMixin(MixinBase):
             [],
         )
         # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
-        crud = crud.model_copy(update={"sizing": "fill"})
+        crud = crud.model_copy(update={"sizing": "fill", "style": LISTING_BOX_STYLE})
         page_children = []
         if hero is not None:
             page_children.append(self.client(
@@ -215,23 +225,35 @@ class CrudMapperMixin(MixinBase):
                 None, [],
             ))
         page_children.append(crud)
-        page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
-        if class_flag(cls, "__mateu_compact__", False):
+        # The crud's page is a bare frame: the title rides on the listing (Java's ListRouteResolver)
+        page = self.client(PageMetadata(), None, page_children)
+        page = page.model_copy(update={
             # @compact: the page carries the high-density preset + --mateu-compact:1, as a view
-            page = page.model_copy(update={"style": COMPACT_STYLE})
-        actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
+            "style": COMPACT_STYLE if class_flag(cls, "__mateu_compact__", False) else FULL_WIDTH,
+        })
+        # No validation on any of them (Java's CrudActionsBuilder): searching or opening a form
+        # validates nothing, and Delete asks first and needs a selection. Java lets New/View/Delete
+        # bubble to its crud mediator; this port has none, so the listing answers them itself.
+        actions = [
+            Action(id="search", validation_required=False),
+            Action(id="new", validation_required=False),
+            Action(id="delete", validation_required=False, confirmation_required=True,
+                   rows_selected_required=True),
+            Action(id="view", validation_required=False),
+        ]
         for aid in exports:
             actions.append(Action(id=aid, validation_required=False))
         if inline:
             actions.append(Action(id="update-row"))
         actions.extend(bulk_actions)
-        # A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
-        triggers = [] if hero is not None else [Trigger(type="OnLoad", action_id="search")]
+        # A hero-search page starts EMPTY (the user searches); plain cruds preload their rows, once.
+        triggers = [] if hero is not None else [Trigger(type="OnLoad", action_id="search", times=1)]
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=triggers,
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),
+            style=FULL_WIDTH,
         )
 
     @staticmethod
@@ -397,10 +419,10 @@ class CrudMapperMixin(MixinBase):
         for f in view_fields(row_type) if row_type is not None else []:
             if self.grid_row_type(f) is not None or not self.visible(f):
                 continue
-            columns.append(GridColumn(metadata=self.typed_column(GridColumnMeta(
+            columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
-                data_type=self.infer_data_type(f.type, f),
+                data_type=listing_data_type(f.type),
                 aggregate=self.aggregate_of(f),
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
@@ -409,8 +431,15 @@ class CrudMapperMixin(MixinBase):
                 value_labels=value_labels_of(f.type),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
-            ), f)))
-        actions = [Action(id="search")]
+            ), f), f.type)))
+        # A listing declaring an interaction capability is a CRUD (Java bridges it to one with
+        # CapabilityCrud); a plain one is a page holding a listing (Java's PageListingBuilder):
+        # its title is the PAGE's, its row/view actions are open wildcards, nothing is validated.
+        bridged = navigable or editable or creatable or deletable
+        actions = [Action(id="search", validation_required=False)]
+        if not bridged and not issubclass(cls, Selector):
+            actions.append(Action(id="action-on-row-*", validation_required=False))
+            actions.append(Action(id="action-on-view-*", validation_required=False))
         if rows_clickable:
             actions.append(Action(id="view", validation_required=False))
         if editable:
@@ -422,12 +451,13 @@ class CrudMapperMixin(MixinBase):
             actions.append(Action(id="create"))
             actions.append(Action(id="cancel-new", validation_required=False))
         if deletable:
-            actions.append(Action(id="delete", validation_required=False))
+            actions.append(Action(id="delete", validation_required=False,
+                                  confirmation_required=True, rows_selected_required=True))
         toolbar = []
         if creatable:
             toolbar.append(Button(label="New", action_id="new"))
         if deletable:
-            toolbar.append(Button(label="Delete", action_id="delete"))
+            toolbar.append(Button(label="Delete", action_id="delete", color="error"))
         # @list_toolbar_button methods on the listing: BULK actions over the selected rows
         # (mirrors Java's behaviourSource — the bridged listing's methods become toolbar
         # buttons).
@@ -454,7 +484,8 @@ class CrudMapperMixin(MixinBase):
             )))
             actions.append(Action(id="action-on-row-select", validation_required=False))
         crud = self.client(
-            CrudMetadata(title=title, columns=columns, toolbar=toolbar,
+            CrudMetadata(title=title if bridged else None, columns=columns, toolbar=toolbar,
+                         filters_layout="auto" if bridged else "inline",
                          searchable=searchable,
                          can_edit=editable,
                          rows_selection_enabled=deletable,
@@ -473,7 +504,7 @@ class CrudMapperMixin(MixinBase):
             [],
         )
         # A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
-        crud = crud.model_copy(update={"sizing": "fill"})
+        crud = crud.model_copy(update={"sizing": "fill", "style": LISTING_BOX_STYLE})
         page_children = []
         smart_search = issubclass(cls, SmartSearchPage)
         if smart_search:
@@ -490,17 +521,29 @@ class CrudMapperMixin(MixinBase):
                     update={"pre_search": [self.map_component(pre_search)]}
                 )})
         page_children.append(crud)
-        page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
+        if bridged:
+            # a crud: a bare frame, the title rides on the listing (Java's ListRouteResolver)
+            page = self.client(PageMetadata(), None, page_children)
+            page_style = FULL_WIDTH
+        else:
+            page = self.client(
+                PageMetadata(title=title, page_title=humanize(cls.__name__),
+                             page_type=page_type_of(cls)),
+                None, page_children,
+            )
+            page_style = None
         if class_flag(cls, "__mateu_compact__", False):
             # @compact: the page carries the high-density preset + --mateu-compact:1, as a view
-            page = page.model_copy(update={"style": COMPACT_STYLE})
+            page_style = COMPACT_STYLE
+        page = page.model_copy(update={"style": page_style})
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions,
-            # A smart search page starts EMPTY (the user searches); plain listings preload.
-            triggers=[] if smart_search else [Trigger(type="OnLoad", action_id="search")],
+            # A smart search page starts EMPTY (the user searches); plain listings preload, once.
+            triggers=[] if smart_search else [Trigger(type="OnLoad", action_id="search", times=1)],
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),
+            style=FULL_WIDTH if bridged else None,
         )
 
     def listing_filters(self, filters_type) -> list[FormFieldMetadata]:
@@ -526,7 +569,8 @@ class CrudMapperMixin(MixinBase):
                 ))
             else:
                 out.append(FormFieldMetadata(field_id=fid, data_type=self.infer_data_type(t, f), label=label))
-        return out
+        # a filter is not a radio group: Java sends no optionsColumns on the smart search bar
+        return [field.model_copy(update={"options_columns": 0}) for field in out]
 
     def crud_filters(self, element) -> list[FormFieldMetadata]:
         """The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
@@ -556,6 +600,7 @@ class CrudMapperMixin(MixinBase):
                     label=label,
                     stereotype=stereotype,
                     options=options,
+                    options_columns=0,
                 )
             )
         return out
@@ -636,20 +681,69 @@ class CrudMapperMixin(MixinBase):
         return rules
 
 
-def listing_data_type(t) -> str | None:
-    """A LISTING column keeps the number-ness of its field (Java: ColumnTypeMapper
-    .getDataTypeForListingColumn), so the renderers right-align numbers; everything else
-    stays as before (None: the renderer's default)."""
-    import decimal
+def _unwrap_optional(t):
+    import types
     import typing
 
     args = [a for a in typing.get_args(t) if a is not type(None)]
-    if args and typing.get_origin(t) in (typing.Union, getattr(__import__("types"), "UnionType", None)):
-        t = args[0]
+    if args and typing.get_origin(t) in (typing.Union, getattr(types, "UnionType", None)):
+        return args[0]
+    return t
+
+
+def listing_data_type(t) -> str:
+    """A LISTING column's dataType (Java: ColumnTypeMapper.getDataTypeForListingColumn): booleans
+    are "bool", numbers keep their number-ness ("integer" / "number") so the renderers right-align
+    them, and everything else — text, enums, dates — is "string"."""
+    t = _unwrap_optional(t)
     if t is bool:
-        return None
+        return "bool"
     if t is int:
         return "integer"
-    if t in (float, decimal.Decimal):
+    if t in (float, Decimal):
         return "number"
-    return None
+    return "string"
+
+
+#: Java's WeightEstimator.base, by stereotype first.
+_STEREOTYPE_WEIGHTS = {
+    "icon": 1.0, "combobox": 2.0, "select": 2.0, "link": 2.5, "image": 4.0,
+    "html": 5.0, "richText": 5.0, "markdown": 5.0, "textarea": 5.0,
+}
+
+
+def column_weight(t, stereotype: str | None) -> float:
+    """The display-width weight of a listing column (1u ≈ 76px), from the FINE type of its field —
+    Java's WeightEstimator.base: icon/bool 1, integer 1.5, select/number/date 2, link/datetime 2.5,
+    text 3, image 4, rich text 5."""
+    if stereotype in _STEREOTYPE_WEIGHTS:
+        return _STEREOTYPE_WEIGHTS[stereotype]
+    t = _unwrap_optional(t)
+    if t is bool:
+        return 1.0
+    if t is int:
+        return 1.5
+    if t is datetime:  # before date: a datetime IS a date
+        return 2.5
+    if t in (float, Decimal, date):
+        return 2.0
+    return 3.0
+
+
+def listing_column(meta: GridColumnMeta, t) -> GridColumnMeta:
+    """What every LISTING column carries on Java's wire (ListingColumnBuilder + GridColumnMapper):
+    a "regular" stereotype unless it declares one, resizable, sized to its content unless a width
+    is fixed, right-aligned numbers and centred booleans, and its layout weight."""
+    stereotype = meta.stereotype or "regular"
+    align = None
+    if meta.data_type in ("integer", "number", "money") or stereotype == "money":
+        align = "end"
+    elif meta.data_type == "bool":
+        align = "center"
+    return meta.model_copy(update={
+        "stereotype": stereotype,
+        "resizable": True,
+        "auto_width": meta.auto_width or meta.width is None,
+        "align": align,
+        "weight": column_weight(t, meta.stereotype),
+    })

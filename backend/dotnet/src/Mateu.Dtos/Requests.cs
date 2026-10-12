@@ -19,6 +19,10 @@ public record ButtonDto(string Label, string ActionId)
     public bool Disabled { get; init; }
     public string? ButtonStyle { get; init; }
     public string? Shortcut { get; init; }
+    /// <summary>The button's colour theme ("error" for a crud's Delete, as in Java); omitted when
+    /// none.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Color { get; init; }
     // A bulk action (a [ListToolbarButton]): the renderer disables the button while no row is
     // selected. On the BUTTON so no renderer has to look the advertised action up by id (mirrors
     // Java's ButtonDto.rowsSelectedRequired). Omitted when false, so other buttons' wire is unchanged.

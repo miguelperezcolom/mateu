@@ -12,7 +12,7 @@
 export const REDWOOD_COVERAGE = {
   // ── páginas y estructura ──
   App: { status: 'full', note: 'oj-sp shell: navigation drawer / top tabs / card menus' },
-  Page: { status: 'full', note: 'oj-sp header (title, subtitle, KPIs, toolbar, banners)' },
+  Page: { status: 'full', note: 'oj-sp header (title, subtitle, KPIs, toolbar, banners, status badge, peer arrows, timestamp; overline + title placeholder drawn over it)' },
   Form: { status: 'full', via: "'Form'", note: 'oj-form-layout' },
   Crud: { status: 'full', via: "'Crud'", note: 'oj-table + smart search; groups, totals, tones, columns, saved views, export' },
   Card: { status: 'full', note: 'oj-panel' },

@@ -15,6 +15,8 @@ import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
 import { pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
 import { runMateuAction, loadLookups } from './transport.mjs'
+import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
+import { fetchNotifications } from './notify.mjs'
 
 let passed = 0
 const queue = []
@@ -474,6 +476,123 @@ test('YAML shell: a PROXIED selector source goes through _appsource (role + fiel
   assert.deepEqual(out[0].options, [{ value: 'h1', label: 'Palace' }])
   assert.deepEqual(out[1].options, []) // a failed proxy leaves the picker as it was
   assert.equal(f.calls.length, 0) // never fetched from the browser
+})
+
+// ── the shell's inbox and palette search from REST sources (type: AppShell) ──────────────────
+
+const INBOX = { items: [
+  { id: 'n1', title: 'Overbooking', message: 'Room 101', link: 'bookings/1', read: false, at: '09:00' },
+  { id: 'n2', title: 'Payment', message: 'Folio closed', link: null, read: true },
+  { title: 'No id' },
+] }
+const inboxSource = { url: '/api/inbox', itemsPath: 'items' }
+const inboxCatalogue = [{ name: 'inbox', source: { url: '/api/inbox', itemsPath: 'items' },
+  fields: { text: 'message', route: 'link', when: 'at' } }]
+
+test('shell sources: adoptShellSources takes the App\'s three sources; without them, the actions as before', async () => {
+  reset()
+  assert.deepEqual(adoptShellSources({ notificationsSource: inboxSource, globalSearchSource: { url: '/s' } }),
+    { notifications: inboxSource, notificationsRead: null, globalSearch: { url: '/s' } })
+  assert.deepEqual(adoptShellSources(null), { notifications: null, notificationsRead: null, globalSearch: null })
+  // no source: fetchGlobalSearch posts `_globalsearch` (the Java GlobalSearchSupplier pipeline)
+  const posted = []
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async (url, init) => {
+    posted.push(JSON.parse(init.body))
+    return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ fragments: [{ data: { _globalsearch: [{ label: 'Ada', route: 'customers/1' }, { label: 'x' }] } }] }), text: async () => '' }
+  }
+  try {
+    const hits = await fetchGlobalSearch('/b', 'app.Home', {}, 'ad')
+    assert.equal(posted[0].actionId, '_globalsearch')
+    assert.deepEqual(posted[0].parameters, { searchText: 'ad' })
+    assert.deepEqual(hits.map((h) => h.route), ['customers/1'])
+  } finally { globalThis.fetch = realFetch }
+})
+
+test('shell sources: sourcedNotificationsOf reads each field through the entry\'s field map; missing unread = unread', () => {
+  setRestSourceCatalogue(inboxCatalogue)
+  const list = sourcedNotificationsOf(INBOX, { ref: 'inbox' })
+  assert.deepEqual(list[0], { id: 'n1', title: 'Overbooking', text: 'Room 101', route: 'bookings/1', unread: true, when: '09:00' })
+  assert.equal(list[1].route, '')
+  assert.equal(list[2].unread, true)
+  // the same source inline (no field map): the fields are read by their own names
+  assert.deepEqual(sourcedNotificationsOf([{ id: 1, title: 'T', unread: 'false' }], { url: '/x' })[0],
+    { id: '1', title: 'T', text: '', route: '', unread: false, when: '' })
+  reset()
+})
+
+test('shell sources: a DIRECT inbox is listed by the browser and read locally, then through markRead', async () => {
+  reset()
+  adoptShellSources({ notificationsSource: inboxSource,
+    notificationsReadSource: { url: '/api/inbox/read?ids=${state.ids}&first=${state.id}&all=${state.all}', method: 'POST' } })
+  const f = stubFetch({ items: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B', unread: false }, { id: 'c', title: 'C' }] })
+  const model = await fetchNotifications('/b', 'app.Home', {}, undefined, { fetchImpl: f })
+  assert.deepEqual([model.unread, model.badge, model.hasUnread], [2, '2', true])
+  assert.deepEqual(model.items.map((n) => n.id), ['a', 'b', 'c'])
+  // open one: read at once, the markRead call carries its id, the list is re-asked
+  const one = await fetchNotifications('/b', 'app.Home', {}, ['a'], { fetchImpl: f })
+  assert.equal(one.unread, 1)
+  assert.equal(f.calls[1].url, '/api/inbox/read?ids=a&first=a&all=false')
+  assert.equal(f.calls[1].init.method, 'POST')
+  // the re-listing (a source that does not persist reads) keeps what the user just read
+  assert.equal(f.calls[2].url, '/api/inbox')
+  // mark all: every unread id comma-joined, all=true
+  const all = await fetchNotifications('/b', 'app.Home', {}, 'all', { fetchImpl: f })
+  assert.equal(f.calls[3].url, '/api/inbox/read?ids=c&first=c&all=true')
+  assert.equal(all.unread, 0)
+  adoptShellSources(null)
+})
+
+test('shell sources: an inbox WITHOUT markRead is read on screen only; a failing source keeps the last list', async () => {
+  reset()
+  adoptShellSources({ notificationsSource: inboxSource })
+  const f = stubFetch({ items: [{ id: 'a', title: 'A' }] })
+  assert.equal((await fetchNotifications('/b', 'x', {}, undefined, { fetchImpl: f })).unread, 1)
+  assert.equal((await fetchNotifications('/b', 'x', {}, ['a'], { fetchImpl: f })).unread, 0)
+  assert.equal(f.calls.length, 1)
+  const failed = await fetchNotifications('/b', 'x', {}, undefined, { fetchImpl: stubFetch({}, 503) })
+  assert.deepEqual(failed.items.map((n) => [n.id, n.unread]), [['a', false]])
+  adoptShellSources(null)
+})
+
+test('shell sources: a PROXIED source goes through _appsource naming the ROLE, never a url', async () => {
+  reset()
+  setRestSourceCatalogue([{ name: 'search', source: { url: 'https://crm.example.com/q?text=${state.searchText}', proxy: true, itemsPath: 'hits' } }])
+  adoptShellSources({ globalSearchSource: { ref: 'search' }, notificationsSource: { url: 'https://x/inbox', proxy: true } })
+  const asked = []
+  const callImpl = async (base, body) => {
+    asked.push({ base, body })
+    if (body.parameters._appSource === 'globalSearch') {
+      return { appData: { _restfetch: { hits: [{ label: 'Ada', description: 'VIP', route: 'customers/1', category: 'Customers' }, { label: 'lost' }] } } }
+    }
+    return { appData: { _restfetchError: { status: 502, message: 'Request failed (502)' } } }
+  }
+  const f = stubFetch({})
+  const hits = await fetchGlobalSearch('/b', 'app.Shell', { hotel: 'H1' }, ' ad ', { callImpl, fetchImpl: f })
+  assert.deepEqual(hits, [{ label: 'Ada', description: 'VIP', route: 'customers/1', category: 'Customers' }])
+  assert.equal(asked[0].body.actionId, '_appsource')
+  assert.deepEqual(asked[0].body.parameters, { searchText: 'ad', _appSource: 'globalSearch' })
+  assert.deepEqual(asked[0].body.appState, { hotel: 'H1' })
+  assert.equal(/crm\.example\.com/.test(JSON.stringify(asked[0].body)), false, 'the browser never sends the source URL')
+  assert.equal(f.calls.length, 0)
+  // the palette rows group the hits by category, after the destinations
+  assert.deepEqual(paletteRowsOfHits(hits).map((r) => [r.label, r.route, r.kind]), [['Ada — VIP', '/customers/1', 'Customers']])
+  // a proxied source that fails: the bell still answers (empty inbox), it does not throw
+  const model = await fetchNotifications('/b', 'app.Shell', {}, undefined, { callImpl, fetchImpl: f })
+  assert.equal(asked[1].body.parameters._appSource, 'notifications')
+  assert.equal(model.enabled, true)
+  adoptShellSources(null)
+  // and nothing to search for asks nothing
+  assert.deepEqual(await fetchGlobalSearch('/b', 'app.Shell', {}, '  ', { callImpl }), [])
+  assert.equal(asked.length, 2)
+})
+
+test('shell sources: the reducer keeps the App\'s sources on the shell', () => {
+  const reg = reduceContexts({ contexts: {}, stack: [], shell: null }, { fragments: [{ action: 'Replace', component: {
+    type: 'ClientSide', id: 'app', metadata: { type: 'App', title: 'S', menu: [], notificationsEnabled: true,
+      notificationsSource: inboxSource, notificationsReadSource: { url: '/r' }, globalSearchSource: { url: '/s' } }, children: [] } }] })
+  assert.deepEqual([reg.shell.notificationsSource, reg.shell.notificationsReadSource, reg.shell.globalSearchSource],
+    [inboxSource, { url: '/r' }, { url: '/s' }])
 })
 
 for (const { name, fn } of queue) {

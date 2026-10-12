@@ -1909,3 +1909,34 @@ Each new wire piece lands on the oj-sp affordance that already exists for it (co
   id, so the drawer draft resets); `disabled` reaches every action row (oj-button `disabled`) and
   the oj-sp headers (`display: 'disabled'`); a slot-template ResponsiveGrid orders its children by
   area name (a promoted info slot still takes the `info` column).
+
+## Page-header text/navigation elements and shell sources (2026-10-12)
+
+The page header draws every PageDto/FormDto header element, for a Java page and a YAML page alike
+(`pageHeaderExtrasOf` → `pageHeaderOf`), on `oj-sp-header-general-overview`'s own elements where it
+has them (its component metadata: `previousItem`/`nextItem` + `spPreviousItem`/`spNextItem`,
+`badge {text,status}`, `timestamp`):
+- **peerNav** → previous/next item (`display: on|disabled`; both disabled = no arrows). The events
+  go through `runMateuAction` `__peerPrev`/`__peerNext` → `navigation-requested`, like `__goToParent`.
+- **badges** → the FIRST one is the status badge; the rest follow the subtitle (as the
+  EntityHeader's do). GOTCHA: a Java `@BadgeInHeader` travels as a TEMPLATE (`${state.status}`,
+  `${state.vip ? 'VIP' : ''}`), so every header text goes through `interpolate` and then the
+  CSP-safe `evaluateTemplate` of rules.mjs; one that resolves blank is not drawn.
+- **timestamp** → GOTCHA: oj-sp's `timestamp` only takes a DATE (it writes its own translated
+  "Last updated <relative time>") and a non-date value throws in its propertyChanged callback,
+  killing the binding. `headerTimestampOf` hands it only an ISO date-time whose label is empty or
+  "last updated"-like; any other text ends the subtitle line (a text drawn beside the header fought
+  the sticky inline header's stacking).
+- **overline** and **titlePlaceholder** have no oj-sp element: the overline is a line drawn right
+  before the header at its title indent, taking the header's top padding (`:has()`); the
+  placeholder is the title while the declared title resolves EMPTY (`summarizeHost` then skips the
+  crud/menu fallbacks), dimmed with the `mateu-title-placeholder` class.
+- A data-authored shell's `notifications.source`/`markRead` and `globalSearch.source` (AppDto
+  `notificationsSource`/`notificationsReadSource`/`globalSearchSource`) are adopted at boot
+  (`adoptShellSources`); `fetchNotifications`/`fetchGlobalSearch` consult them before the app-level
+  actions, so the chains barely changed. Direct = `fetchRestJson`, proxied = `_appsource` naming the
+  ROLE; shaped through the catalogue entry's field map — the contract of libs/mateu appSources.ts.
+  A read is applied locally at once, then `markRead`, then a re-list that keeps it.
+
+Probe: `e2e/vb-header-probe.mjs` (demo-vb `/header-extras` + `/yaml-header`; `YAML_URL` for a shell
+with sources; `PMS_URL` for the Java bell).

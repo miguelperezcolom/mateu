@@ -204,6 +204,11 @@ class ListingHandlerMixin(MixinBase):
                     ),
                     rq,
                 )
+            if navigable or editable or creatable or deletable:
+                # a listing bridged to a CRUD sits at its own route, like a crud (Java parity)
+                return self.fragment_response(
+                    self.title(cls), self.mapper.map_view(cls, view, base_route), rq,
+                )
             return self.render(cls, view, rq)
         # Anything else: a @button/@toolbar method declared on the listing class.
         return self.run_action(cls, view, rq)

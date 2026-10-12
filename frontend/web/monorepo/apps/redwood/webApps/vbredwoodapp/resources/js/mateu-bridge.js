@@ -174,6 +174,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       moreInformation: 'More information',
       previousSlide: 'Previous slide',
       nextSlide: 'Next slide',
+      // ── page header: peer navigation (the arrows' tooltips when the page names none) ──
+      previousItem: 'Previous',
+      nextItem: 'Next',
       slideN: 'Slide {n}',
       slides: 'Slides',
       pages: 'Pages',
@@ -371,6 +374,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       moreInformation: 'Más información',
       previousSlide: 'Diapositiva anterior',
       nextSlide: 'Diapositiva siguiente',
+      previousItem: 'Anterior',
+      nextItem: 'Siguiente',
       slideN: 'Diapositiva {n}',
       slides: 'Diapositivas',
       pages: 'Páginas',
@@ -4700,6 +4705,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
@@ -4783,6 +4789,83 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         label: page.fromForm ? interpolate(k.title || '', state) : (k.title || ''),
         value: interpolate(k.text == null ? '' : String(k.text), state),
       }))
+  }
+
+  /** A header badge colour of the wire (Lumo chip themes, or a @Status tone) → the oj-sp badge status. */
+  function badgeStatusOf(color) {
+    const c = String(color == null ? '' : color).trim().toLowerCase()
+    if (c === 'success') return 'success'
+    if (c === 'error' || c === 'danger') return 'danger'
+    if (c === 'warning') return 'warning'
+    if (c === 'normal' || c === 'info' || c === 'primary') return 'info'
+    return 'neutral'
+  }
+
+  /**
+   * The Redwood header TEXT and NAVIGATION elements a page declares beside its title — the same wire
+   * fields for a reflected Java page (PageDto) and a YAML `type: Form` (FormDto):
+   *  - `overline`: the quiet line above the title (a category, the parent context);
+   *  - `titlePlaceholder`: what stands in while the title is still EMPTY — a placeholder, never a
+   *    default (the projection only uses it when the title is blank);
+   *  - `timestamp`: the "last updated" text;
+   *  - `badges`: the header chips ({label, status}); one whose label is blank or still an unresolved
+   *    template is dropped, so a YAML `${state.status}` with no status hides its chip;
+   *  - `peerNav`: lateral navigation across peer records — `prevRoute`/`nextRoute` (a null route
+   *    disables that side; both null = no arrows), `${state.x}` resolved.
+   * Every text may be a template — a YAML page's `${state.x}`, and a reflected page's badges too
+   * (`@BadgeInHeader` travels as `${state.status}` / `${state.vip ? 'VIP' : ''}`) — resolved against
+   * the page state with the CSP-safe evaluator of rules.mjs; one that stays unresolved is blank.
+   */
+  /**
+   * A header timestamp → what oj-sp's own timestamp element can take. That element only takes a DATE
+   * (it writes its own "Last updated …" with a relative time, and a non-date value breaks its
+   * binding), while the wire carries TEXT (`@Timestamp("Last updated")` = label + the field's value).
+   * So: `iso` when the text is an ISO-8601 date-time with no label, or a "last updated"-like one —
+   * oj-sp says the same thing, translated —; otherwise the text stays text (`iso` empty) and the page
+   * draws it itself where oj-sp would.
+   */
+  const ISO_IN_TEXT = /(\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?)/
+  const UPDATED_LABEL = /^(last\s+)?(updated|modified|saved|edited)|^(última\s+)?(actualizaci|modificaci)|^(actualizad|modificad|guardad)/i
+  function headerTimestampOf(text) {
+    const s = String(text == null ? '' : text).trim()
+    const m = s.match(ISO_IN_TEXT)
+    if (!m) return { iso: '', text: s }
+    const label = s.replace(m[1], '').replace(/[\s:,.-]+$/, '').trim()
+    const iso = m[1].replace(' ', 'T')
+    if (Number.isNaN(Date.parse(iso))) return { iso: '', text: s }
+    return label === '' || UPDATED_LABEL.test(label) ? { iso, text: '' } : { iso: '', text: s }
+  }
+
+  function pageHeaderExtrasOf(ctx) {
+    const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
+    const md = (page && page.metadata) || {}
+    const state = (ctx && ctx.state) || {}
+    const scope = { state, data: (ctx && ctx.data) || {} }
+    const text = (v) => {
+      if (v == null) return ''
+      let s = String(v)
+      if (s.includes('${')) s = interpolate(s, state)
+      if (s.includes('${')) {
+        const value = evaluateTemplate(s, scope)
+        s = value == null || value === false ? '' : String(value)
+      }
+      return s.includes('${') ? '' : s.trim()
+    }
+    const badges = (md.badges || [])
+      .map((b) => ({ label: text(b && (b.text != null ? b.text : b.label)), status: badgeStatusOf(b && b.color) }))
+      .filter((b) => b.label)
+    const pn = md.peerNav || null
+    const prevRoute = pn ? text(pn.prevRoute) : ''
+    const nextRoute = pn ? text(pn.nextRoute) : ''
+    return {
+      overline: text(md.overline),
+      titlePlaceholder: text(md.titlePlaceholder),
+      timestamp: text(md.timestamp),
+      badges,
+      peerNav: prevRoute || nextRoute
+        ? { prevRoute, nextRoute, prevLabel: text(pn.prevLabel), nextLabel: text(pn.nextLabel) }
+        : null,
+    }
   }
 
   /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
@@ -5044,10 +5127,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const state = host.state || {}
     const fields = formMetadata ? fieldListOf(host.tree, state, host.data) : []
     const sections = formMetadata ? formSectionsOf(host.tree, state, host.data) : []
+    // a YAML page's title is a template (`title: ${state.name}`); a page declaring a
+    // titlePlaceholder keeps an EMPTY title empty — the header shows the placeholder instead of
+    // borrowing the crud's or the menu's label (pageHeaderOf)
+    const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
+    const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
     return {
       // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
       // está, en el rótulo del menú
-      title: pageMetadata.title || crudTitleOf(host) || (option && (option.caption || option.label)) || '',
+      title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label)) || ''),
       // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
       // @NoBreadcrumbs en la página o en la shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
@@ -6594,6 +6682,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           notificationsEnabled: !!md.notificationsEnabled,
           // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
+          // a data-authored shell's inbox and palette search from REST sources (type: AppShell
+          // notifications.source/markRead, globalSearch.source) instead of the app-level actions
+          notificationsSource: md.notificationsSource || null,
+          notificationsReadSource: md.notificationsReadSource || null,
+          globalSearchSource: md.globalSearchSource || null,
           // @Fab del App: botones flotantes globales (fabs.mjs)
           fabs: md.fabs || [],
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
@@ -10672,6 +10765,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
   //
   // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
@@ -10721,8 +10815,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista). */
-  async function fetchNotifications(base, serverSideType, appState, ids) {
+  // the inbox last listed from a shell SOURCE: "mark as read" acts on it locally (a source may have
+  // no markRead call, and the list a source answers is not re-asked for every click)
+  let sourcedInbox = []
+
+  /** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista).
+   *  A data-authored shell's `notifications.source` answers instead of the app-level actions
+   *  (globalSearch.mjs shellSources): listed from the source, marked read LOCALLY at once and then
+   *  through `markRead` when the shell declares it (re-listing after it; a failed call keeps the
+   *  local read state until the next listing says otherwise). */
+  async function fetchNotifications(base, serverSideType, appState, ids, opts = {}) {
+    const sources = shellSourcesOf()
+    if (sources.notifications) {
+      const list = async () => {
+        sourcedInbox = sourcedNotificationsOf(
+          await runShellSource(base, serverSideType, appState, 'notifications', sources.notifications, {}, opts),
+          sources.notifications)
+      }
+      if (!ids) {
+        try { await list() } catch (e) { /* inbox unavailable: keep whatever list we had */ }
+        return notificationsOf(sourcedInbox)
+      }
+      const all = ids === 'all'
+      const which = all ? sourcedInbox.filter((n) => n.unread).map((n) => n.id) : [].concat(ids).map(String)
+      sourcedInbox = sourcedInbox.map((n) => (which.includes(n.id) ? { ...n, unread: false } : n))
+      if (sources.notificationsRead && which.length) {
+        try {
+          await runShellSource(base, serverSideType, appState, 'notificationsRead', sources.notificationsRead, markReadVars(which, all), opts)
+          const local = sourcedInbox
+          await list()
+          // a source that does not persist the read state must not undo what the user just read
+          sourcedInbox = sourcedInbox.map((n) => (local.some((l) => l.id === n.id && !l.unread) ? { ...n, unread: false } : n))
+        } catch (e) { /* the server keeps them unread; the next listing says so */ }
+      }
+      return notificationsOf(sourcedInbox)
+    }
     const increment = await callMateu(base, {
       route: '',
       actionId: ids ? '_notifications-read' : '_notifications-list',
@@ -16794,6 +16921,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
   // content runMateuAction: an action's answer) assign to the VB variables once the registry is
   // reduced. Both chains used to carry their own inline copy of it (~300 lines each, already
@@ -16929,11 +17057,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
     const switcher = pageSwitcherOf(host)
     const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
+    const extras = pageHeaderExtrasOf(host)
+    const declaredTitle = hostEntity ? hostEntity.title : (summary.title || '')
+    // a titlePlaceholder stands in only while the title is EMPTY (and is dimmed: it must never read
+    // as a real title — the mateu-title-placeholder class)
+    const titleIsPlaceholder = !declaredTitle && !!extras.titlePlaceholder
+    // oj-sp's header has ONE badge (Redwood's status badge beside the title): the first page badge
+    // takes it, the rest follow the subtitle — the same way the EntityHeader's badges do
+    const [firstBadge, ...moreBadges] = extras.badges
+    const baseSubtitle = hostEntity ? hostEntity.subtitle : pageSubtitleOf(host)
+    const peer = extras.peerNav
+    // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
+    // the subtitle line instead — on the header's own row, scrolling and sticking with it
+    const stamp = headerTimestampOf(extras.timestamp)
+    const subtitle = [baseSubtitle].concat(moreBadges.map((b) => b.label), [stamp.text]).filter((t) => t).join(' · ')
     const header = {
       // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
       bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
-      title: hostEntity ? hostEntity.title : (summary.title || ''),
-      subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
+      title: titleIsPlaceholder ? extras.titlePlaceholder : declaredTitle,
+      titleIsPlaceholder,
+      headerClass: titleIsPlaceholder ? 'mateu-title-placeholder' : '',
+      subtitle,
+      // the quiet line ABOVE the title (drawn by the page over the oj-sp header: it has no overline)
+      overline: extras.overline,
+      // "last updated": oj-sp's own timestamp element, only ever with a date (else '' — and the
+      // text went to the subtitle)
+      timestamp: stamp.iso,
+      // oj-sp's status badge (null = none)
+      badge: firstBadge ? { text: firstBadge.label, status: firstBadge.status } : null,
+      // PEER navigation: oj-sp's lateral previous/next item actions. A side without a route is
+      // disabled; without a peerNav both stay 'disabled' and the header draws no arrows
+      previousItem: peer
+        ? { label: peer.prevLabel || chromeText('previousItem'), display: peer.prevRoute ? 'on' : 'disabled' }
+        : { label: '', display: 'disabled' },
+      nextItem: peer
+        ? { label: peer.nextLabel || chromeText('nextItem'), display: peer.nextRoute ? 'on' : 'disabled' }
+        : { label: '', display: 'disabled' },
+      prevRoute: peer ? peer.prevRoute : '',
+      nextRoute: peer ? peer.nextRoute : '',
       // without an EntityHeader, the Page's @KPIs are its facts
       facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
       // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
@@ -17159,6 +17320,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // GLOBAL SEARCH (the app's GlobalSearchSupplier): typing in the Ask palette also searches the
   // app's entities through the app-level `_globalsearch` action ({searchText}) — the same contract
   // as the web ⌘K palette (mateu-app fetchGlobalSearch). The hits ({label, description, route,
@@ -17204,10 +17366,109 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** Asks the app for the entities matching `text` ([] when there is nothing to ask). */
-  async function fetchGlobalSearch(base, serverSideType, appState, text) {
+  // ── SHELL SOURCES (a data-authored `type: AppShell`) ─────────────────────────────────────────
+  // The twins of the app class's suppliers, authored as data: `notifications.source` (+ `markRead`)
+  // feeds the bell and `globalSearch.source` the Ask palette — the same contract as libs/mateu's
+  // appSources.ts. A DIRECT source is fetched by the browser (served and static bundle alike); a
+  // PROXIED one goes through the server's app-level `_appsource` action, where the browser names the
+  // ROLE, never a url (the server only calls what the shell declares). Either way the same shaping
+  // applies, so the two legs cannot disagree. Without a source, the Java pipeline answers as before
+  // (`_notifications-list` / `_notifications-read` / `_globalsearch`).
+
+  const APP_SOURCE_ACTION = '_appsource'
+  const NO_SHELL_SOURCES = { notifications: null, notificationsRead: null, globalSearch: null }
+  let shellSources = NO_SHELL_SOURCES
+
+  /** Adopts the sources the bootstrap App declares (AppDto.notificationsSource/…ReadSource/
+   *  globalSearchSource). A replace: a shell without them goes back to the server actions. */
+  function adoptShellSources(shell) {
+    shellSources = shell ? {
+      notifications: shell.notificationsSource || null,
+      notificationsRead: shell.notificationsReadSource || null,
+      globalSearch: shell.globalSearchSource || null,
+    } : NO_SHELL_SOURCES
+    return shellSources
+  }
+  const shellSourcesOf = () => shellSources
+
+  /**
+   * Fetches one shell source with `vars` (`${state.searchText}`, `${state.ids}`…): directly, or
+   * through `_appsource` when it is proxied (`opts.fetchImpl`/`opts.callImpl` are the tests' doubles).
+   * Throws on failure — the caller decides what an unavailable source leaves on screen.
+   */
+  async function runShellSource(base, serverSideType, appState, role, source, vars = {}, opts = {}) {
+    if (viaProxy(source)) {
+      const call = opts.callImpl || callMateu
+      const increment = await call(base, {
+        route: '',
+        actionId: APP_SOURCE_ACTION,
+        componentState: {},
+        parameters: { ...vars, _appSource: role },
+        serverSideType: serverSideType || undefined,
+        appState: appState || {},
+      })
+      const appData = (increment && increment.appData) || {}
+      if (appData._restfetchError) {
+        const err = new Error(appData._restfetchError.message || 'Request failed')
+        err.status = appData._restfetchError.status
+        throw err
+      }
+      return appData._restfetch
+    }
+    return fetchRestJson(source, { state: vars, data: {}, appState: appState || {} }, opts.fetchImpl)
+  }
+
+  /** The items of a shell source's response: the array at its itemsPath, or the response itself. */
+  function shellItemsOf(json, source) {
+    const resolved = resolveRestSource(source) || {}
+    const items = resolved.itemsPath ? getByPath(json, resolved.itemsPath) : json
+    return Array.isArray(items) ? items.filter((i) => i != null && typeof i === 'object') : []
+  }
+  const shellText = (v) => (v == null || v === '' ? '' : String(v))
+
+  /** A notifications source's response → inbox entries ({id, title, text, route, unread, when}),
+   *  each field read through the source's field map. A missing `unread` counts as unread. */
+  function sourcedNotificationsOf(json, source) {
+    const at = (item, field) => getByPath(item, pathOfField(source, field))
+    return shellItemsOf(json, source).map((item) => {
+      const unread = at(item, 'unread')
+      return {
+        id: shellText(at(item, 'id')),
+        title: shellText(at(item, 'title')),
+        text: shellText(at(item, 'text')),
+        route: shellText(at(item, 'route')),
+        unread: unread == null ? true : unread === true || unread === 'true',
+        when: shellText(at(item, 'when')),
+      }
+    })
+  }
+
+  /** A global-search source's response → palette hits ({label, description, route, category});
+   *  a hit with nowhere to go is dropped. */
+  function sourcedSearchHitsOf(json, source) {
+    const at = (item, field) => getByPath(item, pathOfField(source, field))
+    return shellItemsOf(json, source).map((item) => ({
+      label: shellText(at(item, 'label')),
+      description: shellText(at(item, 'description')),
+      route: shellText(at(item, 'route')),
+      category: shellText(at(item, 'category')),
+    })).filter((h) => h.route)
+  }
+
+  /** The variables of a "mark as read": every id comma-joined, the first one, and whether it is "all". */
+  function markReadVars(ids, all) {
+    return { ids: (ids || []).join(','), id: (ids || [])[0] || '', all: !!all }
+  }
+
+  /** Asks the app for the entities matching `text` ([] when there is nothing to ask): the shell's
+   *  `globalSearch.source` when it declares one, else the `_globalsearch` action. */
+  async function fetchGlobalSearch(base, serverSideType, appState, text, opts = {}) {
     const searchText = String(text || '').trim()
     if (!searchText) return []
+    if (shellSources.globalSearch) {
+      const source = shellSources.globalSearch
+      return sourcedSearchHitsOf(await runShellSource(base, serverSideType, appState, 'globalSearch', source, { searchText }, opts), source)
+    }
     const increment = await callMateu(base, {
       route: '',
       actionId: '_globalsearch',
@@ -18906,6 +19167,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    // a data-authored shell's inbox/palette from REST sources (globalSearch.mjs)
+    adoptShellSources,
     installTileReorder,
     installRichText,
     setTileReorderSink,

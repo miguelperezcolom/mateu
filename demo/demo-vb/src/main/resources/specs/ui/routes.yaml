@@ -13,6 +13,14 @@ routes:
     definition: components.yaml
   - route: components-2
     definition: components-2.yaml
+  # the page-header elements authored as data (the Java twin is CustomerRecordPage): ONE definition
+  # serving a record and a record being created — `state:` seeds what its ${state.x} read
+  - route: yaml-header
+    definition: yaml-header.yaml
+    state: {name: Grace Hopper, status: Active, lastUpdated: "Last updated 12 Oct 2026, 11:05", nextRoute: yaml-header/new}
+  - route: yaml-header/new
+    definition: yaml-header.yaml
+    state: {name: "", status: "", prevRoute: yaml-header}
   - route: customers
     viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.Customers
   - route: customers/:customerId

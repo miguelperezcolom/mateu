@@ -67,6 +67,15 @@ Some cases cannot be mirrored member for member, and that is information, not an
 - **.NET has no property-level KPI.** `[Kpi]` is valid on a class or a method; Java's `@KPI` is a
   field marker. The `page-header` fixture therefore omits it on .NET rather than pretending.
 
+- **A CRUD has a mediator in Java and none in the ports.** Java answers the first load of a CRUD
+  (an `AutoCrud`, or a listing declaring an interaction capability) with a MEDIATOR app shell and
+  the listing on a second, content load; .NET and Python answer the listing directly. The MEDIATED
+  cases (`crud`, `crud-grouped`, `listing-navigable`) therefore pin the content load — the Java
+  runner issues it — and leave out, in all three runners, the mediator PROTOCOL around it: the
+  content component's `actions` (Java lets New/View/Delete bubble to the mediator, the ports answer
+  them in place) and its private routing state (`initialData`/`state`). Everything the renderer
+  draws is pinned; the action list itself is pinned by the non-mediated listing cases.
+
 Recording these is the point: a difference nobody wrote down is a difference somebody rediscovers.
 
 ## Adding a case

@@ -1,0 +1,3 @@
+# listing-filters
+
+Pins a read-only capability listing that DECLARES a search box (`Searchable`) and a filters type (`Filterable<BookFilters>`, a text and a boolean) and no interaction capability. It is not a CRUD, so it is a page holding a listing: the title is the PAGE's (`title` + `pageTitle` + `pageType` on the Page metadata, none on the listing), the filters lay out `inline`, the filters carry their dataTypes (`string`, `bool`) and no radio `optionsColumns`, and the component advertises exactly `search` plus the open `action-on-row-*` / `action-on-view-*` wildcards, none of them validating — the action list is pinned here, where no mediator is involved.

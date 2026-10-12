@@ -143,6 +143,8 @@
   "moreInformation": "More information",
   "previousSlide": "Previous slide",
   "nextSlide": "Next slide",
+  "previousItem": "Previous",
+  "nextItem": "Next",
   "slideN": "Slide {n}",
   "slides": "Slides",
   "pages": "Pages",

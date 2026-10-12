@@ -75,6 +75,7 @@ A data-authored shell feeds the palette's entity search from a REST source inste
 `GlobalSearchSupplier` class: `globalSearch: {source: …}` on its `type: AppShell`, called with
 `${state.searchText}`. See
 [App shell as data › Header extras](/define/yaml/app-shell/#header-extras-pickers-actions-inbox-and-search).
+On Redwood the source feeds the *Ask* palette's entity search the same way.
 
 ## Renderers
 
