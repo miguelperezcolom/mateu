@@ -84,9 +84,10 @@ test.describe('YAML authoring served by the backend', () => {
     await page.goto('/walkthrough/delta');
     await expect(page.getByLabel('Total')).toHaveValue('7'); // relabelled
     await expect(page.getByLabel('Extra')).toHaveCount(0); // hidden
-    const secret = await page.getByLabel('Secret').boundingBox();
+    // note was inferred in the SECOND row: the delta moves it first, across the form's rows
+    const note = await page.getByLabel('Note').boundingBox();
     const total = await page.getByLabel('Total').boundingBox();
-    expect(secret && total && secret.x < total.x).toBeTruthy(); // reordered within its row
+    expect(note && total && Math.abs(note.y - total.y) < 20 && note.x < total.x).toBeTruthy();
   });
 
   test('a route restricted with access: is refused to an anonymous caller', async ({ page }) => {

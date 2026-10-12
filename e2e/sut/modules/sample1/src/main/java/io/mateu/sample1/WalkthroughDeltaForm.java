@@ -2,8 +2,8 @@ package io.mateu.sample1;
 
 /**
  * The view model of {@code /walkthrough/delta}: its form is INFERRED from these fields, and the
- * route's definition (specs/ui/walkthrough/delta.yaml) only records what a human changed — secret
- * before count, extra hidden, count relabelled.
+ * route's definition (specs/ui/walkthrough/delta.yaml) only records what a human changed — note first
+ * (across the form's rows), extra hidden, count relabelled.
  */
 public class WalkthroughDeltaForm {
 
