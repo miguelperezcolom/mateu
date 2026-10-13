@@ -11,7 +11,8 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
-import { HOST_ID } from './reduceContexts.mjs'
+import { HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf } from './reduceContexts.mjs'
+import { hostContentBesideHeader } from './pageProjection.mjs'
 import { fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
@@ -258,6 +259,48 @@ test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.
     'src', 'main', 'resources', 'static', '_redwood', 'resources', 'mateu-anonymous-user.json'), 'utf8'))
   assert.equal(user.isAuthenticated, false)
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
+})
+
+test('@Tab: the buttons of a tab stay in it and the toolbar of the header is not repeated under the content', () => {
+  // CajaView: a frameless section, then tabs — Cobrar (its own Button), Crédito (a HorizontalLayout
+  // with buttons) — and a toolbar. With Cobrar active, a row under it gathered «Volver a la reserva»
+  // (painted by the header already) and the Crédito tab's three buttons.
+  const tree = node({ type: 'Page', title: 'Caja', toolbar: [{ actionId: 'volver', label: 'Volver a la reserva', buttonStyle: 'primary' }] }, [
+    node({ type: 'Text', text: 'Saldo: 120 €' }),
+    node({ type: 'TabLayout' }, [
+      node({ type: 'Tab', label: 'Cobrar', active: true }, [node({ type: 'Button', actionId: 'cobrar', label: 'Cobrar' })]),
+      node({ type: 'Tab', label: 'Crédito' }, [node({ type: 'HorizontalLayout' }, [
+        node({ type: 'Button', actionId: 'fijarLimite', label: 'Fijar límite' }),
+        node({ type: 'Button', actionId: 'cancelarCredito', label: 'Cancelar crédito' })])]),
+    ]),
+  ])
+  const host = { tree, state: {}, data: {} }
+  // plus a footer button of the form (what the generic form would have drawn)
+  const actions = [...actionsOf(tree), { actionId: 'save', label: 'Save' }]
+  const rowOf = (blocks) => blocks.filter((b) => b.fromFormActions).flatMap((b) => b.items).flatMap((a) => a.buttons.map((x) => x.actionId))
+  const blocks = hostContentOf(host, null, { title: 'Caja' })
+  assert.deepEqual(Object.keys(tabOnlyActionIdsOf(tree)).sort(), ['cancelarCredito', 'cobrar', 'fijarLimite'])
+  // the bug: every button of the tree not drawn by the active tab went to the row
+  assert.deepEqual(rowOf(withFormActions(blocks, actions)), ['volver', 'fijarLimite', 'cancelarCredito', 'save'])
+  const withRow = withFormActions(blocks, actions, { tree })
+  assert.deepEqual(rowOf(withRow), ['volver', 'save'])
+  // the header paints the toolbar: the row drops it…
+  const toolbar = pageToolbarOf(host)
+  const beside = hostContentBesideHeader(withRow, { showBand: true }, toolbar)
+  assert.deepEqual(rowOf(beside), ['save'])
+  // …a row left empty goes, and nothing to drop gives the same array back (the chains compare)
+  const onlyToolbar = withFormActions(blocks, actionsOf(tree), { tree })
+  assert.equal(hostContentBesideHeader(onlyToolbar, { showBand: true }, toolbar).filter((b) => b.fromFormActions).length, 0)
+  assert.equal(hostContentBesideHeader(beside, { showBand: true }, toolbar), beside)
+  assert.equal(hostContentBesideHeader(withRow, { showBand: false, showInline: false }, toolbar), withRow)
+  // a tab switch re-projects without the row: it is carried over, once
+  const credito = hostContentOf(host, null, { title: 'Caja', activeTabs: { '': 'tab-1' } })
+  assert.ok(JSON.stringify(credito).includes('fijarLimite'))
+  assert.deepEqual(rowOf(withFormActionsRowOf(credito, beside)), ['save'])
+  assert.deepEqual(rowOf(withFormActionsRowOf(withFormActionsRowOf(credito, beside), beside)), ['save'])
+  // a button also drawn OUTSIDE the tabs is not the tab's alone
+  const shared = node({ type: 'Page' }, [node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'A' }, [node({ type: 'Button', actionId: 'x', label: 'X' })])]), node({ type: 'Button', actionId: 'x', label: 'X' })])
+  assert.deepEqual(tabOnlyActionIdsOf(shared), {})
 })
 
 test('leaving a wizard: no binding reads mateuWizard unguarded (the page chain set it to null and died half-way)', () => {

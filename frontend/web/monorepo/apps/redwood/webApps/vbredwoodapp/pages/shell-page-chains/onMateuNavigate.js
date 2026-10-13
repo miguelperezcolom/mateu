@@ -458,7 +458,7 @@ define([
       vars.mateuGop = gop;
       const gopOn = gop.on;
       // el form genérico se suprime: sus botones (@Button del form) van con los bloques
-      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions) : null) || [];
+      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions, { tree: host.tree }) : null) || [];
       // los componentes web del contenido (el grafo de un proceso) los crea el bridge en su
       // hueco: VB no puede escribir una etiqueta cuyo nombre llega en los datos
       bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
@@ -569,6 +569,11 @@ define([
       vars.mateuPageHeaderTranslations = pageHeader.translations;
       // El toolbar de la Page se pinta UNA sola vez: manda la cabecera cuando se pinta
       vars.mateuFormActions = bridge.formActionsBesideHeader(vars.mateuFormActions, pageHeader.header, hostToolbar);
+      // …nor in the form's action row under rich content (withFormActions)
+      // (read ONCE: every read of a VB variable may hand back another proxy)
+      const hostContentNow = vars.mateuHostContent;
+      const contentBesideHeader = bridge.hostContentBesideHeader(hostContentNow, pageHeader.header, hostToolbar);
+      if (contentBesideHeader !== hostContentNow) vars.mateuHostContent = contentBesideHeader;
       // anatomía RDS (feedback 2026-07-26): en fixed/fullWidth el header va sobre una BANDA a
       // sangre y la tarjeta de contenido la SOLAPA (-40px); el solape no aplica con el template
       // iop (sus sticky internos calculan contra el flujo)

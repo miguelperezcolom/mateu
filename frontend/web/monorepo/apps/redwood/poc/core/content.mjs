@@ -1467,9 +1467,11 @@ function hasFormField(node, isRoot = true) {
  * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
  * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
  * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
- * editable grid had no way to submit. Actions a block already draws are not repeated.
+ * editable grid had no way to submit. Actions a block already draws are not repeated, and the
+ * buttons of a @Tab belong to that tab (`tree`: the page's tree): the blocks hold the ACTIVE
+ * tab only, and the other tabs' buttons were gathered into a row under it.
  */
-export function withFormActions(blocks, actions) {
+export function withFormActions(blocks, actions, { tree } = {}) {
   if (!blocks || !blocks.length) return blocks
   const drawn = {}
   for (const block of blocks) {
@@ -1477,7 +1479,8 @@ export function withFormActions(blocks, actions) {
       if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
     }
   }
-  const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+  const inTabs = tabOnlyActionIdsOf(tree)
+  const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId] && !inTabs[a.actionId])
   if (!missing.length) return blocks
   const buttons = missing.map((a) => ({
     actionId: a.actionId,
@@ -1487,7 +1490,39 @@ export function withFormActions(blocks, actions) {
     parameters: a.parameters || {},
     ...(a.route ? { route: a.route } : {}),
   }))
-  return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+  return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', fromFormActions: true, items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+}
+
+/** The action ids a tree draws ONLY inside a Tab (a @Tab's Button, a component of the tab with
+ *  its buttons): they are shown with their tab, never in the form's action row. Same surface walk
+ *  and same "is a button" test as collectActions. */
+export function tabOnlyActionIdsOf(tree) {
+  const inside = {}
+  const outside = {}
+  const walk = (n, isRoot, inTab) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false, inTab)); return }
+    if (!isRoot && n.type === 'ServerSide') return // another surface
+    const tab = inTab || !!(n.metadata && n.metadata.type === 'Tab')
+    if (n.actionId && n.label && !n.fieldId) (tab ? inside : outside)[n.actionId] = true
+    for (const [k, v] of Object.entries(n)) {
+      if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
+      if (k === 'fabs' && n.type === 'Form') continue
+      if (v && typeof v === 'object') walk(v, false, tab)
+    }
+  }
+  walk(tree, true, false)
+  for (const id of Object.keys(outside)) delete inside[id]
+  return inside
+}
+
+/** The form's action row of some blocks (withFormActions), to carry over when the blocks are
+ *  re-projected without it (a tab switch): the row does not depend on the active tab. */
+export function withFormActionsRowOf(blocks, previous) {
+  const row = (previous || []).find((block) => block && block.fromFormActions)
+  if (!row || (blocks || []).some((block) => block && block.fromFormActions)) return blocks
+  // a plain copy: `previous` is the VB variable (proxies)
+  return [...(blocks || []), JSON.parse(JSON.stringify(row))]
 }
 
 export function hostContentShown(blocks, summary) {
