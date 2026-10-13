@@ -23,6 +23,7 @@ import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import '@infra/ui/mateu-record-switcher.ts'
+import { factActionStyles, renderFactAction } from '@infra/ui/factAction.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -479,7 +480,12 @@ export class MateuContentHeader extends LitElement {
                         ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`
                             <div class="header-fact">
                                 <span class="header-fact-label">${this.evalLabel(kpi.title)}</span>
-                                <span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                                ${kpi.actionId ? html`
+                                    <span class="fact-value-row">
+                                        <span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                                        ${renderFactAction({ ...kpi, label: kpi.title })}
+                                    </span>
+                                ` : html`<span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>`}
                             </div>
                         `) : nothing}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
@@ -496,6 +502,7 @@ export class MateuContentHeader extends LitElement {
                         <div class="kpi-pair">
                             <span class="kpi-label">${this.evalLabel(kpi.title)}</span>
                             <span class="kpi-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                            ${renderFactAction({ ...kpi, label: kpi.title })}
                         </div>
                     `)}
                 </div>
@@ -508,7 +515,7 @@ export class MateuContentHeader extends LitElement {
         `
     }
 
-    static styles = [css`
+    static styles = [factActionStyles, css`
         :host {
             display: block;
             width: 100%;
@@ -614,6 +621,11 @@ export class MateuContentHeader extends LitElement {
             display: flex;
             gap: var(--lumo-space-s, .5rem);
             align-items: baseline;
+        }
+        /* a hoisted fact's action button: centred on the pair's line, close to its value */
+        .kpi-pair .fact-action {
+            align-self: center;
+            margin-inline-start: calc(-1 * var(--lumo-space-xs, .25rem));
         }
         .kpi-label {
             font-size: var(--lumo-font-size-xs, .8125rem);

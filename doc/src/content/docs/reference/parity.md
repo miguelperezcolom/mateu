@@ -349,7 +349,7 @@ renderers, and its children still render.
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
 | `Element` | ✅ | third-party web component, events wired back |
 | `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
-| `EntityHeader` | ✅ | projected to the page header (sticky business card) |
+| `EntityHeader` | ✅ | projected to the page header (sticky business card); a fact with an action gets its icon button after the value |
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
 | `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
 | `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
@@ -479,7 +479,7 @@ native renderer — 89 rendered, 11 layout containers, 6 parts of another compon
 | `Directory` | ✅ |  |
 | `Drawer` | ✅ | overlay fragments open as a modal sheet; a Drawer in the tree is drawn in place |
 | `EmptyState` | ✅ |  |
-| `EntityHeader` | ✅ |  |
+| `EntityHeader` | ✅ | a fact with an action gets a tappable icon after its value |
 | `Faq` | ✅ |  |
 | `FeatureGrid` | ✅ |  |
 | `FileList` | ✅ |  |

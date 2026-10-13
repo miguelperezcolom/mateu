@@ -2751,7 +2751,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!switcher) return null
     const state = ctx.state || {}
     const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
-    const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
+    const facts = (md.facts || []).map((f) => factProjectionOf(f, f.value))
     if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
     // the GeneralOverview `info` slot (GeneralOverview.info(): a child slotted `info` of the
     // ResponsiveGrid `general-overview`): drawn as its own, narrower card — untitled, it was taken for
@@ -2779,7 +2779,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       title: md.title || '',
       subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
-      facts,
+      facts: contextualInfoOf(facts),
+      factActions: factActionsJsonOf(facts),
       switcherField: switcher ? switcher.fieldId : '',
       switcherOptions: switcher
         ? switcher.options.map((o) => ({ value: o.value, label: o.label }))
@@ -4055,7 +4056,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           title: interp(m.title),
           subtitle: interp(m.subtitle || ''),
           badges: (m.badges || []).map(badgeOf),
-          facts: (m.facts || []).map((f) => ({ label: f.label, value: interp(f.value) })),
+          // a fact naming an action: its icon button right after the value (factProjectionOf)
+          facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
           metricLabel: m.metricLabel || '',
           metricValue: interp(m.metricValue || ''),
         }, container)
@@ -4759,6 +4761,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const marked = { ...a, fromNested: true }
         if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
         if (a.fields) marked.fields = a.fields.map((f) => ({ ...f, fromNested: true }))
+        // an EntityHeader's fact actions dispatch like its buttons: to the nested context
+        if (a.facts) marked.facts = a.facts.map((f) => (f.hasAction ? { ...f, fromNested: true } : f))
         return marked
       })
     return islandBlocks.map((block) => (
@@ -4890,6 +4894,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
@@ -4925,13 +4930,54 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return found
   }
 
+  /** The icon of a fact's action button when the wire names none (the servers already default it). */
+  const DEFAULT_FACT_ACTION_ICON = 'vaadin:pencil'
+
+  /**
+   * A wire fact of an EntityHeader → its projection: `{label, value}`, and — when it names an action
+   * (the pencil next to "EMPRESA") — the icon-only button drawn right after the value: `hasAction`,
+   * `actionId` + `parameters` (dispatched exactly like a Button's), `actionLabel` (its accessible
+   * name and tooltip: its own, else the fact's label) and `iconClass` (the Redwood icon font).
+   */
+  function factProjectionOf(fact, value) {
+    const out = { label: fact.label, value }
+    if (!fact.actionId) return out
+    return Object.assign(out, {
+      hasAction: true,
+      actionId: fact.actionId,
+      parameters: fact.parameters,
+      actionLabel: (fact.actionLabel && String(fact.actionLabel).trim()) || fact.label || '',
+      iconClass: ojIconOrGenericOf(fact.icon || DEFAULT_FACT_ACTION_ICON),
+    })
+  }
+
+  /** What oj-sp's contextualInfo takes: only `{label, value}` per fact. */
+  function contextualInfoOf(facts) {
+    return (facts || []).map((f) => ({ label: f.label, value: f.value }))
+  }
+
+  /**
+   * The actions of the facts an oj-sp header shows as contextualInfo — which has no room for a
+   * button — as the JSON the header element carries in `data-mateu-fact-actions`: the DOM side
+   * (displayDom.installFactActions) puts each button right after its value. '' = none.
+   */
+  function factActionsJsonOf(facts) {
+    const actions = []
+    ;(facts || []).forEach((f, index) => {
+      if (f && f.hasAction) {
+        actions.push({ index, actionId: f.actionId, parameters: f.parameters || null, label: f.actionLabel, iconClass: f.iconClass })
+      }
+    })
+    return actions.length ? JSON.stringify(actions) : ''
+  }
+
   function entityHeaderOf(ctx) {
     const node = ctx && ctx.tree ? pageEntityHeaderNode(ctx.tree) : null
     if (!node) return null
     const m = node.metadata
     const state = ctx.state || {}
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-    const facts = (m.facts || []).map((f) => ({ label: f.label, value: interpolate(f.value, state) }))
+    const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
     if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
     // los colores de Chip de Mateu → status del badge oj-sp
     const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
@@ -17310,6 +17356,102 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
+  // ── Fact actions in an oj-sp header: the icon button right after the fact's value ─────────────
+  // oj-sp's contextualInfo (the facts row of oj-sp-header-general-overview, also inside the general
+  // overview page) takes only {label, value}: it has no room for a fact's action (the pencil next to
+  // "EMPRESA"). The projection leaves the actions on the header element as JSON
+  // (`data-mateu-fact-actions`, factActionsJsonOf) and this puts a small icon button right after
+  // each value, which oj-sp draws as `<uid>_contextualInfo<index>`. oj-sp re-renders that row on
+  // its own, so it is re-checked on every change inside the header; a pass that finds everything in
+  // place touches nothing (no observer loop).
+  let factActionSink = null
+  /** Who runs a fact's action (the shell: the page's action channel, the one a Button's takes). */
+  function setFactActionSink(fn) { factActionSink = typeof fn === 'function' ? fn : null }
+
+  const FACT_ACTIONS_HOST = '[data-mateu-fact-actions]'
+
+  /** The actions a header element carries ([] when none or unreadable). */
+  function factActionsOf(host) {
+    const raw = host.getAttribute('data-mateu-fact-actions') || ''
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      return Array.isArray(parsed) ? parsed : []
+    } catch (e) {
+      return []
+    }
+  }
+
+  /** Puts (or keeps, or removes) each fact action's button right after its value inside `host`. */
+  function decorateFactActions(host, doc = host.ownerDocument) {
+    const actions = factActionsOf(host)
+    const keyOf = (a) => a.index + ':' + a.actionId
+    const wanted = {}
+    for (const a of actions) wanted[keyOf(a)] = a
+    // a button whose fact no longer acts (another record, another projection) goes
+    for (const old of Array.from(host.querySelectorAll('.mateu-fact-action'))) {
+      if (!wanted[old.getAttribute('data-mateu-fact-key')]) old.remove()
+    }
+    if (!actions.length) return
+    const ids = Array.from(host.querySelectorAll('[id]'))
+    for (const a of actions) {
+      const key = keyOf(a)
+      const value = ids.find((el) => String(el.id).endsWith('_contextualInfo' + a.index))
+      if (!value || !value.parentNode) continue // oj-sp shows the first 4 facts only
+      const parent = value.parentNode
+      const siblings = Array.from(parent.childNodes)
+      const next = siblings[siblings.indexOf(value) + 1] || null
+      if (next && next.nodeType === 1 && next.getAttribute('data-mateu-fact-key') === key) continue
+      const stale = host.querySelector('.mateu-fact-action[data-mateu-fact-key="' + key + '"]')
+      if (stale) stale.remove()
+      const button = doc.createElement('button')
+      button.setAttribute('type', 'button')
+      button.setAttribute('class', 'mateu-fact-action')
+      button.setAttribute('data-mateu-fact-key', key)
+      button.setAttribute('data-action-id', a.actionId)
+      if (a.parameters) button.setAttribute('data-mateu-fact-parameters', JSON.stringify(a.parameters))
+      if (a.label) {
+        button.setAttribute('aria-label', a.label)
+        button.setAttribute('title', a.label)
+      }
+      const glyph = doc.createElement('span')
+      glyph.setAttribute('class', a.iconClass || 'oj-ux-ico-edit')
+      glyph.setAttribute('aria-hidden', 'true')
+      button.appendChild(glyph)
+      parent.insertBefore(button, next)
+    }
+  }
+
+  /** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+  function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuFactActions) return
+    doc.__mateuFactActions = true
+    doc.addEventListener('click', (e) => {
+      const button = e.target && e.target.closest ? e.target.closest('.mateu-fact-action') : null
+      if (!button || !factActionSink) return
+      let parameters = {}
+      try { parameters = JSON.parse(button.getAttribute('data-mateu-fact-parameters') || '{}') || {} } catch (err) { parameters = {} }
+      factActionSink(button.getAttribute('data-action-id'), parameters, {})
+    })
+    const root = doc.body || doc.documentElement
+    for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+    if (typeof MutationObserver === 'undefined') return
+    new MutationObserver((records) => {
+      const hosts = new Set()
+      for (const r of records) {
+        const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+        const host = target && target.closest ? target.closest(FACT_ACTIONS_HOST) : null
+        if (host) hosts.add(host)
+        for (const n of r.addedNodes || []) {
+          if (n.nodeType !== 1) continue
+          if (n.matches && n.matches(FACT_ACTIONS_HOST)) hosts.add(n)
+          for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(FACT_ACTIONS_HOST) : [])) hosts.add(h)
+        }
+      }
+      for (const host of hosts) decorateFactActions(host, doc)
+    }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+  }
+
 
 
 
@@ -17449,6 +17591,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
     const switcher = pageSwitcherOf(host)
     const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
+    const headerFacts = switcher.fact ? [switcher.fact].concat(baseFacts || []) : (baseFacts || [])
     const extras = pageHeaderExtrasOf(host)
     const declaredTitle = hostEntity ? hostEntity.title : (summary.title || '')
     // a titlePlaceholder stands in only while the title is EMPTY (and is dimmed: it must never read
@@ -17488,8 +17631,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : { label: '', display: 'disabled' },
       prevRoute: peer ? peer.prevRoute : '',
       nextRoute: peer ? peer.nextRoute : '',
-      // without an EntityHeader, the Page's @KPIs are its facts
-      facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
+      // without an EntityHeader, the Page's @KPIs are its facts; oj-sp's contextualInfo takes only
+      // {label, value} — a fact's action button rides beside it (factActions, put in by the DOM side)
+      facts: contextualInfoOf(headerFacts),
+      factActions: factActionsJsonOf(headerFacts),
       // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
       switcher,
       showBand: showBand && !gopOn && !iopOn,
@@ -19174,14 +19319,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
   const CONTENT_ACTION_SINKS = Object.freeze([
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-    'setKeysActionSink', 'setRecordMergeSink',
+    'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -19858,6 +20003,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installContextMenus,
     installChatComponents,
     installCustomComponents,
+    // an EntityHeader fact's action inside an oj-sp header (its icon button after the value)
+    installFactActions,
+    setFactActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,

@@ -174,6 +174,24 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertTrue("the caption defaults to the percentage", texts(meter).any { it.contains("75%") })
     }
 
+    fun testAnEntityHeaderFactWithAnActionHasANamedButtonThatRunsItWithItsParameters() {
+        val ctx = context()
+        val header = render(ctx, """{"type":"EntityHeader","title":"María Fernández","facts":[
+            {"label":"TOTAL RESERVA","value":"€ 4.890,00"},
+            {"label":"EMPRESA","value":"Acme Corporation Ltd","actionId":"changeCompany","icon":"vaadin:pencil",
+             "actionLabel":"Cambiar empresa","parameters":{"stayId":"S-1"}}]}""")
+        assertTrue(texts(header).containsAll(listOf("TOTAL RESERVA", "Acme Corporation Ltd")))
+        val buttons = all(header).filterIsInstance<AbstractButton>().toList()
+        assertEquals("only the fact with an action has a button", 1, buttons.size)
+        val button = buttons.single()
+        assertEquals("Cambiar empresa", button.accessibleContext.accessibleName)
+        assertEquals("Cambiar empresa", button.toolTipText)
+        button.doClick()
+        awaitRequests(1)
+        assertEquals("changeCompany", server.actionIds().single())
+        assertEquals("S-1", server.requests.single().path("parameters").path("stayId").asText())
+    }
+
     fun testAnImageSwingCannotDecodeIsANamedPlaceholderNotItsDataUri() {
         // an SVG data URI (the YAML display gallery's): ImageIO cannot read it
         val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,PHN2Zy8+"}""")

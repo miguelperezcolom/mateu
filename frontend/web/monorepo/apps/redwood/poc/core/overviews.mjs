@@ -1,7 +1,7 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { interpolate, islandContentOf, editorNodeIds } from './content.mjs'
 import { findByType } from './listing.mjs'
-import { pageHeaderNodeOf } from './pageHeader.mjs'
+import { pageHeaderNodeOf, factProjectionOf, contextualInfoOf, factActionsJsonOf } from './pageHeader.mjs'
 import { metricAriaLabel } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
@@ -235,7 +235,7 @@ export function generalOverviewOf(ctx) {
   if (!switcher) return null
   const state = ctx.state || {}
   const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
-  const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
+  const facts = (md.facts || []).map((f) => factProjectionOf(f, f.value))
   if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
   // the GeneralOverview `info` slot (GeneralOverview.info(): a child slotted `info` of the
   // ResponsiveGrid `general-overview`): drawn as its own, narrower card — untitled, it was taken for
@@ -263,7 +263,8 @@ export function generalOverviewOf(ctx) {
   return {
     title: md.title || '',
     subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
-    facts,
+    facts: contextualInfoOf(facts),
+    factActions: factActionsJsonOf(facts),
     switcherField: switcher ? switcher.fieldId : '',
     switcherOptions: switcher
       ? switcher.options.map((o) => ({ value: o.value, label: o.label }))

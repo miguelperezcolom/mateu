@@ -84,7 +84,7 @@ export const RN_COVERAGE = {
   Skeleton: { status: 'full' },
   NotFound: { status: 'full' },
   Result: { status: 'full', note: 'icon by result type, links, next step' },
-  EntityHeader: { status: 'full' },
+  EntityHeader: { status: 'full', note: 'a fact with an action gets a tappable icon after its value' },
   Meter: { status: 'full' },
   TaskProgress: { status: 'full' },
   StatusList: { status: 'full' },

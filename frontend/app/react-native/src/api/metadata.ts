@@ -348,6 +348,12 @@ export interface Chip {
 export interface Fact {
   label?: string;
   value?: string;
+  /** The action of the icon button after the value; absent = display-only. */
+  actionId?: string;
+  icon?: string;
+  /** The button's accessible name; the fact's label when absent. */
+  actionLabel?: string;
+  parameters?: Record<string, unknown>;
 }
 
 export interface EntityHeader {

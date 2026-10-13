@@ -505,14 +505,14 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-  'trackPressedControls', 'installRecordMerges',
+  'trackPressedControls', 'installRecordMerges', 'installFactActions',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
 export const CONTENT_ACTION_SINKS = Object.freeze([
   'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
   'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-  'setKeysActionSink', 'setRecordMergeSink',
+  'setKeysActionSink', 'setRecordMergeSink', 'setFactActionSink',
 ])
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */

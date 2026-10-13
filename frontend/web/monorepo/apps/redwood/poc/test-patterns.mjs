@@ -19,6 +19,7 @@ import {
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
+  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf,
 } from './reduceContexts.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
@@ -616,6 +617,70 @@ test('header extras wiring: both page headers bind them, the arrows navigate lik
   const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') > 0)
   assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') < boot.indexOf('bridge.fetchNotifications('))
+})
+
+// ── an EntityHeader fact with an action (the pencil next to EMPRESA) ─────────────────────────
+
+const stayPage = () => page({ title: 'Stay' }, [node({
+  type: 'EntityHeader', id: 'stay', title: 'María Fernández',
+  facts: [
+    { label: 'TOTAL RESERVA', value: '€ 4.890,00' },
+    { label: 'EMPRESA', value: 'Acme Corporation Ltd', actionId: 'changeCompany', icon: 'vaadin:pencil',
+      actionLabel: 'Cambiar empresa', parameters: { stayId: 'S-1' } },
+  ],
+}, [], 'stay')])
+
+test('fact action: the projection carries the icon button; a display-only fact stays {label, value}', () => {
+  const [plain, company] = entityHeaderOf(host(stayPage())).facts
+  assert.deepEqual(plain, { label: 'TOTAL RESERVA', value: '€ 4.890,00' })
+  assert.deepEqual(company, {
+    label: 'EMPRESA', value: 'Acme Corporation Ltd', hasAction: true, actionId: 'changeCompany',
+    parameters: { stayId: 'S-1' }, actionLabel: 'Cambiar empresa', iconClass: 'oj-ux-ico-edit',
+  })
+  // no label of its own → the fact's; no icon → the pencil
+  assert.deepEqual(factProjectionOf({ label: 'EMPRESA', value: 'x', actionId: 'go' }, 'x'),
+    { label: 'EMPRESA', value: 'x', hasAction: true, actionId: 'go', parameters: undefined, actionLabel: 'EMPRESA', iconClass: 'oj-ux-ico-edit' })
+})
+
+test('fact action hoisted into the page header: oj-sp gets {label, value}, the action rides as factActions', () => {
+  const ctx = host(stayPage())
+  const h = headerOf(ctx, { hostEntity: entityHeaderOf(ctx) })
+  assert.deepEqual(h.facts, [
+    { label: 'TOTAL RESERVA', value: '€ 4.890,00' }, { label: 'EMPRESA', value: 'Acme Corporation Ltd' },
+  ])
+  assert.deepEqual(JSON.parse(h.factActions), [
+    { index: 1, actionId: 'changeCompany', parameters: { stayId: 'S-1' }, label: 'Cambiar empresa', iconClass: 'oj-ux-ico-edit' },
+  ])
+  // nothing acts → no attribute at all
+  assert.equal(headerOf(host(page({ kpis: [{ title: 'Total', text: '3' }] }))).factActions, '')
+  assert.equal(factActionsJsonOf([{ label: 'a', value: 'b' }]), '')
+})
+
+test('fact action in the content: the EntityHeader atom keeps it on its fact, and a nested island marks it', () => {
+  const atom = islandContentOf(host(stayPage())).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  assert.equal(atom.facts[0].hasAction, undefined)
+  assert.equal(atom.facts[1].actionId, 'changeCompany')
+  assert.equal(atom.facts[1].iconClass, 'oj-ux-ico-edit')
+  // merged from a nested island: its action goes back to the island's context, like its buttons
+  const merged = mergeNestedContent([{ isNestedBlock: true, items: [] }], [{ items: [atom] }])
+  const [plain, company] = merged[0].items[0].facts
+  assert.equal(plain.fromNested, undefined)
+  assert.equal(company.fromNested, true)
+})
+
+test('fact action wiring: every oj-sp header with contextualInfo carries the actions; the atom button dispatches like a button', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuPageHeader\.factActions \|\| null \]\]"/g) || []).length, 3)
+  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuOverview\.factActions \|\| null \]\]"/g) || []).length, 1)
+  assert.equal((html.match(/contextual-info=/g) || []).length, 4)
+  // the content atom: an oj-button after the value, through the block's own listener
+  const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  const piece = atoms.slice(atoms.indexOf('isEntityHeader'), atoms.indexOf('isNotice'))
+  assert.match(piece, /mateu-fact-action-button[\s\S]*:data-action-id="\[\[ \$current\.data\.actionId \]\]"[\s\S]*on-oj-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+  // the shell installs the header buttons and runs them on the page's action channel
+  const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(boot, /bridge\.installFactActions\(\);\s*bridge\.setFactActionSink\(runPageAction\);/)
+  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue.factActions, '')
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)

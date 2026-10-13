@@ -88,6 +88,7 @@
         page-title="[[ $application.variables.mateuPageHeader.title ]]"
         page-subtitle="[[ $application.variables.mateuPageHeader.subtitle ]]"
         contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
+        :data-mateu-fact-actions="[[ $application.variables.mateuPageHeader.factActions || null ]]"
         primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
         secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
         on-sp-primary-action="[[ $listeners.headerPrimary ]]"
@@ -735,6 +736,7 @@
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     page-subtitle="[[ $application.variables.mateuPageHeader.subtitle ]]"
     contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
+    :data-mateu-fact-actions="[[ $application.variables.mateuPageHeader.factActions || null ]]"
     primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
     secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
     on-sp-primary-action="[[ $listeners.headerPrimary ]]"
@@ -1222,7 +1224,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -2918,7 +2933,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -4642,7 +4670,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -6338,7 +6379,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -7681,6 +7735,7 @@
     page-title="[[ $application.variables.mateuOverview.title ]]"
     page-subtitle="[[ $application.variables.mateuOverview.subtitle ]]"
     contextual-info="[[ $application.variables.mateuOverview.facts ]]"
+    :data-mateu-fact-actions="[[ $application.variables.mateuOverview.factActions || null ]]"
     select-object="[[ $variables.overviewSelectConfig ]]"
     select-object-value="[[ $application.variables.mateuOverview.switcherValue ]]"
     translations="[[ $application.variables.mateuOverviewTranslations ]]"
@@ -8131,7 +8186,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -9835,7 +9903,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -11541,7 +11622,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -13265,7 +13359,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -15147,7 +15254,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -17116,7 +17236,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -18810,7 +18943,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -21137,7 +21283,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.islandBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -22831,7 +22990,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.islandBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -24137,6 +24309,7 @@
     page-title="[[ $application.variables.mateuPageHeader.title ]]"
     page-subtitle="[[ $application.variables.mateuPageHeader.subtitle ]]"
     contextual-info="[[ $application.variables.mateuPageHeader.facts ]]"
+    :data-mateu-fact-actions="[[ $application.variables.mateuPageHeader.factActions || null ]]"
     display-options.contextual-info-label="true"
     primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
     secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
@@ -24598,7 +24771,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -26294,7 +26480,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -28004,7 +28203,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -29700,7 +29912,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -31439,7 +31664,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
@@ -33135,7 +33373,20 @@
                             <template>
                               <div class="oj-flex-item oj-sm-margin-4x-end">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap">
+                                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></div>
+                                  <!-- the fact's action (the pencil next to EMPRESA): an icon button right
+                                       after the value, dispatched like any button of the block -->
+                                  <oj-bind-if test="[[ $current.data.hasAction ]]">
+                                    <oj-button class="oj-button-sm mateu-fact-action-button" display="icons" chroming="borderless"
+                                      title="[[ $current.data.actionLabel ]]"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.hostBlockAction ]]">
+                                      <span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span>
+                                      <oj-bind-text value="[[ $current.data.actionLabel ]]"></oj-bind-text>
+                                    </oj-button>
+                                  </oj-bind-if>
+                                </div>
                               </div>
                             </template>
                           </oj-bind-for-each>
