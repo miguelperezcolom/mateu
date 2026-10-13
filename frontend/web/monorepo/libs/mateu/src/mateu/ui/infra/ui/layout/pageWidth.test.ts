@@ -44,6 +44,12 @@ describe('resolvePageWidth', () => {
         expect(resolvePageWidth(serverSide({}, [page('fullWidth')]))).toBe('full')
     })
 
+    it('keeps the gutter of a form page declared edge to edge (a crud editor sharing the detail page class)', () => {
+        expect(resolvePageWidth(serverSide({ pageWidth: 'edgeToEdge', pageType: 'form' }))).toBe('full')
+        expect(resolvePageWidth(serverSide({ pageWidth: 'edgeToEdge', pageType: 'detail' }))).toBe('edge')
+        expect(resolvePageWidth(serverSide({ pageWidth: 'fixed', pageType: 'form' }))).toBe('fixed')
+    })
+
     it('gives the wrapper declaration precedence over the Page metadata', () => {
         expect(resolvePageWidth(serverSide({ pageWidth: 'fixed' }, [page('edgeToEdge')]))).toBe('fixed')
     })

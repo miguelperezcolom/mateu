@@ -108,12 +108,14 @@ export const isAppShell = (component: Component): boolean => {
  * coarse page type anchors the default (form/process/landing are always capped); with no
  * declaration the width is inferred from the content tree: full-bleed components
  * (gantt, planning board, kanban, bpmn/workflow, map) → edge; a dense datagrid (inline editing
- * or compact crud) → full; anything else → fixed.
+ * or compact crud) → full; anything else → fixed. A form page never bleeds: declared edge-to-edge,
+ * it is full (the width, with the gutter) — a crud's editor shares its class, and so its declared
+ * width, with the detail page, whose foldout panels are what wanted the edges.
  */
 export const resolvePageWidth = (component: Component | undefined, opts?: { top?: boolean }): ResolvedPageWidth => {
     if (!component) return 'fixed'
     const declared = wireToMode((component as ServerSideComponent).pageWidth) ?? declaredInTree(component)
-    if (declared) return declared
+    if (declared) return declared === 'edge' && pageTypeOf(component) === 'form' ? 'full' : declared
     if (opts?.top && isAppShell(component)) return 'edge'
     const typeDefault = PAGE_TYPE_DEFAULT_WIDTH[pageTypeOf(component) ?? '']
     if (typeDefault) return typeDefault
