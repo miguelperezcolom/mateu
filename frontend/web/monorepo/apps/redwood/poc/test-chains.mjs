@@ -260,4 +260,27 @@ test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
 })
 
+test('leaving a wizard: no binding reads mateuWizard unguarded (the page chain set it to null and died half-way)', () => {
+  // A step button, a fact action or the completion action answering a URI navigates away: the
+  // chain sets mateuWizard to null BEFORE it switches mateuWizardStep off. A binding that read
+  // mateuWizard.subtitle under a test on mateuWizardStep.on threw on that assignment, VB aborted
+  // onMateuNavigate, and the new page was painted above the whole wizard left on screen.
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const W = '$application.variables.mateuWizard'
+  const guarded = (expr) => expr.includes(W + ' &&')
+  const unguarded = []
+  const tests = []
+  const token = /<oj-bind-if\s+test="\[\[([\s\S]*?)\]\]"\s*>|<\/oj-bind-if>|\[\[([\s\S]*?)\]\]/g
+  let m
+  while ((m = token.exec(html))) {
+    if (m[0] === '</oj-bind-if>') { tests.pop(); continue }
+    const expr = m[1] != null ? m[1] : m[2]
+    if (expr.includes(W + '.') && !guarded(expr) && !tests.some(guarded)) {
+      unguarded.push(html.slice(0, m.index).split('\n').length + ': ' + expr.trim())
+    }
+    if (m[1] != null) tests.push(m[1])
+  }
+  assert.deepEqual(unguarded, [], 'reads of mateuWizard that throw once it is null')
+})
+
 console.log(`\n${passed} chain-logic tests OK`)

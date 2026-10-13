@@ -824,6 +824,12 @@ actualizaba al navegar por tabs y el clic de fila "no hacía nada" al volver al 
    exterior colapse. Las proyecciones de objeto se asignan SIEMPRE como objeto con flags
    precomputados (`mateuPageHeader = {title, showBand, showInline}`) y los bind-if leen los
    flags. (Ojo TDZ: los const de un chain se leen en orden — pwAfter se movió arriba.)
+   **Reincidencia (2026-10-13)**: `mateuWizard` SÍ se pone a null al salir de un wizard, y la
+   cabecera del wizard STEPS (bajo un bind-if de OTRA variable, `mateuWizardStep.on`) leía
+   `mateuWizard.subtitle`: el chain moría ahí y la página nueva salía ENCIMA del wizard entero
+   (botón del paso, acción de un fact o la de completar que devuelven una URI). Toda lectura de
+   `mateuWizard.x` va protegida (`mateuWizard && mateuWizard.x`, o bajo un bind-if que lo
+   exige) — lo fija test-chains.mjs.
 
 ## Reservas v2: listado crud + páginas de detalle standalone (2026-07-26)
 

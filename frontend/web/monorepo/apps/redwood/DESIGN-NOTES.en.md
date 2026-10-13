@@ -825,6 +825,12 @@ updated when navigating by tabs and the row click "did nothing" on returning to 
    collapses. Object projections are ALWAYS assigned as an object with precomputed flags
    (`mateuPageHeader = {title, showBand, showInline}`) and the bind-ifs read the
    flags. (Mind the TDZ: a chain's consts are read in order — pwAfter was moved up.)
+   **It came back (2026-10-13)**: `mateuWizard` IS set to null when leaving a wizard, and the
+   STEPS wizard's header (under a bind-if on ANOTHER variable, `mateuWizardStep.on`) read
+   `mateuWizard.subtitle`: the chain died there and the new page was painted ABOVE the whole
+   wizard (a step button, a fact action or the completion action answering a URI). Every read of
+   `mateuWizard.x` is guarded (`mateuWizard && mateuWizard.x`, or under a bind-if requiring it) —
+   pinned by test-chains.mjs.
 
 ## Reservations v2: crud listing + standalone detail pages (2026-07-26)
 
