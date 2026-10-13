@@ -602,7 +602,8 @@ test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ningu
 
 test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en el genérico', () => {
   assert.equal(ojIconOf('vaadin:sign-in'), 'oj-ux-ico-login')
-  for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle']) {
+  assert.equal(ojIconOf('vaadin:tablet'), 'oj-ux-ico-tablet-portrait') // the check-in tablet (Oracle's font has it)
+  for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle', 'tablet']) {
     assert.ok(ojIconOf('vaadin:' + v), v)
   }
   assert.equal(ojIconOf('vaadin:nope'), undefined) // estricto: widgets y FAB conservan su caída
