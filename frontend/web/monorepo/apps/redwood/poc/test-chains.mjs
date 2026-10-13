@@ -12,8 +12,7 @@ import {
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
 import { HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf } from './reduceContexts.mjs'
-import { hostContentBesideHeader } from './pageProjection.mjs'
-import { fabsOf } from './pageProjection.mjs'
+import { hostContentBesideHeader, fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
@@ -279,7 +278,7 @@ test('@Tab: the buttons of a tab stay in it and the toolbar of the header is not
   const actions = [...actionsOf(tree), { actionId: 'save', label: 'Save' }]
   const rowOf = (blocks) => blocks.filter((b) => b.fromFormActions).flatMap((b) => b.items).flatMap((a) => a.buttons.map((x) => x.actionId))
   const blocks = hostContentOf(host, null, { title: 'Caja' })
-  assert.deepEqual(Object.keys(tabOnlyActionIdsOf(tree)).sort(), ['cancelarCredito', 'cobrar', 'fijarLimite'])
+  assert.deepEqual(Object.keys(tabOnlyActionIdsOf(tree)).sort((a, b) => a.localeCompare(b)), ['cancelarCredito', 'cobrar', 'fijarLimite'])
   // the bug: every button of the tree not drawn by the active tab went to the row
   assert.deepEqual(rowOf(withFormActions(blocks, actions)), ['volver', 'fijarLimite', 'cancelarCredito', 'save'])
   const withRow = withFormActions(blocks, actions, { tree })
@@ -313,7 +312,7 @@ test('leaving a wizard: no binding reads mateuWizard unguarded (the page chain s
   const guarded = (expr) => expr.includes(W + ' &&')
   const unguarded = []
   const tests = []
-  const token = /<oj-bind-if\s+test="\[\[([\s\S]*?)\]\]"\s*>|<\/oj-bind-if>|\[\[([\s\S]*?)\]\]/g
+  const token = /<oj-bind-if\s+test="\[\[([^\]]*)\]\]"\s*>|<\/oj-bind-if>|\[\[([^\]]*)\]\]/g
   let m
   while ((m = token.exec(html))) {
     if (m[0] === '</oj-bind-if>') { tests.pop(); continue }
