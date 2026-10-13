@@ -66,12 +66,14 @@ define([
         // la banda del header ya pinta el EntityHeader del host: sin esto reaparecía en el contenido
         dropEntityHeader: !!bridge.entityHeaderOf(host),
       }) || [];
+      // the form's action row (withFormActions) does not depend on the tab: it stays
+      const withRow = bridge.withFormActionsRowOf(projected, $application.variables.mateuHostContent);
       // la pestaña ya se ve; sus @Subresource (lazy: se cargan al abrirla) llegan después
-      $application.variables.mateuHostContent = bridge.withSubresources(projected, reg.contexts);
+      $application.variables.mateuHostContent = bridge.withSubresources(withRow, reg.contexts);
       reg = await bridge.loadSubresources(bridge.baseOf(reg) || bridge.mateuBase($application.constants.mateuBaseUrl),
         reg, projected, { appState: $application.variables.mateuAppState || {} });
       $application.variables.mateuRegistry = reg;
-      const blocks = bridge.withSubresources(projected, reg.contexts);
+      const blocks = bridge.withSubresources(withRow, reg.contexts);
       $application.variables.mateuHostContent = blocks;
       bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
       // una barra anidada aparece/cambia al cambiar de pestaña: se refrescan todas

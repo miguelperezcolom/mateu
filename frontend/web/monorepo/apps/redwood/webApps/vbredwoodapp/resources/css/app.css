@@ -1452,7 +1452,7 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 
 /* ── Display components of poc/core/display.mjs ─────────────────────────────────────────────
    Only where Oracle has no component (board, timeline, heatmap, org outline, workflow, BPMN…):
-   Redwood tokens with fallbacks, so light/dark and the theme carry over. Tones are the theme's. */
+   Redwood tokens with fallbacks, so the theme carries over. Tones are the theme's. */
 .mateu-tone-success { --mateu-tone: var(--oj-core-success-3, #508223); }
 .mateu-tone-warning { --mateu-tone: var(--oj-core-warning-3, #ac630c); }
 .mateu-tone-danger { --mateu-tone: var(--oj-core-danger-3, #c74634); }
@@ -1621,40 +1621,6 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-fab { --oj-button-height: 56px; --oj-button-border-radius: 50%; box-shadow: var(--oj-core-box-shadow-md, 0 4px 12px rgba(0,0,0,.2)); border-radius: 50%; }
 @media (max-width: 1023px) { .mateu-fabs { right: 0; bottom: 64px; } }
 
-/* Dark (@App(themeToggle), poc/theme.mjs): the inverted colour scheme of JET (oj-color-invert) re-tokens the
-   components; the few surfaces the shell and this app paint with fixed light colours follow it. */
-html.mateu-theme-dark body.oj-body { background-color: rgb(var(--oj-palette-neutral-rgb-190, 22, 21, 19)); background-image: none; color-scheme: dark; }
-html.mateu-theme-dark .oj-sp-public-primary-content-container,
-html.mateu-theme-dark .oj-drawer-reflow-wrapper,
-html.mateu-theme-dark .oj-panel,
-html.mateu-theme-dark .mateu-rich-text-field,
-html.mateu-theme-dark .mateu-cookie-consent { background-color: var(--oj-core-bg-color-content); }
-html.mateu-theme-dark .mateu-heat-cell.mateu-heat-0 { background: rgba(255,255,255,.08); }
-html.mateu-theme-dark .oj-dialog, html.mateu-theme-dark .oj-dialog-container, html.mateu-theme-dark .oj-dialog-body,
-html.mateu-theme-dark .oj-dialog-header, html.mateu-theme-dark .oj-dialog-footer, html.mateu-theme-dark .oj-popup,
-html.mateu-theme-dark .oj-menu, html.mateu-theme-dark .oj-listbox-drop, html.mateu-theme-dark .oj-drawer-popup-content { background-color: var(--oj-core-bg-color-content); background-image: none; }
-/* Dark, the surfaces the first pass missed (UX review W-R1): the page-header band
-   (oj-bg-neutral-30 + the general-overview header's light variant) kept its LIGHT canvas while
-   oj-color-invert turned the title white — the page title was invisible — and the tables, the
-   smart-search bar, foldout panels and the data grid stayed white under inverted, white text.
-   The canvas becomes the dark body, content surfaces the theme's content colour. */
-/* JET's oj-bg-* utility classes are !important, so these overrides must be too */
-html.mateu-theme-dark .oj-bg-neutral-30,
-html.mateu-theme-dark .oj-sp-header-general-overview-bg-light { background-color: transparent !important; }
-html.mateu-theme-dark .oj-bg-body { background-color: var(--oj-core-bg-color-content) !important; }
-html.mateu-theme-dark .oj-bg-body,
-html.mateu-theme-dark .oj-sp-smart-filters-search-bar,
-html.mateu-theme-dark oj-table, html.mateu-theme-dark .oj-table-scroller, html.mateu-theme-dark .oj-table-element,
-html.mateu-theme-dark .oj-table-header, html.mateu-theme-dark .oj-table-header-row,
-html.mateu-theme-dark .oj-table-column-header-cell, html.mateu-theme-dark .oj-table-column-header-selector-cell,
-html.mateu-theme-dark .oj-table-body, html.mateu-theme-dark .oj-table-body-row,
-html.mateu-theme-dark .oj-table-data-cell, html.mateu-theme-dark .oj-table-selector-cell,
-html.mateu-theme-dark .oj-sp-foldout-panel-root, html.mateu-theme-dark .oj-sp-foldout-panel-container,
-html.mateu-theme-dark .oj-sp-foldout-layout-panel-container, html.mateu-theme-dark oj-sp-foldout-panel,
-html.mateu-theme-dark oj-data-grid, html.mateu-theme-dark .oj-datagrid-header-cell,
-html.mateu-theme-dark .oj-datagrid-cell, html.mateu-theme-dark .mateu-cal-num { background-color: var(--oj-core-bg-color-content); }
-html.mateu-theme-dark .oj-table-body-row:hover > .oj-table-data-cell,
-html.mateu-theme-dark .oj-table-body-row.oj-selected > .oj-table-data-cell { background-color: rgba(255, 255, 255, .08); }
 
 /* ── E2: compare & merge (RecordMerge) — native radios in a table, Redwood tokens ── */
 .mateu-record-merge { display: block; width: 100%; }
@@ -1717,8 +1683,6 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
    padding, at the header's own title indent (24px inside the header box), so it reads as part of it. */
 .mateu-header-overline { padding: var(--oj-core-spacing-5x, 20px) var(--oj-core-spacing-6x, 24px) 0; line-height: 1rem; }
 oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
-/* the dark theme drops the header's light background: the overline follows it */
-html.mateu-theme-dark .mateu-header-overline { background-color: transparent !important; }
 /* an EntityHeader fact's action in oj-sp's contextualInfo (displayDom.installFactActions): a small
    borderless icon button right after the value, on its line */
 .mateu-fact-action {

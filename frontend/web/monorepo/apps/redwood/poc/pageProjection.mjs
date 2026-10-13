@@ -216,6 +216,29 @@ export function formActionsBesideHeader(formActions, header, hostToolbar) {
   return (formActions || []).filter((a) => !inHeader[a.actionId])
 }
 
+/** Same for the form's action row the rich host content carries (withFormActions): the toolbar
+ *  the header paints is not drawn again under the content. A row left empty is dropped. The SAME
+ *  array comes back when there is nothing to drop (the chains then leave the variable alone); a
+ *  changed one is a plain copy — the chains pass the VB variable's proxies in. */
+export function hostContentBesideHeader(blocks, header, hostToolbar) {
+  if (!((header.showBand || header.showInline) && hostToolbar.length)) return blocks
+  const inHeader = {}
+  for (const b of hostToolbar) inHeader[b.actionId] = true
+  const rowOf = (block) => block && block.fromFormActions
+  const dropsSome = (blocks || []).some((block) => rowOf(block) && (block.items || [])
+    .some((atom) => atom && atom.isButtons && (atom.buttons || []).some((b) => inHeader[b.actionId])))
+  if (!dropsSome) return blocks
+  const out = []
+  for (const block of JSON.parse(JSON.stringify(blocks))) {
+    if (!rowOf(block)) { out.push(block); continue }
+    const items = (block.items || []).map((atom) => (atom && atom.isButtons
+      ? { ...atom, buttons: (atom.buttons || []).filter((b) => !inHeader[b.actionId]) } : atom))
+      .filter((atom) => !(atom && atom.isButtons && !atom.buttons.length))
+    if (items.length) out.push({ ...block, items })
+  }
+  return out
+}
+
 /**
  * The page's width anatomy (RDS 1.6): the shell layout, the content box (max width, margins,
  * padding) and the header band's box. With the persistent navigator drawer (or the item overview

@@ -99,6 +99,7 @@ export const REDWOOD_ICON_TRANSLATIONS: Record<string, string> = {
     'vaadin:building': 'oj-ux-ico-building',
     'vaadin:refresh': 'oj-ux-ico-refresh',
     'vaadin:close-circle': 'oj-ux-ico-close-circle',
+    'vaadin:tablet': 'oj-ux-ico-tablet-portrait',
 }
 
 /** What a value paints as in Redwood: its class (translated, or given), else the generic icon. */

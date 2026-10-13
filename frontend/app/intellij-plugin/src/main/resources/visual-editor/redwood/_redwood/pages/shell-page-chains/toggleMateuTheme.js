@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","resources/js/mateu-bridge"],(ActionChain,bridge)=>{"use strict";return class extends ActionChain{async run(){bridge.toggleTheme()}};});
-//# sourceMappingURL=toggleMateuTheme.js.map

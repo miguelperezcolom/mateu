@@ -11,10 +11,10 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
-import { HOST_ID } from './reduceContexts.mjs'
-import { fabsOf } from './pageProjection.mjs'
+import { HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf } from './reduceContexts.mjs'
+import { hostContentBesideHeader, fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
-import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
+import { applyLightTheme } from './theme.mjs'
 import { committedValueOf } from './core/rowEditor.mjs'
 import { listingUrlOf, listingUrlPagingOf } from './core/listing.mjs'
 
@@ -186,18 +186,37 @@ test('global search: the hits of a _globalsearch answer, as palette rows grouped
   assert.deepEqual(globalSearchHitsOf({ fragments: [] }), [])
 })
 
-test('theme: the stored choice wins, else the OS; dark is JET\'s inverted scheme on the page', () => {
-  assert.equal(initialThemeOf('light', true), 'light')
-  assert.equal(initialThemeOf(null, true), 'dark')
-  assert.equal(initialThemeOf('bogus', false), 'light')
-  assert.equal(nextThemeOf('dark'), 'light')
-  const classes = new Set()
-  const attrs = {}
-  const doc = { documentElement: { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) }, setAttribute: (k, v) => { attrs[k] = v } } }
-  applyTheme('dark', doc)
-  assert.ok(classes.has('oj-color-invert') && classes.has('oj-c-colorscheme-dark') && attrs.theme === 'dark')
-  applyTheme('light', doc)
-  assert.equal(classes.size, 0)
+test('Redwood is light only: no light/dark switch, even with @App(themeToggle = true)', () => {
+  // the wire still says themeToggle (the Vaadin renderer of the same app shows its switch)…
+  const shell = webApp('pages/shell-page.html')
+  assert.ok(!/themeToggle|mateuThemeToggle|brightness/.test(shell), 'the header has no theme switch')
+  assert.ok(!/themeToggle/.test(webApp('pages/shell-page.json')), 'no listener for it')
+  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuThemeToggle, undefined)
+  // …and the shell boot does not read it: it paints light
+  const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.ok(!/shell\.themeToggle/.test(boot))
+  assert.match(boot, /bridge\.applyLightTheme\(\)/)
+  assert.ok(!/mateu-theme-dark/.test(webApp('resources/css/app.css')), 'no dark rules left')
+})
+
+test('Redwood is light only: a stored dark choice and an OS that prefers dark still paint light', () => {
+  const saved = { localStorage: globalThis.localStorage, matchMedia: globalThis.matchMedia }
+  globalThis.localStorage = { getItem: (k) => (k === 'mateu-theme' ? 'dark' : null), setItem: () => {}, removeItem: () => {} }
+  globalThis.matchMedia = (q) => ({ matches: /prefers-color-scheme: dark/.test(q) })
+  try {
+    // a page that came up dark (an older version's choice): every dark class goes
+    const classes = new Set(['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark', 'other'])
+    const attrs = { theme: 'dark' }
+    const doc = { documentElement: { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) }, setAttribute: (k, v) => { attrs[k] = v } } }
+    assert.equal(applyLightTheme(doc), 'light')
+    assert.deepEqual([...classes], ['other'])
+    assert.equal(attrs.theme, 'light')
+    // the stored choice is left alone: the Vaadin renderer on the same origin still reads it
+    assert.equal(globalThis.localStorage.getItem('mateu-theme'), 'dark')
+  } finally {
+    globalThis.localStorage = saved.localStorage
+    globalThis.matchMedia = saved.matchMedia
+  }
 })
 
 test('a display-block click: a RouteLink button navigates, any other runs its action', () => {
@@ -258,6 +277,71 @@ test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.
     'src', 'main', 'resources', 'static', '_redwood', 'resources', 'mateu-anonymous-user.json'), 'utf8'))
   assert.equal(user.isAuthenticated, false)
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
+})
+
+test('@Tab: the buttons of a tab stay in it and the toolbar of the header is not repeated under the content', () => {
+  // CajaView: a frameless section, then tabs — Cobrar (its own Button), Crédito (a HorizontalLayout
+  // with buttons) — and a toolbar. With Cobrar active, a row under it gathered «Volver a la reserva»
+  // (painted by the header already) and the Crédito tab's three buttons.
+  const tree = node({ type: 'Page', title: 'Caja', toolbar: [{ actionId: 'volver', label: 'Volver a la reserva', buttonStyle: 'primary' }] }, [
+    node({ type: 'Text', text: 'Saldo: 120 €' }),
+    node({ type: 'TabLayout' }, [
+      node({ type: 'Tab', label: 'Cobrar', active: true }, [node({ type: 'Button', actionId: 'cobrar', label: 'Cobrar' })]),
+      node({ type: 'Tab', label: 'Crédito' }, [node({ type: 'HorizontalLayout' }, [
+        node({ type: 'Button', actionId: 'fijarLimite', label: 'Fijar límite' }),
+        node({ type: 'Button', actionId: 'cancelarCredito', label: 'Cancelar crédito' })])]),
+    ]),
+  ])
+  const host = { tree, state: {}, data: {} }
+  // plus a footer button of the form (what the generic form would have drawn)
+  const actions = [...actionsOf(tree), { actionId: 'save', label: 'Save' }]
+  const rowOf = (blocks) => blocks.filter((b) => b.fromFormActions).flatMap((b) => b.items).flatMap((a) => a.buttons.map((x) => x.actionId))
+  const blocks = hostContentOf(host, null, { title: 'Caja' })
+  assert.deepEqual(Object.keys(tabOnlyActionIdsOf(tree)).sort((a, b) => a.localeCompare(b)), ['cancelarCredito', 'cobrar', 'fijarLimite'])
+  // the bug: every button of the tree not drawn by the active tab went to the row
+  assert.deepEqual(rowOf(withFormActions(blocks, actions)), ['volver', 'fijarLimite', 'cancelarCredito', 'save'])
+  const withRow = withFormActions(blocks, actions, { tree })
+  assert.deepEqual(rowOf(withRow), ['volver', 'save'])
+  // the header paints the toolbar: the row drops it…
+  const toolbar = pageToolbarOf(host)
+  const beside = hostContentBesideHeader(withRow, { showBand: true }, toolbar)
+  assert.deepEqual(rowOf(beside), ['save'])
+  // …a row left empty goes, and nothing to drop gives the same array back (the chains compare)
+  const onlyToolbar = withFormActions(blocks, actionsOf(tree), { tree })
+  assert.equal(hostContentBesideHeader(onlyToolbar, { showBand: true }, toolbar).filter((b) => b.fromFormActions).length, 0)
+  assert.equal(hostContentBesideHeader(beside, { showBand: true }, toolbar), beside)
+  assert.equal(hostContentBesideHeader(withRow, { showBand: false, showInline: false }, toolbar), withRow)
+  // a tab switch re-projects without the row: it is carried over, once
+  const credito = hostContentOf(host, null, { title: 'Caja', activeTabs: { '': 'tab-1' } })
+  assert.ok(JSON.stringify(credito).includes('fijarLimite'))
+  assert.deepEqual(rowOf(withFormActionsRowOf(credito, beside)), ['save'])
+  assert.deepEqual(rowOf(withFormActionsRowOf(withFormActionsRowOf(credito, beside), beside)), ['save'])
+  // a button also drawn OUTSIDE the tabs is not the tab's alone
+  const shared = node({ type: 'Page' }, [node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'A' }, [node({ type: 'Button', actionId: 'x', label: 'X' })])]), node({ type: 'Button', actionId: 'x', label: 'X' })])
+  assert.deepEqual(tabOnlyActionIdsOf(shared), {})
+})
+
+test('leaving a wizard: no binding reads mateuWizard unguarded (the page chain set it to null and died half-way)', () => {
+  // A step button, a fact action or the completion action answering a URI navigates away: the
+  // chain sets mateuWizard to null BEFORE it switches mateuWizardStep off. A binding that read
+  // mateuWizard.subtitle under a test on mateuWizardStep.on threw on that assignment, VB aborted
+  // onMateuNavigate, and the new page was painted above the whole wizard left on screen.
+  const html = webApp('flows/main/pages/main-start-page.html')
+  const W = '$application.variables.mateuWizard'
+  const guarded = (expr) => expr.includes(W + ' &&')
+  const unguarded = []
+  const tests = []
+  const token = /<oj-bind-if\s+test="\[\[([^\]]*)\]\]"\s*>|<\/oj-bind-if>|\[\[([^\]]*)\]\]/g
+  let m
+  while ((m = token.exec(html))) {
+    if (m[0] === '</oj-bind-if>') { tests.pop(); continue }
+    const expr = m[1] != null ? m[1] : m[2]
+    if (expr.includes(W + '.') && !guarded(expr) && !tests.some(guarded)) {
+      unguarded.push(html.slice(0, m.index).split('\n').length + ': ' + expr.trim())
+    }
+    if (m[1] != null) tests.push(m[1])
+  }
+  assert.deepEqual(unguarded, [], 'reads of mateuWizard that throw once it is null')
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

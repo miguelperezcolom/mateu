@@ -31203,19 +31203,24 @@
      los hechos se pueden visitar para volver, los que faltan se alcanzan con el botón del paso);
      en pantallas estrechas el tren no cabe y los pasos van en VERTICAL (lista numerada). El
      contenido display del paso lo pinta la rama del contenido del host (justo debajo), y sus
-     campos + el pie Back/Next del wire, el bloque que la sigue -->
-<oj-bind-if test="[[ $application.variables.mateuWizardStep.on ]]">
+     campos + el pie Back/Next del wire, el bloque que la sigue.
+     LEAVING the wizard (a step button, a fact action or the completion action answering a URI)
+     sets mateuWizard to null BEFORE mateuWizardStep is switched off: an unguarded
+     mateuWizard.subtitle below threw on that assignment, which aborted onMateuNavigate half-way
+     — the new page painted above and the whole wizard left on screen under it. Every read of
+     mateuWizard here is null-safe (pinned by test-chains.mjs). -->
+<oj-bind-if test="[[ $application.variables.mateuWizardStep.on && !!$application.variables.mateuWizard ]]">
   <div class="mateu-wizard-top oj-sm-padding-12x-horizontal oj-sm-padding-6x-top">
-    <h1 class="oj-typography-heading-md" :class="[[ $application.variables.mateuWizard.subtitle ? 'oj-sm-margin-2x-bottom' : 'oj-sm-margin-6x-bottom' ]]"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
-    <oj-bind-if test="[[ $application.variables.mateuWizard.subtitle ]]">
-      <p class="oj-typography-body-md oj-text-color-secondary oj-sm-margin-0 oj-sm-margin-6x-bottom"><oj-bind-text value="[[ $application.variables.mateuWizard.subtitle ]]"></oj-bind-text></p>
+    <h1 class="oj-typography-heading-md" :class="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.subtitle) ? 'oj-sm-margin-2x-bottom' : 'oj-sm-margin-6x-bottom' ]]"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
+    <oj-bind-if test="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.subtitle) ]]">
+      <p class="oj-typography-body-md oj-text-color-secondary oj-sm-margin-0 oj-sm-margin-6x-bottom"><oj-bind-text value="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.subtitle) ]]"></oj-bind-text></p>
     </oj-bind-if>
     <oj-train id="mateuWizardTrain" class="mateu-wizard-train oj-sm-margin-6x-bottom"
-      steps="[[ $application.variables.mateuWizard.trainSteps ]]"
-      selected-step="[[ $application.variables.mateuWizard.currentStep ]]"
+      steps="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.trainSteps) || [] ]]"
+      selected-step="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.currentStep) ]]"
       on-selected-step-changed="[[ $listeners.mateuWizardTrainSelect ]]"></oj-train>
     <ol class="mateu-wizard-steps oj-sm-margin-6x-bottom">
-      <oj-bind-for-each data="[[ $application.variables.mateuWizard.listSteps ]]">
+      <oj-bind-for-each data="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.listSteps) || [] ]]">
         <template>
           <li :class="[[ $current.data.cls ]]">
             <span class="mateu-wizard-step-marker"><oj-bind-text value="[[ $current.data.marker ]]"></oj-bind-text></span>

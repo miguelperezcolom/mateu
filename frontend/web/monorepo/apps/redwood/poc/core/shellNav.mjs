@@ -48,6 +48,7 @@ export const OJ_ICONS = {
   'vaadin:building': 'oj-ux-ico-building',
   'vaadin:refresh': 'oj-ux-ico-refresh',
   'vaadin:close-circle': 'oj-ux-ico-close-circle',
+  'vaadin:tablet': 'oj-ux-ico-tablet-portrait',
 }
 export function ojIconOf(icon) {
   if (!icon) return undefined

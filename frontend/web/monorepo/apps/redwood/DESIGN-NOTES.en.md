@@ -825,6 +825,12 @@ updated when navigating by tabs and the row click "did nothing" on returning to 
    collapses. Object projections are ALWAYS assigned as an object with precomputed flags
    (`mateuPageHeader = {title, showBand, showInline}`) and the bind-ifs read the
    flags. (Mind the TDZ: a chain's consts are read in order — pwAfter was moved up.)
+   **It came back (2026-10-13)**: `mateuWizard` IS set to null when leaving a wizard, and the
+   STEPS wizard's header (under a bind-if on ANOTHER variable, `mateuWizardStep.on`) read
+   `mateuWizard.subtitle`: the chain died there and the new page was painted ABOVE the whole
+   wizard (a step button, a fact action or the completion action answering a URI). Every read of
+   `mateuWizard.x` is guarded (`mateuWizard && mateuWizard.x`, or under a bind-if requiring it) —
+   pinned by test-chains.mjs.
 
 ## Reservations v2: crud listing + standalone detail pages (2026-07-26)
 
@@ -1940,3 +1946,14 @@ has them (its component metadata: `previousItem`/`nextItem` + `spPreviousItem`/`
 
 Probe: `e2e/vb-header-probe.mjs` (demo-vb `/header-extras` + `/yaml-header`; `YAML_URL` for a shell
 with sources; `PMS_URL` for the Java bell).
+
+## Light only (2026-10-13)
+
+The author's decision: dark mode makes no sense in Redwood. The renderer IGNORES `@App(themeToggle)`
+(no switch in the header; the wire still carries it because the same class is also served by the
+Vaadin renderer, which keeps its own) and ALWAYS paints light: `poc/theme.mjs` (`applyLightTheme`,
+from loadMateuShell) removes JET's dark classes at boot (`oj-color-invert`, `oj-c-colorscheme-dark`)
+and sets `theme="light"`, regardless of `prefers-color-scheme` and of `localStorage['mateu-theme']`
+(not deleted: Vaadin on the same origin reads it). Removed: the toggleMateuTheme chain, its
+listener, the mateuThemeToggle variable, the themeToggle string and app.css's
+`html.mateu-theme-dark` rules. Pinned by test-chains.mjs.

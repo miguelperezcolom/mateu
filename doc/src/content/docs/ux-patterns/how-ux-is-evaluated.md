@@ -147,8 +147,7 @@ What changed in the generator, so in every Mateu app:
   / Delete").
 - **Accessible names and contrast.** Boolean cells, progress bars, in-cell editors, lookups, icon
   buttons and hidden-label fields are named; informative text no longer uses placeholder grey; text
-  on data-supplied colours picks a readable ink. Redwood's dark mode no longer hides the page title
-  or paints tables white under white text.
+  on data-supplied colours picks a readable ink. (Redwood has since become light only.)
 - **Tables read like tables.** Numeric columns are right-aligned and grouped in the page locale;
   booleans read Yes/No; status constants read as words; the search box finds what the listing shows;
   a search-first page invites a search instead of shimmering and then saying "Nothing here yet."

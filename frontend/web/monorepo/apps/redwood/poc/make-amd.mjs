@@ -231,6 +231,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     tabRoutePath,
     hostContentShown,
     withFormActions,
+    withFormActionsRowOf,
     withSubresources,
     loadSubresources,
     appLevelOf,
@@ -508,6 +509,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // the page header's record/context switcher (RecordSwitcherSupplier): a pick → its action
     switcherPickOf,
     formActionsBesideHeader,
+    hostContentBesideHeader,
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
@@ -520,8 +522,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     fetchGlobalSearch,
     paletteRowsOfHits,
     runAppLevelAction,
-    applyInitialTheme,
-    toggleTheme,
+    applyLightTheme,
     // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
     mobileQrModelOf,
     isPhoneLike,

@@ -130,14 +130,6 @@
           <oj-bind-text value="[[ $application.translations.appBundle.mobileQrAction ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
-      <!-- light/dark switch (@App(themeToggle)): JET's own inverted colour scheme (poc/theme.mjs) -->
-      <oj-bind-if test="[[ $application.variables.mateuThemeToggle ]]">
-        <oj-button id="mateuThemeToggle" chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-1x-start"
-          on-oj-action="[[ $listeners.themeToggle ]]">
-          <span slot="startIcon" class="oj-ux-ico-brightness-low"></span>
-          <oj-bind-text value="[[ $application.translations.appBundle.themeToggle ]]"></oj-bind-text>
-        </oj-button>
-      </oj-bind-if>
       <!-- CAMPANA de la bandeja (NotificationsSupplier del App): oj-button con la insignia de no
            leídas y un oj-popup con un oj-list-view; activar una entrada la marca leída y navega -->
       <oj-bind-if test="[[ $application.variables.mateuNotifications.enabled ]]">

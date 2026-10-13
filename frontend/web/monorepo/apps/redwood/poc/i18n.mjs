@@ -143,7 +143,6 @@ export const CHROME_TEXTS = {
     chatRestore: 'Restore the width',
     selectRowsFirst: 'You first need to select some rows',
     searchResults: 'Search results',
-    themeToggle: 'Switch light / dark theme',
     // ── open on mobile (@App(mobileQr), qr.mjs) ──
     mobileQrAction: 'Open on mobile',
     mobileQrTitle: 'Open on your phone',
@@ -344,7 +343,6 @@ export const CHROME_TEXTS = {
     chatRestore: 'Ancho normal',
     selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
     searchResults: 'Resultados',
-    themeToggle: 'Cambiar tema claro / oscuro',
     // ── abrir en el móvil (@App(mobileQr), qr.mjs) ──
     mobileQrAction: 'Abrir en el móvil',
     mobileQrTitle: 'Ábrelo en tu móvil',
