@@ -725,3 +725,16 @@ test('overlay templates: the drawer and the dialog bind each group\'s columns, t
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)
+
+test('an EntityHeader fact with an action is header chrome, not a page button (no «BALANCE» row under the content)', () => {
+  const tree = {
+    type: 'ClientSide', metadata: { type: 'Form' }, children: [
+      { type: 'ClientSide', metadata: { type: 'EntityHeader', title: 'Charlotte Wilson', facts: [
+        { label: 'BALANCE', value: '€ 719,50', actionId: 'abrirCaja', icon: 'vaadin:money', actionLabel: 'Caja' },
+        { label: 'PREAUTORIZADO', value: '€ 679,50' },
+      ] } },
+      { type: 'ClientSide', metadata: { type: 'Button', label: 'Check-out', actionId: 'checkout' } },
+    ],
+  }
+  assert.deepEqual(actionsOf(tree).map((a) => a.actionId), ['checkout'])
+})

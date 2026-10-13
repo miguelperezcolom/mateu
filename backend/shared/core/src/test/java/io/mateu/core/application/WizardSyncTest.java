@@ -260,14 +260,14 @@ class WizardSyncTest {
   }
 
   @Test
-  void syncShowsNextEnabledAndBackDisabledOnTheFirstStep() {
+  void syncShowsNextEnabledAndNoBackOnTheFirstStep() {
     var increment = mateu.sync("/simple-wizard");
 
     var buttons = findAllMetadata(component(increment), ButtonDto.class);
     var next = buttonByActionId(buttons, "next");
-    var back = buttonByActionId(buttons, "back");
     assertThat(next.disabled()).isFalse();
-    assertThat(back.disabled()).isTrue();
+    // nowhere to go back to: no Back at all, not a disabled one
+    assertThat(buttons).noneMatch(button -> "back".equals(button.actionId()));
   }
 
   @Test
@@ -277,7 +277,14 @@ class WizardSyncTest {
     assertThat(buttonByActionId(buttons, "help").size()).isEqualTo(ButtonSizeDto.small);
     // the navigation buttons keep the default size
     assertThat(buttonByActionId(buttons, "next").size()).isNotEqualTo(ButtonSizeDto.small);
-    assertThat(buttonByActionId(buttons, "back").size()).isNotEqualTo(ButtonSizeDto.small);
+    var second =
+        run(
+            "/simple-wizard",
+            SimpleWizard.class,
+            "next",
+            mutableState(mateu.sync("/simple-wizard")));
+    assertThat(buttonByActionId(findAllMetadata(component(second), ButtonDto.class), "back").size())
+        .isNotEqualTo(ButtonSizeDto.small);
   }
 
   @Test
@@ -331,7 +338,7 @@ class WizardSyncTest {
     var backState = state(backAgain);
     assertThat(backState).containsEntry("position", 0).containsEntry("name", "Eva");
     var buttons = findAllMetadata(component(backAgain), ButtonDto.class);
-    assertThat(buttonByActionId(buttons, "back").disabled()).isTrue();
+    assertThat(buttons).noneMatch(button -> "back".equals(button.actionId()));
   }
 
   @Test

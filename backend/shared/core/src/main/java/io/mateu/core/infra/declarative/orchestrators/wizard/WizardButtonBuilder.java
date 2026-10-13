@@ -22,7 +22,9 @@ final class WizardButtonBuilder {
   static List<Component> createButtons(Wizard wizard, HttpRequest httpRequest) {
     List<Component> buttons = new ArrayList<>();
     boolean isLastStep = wizard.position == wizard.numberOfSteps() - 1;
-    if (!isLastStep) {
+    // no Back on the first step shown: there is nowhere to go back to (a disabled Back still read
+    // as a way out, and the first step shown is not always step 0 when steps are skipped)
+    if (!isLastStep && wizard.hasPreviousApplicable()) {
       buttons.add(
           Button.builder()
               .id("back")
@@ -30,7 +32,6 @@ final class WizardButtonBuilder {
               // action from the label, and a localized "Atrás" sent "atrÁs", which no wizard knows
               .actionId("back")
               .label(wizard.backLabel(httpRequest))
-              .disabled(wizard.position == 0)
               .build());
     }
     var display = wizard.display();
