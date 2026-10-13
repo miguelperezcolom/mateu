@@ -349,7 +349,9 @@ export class MateuPage extends LitElement {
      * total height of the sticky cards declared before it.
      */
     private _layoutStickyTops() {
-        const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
+        // The pinned block is the header's WRAPPER — the header plus the decorative band under it:
+        // measuring the header alone pinned the section bar under the band, half hidden.
+        const header = this.shadowRoot?.querySelector('.page-header-wrap') as HTMLElement | null
         // Below 600px the page header is not pinned (it would take a third of a phone's screen):
         // only the section bar is.
         const headerPinned = !window.matchMedia?.(NARROW_QUERY).matches
@@ -430,7 +432,7 @@ export class MateuPage extends LitElement {
         // Bottom of the pinned region: the pinned header, extended by each sticky section currently
         // butted up against it. Read straight from the rendered rects so it doesn't depend on the
         // sticky offsets having been computed yet.
-        const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
+        const header = this.shadowRoot?.querySelector('.page-header-wrap') as HTMLElement | null
         let pinnedBottom = header ? header.getBoundingClientRect().bottom : 0
         const bar = this._tocBar()
         if (bar) pinnedBottom = Math.max(pinnedBottom, bar.getBoundingClientRect().bottom)

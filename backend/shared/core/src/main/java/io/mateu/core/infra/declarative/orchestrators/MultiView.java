@@ -3,9 +3,13 @@ package io.mateu.core.infra.declarative.orchestrators;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addData;
 
+import io.mateu.core.domain.out.componentmapper.DeclaredPageType;
+import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.uidl.annotations.PageTemplate;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.*;
@@ -220,7 +224,28 @@ public abstract class MultiView
                     triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger),
                     TriggerMapper.mapTriggers(modelView, httpRequest).stream())
                 .toList())
-        .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
+        .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"))
+        .withPageType(pageTypeOfView(viewName, modelView));
+  }
+
+  /**
+   * One class is often a crud's record page AND its editor, and the type inferred from the class
+   * cannot tell them apart: the sub-route can. Viewing a record is a detail page, editing or
+   * creating one a form (the Redwood families) — so an edge-to-edge declaration meant for the
+   * record's foldout no longer makes its editor bleed. An explicit {@code @PageTemplate} still
+   * wins.
+   */
+  static String pageTypeOfView(String viewName, Object modelView) {
+    var inferred = PageTypeResolver.wirePageType(modelView);
+    if (modelView instanceof DeclaredPageType
+        || MetaAnnotations.find(modelView.getClass(), PageTemplate.class) != null) {
+      return inferred;
+    }
+    return switch (viewName) {
+      case "view" -> "form".equals(inferred) ? "detail" : inferred;
+      case "edit", "new" -> "form";
+      default -> inferred;
+    };
   }
 
   public List<Trigger> triggers(String viewName, HttpRequest httpRequest) {
