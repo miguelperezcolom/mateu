@@ -23,6 +23,10 @@ class WizardLabelsTest {
     String email;
   }
 
+  static class StepThree implements WizardStep {
+    String phone;
+  }
+
   static class Result implements WizardStep {
     String message;
   }
@@ -30,6 +34,7 @@ class WizardLabelsTest {
   static class PlainWizard extends Wizard {
     StepOne one;
     StepTwo two;
+    StepThree three;
     Result result;
   }
 
@@ -37,12 +42,19 @@ class WizardLabelsTest {
   static class SpanishWizard extends Wizard {
     StepOne one;
     StepTwo two;
+    StepThree three;
     Result result;
   }
 
   @AfterEach
   void clear() {
     TranslatorContext.clear();
+  }
+
+  /** On the second step: the first one has no Back (nowhere to go back to). */
+  private static <W extends Wizard> W onSecondStep(W wizard) {
+    wizard.position = 1;
+    return wizard;
   }
 
   private static Map<String, String> labels(Wizard wizard) {
@@ -55,7 +67,7 @@ class WizardLabelsTest {
 
   @Test
   void backAndNextDefaultToEnglish() {
-    assertThat(labels(new PlainWizard()))
+    assertThat(labels(onSecondStep(new PlainWizard())))
         .containsEntry("back", "Back")
         .containsEntry("next", "Next");
   }
@@ -64,7 +76,7 @@ class WizardLabelsTest {
   void backAndNextGoThroughTheAppsTranslator() {
     var es = Map.of("Back", "Atrás", "Next", "Siguiente");
     TranslatorContext.set((text, rq) -> es.getOrDefault(text, text), null);
-    assertThat(labels(new PlainWizard()))
+    assertThat(labels(onSecondStep(new PlainWizard())))
         .containsEntry("back", "Atrás")
         .containsEntry("next", "Siguiente");
   }
@@ -77,7 +89,7 @@ class WizardLabelsTest {
   @Test
   void localizedButtonsStillRunBackAndNext() {
     var buttons =
-        WizardButtonBuilder.createButtons(new SpanishWizard(), null).stream()
+        WizardButtonBuilder.createButtons(onSecondStep(new SpanishWizard()), null).stream()
             .map(Button.class::cast)
             .toList();
     assertThat(buttons)
@@ -85,15 +97,20 @@ class WizardLabelsTest {
         .containsExactly(
             org.assertj.core.groups.Tuple.tuple("back", "back", "Atrás"),
             org.assertj.core.groups.Tuple.tuple("next", "next", "Siguiente"));
-    // back is disabled on the first step; next is the call to action
-    assertThat(buttons.get(0).disabled()).isTrue();
+    // next is the call to action
     assertThat(buttons.get(1).buttonStyle()).isEqualTo(io.mateu.uidl.data.ButtonStyle.primary);
   }
 
   @Test
   void aWizardCanSetItsOwnLabels() {
-    assertThat(labels(new SpanishWizard()))
+    assertThat(labels(onSecondStep(new SpanishWizard())))
         .containsEntry("back", "Atrás")
         .containsEntry("next", "Siguiente");
+  }
+
+  /** The first step has nowhere to go back to: no Back at all, not a disabled one. */
+  @Test
+  void theFirstStepHasNoBack() {
+    assertThat(labels(new PlainWizard())).doesNotContainKey("back").containsKey("next");
   }
 }

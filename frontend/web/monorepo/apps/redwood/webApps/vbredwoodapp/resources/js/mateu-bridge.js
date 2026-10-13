@@ -1494,6 +1494,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // YAML page authors the same header on its `type: Form` (and its FABs: chrome, not row buttons)
         if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
         if (k === 'fabs' && n.type === 'Form') continue
+        // nor are an EntityHeader's facts: one with an action ({label, value, actionId}) has a
+        // button's shape, and «BALANCE» and «EMPRESA» showed up again as a row under the content —
+        // the header draws their actions beside their values (factActions)
+        if (k === 'facts' && n.type === 'EntityHeader') continue
         if (Array.isArray(v)) v.forEach((x) => walk(x, false))
         else if (v && typeof v === 'object') walk(v, false)
       }

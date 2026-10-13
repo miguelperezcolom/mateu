@@ -472,14 +472,23 @@ public abstract class Wizard
     return -1;
   }
 
-  /** The previous applicable step before {@code from} (0 at worst). */
+  /**
+   * The previous applicable step before {@code from}, or {@code from} itself when there is none —
+   * the first step shown is not always step 0 (a step that does not apply is skipped), and going
+   * back from it used to land on step 0 whether it applied or not.
+   */
   int previousApplicable(int from) {
-    for (int i = from - 1; i > 0; i--) {
+    for (int i = from - 1; i >= 0; i--) {
       if (applies(i)) {
         return i;
       }
     }
-    return 0;
+    return from;
+  }
+
+  /** Whether some applicable step comes before the current one: Back has somewhere to go. */
+  boolean hasPreviousApplicable() {
+    return previousApplicable(position) != position;
   }
 
   /** The current position expressed as an index over applicable steps only. */

@@ -28,10 +28,14 @@ class WizardBranchingTest {
     StepC c = new StepC();
     ResultStep result;
 
+    boolean includeA = true;
     boolean includeB = true;
 
     @Override
     protected boolean stepApplies(String stepFieldName) {
+      if ("a".equals(stepFieldName)) {
+        return includeA;
+      }
       if ("b".equals(stepFieldName)) {
         return includeB;
       }
@@ -54,6 +58,26 @@ class WizardBranchingTest {
     assertThat(wizard.applicableSteps()).isEqualTo(3);
     assertThat(wizard.nextApplicable(0)).isEqualTo(2); // a → c, skipping b
     assertThat(wizard.previousApplicable(2)).isEqualTo(0); // c → a, skipping b
+  }
+
+  /**
+   * The first step shown is not always step 0: when it is skipped, Back from the first applicable
+   * step has nowhere to go (it used to land on the skipped step 0).
+   */
+  @Test
+  void theFirstApplicableStepHasNoPrevious() {
+    var wizard = new BranchingWizard();
+    wizard.includeA = false;
+    wizard.position = 1;
+    assertThat(wizard.previousApplicable(1)).isEqualTo(1);
+    assertThat(wizard.hasPreviousApplicable()).isFalse();
+    assertThat(WizardButtonBuilder.createButtons(wizard, null))
+        .map(io.mateu.uidl.data.Button.class::cast)
+        .extracting(io.mateu.uidl.data.Button::actionId)
+        .doesNotContain("back")
+        .contains("next");
+    wizard.position = 2;
+    assertThat(wizard.hasPreviousApplicable()).isTrue();
   }
 
   @Test

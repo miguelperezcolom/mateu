@@ -1288,6 +1288,14 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-outer-pa
 body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-header-strip { display: none; }
 body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { font-size: 1.25rem; }
 @media (prefers-reduced-motion: reduce) { .mateu-sticky-header { transition: none; } }
+/* the content slab rides up over the band's bottom padding (the RDS overlap, its negative top
+   margin): with the band sticky at z-index 20 the slab went UNDER it and its first 40px — the
+   headings — were hidden. While the page sits at the top the band is not pinned and stacks like
+   any block, so the slab, later in the page, paints over its padding; once scrolled the band loses
+   that padding and pins over the content, as a pinned header must. (Raising the slab instead put
+   it over the shell's bottom navigation bar.) */
+body:not(.mateu-scrolled) .mateu-sticky-header { z-index: auto; }
+body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-container { position: relative; }
 /* el oj-drawer-layout de la shell pone overflow:auto en contenedores que NO desplazan (desplaza la
    ventana): sticky se ata a ellos y nunca se activa. clip no crea contenedor de scroll; sólo en
    una página con cabecera fija */
