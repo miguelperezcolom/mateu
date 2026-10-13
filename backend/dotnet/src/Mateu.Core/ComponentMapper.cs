@@ -129,7 +129,7 @@ public static class ComponentMapper
         // Front-office UX components.
         EntityHeader eh => Dto(eh, new EntityHeaderMetadataDto(
             eh.Title, eh.Badges.Select(MapChip).ToList(), eh.Subtitle,
-            eh.Facts.Select(f => new FactDto(f.Label, f.Value)).ToList(),
+            eh.Facts.Select(MapFact).ToList(),
             eh.MetricLabel, eh.MetricValue, eh.MetricCaption)),
 
         Meter mt => Dto(mt, new MeterMetadataDto(
@@ -438,6 +438,9 @@ public static class ComponentMapper
                 break;
             case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
+            case EntityHeader eh:
+                foreach (var f in eh.Facts.Where(f => !string.IsNullOrWhiteSpace(f.ActionId))) ids.Add(f.ActionId!);
+                break;
             case RecordMerge rm when !string.IsNullOrEmpty(rm.MergeActionId): ids.Add(rm.MergeActionId); break;
             case ComponentRef r: Collect(MateuCatalogs.Resolve(r), ids); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
@@ -527,6 +530,24 @@ public static class ComponentMapper
             n.Children.Select(c => MapOrgNode(c)!).ToList());
 
     private static ChipDto MapChip(Chip c) => new(c.Label, c.Color);
+
+    /// <summary>The icon of a fact's action button when the fact names none: a pencil.</summary>
+    public const string DefaultFactActionIcon = "vaadin:pencil";
+
+    /// <summary>A fact on the wire (mirrors Java's EntityHeaderMapper.mapFact): display-only = label
+    /// + value; with an action id, its button — icon defaulting to a pencil, parameters only when
+    /// there are any.</summary>
+    public static FactDto MapFact(Fact f)
+    {
+        if (string.IsNullOrWhiteSpace(f.ActionId)) return new FactDto(f.Label, f.Value);
+        return new FactDto(f.Label, f.Value)
+        {
+            ActionId = f.ActionId,
+            Icon = string.IsNullOrWhiteSpace(f.Icon) ? DefaultFactActionIcon : f.Icon,
+            ActionLabel = f.ActionLabel,
+            Parameters = f.Parameters is { Count: > 0 } ? f.Parameters : null,
+        };
+    }
 
     private static CommentDto MapComment(Comment c) =>
         new(c.Id, c.Author, c.Avatar, c.Text, c.Timestamp, c.Replies.Select(MapComment).ToList());

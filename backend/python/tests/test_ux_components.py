@@ -589,6 +589,31 @@ class GuestHeader(ComponentTreeSupplier):
         )
 
 
+@ui("stay-with-company")
+@title("Stay")
+class StayWithCompany(ComponentTreeSupplier):
+    """A fact carrying an action (Java: EntityHeaderFactActionSyncTest): the pencil next to EMPRESA."""
+
+    def component(self):
+        return EntityHeader(
+            id="stay",
+            title="María Fernández",
+            facts=(
+                Fact(label="TOTAL RESERVA", value="€ 4.890,00"),
+                Fact(
+                    label="EMPRESA",
+                    value="Acme Corporation Ltd",
+                    action_id="changeCompany",
+                    action_label="Cambiar empresa",
+                    parameters={"stayId": "S-1"},
+                ),
+            ),
+        )
+
+    def change_company(self) -> Message:
+        return Message("company drawer")
+
+
 @ui("balance-meter")
 @title("Balance meter")
 class BalanceMeter(ComponentTreeSupplier):
@@ -1468,6 +1493,42 @@ def test_component_tree_supplier_emits_entity_header():
     assert header["metadata"]["metricLabel"] == "FIDELIDAD"
     assert header["metadata"]["metricValue"] == "48.500"
     assert header["metadata"]["metricCaption"] == "23 estancias"
+
+
+def test_an_entity_header_fact_carries_its_action_and_a_display_only_one_keeps_its_wire():
+    doc = render(StayWithCompany)
+    (header,) = page_children(doc)
+    plain, company = header["metadata"]["facts"]
+    assert plain == {"label": "TOTAL RESERVA", "value": "€ 4.890,00"}
+    assert company == {
+        "label": "EMPRESA",
+        "value": "Acme Corporation Ltd",
+        "actionId": "changeCompany",
+        "icon": "vaadin:pencil",
+        "actionLabel": "Cambiar empresa",
+        "parameters": {"stayId": "S-1"},
+    }
+    # advertised (the web client only sends advertised actions) and routed by reflection
+    action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
+    assert "changeCompany" in action_ids
+    inc = handler().handle(
+        RunActionRq(action_id="changeCompany", server_side_type=type_name(StayWithCompany))
+    )
+    assert inc.messages[0].text == "company drawer"
+
+
+def test_a_fact_without_action_id_has_no_button():
+    from mateu_core.mapper import ReflectionMapper
+
+    record = ReflectionMapper()._fact_record(Fact(label="A", value="B", icon="vaadin:cog"))
+    assert record.model_dump(by_alias=True) == {"label": "A", "value": "B"}
+    with_action = ReflectionMapper()._fact_record(Fact(label="A", value="B", action_id="go"))
+    assert with_action.model_dump(by_alias=True) == {
+        "label": "A",
+        "value": "B",
+        "actionId": "go",
+        "icon": "vaadin:pencil",
+    }
 
 
 def test_component_tree_supplier_emits_meter():

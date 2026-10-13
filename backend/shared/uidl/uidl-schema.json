@@ -3343,6 +3343,18 @@
         },
         "value" : {
           "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object"
         }
       }
     },

@@ -591,7 +591,7 @@ class ComponentMapperMixin(MixinBase):
                 title=c.title,
                 badges=[ChipRecord(label=b.label, color=b.color) for b in c.badges],
                 subtitle=c.subtitle,
-                facts=[FactRecord(label=f.label, value=f.value) for f in c.facts],
+                facts=[self._fact_record(f) for f in c.facts],
                 metric_label=c.metric_label,
                 metric_value=c.metric_value,
                 metric_caption=c.metric_caption,
@@ -1151,6 +1151,25 @@ class ComponentMapperMixin(MixinBase):
             children=children or [],
             style=c.style,
             css_classes=c.css_classes,
+        )
+
+    #: The icon of a fact's action button when the fact names none: a pencil (Java:
+    #: EntityHeaderMapper.DEFAULT_FACT_ACTION_ICON).
+    DEFAULT_FACT_ACTION_ICON = "vaadin:pencil"
+
+    def _fact_record(self, f) -> FactRecord:
+        """A fact on the wire (Java: EntityHeaderMapper.mapFact): display-only = label + value;
+        with an action id, its button — icon defaulting to a pencil, parameters only when any."""
+        action_id = f.action_id if f.action_id and f.action_id.strip() else None
+        if action_id is None:
+            return FactRecord(label=f.label, value=f.value)
+        return FactRecord(
+            label=f.label,
+            value=f.value,
+            action_id=action_id,
+            icon=f.icon if f.icon and f.icon.strip() else self.DEFAULT_FACT_ACTION_ICON,
+            action_label=f.action_label,
+            parameters=dict(f.parameters) if f.parameters else None,
         )
 
     def collect_action_ids(self, c) -> list[str]:

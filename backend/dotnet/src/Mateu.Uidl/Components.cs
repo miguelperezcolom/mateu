@@ -679,15 +679,28 @@ public sealed record Chip
     public string? Color { get; init; }
 }
 
-/// <summary>One label-over-value pair of an <see cref="EntityHeader"/>.</summary>
+/// <summary>One label-over-value pair of an <see cref="EntityHeader"/>. With an
+/// <see cref="ActionId"/> the renderers draw a compact icon-only button right after the value
+/// (e.g. a pencil next to "EMPRESA" that opens a drawer to change it); the click dispatches the
+/// action with <see cref="Parameters"/> exactly like a <see cref="Button"/>.</summary>
 public sealed record Fact
 {
     public string? Label { get; init; }
     public string? Value { get; init; }
+    /// <summary>The action the fact's button dispatches; null = display-only (no button).</summary>
+    public string? ActionId { get; init; }
+    /// <summary>The button's icon (a <c>vaadin:*</c> token); a pencil when null.</summary>
+    public string? Icon { get; init; }
+    /// <summary>The button's accessible name and tooltip (e.g. "Cambiar empresa"); the fact's
+    /// label when null.</summary>
+    public string? ActionLabel { get; init; }
+    /// <summary>Sent with the action, like a button's parameters.</summary>
+    public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
 }
 
 /// <summary>Persistent context banner: identity + key facts + one highlighted metric of the
-/// entity a flow operates on (e.g. the guest card of a check-in wizard). No actions.</summary>
+/// entity a flow operates on (e.g. the guest card of a check-in wizard). Display-only except for
+/// a fact's optional action (<see cref="Fact.ActionId"/>).</summary>
 public sealed record EntityHeader : ComponentBase
 {
     public string? Title { get; init; }

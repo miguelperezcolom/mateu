@@ -1123,16 +1123,26 @@ class ChipItem:
 
 @dataclass(frozen=True)
 class Fact:
-    """A label-over-value pair of an :class:`EntityHeader`."""
+    """A label-over-value pair of an :class:`EntityHeader`.
+
+    With an ``action_id`` the renderers draw a compact icon-only button right after the value
+    (e.g. a pencil next to "EMPRESA" that opens a drawer to change it); the click dispatches the
+    action with ``parameters`` exactly like a :class:`Button`. ``icon`` defaults to a pencil and
+    ``action_label`` (the button's accessible name/tooltip) to the fact's label."""
 
     label: str | None = None
     value: str | None = None
+    action_id: str | None = None
+    icon: str | None = None
+    action_label: str | None = None
+    parameters: dict[str, Any] | None = field(default=None, hash=False)
 
 
 @dataclass(frozen=True)
 class EntityHeader(Component):
     """Persistent context banner: identity + key facts + one highlighted metric of the entity
-    a flow operates on (the guest card of a check-in wizard)."""
+    a flow operates on (the guest card of a check-in wizard). Display-only except for a fact's
+    optional action (:attr:`Fact.action_id`)."""
 
     title: str | None = None
     badges: tuple[ChipItem, ...] = ()
