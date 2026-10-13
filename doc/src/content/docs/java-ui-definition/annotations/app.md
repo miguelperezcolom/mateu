@@ -59,7 +59,7 @@ public @interface App {
 |---|---|---|---|
 | `value` | `AppVariant` | `AUTO` | Navigation layout variant for the shell |
 | `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
-| `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode |
+| `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode (ignored by the Redwood renderer, which is light only) |
 | `accentColor` | `String` | `""` | The app's brand accent (a CSS colour). Not the primary colour: see below |
 | `accentStrip` | `String` | `""` | The accent strip's image (a URL, repeated along it); blank = a strip Mateu draws from the accent; `"none"` = a plain band in the accent colour (Vaadin renderer) |
 | `accentStripSeed` | `int` | `7` | The seed of the generated strip: another seed, another drawing in the same palette |
@@ -100,6 +100,8 @@ public class ShellApp { ... }
 ### Dark / light mode toggle
 
 Set `themeToggle = true` to show a moon/sun icon button in the application header. Clicking it switches between dark and light mode and persists the choice in `localStorage`. On first load the stored preference is applied; if no preference is stored the OS `prefers-color-scheme` media query is used as the default.
+
+The Redwood renderer is **light only**: it ignores `themeToggle` (no switch in its header) and always paints the light theme, whatever the OS prefers or a stored choice says. The same app class served by the Vaadin renderer keeps its switch.
 
 ```java
 @UI("/app")

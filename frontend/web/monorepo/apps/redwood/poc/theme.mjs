@@ -1,46 +1,18 @@
-// LIGHT / DARK (@App(themeToggle)): the same contract as the web renderers — the user's choice is
-// kept in localStorage['mateu-theme'] and wins; without one the OS preference (prefers-color-scheme)
-// decides. Redwood's dark is JET's own inverted colour scheme: `oj-color-invert` on the page (the
-// classic components' palette) plus `oj-c-colorscheme-dark` (the Core Pack / preact theme) — no
-// palette is redrawn here.
+// LIGHT ONLY. Dark mode makes no sense in Redwood (the framework author's decision, 2026-10-13):
+// the Redwood renderer ignores @App(themeToggle) — no header switch — and always paints light,
+// whatever the OS prefers (prefers-color-scheme) and whatever a previous version stored in
+// localStorage['mateu-theme'] (left untouched: the Vaadin renderer of the same app, on the same
+// origin, still reads it). A page that came up dark — that old choice, or an embedding host page
+// with JET's inverted scheme on <html> — is turned back to light at boot.
 
-export const THEME_KEY = 'mateu-theme'
+// the classes the old dark mode put on <html>: JET's inverted colour scheme (classic + Core Pack)
 const DARK_CLASSES = ['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark']
 
-/** The theme to start with: the stored choice, else the OS preference, else light. Pure. */
-export function initialThemeOf(stored, prefersDark) {
-  if (stored === 'dark' || stored === 'light') return stored
-  return prefersDark ? 'dark' : 'light'
-}
-
-/** The other theme. */
-export const nextThemeOf = (theme) => (theme === 'dark' ? 'light' : 'dark')
-
-/** Paints a theme on the page (the root element's classes and its `theme` attribute). */
-export function applyTheme(theme, doc = typeof document !== 'undefined' ? document : null) {
-  if (!doc) return theme
+/** Paints the (only) light theme on the page: no dark class on the root, `theme="light"`. */
+export function applyLightTheme(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc) return 'light'
   const root = doc.documentElement
-  for (const cls of DARK_CLASSES) root.classList.toggle(cls, theme === 'dark')
-  root.setAttribute('theme', theme === 'dark' ? 'dark' : 'light')
-  return theme
-}
-
-const storage = () => { try { return typeof localStorage !== 'undefined' ? localStorage : null } catch (e) { return null } }
-
-/** At boot: the stored choice or the OS preference, painted. */
-export function applyInitialTheme(doc = typeof document !== 'undefined' ? document : null, win = typeof window !== 'undefined' ? window : null) {
-  const s = storage()
-  let stored = null
-  try { stored = s ? s.getItem(THEME_KEY) : null } catch (e) { stored = null }
-  const prefersDark = !!(win && win.matchMedia && win.matchMedia('(prefers-color-scheme: dark)').matches)
-  return applyTheme(initialThemeOf(stored, prefersDark), doc)
-}
-
-/** The header switch: flips, paints and remembers. Returns the new theme. */
-export function toggleTheme(doc = typeof document !== 'undefined' ? document : null) {
-  const current = doc && doc.documentElement.getAttribute('theme') === 'dark' ? 'dark' : 'light'
-  const next = applyTheme(nextThemeOf(current), doc)
-  const s = storage()
-  try { if (s) s.setItem(THEME_KEY, next) } catch (e) { /* private mode: not remembered */ }
-  return next
+  for (const cls of DARK_CLASSES) root.classList.toggle(cls, false)
+  root.setAttribute('theme', 'light')
+  return 'light'
 }

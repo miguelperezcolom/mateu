@@ -197,8 +197,10 @@ VB instance): `doc/src/content/docs/design-systems/oracle-redwood.md`.
   it with `@App(askLabel = "Ask RIU", askIcon = "R" | "/images/riu.svg" | "oj-ux-ico-…")`.
 - **The AI assistant** (`@AI(sse = …)`): a header button opens the chat drawer — streaming, tool
   steps, attachments (`@AI(upload)`), mcpUrl, menu and screen context, dictation, local agent.
-- **`@App(themeToggle = true)`**: a light/dark switch in the header; dark is JET's own inverted
-  colour scheme, remembered in `localStorage['mateu-theme']` (the OS preference otherwise).
+- **Light only**: dark mode makes no sense in Redwood. `@App(themeToggle = true)` is ignored (no
+  switch in the header; the Vaadin renderer of the same app keeps its own), and neither a stored
+  dark choice (`localStorage['mateu-theme']`, left untouched for Vaadin) nor the OS
+  `prefers-color-scheme` applies: `poc/theme.mjs` paints light at boot.
 - **`@Fab`** on the app class or on a page: floating buttons stacked above the shell FAB.
 - **Language**: the renderer's own words come from `poc/i18n.mjs` in the page language
   (`<html lang>`, the browser's), English by default, Spanish complete.

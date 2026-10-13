@@ -1911,3 +1911,14 @@ previousItem/nextItem, el primer badge → `badge`, el timestamp → `timestamp`
 (con texto oj-sp revienta; si no, cierra la línea del subtítulo); overline y placeholder los dibuja
 la página. La bandeja y la búsqueda de una `type: AppShell` leen `notifications.source` /
 `globalSearch.source` (directa o por `_appsource`). Detalle en DESIGN-NOTES.en.md.
+
+## Solo tema claro (2026-10-13)
+
+Decisión del autor: el modo oscuro no tiene sentido en Redwood. El renderer IGNORA
+`@App(themeToggle)` (no hay interruptor en la cabecera; el wire lo sigue trayendo porque la misma
+clase la sirve también el renderer Vaadin, que conserva el suyo) y pinta SIEMPRE claro:
+`poc/theme.mjs` (`applyLightTheme`, desde loadMateuShell) quita al arrancar las clases de oscuro de
+JET (`oj-color-invert`, `oj-c-colorscheme-dark`) y pone `theme="light"`, sin mirar
+`prefers-color-scheme` ni `localStorage['mateu-theme']` (que no se borra: lo lee Vaadin en el mismo
+origen). Fuera: el chain toggleMateuTheme, su listener, la variable mateuThemeToggle, el texto
+themeToggle y las reglas `html.mateu-theme-dark` de app.css. Lo fija test-chains.mjs.

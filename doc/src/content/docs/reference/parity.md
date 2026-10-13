@@ -55,7 +55,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
-| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`) | ✅ | ✅ | ✅ |
+| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`; the Redwood renderer is light only and ignores it) | ✅ | ✅ | ✅ |
 | [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports have no app logo/favicon/accent, so `icon`/`themeColor` come only from `MobileApp` or the env vars there | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
@@ -268,7 +268,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | "Open on mobile" (`mobileQr`: a header button whose dialog shows the QR of the `mateu.io/add` link, a link instead on a phone) | ✅ | ✅ | N/A (desktop IDE) | N/A (it is the app) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); `@App(themeToggle)` draws a header light/dark switch (JET's inverted colour scheme, remembered like the web) | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); light only: `@App(themeToggle)` is ignored (no switch) and neither a stored dark choice nor the OS preference applies | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |

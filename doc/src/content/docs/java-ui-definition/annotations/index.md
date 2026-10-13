@@ -17,7 +17,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 
 | Annotation | Target | Description |
 |---|---|---|
-| [`@App`](app/) | Class | Applies an app layout variant; optional `themeToggle` adds dark/light mode switch |
+| [`@App`](app/) | Class | Applies an app layout variant; optional `themeToggle` adds dark/light mode switch (not in Redwood, which is light only) |
 | [`@DrawerClosed`](app/) | Class | Starts the drawer/sidebar in closed state |
 | [`@Logo`](app/) | Class | Sets the app logo URL |
 | [`@FavIcon`](app/) | Class | Sets the browser favicon |

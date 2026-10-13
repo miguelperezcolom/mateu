@@ -522,8 +522,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     fetchGlobalSearch,
     paletteRowsOfHits,
     runAppLevelAction,
-    applyInitialTheme,
-    toggleTheme,
+    applyLightTheme,
     // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
     mobileQrModelOf,
     isPhoneLike,
