@@ -671,8 +671,10 @@ private fun uxTint(base: Color): Color = Color(base.red, base.green, base.blue, 
 private fun uxMono(base: Font, style: Int = Font.BOLD, size: Int = 0): Font =
     Font(Font.MONOSPACED, style, if (size > 0) size else base.size)
 
-/** EntityHeader: title + badges + subtitle + facts on the left, highlighted metric on the right. */
-fun renderEntityHeader(metadata: JsonNode): JComponent {
+/** EntityHeader: title + badges + subtitle + facts on the left, highlighted metric on the right. A
+ *  fact naming an action gets a compact icon button right after its value (the pencil next to
+ *  "EMPRESA"), which runs `actionId` with the fact's `parameters` exactly like a Button. */
+fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = JPanel(BorderLayout(16, 0))
     panel.isOpaque = false
     panel.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
@@ -692,7 +694,15 @@ fun renderEntityHeader(metadata: JsonNode): JComponent {
                 font = font.deriveFont(Font.BOLD, 9f)
                 foreground = uxMuted()
             }, 1)
-            cell.addStacked(JBLabel(fact.text("value")), 0)
+            val actionId = fact.text("actionId")
+            if (actionId.isNotBlank()) {
+                val valueRow = JPanel(FlowLayout(FlowLayout.LEFT, 4, 0)).apply { isOpaque = false }
+                valueRow.add(JBLabel(fact.text("value")))
+                valueRow.add(factActionButton(r, fact, actionId))
+                cell.addStacked(valueRow, 0)
+            } else {
+                cell.addStacked(JBLabel(fact.text("value")), 0)
+            }
             factsRow.add(cell)
         }
         left.addStacked(factsRow, 0)
@@ -756,6 +766,22 @@ fun renderMeter(metadata: JsonNode): JComponent {
     val caption = metadata.text("caption").ifBlank { "${Math.round(ratio * 100)}%" }
     panel.addStacked(JBLabel(caption).apply { foreground = uxMuted() }, 0)
     return panel
+}
+
+/** A fact's action: an icon-only, borderless button named (accessible name + tooltip) by the fact's
+ *  `actionLabel`, else its label; the click dispatches like [renderButton]. */
+private fun factActionButton(r: ComponentRenderer, fact: JsonNode, actionId: String): JButton {
+    val label = fact.text("actionLabel").ifBlank { fact.text("label") }
+    val parameters = r.ctx.jsonToParams(fact.path("parameters"))
+    return JButton(com.intellij.icons.AllIcons.Actions.Edit).apply {
+        isBorderPainted = false
+        isContentAreaFilled = false
+        isFocusPainted = true
+        margin = JBUI.emptyInsets()
+        toolTipText = label
+        accessibleName(label)
+        addActionListener { r.ctx.runAction(actionId, parameters.ifEmpty { null }) }
+    }
 }
 
 /** TaskProgress: tinted banner with icon + label + i/total pills + CTA (hidden when complete). */

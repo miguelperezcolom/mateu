@@ -103,7 +103,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "FileList" -> renderFileList(this, metadata)
             "Checklist" -> renderChecklist(this, metadata)
             "ComparisonCard" -> renderComparisonCard(metadata)
-            "EntityHeader" -> renderEntityHeader(metadata)
+            "EntityHeader" -> renderEntityHeader(this, metadata)
             "Meter" -> renderMeter(metadata)
             "TaskProgress" -> renderTaskProgress(this, metadata)
             "StatusList" -> renderStatusList(this, metadata)

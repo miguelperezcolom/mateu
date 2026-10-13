@@ -2,7 +2,7 @@ import {
   wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
-  pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf,
+  pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -142,6 +142,7 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
   const switcher = pageSwitcherOf(host)
   const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
+  const headerFacts = switcher.fact ? [switcher.fact].concat(baseFacts || []) : (baseFacts || [])
   const extras = pageHeaderExtrasOf(host)
   const declaredTitle = hostEntity ? hostEntity.title : (summary.title || '')
   // a titlePlaceholder stands in only while the title is EMPTY (and is dimmed: it must never read
@@ -181,8 +182,10 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
       : { label: '', display: 'disabled' },
     prevRoute: peer ? peer.prevRoute : '',
     nextRoute: peer ? peer.nextRoute : '',
-    // without an EntityHeader, the Page's @KPIs are its facts
-    facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
+    // without an EntityHeader, the Page's @KPIs are its facts; oj-sp's contextualInfo takes only
+    // {label, value} — a fact's action button rides beside it (factActions, put in by the DOM side)
+    facts: contextualInfoOf(headerFacts),
+    factActions: factActionsJsonOf(headerFacts),
     // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
     switcher,
     showBand: showBand && !gopOn && !iopOn,

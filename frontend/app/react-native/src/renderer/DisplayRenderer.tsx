@@ -7,6 +7,7 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 import { ganttSelection } from './ganttSelection';
+import { factAction } from './factAction';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -738,6 +739,7 @@ function ChipView({ chip }: { chip: Chip }) {
 
 // ── EntityHeader (persistent context banner: identity + facts + metric) ───────
 export function EntityHeaderRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
   const m = meta(component) as unknown as EntityHeader;
   const facts = m.facts ?? [];
   return (
@@ -750,12 +752,28 @@ export function EntityHeaderRenderer({ component }: { component: unknown }) {
         {!!m.subtitle && <Text style={styles.entitySubtitle}>{m.subtitle}</Text>}
         {facts.length > 0 && (
           <View style={styles.entityFacts}>
-            {facts.map((f: Fact, i) => (
-              <View key={i} style={styles.entityFact}>
-                <Text style={styles.entityFactLabel}>{f.label ?? ''}</Text>
-                <Text style={styles.entityFactValue}>{f.value ?? ''}</Text>
-              </View>
-            ))}
+            {facts.map((f: Fact, i) => {
+              // a fact naming an action: a tappable icon right after its value, run like a Button
+              const action = factAction(f);
+              return (
+                <View key={i} style={styles.entityFact}>
+                  <Text style={styles.entityFactLabel}>{f.label ?? ''}</Text>
+                  <View style={styles.entityFactValueRow}>
+                    <Text style={styles.entityFactValue}>{f.value ?? ''}</Text>
+                    {!!action && (
+                      <TouchableOpacity
+                        {...buttonA11y({ label: action.label })}
+                        hitSlop={8}
+                        style={styles.entityFactAction}
+                        onPress={() => void controller.runAction(action.actionId, action.parameters)}
+                      >
+                        <Text style={styles.entityFactActionGlyph}>{action.glyph}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
           </View>
         )}
       </View>
@@ -1462,6 +1480,9 @@ const styles = StyleSheet.create({
   entityFact: { gap: 1 },
   entityFactLabel: { fontSize: 10, fontWeight: '700', color: theme.faint, letterSpacing: 0.6 },
   entityFactValue: { fontSize: 13, fontWeight: '500', color: theme.ink },
+  entityFactValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  entityFactAction: { paddingHorizontal: 4, paddingVertical: 2, borderRadius: 6 },
+  entityFactActionGlyph: { fontSize: 14, color: theme.primary },
   entityMetric: { alignItems: 'flex-end', gap: 1, justifyContent: 'center' },
   entityMetricValue: { fontSize: 24, fontWeight: '800', color: theme.primary },
   entityMetricCaption: { fontSize: 11, color: theme.faint },

@@ -622,6 +622,7 @@
         "title": "",
         "subtitle": "",
         "facts": [],
+        "factActions": "",
         "overline": "",
         "timestamp": "",
         "badge": null,

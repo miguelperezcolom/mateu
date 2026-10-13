@@ -1719,5 +1719,17 @@ button.mateu-sc-row:focus-visible { outline: 2px solid var(--oj-core-focus-borde
 oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-header-general-overview-outer-padding-vertical { padding-top: var(--oj-core-spacing-1x, 4px); }
 /* the dark theme drops the header's light background: the overline follows it */
 html.mateu-theme-dark .mateu-header-overline { background-color: transparent !important; }
+/* an EntityHeader fact's action in oj-sp's contextualInfo (displayDom.installFactActions): a small
+   borderless icon button right after the value, on its line */
+.mateu-fact-action {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 1.75rem; height: 1.75rem; margin: -0.25rem 0 -0.25rem var(--oj-core-spacing-1x, 4px); padding: 0;
+  border: 0; border-radius: var(--oj-core-border-radius-md, 6px); background: transparent; cursor: pointer;
+  color: var(--oj-core-text-color-primary, #161513); font-size: 1rem; line-height: 1;
+}
+.mateu-fact-action:hover { background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .06)); }
+.mateu-fact-action:focus-visible { outline: 1px dashed var(--oj-core-focus-border-color, #161513); outline-offset: 1px; }
+/* the same button inside a content EntityHeader (oj-button in the atoms template) */
+.mateu-fact-action-button { margin-inline-start: var(--oj-core-spacing-1x, 4px); }
 /* TITLE PLACEHOLDER: shown only while the title is empty — dimmed so it never reads as a real title */
 .mateu-title-placeholder .oj-sp-header-general-overview-page-title { color: var(--oj-core-text-color-secondary); font-style: italic; }

@@ -6,7 +6,7 @@ import { collectTexts } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
-import { findOutsidePanes } from './pageHeader.mjs'
+import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
@@ -895,7 +895,8 @@ export function islandContentOf(ctx, opts = {}) {
         title: interp(m.title),
         subtitle: interp(m.subtitle || ''),
         badges: (m.badges || []).map(badgeOf),
-        facts: (m.facts || []).map((f) => ({ label: f.label, value: interp(f.value) })),
+        // a fact naming an action: its icon button right after the value (factProjectionOf)
+        facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
         metricLabel: m.metricLabel || '',
         metricValue: interp(m.metricValue || ''),
       }, container)
@@ -1599,6 +1600,8 @@ export function mergeNestedContent(islandBlocks, nestedBlocks) {
       const marked = { ...a, fromNested: true }
       if (a.buttons) marked.buttons = a.buttons.map((btn) => ({ ...btn, fromNested: true }))
       if (a.fields) marked.fields = a.fields.map((f) => ({ ...f, fromNested: true }))
+      // an EntityHeader's fact actions dispatch like its buttons: to the nested context
+      if (a.facts) marked.facts = a.facts.map((f) => (f.hasAction ? { ...f, fromNested: true } : f))
       return marked
     })
   return islandBlocks.map((block) => (

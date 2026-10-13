@@ -3,6 +3,7 @@ import { HOST_ID, actionsOf, dynFormMetadataOf, fieldListOf, formSectionsOf } fr
 import { interpolate } from './content.mjs'
 import { findByType } from './listing.mjs'
 import { evaluateTemplate } from '../rules.mjs'
+import { ojIconOrGenericOf } from './shellNav.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
 /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
@@ -38,13 +39,54 @@ export function findOutside(tree, type, stops) {
   return found
 }
 
+/** The icon of a fact's action button when the wire names none (the servers already default it). */
+export const DEFAULT_FACT_ACTION_ICON = 'vaadin:pencil'
+
+/**
+ * A wire fact of an EntityHeader → its projection: `{label, value}`, and — when it names an action
+ * (the pencil next to "EMPRESA") — the icon-only button drawn right after the value: `hasAction`,
+ * `actionId` + `parameters` (dispatched exactly like a Button's), `actionLabel` (its accessible
+ * name and tooltip: its own, else the fact's label) and `iconClass` (the Redwood icon font).
+ */
+export function factProjectionOf(fact, value) {
+  const out = { label: fact.label, value }
+  if (!fact.actionId) return out
+  return Object.assign(out, {
+    hasAction: true,
+    actionId: fact.actionId,
+    parameters: fact.parameters,
+    actionLabel: (fact.actionLabel && String(fact.actionLabel).trim()) || fact.label || '',
+    iconClass: ojIconOrGenericOf(fact.icon || DEFAULT_FACT_ACTION_ICON),
+  })
+}
+
+/** What oj-sp's contextualInfo takes: only `{label, value}` per fact. */
+export function contextualInfoOf(facts) {
+  return (facts || []).map((f) => ({ label: f.label, value: f.value }))
+}
+
+/**
+ * The actions of the facts an oj-sp header shows as contextualInfo — which has no room for a
+ * button — as the JSON the header element carries in `data-mateu-fact-actions`: the DOM side
+ * (displayDom.installFactActions) puts each button right after its value. '' = none.
+ */
+export function factActionsJsonOf(facts) {
+  const actions = []
+  ;(facts || []).forEach((f, index) => {
+    if (f && f.hasAction) {
+      actions.push({ index, actionId: f.actionId, parameters: f.parameters || null, label: f.actionLabel, iconClass: f.iconClass })
+    }
+  })
+  return actions.length ? JSON.stringify(actions) : ''
+}
+
 export function entityHeaderOf(ctx) {
   const node = ctx && ctx.tree ? pageEntityHeaderNode(ctx.tree) : null
   if (!node) return null
   const m = node.metadata
   const state = ctx.state || {}
   const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
-  const facts = (m.facts || []).map((f) => ({ label: f.label, value: interpolate(f.value, state) }))
+  const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
   if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
   // los colores de Chip de Mateu → status del badge oj-sp
   const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }

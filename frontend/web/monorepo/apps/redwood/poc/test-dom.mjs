@@ -28,7 +28,7 @@ import { installRowTones, setListingTones, installStickyHeader } from './tables.
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
-import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents } from './displayDom.mjs'
+import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
 import { defineMarkupField } from './richtext.mjs'
 
@@ -908,6 +908,68 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
     }
   })
 }
+
+// ── la acción de un fact en el header oj-sp (el lápiz junto a EMPRESA) ────────────────────────
+// oj-sp pinta cada fact de contextualInfo como <div id="<uid>_contextualInfo<i>-labelled-by"> (rótulo)
+// + <div id="<uid>_contextualInfo<i>"> (valor) dentro de un item flex; el botón va tras el valor.
+const ojSpHeader = (e, facts, actions) => {
+  const items = facts.map((f, i) => e('div', { class: 'oj-flex-item oj-flex' },
+    e('div', { id: 'h1_contextualInfo' + i + '-labelled-by', text: f.label }),
+    e('div', { id: 'h1_contextualInfo' + i, text: f.value })))
+  return e('oj-sp-header-general-overview', actions ? { 'data-mateu-fact-actions': JSON.stringify(actions) } : {}, e('div', {}, ...items))
+}
+const companyAction = { index: 1, actionId: 'changeCompany', parameters: { stayId: 'S-1' }, label: 'Cambiar empresa', iconClass: 'oj-ux-ico-edit' }
+
+test('fact action: el botón de icono va JUSTO tras el valor de SU fact, con su nombre accesible', () => {
+  const { doc, el } = makeDom()
+  const header = ojSpHeader(el, [{ label: 'TOTAL RESERVA', value: '€ 4.890,00' }, { label: 'EMPRESA', value: 'Acme' }], [companyAction])
+  doc.body.appendChild(header)
+  decorateFactActions(header, doc)
+  const buttons = header.querySelectorAll('.mateu-fact-action')
+  assert.equal(buttons.length, 1)
+  const value = header.querySelectorAll('[id]').find((x) => x.id === 'h1_contextualInfo1')
+  const row = value.parentNode.childNodes
+  assert.equal(row[row.indexOf(value) + 1], buttons[0], 'tras el valor, en su línea')
+  assert.equal(buttons[0].getAttribute('aria-label'), 'Cambiar empresa')
+  assert.equal(buttons[0].getAttribute('title'), 'Cambiar empresa')
+  assert.equal(buttons[0].querySelector('span').getAttribute('class'), 'oj-ux-ico-edit')
+  // idempotente: otra pasada (el observer) no añade ni mueve nada
+  decorateFactActions(header, doc)
+  assert.equal(header.querySelectorAll('.mateu-fact-action').length, 1)
+  // otro registro sin acción: el botón se va
+  header.setAttribute('data-mateu-fact-actions', '')
+  decorateFactActions(header, doc)
+  assert.equal(header.querySelectorAll('.mateu-fact-action').length, 0)
+})
+
+test('fact action: oj-sp repinta la fila y el botón vuelve; un fact que oj-sp no muestra no rompe nada', () => {
+  const { doc, el } = makeDom()
+  const header = ojSpHeader(el, [{ label: 'EMPRESA', value: 'Acme' }], [{ ...companyAction, index: 0 }, { ...companyAction, index: 5 }])
+  doc.body.appendChild(header)
+  decorateFactActions(header, doc)
+  // oj-sp re-renders the value (a new element, the old one gone)
+  const old = header.querySelectorAll('[id]').find((x) => x.id === 'h1_contextualInfo0')
+  const parent = old.parentNode
+  for (const c of [...parent.childNodes]) c.remove()
+  parent.appendChild(el('div', { id: 'h1_contextualInfo0-labelled-by', text: 'EMPRESA' }))
+  parent.appendChild(el('div', { id: 'h1_contextualInfo0', text: 'Globex' }))
+  decorateFactActions(header, doc)
+  assert.equal(header.querySelectorAll('.mateu-fact-action').length, 1)
+  assert.equal(parent.childNodes[2].getAttribute('data-action-id'), 'changeCompany')
+})
+
+test('fact action: el clic lanza SU acción con SUS parámetros por el canal de la página', () => {
+  const { doc, el } = makeDom()
+  const header = ojSpHeader(el, [{ label: 'TOTAL', value: '1' }, { label: 'EMPRESA', value: 'Acme' }], [companyAction])
+  doc.body.appendChild(header)
+  const sink = sinkLog()
+  setFactActionSink(sink)
+  installFactActions(doc)
+  const button = header.querySelector('.mateu-fact-action')
+  button.querySelector('span').click()
+  assert.deepEqual(sink.calls, [['changeCompany', { stayId: 'S-1' }, {}]])
+  setFactActionSink(null)
+})
 
 for (const { name, fn } of tests) {
   try {

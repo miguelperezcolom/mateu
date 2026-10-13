@@ -19,6 +19,7 @@ import {
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
   pageKpisOf, pageSubtitleOf, bannersOf, pageHeaderNodeOf, shellNavOf, headerActionRouteOf,
   pageHeaderExtrasOf, badgeStatusOf, headerTimestampOf,
+  entityHeaderOf, mergeNestedContent, factProjectionOf, factActionsJsonOf,
 } from './reduceContexts.mjs'
 import { pageHeaderOf, listHeaderVarsOf, archetypeVarsOf, fabsOf } from './pageProjection.mjs'
 import { applyDomEffects } from './files.mjs'
@@ -616,6 +617,111 @@ test('header extras wiring: both page headers bind them, the arrows navigate lik
   const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') > 0)
   assert.ok(boot.indexOf('bridge.adoptShellSources(reg.shell)') < boot.indexOf('bridge.fetchNotifications('))
+})
+
+// ── an EntityHeader fact with an action (the pencil next to EMPRESA) ─────────────────────────
+
+const stayPage = () => page({ title: 'Stay' }, [node({
+  type: 'EntityHeader', id: 'stay', title: 'María Fernández',
+  facts: [
+    { label: 'TOTAL RESERVA', value: '€ 4.890,00' },
+    { label: 'EMPRESA', value: 'Acme Corporation Ltd', actionId: 'changeCompany', icon: 'vaadin:pencil',
+      actionLabel: 'Cambiar empresa', parameters: { stayId: 'S-1' } },
+  ],
+}, [], 'stay')])
+
+test('fact action: the projection carries the icon button; a display-only fact stays {label, value}', () => {
+  const [plain, company] = entityHeaderOf(host(stayPage())).facts
+  assert.deepEqual(plain, { label: 'TOTAL RESERVA', value: '€ 4.890,00' })
+  assert.deepEqual(company, {
+    label: 'EMPRESA', value: 'Acme Corporation Ltd', hasAction: true, actionId: 'changeCompany',
+    parameters: { stayId: 'S-1' }, actionLabel: 'Cambiar empresa', iconClass: 'oj-ux-ico-edit',
+  })
+  // no label of its own → the fact's; no icon → the pencil
+  assert.deepEqual(factProjectionOf({ label: 'EMPRESA', value: 'x', actionId: 'go' }, 'x'),
+    { label: 'EMPRESA', value: 'x', hasAction: true, actionId: 'go', parameters: undefined, actionLabel: 'EMPRESA', iconClass: 'oj-ux-ico-edit' })
+})
+
+test('fact action hoisted into the page header: oj-sp gets {label, value}, the action rides as factActions', () => {
+  const ctx = host(stayPage())
+  const h = headerOf(ctx, { hostEntity: entityHeaderOf(ctx) })
+  assert.deepEqual(h.facts, [
+    { label: 'TOTAL RESERVA', value: '€ 4.890,00' }, { label: 'EMPRESA', value: 'Acme Corporation Ltd' },
+  ])
+  assert.deepEqual(JSON.parse(h.factActions), [
+    { index: 1, actionId: 'changeCompany', parameters: { stayId: 'S-1' }, label: 'Cambiar empresa', iconClass: 'oj-ux-ico-edit' },
+  ])
+  // nothing acts → no attribute at all
+  assert.equal(headerOf(host(page({ kpis: [{ title: 'Total', text: '3' }] }))).factActions, '')
+  assert.equal(factActionsJsonOf([{ label: 'a', value: 'b' }]), '')
+})
+
+test('fact action in the content: the EntityHeader atom keeps it on its fact, and a nested island marks it', () => {
+  const atom = islandContentOf(host(stayPage())).flatMap((b) => b.items).find((a) => a.isEntityHeader)
+  assert.equal(atom.facts[0].hasAction, undefined)
+  assert.equal(atom.facts[1].actionId, 'changeCompany')
+  assert.equal(atom.facts[1].iconClass, 'oj-ux-ico-edit')
+  // merged from a nested island: its action goes back to the island's context, like its buttons
+  const merged = mergeNestedContent([{ isNestedBlock: true, items: [] }], [{ items: [atom] }])
+  const [plain, company] = merged[0].items[0].facts
+  assert.equal(plain.fromNested, undefined)
+  assert.equal(company.fromNested, true)
+})
+
+test('fact action wiring: every oj-sp header with contextualInfo carries the actions; the atom button dispatches like a button', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuPageHeader\.factActions \|\| null \]\]"/g) || []).length, 3)
+  assert.equal((html.match(/:data-mateu-fact-actions="\[\[ \$application\.variables\.mateuOverview\.factActions \|\| null \]\]"/g) || []).length, 1)
+  assert.equal((html.match(/contextual-info=/g) || []).length, 4)
+  // the content atom: an oj-button after the value, through the block's own listener
+  const atoms = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  const piece = atoms.slice(atoms.indexOf('isEntityHeader'), atoms.indexOf('isNotice'))
+  assert.match(piece, /mateu-fact-action-button[\s\S]*:data-action-id="\[\[ \$current\.data\.actionId \]\]"[\s\S]*on-oj-action="\[\[ \$listeners\.\{\{blockAction\}\} \]\]"/)
+  // the shell installs the header buttons and runs them on the page's action channel
+  const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(boot, /bridge\.installFactActions\(\);\s*bridge\.setFactActionSink\(runPageAction\);/)
+  assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue.factActions, '')
+})
+
+// ── a form in an overlay keeps its layout (wire captured from the Java core: a Drawer/Dialog of
+//    width 72rem with an EmbeddedView of a form whose first field is @Section(columns = 4,
+//    frameless = true) and a TitleSupplier title; and plain FormFields in a HorizontalLayout row
+//    and a FormLayout.maxColumns(4)) ─────────────────────────────────────────────────────────
+
+const overlayFrom = (name) => overlayOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'patterns', name + '.json'), 'utf8'))))
+
+test('overlay: an embedded form keeps its section columns and the drawer its width; the title shows once', () => {
+  const ov = overlayFrom('overlay-drawer')
+  assert.equal(ov.width, '72rem')
+  assert.equal(ov.title, 'Empresa')
+  assert.deepEqual(ov.sections.map((s) => [s.columns, s.fields.length]), [[4, 8]])
+  // the form's own heading repeated the drawer's title
+  assert.ok(!ov.content.some((b) => b.items.some((a) => a.isText && a.text === 'Empresa')))
+})
+
+test('overlay: a Dialog keeps its width and columns, and does not repeat its title as a text line', () => {
+  const ov = overlayFrom('overlay-dialog')
+  assert.equal(ov.isDialog, true)
+  assert.equal(ov.width, '72rem')
+  assert.deepEqual(ov.sections.map((s) => s.columns), [4])
+  assert.ok(!ov.texts.includes('Empresa'))
+})
+
+test('overlay: plain fields keep their HorizontalLayout row and their FormLayout maxColumns', () => {
+  const ov = overlayFrom('overlay-plain')
+  assert.deepEqual(ov.sections.map((s) => [s.columns, s.fields.map((f) => f.fieldId)]), [[2, ['a', 'b']], [4, ['c', 'd', 'e']]])
+})
+
+test('overlay templates: the drawer and the dialog bind each group\'s columns, the dialog its width', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.ok(!/<oj-form-layout max-columns="1" direction="row">/.test(html), 'no overlay form forced to one column')
+  for (const id of ['mateuModal', 'mateuDrawerPanel']) {
+    const at = html.indexOf(`id="${id}"`)
+    const piece = html.slice(at, html.indexOf(id === 'mateuModal' ? '</oj-dialog>' : '</oj-drawer-popup>', at))
+    assert.match(piece, /<oj-form-layout class="oj-formlayout-full-width" max-columns="\[\[ \$current\.data\.columns \]\]" direction="row">/, id)
+  }
+  const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('slot="header"', html.indexOf('<oj-dialog id="mateuModal"')))
+  assert.match(modal, /:style\.width="\[\[ \$application\.variables\.mateuDrawer\.width \|\| null \]\]"/)
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)

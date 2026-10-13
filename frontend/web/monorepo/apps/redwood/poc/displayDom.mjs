@@ -245,3 +245,99 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
     paint()
   })
 }
+
+// ── Fact actions in an oj-sp header: the icon button right after the fact's value ─────────────
+// oj-sp's contextualInfo (the facts row of oj-sp-header-general-overview, also inside the general
+// overview page) takes only {label, value}: it has no room for a fact's action (the pencil next to
+// "EMPRESA"). The projection leaves the actions on the header element as JSON
+// (`data-mateu-fact-actions`, factActionsJsonOf) and this puts a small icon button right after
+// each value, which oj-sp draws as `<uid>_contextualInfo<index>`. oj-sp re-renders that row on
+// its own, so it is re-checked on every change inside the header; a pass that finds everything in
+// place touches nothing (no observer loop).
+let factActionSink = null
+/** Who runs a fact's action (the shell: the page's action channel, the one a Button's takes). */
+export function setFactActionSink(fn) { factActionSink = typeof fn === 'function' ? fn : null }
+
+const FACT_ACTIONS_HOST = '[data-mateu-fact-actions]'
+
+/** The actions a header element carries ([] when none or unreadable). */
+function factActionsOf(host) {
+  const raw = host.getAttribute('data-mateu-fact-actions') || ''
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (e) {
+    return []
+  }
+}
+
+/** Puts (or keeps, or removes) each fact action's button right after its value inside `host`. */
+export function decorateFactActions(host, doc = host.ownerDocument) {
+  const actions = factActionsOf(host)
+  const keyOf = (a) => a.index + ':' + a.actionId
+  const wanted = {}
+  for (const a of actions) wanted[keyOf(a)] = a
+  // a button whose fact no longer acts (another record, another projection) goes
+  for (const old of Array.from(host.querySelectorAll('.mateu-fact-action'))) {
+    if (!wanted[old.getAttribute('data-mateu-fact-key')]) old.remove()
+  }
+  if (!actions.length) return
+  const ids = Array.from(host.querySelectorAll('[id]'))
+  for (const a of actions) {
+    const key = keyOf(a)
+    const value = ids.find((el) => String(el.id).endsWith('_contextualInfo' + a.index))
+    if (!value || !value.parentNode) continue // oj-sp shows the first 4 facts only
+    const parent = value.parentNode
+    const siblings = Array.from(parent.childNodes)
+    const next = siblings[siblings.indexOf(value) + 1] || null
+    if (next && next.nodeType === 1 && next.getAttribute('data-mateu-fact-key') === key) continue
+    const stale = host.querySelector('.mateu-fact-action[data-mateu-fact-key="' + key + '"]')
+    if (stale) stale.remove()
+    const button = doc.createElement('button')
+    button.setAttribute('type', 'button')
+    button.setAttribute('class', 'mateu-fact-action')
+    button.setAttribute('data-mateu-fact-key', key)
+    button.setAttribute('data-action-id', a.actionId)
+    if (a.parameters) button.setAttribute('data-mateu-fact-parameters', JSON.stringify(a.parameters))
+    if (a.label) {
+      button.setAttribute('aria-label', a.label)
+      button.setAttribute('title', a.label)
+    }
+    const glyph = doc.createElement('span')
+    glyph.setAttribute('class', a.iconClass || 'oj-ux-ico-edit')
+    glyph.setAttribute('aria-hidden', 'true')
+    button.appendChild(glyph)
+    parent.insertBefore(button, next)
+  }
+}
+
+/** Installs (once) the fact action buttons of every header that carries some, and their clicks. */
+export function installFactActions(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuFactActions) return
+  doc.__mateuFactActions = true
+  doc.addEventListener('click', (e) => {
+    const button = e.target && e.target.closest ? e.target.closest('.mateu-fact-action') : null
+    if (!button || !factActionSink) return
+    let parameters = {}
+    try { parameters = JSON.parse(button.getAttribute('data-mateu-fact-parameters') || '{}') || {} } catch (err) { parameters = {} }
+    factActionSink(button.getAttribute('data-action-id'), parameters, {})
+  })
+  const root = doc.body || doc.documentElement
+  for (const host of Array.from(root.querySelectorAll(FACT_ACTIONS_HOST))) decorateFactActions(host, doc)
+  if (typeof MutationObserver === 'undefined') return
+  new MutationObserver((records) => {
+    const hosts = new Set()
+    for (const r of records) {
+      const target = r.target && r.target.nodeType === 1 ? r.target : r.target && r.target.parentNode
+      const host = target && target.closest ? target.closest(FACT_ACTIONS_HOST) : null
+      if (host) hosts.add(host)
+      for (const n of r.addedNodes || []) {
+        if (n.nodeType !== 1) continue
+        if (n.matches && n.matches(FACT_ACTIONS_HOST)) hosts.add(n)
+        for (const h of Array.from(n.querySelectorAll ? n.querySelectorAll(FACT_ACTIONS_HOST) : [])) hosts.add(h)
+      }
+    }
+    for (const host of hosts) decorateFactActions(host, doc)
+  }).observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-mateu-fact-actions'] })
+}

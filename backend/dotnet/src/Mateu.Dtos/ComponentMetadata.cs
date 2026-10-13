@@ -327,8 +327,20 @@ public record ComparisonCardMetadataDto(string? Title, string? LeftLabel, string
 /// <summary>A small status chip: label on a badge-palette color (normal|success|warning|error|contrast).</summary>
 public record ChipDto(string? Label, string? Color);
 
-/// <summary>One label-over-value pair of an entity header.</summary>
-public record FactDto(string? Label, string? Value);
+/// <summary>One label-over-value pair of an entity header. The action members (mirrors
+/// io.mateu.dtos.FactDto) are omitted when absent, so a display-only fact keeps its
+/// <c>{"label","value"}</c> wire.</summary>
+public record FactDto(string? Label, string? Value)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ActionId { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Icon { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ActionLabel { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
+}
 
 /// <summary>Entity-header metadata: identity + key facts + one highlighted metric.</summary>
 public record EntityHeaderMetadataDto(

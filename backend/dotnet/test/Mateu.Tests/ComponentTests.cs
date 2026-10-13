@@ -557,6 +557,30 @@ public class PlanningPage : IComponentTreeSupplier
     public object? OpenBooking() => null;
 }
 
+/// <summary>An EntityHeader whose fact carries an action (Java: EntityHeaderFactActionSyncTest's
+/// fixture): the pencil next to "EMPRESA".</summary>
+[UI("stay-with-company"), Title("Stay")]
+public class StayWithCompanyPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new EntityHeader
+    {
+        Id = "stay",
+        Title = "María Fernández",
+        Facts =
+        [
+            new Fact { Label = "TOTAL RESERVA", Value = "€ 4.890,00" },
+            new Fact
+            {
+                Label = "EMPRESA", Value = "Acme Corporation Ltd", ActionId = "changeCompany",
+                ActionLabel = "Cambiar empresa",
+                Parameters = new Dictionary<string, object?> { ["stayId"] = "S-1" },
+            },
+        ],
+    };
+
+    public Message ChangeCompany() => new("company drawer");
+}
+
 [UI("aside-page"), Title("Aside page")]
 public class AsidePage
 {
@@ -928,6 +952,43 @@ public class ComponentTests
         Assert.Contains("\"label\":\"PLATINUM\"", json);
         Assert.Contains("\"label\":\"TOTAL RESERVA\"", json);
         Assert.Contains("\"metricValue\":\"48.500\"", json);
+    }
+
+    [Fact]
+    public void Entity_header_fact_action_travels_and_a_display_only_fact_keeps_its_wire()
+    {
+        var json = RenderView(typeof(StayWithCompanyPage));
+
+        // a fact without action is exactly {label, value} — the action members are omitted
+        Assert.Contains("{\"label\":\"TOTAL RESERVA\",\"value\":\"€ 4.890,00\"}", json);
+        // one with an action carries its button; the icon defaults to a pencil
+        Assert.Contains(
+            "{\"label\":\"EMPRESA\",\"value\":\"Acme Corporation Ltd\",\"actionId\":\"changeCompany\"," +
+            "\"icon\":\"vaadin:pencil\",\"actionLabel\":\"Cambiar empresa\",\"parameters\":{\"stayId\":\"S-1\"}}",
+            json);
+        // advertised, so the web client sends it (Java: TreeActionHarvester)
+        Assert.Contains("{\"id\":\"changeCompany\"", json);
+    }
+
+    [Fact]
+    public void Entity_header_fact_action_is_dispatched_by_method_name()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "changeCompany",
+            ServerSideType = typeof(StayWithCompanyPage).FullName,
+        });
+        Assert.Equal("company drawer", Assert.Single(inc.Messages).Text);
+    }
+
+    [Fact]
+    public void Entity_header_fact_without_action_id_has_no_button()
+    {
+        var dto = ComponentMapper.MapFact(new Fact { Label = "A", Value = "B", Icon = "vaadin:cog" });
+        Assert.Equal(new FactDto("A", "B"), dto);
+        var withAction = ComponentMapper.MapFact(new Fact { Label = "A", Value = "B", ActionId = "go" });
+        Assert.Equal(ComponentMapper.DefaultFactActionIcon, withAction.Icon);
+        Assert.Null(withAction.Parameters);
     }
 
     [Fact]

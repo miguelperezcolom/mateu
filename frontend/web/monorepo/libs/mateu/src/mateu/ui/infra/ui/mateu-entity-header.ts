@@ -3,10 +3,13 @@ import { customElement, property } from 'lit/decorators.js';
 import Chip from "@mateu/shared/apiClients/dtos/componentmetadata/Chip";
 import Fact from "@mateu/shared/apiClients/dtos/componentmetadata/Fact";
 import { chipStyles } from "@infra/ui/uxShared.ts";
+import { factActionStyles, renderFactAction } from "@infra/ui/factAction.ts";
 
 /**
  * Persistent context banner for an entity a flow operates on: title + badges, subtitle, key facts
- * under a divider, and one highlighted metric on the right. Read-only. DS-neutral, dark-mode aware.
+ * under a divider, and one highlighted metric on the right. Display-only, except a fact that names an
+ * action: a compact icon-only button right after its value dispatches it (see factAction.ts).
+ * DS-neutral, dark-mode aware.
  */
 @customElement('mateu-entity-header')
 export class MateuEntityHeader extends LitElement {
@@ -19,7 +22,7 @@ export class MateuEntityHeader extends LitElement {
     @property() metricValue: string | undefined
     @property() metricCaption: string | undefined
 
-    static styles = [chipStyles, css`
+    static styles = [chipStyles, factActionStyles, css`
         :host { display: block; width: 100%; }
         .card {
             display: flex;
@@ -92,7 +95,12 @@ export class MateuEntityHeader extends LitElement {
                             ${this.facts.map(fact => html`
                                 <div class="fact">
                                     <span class="label">${fact.label}</span>
-                                    <span class="value">${fact.value}</span>
+                                    ${fact.actionId ? html`
+                                        <span class="fact-value-row">
+                                            <span class="value">${fact.value}</span>
+                                            ${renderFactAction(fact)}
+                                        </span>
+                                    ` : html`<span class="value">${fact.value}</span>`}
                                 </div>
                             `)}
                         </div>

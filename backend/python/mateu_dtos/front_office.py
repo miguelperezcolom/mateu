@@ -7,7 +7,7 @@ from typing import (
     Literal,
 )
 
-from pydantic import Field
+from pydantic import Field, model_serializer
 
 from .base import Wire
 
@@ -20,10 +20,23 @@ class ChipRecord(Wire):
 
 
 class FactRecord(Wire):
-    """A label-over-value pair (mirrors ``FactDto``)."""
+    """A label-over-value pair (mirrors ``FactDto``). The action members are OMITTED from the JSON
+    when absent (as Java/.NET do), so a display-only fact keeps its ``{"label", "value"}`` wire."""
 
     label: str | None = None
     value: str | None = None
+    action_id: str | None = None
+    icon: str | None = None
+    action_label: str | None = None
+    parameters: dict[str, Any] | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_action(self, handler):
+        data = handler(self)
+        for key in ("action_id", "actionId", "icon", "action_label", "actionLabel", "parameters"):
+            if key in data and data[key] in (None, {}):
+                del data[key]
+        return data
 
 
 class EntityHeaderMetadata(Wire):

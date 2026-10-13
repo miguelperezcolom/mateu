@@ -16,7 +16,7 @@ import { onFabRail, pageFabPosition } from "@infra/ui/layout/fabRail.ts";
  *  badges the header chips and its facts + metric the KPI row — and the banner is NOT
  *  repeated in the body (the node is flagged and entityHeaderRenderer skips it). Only
  *  applies to top-level pages (level 0): an embedded island keeps its banner inline. */
-const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideComponent => {
+export const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideComponent => {
     const metadata = component.metadata as PageComponent
     if (((metadata as any)?.level ?? 0) > 0) return component
     const find = (node: any): any => {
@@ -44,7 +44,11 @@ const hoistLeadingEntityHeader = (component: ClientSideComponent): ClientSideCom
     headerNode.__hoistedToPageHeader = true
     const kpis = [
         ...(eh.facts ?? []).filter(f => f.label || f.value)
-            .map(f => ({ title: f.label ?? '', text: f.value ?? '' })),
+            // a fact's action rides along: the header draws its icon button after the value
+            .map(f => ({
+                title: f.label ?? '', text: f.value ?? '',
+                ...(f.actionId ? { actionId: f.actionId, icon: f.icon, actionLabel: f.actionLabel, parameters: f.parameters } : {}),
+            })),
         ...(eh.metricLabel ? [{ title: eh.metricLabel, text: eh.metricValue ?? '' }] : []),
     ]
     const badges = (eh.badges ?? []).filter(c => c.label)

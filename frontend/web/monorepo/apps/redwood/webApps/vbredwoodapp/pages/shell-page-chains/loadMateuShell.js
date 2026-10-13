@@ -114,6 +114,10 @@ define([
       bridge.installContextMenus();
       bridge.installChatComponents();
       bridge.installCustomComponents();
+      // the action of an EntityHeader fact hoisted into the page header (oj-sp's contextualInfo has
+      // no room for it): its icon button after the value, run like a Button's
+      bridge.installFactActions();
+      bridge.setFactActionSink(runPageAction);
       // arrastrar filas (@DragRows) a un DropZone: su acción con origen y destino
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);

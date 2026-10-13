@@ -67,7 +67,7 @@ export const REDWOOD_COVERAGE = {
   Separator: { status: 'full' },
   BulletedList: { status: 'full' },
   Notice: { status: 'full', note: 'oj-sp-message-banner style band + actions' },
-  EntityHeader: { status: 'full', note: 'projected to the page header (sticky business card)' },
+  EntityHeader: { status: 'full', note: 'projected to the page header (sticky business card); a fact with an action gets its icon button after the value' },
   Meter: { status: 'full', note: 'oj-progress-bar' },
   TaskProgress: { status: 'full' },
   StatusList: { status: 'full' },

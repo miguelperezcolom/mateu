@@ -488,6 +488,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installContextMenus,
     installChatComponents,
     installCustomComponents,
+    // an EntityHeader fact's action inside an oj-sp header (its icon button after the value)
+    installFactActions,
+    setFactActionSink,
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,
