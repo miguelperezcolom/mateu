@@ -1720,13 +1720,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return section.declaredColumns ? section.columns : 2
   }
 
+  /** The columns of a layout grouping loose fields (formSectionsOf byLayout): a FormLayout its
+   *  maxColumns (undeclared without one), a HorizontalLayout one per field of the row — at most 4,
+   *  like a section. */
+  function layoutColumnsOf(layout, byId) {
+    const md = layout.metadata || {}
+    if (md.type === 'FormLayout') {
+      const declared = md.maxColumns || md.columns || 0
+      return { columns: declared > 0 ? Math.min(declared, 4) : 1, declaredColumns: declared > 0 }
+    }
+    const ids = new Set()
+    const count = (n) => {
+      if (!n || typeof n !== 'object' || n.type === 'ServerSide') return
+      if (n.fieldId && byId[n.fieldId]) ids.add(n.fieldId)
+      for (const v of Object.values(n)) {
+        if (Array.isArray(v)) v.forEach(count)
+        else if (v && typeof v === 'object') count(v)
+      }
+    }
+    count(layout)
+    return { columns: Math.max(1, Math.min(ids.size, 4)), declaredColumns: true }
+  }
+
   /**
    * Helper de RENDER: los campos del formulario AGRUPADOS por sus secciones (@Section), en el
    * orden del wire → [{ key, title, hasTitle, columns, fields }]. Los campos fuera de toda
    * sección van a un grupo sin título; un formulario sin secciones es UN grupo sin título, así
    * que el template pinta siempre secciones → campos. [] si el árbol no tiene formulario.
    */
-  function formSectionsOf(tree, state, data) {
+  function formSectionsOf(tree, state, data, opts = {}) {
     const fields = fieldListOf(tree, state, data)
     if (!fields.length) return []
     const byId = {}
@@ -1734,7 +1756,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const sections = []
     const placed = {}
     let loose = null
-    const walk = (n, isRoot, section) => {
+    // opts.byLayout (an overlay's content, where fields arrive placed by hand — a HorizontalLayout
+    // row, a FormLayout with maxColumns — instead of a form's sections): fields outside any section
+    // are grouped by their NEAREST layout, which gives the group its columns
+    const layoutGroups = new Map()
+    const isLayout = (n) => !!(opts.byLayout && n.metadata
+      && (n.metadata.type === 'FormLayout' || n.metadata.type === 'HorizontalLayout'))
+    const walk = (n, isRoot, section, layout) => {
       if (!n || typeof n !== 'object') return
       if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
       let here = section
@@ -1742,10 +1770,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
         sections.push(here)
       }
+      const lay = !here && isLayout(n) ? n : layout
       if (n.fieldId && byId[n.fieldId] && !placed[n.fieldId]) {
         placed[n.fieldId] = true
         if (here) {
           here.fields.push(byId[n.fieldId])
+        } else if (lay) {
+          let group = layoutGroups.get(lay)
+          if (!group) {
+            group = { key: 's' + sections.length, title: '', ...layoutColumnsOf(lay, byId), titleButtons: [], footerButtons: [], fields: [] }
+            layoutGroups.set(lay, group)
+            sections.push(group)
+          }
+          group.fields.push(byId[n.fieldId])
         } else {
           if (!loose || sections[sections.length - 1] !== loose) {
             loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, titleButtons: [], footerButtons: [], fields: [] }
@@ -1755,11 +1792,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       }
       for (const v of Object.values(n)) {
-        if (Array.isArray(v)) v.forEach((x) => walk(x, false, here))
-        else if (v && typeof v === 'object') walk(v, false, here)
+        if (Array.isArray(v)) v.forEach((x) => walk(x, false, here, lay))
+        else if (v && typeof v === 'object') walk(v, false, here, lay)
       }
     }
-    walk(tree, true, null)
+    walk(tree, true, null, null)
     // un formulario sin FormLayout propio (los campos sueltos de un ServerSide) toma sus columnas
     // del FormLayout raíz, si lo hay
     const rootColumns = sectionHeadOf(tree)
@@ -1803,11 +1840,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // salía vacío.
     const surface = ctx.surface || ctx.tree
     const surfaceCtx = surface === ctx.tree ? ctx : { ...ctx, tree: surface }
+    // the overlay's header already shows its title (an EmbeddedView form's TitleSupplier title is
+    // both the drawer's title and the form's own heading): the first text repeating it goes
+    const overlayTitle = ctx.title || ''
+    let titleDropped = false
+    const notTheTitle = (a) => {
+      if (titleDropped || !overlayTitle || !a.isText || a.text !== overlayTitle) return true
+      titleDropped = true
+      return false
+    }
     const content = (islandContentOf(surfaceCtx) || [])
       .map((block) => ({
         ...block,
         items: block.items
           .filter((a) => !a.isInput && !a.isFormLayout)
+          .filter(notTheTitle)
           .map((a) => (a.isButtons ? { ...a, buttons: (a.buttons || []).filter(keepInContent) } : a))
           .filter((a) => !a.isButtons || a.buttons.length),
       }))
@@ -1827,15 +1874,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       width: ctx.width,
       state: ctx.state || {},
       fields: fieldListOf(surface, ctx.state, ctx.data),
-      sections: formSectionsOf(surface, ctx.state, ctx.data),
+      // the fields keep the layout they were given: a section's columns, a FormLayout's
+      // maxColumns, a HorizontalLayout row (the templates bind max-columns to each group)
+      sections: formSectionsOf(surface, ctx.state, ctx.data, { byLayout: true }),
       actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
       content: content,
       hasContent: !!content.length,
       // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
       // drawer (tarea con formulario); texts = sus líneas de mensaje
       isDialog,
-      texts: collectTexts(surface),
+      texts: withoutFirst(collectTexts(surface), overlayTitle),
     }
+  }
+
+  /** `list` without the first entry equal to `value` (none when value is blank). */
+  function withoutFirst(list, value) {
+    const i = value ? list.indexOf(value) : -1
+    return i < 0 ? list : list.slice(0, i).concat(list.slice(i + 1))
   }
 
   /** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del

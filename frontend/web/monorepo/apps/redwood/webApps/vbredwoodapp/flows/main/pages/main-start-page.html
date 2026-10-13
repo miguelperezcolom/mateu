@@ -118,11 +118,15 @@
 <!-- MODAL de decisión (overlay Dialog del wire, p.ej. "¿seguimos con el check-in del
      grupo?"): título + líneas de mensaje + las acciones del Dialog en el footer -->
 <oj-dialog id="mateuModal" cancel-behavior="icon" drag-affordance="none"
+  :style.width="[[ $application.variables.mateuDrawer.width || null ]]"
+  :style.max-width="[[ $application.variables.mateuDrawer.width ? '90vw' : null ]]"
   on-oj-before-close="[[ $listeners.mateuModalClosed ]]">
   <div slot="header">
     <span class="oj-dialog-title"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></span>
   </div>
-  <div slot="body" style="max-width: 32rem; min-width: min(24rem, 80vw);">
+  <!-- the Dialog's width (Dialog.width) is the modal's; without one, a decision-sized body -->
+  <div slot="body" style="min-width: min(24rem, 80vw);"
+    :style.max-width="[[ $application.variables.mateuDrawer.width ? 'none' : '32rem' ]]">
     <oj-bind-for-each data="[[ $application.variables.mateuDrawer.texts ]]">
       <template>
         <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
@@ -136,7 +140,9 @@
           <oj-bind-if test="[[ $current.data.hasTitle ]]">
             <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
-          <oj-form-layout max-columns="1" direction="row">
+          <!-- each group keeps its columns (a section's, a FormLayout's maxColumns, a row's
+               fields — formSectionsOf byLayout); oj-form-layout drops them as the overlay narrows -->
+          <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row">
             <oj-bind-for-each data="[[ $current.data.fields ]]">
               <template>
                 <oj-bind-if test="[[ $current.data.isText ]]">
@@ -16534,7 +16540,9 @@
           <oj-bind-if test="[[ $current.data.hasTitle ]]">
             <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
-          <oj-form-layout max-columns="1" direction="row">
+          <!-- each group keeps its columns (a section's, a FormLayout's maxColumns, a row's
+               fields — formSectionsOf byLayout); oj-form-layout drops them as the overlay narrows -->
+          <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row">
             <oj-bind-for-each data="[[ $current.data.fields ]]">
               <template>
                 <oj-bind-if test="[[ $current.data.isText ]]">

@@ -683,4 +683,45 @@ test('fact action wiring: every oj-sp header with contextualInfo carries the act
   assert.equal(JSON.parse(webApp('app-flow.json')).variables.mateuPageHeader.defaultValue.factActions, '')
 })
 
+// ── a form in an overlay keeps its layout (wire captured from the Java core: a Drawer/Dialog of
+//    width 72rem with an EmbeddedView of a form whose first field is @Section(columns = 4,
+//    frameless = true) and a TitleSupplier title; and plain FormFields in a HorizontalLayout row
+//    and a FormLayout.maxColumns(4)) ─────────────────────────────────────────────────────────
+
+const overlayFrom = (name) => overlayOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'patterns', name + '.json'), 'utf8'))))
+
+test('overlay: an embedded form keeps its section columns and the drawer its width; the title shows once', () => {
+  const ov = overlayFrom('overlay-drawer')
+  assert.equal(ov.width, '72rem')
+  assert.equal(ov.title, 'Empresa')
+  assert.deepEqual(ov.sections.map((s) => [s.columns, s.fields.length]), [[4, 8]])
+  // the form's own heading repeated the drawer's title
+  assert.ok(!ov.content.some((b) => b.items.some((a) => a.isText && a.text === 'Empresa')))
+})
+
+test('overlay: a Dialog keeps its width and columns, and does not repeat its title as a text line', () => {
+  const ov = overlayFrom('overlay-dialog')
+  assert.equal(ov.isDialog, true)
+  assert.equal(ov.width, '72rem')
+  assert.deepEqual(ov.sections.map((s) => s.columns), [4])
+  assert.ok(!ov.texts.includes('Empresa'))
+})
+
+test('overlay: plain fields keep their HorizontalLayout row and their FormLayout maxColumns', () => {
+  const ov = overlayFrom('overlay-plain')
+  assert.deepEqual(ov.sections.map((s) => [s.columns, s.fields.map((f) => f.fieldId)]), [[2, ['a', 'b']], [4, ['c', 'd', 'e']]])
+})
+
+test('overlay templates: the drawer and the dialog bind each group\'s columns, the dialog its width', () => {
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.ok(!/<oj-form-layout max-columns="1" direction="row">/.test(html), 'no overlay form forced to one column')
+  for (const id of ['mateuModal', 'mateuDrawerPanel']) {
+    const at = html.indexOf(`id="${id}"`)
+    const piece = html.slice(at, html.indexOf(id === 'mateuModal' ? '</oj-dialog>' : '</oj-drawer-popup>', at))
+    assert.match(piece, /<oj-form-layout class="oj-formlayout-full-width" max-columns="\[\[ \$current\.data\.columns \]\]" direction="row">/, id)
+  }
+  const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('slot="header"', html.indexOf('<oj-dialog id="mateuModal"')))
+  assert.match(modal, /:style\.width="\[\[ \$application\.variables\.mateuDrawer\.width \|\| null \]\]"/)
+})
+
 console.log(`\n${passed} pattern-gap tests OK`)
