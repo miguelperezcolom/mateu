@@ -1148,7 +1148,7 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
     assert.equal(cell.title, '')
   }
   const page = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 2, 'las dos plantillas cellClip')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 3, 'las tres plantillas cellClip (listado, selector, listado en un drawer)')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 

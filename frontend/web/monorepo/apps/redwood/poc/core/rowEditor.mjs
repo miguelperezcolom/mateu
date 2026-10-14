@@ -329,14 +329,29 @@ export const SEARCHABLE_PICK_ACTION = 'action-on-row-select'
 export const SEARCHABLE_ADD_ACTION = 'action-on-row-select-selected'
 
 /**
+ * ¿Es el overlay un LISTADO (un Listing incrustado — EmbeddedView — en un Drawer o un Dialog: su
+ * superficie es un Crud), sin ser el selector de un @Searchable? Se pinta como un listado de
+ * verdad — búsqueda, columnas, páginas, clic en la fila —, no como el formulario genérico.
+ */
+export function isListingOverlay(ctx) {
+  const surface = ctx && ctx.surface
+  return !!(surface && findByType(surface, 'Crud')) && !isPickerOverlay(ctx)
+}
+
+/**
  * El SELECTOR de un @Searchable abierto (el overlay superior, si lo es), listo para el oj-dialog
  * del selector: título, columnas (sin la columna-botón «Select»: elegir es pulsar la fila),
  * filas, búsqueda, paginación y — en un campo de varios valores — la selección múltiple y el
- * botón «Add selected». null si el overlay superior no es un selector.
+ * botón «Add selected». También un LISTADO en un overlay (isListingOverlay), con la misma
+ * maquinaria: en un Drawer se pinta DENTRO del drawer (`inDrawer`), en un Dialog en el diálogo
+ * del selector; su clic de fila es el `view` del listado con la fila, como en una página
+ * (`pickWithRow`), y `loaded` dice si su primera búsqueda ya contestó. null si el overlay
+ * superior no es ninguna de las dos cosas.
  */
 export function searchPickerOf(reg) {
   const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
   const ctx = id && reg.contexts ? reg.contexts[id] : null
+  if (isListingOverlay(ctx)) return listingOverlayOf(id, ctx)
   if (!isPickerOverlay(ctx)) return null
   const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
   const state = ctx.state || {}
@@ -363,6 +378,33 @@ export function searchPickerOf(reg) {
     pickActionId: SEARCHABLE_PICK_ACTION,
     addActionId: SEARCHABLE_ADD_ACTION,
     addLabel: (addButton && addButton.label) || 'Add selected',
+  }
+}
+
+/** Un listado incrustado en un overlay, con la forma del selector (searchPickerOf). */
+function listingOverlayOf(id, ctx) {
+  const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
+  const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+  return {
+    id,
+    title: ctx.title || '',
+    multi: false,
+    inDrawer: !isDialog,
+    loaded: !!(ctx.data && ctx.data.crud && ctx.data.crud.page),
+    searchable: !!listing.searchable,
+    searchText: (ctx.state || {}).searchText || '',
+    // the row's own action column is the click itself: no «View» button column
+    columns: (listing.columns || []).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
+    rows: listing.rows || [],
+    isEmpty: !!listing.isEmpty,
+    emptyText: listing.emptyStateMessage || 'No data.',
+    selectionMode: { row: 'none' },
+    pageSize: listing.pageSize || 20,
+    paging: listing.paging,
+    pickActionId: 'view',
+    pickWithRow: true,
+    addActionId: '',
+    addLabel: '',
   }
 }
 
