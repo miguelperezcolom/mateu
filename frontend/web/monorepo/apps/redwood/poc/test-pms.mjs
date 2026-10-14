@@ -22,7 +22,7 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
@@ -1635,6 +1635,23 @@ test('@Compact listing: the table takes JET display="grid" (dense rows), a plain
     data: { crud: { page: { content: [], totalElements: 0 } } } })
   assert.equal(listingBaseOf(ctxOf(true)).display, 'grid')
   assert.equal(listingBaseOf(ctxOf(false)).display, 'list')
+})
+
+atest('navigating to another screen starts it at its top — not on back/forward, a live reload, or embedded', async () => {
+  // leaving a long wizard from its last step, the reservation's page opened scrolled down, its top
+  // under the pinned header
+  const calls = []
+  const win = { scrollTo: (x, y) => calls.push([x, y]) }
+  assert.equal(scrollToTopOnNavigate({ event: { detail: { route: '/reservas/st-noah' } } }, win), true)
+  assert.deepEqual(calls, [[0, 0]])
+  // the browser restores its own position on back/forward and a deep link; a live reload keeps it
+  assert.equal(scrollToTopOnNavigate({ fromUrl: true }, win), false)
+  assert.equal(scrollToTopOnNavigate({ liveState: {} }, win), false)
+  // embedded in a host page the scroll is the host's
+  const { setEmbeddedHost } = await import('./embedded.mjs')
+  setEmbeddedHost({})
+  try { assert.equal(scrollToTopOnNavigate({}, win), false) } finally { setEmbeddedHost(null) }
+  assert.equal(calls.length, 1)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

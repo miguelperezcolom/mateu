@@ -15096,6 +15096,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // the mount read once at boot (loadMateuShell) for the chains.
 
   /** '' (root) or '/segment(s)' without a trailing slash. */
+
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
     if (!v || v === '/') return ''
@@ -15201,6 +15202,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!location) return ''
     return mountPath != null ? routeOfPath(location.pathname, mountPath) : (location.hash || '').replace(/^#/, '').split('?')[0]
   }
+
+  /**
+   * Another screen starts at its top. The window kept the scroll of the one before: leaving a long
+   * wizard from its last step (its buttons are at the bottom), the reservation's page opened scrolled
+   * down, its top under the pinned header. Not on back/forward or a deep link (fromUrl: the browser
+   * restores its own position), nor a live reload (the same screen, where it was), nor embedded in a
+   * host page (the scroll is the host's). True when it scrolled.
+   */
+  function scrollToTopOnNavigate({ fromUrl, liveState } = {}, win = typeof window !== 'undefined' ? window : null) {
+    if (fromUrl || liveState || isEmbedded() || !win || typeof win.scrollTo !== 'function') return false
+    win.scrollTo(0, 0)
+    return true
+  }
+
 
 
   // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
@@ -19969,6 +19984,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     routeOfPath,
     pathOfRoute,
     routeUnderMount,
+    scrollToTopOnNavigate,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,

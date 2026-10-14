@@ -21,6 +21,7 @@
 // the mount read once at boot (loadMateuShell) for the chains.
 
 /** '' (root) or '/segment(s)' without a trailing slash. */
+import { isEmbedded } from './embedded.mjs'
 export function normalizeMount(value) {
   let v = String(value == null ? '' : value).trim()
   if (!v || v === '/') return ''
@@ -126,3 +127,17 @@ export function currentRoutePathOf(location) {
   if (!location) return ''
   return mountPath != null ? routeOfPath(location.pathname, mountPath) : (location.hash || '').replace(/^#/, '').split('?')[0]
 }
+
+/**
+ * Another screen starts at its top. The window kept the scroll of the one before: leaving a long
+ * wizard from its last step (its buttons are at the bottom), the reservation's page opened scrolled
+ * down, its top under the pinned header. Not on back/forward or a deep link (fromUrl: the browser
+ * restores its own position), nor a live reload (the same screen, where it was), nor embedded in a
+ * host page (the scroll is the host's). True when it scrolled.
+ */
+export function scrollToTopOnNavigate({ fromUrl, liveState } = {}, win = typeof window !== 'undefined' ? window : null) {
+  if (fromUrl || liveState || isEmbedded() || !win || typeof win.scrollTo !== 'function') return false
+  win.scrollTo(0, 0)
+  return true
+}
+

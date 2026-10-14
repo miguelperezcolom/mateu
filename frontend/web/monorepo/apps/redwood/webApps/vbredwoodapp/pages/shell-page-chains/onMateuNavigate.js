@@ -53,6 +53,7 @@ define([
       try {
         return await this.navigate(context, params || {}, () => {
           $application.variables.mateuNavigating = true;
+          bridge.scrollToTopOnNavigate(params || {}); // another screen starts at its top
         });
       } catch (e) {
         // una respuesta que llegó cuando ya se había navegado a otra pantalla: muere en silencio
@@ -351,8 +352,6 @@ define([
       // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
       // $current — leer $application.variables en templates profundos no re-liga)
       vars.mateuIsland = bridge.islandVarsOf(islandContext, nestedBlocks);
-
-
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       assign(bridge.listHeaderVarsOf(listingSummary));
