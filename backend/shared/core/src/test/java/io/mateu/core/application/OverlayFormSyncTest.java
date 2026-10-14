@@ -16,8 +16,15 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Drawer;
 import io.mateu.uidl.data.EmbeddedView;
+import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.ModelViewComponent;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Listing;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,6 +59,24 @@ class OverlayFormSyncTest {
     }
   }
 
+  /** A container stereotype, by its simple name — what the wire type policy looks at. */
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Service {}
+
+  /**
+   * A listing built for a drawer — a container bean (a stereotype) that no routed page reaches: the
+   * client names it back on its first search, and only a type this process handed out is accepted.
+   */
+  @Service
+  public static class CompaniesListing implements Listing<CompaniesListing.Company> {
+    public record Company(String id, String name) {}
+
+    @Override
+    public ListingData<Company> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.of(new Company("ACME", "Acme"), new Company("GLOBEX", "Globex"));
+    }
+  }
+
   @SuppressWarnings("unused")
   @UI("/overlay-forms")
   public static class Host {
@@ -69,6 +94,11 @@ class OverlayFormSyncTest {
       return Drawer.builder()
           .content(new ModelViewComponent(new CancellationForm("79RE8S")))
           .build();
+    }
+
+    @Action
+    Drawer drawerWithListing() {
+      return Drawer.builder().content(new EmbeddedView(new CompaniesListing())).build();
     }
 
     @Action
@@ -131,5 +161,31 @@ class OverlayFormSyncTest {
   @Test
   void anEmbeddedViewCarriesItsStateWithoutGetters() {
     assertIsTheFormsOwnComponent(overlayContent("dialogWithEmbeddedView"));
+  }
+
+  @Test
+  void aListingInADrawerIsItsOwnComponentAndItsFirstSearchIsAccepted() {
+    var content = overlayContent("drawerWithListing");
+    assertThat(content).isInstanceOf(ServerSideComponentDto.class);
+    assertThat(((ServerSideComponentDto) content).serverSideType())
+        .isEqualTo(CompaniesListing.class.getName());
+    // the client names the listing back for its first page: a type this process handed out
+    UIIncrementDto increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/overlay-forms")
+                .consumedRoute("/overlay-forms")
+                .serverSideType(CompaniesListing.class.getName())
+                .actionId("search")
+                .initiatorComponentId("emb-1")
+                .componentState(Map.of("page", 0, "size", 10, "searchText", ""))
+                .build());
+    List<?> rows =
+        increment.fragments().stream()
+            .filter(f -> f.data() instanceof Map<?, ?> data && data.get("crud") != null)
+            .map(f -> ((ListingData<?>) ((Map<?, ?>) f.data()).get("crud")).page().content())
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no listing data in the search response"));
+    assertThat(rows).hasSize(2);
   }
 }

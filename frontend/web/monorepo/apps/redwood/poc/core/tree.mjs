@@ -1,5 +1,5 @@
 import { islandContentOf, subresourceIslandOf, editorNodeIds } from './content.mjs'
-import { fieldWidgetOf, isExtraLayoutField, plainValueOf } from './rowEditor.mjs'
+import { fieldWidgetOf, isExtraLayoutField, isListingOverlay, plainValueOf } from './rowEditor.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
 export const HOST_ID = '__root__'
@@ -388,6 +388,16 @@ export function overlayOf(reg) {
   for (const block of content) {
     for (const a of block.items) {
       if (a.isButtons) for (const btn of a.buttons || []) contentActionIds.add(btn.actionId)
+    }
+  }
+  // a LISTING in the overlay (a Listing embedded in a Drawer): the selector's projection draws it
+  // (searchPickerOf, inDrawer) — search, columns, pages, row click; walked here as a form, the
+  // crud came out as its title and a stray «Id» button
+  if (isListingOverlay(ctx)) {
+    return {
+      id, title: ctx.title || '', subtitle: ctx.subtitle || '', position: ctx.position || 'end',
+      width: ctx.width, state: ctx.state || {}, fields: [], sections: [], actions: [], content: [],
+      hasContent: false, isDialog, isListing: true, texts: [],
     }
   }
   return {

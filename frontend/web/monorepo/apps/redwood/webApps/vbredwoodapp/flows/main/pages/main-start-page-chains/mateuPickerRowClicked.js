@@ -1,13 +1,16 @@
 /* Clic en una fila del SELECTOR de un @Searchable: la elige (action-on-row-select, la fila en
  * _clickedRow) — en un campo de varios valores, la añade. La respuesta (value-changed /
- * data-changed / close-modal-requested) la aplica runMateuAction al formulario y cierra. */
+ * data-changed / close-modal-requested) la aplica runMateuAction al formulario y cierra.
+ * En un LISTADO incrustado en un overlay (pickWithRow) es el `view` del listado con la fila. */
 
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -37,7 +40,11 @@ define([
       }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
-        params: { actionId: picker.pickActionId, parameters: { _clickedRow: JSON.parse(JSON.stringify(row)) } },
+        // a listing's row click is its `view` with the row as it arrived (as on a page); a
+        // selector's pick carries the clicked row
+        params: { actionId: picker.pickActionId, parameters: picker.pickWithRow
+          ? bridge.rowAsArrived(JSON.parse(JSON.stringify(row)))
+          : { _clickedRow: JSON.parse(JSON.stringify(row)) } },
       });
     }
   }

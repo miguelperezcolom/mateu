@@ -5160,6 +5160,39 @@ test('@Searchable: codesearch abre el SELECTOR (no el modal de decisión): multi
   assert.equal(searchPickerOf(reduceContexts(reduceContexts(empty(), fx('load-listing')), fx('open-drawer'))), null)
 })
 
+test('a LISTING embedded in a drawer is drawn as a listing in the drawer (search, columns, pages, row click = view)', () => {
+  const column = (id, label) => ({ type: 'ClientSide', metadata: { type: 'GridColumn', id, label, dataType: 'string' } })
+  const surface = { type: 'ServerSide', id: 'emb', serverSideType: 'io.example.CompaniesListing', actions: [{ id: 'search' }, { id: 'view' }],
+    children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Companies listing' }, children: [
+      { type: 'ClientSide', metadata: { type: 'Crud', searchable: true, pageSize: 10, columns: [column('codigo', 'Código'), column('nombre', 'Nombre')] } }] }] }
+  const overlay = (type, data) => ({ contexts: {
+    [HOST_ID]: { tree: { type: 'ServerSide', children: [] }, state: {}, data: {} },
+    d1: { tree: { type: 'ClientSide', metadata: { type } }, surface, title: 'Empresa — a quién se factura', state: {}, data },
+  }, stack: ['d1'] })
+  // opened: not searched yet
+  const before = searchPickerOf(overlay('Drawer', {}))
+  assert.equal(before.inDrawer, true)
+  assert.equal(before.loaded, false)
+  assert.equal(before.searchable, true)
+  assert.equal(before.title, 'Empresa — a quién se factura')
+  assert.deepEqual(before.columns.map((c) => c.id), ['codigo', 'nombre'])
+  // the click on a row is the listing's `view` with the row, as on a page
+  assert.equal(before.pickActionId, 'view')
+  assert.equal(before.pickWithRow, true)
+  assert.equal(before.multi, false)
+  // its first page arrived
+  const after = searchPickerOf(overlay('Drawer', { crud: { page: { content: [{ id: 'ACME', codigo: 'ACME', nombre: 'Acme' }], totalElements: 1 } } }))
+  assert.equal(after.loaded, true)
+  assert.equal(after.rows.length, 1)
+  // the drawer does not walk it as a form (its title and a stray «Id» button)
+  const drawer = overlayOf(overlay('Drawer', {}))
+  assert.equal(drawer.isListing, true)
+  assert.equal(drawer.hasContent, false)
+  assert.deepEqual([drawer.fields, drawer.actions, drawer.texts], [[], [], []])
+  // in a dialog, the selector's dialog draws it
+  assert.equal(searchPickerOf(overlay('Dialog', {})).inDrawer, false)
+})
+
 test('@Searchable: la búsqueda del selector llena SUS filas (data-only a su id)', () => {
   let reg = searchableHost()
   reg = reduceContexts(reg, fx('searchable-multi-open'))
@@ -5413,9 +5446,10 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   // ordenar por la cabecera devuelve el id del wire; la selección manda la fila sin la celda
   assert.deepEqual(listingSortOf({ header: 'name__clipCell', direction: 'ascending' }, listing.sortFields)[0].field, 'name')
   assert.ok(selectedRowsOf(listing.rows, { all: true, keys: [], except: [] }).every((r) => !('name__clipCell' in r)))
-  // la plantilla existe en la tabla del listado (y en el picker), y app.css corta con elipsis
+  // la plantilla existe en la tabla del listado (y en el picker, y en el listado de un drawer), y
+  // app.css corta con elipsis
   const html = webApp('flows/main/pages/main-start-page.html')
-  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 2)
+  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 3)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
 })
 

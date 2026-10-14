@@ -349,7 +349,8 @@ define([
       // el selector de un @Searchable, que tiene su propio diálogo (#mateuPicker)
       const pickerNow = bridge.searchPickerOf(reg);
       const esModal = !!(overlayNow && overlayNow.isDialog) && !pickerNow;
-      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal && !pickerNow;
+      // a listing in a Drawer is drawn inside the drawer (pickerNow.inDrawer), not in the selector's dialog
+      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal && !(pickerNow && !pickerNow.inDrawer);
       if (esModal && !$page.variables.mateuModalOpen) {
         $page.variables.mateuModalOpen = true;
         await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'open' });
@@ -668,7 +669,14 @@ define([
       }
       // el selector recién abierto: el diálogo y la primera página de su listado (su `search`,
       // contra SU ServerSide — lo que en Vaadin hace el listado al montarse)
-      if (pickerNow && !$page.variables.mateuPickerOpen) {
+      // a listing in a drawer: its first page when the drawer opens (only then — a failed search is
+      // not asked again and again)
+      if (pickerNow && pickerNow.inDrawer) {
+        if (!pickerNow.loaded && (!overlayBefore || overlayBefore.id !== pickerNow.id)) {
+          $page.variables.mateuDrawerDraft = bridge.pickerSearchStateOf(pickerNow);
+          await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: 'search' } });
+        }
+      } else if (pickerNow && !$page.variables.mateuPickerOpen) {
         $page.variables.mateuPickerOpen = true;
         $page.variables.mateuPickerSelection = { all: false, keys: [], except: [] };
         await Actions.callComponentMethod(context, { selector: '#mateuPicker', method: 'open' });

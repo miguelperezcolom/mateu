@@ -170,6 +170,10 @@ public final class ComponentToFragmentDtoMapper {
       var page =
           mapComponentToDto(
               null, pageView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      // the client names this type back on every action of the embedded view (a listing's first
+      // search, a form's save): remember that this process handed it out — a view reachable from no
+      // routed page (a Listing built for a drawer) was refused by the wire type policy otherwise
+      io.mateu.core.application.security.WireTypes.emitted(view.getClass().getName());
       return new ServerSideComponentDto(
           UUID.randomUUID().toString(),
           view.getClass().getName(),

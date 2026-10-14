@@ -14819,6 +14819,48 @@
     <oj-bind-if test="[[ !!$application.variables.mateuDrawer.subtitle ]]">
       <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $application.variables.mateuDrawer.subtitle ]]"></oj-bind-text></div>
     </oj-bind-if>
+    <!-- a LISTING in the drawer (a Listing embedded in it): the selector's search, table and pages
+         (searchPickerOf, inDrawer), the row click is the listing's `view` -->
+    <oj-bind-if test="[[ !!$application.variables.mateuDrawer.isListing && !!$variables.mateuPicker && !!$variables.mateuPicker.inDrawer ]]">
+      <div class="oj-sm-margin-4x-top mateu-picker-body">
+        <oj-bind-if test="[[ $variables.mateuPicker.searchable ]]">
+          <oj-input-search class="oj-sm-margin-2x-bottom oj-form-control-full-width"
+            aria-label="Search"
+            value="[[ $variables.mateuPicker.searchText ]]"
+            on-oj-value-action="[[ $listeners.mateuPickerSearch ]]"></oj-input-search>
+        </oj-bind-if>
+        <oj-table id="mateuDrawerListTable" class="oj-sm-12 mateu-picker-table"
+          display="list"
+          data="[[ $variables.pickerADP ]]"
+          columns="[[ $variables.mateuPicker.columns ]]"
+          selection-mode="[[ $variables.mateuPicker.selectionMode ]]"
+          on-oj-row-action="[[ $listeners.mateuPickerRowAction ]]">
+          <template slot="noData">
+            <oj-sp-empty-state primary-text="[[ $variables.mateuPicker.emptyText ]]" secondary-text=""></oj-sp-empty-state>
+          </template>
+          <template slot="cellClip">
+            <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]" :data-mateu-hover="[[ ($current.data && $current.data.hover) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+          </template>
+        </oj-table>
+        <oj-bind-if test="[[ $variables.mateuPicker.paging.visible ]]">
+          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
+            <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $variables.mateuPicker.paging.rangeText ]]"></oj-bind-text></span>
+            <oj-button display="icons" chroming="borderless" data-page="prev"
+              disabled="[[ $variables.mateuPicker.paging.prevDisabled ]]"
+              on-oj-action="[[ $listeners.mateuPickerPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-left"></span>
+              <oj-bind-text value="[[ $variables.mateuPicker.paging.labels.prev ]]"></oj-bind-text>
+            </oj-button>
+            <oj-button display="icons" chroming="borderless" data-page="next"
+              disabled="[[ $variables.mateuPicker.paging.nextDisabled ]]"
+              on-oj-action="[[ $listeners.mateuPickerPage ]]">
+              <span slot="startIcon" class="oj-ux-ico-chevron-right"></span>
+              <oj-bind-text value="[[ $variables.mateuPicker.paging.labels.next ]]"></oj-bind-text>
+            </oj-button>
+          </div>
+        </oj-bind-if>
+      </div>
+    </oj-bind-if>
     <oj-bind-if test="[[ $application.variables.mateuDrawer.hasContent ]]">
       <div class="oj-sm-margin-4x-top">
         <oj-bind-for-each data="[[ $application.variables.mateuDrawer.content ]]">
