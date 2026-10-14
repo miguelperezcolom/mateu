@@ -3,6 +3,7 @@
 // the QR must DECODE back to the link (jsQR, a dev dependency of libs/mateu, when it is installed),
 // and the shell must carry the flag, the button and the dialog.
 // Run: node test-mobile.mjs (npm test runs it).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'

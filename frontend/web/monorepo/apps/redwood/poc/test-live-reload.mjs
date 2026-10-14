@@ -1,6 +1,7 @@
 // Live reload (modo dev del backend) en el renderer VB — corre en Node, SIN VB.
 // El contrato del stream es el de libs/mateu (liveReloadPolicy.ts): estos tests fijan que el port
 // decide lo mismo, que la carga lleva y repone lo tecleado, y que la shell lo cablea.
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

@@ -2,6 +2,7 @@
 // RecordMergeSyncTest / AppShellExtrasSyncTest, the web reference libs/mateu recordMerge.ts,
 // appShortcuts.ts, headerValues.ts, liveUpdates.ts and idleSession.ts (same rules, same storage keys).
 // Run: node test-e2.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

@@ -2,6 +2,7 @@
 // pageProjection.mjs (what to assign from the registry after a navigation or an action) and
 // actionPlan.mjs (what an action sends, and when it must not leave yet).
 // Run: node test-chains.mjs (npm test runs it).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
