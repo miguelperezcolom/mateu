@@ -366,6 +366,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     routeOfPath,
     pathOfRoute,
     routeUnderMount,
+    scrollToTopOnNavigate,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,
