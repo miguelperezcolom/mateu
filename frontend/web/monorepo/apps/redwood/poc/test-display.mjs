@@ -3,6 +3,7 @@
 // that had no Redwood view now projects to an atom, each atom carries what its template binds, and
 // an unknown type shows a placeholder instead of vanishing.
 // Run: node test-display.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

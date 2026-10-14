@@ -4,6 +4,7 @@
 // (stub fetch / stub `__restfetch__`), field options, REST actions, the editor canvas adopting the
 // catalogue, and status tones. The module state (catalogue, sample mode) is shared, so the tests
 // run ONE AFTER ANOTHER. Run: node test-sources.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,

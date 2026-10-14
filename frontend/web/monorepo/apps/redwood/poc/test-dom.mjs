@@ -6,6 +6,7 @@
 // captura. Lo puro de esos módulos ya lo fijan test.mjs/test-pms.mjs; aquí, lo que vive en los
 // listeners. El DOM es el mínimo de test-harness-dom.mjs.
 // Uso: node test-dom.mjs
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { installKeys, setShortcutContext, setKeysActionSink, setAccessKeysEnabled } from './keys.mjs'

@@ -4,6 +4,7 @@
 // warning (stay, Escape, sign out, another tab signing out, expiry) and the merge picks, custom
 // values, «only differences» and the merge action. The pure rules are pinned by test-e2.mjs.
 // Run: node test-e2-dom.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { makeDom, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { setShortcutContext } from './keys.mjs'

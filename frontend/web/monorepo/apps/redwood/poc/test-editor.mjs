@@ -3,6 +3,7 @@
 // it, and — only in that mode — what it paints carries the definition's node ids, so a click
 // selects the node it came from. A production page must never carry them.
 // Run: node test-editor.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

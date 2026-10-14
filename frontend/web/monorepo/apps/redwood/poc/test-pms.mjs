@@ -4,6 +4,7 @@
 // con la MISMA forma que emite el backend (record → DTO).
 // Uso: node test-pms.mjs   (npm test ejecuta test.mjs y este)
 
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

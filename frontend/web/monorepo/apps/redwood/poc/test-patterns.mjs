@@ -9,6 +9,7 @@
 //   A5 crud preSearch  → stands in for the results until the first search answers
 //   B  same-id drawer refreshes in place; disabled buttons; slot-template grids by area
 // Run: node test-patterns.mjs (npm test runs it with the other suites).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

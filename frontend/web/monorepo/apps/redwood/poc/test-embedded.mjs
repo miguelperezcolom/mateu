@@ -4,6 +4,7 @@
 // the package the generator builds. The last group runs the REAL generated bridge and the REAL
 // chains (the ones the standalone VB app runs) on that runtime, against wire fixtures.
 // Run: node test-embedded.mjs (npm test runs it).
+import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
