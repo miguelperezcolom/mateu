@@ -457,7 +457,7 @@ define([
       vars.mateuGop = gop;
       const gopOn = gop.on;
       // el form genérico se suprime: sus botones (@Button del form) van con los bloques
-      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions, { tree: host.tree }) : null) || [];
+      let hostContent = $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions, { tree: host.tree }) : null) || [];
       // los componentes web del contenido (el grafo de un proceso) los crea el bridge en su
       // hueco: VB no puede escribir una etiqueta cuyo nombre llega en los datos
       bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));
@@ -471,7 +471,7 @@ define([
       }
       if (notFoundNow) {
         // la página not-found es TODO el contenido: ni texto suelto ni bloques del host
-        $application.variables.mateuHostContent = [];
+        $application.variables.mateuHostContent = hostContent = [];
         $application.variables.mateuHostText = '';
       }
       if (hostBlocksRicos || notFoundNow) {
@@ -494,7 +494,7 @@ define([
         if (!wizardStep.sections.length) $application.variables.mateuFormFieldsList = [];
       }
       if (wizardH) {
-        $application.variables.mateuHostContent = wizardStep.content;
+        $application.variables.mateuHostContent = hostContent = wizardStep.content;
         bridge.mountElementsSoon(bridge.elementAtomsOf(wizardStep.content));
       }
 
@@ -568,11 +568,12 @@ define([
       vars.mateuPageHeaderTranslations = pageHeader.translations;
       // El toolbar de la Page se pinta UNA sola vez: manda la cabecera cuando se pinta
       vars.mateuFormActions = bridge.formActionsBesideHeader(vars.mateuFormActions, pageHeader.header, hostToolbar);
-      // …nor in the form's action row under rich content (withFormActions)
-      // (read ONCE: every read of a VB variable may hand back another proxy)
-      const hostContentNow = vars.mateuHostContent;
-      const contentBesideHeader = bridge.hostContentBesideHeader(hostContentNow, pageHeader.header, hostToolbar);
-      if (contentBesideHeader !== hostContentNow) vars.mateuHostContent = contentBesideHeader;
+      // …nor in the form's action row (withFormActions): on the projection, not the variable's proxies
+      const contentBesideHeader = bridge.hostContentBesideHeader(hostContent, pageHeader.header, hostToolbar);
+      if (contentBesideHeader !== hostContent) {
+        vars.mateuHostContent = contentBesideHeader;
+        bridge.mountElementsSoon(bridge.elementAtomsOf(contentBesideHeader)); // the repaint empties their holes
+      }
       // anatomía RDS (feedback 2026-07-26): en fixed/fullWidth el header va sobre una BANDA a
       // sangre y la tarjeta de contenido la SOLAPA (-40px); el solape no aplica con el template
       // iop (sus sticky internos calculan contra el flujo)
