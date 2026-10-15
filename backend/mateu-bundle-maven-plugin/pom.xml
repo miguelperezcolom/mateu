@@ -20,7 +20,7 @@
     <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 59.9%
          (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
     <jacoco.min.bundle.coverage>58%</jacoco.min.bundle.coverage>
-    <maven.version>3.9.9</maven.version>
+    <maven.version>3.10.0</maven.version>
   </properties>
 
   <dependencies>
@@ -33,7 +33,7 @@
     <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.13.1</version>
+      <version>3.16.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -88,7 +88,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.13.1</version>
+        <version>3.16.0</version>
         <configuration>
           <goalPrefix>mateu-bundle</goalPrefix>
         </configuration>
