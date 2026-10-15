@@ -312,6 +312,13 @@ test('@Tab: the buttons of a tab stay in it and the toolbar of the header is not
   assert.equal(hostContentBesideHeader(onlyToolbar, { showBand: true }, toolbar).filter((b) => b.fromFormActions).length, 0)
   assert.equal(hostContentBesideHeader(beside, { showBand: true }, toolbar), beside)
   assert.equal(hostContentBesideHeader(withRow, { showBand: false, showInline: false }, toolbar), withRow)
+  // every other block goes through as it came: a grid's data provider is a live object, and a
+  // JSON copy of it made oj-table throw «Invalid data type» (a process's Steps stayed empty)
+  const adp = new (class FakeDataProvider { fetchFirst() {} })()
+  const grid = { items: [{ isGrid: true, adp }] }
+  const besideGrid = hostContentBesideHeader([grid, ...withRow], { showBand: true }, toolbar)
+  assert.equal(besideGrid[0], grid)
+  assert.equal(besideGrid[0].items[0].adp, adp)
   // a tab switch re-projects without the row: it is carried over, once
   const credito = hostContentOf(host, null, { title: 'Caja', activeTabs: { '': 'tab-1' } })
   assert.ok(JSON.stringify(credito).includes('fijarLimite'))

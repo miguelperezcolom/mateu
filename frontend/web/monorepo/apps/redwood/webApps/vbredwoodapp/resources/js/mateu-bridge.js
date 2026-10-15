@@ -17827,8 +17827,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Same for the form's action row the rich host content carries (withFormActions): the toolbar
    *  the header paints is not drawn again under the content. A row left empty is dropped. The SAME
-   *  array comes back when there is nothing to drop (the chains then leave the variable alone); a
-   *  changed one is a plain copy — the chains pass the VB variable's proxies in. */
+   *  array comes back when there is nothing to drop (the chains then leave the variable alone).
+   *  Only the row is rebuilt: every other block goes through as it came, because a grid's atom
+   *  carries a live data provider (`adp`) that a JSON copy turns into a plain object — oj-table
+   *  then throws «Invalid data type» and the table stays empty. The chains pass in the content
+   *  they projected, not the VB variable's proxies. */
   function hostContentBesideHeader(blocks, header, hostToolbar) {
     if (!((header.showBand || header.showInline) && hostToolbar.length)) return blocks
     const inHeader = {}
@@ -17838,7 +17841,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .some((atom) => atom && atom.isButtons && (atom.buttons || []).some((b) => inHeader[b.actionId])))
     if (!dropsSome) return blocks
     const out = []
-    for (const block of JSON.parse(JSON.stringify(blocks))) {
+    for (const block of blocks) {
       if (!rowOf(block)) { out.push(block); continue }
       const items = (block.items || []).map((atom) => (atom && atom.isButtons
         ? { ...atom, buttons: (atom.buttons || []).filter((b) => !inHeader[b.actionId]) } : atom))

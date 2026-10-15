@@ -534,7 +534,9 @@ define([
       vars.mateuGop = gop2;
       const gopOn2 = gop2.on;
       // el form genérico se suprime: sus botones (@Button del form) van con los bloques
-      vars.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions, { tree: hostAfter.tree }) : null) || [];
+      // kept here too: the header's pass below works on the projection, not on the variable's proxies
+      let hostContent2 = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions, { tree: hostAfter.tree }) : null) || [];
+      vars.mateuHostContent = hostContent2;
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el
@@ -562,7 +564,8 @@ define([
         if (!wizardStep2.sections.length) vars.mateuFormFieldsList = [];
       }
       if (wizardH2) {
-        vars.mateuHostContent = wizardStep2.content;
+        hostContent2 = wizardStep2.content;
+        vars.mateuHostContent = hostContent2;
         bridge.mountElementsSoon(bridge.elementAtomsOf(wizardStep2.content));
       }
 
@@ -585,10 +588,12 @@ define([
       // El toolbar de la Page se pinta UNA sola vez: manda la cabecera cuando se pinta
       vars.mateuFormActions = bridge.formActionsBesideHeader(vars.mateuFormActions, pageHeader.header, hostToolbarA);
       // …nor in the form's action row under rich content (withFormActions)
-      // (read ONCE: every read of a VB variable may hand back another proxy)
-      const hostContentNow = vars.mateuHostContent;
-      const contentBesideHeader = bridge.hostContentBesideHeader(hostContentNow, pageHeader.header, hostToolbarA);
-      if (contentBesideHeader !== hostContentNow) vars.mateuHostContent = contentBesideHeader;
+      const contentBesideHeader = bridge.hostContentBesideHeader(hostContent2, pageHeader.header, hostToolbarA);
+      if (contentBesideHeader !== hostContent2) {
+        vars.mateuHostContent = contentBesideHeader;
+        // the repaint empties the element holes: mount their web components again
+        bridge.mountElementsSoon(bridge.elementAtomsOf(contentBesideHeader));
+      }
       // los márgenes del contenido se RECALCULAN también tras una acción (una acción
       // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
       // lógica que onMateuNavigate (sin recalcular, el -40px de solape de banda del
