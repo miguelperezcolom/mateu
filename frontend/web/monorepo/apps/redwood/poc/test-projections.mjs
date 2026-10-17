@@ -22,6 +22,7 @@ import {
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
+import { createChatProgress, classifyChatPayload, projectChatScreen, chatTurnOf, chatTurnTextOf, chatToolStepsOf, formatToolDuration, withAttachments, createSseParser } from './chat.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 
 let passed = 0
@@ -745,6 +746,95 @@ test('welcome: the trend tile becomes a full-width chart from either chart shape
   assert.equal(fromTrend.trend.items[0].series, chromeText('occupancy'), 'a TrendChart has no series name: the default')
   const empty = welcome({ type: 'ClientSide', metadata: { type: 'Chart' }, children: [] })
   assert.deepEqual(empty.trend.items, [])
+})
+
+// ── the AI chat panel: what the agent is doing, what it sees of the screen, what it answers ─────
+
+test('chat progress: the status line follows the agent — a running tool with its seconds, answering, a phase', () => {
+  const p = createChatProgress(0)
+  assert.equal(p.line(5000), null, 'an agent that reports nothing: the panel keeps its own «thinking»')
+  p.status({ phase: 'connecting', text: 'Connecting to 2 MCP servers…' }, 1000)
+  assert.equal(p.line(1500), 'Connecting to 2 MCP servers…', 'under a second: no counter')
+  assert.equal(p.line(4200), 'Connecting to 2 MCP servers… 3 s')
+  p.tool({ phase: 'start', name: 'findBookings', server: 'pms', kind: 'mcp' }, 5000)
+  p.tool({ phase: 'start' }, 5000)
+  assert.equal(p.line(7000), chromeText('chatCalling', { name: chromeText('chatTool') }) + ' 2 s', 'the latest running tool')
+  p.tool({ phase: 'end', ms: 850 }, 7000)
+  p.tool({ phase: 'end', name: 'findBookings', server: 'pms', ms: 1234, error: 'timeout' }, 8000)
+  p.tool({ phase: 'end', name: 'lateNoStart', ms: 3 }, 8000)
+  assert.deepEqual(chatToolStepsOf(p).map((s) => [s.title, s.icon, s.cls, s.time, s.error]), [
+    ['findBookings (pms)', '✕', 'mateu-chat-step failed', '1,2 s', 'timeout'],
+    [chromeText('chatTool'), '✓', 'mateu-chat-step done', '850 ms', ''],
+    ['lateNoStart', '✓', 'mateu-chat-step done', '3 ms', ''],
+  ])
+  assert.equal(p.line(9000), 'Connecting to 2 MCP servers… 1 s', 'no tool running: back to the phase')
+  p.text(9000)
+  assert.equal(p.line(20000), chromeText('chatAnswering'))
+  p.status({ phase: 'thinking' }, 21000)
+  assert.equal(p.line(21000), chromeText('chatThinking'))
+  assert.equal(formatToolDuration(NaN), '')
+  assert.deepEqual(chatToolStepsOf(null), [])
+})
+
+test('chat payloads: a delta, a status, a tool, an error (with or without message), another event, text', () => {
+  const ev = (event, detail) => JSON.stringify({ event, detail })
+  assert.deepEqual(classifyChatPayload(ev('agent-delta', { text: 'Hi' })), { kind: 'delta', text: 'Hi' })
+  assert.deepEqual(classifyChatPayload(ev('agent-delta', { text: 3 })), { kind: 'delta', text: '' })
+  assert.equal(classifyChatPayload(ev('agent-status', { phase: 'x' })).kind, 'status')
+  assert.equal(classifyChatPayload(ev('agent-tool', {})).kind, 'tool')
+  assert.deepEqual(classifyChatPayload(ev('agent-error', { message: 'quota' })), { kind: 'error', message: 'quota' })
+  assert.deepEqual(classifyChatPayload(ev('agent-error')), { kind: 'error', message: chromeText('chatAgentError') })
+  assert.deepEqual(classifyChatPayload(ev('open-screen', { route: '/x' })), { kind: 'event', event: 'open-screen', detail: { route: '/x' } })
+  assert.deepEqual(classifyChatPayload('plain'), { kind: 'text', text: 'plain' })
+  assert.deepEqual(classifyChatPayload(undefined), { kind: 'text', text: '' })
+  // the parser: CRLF split across pushes, a field without a colon, a comment
+  const parser = createSseParser()
+  assert.deepEqual(parser.push('data: a\r'), [])
+  assert.deepEqual(parser.push('\n\r\ndata\n: keep\nid: 7\n\n'), ['a', ''])
+  assert.deepEqual(parser.push('data: tail'), [])
+  assert.deepEqual(parser.end(), ['tail'])
+})
+
+test('chat: the screen the agent sees — fields once with values and options, actions with their button labels', () => {
+  const tree = { type: 'ServerSide', route: '/person', serverSideType: 'x.Person', actions: [{ id: 'save', shortcut: 'ctrl+s' }, { id: 'save' }, { id: 'reset' }, null],
+    children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Person', pageType: 'form' }, children: [
+      { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'name', required: true } },
+      { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'name', label: 'dup' } },
+      { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'kind', label: 'Kind', options: ['A', { value: 'B' }, { value: null }] } },
+      { type: 'ClientSide', metadata: { type: 'Button', actionId: 'save', label: 'Save' } },
+      { type: 'ClientSide', metadata: { type: 'Button', actionId: 'help' } },
+    ] }] }
+  const screen = projectChatScreen(tree, { name: 'Ada' })
+  assert.deepEqual(screen.fields, [
+    { id: 'name', label: 'name', dataType: 'string', stereotype: 'regular', required: true, readOnly: false, value: 'Ada' },
+    { id: 'kind', label: 'Kind', dataType: 'string', stereotype: 'regular', required: false, readOnly: false,
+      options: [{ value: 'A', label: 'A' }, { value: 'B', label: 'B' }, { value: null, label: '' }] },
+  ])
+  assert.deepEqual(screen.actions, [{ id: 'save', label: 'Save', shortcut: 'ctrl+s' }, { id: 'reset', label: 'reset' }, { id: 'help', label: 'help' }])
+  assert.deepEqual([screen.title, screen.route, screen.serverSideType, screen.pageType], ['Person', '/person', 'x.Person', 'form'])
+  assert.deepEqual(projectChatScreen(null), { fields: [], actions: [] })
+  const withSeed = projectChatScreen({ initialData: { a: 1 }, children: [{ metadata: { type: 'FormField', fieldId: 'a' } }] })
+  assert.equal(withSeed.fields[0].value, 1, 'without a state: the component\'s initial data')
+})
+
+test('chat turn: the body carries the screen when there is one, the menu only when asked, files as 📎', () => {
+  const registry = { contexts: { __root__: { state: { name: 'Ada' }, data: { d: 1 }, tree: { children: [{ metadata: { type: 'Page', title: 'P' } }] } } }, appData: { ad: 1 } }
+  const turn = chatTurnOf({ message: '  hi ', sessionId: 's', attachments: [{ name: 'a.pdf', path: '/f/a' }], registry, mcpUrl: '/mcp',
+    menu: [{ label: 'Home', route: '/home', submenus: [] }], sendMenu: true, origin: 'https://app.example' })
+  assert.equal(turn.shown, 'hi\n\n📎 a.pdf')
+  assert.equal(turn.body.screen.title, 'P')
+  assert.equal(turn.body.mcpUrl, 'https://app.example/mcp')
+  assert.ok(turn.body.menuContext)
+  assert.deepEqual(turn.body.context.appData, { ad: 1 })
+  const bare = chatTurnOf({ message: '', sessionId: 's', attachments: [{ name: 'x', path: 'p' }] })
+  assert.equal(bare.shown, '📎 x', 'only files: no empty line before them')
+  assert.equal(bare.body.screen, undefined)
+  assert.equal(chatTurnTextOf('', new Error('Failed to fetch')), '⚠️ ' + chromeText('chatNoAnswer'))
+  assert.equal(chatTurnTextOf('partial', new Error('Failed to fetch')), '⚠️ ' + chromeText('chatError', { message: 'Failed to fetch' }))
+  assert.equal(chatTurnTextOf('', 'boom'), '⚠️ ' + chromeText('chatError', { message: 'boom' }))
+  assert.equal(chatTurnTextOf('', null), '⚠️ ' + chromeText('chatEmptyAnswer'))
+  const files = withAttachments([{ name: 'a', path: '/a' }], [{ path: '/a' }, { path: '/b' }, null, { name: 'no path' }])
+  assert.deepEqual(files.map((f) => [f.name, f.path]), [['a', '/a'], ['/b', '/b']])
 })
 
 for (const { name, fn } of queue) {
