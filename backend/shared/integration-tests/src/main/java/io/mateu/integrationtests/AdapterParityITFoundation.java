@@ -596,7 +596,7 @@ public class AdapterParityITFoundation {
           .header("X-Content-Type-Options", equalTo("nosniff"))
           .body(
               equalTo(
-                  "{\"name\":\"Plain form\",\"shortName\":\"Plain form\",\"wireVersion\":\"3\","
+                  "{\"name\":\"Plain form\",\"shortName\":\"Plain form\",\"wireVersion\":\"3.0\","
                       + "\"minAppVersion\":\"1.0.0\"}"));
     }
   }
@@ -716,7 +716,7 @@ public class AdapterParityITFoundation {
                       + YAML_MOUNT_TITLE
                       + "\",\"shortName\":\""
                       + YAML_MOUNT_TITLE
-                      + "\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}"));
+                      + "\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}"));
     }
     given()
         .contentType(ContentType.JSON)
