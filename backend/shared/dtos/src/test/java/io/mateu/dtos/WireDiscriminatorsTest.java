@@ -53,10 +53,6 @@ class WireDiscriminatorsTest {
    */
   private static final java.util.Set<Class<?>> KNOWN_UNREGISTERED = java.util.Set.of(KPIDto.class);
 
-  /** {@code BreadcrumbDto} is registered but is no component (it travels inside Breadcrumbs). */
-  private static final java.util.Set<Class<?>> KNOWN_STRANGERS =
-      java.util.Set.of(BreadcrumbDto.class);
-
   private static Map<Class<?>, String> registered(Class<?> family) {
     var names = new HashMap<Class<?>, String>();
     for (var type : family.getAnnotation(JsonSubTypes.class).value()) {
@@ -93,7 +89,7 @@ class WireDiscriminatorsTest {
     var strangers = new ArrayList<String>();
     for (var family : FAMILIES) {
       registered(family).keySet().stream()
-          .filter(c -> !family.isAssignableFrom(c) && !KNOWN_STRANGERS.contains(c))
+          .filter(c -> !family.isAssignableFrom(c))
           .forEach(c -> strangers.add(family.getSimpleName() + " -> " + c.getSimpleName()));
     }
     assertThat(unregistered).as("implementations a renderer could never dispatch on").isEmpty();
