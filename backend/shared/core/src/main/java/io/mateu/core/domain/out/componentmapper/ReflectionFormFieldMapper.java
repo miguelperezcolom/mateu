@@ -96,6 +96,21 @@ public class ReflectionFormFieldMapper {
     var fieldType = field.getType();
     if (Callable.class.isAssignableFrom(field.getType())) {
       var value = getValue(field, instance);
+      // A Callable is COMPUTED, never typed into: a basic result (a String, a number, a date…) is
+      // shown as read-only text under the field's label. It used to be mapped by its value's
+      // class, which turned a Callable<String> into an empty editable text box — one that the
+      // state serializer rightly skips (a holder is not data), so nothing could ever read it.
+      // A Callable of a Component / an adapted type / an orchestrator keeps its island treatment.
+      if (value == null || isBasic(value.getClass())) {
+        return CustomField.builder()
+            .label(getLabel(field))
+            .content(
+                new io.mateu.uidl.data.Text(
+                    field.getName() + "-computed", value == null ? "" : String.valueOf(value)))
+            .colspan(getColspan(field, instance, httpRequest))
+            .style("width: 100%;")
+            .build();
+      }
       fieldType = value.getClass();
     }
     // A field whose type is a routed orchestrator (a MultiView subclass) is embedded as a mediator

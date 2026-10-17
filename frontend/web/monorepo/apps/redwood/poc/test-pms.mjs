@@ -182,7 +182,10 @@ test('DownloadFile: TODAS las chains que reducen un increment aplican sus efecto
     'pages/shell-page-chains/runMateuHeaderAction.js',
   ]) {
     const src = webApp(rel)
+    // a reduction the chain does itself, or one the bridge does for it (the bus delivery to the
+    // islands reduces their answers inside deliverBusEvents): both leave effects to apply
     const reduces = (src.match(/reg = bridge\.reduceContexts\(/g) || []).length
+      + (src.match(/await bridge\.deliverBusEvents\(/g) || []).length
     const applies = (src.match(/bridge\.applyDomEffects\(reg\.effects, reg\)/g) || []).length
     assert.ok(reduces > 0, rel)
     assert.equal(applies, reduces, `${rel}: ${reduces} reducciones, ${applies} applyDomEffects`)

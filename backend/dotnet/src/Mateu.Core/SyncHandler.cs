@@ -573,7 +573,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // tab kept the previous page's title and screen readers heard no navigation (Java's
         // CommandMapper does the same for a ComponentTreeSupplier / [AutoPage] bridge).
         var namesWindow = isPage || type.Find<TitleAttribute>() is not null;
-        return FragmentResponse(Title(type), view, rq,
+        return FragmentResponse(_mapper.TitleOf(type, instance), view, rq,
             LookupLabels(type, instance, instance), emitWindowTitle: namesWindow && !embedded);
     }
 
@@ -617,7 +617,16 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         var result = method.Invoke(instance, BuildArguments(method, rq));
         // An action returning a routed view (itself, or the model of the view's next state)
         // re-renders it in place — how a multi-state island switches between its states.
-        return IsRoutedViewResult(result) ? Render(result!.GetType(), result, rq) : MapResult(result, rq);
+        if (IsRoutedViewResult(result)) return Render(result!.GetType(), result, rq);
+        // The new state AND something else in one answer — `[this, PageBanners.Append(...)]`,
+        // `[this, Message]` (Java's FragmentListMapper over a returned Collection): the view
+        // re-renders and the rest maps as usual, merged in order.
+        if (result is IEnumerable<object> many && many.FirstOrDefault(IsRoutedViewResult) is { } view)
+            return Merge([
+                Render(view.GetType(), view, rq),
+                MapResult(many.Where(r => !ReferenceEquals(r, view)).ToList(), rq),
+            ]);
+        return MapResult(result, rq);
     }
 
     /// <summary>Fills a method's parameters from the action request: a row-click's _clickedRow
@@ -661,7 +670,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         Message msg => UIIncrementDto.Of(messages:
             [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration,
                 msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)]),
-        // Action-returned page banner(s) → UIIncrement.banners.
+        // Action-returned page banner(s) → UIIncrement.banners. A PageBanners carries the mode too
+        // (append accumulates over what earlier actions showed; replace, the default, swaps them).
+        PageBanners pbs => UIIncrementDto.Of(banners: pbs.Banners.Select(BannerOf).Cast<object>().ToList(),
+            appendBanners: pbs.Appending),
         PageBanner b => UIIncrementDto.Of(banners: [BannerOf(b)]),
         IEnumerable<PageBanner> bs => UIIncrementDto.Of(banners: bs.Select(BannerOf).Cast<object>().ToList()),
         // An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
@@ -697,7 +709,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             commands: all.SelectMany(i => i.Commands),
             messages: all.SelectMany(i => i.Messages),
             fragments: all.SelectMany(i => i.Fragments),
-            banners: all.SelectMany(i => i.Banners));
+            banners: all.SelectMany(i => i.Banners),
+            // a PageBanners.Append inside a list (the new state AND appended banners, in one
+            // answer) keeps its flag — it used to be dropped there (mirrors Java's MessageMapper)
+            appendBanners: all.Any(i => i.AppendBanners));
     }
 
     /// <summary>Lowers a v0 flow Step to the wire command it produces (mirrors Java Step.toCommand).</summary>

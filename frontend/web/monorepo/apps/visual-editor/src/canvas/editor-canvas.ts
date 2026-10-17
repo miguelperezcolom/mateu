@@ -6,6 +6,8 @@ import { parse } from 'yaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer, presentSlots, scalarProps } from '../model/pageModel'
+import { resolveForCanvas } from '../model/canvasReferences'
+import type { ProjectFile } from '../model/projectIndex'
 import type { CanvasRendererId } from './canvasRenderer'
 import './redwood-frame'
 import type { RedwoodFrame } from './redwood-frame'
@@ -121,6 +123,8 @@ export class EditorCanvas extends LitElement {
     @property({ type: Number }) frameWidth = 0
     /** The project's images: a page naming one shows it from where the host serves it. */
     @property({ attribute: false }) images: readonly ProjectImage[] = []
+    /** The mount's files: what the OFFLINE render resolves partials, component refs and `${i18n.…}` from. */
+    @property({ attribute: false }) files: ProjectFile[] = []
 
     @state() private error?: string
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
@@ -321,8 +325,8 @@ export class EditorCanvas extends LitElement {
 
     updated(changed: PropertyValues) {
         // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
-        if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.lastYaml = ''
-        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images')) this.schedulePreview()
+        if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('files')) this.lastYaml = ''
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images') || changed.has('files')) this.schedulePreview()
         if (changed.has('selectedPath')) {
             this.applyHighlight()
             // Selected from Layers (or by undo, or by adding a node): bring it into view. A node
@@ -404,7 +408,9 @@ export class EditorCanvas extends LitElement {
      */
     private renderClientSide(yaml: string, fallback = false): boolean {
         try {
-            const tree = parse(yaml) as Record<string, unknown>
+            // partials, component refs and ${i18n.…} resolved from the project's files, as Play does —
+            // the inlined roots keep the reference's ve- id, so a partial stays one selectable node
+            const tree = resolveForCanvas(parse(yaml), this.files) as Record<string, unknown>
             const spec: DefinitionSpec = this.doc?.modelView
                 ? { modelView: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
                 : (tree as DefinitionSpec)

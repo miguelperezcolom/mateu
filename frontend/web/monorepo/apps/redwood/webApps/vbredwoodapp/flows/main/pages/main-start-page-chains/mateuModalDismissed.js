@@ -18,11 +18,14 @@ define([
     async run(context) {
       const { $application, $page } = context;
 
+      // same guard as the drawer's: a close the chain asked for (the dialog is already off the stack)
+      // discards nothing; the user's ✕/Esc pops the dialog — and the drawer under it stays
       const top = bridge.overlayOf($application.variables.mateuRegistry);
-      if (top && top.isDialog) {
+      if ($page.variables.mateuModalOpen && top && top.isDialog) {
         $application.variables.mateuRegistry = bridge.dismissOverlay($application.variables.mateuRegistry);
       }
       $page.variables.mateuModalOpen = false;
+      $application.variables.mateuDialog = bridge.EMPTY_OVERLAY;
     }
   }
 

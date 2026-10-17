@@ -926,7 +926,8 @@
           "parameters": {
             "actionId": "{{ $event.actionId }}",
             "parameters": "{{ $event.parameters }}",
-            "fromNested": "{{ $event.fromNested }}"
+            "fromNested": "{{ $event.fromNested }}",
+            "surfaceId": "{{ $event.surfaceId }}"
           },
           "chain": "dispatchHostBlockAction"
         }

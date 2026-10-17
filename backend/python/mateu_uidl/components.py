@@ -218,6 +218,62 @@ class Button(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: A route this button NAVIGATES to on the client instead of running an action — the button
+    #: form of a menu link (Java: a Button whose actionable is a RouteLink; YAML
+    #: ``actionable: {type: RouteLink, route: products}``). Relative to the mount; may carry
+    #: ``${state.x}`` templates the browser interpolates. None = the button runs ``action_id``.
+    route: str | None = None
+
+
+@dataclass(frozen=True)
+class ListingColumn:
+    """A column of a :class:`ListingComponent` (YAML ``type: GridColumn``): the row field it
+    shows, how it reads and whether its header sorts (Java's data.GridColumn as a listing column)."""
+
+    id: str = ""
+    label: str = ""
+    #: string | integer | number | boolean | date | money | status…; None = string.
+    data_type: str | None = None
+    stereotype: str | None = None
+    sortable: bool = False
+    #: The column holding the row's identity (what a row route / selection keys on).
+    identifier: bool = False
+    #: A fixed CSS width; None = size to content.
+    width: str | None = None
+    align: str | None = None
+    #: A status column's badge tone per value (success | warning | danger | info | neutral).
+    tones: dict[str, str] | None = None
+
+
+@dataclass(frozen=True)
+class ListingComponent(Component):
+    """A listing authored as DATA (Java's fluent ``Listing``, YAML ``type: Listing``): its rows
+    come from a REST source the renderer fetches CLIENT-SIDE (``rows_source``, a
+    :class:`~mateu_uidl.rest_sources.RestDataSource` by catalogue ``ref`` or inline), shown in the
+    declared ``columns``, with the smart search bar's ``filters``. No view model behind it — the
+    yaml starter's products page. (Not the class-based :class:`~mateu_uidl.listing.Listing`, which
+    the server searches.)"""
+
+    title: str | None = None
+    subtitle: str | None = None
+    #: Show the free-text search box (Java's fluent default: off).
+    searchable: bool = False
+    #: Rows per page; 0 = the renderer's 10.
+    page_size: int = 0
+    columns: tuple[ListingColumn, ...] = ()
+    filters: tuple[FormField, ...] = ()
+    rows_source: Any = None
+    #: auto | table | list | cards | masterDetail | tree; None = auto.
+    grid_layout: str | None = None
+    compact: bool = False
+    empty_state_message: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "columns", tuple(self.columns))
+        object.__setattr__(self, "filters", tuple(self.filters))
 
 
 @dataclass(frozen=True)

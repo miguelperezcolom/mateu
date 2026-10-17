@@ -318,7 +318,11 @@ what a Redwood app shows, at the canvas's width, and the page is still editable:
 
 The page comes from the same place as on the Vaadin canvas: your backend's `__preview__` when you
 have one, otherwise the expansion in the browser. A YAML-only project with no backend running
-therefore previews in Redwood too. The canvas sends the result to the Redwood app, and the app
+therefore previews in Redwood too. The browser expansion resolves what the server would: a
+`type: Partial` or `type: ComponentRef` is inlined from the mount's files and a `${i18n.key}` is
+translated from its catalogues (your browser's language, then `en`, then the first declared) — on
+the canvas a partial is one selectable node, the reference, since the partial's own file is edited
+as itself. The canvas sends the result to the Redwood app, and the app
 renders it without asking a server for anything. Its renderer marks each element it paints with the
 component it came from, and that is how a click selects the right node. The marks exist only in the
 editor; an app in production never carries them.
@@ -529,7 +533,7 @@ A link opens the editor at the page's own address. To point links at a hosted ed
 
 Two files make a mount designable with **no backend and no API**:
 
-- **`types.yaml`** (`type: Types`) — the [field types](/java-ui-definition/field-types/), the domain
+- **`types.yaml`** (`type: Types`; any `specs/ui` file with that header is read too) — the [field types](/java-ui-definition/field-types/), the domain
   vocabulary. It opens in a YAML editor checked against `types-schema.json` (unknown keys, data
   types, stereotypes, tones, duplicate ids) with a summary of the types it declares. On a page, a
   `FormField` or `GridColumn` picks its **`fieldType`** from a list of the catalogue's ids (or you type

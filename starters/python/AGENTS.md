@@ -26,13 +26,17 @@ test_starter.py         smoke test: the shell, the home page and the CRUD answer
 ```bash
 pip install -r requirements.txt
 uvicorn main:app --port 8080          # sync API on http://localhost:8080
+MATEU_UI=mateu-vaadin-<version>.jar uvicorn main:app --port 8080   # + the web page at http://localhost:8080
 pytest -q
 ```
 
-The server answers the sync API only; it serves no web page itself. To see the app in a browser,
-run a renderer against it — e.g. from a Mateu checkout, `MATEU_BACKEND=http://localhost:8080 npm run dev`
-in `frontend/web/monorepo/apps/vaadin` (its dev server proxies `/mateu` to the backend), or the
-React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8080`.
+To see the app in a browser, point `MATEU_UI` (or `add_mateu(..., ui=...)`) at the web renderer:
+the `io.mateu:mateu-vaadin` jar of your Mateu version from Maven Central
+(`curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/<version>/mateu-vaadin-<version>.jar`),
+or its extracted `static/` folder. The server then serves the page and its assets like a Java app.
+Without it the server answers the sync API only — run a renderer against it instead, e.g. from a
+Mateu checkout `MATEU_BACKEND=http://localhost:8080 npm run dev` in `frontend/web/monorepo/apps/vaadin`,
+or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8080`.
 
 ## Rules to respect
 

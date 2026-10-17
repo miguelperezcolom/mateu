@@ -10,6 +10,11 @@ public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetada
     /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
     /// dialog's <c>_forceOverwrite</c>).</summary>
     public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
+
+    /// <summary>A route this button navigates to on the client instead of running an action (Java's
+    /// ButtonDto.route — a Button whose actionable is a RouteLink). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Route { get; init; }
 }
 
 public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;

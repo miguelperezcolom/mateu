@@ -111,7 +111,7 @@ public sealed partial class SyncHandler
 
     private UIIncrementDto CapabilityEntity(
         CapabilityProfile profile, Type formType, object entity, string mode, string route, RunActionRqDto rq) =>
-        FragmentResponse(Title(profile.ListingType),
+        FragmentResponse(_mapper.TitleOf(formType, entity),
             _mapper.MapCapabilityForm(profile.ListingType, formType, entity,
                 readOnly: mode == "view", CapabilityToolbar(profile, mode), route), rq);
 

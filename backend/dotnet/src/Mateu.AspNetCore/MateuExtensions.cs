@@ -80,7 +80,14 @@ public static class MateuExtensions
         return services;
     }
 
-    public static void MapMateu(this WebApplication app, string baseUrl = "")
+    /// <summary>Maps the Mateu endpoints at <paramref name="baseUrl"/> (the mount; "" = the root).
+    /// With <paramref name="ui"/> — the <c>static/</c> folder of the <c>io.mateu:mateu-vaadin</c> (or
+    /// <c>mateu-redwood</c>) jar, or the jar itself; default: the <c>MATEU_UI</c> environment variable —
+    /// the server also serves that web renderer's page, like a Java app does: the page answers the
+    /// mount and every deep link under it, the renderer's assets are served at the origin root, and
+    /// nothing under <c>/mateu</c> is ever answered with the page. The app's own endpoints keep
+    /// winning: the page only answers what nothing else did. Neither → the sync API only.</summary>
+    public static void MapMateu(this WebApplication app, string baseUrl = "", string? ui = null)
     {
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
         // The handler gets the MOUNT path, never an absolute origin (Java's controllers pass their
@@ -183,6 +190,56 @@ public static class MateuExtensions
         // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
         var options = app.Services.GetService<MateuOptions>();
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+
+        if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, renderer);
+    }
+
+    /// <summary>Serves a web renderer's page and assets for whatever the app itself did not answer —
+    /// the middleware twin of Java's index controller + <c>SpaRedirectFilter</c>. It runs AFTER the
+    /// pipeline and steps in only when a GET/HEAD ended as a 404 nobody wrote (so the app's own
+    /// endpoints, and the sync API, always win); a streamed response is never touched. What it answers:
+    /// a file of the renderer at the origin root (<c>/assets/…</c>), the renderer's page at the mount
+    /// and at any deep link under it that accepts HTML and names no file; nothing under <c>/mateu</c>.</summary>
+    private static void ServeUi(WebApplication app, string prefix, RendererFiles renderer)
+    {
+        var appType = app.Services.GetRequiredService<MateuRegistry>().AppType;
+        var title = appType is null
+            ? "Mateu"
+            : appType.Find<AppAttribute>()?.Title ?? appType.Find<TitleAttribute>()?.Value ?? appType.Name;
+        var debug = app.Environment.IsDevelopment();
+        app.Logger.LogInformation("Mateu UI: serving {Renderer} at {Mount}", renderer.Location, prefix.Length == 0 ? "/" : prefix);
+        app.Use(async (ctx, next) =>
+        {
+            await next(ctx);
+            if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
+            if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug);
+            if (answer is null) return;
+            var (contentType, body, cacheControl) = answer.Value;
+            ctx.Response.StatusCode = StatusCodes.Status200OK;
+            ctx.Response.ContentType = contentType;
+            ctx.Response.ContentLength = body.Length;
+            if (cacheControl is not null) ctx.Response.Headers.CacheControl = cacheControl;
+            if (!HttpMethods.IsHead(ctx.Request.Method)) await ctx.Response.Body.WriteAsync(body, ctx.RequestAborted);
+        });
+    }
+
+    /// <summary>(content type, body, cache control) for what the UI middleware serves at <paramref name="path"/>,
+    /// or null when the request is not its to answer.</summary>
+    internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
+        string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug)
+    {
+        var last = path[(path.LastIndexOf('/') + 1)..];
+        if (path != "/" && last.Contains('.'))
+        {
+            var file = renderer.Read(path);
+            return file is null ? null : (UiPage.ContentTypeOf(path), file, UiPage.CacheControlFor(path));
+        }
+        var isMount = path == (prefix.Length == 0 ? "/" : prefix) || path == prefix + "/";
+        if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
+        if (!UiPage.AcceptsHtml(accept)) return null;
+        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug);
+        return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
 
     private static void MapMcpEndpoint(WebApplication app, string prefix)

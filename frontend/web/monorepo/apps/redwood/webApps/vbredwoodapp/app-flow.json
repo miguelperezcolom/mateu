@@ -430,6 +430,24 @@
       },
       "description": "CONTENIDO vivo del foldout (bloques por panel + subt\u00edtulos): se reasigna en cada repaint del host; la ESTRUCTURA (mateuFoldout) se estampa una sola vez \u2014 el motor del foldout come los anclajes del for-each de paneles al re-stampar"
     },
+    "mateuToc": {
+      "type": "any",
+      "defaultValue": { "on": false, "entries": [], "cls": "" },
+      "description": "@Toc: the sticky sections index of the page (bridge.tocOf) — on, its entries (title, index, key) and the content container's class"
+    },
+    "mateuDialog": {
+      "type": "any",
+      "defaultValue": {
+        "title": "",
+        "fields": [],
+        "sections": [],
+        "actions": [],
+        "blocks": [],
+        "state": {},
+        "texts": []
+      },
+      "description": "proyecci\u00f3n del Dialog en lo alto del stack (el modal #mateuModal); un Dialog abierto sobre un Drawer deja el drawer (mateuDrawer) donde est\u00e1"
+    },
     "mateuDrawer": {
       "type": "any",
       "defaultValue": {
@@ -935,7 +953,8 @@
       "payloadType": {
         "actionId": "string",
         "parameters": "any",
-        "fromNested": "boolean"
+        "fromNested": "boolean",
+        "surfaceId": "string"
       }
     }
   }

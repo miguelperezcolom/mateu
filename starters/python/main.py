@@ -4,7 +4,8 @@
     uvicorn main:app --port 8080
 
 Serves POST /mateu/v3/sync/{route}: the same wire the Java and C# backends answer, so any Mateu
-renderer renders this app.
+renderer renders this app. With MATEU_UI=<the io.mateu:mateu-vaadin jar, or its static/ folder> it
+also serves the web page at http://localhost:8080 (add_mateu(..., ui=...) does the same).
 """
 
 from fastapi import FastAPI

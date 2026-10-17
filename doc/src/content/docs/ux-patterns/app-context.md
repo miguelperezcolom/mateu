@@ -67,6 +67,13 @@ public Message greet(HttpRequest httpRequest) {
 }
 ```
 
+**Nothing is selected until the user picks.** A fresh browser has no context: the header picker
+is empty and `appContext(...)` is `null`, so a screen that needs one shows its unscoped (or empty)
+state rather than silently working on the FIRST hotel of the list — a preselected option that the
+user never chose would scope every search, save and export to it. Pick a default yourself when one
+is right (seed it in the `@UI` class's field initializer, or let the app's `HomeRouteSupplier`
+redirect to a chooser). This is the contract of every renderer (decided 2026-10-17).
+
 An `AutoCrud` typically uses it inside `store()`/`search(...)` to scope the data — the widget
 stays fully decoupled from the screens.
 

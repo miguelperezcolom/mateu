@@ -611,7 +611,8 @@ export class MateuVisualEditor extends LitElement {
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
-                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}></editor-canvas>
+                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}
+                                           .files=${this.mountFiles()}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}
                                 .images=${this.images} ?canAddImage=${!!this.host.addImage} .renderer=${this.projectRenderer}
                                 .page=${this.selectedPath && this.selectedPath.length === 0 && hasPageSettings(this.doc) ? { pageType: pageTypeOf(this.doc) } : undefined}

@@ -2,7 +2,6 @@ package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
 import io.mateu.ijp.api.text
@@ -53,7 +52,9 @@ fun renderPlanningBoard(r: ComponentRenderer, metadata: JsonNode): JComponent {
             }
         },
     )
-    val scroll = JBScrollPane(canvas)
+    // Content-height: the board keeps its lanes on a long page and the PAGE scrolls (the plain
+    // JBScrollPane's minimum is its scroll bars, so it was squeezed to a header strip).
+    val scroll = ContentHeightScrollPane(canvas)
     scroll.border = JBUI.Borders.empty()
     return scroll
 }

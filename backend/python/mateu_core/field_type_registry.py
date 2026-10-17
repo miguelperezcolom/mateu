@@ -35,6 +35,7 @@ from mateu_uidl.field_types import ATTRIBUTE_KEYS, FieldTypeCatalogSupplier, Fie
 log = logging.getLogger("mateu.field_types")
 
 FILE = "types.yaml"
+TYPE = "Types"
 
 #: The authored key a field or a column references a type by.
 KEY = "fieldType"
@@ -111,7 +112,31 @@ class FieldTypeRegistry:
         return list(by_id.values())
 
     def authored(self) -> list[FieldTypeEntry]:
-        path = self._file or (self._dir / FILE)
+        """``<dir>/types.yaml`` (with or without its ``type: Types`` header) and every other YAML
+        under the specs directory declaring ``type: Types``, in path order — a later file's entry
+        replaces an earlier one of the same id, exactly like the action catalogue. A ``file=``
+        given to the constructor is read alone. Before 2026-10-17 only the conventional name was
+        read, so a Types file created under another name was silently ignored."""
+        if self._file is not None:
+            return self._read(self._file)
+        if not self._dir.is_dir():
+            return []
+        conventional = self._dir / FILE
+        files = [conventional] if conventional.is_file() else []
+        for path in sorted(p for p in self._dir.rglob("*") if p.suffix in (".yaml", ".yml")):
+            if path.resolve() == conventional.resolve():
+                continue
+            root = _load(path)
+            if isinstance(root, dict) and root.get("type") == TYPE:
+                files.append(path)
+        by_id: dict[str, FieldTypeEntry] = {}
+        for path in files:
+            for entry in self._read(path):
+                by_id[entry.id] = entry
+        return list(by_id.values())
+
+    @staticmethod
+    def _read(path: Path) -> list[FieldTypeEntry]:
         if not path.is_file():
             return []
         try:
@@ -221,3 +246,10 @@ __all__ = [
     "merged_over",
     "resolve_field_types",
 ]
+
+
+def _load(path: Path) -> Any:
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - an unreadable file is simply not a Types file
+        return None

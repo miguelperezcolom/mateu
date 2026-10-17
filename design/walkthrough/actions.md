@@ -40,10 +40,10 @@ CI only — it could not be built offline here); **YAML** = definition-only page
 | `URI` / `UICommand.navigateTo` → navigation | ✅ actions-lab | ✅ flow `Navigate` | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | ✅ flow (yaml-actions, no round trip) |
 | Another object → the next view | ✅ actions-lab | N/A | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `Message.undoable` → Undo runs the undo action with its parameters | 🔧 bee171948 (Undo dispatched on the component HOST, past its listener) + 8b304a096 (label hard-coded "Deshacer" in Java/.NET/Python) | N/A | ✅ renderer/actions | 🔧 8b304a096 | 🔧 8b304a096 | ⏳ | ⏳ | N/A |
-| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | ⏳ | ❌ no `PageBanners` (append) API in the port — owner decision | ⏳ | ⏳ | N/A |
-| A `Collection` mixing the new state with a toast / an event | ✅ actions-lab (state+event), 🔧 state+toast/banners (bee171948) | N/A | ✅ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | 🔧 batch 3: `PageBanners.Replace/Append` (`PageBannersTests`, `Page_banners_replace_and_append`) | ✅ `PageBanners.replace/append` | ⏳ | ⏳ | N/A |
+| A `Collection` mixing the new state with a toast / an event | ✅ actions-lab (state+event), 🔧 state+toast/banners (bee171948) | N/A | ✅ | ✅ (`this` in a list re-renders + the rest merges — `PageBannersTests`) | ⏳ | ⏳ | ⏳ | N/A |
 | Commands: `announce`/`announceAssertive`, `pushStateToHistory`, `runAction`, `markAsDirty`/`markAsClean`, `downloadFile` | ✅ actions-lab | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| `UserFacingException` as written; anything else "Something went wrong … Reference: id", internals never shown | ✅ actions-lab | ⏳ | ✅ renderer/actions | ✅ same texts (code compared) | ✅ same texts (code compared; its error toast has duration 0 = sticky, Java's 3000 — see ❌ list) | ⏳ | ⏳ | N/A |
+| `UserFacingException` as written; anything else "Something went wrong … Reference: id", internals never shown | ✅ actions-lab | ⏳ | ✅ renderer/actions | ✅ same texts (code compared) | ✅ same texts (code compared; sticky error toasts are the contract everywhere since batch 1, decision 6) | ⏳ | ⏳ | N/A |
 | `LongTask` / SSE streaming | ✅ existing long-task spec (MVC, WebFlux, Quarkus, Helidon) | N/A | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `Dialog` / `Drawer` returned | ✅ overlay-lab | ⏳ | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `ConfirmDialog` returned → picked button's action runs | 🔧 bee171948 (replaced the page with a closed dialog = blank page; crashed with no content; ids not advertised) | ⏳ | 🔧 10cc12091 (an empty drawer with no buttons) | N/A (no ConfirmDialog in the ports) | N/A (same) | ⏳ | ⏳ | N/A |
@@ -59,7 +59,7 @@ CI only — it could not be built offline here); **YAML** = definition-only page
 | OnError | 🔧 (advertisement) | ⏳ | 🔧 10cc12091 (not implemented at all) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | OnCustomEvent | 🔧 (advertisement) | ⏳ | ✅ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `@AutoSave` | ✅ autosave-lab | ⏳ | 🔧 37d1a612b (only display-block inputs honored it; a generic form never saved) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| `@SubscribeTo` scopes DOCUMENT / COMPONENT (`from`) / SELF across islands | 🔧 bee171948 + a3213cdeb (an island's `State` answer was undone by its host's re-render — order-dependent, reproduced on WebFlux) | N/A | ❌ VB does not paint islands held by a form's component fields (renderer/actions marks it fixme) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| `@SubscribeTo` scopes DOCUMENT / COMPONENT (`from`) / SELF across islands | 🔧 bee171948 + a3213cdeb (an island's `State` answer was undone by its host's re-render — order-dependent, reproduced on WebFlux) | N/A | 🔧 #15 inline islands are surfaces of their own; the bus reaches every surface by scope (renderer/actions runs green on VB) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `closeModal(event, payload)` → host `@SubscribeTo` receives the result | 🔧 (advertisement) | ⏳ | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 
 ## Overlays
@@ -68,7 +68,7 @@ CI only — it could not be built offline here); **YAML** = definition-only page
 |---|---|---|---|---|---|---|---|---|
 | Drawer header: subtitle, size, maximize, peer navigation | ✅ overlay-lab | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | Bottom collapsible drawer; modeless drawer | ✅ overlay-lab | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
-| Dialog over a drawer closes alone; Esc closes only the top one | 🔧 a3213cdeb (with the focus outside the dialog, Esc closed the DRAWER under it) | ⏳ | ❌ closing the dialog leaves the drawer hidden (fixme in renderer/actions) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| Dialog over a drawer closes alone; Esc closes only the top one | 🔧 a3213cdeb (with the focus outside the dialog, Esc closed the DRAWER under it) | ⏳ | 🔧 #16 the dialog no longer takes the drawer's place in the stack nor closes its panel (renderer/actions runs green on VB) | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 
 ## Actions as data (YAML) and the action catalogue
 
@@ -110,15 +110,16 @@ Cells: ✅ 54 · 🔧 22 · ❌ 3 · N/A 38 · ⏳ 170 (React Native and Intelli
 12. A definition-only route under a plain `@UI("")` root rendered the root page on a deep link (ef7d9457e).
 13. A menu Rule leaf's RunAction never reached the app (4e69d42b8).
 14. Python `@subscribe_to` put the snake_case name on the wire; the guard only runs camelCase ids (766ce88d8).
+15. VB: a ServerSide held by a form's component field was not painted at all (the page fell back to its generic form, which has no place for it) and, read through VB's proxies, the page's own root was taken for an island. They are INLINE islands now: registered from the node they arrive as (no load), painted in their hole like a `@Subresource`, their actions posted with the island's class, and the bus events delivered to the host and the other islands by `@SubscribeTo` scope (`poc/transport.mjs` `registerInlineIsland` / `deliverBusEvents`; branch `pending/redwood`).
+16. VB: a Dialog opened over a Drawer replaced it in the overlay stack — both arrive with the filler id `fieldId` and the reducer took the dialog for a refresh of the open overlay — and the drawer panel was closed under the modal (one variable served both). The refresh rule needs a real id of the same kind; the drawer panel shows the top-most drawer, the modal the dialog over it (`overlayVarsOf`; branch `pending/redwood`).
 
 ## ❌ — owner decision needed
 
-- **VB: islands held by a form's component fields are not painted** (EventsLab): the shell paints a
-  form page through its generic form and drops `CustomField`s holding a `ServerSide`. Needs the
-  island machinery (`runMateuIslandAction`) generalised to arbitrary islands — a larger change.
-- **VB: closing a dialog opened over a drawer leaves the drawer hidden** (the drawer is hidden
-  while the modal is open and is not shown again after the modal's `CloseModal`).
-- **Python has no `PageBanners` (replace/append)** — only `PageBanner` / lists; add it to the port?
+Decided: Python `PageBanners` (batch 1, decision 5) and .NET `PageBanners` (batch 3); error toasts sticky in
+every backend and renderer (batch 1, decision 6). The two VB items were fixed in batch 3 (`pending/redwood`):
+
+- ~~VB: islands held by a form's component fields are not painted~~ → fixed (#15).
+- ~~VB: closing a dialog opened over a drawer leaves the drawer hidden~~ → fixed (#16).
 - **Error toast duration differs**: Python's error-boundary message has `duration: 0` (sticky),
   Java's 3000 ms. Which one is the contract?
 

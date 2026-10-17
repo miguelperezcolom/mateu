@@ -3,6 +3,7 @@ import {
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
+  drawerOverlayOf, dialogOverlayOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { chromeText } from './i18n.mjs'
@@ -19,6 +20,27 @@ export const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFiel
 
 /** The collection header of a listing: its toolbar's first button is the primary action, the
  *  rest its secondary actions. */
+/** What an empty overlay variable looks like (the templates read its fields unconditionally). */
+export const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} }
+
+/**
+ * The overlay variables after an increment: the DRAWER panel shows the top-most drawer of the stack
+ * and the MODAL the dialog on top of it — two variables, so a Dialog opened over a Drawer leaves the
+ * drawer where it is (it used to close, and nothing reopened it after the dialog's CloseModal).
+ * `picker` (searchPickerOf): a @Searchable selector has its own dialog, and a listing shown INSIDE
+ * the drawer (picker.inDrawer) keeps the drawer open.
+ */
+export function overlayVarsOf(reg, picker = null) {
+  const drawer = drawerOverlayOf(reg)
+  const dialog = dialogOverlayOf(reg)
+  return {
+    drawer: drawer || EMPTY_OVERLAY,
+    dialog: dialog || EMPTY_OVERLAY,
+    drawerOpen: !!drawer && !(picker && !picker.inDrawer),
+    modal: !!dialog && !picker,
+  }
+}
+
 export function listHeaderVarsOf(listingSummary) {
   const toolbar = listingSummary ? listingSummary.toolbar : []
   const primaryToolbar = toolbar.length ? toolbar[0] : null

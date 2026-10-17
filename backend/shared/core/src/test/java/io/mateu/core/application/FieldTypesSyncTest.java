@@ -127,6 +127,16 @@ class FieldTypesSyncTest {
   }
 
   @Test
+  void aTypesFileUnderAnyNameIsDiscoveredByItsHeader() {
+    // catalogs/more-types.yaml declares `type: Types`: found like a `type: Actions` file. Before,
+    // only specs/ui/types.yaml was read and a file the IDE wizard created elsewhere was ignored.
+    var zip = field(load("/ft-zip"), "zip");
+    assertThat(zip.path("label").asText()).isEqualTo("Postal code");
+    assertThat(zip.path("placeholder").asText()).isEqualTo("00000");
+    assertThat(zip.has("fieldType")).isFalse();
+  }
+
+  @Test
   void aCodeSuppliedTypeResolvesAndTheAuthoredFileWinsOverIt() {
     var phone = field(load("/ft-customer"), "phone");
     assertThat(phone.path("placeholder").asText()).isEqualTo("+34 600 000 000");

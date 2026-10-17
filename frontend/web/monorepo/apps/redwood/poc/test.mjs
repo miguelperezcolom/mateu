@@ -175,7 +175,8 @@ test('save-in-drawer: pop del stack + evento mateu-crud:saved-in-drawer + toast'
   reg = reduceContexts(reg, fx('save-in-drawer'), { initiator: drawerId })
   assert.deepEqual(reg.stack, [])
   assert.equal(reg.contexts[drawerId], undefined)
-  assert.deepEqual(reg.effects.events, [{ name: 'mateu-crud:saved-in-drawer', detail: null }])
+  // the event carries its SOURCE (the surface whose answer emitted it: the drawer) for the @SubscribeTo scopes
+  assert.deepEqual(reg.effects.events, [{ name: 'mateu-crud:saved-in-drawer', detail: null, source: drawerId }])
   assert.equal(reg.effects.toasts[0].variant, 'success')
 })
 
@@ -4911,7 +4912,7 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
       { action: 'RunAction', actionId: 'serverSide' },
       { action: 'RunJS', value: 'alert(1)' },
     ])
-    assert.deepEqual(plan.events, [{ name: 'order-started', detail: null }])
+    assert.deepEqual(plan.events, [{ name: 'order-started', detail: null, source: HOST_ID }])
     assert.deepEqual(plan.serverActions, ['serverSide'])
     assert.equal(plan.navigate, null)
     assert.equal(plan.skipped.length, 1)
@@ -5621,4 +5622,239 @@ test('P1: dentro de un maestro la cabecera nombra al MAESTRO y el rótulo de la 
   const plain = { title: 'Orders' }
   assert.equal(p1WithinAppLevels(plain, []), plain)
   assert.equal(p1WithinAppLevels(plain, undefined), plain)
+})
+
+
+// ── INLINE islands (a form's component fields holding a ServerSide of their own) + the event bus ──
+// sample1 EventsLab (/events-lab): two emitter islands and a listener island inside a plain form, the
+// page subscribed in DOCUMENT and SELF scope, the listener in COMPONENT scope (from emitter-a).
+// Before: the shell painted the form through its generic form and the islands were not drawn at all.
+import {
+  inlineIslandOf as iiInlineIslandOf, collectIslands as iiCollectIslands, hostContentOf as iiHostContentOf,
+  hostContentShown as iiHostContentShown, withSubresources as iiWithSubresources, summarizeHost as iiSummarizeHost,
+  pendingSubresourcesOf as iiPendingSubresourcesOf,
+} from './reduceContexts.mjs'
+import {
+  loadSubresources as iiLoadSubresources, runSurfaceAction as iiRunSurfaceAction, inlineIslandsOf as iiInlineIslandsOf,
+  busSubscribersOf as iiBusSubscribersOf, registerInlineIsland as iiRegisterInlineIsland,
+} from './transport.mjs'
+
+const iiAtoms = (blocks) => (blocks || []).flatMap((b) => b.items || [])
+const iiHostOf = () => {
+  const reg = reduceContexts(empty(), fx('sut-events-lab'))
+  // what loadRouteInto stamps on the host when the page is loaded
+  reg.contexts[HOST_ID].outbound = { route: '/events-lab', consumedRoute: '', serverSideType: 'io.mateu.sample1.actions.EventsLab', baseUrl: 'http://x' }
+  return reg
+}
+
+test('inline islands: a ServerSide held by a form field is a SURFACE of its own, not the legacy island, and makes the content the body', () => {
+  const reg = iiHostOf()
+  const host = reg.contexts[HOST_ID]
+  const islands = iiInlineIslandsOf(host.tree)
+  assert.deepEqual(islands.map((i) => i.serverSideType.split('.').pop()), ['PingEmitterA', 'PingEmitterB', 'FilteredListener'])
+  assert.deepEqual(islands[2].componentState, { times: 0, last: 'nothing' })
+  assert.ok(islands.every((i) => i.surface && i.inline && i.inline.type === 'ServerSide'))
+  // the island dance (mateuIsland: an embedded mediator loaded in two steps) does not take them
+  assert.deepEqual(iiCollectIslands(host.tree), [])
+  // the legacy shapes stay legacy: an embedded mediator (App MEDIATOR child) is not inline
+  const guestNote = reduceContexts(empty(), fx('island-host')).contexts[HOST_ID]
+  assert.equal(iiInlineIslandOf(iiCollectIslands(guestNote.tree)[0]), null)
+  // (the predicate is a node test: the walkers — visitNode, collectIslands, inlineIslandsOf — skip the root)
+  assert.deepEqual(iiInlineIslandsOf(host.tree).map((i) => i.id).includes(host.tree.id), false)
+  // the content: one hole per island, in document order, next to the form's fields
+  const summary = iiSummarizeHost(reg, '/events-lab')
+  const blocks = iiHostContentOf(host, null, { title: summary.title })
+  const holes = iiAtoms(blocks).filter((a) => a.isInlineIsland)
+  assert.deepEqual(holes.map((h) => h.islandId), islands.map((i) => i.id))
+  assert.ok(holes.every((h) => h.isSubresource && h.subresource.inline), 'painted and loaded like a @Subresource')
+  assert.deepEqual(iiAtoms(blocks).filter((a) => a.isFormLayout).flatMap((a) => a.fields.map((f) => f.fieldId)), ['heardByPage', 'heardFromChild'])
+  assert.equal(iiHostContentShown(blocks, summary), true, 'the generic form (which dropped the islands) steps aside')
+  assert.deepEqual(iiPendingSubresourcesOf(blocks, reg.contexts).map((s) => s.id), islands.map((i) => i.id))
+})
+
+test('inline islands: read through VB-like proxies (a fresh wrapper per property read) the root is still the page, not an island', () => {
+  // VB hands the chains its variables as proxies: `node !== ctx.tree` held for the ROOT, which was
+  // then taken for an inline island — the page painted as one hole. Position, not identity.
+  const vbLike = (o) => new Proxy(o, { get: (t, k) => { const v = t[k]; return v && typeof v === 'object' ? vbLike(v) : v } })
+  const reg = iiHostOf()
+  const direct = iiHostContentOf(reg.contexts[HOST_ID], null, { title: 'Events lab' })
+  const proxied = iiHostContentOf(vbLike(reg.contexts[HOST_ID]), null, { title: 'Events lab' })
+  const shape = (blocks) => iiAtoms(blocks).map((a) => Object.keys(a).filter((k) => /^is[A-Z]/.test(k) && a[k]).join(','))
+  assert.deepEqual(shape(proxied), shape(direct))
+  assert.equal(iiAtoms(proxied).filter((a) => a.isInlineIsland).length, 3)
+  assert.equal(iiAtoms(proxied).filter((a) => a.isFormLayout).length, 1)
+})
+
+test('component holder (walk-behaviour): a `Callable<Component>` field\'s Text is drawn — the content is the body, with the fields', () => {
+  const reg = reduceContexts(empty(), fx('sut-walk-behaviour'))
+  const summary = iiSummarizeHost(reg, '/walk-behaviour')
+  assert.ok(summary.fields.length, 'a plain form: the generic form has fields to paint')
+  const blocks = iiHostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
+  const greeting = iiAtoms(blocks).find((a) => a.isText && a.text === 'Hello from a component holder')
+  assert.ok(greeting, 'the holder\'s Text is in the content')
+  assert.ok(greeting.fromHolder, 'marked as the holder\'s')
+  assert.equal(iiHostContentShown(blocks, summary), true, 'so the content paints the page (it used to lose to the generic form)')
+  // its fields travel in the content's form layouts, every one of them once
+  const fieldIds = iiAtoms(blocks).filter((a) => a.isFormLayout).flatMap((a) => a.fields.map((f) => f.fieldId))
+  assert.deepEqual(fieldIds, ['name', 'amount', 'lockedForGuests', 'disabledForGuests', 'address-street', 'address-city', 'autoSaves'])
+  // the section titles are headings (the generic form's own vocabulary): they alone never flip a form
+  assert.ok(!iiAtoms(blocks).some((a) => a.isText && a.isHeading && a.fromHolder))
+  // the overlay lab (fields only) keeps its generic form
+  const plain = reduceContexts(empty(), fx('sut-overlay-lab'))
+  const plainSummary = iiSummarizeHost(plain, '/overlay-lab')
+  assert.equal(iiHostContentShown(iiHostContentOf(plain.contexts[HOST_ID], null, { title: plainSummary.title }), plainSummary), false)
+})
+
+atest('inline islands: registered from their node with NO request, painted in their hole, actions tagged with their id', async () => {
+  const original = globalThis.fetch
+  let calls = 0
+  globalThis.fetch = async () => { calls++; return { ok: true, json: async () => ({ fragments: [] }) } }
+  try {
+    let reg = iiHostOf()
+    const summary = iiSummarizeHost(reg, '/events-lab')
+    const blocks = iiHostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
+    reg = await iiLoadSubresources('http://x', reg, blocks, { appState: {} })
+    assert.equal(calls, 0, 'the island arrived with its tree: nothing to load')
+    const islands = iiInlineIslandsOf(reg.contexts[HOST_ID].tree)
+    const listener = reg.contexts[islands[2].id]
+    assert.equal(listener.kind, 'island')
+    assert.deepEqual(listener.state, { times: 0, last: 'nothing' })
+    // an action from it goes out as the web's nested mateu-component sends it: the page's route and
+    // consumed route, the ISLAND's class, answered to the island's id
+    assert.deepEqual(listener.outbound, { route: '/events-lab', consumedRoute: '', serverSideType: 'io.mateu.sample1.actions.FilteredListener', baseUrl: 'http://x' })
+    const painted = iiWithSubresources(blocks, reg.contexts)
+    const atoms = iiAtoms(painted)
+    assert.ok(!atoms.some((a) => a.isInlineIsland), 'the holes are filled')
+    const buttons = atoms.filter((a) => a.isButtons).flatMap((a) => a.buttons)
+    assert.deepEqual(buttons.map((b) => [b.label, b.surfaceId]), [['Ping A', islands[0].id], ['Child ping A', islands[0].id], ['Ping B', islands[1].id]])
+    assert.ok(atoms.some((a) => a.isText && a.text === 'Listener heard nothing (0)'), 'the listener\'s text, interpolated with ITS state')
+    // the FILLED blocks still make the content the body: the chains decide on them, after the fill
+    // (the holes are gone by then — and a form page with islands fell back to its generic form)
+    assert.ok(atoms.filter((a) => a.isButtons || a.isText).every((a) => a.fromSurface))
+    assert.equal(iiHostContentShown(painted, summary), true)
+    // registering again (a host re-render re-sends the island) keeps the context, state refreshed from the node
+    const again = await iiRegisterInlineIsland('http://x', reg, { ...islands[2], componentState: { times: 3, last: 'from A' } }, {})
+    assert.deepEqual(again.contexts[islands[2].id].state, { times: 3, last: 'from A' })
+  } finally { globalThis.fetch = original }
+})
+
+atest('event bus across surfaces: DOCUMENT hears any island, COMPONENT only its `from`, SELF what bubbles from inside', async () => {
+  const original = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    sent.push(body)
+    const type = String(body.serverSideType || '').split('.').pop()
+    const from = (body.parameters || {}).from
+    let answer = { fragments: [], commands: [], messages: [] }
+    if (body.actionId === 'pingB') answer.commands = [{ type: 'DispatchEvent', data: { eventName: 'lab-ping', detail: { from: 'B' } } }]
+    if (body.actionId === 'pingA') answer.commands = [{ type: 'DispatchEvent', data: { eventName: 'lab-ping', detail: { from: 'A' } } }]
+    if (body.actionId === 'childPingA') answer.commands = [{ type: 'DispatchEvent', data: { eventName: 'child-ping', detail: { from: 'A' } } }]
+    if (type === 'EventsLab' && body.actionId === 'onPing') answer.fragments = [{ targetComponentId: body.initiatorComponentId, state: { heardByPage: 'ping from ' + from } }]
+    if (type === 'EventsLab' && body.actionId === 'onChild') answer.fragments = [{ targetComponentId: body.initiatorComponentId, state: { heardFromChild: 'child ping from ' + from } }]
+    if (type === 'FilteredListener' && body.actionId === 'heard') answer.fragments = [{ targetComponentId: body.initiatorComponentId, state: { times: (body.componentState.times || 0) + 1, last: 'from ' + from } }]
+    return { ok: true, json: async () => answer }
+  }
+  try {
+    let reg = iiHostOf()
+    const summary = iiSummarizeHost(reg, '/events-lab')
+    const blocks = iiHostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
+    reg = await iiLoadSubresources('http://x', reg, blocks, { appState: {} })
+    const [a, b, listener] = iiInlineIslandsOf(reg.contexts[HOST_ID].tree).map((i) => i.id)
+    // «Ping B»: the page hears it (DOCUMENT); the listener (COMPONENT from emitter-a) does not
+    reg = await iiRunSurfaceAction(reg, b, 'pingB', {}, { appState: {} })
+    assert.deepEqual(sent.map((s) => s.actionId), ['pingB', 'onPing'])
+    assert.equal(sent[0].serverSideType, 'io.mateu.sample1.actions.PingEmitterB')
+    assert.equal(sent[0].initiatorComponentId, b)
+    assert.equal(sent[0].route, '/events-lab')
+    assert.deepEqual(sent[1].parameters, { from: 'B', __source: 'emitter-b' }, 'the detail is the handler\'s parameters, the emitter named like the web stamps it')
+    assert.equal(reg.contexts[HOST_ID].state.heardByPage, 'ping from B')
+    assert.equal(reg.contexts[listener].state.times, 0)
+    // «Ping A»: the page AND the listener (its `from` matches @Emits(name = "emitter-a"))
+    sent.length = 0
+    reg = await iiRunSurfaceAction(reg, a, 'pingA', {}, { appState: {} })
+    assert.deepEqual(sent.map((s) => s.actionId).sort(), ['heard', 'onPing', 'pingA'])
+    assert.equal(reg.contexts[HOST_ID].state.heardByPage, 'ping from A')
+    assert.deepEqual(reg.contexts[listener].state, { times: 1, last: 'from A' })
+    const atoms = iiAtoms(iiWithSubresources(iiHostContentOf(reg.contexts[HOST_ID], null, { title: summary.title }), reg.contexts))
+    assert.ok(atoms.some((x) => x.isText && x.text === 'Listener heard from A (1)'), 're-projected with the listener\'s new state')
+    // «Child ping A» (child-ping): the page's SELF subscription — the island is inside the page
+    sent.length = 0
+    reg = await iiRunSurfaceAction(reg, a, 'childPingA', {}, { appState: {} })
+    assert.deepEqual(sent.map((s) => s.actionId), ['childPingA', 'onChild'])
+    assert.equal(reg.contexts[HOST_ID].state.heardFromChild, 'child ping from A')
+    // the scopes, spelled out
+    const subs = (event) => iiBusSubscribersOf(reg, event).map((s) => [s.ctxId === HOST_ID ? 'host' : s.ctxId === listener ? 'listener' : s.ctxId, s.actionId])
+    assert.deepEqual(subs({ name: 'lab-ping', source: b }), [['host', 'onPing']])
+    assert.deepEqual(subs({ name: 'lab-ping', source: a }), [['host', 'onPing'], ['listener', 'heard']])
+    assert.deepEqual(subs({ name: 'child-ping', source: a }), [['host', 'onChild']])
+    assert.deepEqual(subs({ name: 'child-ping', source: null }), [], 'SELF needs a source inside the page')
+    assert.deepEqual(subs({ name: 'child-ping', source: HOST_ID }), [['host', 'onChild']], 'a surface hears its own')
+    assert.deepEqual(iiBusSubscribersOf(reg, { name: 'lab-ping', source: a }, { skipHost: true }).map((s) => s.actionId), ['heard'])
+  } finally { globalThis.fetch = original }
+})
+
+
+// ── @Toc: the sticky sections index (toc.mjs tocOf) ─────────────────────────────────────────────
+import { tocOf as tocProjectionOf, TOC_EMPTY as tocEmpty } from './toc.mjs'
+
+test('@Toc: a long sectioned page (walk-layout, toc=true) projects one entry per titled section, in order, with its shortcut key', () => {
+  const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const toc = tocProjectionOf(host)
+  assert.equal(toc.on, true)
+  assert.equal(toc.cls, 'mateu-has-toc')
+  assert.deepEqual(toc.entries.map((e) => e.title), ['Guests', 'Document', 'Contact', 'Address', 'Preferences', 'Notes', 'History'])
+  assert.deepEqual(toc.entries.map((e) => e.key), ['1', '2', '3', '4', '5', '6', '7'])
+  assert.deepEqual(toc.entries.map((e) => e.index), [0, 1, 2, 3, 4, 5, 6])
+  assert.equal(toc.entries[0].hint, 'Guests (Ctrl+Alt+1)')
+  assert.equal(toc.entries[0].sticky, true, 'the pinned section (@Section(sticky = true)) is flagged')
+  assert.equal(toc.entries[1].sticky, false)
+  // the two untitled frameless bands at the top are not entries (nothing to name them by)
+  assert.ok(!toc.entries.some((e) => !e.title))
+  // the painted section cards carry the marker the DOM wiring finds them by, in the same order
+  const blocks = iiHostContentOf(host, null, { title: 'Layout walk' })
+  assert.deepEqual(blocks.filter((b) => b.sectionTitle).map((b) => b.sectionTitle), toc.entries.map((e) => e.title))
+})
+
+test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, not a @Zones form), a short form has none', () => {
+  const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const withToc = (value) => {
+    const tree = JSON.parse(JSON.stringify(host.tree))
+    const page = tree.children[0]
+    if (value === undefined) delete page.metadata.toc
+    else page.metadata.toc = value
+    return { ...host, tree }
+  }
+  assert.equal(tocProjectionOf(withToc(false)).on, false)
+  assert.deepEqual(tocProjectionOf(withToc(false)).entries, [])
+  assert.equal(tocProjectionOf(withToc(undefined)).on, true, '7 titled sections stacked vertically: auto on')
+  assert.equal(tocProjectionOf(withToc(null)).on, true)
+  // the same sections laid out in @Zones columns (a HorizontalLayout of flex-basis columns): auto off, true still forces
+  const zoned = withToc(undefined)
+  const page = zoned.tree.children[0]
+  const sections = []
+  const pick = (n) => { if (!n || typeof n !== 'object') return; if (Array.isArray(n)) { n.forEach(pick); return }
+    if (n.cssClasses && /mateu-section/.test(n.cssClasses)) { sections.push(n); return }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') pick(v) }
+  pick(page.children)
+  assert.equal(sections.length, 7)
+  page.children = [{ type: 'ClientSide', metadata: { type: 'HorizontalLayout' }, children: [
+    { type: 'ClientSide', style: 'flex: 1 1 calc(60% - 1rem);', metadata: { type: 'VerticalLayout' }, children: sections.slice(0, 4) },
+    { type: 'ClientSide', style: 'flex: 1 1 calc(40% - 1rem);', metadata: { type: 'VerticalLayout' }, children: sections.slice(4) },
+  ] }]
+  assert.equal(tocProjectionOf(zoned).on, false)
+  page.metadata.toc = true
+  assert.equal(tocProjectionOf(zoned).on, true)
+  assert.equal(tocProjectionOf(zoned).entries.length, 7)
+  // a form with one section (overlay lab), the events lab, a page with no tree: off
+  assert.equal(tocProjectionOf(reduceContexts(empty(), fx('sut-overlay-lab')).contexts[HOST_ID]).on, false)
+  assert.equal(tocProjectionOf(reduceContexts(empty(), fx('sut-events-lab')).contexts[HOST_ID]).on, false)
+  assert.equal(tocProjectionOf(null), tocEmpty)
+  assert.equal(tocProjectionOf({ tree: null }), tocEmpty)
+  // an island's sections are not the page's
+  const withIsland = withToc(undefined)
+  withIsland.tree.children[0].children.push({ type: 'ServerSide', id: 'isl', serverSideType: 'x.Y', children: [
+    { type: 'ClientSide', cssClasses: 'mateu-section', metadata: { type: 'Card' }, children: [{ type: 'ClientSide', metadata: { type: 'Text', container: 'h3', text: 'Inner' } }] },
+  ] })
+  assert.ok(!tocProjectionOf(withIsland).entries.some((e) => e.title === 'Inner'))
 })

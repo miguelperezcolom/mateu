@@ -71,11 +71,11 @@ served behind the Vaadin renderer (same-origin proxy) + port tests + conformance
 | AutoCrud criteria (date-range default, enum multi, bool) | ✅ probe `/products` | N/A | N/A | ⏳ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | Header sort asc/desc/off, server-side | 🔧 #1 #2 #4 spec | 🔧 #17 | 🔧 #17 | 🔧 #18 spec | ✅ | 🔧 #1 #3 browser | 🔧 #1 #3 browser | 🔧 #1 → ✅ expo web (table width) | 🔧 #1 (offered now) ⏳ | 🔧 #23 |
 | Paging / pager | ✅ spec | ✅ starwars (`totalPath`) | ✅ | ✅ | ⏳ | ✅ tests | ✅ tests | ✅ expo web | ✅ probe | N/A |
-| URL sync (page/sort/filters) + reload | ✅ spec | ✅ | 🔧 #21 | ❌ (see below) | ❌ | ✅ browser | ✅ browser | N/A | N/A | N/A |
-| Deep link with filters | 🔧 #5 #20 spec | ✅ | 🔧 #21 (+ static-vcn spec) | ❌ | ❌ | ✅ | ✅ | N/A | N/A | N/A |
+| URL sync (page/sort/filters) + reload | ✅ spec | ✅ | 🔧 #21 | 🔧 batch 1 (coordinator): `page` + `sort` written on every search and restored on navigation, unit-tested, not walked in a browser | 🔧 same | ✅ browser | ✅ browser | N/A | N/A | N/A |
+| Deep link with filters | 🔧 #5 #20 spec | ✅ | 🔧 #21 (+ static-vcn spec) | 🔧 batch 1 (coordinator, unit-tested) | 🔧 same | ✅ | ✅ | N/A | N/A | N/A |
 | Row click → record; back; forward | 🔧 #6 #7 spec | ✅ `rowRoute` | ⏳ | ✅ (back loses search) | ⏳ | ✅ browser | ✅ browser | ✅ expo web | ⏳ | N/A |
 | Deep link / reload on a record | 🔧 #7 spec | ✅ | ✅ static-vcn | ⏳ | ⏳ | ✅ browser | ✅ browser | N/A | N/A | N/A |
-| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ | ⚠ class title, not the record | 🔧 #24 (read-only stepper) ✅ | ⏳ | N/A |
+| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | 🔧 batch 3: the record names its page (`TitleOf`, Java's rule; `RecordTitleTests`, `A_record_page_is_titled_by_the_record_as_in_java`) | 🔧 batch 3: `record_title` (`test_record_title.py`, `test_a_record_page_is_titled_by_the_record_as_in_java`) | 🔧 #24 (read-only stepper) ✅ | ⏳ | N/A |
 | Editable w/o Navigable → drawer, save refreshes | ✅ spec | N/A | N/A | ✅ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | Drawer validation (required field) | 🔧 #9 spec | N/A | N/A | 🔧 #9 | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | AutoCrud editInDrawer (open/cancel/save, url) | 🔧 #14 test + probe | N/A | N/A | ✅ (`demo-vb /products`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
@@ -113,6 +113,9 @@ Counts (cells above): ✅ 117 · 🔧 24 · ❌ 4 · ⚠ 1 · N/A 89 · ⏳ 95.
   to the record and a reload opened its view page (#14).
 
 ## ❌ not fixed (owner decision)
+
+Decided and applied in integration batch 1 (coordinator): Redwood keeps `page` + `sort` (filters and
+searchText already were) in the URL under the same contract — pinned by unit tests, not walked in a browser.
 
 - **Redwood keeps no listing state in the URL** (search, filters, page, sort): Back from a record
   returns to an unfiltered page 1; a reload or a shared link loses the filters. Vaadin and the static

@@ -481,8 +481,9 @@ generate FROM THE STARTERS — never from a hand-kept template. `starters/genera
 is the single description: authoring flavour (`code` | `yaml` = no UI code, served by Spring Boot |
 `static` = specs-only bundle, no backend | `both`), the runtimes each is offered on, renderers,
 samples, overlays (`starters/generator/overlays/`), replacements, and `incompatible` combinations
-(each verified to fail at runtime — Redwood + an AutoCrud at the root; `both` is not offered on
-Micronaut/Helidon, which do not resolve a view model bound only in routes.yaml). Two engines apply it
+(each verified to fail at runtime — Redwood + an AutoCrud at the root; `both` IS offered on every
+runtime since the authoring walkthrough fixed the two adapter bugs that kept Micronaut/Helidon from
+resolving a view model bound only in routes.yaml). Two engines apply it
 (Kotlin `MateuProjectGenerator`, TS `newProject.ts`), kept identical by `starters/generator/cases.json`
 plus a byte-for-byte comparison in `MateuProjectGeneratorTest` when node + the compiled extension are
 present; the archetype's `archetype-post-generate.groovy` applies the same replacements (Spring Boot
@@ -570,6 +571,14 @@ npm run build      # grunt vb-build → build/optimized (exit code unreliable �
 npm run serve      # grunt vb-serve --port=9006 against demo-vb (:9005), CORS already open
 npm run copy       # package build/optimized into backend/shared/frontend/redwood (then mvn install)
 ```
+
+Tooling gotchas (2026-10-17): `npm ci --workspace mateu-redwood` at the monorepo root WIPES the other
+workspaces' `node_modules` (and the libs/vaadin/visual-editor install wipes Redwood's) — install the
+set you work on, see STATUS "Integration practice". The React Native suite's
+`MateuViewController.test.ts` needs Node 24 (`mock.module`; on Node 23 pass
+`--experimental-test-module-mocks`). The .NET/Python ports serve the web renderer's page themselves
+with `add_mateu(ui=…)` / `MapMateu(ui:)` / `MATEU_UI=<mateu-vaadin jar or its static/>` (2026-10-17);
+without it they answer the sync API only.
 
 ### E2E Tests (from `e2e/`)
 

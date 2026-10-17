@@ -17,9 +17,15 @@ define([
     async run(context) {
       const { $application, $page } = context;
 
-      $application.variables.mateuRegistry = bridge.dismissOverlay($application.variables.mateuRegistry);
+      // ojBeforeClose fires for a PROGRAMMATIC close too (the chain set mateuDrawerOpen=false after
+      // a CloseModal already popped the drawer): then there is nothing of the user's to discard —
+      // popping blindly took whatever was on top of the stack (a dialog) with it
+      if ($application.variables.mateuDrawerOpen) {
+        const drawer = bridge.drawerOverlayOf($application.variables.mateuRegistry);
+        if (drawer) $application.variables.mateuRegistry = bridge.dismissOverlayById($application.variables.mateuRegistry, drawer.id);
+      }
       $application.variables.mateuDrawerOpen = false;
-      $application.variables.mateuDrawer = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} };
+      $application.variables.mateuDrawer = bridge.EMPTY_OVERLAY;
       $page.variables.mateuDrawerDraft = {};
     }
   }

@@ -881,9 +881,48 @@ class ComponentMapperMixin(MixinBase):
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
-                button_style=c.button_style, parameters=c.parameters,
+                button_style=c.button_style, parameters=c.parameters, route=c.route,
             )
             return self._fluent_client(meta, c)
+        if isinstance(c, fluent.ListingComponent):
+            # A listing authored as data (YAML type: Listing): a client-side Crud over a REST
+            # source, the shape Java's CrudlMapper emits for a definition-only listing.
+            from mateu_dtos import CrudMetadata, GridColumn, GridColumnMeta
+
+            grid_columns = [
+                GridColumn(
+                    metadata=GridColumnMeta(
+                        id=col.id,
+                        label=self.T(col.label),
+                        data_type=col.data_type or "string",
+                        stereotype=col.stereotype or "regular",
+                        sortable=col.sortable,
+                        identifier=col.identifier,
+                        width=col.width,
+                        auto_width=not col.width,
+                        align=col.align,
+                        tones=col.tones,
+                    ),
+                    id=col.id,
+                )
+                for col in c.columns
+            ]
+            meta = CrudMetadata(
+                title=self.T(c.title) if c.title else None,
+                subtitle=self.T(c.subtitle) if c.subtitle else None,
+                columns=grid_columns,
+                searchable=c.searchable,
+                page_size=c.page_size if c.page_size > 0 else 10,
+                filters=[self.map_component(f).metadata for f in c.filters],
+                rows_source=self._fluent_rest_source(c.rows_source),
+                grid_layout=c.grid_layout or "auto",
+                compact=c.compact,
+                empty_state_message=c.empty_state_message,
+            )
+            out = self._fluent_client(meta, c)
+            out.id = c.id or "crud"
+            out.sizing = "fill"
+            return out
         if isinstance(c, fluent.Text):
             # Java's Text.container() defaults to "div" when unset, so a fluent Text always carries
             # container:"div" on the wire (a non-empty default the conformance normaliser keeps).
@@ -1142,6 +1181,23 @@ class ComponentMapperMixin(MixinBase):
                 next_route=peer.next_route,
             ),
             switcher=switcher,
+        )
+
+    @staticmethod
+    def _fluent_rest_source(source) -> "RestDataSource | None":
+        """A uidl :class:`~mateu_uidl.rest_sources.RestDataSource` (or None) on the wire."""
+        if source is None:
+            return None
+        return RestDataSource(
+            ref=source.ref or None,
+            url=source.url or None,
+            method=source.method if source.url else None,
+            headers=dict(source.headers) if source.headers else None,
+            body=source.body or None,
+            items_path=source.items_path or None,
+            value_path=source.value_path if source.url else None,
+            label_path=source.label_path if source.url else None,
+            proxy=bool(source.proxy),
         )
 
     def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:

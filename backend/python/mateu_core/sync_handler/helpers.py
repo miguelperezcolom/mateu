@@ -34,6 +34,7 @@ from ..naming import (
     humanize,
 )
 from ..reflection import view_fields
+from ..titles import record_title as _record_title
 from mateu_uidl import components as fluent
 
 from ._base import MixinBase
@@ -48,6 +49,11 @@ class ResponseHelpersMixin(MixinBase):
     @staticmethod
     def title(type_) -> str:
         return getattr(type_, "__mateu_title__", humanize(type_.__name__))
+
+    def record_title(self, type_, instance) -> str:
+        """The window title of a page built from ``instance`` — a record page is named after the
+        record, like its page header (Java's getTitle(entity); see :mod:`mateu_core.titles`)."""
+        return self.mapper.T(_record_title(type_, instance))
 
     @staticmethod
     def target(rq: RunActionRq | None) -> str:

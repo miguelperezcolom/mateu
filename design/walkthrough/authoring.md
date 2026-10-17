@@ -24,13 +24,13 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | App shell (`type: AppShell`) | ✅ yaml starter (menu, home, products) | ✅ | ✅ | ✅ shell editor + Play | ✅ |
 | Page definition (bare tree / `layout:` envelope) | ✅ | ✅ | ✅ | ✅ canvas, Layers↔canvas selection, Properties, YAML dock, Play | 🔧 `layout:` envelope rejected (ad22b0660) |
 | `layoutDelta:` (over a Java view model) | 🔧 label + hidden ✅, but `order:` never crossed the FormRows inference lays a two-column form out in, while the editor applies it to the flat run — the page silently ignored what the editor showed (8261e24f9 Java + Python, 4acf432a7 .NET) — ✅ spec on 5 adapters | ✅ relabelled, hidden, `note` moved first on the same row (mvc-app1 on `mateu-redwood`) | N/A (needs the view model) | ✅ editor model already flat | 🔧 rejected (ad22b0660) |
-| Partials (`partials/*.yaml`, `type: Partial`) | ✅ spliced (spec) | ✅ | 🔧 "Unknown metadata type Partial" (de1c198cf, `DefinitionInliner`) | 🔧 Play (8ca9cf96e); ❌ offline canvas shows the placeholder (see below) | 🔧 multi-component partial rejected (ad22b0660) |
+| Partials (`partials/*.yaml`, `type: Partial`) | ✅ spliced (spec) | ✅ | 🔧 "Unknown metadata type Partial" (de1c198cf, `DefinitionInliner`) | 🔧 Play (8ca9cf96e); 🔧 offline canvas inlines it too (batch 3, `canvasReferences.ts` — the inlined roots keep the reference's `ve-` id) | 🔧 multi-component partial rejected (ad22b0660) |
 | Business components (`components.yaml`, `ComponentRef`) | ✅ (spec) | ✅ | 🔧 "Unknown business component" (de1c198cf) | 🔧 opened as an empty page + offered as a route layout (3123cb827); Play 🔧 (8ca9cf96e) | 🔧 no branch (ad22b0660, 1fcd29de5) |
 | Sources (`sources.yaml`, `sample:`, mock mode) | ✅ yaml starter sample mode on; off → live endpoint; 🔧 a missing endpoint answered index.html 200 → silent "Search to see results" (4d25240d9, parity contract on 5 adapters) | ✅ (static Redwood bundle lists the samples) | ✅ | ✅ sources editor; samples preview | ✅ |
 | Sources `proxy: true` + `${secret.X}` | 🔧 a YAML listing on a proxied entry never fetched (5680acea3) — ✅ against a keyed API, key from `MATEU_SECRET_API_KEY` server-side only; direct (non-proxy) ref ✅; 🔧 a select's `optionsSource` on a proxied entry was fetched by the browser with the `${secret.X}` placeholder (401), and an unseeded page had no component to answer `__restfetch__` (269d24324, `MountHomeSyncTest` proxied-options + `mateu-field.test.ts`) — ✅ against the keyed API | ✅ yaml starter on `mateu-redwood`: a listing's rows and a select's options from the keyed entry, key injected server-side | ✅ staticOnly refuses a proxied source | N/A (sample mode) | ✅ |
 | Actions catalogue (`actions.yaml`) + page `actions:` flows | ✅ (spec, both buttons navigate) | ✅ | 🔧 staticOnly failed the build on a flow / catalogue entry (de1c198cf) — ✅ runs | ✅ actions editor | 🔧 page `actions:` matched the Actions branch too (ad22b0660) |
 | Types (`types.yaml`, `fieldType:`) | ✅ label; 🔧 placeholder never rendered on Vaadin (1710d2fad) | ✅ | ✅ | ✅ types editor | ✅ |
-| Translations + `${i18n.key}` | ✅ en + es-ES (spec) | ✅ | ✅ | ✅ Play; ❌ offline canvas shows the key | ✅ |
+| Translations + `${i18n.key}` | ✅ en + es-ES (spec) | ✅ | ✅ | ✅ Play; 🔧 offline canvas translates it too (batch 3) | ✅ |
 | Environments (`MATEU_ENVIRONMENT`, `-Dmateu.bundle.environment`) | ✅ served app re-pointed to a staging endpoint | ✅ `MATEU_ENVIRONMENT=staging` re-pointed the proxied source (`?env=staging` reached the API), rows rendered | ✅ manifest re-pointed | ✅ "data" summary | ✅ |
 | Project settings (`renderer:`) | ✅ (wizards write it) | ✅ | ✅ `-Dmateu.bundle.renderer=redwood`: clear error without `mateu-redwood`; with it the Redwood bundle serves shell, listing and the walkthrough page (partial, component, seed) from a static server | ✅ project editor | ✅ |
 | Access keys (`eyesOnly`) | ✅ field absent for anonymous (spec) | ✅ hidden | ✅ staticOnly refuses it | ✅ shown, flagged | ✅ |
@@ -49,14 +49,14 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | … both on spring-mvc/webflux/quarkus | ✅ CRUD list → open → edit+save → New (validation) → create → deep link `/products/new` → back |
 | … both on micronaut/helidon-mp | 🔧 refused by the wizard; really broken (Micronaut facade, Helidon root deep links) → fixed and now offered (763daa246, bd4f80c78, +2 `cases.json`) |
 | … dotnet (a .NET 8 SDK installed into the scratchpad; the local sources packed as 0.0.1-MATEU) | ✅ generated, built, run, rendered through the Vaadin dev server (home + products) |
-| .NET port serving the walkthrough YAML | 🔧 only `routes.yaml` read, route seeds dropped, delta order within rows only (4acf432a7, 711 tests incl. `RouteFilesTests`, `DefinitionOnlySeedsTests`, a row-order case) — ✅ same result as Python; ❌ same 8-type YAML builder |
-| Python port serving the walkthrough YAML (MATEU_SPECS_DIR, Vaadin dev server) | 🔧 only `routes.yaml` read — mount-listed / `type: Routes` files answered "Route not found"; 🔧 a definition-only page dropped its route seeds (8596758f5, `test_route_files.py`, `test_definition_only_seeds.py`); ✅ translation es, partial, field type, 403; ❌ `Notice` (any type outside 8) renders "Unsupported component" — the ports' YAML builder covers 8 types (parity doc corrected to 🟡) |
+| .NET port serving the walkthrough YAML | 🔧 only `routes.yaml` read, route seeds dropped, delta order within rows only (4acf432a7, 711 tests incl. `RouteFilesTests`, `DefinitionOnlySeedsTests`, a row-order case) — ✅ same result as Python; 🔧 YAML builder: the whole fluent catalogue generically + `type: Listing` over a REST source + `actionable: RouteLink` buttons (batch 3, `YamlListingTests`; `AppShell` definitions stay Java-only) |
+| Python port serving the walkthrough YAML (MATEU_SPECS_DIR, Vaadin dev server) | 🔧 only `routes.yaml` read — mount-listed / `type: Routes` files answered "Route not found"; 🔧 a definition-only page dropped its route seeds (8596758f5, `test_route_files.py`, `test_definition_only_seeds.py`); ✅ translation es, partial, field type, 403; 🔧 `Notice` and every other fluent component build generically (pages #14), `type: Listing` + `RouteLink` buttons added in batch 3 (`test_yaml_listing.py`); parity row updated |
 | … python | ✅ generated tests pass; 🔧 docs pointed at the removed Compose renderer and the starter said nothing about seeing it in a browser (de9d52296) — verified through the Vaadin dev server (`MATEU_BACKEND=…`) |
 | Maven archetype (code / yaml / static, JDK 21) | ✅ generated, built, code booted + CRUD walk; yaml booted |
 | IntelliJ renderer (`./gradlew renderProbe` over the walkthrough page wire, es) | ✅ translated title, partial fields, field type, business component, buttons, a11y names |
 | IntelliJ: schema provider, New › Mateu skeletons, New Project generator (`MateuProjectGeneratorTest`, byte-compares the TS engine) | ✅ `./gradlew test` (schema, newfile, newproject: 53 tests). IntelliJ itself NOT driven (no GUI): completion/validation inside the IDE not exercised |
 | VS Code: manifest, New File, Add Route, New Project, live run | ✅ vitest 167 + new `specsSchema.test.ts` |
-| Schema in the editors' engines | ✅ IntelliJ (real `JsonSchemaService` test): top-level and NESTED `type:` values + a typed node's keys (2 new tests); ❌ yaml-language-server (VS Code): 5 s to validate a 4 KB deep page (demo-vb `components-2.yaml`), re-run on every keystroke — the 125-way `oneOf` Component union. A `type`-dispatch (`if`/`then`) union validates it in 50 ms with the same completions, but IntelliJ then offers only `Workflow` for a nested `type:`; a guarded `oneOf` (`if`/`then`/`else: false`) times IntelliJ completion out. Owner: ship a per-editor variant (VS Code staging could transform it) or accept the cost |
+| Schema in the editors' engines | ✅ IntelliJ (real `JsonSchemaService` test): top-level and NESTED `type:` values + a typed node's keys (2 new tests); 🔧 yaml-language-server (VS Code): 5 s to validate a 4 KB deep page — the 125-way `oneOf` Component union; a `type`-dispatch validates it in 50 ms but IntelliJ completes a nested `type:` from it with one value. DECIDED batch 3: a per-editor spelling of the ONE generated schema — the VS Code extension stages `Component`/`Actionable`/`Step`/`Trigger`/`UserTrigger` as `type` dispatches (`scripts/schema-dispatch.mjs`, `specsSchema.test.ts` runs the shipped files on both), IntelliJ keeps the generated `oneOf` |
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
 | Visual editor dark mode | ✅ routes and listing screens legible |
@@ -86,22 +86,31 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 
 ## 4. ❌ open, owner decision or other area
 
-1. **Offline canvas** (editor, Client-side / remote-down fallback) renders `Partial` / `ComponentRef` as
-   placeholders and `${i18n.key}` as the key. Play and Export resolve them now; inlining into the canvas
-   would break the `ve-<path>` node ids the click-to-select relies on — needs a design choice.
-2. **Python / .NET starters open nothing in a browser** (`:8080` is API-only). Docs now say how to run a
-   renderer against them; should the ports serve the web renderer themselves?
-3. **Redwood index**: unsubstituted Visual Builder tokens (`#{env.catalogJson}#`, `%{env.userProfileUrl}%`)
-   log a 400 and a VB error on every page — Redwood area.
+Decided 2026-10-17 (batch 3, owner delegated — see `design/ga-plan/STATUS.md`): items 1, 2, 5, 6 and 9 implemented, 3 was fixed at integration; only 10 stays open (Redwood area).
+
+1. 🔧 **Offline canvas** (editor, Client-side / remote-down fallback) rendered `Partial` / `ComponentRef` as
+   placeholders and `${i18n.key}` as the key. DECIDED: the canvas resolves both from the mount's files; the
+   inlined roots take the reference's `ve-<path>` id, so a partial is ONE selectable node (the reference is
+   what is edited there) and click-to-select keeps working (`canvasReferences.ts`, `inlineReferences` `keepReferenceId`).
+2. 🔧 **Python / .NET starters open nothing in a browser** (`:8080` was API-only). DECIDED: the ports serve
+   the web renderer's page themselves — `add_mateu(ui=…)` / `MapMateu(ui:)` / `MATEU_UI` pointing at the
+   `mateu-vaadin` (or `mateu-redwood`) jar or its `static/` folder, same rules as Java's index +
+   SpaRedirectFilter (`test_ui_serving.py`, `UiServingTests`; verified in a browser on the Python starter).
+   Left for the owner: packaging the renderer into PyPI/NuGet and publishing `mateu-vaadin` to npm.
+3. ✅ **Redwood index**: unsubstituted Visual Builder tokens — fixed at integration (`copy.mjs` empties the
+   catalogue/profile config; STATUS batch 1).
 4. ~~**Live reload** of an unseeded definition-only page sends an empty componentState~~ — not a bug: such
    a page renders ClientSide with no action, so nothing could read the values, and they survive in the
    DOM (a page with seeds, actions or a proxied source is server-side and does carry its state).
-5. **Ports' YAML builder** (Python, .NET) covers 8 component types; a YAML page with a `Listing`, `Notice`,
-   `Card`… served by a port shows "Unsupported component". Grow the builders or keep YAML pages Java-first?
-6. **VS Code schema performance** (see the editors' engines row): a per-editor schema shape, or accept it.
+5. 🔧 **Ports' YAML builder** (Python, .NET): the generic builder (pages #14) already covered every fluent
+   component; DECIDED and done: `type: Listing` over a REST source and `actionable: RouteLink` buttons — the
+   yaml starter's own pages now render on both ports (`YamlListingTests`, `test_yaml_listing.py`).
+   `type: AppShell` definitions stay Java-only (the ports author shells in code).
+6. 🔧 **VS Code schema performance**: DECIDED — a per-editor spelling of the one generated schema (see the
+   editors' engines row).
 7. ~~Canvas vs app: a `dataType: status` column shows `AVAILABLE` on the offline canvas~~ — re-checked: the canvas now paints "Available" / "Out of stock" like the served app (fixed by 24f26141b, pre-beta UX review).
 8. ~~The routes editor has no `appState:` column~~ — added (App state column, DOM test).
-9. CLAUDE.md still says Code + YAML is not offered on Micronaut/Helidon (owner's file, not edited).
+9. 🔧 CLAUDE.md said Code + YAML is not offered on Micronaut/Helidon — corrected (batch 3).
 10. **Redwood canvas** paints a listing's filter as a stray select under the table (see the editors' rows) — Redwood area.
 
 ## 5. Not walked yet ⏳
@@ -134,6 +143,6 @@ only); React Native for the YAML fixtures; compiling the docs' OTHER Java sample
 
 ## 7. Counts
 
-Markers in the tables above (a cell can carry several): ✅ 109 verified · 🔧 38 broken → fixed · ❌ 7 open
-(section 4) · N/A 7 · ⏳ none left in the tables (section 5 lists what was not walked). Behind them:
+Markers in the tables above (a cell can carry several): ✅ 109 verified · 🔧 38 broken → fixed (+6 decided and
+implemented 2026-10-17, batch 3) · ❌ 1 open (section 4, item 10 — Redwood area) · N/A 7 · ⏳ none left in the tables (section 5 lists what was not walked). Behind them:
 23 `fix(...)` commits on this branch (44 commits in all), each with a test that fails without it.

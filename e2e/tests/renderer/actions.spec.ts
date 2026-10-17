@@ -121,9 +121,8 @@ test.describe('triggers (any renderer)', () => {
 test.describe('event bus and value triggers (any renderer)', () => {
 
   test('@SubscribeTo: DOCUMENT hears any island, COMPONENT only its source, SELF what bubbles up', async ({ page }) => {
-    // ❌ in design/walkthrough/actions.md: the VB shell paints a form page through its generic
-    // form, and the component-holder fields holding islands are not painted at all
-    test.fixme(test.info().project.name === 'renderer-vb', 'VB does not paint islands held by a form field')
+    // VB used to paint a form page through its generic form and dropped the component-holder
+    // fields holding islands; they are inline islands now (surfaces of their own, poc/transport.mjs)
     await open(page, '/events-lab', 'Events lab')
     await expect(text(page, 'Listener heard nothing (0)')).toBeVisible()
     await btn(page, 'Ping B').click()
@@ -154,8 +153,8 @@ test.describe('event bus and value triggers (any renderer)', () => {
 test.describe('overlays (any renderer)', () => {
 
   test('a dialog opened from a drawer closes alone, leaving the drawer open', async ({ page }) => {
-    // ❌ in design/walkthrough/actions.md: on VB closing the dialog leaves the drawer hidden
-    test.fixme(test.info().project.name === 'renderer-vb', 'VB hides the drawer under a closed dialog')
+    // on VB the dialog used to take the drawer's place in the overlay stack (both carry the filler
+    // id `fieldId`) and the drawer panel closed under the modal: two overlays, two variables now
     await open(page, '/overlay-lab', 'Overlay lab')
     await btn(page, 'Edit contact').click()
     await btn(page, 'Open nested dialog').click()

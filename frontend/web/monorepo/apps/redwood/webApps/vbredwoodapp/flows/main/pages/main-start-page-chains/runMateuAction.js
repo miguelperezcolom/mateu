@@ -302,6 +302,17 @@ define([
         }
       }
 
+      // …and the ISLANDS subscribed to them (an inline island's @SubscribeTo: COMPONENT/DOCUMENT
+      // scope) — the loop above only served the host (bridge.deliverBusEvents, skipHost)
+      if (allEvents.length) {
+        const delivered = await bridge.deliverBusEvents(reg, allEvents, { base, appState, skipHost: true });
+        if (delivered !== reg) {
+          reg = delivered;
+          bridge.applyDomEffects(reg.effects, reg);
+          allToasts.push.apply(allToasts, reg.effects.toasts || []);
+        }
+      }
+
       // lookups remotos de lo que acaba de llegar (el formulario de un paso nuevo, un alta)
       try {
         reg = await bridge.loadLookups(base, reg, bridge.HOST_ID, { appState, route, draft: $page.variables.mateuDraft });
@@ -344,13 +355,16 @@ define([
 
       // proyecciones: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      $application.variables.mateuDrawer = overlayNow || { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} };
       // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer — salvo
-      // el selector de un @Searchable, que tiene su propio diálogo (#mateuPicker)
+      // el selector de un @Searchable, que tiene su propio diálogo (#mateuPicker). Dos variables
+      // (bridge.overlayVarsOf): un Dialog abierto SOBRE un Drawer deja el drawer donde está
       const pickerNow = bridge.searchPickerOf(reg);
-      const esModal = !!(overlayNow && overlayNow.isDialog) && !pickerNow;
+      const overlayVars = bridge.overlayVarsOf(reg, pickerNow);
+      $application.variables.mateuDrawer = overlayVars.drawer;
+      $application.variables.mateuDialog = overlayVars.dialog;
+      const esModal = overlayVars.modal;
       // a listing in a Drawer is drawn inside the drawer (pickerNow.inDrawer), not in the selector's dialog
-      $application.variables.mateuDrawerOpen = !!overlayNow && !esModal && !(pickerNow && !pickerNow.inDrawer);
+      $application.variables.mateuDrawerOpen = overlayVars.drawerOpen;
       if (esModal && !$page.variables.mateuModalOpen) {
         $page.variables.mateuModalOpen = true;
         await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'open' });
@@ -423,6 +437,8 @@ define([
       assign(bridge.listHeaderVarsOf(listingSummary));
       // the floating action buttons (@Fab) of the page and of the app
       vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
+      // the sticky sections index (@Toc) follows the host (a section can appear with an action)
+      vars.mateuToc = bridge.tocOf(hostAfter);
       // dentro de un maestro (P1) la cabecera lleva el título del MAESTRO (el registro) y el
       // rótulo propio de la pestaña pasa al subtítulo (withinAppLevels)
       const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);

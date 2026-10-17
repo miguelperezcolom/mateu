@@ -284,8 +284,13 @@ export function reduceContexts(reg, increment, opts = {}) {
       // open one's place in the stack instead of stacking a second drawer on top. It gets a new
       // context id on purpose: the chains reset the drawer's draft when the overlay id changes, and
       // the refreshed drawer carries new values (the next row, or what the server kept).
-      const sameId = fr.component && fr.component.id
-      const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId) : null
+      // …but only a REAL id says "the same overlay": the server stamps the filler `fieldId` on every
+      // record without one (a Drawer and the Dialog opened from inside it both carry it), and the
+      // overlay's kind must match too — a Dialog is never a refresh of a Drawer. Taking it for one
+      // replaced the drawer in the stack, and the drawer was gone once the dialog closed.
+      const sameId = fr.component && fr.component.id && fr.component.id !== 'fieldId' ? fr.component.id : null
+      const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId
+        && metaOf({ component: contexts[k].tree }).type === md.type) : null
       if (open) {
         contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
         delete contexts[open]
@@ -322,10 +327,13 @@ export function reduceContexts(reg, increment, opts = {}) {
   }
 
   // ── comandos → efectos (algunos mutan el registro) ────────────────────────
+  // `source`: the surface whose answer emitted it (opts.initiator) — the @SubscribeTo scopes
+  // (COMPONENT `from`, SELF) are decided from it (transport busSubscribersOf)
+  const source = opts.initiator || null
   const emit = (data) => {
     if (!data) return
-    if (typeof data === 'string') effects.events.push({ name: data, detail: null })
-    else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.detail ?? null })
+    if (typeof data === 'string') effects.events.push({ name: data, detail: null, source })
+    else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.detail ?? null, source })
   }
   for (const c of increment.commands || []) {
     const t = c.targetComponentId

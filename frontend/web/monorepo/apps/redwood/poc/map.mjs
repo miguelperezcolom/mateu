@@ -113,11 +113,31 @@ function drawMap(L, el, spec) {
     }).addTo(map)
     if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
     const hover = [m.label, m.description].filter(Boolean).join(' · ')
-    if (hover && pin.getElement && pin.getElement()) pin.getElement().setAttribute('aria-label', hover)
-    if (spec.markerActionId) {
-      pin.on('click', () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) })
-      if (pin.getElement && pin.getElement()) pin.getElement().style.cursor = 'pointer'
+    const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) } : null
+    if (run) pin.on('click', run)
+    // the marker's SVG path exists only once the map has a view (Leaflet adds layers whenReady, and
+    // the view is set below): decorate it when the layer is ADDED — read right here, getElement()
+    // was null and neither the name nor the role ever landed
+    let decorated = false
+    const decorate = () => {
+      const pinEl = pin.getElement && pin.getElement()
+      if (!pinEl || decorated) return
+      decorated = true
+      if (hover) pinEl.setAttribute('aria-label', hover)
+      if (!run) return
+      pinEl.style.cursor = 'pointer'
+      // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
+      // Leaflet draws it as a bare SVG path with no role and no tab stop
+      pinEl.setAttribute('role', 'button')
+      pinEl.setAttribute('tabindex', '0')
+      if (pinEl.addEventListener) {
+        pinEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); run() }
+        })
+      }
     }
+    pin.on('add', decorate)
+    decorate()
     if (m.description) pin.on('mouseover', () => { el.title = hover }).on('mouseout', () => { el.title = '' })
   }
   const plan = mapViewPlanOf(spec)
