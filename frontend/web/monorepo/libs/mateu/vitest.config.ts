@@ -28,7 +28,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**'],
+      // allIcons is a generated icon-name table, testbench is a dev-only harness with canned messages
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**',
+        'src/mateu/ui/infra/ui/allIcons.ts', 'src/mateu/ui/infra/ui/testbench/**'],
       reporter: ['text-summary', 'json-summary'],
       // re-measured 2026-10-11 after the frontend coverage review (dialog, smart search bar,
       // command center, notification bell, column chooser, tree select, toasts, offline banner,
