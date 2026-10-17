@@ -171,37 +171,69 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     if (o == null) {
       return;
     }
-    for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-      FIELD_SCANS.increment();
-      for (var field : c.getDeclaredFields()) {
-        if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+    for (var field : INJECTABLE_FIELDS.get(o.getClass())) {
+      try {
+        if (field.get(o) != null) {
           continue;
         }
-        boolean injected = false;
-        for (var annotation : field.getAnnotations()) {
-          if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
-            injected = true;
-            break;
-          }
+        var bean = beanProvider.getBean(field.getType());
+        if (bean != null) {
+          field.set(o, bean);
         }
-        if (!injected) {
-          continue;
-        }
-        try {
-          field.setAccessible(true);
-          if (field.get(o) != null) {
-            continue;
-          }
-          var bean = beanProvider.getBean(field.getType());
-          if (bean != null) {
-            field.set(o, bean);
-          }
-        } catch (RuntimeException | IllegalAccessException e) {
-          log.warn(
-              "Could not inject {}.{}: {}", c.getSimpleName(), field.getName(), e.getMessage());
-        }
+      } catch (RuntimeException | IllegalAccessException e) {
+        log.warn(
+            "Could not inject {}.{}: {}",
+            field.getDeclaringClass().getSimpleName(),
+            field.getName(),
+            e.getMessage());
       }
     }
+  }
+
+  /**
+   * The injection points of a class (its own and its superclasses'), found once per class: walking
+   * the declared fields and their annotations on every instantiation — every view model and nested
+   * object, on every request — was pure overhead. The BEAN is still looked up per instance: its
+   * scope is the app's decision.
+   */
+  private static final ClassValue<List<java.lang.reflect.Field>> INJECTABLE_FIELDS =
+      new ClassValue<>() {
+        @Override
+        protected List<java.lang.reflect.Field> computeValue(Class<?> type) {
+          var fields = new ArrayList<java.lang.reflect.Field>();
+          for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            FIELD_SCANS.increment();
+            for (var field : c.getDeclaredFields()) {
+              if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                  || field.isSynthetic()) {
+                continue;
+              }
+              if (!isInjectionPoint(field)) {
+                continue;
+              }
+              try {
+                field.setAccessible(true);
+                fields.add(field);
+              } catch (RuntimeException e) {
+                log.warn(
+                    "Could not inject {}.{}: {}",
+                    c.getSimpleName(),
+                    field.getName(),
+                    e.getMessage());
+              }
+            }
+          }
+          return List.copyOf(fields);
+        }
+      };
+
+  private static boolean isInjectionPoint(java.lang.reflect.Field field) {
+    for (var annotation : field.getAnnotations()) {
+      if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private Object createInstance(

@@ -275,7 +275,7 @@ class RequestBudgetTest {
             beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
             beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
             beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 6),
-        1);
+        0);
   }
 
   @Test
@@ -290,7 +290,7 @@ class RequestBudgetTest {
             beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
             beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 5,
             beans(io.mateu.uidl.interfaces.ListingExporter.class), 1),
-        5);
+        0);
   }
 
   @Test
@@ -306,7 +306,7 @@ class RequestBudgetTest {
             beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
             beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
             beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 2),
-        11);
+        0);
   }
 
   @Test
@@ -325,7 +325,7 @@ class RequestBudgetTest {
             beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
             beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
             beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 2),
-        1);
+        0);
   }
 
   @Test
@@ -343,7 +343,7 @@ class RequestBudgetTest {
             beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
             beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
             beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 3),
-        6);
+        0);
   }
 
   /**
