@@ -110,8 +110,12 @@ object RestListing {
                 val b = y.get(id)
                 val aBlank = blank(a)
                 val bBlank = blank(b)
+                // Blanks go last in BOTH directions, so they are settled before the direction flips.
+                if (aBlank || bBlank) {
+                    if (aBlank == bBlank) continue
+                    return@Comparator if (aBlank) 1 else -1
+                }
                 val c = when {
-                    aBlank || bBlank -> if (aBlank == bBlank) 0 else if (aBlank) 1 else -1
                     a!!.isNumber && b!!.isNumber -> a.asDouble().compareTo(b.asDouble())
                     else -> String.CASE_INSENSITIVE_ORDER.compare(str(a), str(b))
                 }

@@ -14,11 +14,12 @@
     <description>Public API for declaring Mateu UIs: annotations (@UI, @Action, ...), interfaces and fluent components. The only dependency a framework-agnostic UI module needs.</description>
 
     <properties>
-        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 40.0%
-             from uidl's OWN suite. Counting the core suites that exercise it it is 83.5%, which a
-             per-module report cannot attribute (2026-10, design/coverage/backends.md). Ratchet it
-             up as the suite grows. -->
-        <jacoco.min.bundle.coverage>38%</jacoco.min.bundle.coverage>
+        <!-- BUNDLE floors of uidl's OWN suite (jacoco:check, mvn verify): 49.0% lines / 29.7%
+             branches when last raised. Over ALL the suites (core's TestMateu drives most of it)
+             uidl is gated by backend/coverage instead (2026-10, design/coverage/coverage-map.md).
+             Ratchet. -->
+        <jacoco.min.bundle.coverage>49%</jacoco.min.bundle.coverage>
+        <jacoco.min.bundle.branch.coverage>29%</jacoco.min.bundle.branch.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>

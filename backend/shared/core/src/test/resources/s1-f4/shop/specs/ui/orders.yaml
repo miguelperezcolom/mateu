@@ -1,0 +1,5 @@
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "Shop orders ${state.status} ${state.region} ${state.size} ${state.greeting}"

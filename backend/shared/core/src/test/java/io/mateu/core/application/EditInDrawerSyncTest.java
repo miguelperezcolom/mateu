@@ -203,9 +203,8 @@ class EditInDrawerSyncTest {
   }
 
   /**
-   * The drawer's form is content of the mediator, whose create/save actions the browser does not
-   * validate — a required field left empty used to be saved as it was. It is refused on the server
-   * now, and the drawer stays open with the typed values and a banner naming the field.
+   * Behind the browser's own check, the server refuses a required field left empty too, and the
+   * drawer stays open with the typed values and a banner naming the field.
    */
   @Test
   void aCreationWithARequiredFieldLeftEmptyIsRefusedAndTheDrawerStays() {
@@ -242,5 +241,68 @@ class EditInDrawerSyncTest {
 
     var editCancel = run("cancel-edit", Map.of("id", "b1"), null);
     assertThat(hasCommand(editCancel, UICommandTypeDto.CloseModal)).isTrue();
+  }
+
+  private static io.mateu.dtos.ServerSideComponentDto drawerForm(DrawerDto drawer) {
+    var content = drawer.content();
+    assertThat(content).isInstanceOf(io.mateu.dtos.ServerSideComponentDto.class);
+    return (io.mateu.dtos.ServerSideComponentDto) content;
+  }
+
+  /**
+   * The drawer's form is a component of its own, exactly like the routed /new and /{id}/edit pages:
+   * the editor's type, its values, its client-side validations and a create/save that is validated
+   * and bubbles to the crud. It used to be plain content of the crud component, whose actions are
+   * not validated: the empty required field was sent and never marked.
+   */
+  @Test
+  void theDrawerFormValidatesInTheBrowserLikeTheRoutedForm() {
+    for (var opening : List.of("new", "view")) {
+      var drawer = drawerOf(run(opening, Map.of("id", "b1"), null));
+      var form = drawerForm(drawer);
+      assertThat(form.serverSideType()).isEqualTo(Book.class.getName());
+      assertThat(form.validations())
+          .anySatisfy(validation -> assertThat(validation.fieldId()).isEqualTo("title"));
+      var persist = "new".equals(opening) ? "create" : "save";
+      assertThat(form.actions())
+          .anySatisfy(
+              action -> {
+                assertThat(action.id()).isEqualTo(persist);
+                assertThat(action.validationRequired()).isTrue();
+                assertThat(action.bubble()).isTrue();
+              });
+    }
+    var edit = drawerForm(drawerOf(run("view", Map.of("id", "b1"), null)));
+    assertThat(String.valueOf(edit.initialData())).contains("El Quijote");
+  }
+
+  /**
+   * What the browser sends now: the form bubbles its save, so the crud page's state is the
+   * component state and the form travels as initiatorState. A refusal re-renders the form with the
+   * banner and marks the refused field invalid on it.
+   */
+  @Test
+  void aRefusedDrawerSaveMarksTheRefusedFieldOnTheForm() {
+    var increment =
+        run(
+            "create",
+            Map.of("crud_selected_items", List.of()),
+            Map.of("initiatorState", Map.of("title", "", "pages", 5)));
+    assertThat(BOOKS).hasSize(2);
+    assertThat(String.valueOf(increment)).contains("Title: Cannot be empty");
+    assertThat(increment.fragments())
+        .anySatisfy(
+            fragment -> {
+              assertThat(fragment.targetComponentId()).isEqualTo("crud-edit-drawer-form");
+              assertThat(String.valueOf(fragment.data())).contains("title=[Cannot be empty]");
+            });
+    // and a valid one sent the same way persists
+    var created =
+        run(
+            "create",
+            Map.of("crud_selected_items", List.of()),
+            Map.of("initiatorState", Map.of("title", "Nuevo", "pages", 5)));
+    assertThat(BOOKS).hasSize(3);
+    assertThat(hasCommand(created, UICommandTypeDto.CloseModal)).isTrue();
   }
 }

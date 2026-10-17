@@ -59,7 +59,10 @@ class ConformanceCorpusRenderTest : BasePlatformTestCase() {
         for ((name, increment) in cases()) {
             try {
                 val (_, pane) = render(increment)
-                assertTrue("$name rendered nothing", pane.componentCount > 0)
+                // a data-only answer (crud-search: the rows of a listing's search) paints into the
+                // listing already on screen — on its own there is nothing to render
+                val carriesAComponent = increment.path("fragments").any { it.hasNonNull("component") }
+                if (carriesAComponent) assertTrue("$name rendered nothing", pane.componentCount > 0)
                 all(pane).filterIsInstance<JLabel>()
                     .firstOrNull { it.text.orEmpty().contains("Unsupported component") }
                     ?.let { failures.add("$name: ${it.text}") }

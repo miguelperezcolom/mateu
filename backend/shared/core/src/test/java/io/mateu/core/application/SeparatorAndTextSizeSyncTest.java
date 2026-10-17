@@ -63,11 +63,26 @@ class SeparatorAndTextSizeSyncTest {
     String street = "Main St";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/separator-in-tab")
+  @Title("Separator in a tab")
+  public static class TabbedSeparatorForm {
+    @io.mateu.uidl.annotations.Tab("Contact")
+    String name = "María";
+
+    @io.mateu.uidl.annotations.Tab("Contact")
+    @SeparatorBefore
+    String email;
+
+    @io.mateu.uidl.annotations.Tab("Other")
+    String notes;
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(SeparatorForm.class);
+    mateu = TestMateu.withUis(SeparatorForm.class, TabbedSeparatorForm.class);
   }
 
   @AfterAll
@@ -104,5 +119,15 @@ class SeparatorAndTextSizeSyncTest {
     var increment = mateu.sync("/separator");
     var texts = FieldKindsSyncTest.collect(increment.fragments().get(0).component(), TextDto.class);
     assertThat(texts).extracting(TextDto::text).contains("${state['address-street']}");
+  }
+
+  @Test
+  void separatorBeforeIsHonouredInsideATab() {
+    // only the untabbed rows emitted separators: inside a @Tab it was silently dropped
+    var increment = mateu.sync("/separator-in-tab");
+    var separators =
+        FieldKindsSyncTest.collect(increment.fragments().get(0).component(), SeparatorDto.class);
+    assertThat(separators).hasSize(1);
+    assertThat(separators.get(0).attributes()).containsKey("data-colspan");
   }
 }

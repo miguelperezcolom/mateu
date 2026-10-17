@@ -83,6 +83,13 @@ Some cases cannot be mirrored member for member, and that is information, not an
   them in place) and its private routing state (`initialData`/`state`). Everything the renderer
   draws is pinned; the action list itself is pinned by the non-mediated listing cases.
 
+- **A wizard is a mediator in Java too.** Java's wizard advertises a `*` catch-all and keeps its
+  position in its own state; the ports list `next`/`back`/`skip`/the completion and keep `__step`.
+  The `wizard` case therefore leaves out, in all three runners, its `actions` and its
+  `initialData`/`state`, like the mediated CRUD cases; everything it draws is pinned. Java names a
+  step after its field and the ports number them, so the port fixtures supply the step titles
+  through `StepTitle(n)` / `step_title(n)`.
+
 Recording these is the point: a difference nobody wrote down is a difference somebody rediscovers.
 
 ## Adding a case

@@ -137,7 +137,10 @@ class SearchHandlerMixin(MixinBase):
                     for g in found.groups
                 ]
             if found.total_elements is not None:
-                rows = [self._row_dict(item, props) for item in found.rows]
+                rows = _numbered(
+                    [self._row_dict(item, props) for item in found.rows],
+                    request.pageable.page, request.pageable.size,
+                )
                 crud_data: dict = {"page": {
                     "content": rows,
                     "pageSize": request.pageable.size,
@@ -233,7 +236,7 @@ class SearchHandlerMixin(MixinBase):
         if size <= 0:
             size = total or 1
         window = items[page * size : page * size + size]
-        rows = [self._row_dict(item, props) for item in window]
+        rows = _numbered([self._row_dict(item, props) for item in window], page, size)
         data = {"crud": {"page": {"content": rows, "pageSize": size, "pageNumber": page, "totalElements": total}}}
         return UIIncrement.of(
             fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
@@ -282,7 +285,9 @@ class SearchHandlerMixin(MixinBase):
         )
         found = crud.find(self.search_text(rq), state, pageable)
         if found is not None:
-            rows = [self._row_dict(item, props) for item in found.content]
+            rows = _numbered(
+                [self._row_dict(item, props) for item in found.content], pageable.page, pageable.size
+            )
             crud_data: dict[str, Any] = {"page": {
                 "content": rows, "pageSize": pageable.size, "pageNumber": pageable.page,
                 "totalElements": found.total_elements,
@@ -312,10 +317,10 @@ class SearchHandlerMixin(MixinBase):
         if size <= 0:
             size = total or 1
         window = items[page * size : page * size + size]
-        rows = [
+        rows = _numbered([
             {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
             for item in window
-        ]
+        ], page, size)
         crud_data = {
             "page": {
                 "content": rows,
@@ -576,3 +581,12 @@ class SearchHandlerMixin(MixinBase):
             for label, message in violations(entity, element)
             if message != "Cannot be empty"
         ]
+
+
+def _numbered(rows: list[dict], page: int, size: int) -> list[dict]:
+    """Stamps each row of a listing page with ``_rowNumber`` — its position in the WHOLE result
+    (``page * size + i``), the id the grid tells rows apart by (``item-id-path="_rowNumber"``:
+    selection, the active row, details). Java's ``DataMapper`` stamps every page it serves."""
+    for i, row in enumerate(rows):
+        row["_rowNumber"] = page * size + i
+    return rows

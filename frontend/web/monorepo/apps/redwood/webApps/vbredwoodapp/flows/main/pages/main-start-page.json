@@ -1198,6 +1198,9 @@
       "oj-input-text": {
         "path": "ojs/ojinputtext"
       },
+      "oj-input-password": {
+        "path": "ojs/ojinputtext"
+      },
       "oj-input-number": {
         "path": "ojs/ojinputnumber"
       },

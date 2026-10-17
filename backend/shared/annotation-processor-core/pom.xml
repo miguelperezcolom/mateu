@@ -14,12 +14,14 @@
   <description>Logic shared by the framework annotation processors of Mateu (controller generation, lint).</description>
 
   <properties>
-    <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 73.5%
-         (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
-    <jacoco.min.bundle.coverage>72%</jacoco.min.bundle.coverage>
+    <!-- BUNDLE floors (jacoco:check, mvn verify), at the value measured when last raised: 95.1%
+         lines / 81.9% branches (2026-10, design/coverage/coverage-map.md; the real-javac suites
+         GeneratedControllersCompileTest / IndexedMountsCompileTest / LintCompileTest). Ratchet. -->
+    <jacoco.min.bundle.coverage>95%</jacoco.min.bundle.coverage>
+    <jacoco.min.bundle.branch.coverage>81%</jacoco.min.bundle.branch.coverage>
     <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
     <argLine></argLine>
-    <jacoco.min.coverage>70%</jacoco.min.coverage>
+    <jacoco.min.coverage>95%</jacoco.min.coverage>
   </properties>
 
   <dependencies>
@@ -103,6 +105,21 @@
         <exclusion>
           <groupId>org.springframework</groupId>
           <artifactId>spring-web</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- the two-step contract (indexer writes ui-registrations, this AP reads it) is tested end
+         to end with both processors under a real javac -->
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-annotation-processor-indexer</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

@@ -1,0 +1,7 @@
+# Fixture for MountHomeSyncTest.aFormDefinitionWithOnlyATextRendersItselfNotTheRoot: a mount with
+# a home page, and a definition-only route whose definition is a bare `type: Form` (no `layout:`).
+type: UI
+basePath: /
+home: /dashboard
+routes:
+  - routes.yaml

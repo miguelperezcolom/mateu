@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import type { KeyValueStore } from './sessionId';
+import type { KeyValueStore } from './sessionId.ts';
 
 /**
  * The persistent store for the install's session id and the OIDC tokens: the platform keychain /

@@ -10,7 +10,7 @@ import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,
   fetchRestJson, filterRestRows, sortRestRows, restListingPage, restAnswerOf, loadRestOptions,
   adoptAppSources, adoptManifestSources, interpolateRestUrl, interpolateRest, mapItemsToOptions, restPageOf,
-  loadContextSelectorOptions,
+  loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
@@ -18,6 +18,7 @@ import { pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOO
 import { runMateuAction, loadLookups } from './transport.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
+import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions } from './restSources.mjs'
 
 let passed = 0
 const queue = []
@@ -166,6 +167,10 @@ test('in memory: search, filter, sort and page over the fetched rows', () => {
   const filters = [{ fieldId: 'status', options: [{ value: 'OPEN' }] }]
   assert.deepEqual(filterRestRows(rows, ids, filters, { status: 'OPEN' }).map((r) => r.id), [1, 3])
   assert.deepEqual(sortRestRows(rows, [{ field: 'total', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
+  // blanks go last in BOTH directions
+  const gaps = [{ id: 1, n: 30 }, { id: 2, n: null }, { id: 3, n: 45 }, { id: 4, n: '' }]
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'ascending' }]).map((r) => r.id), [1, 3, 2, 4])
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
   const md = { pageSize: 2, columns: [col('id', { identifier: true })] }
   const page1 = restListingPage(md, rows, 4, { page: 1, sort: [{ fieldId: 'total', direction: 'ascending' }] }, false)
   assert.equal(page1.totalElements, 4)
@@ -247,6 +252,23 @@ test('runMateuAction routes a proxied search through the server as __restfetch__
     assert.deepEqual(bodies[0].body.parameters, { _sourceKind: 'rows', _sourceId: 'crud' })
     assert.equal(inc.fragments[0].data.crud.page.content[0].id, 1)
   } finally { globalThis.fetch = realFetch }
+})
+
+test('a page with no app shell: the sources a response names resolve its refs', async () => {
+  reset(); clearReferencedSources()
+  setRestSourceCatalogue([])
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({
+    fragments: [], restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] }) })
+  try {
+    await runMateuAction('http://mateu', listingCtx(undefined), '/orders', 'save', {}, {})
+    assert.equal(resolveRestSource({ ref: 'late' }).url, 'https://late.example.com/x')
+  } finally { globalThis.fetch = realFetch }
+  // the App's own catalogue still wins a name clash
+  setRestSourceCatalogue([{ name: 'late', source: { url: '/app' } }])
+  adoptReferencedSources({ restSources: [{ name: 'late', source: { url: '/response' } }] })
+  assert.equal(resolveRestSource({ ref: 'late' }).url, '/app')
+  clearReferencedSources()
 })
 
 test('an ordinary action still goes to the server', () => {
@@ -594,6 +616,150 @@ test('shell sources: the reducer keeps the App\'s sources on the shell', () => {
       notificationsSource: inboxSource, notificationsReadSource: { url: '/r' }, globalSearchSource: { url: '/s' } }, children: [] } }] })
   assert.deepEqual([reg.shell.notificationsSource, reg.shell.notificationsReadSource, reg.shell.globalSearchSource],
     [inboxSource, { url: '/r' }, { url: '/s' }])
+})
+
+// ── the filters of a listing over an unpaged source, applied in the browser ──
+test('in memory: each filter kind filters as the server would — ranges, multi-select, yes/no, picks, text', () => {
+  const rows = [
+    { id: 1, gender: 'male', nights: 2, arrival: '2026-10-01', vip: true, tag: 'A' },
+    { id: 2, gender: 'female', nights: 5, arrival: '2026-10-15', vip: 'false', tag: 'B' },
+    { id: 3, gender: 'female', nights: '', arrival: '', vip: 'TRUE', tag: 'C' },
+  ]
+  const ids = ['id', 'gender']
+  const run = (filters, state) => filterRestRows(rows, ids, filters, state).map((r) => r.id)
+  // a pick is exact: "male" does not also match "female"
+  assert.deepEqual(run([{ fieldId: 'gender', options: [{ value: 'male' }, { value: 'female' }] }], { gender: 'male' }), [1])
+  // free text (no options) is a case-insensitive containment
+  assert.deepEqual(run([{ fieldId: 'gender' }], { gender: 'MALE' }), [1, 2, 3])
+  // a number range: either bound alone, a blank cell never matches an applied range
+  const nights = [{ fieldId: 'nights', stereotype: 'numberRange' }]
+  assert.deepEqual(run(nights, { nights_from: 3 }), [2])
+  assert.deepEqual(run(nights, { nights_to: '4' }), [1])
+  assert.deepEqual(run(nights, { nights_from: '', nights_to: null }), [1, 2, 3], 'no bound, no filter')
+  // a date range compares ISO dates
+  assert.deepEqual(run([{ fieldId: 'arrival', stereotype: 'dateRange' }], { arrival_from: '2026-10-10' }), [2])
+  assert.deepEqual(run([{ fieldId: 'arrival', stereotype: 'dateRange' }], { arrival_to: '2026-10-10' }), [1])
+  // multi-select: a list, or the comma-joined string a URL restores
+  assert.deepEqual(run([{ fieldId: 'tag', stereotype: 'multiSelect' }], { tag: ['A', 'C'] }), [1, 3])
+  assert.deepEqual(run([{ fieldId: 'tag', stereotype: 'multiSelect' }], { tag: 'B, C' }), [2, 3])
+  assert.deepEqual(run([{ fieldId: 'tag', stereotype: 'multiSelect' }], { tag: [] }), [1, 2, 3])
+  // yes/no: booleans or their strings, whatever the declared spelling (bool/boolean/checkbox/toggle)
+  for (const f of [{ dataType: 'bool' }, { dataType: 'boolean' }, { stereotype: 'toggle' }, { stereotype: 'checkbox' }]) {
+    assert.deepEqual(run([{ fieldId: 'vip', ...f }], { vip: 'true' }), [1, 3], JSON.stringify(f))
+    assert.deepEqual(run([{ fieldId: 'vip', ...f }], { vip: false }), [2], JSON.stringify(f))
+  }
+  // the search text goes over the listing's columns only, and a filter without a field id is ignored
+  assert.deepEqual(run([{ label: 'no id' }], { searchText: ' FEM ' }), [2, 3])
+  assert.equal(filterRestRows(rows, ids, null, {}), rows, 'nothing applied: the same rows')
+})
+
+test('in memory: sort by several keys, numbers numerically, text case-insensitively, blanks after values', () => {
+  const rows = [{ n: 'b10', k: 1 }, { n: 'B2', k: 2 }, { n: '', k: 1 }, { n: 'a', k: 2 }, { n: null, k: 1 }]
+  assert.deepEqual(sortRestRows(rows, [{ fieldId: 'n' }]).map((r) => r.n), ['a', 'B2', 'b10', '', null])
+  assert.deepEqual(sortRestRows(rows, [{ field: 'k', direction: 'desc' }, { field: 'n' }]).map((r) => r.n), ['a', 'B2', 'b10', '', null])
+  assert.equal(sortRestRows(rows, [{ direction: 'desc' }]), rows, 'a key without a field sorts nothing')
+  assert.equal(sortRestRows(rows, null), rows)
+})
+
+test('in memory: a page with no identifier column numbers its rows; no page size shows them all', () => {
+  const md = { columns: [col('name')], filters: [] }
+  const page = restListingPage(md, [{ name: 'x' }, { name: 'y' }], null, {}, false)
+  assert.deepEqual(page.content.map((r) => r._rowNumber), ['_row:0', '_row:1'])
+  assert.equal(page.pageSize, 2)
+  assert.equal(restListingPage(md, [{ name: 'x' }, { name: 'y' }, { name: 'z' }], null, { size: 2, page: 1 }, false).content.length, 1, 'the state size when the listing declares none')
+  assert.equal(restListingPage(md, [], null, {}, false).pageSize, 1)
+})
+
+test('a ref fills only what the surface leaves blank — headers, body, paths — and proxy is either side\'s', () => {
+  setRestSourceCatalogue([{ name: 'h', source: { url: '/api/h', method: 'POST', body: '{"a":1}', headers: { 'X-A': '1' }, itemsPath: 'items', valuePath: 'id', labelPath: 'name' } },
+    { name: 'nosource' }, { bad: true }])
+  const r = resolveRestSource({ ref: 'h', headers: {}, labelPath: 'title', proxy: true })
+  assert.deepEqual([r.url, r.method, r.body, r.headers, r.itemsPath, r.valuePath, r.labelPath, r.proxy], ['/api/h', 'POST', '{"a":1}', { 'X-A': '1' }, 'items', 'id', 'title', true])
+  assert.deepEqual(resolveRestSource({ ref: 'h', headers: { 'X-B': '2' } }).headers, { 'X-B': '2' })
+  // an entry with no source (or no such entry) leaves the descriptor as declared
+  assert.deepEqual(resolveRestSource({ ref: 'nosource', url: '/own' }), { ref: 'nosource', url: '/own' })
+  assert.deepEqual(resolveRestSource({ ref: 'ghost' }), { ref: 'ghost' })
+  reset()
+})
+
+test('direct leg: a body is escaped as JSON only when the request declares JSON; control characters too', () => {
+  assert.equal(jsonEscape('a\\b\r\t\b\f\u0001"'), 'a\\\\b\\r\\t\\b\\f\\u0001\\"')
+  assert.equal(declaresJson({ 'content-type': 'application/merge-patch+json' }), true)
+  assert.equal(declaresJson({ 'Content-Type': 'text/plain' }), false)
+  assert.equal(declaresJson(null), false)
+  assert.equal(interpolateRest('${state.x}|${state.o}|${state.missing}|${data["k"]}', { state: { x: 1, o: { a: 1 } }, data: { k: 'v' } }), '1|{"a":1}||v')
+  assert.equal(interpolateRest('plain', {}), 'plain')
+})
+
+test('direct leg: an empty body is null, a response without text() is read as JSON, an unknown ref says so', async () => {
+  assert.equal(await fetchRestJson({ url: '/x' }, {}, async () => ({ ok: true, status: 200, text: async () => '  ' })), null)
+  assert.deepEqual(await fetchRestJson({ url: '/x' }, {}, async () => ({ ok: true, status: 200, json: async () => ({ a: 1 }) })), { a: 1 })
+  await assert.rejects(fetchRestJson({ ref: 'ghost' }, {}), /no url \(unknown source "ghost"\)/)
+  const f = stubFetch({ ok: 1 })
+  await fetchRestJson({ url: '/x', method: 'post', body: 'n=${state.n}', headers: { 'X-Who': '${appState.user}' } }, { state: { n: 'a"b' }, appState: { user: 'ada' } }, f)
+  assert.equal(f.calls[0].init.body, 'n=a"b', 'not JSON: not escaped')
+  assert.deepEqual(f.calls[0].init.headers, { 'X-Who': 'ada' })
+})
+
+test('rows: a failing source leaves an empty page (no crash), a proxied failure too', async () => {
+  reset()
+  const ctx = listingCtx({ url: '/api/orders' })
+  const node = ctx.tree.children[0]
+  const inc = await restAnswer(ctx, 'search', {}, { fetchImpl: stubFetch({}, 503) })
+  assert.deepEqual(inc.fragments[0].data.crud.page.content, [])
+  const prox = listingCtx({ ref: 'secret' })
+  const failed = await restAnswer(prox, 'search', {}, { server: async () => ({ appData: { _restfetchError: { status: 502 } } }) })
+  assert.deepEqual(failed.fragments[0].data.crud.page.content, [])
+  assert.equal(node.metadata.type, 'Crud')
+})
+
+test('options: a proxied failure leaves no options, marked loaded (not retried until the url changes)', async () => {
+  reset()
+  const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'p', children: [
+    { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'thing', dataType: 'string', optionsSource: { ref: 'secret' } } }] }, state: {}, data: {} }
+  const reg = { contexts: { [HOST_ID]: ctx }, stack: [], shell: null }
+  let calls = 0
+  const next = await loadRestOptions(reg, HOST_ID, { server: async () => { calls++; return { appData: { _restfetchError: { status: 500 } } } } })
+  assert.equal(calls, 1)
+  assert.deepEqual(next.contexts[HOST_ID].data.thing.content, [])
+  const again = await loadRestOptions(next, HOST_ID, { server: async () => { calls++; return {} } })
+  assert.equal(calls, 1, 'loaded once: not asked again')
+  assert.equal(again, next)
+  assert.equal(await loadRestOptions(reg, 'nobody', {}), reg)
+})
+
+test('app context: a proxied selector without a server keeps no options; a failing one comes back as it was', async () => {
+  reset()
+  const proxied = { fieldName: 'hotel', optionsSource: { ref: 'secret' } }
+  assert.deepEqual(await loadContextSelectorOptions([proxied]), [proxied])
+  const direct = { fieldName: 'year', optionsSource: { url: '/api/years' } }
+  const res = await loadContextSelectorOptions([direct, null], { fetchImpl: stubFetch({}, 500) })
+  assert.deepEqual(res, [direct, null])
+  const failedProxy = await loadContextSelectorOptions([proxied], { server: async () => ({ appData: { _restfetchError: {} } }) })
+  assert.deepEqual(failedProxy, [proxied])
+})
+
+test('rest action: a failure says which HTTP status; a proxied one too; bulk without a selection asks for one', async () => {
+  reset()
+  const ctxWith = (restAction) => ({ id: HOST_ID, tree: { type: 'ServerSide', id: 'p', actions: [{ id: 'go', restAction }], children: [] }, state: {}, data: {} })
+  const direct = await restAnswer(ctxWith({ source: { url: '/api/x', method: 'POST' } }), 'go', {}, { fetchImpl: stubFetch({}, 409) })
+  assert.deepEqual(direct.messages, [{ variant: 'error', text: 'Request failed (HTTP 409)' }])
+  const network = await restAnswer(ctxWith({ source: { url: '/api/x', method: 'POST' } }), 'go', {}, { fetchImpl: async () => { throw new TypeError('down') } })
+  assert.deepEqual(network.messages, [{ variant: 'error', text: 'Request failed' }])
+  const proxied = await restAnswer(ctxWith({ source: { ref: 'secret' } }), 'go', {}, { server: async () => ({ appData: { _restfetchError: { status: 401 } } }) })
+  assert.deepEqual(proxied.messages, [{ variant: 'error', text: 'Request failed (HTTP 401)' }])
+  const bulk = await restAnswer(ctxWith({ source: { url: '/api/x/${row.id}', method: 'DELETE' }, forEachSelectedRow: true }), 'go', { crud_selected_items: [] }, {})
+  assert.deepEqual(bulk.messages, [{ variant: 'warning', text: 'Select rows first' }])
+  const bulkFail = await restAnswer(ctxWith({ source: { url: '/api/x/${row.id}', method: 'DELETE' }, forEachSelectedRow: true }), 'go', { crud_selected_items: [{ id: 1 }] }, { fetchImpl: stubFetch({}, 500) })
+  assert.deepEqual(bulkFail.messages, [{ variant: 'error', text: 'Request failed (HTTP 500)' }])
+  assert.equal(restAnswer(null, 'go'), null)
+  assert.equal(restAnswer(ctxWith(null), 'other', {}), null, 'an ordinary action is the server\'s')
+})
+
+test('options mapping: primitives are their own value and label; a half mapping falls back to the other half', () => {
+  assert.deepEqual(mapOptions(['a', 2], '', '', ''), [{ value: 'a', label: 'a' }, { value: 2, label: '2' }])
+  assert.deepEqual(mapOptions({ items: [{ id: 1 }, { name: 'n' }] }, 'items', 'id', 'name'), [{ value: 1, label: '1' }, { value: 'n', label: 'n' }])
+  assert.deepEqual(mapOptions({ nope: 1 }, 'items', 'id', 'name'), [])
 })
 
 for (const { name, fn } of queue) {

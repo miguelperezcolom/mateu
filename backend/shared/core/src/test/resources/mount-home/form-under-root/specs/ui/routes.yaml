@@ -1,0 +1,11 @@
+# Fixture for DefinitionOnlyRouteSyncTest: definition-only routes under a plain @UI("") root, the
+# definition a bare `type: Form` (no `layout:` envelope) — at one and at two segments.
+type: Routes
+routes:
+  - route: note
+    layout: journeys/note.yaml
+  - route: j/note
+    layout: journeys/note.yaml
+  - route: j/managers-only
+    layout: journeys/note.yaml
+    access: {roles: [manager]}

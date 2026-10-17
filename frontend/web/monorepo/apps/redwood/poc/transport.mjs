@@ -9,7 +9,7 @@ import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isVie
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
-import { restAnswerOf, loadRestOptions, adoptAppSources } from './restSources.mjs'
+import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { noteDocumentBase } from './files.mjs'
 
@@ -38,6 +38,8 @@ export async function callMateu(base, body, options = {}) {
   }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
   const increment = await res.json()
   observeWireVersion(increment)
+  // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
+  adoptReferencedSources(increment)
   // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
@@ -61,6 +63,7 @@ export async function bootstrapShell(base, initiator = 'shell') {
     }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
     const increment = await res.json()
     observeWireVersion(increment)
+    adoptReferencedSources(increment)
     // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
     return adoptAppSources(increment)
   } catch (e) {
@@ -326,6 +329,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
     }
     const inc = JSON.parse(line.slice(5).trim())
     observeWireVersion(inc)
+    adoptReferencedSources(inc)
     const consumed = onIncrement ? await onIncrement(inc) : false
     if (!consumed) increments.push(inc)
   }

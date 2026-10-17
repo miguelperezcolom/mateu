@@ -43,7 +43,17 @@ public class ValueWriter {
       return;
     }
     v = FieldValueConverter.convertEnumCollection(f, v);
-    v = convert(v, f.getType());
+    if (io.mateu.core.infra.reflection.OptionalFields.isOptional(f)) {
+      // what comes back for an Optional<X> field is an X (or nothing): convert, then wrap
+      var content = v instanceof java.util.Optional<?> optional ? optional.orElse(null) : v;
+      v =
+          io.mateu.core.infra.reflection.OptionalFields.wrap(
+              content == null
+                  ? null
+                  : convert(content, io.mateu.core.infra.reflection.OptionalFields.valueType(f)));
+    } else {
+      v = convert(v, f.getType());
+    }
     try {
       Method setter = o.getClass().getMethod(getSetter(f), f.getType());
       try {

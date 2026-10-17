@@ -1,4 +1,5 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 import { html, nothing } from "lit";
@@ -38,7 +39,7 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
 
     let control
     if (readOnly || stereotype === 'plainText') {
-        control = html`<div style="padding:.4rem 0;">${String(value ?? '')}</div>`
+        control = html`<div style="padding:.4rem 0;">${String(shownReadOnlyValue(field as { stereotype?: string }, value) ?? '')}</div>`
     } else if (dataType === 'boolean' || dataType === 'bool' || stereotype === 'checkbox' || stereotype === 'badge') {
         control = html`<input type="checkbox" ?checked="${!!value}" ?disabled="${disabled}" @change="${onInput(field)}">`
     } else if (options && options.length) {
@@ -48,7 +49,9 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
                 ${options.map(o => html`<option value="${o.value as any}" ?selected="${o.value === value}">${o.label}</option>`)}
             </select>`
     } else if (stereotype === 'textarea' || stereotype === 'richText' || stereotype === 'html') {
-        control = html`<textarea style="${inputStyle}" rows="3" ?disabled="${disabled}" @input="${onInput(field)}">${String(value ?? '')}</textarea>`
+        // bound as a PROPERTY: text inside <textarea> is only its default value, so once the user
+        // typed, a value sent afterwards (a reset, a server-side change) never showed
+        control = html`<textarea style="${inputStyle}" rows="3" .value="${String(value ?? '')}" ?disabled="${disabled}" @input="${onInput(field)}"></textarea>`
     } else {
         const inputType =
             dataType === 'integer' || dataType === 'number' || dataType === 'double' || dataType === 'money' ? 'number'

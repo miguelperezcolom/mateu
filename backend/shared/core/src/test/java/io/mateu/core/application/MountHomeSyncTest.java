@@ -190,4 +190,64 @@ class MountHomeSyncTest {
     assertThat(wire.findValuesAsText("type")).contains("ServerSide");
     assertThat(wire.toString()).contains("__restfetch__");
   }
+
+  @Test
+  void aFormDefinitionWithOnlyATextRendersItselfNotTheRoot() {
+    // `type: Form` with a `content:` holding only a Text (no `layout:` envelope) answered the
+    // mount's ROOT page — its home — instead of the definition
+    var wire = load("form-content", "/note").toString();
+    assertThat(wire).contains("Only a text in this form");
+    assertThat(wire).doesNotContain("Mount home dashboard");
+  }
+
+  /** A plain (non-app) root view: it owns "", not every route under it. */
+  @io.mateu.uidl.annotations.UI("")
+  public static class PlainRoot {
+    public String rootField;
+  }
+
+  @Test
+  void aBareFormDefinitionUnderAJavaRootRendersItselfNotTheRoot() {
+    for (var route : java.util.List.of("/note", "/j/note")) {
+      var wire =
+          over(
+                  "form-under-root",
+                  cl -> {
+                    try (var mateu = TestMateu.withUis(PlainRoot.class)) {
+                      return JSON.valueToTree(
+                          mateu.run(
+                              RunActionRqDto.builder()
+                                  .route(route)
+                                  .consumedRoute("_empty")
+                                  .actionId("")
+                                  .build()));
+                    }
+                  })
+              .toString();
+      assertThat(wire).as(route).contains("Only a text in this form");
+      assertThat(wire).as(route).doesNotContain(PlainRoot.class.getName());
+    }
+  }
+
+  @Test
+  void aBareFormDefinitionBehindAccessRendersItselfForTheRole() {
+    var wire =
+        over(
+                "form-under-root",
+                cl -> {
+                  try (var mateu = TestMateu.withUis(PlainRoot.class)) {
+                    return JSON.valueToTree(
+                        mateu.run(
+                            RunActionRqDto.builder()
+                                .route("/j/managers-only")
+                                .consumedRoute("_empty")
+                                .actionId("")
+                                .build(),
+                            io.mateu.core.testutil.TestIdentities.headersWithRoles("manager")));
+                  }
+                })
+            .toString();
+    assertThat(wire).contains("Only a text in this form");
+    assertThat(wire).doesNotContain(PlainRoot.class.getName());
+  }
 }

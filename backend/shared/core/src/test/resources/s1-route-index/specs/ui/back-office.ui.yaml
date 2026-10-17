@@ -1,0 +1,4 @@
+type: UI
+basePath: /back-office
+routes:
+  - back-office-routes.yaml

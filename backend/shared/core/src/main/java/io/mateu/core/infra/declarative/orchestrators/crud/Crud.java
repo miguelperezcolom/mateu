@@ -84,7 +84,19 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         var output = actionHandler.handleAction(actionId, httpRequest, this);
 
         if (output instanceof CrudActionResult result) {
-          return CrudActionResultAssembler.assemble(result, this, httpRequest);
+          output = CrudActionResultAssembler.assemble(result, this, httpRequest);
+        }
+        if (OptimisticLock.fromConflictDialog(httpRequest)) {
+          // a conflict-dialog button: whatever it answers, the dialog it was pressed in closes
+          // (it is the topmost overlay — an edit drawer under it is closed, or not, by the answer)
+          var closing = new java.util.ArrayList<Object>();
+          closing.add(io.mateu.uidl.data.UICommand.closeModal());
+          if (output instanceof java.util.Collection<?> many) {
+            closing.addAll(many);
+          } else if (output != null) {
+            closing.add(output);
+          }
+          return closing;
         }
 
         return output;
@@ -105,8 +117,17 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * one button needs a way to fix it.
    */
   public void addButtonsToList(List<UserTrigger> toolbar) {
+    addButtonsToList(toolbar, null);
+  }
+
+  /**
+   * The bulk buttons of the listing toolbar for this request: a method restricted by an {@code
+   * EyesOnly} the caller does not satisfy is left out (it is refused on invocation anyway).
+   */
+  public void addButtonsToList(List<UserTrigger> toolbar, HttpRequest httpRequest) {
     getAllMethods(behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .sorted(
             java.util.Comparator.comparingInt(
                 method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))

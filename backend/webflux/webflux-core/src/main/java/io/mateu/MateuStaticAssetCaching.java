@@ -4,13 +4,16 @@ import io.mateu.core.infra.StaticAssetCaching;
 import java.io.IOException;
 import java.util.Arrays;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.config.ResourceHandlerRegistration;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.server.WebFilter;
 
 /**
  * Serves Mateu's frontend assets with a cache policy, so Spring Security's default {@code no-store}
@@ -53,6 +56,31 @@ public class MateuStaticAssetCaching implements WebFluxConfigurer {
               .toArray(String[]::new),
           CacheControl.noCache());
     }
+  }
+
+  /**
+   * The policy on a 304 too. WebFlux's resource handler answers a revalidation BEFORE it applies
+   * its cache control (Spring MVC applies it first), so an unchanged asset came back with no {@code
+   * Cache-Control}, which a 304 must repeat (RFC 9110 §15.4.5).
+   */
+  @Bean
+  public WebFilter mateuNotModifiedCacheControl() {
+    return (exchange, chain) -> {
+      var cacheControl =
+          StaticAssetCaching.cacheControlFor(exchange.getRequest().getPath().value());
+      if (cacheControl != null) {
+        var response = exchange.getResponse();
+        response.beforeCommit(
+            () -> {
+              if (HttpStatus.NOT_MODIFIED.equals(response.getStatusCode())
+                  && response.getHeaders().getCacheControl() == null) {
+                response.getHeaders().setCacheControl(cacheControl);
+              }
+              return reactor.core.publisher.Mono.empty();
+            });
+      }
+      return chain.filter(exchange);
+    };
   }
 
   private void configure(

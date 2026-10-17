@@ -115,40 +115,11 @@ public class ActionInstanceCreator {
           .switchIfEmpty(
               (Mono) Mono.defer(() -> routeInstanceCreator.findRouteResolver(finalCommand)));
     }
+    // (A route bound to a definition only never gets here: it returned just above.)
     return routeInstanceCreator
         .findRouteResolver(command)
-        .flatMap(
-            resolved ->
-                definesItsOwnPage(finalCommand, resolved)
-                    ? ((Mono<Object>) loadYaml(finalCommand)).defaultIfEmpty(resolved)
-                    : Mono.just(resolved))
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
         .switchIfEmpty((Mono) Mono.defer(() -> rootAppMenuContent(finalCommand)));
-  }
-
-  /**
-   * A route authored in routes.yaml with a definition and NO view model is its own page. On a fresh
-   * load (consumedRoute "_empty") the mount's root class still answers it — a deep link to a mount
-   * resolves to the mount's class, so its own sub-routes and an app's menu can take over — and a
-   * plain root view then rendered ITSELF instead of the definition: /walk-yaml under a root
-   * {@code @UI("")} form showed that form. An app keeps the route (it wraps it in its chrome).
-   */
-  private boolean definesItsOwnPage(RunActionCommand command, Object resolved) {
-    if (command.route() == null || resolved == null) {
-      return false;
-    }
-    var path = stripQuery(command.route()).replaceAll("^/+", "").replaceAll("/+$", "");
-    if (path.isEmpty()) {
-      return false;
-    }
-    var match = routeRegistry.authored().match(path).orElse(null);
-    if (match == null
-        || (match.entry().viewModel() != null && !match.entry().viewModel().isBlank())
-        || match.entry().definition() == null
-        || match.entry().definition().isBlank()) {
-      return false;
-    }
-    return !isApp(resolved.getClass(), command.route());
   }
 
   /**
@@ -201,6 +172,11 @@ public class ActionInstanceCreator {
     return appMenuResolver
         .resolveMenuIfApp(command, app, routeInstanceCreator::findRouteResolver)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYamlPage(finalCommand)))
+        // nothing local claims it: one of the shell's remotes may — the content load of a remote
+        // screen a local page navigated to (the fresh deep link goes through
+        // resolveRemoteMenuForRoute in createInstance)
+        .switchIfEmpty(
+            (Mono) Mono.defer(() -> appMenuResolver.resolveRemoteDeepLink(finalCommand, app)))
         .switchIfEmpty(
             (Mono)
                 Mono.defer(
@@ -226,13 +202,23 @@ public class ActionInstanceCreator {
    * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
    * is never offered to a remote, even when no menu entry claims it.
    */
+  /**
+   * A route routes.yaml binds with NO view model (a definition page): its own page. On a fresh load
+   * the mount's root class would otherwise claim it by prefix and answer itself (a plain root view
+   * rendered ITSELF instead of the definition: /walk-yaml under a root {@code @UI("")} form showed
+   * that form); an app on a prefix still answers first (it wraps the route in its chrome).
+   */
   private boolean isAuthoredDefinitionOnly(String route) {
-    if (route == null || stripQuery(route).replaceAll("^/+", "").isEmpty()) {
+    if (route == null) {
+      return false;
+    }
+    var path = stripQuery(route).replaceAll("^/+", "").replaceAll("/+$", "");
+    if (path.isEmpty()) {
       return false;
     }
     return routeRegistry
         .authored()
-        .match(stripQuery(route))
+        .match(path)
         .map(match -> match.entry().viewModel() == null || match.entry().viewModel().isBlank())
         .orElse(false);
   }

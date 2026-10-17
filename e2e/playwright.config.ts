@@ -17,9 +17,28 @@ export default defineConfig({
       name: 'mvc-app1',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8080',
+        baseURL: process.env.MVC_APP1_URL || 'http://localhost:8080',
       },
       testMatch: '**/shared/**/*.spec.ts',
+    },
+    {
+      // End-to-end JOURNEYS (design/coverage/coverage-map.md §4): the features a user walks through
+      // end to end that the shared suite does not reach — CRUD in a drawer, inline editing, the
+      // optimistic-lock dialog, totals and grouping, saved views, the column chooser, drag to a drop
+      // zone, role-based access, a proxied secret against a real upstream... Their fixtures live in
+      // mvc-app1 only (io.mateu.sample1.app.journeys), so this runs on ONE adapter — the parity of
+      // the wire across adapters is the shared suite's job, and this keeps the CI cost to one SUT.
+      name: 'journeys',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.MVC_APP1_URL || 'http://localhost:8080',
+        // a fake camera, so @PhotoCapture captures a real frame headless
+        permissions: ['camera'],
+        launchOptions: {
+          args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+        },
+      },
+      testMatch: '**/journeys/**/*.spec.ts',
     },
     {
       name: 'webflux-app1',

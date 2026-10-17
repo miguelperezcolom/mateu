@@ -588,6 +588,9 @@ public class RunActionUseCase {
         // Stamp each routed component with a structure hash (ETag) and, when the client echoed a
         // still-matching hash, omit the structure so only state/data travel (phase b of the client
         // structure cache). This is the single chokepoint every increment mapper flows through.
+        // The catalogue entries the response names by ref, BEFORE the structure may be omitted: a
+        // page with no app shell receives no AppDto, and so no catalogue, any other way.
+        .map(io.mateu.core.domain.out.fragmentmapper.mappers.ReferencedRestSources::apply)
         .map(increment -> StructureHashPostProcessor.apply(increment, knownStructureHash(command)))
         .doOnNext(RunActionUseCase::recordEmittedTypes);
   }

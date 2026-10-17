@@ -489,9 +489,10 @@ public abstract class IdentityGatedAttribute : Attribute
     public string[] Permissions { get; set; } = [];
 }
 
-/// <summary>HIDES the field (form and listing columns) unless the caller is authorized.
-/// (C# analogue of Java's @EyesOnly on fields.)</summary>
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+/// <summary>HIDES the field (form and listing columns) — or the action method: its button and its
+/// action id are not sent, and invoking it is refused — unless the caller is authorized.
+/// (C# analogue of Java's @EyesOnly on fields and methods.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class EyesOnlyAttribute : IdentityGatedAttribute;
 
 /// <summary>The field (or every field of the class) is READ-ONLY unless the caller is

@@ -48,9 +48,17 @@ public sealed class McpService
     /// <summary>Run the standard <c>search</c> action of a listing.</summary>
     public JsonObject Search(string route, string? searchText, JsonObject? filters)
     {
+        // The listing reads its search text from the COMPONENT STATE (where the search box writes
+        // it), not from the parameters: sent only as a parameter, the agent's search came back
+        // unfiltered.
+        var state = filters?.DeepClone() as JsonObject ?? new JsonObject();
         JsonObject? parameters = null;
-        if (!string.IsNullOrEmpty(searchText)) parameters = new JsonObject { ["searchText"] = searchText };
-        return McpProjection.Project(Sync(Rq(route, "search", filters, parameters)));
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            state["searchText"] = searchText;
+            parameters = new JsonObject { ["searchText"] = searchText };
+        }
+        return McpProjection.Project(Sync(Rq(route, "search", state, parameters)));
     }
 
     /// <summary>Navigable routes from the app menu on the root response → [{route, caption}].</summary>
@@ -73,7 +81,7 @@ public sealed class McpService
         {
             if (obj["metadata"] is JsonObject md && AsString(md["type"]) == "App")
                 WalkMenu(md["menu"], add);
-            if (obj["route"] is JsonValue rv && rv.TryGetValue<string>(out var route) && route.Length > 0)
+            if (!IsFolder(obj) && obj["route"] is JsonValue rv && rv.TryGetValue<string>(out var route) && route.Length > 0)
             {
                 var r = McpProjection.NormalizeRoute(route);
                 add(r, AsString(obj["caption"]) ?? AsString(obj["label"]) ?? (r.Length == 0 ? "Home" : r));
@@ -93,7 +101,7 @@ public sealed class McpService
         {
             if (itemEl is not JsonObject item) continue;
             var raw = AsString(item["route"]) ?? AsString(item["path"]);
-            if (!string.IsNullOrEmpty(raw))
+            if (!IsFolder(item) && !string.IsNullOrEmpty(raw))
             {
                 var r = McpProjection.NormalizeRoute(raw);
                 add(r, AsString(item["caption"]) ?? AsString(item["label"]) ?? (r.Length == 0 ? "Home" : r));
@@ -102,6 +110,10 @@ public sealed class McpService
             WalkMenu(item["menu"], add);
         }
     }
+
+    // A folder (a menu entry holding submenus) is not a place to navigate to: its "/" path would
+    // otherwise be reported as the home, under the folder's caption.
+    static bool IsFolder(JsonObject item) => item["submenus"] is JsonArray { Count: > 0 };
 
     static string? AsString(JsonNode? n) => n is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 

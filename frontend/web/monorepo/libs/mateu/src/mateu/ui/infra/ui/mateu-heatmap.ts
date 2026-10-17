@@ -3,7 +3,10 @@ import { customElement, property } from 'lit/decorators.js';
 import HeatCell from "@mateu/shared/apiClients/dtos/componentmetadata/HeatCell";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
-const DAY = 24 * 60 * 60 * 1000;
+/** A local date as yyyy-mm-dd — the wire's own spelling (toISOString would answer the UTC day,
+ *  which east of UTC is the day BEFORE local midnight). */
+const isoDay = (d: Date): string =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 /**
  * Dependency-free calendar heatmap (GitHub-contributions style): one square per day in week
@@ -66,9 +69,9 @@ export class MateuHeatmap extends LitElement {
         for (const c of cells) byDate[c.date!] = c
         const maxVal = Math.max(...cells.map(c => c.value ?? 0), 1)
         const squares = []
-        for (let t = start.getTime(); t <= max; t += DAY) {
-            const d = new Date(t)
-            const key = d.toISOString().slice(0, 10)
+        // step by calendar day, not by 24h: a daylight-saving day is 23 or 25 hours long
+        for (const d = new Date(start); d.getTime() <= max; d.setDate(d.getDate() + 1)) {
+            const key = isoDay(d)
             const cell = byDate[key]
             const value = cell?.value ?? 0
             const row = (d.getDay() + 6) % 7 + 1

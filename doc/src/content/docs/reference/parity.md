@@ -107,6 +107,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
+| Fluent `Grid` with column groups (`GridGroupColumn`: a header spanning several columns, its columns in `metadata.columns`; authorable in Java code and in YAML). The ports have no fluent `Grid` component at all — their tables are listings and grid form fields, which have no column groups in any backend — so the group has nothing to live in there | ✅ | N/A | N/A |
 | Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | ✅ | ✅ |
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
 | Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
@@ -234,7 +235,7 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 |---|---|---|---|---|
 | Menu entries | `@Menu` on a **field** whose type is the target page (`Menu` / `RouteLink` records for submenus and links) | `[MenuItem]` / `[MenuGroup("A/B")]` on **methods** returning the target | `@menu_item` / `@menu_group` on methods | Idiom. A C# property / Python attribute typed as the page would be bound and serialised as form state; a method is the natural "go there" declaration. Same `MenuOptionDto` tree on the wire. |
 | Header KPI | `@KPI` (no argument; the label comes from the field / `@Label`) on a field or method | `[Kpi("Title")]` (title required) on a property or method | `kpi("Title")` — one lowercase class used both as a method decorator and as an `Annotated[...]` marker | Idiom. The ports carry the label in the declaration because they have no per-member `@Label` on methods; same `KPIDto`. |
-| Wizard steps | `WizardStep` **fields** of a `Wizard`, in declaration order | `[Step(n)]` on the wizard's properties (1-based) | `Step(n)` marker in `Annotated[...]` | Idiom: named steps in Java, numbered steps in the ports. Python's top-level `Step` is that marker; the `ProgressSteps` item (Java/.NET `Step` record) is `mateu_uidl.components.Step`. |
+| Wizard steps | `WizardStep` **fields** of a `Wizard`, in declaration order | `[Step(n)]` on the wizard's properties (1-based) | `Step(n)` marker in `Annotated[...]` | Idiom: named steps in Java, numbered steps in the ports. A step's title (the progress bar's text, the steps/rail bullets) is the step field's label in Java and the `StepTitle(n)` / `step_title(n)` override in the ports. Python's top-level `Step` is that marker; the `ProgressSteps` item (Java/.NET `Step` record) is `mateu_uidl.components.Step`. |
 | Wizard completion | `@WizardCompletionAction(label, availableFromStep = "stepField")` on a method | override `CompletionActionLabel` + `OnNext`, `CompletionAvailableFromStep` (`int?`) | `@wizard_completion_action(label, available_from_step=n)` | Idiom. `availableFromStep` names a step **field** in Java and a step **number** in the ports, because that is how each one names its steps. |
 | Wizard progress style | `@WizardProgress(WizardProgressStyle.STEPS)` (enum) | `[WizardProgress("steps")]` | `@wizard_progress("steps")` | Idiom (a string where Java has an enum); values `bar` / `steps` / `rail` everywhere. |
 | Edit in a drawer | override `Crud.editInDrawer()` | override the `EditInDrawer` property | `@edit_in_drawer` class decorator | Idiom. |
@@ -287,6 +288,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
+| Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ flattened, `Group · Column` headers |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
 | Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | ✅ the Ask palette: destinations + GlobalSearchSupplier entity results by category | ✅ sidebar search | ✅ drawer search |
@@ -430,9 +432,9 @@ renderers, and its children still render.
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |
-| `Breadcrumb` | ↳ | of Breadcrumbs |
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
+| `GridGroupColumn` | ↳ | of Grid / Crud: oj-table has no grouped headers, so the group label prefixes its columns ("Occupancy · Adults") |
 | `Tab` | ↳ | of TabLayout |
 <!-- redwood-coverage:end -->
 
@@ -565,8 +567,8 @@ native renderer — 89 rendered, 11 layout containers, 6 parts of another compon
 | `AccordionPanel` | ✅ part | of AccordionLayout |
 | `BoardLayoutItem` | ✅ part | of BoardLayout |
 | `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
-| `Breadcrumb` | ✅ part | of Breadcrumbs |
 | `GridColumn` | ✅ part | of Grid / Crud |
+| `GridGroupColumn` | ✅ part | of Grid / Crud: its columns, headed "Group · Column" |
 | `Tab` | ✅ part | of TabLayout |
 <!-- rn-coverage:end -->
 
@@ -582,6 +584,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | Wire type | IntelliJ rendering |
 |---|---|
 | `Grid` / `GridColumn` | `JBTable` over the page rows (read-only); a stray column shows its header |
+| `GridGroupColumn` | a Swing header is flat: the group's columns are table columns headed `Group · Column` (in a Grid, a Crud and a grid field) |
 | `VirtualList` | `JBList`, one line per row |
 | `MasterDetailLayout` | `Splitter` (master / detail) |
 | `CarouselLayout` | one slide at a time, ‹ › buttons and `n / total` |

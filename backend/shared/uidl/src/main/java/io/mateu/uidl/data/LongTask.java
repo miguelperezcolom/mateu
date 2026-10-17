@@ -63,11 +63,22 @@ public class LongTask {
 
   static final String PROGRESS_VALUE_KEY = "progressValue";
 
+  /** The state key of the dialog's status line. */
+  public static final String PROGRESS_TEXT_KEY = "progressText";
+
+  /**
+   * The status line the dialog opens with until the first step reports. English, and a key for the
+   * app's {@code Translator}: the server translates it per request (an app with no translation for
+   * it shows it as is), unless the task sets its own with {@link #startingText(String)}.
+   */
+  public static final String STARTING_TEXT = "Starting...";
+
   private final String title;
   private String doneTitle;
   private String doneText;
   private boolean progressBar;
   private int closeAfterSeconds;
+  private String startingText = STARTING_TEXT;
   private final List<UICommand> onDoneCommands = new ArrayList<>();
 
   private LongTask(String title) {
@@ -172,6 +183,18 @@ public class LongTask {
   }
 
   /**
+   * The status line the dialog shows until the first step reports (default {@link #STARTING_TEXT},
+   * translated by the app's {@code Translator}).
+   *
+   * @param text the opening status text
+   * @return this builder
+   */
+  public LongTask startingText(String text) {
+    this.startingText = text;
+    return this;
+  }
+
+  /**
    * Runs the task and returns the SSE flux to be returned from the {@code @Button} method.
    *
    * <p>The provided {@code work} function receives a {@link ProgressReporter} and must return a
@@ -196,7 +219,7 @@ public class LongTask {
 
   private Object openingDialog(String id) {
     Map<String, Object> initialData = new HashMap<>();
-    initialData.put("progressText", "Iniciando...");
+    initialData.put(PROGRESS_TEXT_KEY, startingText != null ? startingText : "");
     initialData.put("title", title != null ? title : "");
     if (progressBar) {
       initialData.put(PROGRESS_VALUE_KEY, 0.0);

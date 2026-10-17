@@ -1,0 +1,5 @@
+type: Routes
+basePath: /shp
+routes:
+  - route: specials
+    viewModel: com.acme.Specials

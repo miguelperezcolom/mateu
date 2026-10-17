@@ -116,7 +116,9 @@ public sealed partial class SyncHandler
             if (target == typeof(double)) return el.GetDouble();
             if (target == typeof(decimal)) return el.GetDecimal();
             if (target == typeof(DateOnly)) return DateOnly.Parse(el.GetString() ?? "");
-            if (target == typeof(DateTime)) return DateTime.Parse(el.GetString() ?? "");
+            if (target == typeof(DateTime) || target == typeof(DateTimeOffset) || target == typeof(TimeOnly)
+                || target == typeof(System.Numerics.BigInteger))
+                return TemporalWire.Parse(el.ValueKind == JsonValueKind.String ? el.GetString()! : el.GetRawText(), target);
             if (target.IsEnum) return Enum.Parse(target, el.GetString() ?? "", ignoreCase: true);
             // Complex values (grid row lists…) arrive with camelCase keys — bind them as the web wire.
             return el.Deserialize(target, WebJson);

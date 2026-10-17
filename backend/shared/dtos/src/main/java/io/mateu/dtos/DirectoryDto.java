@@ -11,7 +11,7 @@ import java.util.List;
 public record DirectoryDto(List<MenuOptionDto> menu) implements ComponentMetadataDto {
 
   public DirectoryDto {
-    menu = Collections.unmodifiableList(menu);
+    menu = Collections.unmodifiableList(menu != null ? menu : List.of());
   }
 
   @Override

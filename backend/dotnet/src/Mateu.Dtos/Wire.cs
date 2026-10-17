@@ -20,6 +20,13 @@ public record UIIncrementDto(
     /// additions within a major are backward compatible and do not change it.</summary>
     public const string CurrentWireVersion = "3.0";
 
+    /// <summary>The REST source catalogue entries this response's components name by <c>ref</c>. The
+    /// whole catalogue rides the app metadata, which a page served with no app shell never receives,
+    /// so each response also carries the entries IT references. Null (omitted) when it names none.
+    /// (Mirrors io.mateu.dtos.UIIncrementDto.restSources.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<RestSourceEntryDto>? RestSources { get; init; }
+
     public static UIIncrementDto Of(
         IEnumerable<UICommandDto>? commands = null,
         IEnumerable<MessageDto>? messages = null,

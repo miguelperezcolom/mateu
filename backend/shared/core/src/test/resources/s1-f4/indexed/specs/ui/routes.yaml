@@ -1,0 +1,6 @@
+type: Routes
+routes:
+  - route: about
+    definition: about.yaml
+  - route: ghost
+    definition: missing.yaml

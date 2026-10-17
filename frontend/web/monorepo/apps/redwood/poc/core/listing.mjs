@@ -154,7 +154,9 @@ export function listingHeaderBlocksOf(ctx) {
 export function listingBaseOf(ctx, opts = {}) {
   const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
   if (!crudNode) return null
-  const md = crudNode.metadata
+  // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
+  // ever sees plain columns
+  const md = { ...crudNode.metadata, columns: leafColumnsOf(crudNode.metadata.columns) }
   const page = (((ctx.data || {}).crud || {}).page) || {}
   // FILAS DE VARIAS LÍNEAS (@Line → GridColumn.line): las columnas de la línea 1 son las de la
   // tabla (cabecera, orden, anchos); las demás se pintan DEBAJO de cada fila, a lo ancho, como
@@ -503,6 +505,35 @@ export const ROW_LINES_COLUMN = {
   width: '1px',
   minWidth: '1px',
   maxWidth: '1px',
+}
+
+/** What separates a column group's label from each of its columns' labels. */
+export const COLUMN_GROUP_SEPARATOR = ' · '
+
+/**
+ * COLUMN GROUPS (GridGroupColumn: a header spanning several columns). oj-table has no grouped
+ * headers — its `columns` are flat — so a group is FLATTENED into its leaf columns and the group's
+ * label PREFIXES each of theirs ("Occupancy · Adults"): no column is lost and the grouping still
+ * reads. Takes wire nodes (ClientSide with metadata) or bare metadata and returns each leaf column's
+ * metadata in wire order. `interp` resolves the ${...} in the group label (the column's own label is
+ * resolved by whoever paints the header).
+ */
+export function leafColumnsOf(columns, interp = (s) => s) {
+  const out = []
+  const walk = (col, prefix) => {
+    const c = col && (col.metadata || col)
+    if (!c) return
+    if (c.type === 'GridGroupColumn') {
+      const label = interp(c.label || '')
+      const next = label ? (prefix ? prefix + COLUMN_GROUP_SEPARATOR + label : label) : prefix
+      ;(c.columns || []).forEach((k) => walk(k, next))
+      ;(col.children || []).forEach((k) => walk(k, next))
+      return
+    }
+    out.push(prefix ? { ...c, label: prefix + COLUMN_GROUP_SEPARATOR + (c.label || c.id || '') } : c)
+  }
+  ;(columns || []).forEach((col) => walk(col, ''))
+  return out
 }
 
 /** La línea (1-based) de una columna: su `line` si es > 1; si no, 1. */

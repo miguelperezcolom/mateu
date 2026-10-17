@@ -622,6 +622,38 @@ class NoHomeApp:
         return None
 
 
+from mateu_uidl import RestOptions, Step, Wizard, wizard_completion_action  # noqa: E402
+
+
+@ui("/conformance/wizard")
+@title("Sign up")
+class SignUpWizard(Wizard):
+    """Two data steps and the read-only result screen; the case pins the first step."""
+
+    email: Annotated[str, Step(1), Required()] = ""
+    seats: Annotated[int, Step(2)] = 1
+    reference: Annotated[str, Step(3)] = ""
+
+    @wizard_completion_action("Sign up")
+    def sign_up(self):
+        return None
+
+    def step_title(self, step: int) -> str | None:
+        # Java names a step after its field (account / plan / done)
+        return {1: "Account", 2: "Plan", 3: "Done"}.get(step)
+
+
+@ui("/conformance/rest-source")
+@title("Shipping")
+class RestSourceForm:
+    """Options from a REST endpoint: inline request, and a catalogue source named by ref."""
+
+    country: Annotated[str | None, RestOptions(
+        url="https://api.example.com/countries?q=${state.country}", items_path="items",
+        value_path="code", label_path="name")] = None
+    currency: Annotated[str | None, RestOptions(source="currencies")] = None
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -673,7 +705,10 @@ def normalise(node, in_actions: bool = False):
 #: leaves out on every side is the mediator PROTOCOL around it — the content's ``actions`` (Java
 #: lets New/View/Delete bubble to its mediator, this port answers them in place) and the mediator's
 #: private routing state (``initialData``/``state``). Mirrors Java's ``MEDIATED`` and .NET's.
-MEDIATED = {"crud", "crud-grouped", "listing-navigable"}
+#: The wizard is the same story: Java's is a mediator too (it advertises a ``*`` catch-all and
+#: keeps its position in its own state), the ports list next/back/skip/the completion and keep
+#: ``__step`` — so its actions and state stay out as well; everything it draws is pinned.
+MEDIATED = {"crud", "crud-grouped", "listing-navigable", "wizard"}
 
 
 def without_mediator_protocol(increment: dict) -> dict:
@@ -707,7 +742,8 @@ def actual(view_cls, case: str | None = None) -> dict:
             action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
             server_side_type=type_name(view_cls),
         ))
-        return normalise(inc.model_dump(by_alias=True, mode="json"))
+        out = normalise(inc.model_dump(by_alias=True, mode="json"))
+        return without_mediator_protocol(out) if case in MEDIATED else out
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     out = normalise(inc.model_dump(by_alias=True, mode="json"))
     return without_mediator_protocol(out) if case in MEDIATED else out
@@ -717,7 +753,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():

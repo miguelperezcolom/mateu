@@ -21,31 +21,38 @@ How it was measured (reproducible):
 
 | Area | Tests | Lines | Branches | Floor (CI) | Gap to 80% lines |
 |---|---|---|---|---|---|
-| Java `shared/core` | 1735 | **84.7%** | 70.1% | 84% bundle lines | — (branches: 9.9 pts) |
-| Java `shared/uidl` — own suite | 107 | 40.8% | 22.0% | 38% | 39.2 |
-| Java `shared/uidl` — all suites (cross-module) | — | **84.2%** | 70.6% | none | — |
-| Java `shared/dtos` — no own suite | 0 | (78.4% cross-module) | (57.5%) | **none, no report** | 1.6 |
-| Java `annotation-processor-core` | 27 | 73.5% | 53.5% | 72% bundle + 70% per package | 6.5 |
-| Java `annotation-processor-indexer` | 10 | 67.8% | 65.8% | 65% | 12.2 |
-| Java `mvc-core` | — | 70.6% | 73.5% | 63% | 9.4 |
-| Java `webflux-core` | — | 79.1% | 73.4% | 76% | 0.9 |
-| Java `micronaut-core` | 28 | 85.0% | 85.1% | 84% | — |
-| Java `quarkus-core` | 21 | 86.5% (**91.9%** real, see §5.1) | 64.5% | 86% | — |
-| Java `helidon-mp-core` | 21 | 83.2% | 63.2% | 83% | — |
-| Java `mateu-bundle-maven-plugin` | 11 | 59.9% | 50.3% | 58% | 20.1 |
+| Java `shared/core` | 2155 | **89.3%** (was 84.7) | **77.7%** (was 70.1) | 89% bundle lines + 77% bundle branches (S1, 2026-10-17) | — (branches: 2.3 pts) |
+| Java `shared/uidl` — own suite | 145 | 49.0% | 29.7% | 49% lines / 29% branches | 31.0 (gated cross-module instead) |
+| Java `shared/uidl` — all suites (cross-module) | — | **87.6%** | 73.0% | **87% / 73%** (`backend/coverage`) | — |
+| Java `shared/dtos` — all suites (cross-module) | 124 (incl. dynamic) | **84.5%** | 87.4% | **84% / 87%** (`backend/coverage`) | — |
+| Java `annotation-processor-core` | 46 | **95.1%** | 81.9% | 95% bundle + 95% per package / 81% branches | — |
+| Java `annotation-processor-indexer` | 16 | **97.7%** | 94.7% | 97% / 94% branches | — |
+| Java `mvc-core` | 51 | **88.5%** (S3: was 70.6) | 86.1% | 88% lines / 86% branches | — |
+| Java `webflux-core` | 55 | **95.0%** (S3: was 79.1) | 84.9% | 95% lines / 84% branches | — |
+| Java `micronaut-core` | 44 | **92.4%** (S3: was 85.0) | 82.2% | 92% lines / 82% branches | — |
+| Java `quarkus-core` | 31 | **92.4%** (S3: was 86.5; quarkus-jacoco now counts @QuarkusTest, §5.1/§5.2 fixed) | 76.5% | 92% lines / 76% branches | — |
+| Java `helidon-mp-core` | 32 | **91.5%** (S3: was 83.2) | 78.8% | 91% lines / 78% branches | — |
+| Java `mateu-bundle-maven-plugin` | 29 | **90.1%** | 75.4% | 90% / 75% branches | — |
 | Java 5 framework annotation processors | 0 | not measurable (run in javac) | | none | — |
 | Java `mateu-archetype` | archetype IT | n/a (Groovy post-generate) | | IT pass/fail | — |
-| .NET (net8.0) | 708 | **94.0%** | 79.5% | per package lines: Uidl 92 / Core 92 / Dtos 97 / AspNetCore 95 | — |
-| Python | 783 | **93.8%** | 83.9% | 90% *combined* lines+branches (now 92%) | — |
-| `libs/mateu` | 1433 | 65.8% | 51.8% | 64 L / 63 S / 51 F / 50 B | 14.2 |
-| `apps/vaadin` | 81 | **35.2%** | 27.4% | 35 / 35 / 24 / 27 | **44.8** |
-| `apps/visual-editor` | 423 | 66.9% | 59.5% | 65 / 64 / 57 / 58 | 13.1 |
-| Redwood `poc/` (58 sources) | 13 suites | **95.2%** | 79.3% | 94 L / 91 F / 78 B | — |
-| Redwood VB chains (84 files, ~5k lines) | 0 executed | **0% (unmeasured)** | | none | e2e only |
-| React Native `.ts` (45 loaded) | 273 | **95.5%** | 85.1% | 93 / 84 / 93 | — |
-| React Native `.tsx` (37 files, 11.4k lines) | 0 | **unmeasured** | | none | — |
-| IntelliJ plugin | 327 | **48.6%** | 39.2% | Kover minBound 47 | 31.4 |
-| VS Code extension | 160 | **96.2%** | 79.3% | 96 / 91 / 94 / 79 | — |
+| .NET (net8.0) | 898 (S4, 2026-10-17; was 801) | **97.0%** (was 94.3) | 85.3% (was 80.3) | per package lines Uidl 98 / Core 96 / Dtos 99 / AspNetCore 98 + **branches** Uidl 90 / Core 84 / Dtos 95 / AspNetCore 84 (measured Uidl 98.9/90.7, Core 96.2/84.8, Dtos 99.8/100, AspNetCore 98.2/84.9) | — |
+| Python | 955 (S4, 2026-10-17; was 866) | **95.4%** (was 94.1) | **88.1%** (was 84.8) | separate gates lines **95** / branches **87** (`[tool.mateu.coverage]`, one point under the branch measure: arcs vary across 3.11–3.13) + combined `fail_under` 93 | — |
+| Conformance corpus | 39 cases (S4: + `crud-search`, `wizard`, `rest-source`) | — | — | exact match in Java, .NET and Python, empty allow-lists | — |
+| `libs/mateu` | 2039 (S5, 2026-10-17; was 1433) | **92.8%** (was 65.8%; S5 reported 93.5 measured on a stale vitest 3.2.4) | 80.9% (was 51.8%) — vitest/coverage-v8 4.1.11, the lockfile = CI | 92 L / 91 S / 88 F / 80 B | — |
+| `apps/vaadin` | 246 | **86.1%** (S6, was 35.2) | 74.9% (was 27.4) | 86 / 85 / 80 / 74 | — |
+| `apps/visual-editor` | 484 | **80.7%** (S6, was 66.9) | 70.2% (was 59.5) | 80 / 78 / 76 / 70 | — |
+| Redwood `poc/` (58 sources) — S7, 2026-10-17 | 15 suites | **97.9%** (was 95.6 on batch-3) | 84.3% (was 79.5) | 97 L / 95 F / 84 B | — |
+| Redwood VB chains (84 files, ~5k lines) — S7 | `test-vb-chains.mjs` (36) runs `loadMateuShell`/`onMateuNavigate`/`runMateuAction`/`runMateuIslandAction` against a fake VB context, bridge assembled from poc/ (so it counts in the poc row) and `--generated` against the shipped bridge | chain files themselves unmeasured | | via the poc floors | real VB runtime: e2e only |
+| React Native `.ts` (57 loaded, incl. oidc/AppRegistry/secureStore/storage/a11y/documentEffects) — S7 | 375 | **98.6%** | 86.3% | 98 L / 86 B / 95 F | — |
+| React Native `.tsx` (37 files, 11.3k lines) — S7 strategy: view-models | logic moved to tested `.ts` (crudListing, dateCalendar, timeline, displayModels, navigableMenuLeaves; .tsx 11 579 → 11 340 lines) | **unmeasured by design** | | none | — |
+| IntelliJ plugin — S7 | 426 | **65.8%** (was 51.5 on batch-3) | 49.7% | Kover minBound 65 | 14.2 |
+| VS Code extension — S7 | 175 | **97.2%** | 80.5% | 97 L / 92 S / 96 F / 80 B | — |
+| E2E Playwright — shared (per adapter) + `journeys` (mvc-app1) | 494 per adapter + 36 journeys (30 run, 6 fixme = bugs found) | n/a (behaviour, not lines) | | all green; web slow-network probe (10 checks) + axe audit (16 routes) are CI gates since S8 | §4 |
+
+S2 rows (uidl, dtos, the two APs, the bundle plugin) re-measured 2026-10-17 on `coverage/s2`; the
+cross-module uidl/dtos figures now come from the `backend/coverage` module (merged exec of every
+suite, gated in CI). Every Java module can also gate BRANCH coverage
+(`jacoco.min.bundle.branch.coverage`, parent pom).
 
 All suites pass and all gates are met on master (Quarkus only after the tooling problem in §5.2).
 
@@ -187,6 +194,27 @@ VS Code — 96.2%; only `LiveRunCommand.ts` (77%) is below 90.
 
 ## 4. End-to-end
 
+**Update (S8, 2026-10-17).** Re-audited on `integration/batch-3`: the walkthrough phase had already
+closed most of the list below (wizards, archetypes, app chrome, inter-component, capture/tree-select/
+auto-save, translations, session expiry, undo — see `tests/shared/*-walk`, `archetypes`,
+`interactive-display`, `shell-header`, `events-overlays-lab`, `actions-lab`), and the pre-existing
+`bulk-action-buttons` failure of §5.12 no longer reproduces (494/494 on mvc-app1). S8 added the
+**`journeys` Playwright project** (`e2e/tests/journeys`, mvc-app1 only, fixtures in
+`io.mateu.sample1.app.journeys`, ~15 s) for what was still missing: CRUD drawer + Save and next,
+inline editing, the `@Version` conflict with two users, totals/grouping that follow the search,
+`@DragRows` + `DropZone`, saved views, column chooser, `@Tab(open)`, `@BulletedList`,
+`@SeparatorBefore`, `@Notice`, `@PhotoCapture` (fake camera); **role-based access** through a
+TEST-ONLY cookie `PrincipalResolver` (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` incl. a 403 on
+a replayed request, YAML `access:` and `eyesOnly` granted); **YAML proxied reads/writes with a
+`${secret.X}`** against a real local upstream. The web `slow-network-probe.mjs` and `a11y-audit.mjs`
+(now a gate) run in the CI `e2e` job. Six journeys are `test.fixme` — each pins a production bug
+found while writing it (conflict dialog buttons, stale grid after a re-rendering action, by-ref
+action without an app shell, separator inside a tab). Still not covered: environments and
+sample-data mode (process-wide switches — they need their own SUT start), documents/print, and
+the native renderers' probes (`rn-a11y-probe.mjs`, needs expo).
+
+Original inventory (2026-10-12):
+
 Inventory: `e2e/tests/shared` has **23 spec files (~4.4k lines)** run against the 5 adapter SUTs;
 8 of them are wire-level API tests (`request`), not browser journeys (`features.spec.ts` and
 `recent-features.spec.ts` are the bulk of the "feature" coverage and assert on JSON). Plus
@@ -248,16 +276,16 @@ are pinned by core SyncTests + unit tests):
    load `.tsx`, so 11.4k lines of renderer are not even in the denominator, and 5 `.ts` files are not
    imported by any test (oidc!). Node's runner only reports files a test loads.
 6. **VB chains are unmeasured** (§3.4): 84 files run only in the browser.
-7. **`libs/mateu` coverage includes test-only code** (`testbench/**`, mocks, `allIcons.ts`).
+7. **`libs/mateu` coverage includes test-only code** (`testbench/**`, mocks, `allIcons.ts`). *(Fixed by S5: excluded in `vitest.config.ts`.)*
 8. **Python's floor mixes lines and branches** (`branch = true` + `fail_under`), so a branch
    regression can hide behind line gains; branches alone are 83.9%.
 9. **.NET locally**: without a .NET 10 SDK, `dotnet test` fails (NETSDK1045) unless the target is
    narrowed (`-p:TargetFrameworks=net8.0`); worth a note in `backend/dotnet/README.md`.
 10. **CLAUDE.md is stale** on core coverage ("77.8% / gate 75%"): the pom gate is 84% and the
     measure 84.7%.
-11. **Probes not in CI**: web `slow-network-probe.mjs`, `a11y-audit.mjs`, `rn-a11y-probe.mjs`.
+11. **Probes not in CI**: web `slow-network-probe.mjs`, `a11y-audit.mjs`, `rn-a11y-probe.mjs`. *(S8: the two web probes now run in the `e2e` job; `rn-a11y-probe.mjs` still needs expo.)*
 12. **Pre-existing failing e2e** noted in `frontends.md` (`bulk-action-buttons` › selection guard with
-    an `@Action`) — confirm before the e2e stream starts.
+    an `@Action`) — confirm before the e2e stream starts. *(S8: no longer reproduces — 494/494 on mvc-app1.)*
 
 ## 6. Fan-out plan — 8 independent streams
 

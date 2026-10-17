@@ -339,6 +339,76 @@ describe('Mateu: Run App (Live)', () => {
         expect(fake.messages.at(-1)!.text).toMatch(/no pom.xml or build.gradle/)
     })
 
+    // a local stand-in for the app being run: records the requests, answers with `status`
+    const devServer = async (status: number) => {
+        const http = await import('node:http')
+        const seen: { method?: string; url?: string }[] = []
+        const server = http.createServer((rq, rs) => { seen.push({ method: rq.method, url: rq.url }); rs.writeHead(status).end() })
+        await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()))
+        const port = (server.address() as { port: number }).port
+        return { seen, base: `http://127.0.0.1:${port}`, close: () => new Promise((r) => server.close(r)) }
+    }
+
+    it('opens the app in the browser once it answers', async () => {
+        const app = await devServer(200)
+        try {
+            mkdirSync(join(ws, 'src/main/resources'), { recursive: true })
+            writeFileSync(join(ws, 'pom.xml'), '<project><artifactId>spring-boot-maven-plugin</artifactId></project>')
+            writeFileSync(join(ws, 'src/main/resources/application.properties'), `server.port=${app.base.split(':').at(-1)}\n`)
+            activate(context() as any)
+            vi.useFakeTimers()
+            try {
+                await vscode.commands.executeCommand('mateu.runLive')
+                await vi.advanceTimersByTimeAsync(2100)
+            } finally {
+                vi.useRealTimers()
+            }
+            const port = app.base.split(':').at(-1)
+            await vi.waitFor(() => expect(fake.opened.some((u: string) => u.startsWith(`http://localhost:${port}`))).toBe(true))
+        } finally {
+            await app.close()
+        }
+    })
+
+    it('picks the shallowest runnable module and keeps a backend the workspace chose', async () => {
+        mkdirSync(join(ws, 'apps/deep/web'), { recursive: true })
+        mkdirSync(join(ws, 'apps/svc'), { recursive: true })
+        writeFileSync(join(ws, 'apps/deep/web/build.gradle.kts'), 'plugins { id("org.springframework.boot") }')
+        writeFileSync(join(ws, 'apps/svc/build.gradle.kts'), 'plugins { id("io.quarkus") }')
+        writeFileSync(join(ws, 'apps/lib.gradle'), 'not a build file name')
+        fake.config.set('ws:mateu.baseUrl', 'http://staging:9000')
+        activate(context() as any)
+        vi.useFakeTimers()
+        try {
+            await vscode.commands.executeCommand('mateu.runLive')
+        } finally {
+            vi.clearAllTimers()
+            vi.useRealTimers()
+        }
+        expect(fake.tasks[0].execution.options.cwd).toBe(join(ws, 'apps/svc'))
+        expect(fake.tasks[0].execution.command).toMatch(/gradle/)
+        expect(fake.configUpdates.filter((u: any) => u.key === 'mateu.baseUrl')).toHaveLength(0)
+    })
+
+    it('a hot code replace re-renders the open screen silently; an explicit reload of a non-dev app says so', async () => {
+        const app = await devServer(404)
+        try {
+            activate(context() as any)
+            ;(LiveRunCommand as any).appUrl = app.base
+            const before = fake.messages.length
+            fake.onDidReceiveDebugSessionCustomEvent.fire({ event: 'hotcodereplace', body: { changeType: 'STARTING' } })
+            fake.onDidReceiveDebugSessionCustomEvent.fire({ event: 'hotcodereplace', body: { changeType: 'END' } })
+            await vi.waitFor(() => expect(app.seen).toEqual([{ method: 'POST', url: '/mateu/dev/reload' }]))
+            await new Promise((r) => setTimeout(r, 50))
+            expect(fake.messages.length).toBe(before)
+            await vscode.commands.executeCommand('mateu.reloadScreen')
+            await vi.waitFor(() => expect(fake.messages.at(-1)).toMatchObject({ level: 'warning', text: `Mateu: ${app.base} is not running in development mode (mateu.dev=true).` }))
+        } finally {
+            ;(LiveRunCommand as any).appUrl = undefined
+            await app.close()
+        }
+    })
+
     it('Reload Screen reports a backend that does not answer — over https too', async () => {
         activate(context() as any)
         ;(LiveRunCommand as any).appUrl = undefined

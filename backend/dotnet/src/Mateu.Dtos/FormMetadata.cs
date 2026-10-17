@@ -7,6 +7,11 @@ public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetada
     public bool Disabled { get; init; }
     public string? ButtonStyle { get; init; }
 
+    /// <summary>The button colour (normal/success/error/contrast; Java's ButtonDto.color). Omitted
+    /// when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Color { get; init; }
+
     /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
     /// dialog's <c>_forceOverwrite</c>).</summary>
     public IReadOnlyDictionary<string, object?>? Parameters { get; init; }

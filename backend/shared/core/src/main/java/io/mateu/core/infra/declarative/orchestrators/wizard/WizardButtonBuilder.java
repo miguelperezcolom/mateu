@@ -123,6 +123,7 @@ final class WizardButtonBuilder {
             method ->
                 !(step instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .forEach(
             method -> {
               var ann = MetaAnnotations.find(method, Toolbar.class);

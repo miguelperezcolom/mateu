@@ -50,14 +50,19 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
     } catch (
         io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.StaleEditException
             conflict) {
-      // concurrent edit: don't persist — open the conflict dialog instead (its buttons bubble to
-      // the editor component, which advertises save and cancel-edit)
+      // concurrent edit: don't persist — open the conflict dialog instead. It lands on the crud
+      // component, so its buttons carry the edit form's state (initiatorState) themselves.
       return io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.conflictDialog(
-          "Este registro ha cambiado mientras lo editabas. Puedes recargar para ver los cambios"
-              + " (perdiendo los tuyos) o sobrescribir con tu versión.",
+          "This record changed while you were editing it. Reload to see the changes (losing"
+              + " yours) or overwrite them with your version.",
           "cancel-edit",
           persistAction,
-          null);
+          null,
+          java.util.Map.of(
+              "initiatorState",
+              io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.editorState(
+                  httpRequest)),
+          httpRequest);
     } catch (RuntimeException failure) {
       // drawer mode: a failed save keeps the drawer open and shows WHY inside it (the Redwood
       // create-edit-drawer error banner), with the values the user typed
@@ -137,10 +142,9 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
                   httpRequest);
       Map<String, Object> typed =
           new LinkedHashMap<>(io.mateu.core.infra.declarative.FormViewModel.toMap(editor));
-      var state = httpRequest.runActionRq().componentState();
-      if (state != null) {
-        typed.putAll((Map<String, Object>) state);
-      }
+      // what the user typed: the drawer's form bubbles its save with it as initiatorState
+      typed.putAll(
+          io.mateu.core.infra.declarative.orchestrators.crud.CrudFormState.of(httpRequest));
       var message =
           failure.getMessage() != null && !failure.getMessage().isBlank()
               ? failure.getMessage()
@@ -155,6 +159,23 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
               httpRequest,
               typed,
               message));
+      if (failure instanceof jakarta.validation.ConstraintViolationException violations) {
+        // the refused fields are marked invalid on the form, as the browser's own check does
+        var errors =
+            DrawerFormValidator.fieldErrors(
+                creation ? orchestrator.creationFormClass() : orchestrator.editorClass(),
+                violations);
+        if (!errors.isEmpty()) {
+          responses.add(
+              new io.mateu.dtos.UIFragmentDto(
+                  CrudDrawerBuilder.FORM_ID,
+                  null,
+                  null,
+                  Map.of("errors", errors, "_valid", false),
+                  io.mateu.dtos.UIFragmentActionDto.Replace,
+                  null));
+        }
+      }
       // nothing takes focus: tell a screen-reader user too
       responses.add(UICommand.announceAssertive(message));
       return responses;

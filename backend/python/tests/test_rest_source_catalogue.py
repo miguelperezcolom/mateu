@@ -271,3 +271,22 @@ def test_the_proxy_never_fetches_what_the_view_did_not_declare(fetched):
     inc = restfetch(handler(), RuntimeForm, "options", "nope")
     assert inc.app_data == {"_restfetch": {}}
     assert fetched == []
+
+
+# ── a page with no app shell ─────────────────────────────────────────────────
+
+
+def test_a_page_with_no_app_shell_carries_the_catalogue_entries_it_references():
+    # the catalogue rides the app metadata, which a shell-less page never receives: the response
+    # itself carries the entries its components name (only those), so the browser can resolve the
+    # refs (Java's RestActionSyncTest twin)
+    wire = handler().handle(RunActionRq(server_side_type=type_name(DirectOnly))).model_dump(by_alias=True, mode="json")
+    assert [e["name"] for e in wire["restSources"]] == ["countries"]
+    assert wire["restSources"][0]["source"]["url"] == "https://restcountries.com/v3.1/all?fields=cca2,name"
+
+
+def test_a_response_naming_no_source_or_carrying_the_app_catalogue_gets_none():
+    plain = handler().handle(RunActionRq(server_side_type=type_name(RuntimeForm))).model_dump(by_alias=True, mode="json")
+    assert "restSources" not in plain
+    app_wire = handler().handle(RunActionRq(server_side_type=type_name(CatalogueApp))).model_dump(by_alias=True, mode="json")
+    assert "restSources" not in app_wire

@@ -62,6 +62,38 @@ public class DrawerCrudAndRailTests
         Assert.DoesNotContain(inc.Commands, c => c.Type == "NavigateTo");
     }
 
+    /// <summary>Java's EditInDrawerSyncTest.theDrawerFormValidatesInTheBrowserLikeTheRoutedForm: the
+    /// drawer's form is a server-side component carrying the entity's validations and a validated
+    /// create, so the browser blocks a required field left empty and marks it.</summary>
+    [Fact]
+    public void The_drawer_form_validates_in_the_browser_like_the_routed_form()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            Route = "/drawer-contacts", ActionId = "new",
+            ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = "ux_list",
+        });
+        var root = JsonDocument.Parse(Render(inc)).RootElement;
+        JsonElement? form = null;
+        void Walk(JsonElement e)
+        {
+            if (e.ValueKind == JsonValueKind.Object)
+            {
+                if (form is null && e.TryGetProperty("type", out var t) && t.GetString() == "ServerSide"
+                    && e.TryGetProperty("validations", out var v) && v.GetArrayLength() > 0) form = e;
+                foreach (var p in e.EnumerateObject()) Walk(p.Value);
+            }
+            else if (e.ValueKind == JsonValueKind.Array)
+                foreach (var i in e.EnumerateArray()) Walk(i);
+        }
+        Walk(root);
+        Assert.NotNull(form);
+        Assert.Contains(form!.Value.GetProperty("validations").EnumerateArray(),
+            v => v.GetProperty("fieldId").GetString() == "name");
+        Assert.Contains(form.Value.GetProperty("actions").EnumerateArray(),
+            a => a.GetProperty("id").GetString() == "create" && a.GetProperty("validationRequired").GetBoolean());
+    }
+
     [Fact]
     public void Row_view_opens_the_edit_drawer_with_the_entity_loaded()
     {

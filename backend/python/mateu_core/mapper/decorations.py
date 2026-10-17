@@ -140,6 +140,10 @@ class DecorationMapperMixin(MixinBase):
     def fabs(self, cls) -> list[Fab]:
         out = []
         for name, fn in methods_with(cls, "__mateu_fab__"):
+            # an @eyes_only action the caller may not run is refused on invocation and not
+            # advertised either (Java's Authorizer.isVisible)
+            if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+                continue
             a = getattr(fn, "__mateu_fab__")
             out.append(Fab(icon=a.icon, action_id=camel_case(name), label=a.label, order=a.order))
         out.sort(key=lambda f: f.order)

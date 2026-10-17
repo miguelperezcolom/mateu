@@ -69,8 +69,10 @@ public class Orders {
 ```
 
 you get `/orders` (GET, with `since` as a required parameter), `/countries` (GET) and
-`/orders/{}/approve` (POST), each origin listed as a server, and each operation recording the path
-the screen reads (`data`, `items`, `result`).
+`/orders/{id}/approve` (POST, `id` declared as a path parameter — a value interpolated into the path is
+`in: path`, every other one `in: query`), each origin listed as a server, and each operation recording
+the path the screen reads (`data`, `items`, `result`). `mateu-bundle:server` binds a path parameter with
+`@PathVariable` and the rest with `@RequestParam`.
 
 ## What you serve versus what you consume
 

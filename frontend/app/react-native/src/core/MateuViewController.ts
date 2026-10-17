@@ -1,6 +1,6 @@
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
-import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch.ts';
+import { addReferencedRestSources, externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
 import { headerValues } from './appShellExtras.ts';
 import { presentDocument } from './documentEffects.ts';
@@ -628,6 +628,8 @@ export class MateuViewController {
   // ── increment application ───────────────────────────────────────────────────────────
 
   applyIncrement(increment: Json): void {
+    // first: the components about to render may fetch from the sources they name
+    addReferencedRestSources(increment['restSources']);
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
 
     for (const msg of asArray(increment['messages'])) {

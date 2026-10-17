@@ -13,6 +13,7 @@ import { interpolate, templateResolver } from '@components/interpolation'
 import { colorInputValue, isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
+import { isPasswordField, shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import { resolveRestSource, viaProxy } from '@mateu/ui/infra/http/restSourceCatalogue'
 import '@vaadin/horizontal-layout'
@@ -71,6 +72,9 @@ interface FileLike {
     id: string
     name: string
 }
+
+/** Stereotypes whose own branch draws their read-only form (see renderField). */
+const OWN_READ_ONLY = new Set(['link', 'icon', 'color'])
 
 /** A string field with no stereotype of its own that nonetheless brings options: a select. */
 export const offersItsOptions = (field: { stereotype?: string, options?: unknown[] } | undefined): boolean =>
@@ -171,6 +175,33 @@ export class MateuField extends LitElement {
     }
 
     rendered = false
+
+    // The remote options of this field (select, radio, list box, checkbox group) were asked for:
+    // once per field, not once per render. A render is not a reason to ask again — the control
+    // re-renders on its own state (validity, nav-link offset), and an answer with no options
+    // (totalElements 0) used to be re-requested on every one of them. Reset when the field changes.
+    private remoteOptionsRequested = false
+
+    private requestRemoteOptions(action: string | undefined) {
+        const loaded = this.data[this.id]
+        if (loaded?.content && loaded?.totalElements) return
+        if (this.remoteOptionsRequested) return
+        this.remoteOptionsRequested = true
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                actionId: action,
+                parameters: {
+                    searchText: '',
+                    fieldId: this.field?.fieldId,
+                    size: 200,
+                    page: 0,
+                    sort: undefined
+                }
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
 
     checked = (e:Event) => {
         const input = e.target as HTMLInputElement;
@@ -368,6 +399,8 @@ export class MateuField extends LitElement {
                 }
             }
         }
+        // the list box announces its initial selection too: that is the current value, not an edit
+        if (isNoOpCommit(value, this.state?.[this.field?.fieldId ?? ''])) return
         this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: {
                 value,
@@ -671,6 +704,9 @@ export class MateuField extends LitElement {
         if (changedProperties.has( 'component' ) ) {
             this.rendered = false
         }
+        if (changedProperties.has('field')) {
+            this.remoteOptionsRequested = false
+        }
         super.update(changedProperties);
     }
 
@@ -718,7 +754,11 @@ export class MateuField extends LitElement {
         // a multi-valued @Searchable (List / Set / array of ids): chips + «Add» — read-only too
         if (isSearchableMulti(this.field)) return this.renderSearchableMultiField(fieldId, value, label)
         if (readOnlyAsPlainText(this.field, this.inFoldout)) return this.renderFoldoutReadOnlyField(value, label)
-        if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) return this.renderReadOnlyField(fieldId, value, label, labelText)
+        if (this.field?.readOnly && (this.field.stereotype == 'markdown' || this.field.stereotype == 'html')) return this.renderReadOnlyMarkupField(value, label)
+        // link, icon and color draw their own read-only form (a link, the icon, a swatch) in their
+        // branch below: the generic read-only text field showed the raw url / icon name / hex
+        if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')
+            && !OWN_READ_ONLY.has(this.field.stereotype ?? '')) return this.renderReadOnlyField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'file') return this.renderFileField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'string') return this.renderStringField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'number') return this.renderNumberField(fieldId, value, label, labelText)
@@ -736,6 +776,21 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'status') return this.renderStatusField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'range') return this.renderRangeField(fieldId, value, label, labelText)
         return html `<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`
+    }
+
+    // A read-only markdown / html field shows the rendered content (sanitised html), not its source.
+    private renderReadOnlyMarkupField(value: any, label: any): TemplateResult {
+        if (!this.field) return html``
+        const source = '' + (evalIfNecessary(value, this.state, this.data) ?? '')
+        return html`<vaadin-custom-field
+                id="${this.field.fieldId}"
+                label="${label}"
+                .helperText="${this.helperText()}"
+                data-colspan="${this.field.colspan}"
+                style="${this.field.style ?? ''}"
+        >${this.field.stereotype == 'markdown'
+            ? html`<vaadin-markdown .content="${source}"></vaadin-markdown>`
+            : html`<div>${safeHtml(source)}</div>`}</vaadin-custom-field>`
     }
 
     private renderBadgeField(_fieldId: string, value: any, _label: any, labelText: string): TemplateResult {
@@ -762,6 +817,7 @@ export class MateuField extends LitElement {
             if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
             const lookupLabel = fromData(this.field.fieldId + '-label')
             if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
+            v = shownReadOnlyValue(this.field, v)
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const valueBody = isBool
                 ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
@@ -790,7 +846,7 @@ export class MateuField extends LitElement {
 
     private renderPlainTextField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
-            let v = evalIfNecessary(value, this.state, this.data)
+            const v = shownReadOnlyValue(this.field, evalIfNecessary(value, this.state, this.data))
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const body = isBool
                 ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
@@ -821,6 +877,7 @@ export class MateuField extends LitElement {
         // a select/radio/choice: its option's label, not the code
         const option = (this.field as any).options?.find?.((o: any) => o && o.value == v)
         if (option && option.label != null && (lookupLabel === undefined || lookupLabel === '')) v = option.label
+        v = shownReadOnlyValue(this.field, v)
         const display = v !== null && v !== undefined && v !== '' ? String(v) : '—'
         return html`<vaadin-custom-field
                 id="${this.field.fieldId}"
@@ -867,6 +924,19 @@ export class MateuField extends LitElement {
                         data-colspan="${this.field.colspan}"
                 ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" role="img" aria-label="${chromeText(valueToDisplay ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-m, 1.5rem);"></vaadin-icon>
                 </vaadin-custom-field>`
+            }
+            if (isPasswordField(this.field)) {
+                // a password is never shown, not even read-only: a fixed mask and nothing to copy
+                return html`
+                <vaadin-text-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        .value="${shownReadOnlyValue(this.field, valueToDisplay) as string}"
+                        readonly
+                        style="${this.field.style}"
+                        .helperText="${this.helperText()}"
+                        data-colspan="${this.field.colspan}"
+                ></vaadin-text-field>`
             }
             const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
             // The copy icon is always rendered and only hidden, never added or removed: a Lit
@@ -1110,30 +1180,7 @@ export class MateuField extends LitElement {
                 }
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
-                    const filter = ''
-
-                    if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                        this.data[this.id] = undefined
-                    }
-                    if (this.data[this.id]
-                        && this.data[this.id].content
-                        && this.data[this.id].totalElements) {
-                    } else {
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: coords.action,
-                                parameters: {
-                                    searchText: filter,
-                                    fieldId: this.field?.fieldId,
-                                    size: 200,
-                                    page: 0,
-                                    sort: undefined
-                                }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
+                    this.requestRemoteOptions(coords.action)
 
                     let realValue = value
                     if (value && value.value) {
@@ -1265,35 +1312,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'listBox') {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
-                    const filter = ''
-
-                    if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                        this.data[this.id] = undefined
-                    }
-                    if (this.data[this.id]
-                        && this.data[this.id].content
-                        && this.data[this.id].totalElements) {
-                        /*
-                        callback(this.data[this.id].content
-                                .slice(page * pageSize, ((page + 1) * pageSize)),
-                            this.data[this.id].totalElements)
-                         */
-                    } else {
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: coords.action,
-                                parameters: {
-                                    searchText: filter,
-                                    fieldId: this.field?.fieldId,
-                                    size: 200,
-                                    page: 0,
-                                    sort: undefined
-                                }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
+                    this.requestRemoteOptions(coords.action)
 
                     return html`
                         <vaadin-custom-field
@@ -1370,35 +1389,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'radio') {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
-                    const filter = ''
-
-                    if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                        this.data[this.id] = undefined
-                    }
-                    if (this.data[this.id]
-                        && this.data[this.id].content
-                        && this.data[this.id].totalElements) {
-                        /*
-                        callback(this.data[this.id].content
-                                .slice(page * pageSize, ((page + 1) * pageSize)),
-                            this.data[this.id].totalElements)
-                         */
-                    } else {
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: coords.action,
-                                parameters: {
-                                    searchText: filter,
-                                    fieldId: this.field?.fieldId,
-                                    size: 200,
-                                    page: 0,
-                                    sort: undefined
-                                }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
+                    this.requestRemoteOptions(coords.action)
 
                     return html`
                     <vaadin-radio-group
@@ -1769,7 +1760,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><span style="background-color: ${value}; display: block; height: 20px; width: 40px; margin-top: 5px; margin-bottom: 24px; border: 1px solid var(--lumo-secondary-text-color)"></vaadin-custom-field>
+                    ><span role="img" aria-label="${value ?? ''}" style="background-color: ${value}; display: block; height: 20px; width: 40px; margin-top: 5px; margin-bottom: 24px; border: 1px solid var(--lumo-secondary-text-color)"></span></vaadin-custom-field>
                 `
                 }
                 return html`
@@ -1949,6 +1940,8 @@ export class MateuField extends LitElement {
                                 from: e.detail.value.split(';')[0],
                                 to: e.detail.value.split(';')[1]
                             }
+                            // the picker echoes the range it was given: not an edit
+                            if (value && value.from == e.detail.value.from && value.to == e.detail.value.to) return
                         }
                         this.valueChanged(e)
                     }}"
@@ -2050,35 +2043,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'listBox') {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
-                    const filter = ''
-
-                    if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                        this.data[this.id] = undefined
-                    }
-                    if (this.data[this.id]
-                        && this.data[this.id].content
-                        && this.data[this.id].totalElements) {
-                        /*
-                        callback(this.data[this.id].content
-                                .slice(page * pageSize, ((page + 1) * pageSize)),
-                            this.data[this.id].totalElements)
-                         */
-                    } else {
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: coords.action,
-                                parameters: {
-                                    searchText: filter,
-                                    fieldId: this.field?.fieldId,
-                                    size: 200,
-                                    page: 0,
-                                    sort: undefined
-                                }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
+                    this.requestRemoteOptions(coords.action)
 
                     return html`
                         <vaadin-custom-field
@@ -2169,37 +2134,7 @@ export class MateuField extends LitElement {
 
             if (this.field?.remoteCoordinates) {
                 const coords = this.field.remoteCoordinates;
-                const filter = ''
-
-                if (this.data[this.id] && ((this.data[this.id].searchSignature || filter) && this.data[this.id].searchSignature != filter)) {
-                    this.data[this.id] = undefined
-                }
-                if (this.data[this.id]
-                    && this.data[this.id].content
-                    && this.data[this.id].totalElements) {
-                    /*
-                    callback(this.data[this.id].content
-                            .slice(page * pageSize, ((page + 1) * pageSize)),
-                        this.data[this.id].totalElements)
-                     */
-                } else {
-                    if (!this.rendered) setTimeout(() => {
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: coords.action,
-                                parameters: {
-                                    searchText: filter,
-                                    fieldId: this.field?.fieldId,
-                                    size: 200,
-                                    page: 0,
-                                    sort: undefined
-                                }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    })
-                }
+                this.requestRemoteOptions(coords.action)
 
                 return html`
                     <vaadin-checkbox-group

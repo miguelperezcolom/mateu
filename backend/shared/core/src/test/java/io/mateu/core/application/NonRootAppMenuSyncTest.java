@@ -56,6 +56,21 @@ class NonRootAppMenuSyncTest {
     String value = "monthly";
   }
 
+  /**
+   * @Menu targets fields; a method entry is declared through a composed annotation.
+   */
+  @Menu
+  @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+  @java.lang.annotation.Target(java.lang.annotation.ElementType.METHOD)
+  @interface MenuMethod {}
+
+  static final String SUMMARY = "io.mateu.core.application.NonRootAppMenuSyncTest$SummaryPage";
+
+  @Title("Summary")
+  public static class SummaryPage {
+    String value = "summary";
+  }
+
   @UI("/elsewhere")
   @Title("Routed page")
   public static class RoutedPage {
@@ -89,6 +104,13 @@ class NonRootAppMenuSyncTest {
 
     // route-typed: the route this controller resolves for the entry (/other) is /e2-demo/other
     @Menu String other = "/e2-demo/other";
+
+    // a METHOD entry: its path is relative to the app, like a field's (it used to carry the mount
+    // already, which the menu builder then prepended again: /e2-demo/e2-demo/summary)
+    @MenuMethod
+    public SummaryPage summary() {
+      return new SummaryPage();
+    }
   }
 
   @UI("")
@@ -101,6 +123,11 @@ class NonRootAppMenuSyncTest {
     @Menu RoutedPage routed;
 
     @Menu String rootOther = "/root-other";
+
+    @MenuMethod
+    public SummaryPage summary() {
+      return new SummaryPage();
+    }
   }
 
   record Mount(TestMateu mateu, Class<?> app, String baseUrl) {
@@ -194,7 +221,8 @@ class NonRootAppMenuSyncTest {
       "/page, /page, " + PLAIN,
       "/reports/monthly, /reports, " + MONTHLY,
       "/routed, /routed, " + ROUTED,
-      "/other, /other, io.mateu.core.application.NonRootAppMenuSyncTest$OtherPage"
+      "/other, /other, io.mateu.core.application.NonRootAppMenuSyncTest$OtherPage",
+      "/summary, /summary, " + SUMMARY
     })
     void aDeepLinkOrReloadLandsOnThePageWithItsEntrySelected(
         String route, String selectedEntry, String screen) {
@@ -210,7 +238,8 @@ class NonRootAppMenuSyncTest {
       "/page, " + PLAIN,
       "/reports/monthly, " + MONTHLY,
       "/routed, " + ROUTED,
-      "/other, io.mateu.core.application.NonRootAppMenuSyncTest$OtherPage"
+      "/other, io.mateu.core.application.NonRootAppMenuSyncTest$OtherPage",
+      "/summary, " + SUMMARY
     })
     void aMenuClickLoadsThePageInsideTheShell(String route, String screen) {
       var option = entryRoutedTo(appOf(mount.shell("")).orElseThrow(), route);
@@ -296,7 +325,8 @@ class NonRootAppMenuSyncTest {
       "/page, /page, " + PLAIN,
       "/reports/monthly, /reports, " + MONTHLY,
       "/routed, /routed, " + ROUTED,
-      "/rootOther, /rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage"
+      "/rootOther, /rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
+      "/summary, /summary, " + SUMMARY
     })
     void aDeepLinkOrReloadLandsOnThePageWithItsEntrySelected(
         String route, String selectedEntry, String screen) {
@@ -311,7 +341,8 @@ class NonRootAppMenuSyncTest {
       "/page, " + PLAIN,
       "/reports/monthly, " + MONTHLY,
       "/routed, " + ROUTED,
-      "/rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage"
+      "/rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
+      "/summary, " + SUMMARY
     })
     void aMenuClickLoadsThePageInsideTheShell(String route, String screen) {
       var option = entryRoutedTo(appOf(mount.shell("")).orElseThrow(), route);
@@ -341,7 +372,8 @@ class NonRootAppMenuSyncTest {
     @CsvSource({
       "/e2-demo/page, /page, " + PLAIN,
       "/e2-demo/reports/monthly, /reports, " + MONTHLY,
-      "/e2-demo/routed, /routed, " + ROUTED
+      "/e2-demo/routed, /routed, " + ROUTED,
+      "/e2-demo/summary, /summary, " + SUMMARY
     })
     void anAbsoluteDeepLinkSelectsTheEntryAndLandsOnThePage(
         String route, String selectedEntry, String screen) {
@@ -357,6 +389,27 @@ class NonRootAppMenuSyncTest {
                   .actionId("")
                   .build());
       assertThat(screenOf(content)).isEqualTo(screen);
+    }
+
+    @Test
+    void aMethodEntryOfTheMenuIsRoutedOnceUnderTheMount() {
+      var app = appOf(mateu.sync("/e2-demo")).orElseThrow();
+      var option =
+          app.menu().stream()
+              .filter(entry -> "Summary".equals(entry.label()))
+              .findFirst()
+              .orElseThrow();
+      // relative to the app, like the field entries (it was /e2-demo/summary → /e2-demo/e2-demo)
+      assertThat(option.path()).isEqualTo("/summary");
+      var content =
+          mateu.run(
+              RunActionRqDto.builder()
+                  .route(option.route())
+                  .consumedRoute(option.consumedRoute())
+                  .serverSideType(NonRootApp.class.getName())
+                  .actionId("")
+                  .build());
+      assertThat(screenOf(content)).isEqualTo(SUMMARY);
     }
   }
 }

@@ -57,7 +57,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [CRUD editing in a drawer](./drawer#crud-editing-in-a-drawer-editindrawer) | ✅ Implemented | `editInDrawer()` — create/edit slides over the listing |
 | [Collection detail](./collection-detail) | ✅ Implemented | `CollectionDetail<Row>` — searchable list + in-place detail |
 | [General overview](./general-overview) | ✅ Implemented | `GeneralOverview<Row>` — record context switcher + overview |
-| [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |
+| [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Searchable` |
 | [Workspace](./workspace) | Composition | `@MasterDetail`, `@Tab`, `@FoldedLayout` |
 | [Task-centric page](./task-centric) | Composition | `@Action`, `@Button(buttonStyle = primary)` |
 | [Long-running jobs](./long-running-jobs) | ✅ Implemented | `@Action(background, sse)`, `@Trigger` |

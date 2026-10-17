@@ -124,6 +124,36 @@ from .helpers import ResponseHelpersMixin
 from .grid_field import GridFieldHandlerMixin
 
 
+
+def referenced_rest_source_names(increment) -> tuple[set[str], bool]:
+    """The source names a response's components reference by ``ref``, and whether it already
+    carries the app's catalogue (an App metadata with ``rest_sources``)."""
+    from pydantic import BaseModel
+    from mateu_dtos import AppMetadata, RestDataSource
+
+    refs: set[str] = set()
+    carries = False
+    seen: set[int] = set()
+    stack: list[object] = [increment]
+    while stack:
+        node = stack.pop()
+        if node is None or isinstance(node, (str, bytes, int, float, bool)):
+            continue
+        if id(node) in seen:
+            continue
+        seen.add(id(node))
+        if isinstance(node, dict):
+            stack.extend(node.values())
+        elif isinstance(node, (list, tuple, set)):
+            stack.extend(node)
+        elif isinstance(node, BaseModel):
+            if isinstance(node, AppMetadata) and node.rest_sources:
+                carries = True
+            if isinstance(node, RestDataSource) and node.ref and node.ref.strip():
+                refs.add(node.ref.strip())
+            stack.extend(getattr(node, name, None) for name in type(node).model_fields)
+    return refs, carries
+
 class SyncHandler(
     DispatchMixin,
     WizardHandlerMixin,
@@ -207,6 +237,20 @@ class SyncHandler(
         self.yaml_specs.action_catalog = self.action_catalog
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
+        return self._with_referenced_rest_sources(self._handle_core(rq, request_base_url))
+
+    def _with_referenced_rest_sources(self, increment: UIIncrement) -> UIIncrement:
+        """The response with the catalogue entries its components name by ``ref``: a page served
+        with NO app shell never receives the app's catalogue (it rides ``AppMetadata.rest_sources``),
+        so a by-ref call could not be resolved in the browser. Nothing is added when the response
+        already carries the app catalogue or names no source (mirrors Java's ReferencedRestSources)."""
+        refs, carries = referenced_rest_source_names(increment)
+        if carries or not refs or increment is None or self.rest_sources is None:
+            return increment
+        entries = [e for e in self.rest_sources.wire() if e.name in refs]
+        return increment.model_copy(update={"rest_sources": entries}) if entries else increment
+
+    def _handle_core(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # "__load__" is the documented load action (Java treats it as the route load; the Redwood
         # renderer boots with it): answered "Action not found" here, Redwood rendered nothing.
         if rq.action_id == "__load__":

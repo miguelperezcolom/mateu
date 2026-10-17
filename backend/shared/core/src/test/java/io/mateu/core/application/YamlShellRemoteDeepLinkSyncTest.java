@@ -85,6 +85,10 @@ class YamlShellRemoteDeepLinkSyncTest {
   private record Result(JsonNode wire, FakeConsole console) {}
 
   private static Result load(String route, Map<String, String> headers) {
+    return load(route, "_empty", headers);
+  }
+
+  private static Result load(String route, String consumedRoute, Map<String, String> headers) {
     var thread = Thread.currentThread();
     var previous = thread.getContextClassLoader();
     thread.setContextClassLoader(
@@ -94,7 +98,11 @@ class YamlShellRemoteDeepLinkSyncTest {
     try (var mateu = TestMateu.withUisAndBeans(List.of(console))) {
       var increment =
           mateu.run(
-              RunActionRqDto.builder().route(route).consumedRoute("_empty").actionId("").build(),
+              RunActionRqDto.builder()
+                  .route(route)
+                  .consumedRoute(consumedRoute)
+                  .actionId("")
+                  .build(),
               headers);
       return new Result(JSON.valueToTree(increment), console);
     } finally {
@@ -126,5 +134,15 @@ class YamlShellRemoteDeepLinkSyncTest {
     assertThat(result.console().authorizations).isEmpty();
     assertThat(first(result.wire(), "homeBaseUrl"))
         .isNotEqualTo("http://console.example/_workflow");
+  }
+
+  @Test
+  void theContentLoadOfARemoteScreenALocalPageNavigatedToMountsTheRemote() {
+    // a local page inside the shell navigating to a remote screen: the content load reaches THIS
+    // server (consumedRoute set, no serverSideType) — it answered "Page not found" once the call to
+    // AppMenuResolver.resolveRemoteDeepLink was lost in a merge
+    var wire = load("/workflow/processes", "", Map.of()).wire();
+    assertThat(first(wire, "homeBaseUrl")).isEqualTo("http://console.example/_workflow");
+    assertThat(wire.toString()).doesNotContain("NotFound");
   }
 }

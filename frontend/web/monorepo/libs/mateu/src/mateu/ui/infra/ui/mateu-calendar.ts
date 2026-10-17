@@ -164,7 +164,7 @@ export class MateuCalendar extends LitElement {
                   style="${ev.color ? `--mateu-cal-accent: ${ev.color};` : ''}"
                   title="${(time ? time + ' ' : '') + (ev.title ?? '')}"
                   @click="${(e: Event) => this.clickEvent(ev, e)}"
-                  @keydown="${onActivate(() => this.clickEvent(ev))}">${time ? html`<span class="time">${time}</span>` : nothing}${ev.title}</span>`
+                  @keydown="${onActivate((e) => this.clickEvent(ev, e))}">${time ? html`<span class="time">${time}</span>` : nothing}${ev.title}</span>`
     }
 
     private dayCell(date: string, withTime: boolean, showNum = true) {

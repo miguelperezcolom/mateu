@@ -38,8 +38,9 @@ export default defineConfig({
             // 41.7 / 43.1 / 37.7 / 41.8 before the host bridge, the Redwood canvas page and the editor
             // element itself had tests; the panels are still mostly exercised by hand). 2026-10-12: 62.4 / 64.1 /
             // 54.3 / 56.7 with the editor's own dropdown, pickers and placement under test. 2026-10-12 (header
-            // extras editors): 65.7 / 64.0 / 57.0 / 58.4.
-            thresholds: { lines: 65, statements: 64, functions: 57, branches: 58 },
+            // extras editors): 65.7 / 64.0 / 57.0 / 58.4. 2026-10-17 (coverage stream S6: mount board,
+            // dock panels, actions/app editors, palette, Redwood Play): 80.7 / 78.2 / 76.7 / 70.2.
+            thresholds: { lines: 80, statements: 78, functions: 76, branches: 70 },
         },
     },
 })

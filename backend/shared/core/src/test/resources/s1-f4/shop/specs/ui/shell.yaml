@@ -1,0 +1,9 @@
+type: AppShell
+title: Shop
+menu:
+  - type: RouteLink
+    label: Dashboard
+    route: dashboard
+  - type: RouteLink
+    label: Orders
+    route: orders

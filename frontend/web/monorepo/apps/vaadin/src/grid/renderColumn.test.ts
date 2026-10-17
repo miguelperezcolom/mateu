@@ -5,14 +5,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // attributes the renderer puts on the column and what its cell renderer draws, so plain elements
 // stand in for the three column kinds (and the overlay-based combo box) — defined before the real ones register.
 vi.hoisted(() => {
-    for (const tag of ['vaadin-grid-column', 'vaadin-grid-sort-column', 'vaadin-grid-filter-column', 'vaadin-combo-box']) {
+    for (const tag of ['vaadin-grid-column', 'vaadin-grid-column-group', 'vaadin-grid-sort-column', 'vaadin-grid-filter-column', 'vaadin-combo-box']) {
         if (!customElements.get(tag)) customElements.define(tag, class extends HTMLElement {})
     }
 })
 
 import { html, render } from 'lit'
 import type { LitElement } from 'lit'
-import { columnRenderer, renderColumn } from './renderColumn'
+import { columnRenderer, renderColumn, renderColumnOrGroup } from './renderColumn'
 
 /**
  * A listing's columns: their width policy (fixed / size-to-content / share the rest, the
@@ -148,5 +148,40 @@ describe('read-only cells', () => {
         const { el } = cell(marker as never, { editable: true, editorType: 'string' },
             { metadata: { columns: [{ metadata: { id: 'name' } }] } })
         expect(el.querySelector('vaadin-text-field')).toBeNull()
+    })
+})
+
+describe('column groups (a header spanning several columns)', () => {
+    const wrap = (metadata: Record<string, unknown>) => ({ type: 'ClientSide', id: metadata.id, metadata, children: [] })
+
+    it('a GridGroupColumn renders a vaadin-grid-column-group holding its child columns', () => {
+        const group = wrap({
+            type: 'GridGroupColumn', id: 'occupancy', label: 'Occupancy',
+            columns: [wrap(col({ id: 'adults', label: 'Adults' })), wrap(col({ id: 'children', label: 'Children' }))],
+        })
+        const host = document.createElement('div')
+        document.body.appendChild(host)
+        render(renderColumnOrGroup(group as never, {} as LitElement, '', {}, {}, {}, {}), host)
+        const el = host.querySelector('vaadin-grid-column-group')!
+        expect(el).not.toBeNull()
+        expect(el.getAttribute('header')).toBe('Occupancy')
+        const children = [...el.querySelectorAll('vaadin-grid-column')]
+        expect(children.map(c => c.getAttribute('path'))).toEqual(['adults', 'children'])
+    })
+
+    it('the group label interpolates the state', () => {
+        const group = wrap({ type: 'GridGroupColumn', id: 'g', label: '${state.season}', columns: [] })
+        const host = document.createElement('div')
+        document.body.appendChild(host)
+        render(renderColumnOrGroup(group as never, {} as LitElement, '', { season: 'Summer' }, {}, {}, {}), host)
+        expect(host.querySelector('vaadin-grid-column-group')!.getAttribute('header')).toBe('Summer')
+    })
+
+    it('a plain column still renders as a column', () => {
+        const host = document.createElement('div')
+        document.body.appendChild(host)
+        render(renderColumnOrGroup(wrap(col({})) as never, {} as LitElement, '', {}, {}, {}, {}), host)
+        expect(host.querySelector('vaadin-grid-column-group')).toBeNull()
+        expect(host.querySelector('vaadin-grid-column')).not.toBeNull()
     })
 })

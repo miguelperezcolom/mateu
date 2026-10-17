@@ -239,7 +239,12 @@ public abstract class MasterDetailView extends MultiView
           Button.builder()
               .label(part.label())
               .actionId(PICK + part.key())
-              .style(part.key().equals(selectedKey) ? "font-weight: 700;" : null)
+              // the selected part's button is the primary one: a style ("font-weight: 700") has
+              // no field on the button DTO, so the selection never reached the screen
+              .buttonStyle(
+                  part.key().equals(selectedKey)
+                      ? io.mateu.uidl.data.ButtonStyle.primary
+                      : io.mateu.uidl.data.ButtonStyle.tertiary)
               .build());
     }
 

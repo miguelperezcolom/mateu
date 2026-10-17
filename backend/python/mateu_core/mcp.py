@@ -59,10 +59,13 @@ def project_increment(increment):
             field_nodes.append(md)
         elif t == "Page" and ctx["page"] is None:
             ctx["page"] = md
-        elif t == "Crudl" and ctx["crudl"] is None:
+        elif t in ("Crud", "Crudl") and ctx["crudl"] is None:  # the listing is "Crud" on the wire
             ctx["crudl"] = md
         elif t == "Button" and md.get("actionId"):
             buttons_by_action.setdefault(md["actionId"], md.get("label"))
+        elif node.get("type") == "Button" and node.get("actionId"):
+            # a page toolbar / buttons entry is a bare button, not a component node
+            buttons_by_action.setdefault(node["actionId"], node.get("label"))
 
     for fragment in fragments:
         if ctx["state"] is None and isinstance(fragment.get("state"), dict):
@@ -160,6 +163,19 @@ def project_increment(increment):
             ],
         }
 
+    # the rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+    # {content, totalElements, pageNumber, pageSize}}}) — the agent asked for them
+    rows_page = _rows_page_of(fragments)
+    if rows_page is not None:
+        listing = screen.setdefault("listing", {})
+        listing["rows"] = [
+            {k: v for k, v in row.items() if k != "_rowNumber"} if isinstance(row, dict) else row
+            for row in rows_page["content"]
+        ]
+        for key in ("totalElements", "pageNumber", "pageSize"):
+            if key in rows_page:
+                listing[key] = rows_page[key]
+
     if messages:
         # the wire's message names its severity "variant" (error/warning/success/info): reading only
         # "type" told an agent every failure was "info"
@@ -175,6 +191,19 @@ def project_increment(increment):
     if notable:
         screen["commands"] = notable
     return screen
+
+
+def _rows_page_of(fragments):
+    """The first ``{page: {content: [...]}}`` entry of any fragment's data, or None."""
+    for fragment in fragments:
+        data = fragment.get("data") if isinstance(fragment, dict) else None
+        if not isinstance(data, dict):
+            continue
+        for entry in data.values():
+            page = entry.get("page") if isinstance(entry, dict) else None
+            if isinstance(page, dict) and isinstance(page.get("content"), list):
+                return page
+    return None
 
 
 def _command_data(commands, type_):
@@ -194,7 +223,7 @@ def list_routes_from(increment):
             if isinstance(md, dict) and md.get("type") == "App":
                 _walk_menu(md.get("menu"), routes)
             route = node.get("route")
-            if isinstance(route, str) and route:
+            if isinstance(route, str) and route and not _is_folder(node):
                 r = normalize_route(route)
                 routes.setdefault(r, node.get("caption") or node.get("label") or (r or "Home"))
             for v in node.values():
@@ -209,6 +238,11 @@ def list_routes_from(increment):
     return [{"route": r, "caption": c} for r, c in routes.items()]
 
 
+def _is_folder(item: dict) -> bool:
+    submenus = item.get("submenus")
+    return isinstance(submenus, list) and len(submenus) > 0
+
+
 def _walk_menu(menu, out):
     if not isinstance(menu, list):
         return
@@ -216,7 +250,9 @@ def _walk_menu(menu, out):
         if not isinstance(item, dict):
             continue
         raw = item.get("route", item.get("path"))
-        if isinstance(raw, str) and raw:
+        # a folder (an entry holding submenus) is not a place to go: its "/" path would otherwise
+        # be reported as the home, under the folder's caption
+        if isinstance(raw, str) and raw and not _is_folder(item):
             r = normalize_route(raw)
             out.setdefault(r, item.get("caption") or item.get("label") or (r or "Home"))
         _walk_menu(item.get("submenus"), out)
@@ -271,7 +307,14 @@ def dispatch_tool(name, args, sync_fn):
     if name == "mateu_search":
         text = args.get("searchText", "")
         params = {"searchText": text} if text else {}
-        return project_increment(sync_fn(normalize_route(args.get("route", "")), "search", args.get("filters"), params))
+        # A listing reads its search text from the component state (where its search box binds
+        # it), like the filters; the parameter copy is what a lookup's search reads.
+        state = dict(args.get("filters") or {})
+        if text:
+            state["searchText"] = text
+        return project_increment(
+            sync_fn(normalize_route(args.get("route", "")), "search", state or None, params)
+        )
     raise ValueError(f"Unknown tool: {name}")
 
 

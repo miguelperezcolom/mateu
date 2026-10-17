@@ -2,7 +2,7 @@
 import { Linking, Platform, Share } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { File, Paths } from 'expo-file-system';
-import { planDocument, type FileDownloadData } from './documents';
+import { planDocument, type FileDownloadData } from './documents.ts';
 
 function bytesOf(base64: string): Uint8Array {
   const bin = globalThis.atob(base64);

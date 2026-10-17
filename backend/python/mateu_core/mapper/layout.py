@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 from enum import Enum
@@ -30,6 +31,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    Version,
     Aside,
     Multiline,
     PlainText,
@@ -50,7 +52,7 @@ from ..reflection import (
 )
 from ..islands import EMBEDDED_MARKER
 from ._base import MixinBase
-from ._common import _row_cell
+from ._common import _field_value, _row_cell
 
 
 def _has_affordances(section: "Section | None") -> bool:
@@ -134,8 +136,10 @@ class LayoutMapperMixin(MixinBase):
                 ]
                 continue
             value = getattr(instance, f.name, None)
-            if value is None or isinstance(value, (str, int, float, bool, Decimal, date, datetime, Enum)):
-                cell = _row_cell(value)
+            if value is None or isinstance(
+                value, (str, int, float, bool, Decimal, date, datetime, time, Enum)
+            ):
+                cell = _field_value(value)
                 if isinstance(cell, Decimal):
                     cell = float(cell)
                 initial_data[camel_case(f.name)] = cell
@@ -144,7 +148,7 @@ class LayoutMapperMixin(MixinBase):
             ):
                 # a collection of plain values (tags, a bulleted list, a multi-select) rides as a
                 # JSON array, like Java's state serialisation of a List<String>
-                cells = [_row_cell(v) for v in value]
+                cells = [_field_value(v) for v in value]
                 initial_data[camel_case(f.name)] = [
                     float(c) if isinstance(c, Decimal) else c for c in cells
                 ]
@@ -152,7 +156,12 @@ class LayoutMapperMixin(MixinBase):
 
     def form_cards(self, cls, instance, read_only: bool = False, column_width: str | None = None) -> list:
         read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-        fields = [f for f in view_fields(cls) if self.visible(f)]
+        # The optimistic-lock Version() is plumbing, not an input: it rides in the state (the save
+        # compares it) but an editable form never shows it — it was an editable number, so a user
+        # could type their way past the conflict check (Java's FormFieldFilter.hiddenInEditor).
+        fields = [
+            f for f in view_fields(cls) if self.visible(f) and (read_only or not f.has(Version))
+        ]
         if any(f.has(Tab) for f in fields):
             # A tabbed form is wrapped in the same outlined section Card as a plain section (the
             # TabLayout nests under Div → VerticalLayout → TabLayout).
@@ -245,7 +254,8 @@ class LayoutMapperMixin(MixinBase):
                 # The field that opens a group carries its Tab.open flag (mirrors the Java
                 # pair.first().open() rule); fields before any Tab fall into the default group.
                 tabs.append((current, tb.open if tb is not None else False, []))
-            tabs[-1][2].append(self.map_field(f, instance, read_only))
+            # map_fields: a SeparatorBefore() inside a tab paints its divider too (it was dropped)
+            tabs[-1][2].extend(self.map_fields([f], instance, read_only))
         # A tab is marked active ONLY when it declares @Tab(open=True); the renderer defaults to
         # the first tab otherwise, so Java does not emit active on the default-selected tab.
         comps = []

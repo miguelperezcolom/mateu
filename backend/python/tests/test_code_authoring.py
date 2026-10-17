@@ -15,7 +15,7 @@ from mateu_core.mapper import ReflectionMapper  # noqa: E402
 from mateu_core.registry import MateuRegistry  # noqa: E402
 from mateu_core.route_registry import RouteEntry, RouteEntrySupplier, RouteRegistry  # noqa: E402
 from mateu_dtos import MenuItem, RuleRecord  # noqa: E402
-from mateu_uidl import AppShell, AppSupplier, app  # noqa: E402
+from mateu_uidl import AppShell, AppSupplier, app, ui  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "specs" / "ui"
 
@@ -128,3 +128,41 @@ def test_a_code_composed_submenu_nests_its_children():
 def test_a_code_composed_rule_leaf_carries_its_rules_instead_of_a_route():
     approve = next(m for m in _app_meta().menu if m.label == "Approve")
     assert approve.rules
+
+
+@ui("/mountedcodeapp")
+@app("Mounted code app")
+class MountedCodeApp(AppSupplier):
+    """A code-authored shell on a NON-ROOT mount whose entries are spelled with the mount
+    (``/mountedcodeapp/home``), under their group (``/mountedcodeapp/reports/sales`` in
+    ``/mountedcodeapp/reports``) or mount-relative (``/settings``) — each must be routed once."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="Mounted code app",
+            home_route="/mountedcodeapp/home",
+            menu=[
+                MenuItem(label="Home", route="/mountedcodeapp/home", server_side_type=""),
+                MenuItem(
+                    label="Reports",
+                    route="/mountedcodeapp/reports",
+                    server_side_type="",
+                    submenus=[
+                        MenuItem(
+                            label="Sales", route="/mountedcodeapp/reports/sales", server_side_type=""
+                        )
+                    ],
+                ),
+                MenuItem(label="Settings", route="/settings", server_side_type=""),
+            ],
+        )
+
+
+def test_absolute_and_mount_relative_entries_are_routed_once_under_the_mount():
+    menu = ReflectionMapper().map_app(MountedCodeApp).metadata.menu
+    by_label = {m.label: m for m in menu}
+    assert by_label["Home"].route == "/mountedcodeapp/home"
+    assert by_label["Home"].path == "/home"
+    assert by_label["Reports"].route == "/mountedcodeapp/reports"
+    assert by_label["Reports"].submenus[0].route == "/mountedcodeapp/reports/sales"
+    assert by_label["Settings"].route == "/mountedcodeapp/settings"

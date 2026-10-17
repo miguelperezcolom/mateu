@@ -189,9 +189,11 @@ export class MateuWorkflow extends LitElement {
         e.preventDefault();
         this.draggingId = id;
         const pos = this.positions[id] ?? { x: 0, y: 0 };
+        // the svg first: the grab point is measured against it (on the very first drag it was
+        // still null, so the node jumped by its own position on the first move)
+        this.svgEl = (e.currentTarget as SVGElement).closest("svg") as SVGSVGElement;
         const pt = this.toSvgPoint(e);
         this.dragOffset = { x: pt.x - pos.x, y: pt.y - pos.y };
-        this.svgEl = (e.currentTarget as SVGElement).closest("svg") as SVGSVGElement;
         window.addEventListener("mousemove", this.onMouseMove);
         window.addEventListener("mouseup", this.onMouseUp);
     }

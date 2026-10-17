@@ -1,0 +1,6 @@
+# The page behind `access: {roles: [manager]}` (journeys-routes.yaml).
+title: Managers only
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Text, id: j-targets, text: Quarterly targets}

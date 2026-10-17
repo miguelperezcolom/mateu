@@ -64,7 +64,6 @@ export const RN_COVERAGE = {
   CookieConsent: { status: 'full', note: 'dismissible banner, dismissal persisted on the device' },
   // ── navigation ──
   Breadcrumbs: { status: 'full' },
-  Breadcrumb: { status: 'part', note: 'of Breadcrumbs' },
   MenuBar: { status: 'full', note: 'horizontal strip; submenus as an action sheet' },
   Directory: { status: 'full' },
   // ── display ──
@@ -123,6 +122,7 @@ export const RN_COVERAGE = {
   Map: { status: 'full' },
   Grid: { status: 'full', note: 'horizontal-scroll table, tree rows indented, action cells' },
   GridColumn: { status: 'part', note: 'of Grid / Crud' },
+  GridGroupColumn: { status: 'part', note: 'of Grid / Crud: its columns, headed "Group · Column"' },
   VirtualList: { status: 'full' },
   // ── messaging ──
   Chat: { status: 'full', note: 'opens the assistant panel (same contract as the app chat FAB)' },

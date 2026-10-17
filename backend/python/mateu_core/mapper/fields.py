@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 from typing import (
@@ -473,15 +474,21 @@ class FieldMapperMixin(MixinBase):
         if not f.has(RestOptions):
             return None
         a = f.marker(RestOptions)
+        # By ref, the request and the mapping paths come from the catalogue entry, and what the
+        # surface declares WINS over the entry — so the marker's non-blank defaults ("GET",
+        # "value", "label") must not travel, or they would override the entry's own (Java's
+        # FieldMetadataExtractor.getOptionsSource, .NET's RestOptionsOf). An explicit value still
+        # overrides, exactly as for an inline url.
+        by_ref = bool(a.source)
         return RestDataSource(
             ref=a.source or None,
             url=a.url,
-            method=a.method,
+            method=_declared_method(a.source, a.method, "GET"),
             headers=FieldMapperMixin._headers_of(a.headers),
             body=a.body,
             items_path=a.items_path,
-            value_path=a.value_path,
-            label_path=a.label_path,
+            value_path="" if by_ref and a.value_path == "value" else a.value_path,
+            label_path="" if by_ref and a.label_path == "label" else a.label_path,
             proxy=a.proxy,
         )
 
@@ -494,10 +501,11 @@ class FieldMapperMixin(MixinBase):
         if spec is None:
             return None
         url, method, header_strings, body, items_path, proxy, *rest = spec
+        ref = (rest[0] if rest else "") or None
         return RestDataSource(
-            ref=(rest[0] if rest else "") or None,
+            ref=ref,
             url=url or None,
-            method=method,
+            method=_declared_method(ref, method, "GET"),
             headers=FieldMapperMixin._headers_of(header_strings),
             body=body,
             items_path=items_path,
@@ -513,11 +521,12 @@ class FieldMapperMixin(MixinBase):
         if spec is None:
             return None
         url, method, header_strings, body, success_message, result_path, proxy, *rest = spec
+        ref = (rest[0] if rest else "") or None
         return RestAction(
             source=RestDataSource(
-                ref=(rest[0] if rest else "") or None,
+                ref=ref,
                 url=url or None,
-                method=method,
+                method=_declared_method(ref, method, "POST"),
                 headers=FieldMapperMixin._headers_of(header_strings),
                 body=body,
                 proxy=proxy,
@@ -535,11 +544,12 @@ class FieldMapperMixin(MixinBase):
         if spec is None:
             return None
         url, method, header_strings, body, result_path, proxy, *rest = spec
+        ref = (rest[0] if rest else "") or None
         return RestAction(
             source=RestDataSource(
-                ref=(rest[0] if rest else "") or None,
+                ref=ref,
                 url=url or None,
-                method=method,
+                method=_declared_method(ref, method, "GET"),
                 headers=FieldMapperMixin._headers_of(header_strings),
                 body=body,
                 proxy=proxy,
@@ -701,8 +711,13 @@ class FieldMapperMixin(MixinBase):
             if f is not None and f.has(Money) and plain:
                 return "money"
             return "number"
-        if t in (date, datetime):
+        if t is date:
             return "date"
+        # a datetime carries a time (Java's LocalDateTime): mapped as a date, the time was lost
+        if t is datetime:
+            return "dateTime"
+        if t is time:
+            return "time"
         return "string"
 
     def map_button(self, name: str, fn) -> Button:
@@ -718,3 +733,12 @@ class FieldMapperMixin(MixinBase):
     @staticmethod
     def client(meta, id, children) -> ClientSideComponent:
         return ClientSideComponent(metadata=meta, id=id, children=children)
+
+
+def _declared_method(source, method: str, default: str) -> str:
+    """The method a by-ref surface declares: blank when it is the decorator's default, so the
+    catalogue entry's own method wins (a POST source referenced by a field defaulting to GET was
+    called with GET). Inline (no ref), the method travels as declared."""
+    if source and (method or "").upper() == default:
+        return ""
+    return method

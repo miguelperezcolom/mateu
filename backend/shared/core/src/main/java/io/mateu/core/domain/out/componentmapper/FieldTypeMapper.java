@@ -27,6 +27,14 @@ import java.util.Date;
 
 public class FieldTypeMapper {
 
+  /**
+   * The type the field HOLDS: an {@code Optional<X>} field is a field of type X (its content is
+   * shown, an empty Optional is an empty field).
+   */
+  private static Class<?> typeOf(Field field) {
+    return io.mateu.core.infra.reflection.OptionalFields.valueType(field);
+  }
+
   public static FieldDataType getDataType(Field field) {
     // A field explicitly flagged as money (via @Stereotype(money)) that is shown read-only
     // (plain text) keeps the dense plain-text rendering but is tagged as money so the
@@ -34,69 +42,69 @@ public class FieldTypeMapper {
     if (isMoneyStereotype(field) && isPlainTextContext(field)) {
       return FieldDataType.money;
     }
-    if (String.class.equals(field.getType())) {
+    if (String.class.equals(typeOf(field))) {
       return FieldDataType.string;
     }
-    if (boolean.class.equals(field.getType()) || Boolean.class.equals(field.getType())) {
+    if (boolean.class.equals(typeOf(field)) || Boolean.class.equals(typeOf(field))) {
       return FieldDataType.bool;
     }
-    if (int.class.equals(field.getType())
-        || Integer.class.equals(field.getType())
-        || long.class.equals(field.getType())
-        || Long.class.equals(field.getType())
-        || BigInteger.class.equals(field.getType())) {
+    if (int.class.equals(typeOf(field))
+        || Integer.class.equals(typeOf(field))
+        || long.class.equals(typeOf(field))
+        || Long.class.equals(typeOf(field))
+        || BigInteger.class.equals(typeOf(field))) {
       return FieldDataType.integer;
     }
-    if (float.class.equals(field.getType())
-        || Float.class.equals(field.getType())
-        || double.class.equals(field.getType())
-        || Double.class.equals(field.getType())
-        || BigDecimal.class.equals(field.getType())) {
+    if (float.class.equals(typeOf(field))
+        || Float.class.equals(typeOf(field))
+        || double.class.equals(typeOf(field))
+        || Double.class.equals(typeOf(field))
+        || BigDecimal.class.equals(typeOf(field))) {
       return FieldDataType.number;
     }
-    if (LocalDate.class.equals(field.getType())) {
+    if (LocalDate.class.equals(typeOf(field))) {
       return FieldDataType.date;
     }
-    if (LocalDateTime.class.equals(field.getType())
-        || Date.class.equals(field.getType())
-        || ZonedDateTime.class.equals(field.getType())
-        || java.sql.Date.class.equals(field.getType())) {
+    if (LocalDateTime.class.equals(typeOf(field))
+        || Date.class.equals(typeOf(field))
+        || ZonedDateTime.class.equals(typeOf(field))
+        || java.sql.Date.class.equals(typeOf(field))) {
       return FieldDataType.dateTime;
     }
-    if (LocalTime.class.equals(field.getType())) {
+    if (LocalTime.class.equals(typeOf(field))) {
       return FieldDataType.time;
     }
-    if (field.getType().isArray() || Collection.class.isAssignableFrom(field.getType())) {
+    if (typeOf(field).isArray() || Collection.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.array;
     }
-    if (field.getType().isEnum()) {
+    if (typeOf(field).isEnum()) {
       return FieldDataType.string;
     }
-    if (File.class.isAssignableFrom(field.getType())) {
+    if (File.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.file;
     }
-    if (Amount.class.isAssignableFrom(field.getType())) {
+    if (Amount.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.money;
     }
-    if (Status.class.isAssignableFrom(field.getType())) {
+    if (Status.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.status;
     }
-    if (ComponentDto.class.isAssignableFrom(field.getType())) {
+    if (ComponentDto.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.component;
     }
-    if (Component.class.isAssignableFrom(field.getType())) {
+    if (Component.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.component;
     }
-    if (Menu.class.isAssignableFrom(field.getType())) {
+    if (Menu.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.menu;
     }
-    if (Range.class.isAssignableFrom(field.getType())) {
+    if (Range.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.range;
     }
-    if (ColumnActionGroup.class.isAssignableFrom(field.getType())) {
+    if (ColumnActionGroup.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.actionGroup;
     }
-    if (ColumnAction.class.isAssignableFrom(field.getType())) {
+    if (ColumnAction.class.isAssignableFrom(typeOf(field))) {
       return FieldDataType.action;
     }
     return FieldDataType.string;
@@ -145,29 +153,29 @@ public class FieldTypeMapper {
       return stereotype;
     }
     if (MetaAnnotations.isPresent(field.getDeclaringClass(), PlainText.class)
-        && (String.class.equals(field.getType())
-            || boolean.class.equals(field.getType())
-            || Boolean.class.equals(field.getType())
-            || int.class.equals(field.getType())
-            || Integer.class.equals(field.getType())
-            || long.class.equals(field.getType())
-            || Long.class.equals(field.getType())
-            || BigInteger.class.equals(field.getType())
-            || float.class.equals(field.getType())
-            || Float.class.equals(field.getType())
-            || double.class.equals(field.getType())
-            || Double.class.equals(field.getType())
-            || BigDecimal.class.equals(field.getType())
-            || LocalDate.class.equals(field.getType())
-            || LocalDateTime.class.equals(field.getType())
-            || LocalTime.class.equals(field.getType())
-            || Date.class.equals(field.getType())
-            || ZonedDateTime.class.equals(field.getType())
-            || java.sql.Date.class.equals(field.getType())
-            || field.getType().isEnum())) {
+        && (String.class.equals(typeOf(field))
+            || boolean.class.equals(typeOf(field))
+            || Boolean.class.equals(typeOf(field))
+            || int.class.equals(typeOf(field))
+            || Integer.class.equals(typeOf(field))
+            || long.class.equals(typeOf(field))
+            || Long.class.equals(typeOf(field))
+            || BigInteger.class.equals(typeOf(field))
+            || float.class.equals(typeOf(field))
+            || Float.class.equals(typeOf(field))
+            || double.class.equals(typeOf(field))
+            || Double.class.equals(typeOf(field))
+            || BigDecimal.class.equals(typeOf(field))
+            || LocalDate.class.equals(typeOf(field))
+            || LocalDateTime.class.equals(typeOf(field))
+            || LocalTime.class.equals(typeOf(field))
+            || Date.class.equals(typeOf(field))
+            || ZonedDateTime.class.equals(typeOf(field))
+            || java.sql.Date.class.equals(typeOf(field))
+            || typeOf(field).isEnum())) {
       return FieldStereotype.plainText;
     }
-    if (field.getType().isEnum()) {
+    if (typeOf(field).isEnum()) {
       if (MetaAnnotations.isPresent(field, UseRadioButtons.class)
           || LayoutInference.preferRadio(field)) {
         return FieldStereotype.radio;
@@ -195,7 +203,7 @@ public class FieldTypeMapper {
         || MetaAnnotations.isPresent(field, SliderMax.class)) {
       return FieldStereotype.slider;
     }
-    if (Amount.class.equals(field.getType())) {
+    if (Amount.class.equals(typeOf(field))) {
       return FieldStereotype.money;
     }
     return FieldStereotype.regular;

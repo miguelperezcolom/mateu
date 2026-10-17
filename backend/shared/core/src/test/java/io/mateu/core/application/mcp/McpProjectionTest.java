@@ -82,7 +82,7 @@ class McpProjectionTest {
         json(
             """
             {"wireVersion":"3.0","fragments":[{"component":{"type":"ServerSide","route":"products","serverSideType":"com.acme.P",
-              "children":[{"type":"ClientSide","metadata":{"type":"Crudl","title":"Products","searchable":true,
+              "children":[{"type":"ClientSide","metadata":{"type":"Crud","title":"Products","searchable":true,
                 "columns":[{"metadata":{"id":"name","caption":"Name"}},{"metadata":{"id":"price","caption":"Price"}}],
                 "filters":[{"fieldId":"category","label":"Category","dataType":"string"}]}}]}}]}
             """);

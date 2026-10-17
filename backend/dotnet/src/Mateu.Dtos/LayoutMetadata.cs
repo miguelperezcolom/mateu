@@ -65,6 +65,11 @@ public record HorizontalLayoutMetadataDto : ComponentMetadataDto
 
     /// <summary>Lets the row's items wrap to the next line (responsive zone stacking).</summary>
     public bool Wrap { get; init; }
+
+    /// <summary>Main-axis placement of the children (START/CENTER/END/BETWEEN/AROUND/EVENLY; Java's
+    /// HorizontalLayoutDto.justification). Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Justification { get; init; }
 }
 
 public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto

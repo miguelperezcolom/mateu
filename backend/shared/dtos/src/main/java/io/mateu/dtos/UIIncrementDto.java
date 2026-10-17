@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
@@ -14,6 +15,11 @@ import lombok.With;
  * @param wireVersion Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive
  *     within a major version; a consumer may read it to guard against a mismatched producer.
  *     Defaults to {@link #WIRE_VERSION} when not set, so every response carries it.
+ * @param restSources The entries of the REST source catalogue that the components of THIS response
+ *     name by {@code ref}. The whole catalogue rides the app metadata ({@code AppDto.restSources}),
+ *     but a page served with no app shell never receives that — so each response also carries the
+ *     entries it references, and a by-ref call resolves wherever the page is mounted. Null (absent
+ *     on the wire) when nothing in the response names a source.
  */
 @Builder
 @With
@@ -25,7 +31,8 @@ public record UIIncrementDto(
     boolean appendBanners,
     Object appData,
     Object appState,
-    String wireVersion) {
+    String wireVersion,
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<RestSourceEntryDto> restSources) {
 
   /**
    * Current wire protocol version. Bumped only on a breaking (major) change to the wire; additions
@@ -39,6 +46,32 @@ public record UIIncrementDto(
     fragments = Collections.unmodifiableList(fragments != null ? fragments : List.of());
     banners = Collections.unmodifiableList(banners != null ? banners : List.of());
     wireVersion = wireVersion != null ? wireVersion : WIRE_VERSION;
+    restSources =
+        restSources == null || restSources.isEmpty()
+            ? null
+            : Collections.unmodifiableList(restSources);
+  }
+
+  /** The increment without referenced REST sources (the shape before {@code restSources}). */
+  public UIIncrementDto(
+      List<UICommandDto> commands,
+      List<MessageDto> messages,
+      List<UIFragmentDto> fragments,
+      List<BannerDto> banners,
+      boolean appendBanners,
+      Object appData,
+      Object appState,
+      String wireVersion) {
+    this(
+        commands,
+        messages,
+        fragments,
+        banners,
+        appendBanners,
+        appData,
+        appState,
+        wireVersion,
+        null);
   }
 
   @Override

@@ -89,12 +89,12 @@ class WireTypeRenderTest : BasePlatformTestCase() {
     }
 
     companion object {
-        /** The 39 types brought to parity (all but Dialog/Drawer are rendered by this test). */
+        /** The types brought to parity (all but Dialog/Drawer are rendered by this test). */
         val COVERED_BY_FIXTURE = setOf(
             "AccordionPanel", "Avatar", "AvatarGroup", "BoardLayout", "BoardLayoutItem", "BoardLayoutRow", "Bpmn",
             "Breadcrumb", "Breadcrumbs", "CarouselLayout", "Chat", "ConfirmDialog", "ContentLayout", "ContextMenu",
             "CookieConsent", "Details", "Dialog", "Directory", "Drawer", "Element", "FormEditor", "FormItem", "Grid",
-            "GridColumn", "Icon", "MasterDetailLayout", "MenuBar", "MessageInput", "MessageList", "MicroFrontend",
+            "GridColumn", "GridGroupColumn", "Icon", "MasterDetailLayout", "MenuBar", "MessageInput", "MessageList", "MicroFrontend",
             "NotFound", "Notification", "ResponsiveGrid", "Result", "Stepper", "Tab", "Tooltip", "VirtualList", "Workflow",
         )
     }

@@ -1,0 +1,12 @@
+{
+  "route": "/conformance/crud",
+  "consumedRoute": "/conformance/crud",
+  "actionId": "search",
+  "componentState": {
+    "searchText": "",
+    "status": ["Available", "OutOfStock"],
+    "sort": [{ "fieldId": "price", "direction": "descending" }],
+    "page": 1,
+    "size": 2
+  }
+}
