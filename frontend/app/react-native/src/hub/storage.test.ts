@@ -43,15 +43,18 @@ test('UI metadata lives in AsyncStorage, secrets in the keychain', async () => {
 test('the hub UiStore persists the UI list as metadata, and forgetting a UI clears its secrets from the keychain', async () => {
   keychain.clear();
   asyncStorage.clear();
-  const { entry } = await storage.uiStore.add('https://apps.example.com/admin');
+  const url = 'https://apps.example.com/admin';
+  // exact token match (not a substring test of the host)
+  const stored = () => [...asyncStorage.values()].some((v) => v.split('"').includes(url));
+  const { entry } = await storage.uiStore.add(url);
   assert.ok(asyncStorage.size > 0);
-  assert.ok([...asyncStorage.values()].some((v) => v.includes('apps.example.com')));
+  assert.ok(stored());
   assert.equal(keychain.size, 0);
   const keys = uiSecretKeys(entry.id);
   await storage.secretStore.set(keys.tokens, 'tok');
   await storage.secretStore.set(keys.sessionId, 'sid');
   await storage.uiStore.remove(entry.id);
-  assert.ok(![...asyncStorage.values()].some((v) => v.includes('apps.example.com')));
+  assert.ok(!stored());
   assert.equal(keychain.size, 0);
 });
 
