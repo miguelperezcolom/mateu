@@ -90,7 +90,7 @@ public class NotificationsActionRunner implements ActionRunner {
       var appClass = forName(serverSideType);
       if (NotificationsSupplier.class.isAssignableFrom(appClass)) {
         return (NotificationsSupplier)
-            io.mateu.uidl.di.MateuBeanProvider.getBean(
+            io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
                     io.mateu.uidl.interfaces.InstanceFactory.class)
                 .newInstance(appClass, Map.of(), httpRequest);
       }

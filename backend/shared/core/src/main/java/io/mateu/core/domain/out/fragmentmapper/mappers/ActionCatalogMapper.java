@@ -65,7 +65,7 @@ public final class ActionCatalogMapper {
 
   private static ActionRegistry registry() {
     try {
-      return MateuBeanProvider.getBean(ActionRegistry.class);
+      return MateuBeanProvider.getSingletonBean(ActionRegistry.class);
     } catch (Throwable t) {
       log.debug("No action registry available ({})", t.toString());
       return null;

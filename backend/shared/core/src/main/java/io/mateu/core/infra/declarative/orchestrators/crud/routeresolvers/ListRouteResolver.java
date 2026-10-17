@@ -80,7 +80,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   private static java.util.Set<io.mateu.uidl.data.ExportFormat> availableExportFormats() {
     try {
       return io.mateu.core.domain.act.ListingExporters.formats(
-          io.mateu.uidl.di.MateuBeanProvider.getBeans(
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBeans(
               io.mateu.uidl.interfaces.ListingExporter.class));
     } catch (RuntimeException notInitialised) {
       return java.util.EnumSet.noneOf(io.mateu.uidl.data.ExportFormat.class);

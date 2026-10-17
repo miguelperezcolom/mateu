@@ -269,28 +269,15 @@ class RequestBudgetTest {
         "simpleForm",
         RequestBudgetTest::simpleForm,
         lookups(
-            bean(io.mateu.core.application.runaction.RouteRegistry.class), 2,
+            // the view model may be a (prototype) bean; then its @Inject field
             bean(SimpleForm.class), 1,
-            bean(Translator.class), 1,
-            beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
-            beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
-            beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 6),
+            bean(Translator.class), 1),
         0);
   }
 
   @Test
   void aCrudListing() {
-    assertBudget(
-        "crudList",
-        RequestBudgetTest::crudList,
-        lookups(
-            bean(io.mateu.core.application.runaction.RouteRegistry.class), 3,
-            bean(ItemsCrud.class), 1,
-            beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
-            beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
-            beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 5,
-            beans(io.mateu.uidl.interfaces.ListingExporter.class), 1),
-        0);
+    assertBudget("crudList", RequestBudgetTest::crudList, lookups(bean(ItemsCrud.class), 1), 0);
   }
 
   @Test
@@ -299,33 +286,16 @@ class RequestBudgetTest {
         "crudSearch",
         RequestBudgetTest::crudSearch,
         lookups(
-            bean(io.mateu.core.application.runaction.RouteRegistry.class), 1,
             bean(Item.class), 1,
             bean(ItemsCrud.class), 2,
-            bean(io.mateu.uidl.interfaces.InstanceFactory.class), 1,
-            beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
-            beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
-            beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 2),
+            // ActionInstanceCreator.isAppLevelAction: route resolution, frozen before beta
+            bean(io.mateu.uidl.interfaces.InstanceFactory.class), 1),
         0);
   }
 
   @Test
   void anAppShell() {
-    assertBudget(
-        "appShell",
-        RequestBudgetTest::appShell,
-        lookups(
-            bean(io.mateu.core.application.RoutedClassResolver.class), 1,
-            bean(io.mateu.core.application.runaction.ActionRegistry.class), 1,
-            bean(io.mateu.core.application.runaction.ComponentRegistry.class), 1,
-            bean(io.mateu.core.application.runaction.RestSourceRegistry.class), 2,
-            bean(io.mateu.core.application.runaction.RouteRegistry.class), 6,
-            bean(PerfApp.class), 1,
-            bean(Translator.class), 1,
-            beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
-            beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
-            beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 2),
-        0);
+    assertBudget("appShell", RequestBudgetTest::appShell, lookups(bean(PerfApp.class), 1), 0);
   }
 
   @Test
@@ -334,15 +304,10 @@ class RequestBudgetTest {
         "wizardNext",
         RequestBudgetTest::wizardNext,
         lookups(
-            bean(io.mateu.core.application.runaction.ActionRegistry.class), 1,
             bean(PerfWizard.class), 1,
+            // every step object is instantiated like a view model
             bean(Result.class), 1,
-            bean(Who.class), 3,
-            bean(io.mateu.uidl.interfaces.InstanceFactory.class), 3,
-            bean(Translator.class), 1,
-            beans(io.mateu.core.domain.out.UiIncrementMapper.class), 1,
-            beans(io.mateu.core.domain.ports.InstanceFactory.class), 1,
-            beans(io.mateu.uidl.interfaces.ComponentAdapter.class), 3),
+            bean(Who.class), 3),
         0);
   }
 

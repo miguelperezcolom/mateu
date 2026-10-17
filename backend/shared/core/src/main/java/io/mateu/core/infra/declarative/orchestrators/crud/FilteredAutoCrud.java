@@ -111,7 +111,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
       }
     }
     return (T)
-        MateuBeanProvider.getBean(InstanceFactory.class)
+        MateuBeanProvider.getSingletonBean(InstanceFactory.class)
             .newInstance(entityClass(), data, httpRequest);
   }
 

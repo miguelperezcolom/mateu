@@ -63,7 +63,7 @@ public class GlobalSearchActionRunner implements ActionRunner {
       var appClass = forName(serverSideType);
       if (GlobalSearchSupplier.class.isAssignableFrom(appClass)) {
         return (GlobalSearchSupplier)
-            io.mateu.uidl.di.MateuBeanProvider.getBean(
+            io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
                     io.mateu.uidl.interfaces.InstanceFactory.class)
                 .newInstance(appClass, Map.of(), httpRequest);
       }
