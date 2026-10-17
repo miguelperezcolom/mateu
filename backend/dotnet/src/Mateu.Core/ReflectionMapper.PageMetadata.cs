@@ -12,10 +12,11 @@ public sealed partial class ReflectionMapper
     /// ConstraintValidationMapper): [Required] → the field must be truthy ("Cannot be empty");
     /// [Range(min,max)] → two bounds ("Must be at least/at most N"). Emitted in field-declaration
     /// order.</summary>
-    private static List<ValidationDto> MapValidations(Type type)
+    private static List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
     {
         var validations = new List<ValidationDto>();
-        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
+        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }
+                     && (only is null || only.Contains(p))))
         {
             var fieldId = Naming.CamelCase(p.Name);
             var reference = $"state['{fieldId}']";
