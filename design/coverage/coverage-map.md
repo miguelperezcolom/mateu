@@ -40,12 +40,12 @@ How it was measured (reproducible):
 | `libs/mateu` | 1433 | 65.8% | 51.8% | 64 L / 63 S / 51 F / 50 B | 14.2 |
 | `apps/vaadin` | 81 | **35.2%** | 27.4% | 35 / 35 / 24 / 27 | **44.8** |
 | `apps/visual-editor` | 423 | 66.9% | 59.5% | 65 / 64 / 57 / 58 | 13.1 |
-| Redwood `poc/` (58 sources) | 13 suites | **95.2%** | 79.3% | 94 L / 91 F / 78 B | — |
-| Redwood VB chains (84 files, ~5k lines) | 0 executed | **0% (unmeasured)** | | none | e2e only |
-| React Native `.ts` (45 loaded) | 273 | **95.5%** | 85.1% | 93 / 84 / 93 | — |
-| React Native `.tsx` (37 files, 11.4k lines) | 0 | **unmeasured** | | none | — |
-| IntelliJ plugin | 327 | **48.6%** | 39.2% | Kover minBound 47 | 31.4 |
-| VS Code extension | 160 | **96.2%** | 79.3% | 96 / 91 / 94 / 79 | — |
+| Redwood `poc/` (58 sources) — S7, 2026-10-17 | 15 suites | **97.9%** (was 95.6 on batch-3) | 84.3% (was 79.5) | 97 L / 95 F / 84 B | — |
+| Redwood VB chains (84 files, ~5k lines) — S7 | `test-vb-chains.mjs` (36) runs `loadMateuShell`/`onMateuNavigate`/`runMateuAction`/`runMateuIslandAction` against a fake VB context, bridge assembled from poc/ (so it counts in the poc row) and `--generated` against the shipped bridge | chain files themselves unmeasured | | via the poc floors | real VB runtime: e2e only |
+| React Native `.ts` (57 loaded, incl. oidc/AppRegistry/secureStore/storage/a11y/documentEffects) — S7 | 375 | **98.6%** | 86.3% | 98 L / 86 B / 95 F | — |
+| React Native `.tsx` (37 files, 11.3k lines) — S7 strategy: view-models | logic moved to tested `.ts` (crudListing, dateCalendar, timeline, displayModels, navigableMenuLeaves; .tsx 11 579 → 11 340 lines) | **unmeasured by design** | | none | — |
+| IntelliJ plugin — S7 | 426 | **65.8%** (was 51.5 on batch-3) | 49.7% | Kover minBound 65 | 14.2 |
+| VS Code extension — S7 | 175 | **97.2%** | 80.5% | 97 L / 92 S / 96 F / 80 B | — |
 
 All suites pass and all gates are met on master (Quarkus only after the tooling problem in §5.2).
 
