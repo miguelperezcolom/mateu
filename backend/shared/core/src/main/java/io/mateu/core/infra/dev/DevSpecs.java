@@ -44,11 +44,17 @@ public final class DevSpecs {
 
   private static final Pattern APP_LEVEL_TYPE =
       Pattern.compile(
-          "(?m)^type:\\s*['\"]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions)['\"]?\\s*$");
+          "(?m)^type:\\s*['\"]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions|Types)['\"]?\\s*$");
 
   /** Conventional app-wide files, by name (the {@code type:} header is optional in them). */
   private static final java.util.Set<String> APP_LEVEL_NAMES =
-      java.util.Set.of("routes.yaml", "routes.yml", "sources.yaml", "project.yaml", "actions.yaml");
+      java.util.Set.of(
+          "routes.yaml",
+          "routes.yml",
+          "sources.yaml",
+          "project.yaml",
+          "actions.yaml",
+          "types.yaml");
 
   /** Conventional app-wide directories: a file there may omit its {@code type:} header. */
   private static final java.util.Set<String> APP_LEVEL_DIRS =

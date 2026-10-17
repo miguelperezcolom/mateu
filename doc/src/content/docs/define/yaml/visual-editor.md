@@ -529,7 +529,7 @@ A link opens the editor at the page's own address. To point links at a hosted ed
 
 Two files make a mount designable with **no backend and no API**:
 
-- **`types.yaml`** (`type: Types`) — the [field types](/java-ui-definition/field-types/), the domain
+- **`types.yaml`** (`type: Types`; any `specs/ui` file with that header is read too) — the [field types](/java-ui-definition/field-types/), the domain
   vocabulary. It opens in a YAML editor checked against `types-schema.json` (unknown keys, data
   types, stereotypes, tones, duplicate ids) with a summary of the types it declares. On a page, a
   `FormField` or `GridColumn` picks its **`fieldType`** from a list of the catalogue's ids (or you type

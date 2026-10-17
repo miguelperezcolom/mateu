@@ -1,0 +1,3 @@
+type: VerticalLayout
+content:
+  - {type: FormField, id: zip, fieldType: Zip}

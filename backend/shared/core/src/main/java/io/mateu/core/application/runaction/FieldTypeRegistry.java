@@ -130,55 +130,92 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
     }
   }
 
+  /** The {@code type:} header a standalone types file declares. */
+  static final String TYPE = "Types";
+
   /**
-   * The authored half: {@code specs/ui/types.yaml} — a {@code types:} envelope (optionally typed
-   * {@code type: Types}) or a bare list. The keys ARE {@link FieldTypeEntry}'s components, which is
-   * what keeps the GENERATED {@code types-schema.json} an honest description of the file.
+   * The authored half: {@code specs/ui/types.yaml} (with or without its {@code type: Types} header)
+   * and every other file under {@code specs/ui} declaring {@code type: Types}, in discovery order —
+   * a later file's entry replaces an earlier one of the same id, exactly like the action catalogue.
+   * Each file is a {@code types:} envelope or a bare list. The keys ARE {@link FieldTypeEntry}'s
+   * components, which is what keeps the GENERATED {@code types-schema.json} an honest description
+   * of the file. Before 2026-10-17 only the conventional name was read, so a Types file the IDE
+   * wizard created under another name was silently ignored.
    */
   public FieldTypeCatalog authoredFrom(ClassLoader classLoader) {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? FieldTypeRegistry.class.getClassLoader() : classLoader);
-    try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_TYPES)) {
+    var files = new java.util.LinkedHashSet<String>();
+    if (cl.getResource(CONVENTIONAL_TYPES) != null) {
+      files.add(CONVENTIONAL_TYPES);
+    }
+    for (var path : MountRegistry.yamlResourcePaths(cl)) {
+      if (!path.equals(CONVENTIONAL_TYPES) && TYPE.equals(typeOf(cl, path))) {
+        files.add(path);
+      }
+    }
+    var byId = new LinkedHashMap<String, FieldTypeEntry>();
+    for (var file : files) {
+      for (var entry : read(cl, file)) {
+        byId.put(entry.id(), entry);
+      }
+    }
+    return new FieldTypeCatalog(List.copyOf(byId.values()));
+  }
+
+  private List<FieldTypeEntry> read(ClassLoader cl, String path) {
+    try (InputStream is = cl.getResourceAsStream(path)) {
       if (is == null) {
-        return FieldTypeCatalog.empty();
+        return List.of();
       }
       var root = yaml.readTree(is);
       if (root == null) {
-        return FieldTypeCatalog.empty();
+        return List.of();
       }
       var node = root.has("types") ? root.get("types") : root;
       if (!node.isArray()) {
-        return FieldTypeCatalog.empty();
+        return List.of();
       }
       var entries = new ArrayList<FieldTypeEntry>();
       for (var element : node) {
-        var entry = entryOf(element);
+        var entry = entryOf(element, path);
         if (entry != null) {
           entries.add(entry);
         }
       }
-      return new FieldTypeCatalog(entries);
+      return entries;
     } catch (Exception e) {
-      log.warn("Failed to read {}: {}", CONVENTIONAL_TYPES, e.getMessage());
-      return FieldTypeCatalog.empty();
+      log.warn("Failed to read {}: {}", path, e.getMessage());
+      return List.of();
     }
   }
 
-  private FieldTypeEntry entryOf(JsonNode node) {
+  private String typeOf(ClassLoader cl, String path) {
+    try (InputStream is = cl.getResourceAsStream(path)) {
+      if (is == null) {
+        return "";
+      }
+      var root = yaml.readTree(is);
+      return root != null && root.isObject() && root.hasNonNull("type")
+          ? root.get("type").asText()
+          : "";
+    } catch (Exception e) {
+      return "";
+    }
+  }
+
+  private FieldTypeEntry entryOf(JsonNode node, String path) {
     try {
       var entry = yaml.treeToValue(node, FieldTypeEntry.class);
-      if (entry == null || entry.id().isBlank()) {
-        log.warn("Ignoring a field type with no id in {}", CONVENTIONAL_TYPES);
+      if (entry == null || entry.id() == null || entry.id().isBlank()) {
+        log.warn("Ignoring a field type with no id in {}", path);
         return null;
       }
       return entry;
     } catch (Exception e) {
       log.warn(
-          "Ignoring field type '{}' in {}: {}",
-          node.path("id").asText("?"),
-          CONVENTIONAL_TYPES,
-          e.getMessage());
+          "Ignoring field type '{}' in {}: {}", node.path("id").asText("?"), path, e.getMessage());
       return null;
     }
   }

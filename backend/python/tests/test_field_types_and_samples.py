@@ -118,6 +118,11 @@ class Sampled:
 @pytest.fixture
 def specs(tmp_path: Path) -> Path:
     (tmp_path / "types.yaml").write_text(TYPES)
+    # a types file under a name of its own, found by its header (like a `type: Actions` file)
+    (tmp_path / "catalogs").mkdir()
+    (tmp_path / "catalogs" / "more-types.yaml").write_text(
+        "type: Types\ntypes:\n  - {id: Zip, label: Postal code, dataType: string, placeholder: '00000'}\n"
+    )
     (tmp_path / "sources.yaml").write_text(SOURCES)
     (tmp_path / "fixtures").mkdir()
     (tmp_path / "fixtures" / "customers.json").write_text('[{"id": 7, "name": "Acme"}]')
@@ -323,3 +328,15 @@ def test_samples_and_mock_sources_travel_only_in_sample_mode(specs, monkeypatch)
     by_name = {e["name"]: e for e in mocked["restSources"]}
     assert by_name["orders"]["sample"]["meta"] == {"total": 2}
     assert by_name["customers"]["sample"] == [{"id": 7, "name": "Acme"}]
+
+
+def test_a_types_file_under_any_name_is_discovered_by_its_header(specs: Path):
+    # catalogs/more-types.yaml declares `type: Types`. Before, only <dir>/types.yaml was read and
+    # a file created under another name was silently ignored.
+    ids = [t.id for t in FieldTypeRegistry(str(specs)).authored()]
+    assert ids[:3] == ["OrderStatus", "Money", "Email"]  # the conventional file first
+    assert "Zip" in ids
+    zip_type = FieldTypeRegistry(str(specs)).get("Zip")
+    assert zip_type is not None
+    assert zip_type.label == "Postal code"
+    assert zip_type.placeholder == "00000"

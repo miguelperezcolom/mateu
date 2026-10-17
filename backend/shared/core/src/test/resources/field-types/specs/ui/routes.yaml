@@ -10,3 +10,5 @@ routes:
     definition: unknown.yaml
   - route: ft-sampled
     definition: sampled.yaml
+  - route: ft-zip
+    definition: zip.yaml

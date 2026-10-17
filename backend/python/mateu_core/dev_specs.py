@@ -43,7 +43,7 @@ _lock = threading.Lock()
 _forced: bool | None = None
 _dir: str | None = None
 _watcher: "_Watcher | None" = None
-_APP_LEVEL = re.compile(r"^type:\s*['\"]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions)['\"]?\s*$", re.MULTILINE)
+_APP_LEVEL = re.compile(r"^type:\s*['\"]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions|Types)['\"]?\s*$", re.MULTILINE)
 
 
 def enabled() -> bool:
@@ -146,7 +146,7 @@ def _emit(event: dict) -> None:
 
 
 def is_app_level(file: Path) -> bool:
-    if file.name in ("routes.yaml", "routes.yml", "sources.yaml", "project.yaml", "actions.yaml"):
+    if file.name in ("routes.yaml", "routes.yml", "sources.yaml", "project.yaml", "actions.yaml", "types.yaml"):
         return True
     # translations/ and environments/ files may omit their type: header — app-wide either way
     if file.parent.name in ("translations", "environments"):

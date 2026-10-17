@@ -37,7 +37,7 @@ public static class DevSpecs
     private static readonly List<WeakReference<ISpecsCache>> Caches = [];
     private static readonly List<Action<string>> Listeners = [];
     private static readonly Regex AppLevelType =
-        new(@"^type:\s*['""]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions)['""]?\s*$", RegexOptions.Multiline);
+        new(@"^type:\s*['""]?(UI|Routes|AppShell|App|Project|Environment|Translations|Actions|Types)['""]?\s*$", RegexOptions.Multiline);
     private static bool? _forced;
     private static FileSystemWatcher? _watcher;
     private static Timer? _debounce;
@@ -177,7 +177,7 @@ public static class DevSpecs
     internal static bool IsAppLevel(string file)
     {
         var name = Path.GetFileName(file);
-        if (name is "routes.yaml" or "routes.yml" or "sources.yaml" or "project.yaml" or "actions.yaml") return true;
+        if (name is "routes.yaml" or "routes.yml" or "sources.yaml" or "project.yaml" or "actions.yaml" or "types.yaml") return true;
         // translations/ and environments/ files may omit their type: header — app-wide either way
         if (Path.GetFileName(Path.GetDirectoryName(file) ?? "") is "translations" or "environments") return true;
         if (!File.Exists(file)) return true; // deleted: whatever it was, it may have been a mount
