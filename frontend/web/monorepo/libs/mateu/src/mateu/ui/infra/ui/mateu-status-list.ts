@@ -142,6 +142,8 @@ export class MateuStatusList extends LitElement {
         }))
     }
 
+    // a key pressed on an action button inside the row is the BUTTON's (the browser turns it into
+    // the button's click): only a key on the row itself activates the row
     private rowClicked(item: StatusItem) {
         if (!this.rowActionId) return
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -180,7 +182,7 @@ export class MateuStatusList extends LitElement {
                      style="${this.columns > 1 ? `grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));` : ''}">
                     ${this.items.map(item => html`
                         <div role=${ifDefined(buttonRole(!!this.rowActionId))} tabindex=${ifDefined(tabStop(!!this.rowActionId))} class="cell ${(item.lines?.length ?? 0) > 0 ? 'with-lines' : ''} ${this.rowActionId ? 'clickable' : ''}"
-                             @click="${() => this.rowClicked(item)}" @keydown="${onActivate(() => this.rowClicked(item))}">
+                             @click="${() => this.rowClicked(item)}" @keydown="${onActivate((e) => { if (e.target === e.currentTarget) this.rowClicked(item) })}">
                             <div class="cell-title-row">
                                 ${heading === 'h4'
                                     ? html`<h4 class="cell-title">${item.title}</h4>`

@@ -98,7 +98,7 @@ export class MateuTaskQueue extends LitElement {
                         ${group.label ? html`<span class="group-label">${group.label}</span>` : nothing}
                         ${(group.items ?? []).map(item => html`
                             <div role="option" tabindex="0" aria-selected="${item.id === this.selectedId}" class="card ${item.id === this.selectedId ? 'selected' : ''}"
-                                 @click="${() => this.select(item.id)}" @keydown="${onActivate(() => this.select(item.id))}">
+                                 @click="${() => this.select(item.id)}" @keydown="${onActivate((e) => { if (e.target === e.currentTarget) this.select(item.id) })}">
                                 <span class="title">${item.title}</span>
                                 <div class="meta">
                                     ${item.caption ? html`<span class="caption">${item.caption}</span>` : nothing}

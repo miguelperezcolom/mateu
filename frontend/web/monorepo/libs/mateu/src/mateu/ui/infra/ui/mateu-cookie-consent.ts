@@ -4,7 +4,7 @@ import { safeHref } from "@infra/ui/safeNavigate.ts";
 const escapeHtml = (text: unknown): string => String(text ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import 'cookieconsent/build/cookieconsent.min.js';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -37,8 +37,15 @@ export class MateuCookieConsent extends LitElement {
     _css: any
 
 
-    @query('[aria-label="cookieconsent"]') // i18n-ok: the library's own marker
-    private popup!: HTMLCanvasElement;
+    /**
+     * The library's banner. cookieconsent inserts it into document.body (it knows nothing of our
+     * shadow root), so it must be looked up in the DOCUMENT: a shadow-root @query never found it,
+     * which left the banner without role="alert", without Enter/Space on its dismiss link, and
+     * behind on the page after this element was removed (a second banner on every re-connect).
+     */
+    private get popup(): HTMLElement | null {
+        return document.querySelector('.cc-window[aria-label="cookieconsent"]') // i18n-ok: the library's own marker
+    }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
