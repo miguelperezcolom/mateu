@@ -11,13 +11,17 @@ is ported. ✅ full · 🟡 partial (see note) · — not yet.
 
 The Java server is the reference implementation; the .NET and Python servers emit the same wire
 for the surface below (verified by golden-JSON tests in `backend/dotnet/test` and
-`backend/python/tests`).
+`backend/python/tests`, and by the shared [conformance corpus](#the-conformance-gate)). A 🟡 row
+names what the ports lack; the gaps that are not features of their own — wire component types,
+envelope members, authoring annotations — are listed after the table, in
+[What is still Java-only](#what-is-still-java-only). *In progress* marks what is being ported for
+the next alpha: flip it to ✅ when it is merged.
 
 | Feature | Java | .NET | Python |
 |---|---|---|---|
-| Forms, sections, field types, validation | ✅ | ✅ | ✅ |
+| Forms, sections, field types, validation. Ports: no `@Section(sticky, columns, style)`, `@MainFilter`, `@HiddenIn*`; field help (`@Help` → `description`), `placeholder`, `autofocus`, `step`, `sliderMin` *in progress* | ✅ | 🟡 | 🟡 |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
-| App shell + menus + navigation | ✅ | ✅ | ✅ |
+| App shell + menus + navigation. Ports: no `@App(layout, backLink, ask…)`, and 25 of the 61 `AppDto` members are never emitted (see [envelope members](#envelope-members)) | ✅ | 🟡 | 🟡 |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
 | [App shell as data](/define/yaml/app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). The ports have no `type: AppShell` definitions: N/A there | ✅ | N/A | N/A |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
@@ -60,7 +64,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in CSV writer, Excel / PDF through the app's `IListingExporter` services — no exporter, no button) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; built-in CSV writer, Excel / PDF through the app's `ListingExporter` subclasses — no exporter, no button, as in Java) |
-| i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
+| i18n, events (emit/subscribe), security scaffolding. Ports: `@SubscribeTo` scopes (`source`/`from`/`condition`) *in progress*; Python has no class-level `read_only_unless` (.NET's `[ReadOnlyUnless]` works on a class) | ✅ | 🟡 | 🟡 |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
@@ -96,7 +100,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Notification inbox (`NotificationsSupplier` → header bell + `_notifications-*` actions) | ✅ | ✅ | ✅ |
 | Undoable toasts (`Message.undoable` → undo action id + parameters on the wire) | ✅ | ✅ | ✅ |
 | Global entity search (`GlobalSearchSupplier` → `globalSearchEnabled` + `_globalsearch`) | ✅ | ✅ | ✅ |
-| Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
+| Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` (pinned by the `drawer` conformance case). Ports: a `Dialog` cannot be `draggable`/`resizable` or placed (`top`/`left`) | ✅ | 🟡 | 🟡 |
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
@@ -117,6 +121,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
 | Component adapters | ✅ | ✅ `IComponentAdapter<T>` SPI | ✅ (`ComponentAdapter` + `AdaptedView`) |
 | Hero search archetype | ✅ | ✅ | ✅ |
+| Page toolbar from methods (`@Toolbar`, `@ViewToolbarButton`). Python hard-codes an empty toolbar on reflected pages; the .NET doc comment that mentions `[Toolbar]` names an attribute that does not exist — *in progress* in both | ✅ | — | — |
+| Triggers (`@Trigger`: `OnLoad` with `timeoutMillis`/`times`, `OnSuccess`, `OnError`, `OnValueChange` — periodic refresh, chained actions). The ports emit only a fixed `OnLoad`, `AutoSave` and `OnCustomEvent`, so a port cannot produce the renderers' "Periodic refresh" row — *in progress* | ✅ | — | — |
+| Class-level `@AutoSave` (debounced save on every change). The ports emit `AutoSave` only from their archetypes (CollectionDetail, GeneralOverview…) | ✅ | — | — |
+| Editable views (`EditableView` / `AutoEditableView`, `MasterDetailView` orchestrators: a read view with an Edit toolbar that flips to an editor and back) | ✅ | — | — |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
 select-editable target-field cell → per-line validation report → typed import + result counts)
@@ -183,8 +191,8 @@ values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier`
 property, rows binding back into the typed list), permission-driven field states
 (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
-TILES/HAMBURGER_MENU/MENU_ON_TOP; flat menus → TABS). Nothing on the server surface remains
-Java-only.
+TILES/HAMBURGER_MENU/MENU_ON_TOP; flat menus → TABS). What is still Java-only today is listed in
+[What is still Java-only](#what-is-still-java-only).
 
 **2026-07-16 parity pass**: the front-office dogfooding wave (OfferCard toggle state, StatusItem
 avatar, StatusList compact/frameless, Notice status/noIcon/content, `@Audience`) landed on all
@@ -223,6 +231,51 @@ except an explicit, strictly-xfailed allow-list whose every entry is a defect of
 (today one: `dashboard`, whose Java golden advertises list-row actions for the fields of a `Text`
 component).
 
+### What is still Java-only
+
+Measured against the generated [wire schema](/reference/wire-specification/#the-machine-readable-schemas)
+(3.0-alpha.426). The renderers handle all of these; it is the PORTS that cannot produce them.
+
+**Wire component types.** The wire registers 116 component types: **114 that a server produces**,
+plus `Result` and `Stepper`, deprecated for removal since 3.0-alpha.426 (no mapper, record or port
+produces them; they stay registered until the next wire major). The .NET and Python registries
+carry 84 and 85 of them; the rest are Java-only:
+
+| Types | .NET | Python |
+|---|---|---|
+| `Element`, `Tooltip`, `ConfirmDialog`, `Details`, `SplitLayout`, `Breadcrumbs`, `Icon`, `Notification` | *in progress* | *in progress* |
+| `BoardLayout` (+ `BoardLayoutRow`, `BoardLayoutItem`), `CarouselLayout`, `Chat`, `Container`, `ContextMenu`, `CookieConsent`, `Directory`, `FormEditor`, `FormItem`, `FormSubSection`, `FullWidth`, `Grid` (+ `GridColumn`, `GridGroupColumn` — the ports' tables are listings and grid fields), `MasterDetailLayout`, `MenuBar`, `MessageInput`, `MessageList`, `NotFound`, `Scroller`, `VirtualList`, `Workflow` | — | — |
+
+#### Envelope members
+
+Members of a type the ports DO emit that neither port ever sets (the same in .NET and Python unless
+noted). A renderer treats an absent member as its default, so these are features the ports cannot
+express, not broken screens:
+
+| DTO | Java-only members |
+|---|---|
+| `AppDto` (25 of 61) | `accentColor`, `accentStrip`, `generatedAccentStrip`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
+| `CrudlDto` (26 of 49) | `multipleRowSelectionEnabled`, `onRowSelectionChangedActionId`, `selectionListened`, `hasActionOnSelectedRow`, `useButtonForDetail`, `infiniteScrolling`, `lazyLoading`, `lazyColumnRendering`, `initialPage`, `allRowsVisible`, `contentHeight`, `size`, `header`, `footer`, `child`, `rowRoute` (Java's YAML listings), `showCards`, `wrapCellContent`, `columnBorders`, `columnReorderingAllowed`, `noBorder`, `noRowBorder`, `rowStripes`, `gridStyle`, `vaadinGridCellBackground`, `vaadinGridCellPadding` |
+| `FormFieldDto` (11 of 43; .NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `description`, `placeholder`, `autofocus`, `step`, `sliderMin` — *in progress* —; `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
+| `ActionDto` (8 of 19) | `sse`, `background`, `confirmationTexts`, `js`, `href`, `customEvent`, `modalStyle`, `modalTitle` |
+| `DialogDto` (4 of 15) | `draggable`, `resizable`, `top`, `left` |
+
+#### Authoring
+
+Besides the 🟡/— rows of the table: `@Toolbar`/`@ViewToolbarButton` (*in progress*), `@Help`
+(*in progress*), class-level `@AutoSave`, `@MainFilter`, `@HiddenIn*`, `@Section(sticky, columns,
+style)`, `@SubscribeTo(source, from, condition)` (*in progress*), `@App(layout, backLink, ask…)` and
+the `EditableView`/`AutoEditableView`/`MasterDetailView` orchestrators have no port equivalent;
+Python also lacks a class-level `read_only_unless`.
+
+### The conformance gate
+
+`conformance/cases/*` (first loads and second requests — an action's messages and
+commands, an overlay, a rejected save, an error-boundary answer, a wizard's second step, a CRUD's
+search and new/edit/view forms) must match EXACTLY in Java, .NET and Python, with empty allow-lists.
+It pins what the ports DO produce; the gaps above are the part of the wire it cannot pin until a
+port emits it.
+
 ### Port idioms: same wire, different declaration
 
 The three servers emit the same wire; they do not always declare it the same way. The differences
@@ -236,7 +289,7 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 | Menu entries | `@Menu` on a **field** whose type is the target page (`Menu` / `RouteLink` records for submenus and links) | `[MenuItem]` / `[MenuGroup("A/B")]` on **methods** returning the target | `@menu_item` / `@menu_group` on methods | Idiom. A C# property / Python attribute typed as the page would be bound and serialised as form state; a method is the natural "go there" declaration. Same `MenuOptionDto` tree on the wire. |
 | Header KPI | `@KPI` (no argument; the label comes from the field / `@Label`) on a field or method | `[Kpi("Title")]` (title required) on a property or method | `kpi("Title")` — one lowercase class used both as a method decorator and as an `Annotated[...]` marker | Idiom. The ports carry the label in the declaration because they have no per-member `@Label` on methods; same `KPIDto`. |
 | Wizard steps | `WizardStep` **fields** of a `Wizard`, in declaration order | `[Step(n)]` on the wizard's properties (1-based) | `Step(n)` marker in `Annotated[...]` | Idiom: named steps in Java, numbered steps in the ports. A step's title (the progress bar's text, the steps/rail bullets) is the step field's label in Java and the `StepTitle(n)` / `step_title(n)` override in the ports. Python's top-level `Step` is that marker; the `ProgressSteps` item (Java/.NET `Step` record) is `mateu_uidl.components.Step`. |
-| Wizard completion | `@WizardCompletionAction(label, availableFromStep = "stepField")` on a method | override `CompletionActionLabel` + `OnNext`, `CompletionAvailableFromStep` (`int?`) | `@wizard_completion_action(label, available_from_step=n)` | Idiom. `availableFromStep` names a step **field** in Java and a step **number** in the ports, because that is how each one names its steps. |
+| Wizard completion | `@WizardCompletionAction(label, availableFromStep = "stepField")` on a method — the button dispatches the method's name | override `CompletionActionLabel` + `OnNext`, `CompletionAvailableFromStep` (`int?`); the button dispatches `CompletionActionId` (default `next`; set it to Java's method name for an identical wire) | `@wizard_completion_action(label, available_from_step=n)` — the button dispatches the method's name, camelCased | Idiom. `availableFromStep` names a step **field** in Java and a step **number** in the ports, because that is how each one names its steps. |
 | Wizard progress style | `@WizardProgress(WizardProgressStyle.STEPS)` (enum) | `[WizardProgress("steps")]` | `@wizard_progress("steps")` | Idiom (a string where Java has an enum); values `bar` / `steps` / `rail` everywhere. |
 | Edit in a drawer | override `Crud.editInDrawer()` | override the `EditInDrawer` property | `@edit_in_drawer` class decorator | Idiom. |
 | Action timeout / idempotency / shortcut | attributes of `@Action(timeoutMillis, idempotent, shortcut)` | `[ActionOptions(...)]`, `[Shortcut("ctrl+s")]` | `@action_options(...)`, `@shortcut("ctrl+s")` | Idiom: the ports have no `@Action` equivalent, so each knob is its own composable attribute / decorator. |
@@ -252,7 +305,12 @@ last column says where the review (3.0-alpha.412) did converge, and why.
 
 ## Renderers
 
-Every renderer speaks the same wire; the depth of widget support varies.
+Every renderer speaks the same wire; the depth of widget support varies. Each one is gated in CI
+against the generated `wire-schema.json` on the 114 produced component types (the two deprecated
+ones are not required): web (the libs/mateu dispatch test, plus a `RENDERERS` map typed
+exhaustively over the wire's types, so a missing renderer does not compile), React Native,
+IntelliJ and Redwood. The gates exercise the real dispatcher or projection with a minimal component
+of each type and fail on a placeholder — not a string match on the source.
 
 | Feature | Vaadin (web) | Redwood (web) | IntelliJ plugin | React Native |
 |---|---|---|---|---|
