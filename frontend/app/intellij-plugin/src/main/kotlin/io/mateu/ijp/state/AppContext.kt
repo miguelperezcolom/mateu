@@ -511,13 +511,16 @@ class AppContext(val session: AppSession) {
                     val kind = if (actionId == "__restdata__") "data" else "action"
                     fetchViaProxy(kind, actionId.orEmpty())
                 } else {
-                    val url = Expressions.interpolateUrl(source.text("url"), ctx)
-                    val method = source.text("method").ifBlank { "GET" }.uppercase()
+                    // A by-ref surface carries only the name: url, method, headers and body (like
+                    // `proxy`) come from the RESOLVED source, or the call would go to an empty url.
+                    val target = session.sources.resolveRestSource(source)
+                    val url = Expressions.interpolateUrl(target.text("url"), ctx)
+                    val method = target.text("method").ifBlank { "GET" }.uppercase()
                     val headers = LinkedHashMap<String, String>()
-                    source.path("headers").properties().forEach { (k, v) ->
+                    target.path("headers").properties().forEach { (k, v) ->
                         headers[k] = Expressions.interpolate(v.asText(""), ctx)
                     }
-                    val body = source.get("body")?.asText("").orEmpty().let {
+                    val body = target.get("body")?.asText("").orEmpty().let {
                         if (it.isBlank()) null else Expressions.interpolate(it, ctx)
                     }
                     // A registered client-side auth provider supplies dynamic headers (merged last).
