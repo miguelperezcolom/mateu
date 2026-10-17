@@ -49,26 +49,6 @@ public class ApiFreezeTests
     }
 
     [Fact]
-    public void The_old_misspelling_warns_naming_the_replacement()
-    {
-        var capture = new VariantLogCapture();
-        MateuLogging.UseLoggerFactory(capture);
-        try
-        {
-            Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(WarnedHamburguerVariantApp)));
-            WireVariantOf(typeof(WarnedHamburguerVariantApp)); // once per app, not per request
-        }
-        finally
-        {
-            MateuLogging.UseLoggerFactory(null);
-        }
-        var warned = capture.Entries.Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Warning
-                                               && e.Message.Contains(nameof(WarnedHamburguerVariantApp))).ToList();
-        var warning = Assert.Single(warned);
-        Assert.Contains("AppVariant.HamburgerMenu", warning.Message);
-    }
-
-    [Fact]
     public void Other_variants_travel_unchanged()
     {
         Assert.Equal("TILES", AppVariant.ToWire(AppVariant.Tiles));
@@ -157,6 +137,36 @@ public class ApiFreezeTests
         if (!message.Contains("use ", StringComparison.OrdinalIgnoreCase)
             && !message.Contains("no replacement", StringComparison.OrdinalIgnoreCase))
             offenders.Add(name + ": [Obsolete] names no replacement — \"" + message + "\"");
+    }
+}
+
+/// <summary>The warning half of the variant rename: it captures <see cref="MateuLogging"/>'s ONE
+/// process-wide logger factory, which a host booting in a parallel test swaps (and resets) under it —
+/// hence its own class in <see cref="ProcessWideStateCollection"/>.</summary>
+[Collection(ProcessWideStateCollection.Name)]
+public class ApiFreezeWarningTests
+{
+    private static string WireVariantOf(Type app) =>
+        ((AppMetadataDto)new ReflectionMapper().MapApp(app).Metadata).Variant;
+
+    [Fact]
+    public void The_old_misspelling_warns_naming_the_replacement()
+    {
+        var capture = new VariantLogCapture();
+        MateuLogging.UseLoggerFactory(capture);
+        try
+        {
+            Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(WarnedHamburguerVariantApp)));
+            WireVariantOf(typeof(WarnedHamburguerVariantApp)); // once per app, not per request
+        }
+        finally
+        {
+            MateuLogging.UseLoggerFactory(null);
+        }
+        var warned = capture.Entries.Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Warning
+                                               && e.Message.Contains(nameof(WarnedHamburguerVariantApp))).ToList();
+        var warning = Assert.Single(warned);
+        Assert.Contains("AppVariant.HamburgerMenu", warning.Message);
     }
 }
 
