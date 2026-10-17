@@ -1,3 +1,9 @@
+/**
+ * The component metadata types of the wire: exactly the `type` discriminators of
+ * `ComponentMetadataDto` (backend/shared/uidl/wire-schema.json), checked by
+ * `renderClientSideComponent.dispatch.test.ts` — a wire type missing here, or a name here the wire
+ * does not have, fails that test.
+ */
 export enum ComponentMetadataType {
 
     Page = "Page",
@@ -30,6 +36,10 @@ export enum ComponentMetadataType {
     FullWidth = "FullWidth",
     Container = "Container",
     FormField = "FormField",
+    /**
+     * @deprecated NOT a wire type: no server emits `Table` (a listing is `Crud`, a grid `Grid`). A
+     * client-only alias kept so hand-built components that used it keep rendering.
+     */
     Table = "Table",
     App = "App",
     Text = "Text",
@@ -145,3 +155,8 @@ export const DEPRECATED_WIRE_TYPES = [
     ComponentMetadataType.Result,
     ComponentMetadataType.Stepper,
 ] as const
+
+export type DrawnByTheirParent = typeof DRAWN_BY_THEIR_PARENT[number]
+export type DeprecatedWireType = typeof DEPRECATED_WIRE_TYPES[number]
+/** Every type the shared switch must have a renderer for — a missing one is a compile error. */
+export type SwitchRenderedType = Exclude<ComponentMetadataType, DrawnByTheirParent | DeprecatedWireType>

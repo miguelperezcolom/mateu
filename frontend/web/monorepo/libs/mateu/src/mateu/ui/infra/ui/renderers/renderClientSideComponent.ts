@@ -2,7 +2,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import { buttonId } from "@infra/ui/renderers/nodeIdStamp.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import { ComponentMetadataType, SwitchRenderedType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
 import {
     renderAccordionLayout,
     renderBoardLayout,
@@ -179,9 +179,9 @@ const full =
         (c: RenderContext) => fn(c.container, c.component, c.baseUrl, c.state, c.data, c.appState, c.appData)
 
 // Maps a component metadata type to the function that renders it. Built once at module load.
-// Every wire type but those drawn by their parent and the deprecated ones must be here (the
-// dispatch test checks it against wire-schema.json).
-export const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => TemplateResult>> = {
+// EXHAUSTIVE: every wire type but those drawn by their parent and the deprecated ones must be here
+// (a missing one is a compile error; the dispatch test checks the same against wire-schema.json).
+export const RENDERERS: Record<SwitchRenderedType, (c: RenderContext) => TemplateResult> = {
     [ComponentMetadataType.Bpmn]: ({ component }) => renderBpmn(component),
     [ComponentMetadataType.Workflow]: ({ component }) => renderWorkflow(component),
     [ComponentMetadataType.FormEditor]: ({ component }) => renderFormEditor(component),
@@ -351,7 +351,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
     const type = component.metadata.type
     const resolved = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data) }
 
-    const renderer = RENDERERS[type]
+    const renderer = (RENDERERS as Partial<Record<string, (c: RenderContext) => TemplateResult>>)[type]
     if (renderer) {
         return renderer({ container, component: resolved, baseUrl, state, data, appState, appData, labelAlreadyRendered })
     }

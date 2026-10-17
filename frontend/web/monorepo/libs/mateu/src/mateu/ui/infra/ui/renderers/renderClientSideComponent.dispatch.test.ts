@@ -27,7 +27,7 @@ afterAll(() => componentRenderer.set({} as ComponentRenderer))
 // produces (deprecated): both are declared next to the enum, so the RENDERERS type agrees.
 const NOT_IN_THE_SWITCH = new Set<string>([...DRAWN_BY_THEIR_PARENT, ...DEPRECATED_WIRE_TYPES])
 
-// NOT a wire type: a client-only alias no server emits.
+// NOT a wire type: a client-only alias kept for hand-built components (see the enum).
 const CLIENT_ONLY = new Set<string>([ComponentMetadataType.Table])
 
 /** The wire's component types, read from the generated wire-schema.json (backend/shared/uidl). */
@@ -74,6 +74,12 @@ afterEach(() => {
 })
 
 describe('wire-type parity (wire-schema.json)', () => {
+    it('the enum names exactly the wire component types (plus the client-only alias)', () => {
+        const enumNames = new Set<string>(Object.values(ComponentMetadataType))
+        expect([...wire.keys()].filter(t => !enumNames.has(t)).sort()).toEqual([])
+        expect([...enumNames].filter(t => !wire.has(t) && !CLIENT_ONLY.has(t)).sort()).toEqual([])
+    })
+
     it('every wire type a server produces has a renderer, or is drawn by its parent', () => {
         const rendered = new Set(Object.keys(RENDERERS))
         const missing = [...wire.entries()]
