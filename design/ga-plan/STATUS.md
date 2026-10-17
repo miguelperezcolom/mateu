@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 3 — coverage, eight streams — integrated locally on `integration/coverage` on top of batch 3, pending CI; batch 3 integrated locally on `integration/batch-3`, pending CI — the owner decisions, the natives/listings fixes and the Redwood fixes; batch 2 on `integration/walkthrough-2` also pending CI).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 3 — coverage, eight streams — plus the bug-fix batch `fixes/groups`, `fixes/core`, `fixes/fields`, `fixes/web2` integrated locally on `integration/coverage` on top of origin/master (batch 3 = PR #813 merged), pending CI).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -78,9 +78,11 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 - **Batch 3 integrated, pending CI**: local branch `integration/batch-3` = origin/master + `pending/natives` + `pending/decisions`
   + `pending/redwood` (see "Batch 3 integration" below). Both batches start from origin/master (#812); push batch 2 first, then
   rebase or merge batch 3 on it — they do not overlap in code (batch 3 touches the ports' titles/banners, listings, Redwood).
-- **Phase 3 (coverage) integrated, pending CI**: local branch `integration/coverage` = `origin/integration/batch-3`
-  (PR #813, incl. its later layout-sizing fix) + `coverage/s1`…`coverage/s8`, bundles rebuilt once, every gate green
-  locally (see "Coverage integration" below). Push after batch 3 is merged (it is based on it).
+- **Batch 3 merged** (PR #813 on master).
+- **Phase 3 (coverage) + bug-fix batch integrated, pending CI** (2026-10-17): local branch `integration/coverage` =
+  `origin/master` (incl. #813) + `coverage/s1`…`coverage/s8` + `fixes/groups` + `fixes/core` + `fixes/fields` +
+  `fixes/web2` (contains `fixes/web`), bundles rebuilt once, every gate green locally (see "Coverage integration" and
+  "Bug-fix batch integration" below). Next: push, one PR, merge when green, then the phase release.
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
@@ -134,26 +136,58 @@ Not run locally: the other four adapters' shared suite, federation/YAML-federati
 (its upstream port 19395 is outside this session's port block), the net10.0 leg, `dotnet pack`, the Python wheel and
 lowest-deps jobs.
 
-### Production bugs found by the coverage streams, not yet fixed
-Pinned by tests that document the current behaviour (or `test.fixme` journeys); each needs a fix at the root.
-- **S1 (core)**: MCP projection names the listing `Crudl` where the agent contract says `Crud`; MCP search ignores the search
-  text; MCP does not resolve a screen under an app shell; MCP leaks `@EyesOnly` action ids; a method `@Menu` on a non-root app
-  doubles the mount in the route; an AppShell's absolute paths double the mount; `resolveRemoteDeepLink` is dead code;
-  OpenAPI derivation / server generator mishandle path parameters; `BigInteger`/`Date`/`java.sql.Date`/`ZonedDateTime`/`File`
-  fields fail and a `Status` field renders nothing; `Optional` fields fail (no Jdk8 Jackson module); `Hydratable` is applied
-  inverted; `@Composition` renders "Pending"; master/detail's selected button style is wrong.
-- **S2 (uidl/dtos/AP)**: `GridGroupColumnDto` is not registered as a subtype and its children are dropped; LongTask progress
-  text is hard-coded Spanish; `BreadcrumbDto` is registered as a component.
-- **S3 (adapters)**: `HelidonMPInstanceFactoryProvider` is `@Vetoed`, so it is dead.
-- **S4 (ports)**: agents (MCP) never see the rows of a search.
-- **S5 (libs/mateu)**: `checkValidations` parses optional chaining (`?.`) as a ternary; polls are dropped silently; a button
-  route with a missing value navigates to a broken route.
-- **S6 (vaadin/editor)**: `updateMedata` copies the metadata on every render; a read-only password field shows its value.
-- **S7 (natives/Redwood/VS Code)**: REST blank-value sorting is inconsistent with the docs.
-- **S8 (e2e journeys)**: the optimistic-lock conflict dialog's buttons send the CRUD page state (Overwrite goes to `/null`, or
-  duplicates the record in a drawer) and its text is hard-coded Spanish; a grid stays stale after an action that returns the
-  listing; a by-ref REST action fails without an app shell; `@SeparatorBefore` is ignored inside a `@Tab`; drawer forms skip
-  client validation; a `@Version` field is editable; a definition-only Form holding only Text renders the root page.
+### Bug-fix batch integration (2026-10-17, on `integration/coverage`, pending CI)
+Merged in order: `origin/master`, `fixes/groups`, `fixes/core`, `fixes/fields`, `fixes/web2`. Conflicts and their
+resolution:
+- `react-native/.../CrudRenderer.tsx` (groups vs S7's `crudListing` extraction): kept S7's imports + `flattenColumnGroups`.
+- MCP search in `McpService.cs` / `mcp.py` (S4 and fixes/core fixed the same bug): one state seeding per port (.NET
+  fixes/core's, Python S4's, which its test pins: no filters → state `None`).
+- `MateuViewController.test.ts` and Redwood `core/content.mjs` (S7/S5 vs fixes/web2): union of tests and imports.
+Integration fixes (one commit each):
+- `WireDiscriminatorsTest` (S2): `GridGroupColumnDto` out of `KNOWN_UNREGISTERED` and `KNOWN_STRANGERS` dropped —
+  fixes/core unregistered `BreadcrumbDto`; the Redwood/RN coverage maps lose `Breadcrumb` (parity.md regenerated).
+- .NET `McpTests`: two `McpBooks` fixtures (S4 + fixes/core) → S4's is `McpFilteredBooks` at `mcp-filtered-books`.
+- Stability page regenerated (fixes/fields added a public type to the crud archetype package).
+- libs/mateu S5 poll test followed the fixed `scheduleOnload` contract (fires while connected on the same view).
+- **Two web regressions the S8 journeys caught** (fixed in `ComponentElement`, +3 unit tests): "Save and next" in
+  the create/edit drawer kept the PREVIOUS record's typed title (the drawer form is now its own component and
+  restored local edits over a new server seed); and a listing an action returns in place (a drop, "Add a row")
+  kept stale rows — the OnLoad counts were carried over the re-render (the shared `returned-listing-reloads.spec`
+  fixes/web2 added failed too). OnLoad counts are now carried only when no user write happened since the last render.
+- Journeys: every `test.fixme` un-fixme'd and passing; the drawer's required field is now refused in the browser
+  (aria-invalid) instead of by a server banner; `shared/optimistic-lock.spec.ts` (fixes/fields) duplicated the
+  journey's lock tests on its own fixtures (both mvc-app1 only) → its one extra case (drawer Reload) moved into
+  `journeys/crud.spec.ts`, the spec and its `LockedArticle*` fixtures removed.
+
+Floors after the batch (all met, none lowered): core 89.4 L / 77.7 B; uidl/dtos/AP/adapters/bundle plugin as in the
+table above; .NET Uidl 98.9/90.7 · Core 96.2/85.0 · Dtos 99.9/100 · AspNetCore 98.3/84.9; Python 95.4 L / 88.1 B;
+libs/mateu 92.9/91.2/88.4/81.0; apps/vaadin 86.5/85.6/80.9/75.2; visual editor 80.7/78.2/76.7/70.2; Redwood poc
+98.0 L / 84.3 B / 95.2 F; RN 98.5/86.3/95.4; IntelliJ Kover 66.2. Tests: Java 2782 (core 2208), .NET 910 (net8),
+Python 971 (3.12 and 3.14), libs/mateu 2069, apps/vaadin 252, visual editor 484, VS Code 175, RN 382, Redwood 15
+suites, IntelliJ 433, MCP 19, prompt-to-app 8. E2E: mvc-app1 shared 501, journeys 37 (0 fixme; serial — with
+several workers the files reset each other's fixtures, CI runs one), renderer-vaadin 60, slow-network 10/10, axe 0
+violations on 16 routes; renderer-vb: vb-smoke 11/11, vb-a11y 10/10, vb-slow-network 8/8, Playwright 64 + 1 skipped.
+Not run locally: the other four adapters' shared suite, federation/YAML-federation projects, the net10.0 leg, the
+Python wheel and lowest-deps jobs (`dotnet pack` was run).
+
+### Production bugs found by the coverage streams — fixed
+All of S1–S8's list, by `fixes/groups` (grid column groups everywhere), `fixes/core` (MCP: `Crud` projection,
+filtered search with rows, screens under an app shell, `@EyesOnly` actions hidden; menu/AppShell routes under a
+mount routed once; YAML shell remote deep links; OpenAPI path parameters; `Hydratable` order; `@Composition`;
+master/detail selected button; LongTask text English + translatable; `BreadcrumbDto` unregistered; dead Helidon
+provider removed), `fixes/fields` (`BigInteger`/`Date`/`java.sql.Date`/`ZonedDateTime`/`File`/`Status`/`Optional`
+fields; `@Version` never an input; the optimistic-lock dialog sends the form's state, in English and translatable;
+`@SeparatorBefore` in a `@Tab`; Vaadin drawer client validation; bare definition-only Form with a Text pinned),
+`fixes/web` + `fixes/web2` (`?.` in validations; polls on fragment-filled elements; button routes with a missing
+value; `updateMedata`; read-only password masked (Vaadin, Redwood); REST blank sorting; by-ref REST sources on
+pages with no app shell — `UIIncrementDto.restSources`, all servers and renderers) and this integration (Save and
+next; a returned listing reloads its rows).
+
+### Still open
+- Redwood create/edit drawer client validation; Bean-validation (Hibernate) message locale; window title of a
+  definition-only page — another agent is on these (`fixes/extra`, not part of this integration).
+- Redwood Gantt issue: not reproduced.
+- npm / PyPI / NuGet packaging of the renderers: owner.
 
 ## Walkthrough results (all seven branches integrated: batch 1 = PR #802 on master; batch 2 = `integration/walkthrough-2`, pending CI)
 | area | branch | matrix | ✅ | 🔧 fixed | ❌ owner | not walked |
