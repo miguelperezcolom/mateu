@@ -13,9 +13,10 @@
   <description>Framework-agnostic annotation processor that indexes @UI and @Route classes for cross-framework sharing</description>
 
   <properties>
-    <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 67.8%
-         (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
-    <jacoco.min.bundle.coverage>65%</jacoco.min.bundle.coverage>
+    <!-- BUNDLE floors (jacoco:check, mvn verify), at the value measured when last raised: 97.7%
+         lines / 94.7% branches (2026-10, design/coverage/coverage-map.md). Ratchet. -->
+    <jacoco.min.bundle.coverage>97%</jacoco.min.bundle.coverage>
+    <jacoco.min.bundle.branch.coverage>94%</jacoco.min.bundle.branch.coverage>
     <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
     <argLine></argLine>
   </properties>
