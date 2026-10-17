@@ -204,6 +204,27 @@ final class PageMetadataExtractor {
     }
     // Fields annotated with @BadgeInHeader generate reactive expression-based badges so they
     // update when state changes without needing a full component re-render.
+    var badges = new java.util.ArrayList<Badge>(annotatedHeaderBadges(instance));
+    // A Status-typed field is never a form field (FormFieldFilter drops it): it is the page's
+    // status chip, exactly as on the declarative views (FormViewModel). Before, a plain page
+    // dropped it from the body and showed it nowhere. A null Status = no chip.
+    getAllFields(instance.getClass()).stream()
+        .filter(field -> io.mateu.uidl.data.Status.class.equals(field.getType()))
+        .filter(field -> !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Hidden.class))
+        .filter(
+            field ->
+                io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, instance) != null)
+        .map(
+            field ->
+                Badge.builder()
+                    .text("${state." + field.getName() + ".message}")
+                    .color("${state." + field.getName() + ".type}")
+                    .build())
+        .forEach(badges::add);
+    return badges;
+  }
+
+  private static List<Badge> annotatedHeaderBadges(Object instance) {
     return getAllFields(instance.getClass()).stream()
         .filter(
             field ->

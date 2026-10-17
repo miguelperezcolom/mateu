@@ -18,6 +18,7 @@ from mateu_uidl import (  # noqa: E402
     Section,
     SeparatorBefore,
     SizeMode,
+    Tab,
     Step,
     Wizard,
     size,
@@ -80,6 +81,16 @@ class SeparatorForm:
 
     nombre: str = "María"
     email: Annotated[str, SeparatorBefore()] = ""
+
+
+@ui("sections-separator-in-tab")
+@title("Separator in a tab")
+class TabbedSeparatorForm:
+    """SeparatorBefore() inside a Tab (Java: SeparatorAndTextSizeSyncTest)."""
+
+    name: Annotated[str, Tab("Contact")] = "María"
+    email: Annotated[str, Tab("Contact"), SeparatorBefore()] = ""
+    notes: Annotated[str, Tab("Other")] = ""
 
 
 @ui("sections-text-size")
@@ -239,6 +250,11 @@ def test_separator_before_paints_a_full_width_divider_above_the_field():
     separators = all_metadata(tree, "Separator")
     assert len(separators) == 1
     assert separators[0]["metadata"]["attributes"] == {"data-colspan": "2"}
+
+
+def test_separator_before_is_honoured_inside_a_tab():
+    tree = component_tree(TabbedSeparatorForm)
+    assert len(all_metadata(tree, "Separator")) == 1
 
 
 def test_text_size_travels_on_the_wire():

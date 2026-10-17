@@ -1,9 +1,13 @@
 package io.mateu.core.domain;
 
+import java.io.File;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 public class BasicTypeChecker {
@@ -16,10 +20,19 @@ public class BasicTypeChecker {
           Float.class,
           Double.class,
           BigDecimal.class,
+          BigInteger.class,
           Boolean.class,
           LocalDate.class,
           LocalDateTime.class,
           LocalTime.class,
+          // the date-times FieldTypeMapper maps to dateTime and the file it maps to file: before,
+          // they were treated as nested forms and the whole page failed to build
+          Date.class,
+          java.sql.Date.class,
+          ZonedDateTime.class,
+          File.class,
+          // an Optional<X> field is a field of type X (OptionalFields), never a nested form
+          java.util.Optional.class,
           int.class,
           long.class,
           float.class,

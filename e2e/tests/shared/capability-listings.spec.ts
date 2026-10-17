@@ -164,8 +164,9 @@ test.describe('editable listing — create, edit in a drawer, delete', () => {
         await page.getByRole('button', { name: 'New', exact: true }).click()
         await expect(drawer(page)).toHaveCount(1)
         await drawer(page).getByRole('button', { name: 'Save', exact: true }).click()
-        // the drawer stays, saying why
-        await expect(drawer(page).getByText('Text: Cannot be empty')).toBeVisible()
+        // the drawer's form validates in the browser like the routed one: it stays, the field marked
+        await expect(drawer(page)).toHaveCount(1)
+        await expect(drawer(page).locator('vaadin-text-field[invalid]')).toHaveCount(1)
 
         await textInput(page).fill(tag)
         await drawer(page).getByRole('button', { name: 'Save', exact: true }).click()

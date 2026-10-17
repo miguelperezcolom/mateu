@@ -7,6 +7,7 @@ from typing import get_args, get_origin
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 from enum import Enum
@@ -262,6 +263,8 @@ class ResponseHelpersMixin(MixinBase):
                 return date.fromisoformat(raw)
             if target is datetime:
                 return datetime.fromisoformat(raw)
+            if target is time:
+                return time.fromisoformat(raw)
             if isinstance(target, type) and issubclass(target, Enum):
                 try:
                     return target[raw]

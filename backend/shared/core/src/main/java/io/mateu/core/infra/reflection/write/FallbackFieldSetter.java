@@ -33,6 +33,11 @@ final class FallbackFieldSetter {
     if (value == null || "".equals(value.toString())) {
       return value;
     }
+    // already what the field holds (the converters upstream produced it): re-parsing its
+    // toString() — a Date's "Fri Jan 02 03:04:05 CET 2026" — threw, and the field was nulled
+    if (field.getType().isInstance(value)) {
+      return value;
+    }
     if (Integer.class.equals(field.getType())) return Integer.valueOf(value.toString());
     if (Long.class.equals(field.getType())) return Long.valueOf(value.toString());
     if (Double.class.equals(field.getType())) return Double.valueOf(value.toString());

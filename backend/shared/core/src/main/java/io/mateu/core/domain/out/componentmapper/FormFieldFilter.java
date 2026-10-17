@@ -95,6 +95,14 @@ final class FormFieldFilter {
   }
 
   static boolean hiddenInEditor(Field field, boolean forCreationForm) {
+    // The optimistic-lock version is plumbing, not data the user edits: it rides in the state
+    // (the save compares it) but never as an input. It showed as an editable number, so a user
+    // could type their way past the conflict check. A read-only view still shows it.
+    if (MetaAnnotations.isPresent(field, Version.class)
+        || io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.isStoreManaged(
+            field)) {
+      return true;
+    }
     if (forCreationForm) {
       return MetaAnnotations.isPresent(field, HiddenInCreate.class);
     }

@@ -546,20 +546,7 @@ public abstract class Wizard
    * as every other Mateu text), or the mapping's translator context when no bean is reachable.
    */
   static String translate(String text, HttpRequest httpRequest) {
-    if (text == null || text.isBlank()) {
-      return text;
-    }
-    Translator translator = null;
-    if (httpRequest != null) {
-      try {
-        translator = MateuBeanProvider.getBean(Translator.class);
-      } catch (RuntimeException ignored) {
-        // no bean provider (e.g. a plain unit test): fall back to the translator context
-      }
-    }
-    return translator != null
-        ? translator.translate(text, httpRequest)
-        : TranslatorContext.translate(text);
+    return io.mateu.core.infra.declarative.BuiltInTexts.translate(text, httpRequest);
   }
 
   @Override

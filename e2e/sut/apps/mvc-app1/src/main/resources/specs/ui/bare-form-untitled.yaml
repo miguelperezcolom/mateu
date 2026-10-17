@@ -1,0 +1,5 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+content:
+  - type: Text
+    text: An untitled bare form

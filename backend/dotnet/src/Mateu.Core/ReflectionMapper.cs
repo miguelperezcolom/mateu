@@ -12,6 +12,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
     /// <summary>Translates a user-facing string when a translator is registered, else returns it unchanged.</summary>
     private string T(string s) => translator?.Translate(s) ?? s;
 
+    /// <summary>A text Mateu itself writes (a dialog title, a button label), through the app's
+    /// translator (Java's BuiltInTexts).</summary>
+    internal string Translate(string s) => T(s);
+
     /// <summary>Whether the caller passes <paramref name="gate"/> (mirrors Java's Authorizer):
     /// AND across declared dimensions, OR within each; nothing declared → unrestricted; no
     /// identity → unauthorized.</summary>
