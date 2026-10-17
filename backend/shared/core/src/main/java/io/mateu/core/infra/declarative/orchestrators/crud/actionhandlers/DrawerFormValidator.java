@@ -8,8 +8,10 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.MessageInterpolator;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -32,7 +34,9 @@ import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
  */
 final class DrawerFormValidator {
 
-  private static volatile Validator validator;
+  private static final MessageInterpolator interpolator =
+      new ParameterMessageInterpolator(java.util.Set.of(), Locale.ENGLISH, false);
+  private static volatile ValidatorFactory factory;
 
   static void validate(boolean creation, HttpRequest httpRequest, Crud<?, ?, ?, ?, ?, ?> crud) {
     Class<?> formClass = creation ? crud.creationFormClass() : crud.editorClass();
@@ -49,14 +53,18 @@ final class DrawerFormValidator {
       return;
     }
     Set<ConstraintViolation<Object>> violations = new LinkedHashSet<>();
-    for (var violation : validator().validate(form)) {
+    for (var violation :
+        validator(io.mateu.core.infra.ValidationLocale.of(httpRequest)).validate(form)) {
       var field = fieldOf(formClass, violation);
       if (field != null && PageFormBuilder.rendersAsInput(field, form, creation, httpRequest)) {
         violations.add(violation);
       }
     }
     if (!violations.isEmpty()) {
-      throw new ConstraintViolationException(describe(formClass, violations), violations);
+      var description =
+          io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+              httpRequest, () -> describe(formClass, violations));
+      throw new ConstraintViolationException(description, violations);
     }
   }
 
@@ -83,31 +91,58 @@ final class DrawerFormValidator {
         .collect(Collectors.joining("\n"));
   }
 
-  /** The text the browser shows for the same constraint ("Cannot be empty"), when it is default. */
+  /**
+   * The text the browser shows for the same constraint ("Cannot be empty", "Size must be
+   * between…"), else the validator's own message — interpolated in the request's language.
+   */
   private static String messageOf(ConstraintViolation<?> violation) {
     var template = violation.getMessageTemplate();
-    if (template != null
-        && (template.equals("{jakarta.validation.constraints.NotEmpty.message}")
-            || template.equals("{jakarta.validation.constraints.NotNull.message}")
-            || template.equals("{jakarta.validation.constraints.NotBlank.message}"))) {
+    if (template != null && template.equals("{jakarta.validation.constraints.NotBlank.message}")) {
       return "Cannot be empty";
     }
-    return violation.getMessage();
+    var descriptor = violation.getConstraintDescriptor();
+    var client =
+        descriptor == null
+            ? null
+            : io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.clientMessage(
+                descriptor.getAnnotation());
+    return client != null && !client.contains("{") ? client : violation.getMessage();
   }
 
-  private static Validator validator() {
-    if (validator == null) {
-      // no EL on the classpath (core excludes it): parameter interpolation only, in English like
-      // the rest of the framework's own texts
-      validator =
+  /**
+   * A validator whose messages are in {@code locale}. The interpolator is told the language on
+   * every call: left to itself it uses its DEFAULT locale, which it takes from the JVM — whatever
+   * {@code defaultLocale(...)} the factory was configured with — so a Spanish machine answered
+   * every request in Spanish. (No EL on the classpath — core excludes it —: parameter interpolation
+   * only.)
+   */
+  private static Validator validator(Locale locale) {
+    if (factory == null) {
+      factory =
           Validation.byProvider(HibernateValidator.class)
               .configure()
-              .messageInterpolator(new ParameterMessageInterpolator())
+              .messageInterpolator(interpolator)
               .defaultLocale(Locale.ENGLISH)
-              .buildValidatorFactory()
-              .getValidator();
+              .buildValidatorFactory();
     }
-    return validator;
+    return factory
+        .usingContext()
+        .messageInterpolator(new InLocale(interpolator, locale))
+        .getValidator();
+  }
+
+  /** An interpolator that always answers in one language. */
+  private record InLocale(MessageInterpolator delegate, Locale locale)
+      implements MessageInterpolator {
+    @Override
+    public String interpolate(String messageTemplate, Context context) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
+
+    @Override
+    public String interpolate(String messageTemplate, Context context, Locale locale) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
   }
 
   private DrawerFormValidator() {}

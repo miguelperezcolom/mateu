@@ -143,7 +143,8 @@ final class ConstraintValidationMapper {
   }
 
   static String sizeMessage(Size annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -152,7 +153,8 @@ final class ConstraintValidationMapper {
   }
 
   static String minMessage(Min annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -161,7 +163,8 @@ final class ConstraintValidationMapper {
   }
 
   static String maxMessage(Max annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -170,23 +173,40 @@ final class ConstraintValidationMapper {
   }
 
   static String patternMessage(Pattern annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.Pattern.message}", "Invalid format"));
   }
 
   static String notEmptyMessage(NotEmpty annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"));
   }
 
   static String notNullMessage(NotNull annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"));
+  }
+
+  /**
+   * A constraint message as the user reads it: its {@code {key}} templates resolved in the
+   * REQUEST's language (English when it names none — never the JVM's), then through the Translator.
+   * The client's validations and the server's own refusal ({@link ServerConstraintCheck}) both come
+   * from here, so they always say the same thing.
+   */
+  private static String message(java.lang.annotation.Annotation annotation, String text) {
+    return TranslatorContext.translate(
+        io.mateu.core.infra.ValidationLocale.resolve(
+            text,
+            annotation,
+            io.mateu.core.infra.ValidationLocale.of(TranslatorContext.request())));
   }
 }

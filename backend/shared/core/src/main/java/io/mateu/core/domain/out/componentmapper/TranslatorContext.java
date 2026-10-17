@@ -18,6 +18,42 @@ public final class TranslatorContext {
     REQUEST.remove();
   }
 
+  /** The request being mapped, or null outside a mapping. */
+  public static HttpRequest request() {
+    return REQUEST.get();
+  }
+
+  /** Whether a mapping (or a check acting like one) has set the context on this thread. */
+  public static boolean isSet() {
+    return TRANSLATOR.get() != null;
+  }
+
+  /**
+   * Runs {@code work} with the app's translator and {@code httpRequest} as the context — what a
+   * mapping has, and an action (a server-side check, a refusal) runs outside of. A context already
+   * set is kept.
+   */
+  public static <T> T within(HttpRequest httpRequest, java.util.function.Supplier<T> work) {
+    if (isSet()) {
+      return work.get();
+    }
+    Translator translator = null;
+    try {
+      translator = io.mateu.uidl.di.MateuBeanProvider.getBean(Translator.class);
+    } catch (RuntimeException noTranslator) {
+      // untranslated, then
+    }
+    if (translator == null) {
+      return work.get();
+    }
+    set(translator, httpRequest);
+    try {
+      return work.get();
+    } finally {
+      clear();
+    }
+  }
+
   public static String translate(String text) {
     if (text == null) return null;
     Translator t = TRANSLATOR.get();
