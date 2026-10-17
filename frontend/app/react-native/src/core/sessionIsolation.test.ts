@@ -21,7 +21,7 @@ mock.module('expo-web-browser', { namedExports: { openBrowserAsync: async () => 
 mock.module('expo-file-system', { namedExports: { File: class {}, Paths: { cache: '/cache' } } });
 
 const { MateuViewController } = await import('./MateuViewController.ts');
-const { MateuSession } = await import('./MateuSession.ts');
+const { MateuSession, islandSession } = await import('./MateuSession.ts');
 const restFetch = await import('./restFetch.ts');
 const shellFlows = await import('./shellFlows.ts');
 const { headerValues } = await import('./appShellExtras.ts');
@@ -158,4 +158,28 @@ test('a single-backend session keeps the process-wide stores (unchanged behaviou
   assert.equal(shellFlows.getActionCatalogue()[0]?.id, 'hello');
   assert.equal(restFetch.isSampleMode(), true);
   assert.equal(single.headerValues, headerValues);
+});
+
+test('an island over another base url registers into the hub UI that hosts it', () => {
+  const host = hubUi('https://a.example').session;
+  const island = islandSession(host, 'https://remote.example');
+  assert.equal(island.api.baseUrl, 'https://remote.example');
+  const c = new MateuViewController(island);
+  (island as any).api = { baseUrl: 'https://remote.example', navigate: async () => ({}) };
+  c.applyIncrement({ restSources: [{ name: 'remoteOnly', source: { url: 'https://remote.example/x' } }] });
+  openAppA(c);
+  // what the island registered is the host UI's — and never the process-wide stores
+  assert.equal(host.sources.get('remoteOnly')?.['source']?.['url'], 'https://remote.example/x');
+  assert.equal(host.sources.resolve({ ref: 'countries' })['url'], 'https://a.example/countries');
+  assert.equal(host.actionCatalogue.get()[0]?.id, 'hello');
+  assert.equal(restFetch.getRestSource('remoteOnly'), undefined);
+  assert.equal(restFetch.getRestSource('countries'), undefined);
+  assert.equal(restFetch.isSampleMode(), false);
+  assert.equal(shellFlows.getActionCatalogue().length, 0);
+  for (const k of ['sources', 'actionCatalogue', 'headerValues', 'columnPrefs', 'savedViews', 'dropZones'] as const) {
+    assert.equal(island[k], host[k], k);
+  }
+  // an island naming the host's own base url (or none) simply is the host session
+  assert.equal(islandSession(host, ''), host);
+  assert.equal(islandSession(host, 'https://a.example'), host);
 });

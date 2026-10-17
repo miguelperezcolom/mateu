@@ -43,8 +43,9 @@ export class MateuSession {
 
   // What the app registers as it runs. The hub runs several apps in one process, so a session
   // created with its OWN token provider (a hub UI session — even `null`, an unsecured backend) owns
-  // these; a session without one (the single-backend app, an island over another base url) uses
-  // the process-wide stores, as the module-level functions do — the same split as `auth`.
+  // these; a session without one (the single-backend app) uses the process-wide stores, as the
+  // module-level functions do — the same split as `auth`. An island over another base url belongs
+  // to the session that hosts it and shares ITS stores (see `islandSession`).
   /** The app's REST source catalogue + references + sample mode. */
   readonly sources: RestSourceCatalogue;
   /** The app's action catalogue (AppDto.actionCatalogue). */
@@ -92,16 +93,23 @@ export class MateuSession {
 
   private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => void }[] = [];
 
-  constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}, auth?: TokenProvider | null) {
+  /** `storesFrom`: share that session's stores instead of choosing by `auth` (an island). */
+  constructor(
+    baseUrl: string,
+    sessionId: string,
+    appState: Record<string, unknown> = {},
+    auth?: TokenProvider | null,
+    storesFrom?: MateuSession,
+  ) {
     this.api = new MateuApiClient(baseUrl, sessionId, auth);
     this.appState = appState;
     const own = auth !== undefined;
-    this.sources = own ? new RestSourceCatalogue() : sharedRestSources;
-    this.actionCatalogue = own ? new ActionCatalogue() : sharedActionCatalogue;
-    this.headerValues = own ? new HeaderValuesStore() : sharedHeaderValues;
-    this.columnPrefs = own ? new ColumnPrefsStore() : sharedColumnPrefs;
-    this.savedViews = own ? new SavedViewsStore() : sharedSavedViews;
-    this.dropZones = own ? new DropZoneRegistry() : sharedDropZones;
+    this.sources = storesFrom?.sources ?? (own ? new RestSourceCatalogue() : sharedRestSources);
+    this.actionCatalogue = storesFrom?.actionCatalogue ?? (own ? new ActionCatalogue() : sharedActionCatalogue);
+    this.headerValues = storesFrom?.headerValues ?? (own ? new HeaderValuesStore() : sharedHeaderValues);
+    this.columnPrefs = storesFrom?.columnPrefs ?? (own ? new ColumnPrefsStore() : sharedColumnPrefs);
+    this.savedViews = storesFrom?.savedViews ?? (own ? new SavedViewsStore() : sharedSavedViews);
+    this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
@@ -120,4 +128,15 @@ export class MateuSession {
       if (s.eventName === eventName) s.handler(payload);
     }
   }
+}
+
+/**
+ * The session a federated island (MicroFrontend) runs in: the host's own when it names no other
+ * base url; otherwise a session for that origin that keeps the HOST's stores — what the island
+ * registers (catalogue, references, sample mode, drop zones…) stays in the hub UI it is part of
+ * instead of reaching the process-wide stores every other UI could read.
+ */
+export function islandSession(host: MateuSession, baseUrl: string): MateuSession {
+  if (!baseUrl || baseUrl === host.api.baseUrl) return host;
+  return new MateuSession(baseUrl, host.api.sessionId, { ...host.appState }, undefined, host);
 }

@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { useButtonPress } from './useButtonPress';
-import { MateuSession } from '../core/MateuSession';
+import { islandSession } from '../core/MateuSession';
 import { RichText } from './FieldWidgets';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
@@ -88,10 +88,7 @@ function ServerSideIsland({ component }: { component: Record<string, unknown> })
 function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }) {
   const { session } = useAppContext();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
-  const remoteSession = React.useMemo(
-    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, session.api.sessionId, { ...session.appState }) : session),
-    [baseUrl, session],
-  );
+  const remoteSession = React.useMemo(() => islandSession(session, baseUrl), [baseUrl, session]);
   return (
     <MateuViewHost
       session={remoteSession}
