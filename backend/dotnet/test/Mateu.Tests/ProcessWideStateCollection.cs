@@ -32,7 +32,7 @@ public class ProcessWideStateCollectionTests
     [Fact]
     public void Every_test_class_that_captures_the_log_is_in_the_process_wide_collection()
     {
-        var dir = Path.GetDirectoryName(SourceFile())!;
+        var dir = TestProjectDir();
         var offenders = new List<string>();
         foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
         {
@@ -53,5 +53,12 @@ public class ProcessWideStateCollectionTests
         Assert.True(offenders.Count == 0, "not in [Collection(ProcessWideStateCollection.Name)]: " + string.Join(", ", offenders.Distinct()));
     }
 
-    private static string SourceFile([System.Runtime.CompilerServices.CallerFilePath] string path = "") => path;
+    // The test project's source directory, found from the test binaries (CallerFilePath is
+    // "/_/…" under CI's deterministic build, so it cannot be used to read the sources).
+    private static string TestProjectDir()
+    {
+        for (var d = new DirectoryInfo(AppContext.BaseDirectory); d != null; d = d.Parent)
+            if (File.Exists(Path.Combine(d.FullName, "Mateu.Tests.csproj"))) return d.FullName;
+        throw new InvalidOperationException("Mateu.Tests.csproj not found above " + AppContext.BaseDirectory);
+    }
 }
