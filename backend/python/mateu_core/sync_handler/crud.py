@@ -324,7 +324,7 @@ class CrudHandlerMixin(MixinBase):
 
     def render_entity(self, crud_type, element, entity, mode, route, rq: RunActionRq | None = None) -> UIIncrement:
         return self.fragment_response(
-            self.title(crud_type),
+            self.mapper.entity_title(element, entity),
             self.mapper.map_entity_form(crud_type, element, entity, mode, route),
             rq,
             self.lookup_labels(element, entity, crud_type()),

@@ -8,11 +8,29 @@ namespace Mateu.Core;
 // Forms: sections, zones, tabs, folded layouts, fields and buttons (Java: SectionFormRenderer, FormLayoutBuilder, ReflectionFormFieldMapper, FieldTypeMapper).
 public sealed partial class ReflectionMapper
 {
+    /// <summary>What names a record's page (view / edit / new) — Java's PageMetadataExtractor.getTitle
+    /// over the ENTITY: its class's [Title], else a ToString the class declares itself ("Booking 123";
+    /// a compiler-generated record ToString is a field dump and never a title), else the humanized
+    /// class name. Until 2026-10-17 the ports titled every record page with the CRUD's title.</summary>
+    public static string EntityTitle(Type element, object entity)
+    {
+        if (element.Find<TitleAttribute>()?.Value is { } declared) return declared;
+        var toString = element.GetMethod("ToString", Type.EmptyTypes);
+        if (toString is not null && toString.DeclaringType != typeof(object) && toString.DeclaringType != typeof(ValueType))
+        {
+            var text = entity.ToString() ?? "";
+            // a record's synthesized ToString: "Thing { Id = 1, Name = x }" — a dump, not a name
+            var generated = text.StartsWith(element.Name + " {", StringComparison.Ordinal) && text.EndsWith("}", StringComparison.Ordinal);
+            if (!generated && !string.IsNullOrWhiteSpace(text)) return text;
+        }
+        return Naming.Humanize(element.Name);
+    }
+
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
     public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route,
         ICrudAffordances? drawerOf = null)
     {
-        var title = crudType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
+        var title = EntityTitle(element, entity);
         var toolbar = (mode switch
         {
             "view" => new List<ButtonDto> { new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new") },

@@ -160,7 +160,7 @@ public sealed partial class SyncHandler
         FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq);
 
     private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq) =>
-        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
+        FragmentResponse(ReflectionMapper.EntityTitle(element, entity), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
             LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
 
     private static CrudDisplay DisplayOf(object crud) =>

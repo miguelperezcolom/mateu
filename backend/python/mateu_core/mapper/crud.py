@@ -606,6 +606,21 @@ class CrudMapperMixin(MixinBase):
             )
         return out
 
+    @staticmethod
+    def entity_title(element, entity) -> str:
+        """What names a record's page (view / edit / new) — Java's PageMetadataExtractor.getTitle
+        over the ENTITY: its class's ``@title``, else a ``__str__`` the class declares itself
+        ("Booking 123"; the default falls back to ``__repr__`` and never names), else the humanized
+        class name. Until 2026-10-17 the ports titled every record page with the CRUD's title."""
+        declared = getattr(element, "__mateu_title__", None)
+        if declared:
+            return str(declared)
+        if type(entity).__str__ is not object.__str__:
+            text = str(entity)
+            if text.strip():
+                return text
+        return humanize(element.__name__)
+
     def map_entity_form(
         self, crud_type, element, entity, mode: str, route: str,
         can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
@@ -615,7 +630,7 @@ class CrudMapperMixin(MixinBase):
         ``can_create`` trim the view-mode toolbar to the declared capabilities;
         ``save_action_id`` is the action Save dispatches ("create" on the crud path, "save" on
         a capability listing's editor)."""
-        title = getattr(crud_type, "__mateu_title__", humanize(element.__name__))
+        title = self.entity_title(element, entity)
         if mode == "view":
             toolbar = [Button(label="Back to list", action_id="cancel-view")]
             if can_edit:

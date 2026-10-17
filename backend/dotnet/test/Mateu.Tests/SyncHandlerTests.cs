@@ -243,6 +243,21 @@ public class Things : Crud<Thing>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
 }
 
+/// <summary>A record that names itself (an overridden ToString), and one that does not.</summary>
+public class NamedThing
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public override string ToString() => $"Thing {Name}";
+}
+
+[UI("named-things"), Title("Named things")]
+public class NamedThings : Crud<NamedThing>
+{
+    public override IEnumerable<NamedThing> Fetch(string? search) =>
+        [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
+}
+
 public enum BookingChannel { Web, Phone, Agency }
 
 public class Booking
@@ -2830,6 +2845,29 @@ public class SyncHandlerTests
             "\"groups\":[{\"value\":\"North\",\"count\":1,\"aggregates\":{\"amount\":100,\"invoice\":1}},"
             + "{\"value\":\"South\",\"count\":1,\"aggregates\":{\"amount\":50,\"invoice\":1}}]",
             json);
+    }
+
+    [Fact]
+    public void A_record_page_is_titled_by_the_record_as_in_java()
+    {
+        // Java's CrudFormComponentBuilder titles the view/edit/new page with the ENTITY (its @Title,
+        // a toString it declares, else its class name); the ports used the crud's title ("Things").
+        static (string? Page, string? Window) Titles(UIIncrementDto inc)
+        {
+            var page = (ServerSideComponentDto)inc.Fragments[0].Component!;
+            var meta = (PageMetadataDto)((ClientSideComponentDto)page.Children[0]).Metadata;
+            var window = inc.Commands.FirstOrDefault(c => c.Type == "SetWindowTitle")?.Data as string;
+            return (meta.Title, window);
+        }
+        var named = Titles(Handler().Handle(new RunActionRqDto { Route = "named-things/1/edit", ServerSideType = typeof(NamedThings).FullName }));
+        Assert.Equal(("Thing Alpha", "Thing Alpha"), named);
+        var viewed = Titles(Handler().Handle(new RunActionRqDto { Route = "named-things/2", ServerSideType = typeof(NamedThings).FullName }));
+        Assert.Equal("Thing Beta", viewed.Page);
+        // a record that does not name itself: its class name, not the crud's title
+        var plain = Titles(Handler().Handle(new RunActionRqDto { Route = "things/1/edit", ServerSideType = typeof(Things).FullName }));
+        Assert.Equal(("Thing", "Thing"), plain);
+        // [Title] on the record class wins over everything (Java's rule)
+        Assert.Equal("Simple Form", ReflectionMapper.EntityTitle(typeof(SimpleForm), new SimpleForm()));
     }
 
     [Fact]
