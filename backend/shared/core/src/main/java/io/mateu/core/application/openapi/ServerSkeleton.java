@@ -96,7 +96,7 @@ public final class ServerSkeleton {
     }
   }
 
-  private record Parameter(String name, String javaType, boolean required) {}
+  private record Parameter(String name, String javaType, boolean required, boolean inPath) {}
 
   /**
    * An operation's return type and the model records that type is made of.
@@ -248,7 +248,8 @@ public final class ServerSkeleton {
             new Parameter(
                 name,
                 SchemaToJava.javaType(parameter.get("schema")),
-                parameter.hasNonNull("required") && parameter.get("required").asBoolean()));
+                parameter.hasNonNull("required") && parameter.get("required").asBoolean(),
+                "path".equals(text(parameter, "in"))));
       }
     }
     return parameters;
@@ -452,10 +453,12 @@ public final class ServerSkeleton {
       if (out.length() > 0) {
         out.append(", ");
       }
-      out.append("@RequestParam(name = \"")
+      // a path parameter ({id} in the mapping) binds with @PathVariable: as a @RequestParam the
+      // generated endpoint answered 400 to every request, the value never being in the query
+      out.append(parameter.inPath() ? "@PathVariable(name = \"" : "@RequestParam(name = \"")
           .append(parameter.name())
           .append("\", required = ")
-          .append(parameter.required())
+          .append(parameter.inPath() || parameter.required())
           .append(") ")
           .append(SchemaToJava.simpleName(parameter.javaType()))
           .append(" ")

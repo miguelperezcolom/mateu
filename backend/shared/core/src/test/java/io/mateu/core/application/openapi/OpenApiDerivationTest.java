@@ -257,4 +257,29 @@ class OpenApiDerivationTest {
     // Declaring it closed would turn a lower bound into a false claim about the endpoint.
     assertThat(fromCatalogue().toString()).doesNotContain("additionalProperties");
   }
+
+  @Test
+  void aValueInterpolatedIntoThePathIsAPathParameter() {
+    var document =
+        OpenApiEmitter.emit(
+            "Test API",
+            OpenApiEmitter.Declarations.ofViews(List.of())
+                .withCatalogue(
+                    new RestSourceCatalog(
+                        List.of(
+                            new RestSourceEntry(
+                                "order",
+                                RestDataSource.builder()
+                                    .url("/api/orders/${state.id}/lines?page=${page}")
+                                    .build())))));
+    // a templated path, not the literal segment "_"
+    assertThat(document.get("paths").has("/api/orders/{id}/lines")).isTrue();
+    var parameters =
+        document.get("paths").get("/api/orders/{id}/lines").get("get").get("parameters");
+    var byName = new java.util.HashMap<String, JsonNode>();
+    parameters.forEach(parameter -> byName.put(parameter.get("name").asText(), parameter));
+    assertThat(byName.get("id").get("in").asText()).isEqualTo("path");
+    assertThat(byName.get("id").get("required").asBoolean()).isTrue();
+    assertThat(byName.get("page").get("in").asText()).isEqualTo("query");
+  }
 }
