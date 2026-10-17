@@ -54,6 +54,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     /** Field ids the user has edited and the server has not spoken about since. Defended against
      *  a parent re-bind in willUpdate; emptied per key as soon as a fragment carries that key. */
     private _locallyEdited = new Set<string>()
+    /** The initialData object this element last rendered from (see willUpdate). */
+    protected _lastSeed: object | undefined = undefined
+    /** A user write is in flight or answered since the last in-place render (see applyFragment). */
+    protected _userWroteSinceRender = false
 
     /** Keys this element's OWN server sent it in a state fragment (a `State` answer) while the
      *  parent kept the same component — so a parent re-render, re-binding `.state` from its own
@@ -167,7 +171,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             c0.rules = c1.rules
                             // an in-place re-render keeps counting its OnLoad firings: `times`
                             // is per component on screen, not per render (onLoadTimes.ts)
-                            if (inPlace) carryOnLoadCounts(c0.triggers, c1.triggers)
+                            if (inPlace && !this._userWroteSinceRender) carryOnLoadCounts(c0.triggers, c1.triggers)
+                            this._userWroteSinceRender = false
                             c0.triggers = c1.triggers
                             c0.serverSideType = c1.serverSideType
                             c0.route = c1.route
@@ -301,6 +306,17 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             && viewKey !== this._lastViewKey
         if (viewKey != undefined) this._lastViewKey = viewKey
         if (viewChanged) this._locallyEdited.clear()
+        // The server handing the SAME view with other initial values — the create/edit drawer's
+        // "Save and next" re-sends its form for the next record — speaks for every key it seeds:
+        // what the user typed into the previous record must not be restored over the next one.
+        // Compared by reference to the seed we last rendered: a parent re-render re-binds the same
+        // object, a server answer brings a new one (the component itself may be updated in place).
+        const seeded = (this.component as ServerSideComponent | undefined)?.initialData
+        if (!viewChanged && seeded && typeof seeded === 'object'
+            && this._lastSeed !== undefined && seeded !== this._lastSeed) {
+            Object.keys(seeded).forEach(key => this._locallyEdited.delete(key))
+        }
+        if (seeded && typeof seeded === 'object') this._lastSeed = seeded
         // the parent handing us ANOTHER component (a host re-rendered with `this` sends its
         // islands afresh): its initial state is the authority now, not our last State answer
         if (viewChanged || (changed.has('component') && this.state !== this._lastOwnState)) {
@@ -388,7 +404,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
                                 actionId: onloadTrigger.actionId,
-                                background: onLoadBackground(onloadTrigger, this.data)
+                                background: onLoadBackground(onloadTrigger, this.data),
+                                fromOnLoad: true
                             },
                             bubbles: true,
                             composed: true
@@ -418,7 +435,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 detail: {
                     actionId: onloadTrigger.actionId,
                     background: onloadTrigger.background,
-                    callbackToken
+                    callbackToken,
+                    fromOnLoad: true
                 },
                 bubbles: true,
                 composed: true

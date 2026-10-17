@@ -131,6 +131,24 @@ describe('applyFragment', () => {
         expect(el._locallyEdited.has('searchText')).toBe(false)
     })
 
+    it('an in-place re-render keeps its OnLoad counts, unless the user wrote since (a returned listing loads again)', () => {
+        const onLoad = () => [{ type: 'OnLoad', actionId: 'search', times: 1 }] as any[]
+        const rendered = (userWrote: boolean) => {
+            const c0 = { ...serverSide('Charges'), triggers: onLoad() } as any
+            c0.triggers[0].firedTimes = 1
+            const c1 = { ...serverSide('Charges'), triggers: onLoad() } as any
+            const el = componentElement({ component: c0, _userWroteSinceRender: userWrote })
+            el.applyFragment(fragment(c1, {}))
+            return el
+        }
+        // an OnLoad action answering `this`: still counted as fired, no loop
+        expect((rendered(false).component as any).triggers[0].firedTimes).toBe(1)
+        // the answer to a user's write: the view loads like on opening, and the flag is spent
+        const el = rendered(true)
+        expect((el.component as any).triggers[0].firedTimes).toBeUndefined()
+        expect(el._userWroteSinceRender).toBe(false)
+    })
+
     it('ignores a fragment aimed at another component', () => {
         const el = componentElement({
             component: serverSide('ProcessDetail'),
@@ -305,6 +323,33 @@ describe('willUpdate keeps what the user typed', () => {
         })
         el.willUpdate(new Map([['state', { searchText: 'chip-alpha' }]]) as any)
         expect(el.state.searchText).toBe('')
+    })
+
+    it('does not carry an edit over a re-sent component seeding other values (Save and next)', () => {
+        const before = { ...serverSide('BookingViewModel'), initialData: { leadName: 'Ada' } }
+        const next = { ...serverSide('BookingViewModel'), initialData: { leadName: 'Grace' } }
+        const el = edited({
+            state: { leadName: 'Grace' },
+            _lastOwnState: { leadName: 'typed over Ada' },
+            _lastSeed: before.initialData,
+            component: next,
+        })
+        el.willUpdate(new Map<string, any>([['state', { leadName: 'typed over Ada' }]]) as any)
+        expect(el.state.leadName).toBe('Grace')
+        expect(el._locallyEdited.has('leadName')).toBe(false)
+    })
+
+    it('keeps defending an edit when the parent re-binds the same seeded values', () => {
+        const seeded = { leadName: 'Ada' }
+        const el = edited({
+            state: { leadName: 'Ada' },
+            _lastOwnState: { leadName: 'typed' },
+            _lastSeed: seeded,
+            component: { ...serverSide('BookingViewModel'), initialData: seeded },
+        })
+        el.willUpdate(new Map<string, any>([['state', { leadName: 'typed' }],
+            ['component', { ...serverSide('BookingViewModel'), initialData: seeded }]]) as any)
+        expect(el.state.leadName).toBe('typed')
     })
 
     it('does not carry an edit across a change of view in a reused element', () => {

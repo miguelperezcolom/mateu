@@ -832,7 +832,8 @@ export class MateuComponent extends ComponentElement {
         callbackonly: boolean,
         initiatorComponentId: string,
         callbackToken: string,
-        background?: boolean
+        background?: boolean,
+        fromOnLoad?: boolean
     }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
@@ -904,6 +905,12 @@ export class MateuComponent extends ComponentElement {
         // A component's own request (a combo's option search…) shows its own loading: it is
         // background for the page — no veil, no pressed-control pulse (localRequests).
         const background = detail.background ?? action?.background ?? (isLocalRequest(detail.actionId) || undefined)
+        // A write the USER asked for (not one an OnLoad trigger fired): when its answer re-renders this
+        // view in place, the view loads again like on opening — a listing an action returns shows
+        // its new rows (onLoadTimes.ts). An OnLoad action answering `this` keeps its count.
+        if (!detail.fromOnLoad && !isIdempotentAction(detail.actionId, action?.idempotent)) {
+            this._userWroteSinceRender = true
+        }
         if (!background) {
             // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
             // second POST of a write means a second row; a second read means fresher data. Worse,
