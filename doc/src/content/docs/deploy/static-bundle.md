@@ -26,7 +26,7 @@ mvn -Pbundle package           # then serve target/mateu-bundle/ from any static
 
 Two halves, both shipped:
 
-1. **Build-time export** — the `mateu:bundle` Maven goal renders every static `@UI`/`routes.yaml` route's
+1. **Build-time export** — the `mateu-bundle:bundle` Maven goal renders every static `@UI`/`routes.yaml` route's
    initial load (the exact JSON the server returns for a page load) into a `manifest.json`, copies the
    renderer assets, and stamps a static `index.html`.
 2. **Client bundle mode** — `<mateu-ui bundleUrl="…">` fetches that `manifest.json` once at boot and
@@ -205,7 +205,7 @@ route. (Shipping only the first is what made a bundled deep link "render HOME", 
 ## Renderers
 
 - **Vaadin** and every renderer built on the shared `libs/mateu` client get bundle mode for free —
-  set `<mateu-ui bundleUrl="…">` (the `mateu:bundle` goal stamps it into the generated `index.html`).
+  set `<mateu-ui bundleUrl="…">` (the `mateu-bundle:bundle` goal stamps it into the generated `index.html`).
 - **Redwood/VB** has its own transport (it shares no code with the web renderers), so bundle mode is
   ported there too: set the app constant **`mateuBundleUrl`** (empty = off) to a `manifest.json` URL
   or the runtime `…/mateu/v3/bundle` endpoint. Route loads are answered from the bundle; in a hybrid

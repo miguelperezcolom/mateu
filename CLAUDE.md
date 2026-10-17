@@ -172,7 +172,7 @@ the one-to-one case.
 - **Static bundle**: the authored table travels in `manifest.json` (only the authored half — a class
   is what a bundle with no backend cannot use), and routes that exist only in `routes.yaml` are
   exported too, including those with no view model (pre-rendered through the ordinary sync path, or —
-  `mateu:bundle` `specsOnly` — shipped RAW and expanded in the browser by `libs/mateu/.../expander`).
+  `mateu-bundle:bundle` `specsOnly` — shipped RAW and expanded in the browser by `libs/mateu/.../expander`).
   **Under an app shell a route has TWO loads** (fresh `_empty` → the shell aimed at the route;
   content → the screen): the exporter ships `json` + `contentJson`, `bundleStore.resolveBundledLoad`
   picks by consumed route and never answers a content load with a shell (#557, the "deep link renders
