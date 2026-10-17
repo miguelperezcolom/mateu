@@ -5,16 +5,27 @@ import { interpolateUrlWith } from './urlTemplate.ts';
  * Tiny expression evaluator for rule filters, validation conditions and `${...}` label
  * interpolation. Hermes (React Native's JS engine) forbids `eval`/`new Function`, so this is a
  * hand-rolled recursive-descent parser over the pragmatic subset rule expressions use:
- * literals, identifier paths (`state.total`, `state['a b']`, `data.rows.length`), unary `!`/`-`,
- * arithmetic, comparisons (`==`/`!=` are loose like the web's evaluator), `&&`/`||` and the
- * ternary. Unknown syntax throws — callers decide the fallback.
+ * literals, identifier paths (`state.total`, `state['a b']`, `data.rows.length`), optional
+ * chaining (`?.`, `?.[]`), unary `!`/`-`, arithmetic, comparisons (`==`/`!=` are loose like the
+ * web's evaluator), `&&`/`||`/`??`, the ternary and regex literals with `.test(…)` (the server's
+ * @Pattern condition). Unknown syntax throws — callers decide the fallback. Held to the client
+ * conformance corpus (conformance/client/expressions.json) with the web, Redwood and IntelliJ.
  */
 
 type Ctx = Record<string, unknown>;
 
 interface Token {
-  type: 'num' | 'str' | 'id' | 'op';
+  type: 'num' | 'str' | 'id' | 'op' | 're';
   value: string;
+  regex?: RegExp;
+}
+
+/** A `/` starts a regex literal where a VALUE is expected — at the start or after an operator
+ *  other than a closing bracket; after a value it is a division. */
+function regexAllowed(prev: Token | undefined): boolean {
+  if (!prev) return true;
+  if (prev.type !== 'op') return false;
+  return prev.value !== ')' && prev.value !== ']';
 }
 
 function tokenize(src: string): Token[] {
@@ -38,8 +49,26 @@ function tokenize(src: string): Token[] {
         out += src[j];
         j++;
       }
+      if (j >= src.length) throw new Error('unterminated string in expression');
       tokens.push({ type: 'str', value: out });
       i = j + 1;
+      continue;
+    }
+    if (ch === '/' && regexAllowed(tokens[tokens.length - 1])) {
+      let j = i + 1;
+      let inClass = false;
+      while (j < src.length && (inClass || src[j] !== '/')) {
+        if (src[j] === '\\') j++;
+        else if (src[j] === '[') inClass = true;
+        else if (src[j] === ']') inClass = false;
+        j++;
+      }
+      if (j >= src.length) throw new Error('unterminated regex in expression');
+      let k = j + 1;
+      while (k < src.length && /[a-z]/.test(src[k])) k++;
+      const body = src.slice(i + 1, j);
+      tokens.push({ type: 're', value: body, regex: new RegExp(body, src.slice(j + 1, k)) });
+      i = k;
       continue;
     }
     if (/[A-Za-z_$]/.test(ch)) {
@@ -52,6 +81,8 @@ function tokenize(src: string): Token[] {
     const three = src.slice(i, i + 3);
     if (three === '===' || three === '!==') { tokens.push({ type: 'op', value: three }); i += 3; continue; }
     const two = src.slice(i, i + 2);
+    // `?.` is optional chaining unless a digit follows (`a?.5:1` is a ternary)
+    if (two === '?.' && !/[0-9]/.test(src[i + 2] ?? '')) { tokens.push({ type: 'op', value: '?.' }); i += 2; continue; }
     if (['==', '!=', '>=', '<=', '&&', '||', '??'].includes(two)) { tokens.push({ type: 'op', value: two }); i += 2; continue; }
     if ('+-*/%<>!?:().[],'.includes(ch)) { tokens.push({ type: 'op', value: ch }); i++; continue; }
     throw new Error(`unexpected character '${ch}' in expression`);
@@ -184,23 +215,43 @@ class Parser {
 
   private postfix(): unknown {
     let value = this.primary();
+    // once a `?.` met null/undefined, the rest of the chain is parsed but not evaluated
+    let short = false;
     for (;;) {
-      if (this.isOp('.')) {
-        this.eat('.');
-        const prop = this.eat().value;
-        value = member(value, prop);
+      const optional = this.isOp('?.');
+      if (optional) {
+        this.eat('?.');
+        if (value == null) short = true;
+      }
+      if (this.isOp('.') || (optional && this.peek()?.type === 'id')) {
+        if (!optional) this.eat('.');
+        const prop = this.eat();
+        if (prop.type !== 'id') throw new Error('expected a property name');
+        if (this.isOp('(')) {
+          // the one call an expression may make: a regex's `test` (the server's @Pattern condition)
+          this.eat('(');
+          const arg = this.ternary();
+          this.eat(')');
+          if (short) continue;
+          if (!(value instanceof RegExp) || prop.value !== 'test') throw new Error(`'${prop.value}' is not callable in expressions`);
+          value.lastIndex = 0;
+          value = value.test(String(arg));
+          continue;
+        }
+        value = short ? undefined : member(value, prop.value);
         continue;
       }
       if (this.isOp('[')) {
         this.eat('[');
         const key = this.ternary();
         this.eat(']');
-        value = member(value, String(key));
+        value = short ? undefined : member(value, String(key));
         continue;
       }
+      if (optional) throw new Error('unexpected ?.');
       break;
     }
-    return value;
+    return short ? undefined : value;
   }
 
   private primary(): unknown {
@@ -208,6 +259,7 @@ class Parser {
     if (!t) throw new Error('unexpected end of expression');
     if (t.type === 'num') { this.eat(); return parseFloat(t.value); }
     if (t.type === 'str') { this.eat(); return t.value; }
+    if (t.type === 're') { this.eat(); return t.regex; }
     if (t.type === 'id') {
       this.eat();
       if (t.value === 'true') return true;
