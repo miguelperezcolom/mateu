@@ -54,3 +54,12 @@ if (typeof window !== 'undefined') {
         })
     }
 }
+
+// The native Popover API (vaadin overlays — popover, notification — open through it).
+if (typeof HTMLElement !== 'undefined' && !('showPopover' in HTMLElement.prototype)) {
+    Object.assign(HTMLElement.prototype, {
+        showPopover() {},
+        hidePopover() {},
+        togglePopover() { return false },
+    })
+}
