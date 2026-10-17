@@ -1,12 +1,10 @@
 package io.mateu.core.application.i18n;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.mateu.core.application.runaction.MountRegistry;
+import io.mateu.core.application.runaction.SpecsIndex;
 import io.mateu.uidl.data.Translations;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +12,6 @@ import io.mateu.uidl.interfaces.TranslationsSupplier;
 import io.mateu.uidl.interfaces.Translator;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +63,6 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   static final String CONVENTIONAL_DIR = "specs/ui/translations/";
 
-  private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
   private final Set<String> warned = ConcurrentHashMap.newKeySet();
   private volatile Map<String, Map<String, String>> catalogue;
 
@@ -159,12 +155,10 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? TranslationRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<Translations>();
-    for (var path : MountRegistry.yamlResourcePaths(cl)) {
-      try (InputStream is = cl.getResourceAsStream(path)) {
-        if (is == null) {
-          continue;
-        }
-        var root = yaml.readTree(is);
+    var index = SpecsIndex.of(cl);
+    for (var path : index.paths()) {
+      try {
+        var root = index.tree(path);
         var translations = parse(root, path);
         if (translations != null) {
           found.add(translations);

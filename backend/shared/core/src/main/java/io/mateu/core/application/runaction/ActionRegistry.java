@@ -9,7 +9,6 @@ import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.ActionCatalogSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -206,15 +205,7 @@ public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? ActionRegistry.class.getClassLoader() : classLoader);
-    var files = new LinkedHashSet<String>();
-    if (cl.getResource(CONVENTIONAL_ACTIONS) != null) {
-      files.add(CONVENTIONAL_ACTIONS);
-    }
-    for (var path : MountRegistry.yamlResourcePaths(cl)) {
-      if (!path.equals(CONVENTIONAL_ACTIONS) && TYPE.equals(typeOf(cl, path))) {
-        files.add(path);
-      }
-    }
+    var files = SpecsIndex.filesOfType(cl, TYPE, CONVENTIONAL_ACTIONS);
     var byId = new LinkedHashMap<String, Action>();
     for (var file : files) {
       for (var action : read(cl, file)) {
@@ -225,11 +216,8 @@ public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
   }
 
   private List<Action> read(ClassLoader cl, String path) {
-    try (InputStream is = cl.getResourceAsStream(path)) {
-      if (is == null) {
-        return List.of();
-      }
-      JsonNode root = yaml.readTree(is);
+    try {
+      JsonNode root = SpecsIndex.treeOf(cl, path);
       if (root == null) {
         return List.of();
       }
@@ -261,20 +249,6 @@ public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
     } catch (Exception e) {
       log.warn("Failed to read action catalogue {}: {}", path, e.getMessage());
       return List.of();
-    }
-  }
-
-  private String typeOf(ClassLoader cl, String path) {
-    try (InputStream is = cl.getResourceAsStream(path)) {
-      if (is == null) {
-        return "";
-      }
-      var root = yaml.readTree(is);
-      return root != null && root.isObject() && root.hasNonNull("type")
-          ? root.get("type").asText()
-          : "";
-    } catch (Exception e) {
-      return "";
     }
   }
 
