@@ -316,13 +316,26 @@ export function routeHrefOf(route, { pathMode = true, mount = '' } = {}) {
   return '#' + (r.charAt(0) === '/' ? r : '/' + r)
 }
 
-const HANDLER_ATTR = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
-const HREF_ATTR = /\s+href\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
 
 /**
  * `html` with each link whose handler emits navigation-requested turned into a link to its route,
  * and `targets`: href → the detail to emit when it is clicked.
  */
+const LINK_ATTR = /\s+([a-zA-Z_:][-\w:.]*)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s>]+))?/g
+const SAFE_LINK_ATTRS = new Set(['class', 'id', 'title', 'style', 'role', 'tabindex', 'lang', 'dir', 'slot'])
+
+/** The attributes of an `<a>` worth keeping on a rebuilt route link: inert ones only. */
+function keptLinkAttributes(attrs) {
+  let kept = ''
+  for (const m of String(attrs).matchAll(LINK_ATTR)) {
+    const name = m[1].toLowerCase()
+    if (SAFE_LINK_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-')) {
+      kept += m[2] === undefined ? ` ${name}` : ` ${name}=${m[2]}`
+    }
+  }
+  return kept
+}
+
 export function routeLinksOf(html, options = {}) {
   const targets = {}
   const out = String(html == null ? '' : html).replace(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi, (all, attrs) => {
@@ -331,12 +344,9 @@ export function routeLinksOf(html, options = {}) {
     const href = safeHref(routeHrefOf(detail.route, options))
     if (!href) return all
     targets[href] = detail
-    // removed until nothing changes: one pass can leave a handler rebuilt from the pieces around it
-    let rest = attrs
-    for (let prev = null; prev !== rest; ) {
-      prev = rest
-      rest = rest.replace(HANDLER_ATTR, '').replace(HREF_ATTR, '')
-    }
+    // the link is rebuilt from an allow-list of inert attributes (never a handler, never another href;
+    // style is kept here and filtered by the whitelist sanitizer at the sink)
+    const rest = keptLinkAttributes(attrs)
     return `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest}>`
   })
   return { html: out, targets }
