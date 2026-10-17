@@ -917,9 +917,18 @@ class AppContext(val session: AppSession) {
             // false = that window is already gone (disposed, close event still pending): open anew.
             if (session.openOverlays[key]?.invoke(component, state, data) == true) return
         }
-        val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
         // the overlay's own state: its initialData, then the updates aimed at it (LongTask steps)
         var overlayState: JsonNode = OverlayState.seed(state, meta)
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            // no window can exist (a headless render probe or test): the overlay's body is drawn
+            // into the content pane instead, so what it shows is still rendered and inspectable
+            contentPane?.let { pane ->
+                pane.add(overlayBody(component, overlayState, data))
+                pane.revalidate()
+            }
+            return
+        }
+        val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
         var shown: JsonNode = component
         val dialog = javax.swing.JDialog(owner, OverlayState.title(meta, overlayState), java.awt.Dialog.ModalityType.MODELESS)
         dialog.contentPane.add(overlayBody(component, overlayState, data))

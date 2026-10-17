@@ -677,6 +677,8 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
     }.getOrDefault(false)
     if (!opened) return JPanel().apply { isOpaque = false; isVisible = false }
     val body = renderAll(r, kids(component), state, data)
+    // headless (a render probe or test): no option pane can open; the body is still rendered, in place
+    if (java.awt.GraphicsEnvironment.isHeadless()) return body
     SwingUtilities.invokeLater {
         val options = buildList {
             add(metadata.text("confirmText", "OK") to metadata.text("confirmActionId"))
