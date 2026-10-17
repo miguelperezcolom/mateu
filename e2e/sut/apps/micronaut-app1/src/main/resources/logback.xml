@@ -1,0 +1,14 @@
+<configuration>
+    <!-- Without a logback.xml, logback logs EVERYTHING at DEBUG — Micronaut's bean resolution
+         included — and every line takes the console appender's lock. Under JDK 21 virtual threads
+         that lock, taken inside Micronaut's synchronized sections, deadlocked this app under
+         concurrent load (see the Micronaut setup page of the docs). -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

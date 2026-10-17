@@ -43,6 +43,15 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
+  /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_ACTIONS = "specs/ui/actions.yaml";
 
@@ -141,12 +150,15 @@ public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public ActionCatalog catalog() {
     var loaded = catalog;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = catalog;
         if (loaded == null) {
           loaded = load(classLoader());
           catalog = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;

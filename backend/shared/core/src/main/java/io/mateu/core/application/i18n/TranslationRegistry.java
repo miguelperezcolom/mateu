@@ -50,6 +50,15 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
+  /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
   /** The {@code ${i18n.key}} expression, anywhere inside a text. */
   public static final Pattern EXPRESSION =
       Pattern.compile("\\$\\{\\s*i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)\\s*}");
@@ -80,12 +89,15 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public Map<String, Map<String, String>> catalogue() {
     var loaded = catalogue;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = catalogue;
         if (loaded == null) {
           loaded = load(classLoader());
           catalogue = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;

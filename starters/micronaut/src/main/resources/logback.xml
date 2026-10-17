@@ -1,0 +1,14 @@
+<configuration>
+    <!-- Without a logback.xml, logback logs EVERYTHING at DEBUG — Micronaut's bean resolution
+         included. Besides the noise, on JDK 21 with virtual threads that console lock, taken inside
+         Micronaut's synchronized sections, can deadlock the server under concurrent load (see
+         "Virtual threads on JDK 21" in Mateu's Micronaut setup page). -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

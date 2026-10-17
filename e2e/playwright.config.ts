@@ -8,8 +8,9 @@ export default defineConfig({
   // One worker on CI: the parallelism is ACROSS jobs instead — run_tests.yml splits the projects
   // into e2e legs (scripts/ci-e2e-leg.sh), each with its own SUT apps, so no two tests ever share a
   // SUT at the same time. (Measured 2026-10-17 with 4 workers on a FRESH SUT: the shared suite
-  // passes on mvc/webflux/quarkus/helidon, but micronaut-app1 hangs — virtual threads pinned in
-  // Micronaut's synchronized SingletonScope wait on logback's lock, JDK 21 — and quarkus-app1 logs
+  // passes on mvc/webflux/quarkus/helidon; micronaut-app1 hung — JDK 21 virtual threads pinned on
+  // RouteRegistry's load monitor and Micronaut's, waiting on logback's DEBUG lock; fixed since: the
+  // registries load under a ReentrantLock and the SUT logs at INFO — and quarkus-app1 logs
   // MountRegistry "zip file closed". Reusing a SUT across runs also fails FullCrud, by design.)
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
