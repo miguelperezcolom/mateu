@@ -85,6 +85,9 @@ export class MateuRichTextEditor extends LitElement {
             },
         })
         this.lastEmitted = this.value ?? ''
+        // creating the editor dispatches no transaction, so without this the toolbar (rendered
+        // before the editor existed) would stay disabled until the first edit or click inside
+        this.tick++
     }
 
     protected updated(changed: PropertyValues) {
