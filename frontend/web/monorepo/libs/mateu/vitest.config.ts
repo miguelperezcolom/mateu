@@ -34,12 +34,16 @@ export default defineConfig({
       reporter: ['text-summary', 'json-summary'],
       // re-measured 2026-10-17 (coverage stream S5: DOM-level suites for mateu-component, the app
       // shell, mateu-ui, the listing, the rich components, capture fields and the neutral renderers):
-      // 93.4% statements, 93.4% lines, 93.0% functions, 86.5% branches (was 67.9/67.9/68.5/81.3)
+      // 93.4% statements, 93.4% lines, 93.0% functions, 86.5% branches (was 67.9/67.9/68.5/81.3) —
+      // but that was vitest 3.2.4 left in the stream's worktree. Re-measured on the lockfile's
+      // vitest/@vitest/coverage-v8 4.1.11 (what CI installs), same sources and tests: 91.1% statements,
+      // 92.8% lines, 88.3% functions, 80.9% branches (v8 in vitest 4 counts template-literal arrows
+      // and short-circuit branches the 3.x remapper merged away).
       thresholds: {
-        lines: 93,
-        statements: 93,
-        functions: 93,
-        branches: 86,
+        lines: 92,
+        statements: 91,
+        functions: 88,
+        branches: 80,
       },
     },
   },
