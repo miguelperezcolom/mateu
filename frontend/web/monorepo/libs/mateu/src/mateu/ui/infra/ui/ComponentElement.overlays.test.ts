@@ -112,14 +112,17 @@ describe('a timed OnLoad (a poll)', () => {
     it('fires after its delay, and not for a component that has since been replaced', () => {
         vi.useFakeTimers()
         const el = make('p1')
+        document.body.appendChild(el)
         el.component = serverSide('x.Status', { id: 'p1', triggers: [{ type: TriggerType.OnLoad, actionId: 'poll', timeoutMillis: 500, times: 2 }] })
         el.triggerOnLoad()
         vi.advanceTimersByTime(500)
         expect(el.requested).toEqual(['poll'])
 
-        el.scheduleOnload({ actionId: 'poll', timeoutMillis: 500 } as any, 1, 'someone-else')
+        el.scheduleOnload({ actionId: 'poll', timeoutMillis: 500 } as any)
+        el.component = serverSide('x.SomethingElse', { id: 'p1' })
         vi.advanceTimersByTime(500)
         expect(el.requested).toEqual(['poll'])
+        el.remove()
     })
 })
 
