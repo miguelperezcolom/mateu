@@ -277,6 +277,25 @@ describe('rules run before the render', () => {
         expect(seen).toEqual(['recalculate'])
     })
 
+    it('an effect whose filter only held mid-chain, before the values settled, does not run', async () => {
+        const { el } = await mounted([
+            rule({ filter: 'state.qty > 0', fieldName: 'total', expression: 'state.qty * 2' }),
+            rule({ action: RuleAction.RunAction, filter: 'state.total == 2', actionId: 'stale' }),
+        ], { qty: 3, total: 6 })
+        const seen: string[] = []
+        el.manageActionRequestedEvent = (e: CustomEvent) => seen.push(e.detail.actionId)
+
+        // qty 1 → total 2: the settled state matches, the action runs
+        el.state = { ...el.state, qty: 1 }
+        await settle(el)
+        expect(seen).toEqual(['stale'])
+        // qty 6 with total still 2 is only the state BEFORE the rule ran: nothing fires
+        el.state = { ...el.state, qty: 6 }
+        await settle(el)
+        expect(seen).toEqual(['stale'])
+        expect(el.state.total).toBe(12)
+    })
+
     it('rule-set state triggers the validations, as before', async () => {
         const el = element({
             rules: [rule({ filter: 'state.qty > 5', fieldName: 'total', value: 0 })],
