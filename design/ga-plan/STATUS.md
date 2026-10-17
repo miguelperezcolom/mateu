@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 3 — coverage, eight streams — plus the bug-fix batch `fixes/groups`, `fixes/core`, `fixes/fields`, `fixes/web2` integrated locally on `integration/coverage` on top of origin/master (batch 3 = PR #813 merged), pending CI).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-18 (phase 4 — refactor, seven streams R1–R7 — plus the Fable review fixes F1–F8, `fixes/extra` and `fixes/natives2` integrated locally on `integration/beta` on top of origin/master = alpha.425, pending CI; beta candidate = v3.0-alpha.426).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -40,8 +40,8 @@ continue the work from here. **Update it at the end of every block of work.** La
    cells not marked yet** (same brief).
 3. **Coverage** ✅ written and **integrated, pending CI** (2026-10-17: `integration/coverage`, see "Coverage integration"
    below) — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md): 8 streams S1–S8, floors raised.
-4. **Refactor/optimization** backed by those tests — **scheduled for the weekend of 17–18 Oct** (owner, 2026-10-12), with whatever token budget is left that week.
-5. **Deep independent review by Fable** (owner, 2026-10-12): at the very END, after the refactor, before GA — a different model with fresh eyes over the whole product (public API + stability, security, wire contract + Java/.NET/Python parity, core architecture, docs-vs-reality, a new developer's first hour). Runs on the separate Fable weekly quota (`model: "fable"` agents). Its report becomes the GA blocker list.
+4. **Refactor/optimization** ✅ seven streams R1–R7 **integrated, pending CI** (2026-10-18: `integration/beta`, see "Beta integration" below).
+5. **Deep independent review by Fable** ✅ done 2026-10-17 (see "Fable review" below; fixes F1–F8 integrated on `integration/beta`) (owner, 2026-10-12): at the very END, after the refactor, before GA — a different model with fresh eyes over the whole product (public API + stability, security, wire contract + Java/.NET/Python parity, core architecture, docs-vs-reality, a new developer's first hour). Runs on the separate Fable weekly quota (`model: "fable"` agents). Its report becomes the GA blocker list.
 6. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
    then beta, then GA.
 
@@ -71,6 +71,11 @@ batch closes the included PRs. Agent worktrees live under `.claude/worktrees/` �
 IntelliJ down; `.claude` is excluded in Miguel's IDE).
 
 ## State at last update
+- **Beta candidate integrated, pending CI** (2026-10-18): local branch `integration/beta` = origin/master (alpha.425)
+  + refactor R1–R7 + review F1–F8 + `fixes/extra` + `fixes/natives2` (contains R6) + three leftover branches
+  (`beta/l1`–`l3`), bundles rebuilt once, every gate green locally (see "Beta integration" below). Next: push,
+  ONE PR, merge when green, release **v3.0-alpha.426** with `notes-426` (the release notes file written by the
+  session; CHANGELOG has the same section), then the pre-beta review with Miguel.
 - Latest release: **v3.0-alpha.422**. Demos were last redeployed on alpha.414 (image tag 2026.10.12b) and verified in a browser.
 - **Phase 2 (walkthrough) integrated, pending CI**: local branch `integration/walkthrough-2` = origin/master + `walkthrough/authoring`
   + `walkthrough/native-ports` + `ga/control`, conflicts resolved keeping both sides' fixes and tests, bundles rebuilt once, every
@@ -93,6 +98,81 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   per-session; Java manifest settings only from system properties/env; Redwood federation doesn't know static remotes
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
+
+## Beta integration (phase 4 refactor + Fable review fixes, 2026-10-18 — `integration/beta`, pending CI)
+Merged in order r3, r1, r2, r4, r5, `fixes/natives2` (⊃ r6), `fixes/extra`, f8, f4, f3, f5, f6, f2, f1, f7, r7.
+Notable conflict resolutions:
+- Redwood poc vs R6's comment translation (`fixes/extra`, f1, f5): kept the fixes' code, translated their Spanish
+  comments; `rules.mjs` kept R4's evaluator (its regex literals already cover `fixes/extra`'s `@Pattern` case);
+  the test script runs both `test-conformance` (R4) and `test-security` (F1).
+- `mateu-field.ts`: R5's split kept, F1's markdown-as-data change re-applied in `fields/readOnly.ts`,
+  `fields/string/markup.ts` and the lazy registry (`mateu-markdown` instead of `vaadin-markdown`).
+- Conformance lists (Java/.NET/Python) and fixtures: union of F5's second-request cases and F6's ported
+  components → 52 cases, identical ×3 under F5's normaliser.
+- CHANGELOG: F2's entries under F8's new structure; parity.md / wire-specification.md / filters-and-listing.md
+  unions of F3+F5 / F5+F7 / F4+F7.
+Integration fixes (one commit each): BundleEndpoint → R2's top-level `BundleManifest`; `RunMethodActionRunner`
+reads state through `ComponentState` (`ComponentStateHelper.getState` now for removal); request-language lookups
+(`ValidationLocale`, `TranslatorContext`) use `getSingletonBean` (RequestBudgetTest); six reviewed edges added to
+the CoreLayeringTest allow-list (F2 settings/advertised actions, `fixes/extra` ValidationLocale); wire-schema.json
+regenerated for F3's `info` toast; adapters' parity tests expect the manifest's `"3.0"`; info/primary toast
+colour as a token; IntelliJ overlays render in place when headless (new drawer/generic-components cases threw
+`HeadlessException`); a .NET EntityIds test (Uidl branches had dropped to 89.97 % < 90); CI's Redwood coverage
+step now runs `test-conformance` + `test-security` (it ran neither; function coverage was under 95 without them).
+Leftovers fixed: SpecsIndex jar scan no longer closes the JVM-cached JarFile (+ concurrency test); the bundle
+endpoint's error body goes through the error boundary; the `infra/compiler` exclusions removed; design tokens
+locked at 549; exportBundle.ts comment; F1 (port index pages without markers + Mateu favicon, demo sites and
+the lib dev page icon, Redwood header-widget links as route hrefs, RN + IntelliJ credential scope); F3's
+HAMBURGUER warning test in `ProcessWideStateCollection`; F7 (CRUD import fetch path, demos off
+`HAMBURGUER_MENU` / `@KeycloakSecured`, `DashboardLayout`/`ContentLayout` `since=3.0-alpha.348, forRemoval`);
+R7 finding 2 = **ours**: seven core registries did their one-time load (I/O + logging) inside `synchronized`
+on the request path → virtual-thread pinning deadlock on Micronaut (JDK 21); now a `ReentrantLock`
+(+ `RouteRegistryLoadLockTest`); `MicronautBeanProvider.getBean` uses `findBean` (a miss no longer builds a
+logged exception); INFO `logback.xml` in micronaut-app1 and the starter; micronaut.md documents JDK 21–23
+pinning (`micronaut.executors.blocking.virtual=false` or JDK 24+). Verified: 6/6 cold bursts of 40, 4 workers ×2.
+Floors (measured → set): core 89.4 L / 77.9 B (89/77, unchanged); uidl 50.6/30.7 → 50/30 ↑; adapters' BRANCH
+floors **lowered by the minimum** — mvc 84.3 → 84, webflux 83.96 → 83, micronaut 80.95 → 80, quarkus 75.0 → 75,
+helidon 77.8 → 77 (each exactly one covered branch short after R3 moved MateuBundleController's branches to
+core; reason in each pom); .NET Uidl 99.1/90.8 · Core 96.4/85.2 · Dtos 99.9/100 · AspNetCore 98.3/86.0
+(unchanged); Python 95.5 L / 88.3 B (unchanged); libs/mateu 93.0 L / 81.3 B → 93/81 ↑; apps/vaadin
+86.9/86.1/82.4/75.6 → 86/86/82/75 ↑; visual editor 80.7/78.2/76.7/70.2 (unchanged); Redwood poc 98.2 L /
+85.2 B / 95.4 F → 98/85/95 ↑; RN 98.9/89.6/95.9 → branches 89 ↑; IntelliJ Kover 69.3 → 69 ↑; lint ceiling
+420 → 376.
+Tests (all green): Java 2874 (core 2273, japicmp `-Dmateu.api.enforce=true` on dtos+uidl+core ✅), .NET 988
+(net8), Python 1061 (3.12 and 3.14) + mypy clean, libs/mateu 2242, apps/vaadin 305, visual editor 484, VS Code
+175 (+ package), RN 559 + tsc + parity, Redwood 17 suites + make-html/nls/amd checks + parity, IntelliJ 459
+(1 skipped) + koverVerify, MCP, prompt-to-app, Figma plugin. E2E via `scripts/ci-e2e-leg.sh` (offset 12720 →
+ports 20800–20806): core 628 + 1 skipped (mvc-app1, journeys, renderer-vaadin, federations, yaml-federation),
+slow-network 10/10, axe 0 violations on 16 routes; webflux-quarkus 992 + 12 skipped; micronaut-helidon 992 + 12
+skipped; renderer-vb (one worker): vb-smoke 11/11, vb-a11y 10/10, vb-slow-network 8/8, Playwright 65 + 1 skipped.
+Not run locally: the .NET net10.0 leg, the Python wheel / lowest-deps / 3.11 / 3.13 jobs, CI itself (R7's legs
+are first proven by the PR run).
+
+## Fable review (2026-10-17) — verdict and what was done
+Verdict: **ready for a public beta after the four blockers; not ready for GA** (BLOCKER 4 · MAJOR 27 · MINOR 34;
+report kept in the session scratchpad, `review/fable-ga-review.md`). All four blockers fixed: B1 data HTML
+allow-list (F1), B2 CSRF auto-exemption + docs (F2), B3 .NET Save/Delete refuse (F3), B4 doc samples (F7).
+MAJORs fixed: M-S1 strict default, M-S2 settings from framework config, M-S3 mass assignment, M-S4/S7 HTML/URL
+sinks, M-S5 credential scope (web, Redwood, RN, IntelliJ), M-S6 active documents, M-S8 unknown action = 403 ×3,
+M-S9 Python gates (F1/F2/F3); M-A1/A2(part)/A3/A4/A6/A7(part)/A8 (F3/F4); M-A5 parity: honest page + ported
+toolbar/triggers/help/hints/generic components (F5/F6); M-W1 wire-schema.json, M-W2 absent==default contract +
+second-request cases, M-W3 Result/Stepper deprecated + web wire-type gate (F5); M-D1–D4 (F7); M-F1, M-X2 (F8);
+M-X1 wording + CoreLayeringTest (F7/R2). MINORs 1–4, 7–13, 15–18, 21–24, 26, 28, 30–34 fixed.
+**Left for the owner** (decisions, not bugs):
+- M-A2 rest: .NET `Mateu.Core` exposes 72 public engine types (`ReflectionMapper`, `SyncHandler`, `MateuRegistry`…)
+  with no `InternalsVisibleTo` — make them internal before the freeze, or declare them API.
+- M-A7 rest: the Python wheel installs four generic top-level packages (`mateu_uidl`, `mateu_dtos`, `mateu_core`,
+  `mateu_fastapi`) — rename under one `mateu_ui` namespace before GA, or accept.
+- MINOR 20: SPI signatures (`InstanceFactory.newInstance` checked exceptions, `ListingExporter.export throws
+  Exception`, `String`-only ids) — change before the freeze or keep.
+- Git history hygiene: an internal hostname survives in history (the removed `backend/probe-tmp.mjs`, MINOR 28) —
+  rewrite or accept.
+- MINOR 29: the Redwood jar redistributes the VB starter `index.html` with its Oracle copyright header — a
+  one-line legal confirmation of the template's terms.
+- MINOR 27 / refactor §5.10: `vaadin-lit` ships every asset twice (`static/` + `META-INF/resources/`, 8 MB for
+  4) — touches all five adapters and both ports; post-beta.
+- MINOR 19 (port string APIs where Java has enums), MINOR 14 rest, the 34 Java-only wire types beyond those F6
+  ported (listed honestly in parity.md).
 
 ## Coverage integration (phase 3, 2026-10-17 — `integration/coverage`, pending CI)
 Merged in order s2, s1, s3, s4, s5, s6, s7, s8 on top of `origin/integration/batch-3`. The only textual conflicts were the
@@ -386,18 +466,18 @@ lint 0 errors (415 warnings ≤ 420) · bundle freshness, design tokens (553), a
 bundle budget ✅. Not run locally: WebFlux/Quarkus/Micronaut/Helidon e2e, the static-bundle and yaml-federation Playwright
 projects, the .NET net10.0 target (no SDK here), RN tests — CI covers them.
 
-### Left for the next session (not done — budget)
-- Push `integration/walkthrough-2`, open the ONE batch-2 PR, merge when green; then push `integration/batch-3` (merge master
-  into it first), open the batch-3 PR, merge when green; cut the phase release (v3.0-alpha.423) with the behaviour notes:
-  validation re-checked server-side on `@Button`/`@Toolbar`; an app with no home opens on its first menu item on every backend;
-  a data fetch to a missing endpoint answers 404, never the index page; a record page is titled by the record in .NET/Python;
-  a delete or a filtered/paged deep link runs one search; the ports can serve the web renderer (`MATEU_UI`).
-- Owner-only leftovers of the decisions: publish `mateu-vaadin` to npm per release / package the renderer into PyPI and NuGet.
-- Redwood: the `@AppContext` picker preselects the first option — align with the decided contract (nothing selected until the
-  user picks, `app-context.md`); the oj-gantt negative-width console errors (not reproduced headless — recheck headed; if seen,
-  gate the oj-gantt on a laid-out container); authoring 10 (canvas stray filter select).
-- Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
-- Then phase 3 (coverage) and 4 (refactor) as planned.
+### Left for the next session
+- **Beta candidate**: push `integration/beta`, ONE PR, merge when green (R7's e2e legs and the `e2e` summary
+  check run for the first time there; if a leg flakes, rerun only it), then cut **v3.0-alpha.426** with the
+  session's `notes-426.md` (same content as the CHANGELOG section) and run `scripts/bump-example-version.sh`
+  once Central serves it (the release workflow now does it too, F8).
+- Remove the merged local branches' worktrees (`mateu-wt-r1`…`r7`, `-f1`…`-f8`, `-fix-*`, `-beta-l1`…`l3`).
+- Pre-beta review with Miguel: the owner list in "Fable review" above, plus the Micronaut SUT choice (virtual
+  threads left on so e2e exercises the default; `micronaut.executors.blocking.virtual=false` is the one-line
+  hardening).
+- Known follow-ups not scheduled: the .NET net10.0 leg and Python 3.11/3.13 + wheel jobs only run in CI;
+  Redwood federation (static remotes, remote custom elements); console registry; npm/PyPI/NuGet packaging of
+  the renderers (owner).
 
 ## (Superseded) Pending owner decisions — the original list, all applied above
 1. **Default home page** — 7 doc pages say an app opens on its first menu item; Redwood does, Vaadin shell + server don't. → implement the documented rule everywhere.
