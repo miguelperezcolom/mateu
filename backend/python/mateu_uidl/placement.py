@@ -30,6 +30,16 @@ class Searchable:
     def __init__(self, selector: type | None = None):
         self.selector = selector
 
+    # Value semantics for the FIELD MARKER only (``Searchable(X) == Searchable(X)``, like every
+    # other marker); a listing that declares the capability keeps identity semantics.
+    def __eq__(self, other: object) -> bool:
+        if type(self) is Searchable and type(other) is Searchable:
+            return self.selector == other.selector
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash((Searchable, self.selector)) if type(self) is Searchable else object.__hash__(self)
+
 
 @dataclass(frozen=True)
 class LinkTo:

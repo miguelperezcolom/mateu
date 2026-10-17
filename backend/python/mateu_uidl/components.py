@@ -723,13 +723,28 @@ class Timeline(Component):
 
 
 @dataclass(frozen=True)
-class Step:
-    """One step of a :class:`ProgressSteps`. ``status`` is done|current|upcoming."""
+class ProgressStep:
+    """One step of a :class:`ProgressSteps`. ``status`` is done|current|upcoming. (Java/.NET call
+    it ``Step``; Python's top-level ``mateu_uidl.Step`` is the wizard-step marker.)"""
 
     id: str | None = None
     title: str | None = None
     description: str | None = None
     status: str | None = None
+
+
+@dataclass(frozen=True)
+class Step(ProgressStep):
+    """Deprecated since 3.0-alpha.426: use :class:`ProgressStep` — this name clashed with the
+    wizard-step marker ``mateu_uidl.Step``."""
+
+    def __post_init__(self):
+        warnings.warn(
+            "mateu_uidl.components.Step is deprecated: use mateu_uidl.components.ProgressStep instead "
+            "(mateu_uidl.Step is the wizard-step marker).",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
 
 @dataclass(frozen=True)
@@ -779,7 +794,7 @@ class ProgressSteps(Component):
     """A read-only progress indicator: numbered steps joined by a connector — a horizontal row
     by default, a stacked column when ``vertical`` (the wizard RAIL mode)."""
 
-    steps: tuple[Step, ...] = ()
+    steps: tuple[ProgressStep, ...] = ()
     vertical: bool = False
     id: str | None = None
     style: str | None = None
@@ -2021,6 +2036,7 @@ __all__ = [
     "Kanban",
     "TimelineItem",
     "Timeline",
+    "ProgressStep",
     "Step",
     "ProgressSteps",
     "Stat",

@@ -86,7 +86,7 @@ from mateu_uidl.components import (  # noqa: E402
     PricingTable,
     ProgressSteps,
     Stat,
-    Step,
+    ProgressStep,
     Timeline,
     TimelineItem,
     Testimonial,
@@ -276,9 +276,9 @@ class CheckoutProgress(ComponentTreeSupplier):
         return ProgressSteps(
             id="progress",
             steps=(
-                Step(id="s1", title="Cart", status="done"),
-                Step(id="s2", title="Payment", description="in progress", status="current"),
-                Step(id="s3", title="Done", status="upcoming"),
+                ProgressStep(id="s1", title="Cart", status="done"),
+                ProgressStep(id="s2", title="Payment", description="in progress", status="current"),
+                ProgressStep(id="s3", title="Done", status="upcoming"),
             ),
         )
 

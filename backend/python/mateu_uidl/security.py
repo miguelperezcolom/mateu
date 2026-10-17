@@ -115,6 +115,7 @@ def disabled_unless(roles=(), groups=(), scopes=(), permissions=()):
     return deco
 
 
+@dataclass(frozen=True, init=False)
 class Audience:
     """PERSONA PROJECTION: the field is shown only when the CURRENT AUDIENCE — the app-state
     value under the ``"audience"`` key, i.e. the ``@app_context`` selector named audience — is
@@ -124,8 +125,10 @@ class Audience:
     The Python analogue of Java's ``@Audience``. On ``@button``/``@menu_item`` methods use the
     ``audience(...)`` decorator instead."""
 
+    audiences: tuple[str, ...]
+
     def __init__(self, *audiences: str):
-        self.audiences = tuple(audiences)
+        object.__setattr__(self, "audiences", tuple(audiences))
 
 
 def audience(*audiences: str):
