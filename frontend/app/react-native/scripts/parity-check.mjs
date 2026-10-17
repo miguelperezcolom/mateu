@@ -8,23 +8,36 @@ import { RN_COVERAGE, coverageTable } from './coverage.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..', '..', '..');
-const wireFile = join(repo, 'backend/shared/dtos/src/main/java/io/mateu/dtos/ComponentMetadataDto.java');
+const wireFile = join(repo, 'backend/shared/uidl/wire-schema.json');
 const rendererFile = join(here, '..', 'src/renderer/ComponentRenderer.tsx');
 const parityFile = join(repo, 'doc/src/content/docs/reference/parity.md');
 const START = '<!-- rn-coverage:start -->';
 const END = '<!-- rn-coverage:end -->';
 
-/** The wire's component type names (@JsonSubTypes.Type(..., name = "X")). */
-export const wireTypesOf = (java) => [...new Set([...java.matchAll(/name\s*=\s*"([A-Za-z]+)"/g)].map((m) => m[1]))];
+/**
+ * The wire's component types, from the generated wire-schema.json: the `type` discriminators of
+ * ComponentMetadataDto, split into those a server produces and the deprecated ones (registered,
+ * produced by nobody — a renderer need not draw them).
+ */
+export function wireTypesOf(schemaJson) {
+  const defs = JSON.parse(schemaJson).$defs;
+  const produced = [];
+  const deprecated = [];
+  for (const { $ref } of defs.ComponentMetadataDto.oneOf) {
+    const def = defs[$ref.split('/').pop()];
+    (def.deprecated ? deprecated : produced).push(def.properties.type.const);
+  }
+  return { produced, deprecated };
+}
 
 /** Coverage problems (pure: unit-tested by parityCheck.test.ts). */
-export function coverageProblems({ wireTypes, coverage, source, parity }) {
+export function coverageProblems({ wireTypes, deprecated = [], coverage, source, parity }) {
   const problems = [];
   for (const t of wireTypes) {
     if (!source.includes(`case '${t}':`)) problems.push(`wire type ${t} has no case in ComponentRenderer.tsx — it would render as "Unsupported component"`);
     if (!coverage[t]) problems.push(`wire type ${t} is not classified in scripts/coverage.mjs`);
   }
-  for (const t of Object.keys(coverage)) if (!wireTypes.includes(t)) problems.push(`coverage.mjs lists ${t}, which the wire does not have`);
+  for (const t of Object.keys(coverage)) if (!wireTypes.includes(t) && !deprecated.includes(t)) problems.push(`coverage.mjs lists ${t}, which the wire does not have`);
   if (parity != null) {
     const a = parity.indexOf(START);
     const b = parity.indexOf(END);
@@ -38,7 +51,7 @@ export function coverageProblems({ wireTypes, coverage, source, parity }) {
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
-  const wireTypes = wireTypesOf(readFileSync(wireFile, 'utf8'));
+  const { produced: wireTypes, deprecated } = wireTypesOf(readFileSync(wireFile, 'utf8'));
   const source = readFileSync(rendererFile, 'utf8');
   let parity = readFileSync(parityFile, 'utf8');
   if (process.argv.includes('--write')) {
@@ -52,10 +65,10 @@ if (isMain) {
     writeFileSync(parityFile, parity);
     console.log('parity.md: React Native coverage section regenerated');
   }
-  const problems = coverageProblems({ wireTypes, coverage: RN_COVERAGE, source, parity });
+  const problems = coverageProblems({ wireTypes, deprecated, coverage: RN_COVERAGE, source, parity });
   if (problems.length) {
     console.error(problems.map((p) => '  ✗ ' + p).join('\n'));
     process.exit(1);
   }
-  console.log(`React Native coverage OK (${wireTypes.length} wire types, all rendered; parity.md in sync)`);
+  console.log(`React Native coverage OK (${wireTypes.length} produced wire types + ${deprecated.length} deprecated, all rendered; parity.md in sync)`);
 }

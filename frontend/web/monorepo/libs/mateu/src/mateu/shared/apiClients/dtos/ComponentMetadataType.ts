@@ -6,16 +6,20 @@ export enum ComponentMetadataType {
     MicroFrontend = "MicroFrontend",
     Form = "Form",
     Crud = "Crud",
+    /** @deprecated registered on the wire, produced by no server (see {@link DEPRECATED_WIRE_TYPES}). */
     Result = "Result",
     Card = "Card",
     Directory = "Directory",
+    /** @deprecated registered on the wire, produced by no server (see {@link DEPRECATED_WIRE_TYPES}). */
     Stepper = "Stepper",
     HorizontalLayout = "HorizontalLayout",
     VerticalLayout = "VerticalLayout",
     SplitLayout = "SplitLayout",
     MasterDetailLayout = "MasterDetailLayout",
     TabLayout = "TabLayout",
+    Tab = "Tab",
     AccordionLayout = "AccordionLayout",
+    AccordionPanel = "AccordionPanel",
     FormLayout = "FormLayout",
     FormRow = "FormRow",
     FormItem = "FormItem",
@@ -117,3 +121,27 @@ export enum ComponentMetadataType {
     NotFound = "NotFound"
 
 }
+
+/**
+ * Wire types the shared client-side switch never draws on its own: their PARENT draws them (a form
+ * row/item by its form layout, a grid column by its grid, a tab by its tab layout, an accordion
+ * panel by its accordion).
+ */
+export const DRAWN_BY_THEIR_PARENT = [
+    ComponentMetadataType.FormRow,
+    ComponentMetadataType.FormItem,
+    ComponentMetadataType.GridColumn,
+    ComponentMetadataType.GridGroupColumn,
+    ComponentMetadataType.Tab,
+    ComponentMetadataType.AccordionPanel,
+] as const
+
+/**
+ * Registered on the wire but produced by no server — no mapper, no authoring record, no port
+ * (`ResultDto`/`StepperDto` are deprecated for removal and carry `"deprecated": true` in
+ * wire-schema.json). A renderer need not draw them.
+ */
+export const DEPRECATED_WIRE_TYPES = [
+    ComponentMetadataType.Result,
+    ComponentMetadataType.Stepper,
+] as const

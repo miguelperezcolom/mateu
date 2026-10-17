@@ -12,10 +12,17 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, '..', '..', '..', '..', '..');
 
 test('every wire component type has a native case and a coverage entry', () => {
-  const wireTypes = wireTypesOf(readFileSync(join(repo, 'backend/shared/dtos/src/main/java/io/mateu/dtos/ComponentMetadataDto.java'), 'utf8'));
-  assert.ok(wireTypes.length >= 115);
+  const { produced: wireTypes, deprecated } = wireTypesOf(readFileSync(join(repo, 'backend/shared/uidl/wire-schema.json'), 'utf8'));
+  assert.ok(wireTypes.length >= 114);
+  // registered but produced by no server: not required (RN still draws them)
+  assert.deepEqual([...deprecated].sort(), ['Result', 'Stepper']);
   const source = readFileSync(join(here, 'ComponentRenderer.tsx'), 'utf8');
-  assert.deepEqual(coverageProblems({ wireTypes, coverage: RN_COVERAGE, source, parity: null }), []);
+  assert.deepEqual(coverageProblems({ wireTypes, deprecated, coverage: RN_COVERAGE, source, parity: null }), []);
+});
+
+test('a deprecated wire type is neither required nor a phantom', () => {
+  assert.deepEqual(coverageProblems({ wireTypes: ['Grid'], deprecated: ['Old'], coverage: { Grid: { status: 'full' }, Old: { status: 'full' } }, source: "case 'Grid':", parity: null }), []);
+  assert.deepEqual(coverageProblems({ wireTypes: ['Grid'], deprecated: ['Old'], coverage: { Grid: { status: 'full' } }, source: "case 'Grid':", parity: null }), []);
 });
 
 test('a wire type without a case is reported', () => {

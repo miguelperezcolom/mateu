@@ -5082,6 +5082,7 @@
     },
     "ResultDto" : {
       "type" : "object",
+      "deprecated" : true,
       "properties" : {
         "type" : {
           "const" : "Result"
@@ -5527,6 +5528,7 @@
     },
     "StepperDto" : {
       "type" : "object",
+      "deprecated" : true,
       "properties" : {
         "type" : {
           "const" : "Stepper"

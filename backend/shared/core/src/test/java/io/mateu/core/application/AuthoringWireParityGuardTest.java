@@ -147,9 +147,9 @@ class AuthoringWireParityGuardTest {
               // The app shell — authored via @App/@Menu/@UI + AppSupplier/MenuSupplier, no single
               // authoring record; the wire DTO is composed by the app mapper.
               "AppDto",
-              // The action-result page — server-composed from an action's outcome.
+              // Deprecated for removal: nothing produces them (no mapper, no record, no port) —
+              // registered only because the wire is additive within a major.
               "ResultDto",
-              // The wizard stepper chrome — server-composed from the wizard's steps.
               "StepperDto"));
 
   @Test

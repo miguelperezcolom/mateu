@@ -179,7 +179,9 @@ const full =
         (c: RenderContext) => fn(c.container, c.component, c.baseUrl, c.state, c.data, c.appState, c.appData)
 
 // Maps a component metadata type to the function that renders it. Built once at module load.
-const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => TemplateResult>> = {
+// Every wire type but those drawn by their parent and the deprecated ones must be here (the
+// dispatch test checks it against wire-schema.json).
+export const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => TemplateResult>> = {
     [ComponentMetadataType.Bpmn]: ({ component }) => renderBpmn(component),
     [ComponentMetadataType.Workflow]: ({ component }) => renderWorkflow(component),
     [ComponentMetadataType.FormEditor]: ({ component }) => renderFormEditor(component),

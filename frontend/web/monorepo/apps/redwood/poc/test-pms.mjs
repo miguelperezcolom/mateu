@@ -15,7 +15,7 @@ import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
 import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
 import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.mjs'
 import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
-import { coverageProblems } from './parity-check.mjs'
+import { coverageProblems, wireTypesOf } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
@@ -879,6 +879,15 @@ test('parity-check: detecta tipos sin clasificar, promesas sin rama, ramas sin p
   assert.match(coverageProblems({ ...ok, source: "findByType(panel, 'Chart')" }).join(), /Text is claimed full but the renderer has no t === 'Text'/)
   assert.match(coverageProblems({ ...ok, source: source + " t === 'Kanban'" }).join(), /Kanban is marked none but the renderer has/)
   assert.match(coverageProblems({ ...ok, parity: '<!-- redwood-coverage:start -->\nold\n<!-- redwood-coverage:end -->' }).join(), /stale/)
+  // un tipo deprecado (registrado, nadie lo produce) no se exige ni es fantasma si está clasificado
+  assert.deepEqual(coverageProblems({ ...ok, wireTypes: ['Text', 'Kanban'], deprecated: ['Chart'] }), [])
+})
+
+test('parity-check: los tipos salen del wire-schema.json, los deprecados aparte', () => {
+  const repo = join(here, '..', '..', '..', '..', '..', '..')
+  const { produced, deprecated } = wireTypesOf(readFileSync(join(repo, 'backend/shared/uidl/wire-schema.json'), 'utf8'))
+  assert.ok(produced.length >= 114)
+  assert.deepEqual([...deprecated].sort(), ['Result', 'Stepper'])
 })
 
 // ── P1 #13 dashboard y gráficos en cualquier página ──────────────────────────────────────────

@@ -120,6 +120,10 @@ public final class WireSchemaGenerator {
     }
     var def = MAPPER.createObjectNode().put("type", "object");
     defs.put(name(type), def); // placed first: a type may reference itself
+    if (type.isAnnotationPresent(Deprecated.class)) {
+      // nothing produces it; a renderer need not draw it (still valid on the wire until a major)
+      def.put("deprecated", true);
+    }
     var properties = def.putObject("properties");
     var discriminator = discriminatorOf(type);
     if (discriminator != null) {
