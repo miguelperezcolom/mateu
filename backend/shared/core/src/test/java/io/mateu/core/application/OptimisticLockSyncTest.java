@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.DialogDto;
+import io.mateu.dtos.FormFieldDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Title;
@@ -196,5 +197,35 @@ class OptimisticLockSyncTest {
             io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.versionField(
                 BulkActionsSyncTest.Invoice.class))
         .isEmpty();
+  }
+
+  private UIIncrementDto load(String route) {
+    return mateu.run(
+        RunActionRqDto.builder()
+            .route(route)
+            .consumedRoute("/locked-articles")
+            .serverSideType(ArticlesCrud.class.getName())
+            .actionId("")
+            .initiatorComponentId("c1_app")
+            .build());
+  }
+
+  @Test
+  void theVersionRidesInTheEditorStateButIsNeverAnInput() {
+    var increment = load("/locked-articles/1/edit");
+    var fields =
+        increment.fragments().stream()
+            .flatMap(f -> FieldKindsSyncTest.collect(f.component(), FormFieldDto.class).stream())
+            .map(FormFieldDto::fieldId)
+            .toList();
+    assertThat(fields).contains("name").doesNotContain("version");
+    assertThat(increment.toString()).contains("version=1");
+    // nor on the creation form
+    var creation =
+        load("/locked-articles/new").fragments().stream()
+            .flatMap(f -> FieldKindsSyncTest.collect(f.component(), FormFieldDto.class).stream())
+            .map(FormFieldDto::fieldId)
+            .toList();
+    assertThat(creation).contains("name").doesNotContain("version");
   }
 }

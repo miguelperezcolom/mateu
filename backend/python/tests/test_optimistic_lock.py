@@ -205,3 +205,29 @@ def test_overwriting_an_inline_row_edit_adopts_and_bumps_the_stored_version():
     assert "Modificado por otro usuario" not in render(inc)
     assert _ARTICLES["1"].name == "Row change"
     assert _ARTICLES["1"].version == 3
+
+
+def test_the_version_rides_in_the_editor_state_but_is_never_an_input():
+    """Java's OptimisticLockSyncTest.theVersionRidesInTheEditorStateButIsNeverAnInput."""
+    _seed()
+    for route in ("/locked-articles/1/edit", "/locked-articles/new"):
+        inc = handler().handle(
+            RunActionRq(
+                route=route,
+                consumed_route="/locked-articles",
+                server_side_type=type_name(ArticlesCrud),
+            )
+        )
+        j = render(inc)
+        assert '"fieldId": "name"' in j
+        assert '"fieldId": "version"' not in j
+    edit = render(
+        handler().handle(
+            RunActionRq(
+                route="/locked-articles/1/edit",
+                consumed_route="/locked-articles",
+                server_side_type=type_name(ArticlesCrud),
+            )
+        )
+    )
+    assert '"version": 1' in edit

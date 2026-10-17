@@ -3013,6 +3013,21 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void The_version_rides_in_the_editor_state_but_is_never_an_input()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Draft", Version = 1 };
+        foreach (var route in new[] { "articles/a1/edit", "articles/new" })
+        {
+            var json = Render(Handler().Handle(new RunActionRqDto { Route = route, ServerSideType = typeof(Articles).FullName }));
+            Assert.Contains("\"fieldId\":\"name\"", json);
+            Assert.DoesNotContain("\"fieldId\":\"version\"", json);
+        }
+        var edit = Render(Handler().Handle(new RunActionRqDto { Route = "articles/a1/edit", ServerSideType = typeof(Articles).FullName }));
+        Assert.Contains("\"version\":1", edit);
+    }
+
+    [Fact]
     public void Entities_without_a_version_property_save_as_before()
     {
         StockCrud.Store.Clear();

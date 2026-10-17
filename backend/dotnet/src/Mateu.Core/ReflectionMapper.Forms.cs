@@ -88,7 +88,11 @@ public sealed partial class ReflectionMapper
     // read-only view with many sections is presented as adaptable tabs.
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
-        var props = EditableProperties(type).Where(Visible).ToList();
+        // The optimistic-lock [Version] is plumbing, not an input: it rides in the state (the save
+        // compares it) but an editable form never shows it — it was an editable number, so a user
+        // could type their way past the conflict check (Java's FormFieldFilter.hiddenInEditor).
+        var props = EditableProperties(type).Where(Visible)
+            .Where(p => readOnly || p.Find<VersionAttribute>() is null).ToList();
         // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
         // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
         if (props.Any(p => p.Find<TabAttribute>() != null))

@@ -31,6 +31,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    Version,
     Aside,
     Multiline,
     PlainText,
@@ -155,7 +156,12 @@ class LayoutMapperMixin(MixinBase):
 
     def form_cards(self, cls, instance, read_only: bool = False, column_width: str | None = None) -> list:
         read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-        fields = [f for f in view_fields(cls) if self.visible(f)]
+        # The optimistic-lock Version() is plumbing, not an input: it rides in the state (the save
+        # compares it) but an editable form never shows it — it was an editable number, so a user
+        # could type their way past the conflict check (Java's FormFieldFilter.hiddenInEditor).
+        fields = [
+            f for f in view_fields(cls) if self.visible(f) and (read_only or not f.has(Version))
+        ]
         if any(f.has(Tab) for f in fields):
             # A tabbed form is wrapped in the same outlined section Card as a plain section (the
             # TabLayout nests under Div → VerticalLayout → TabLayout).
