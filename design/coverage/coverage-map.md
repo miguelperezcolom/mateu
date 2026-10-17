@@ -46,6 +46,7 @@ How it was measured (reproducible):
 | React Native `.tsx` (37 files, 11.4k lines) | 0 | **unmeasured** | | none | — |
 | IntelliJ plugin | 327 | **48.6%** | 39.2% | Kover minBound 47 | 31.4 |
 | VS Code extension | 160 | **96.2%** | 79.3% | 96 / 91 / 94 / 79 | — |
+| E2E Playwright — shared (per adapter) + `journeys` (mvc-app1) | 494 per adapter + 36 journeys (30 run, 6 fixme = bugs found) | n/a (behaviour, not lines) | | all green; web slow-network probe (10 checks) + axe audit (16 routes) are CI gates since S8 | §4 |
 
 All suites pass and all gates are met on master (Quarkus only after the tooling problem in §5.2).
 
@@ -187,6 +188,27 @@ VS Code — 96.2%; only `LiveRunCommand.ts` (77%) is below 90.
 
 ## 4. End-to-end
 
+**Update (S8, 2026-10-17).** Re-audited on `integration/batch-3`: the walkthrough phase had already
+closed most of the list below (wizards, archetypes, app chrome, inter-component, capture/tree-select/
+auto-save, translations, session expiry, undo — see `tests/shared/*-walk`, `archetypes`,
+`interactive-display`, `shell-header`, `events-overlays-lab`, `actions-lab`), and the pre-existing
+`bulk-action-buttons` failure of §5.12 no longer reproduces (494/494 on mvc-app1). S8 added the
+**`journeys` Playwright project** (`e2e/tests/journeys`, mvc-app1 only, fixtures in
+`io.mateu.sample1.app.journeys`, ~15 s) for what was still missing: CRUD drawer + Save and next,
+inline editing, the `@Version` conflict with two users, totals/grouping that follow the search,
+`@DragRows` + `DropZone`, saved views, column chooser, `@Tab(open)`, `@BulletedList`,
+`@SeparatorBefore`, `@Notice`, `@PhotoCapture` (fake camera); **role-based access** through a
+TEST-ONLY cookie `PrincipalResolver` (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` incl. a 403 on
+a replayed request, YAML `access:` and `eyesOnly` granted); **YAML proxied reads/writes with a
+`${secret.X}`** against a real local upstream. The web `slow-network-probe.mjs` and `a11y-audit.mjs`
+(now a gate) run in the CI `e2e` job. Six journeys are `test.fixme` — each pins a production bug
+found while writing it (conflict dialog buttons, stale grid after a re-rendering action, by-ref
+action without an app shell, separator inside a tab). Still not covered: environments and
+sample-data mode (process-wide switches — they need their own SUT start), documents/print, and
+the native renderers' probes (`rn-a11y-probe.mjs`, needs expo).
+
+Original inventory (2026-10-12):
+
 Inventory: `e2e/tests/shared` has **23 spec files (~4.4k lines)** run against the 5 adapter SUTs;
 8 of them are wire-level API tests (`request`), not browser journeys (`features.spec.ts` and
 `recent-features.spec.ts` are the bulk of the "feature" coverage and assert on JSON). Plus
@@ -255,9 +277,9 @@ are pinned by core SyncTests + unit tests):
    narrowed (`-p:TargetFrameworks=net8.0`); worth a note in `backend/dotnet/README.md`.
 10. **CLAUDE.md is stale** on core coverage ("77.8% / gate 75%"): the pom gate is 84% and the
     measure 84.7%.
-11. **Probes not in CI**: web `slow-network-probe.mjs`, `a11y-audit.mjs`, `rn-a11y-probe.mjs`.
+11. **Probes not in CI**: web `slow-network-probe.mjs`, `a11y-audit.mjs`, `rn-a11y-probe.mjs`. *(S8: the two web probes now run in the `e2e` job; `rn-a11y-probe.mjs` still needs expo.)*
 12. **Pre-existing failing e2e** noted in `frontends.md` (`bulk-action-buttons` › selection guard with
-    an `@Action`) — confirm before the e2e stream starts.
+    an `@Action`) — confirm before the e2e stream starts. *(S8: no longer reproduces — 494/494 on mvc-app1.)*
 
 ## 6. Fan-out plan — 8 independent streams
 
