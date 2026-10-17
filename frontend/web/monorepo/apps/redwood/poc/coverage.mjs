@@ -118,6 +118,7 @@ export const REDWOOD_COVERAGE = {
   Breadcrumb: { status: 'part', note: 'of Breadcrumbs' },
   Grid: { status: 'full', note: 'oj-table (list display): tree rows with disclosure, client-side paging by its size' },
   GridColumn: { status: 'part', note: 'of Grid / Crud' },
+  GridGroupColumn: { status: 'part', note: 'of Grid / Crud: oj-table has no grouped headers, so the group label prefixes its columns ("Occupancy · Adults")' },
   VirtualList: { status: 'full', note: 'every item through the same projection (no windowing — neither has the neutral web renderer)' },
   MenuBar: { status: 'full', note: 'oj-buttons, links and oj-menu-buttons for submenus' },
   MessageList: { status: 'full', note: 'oj-avatar + name, time and text per message' },

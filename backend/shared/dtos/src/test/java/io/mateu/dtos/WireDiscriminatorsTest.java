@@ -49,13 +49,10 @@ class WireDiscriminatorsTest {
    * <ul>
    *   <li>{@code KPIDto}: travels as a typed list ({@code PageDto.kpis}), never dispatched on; its
    *       wire name has always been the default {@code "KPIDto"}, which the ports mirror.
-   *   <li>{@code GridGroupColumnDto}: a BUG — it leaves as {@code "GridGroupColumnDto"} while the
-   *       renderers look for {@code "GridGroupColumn"}, so a fluent grid's column group renders as
-   *       a plain column. Register it as {@code GridGroupColumn} once the renderers' gates know it.
    * </ul>
    */
   private static final java.util.Set<Class<?>> KNOWN_UNREGISTERED =
-      java.util.Set.of(KPIDto.class, GridGroupColumnDto.class);
+      java.util.Set.of(KPIDto.class);
 
   /** {@code BreadcrumbDto} is registered but is no component (it travels inside Breadcrumbs). */
   private static final java.util.Set<Class<?>> KNOWN_STRANGERS =

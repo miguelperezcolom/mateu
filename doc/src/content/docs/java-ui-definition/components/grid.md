@@ -70,6 +70,31 @@ new Page<>(
 | `actionId` | String | — | Makes cells clickable and fires this action |
 | `tooltipPath` | String | — | Row property shown as a tooltip |
 
+## Column groups
+
+A `GridGroupColumn` puts a header over several columns. It sits in `content` next to the plain
+columns:
+
+```java
+Grid.builder()
+    .content(List.of(
+        GridColumn.builder().id("room").label("Room").build(),
+        GridGroupColumn.builder()
+            .id("occupancy")
+            .label("Occupancy")
+            .columns(List.of(
+                GridColumn.builder().id("adults").label("Adults").build(),
+                GridColumn.builder().id("children").label("Children").build()))
+            .build()))
+    .page(new Page<>("", rows.size(), 0, rows.size(), rows))
+    .build()
+```
+
+The Vaadin renderer draws a real header group (`vaadin-grid-column-group`). Redwood's `oj-table`,
+Swing tables in the IntelliJ plugin and the React Native tables have flat headers, so they show each
+grouped column with the group label in front of its own, e.g. "Occupancy · Adults". No column is
+dropped. In YAML a group is `type: GridGroupColumn` with its own `columns:` list.
+
 ## Sortable and filterable columns
 
 ```java

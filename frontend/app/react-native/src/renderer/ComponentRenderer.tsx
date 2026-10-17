@@ -352,6 +352,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <NestedAppRenderer metadata={metadata} />;
     case 'Grid':
       return <GridRenderer component={component} state={state} data={data} />;
+    // a column (or a column group) outside its Grid/Crud: just its header text
+    case 'GridGroupColumn':
     case 'GridColumn':
       return <GridColumnRenderer metadata={metadata} />;
     case 'VirtualList':

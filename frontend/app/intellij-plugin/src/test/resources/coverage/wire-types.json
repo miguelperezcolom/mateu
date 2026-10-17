@@ -491,6 +491,17 @@
      },
      {
       "type": "ClientSide",
+      "id": "c41g",
+      "metadata": {
+       "type": "GridGroupColumn",
+       "id": "orphanGroup",
+       "label": "Orphan group",
+       "columns": []
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
       "id": "c42",
       "metadata": {
        "type": "VirtualList",

@@ -319,9 +319,10 @@ private fun cellText(v: JsonNode): String = when {
     else -> v.toString()
 }
 
-/** Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only. */
+/** Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only; a
+ *  column group becomes its columns headed "Group · Column" ([ColumnGroups]). */
 fun renderGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val columns = metadata.path("content").items().map { it.path("metadata").takeIf { m -> m.isObject } ?: it }
+    val columns = metadata.leafColumns("content").map { it.path("metadata").takeIf { m -> m.isObject } ?: it }
         .filter { it.text("type", "GridColumn") == "GridColumn" }
     val rows = pageRows(component, metadata, state, data)
     val ids = columns.map { it.text("id") }.ifEmpty { rows.firstOrNull()?.fieldNames()?.asSequence()?.toList() ?: emptyList() }

@@ -7,7 +7,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -501,11 +501,13 @@ export function islandContentOf(ctx, opts = {}) {
       // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
       // búsqueda—, es una tabla más del contenido.
       if ((m.columns || []).length) {
+        // the field's column groups flattened, the group label prefixing its columns' (leafColumnsOf)
+        const leafCols = leafColumnsOf(m.columns, interp)
         const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
         // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
         // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
         const rowEditable = isModalRowEditor(m)
-        const columns = m.columns
+        const columns = leafCols
           .map((col) => col.metadata || col)
           // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
           .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
@@ -528,7 +530,7 @@ export function islandContentOf(ctx, opts = {}) {
           }
           return out
         }
-        const shown = labelCellRows(statusBadgeRows(rows, m.columns), m.columns).map((row, i) => (rowEditable
+        const shown = labelCellRows(statusBadgeRows(rows, leafCols), leafCols).map((row, i) => (rowEditable
           ? {
             ...dashEmpty(row),
             _rowNumber: row._rowNumber == null ? i : row._rowNumber,
@@ -956,15 +958,9 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'Grid') {
       // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
-      // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
-      const leafColumns = []
-      const walkCols = (n) => {
-        const cm = n && (n.metadata || n)
-        if (!cm) return
-        if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
-        if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
-      }
-      ;(m.content || []).forEach(walkCols)
+      // un campo de tipo lista — oj-table en modo lista; column groups are flattened (oj-table has
+      // no grouped headers): the group's label prefixes its columns' — leafColumnsOf
+      const leafColumns = leafColumnsOf(m.content, interp).filter((c) => c.type === 'GridColumn' || c.id)
       const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
       const raw = (m.page && m.page.content) || []
       // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
@@ -1652,7 +1648,7 @@ export function withSubresources(blocks, contexts) {
         return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
       }
       const md = crud.metadata || {}
-      const wire = (md.columns || []).map((col) => col.metadata || col)
+      const wire = leafColumnsOf(md.columns)
         // las acciones por fila no tienen sitio en la tabla de solo consulta
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}

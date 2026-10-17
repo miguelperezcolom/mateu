@@ -52,7 +52,8 @@ final class WidgetComponentDispatcher {
       return mapGridColumnToDto(gridColumn, baseUrl, route, httpRequest);
     }
     if (component instanceof GridGroupColumn gridGroupColumn) {
-      return mapGridGroupColumnToDto(gridGroupColumn, baseUrl, route, httpRequest);
+      return mapGridGroupColumnToDto(
+          gridGroupColumn, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Directory directory) {
       return mapDirectoryToDto(

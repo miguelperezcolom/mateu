@@ -67,7 +67,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     panel.add(header, BorderLayout.NORTH)
 
     // ── column specs ──
-    val allSpecs = metadata.arr("columns").map { col ->
+    val allSpecs = metadata.leafColumns().map { col ->
         val cm = col.path("metadata")
         val id = cm.text("id", col.text("id"))
         val label = cm.text("label", id)
@@ -182,7 +182,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Header click cycles the column sort (ascending → descending → none) and re-runs the search
     // with the Pageable shape [{field, direction}].
     run {
-        val sortables = metadata.arr("columns").mapNotNull { col ->
+        val sortables = metadata.leafColumns().mapNotNull { col ->
             val cm = col.path("metadata")
             val id = cm.text("id", col.text("id"))
             if (cm.bool("sortable")) id to cm.text("sortingProperty").ifBlank { id } else null
@@ -534,7 +534,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     if (rowsSource.isObject) {
         // Resolve a catalogue `ref` so url, itemsPath and the proxy flag come from the resolved source.
         val rowsResolved = RestFetch.resolveRestSource(rowsSource)
-        val columnIds = metadata.arr("columns")
+        val columnIds = metadata.leafColumns()
             .map { it.path("metadata").text("id", it.text("id")) }
             .filter { it.isNotBlank() }
         val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
@@ -917,12 +917,12 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
         l.font = l.font.deriveFont(Font.BOLD, 18f)
         panel.add(l, BorderLayout.NORTH)
     }
-    val firstColumn = metadata.arr("columns").firstNotNullOfOrNull { col ->
+    val firstColumn = metadata.leafColumns().firstNotNullOfOrNull { col ->
         val cm = col.path("metadata")
         val id = cm.text("id", col.text("id"))
         if (id.isBlank() || id.startsWith("_") || cm.text("dataType") in setOf("actionGroup", "menu", "action")) null else id
     } ?: "name"
-    val linkActionId = metadata.arr("columns").firstNotNullOfOrNull { col ->
+    val linkActionId = metadata.leafColumns().firstNotNullOfOrNull { col ->
         col.path("metadata").text("actionId").ifBlank { null }
     } ?: "select"
 

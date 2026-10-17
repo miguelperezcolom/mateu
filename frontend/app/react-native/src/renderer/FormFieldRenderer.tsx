@@ -36,6 +36,7 @@ import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y
 import { fieldPlaceholder } from '../core/uxRules';
 import { richTextHtml } from '../core/richTextValue';
 import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
+import { flattenColumnGroups } from './columnGroups';
 
 interface Option {
   children?: Option[];
@@ -162,7 +163,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     if (stereotype === 'grid' || (dataType === 'array' && (metadata.columns?.length ?? 0) > 0)) {
       return (
         <GridField
-          columns={(metadata.columns ?? []).map((c) => c.metadata).filter(Boolean) as GridColumnMeta[]}
+          columns={flattenColumnGroups(metadata.columns ?? []).map((c) => c.metadata).filter(Boolean) as GridColumnMeta[]}
           rows={Array.isArray(rawValue) ? (rawValue as Record<string, unknown>[]) : []}
           editable={editable}
           onChange={(rows) => commit(fieldId, rows)}
