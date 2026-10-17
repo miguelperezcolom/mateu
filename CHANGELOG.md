@@ -9,80 +9,229 @@ first — it collects every rename and removal in one place.
 
 This file starts at `v3.0-alpha.400`. For older releases, see the GitHub releases page.
 
-## [Unreleased] — towards 3.0 beta
+## [Unreleased]
+
+Changes merged after `3.0-alpha.425`, towards the 3.0 beta.
+
+### Changed
+- A .NET or Python server that serves no web renderer answers a browser opening its mount with a
+  short page explaining the sync API and `MATEU_UI` (still status 404) instead of a bare 404.
+
+### Fixed
+- The Vaadin renderer no longer prints its own Lumo-mixin deprecation and vaadin-card style-module
+  warnings in the browser console (the date-range picker, a third-party component, still prints one).
+
+## [3.0-alpha.425] — 2026-10-17
+
+Optimistic locking in the browser, new field types, MCP fixes and raised test coverage.
+
+### Added
+- Field types `BigInteger`, `java.util.Date`, `java.sql.Date`, `ZonedDateTime`, `File`, `Optional<…>`;
+  `Status` fields render.
+- Grid column groups reach every renderer.
+- REST sources named by `ref` work on pages without an app shell (`UIIncrementDto.restSources`).
+
+### Fixed
+- **Optimistic locking**: the conflict dialog's Reload / Overwrite work in the browser (routed editor
+  and drawer); texts in English and translatable; `@Version` hidden on edit forms.
+- MCP: listings, search text and results, content under an app shell and `@EyesOnly` action
+  filtering — Java, .NET, Python and the sidecar.
+- Derived OpenAPI / generated server: path parameters as `{id}` / `@PathVariable`.
+- Menus of non-root apps no longer double the mount; drawer forms validate in the browser;
+  read-only passwords are masked; `@SeparatorBefore` inside `@Tab`; React Native button routes
+  navigate; ~25 smaller renderer and port fixes.
+
+### Build and CI
+- Coverage raised with ratcheted floors (core 89 %, web lib 93 %, Vaadin 86 %, ports 95–97 %) and
+  an end-to-end `journeys` suite.
+
+## [3.0-alpha.424] — 2026-10-17
+
+The .NET and Python servers serve the web renderer themselves.
+
+### Added
+- **The .NET and Python servers serve the web renderer**: `MapMateu(ui:)` (.NET), `add_mateu(ui=…)`
+  (Python) or `MATEU_UI`.
+- Any `specs/ui` file declaring `type: Types` is read; the ports' YAML gains `Listing` over a REST
+  source and RouteLink buttons; .NET `PageBanners.Replace/Append`; .NET/Python record pages are
+  titled by the record.
+
+### Fixed
+- Redwood: islands held by form fields, drawers under dialogs, `Callable<Component>` holders, the
+  `@Toc` index, calendar event and map marker clicks.
+- Listings send one search per delete/bulk action and per filtered deep link; `?page=N` deep links
+  open that page.
+- Number fields keep numbers in the state; `Callable<String>` renders as read-only text.
+- IntelliJ: canvases (Gantt, Kanban, planning board, matrix grid) keep their height on long pages.
+
+## [3.0-alpha.423] — 2026-10-17
+
+GA walkthrough, batch 2: YAML authoring, data and tooling, native renderers and the ports as servers.
+
+### Fixed
+- GA walkthrough batch 2: YAML authoring, data and tooling (wizards, editor, bundle, OpenAPI), the
+  native renderers and the .NET / Python servers — each fix with a permanent test.
+- Helidon, Quarkus, Micronaut: refused YAML routes and streamed actions answer 403; data fetches to
+  the index answer 404.
+- React Native: stack-aware navigation (a saved create/edit form gives its place to the record);
+  numeric and rich-text fields.
+- .NET / Python: terminal-route rule aligned with Java; .NET `[Range]` follows Bean semantics.
+- IntelliJ: the global-search editor has an accessible name.
+
+## [3.0-alpha.422] — 2026-10-15
+
+Redwood: pages whose header paints the toolbar keep their tables and web components.
+
+### Fixed
+- Redwood: a page whose header paints the toolbar keeps its tables and web components (since
+  alpha.417 the content was JSON-copied, so embedded grids lost their data provider).
+
+## [3.0-alpha.421] — 2026-10-14
+
+Listings inside drawers and dialogs on Redwood.
+
+### Fixed
+- A `Listing` embedded in a Drawer or Dialog is drawn as a listing on Redwood (search, columns,
+  paging, first page on opening, row clicks in the overlay), and its first search is no longer
+  refused.
+
+## [3.0-alpha.420] — 2026-10-14
+
+Redwood scroll position on navigation.
+
+### Fixed
+- Redwood: another screen opens at its top (not on back/forward, deep links, live reload or embedded).
+
+### Build and CI
+- The Redwood suites run in English whatever the machine's locale.
+
+## [3.0-alpha.419] — 2026-10-13
+
+Wizard Back button and Redwood page bands.
+
+### Fixed
+- A wizard draws no Back button on the first step shown.
+- Redwood: an `EntityHeader` fact with an action is not taken for a page button; content is no
+  longer hidden under a sticky page band.
+
+## [3.0-alpha.418] — 2026-10-13
+
+Crud record pages: page types, widths and the folded section bar.
+
+### Fixed
+- A crud's record page is typed `detail` and its editor/creation form `form` (an explicit
+  `@PageTemplate` still wins); an edge-to-edge form keeps its gutter; the folded section bar pins
+  under the whole header block and the scrollspy highlights the clicked section.
+
+## [3.0-alpha.417] — 2026-10-13
+
+Redwood wizard navigation, tab buttons and light-only theme.
+
+### Changed
+- Redwood is light only: `@App(themeToggle)` is ignored there and no stored or OS dark preference
+  applies (Vaadin unchanged).
+
+### Fixed
+- Redwood: leaving a wizard replaces it; a tab's buttons stay in their tab and the page toolbar is not
+  repeated under the content.
+
+## [3.0-alpha.416] — 2026-10-13
+
+Actions on `EntityHeader` facts; Redwood forms in overlays keep their layout.
+
+### Added
+- `EntityHeader` facts can carry an action (an icon button after the value) — Java, .NET, Python;
+  Vaadin, Redwood, React Native, IntelliJ.
+
+### Fixed
+- Redwood: a form in a Drawer or Dialog keeps its layout (section columns, `maxColumns`, rows, the
+  dialog width, the title once).
+
+## [3.0-alpha.415] — 2026-10-12
+
+GA walkthrough, batch 1: ~120 fixes, each with a test.
+
+### Changed
+- **`@Button`/`@Toolbar` actions answer "There are validation errors"** when the form breaks a
+  bean-validation constraint: the server re-checks what the browser enforced.
+- An app naming no home opens on its first menu item; YAML apps are served next to `@UI` apps on
+  every adapter; error toasts stay until dismissed; `List<Enum>` is a multi-select; markdown/html
+  fields edit with a preview; Redwood keeps listing state in the URL.
+
+### Fixed
+- ~120 fixes across the app shell and navigation, actions/events/overlays, forms/fields/wizards,
+  page archetypes, display components, listings and CRUD — each with a test. Redwood no longer
+  answers 400 on page load.
+
+## [3.0-alpha.414] — 2026-10-12
+
+Lambda buttons work again; card menus authored in YAML.
+
+### Added
+- **Card menus authored in YAML**, emitted by static bundles and edited by the visual editor.
+
+### Fixed
+- **Buttons with a lambda handler** (`new Button("Increment", () -> …)`) work again — since alpha.411
+  they were not advertised to the browser; a lambda button inside a `Card` is runnable too.
+- A YAML menu group no longer prefixes `null/` to its entries' routes.
+
+## [3.0-alpha.413] — 2026-10-12
+
+Every new project is a working app; YAML parity for page and shell headers.
+
+### Added
+- **Every new project is a working app**: the New Project wizard (IntelliJ, VS Code, archetype) generates
+  an app shell with a menu, a Home page and the Products CRUD on every flavour × runtime.
+- **YAML parity**: page header extras (`overline`, `titlePlaceholder`, `timestamp`, `badges`, `kpis`,
+  `peerNav`, `recordSwitcher`, `banners`, `fabs`) and app-shell header features (`contextSelectors`,
+  `headerActions`, `notifications`, source-backed `globalSearch`) are authorable in YAML;
+  `pageType:` on YAML pages; .NET and Python gain YAML `type: Form` pages.
+- Redwood: full page header and source-backed inbox / global search.
+- Ports: listing/CRUD wire parity with Java (five new conformance cases), `HomeRouteSupplier`.
+
+### Fixed
+- Ports: delete acts on the selected rows; the Id column links to the record.
+- IDE: the Mateu YAML schema applies in IntelliJ; visual editor fixes; New › Mateu wizards no longer
+  trap on "already exists"; the New Project wizard validates inline.
 
 ### Documentation, starters and demos
-- **New Mateu project, everywhere**: IntelliJ **File › New › Project › Mateu**, VS Code **Mateu:
-  New Project…** and the **`io.mateu:mateu-archetype`** Maven archetype (`-Dauthoring=code|yaml|static`)
-  generate the same project from the same templates — the starters — via one description
-  (`starters/generator/new-project.json`): authoring (code, YAML served by a backend, static YAML,
-  code + YAML), runtime, renderer, sample, page templates, coordinates, latest release. Two new
-  starters, `yaml` (no UI code) and `static` (no backend), are built and smoke-tested like the rest.
-  Every starter and generated project ships an `AGENTS.md` plus a `CLAUDE.md` that imports it.
-- **Starters**: `starters/` holds the smallest complete app on every runtime — Spring MVC, Spring
-  WebFlux, Quarkus, Micronaut, Helidon MP, ASP.NET Core (C#) and FastAPI (Python). CI compiles the
-  Java ones against each commit, boots them and loads their CRUD. The quickstart is the Spring MVC
-  starter, file for file.
-- **Demos**: every demo takes the Mateu version from a `mateu.version` property; the "start here"
-  demos default to the latest release, the showcase demos to the local snapshot. All demos are on
-  Spring Boot 4 / Java 21 and have distinct ports. CI compiles every demo against each commit.
-- **Docs site**: built on every PR with a broken-link check, deployed from `master` and on every
-  release. Every `AutoCrud` snippet now compiles (`store()` is mandatory). New pages: Stability &
-  versioning, Migrating from alpha, Deploy to production.
-- `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
-  request template and `CODEOWNERS`.
+- "What a Mateu UI is made of" and a top-down UX guide.
 
-### Mateu ships UI only
-- **Listing export engines are the application's.** The `mateu-export-excel` (Apache POI) and
-  `mateu-export-pdf` (PDFBox) modules are **removed** (with their relocation poms and BOM entries),
-  and no spreadsheet / PDF library is in Mateu's dependency graph any more. Mateu keeps everything
-  that is UI — the Export buttons, the choice of columns, rows and filters, the download — and
-  generation is a port the application implements: `ListingExporter` (`format()` +
-  `export(ListingExport, HttpRequest)` → `ExportedFile`), replacing `ExcelExporter` / `PdfExporter`
-  / `CsvExporter`. A listing opted into Excel / PDF shows the button only while an exporter for that
-  format is registered; a request for a format nobody writes is answered with a message, never a 500.
-  CSV keeps its dependency-free built-in writer. Same in the ports: .NET `IListingExporter` (the
-  hand-written xlsx / PDF writers are gone), Python `ListingExporter` (the `export` extra with
-  openpyxl / reportlab is gone). See [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
-- **`agent-cli` and `agent-cli-companion` removed** — the development bridge from the AI chat to a
-  local LLM CLI is not UI. The chat panel, its SSE contract and the MCP endpoint stay; the chat no
-  longer probes `127.0.0.1:8776` for a local companion (web and Redwood).
+## [3.0-alpha.412] — 2026-10-12
+
+External Mateu UIs, the mobile hub (server side) and the pre-beta API decisions.
+
+### Breaking
+- **.NET / Python proxied REST calls surface failures** like Java: a >=400 or transport error
+  answers `_restfetchError {status, message}` instead of an empty `_restfetch` the renderer read as
+  success; values interpolated into a JSON body are escaped; .NET sends a declared `Content-Type`
+  (it was dropped, so a JSON body travelled as `text/plain`); .NET answers a malformed sync body with
+  an error toast instead of a raw 500.
+
+### Added
+- **Mateu mobile, phase 1 (experimental)** — the server half of one generic Mateu app to which UIs
+  are added by QR, like accounts in an authenticator ([Mobile app](https://mateu.io/ux-patterns/mobile-app/)):
+  - `GET <baseUrl>/mateu/v3/manifest`: public, cacheable JSON with the UI's name, short name,
+    icon, theme colour, wire and minimum app versions and, optionally, the OpenID Connect issuer +
+    client id the host app trusts. Values come from `@Title`/`@Logo`/`@App(accentColor)`, the
+    new `@MobileApp` and the `mateu.mobile.*` settings (system property or `MATEU_MOBILE_*`
+    env var, which win). Served by the five Java adapters (`@UI` and YAML mounts), ASP.NET Core
+    (`[MobileApp]`) and FastAPI (`@mobile_app`), member for member. Mateu still validates no
+    token: the manifest only names the identity provider.
+  - "Open on mobile": `@App(mobileQr = true)` / YAML `mobileQr: true` / `[App(MobileQr = true)]` /
+    `@app(mobile_qr=True)` → `AppDto.mobileQr` → a header button (Vaadin and Redwood) opening a
+    dialog with the QR of `https://mateu.io/add?u=<base URL>&r=<route>`, the link to copy and,
+    on a phone, an "Open in the Mateu app" link instead. The QR is drawn by Mateu's own
+    dependency-free encoder, in a lazy chunk.
+  - `mateu.io/add`, the landing page the link opens when the app is not installed (store links are
+    placeholders until the app is published), plus templates of the universal/App Link files.
+- **Using external Mateu UIs**: a third-party UI module (a jar of `@UI` screens, e.g. a workflow
+  engine's console) is mounted in-process by naming its package — `mateu.ui.modules=…` or
+  `@EnableMateuUiModules` (Spring MVC and WebFlux) — since Mateu no longer scans `io.mateu.*`; a
+  named package with no beans is warned about. Guide *Using external Mateu UIs*, with EventConductor
+  as the worked example (`demo/demo-eventconductor`, `e2e/external-ui-probe.mjs`).
 
 ### Public API
-- **`@Experimental`** (`io.mateu.uidl.annotations`) marks API outside the stability promise — it may
-  change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
-  Figma contract is documented as experimental.
-
-- **Name collisions pinned**: the simple names shared by two uidl packages (annotation ⇄ record
-  pairs such as `@Badge`/`Badge`) are listed on the stability page with the explicit-import rule,
-  and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
-  (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
-  `State`); the empty `fluent.ActionType` enum went too.
-- **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
-  - **Deprecated** (still working; each names its replacement — see
-    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
-    `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
-    `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
-    enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
-    `ColumnLayoutSelector`; 28 wire DTOs that no live DTO reaches. .NET marks `DashboardLayout` /
-    `ContentLayout` `[Obsolete]` and Python warns on them, like Java's `@Deprecated`.
-  - **`@Experimental`** now covers the 3.0-alpha.409 pattern-gap and PMS-parity APIs (display options,
-    wizard drafts/hooks, record switcher, docked panels, `@Section` affordances, hero tones,
-    `UICommand.announce`, pre-search content, action panel, matrix grid, map markers, drag rows /
-    drop zones, access keys, card menus, calendar views, popovers/tooltips, row tones, reorderable
-    dashboards, the action catalogue, the not-found page).
-  - The stability page carries a **generated Stable / Experimental / Deprecated / Internal list** by
-    package (`ApiStabilityListTest` fails when it is stale), and defines what the beta promises.
-  - **japicmp** compares against `3.0-alpha.408` under the `mateu-*` ids; `-Dmateu.api.enforce=true`
-    makes it blocking (it passes today); flip the default at the beta tag.
-  - `DeprecationsNameTheirReplacementTest` (Java), `ApiFreezeTests` (.NET) and `test_api_freeze.py`
-    (Python) fail on a deprecation that does not name its replacement.
-  - Parity: .NET `AppVariant` constants and Python `AppVariant` enum (the right spelling travels under
-    the wire name every renderer reads); Python aliases `BadgeInHeader` (= `HeaderBadge`) and
-    `PageWidthStyle` (= `PageWidth`); 15 public Python names that were missing from
-    `mateu_uidl.__all__` added.
-  - `HeroSection` and `FoldoutPanel` regain their 3.0-alpha.408 constructors (alpha.409 had dropped
-    them when adding `tone` / `summary`).
 - **Pre-beta API decisions** (3.0-alpha.412; the owner's resolutions of the open questions in
   `design/api-freeze-review.md`). Nothing is removed — every rename is an addition plus a deprecation:
   - **Wire DTOs are outside the Java binary promise**: the contract of `mateu-dtos` is the JSON wire,
@@ -127,20 +276,52 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   value in every renderer and is part of the tile's accessible name; a dashboard whose KPI tiles
   carry no timeframe logs a one-time hint. Also in .NET (`Timeframe`) and Python (`timeframe`). The
   dashboard page gained a KPI checklist.
-- **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
-  a server speaking another wire major gets one clear message instead of a broken screen.
 
-### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
-- **Maven artifacts renamed to `mateu-*`**: `io.mateu:mvc-core` → `io.mateu:mateu-mvc`, `uidl` →
-  `mateu-uidl`, `vaadin-lit` → `mateu-vaadin`, `annotation-processor-mvc` →
-  `mateu-annotation-processor-mvc`… (full table in the migration guide). The old coordinates are
-  published as relocation poms, so existing builds keep resolving with a warning.
-- **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
-  `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
-  `@SplitLayout`, `@Scroller`, `@Option`, `@RowAction`, `@State`, `@Tabs`. Each has a one-line
-  replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
-  field / no-arg method of a registered class holding a `Component` joins the business-component
-  catalogue.
+### Fixed
+- **A remote screen under a YAML shell** (`type: AppShell` with a `RemoteMenu`) answered "Page not
+  found" on a reload, a bookmark or a shared link: unclaimed routes are now offered to the shell's
+  remotes, as an `@UI` class shell always did.
+- **A custom element of a remote screen** (`Element` with `import: /…`) loaded its module from the
+  shell's origin and 404'd; a root-relative module url of a remote screen is now resolved against
+  the remote's origin (which must serve it with CORS).
+- **Non-root apps**: no loop on mount-prefixed routes; route-typed `@Menu` entries go to the route they
+  name on every adapter.
+
+### Documentation, starters and demos
+- Docs repositioned around "define the UI once — YAML, the visual editor, or code in Java, C# or
+  Python — and render it anywhere, served or static"; guides for app stores, Netlify and Hetzner.
+  Demos moved to `swapi.mateu.io` / `demo.mateu.io`.
+
+### Build and CI
+- NuGet and PyPI (`mateu-ui`) published through trusted publishing; adapter coverage covers YAML
+  mounts and the runtime bundle.
+
+## [3.0-alpha.411] — 2026-10-10
+
+UX review of every renderer (method: *How Mateu's UX is evaluated*); findings in `design/ux-review/`.
+
+### Fixed
+- **Web (Vaadin + Redwood)**: axe violations across 580 screens fell from 1,193 to 136; synthetic
+  users completed 24/28 tasks (was 13/28). Forms, tabs and accordions collapse to one column on
+  phones; safe delete (disabled until rows are selected, confirmation defaults to Cancel);
+  accessible names; contrast; Redwood dark mode; one icon family per renderer; search finds what
+  the listing shows; numeric columns typed, right-aligned and locale-formatted (Java, .NET,
+  Python); validation messages use field labels.
+- **React Native**: New/Delete sent their request; values no longer go missing; AA contrast; row
+  selection for screen readers; Android Back; retry after a failed load. **IntelliJ**: badge
+  contrast, accessible names, KPI tiles.
+- **No silent failures**: a missing annotation processor, two root UIs, an unparseable YAML
+  definition (file, line, key, valid values) and a missing layout file are reported clearly in
+  Java, .NET and Python.
+
+### Build and CI
+- A CI ratchet against hard-coded design values (`scripts/check-design-tokens.mjs`).
+
+## [3.0-alpha.410] — 2026-10-10
+
+Security (identity only from the host framework), Mateu ships UI only, documents and printing.
+
+### Breaking
 - **Roles no longer come from unverified tokens** (security). `@EyesOnly`, `@ReadOnlyUnless`,
   `@DisabledUnless`, YAML `access:` and menu visibility used to read the Bearer token's payload
   without checking its signature, so anyone could forge roles. **Mateu does not authenticate**: the
@@ -157,57 +338,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   (e.g. a workflow engine's own UI). Mateu's beans now come from the adapter's auto-configuration,
   which scans only Mateu's packages. Apps no longer need `scanBasePackages = "io.mateu"` — drop it
   (and scan your own packages if your code lives under `io.mateu.*`).
-- **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
-- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`. Now also on the ports: .NET
-  `MateuOptions.Mcp = true` / Python `add_mateu(..., mcp=True)` (or `MATEU_MCP_ENABLED=true` on
-  both); a failing MCP tool call answers the error boundary's generic text + reference, never the
-  raw exception.
-- **.NET / Python proxied REST calls surface failures** like Java: a >=400 or transport error
-  answers `_restfetchError {status, message}` instead of an empty `_restfetch` the renderer read as
-  success; values interpolated into a JSON body are escaped; .NET sends a declared `Content-Type`
-  (it was dropped, so a JSON body travelled as `text/plain`); .NET answers a malformed sync body with
-  an error toast instead of a raw 500.
-- **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
-- **RunJS is opt-in** (`<meta name="mateu-allow-run-js" content="true">`).
-- **Quarkus** apps declare `quarkus-rest-jackson`; `quarkus-spring-di` is no longer brought in.
-- The Spring bean `objectMapper` is now `mateuObjectMapper`.
-- Python: CORS needs `cors_origins=[...]`; the distribution is **`mateu-ui`** on PyPI.
-
-### Security and robustness
-- An **error boundary** on every backend: `UserFacingException` messages are shown as written;
-  anything else shows a generic message with a reference id, logged at ERROR under it.
-- Proxied REST URLs are percent-encoded by position on every server and renderer.
-- Strict CSP works: expressions run in Mateu's own sandboxed evaluator (no `new Function`).
-- Server-sent URLs are checked (`javascript:` refused); token storage is configurable.
 
 ### Added
-- **Mateu mobile, phase 1 (experimental)** — the server half of one generic Mateu app to which UIs
-  are added by QR, like accounts in an authenticator ([Mobile app](https://mateu.io/ux-patterns/mobile-app/)):
-  - `GET <baseUrl>/mateu/v3/manifest`: public, cacheable JSON with the UI's name, short name,
-    icon, theme colour, wire and minimum app versions and, optionally, the OpenID Connect issuer +
-    client id the host app trusts. Values come from `@Title`/`@Logo`/`@App(accentColor)`, the
-    new `@MobileApp` and the `mateu.mobile.*` settings (system property or `MATEU_MOBILE_*`
-    env var, which win). Served by the five Java adapters (`@UI` and YAML mounts), ASP.NET Core
-    (`[MobileApp]`) and FastAPI (`@mobile_app`), member for member. Mateu still validates no
-    token: the manifest only names the identity provider.
-  - "Open on mobile": `@App(mobileQr = true)` / YAML `mobileQr: true` / `[App(MobileQr = true)]` /
-    `@app(mobile_qr=True)` → `AppDto.mobileQr` → a header button (Vaadin and Redwood) opening a
-    dialog with the QR of `https://mateu.io/add?u=<base URL>&r=<route>`, the link to copy and,
-    on a phone, an "Open in the Mateu app" link instead. The QR is drawn by Mateu's own
-    dependency-free encoder, in a lazy chunk.
-  - `mateu.io/add`, the landing page the link opens when the app is not installed (store links are
-    placeholders until the app is published), plus templates of the universal/App Link files.
-- `io.mateu:mateu-bom`; annotation processors are Gradle-incremental.
-- SSE / LongTask on WebFlux, Quarkus and Helidon; client-log, asset caching, YAML mounts and the
-  deep-link fallback on every adapter.
-- A UI mount declares its home page: `home:` on `type: UI` (Java, .NET, Python).
-- The client's own text in English and Spanish, chosen by `Translator.locale(…)` (`AppDto.locale`).
-- Redwood renders every wire component type; chat panel, FABs, theme toggle, global search;
-  reproducible ~5 MB jar that works at any mount path; `Map` takes `tileUrl`/`attribution`.
-- .NET: net8.0 + net10.0, NuGet release job. Python: published to PyPI as `mateu-ui`, mypy-clean,
-  split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
-- IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
-  authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
 - **Documents and printing** (`@Experimental`): an action returns a `Document` (filename, media
   type, bytes or a lazy supplier, `inline`|`attachment`, `printed()`) and the client shows it in a
   new tab, downloads it or opens the print dialog for it. Small documents ride the response; large
@@ -220,11 +352,51 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   printing* in the UX patterns.
 - A JPA (`jakarta`/`javax.persistence.Version`) or Spring Data `@Version` on an entity now joins
   Mateu's optimistic locking: same conflict dialog, version incremented by the provider, not by Mateu.
-- **Using external Mateu UIs**: a third-party UI module (a jar of `@UI` screens, e.g. a workflow
-  engine's console) is mounted in-process by naming its package — `mateu.ui.modules=…` or
-  `@EnableMateuUiModules` (Spring MVC and WebFlux) — since Mateu no longer scans `io.mateu.*`; a
-  named package with no beans is warned about. Guide *Using external Mateu UIs*, with EventConductor
-  as the worked example (`demo/demo-eventconductor`, `e2e/external-ui-probe.mjs`).
+- Visual editor: canvas ⇄ Layers ⇄ Properties selection, a project image picker, and navigation
+  editing on the Board.
+
+### Public API
+- **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
+  - **Deprecated** (still working; each names its replacement — see
+    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
+    `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
+    `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
+    enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
+    `ColumnLayoutSelector`; 28 wire DTOs that no live DTO reaches. .NET marks `DashboardLayout` /
+    `ContentLayout` `[Obsolete]` and Python warns on them, like Java's `@Deprecated`.
+  - **`@Experimental`** now covers the 3.0-alpha.409 pattern-gap and PMS-parity APIs (display options,
+    wizard drafts/hooks, record switcher, docked panels, `@Section` affordances, hero tones,
+    `UICommand.announce`, pre-search content, action panel, matrix grid, map markers, drag rows /
+    drop zones, access keys, card menus, calendar views, popovers/tooltips, row tones, reorderable
+    dashboards, the action catalogue, the not-found page).
+  - The stability page carries a **generated Stable / Experimental / Deprecated / Internal list** by
+    package (`ApiStabilityListTest` fails when it is stale), and defines what the beta promises.
+  - **japicmp** compares against `3.0-alpha.408` under the `mateu-*` ids; `-Dmateu.api.enforce=true`
+    makes it blocking (it passes today); flip the default at the beta tag.
+  - `DeprecationsNameTheirReplacementTest` (Java), `ApiFreezeTests` (.NET) and `test_api_freeze.py`
+    (Python) fail on a deprecation that does not name its replacement.
+  - Parity: .NET `AppVariant` constants and Python `AppVariant` enum (the right spelling travels under
+    the wire name every renderer reads); Python aliases `BadgeInHeader` (= `HeaderBadge`) and
+    `PageWidthStyle` (= `PageWidth`); 15 public Python names that were missing from
+    `mateu_uidl.__all__` added.
+  - `HeroSection` and `FoldoutPanel` regain their 3.0-alpha.408 constructors (alpha.409 had dropped
+    them when adding `tone` / `summary`).
+
+### Mateu ships UI only
+- **Listing export engines are the application's.** The `mateu-export-excel` (Apache POI) and
+  `mateu-export-pdf` (PDFBox) modules are **removed** (with their relocation poms and BOM entries),
+  and no spreadsheet / PDF library is in Mateu's dependency graph any more. Mateu keeps everything
+  that is UI — the Export buttons, the choice of columns, rows and filters, the download — and
+  generation is a port the application implements: `ListingExporter` (`format()` +
+  `export(ListingExport, HttpRequest)` → `ExportedFile`), replacing `ExcelExporter` / `PdfExporter`
+  / `CsvExporter`. A listing opted into Excel / PDF shows the button only while an exporter for that
+  format is registered; a request for a format nobody writes is answered with a message, never a 500.
+  CSV keeps its dependency-free built-in writer. Same in the ports: .NET `IListingExporter` (the
+  hand-written xlsx / PDF writers are gone), Python `ListingExporter` (the `export` extra with
+  openpyxl / reportlab is gone). See [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+- **`agent-cli` and `agent-cli-companion` removed** — the development bridge from the AI chat to a
+  local LLM CLI is not UI. The chat panel, its SSE contract and the MCP endpoint stay; the chat no
+  longer probes `127.0.0.1:8776` for a local companion (web and Redwood).
 
 ### Fixed
 - **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
@@ -240,17 +412,142 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `__load__` bootstrap reached the crud as an action ("`__load__` not supported", logged as an
   ERROR) and the content load consumed `/` instead of `""`. `__load__` is now the route load for
   every view, a consumed `/` is the mount root, and the Redwood shell sends `""`.
+- `@Autowired`/`@Inject` fields on view models Mateu instantiates are injected, as documented.
+- The BOM manages the pre-rename artifact ids, so there is no second copy of Mateu on the classpath.
+- The backend builds on JDK 26.
+
+### Documentation, starters and demos
+- **New Mateu project, everywhere**: IntelliJ **File › New › Project › Mateu**, VS Code **Mateu:
+  New Project…** and the **`io.mateu:mateu-archetype`** Maven archetype (`-Dauthoring=code|yaml|static`)
+  generate the same project from the same templates — the starters — via one description
+  (`starters/generator/new-project.json`): authoring (code, YAML served by a backend, static YAML,
+  code + YAML), runtime, renderer, sample, page templates, coordinates, latest release. Two new
+  starters, `yaml` (no UI code) and `static` (no backend), are built and smoke-tested like the rest.
+  Every starter and generated project ships an `AGENTS.md` plus a `CLAUDE.md` that imports it.
+
+### Build and CI
+- Actions pinned by SHA, least-privilege permissions, `--ignore-scripts`; aggregate checks
+  `ci-ok`, `examples-ok`, `docs-ok`.
+
+## [3.0-alpha.409] — 2026-10-10
+
+More authoring kinds under `specs/ui/`, live reload, Mateu embedded in Visual Builder apps.
+
+### Added
+- **Authoring kinds under `specs/ui/`** (`@Experimental`): YAML permissions (access keys on routes,
+  menus, fields and actions), translations (`${i18n.key}`, one file per locale), environments,
+  field types (`types.yaml`, `fieldType:`, `tones`), sample data on sources (`sample:` /
+  `sampleFile:`) and project settings (`type: Project`, `renderer: vaadin | redwood`).
+- **Live reload** (`mateu.dev=true` / `MATEU_DEV=true`): an edited spec re-renders the open screen in
+  place, keeping what was typed — all five adapters, .NET and Python; IntelliJ "Run Mateu App (Live)"
+  and the VS Code equivalent.
+- **Mateu embedded in Visual Builder apps**: the `<mateu-ui>` JET component, attached to the release
+  as `mateu-ui-*.zip`.
+- Redwood pattern gaps closed on the open renderers: per-archetype display options, GeneralOverview
+  info slot, wizard drafts / skip / finish early / cancelable `beforeStepNavigate`, drawer "Save and
+  next" and error banner, foldout summary, DataManagement docked panels, `RecordSwitcherSupplier`,
+  section Add/Edit/View more, hero tone, `UICommand.announce`, SmartSearch pre-search content.
+
+### Fixed
+- Micronaut: the YAML translations bean was missing, so every YAML screen answered 500.
+- Vaadin edit drawer: the record id reaches the server and typed values survive re-renders.
+- CodeQL findings in the VS Code live launcher.
+
+## [3.0-alpha.408] — 2026-10-10
+
+Maven artifacts renamed to `mateu-*`; the public API is prepared for the beta.
+
+### Breaking
+- **Maven artifacts renamed to `mateu-*`**: `io.mateu:mvc-core` → `io.mateu:mateu-mvc`, `uidl` →
+  `mateu-uidl`, `vaadin-lit` → `mateu-vaadin`, `annotation-processor-mvc` →
+  `mateu-annotation-processor-mvc`… (full table in the migration guide). The old coordinates are
+  published as relocation poms, so existing builds keep resolving with a warning.
+- **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
+  `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
+  `@SplitLayout`, `@Scroller`, `@Option`, `@RowAction`, `@State`, `@Tabs`. Each has a one-line
+  replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
+  field / no-arg method of a registered class holding a `Component` joins the business-component
+  catalogue.
+
+### Security
+- Dependabot backlog: 93 of 102 alerts fixed; the rest documented in `SECURITY-DEPENDENCIES.md`.
+
+### Added
+- Shared **action catalogue** (`specs/ui/actions.yaml`) referenced from app shells, pages and flows;
+  app shell `actions:` flows, widgets and header switches; visual editor: Redwood live canvas,
+  route and action-id pickers.
+
+### Public API
+- **`@Experimental`** (`io.mateu.uidl.annotations`) marks API outside the stability promise — it may
+  change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
+  Figma contract is documented as experimental.
+- **Name collisions pinned**: the simple names shared by two uidl packages (annotation ⇄ record
+  pairs such as `@Badge`/`Badge`) are listed on the stability page with the explicit-import rule,
+  and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
+  (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
+  `State`); the empty `fluent.ActionType` enum went too.
+- **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
+  a server speaking another wire major gets one clear message instead of a broken screen.
+
+### Build and CI
+- CI builds the starters and demos against the commit being built, not the last release.
+
+## [3.0-alpha.407] — 2026-10-10
+
+GA readiness: nine work streams integrated. Read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/) before upgrading.
+
+### Breaking
+- **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
+- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`. Now also on the ports: .NET
+  `MateuOptions.Mcp = true` / Python `add_mateu(..., mcp=True)` (or `MATEU_MCP_ENABLED=true` on
+  both); a failing MCP tool call answers the error boundary's generic text + reference, never the
+  raw exception.
+- **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
+- **RunJS is opt-in** (`<meta name="mateu-allow-run-js" content="true">`).
+- **Quarkus** apps declare `quarkus-rest-jackson`; `quarkus-spring-di` is no longer brought in.
+- The Spring bean `objectMapper` is now `mateuObjectMapper`.
+- Python: CORS needs `cors_origins=[...]`; the distribution is **`mateu-ui`** on PyPI.
+
+### Security
+- An **error boundary** on every backend: `UserFacingException` messages are shown as written;
+  anything else shows a generic message with a reference id, logged at ERROR under it.
+- Proxied REST URLs are percent-encoded by position on every server and renderer.
+- Strict CSP works: expressions run in Mateu's own sandboxed evaluator (no `new Function`).
+- Server-sent URLs are checked (`javascript:` refused); token storage is configurable.
+
+### Added
+- `io.mateu:mateu-bom`; annotation processors are Gradle-incremental.
+- SSE / LongTask on WebFlux, Quarkus and Helidon; client-log, asset caching, YAML mounts and the
+  deep-link fallback on every adapter.
+- A UI mount declares its home page: `home:` on `type: UI` (Java, .NET, Python).
+- The client's own text in English and Spanish, chosen by `Translator.locale(…)` (`AppDto.locale`).
+- Redwood renders every wire component type; chat panel, FABs, theme toggle, global search;
+  reproducible ~5 MB jar that works at any mount path; `Map` takes `tileUrl`/`attribution`.
+- .NET: net8.0 + net10.0, NuGet release job. Python: published to PyPI as `mateu-ui`, mypy-clean,
+  split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
+- IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
+  authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
+
+### Fixed
 - .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.
 - A nested `@Text`/`@Notice` read its state with an expression that evaluated as a subtraction.
 - A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.
 - A streamed action on the root view of a mount did nothing; LongTask steps no longer retitle the tab.
 - The wire conformance corpus (25 cases) now matches exactly in Java, .NET and Python.
-- **A remote screen under a YAML shell** (`type: AppShell` with a `RemoteMenu`) answered "Page not
-  found" on a reload, a bookmark or a shared link: unclaimed routes are now offered to the shell's
-  remotes, as an `@UI` class shell always did.
-- **A custom element of a remote screen** (`Element` with `import: /…`) loaded its module from the
-  shell's origin and 404'd; a root-relative module url of a remote screen is now resolved against
-  the remote's origin (which must serve it with CORS).
+
+### Documentation, starters and demos
+- **Starters**: `starters/` holds the smallest complete app on every runtime — Spring MVC, Spring
+  WebFlux, Quarkus, Micronaut, Helidon MP, ASP.NET Core (C#) and FastAPI (Python). CI compiles the
+  Java ones against each commit, boots them and loads their CRUD. The quickstart is the Spring MVC
+  starter, file for file.
+- **Demos**: every demo takes the Mateu version from a `mateu.version` property; the "start here"
+  demos default to the latest release, the showcase demos to the local snapshot. All demos are on
+  Spring Boot 4 / Java 21 and have distinct ports. CI compiles every demo against each commit.
+- **Docs site**: built on every PR with a broken-link check, deployed from `master` and on every
+  release. Every `AutoCrud` snippet now compiles (`store()` is mandatory). New pages: Stability &
+  versioning, Migrating from alpha, Deploy to production.
+- `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
+  request template and `CODEOWNERS`.
 
 ## [3.0-alpha.406] — 2026-10-10
 
@@ -319,7 +616,26 @@ Redwood renderer: OPERA Cloud-like PMS parity, and the features it needed everyw
 
 - Vaadin: `@App(accentColor)` alone gets a generated Redwood-style accent strip.
 
-[Unreleased]: https://github.com/miguelperezcolom/mateu/compare/v3.0-alpha.406...HEAD
+[Unreleased]: https://github.com/miguelperezcolom/mateu/compare/v3.0-alpha.425...HEAD
+[3.0-alpha.425]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.425
+[3.0-alpha.424]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.424
+[3.0-alpha.423]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.423
+[3.0-alpha.422]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.422
+[3.0-alpha.421]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.421
+[3.0-alpha.420]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.420
+[3.0-alpha.419]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.419
+[3.0-alpha.418]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.418
+[3.0-alpha.417]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.417
+[3.0-alpha.416]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.416
+[3.0-alpha.415]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.415
+[3.0-alpha.414]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.414
+[3.0-alpha.413]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.413
+[3.0-alpha.412]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.412
+[3.0-alpha.411]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.411
+[3.0-alpha.410]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.410
+[3.0-alpha.409]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.409
+[3.0-alpha.408]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.408
+[3.0-alpha.407]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.407
 [3.0-alpha.406]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.406
 [3.0-alpha.405]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.405
 [3.0-alpha.404]: https://github.com/miguelperezcolom/mateu/releases/tag/v3.0-alpha.404
