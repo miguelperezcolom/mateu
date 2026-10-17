@@ -736,6 +736,89 @@ public class AdapterParityITFoundation {
     given().when().get("/hello/mateu/v3/documents/unknown-token-0123456789").then().statusCode(404);
   }
 
+  /**
+   * A content-versioned path ({@code /version_<n>/…}, cached for a year when found) that does not
+   * exist is NOT answered as immutable: a cached 404 would keep the asset missing for a year after
+   * it is deployed.
+   */
+  public void neverCachesAMissingVersionedAsset() {
+    var response = given().when().get("/version_999/missing.js");
+    if (response.getStatusCode() == 200) {
+      throw new AssertionError("a missing versioned asset answered 200");
+    }
+    var cacheControl = String.valueOf(response.getHeader("Cache-Control"));
+    if (cacheControl.contains("immutable")) {
+      throw new AssertionError("a missing versioned asset was cached: " + cacheControl);
+    }
+  }
+
+  /**
+   * An unchanged fixed-name asset costs a 304 with no body when the browser revalidates it with the
+   * validator it was given (an {@code ETag}, else {@code Last-Modified}), and the 304 keeps the
+   * revalidate policy.
+   */
+  public void answersARevalidationOfAnUnchangedAssetWith304(String assetPath) {
+    var first = given().when().get(assetPath);
+    first.then().statusCode(200);
+    var etag = first.getHeader("ETag");
+    var lastModified = first.getHeader("Last-Modified");
+    var revalidation = given();
+    if (etag != null) {
+      revalidation.header("If-None-Match", etag);
+    } else if (lastModified != null) {
+      revalidation.header("If-Modified-Since", lastModified);
+    } else {
+      throw new AssertionError(assetPath + " was served with no validator to revalidate it with");
+    }
+    revalidation
+        .when()
+        .get(assetPath)
+        .then()
+        .statusCode(304)
+        .header("Cache-Control", containsString("no-cache"));
+  }
+
+  /**
+   * With {@code mateu.cors.allowed-origins=}{@value #ALLOWED_ORIGIN}: the grant covers Mateu's API
+   * ({@code /mateu/**}) only — an asset or a UI's index page fetched from that origin carries no
+   * {@code Access-Control-Allow-Origin}.
+   */
+  public void grantsNoCrossOriginAccessOutsideTheMateuApi(String assetPath) {
+    for (String path : new String[] {assetPath, "/hello"}) {
+      given()
+          .header("Origin", ALLOWED_ORIGIN)
+          .accept("text/html, */*")
+          .when()
+          .get(path)
+          .then()
+          .header("Access-Control-Allow-Origin", nullValue());
+    }
+  }
+
+  /** With {@code mateu.client-log.enabled=false} the renderer's reports are not accepted (404). */
+  public void refusesClientLogsWhenDisabled() {
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"kind\":\"timeout\",\"message\":\"slow\"}")
+        .when()
+        .post("/hello/mateu/v3/client-log")
+        .then()
+        .statusCode(404);
+  }
+
+  /**
+   * With {@code mateu.static-assets.caching=false} Mateu sets no cache policy of its own on a
+   * fixed-name asset (whatever the framework or a security filter adds is left alone).
+   */
+  public void setsNoCachePolicyWhenCachingIsOff(String assetPath) {
+    given()
+        .when()
+        .get(assetPath)
+        .then()
+        .statusCode(200)
+        .header("Cache-Control", not(equalTo("no-cache")));
+  }
+
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */
   public void revalidatesFixedNameAssets(String assetPath) {
     given()

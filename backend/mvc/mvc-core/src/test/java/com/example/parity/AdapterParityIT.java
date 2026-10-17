@@ -118,6 +118,16 @@ class AdapterParityIT {
     }
 
     @Test
+    void neverCachesAMissingVersionedAsset() {
+      contract.neverCachesAMissingVersionedAsset();
+    }
+
+    @Test
+    void answersARevalidationOfAnUnchangedAssetWith304() {
+      contract.answersARevalidationOfAnUnchangedAssetWith304("/assets/fixed.js");
+    }
+
+    @Test
     void acceptsClientLogs() {
       contract.acceptsClientLogs();
     }
@@ -169,6 +179,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void grantsNoCrossOriginAccessOutsideTheMateuApi() {
+      contract.grantsNoCrossOriginAccessOutsideTheMateuApi("/assets/fixed.js");
+    }
+
+    @Test
     void servesMcpWhenEnabled() {
       contract.servesMcpWhenEnabled();
     }
@@ -176,6 +191,31 @@ class AdapterParityIT {
     @Test
     void servesDevEndpointsWhenEnabled() throws Exception {
       contract.servesDevEndpointsWhenEnabled();
+    }
+  }
+
+  @Nested
+  @SpringBootTest(
+      webEnvironment = RANDOM_PORT,
+      classes = ParityApp.class,
+      properties = {"mateu.client-log.enabled=false", "mateu.static-assets.caching=false"})
+  class Disabled {
+
+    @LocalServerPort Integer port;
+
+    @BeforeEach
+    void setUp() {
+      RestAssured.port = port;
+    }
+
+    @Test
+    void refusesClientLogsWhenDisabled() {
+      contract.refusesClientLogsWhenDisabled();
+    }
+
+    @Test
+    void setsNoCachePolicyWhenCachingIsOff() {
+      contract.setsNoCachePolicyWhenCachingIsOff("/assets/fixed.js");
     }
   }
 }

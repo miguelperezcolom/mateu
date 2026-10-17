@@ -106,6 +106,16 @@ class AdapterParityTest {
   }
 
   @Test
+  void neverCachesAMissingVersionedAsset() {
+    contract.neverCachesAMissingVersionedAsset();
+  }
+
+  @Test
+  void answersARevalidationOfAnUnchangedAssetWith304() {
+    contract.answersARevalidationOfAnUnchangedAssetWith304("/assets/fixed.js");
+  }
+
+  @Test
   void acceptsClientLogs() {
     contract.acceptsClientLogs();
   }
