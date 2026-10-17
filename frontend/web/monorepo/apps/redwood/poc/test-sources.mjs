@@ -10,7 +10,7 @@ import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,
   fetchRestJson, filterRestRows, sortRestRows, restListingPage, restAnswerOf, loadRestOptions,
   adoptAppSources, adoptManifestSources, interpolateRestUrl, interpolateRest, mapItemsToOptions, restPageOf,
-  loadContextSelectorOptions,
+  loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
@@ -251,6 +251,23 @@ test('runMateuAction routes a proxied search through the server as __restfetch__
     assert.deepEqual(bodies[0].body.parameters, { _sourceKind: 'rows', _sourceId: 'crud' })
     assert.equal(inc.fragments[0].data.crud.page.content[0].id, 1)
   } finally { globalThis.fetch = realFetch }
+})
+
+test('a page with no app shell: the sources a response names resolve its refs', async () => {
+  reset(); clearReferencedSources()
+  setRestSourceCatalogue([])
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({
+    fragments: [], restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] }) })
+  try {
+    await runMateuAction('http://mateu', listingCtx(undefined), '/orders', 'save', {}, {})
+    assert.equal(resolveRestSource({ ref: 'late' }).url, 'https://late.example.com/x')
+  } finally { globalThis.fetch = realFetch }
+  // the App's own catalogue still wins a name clash
+  setRestSourceCatalogue([{ name: 'late', source: { url: '/app' } }])
+  adoptReferencedSources({ restSources: [{ name: 'late', source: { url: '/response' } }] })
+  assert.equal(resolveRestSource({ ref: 'late' }).url, '/app')
+  clearReferencedSources()
 })
 
 test('an ordinary action still goes to the server', () => {

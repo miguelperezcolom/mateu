@@ -41,8 +41,28 @@ export function setRestSourceCatalogue(incoming) {
   restCatalogue = Array.isArray(incoming) ? incoming.filter((e) => e && typeof e.name === 'string') : []
 }
 
-/** The entry with this name, or undefined. */
-export const getRestSource = (name) => (name ? restCatalogue.find((e) => e.name === name) : undefined)
+/** The entries a RESPONSE named (`UIIncrementDto.restSources`): every response carries the entries
+ *  its own components reference, because a page served with NO app shell never receives the App's
+ *  catalogue and its by-ref calls could not be resolved. Merged by name; consulted only after the
+ *  App's catalogue, so it only ever fills a gap (= libs/mateu addReferencedRestSources). */
+const referencedRestSources = new Map()
+
+/** Adds the entries a response references; returns the increment. */
+export function adoptReferencedSources(increment) {
+  const incoming = increment && increment.restSources
+  if (Array.isArray(incoming)) {
+    for (const e of incoming) if (e && typeof e.name === 'string') referencedRestSources.set(e.name, e)
+  }
+  return increment
+}
+
+/** Test hook: forget what responses named. */
+export function clearReferencedSources() { referencedRestSources.clear() }
+
+/** The entry with this name — the App's catalogue first, then what responses named — or undefined. */
+export const getRestSource = (name) => (name
+  ? restCatalogue.find((e) => e.name === name) || referencedRestSources.get(name)
+  : undefined)
 
 /** Everything in the catalogue — diagnostics and tests. */
 export const restSourceCatalogue = () => restCatalogue
