@@ -39,7 +39,7 @@ GET <baseUrl>/mateu/v3/manifest
   "shortName": "CRM",
   "icon": "https://crm.acme.com/icon.png",
   "themeColor": "#1f6feb",
-  "wireVersion": "3",
+  "wireVersion": "3.0",
   "minAppVersion": "1.0.0",
   "auth": {
     "type": "oidc",

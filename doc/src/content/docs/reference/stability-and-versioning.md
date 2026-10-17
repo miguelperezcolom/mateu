@@ -46,7 +46,7 @@ You can build on these; they follow the deprecation policy.
 |---|---|
 | **The authoring API** — annotations (`@UI`, `@Action`, `@Section`…), interfaces (`CrudStore`, `Listing` and its capability interfaces, suppliers…), the fluent component records and data types | the `io.mateu:mateu-uidl` artifact (`io.mateu.uidl.*`) |
 | **The archetypes and orchestrators** you extend — `AutoCrud`, `FilteredAutoCrud`, `Crud`, `Wizard`, `Dashboard`, `Foldout`, `HeroSearch`, `CollectionDetail`, … | their `public`/`protected` members in `io.mateu:mateu-core` (`io.mateu.core.infra.declarative.orchestrators.*`) |
-| **The wire** — the JSON exchanged between backend and renderer | the [wire specification](/reference/wire-specification/), versioned by `wireVersion`; compatibility rules [below](#wire-compatibility). The Java DTO classes of `io.mateu:mateu-dtos` that model it are **not** under the Java binary-compatibility promise — see [The wire DTOs](#the-wire-dtos-json-not-java-binaries) |
+| **The wire** — the JSON exchanged between backend and renderer | the [wire specification](/reference/wire-specification/), versioned by `wireVersion`, its fields pinned by the generated `wire-schema.json`; compatibility rules [below](#wire-compatibility). The Java DTO classes of `io.mateu:mateu-dtos` that model it are **not** under the Java binary-compatibility promise — see [The wire DTOs](#the-wire-dtos-json-not-java-binaries) |
 | **The authoring schemas** — `uidl-schema.json`, `routes-schema.json`, `sources-schema.json`, `specs-schema.json` (YAML `specs/ui/**`) | `backend/shared/uidl/*.json`, generated from the records |
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
@@ -191,9 +191,9 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 276 | 248 | 0 | 28 | 0 |
-| `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 173 | 162 | 7 | 4 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 276 | 246 | 0 | 30 | 0 |
+| `mateu-uidl` | `io.mateu.uidl` | 7 | 6 | 1 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 7 | 3 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 315 | 263 | 46 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
@@ -201,7 +201,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **985** | **828** | **62** | **43** | **52** |
+| **Total** | | **984** | **843** | **62** | **44** | **35** |
 
 **Experimental types** (the whole type and its members):
 

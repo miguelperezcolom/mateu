@@ -22,6 +22,12 @@ public abstract class Wizard
     /// completed run. Null (default): the classic Back/Next…Finish → <see cref="Complete"/>.</summary>
     public virtual string? CompletionActionLabel => null;
 
+    /// <summary>The action id the completion button dispatches (Java: the name of the
+    /// <c>@WizardCompletionAction</c> method, e.g. <c>signUp</c>). Moving forward from the
+    /// completion step with it is the completion; <c>"next"</c> (the default) keeps working there
+    /// too.</summary>
+    public virtual string CompletionActionId => "next";
+
     /// <summary>The label of step <paramref name="step"/> (1-based) on the step bullets / rail;
     /// null keeps "Step N".</summary>
     public virtual string? StepTitle(int step) => null;

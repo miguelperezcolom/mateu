@@ -47,10 +47,16 @@ public sealed partial class ReflectionMapper
                 Style = "width: 100%; margin-top: 1rem;",
             };
         // no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
-        ComponentDto? back = current > 1 ? Client(new ButtonMetadataDto("Back", "back"), null, []) : null;
-        var nextLabel = completion is not null && current == total - 1 ? completion
-            : current == total ? "Finish" : "Next";
-        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "primary", Color = "normal" }, null, []);
+        // every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
+        ComponentDto? back = current > 1
+            ? Client(new ButtonMetadataDto("Back", "back") { Color = "normal" }, null, [])
+            : null;
+        var completing = completion is not null && current == total - 1;
+        var nextLabel = completing ? completion! : current == total ? "Finish" : "Next";
+        // the completion button dispatches the wizard's CompletionActionId (Java: the
+        // @WizardCompletionAction method's name); "next" by default
+        var nextId = completing ? wizard!.CompletionActionId : "next";
+        var next = Client(new ButtonMetadataDto(nextLabel, nextId) { ButtonStyle = "primary", Color = "normal" }, null, []);
         // The transactional affordances (Java's WizardButtonBuilder), between Back and Next:
         // Skip on a skippable step, the draft buttons of an IDraftable wizard and the early
         // completion — each switchable through WizardDisplay (Off = absent, Disabled = inert).
@@ -136,7 +142,10 @@ public sealed partial class ReflectionMapper
             // Wizard.actions + its catch-all): unadvertised, neither did anything in the web client.
             [.. FieldActions(currentProps), .. extraActions,
                 .. (onResult ? Array.Empty<ActionDto>()
-                    : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false)])],
+                    : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false),
+                        .. (completion is not null && current == total - 1 && wizard!.CompletionActionId != "next"
+                            ? [new ActionDto(wizard.CompletionActionId, ValidationRequired: true)]
+                            : Array.Empty<ActionDto>())])],
             // a wizard is a component tree in Java: the tree envelope's default container style
             [], "max-width:900px;margin: auto;", null, null)
         {

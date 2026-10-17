@@ -624,15 +624,20 @@ class CrudMapperMixin(MixinBase):
         # (getTitle(entity)): the entity's @title, else its own __str__, else its class name —
         # never the crud's title.
         title = self.T(record_title(element, entity))
+        # The toolbar exactly as Java's CrudFormComponentBuilder / ViewToolbarBuilder draw it: the
+        # way back (Cancel / Back to list) is a tertiary button, the view page offers "Add another"
+        # before "Edit", and an EDIT form saves through "save" ("create" is the creation form's).
         if mode == "view":
-            toolbar = [Button(label="Back to list", action_id="cancel-view")]
-            if can_edit:
-                toolbar.append(Button(label="Edit", action_id="edit"))
+            toolbar = [Button(label="Back to list", action_id="cancel-view", button_style="tertiary")]
             if can_create:
                 toolbar.append(Button(label="Add another", action_id="new"))
+            if can_edit:
+                toolbar.append(Button(label="Edit", action_id="edit"))
         elif mode == "edit":
+            if save_action_id == "create":
+                save_action_id = "save"
             toolbar = [
-                Button(label="Cancel", action_id="cancel-edit"),
+                Button(label="Cancel", action_id="cancel-edit", button_style="tertiary"),
                 Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
             if save_and_next is not None:
@@ -640,20 +645,22 @@ class CrudMapperMixin(MixinBase):
                 toolbar.insert(len(toolbar) - 1, save_and_next)
         else:  # new
             toolbar = [
-                Button(label="Cancel", action_id="cancel-new"),
+                Button(label="Cancel", action_id="cancel-new", button_style="tertiary"),
                 Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
-        # A create/edit form IS a form page (Java's crud forms answer pageType "form"); the
-        # crud's own type (collection) describes its listing, not the form.
-        form_page_type = page_type_of(crud_type) if mode == "view" else "form"
+        # A create/edit form IS a form page and a record's view is a detail page (Java's crud
+        # forms answer pageType "form" / "detail"); the crud's own type (collection) describes its
+        # listing, not its records. The type rides the ServerSide envelope only — Java's form Page
+        # carries neither pageTitle nor pageType.
+        form_page_type = "detail" if mode == "view" else "form"
         page = self.client(
-            PageMetadata(title=title, page_title=title, toolbar=toolbar,
-                         page_type=form_page_type),
+            PageMetadata(title=title, toolbar=toolbar),
             None,
             self.form_cards(element, entity, read_only=mode == "view"),
-        )
+        ).model_copy(update={"style": "max-width:900px;margin: auto;"})
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
+            style="width: 100%;",
             # The entity's field values ride in initialData / fragment state (Java parity).
             initial_data=self.form_initial_data(element, entity),
             # The toolbar's actions, advertised: this port answers them in place (there is no

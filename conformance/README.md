@@ -24,7 +24,10 @@ conformance/
 
 A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
 optional) is rendered by sending that request to the case's fixture type — how an interaction step
-(the shell's content load, an action) is pinned, not only the first render.
+(the shell's content load, an action) is pinned, not only the first render. The second-request
+cases: `app-no-home-content`, `crud-search`, `crud-new`, `crud-edit`, `crud-view`,
+`wizard-step-2`, `action-effects` (messages + a command), `drawer` (an overlay), `rejected-save`
+(the server-side validation re-check) and `error-boundary` (an unexpected exception).
 
 ## The contract
 
@@ -43,9 +46,18 @@ corpus flag noise, and a check that reports noise gets ignored.
 
 So both sides normalise before comparing:
 
-- **drop** generated identifiers (`id` values the server invents) and empty/null members — but
-  NOT an action's `id` (inside `actions[]`): that is the name the client sends, so a missing or
-  renamed action is a contract break;
+- **drop** generated identifiers (`id` values the server invents) — but NOT an action's `id`
+  (inside `actions[]`): that is the name the client sends, so a missing or renamed action is a
+  contract break;
+- **drop** members at their default — `null`, `[]`, `{}`, `false`, `0`, `""` — because the wire's
+  rule is **"absent == default"**: a producer may omit a member at its type's zero value or send it,
+  and a reader must treat both alike (Java sends them, the ports mostly omit them);
+- **except** the members whose zero is NOT their absent value, which a producer must send
+  explicitly and the normaliser therefore KEEPS at `false`/`0`: `duration` (0 = a sticky toast;
+  absent = the renderer's default timeout), `visible`, `opened`, `open`, `searchable`, `centered`,
+  `asideSticky` (absent = true) and `debounceMillis` (0 = no debounce; absent = 800). The list is
+  `MEANINGFUL_ZERO` in the three runners and lives in the wire specification too;
+- **mask** the error boundary's per-request reference (`Reference: <ref>`);
 - **sort** object keys;
 - keep everything that describes *what the screen is*: types, field ids, labels, data types,
   actions, layout structure.
@@ -82,6 +94,16 @@ Some cases cannot be mirrored member for member, and that is information, not an
   content component's `actions` (Java lets New/View/Delete bubble to the mediator, the ports answer
   them in place) and its private routing state (`initialData`/`state`). Everything the renderer
   draws is pinned; the action list itself is pinned by the non-mediated listing cases.
+
+- **The CRUD's record forms answer on different routes.** Java's mediator answers `/new`,
+  `/{id}/edit` and `/{id}` on the crud's own route (where every later action goes back to); the
+  ports answer on the record's route. The `crud-new`/`crud-edit`/`crud-view` cases leave the form
+  component's `route` out on every side (`MEDIATED_FORMS`), besides the mediator protocol above.
+
+- **The error boundary lives in the HTTP adapter in the ports.** Java answers an exception inside
+  `RunActionUseCase`; .NET (`MateuErrors`) and Python (`mateu_core.errors`) in the adapter. Their
+  runners wrap the handler exactly as the adapter does, so `rejected-save` and `error-boundary` pin
+  what travels.
 
 - **A wizard is a mediator in Java too.** Java's wizard advertises a `*` catch-all and keeps its
   position in its own state; the ports list `next`/`back`/`skip`/the completion and keep `__step`.

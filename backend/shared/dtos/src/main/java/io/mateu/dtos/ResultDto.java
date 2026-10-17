@@ -12,7 +12,13 @@ import java.util.List;
  * @param interestingLinks A list of interesting links
  * @param nowTo The preferred destination
  * @param leftSideImageUrl An image to be shown on the left side
+ * @param actionHandler The server-side object that handles the result's actions
+ * @deprecated nothing produces it: no Java mapper, no uidl record and neither port emits a {@code
+ *     Result} component. No replacement. It stays registered under {@code "Result"} only because
+ *     the wire is additive within a major (unregistering it would remove a wire type); it will be
+ *     removed with the next wire major.
  */
+@Deprecated(since = "3.0-alpha.426", forRemoval = true)
 public record ResultDto(
     String title,
     ResultTypeDto resultType,

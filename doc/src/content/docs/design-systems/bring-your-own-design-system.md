@@ -11,9 +11,13 @@ The Mateu backend exposes **one** sync endpoint per mount. A renderer POSTs the 
 user action to it, and gets back a UI increment to apply:
 
 ```
-POST /{baseUrl}/mateu/v3/components/_/action
+POST /{baseUrl}/mateu/v3/sync/{route}
 Body: { "route": "...", "actionId": "<the load action> | <methodName>", "componentState": { ... } }
 ```
+
+That is the canonical spelling (see [The exchange](/reference/wire-specification/#the-exchange)):
+the request body decides, so older spellings such as `…/mateu/v3/components/_/action` are still
+served the same way.
 
 The response is a `UIIncrementDto` carrying `commands` (navigation, window title, …), `messages`
 (toasts/alerts) and `fragments` (the component tree to render or patch). The same increment shape

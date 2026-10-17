@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/rejected-save",
+  "actionId": "save",
+  "componentState": {
+    "name": ""
+  }
+}

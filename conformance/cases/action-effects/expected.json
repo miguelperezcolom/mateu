@@ -1,0 +1,20 @@
+{
+  "commands" : [ {
+    "data" : "/conformance/simple-form",
+    "type" : "NavigateTo"
+  } ],
+  "messages" : [ {
+    "duration" : 4000,
+    "position" : "middle",
+    "text" : "Saved",
+    "title" : "Done",
+    "variant" : "success"
+  }, {
+    "duration" : 0,
+    "position" : "middle",
+    "text" : "Could not notify the warehouse",
+    "title" : "Warehouse",
+    "variant" : "error"
+  } ],
+  "wireVersion" : "3.0"
+}

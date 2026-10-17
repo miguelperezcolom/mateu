@@ -29,6 +29,6 @@ skipping it produced a real defect in a generated UI; "it compiles" catches none
 10. **Functional parity** — when porting an existing UI, diff feature by feature against
     the source before calling it done; check `ux-patterns/` before dropping anything.
 11. **Verify at runtime** — load the route through the UIDL API
-    (`POST <base>/mateu/v3/components/_/action` with `actionId: ""` + `serverSideType`)
+    (`POST <base>/mateu/v3/sync/<route>` with `actionId: ""` + `serverSideType`)
     and exercise every action. Rendering and state round-trips fail in ways compilation
     cannot catch.

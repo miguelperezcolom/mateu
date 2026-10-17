@@ -16,9 +16,11 @@ no proprietary project store to be locked out of, and there are three concrete e
 - **The definition.** Your screens are `@UI` classes (Java/C#/Python) and/or YAML (`routes.yaml`,
   `sources.yaml`, layout definitions) living in **your** version control. There is nothing to
   "export" from a vendor cloud — the source of truth is already yours.
-- **The wire.** At runtime the backend emits a documented JSON model (`UIIncrementDto` and friends),
-  and the authoring surface has published JSON Schemas at `https://mateu.io/uidl/*-schema.json`
-  (component catalog, routes, sources, the unified specs schema). Four independent renderers already
+- **The wire.** At runtime the backend emits a documented JSON model (`UIIncrementDto` and friends)
+  with a generated JSON Schema of its own (`wire-schema.json`), and the authoring surface has
+  published JSON Schemas too (component catalog, routes, sources, the unified specs schema) — all
+  served from `backend/shared/uidl/*.json` on `master` (see the
+  [wire specification](/reference/wire-specification/#the-machine-readable-schemas)). Four independent renderers already
   consume the same wire, and three backends (Java, .NET, Python) emit it — so "any server serves any
   renderer" is demonstrated, not asserted.
 - **The runtime.** Mateu is **Apache 2.0** — a permissive license with an explicit patent grant. You
