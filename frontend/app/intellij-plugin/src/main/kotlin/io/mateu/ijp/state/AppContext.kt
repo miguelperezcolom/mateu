@@ -13,15 +13,6 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
-/** A toolbar button published to a native host toolbar (editor header / tool window title). */
-data class ToolbarSpec(
-    val actionId: String,
-    val label: String,
-    val disabled: Boolean,
-    val primary: Boolean,
-    val parameters: Map<String, Any?> = emptyMap(),
-)
-
 /**
  * Per-view session/navigation state and the UIIncrement applier — the Swing port of the JavaFX
  * `AppContext`. Keeps the imperative model intact: a [registry] of slot panels mutated in place, a
@@ -111,71 +102,10 @@ class AppContext(val session: AppSession) {
      * attributes changed and the form should re-render.
      */
     fun applyRules(): Boolean {
-        val rules = currentRules ?: return false
-        val ctx = mapOf<String, Any?>(
-            "state" to currentComponentState,
-            "data" to null,
-            "appState" to appState,
-            "appData" to emptyMap<String, Any?>(),
-        )
-        var changed = false
-        for (rule in rules) {
-            val filter = rule.text("filter")
-            val matches = if (filter.isBlank()) true else try {
-                Expressions.truthy(Expressions.evaluate(filter, ctx))
-            } catch (e: Exception) {
-                false
-            }
-            if (!matches) continue
-            fun value(): Any? {
-                val expression = rule.text("expression")
-                if (expression.isNotBlank()) {
-                    try {
-                        return Expressions.evaluate(expression, ctx)
-                    } catch (e: Exception) { /* fall through to the literal */ }
-                }
-                val v = rule.path("value")
-                return when {
-                    v.isMissingNode || v.isNull -> null
-                    v.isNumber -> v.asDouble()
-                    v.isBoolean -> v.asBoolean()
-                    v.isTextual -> v.asText()
-                    else -> v
-                }
-            }
-            when (rule.text("action")) {
-                "SetStateValue", "SetDataValue" -> {
-                    for (fieldName in rule.text("fieldName").split(',')) {
-                        val attr = rule.text("fieldAttribute")
-                        val key = if (attr.isBlank() || attr == "none") fieldName else "$fieldName.$attr"
-                        val v = value()
-                        if (currentComponentState[key] != v) {
-                            currentComponentState[key] = v
-                            changed = true
-                        }
-                    }
-                }
-                "SetAttributeValue" -> {
-                    for (fieldName in rule.text("fieldName").split(',')) {
-                        val attr = rule.text("fieldAttribute")
-                        if (attr.isBlank() || attr == "none") continue
-                        val attrs = fieldAttributes.getOrPut(fieldName) { HashMap() }
-                        val v = value()
-                        if (attrs[attr] != v) {
-                            attrs[attr] = v
-                            changed = true
-                        }
-                    }
-                }
-                "RunAction" -> {
-                    val actionId = rule.text("actionId")
-                    if (actionId.isNotBlank()) runAction(actionId, null, silent = true)
-                }
-                // RunJS / SetCssClass / SetStyle are DOM-bound — not applicable on Swing.
-            }
-            if (rule.text("result") == "Stop") break
+        val rules = screen.rules ?: return false
+        return ClientRules.apply(rules, currentComponentState, appState, fieldAttributes) { actionId ->
+            runAction(actionId, null, silent = true)
         }
-        return changed
     }
 
     /** A user edit that mutates state in place (e.g. editable-grid rows) — just flips the flag. */
@@ -218,18 +148,7 @@ class AppContext(val session: AppSession) {
     /** Claim [buttons] for the native host toolbar; false → the renderer keeps them inline. */
     fun publishToolbar(buttons: List<JsonNode>): Boolean {
         if (!nativeToolbarHost) return false
-        val specs = buttons.mapNotNull { b ->
-            val actionId = b.text("actionId", b.text("id"))
-            // "Back to list" (cancel-view) is pointless in the IDE: the listing stays visible in
-            // its own tool window while the detail lives in an editor tab.
-            if (actionId.isBlank() || actionId == "cancel-view") null else ToolbarSpec(
-                actionId = actionId,
-                label = b.text("label", actionId),
-                disabled = b.bool("disabled"),
-                primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
-                parameters = jsonToParams(b.path("parameters")),
-            )
-        }
+        val specs = ToolbarSpecs.of(buttons) { jsonToParams(it) }
         // Idempotent: an in-place re-render of the same view (state-only update, validation error)
         // republishes the same buttons — replace, don't accumulate.
         viewActions.removeAll(specs)
@@ -238,22 +157,8 @@ class AppContext(val session: AppSession) {
         return true
     }
 
-    // Action ids the currently-loaded server-side component declares (for action bubbling).
-    private var currentComponentActions: List<String> = emptyList()
-    private var currentComponentValidations: JsonNode? = null
-    private var currentActionValidationRequired: MutableMap<String, Boolean> = HashMap()
-    private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
-    private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
-    private var currentActionConfirmation: Map<String, ConfirmationTexts> = HashMap()
-    /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
-    private var currentActionSse: Set<String> = emptySet()
-
-    /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
-     *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
-    private var currentActionRestData: MutableMap<String, JsonNode> = HashMap()
-
-    /** The current component's full wire actions: the OWNER of an id, before the catalogue. */
-    private var currentActionDefs: JsonNode? = null
+    /** What the currently-loaded server-side component declares (actions, flags, validations, rules). */
+    private var screen: ScreenDeclarations = ScreenDeclarations.NONE
 
     /** Nesting of flows applied client-side, bounded so a flow running itself cannot loop. */
     private var flowDepth = 0
@@ -266,9 +171,6 @@ class AppContext(val session: AppSession) {
 
     /** Inline field validation errors (fieldId → message), consumed by the form field renderer. */
     val currentFieldErrors: MutableMap<String, String> = HashMap()
-
-    /** Client-side rules of the current component (RuleMapper wire shape). */
-    private var currentRules: JsonNode? = null
 
     /** Rule-driven field attribute overrides (SetAttributeValue): fieldId → {hidden, disabled, …}. */
     val fieldAttributes: MutableMap<String, MutableMap<String, Any?>> = HashMap()
@@ -291,7 +193,7 @@ class AppContext(val session: AppSession) {
             if (actionId == "search") seedSearchState()
             runAction(actionId, null, silent = true)
         },
-        conditionHolds = { evalCondition(it, currentComponentState) },
+        conditionHolds = { Conditions.holds(it, currentComponentState, appState) },
     )
 
     /** Set by navigations: the next ServerSide render is a NEW screen even if it looks the same. */
@@ -467,7 +369,7 @@ class AppContext(val session: AppSession) {
 
         // Bulk actions (ActionDto.rowsSelectedRequired): guarded client-side — with no rows
         // selected show a notice (balloon) instead of dispatching, exactly like the web.
-        if (currentActionRowsSelectedRequired[actionId] == true) {
+        if (screen.requiresRowSelection(actionId)) {
             val selected = currentComponentState["crud_selected_items"]
             val empty = when (selected) {
                 is Collection<*> -> selected.isEmpty()
@@ -480,15 +382,11 @@ class AppContext(val session: AppSession) {
             }
         }
 
-        // Client-side validation: actions flagged validationRequired only fire if every validation
-        // condition holds; otherwise surface inline field errors and re-render in place. Unowned
-        // SUBMIT actions bubble to the crud mediator, whose flags we never see (the plugin loads
-        // the inner view directly) — the mediator's validating set is stable framework knowledge
-        // (CrudActionsBuilder: create / create-and-stay / save), so they validate here too.
-        val requiresValidation = currentActionValidationRequired[actionId] == true ||
-            (!ownsAction(actionId) && actionId in BUBBLED_SUBMIT_ACTIONS)
-        if (requiresValidation) {
-            val fieldErrors = collectFieldErrors()
+        // Client-side validation: actions flagged validationRequired (and the crud mediator's
+        // submits, see ScreenDeclarations.requiresValidation) only fire if every validation
+        // condition holds; otherwise surface inline field errors and re-render in place.
+        if (screen.requiresValidation(actionId)) {
+            val fieldErrors = screen.fieldErrors(currentComponentState, appState)
             currentFieldErrors.clear()
             if (fieldErrors.isNotEmpty()) {
                 currentFieldErrors.putAll(fieldErrors)
@@ -506,7 +404,7 @@ class AppContext(val session: AppSession) {
 
         // @Action(confirmationRequired): ask first, with the declared texts — same order as the
         // web's mateu-component (selection guard, validation, then the question).
-        currentActionConfirmation[actionId]?.let { t ->
+        screen.confirmation(actionId)?.let { t ->
             val choice = JOptionPane.showOptionDialog(
                 contentPane,
                 t.message,
@@ -523,7 +421,7 @@ class AppContext(val session: AppSession) {
         // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching
         // to the Mateu server — fetch + merge the response into the state + notify (fires on click
         // for a @RestAction button, and on mount for @RestData via its OnLoad __restdata__ action).
-        currentActionRestData[actionId]?.let { rest ->
+        screen.restAction(actionId)?.let { rest ->
             handleRestAction(rest, actionId)
             return
         }
@@ -531,7 +429,7 @@ class AppContext(val session: AppSession) {
         // A declared FLOW (the view's own actions lowered to commands) or — for an id the view does
         // NOT declare — the app's ACTION catalogue, owner first. Runs here with no round-trip; a
         // RunAction inside the flow comes back through runAction and resolves the same way.
-        val resolved = ShellFlows.resolve(actionId, currentActionDefs, session.actionCatalogue)
+        val resolved = ShellFlows.resolve(actionId, screen.actionDefs, session.actionCatalogue)
         if (ShellFlows.isClientRunnable(resolved) && flowDepth < 8) {
             val commands = resolved!!.path("commands")
             if (commands.isArray && !commands.isEmpty) {
@@ -547,9 +445,12 @@ class AppContext(val session: AppSession) {
             return
         }
 
-        val serverSideType = resolveActionTarget(actionId)
+        val serverSideType = ActionTargets.of(
+            screen.bubbles(actionId), currentServerSideType, currentRoute,
+            orchestratorServerSideType, orchestratorComponentRoute, navigationServerSideType,
+        )
         val generation = polling.generation
-        if (actionId in currentActionSse) {
+        if (screen.isStreamed(actionId)) {
             // a LongTask: each progress increment is applied as it arrives
             background(
                 work = {
@@ -630,7 +531,7 @@ class AppContext(val session: AppSession) {
                 // null/absent (a @RestAction fire-and-toast) merges nothing.
                 val resultPath = rest.get("resultPath")
                 if (resultPath != null && resultPath.isTextual) {
-                    val merged = valueAtPath(json, resultPath.asText())
+                    val merged = ScreenShapes.valueAtPath(json, resultPath.asText())
                     if (merged != null && merged.isObject) {
                         merged.properties().forEach { (k, v) -> currentComponentState[k] = v }
                         rerenderCurrentForm()
@@ -662,53 +563,12 @@ class AppContext(val session: AppSession) {
         return increment.path("appData").path("_restfetch")
     }
 
-    /** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
-    private fun valueAtPath(node: JsonNode, path: String): JsonNode? {
-        if (path.isBlank()) return node
-        var cur: JsonNode? = node
-        for (key in path.split('.')) {
-            cur = cur?.get(key) ?: return null
-        }
-        return cur
-    }
-
     // ── action bubbling / validation (framework-neutral, ported verbatim) ─────────────
     fun captureComponentContext(sscNode: JsonNode, serverSideType: String) {
-        val actions = ArrayList<String>()
-        val validationFlags = HashMap<String, Boolean>()
-        val bubbleFlags = HashMap<String, Boolean>()
-        val rowsSelectedFlags = HashMap<String, Boolean>()
-        val confirmations = HashMap<String, ConfirmationTexts>()
-        val sseActions = HashSet<String>()
-        val restData = HashMap<String, JsonNode>()
+        screen = ScreenDeclarations.of(sscNode)
         val actionNodes = sscNode.path("actions")
-        if (actionNodes.isArray) {
-            for (a in actionNodes) {
-                val id = a.text("id")
-                if (id.isNotBlank()) {
-                    actions.add(id)
-                    validationFlags[id] = a.bool("validationRequired")
-                    bubbleFlags[id] = a.bool("bubble")
-                    rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
-                    ActionConfirmation.of(a)?.let { confirmations[id] = it }
-                    if (a.bool("sse")) sseActions.add(id)
-                    val rest = a.path("restAction")
-                    if (rest.isObject) restData[id] = rest
-                }
-            }
-        }
-        currentComponentActions = actions
-        currentActionValidationRequired = validationFlags
-        currentActionBubble = bubbleFlags
-        currentActionRowsSelectedRequired = rowsSelectedFlags
-        currentActionConfirmation = confirmations
-        currentActionSse = sseActions
-        currentActionRestData = restData
-        currentActionDefs = actionNodes.takeIf { it.isArray }
         // A catalogue REST call reached from the menu runs against the latest loaded view.
         session.restActionRunner = { id, rest -> SwingUtilities.invokeLater { handleRestAction(rest, id) } }
-        currentComponentValidations = sscNode.path("validations")
-        currentRules = sscNode.path("rules").takeIf { it.isArray && it.size() > 0 }
         fieldAttributes.clear()
         actionBanners.clear() // action banners don't survive a component (re)load
         emitsName = sscNode.text("emitsName", sscNode.text("serverSideType"))
@@ -761,7 +621,7 @@ class AppContext(val session: AppSession) {
         if (!actionNodes.isArray) return
         for (a in actionNodes) {
             val id = a.text("id")
-            val keyStroke = toKeyStroke(a.text("shortcut")) ?: continue
+            val keyStroke = ShortcutKeys.keyStroke(a.text("shortcut")) ?: continue
             if (id.isBlank()) continue
             val action = object : com.intellij.openapi.actionSystem.AnAction() {
                 override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) {
@@ -813,72 +673,6 @@ class AppContext(val session: AppSession) {
         }
     }
 
-    /** Mateu's "ctrl+alt+d" → a Swing [javax.swing.KeyStroke] ("ctrl alt D"); null when unparseable. */
-    private fun toKeyStroke(shortcut: String): javax.swing.KeyStroke? {
-        if (shortcut.isBlank()) return null
-        val parts = shortcut.lowercase().split('+').map { it.trim() }.filter { it.isNotEmpty() }
-        if (parts.isEmpty()) return null
-        val mods = parts.dropLast(1).map {
-            when (it) {
-                "ctrl", "control" -> "ctrl"
-                "alt" -> "alt"
-                "shift" -> "shift"
-                "meta", "cmd" -> "meta"
-                else -> return null
-            }
-        }
-        val key = when (val k = parts.last()) {
-            "enter" -> "ENTER"
-            "esc", "escape" -> "ESCAPE"
-            "space" -> "SPACE"
-            "del", "delete" -> "DELETE"
-            "tab" -> "TAB"
-            else -> k.uppercase()
-        }
-        return javax.swing.KeyStroke.getKeyStroke((mods + key).joinToString(" "))
-    }
-
-    private fun ownsAction(actionId: String?): Boolean {
-        if (actionId == null) return false
-        for (owned in currentComponentActions) {
-            if (owned == actionId) return true
-            if (owned.endsWith("*") && actionId.startsWith(owned.dropLast(1))) return true
-        }
-        return false
-    }
-
-    private fun resolveActionTarget(actionId: String): String {
-        val bubble = !ownsAction(actionId) || (currentActionBubble[actionId] == true)
-        if (bubble &&
-            orchestratorServerSideType.isNotBlank() &&
-            orchestratorServerSideType != currentServerSideType &&
-            currentRoute.startsWith(orchestratorComponentRoute)
-        ) {
-            return orchestratorServerSideType
-        }
-        // Unowned action on an inner view (e.g. "edit" on a crud detail whose ServerSide is the
-        // entity view): bubble to the sst the view was navigated with (the crud orchestrator).
-        if (bubble && navigationServerSideType.isNotBlank() && navigationServerSideType != currentServerSideType) {
-            return navigationServerSideType
-        }
-        return currentServerSideType
-    }
-
-    private fun collectFieldErrors(): Map<String, String> {
-        val errors = LinkedHashMap<String, String>()
-        val validations = currentComponentValidations ?: return errors
-        if (!validations.isArray) return errors
-        for (v in validations) {
-            val condition = v.text("condition")
-            if (condition.isNotBlank() && !evalCondition(condition, currentComponentState)) {
-                val fieldId = v.text("fieldId")
-                val message = v.text("message", "Invalid value")
-                errors.putIfAbsent(fieldId, message)
-            }
-        }
-        return errors
-    }
-
     /** Public re-render hook for widgets that swap their own subtree (signature accept, etc.). */
     fun rerenderForm() = rerenderCurrentForm()
 
@@ -889,58 +683,6 @@ class AppContext(val session: AppSession) {
         SwingUtilities.invokeLater {
             putChildren(container, ComponentRenderer(this), children, liveState, liveState)
         }
-    }
-
-    private fun evalCondition(condition: String, state: Map<String, Any?>): Boolean {
-        try {
-            return Expressions.truthy(Expressions.evaluate(condition, mapOf("state" to state, "appState" to appState)))
-        } catch (e: Exception) {
-            // legacy regex matcher as the safety net for syntax the parser doesn't cover
-        }
-        val cond = condition.trim()
-        val c = COMPARISON.matcher(cond)
-        if (c.matches()) {
-            val left = toDouble(state[c.group(1)])
-            val right = c.group(3).toDouble()
-            return when (c.group(2)) {
-                ">=" -> left >= right
-                "<=" -> left <= right
-                ">" -> left > right
-                "<" -> left < right
-                "==" -> left == right
-                "!=" -> left != right
-                else -> true
-            }
-        }
-        val t = TRUTHY.matcher(cond)
-        if (t.matches()) return truthy(state[t.group(1)])
-        return true
-    }
-
-    private fun truthy(v: Any?): Boolean = when (v) {
-        null -> false
-        is JsonNode -> when {
-            v.isNull || v.isMissingNode -> false
-            v.isTextual -> v.asText().isNotBlank()
-            v.isNumber -> v.asDouble() != 0.0
-            v.isBoolean -> v.asBoolean()
-            else -> !v.isEmpty
-        }
-        is String -> v.isNotBlank()
-        is Number -> v.toDouble() != 0.0
-        is Boolean -> v
-        else -> true
-    }
-
-    private fun toDouble(v: Any?): Double = try {
-        when (v) {
-            is JsonNode -> if (v.isNumber) v.asDouble() else if (v.isTextual) v.asText().toDouble() else 0.0
-            is Number -> v.toDouble()
-            is String -> v.toDouble()
-            else -> 0.0
-        }
-    } catch (e: NumberFormatException) {
-        0.0
     }
 
     // ── increment application ─────────────────────────────────────────────────────────
@@ -1072,7 +814,7 @@ class AppContext(val session: AppSession) {
                 if (opener != null && isDetail) {
                     // CRUD list → detail/new/edit: open in a central editor tab; the listing stays
                     // in the bottom tool window untouched (its inner route doesn't change).
-                    val label = detailLabel(routeSuffix)
+                    val label = ScreenShapes.detailLabel(routeSuffix)
                     SwingUtilities.invokeLater { opener(label, fullRoute, base, sst) }
                 } else {
                     currentInnerRoute = routeSuffix.trim('/')
@@ -1113,31 +855,10 @@ class AppContext(val session: AppSession) {
         // mediator shell (whose inner navigation is still coming) counts, so composed views like
         // wizards (no Page/Form/Crud in their tree) get placed too — tell the host whether it's a
         // Crud, so listings go to the bottom tool window and the rest to the central editor.
-        if (!firstContentFired && target === contentPane && !isMediatorShell(component)) {
+        if (!firstContentFired && target === contentPane && !ScreenShapes.isMediatorShell(component)) {
             firstContentFired = true
-            onFirstContent?.invoke(containsType(component, CRUD_ONLY))
+            onFirstContent?.invoke(ScreenShapes.containsCrud(component))
         }
-    }
-
-    /** A bare mediator/app shell: an App, or a ServerSide whose only child is an App. */
-    private fun isMediatorShell(component: JsonNode): Boolean {
-        if (component.path("metadata").text("type") == "App") return true
-        if (component.text("type") == "ServerSide") {
-            val children = component.path("children")
-            return children.isArray && children.size() == 1 &&
-                children.get(0).path("metadata").text("type") == "App"
-        }
-        return false
-    }
-
-    private fun containsType(node: JsonNode, types: Set<String>): Boolean {
-        if (node.isNull || node.isMissingNode) return false
-        if (node.path("metadata").text("type") in types) return true
-        val children = node.path("children")
-        if (children.isArray) for (c in children) if (containsType(c, types)) return true
-        val content = node.path("metadata").path("content")
-        if (content.isObject && containsType(content, types)) return true
-        return false
     }
 
     /**
@@ -1226,7 +947,7 @@ class AppContext(val session: AppSession) {
         }
         if (key != null) session.openOverlays[key] = refresh
         if (key != null) session.overlayStateUpdaters[key] = updateState
-        val width = remToPx(meta.text("width"), 448)
+        val width = ScreenShapes.remToPx(meta.text("width"), 448)
         if (owner != null) {
             val h = (owner.height - 80).coerceAtLeast(300)
             dialog.setSize(width, h)
@@ -1252,11 +973,6 @@ class AppContext(val session: AppSession) {
             JComponent.WHEN_IN_FOCUSED_WINDOW,
         )
         dialog.isVisible = true
-    }
-
-    private fun remToPx(size: String, def: Int): Int {
-        val rem = size.removeSuffix("rem").trim().toDoubleOrNull() ?: return def
-        return (rem * 16).toInt()
     }
 
     /** Opens a route the way a server NavigateTo does (also the page header's previous/next
@@ -1544,16 +1260,6 @@ class AppContext(val session: AppSession) {
     }
 
     // ── misc ─────────────────────────────────────────────────────────────────────────
-    /** A short tab title for a CRUD detail route suffix, e.g. "/0130" → "0130", "/new" → "New". */
-    private fun detailLabel(routeSuffix: String): String {
-        val seg = routeSuffix.trim('/').substringAfterLast('/')
-        return when {
-            seg.isBlank() -> "Detail"
-            seg.equals("new", ignoreCase = true) -> "New"
-            else -> seg
-        }
-    }
-
     private fun loadingLabel(): JComponent = JLabel("Loading…")
 
     private fun background(work: () -> JsonNode, onOk: (JsonNode) -> Unit, onErr: (Throwable) -> Unit) {
@@ -1595,16 +1301,7 @@ class AppContext(val session: AppSession) {
     }
 
     companion object {
-        private val CRUD_ONLY = setOf("Crud")
-
         /** Actions that abandon a tracked form's edits — guarded by the dirty confirm. */
         private val DISCARD_ACTIONS = setOf("cancel-edit", "cancel-view", "cancel")
-
-        /** Crud-mediator submits (validationRequired there — see CrudActionsBuilder). */
-        private val BUBBLED_SUBMIT_ACTIONS = setOf("create", "create-and-stay", "save", "update")
-        private val COMPARISON: java.util.regex.Pattern =
-            java.util.regex.Pattern.compile("state\\['([^']+)'\\]\\s*(>=|<=|==|!=|>|<)\\s*(-?\\d+(?:\\.\\d+)?)")
-        private val TRUTHY: java.util.regex.Pattern =
-            java.util.regex.Pattern.compile("state\\['([^']+)'\\]")
     }
 }
