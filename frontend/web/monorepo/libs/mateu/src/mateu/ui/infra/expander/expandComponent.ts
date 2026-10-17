@@ -174,6 +174,13 @@ export function expandComponent(authored: FluentNode): Component {
         delete metadata.tone
     }
     if (type === 'MatrixGrid') normalizeMatrix(metadata)
+    // GridMapper keeps a grid's columns in `metadata.content` (each a ClientSide GridColumn or
+    // GridGroupColumn), and GridGroupColumnMapper its grouped columns in `metadata.columns` — not
+    // lifted to children. Without this a bundled Grid lost every column (content was dropped).
+    if (type === 'Grid' && Array.isArray(content)) metadata.content = (content as FluentNode[]).map(expandColumn)
+    if (type === 'GridGroupColumn' && Array.isArray(metadata.columns)) {
+        metadata.columns = (metadata.columns as FluentNode[]).map(expandColumn)
+    }
 
     let kids: FluentNode[] = []
     if (CHILDREN_KEY[type]) {

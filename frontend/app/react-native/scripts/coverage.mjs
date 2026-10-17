@@ -123,6 +123,7 @@ export const RN_COVERAGE = {
   Map: { status: 'full' },
   Grid: { status: 'full', note: 'horizontal-scroll table, tree rows indented, action cells' },
   GridColumn: { status: 'part', note: 'of Grid / Crud' },
+  GridGroupColumn: { status: 'part', note: 'of Grid / Crud: its columns, headed "Group · Column"' },
   VirtualList: { status: 'full' },
   // ── messaging ──
   Chat: { status: 'full', note: 'opens the assistant panel (same contract as the app chat FAB)' },

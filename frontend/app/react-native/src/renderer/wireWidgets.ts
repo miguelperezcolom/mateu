@@ -4,6 +4,8 @@
  * grid tracks, content-layout slots, result glyphs, form-definition previews, element kinds.
  */
 
+import { flattenColumnGroups } from './columnGroups.ts';
+
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
 
@@ -44,10 +46,11 @@ export interface GridCol {
   actionId?: string;
 }
 
-/** Grid columns: the GridColumn children carried in `metadata.content` (or `columns`). */
+/** Grid columns: the GridColumn children carried in `metadata.content` (or `columns`); a column
+ *  group is flattened into its columns, headed "Group · Column" (columnGroups.ts). */
 export function gridColumnsOf(component: unknown): GridCol[] {
   const m = meta(component);
-  const cols = ((m['content'] ?? m['columns']) as unknown[]) ?? [];
+  const cols = flattenColumnGroups(((m['content'] ?? m['columns']) as unknown[]) ?? []);
   return cols
     .filter((c) => c && typeof c === 'object')
     .map((c) => {

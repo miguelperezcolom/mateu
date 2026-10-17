@@ -229,7 +229,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNode, rows: JsonNode): JComponent {
     val inlineEditing = metadata.bool("inlineEditing")
     // The web's editable grid adds a `_select` marker column; Swing uses the table selection itself.
-    val cols = metadata.arr("columns").mapNotNull { col ->
+    val cols = metadata.leafColumns().mapNotNull { col ->
         val cm = col.path("metadata")
         val id = cm.text("id", col.text("id"))
         if (id.isBlank() || id.startsWith("_")) null else Triple(id, cm.text("label", id), cm.text("dataType"))
@@ -578,7 +578,7 @@ private fun coerceCellValue(text: String, old: Any?): Any? {
  * (`@OnRowSelected`), selecting a row dispatches that action with the row as `_clickedRow`.
  */
 private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JComponent {
-    val cols = metadata.arr("columns").mapNotNull { col ->
+    val cols = metadata.leafColumns().mapNotNull { col ->
         val cm = col.path("metadata")
         val id = cm.text("id", col.text("id"))
         if (id.isBlank()) null else Triple(id, cm.text("label", id), cm.text("dataType"))

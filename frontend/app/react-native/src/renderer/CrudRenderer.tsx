@@ -38,6 +38,7 @@ import { cellTooltipText } from './hoverDetails';
 import { ComponentRenderer } from './ComponentRenderer';
 import { showsPreSearch } from './patternGaps';
 import { cellText } from './cellText';
+import { flattenColumnGroups } from './columnGroups';
 import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf } from '../core/rowOpen';
 
 interface FilterFieldMeta {
@@ -146,7 +147,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
   const searchable = Boolean(metadata['searchable']);
-  const columns = (metadata['columns'] as ColumnMeta[]) ?? [];
+  // a column group (GridGroupColumn) becomes its columns, headed "Group · Column" (columnGroups.ts)
+  const columns = flattenColumnGroups((metadata['columns'] as ColumnMeta[]) ?? []);
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
 
   // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the

@@ -107,6 +107,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
+| Fluent `Grid` with column groups (`GridGroupColumn`: a header spanning several columns, its columns in `metadata.columns`; authorable in Java code and in YAML). The ports have no fluent `Grid` component at all — their tables are listings and grid form fields, which have no column groups in any backend — so the group has nothing to live in there | ✅ | N/A | N/A |
 | Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | ✅ | ✅ |
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
 | Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
@@ -287,6 +288,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
+| Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ flattened, `Group · Column` headers |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
 | Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | ✅ the Ask palette: destinations + GlobalSearchSupplier entity results by category | ✅ sidebar search | ✅ drawer search |
@@ -433,6 +435,7 @@ renderers, and its children still render.
 | `Breadcrumb` | ↳ | of Breadcrumbs |
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
+| `GridGroupColumn` | ↳ | of Grid / Crud: oj-table has no grouped headers, so the group label prefixes its columns ("Occupancy · Adults") |
 | `Tab` | ↳ | of TabLayout |
 <!-- redwood-coverage:end -->
 
@@ -447,7 +450,7 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 89 rendered, 11 layout containers, 6 parts of another component,
+native renderer — 89 rendered, 11 layout containers, 7 parts of another component,
 10 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
@@ -567,6 +570,7 @@ native renderer — 89 rendered, 11 layout containers, 6 parts of another compon
 | `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
 | `Breadcrumb` | ✅ part | of Breadcrumbs |
 | `GridColumn` | ✅ part | of Grid / Crud |
+| `GridGroupColumn` | ✅ part | of Grid / Crud: its columns, headed "Group · Column" |
 | `Tab` | ✅ part | of TabLayout |
 <!-- rn-coverage:end -->
 
@@ -582,6 +586,7 @@ below were the last to arrive, so this is how each one maps to Swing:
 | Wire type | IntelliJ rendering |
 |---|---|
 | `Grid` / `GridColumn` | `JBTable` over the page rows (read-only); a stray column shows its header |
+| `GridGroupColumn` | a Swing header is flat: the group's columns are table columns headed `Group · Column` (in a Grid, a Crud and a grid field) |
 | `VirtualList` | `JBList`, one line per row |
 | `MasterDetailLayout` | `Splitter` (master / detail) |
 | `CarouselLayout` | one slide at a time, ‹ › buttons and `n / total` |
