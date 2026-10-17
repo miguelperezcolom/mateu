@@ -29,6 +29,9 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
 
     val field = SearchTextField(false)
     field.textEditor.emptyText.text = "Search everywhere in the app…"
+    // the editor inside SearchTextField is an anonymous text component: a screen reader following
+    // the focus hears nothing without a name of its own (ConformanceCorpusRenderTest, app-extras)
+    field.textEditor.accessibleName("Search everywhere in the app")
 
     val results = verticalPanel(0)
     results.border = JBUI.Borders.empty(2, 8, 4, 0)
