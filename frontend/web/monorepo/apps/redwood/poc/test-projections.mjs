@@ -19,6 +19,7 @@ import {
   smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
   pageSwitcherOf, switcherPickOf, pageKpisOf, welcomeOf,
+  planningActionOf, formatAggregate, aggregateFootersOf, groupedRows, rowToneOf,
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
@@ -835,6 +836,46 @@ test('chat turn: the body carries the screen when there is one, the menu only wh
   assert.equal(chatTurnTextOf('', null), '⚠️ ' + chromeText('chatEmptyAnswer'))
   const files = withAttachments([{ name: 'a', path: '/a' }], [{ path: '/a' }, { path: '/b' }, null, { name: 'no path' }])
   assert.deepEqual(files.map((f) => [f.name, f.path]), [['a', '/a'], ['/b', '/b']])
+})
+
+// ── the tape chart (planning board) and listing totals ───────────────────────────────────────
+
+test('tape chart: a drop is the new nights (end exclusive → last night), the row it landed on; a range in either direction', () => {
+  const atom = { moveActionId: 'move', resizeActionId: 'resize', selectActionId: 'pick', rangeSelectActionId: 'book' }
+  const moved = planningActionOf(atom, 'move', { taskContexts: [{ id: 'B1' }], rowContext: { data: { id: 'R2' } }, value: '2026-10-05', end: '2026-10-08' })
+  assert.deepEqual(moved, { actionId: 'move', parameters: { _blockId: 'B1', _resourceId: 'R2', _start: '2026-10-05', _end: '2026-10-07' } })
+  assert.equal(planningActionOf(atom, 'move', { taskId: 'B1', rowId: 'R9', start: '2026-10-05', end: '2026-10-06' }).parameters._resourceId, 'R9')
+  const resized = planningActionOf(atom, 'resize', { taskContexts: [{ data: { id: 'B1' }, rowContext: { rowData: { id: 'R3' } } }], start: '2026-10-01', end: null })
+  assert.deepEqual(resized.parameters, { _blockId: 'B1', _resourceId: 'R3', _start: '2026-10-01', _end: null })
+  assert.deepEqual(planningActionOf(atom, 'select', { taskId: 'B7' }), { actionId: 'pick', parameters: { _blockId: 'B7' } })
+  assert.deepEqual(planningActionOf({ ...atom, selectParam: '_clickedTaskId' }, 'select', { taskId: 'T' }).parameters, { _clickedTaskId: 'T' })
+  // a range dragged right-to-left is the same stay
+  assert.deepEqual(planningActionOf(atom, 'range', { rowId: 'R1', start: '2026-10-09', end: '2026-10-03' }).parameters, { _resourceId: 'R1', _start: '2026-10-03', _end: '2026-10-09' })
+  assert.equal(planningActionOf(atom, 'range', { rowId: 'R1', start: '2026-10-09' }), null)
+  // an instant (where the pointer let go) is rounded to its day
+  const instant = planningActionOf(atom, 'move', { taskId: 'B1', start: '2026-10-05T23:59:00', end: '2026-10-08T00:00:00' })
+  assert.match(instant.parameters._start, /^2026-10-0[56]$/)
+  assert.equal(planningActionOf(atom, 'open', { taskId: 'B1' }), null, 'no open action declared: nothing')
+  assert.equal(planningActionOf(null, 'move', {}), null)
+})
+
+test('totals: money as money, counts as whole numbers; the footer names the total, a group row its count', () => {
+  assert.equal(formatAggregate(1234.5, { dataType: 'money' }), '1.234,50')
+  assert.equal(formatAggregate(1234.5, { stereotype: 'money' }), '1.234,50')
+  assert.equal(formatAggregate(2.6, { aggregate: 'count' }), new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(3))
+  assert.equal(formatAggregate(null, {}), '')
+  const md = { groupBy: 'status', columns: [{ metadata: { id: 'status' } }, { metadata: { id: 'total', aggregate: 'sum', dataType: 'money' } }, { metadata: {} }] }
+  assert.deepEqual(aggregateFootersOf(md, { aggregates: { total: 10 }, page: { totalElements: 4 } }), { total: '10,00', status: 'Total (4)' })
+  assert.deepEqual(aggregateFootersOf({ columns: [{ id: 'name' }, { id: 'n', aggregate: 'count' }] }, { aggregates: { n: 2 } }), { n: '2', name: 'Total' })
+  assert.equal(aggregateFootersOf({ columns: [{ id: 'name' }] }, { aggregates: { name: 1 } }), null, 'nothing to total')
+  const rows = [{ status: 'OPEN', total: 1 }, { status: 'OPEN', total: 2 }, { status: null, total: 3 }]
+  const out = groupedRows(rows, md, { groups: [{ value: 'OPEN', count: 2, aggregates: { total: 3 } }] })
+  assert.deepEqual(out.filter((r) => r._group).map((r) => [r.status, r.total]), [['OPEN (2)', '3,00'], [' (1)', '']], 'a group the server did not list is counted here')
+  assert.equal(out.length, 5)
+  assert.equal(groupedRows(rows, { columns: [] }, {}), rows)
+  assert.equal(rowToneOf({ s: { type: 'ERROR' } }, 's'), 'danger')
+  assert.equal(rowToneOf({ s: { value: 'pink' } }, 's'), null)
+  assert.equal(rowToneOf({ s: null }, 's'), null)
 })
 
 for (const { name, fn } of queue) {
