@@ -160,6 +160,7 @@ const wireValidations = [
   { fieldId: 'beds', condition: absentOr('beds', '>= 1'), message: 'Must be at least 1' },
   { fieldId: 'beds', condition: absentOr('beds', '<= 9'), message: 'Must be at most 9' },
   { fieldId: 'code', condition: `state['code'] == null || state['code'] === '' || /^[A-Z]{3}$/.test(state['code'])`, message: 'Invalid format' },
+  { fieldId: 'notes', condition: `state['notes'] == null || state['notes'] === '' || state['notes'].length === undefined || state['notes'].length <= 5`, message: 'Size must be between 0 and 5' },
 ]
 
 test('the wire validations are read without eval — a @Pattern regular expression included', () => {
@@ -172,6 +173,9 @@ test('the wire validations are read without eval — a @Pattern regular expressi
     { beds: 'Must be at most 9', code: 'Invalid format' })
   // absent optional values pass their bounds and patterns; fieldsToValidate restricts
   assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', beds: '', code: null }), {})
+  // a @Size bound holds for a valid length
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', notes: 'abcde' }), {})
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', notes: 'abcdef' }), { notes: 'Size must be between 0 and 5' })
   assert.deepEqual(validationErrorsOf(wireValidations, { name: '', beds: 0 }, ['beds']), { beds: 'Must be at least 1' })
   // a condition the evaluator cannot read is the server's to check
   assert.deepEqual(validationErrorsOf([{ fieldId: 'x', condition: 'state.x ~ 1', message: 'm' }], {}), {})

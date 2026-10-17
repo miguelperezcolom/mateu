@@ -123,11 +123,22 @@ class ServerSideValidationSyncTest {
     }
   }
 
+  @UI("/server-validation-sized")
+  public static class Sized {
+    @jakarta.validation.constraints.Size(min = 3, max = 8)
+    String code;
+
+    @Button
+    Message save() {
+      return new Message("saved");
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Booking.class, Members.class);
+    mateu = TestMateu.withUis(Booking.class, Members.class, Sized.class);
   }
 
   @AfterAll
@@ -212,6 +223,25 @@ class ServerSideValidationSyncTest {
     assertThat(byField.get("optionalRooms"))
         .containsExactly(
             "state['optionalRooms'] == null || state['optionalRooms'] === '' || state['optionalRooms'] >= 1");
+  }
+
+  /**
+   * A {@code @Size} condition HOLDS when the value is valid, like every other: it read {@code
+   * state['code'] && state['code'].length < 3}, so the browser let "ab" through (the server then
+   * refused it) and refused "abcd".
+   */
+  @Test
+  void theSizeConditionsHoldForAValidLength() {
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/server-validation-sized").fragments().get(0).component();
+    assertThat(component.validations())
+        .extracting(io.mateu.dtos.ValidationDto::condition)
+        .containsExactly(
+            "state['code'] == null || state['code'] === '' || state['code'].length === undefined"
+                + " || state['code'].length >= 3",
+            "state['code'] == null || state['code'] === '' || state['code'].length === undefined"
+                + " || state['code'].length <= 8");
   }
 
   private static UIIncrementDto persist(String route, String actionId, Map<String, Object> state) {

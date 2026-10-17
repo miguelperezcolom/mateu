@@ -26,15 +26,7 @@ final class ConstraintValidationMapper {
                   validations.add(
                       Validation.builder()
                           .fieldId(prefix + field.getName())
-                          .condition(
-                              "state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'] && state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'].length < "
-                                  + annotation.min())
+                          .condition(sized(prefix + field.getName(), ">= " + annotation.min()))
                           .message(sizeMessage(annotation))
                           .build());
                 }
@@ -42,15 +34,7 @@ final class ConstraintValidationMapper {
                   validations.add(
                       Validation.builder()
                           .fieldId(prefix + field.getName())
-                          .condition(
-                              "state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'] && state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'].length > "
-                                  + annotation.max())
+                          .condition(sized(prefix + field.getName(), "<= " + annotation.max()))
                           .message(sizeMessage(annotation))
                           .build());
                 }
@@ -140,6 +124,25 @@ final class ConstraintValidationMapper {
   static String absentOr(String key, String comparison) {
     var ref = "state['" + key + "']";
     return ref + " == null || " + ref + " === '' || " + ref + " " + comparison;
+  }
+
+  /**
+   * A {@code @Size} bound — like every condition here, one that HOLDS when the value is valid. It
+   * used to read {@code state['x'] && state['x'].length < 3}, which holds for a value that is too
+   * SHORT: the client passed "ab" (which the server then refused) and refused "abcd". An absent
+   * value and one with no length (a number) pass, as on the server ({@link ServerConstraintCheck}).
+   */
+  static String sized(String key, String comparison) {
+    var ref = "state['" + key + "']";
+    return ref
+        + " == null || "
+        + ref
+        + " === '' || "
+        + ref
+        + ".length === undefined || "
+        + ref
+        + ".length "
+        + comparison;
   }
 
   static String sizeMessage(Size annotation) {
