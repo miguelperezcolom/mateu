@@ -457,7 +457,8 @@ public class AdapterParityITFoundation {
   /**
    * With {@code mateu.dev=true}: the index announces the event stream ({@code <meta
    * name="mateu-dev">}), the stream opens with a {@code hello} carrying the boot id, and {@code
-   * POST /mateu/dev/reload} answers 204 and is pushed to the open stream as a {@code reload} event.
+   * POST /mateu/dev/reload} answers 204 and is pushed to the open stream as a {@code reload} event
+   * — with the {@code scope=app} it was asked with.
    */
   public void servesDevEndpointsWhenEnabled() throws Exception {
     given()
@@ -500,6 +501,14 @@ public class AdapterParityITFoundation {
         } while (event.contains("\"ping\""));
         if (!event.contains("\"reload\"")) {
           throw new AssertionError("reload was not pushed to the stream: " + event);
+        }
+        // the IDE asks for a whole-app re-render with ?scope=app
+        given().queryParam("scope", "app").when().post("/mateu/dev/reload").then().statusCode(204);
+        do {
+          event = nextData(executor, it);
+        } while (event.contains("\"ping\""));
+        if (!event.contains("\"reload\"") || !event.contains("\"scope\":\"app\"")) {
+          throw new AssertionError("an app-scoped reload was not pushed as such: " + event);
         }
       }
     } finally {
