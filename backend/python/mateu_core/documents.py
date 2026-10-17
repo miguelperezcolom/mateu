@@ -185,12 +185,18 @@ def to_file_download(
     document: Document, base_url: str | None, store: DocumentStore | None = None,
     inline_max: int | None = None,
 ) -> FileDownload:
-    """Inline (base64) when small; a single-use URL when large or lazy."""
+    """Inline (base64) when small; a single-use URL when large, lazy or ACTIVE (HTML, SVG, XML,
+    scripts: inlined, the client would open it as a blob of the app's own origin — parked, it is
+    served sandboxed)."""
     filename = safe_filename(document.filename)
     media_type = safe_media_type(document.media_type)
     disposition = document.disposition.value
     limit = inline_max_bytes if inline_max is None else inline_max
-    if document.content is not None and len(document.content) <= limit:
+    if (
+        document.content is not None
+        and len(document.content) <= limit
+        and not _is_active(media_type)
+    ):
         return FileDownload(
             filename=filename, mime_type=media_type,
             base64_content=base64.b64encode(document.content).decode("ascii"),

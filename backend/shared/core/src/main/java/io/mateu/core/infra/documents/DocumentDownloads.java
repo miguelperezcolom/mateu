@@ -159,7 +159,11 @@ public final class DocumentDownloads {
     return MEDIA_TYPE.matcher(trimmed).matches() ? trimmed : "application/octet-stream";
   }
 
-  private static boolean isActive(String mediaType) {
+  /**
+   * A media type a browser would RUN rather than show (HTML, SVG, XML, scripts): served only from a
+   * parked URL under {@code Content-Security-Policy: sandbox}, never inlined into the app's origin.
+   */
+  static boolean isActive(String mediaType) {
     String base = mediaType.toLowerCase(Locale.ROOT);
     int semi = base.indexOf(';');
     if (semi >= 0) {

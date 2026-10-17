@@ -59,7 +59,7 @@ module can use them; the renderer implementation lives in your application.
 | Document | Transport |
 |---|---|
 | up to **256 KB** (JVM system property `mateu.documents.inline-max-bytes`; `DocumentStore.InlineMaxBytes` in C#, `documents.inline_max_bytes` in Python) | Inline, base64, inside the action response — one round trip, nothing kept on the server. |
-| larger, or **lazy** | Parked on the server; the response carries a URL, `<baseUrl>/mateu/v3/documents/<token>`, that the browser fetches **once**. |
+| larger, **lazy**, or an **active** type (HTML, SVG, XML, JavaScript — whatever its size: inline content opens as a blob of the app's own origin, where it would run unsandboxed) | Parked on the server; the response carries a URL, `<baseUrl>/mateu/v3/documents/<token>`, that the browser fetches **once**. |
 
 Why both: base64 inflates the bytes by a third and the whole response is held in memory on both
 sides, which is fine for a 40 KB invoice and wrong for a 30 MB report. A URL also lets the browser
