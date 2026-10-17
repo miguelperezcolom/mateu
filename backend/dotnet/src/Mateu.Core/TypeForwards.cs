@@ -8,3 +8,6 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Mateu.Core.IMenuSupplier))]
 [assembly: TypeForwardedTo(typeof(Mateu.Core.IAppSupplier))]
 [assembly: TypeForwardedTo(typeof(Mateu.Core.AppShell))]
+
+// MateuForbiddenException moved to Mateu.Uidl (next to UserFacingException) in 3.0-alpha.426.
+[assembly: TypeForwardedTo(typeof(Mateu.Core.MateuForbiddenException))]

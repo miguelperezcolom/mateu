@@ -63,10 +63,10 @@ public class ApiFreezeTests
         }
         Assert.Empty(offenders);
         // the scan is not vacuous: the deprecated layouts are found
-#pragma warning disable CS0618
+#pragma warning disable CS0618, MATEU002, MATEU003
         Assert.NotNull(typeof(DashboardLayout).GetCustomAttribute<ObsoleteAttribute>());
         Assert.NotNull(typeof(ContentLayout).GetCustomAttribute<ObsoleteAttribute>());
-#pragma warning restore CS0618
+#pragma warning restore CS0618, MATEU002, MATEU003
     }
 
     [Fact]
@@ -78,13 +78,45 @@ public class ApiFreezeTests
         foreach (var type in new[]
                  {
                      typeof(IRouteEntrySupplier), typeof(IAppSupplier), typeof(IMenuSupplier),
-                     typeof(AppShell), typeof(RouteEntry),
+                     typeof(AppShell), typeof(RouteEntry), typeof(MateuForbiddenException),
                  })
         {
             Assert.Equal("Mateu.Uidl", type.Assembly.GetName().Name);
             Assert.Equal("Mateu.Core", type.Namespace);
             Assert.Same(type, core.GetType(type.FullName!, throwOnError: true));
         }
+    }
+
+    [Fact]
+    public void Every_obsolete_public_element_carries_a_diagnostic_id()
+    {
+        // without one, a consumer building with TreatWarningsAsErrors can only silence ALL of
+        // CS0618; with one it can NoWarn exactly the deprecation it is migrating away from
+        var offenders = new List<string>();
+        var ids = new Dictionary<string, string>();
+        foreach (var assembly in new[]
+                 {
+                     typeof(AppAttribute).Assembly, typeof(SyncHandler).Assembly, typeof(UIIncrementDto).Assembly,
+                 })
+        foreach (var type in assembly.GetExportedTypes())
+        foreach (var member in type.GetMembers(BindingFlags.Public | BindingFlags.Instance
+                                                | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                     .Prepend<MemberInfo>(type))
+        {
+            var obsolete = member.GetCustomAttribute<ObsoleteAttribute>();
+            if (obsolete is null
+                || member.GetCustomAttribute<System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute>() is not null)
+                continue;
+            var name = type.FullName + (member == type ? "" : "." + member.Name);
+            if (obsolete.DiagnosticId is not { Length: > 0 } id || !id.StartsWith("MATEU"))
+                offenders.Add(name + ": [Obsolete] without a MATEU DiagnosticId");
+            else if (ids.TryGetValue(id, out var other) && other != name)
+                offenders.Add(name + ": DiagnosticId " + id + " already used by " + other);
+            else
+                ids[id] = name;
+        }
+        Assert.Empty(offenders);
+        Assert.NotEmpty(ids);
     }
 
     private static void Check(MemberInfo member, string name, List<string> offenders)
