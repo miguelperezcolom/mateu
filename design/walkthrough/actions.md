@@ -40,8 +40,8 @@ CI only — it could not be built offline here); **YAML** = definition-only page
 | `URI` / `UICommand.navigateTo` → navigation | ✅ actions-lab | ✅ flow `Navigate` | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | ✅ flow (yaml-actions, no round trip) |
 | Another object → the next view | ✅ actions-lab | N/A | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `Message.undoable` → Undo runs the undo action with its parameters | 🔧 bee171948 (Undo dispatched on the component HOST, past its listener) + 8b304a096 (label hard-coded "Deshacer" in Java/.NET/Python) | N/A | ✅ renderer/actions | 🔧 8b304a096 | 🔧 8b304a096 | ⏳ | ⏳ | N/A |
-| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | ⏳ | ❌ no `PageBanners` (append) API in the port — owner decision | ⏳ | ⏳ | N/A |
-| A `Collection` mixing the new state with a toast / an event | ✅ actions-lab (state+event), 🔧 state+toast/banners (bee171948) | N/A | ✅ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
+| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | ✅ `PageBanners.Replace/Append` (`PageBannersTests`) | ✅ `PageBanners.replace/append` | ⏳ | ⏳ | N/A |
+| A `Collection` mixing the new state with a toast / an event | ✅ actions-lab (state+event), 🔧 state+toast/banners (bee171948) | N/A | ✅ | ✅ (`this` in a list re-renders + the rest merges — `PageBannersTests`) | ⏳ | ⏳ | ⏳ | N/A |
 | Commands: `announce`/`announceAssertive`, `pushStateToHistory`, `runAction`, `markAsDirty`/`markAsClean`, `downloadFile` | ✅ actions-lab | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
 | `UserFacingException` as written; anything else "Something went wrong … Reference: id", internals never shown | ✅ actions-lab | ⏳ | ✅ renderer/actions | ✅ same texts (code compared) | ✅ same texts (code compared; its error toast has duration 0 = sticky, Java's 3000 — see ❌ list) | ⏳ | ⏳ | N/A |
 | `LongTask` / SSE streaming | ✅ existing long-task spec (MVC, WebFlux, Quarkus, Helidon) | N/A | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
@@ -118,7 +118,6 @@ Cells: ✅ 54 · 🔧 22 · ❌ 3 · N/A 38 · ⏳ 170 (React Native and Intelli
   island machinery (`runMateuIslandAction`) generalised to arbitrary islands — a larger change.
 - **VB: closing a dialog opened over a drawer leaves the drawer hidden** (the drawer is hidden
   while the modal is open and is not shown again after the modal's `CloseModal`).
-- **Python has no `PageBanners` (replace/append)** — only `PageBanner` / lists; add it to the port?
 - **Error toast duration differs**: Python's error-boundary message has `duration: 0` (sticky),
   Java's 3000 ms. Which one is the contract?
 

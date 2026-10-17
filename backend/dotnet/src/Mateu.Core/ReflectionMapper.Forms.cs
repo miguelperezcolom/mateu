@@ -12,7 +12,9 @@ public sealed partial class ReflectionMapper
     public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route,
         ICrudAffordances? drawerOf = null)
     {
-        var title = crudType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
+        // The page is named after the RECORD, as Java's CrudFormComponentBuilder does (getTitle(entity)):
+        // the entity's [Title], else its own ToString(), else its class name — never the crud's title.
+        var title = TitleOf(element, entity);
         var toolbar = (mode switch
         {
             "view" => new List<ButtonDto> { new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new") },

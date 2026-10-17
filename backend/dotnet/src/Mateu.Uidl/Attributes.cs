@@ -567,6 +567,19 @@ public sealed record PageBanner(BannerTheme Theme = BannerTheme.Info, string? Ti
     public int TimeoutSeconds { get; init; }
 }
 
+/// <summary>Action-returned page banners with an explicit mode (Java's <c>PageBanners</c>):
+/// <see cref="Replace"/> swaps the banners earlier actions showed (what a bare <see cref="PageBanner"/>
+/// or a list of them does), <see cref="Append"/> adds to them. Travels alone or inside a list with
+/// the new state (<c>new object[] { this, PageBanners.Append(...) }</c>).</summary>
+public sealed record PageBanners(IReadOnlyList<PageBanner> Banners, bool Appending)
+{
+    /// <summary>Replaces the banners earlier actions showed.</summary>
+    public static PageBanners Replace(params PageBanner[] banners) => new(banners, false);
+
+    /// <summary>Accumulates over the banners earlier actions showed.</summary>
+    public static PageBanners Append(params PageBanner[] banners) => new(banners, true);
+}
+
 /// <summary>A page banner. Put on a method returning the description (string), or a void method.</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
 public sealed class BannerAttribute(BannerTheme theme = BannerTheme.Info, string? title = null) : Attribute

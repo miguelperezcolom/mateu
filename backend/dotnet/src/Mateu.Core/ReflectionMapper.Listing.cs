@@ -469,7 +469,8 @@ public sealed partial class ReflectionMapper
         Type listingType, Type formType, object entity, bool readOnly,
         IReadOnlyList<ButtonDto> toolbar, string route)
     {
-        var title = T(listingType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(formType.Name));
+        // named after the RECORD, like Java's EditableView/CrudFormComponentBuilder (getTitle(entity))
+        var title = TitleOf(formType, entity);
         var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
             FormCards(formType, entity, readOnly));
         // The entity's field values ride in initialData / the fragment state (Java parity), so a
