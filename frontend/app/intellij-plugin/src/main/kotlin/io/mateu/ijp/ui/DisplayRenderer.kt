@@ -74,16 +74,27 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
-/** Kanban: a horizontal row of columns, each a header (title + count) and a stack of cards. */
+/** Kanban: a horizontal row of columns, each a header (title + count) and a stack of cards. The
+ *  row never wraps — it scrolls sideways inside a [ContentHeightScrollPane] (as the web's board
+ *  does), so the board keeps the height of its tallest column however little the page offers. */
 fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
-    val board = JPanel(FlowLayout(FlowLayout.LEFT, 12, 0))
+    val board = JPanel()
+    board.layout = BoxLayout(board, BoxLayout.X_AXIS)
     board.isOpaque = false
-    for (column in metadata.arr("columns")) {
-        val col = verticalPanel(6)
+    metadata.arr("columns").forEachIndexed { i, column ->
+        if (i > 0) board.add(javax.swing.Box.createHorizontalStrut(JBUI.scale(12)))
+        // Fixed width, content height: the old `preferredSize = (220, preferredSize.height)` was
+        // taken while the column was still EMPTY, which froze every column at its header's height.
+        val col = object : JPanel() {
+            override fun getPreferredSize() = Dimension(JBUI.scale(220), super.getPreferredSize().height)
+            override fun getMinimumSize() = preferredSize
+            override fun getMaximumSize() = Dimension(preferredSize.width, Int.MAX_VALUE)
+        }
+        col.layout = BoxLayout(col, BoxLayout.Y_AXIS)
+        col.alignmentY = java.awt.Component.TOP_ALIGNMENT
         col.border = JBUI.Borders.empty(10)
         col.background = Color(0xF4, 0xF4, 0xF5)
         col.isOpaque = true
-        col.preferredSize = Dimension(220, col.preferredSize.height)
         val head = JBLabel("${column.text("title")}  (${column.arr("cards").size})")
         head.font = head.font.deriveFont(Font.BOLD)
         col.addStacked(head, 6)
@@ -109,7 +120,12 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
         }
         board.add(col)
     }
-    return board
+    val scroll = ContentHeightScrollPane(board)
+    scroll.border = JBUI.Borders.empty()
+    scroll.isOpaque = false
+    scroll.viewport.isOpaque = false
+    scroll.verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+    return scroll
 }
 
 /** Timeline: a vertical list of entries, each a colored dot + title/timestamp/description. */
@@ -1538,6 +1554,10 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
     }
     panel.isOpaque = false
     panel.preferredSize = Dimension(480, tasks.size * 26 + 8)
+    // The rows are the minimum too: a JPanel's minimum is its (empty) layout's, i.e. nothing, so a
+    // long page squeezed the whole chart to a 10px strip (see ContentHeightScrollPane). The width
+    // may still shrink — the lanes scale to it (labelWidth + the 60px lane floor).
+    panel.minimumSize = Dimension(130 + 60, tasks.size * 26 + 8)
     // A GanttPage selects a task (its drawer): a click on a row — or Up/Down + Enter — runs
     // onTaskSelectionActionId with the task id. It used to be paint-only here.
     val selectAction = metadata.text("onTaskSelectionActionId")

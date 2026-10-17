@@ -3,7 +3,6 @@ package io.mateu.ijp.ui
 import com.fasterxml.jackson.databind.JsonNode
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.state.AppContext
@@ -51,7 +50,7 @@ internal fun toneInk(tone: String?): Color? = when (tone) {
 private val LINK_INK = JBColor(0x2763B1, 0x589DF6)
 
 /**
- * Matrix grid (wire `MatrixGrid`): a [JBTable] of cells in a [JBScrollPane] whose ROW HEADER VIEW is
+ * Matrix grid (wire `MatrixGrid`): a [JBTable] of cells in a [ContentHeightScrollPane] whose ROW HEADER VIEW is
  * a second one-column table with the row labels (so they stay visible while scrolling sideways), and
  * whose column header view stacks the spanning group headers over the table header. Flattening,
  * spans, tones and the commit rule live in [MatrixGrids].
@@ -190,7 +189,9 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
         }
     })
 
-    val scroll = JBScrollPane(cells)
+    // Content-height (see ContentHeightScrollPane): the grid keeps its lines on a long page, and
+    // its maximum follows the preferred height so expanding a section after render grows it.
+    val scroll = ContentHeightScrollPane(cells)
 
     fun resize() {
         val h = lines.size * cells.rowHeight
