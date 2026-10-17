@@ -17,6 +17,13 @@ back, inside the app's shell so the menu is still there.
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 **Throw `java.util.NoSuchElementException` while the route loads**, with a message written for the
 user. Nothing else to do: no screen-by-screen handling.
 

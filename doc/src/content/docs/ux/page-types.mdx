@@ -100,6 +100,13 @@ and selection-driven bulk actions. A row opens the record, or edits it in a draw
 | Data management (grid ⇄ Gantt) | `DataManagement` | [Data management](/ux-patterns/data-management/) |
 | Split view, tree | `@SplitCrud`, `GridLayout.tree` | [Split view](/ux-patterns/split-view/), [Tree CRUD](/ux-patterns/tree-crud/) |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Listing behaviours worth knowing: [filters and listing](/ux-patterns/filters-and-listing/),
 [bulk actions](/ux-patterns/bulk-actions/), [saved views](/ux-patterns/saved-views/),
 [totals and grouping](/ux-patterns/aggregates/), [column chooser](/ux-patterns/column-chooser/),

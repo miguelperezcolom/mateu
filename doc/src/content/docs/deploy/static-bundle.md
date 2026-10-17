@@ -136,6 +136,13 @@ A parameterised route (`/orders/:id`) can't be pre-rendered for one specific id,
 **structure is param-independent** (a detail screen whose data is fetched client-side), it can be
 bundled once as a **template**:
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 - Enable it: `mvn -Pbundle package -Dmateu.bundle.skipParamRoutes=false`, or hit the runtime endpoint
   with `GET /mateu/v3/bundle?params=true`.
 - The exporter renders the route once with a placeholder param and stores the entry with a regex

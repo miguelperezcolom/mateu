@@ -82,6 +82,13 @@ worst it adds an entry to someone's list, and they still have to sign in.
 
 ### 3. The "Open on mobile" header action
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Turn it on and your web app gets a header action that shows the QR code for the current app,
 optionally pointing at the current route. On a phone the same action shows an **Open in the Mateu
 app** button instead.

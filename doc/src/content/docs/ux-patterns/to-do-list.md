@@ -15,6 +15,13 @@ A generic listing forces to-dos into rows and columns, and a collection-detail s
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `TodoList<Row>` and implement `rows()`, `idOf`, `titleOf`, `groupOf` and `actionOn`. The archetype composes a `TaskQueue` with one counted group per bucket; clicking a card runs `actionOn(row)` — return a `URI` to navigate, or any other Mateu action result.
 
 ```java

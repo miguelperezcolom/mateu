@@ -24,6 +24,13 @@ A screen designed around a task, not an entity.
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Define a view class that exposes only the fields relevant to the task, plus the actions that complete it. There is no new annotation — this is the **Workflow over screens** principle applied at design time.
 
 ```java

@@ -5,6 +5,13 @@ description: "Execute logic immediately after the ViewModel is hydrated with req
 
 **Interface** — `io.mateu.uidl.interfaces.PostHydrationHandler`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 When a ViewModel implements `PostHydrationHandler`, Mateu calls `onHydrated()` after the ViewModel has been instantiated and its fields populated from the request state (path parameters, query parameters, and the component state sent by the browser). The method runs before any action is executed and before the UI is rendered.
 
 ```java

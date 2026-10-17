@@ -11,6 +11,13 @@ These interfaces let a ViewModel provide conditional UI rules and cross-field va
 
 **Interface** — `io.mateu.uidl.interfaces.RuleSupplier`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 When a ViewModel implements `RuleSupplier`, Mateu merges the returned rules with any annotation-defined rules before sending them to the client. Rules are evaluated client-side: when the `filter` expression is truthy, the `action` is executed against the target field or action.
 
 ```java

@@ -6,6 +6,13 @@ A flexible board that arranges components into rows, each row containing any num
 
 ## Basic usage
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 BoardLayout.builder()
     .rows(List.of(

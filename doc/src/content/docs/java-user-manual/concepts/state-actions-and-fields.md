@@ -6,6 +6,13 @@ A Mateu ViewModel is a plain Java class. Its fields are the UI state; its annota
 
 ## State (fields)
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Each field in a ViewModel maps to a form control in the browser. Mateu infers the control type from the Java type.
 
 ```java

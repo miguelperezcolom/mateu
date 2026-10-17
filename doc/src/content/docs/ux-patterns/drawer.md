@@ -15,6 +15,13 @@ Centered modal dialogs hide the page context and feel heavyweight for quick side
 
 ## How
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Return a `Drawer` from any action method. Its `content` is any component — typically a form:
 
 ```java

@@ -86,6 +86,13 @@ An **unknown** type is logged as a warning and the field renders as declared —
 
 ## Types from code
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A bean implementing `FieldTypeCatalogSupplier` contributes types programmatically (the twin of
 `RestSourceCatalogSupplier`). The authored `types.yaml` wins over it, entry by entry:
 

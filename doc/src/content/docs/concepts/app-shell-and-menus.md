@@ -65,6 +65,13 @@ widgets:
     text: "v1.0"
 ```
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 In Java the mount class carries the shell: `@App` for the chrome and `@Menu` fields for the menu.
 A field's type decides what kind of entry it becomes:
 

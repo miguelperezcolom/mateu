@@ -7,6 +7,13 @@ description: "Inject extra data into the component and issue client-side command
 
 **Interface** — `io.mateu.uidl.interfaces.DataSupplier`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 When a ViewModel implements `DataSupplier`, Mateu calls `data()` after serialising the component state and merges the returned object into the data payload sent to the client. This lets you inject computed values, lookup labels, or any extra keys that the UI needs but that don't belong directly in the state.
 
 ```java

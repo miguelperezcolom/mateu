@@ -132,6 +132,13 @@ navigation, the record switcher, banners and page FABs — is authorable on a YA
 
 ## Record and context switcher
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The Redwood header's `selectObject` / `selectContext` element, available on **any** page with a
 header — not only inside `GeneralOverview`. Implement `RecordSwitcherSupplier` (the sibling of
 `PeerNavigationSupplier`: peer navigation steps to the previous/next record, the switcher jumps to

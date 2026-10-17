@@ -11,6 +11,13 @@ Give the operator their *work for the shift* as a vertical rail of grouped cards
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `TaskQueue` component: a component-level `actionId` plus a list of `QueueGroup`s (small-caps `label` + `QueueItem`s). Each item card shows a `title`, a muted `caption` and a row of badge-palette `Chip`s; `selected(true)` marks the item currently being worked on (accent border + tint).
 
 ```java

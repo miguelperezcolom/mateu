@@ -9,6 +9,13 @@ Triggers let a component react to lifecycle events — page load, field value ch
 
 ## @Trigger
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Declares a single reactive trigger. Repeatable via the `@Triggers` container, so multiple triggers can be stacked on the same class or method.
 
 ```java

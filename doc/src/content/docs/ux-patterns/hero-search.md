@@ -15,6 +15,13 @@ Dropping users on a dense listing when their task is "search for X" buries the s
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `HeroSearch<Filters, Row>` and implement `search(SearchRequest, HttpRequest)` exactly like any [listing](/java-user-manual/build/capability-listings/) (the archetype already declares `Searchable` and `Filterable<Filters>` for you). It renders a centered hero (title + subtitle, optional background image) followed by the standard searchable listing, with results as card tiles by default.
 
 ```java

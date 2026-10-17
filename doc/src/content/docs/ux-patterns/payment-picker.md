@@ -11,6 +11,13 @@ Close a payment in one row: pick the method (card, cash, points…), see the rel
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `PaymentPicker` component: an `actionId`, a list of `PaymentMethod`s rendered as segmented outline buttons, a `selected` method id seeding the client-side selection, an optional context chip (`contextLabel` over `contextValue`, success-tinted) and a primary `confirmLabel` button.
 
 ```java

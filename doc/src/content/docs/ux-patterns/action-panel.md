@@ -13,6 +13,13 @@ Back-office records accumulate dozens of actions — modify the routing, add a t
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Return an `ActionPanel` anywhere in the page's components. Each `ActionPanelCategory` is a column; each `ActionPanelItem` dispatches its `actionId` (with its `parameters`) through the standard action mechanism, exactly like a button — so an `@Action` method with that name runs.
 
 ```java

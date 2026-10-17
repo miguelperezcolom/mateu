@@ -3,6 +3,13 @@ title: "MultiView"
 description: "The base class that handles route resolution and screen wrapping for all CRUD orchestrators."
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `MultiView` is the root base class of the orchestrator hierarchy. It handles the routing contract — deciding which sub-screen to render for a given URL — and wraps each resolved view in the component shell that drives the navigation flow.
 
 ```java

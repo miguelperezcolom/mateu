@@ -15,6 +15,13 @@ On tabbed detail pages the identifying information lives in the first tab, so as
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `ItemOverview`. The first component field is the **key-info panel** (left, sticky — it stays put while the right side scrolls); each component field annotated with `@Panel` becomes a **tab**.
 
 ```java

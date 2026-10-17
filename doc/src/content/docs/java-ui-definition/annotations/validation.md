@@ -9,6 +9,13 @@ For single-field constraints, use standard Jakarta Bean Validation annotations �
 
 ![Bean validation in action — required fields and range constraints](/images/docs/annotations/validation.png)
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 :::note[Constraints follow visibility]
 A constraint only travels to the client for a field the form actually renders. A field hidden from
 the form it is being validated in — `@HiddenInCreate` in the creation form, `@HiddenInEditor` in the

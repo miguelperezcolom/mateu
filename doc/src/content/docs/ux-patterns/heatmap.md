@@ -11,6 +11,13 @@ Show *how much* happened *when* over a long stretch of days — commit activity,
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Heatmap` component: one `HeatCell` per day with a `date` and a `value`. The renderer lays the days out in week-columns (Monday-first) and colors each square by intensity from 0 to the maximum value. `label` overrides the cell tooltip.
 
 ```java

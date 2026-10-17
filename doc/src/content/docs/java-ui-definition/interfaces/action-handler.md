@@ -3,6 +3,13 @@ title: "ActionHandler"
 description: "Low-level interface for custom action dispatch. Usually not needed directly."
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `ActionHandler` is the low-level dispatch contract that receives named actions from the UI. In most cases you do not implement it directly — Mateu's annotation processor generates the dispatch code for methods annotated with `@Action`, `@Button`, `@Toolbar`, and similar. Implement it yourself when you need runtime control over which action IDs your class accepts and how it responds.
 
 ```java

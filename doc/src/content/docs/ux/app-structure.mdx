@@ -122,6 +122,13 @@ Two shell flags change the chrome itself:
 - **Chromeless** (`chromeless: true` · `@App(chromeless = true)`): drops the navigation chrome
   entirely; the command center becomes the way around. Implies the command center.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The content area can also be split in two panes (`@App(layout = AppLayout.SPLIT)`), and the
 `accentColor`/`accentStrip` attributes brand the shell (see
 [accent colour and strip](/design-systems/accent-strip/)).

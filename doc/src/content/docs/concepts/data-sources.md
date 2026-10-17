@@ -7,6 +7,13 @@ description: "Declare each endpoint your UI consumes once, and reference it by n
 This page covers one of the [building blocks of a Mateu UI](/concepts/building-blocks/).
 :::
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A screen can declare a REST endpoint inline, right where it is consumed:
 
 ```java

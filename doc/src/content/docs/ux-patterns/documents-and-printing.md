@@ -18,6 +18,13 @@ prints or keeps. Mateu **delivers** documents; it does not produce them. You get
 
 ## Returning a document from an action
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 @UI("/folio/:id")
 public class FolioPage {

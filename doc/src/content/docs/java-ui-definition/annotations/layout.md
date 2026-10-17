@@ -11,6 +11,13 @@ These annotations are placed on a class or field to control how its content is a
 
 Lays the page's `@Section` cards side by side — one column per section, in declaration order — instead of stacking them vertically. Each section keeps its card and its own fields; it suits a page of a few short, independent groups that read best next to each other (a record's data on one side, its contact details on the other). For collapsible groups use tabs (`@Tab`), and for a long stacked page the sections index (`@Toc`). `@Zones` takes precedence when both are present.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 No attributes.
 
 ```java

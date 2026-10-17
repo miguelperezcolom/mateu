@@ -11,6 +11,13 @@ These annotations control the structural slots of a page — named form sections
 
 **Target:** `FIELD`, `METHOD`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Groups the annotated field and all subsequent fields under a named section heading within a form. A new section begins at each `@Section` annotation and ends at the next one. Each section can have its own column count, giving you fine-grained layout control within a single page.
 
 ```java

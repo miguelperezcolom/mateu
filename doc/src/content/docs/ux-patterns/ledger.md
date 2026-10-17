@@ -11,6 +11,13 @@ Show the money breakdown behind a total — a hotel folio at check-out, an invoi
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Ledger` component: a `currency` symbol, a `totalLabel`, a list of `LedgerLine`s and an optional `total`. Each line has a `concept` and either an `amount` (right-aligned monospace, formatted `€ 1.540,00`; negative amounts render error-red) or `included(true)` with an optional `includedLabel` (default "Included") shown muted instead of a figure. When `total` is absent the client computes the sum of the non-included amounts.
 
 ```java

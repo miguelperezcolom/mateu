@@ -20,6 +20,13 @@ to a visible `<mateu-unsupported>` placeholder rather than breaking the screen.
 
 ## Declaring one
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The model only **declares** the component: a type `name` a renderer registers against, a bag of
 `props` the renderer reads, and slotted `content` (ordinary components, so a custom shell can wrap
 known children). Everything else — the actual drawing — lives in the renderer.

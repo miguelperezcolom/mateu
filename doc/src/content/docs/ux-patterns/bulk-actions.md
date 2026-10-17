@@ -13,6 +13,13 @@ selection (checkbox column with select-all) and toolbar buttons that act on the 
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate a method of your `AutoCrud` (or any `Crud`) with `@ListToolbarButton`. It renders as a
 toolbar button over the listing, and a `List<Row>` parameter receives the **typed selection**:
 

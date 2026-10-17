@@ -11,6 +11,13 @@ Show and re-plan date-range assignments over a set of resources — the rooms ×
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `PlanningBoard` component: a list of `PlanningResource` rows (with an optional `group` swimlane caption, e.g. the floor or the room type), a list of `PlanningBlock`s (each pointing at its resource by id and spanning `start` to `end`, inclusive), and the visible window (`from`/`to`; when omitted, the window is derived from the blocks).
 
 ```java

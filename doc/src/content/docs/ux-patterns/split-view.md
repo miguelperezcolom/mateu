@@ -15,6 +15,13 @@ The list → detail → back flow forces users to lose their position in the lis
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate the `Crud` with `@SplitCrud`. The framework renders the list on the left and the detail on the right, in a master-detail split layout. Selecting a row loads the detail panel in place instead of navigating to a new route.
 
 ```java

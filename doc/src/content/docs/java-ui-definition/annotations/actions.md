@@ -9,6 +9,13 @@ These annotations add interactive buttons and actions to pages, forms, and listi
 
 ## @Action
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Attaches a configurable action to a method. Repeatable via the `@Actions` container, so multiple `@Action` entries can stack on the same method.
 
 ```java

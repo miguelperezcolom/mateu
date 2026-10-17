@@ -11,6 +11,13 @@ Put two values next to each other and make the difference between them read at a
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `ComparisonCard` component: an optional `title`, a `leftLabel`/`leftValue` and `rightLabel`/`rightValue`, and a `delta` with a `trend` (`"up"` / `"down"` / `"flat"`). The delta renders as a chip between the two sides — green for `up`, red for `down`, grey for `flat` — with an ▲/▼ marker.
 
 ```java

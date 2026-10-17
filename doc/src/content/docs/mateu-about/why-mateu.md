@@ -59,6 +59,13 @@ That operational difference compounds over time, especially where frontend exper
 
 ### Validation enforced once
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Bean Validation annotations on ViewModel fields are enforced in the browser (for user experience) and on the backend (for correctness). You write the constraint once. It applies in both places. No Zod schema. No frontend validation library. No risk of the frontend and backend disagreeing about what is valid.
 
 ```java

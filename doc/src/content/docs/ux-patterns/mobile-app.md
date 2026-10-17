@@ -79,6 +79,13 @@ Settings win because the identity provider usually changes per environment while
 | `auth.clientId` | `MATEU_MOBILE_OIDC_CLIENT_ID` | `oidcClientId` / `OidcClientId` / `oidc_client_id` | — |
 | `auth.scopes` | `MATEU_MOBILE_OIDC_SCOPES` (comma and/or space separated) | `scopes` / `Scopes` / `scopes` | `["openid", "profile"]` |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `auth` is emitted only when **both** the issuer and the client id resolve; blank values count as
 unset. The .NET and Python ports have no app logo, favicon or accent colour, so there `icon` and
 `themeColor` come only from `MobileApp` or the environment.

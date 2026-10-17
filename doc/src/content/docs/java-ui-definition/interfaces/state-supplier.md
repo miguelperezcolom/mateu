@@ -3,6 +3,13 @@ title: "StateSupplier"
 description: "Provide a custom object as the component state sent to the client."
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 By default, Mateu serialises the ViewModel itself as the component state sent to the browser. `StateSupplier` lets you return a different object instead — useful when the state the client needs is a projection, a DTO, or a computed view of the ViewModel's internal data.
 
 ```java

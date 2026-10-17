@@ -5,6 +5,13 @@ description: "Control the text used when free-text searching a CRUD listing."
 
 **Interface** — `io.mateu.uidl.interfaces.SearchableText`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `SearchableText` lets an entity/row expose the text that the free-text search box of a listing matches against. The default in-memory implementation of [`CrudStore.find`](/java-ui-definition/interfaces/crud-store/#the-find-method) filters `findAll()` by checking whether each row's searchable text contains the query.
 
 ```java

@@ -11,6 +11,13 @@ Show how a population shrinks as it moves through stages — visits → signups 
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Funnel` component: one `FunnelStage` per step with a label, a numeric value and an optional bar color. The renderer draws centered bars whose width is proportional to the value and prints the conversion percentage versus the previous stage.
 
 ```java

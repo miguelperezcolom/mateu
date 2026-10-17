@@ -11,6 +11,13 @@ Surface a short, glanceable notice **inside** the UI — "2 quejas pendientes" i
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Notice` component: one line of text, a small circular severity icon and an optional right-aligned action. `theme` — `info`, `success`, `warning` or `danger` — tints the strip; `icon` overrides the theme's default glyph.
 
 ```java

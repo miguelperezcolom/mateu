@@ -49,6 +49,13 @@ setup; for the native path see [Desktop & Mobile](/native/).
 
 ## Opening the browser when the service starts
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 With Spring Boot, react to `ApplicationReadyEvent` and open the browser pointing
 at the port the app is listening on:
 

@@ -45,6 +45,13 @@ cut and paste.
 
 Two producers feed one table, exactly like the [REST source catalogue](/concepts/data-sources/):
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 - **Authored**: `specs/ui/actions.yaml`, plus **any file under `specs/ui` that declares `type: Actions`**
   (whatever its name — `specs/ui/catalogs/orders-actions.yaml` works), merged in discovery order.
 - **Code**: an `ActionCatalogSupplier` bean returning fluent `Action`s — for a catalogue that comes

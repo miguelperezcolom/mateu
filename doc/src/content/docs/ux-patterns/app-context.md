@@ -18,6 +18,13 @@ re-select it on every screen, and nothing guarantees two screens agree on the va
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate a field of the `@UI` app class with `@AppContext`. It renders as a compact selector on
 the **app header** (next to the theme toggle), visible on every screen:
 

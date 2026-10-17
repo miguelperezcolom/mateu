@@ -34,6 +34,13 @@ No frontend project. No REST controllers for each screen. No duplicated models.
 
 ## Step 1 — Create the UI root
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Start with a screen:
 
 ```java

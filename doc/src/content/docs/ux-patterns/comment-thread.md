@@ -11,6 +11,13 @@ Show a conversation — ticket comments, a review thread, an approval discussion
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `CommentThread` component: a list of `Comment`s, each with an author, avatar, text, timestamp and nested `replies`. Replies are indented under their parent with a connecting rail; nesting is unlimited.
 
 ```java

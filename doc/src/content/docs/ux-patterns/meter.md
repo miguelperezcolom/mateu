@@ -11,6 +11,13 @@ Show how much of a limit has been consumed — a folio balance against a preauth
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Meter` component: a small-caps `label`, a numeric `value` and `max`, an optional `unit` symbol (appended after the formatted number: `1.240,00 €`), a muted `caption`, and optional `warnAt` / `dangerAt` thresholds. The fill is `value / max` clamped to 0..1; its color is success below `warnAt`, warning at or above it, and error at or above `dangerAt` (no thresholds → primary color). When `caption` is empty the computed fill percentage is shown instead.
 
 ```java
