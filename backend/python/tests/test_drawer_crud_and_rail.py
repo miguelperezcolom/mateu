@@ -146,3 +146,50 @@ def test_rail_wizard_emits_the_vertical_step_list_and_the_counter():
     assert '"vertical":true' in j
     assert "1|2" in j
     assert '"type":"ProgressBar"' not in j
+
+
+from mateu_uidl import Required  # noqa: E402
+
+
+class Note:
+    id: str = ""
+    text: Annotated[str, Required()] = ""
+
+
+@ui("drawer-notes")
+@title("Notes")
+@edit_in_drawer
+class DrawerNotes(Crud[Note]):
+    def fetch(self, search):
+        return []
+
+    def get(self, id_):
+        return None
+
+    def save(self, entity):
+        pass
+
+
+def test_the_drawer_form_validates_in_the_browser_like_the_routed_form():
+    """Java's EditInDrawerSyncTest.theDrawerFormValidatesInTheBrowserLikeTheRoutedForm: the drawer's
+    form is a server-side component with the entity's validations and a validated create."""
+    inc = handler().handle(
+        RunActionRq(route="/drawer-notes", actionId="new",
+                    serverSideType=f"{__name__}.DrawerNotes", initiatorComponentId="ux_list")
+    )
+    forms = []
+
+    def walk(n):
+        if isinstance(n, dict):
+            if n.get("type") == "ServerSide" and n.get("validations"):
+                forms.append(n)
+            for v in n.values():
+                walk(v)
+        elif isinstance(n, list):
+            for v in n:
+                walk(v)
+
+    walk(inc.model_dump(by_alias=True, mode="json"))
+    assert forms, "the drawer's form is a component of its own, with validations"
+    assert any(v["fieldId"] == "text" for v in forms[0]["validations"])
+    assert any(a["id"] == "create" and a["validationRequired"] for a in forms[0]["actions"])

@@ -5,7 +5,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.CrudFormComponentBuilder;
 import io.mateu.uidl.data.Drawer;
 import io.mateu.uidl.data.Notice;
-import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.data.ServerSideComponent;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -25,6 +25,9 @@ import java.util.Map;
 final class CrudDrawerBuilder {
 
   static final String DRAWER_ID = "crud-edit-drawer";
+
+  /** The id of the drawer's form component (see {@link #formComponent}). */
+  static final String FORM_ID = "crud-edit-drawer-form";
 
   static Drawer build(
       boolean isCreation, String headerTitle, Object editor, Crud orchestrator, HttpRequest rq) {
@@ -52,28 +55,62 @@ final class CrudDrawerBuilder {
     // so the url was left on a record after the drawer closed and a reload opened its view page.
     rq.setAttribute("updateUrl", "_no_update");
     Component form = CrudFormComponentBuilder.build(isCreation, rq, editor, orchestrator, true);
-    Component content =
-        errorMessage == null
-            ? form
-            : VerticalLayout.builder()
-                .style("width: 100%;")
-                .content(
-                    List.of(
-                        Notice.builder()
-                            .id("crud-drawer-error")
-                            .text(errorMessage)
-                            .theme("danger")
-                            .fullWidth(true)
-                            .content(List.of())
-                            .build(),
-                        form))
-                .build();
+    var children = new java.util.ArrayList<Component>();
+    if (errorMessage != null) {
+      children.add(
+          Notice.builder()
+              .id("crud-drawer-error")
+              .text(errorMessage)
+              .theme("danger")
+              .fullWidth(true)
+              .content(List.of())
+              .build());
+    }
+    children.add(form);
     return Drawer.builder()
         .id(DRAWER_ID)
         .headerTitle(headerTitle)
         .width(orchestrator.editDrawerWidth())
-        .content(content)
+        .content(formComponent(editor, form, children, initialData, rq))
         .initialData(initialData)
+        .build();
+  }
+
+  /**
+   * The drawer's form as a component of its OWN — exactly what the routed {@code /new} and {@code
+   * /{id}/edit} pages are: the editor's type, its values, its client-side validations and the
+   * form's create/save actions (validated, bubbling to the crud with the form state as {@code
+   * initiatorState}). It used to be plain content of the crud component, which declares those
+   * actions without validation: a required field left empty was sent, refused by the server and
+   * never marked. The error banner lives INSIDE it, so a refused save re-renders the same component
+   * in place and the fields it marks invalid ({@link #FORM_ID}) stay marked.
+   */
+  private static Component formComponent(
+      Object editor,
+      Component form,
+      List<Component> children,
+      Map<String, Object> initialData,
+      HttpRequest rq) {
+    var actions =
+        form instanceof io.mateu.uidl.fluent.PageView page && page.actions() != null
+            ? page.actions()
+            : List.<io.mateu.uidl.fluent.Action>of();
+    var route = rq.runActionRq().consumedRoute();
+    // the browser names this type back on the form's own actions (a lookup's search…)
+    io.mateu.core.application.security.WireTypes.emitted(editor.getClass().getName());
+    return ServerSideComponent.builder()
+        .id(FORM_ID)
+        .serverSideType(editor.getClass().getName())
+        .route(route)
+        .initialData(initialData)
+        .style("width: 100%;")
+        .actions(actions)
+        .triggers(List.of())
+        .rules(List.of())
+        .validations(
+            io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.createValidations(
+                editor, route, rq))
+        .children(children)
         .build();
   }
 

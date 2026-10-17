@@ -142,10 +142,9 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
                   httpRequest);
       Map<String, Object> typed =
           new LinkedHashMap<>(io.mateu.core.infra.declarative.FormViewModel.toMap(editor));
-      var state = httpRequest.runActionRq().componentState();
-      if (state != null) {
-        typed.putAll((Map<String, Object>) state);
-      }
+      // what the user typed: the drawer's form bubbles its save with it as initiatorState
+      typed.putAll(
+          io.mateu.core.infra.declarative.orchestrators.crud.CrudFormState.of(httpRequest));
       var message =
           failure.getMessage() != null && !failure.getMessage().isBlank()
               ? failure.getMessage()
@@ -160,6 +159,23 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
               httpRequest,
               typed,
               message));
+      if (failure instanceof jakarta.validation.ConstraintViolationException violations) {
+        // the refused fields are marked invalid on the form, as the browser's own check does
+        var errors =
+            DrawerFormValidator.fieldErrors(
+                creation ? orchestrator.creationFormClass() : orchestrator.editorClass(),
+                violations);
+        if (!errors.isEmpty()) {
+          responses.add(
+              new io.mateu.dtos.UIFragmentDto(
+                  CrudDrawerBuilder.FORM_ID,
+                  null,
+                  null,
+                  Map.of("errors", errors, "_valid", false),
+                  io.mateu.dtos.UIFragmentActionDto.Replace,
+                  null));
+        }
+      }
       // nothing takes focus: tell a screen-reader user too
       responses.add(UICommand.announceAssertive(message));
       return responses;

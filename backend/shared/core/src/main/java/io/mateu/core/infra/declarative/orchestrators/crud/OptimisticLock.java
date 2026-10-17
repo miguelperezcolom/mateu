@@ -149,20 +149,9 @@ public final class OptimisticLock {
         && Boolean.TRUE.equals(toBoolean(parameters.get(FROM_CONFLICT_DIALOG)));
   }
 
-  /**
-   * The edit form's state as this request carried it: the {@code initiatorState} the editor bubbles
-   * its save with (what the browser sends), else the component state.
-   */
-  @SuppressWarnings("unchecked")
+  /** The edit form's state as this request carried it ({@link CrudFormState}). */
   public static java.util.Map<String, Object> editorState(HttpRequest httpRequest) {
-    var rq = httpRequest.runActionRq();
-    if (rq.parameters() != null
-        && rq.parameters().get("initiatorState") instanceof java.util.Map<?, ?> state) {
-      return (java.util.Map<String, Object>) state;
-    }
-    return rq.componentState() != null
-        ? (java.util.Map<String, Object>) rq.componentState()
-        : java.util.Map.of();
+    return CrudFormState.of(httpRequest);
   }
 
   /**
