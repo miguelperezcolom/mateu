@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
+import lombok.Builder;
 
 /**
  * An app-wide shortcut as DATA — the twin of {@link io.mateu.uidl.annotations.AppShortcut} for a
@@ -8,6 +9,7 @@ import io.mateu.uidl.annotations.Experimental;
  * shell. A {@code key} and/or a quick-launch {@code code}; a {@code route} or an {@code actionId}.
  */
 @Experimental("app shortcuts (3.0-alpha, E2 patterns)")
+@Builder
 public record AppShortcutEntry(
     String key, String route, String actionId, String label, String code) {
 

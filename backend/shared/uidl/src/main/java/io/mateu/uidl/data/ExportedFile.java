@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * The file a {@link io.mateu.uidl.interfaces.ListingExporter} produced. Mateu delivers it to the
  * user as a download.
@@ -10,6 +12,7 @@ package io.mateu.uidl.data;
  * @param filename the name the browser saves it under; null → the format's default ({@link
  *     ExportFormat#defaultFilename()})
  */
+@Builder
 public record ExportedFile(byte[] content, String mediaType, String filename) {
 
   /** A file with the format's default media type and filename. */

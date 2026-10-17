@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 import java.util.Arrays;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * A row of a {@link RecordMerge}: one field and its value in each record (in the records' order).
@@ -12,6 +13,7 @@ import java.util.List;
  * @param editable whether the row also offers a free-text "custom" value
  */
 @Experimental("record merge (3.0-alpha, E2 patterns)")
+@Builder
 public record MergeField(
     String fieldId, String label, List<Object> values, String chosen, boolean editable) {
 

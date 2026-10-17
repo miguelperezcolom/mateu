@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import java.util.Map;
+import lombok.Builder;
 
 /**
  * One group of a {@code @GroupBy} listing: the group value (as text), how many rows it has in the
@@ -8,6 +9,7 @@ import java.util.Map;
  * the {@code @GroupAction} buttons this group must NOT show (null/empty = all visible; see {@code
  * GroupActionVisibility}).
  */
+@Builder
 public record GroupSummary(
     String value,
     long count,

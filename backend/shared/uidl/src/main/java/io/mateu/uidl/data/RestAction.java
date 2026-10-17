@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * A button/action that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE — the request rides
  * in {@code source} (reusing {@link RestDataSource}), a 2xx shows {@code successMessage} as a
@@ -14,6 +16,7 @@ package io.mateu.uidl.data;
  * scope — so a per-id endpoint like {@code DELETE people/${state.id}} becomes a bulk delete of the
  * checked rows. Pair it with {@code successRoute} pointing back at the listing to reload it.
  */
+@Builder
 public record RestAction(
     RestDataSource source,
     String successMessage,

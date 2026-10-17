@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * One REST source a view declares programmatically, for the surfaces that are not written as
  * annotations. See {@link io.mateu.uidl.interfaces.RestSourceSupplier}.
@@ -10,6 +12,7 @@ package io.mateu.uidl.data;
  *     RestSourceKind#ROWS} and {@link RestSourceKind#DATA}, of which a view has at most one
  * @param source the descriptor, exactly as it travels to the renderer
  */
+@Builder
 public record DeclaredRestSource(RestSourceKind kind, String id, RestDataSource source) {
 
   public DeclaredRestSource {

@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * The payload of a {@code DownloadFile} command. The bytes travel either inline ({@code
  * base64Content}) or behind a short-lived, single-use {@code url} the client fetches; {@code
@@ -7,6 +9,7 @@ package io.mateu.uidl.data;
  * attachment}, the default when null), and {@code print} asks the client to open the print dialog
  * for it.
  */
+@Builder
 public record FileDownload(
     String filename,
     String mimeType,

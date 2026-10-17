@@ -409,12 +409,20 @@ public class TenantRoutes implements RouteEntrySupplier {
     return List.of(
         RouteEntry.of("orders", "com.acme.Orders"),
         // The case an annotation cannot express: two routes over one screen, each pinning a scope.
-        new RouteEntry("orders/pending", null, "com.acme.Orders", Map.of("status", "pending"), Map.of()),
+        RouteEntry.builder()
+            .route("orders/pending")
+            .viewModel("com.acme.Orders")
+            .fixedParams(Map.of("status", "pending"))
+            .build(),
         // A viewModel-less route: a definition plus client-side data.
-        new RouteEntry("about", "about.yaml", null, Map.of(), Map.of()));
+        RouteEntry.builder().route("about").definition("about.yaml").build());
   }
 }
 ```
+
+Build entries with `RouteEntry.builder()` (or `RouteEntry.of(route, viewModel)` for the plain case):
+the positional constructors are kept for compatibility, but they break every time the record grows a
+component, and an unset component is normalised exactly as YAML leaves it (empty params, no parent).
 
 **Precedence: `routes.yaml` > code supplier > annotation-derived.** An entry in `routes.yaml` for the
 same route still wins — the last-mile override that re-points a deployment without a rebuild — and a
