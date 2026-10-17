@@ -95,11 +95,10 @@ test.describe('YAML actions through the server (/j/proxied)', () => {
     expect(browserSaw.join('\n')).not.toContain(SECRET)
   })
 
-  // KNOWN GAP, reported for the core/web streams: a by-ref action on a page whose mount has no app
-  // shell. The catalogue only travels in AppDto.restSources, so the browser cannot resolve the ref,
-  // never learns it is proxied, and the click fails with nothing but a console warning ("no REST
-  // source named …"). Un-fixme once the catalogue reaches shell-less pages.
-  test.fixme('a proxied write named by ref (sources.yaml) works on a page with no app shell', async ({ page }) => {
+  // A by-ref action on a page whose mount has no app shell: the catalogue used to travel only in
+  // AppDto.restSources, so the click failed with a console warning. Now every response carries the
+  // REST sources its components reference (UIIncrementDto.restSources).
+  test('a proxied write named by ref (sources.yaml) works on a page with no app shell', async ({ page }) => {
     await page.goto('/j/proxied')
     await page.getByRole('textbox', { name: 'Note', exact: true }).fill('by ref')
     await page.getByRole('button', { name: 'Save note by ref' }).click()

@@ -35,9 +35,8 @@ test.describe('fields (/j/fields)', () => {
     `)
   })
 
-  // KNOWN GAP, reported for the core stream: inside a @Tab, @SeparatorBefore is dropped — only
-  // FormLayoutBuilder emits Separators, the tab path (TabFormLayoutBuilder) never does.
-  test.fixme('@SeparatorBefore inside a tab paints a separator too', async ({ page }) => {
+  // Inside a @Tab too: the tab path (TabFormLayoutBuilder) used to drop the Separator.
+  test('@SeparatorBefore inside a tab paints a separator too', async ({ page }) => {
     await page.goto('/j/fields')
     await page.getByRole('tab', { name: 'Guest' }).click()
     await expect(page.getByRole('tabpanel', { name: 'Guest' }).getByRole('separator')).toHaveCount(1)

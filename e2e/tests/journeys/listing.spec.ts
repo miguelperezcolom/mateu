@@ -92,12 +92,10 @@ test.describe('dragging rows to a destination (/j/charges)', () => {
     await expect.poll(() => rows(page)).toEqual(moved)
   })
 
-  // KNOWN BUG, reported for the web stream (found writing this journey): the drop answers the
-  // listing itself (`List.of(this, message)`, the FolioWindows pattern) — the header zones are
-  // re-rendered with the new counts, but the GRID keeps its stale rows until the next search (the
-  // re-rendered host is not searched again on the web; Redwood re-runs its OnLoad for this case).
-  // So the screen contradicts itself: "Window 2 · 2 charges" above a table showing it holds one.
-  test.fixme('the grid refreshes in place after the drop', async ({ page }) => {
+  // The drop answers the listing itself (`List.of(this, message)`, the FolioWindows pattern): the
+  // grid must refresh with the zones, not keep its stale rows until the next search — a user's
+  // write re-rendering the view in place runs its OnLoad search again (ComponentElement).
+  test('the grid refreshes in place after the drop', async ({ page }) => {
     await page.goto('/j/charges')
     await drag(page, 'Minibar', 'Window 2')
     await expect(page.getByText('1 charge moved to Window 2').first()).toBeVisible()

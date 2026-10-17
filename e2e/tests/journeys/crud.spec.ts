@@ -40,8 +40,9 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
     await page.getByRole('button', { name: 'New', exact: true }).click()
     await drawer(page).getByRole('button', { name: 'Save', exact: true }).click()
     await expect(drawer(page)).toBeVisible()
-    // the server's check refuses it and the drawer says why, keeping what was typed
-    await expect(drawer(page).getByText('Title: Cannot be empty')).toBeVisible()
+    // the browser refuses it before sending (the drawer validates like the routed form) and marks
+    // the field, keeping what was typed
+    await expect(drawer(page).getByRole('textbox', { name: 'Title' })).toHaveAttribute('aria-invalid', 'true')
     await expect(drawer(page).getByRole('spinbutton', { name: 'Hours' })).toBeVisible()
     await expect.poll(() => rowsOf(page)).toHaveLength(3)
   })
@@ -106,14 +107,9 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await other.context().close()
   })
 
-  // KNOWN BUG, reported for the core/web streams (found writing this journey): BOTH buttons of the
-  // conflict dialog are dispatched by the CRUD MEDIATOR with ITS component state, not the editor
-  // form's — no id, no fields. Overwrite (`save` + `_forceOverwrite`) answers "Item saved
-  // successfully" and navigates to /j/articles/null ("Not found: null"), the user's change lost and
-  // the dialog left open; Reload (`cancel-edit`) lands on the same /null page. OptimisticLockSyncTest
-  // passes because it sends the form state by hand. The same in a drawer, below. Un-fixme the three
-  // tests when fixed.
-  test.fixme('Overwrite wins explicitly: every field of mine, the stored version bumped (2 → 3)', async ({ page, browser }) => {
+  // Both buttons of the conflict dialog carry the EDIT FORM's state (fixed on fixes/fields: they used
+  // to carry the CRUD mediator's, so Overwrite went to /null and, in a drawer, created a new row).
+  test('Overwrite wins explicitly: every field of mine, the stored version bumped (2 → 3)', async ({ page, browser }) => {
     const other = await (await browser.newContext()).newPage()
     await staleSave(page, other)
     await conflictOf(page).getByRole('button', { name: /Sobrescribir|Overwrite/ }).click()
@@ -122,7 +118,7 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await other.context().close()
   })
 
-  test.fixme('Reload shows the other user\'s change and drops mine', async ({ page, browser }) => {
+  test('Reload shows the other user\'s change and drops mine', async ({ page, browser }) => {
     const other = await (await browser.newContext()).newPage()
     await staleSave(page, other)
     await conflictOf(page).getByRole('button', { name: /Recargar|Reload/ }).click()
@@ -132,10 +128,9 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await other.context().close()
   })
 
-  // The same bug in a create-edit DRAWER (editInDrawer): the re-dispatched save carries the
-  // LISTING's state plus the typed title, no id — so it CREATES a new row ("T-04 | Mine | 0 | 1")
-  // and the record being edited is never overwritten.
-  test.fixme('in a create-edit drawer, Overwrite overwrites the record it was editing', async ({ page, browser }) => {
+  // The same in a create-edit DRAWER (editInDrawer): Overwrite overwrites the record being edited
+  // (it used to create a new row), Reload shows the other user's version in the drawer.
+  test('in a create-edit drawer, Overwrite overwrites the record it was editing', async ({ page, browser }) => {
     const other = await (await browser.newContext()).newPage()
     for (const p of [page, other]) {
       await p.goto('/j/tasks')
@@ -151,6 +146,26 @@ test.describe('optimistic locking (@Version) — two users edit the same record'
     await other.reload()
     await expect.poll(() => rowsOf(other)).toEqual([
       'T-01 | Plan the release | 3 | 1', 'T-02 | Write the notes | 2 | 1', 'T-03 | Mine | 1 | 3'])
+    await other.context().close()
+  })
+
+  test('in a create-edit drawer, Reload shows the other user\'s version in the drawer', async ({ page, browser }) => {
+    const other = await (await browser.newContext()).newPage()
+    for (const p of [page, other]) {
+      await p.goto('/j/tasks')
+      await p.getByText('Tag the build').click()
+      await expect(drawer(p).getByRole('textbox', { name: 'Title' })).toHaveValue('Tag the build')
+    }
+    await drawer(other).getByRole('textbox', { name: 'Title' }).fill('Theirs')
+    await drawer(other).getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(drawer(other)).toHaveCount(0)
+    await drawer(page).getByRole('textbox', { name: 'Title' }).fill('Mine')
+    await drawer(page).getByRole('button', { name: 'Save', exact: true }).click()
+    await conflictOf(page).getByRole('button', { name: /Recargar|Reload/ }).click()
+    await expect(conflictOf(page)).toHaveCount(0)
+    await expect(drawer(page).getByRole('textbox', { name: 'Title' })).toHaveValue('Theirs')
+    await other.reload()
+    await expect.poll(() => rowsOf(other)).toContain('T-03 | Theirs | 1 | 2')
     await other.context().close()
   })
 })
