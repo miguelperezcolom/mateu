@@ -585,6 +585,7 @@ export default defineConfig({
 						{ slug: 'reference/agent-operability', label: 'Agent operability (MCP)' },
 						{ slug: 'reference/key-annotations' },
 						{ slug: 'reference/key-interfaces' },
+						{ slug: 'reference/java-imports', label: 'Java imports' },
 						{ slug: 'reference/fluent-model' },
 						{ slug: 'reference/useful-types' },
 						{ slug: 'reference/language-rosetta', label: 'Language Rosetta (Java/C#/Python)' },

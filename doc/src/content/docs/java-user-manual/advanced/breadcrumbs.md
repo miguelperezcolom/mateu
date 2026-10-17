@@ -12,6 +12,13 @@ Mateu supports two approaches: declarative annotations for static paths, and a s
 
 ## Declarative breadcrumbs
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use `@Breadcrumbs` and `@Breadcrumb` when the path is always the same regardless of the current record:
 
 ```java

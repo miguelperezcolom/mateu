@@ -13,6 +13,13 @@ The same screen often serves several personas: the front-desk agent needs the in
 
 Two pieces:
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 1. **The switch** — an [`@AppContext`](/ux-patterns/app-context/) field named exactly `audience` on the app class. It renders as a selector on the app header and its value travels with every request. An enum gives you the options for free (constants travel as their `name()`):
 
 ```java

@@ -18,6 +18,13 @@ with folio windows and the Trip Composer.
 
 Two pieces, independent of each other:
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 - **`@DragRows("type")`** on a listing (a `Listing`, an `AutoCrud`) makes its rows draggable — the
   selected rows, or the one under the pointer.
 - **`DropZone`** is a titled area wrapping any content that **accepts** a drag type. Dropping rows of

@@ -23,7 +23,7 @@ Changes changes;
 ```
 
 - The class is a mount (`@UI`) or is bound to a route in [`routes.yaml`](/concepts/routes-and-mounts/)
-- Mateu uses the class name (or `@Title`) as the menu label
+- The menu label is the field's `@Label`, else the field name humanized (`products` → "Products") — not the target class's name or `@Title`
 - The instance is created and managed by Mateu (or Spring, if it is a bean)
 
 ---
@@ -166,16 +166,19 @@ with icon and inline action links). Drawer and rail variants on the web, and the
 
 ---
 
-### 6. Empty String (placeholder)
+### 6. Empty String (a route named after the field)
 
-A `@Menu String` field with no value renders a menu entry using the field name as label, with no navigation target.
+A `@Menu String` field with no value is **not** a placeholder: it becomes a link to a route named
+after the field, under the app's route (`xxx` → `<app route>/xxx`, kebab-cased), labelled like any
+other entry. Unless something answers that route (a `routes.yaml` entry, a `@UI` mount), clicking it
+shows "Page not found".
 
 ```java
 @Menu
-String xxx;
+String xxx;     // → <app route>/xxx
 ```
 
-Useful as a placeholder during development, or as a section header with no own page.
+For a section header with no page of its own, use a [nested ViewModel](#5-nested-viewmodel-sub-menus) instead.
 
 ---
 
@@ -247,7 +250,7 @@ public class Home2 {
     NestedApp nestedApp;          // ViewModel with sub-menus
 
     @Menu
-    String xxx;                   // Placeholder
+    String xxx;                   // → <app route>/xxx (see §6)
 
     @Menu
     String page3 = "/page3";     // Route string
@@ -291,9 +294,11 @@ routes:
 ```
 
 This tells Mateu:
-- `/home2/xxx` is a child of `/home2` (it renders in the parent's slot)
-- breadcrumbs and back navigation are generated accordingly
-- `Page1` and `Page2` appear as sub-items under `NestedApp` in the sidebar
+- `/home2/xxx` is a route of the `/home2` mount, answered by `NestedApp` — a page of its own. A flat
+  entry under `basePath` is **not** a slot child: to render a route inside another route's slot,
+  nest it under that route with `children:` (or give it a `parent:`).
+- the entries under `NestedApp` (`Page1`, `Page2`) come from its own `@Menu` fields — the routes
+  file does not create menu items.
 
 ---
 

@@ -11,6 +11,13 @@ Show items grouped by stage — a task pipeline, a sales funnel, an approval flo
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Kanban` component: one `KanbanColumn` per stage, each holding `KanbanCard`s. A card carries a title, an optional description, a small `badge` (a tag or estimate) and an optional accent `color`. Give a card an `actionId` to make it clickable — a click dispatches the standard `action-requested` event, so an `@Action` method with that name runs (drill-in).
 
 ```java

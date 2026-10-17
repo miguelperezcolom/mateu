@@ -10,6 +10,13 @@ The URL is just another input to your UI state.
 
 ## Path parameters
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Define placeholders in the route (its [`routes.yaml` entry](/concepts/routes-and-mounts/)) using `:name` syntax. Mateu maps them to fields with matching names.
 
 ```java

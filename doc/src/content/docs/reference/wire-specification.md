@@ -63,7 +63,7 @@ Body: {
 | `wireVersion` | Wire protocol version this payload conforms to (e.g. `"3.0"`). Always present. |
 | `commands` | Client commands to run (`SetWindowTitle`, `navigateTo`, `PushStateToHistory`, `CloseModal`, `DispatchEvent`, `MarkAsClean`/`MarkAsDirty`, …). |
 | `messages` | Toasts / alerts (may be `undoable`). |
-| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`. |
+| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`/`ReplaceKeepData`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`; a state-only refresh arrives as `ReplaceKeepData`, which keeps the component's existing state and data instead of wiping them. |
 | `banners` + `appendBanners` | Page banners; append vs replace. |
 | `appData` / `appState` | App-level data / merged app state. |
 
@@ -239,15 +239,15 @@ are shared by every renderer.
 | `messages[]`, `commands[]` | `UIIncrementDto.messages`; and non-`SetWindowTitle` `commands` (e.g. `navigateTo`) surfaced so the agent sees navigation/effects. |
 
 **The request mapping** — a tool call becomes a sync request (see [The exchange](#the-exchange)):
-- `describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
+- `mateu_describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
   component aimed at the route), the host follows it to the content it loads — `homeRoute` /
   `homeConsumedRoute` / `homeServerSideType`, the request the shell's own content area sends — and
-  again through a CRUD mediator, so the agent is given the screen, not the shell. `run_action` and
-  `search` are sent where that screen lives (its route, consumed route and `serverSideType`).
-- `list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
+  again through a CRUD mediator, so the agent is given the screen, not the shell. `mateu_run_action` and
+  `mateu_search` are sent where that screen lives (its route, consumed route and `serverSideType`).
+- `mateu_list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
   `label`).
-- `run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
-- `search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
+- `mateu_run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
+- `mateu_search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
   `componentState`, where the listing reads them (as the search box writes them).
 
 **Two transport gotchas** (verified against a live backend, both belong to the contract):

@@ -9,6 +9,13 @@ Every collection screen in Mateu is built on one idea: **you start with rows, an
 
 ## The core contract
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A listing is a class implementing `Listing<Row>` with a single method:
 
 ```java
@@ -24,9 +31,16 @@ public record SearchRequest(
     String searchText,             // populated when the listing is Searchable
     Object filters,                // populated when the listing is Filterable<F>
     List<FilterCriterion> criteria, // range / multi-select conditions (CRUD path)
-    Pageable pageable              // page, size, sort
+    Pageable pageable,             // page, size, sort
+    List<String> ids               // ?ids=A,B,C on the URL: exactly those rows (empty when unset)
 ) {}
 ```
+
+`ids` is the framework's reserved id-set filter: any listing's URL can ask for a concrete set of
+rows with `?ids=A,B,C` (no declaration needed). `AutoCrud`/`CrudStore` apply it themselves; a
+hand-written `search` should honour it in its query (`WHERE id IN (:ids)`). As a fallback the
+framework narrows the returned page to those ids, which is exact only when every requested row fits
+in that page.
 
 Adding a new search input in the future means adding a component to `SearchRequest` — the `search(SearchRequest, HttpRequest)` signature never changes.
 

@@ -11,6 +11,13 @@ These annotations control how field values are presented visually — as tiles, 
 
 **Target:** `FIELD`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 No attributes. Renders the field as an avatar component — either an image (when the field holds a URL) or a styled initials badge (when the field holds a name string).
 
 ```java

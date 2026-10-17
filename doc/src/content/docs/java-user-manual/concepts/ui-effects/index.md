@@ -10,6 +10,13 @@ Mateu reads the return type of each action method and dispatches the appropriate
 
 ## Message — show a notification
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `Message` displays a toast notification to the user.
 
 ```java

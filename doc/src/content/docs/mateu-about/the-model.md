@@ -25,6 +25,13 @@ shape for one library's API.
 | **Visually** | the visual editor, which writes YAML back into your repo |
 | **Design** | Figma, through the published `contract.json` ([design pipeline](/design-systems/figma/)) |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The same screen, twice. In Java:
 
 ```java
@@ -65,7 +72,7 @@ rearranged on top of a layout the framework still infers on every request.
 - **Three server runtimes** — Java/Kotlin, C# and Python emit the same wire model.
 - **Every renderer** — two web design systems (Vaadin, Oracle Redwood), React Native on mobile, the
   IntelliJ plugin on the desktop. None of them knows how the screen was authored.
-- **The [static bundle](/deploy/static-bundle/)** — `mateu:bundle` renders your
+- **The [static bundle](/deploy/static-bundle/)** — `mateu-bundle:bundle` renders your
   declared screens at build time into a `manifest.json` a CDN can serve.
 - **The [visual editor](/define/yaml/pages/#the-visual-editor-writes-these)** —
   reads the catalog straight from the generated schema, so it offers every component without anyone
@@ -73,7 +80,7 @@ rearranged on top of a layout the framework still infers on every request.
 - **External tooling** — the Figma contract ships inside the `io.mateu:mateu-uidl` jar at
   `META-INF/mateu/contract.json`, so generators and importers read it from the artifact instead of
   keeping a copy that drifts.
-- **`mateu:openapi`** — the same declarations exported as an OpenAPI document.
+- **`mateu-bundle:openapi`** — the same declarations exported as an OpenAPI document.
 - **The [client-side expander](/concepts/routes-and-mounts/)** — turns a declarative page
   (a route with a `definition` and no view model) into the wire model **in the browser**, so the
   no-backend path renders without a server round-trip.

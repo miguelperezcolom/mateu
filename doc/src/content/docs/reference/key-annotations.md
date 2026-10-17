@@ -10,6 +10,13 @@ This page is intentionally selective: it focuses on the annotations that shape r
 
 ## `@UI`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Defines a UI root.
 
 ```java
@@ -335,7 +342,9 @@ Use it when you want to change the default form layout.
 
 ### Key fields
 
-- `columns()`
+- `columns()` — default 2
+- `labelsAside()` — `LabelsAsideMode.AUTO` (default: infer), `ASIDE` (labels left of the fields)
+  or `TOP` (labels above) — see [labels on top vs labels aside](/java-ui-definition/forms/#labels-on-top-vs-labels-aside)
 - `theme()`
 - `style()`
 
@@ -472,7 +481,11 @@ Users users;
 ```
 
 Use it for authorization. It gates **menu entries** and, on a **form field**, hides the field
-when the current user is not authorized. Identity is read from the JWT Bearer token.
+when the current user is not authorized. Mateu does not authenticate: the identity is the one your
+host framework authenticated (Spring Security, Quarkus, Micronaut, JAX-RS), or what a
+`PrincipalResolver` bean of yours returns — never a Bearer token's payload, which Mateu does not
+decode. No identity → every restricted element is denied. See
+[How authorization works](/java-user-manual/advanced/security/#how-authorization-works).
 
 ### Supported scopes
 

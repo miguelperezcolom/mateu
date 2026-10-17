@@ -33,6 +33,13 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## One model, three ways to write it
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The same product listing, written three ways. Each produces the same model, and every renderer
 draws it the same way.
 

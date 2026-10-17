@@ -96,6 +96,13 @@ completion.
 | **Where it lives** | A file with `type: UI` anywhere under `specs/ui/` (the starter calls it `app.ui.yaml`), or a class annotated `@UI`. |
 | **Served vs static** | A server serves the mount at its base path. A static bundle exports one mount, with its routes, into `manifest.json`. |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 <Tabs syncKey="authoring">
 <TabItem label="YAML">
 

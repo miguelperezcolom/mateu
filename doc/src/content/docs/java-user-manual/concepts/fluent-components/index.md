@@ -21,6 +21,13 @@ The declarative (annotation-based) and fluent approaches are **composable** — 
 
 ## The core pattern
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A fluent page implements `ComponentTreeSupplier` and returns a `Form` (or any `Component`) from its `component()` method:
 
 ```java

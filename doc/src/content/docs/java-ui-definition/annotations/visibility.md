@@ -11,6 +11,13 @@ These annotations control whether a field, action, or page is visible, editable,
 
 **Target:** `TYPE`, `FIELD`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Hides the annotated element entirely from the rendered UI. When placed on a class, the whole page is hidden. The optional `value` attribute can hold a condition expression — when the expression evaluates to `true`, the element is hidden.
 
 ```java

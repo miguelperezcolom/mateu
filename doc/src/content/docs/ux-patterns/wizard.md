@@ -15,6 +15,13 @@ An onboarding flow where step 3 depends on what was selected in step 1 cannot be
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `Wizard` and declare one field per step; each field's type must implement `WizardStep`. Mateu renders the current step's form, a progress indicator, and navigation buttons automatically. The progress indicator is a bar by default; annotate the wizard with `@WizardProgress(WizardProgressStyle.STEPS)` to show connected step bullets instead (one numbered dot per applicable step with done/current/upcoming states — skipped branching steps are excluded, and every dot shows done on the result screen), or `@WizardProgress(WizardProgressStyle.RAIL)` for the guided-process lateral rail: the step form on the left and a sticky right-hand band with a big `current | total` counter over the vertical step list (demo: `/branching-wizard`). In the Redwood renderer `STEPS` draws the steps as a horizontal train across the top of the page (an `oj-train`; done steps can be clicked to go back, and on narrow screens the same steps are listed vertically), with the wire's Back / Next / completion buttons in the footer; `RAIL` draws the Oracle Redwood Guided Process page template (`oj-sp-guided-process`): the wizard opens on its overview — the wizard's title and `@Subtitle` over the steps as columns side by side, a completed step marked as such — and Start (or Resume) opens the steps one at a time with the step list on the right; the template's own texts (Start, Continue, Cancel, Completed) follow the browser's language. In both renderers `Next` only leaves a step whose required fields (`@NotNull`, `@NotEmpty`, `@NotBlank`, `RequiredSupplier`) are filled in: the browser marks the empty ones and focuses the first, and the server checks them again before moving on (an error message names them). The Back and Next labels go through the app's `Translator` like every other Mateu text (`Back=Atrás` / `Next=Siguiente` in a `messages_<lang>.properties`), or the wizard fixes them with `@WizardLabels(back = "Atrás", next = "Siguiente")`; the completion button's label is its method's `@Label`. State set in **any** step — by the user or by an action — survives navigation in both directions and reaches the completion action, so steps can freely read what earlier (or later) steps produced.
 
 ```java
@@ -91,7 +98,7 @@ Flux<?> run() {
 
 The result step is built once the stream is over, so whatever the work set on the wizard while it ran (here, the status of each procedure) is on the result screen. Streamed completions are Java-only: the .NET and Python ports have no `LongTask`.
 
-The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier.title()` → class name.
+The wizard **title** is derived in order: `TitleSupplier.title()` → `@Title` annotation → class name (the dynamic supplier wins over the static annotation).
 
 ![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
 

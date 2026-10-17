@@ -64,6 +64,13 @@ A read that hits a timeout or a 5xx is re-sent automatically, up to twice, with 
 
 ## Tuning it per action
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 One global 60-second ceiling cannot serve both a type-ahead lookup, which should give up in seconds so the user can retype, and a report export, which may legitimately run for minutes.
 
 ```java

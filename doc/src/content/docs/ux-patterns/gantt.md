@@ -11,6 +11,13 @@ Show time-based work — a project plan, a shift schedule, a rollout — as bars
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Gantt` component: one `GanttTask` per row, with a date span, optional progress (rendered as a fill inside the bar) and optional color. The component derives the axis from the tasks' dates, draws month headers and marks today with a vertical line.
 
 ```java

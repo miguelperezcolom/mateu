@@ -11,6 +11,13 @@ Show *what happened, in order* — an order's journey, an audit trail, a case hi
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Timeline` component: one `TimelineItem` per event, each a dot on a vertical rail with a title, an optional description, a free-form `timestamp` label and an emoji `icon`. `color` tints the dot; an `actionId` makes the entry clickable (dispatches the standard `action-requested` event).
 
 ```java

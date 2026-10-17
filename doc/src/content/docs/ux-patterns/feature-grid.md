@@ -11,6 +11,13 @@ Show a set of features, benefits or capabilities as a scannable grid of icon + t
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `FeatureGrid` component: a list of `Feature`s (icon, title, description) and an optional `columns` count (0 = auto-fit to the viewport). A feature with an `actionId` becomes clickable.
 
 ```java

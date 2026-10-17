@@ -12,6 +12,13 @@ Where an action appears, how it behaves before execution, and what it returns ar
 
 ### @Button
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `@Button` places the action as a button in the **form footer area**.
 
 ```java

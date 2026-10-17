@@ -6,6 +6,13 @@ When embedding fluent components inside a declarative page, there are multiple w
 
 ## 1. Direct component field (static content)
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 Component header = new Badge("Static");
 ```

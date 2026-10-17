@@ -11,6 +11,13 @@ Keep the *who/what* of a flow always in sight — the guest of a check-in, the c
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `EntityHeader` component: a `title` with `badges` (badge-palette `Chip`s), a `subtitle` line, a list of `Fact`s (label-over-value pairs) and an optional right-side metric (`metricLabel` / `metricValue` / `metricCaption`) rendered big in the accent color.
 
 ```java

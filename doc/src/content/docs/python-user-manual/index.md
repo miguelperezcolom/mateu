@@ -33,9 +33,10 @@ Python attributes can't carry C#-style attributes, so:
 ## Install
 
 ```bash
-pip install "mateu-ui[server]"     # the package + uvicorn
-pip install "mateu-ui[all]"        # the FastAPI server extras
+pip install "mateu-ui[server]"     # the package + uvicorn (any ASGI server works)
 ```
+
+(`[all]` is an alias of `[server]` today.)
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); you
 import `mateu_uidl`, `mateu_dtos`, `mateu_core` and `mateu_fastapi`. Versions move in lockstep with
@@ -134,13 +135,18 @@ add_mateu(
 ## Forms
 
 A `@ui` class becomes a routed form. Public type-hinted fields become fields (the type is inferred:
-`str`, `int`→integer, `float`/`Decimal`→number, `bool`→boolean, `date`/`datetime`→date, `Enum`→
-dropdown). `Required()` makes a field required and is enforced server-side. A `@button` method
+`str`→string, `int`→integer, `float`/`Decimal`→number, `bool`→bool, `date`→date,
+`datetime`→dateTime, `time`→time, `Enum`→dropdown). `Required()` makes a field required and is enforced server-side. A `@button` method
 returning a `Message` shows a toast.
 
 ```python
+from enum import Enum
 from typing import Annotated
-from mateu_uidl import ui, title, subtitle, section, button, Required, Section, Message
+from mateu_uidl import ui, title, subtitle, button, Required, Section, Message
+
+class Role(Enum):
+    GUEST = "GUEST"
+    ADMIN = "ADMIN"
 
 @ui("person")
 @title("Person")
@@ -229,7 +235,21 @@ A bare `Listing[Row]` is just the table (sorting + pagination free). Then:
 Capability methods receive **typed objects** (the framework hydrates the submitted state —
 `save(editor)`, `create(form)`). `ListingData.of(rows)` sorts and pages in memory; pass an
 explicit `total_elements` to push paging to the database. `Crud[T]` is the full pack — all
-capabilities at once, restricted with the subtractive decorators as before. Note: `Searchable`
+capabilities at once. To drop a built-in affordance, override `display()` and return a
+`CrudDisplay` with that toggle off — e.g. no New button:
+
+```python
+import dataclasses
+from mateu_uidl import Crud, CrudDisplay, Toggle
+
+class Reservations(Crud[Reservation]):
+    def display(self):
+        return dataclasses.replace(CrudDisplay.defaults(), create=Toggle.off)
+```
+
+`Toggle.off` does not send the affordance at all and the server refuses it if forced;
+`Toggle.disabled` shows it inert. `CrudDisplay` covers `create`, `delete`, `save_and_next` and
+`error_banner`. Note: `Searchable`
 keeps its second role as the selector-field marker, mirroring Java's interface/annotation pair.
 
 ## App shell & navigation
@@ -317,7 +337,7 @@ renders the Python backend unchanged:
 | `MetricCard` (+ `MetricTrend`) | KPI tile: title, value, unit, trend (`up`/`down`/`neutral`), drill-in `action_id` |
 | `Scoreboard` | horizontal band of metric cards |
 | `DashboardPanel` | titled tile wrapping any component; `col_span`/`row_span` |
-| `DashboardLayout` | responsive dashboard grid (`columns=0` = auto-fit) |
+| `ResponsiveGrid` (+ `GridTrack`) | responsive grid: column tracks (`GridTrack.fill()`/`hug()`/`fixed(...)`), per-child `col_spans`, `stack_below` breakpoint (`DashboardLayout` is deprecated — use this) |
 | `FoldoutPanel` / `FoldoutLayout` | Foldout: a fixed overview with lateral fold-out panels |
 | `HeroSection` | big page hero: title, subtitle, background image, slotted content |
 | `EmptyState` | friendly "nothing here yet" placeholder with an optional call-to-action |
@@ -354,7 +374,7 @@ class SalesDashboard(Dashboard):
 ```
 
 - **`Dashboard`** — consecutive `MetricCard` fields → `Scoreboard` band; `Panel(...)` fields →
-  titled tiles; other component fields land on the grid as-is. Override `columns()` to fix the
+  titled tiles on a `ResponsiveGrid`; other component fields land on the grid as-is. Override `columns()` to fix the
   column count.
 - **`Foldout`** — the first component field without `Panel` is the always-visible overview;
   `Panel(title, subtitle, icon, open)` fields are lateral fold-out panels.
@@ -366,6 +386,7 @@ class SalesDashboard(Dashboard):
 For full control, subclass `ComponentTreeSupplier` and return any fluent component tree:
 
 ```python
+from datetime import date
 from mateu_uidl import ui, title, ComponentTreeSupplier
 from mateu_uidl.components import Gantt, GanttTask
 
@@ -437,6 +458,10 @@ the field's dropdown as a TREE; the hierarchy comes from the view's `options(fie
 returning options with children:
 
 ```python
+from typing import Annotated
+from mateu_dtos import Option          # the option record lives in mateu_dtos, not mateu_uidl
+from mateu_uidl import ui, Signature, PhotoCapture, TreeSelect
+
 @ui("checkin")
 class CheckIn:
     guest_signature: Annotated[str, Signature()] = ""
@@ -486,6 +511,8 @@ class Shell: ...
 To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
 
 ```python
+from mateu_uidl.components import MicroFrontend
+
 def component(self):
     return MicroFrontend(base_url="https://billing.example.com", route="/invoices")
 ```
@@ -607,7 +634,7 @@ are the component's attributes, camel-cased), plus `Form` pages, partials and `C
 **`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
 `pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
 whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
-(declare the shell in code here — `IAppSupplier`/`AppSupplier`) and a listing's `rowRoute`. An
+(declare the shell in code here — an `@app` class or an `AppSupplier`) and a listing's `rowRoute`. An
 unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
@@ -636,8 +663,11 @@ A partial standing for several components is **spliced** into its parent's conte
 one inside a form yields form fields. Partials are resolved while the tree is built and never reach
 the wire. A missing ref costs the partial, not the page; a cycle is broken rather than followed.
 
+When you drive the `SyncHandler` yourself instead of through `add_mateu`, a partial can also be
+registered in code, on the YAML loader the handler holds:
+
 ```python
-loader.partials.register("legal-notice", [{"type": "Text", "text": "Prices include VAT."}])
+handler.yaml_specs.partials.register("legal-notice", [{"type": "Text", "text": "Prices include VAT."}])
 ```
 
 Unlike the Java server, a `ref` here cannot name a class — the declarative form only. Full reference:
@@ -757,8 +787,8 @@ following its model.
 Forms + sections + field types + validation, `Crud[T]` (list / detail / edit / new / save / delete),
 the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes, KPIs, FABs,
 shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
-UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
+UX-pattern components (MetricCard/Scoreboard/DashboardPanel/ResponsiveGrid, FoldoutLayout,
 HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
-declarative archetypes, plus everything above. Over 570 tests cover this port, including the
+declarative archetypes, plus everything above. Over 950 tests cover this port, including the
 shared wire-conformance corpus (`test_wire_conformance.py`) as a HARD gate: every case must match
 the Java golden except an explicit allow-list of known Java-golden defects.

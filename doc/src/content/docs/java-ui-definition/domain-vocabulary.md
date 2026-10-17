@@ -28,6 +28,13 @@ that fits.
 
 ## 1. Semantic annotations — name your configuration
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 When the same combination of Mateu annotations appears again and again, fold it into one
 domain annotation. A supplier-id field is normally:
 

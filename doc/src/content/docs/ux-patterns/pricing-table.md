@@ -11,6 +11,13 @@ Let a user compare options side by side and pick one — a SaaS pricing page, an
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `PricingTable` component: one `PricingPlan` per column, each with a name, a price and period, a list of feature lines and a call-to-action (`ctaLabel` + `actionId`). Mark one plan `featured` to lift and ring it as the recommended option; its CTA runs the `@Action` named by its `actionId`.
 
 ```java

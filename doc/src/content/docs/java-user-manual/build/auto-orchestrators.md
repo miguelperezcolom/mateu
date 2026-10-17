@@ -9,6 +9,13 @@ description: "The simplest way to get a working CRUD or read-only listing on scr
 
 ## Class signature
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 public abstract class AutoCrud<T extends Identifiable>
     extends FilteredAutoCrud<T, T>
@@ -121,7 +128,7 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 | `getCreationForm` | Instantiates a new T |
 | `deleteAllById` | Delegates to `store().deleteAllById()` |
 
-For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
+For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the public hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 

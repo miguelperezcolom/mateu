@@ -13,6 +13,13 @@ A small, inline label used to display status, counts, or tags.
 
 ### `@Badge` — inline field badge
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotating a boolean field with `@Badge` (shorthand for `@Stereotype(FieldStereotype.badge)`) renders it as a coloured chip in the form body — lit when `true`, muted when `false`.
 
 ```java

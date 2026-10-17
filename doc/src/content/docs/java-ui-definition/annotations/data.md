@@ -9,6 +9,13 @@ description: "Annotations for data binding, lookups, value mapping and generated
 
 **Target:** `FIELD`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Turns a field into a search-as-you-type lookup. `search` provides the list of matching options for a given query; `label` resolves the human-readable display label for the stored ID value. Setting `bubble` to `true` propagates the selection event to the parent component.
 
 ```java

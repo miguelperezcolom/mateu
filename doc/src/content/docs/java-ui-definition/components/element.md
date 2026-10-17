@@ -6,6 +6,13 @@ A raw HTML element. Useful for injecting arbitrary markup into the component tre
 
 ## Basic usage
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 new Element("div", Map.of("style", "background-color: green;"), "Hola!")
 ```

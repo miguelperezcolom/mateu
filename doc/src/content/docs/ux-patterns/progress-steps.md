@@ -13,6 +13,13 @@ Unlike a `Wizard` (which *drives* a multi-step form), `ProgressSteps` only **vis
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `ProgressSteps` component: one `Step` per stage, each with a title, optional description and a `status` of `"done"`, `"current"` or `"upcoming"` (the default). Done steps show a check mark and a filled dot; the current step is ringed; upcoming steps are muted.
 
 ```java

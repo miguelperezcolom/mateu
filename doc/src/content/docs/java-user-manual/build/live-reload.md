@@ -155,6 +155,13 @@ The same endpoints and events, so the same renderers follow them:
 
 ## Adding a catalogue of your own
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Anything that reads `specs/ui/**` once and keeps it joins the invalidation with one line — implement
 `io.mateu.core.infra.dev.SpecsCache` and register it:
 

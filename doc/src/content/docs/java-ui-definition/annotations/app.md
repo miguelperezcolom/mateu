@@ -7,6 +7,13 @@ description: "Annotations for defining the application shell, security, favicon 
 
 **Target:** `TYPE`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The primary annotation. Registers a class as a UI endpoint and mounts it at the given route path. Every Mateu application needs at least one `@UI`-annotated class.
 
 ```java

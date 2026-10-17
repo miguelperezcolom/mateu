@@ -20,6 +20,13 @@ you keep looking back at (a guest list, the reservation header) scrolls away jus
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate the page class with `@Toc` to render a **sticky index** (table of contents) of its sections
 in a right-hand sidebar. Clicking an entry scrolls to that section; the entry for the section you're
 looking at highlights as you scroll.

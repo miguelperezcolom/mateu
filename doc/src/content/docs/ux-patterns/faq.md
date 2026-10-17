@@ -11,6 +11,13 @@ Answer common questions compactly — a help section, a pricing-page FAQ, a supp
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Faq` component: a list of `FaqItem`s (question, answer, and an `open` flag that starts a row expanded). Expanding and collapsing is client-side — no server round-trip.
 
 ```java

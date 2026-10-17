@@ -10,42 +10,14 @@ declaratively, with no filter chains or interceptors in your UI code.
 
 ---
 
-## `@KeycloakSecured` (deprecated)
-
-:::caution[Deprecated in 3.0-alpha.412]
-`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
-not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
-[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
-register a `PrincipalResolver`.
-:::
-
-`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
-
-```java
-@UI("")
-@KeycloakSecured(
-        url      = "https://auth.example.com/auth",
-        realm    = "my-realm",
-        clientId = "my-client"
-)
-public class App {
-    @Menu Products products;
-    @Menu Orders orders;
-}
-```
-
-| Parameter | Description |
-|---|---|
-| `url` | Base URL of your Keycloak server |
-| `realm` | Keycloak realm name |
-| `clientId` | OAuth2 client ID registered in Keycloak |
-| `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
-
-When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
-
----
-
 ## Authorization with `@EyesOnly`
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 `@EyesOnly` can be applied to fields, methods, and types. It hides the annotated element from any user who does not satisfy the required conditions.
 
@@ -65,9 +37,10 @@ public class App {
 ```
 
 `@EyesOnly` can be applied to:
-- `@Menu` fields — hides the menu entry
-- `@Menu` methods — hides the menu entry
-- Classes (types) — hides the whole page or orchestrator
+- `@Menu` fields — hides the menu entry (`@Menu` targets fields, not methods)
+- form fields — hides the field and keeps its value out of the page state
+- action methods (`@Button`, `@Toolbar`, …) — hides the button and refuses the call
+- classes (types) — hides the whole page or orchestrator and refuses its actions
 
 ---
 
@@ -522,6 +495,41 @@ without an opener. `javascript:` URLs are never followed.
 In a microservices deployment, each service enforces `@EyesOnly` independently. The shell forwards the JWT to the service backend, which applies its own rules. A user who lacks a role sees the menu entry removed in the service's response — not just hidden in the shell.
 
 See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) for how this fits into a distributed architecture.
+
+---
+
+## Legacy: `@KeycloakSecured` (deprecated)
+
+:::caution[Deprecated in 3.0-alpha.412]
+`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
+not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
+[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
+register a `PrincipalResolver`.
+:::
+
+`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
+
+```java
+@UI("")
+@KeycloakSecured(
+        url      = "https://auth.example.com/auth",
+        realm    = "my-realm",
+        clientId = "my-client"
+)
+public class App {
+    @Menu Products products;
+    @Menu Orders orders;
+}
+```
+
+| Parameter | Description |
+|---|---|
+| `url` | Base URL of your Keycloak server |
+| `realm` | Keycloak realm name |
+| `clientId` | OAuth2 client ID registered in Keycloak |
+| `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
+
+When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
 
 ---
 
