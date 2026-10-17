@@ -590,8 +590,7 @@ test('rule expressions: every operator, with JavaScript\'s precedence and semant
   ]
   for (const [expr, expected] of cases) assert.deepEqual(ev(expr), expected, expr)
   // what it does not understand is undefined (the rule does not hold), never a broken screen
-  for (const bad of ['state.n #', '', '   ', null, 'state.n )', 'state.n state.s']) assert.equal(ev(bad), undefined, String(bad))
-  assert.equal(ev('1 +'), 1 + undefined, 'a missing operand is undefined (NaN), never a throw')
+  for (const bad of ['state.n #', '1 +', '', '   ', null, 'state.n )', 'state.n state.s']) assert.equal(ev(bad), undefined, String(bad))
   assert.equal(ev('(1'), 1, 'an unclosed parenthesis is forgiven')
   assert.equal(evaluateTemplate('Hi ${state.s}, ${state.missing}!', scope), 'Hi Ada, !')
   assert.equal(evaluateTemplate('state.n * 2', scope), 14, 'without ${ it is an expression')
