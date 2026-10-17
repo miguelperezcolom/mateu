@@ -13,7 +13,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
-  Linking,
   Modal,
   ScrollView,
   StyleSheet,
@@ -54,6 +53,7 @@ import { platformStore } from '../core/secureStore';
 import { useAppContext } from '../context/AppContext';
 import { theme } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { openExternal } from './openExternal';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -84,7 +84,7 @@ function useRunMenuOption() {
     const intent = menuIntent(o);
     if (intent.kind === 'action') void controller.runAction(intent.target);
     else if (intent.kind === 'route') {
-      if (/^[a-z]+:/i.test(intent.target)) void Linking.openURL(intent.target);
+      if (/^[a-z]+:/i.test(intent.target)) openExternal(intent.target);
       else navigate(intent.target, o.label);
     }
   };
@@ -689,7 +689,7 @@ export function ResultRenderer({ metadata }: { metadata: Dict }) {
   const tone = TONES[look.tone]!;
   const go = (d: Dict) => {
     const intent = destinationIntent(d);
-    if (intent.kind === 'url') void Linking.openURL(intent.target);
+    if (intent.kind === 'url') openExternal(intent.target);
     else if (intent.kind === 'route') navigate(intent.target, str(d['description']));
     else if (intent.kind === 'action') void controller.runAction(intent.target);
   };
@@ -781,7 +781,7 @@ export function CookieConsentRenderer({ metadata }: { metadata: Dict }) {
       <Text style={styles.consentText}>{str(metadata['message']) || 'This app uses cookies to ensure you get the best experience.'}</Text>
       <View style={[styles.row, { gap: 12, marginTop: 8 }]}>
         {!!learnMoreLink && (
-          <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={() => void Linking.openURL(learnMoreLink)}>
+          <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={() => void openExternal(learnMoreLink)}>
             <Text style={styles.consentLink}>{str(metadata['learnMore']) || 'Learn more'}</Text>
           </TouchableOpacity>
         )}
@@ -832,7 +832,7 @@ export function ElementRenderer({ metadata, state, data }: { metadata: Dict; sta
     case 'link': {
       const href = attrs['href'] ?? '';
       node = (
-        <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={press ?? (() => href && void Linking.openURL(href))}>
+        <TouchableOpacity {...buttonA11y({ role: 'link' })} onPress={press ?? (() => href && void openExternal(href))}>
           <Text style={styles.link}>{text || href}</Text>
         </TouchableOpacity>
       );

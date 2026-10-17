@@ -3,7 +3,7 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { BackHandler, Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
@@ -18,6 +18,7 @@ import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
+import { openExternal } from './openExternal';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -741,7 +742,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
           break;
         }
         case 'url':
-          void Linking.openURL(effect.url);
+          openExternal(effect.url);
           break;
         case 'runAction':
           void runAppAction(effect.actionId);

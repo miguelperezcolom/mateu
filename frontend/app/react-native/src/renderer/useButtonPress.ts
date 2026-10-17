@@ -1,6 +1,6 @@
-import { Linking } from 'react-native';
 import { buttonPressOf, warnUnresolvedButtonRoute } from '../core/buttonRoute';
 import { useViewController } from './MateuViewHost';
+import { openExternal } from './openExternal';
 
 type Dict = Record<string, unknown>;
 
@@ -15,7 +15,7 @@ export function useButtonPress() {
     const press = buttonPressOf(button, ctx);
     const onPress = () => {
       if (press.kind === 'route') {
-        if (/^[a-z][a-z0-9+.-]*:/i.test(press.route)) void Linking.openURL(press.route);
+        if (/^[a-z][a-z0-9+.-]*:/i.test(press.route)) openExternal(press.route);
         else controller.session.openView({ label: label || press.route, route: press.route, consumedRoute: '', serverSideType: '' });
       } else if (press.kind === 'unresolvedRoute') warnUnresolvedButtonRoute(press.template);
       else runAction();

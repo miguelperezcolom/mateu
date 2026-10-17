@@ -1,9 +1,10 @@
 import React from 'react';
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { mapRows, markerParameters, type MapMeta, type MapRow } from './mapRows';
+import { openExternal } from './openExternal';
 
 /**
  * Street map (wire `Map`). No native map SDK ships with this renderer, so the map is shown honestly
@@ -17,7 +18,7 @@ export function MapRenderer({ metadata }: { metadata: Record<string, unknown> })
   const meta = metadata as MapMeta;
   const rows = mapRows(meta);
 
-  const open = (row: MapRow) => { void Linking.openURL(row.url); };
+  const open = (row: MapRow) => { openExternal(row.url); };
 
   return (
     <View style={styles.card}>
