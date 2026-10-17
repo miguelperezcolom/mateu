@@ -1,0 +1,65 @@
+# A definition-only page (no view model) that reads and writes through the SERVER: the browser only
+# posts __restfetch__; the server resolves the source, injects ${secret.J_UPSTREAM_KEY} and calls
+# the upstream. Driven by e2e/tests/journeys/yaml-proxy.spec.ts.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Proxied writes
+content:
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: zip
+        label: Zip
+      - type: FormField
+        id: street
+        label: Street
+      - type: FormField
+        id: note
+        label: Note
+      - type: FormField
+        id: noteId
+        label: Note id
+buttons:
+  - type: Button
+    label: Look up
+    actionId: lookup
+  - type: Button
+    label: Save note
+    actionId: saveNote
+  - type: Button
+    label: Save note by ref
+    actionId: saveNoteByRef
+actions:
+  # inline source: GET with the secret in a header
+  - id: lookup
+    restAction:
+      source:
+        url: http://127.0.0.1:19395/address?zip=${state.zip}
+        method: GET
+        proxy: true
+        headers:
+          X-Api-Key: ${secret.J_UPSTREAM_KEY}
+      resultPath: address
+      successMessage: Address found
+  # inline source: POST with a JSON body (its values escaped) and the secret in a header
+  - id: saveNote
+    restAction:
+      source:
+        url: http://127.0.0.1:19395/notes
+        method: POST
+        proxy: true
+        headers:
+          Content-Type: application/json
+          X-Api-Key: ${secret.J_UPSTREAM_KEY}
+        body: '{"zip":"${state.zip}","note":"${state.note}"}'
+      resultPath: ""
+      successMessage: Note saved
+  # the same write through the catalogue (sources.yaml) by ref: proxy must be read off the RESOLVED
+  # source. KNOWN GAP (reported, see yaml-proxy.spec.ts): on a mount with no app shell the browser
+  # gets no catalogue, cannot resolve the ref and the click fails with only a console warning.
+  - id: saveNoteByRef
+    restAction:
+      source:
+        ref: j-notes-create
+      resultPath: ""
+      successMessage: Note saved

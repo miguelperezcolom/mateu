@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Routes of the e2e JOURNEYS (e2e/tests/journeys), served by mvc-app1 only — the Playwright project
+# `journeys` walks them; the shared suite (all five adapters) never sees them.
+type: Routes
+routes:
+  # Writing from YAML through the server: a proxied read (inline source) and a proxied write (a
+  # catalogue source named by ref), both carrying ${secret.J_UPSTREAM_KEY} to a real upstream.
+  - route: j/proxied
+    layout: journeys/proxied.yaml
+  # Open only to a manager (CookieRolesPrincipalResolver gives the browser its roles).
+  - route: j/managers-only
+    layout: journeys/managers-only.yaml
+    access: {roles: [manager]}
