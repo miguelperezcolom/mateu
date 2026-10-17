@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { carryOnLoadCounts, claimOnLoadFiring } from './onLoadTimes'
+import { carryOnLoadCounts, claimOnLoadFiring, standInForOnLoad } from './onLoadTimes'
 
 const onLoad = (actionId: string, times = 1) => ({ type: 'OnLoad', actionId, times })
 
@@ -47,5 +47,31 @@ describe('OnLoad times across in-place re-renders', () => {
         const fresh = [onLoad('load')]
         carryOnLoadCounts(undefined, fresh)
         expect(claimOnLoadFiring(fresh[0])).toBe(true)
+    })
+
+    describe("a listing's own search stands in for the component's OnLoad search", () => {
+
+        it('claims the OnLoad search so the trigger does not fire a second, identical search', () => {
+            const triggers = [onLoad('search')]
+            expect(standInForOnLoad(triggers, 'search')).toBe(true)
+            expect(claimOnLoadFiring(triggers[0])).toBe(false)
+        })
+
+        it('leaves other OnLoad triggers alone', () => {
+            const triggers = [onLoad('load'), onLoad('search')]
+            standInForOnLoad(triggers, 'search')
+            expect(claimOnLoadFiring(triggers[0])).toBe(true)
+        })
+
+        it('is a no-op on a component without that trigger', () => {
+            expect(standInForOnLoad([onLoad('load')], 'search')).toBe(false)
+            expect(standInForOnLoad(undefined, 'search')).toBe(false)
+        })
+
+        it('after the trigger already fired (a later search by the user) nothing changes', () => {
+            const triggers = [onLoad('search')]
+            expect(claimOnLoadFiring(triggers[0])).toBe(true)
+            expect(standInForOnLoad(triggers, 'search')).toBe(false)
+        })
     })
 })

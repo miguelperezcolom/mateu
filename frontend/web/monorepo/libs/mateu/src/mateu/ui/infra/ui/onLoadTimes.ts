@@ -37,3 +37,20 @@ export function claimOnLoadFiring(trigger: CountedTrigger): boolean {
     trigger.firedTimes = fired + 1
     return true
 }
+
+/**
+ * A child's OWN request for an action stands in for the component's OnLoad trigger of that action:
+ * the trigger is counted as fired, so {@code triggerOnLoad} does not repeat it.
+ *
+ * A listing opened with filters in the URL ran its filtered search itself (it is the one that
+ * reads the URL), and the enclosing component's OnLoad `search` fired right after with the very
+ * same state — two identical requests for one page. Returns whether a trigger was claimed.
+ */
+export function standInForOnLoad(triggers: CountedTrigger[] | undefined, actionId: string): boolean {
+    let claimed = false
+    for (const trigger of triggers ?? []) {
+        if (trigger?.type !== 'OnLoad' || trigger.actionId !== actionId) continue
+        if (claimOnLoadFiring(trigger)) claimed = true
+    }
+    return claimed
+}

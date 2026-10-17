@@ -47,12 +47,35 @@ class DeleteActionHandlerTest {
   }
 
   @Test
-  void alwaysRedirectsToList() {
+  void fromTheListingItStaysOnTheListingAndRefreshesItInPlace() {
     when(httpRequest.getSelectedRows(Map.class)).thenReturn(null);
+    when(orchestrator.route()).thenReturn(Crud.LIST_VIEW);
 
     var result = (CrudActionResult) handler.handleAction("delete", httpRequest, orchestrator);
 
+    // no navigation (a route the client reads as another place would reload the listing, and
+    // that fresh listing would search on load — a second search for one delete)
+    assertThat(result.route()).isEqualTo(Crud.LIST_VIEW);
+    assertThat(result.commands())
+        .singleElement()
+        .satisfies(
+            command -> {
+              assertThat(command.type()).isEqualTo(io.mateu.uidl.data.UICommandType.DispatchEvent);
+              assertThat(((io.mateu.uidl.fluent.CustomEvent) command.data()).eventName())
+                  .isEqualTo(Crud.LISTING_CHANGED_EVENT);
+            });
+  }
+
+  @Test
+  void fromTheRecordPageItGoesBackToTheListWithoutTheEvent() {
+    when(httpRequest.getSelectedRows(Map.class)).thenReturn(null);
+    when(orchestrator.route()).thenReturn("edit");
+
+    var result = (CrudActionResult) handler.handleAction("delete", httpRequest, orchestrator);
+
+    // the fresh listing searches on load by itself: the event would be a second search
     assertThat(result.route()).isEqualTo("/list");
+    assertThat(result.commands()).isEmpty();
   }
 
   @Test

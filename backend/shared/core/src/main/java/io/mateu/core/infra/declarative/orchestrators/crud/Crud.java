@@ -158,6 +158,19 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    */
   public static final String LISTING_CHANGED_EVENT = "mateu-crud:listing-changed";
 
+  /** The view name of the listing: what {@link MultiView#route()} says while it is on screen. */
+  public static final String LIST_VIEW = "list";
+
+  /**
+   * Whether this orchestrator route is the listing: its view name, the {@code /list} an action
+   * navigated back to, or the bare mount ({@code ""}, what the first load leaves before the listing
+   * view is resolved). Everything else names a record page ({@code new}, {@code edit}, {@code
+   * view}).
+   */
+  public static boolean isListingRoute(String route) {
+    return route == null || route.isBlank() || LIST_VIEW.equals(route) || "/list".equals(route);
+  }
+
   /**
    * This crud's built-in affordances (the Redwood collection-container / create-edit-drawer {@code
    * displayOptions}): the New and Delete buttons ({@code on}/{@code off}/{@code disabled} on top of

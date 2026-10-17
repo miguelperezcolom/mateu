@@ -21,9 +21,6 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
           selection.stream().map(map -> ((Map<String, Object>) map).get(idField)).toList();
       orchestrator.deleteAllById(selectedIds, httpRequest);
     }
-    return CrudActionResult.of(actionId)
-        .withRoute("/list")
-        // the listing refreshes itself on this event (see Crud.LISTING_CHANGED_EVENT)
-        .withCommand(io.mateu.uidl.data.UICommand.dispatchEvent(Crud.LISTING_CHANGED_EVENT));
+    return CrudActionResult.listingChanged(actionId, orchestrator);
   }
 }
