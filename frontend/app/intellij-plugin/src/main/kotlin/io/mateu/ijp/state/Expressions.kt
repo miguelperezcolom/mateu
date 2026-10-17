@@ -2,10 +2,13 @@ package io.mateu.ijp.state
 
 /**
  * Tiny expression evaluator for rule filters, validation conditions and `${...}` label
- * interpolation — the same pragmatic subset the React Native renderer's engine covers (the
- * two parsers are kept in sync): literals, identifier paths (`state.total`, `state['a b']`),
- * unary `!`/`-`, arithmetic, comparisons (`==`/`!=` are loose), `&&`/`||`/`??` and the ternary.
- * Unknown syntax throws — callers decide the fallback.
+ * interpolation — the same pragmatic subset the React Native renderer's engine covers: literals,
+ * identifier paths (`state.total`, `state['a b']`), optional chaining (`?.`, `?.[]`), unary
+ * `!`/`-`, arithmetic, comparisons (JavaScript's: two strings compare as text, otherwise as
+ * numbers), loose `==`/`!=` and strict `===`/`!==`, `&&`/`||`/`??`, the ternary and regex literals
+ * with `.test(…)` (the server's @Pattern condition). Unknown syntax throws — callers decide the
+ * fallback. The web, Redwood, React Native and this evaluator are held to one corpus:
+ * conformance/client/expressions.json (ExpressionsConformanceTest).
  */
 object Expressions {
 
@@ -109,7 +112,27 @@ object Expressions {
         return 0
     }
 
-    private data class Token(val type: Char, val value: String) // n=num s=str i=id o=op
+    private data class Token(val type: Char, val value: String, val flags: String = "") // n=num s=str i=id o=op r=regex
+
+    /** Properties an expression may never read (the same set the web and RN evaluators refuse). */
+    private val BLOCKED_PROPERTIES = setOf(
+        "constructor", "__proto__", "prototype", "__defineGetter__", "__defineSetter__",
+        "__lookupGetter__", "__lookupSetter__",
+    )
+
+    /** A `/` starts a regex literal where a VALUE is expected; after a value it is a division. */
+    private fun regexAllowed(prev: Token?): Boolean =
+        prev == null || (prev.type == 'o' && prev.value != ")" && prev.value != "]")
+
+    /** A JavaScript regex as a Kotlin one (the server's @Pattern regexp is Java syntax anyway). */
+    private fun regexOf(body: String, flags: String): Regex {
+        val options = buildSet {
+            if ('i' in flags) add(RegexOption.IGNORE_CASE)
+            if ('m' in flags) add(RegexOption.MULTILINE)
+            if ('s' in flags) add(RegexOption.DOT_MATCHES_ALL)
+        }
+        return Regex(body, options)
+    }
 
     private fun tokenize(src: String): List<Token> {
         val tokens = ArrayList<Token>()
@@ -130,8 +153,26 @@ object Expressions {
                     while (j < src.length && src[j] != ch) {
                         if (src[j] == '\\' && j + 1 < src.length) { out.append(src[j + 1]); j += 2 } else { out.append(src[j]); j++ }
                     }
+                    if (j >= src.length) throw IllegalArgumentException("unterminated string")
                     tokens.add(Token('s', out.toString()))
                     i = j + 1
+                }
+                ch == '/' && regexAllowed(tokens.lastOrNull()) -> {
+                    var j = i + 1
+                    var inClass = false
+                    while (j < src.length && (inClass || src[j] != '/')) {
+                        when (src[j]) {
+                            '\\' -> j++
+                            '[' -> inClass = true
+                            ']' -> inClass = false
+                        }
+                        j++
+                    }
+                    if (j >= src.length) throw IllegalArgumentException("unterminated regex")
+                    var k = j + 1
+                    while (k < src.length && src[k] in 'a'..'z') k++
+                    tokens.add(Token('r', src.substring(i + 1, j), src.substring(j + 1, k)))
+                    i = k
                 }
                 ch.isLetter() || ch == '_' || ch == '$' -> {
                     var j = i
@@ -144,6 +185,8 @@ object Expressions {
                     val two = src.substring(i, minOf(i + 2, src.length))
                     when {
                         three == "===" || three == "!==" -> { tokens.add(Token('o', three)); i += 3 }
+                        // `?.` is optional chaining unless a digit follows (`a?.5:1` is a ternary)
+                        two == "?." && !(i + 2 < src.length && src[i + 2].isDigit()) -> { tokens.add(Token('o', two)); i += 2 }
                         two in setOf("==", "!=", ">=", "<=", "&&", "||", "??") -> { tokens.add(Token('o', two)); i += 2 }
                         ch in "+-*/%<>!?:().[]," -> { tokens.add(Token('o', ch.toString())); i++ }
                         else -> throw IllegalArgumentException("unexpected character '$ch'")
@@ -201,8 +244,8 @@ object Expressions {
             while (isOp("==") || isOp("!=") || isOp("===") || isOp("!==")) {
                 val op = eat().value
                 val right = comparison()
-                val eq = looseEquals(left, right)
-                left = when (op) { "==", "===" -> eq; else -> !eq }
+                val eq = if (op.length == 3) strictEquals(left, right) else looseEquals(left, right)
+                left = if (op.startsWith("=")) eq else !eq
             }
             return left
         }
@@ -211,8 +254,15 @@ object Expressions {
             var left = additive()
             while (isOp(">") || isOp("<") || isOp(">=") || isOp("<=")) {
                 val op = eat().value
-                val l = num(left); val r = num(additive())
-                left = when (op) { ">" -> l > r; "<" -> l < r; ">=" -> l >= r; else -> l <= r }
+                val right = additive()
+                left = if (left is String && right is String) {
+                    // two strings compare as text (ISO dates sort right), as in JavaScript
+                    val c = left.compareTo(right)
+                    when (op) { ">" -> c > 0; "<" -> c < 0; ">=" -> c >= 0; else -> c <= 0 }
+                } else {
+                    val l = num(left); val r = num(right)
+                    when (op) { ">" -> l > r; "<" -> l < r; ">=" -> l >= r; else -> l <= r }
+                }
             }
             return left
         }
@@ -246,11 +296,35 @@ object Expressions {
 
         private fun postfix(): Any? {
             var value = primary()
+            // once a `?.` met null, the rest of the chain is parsed but not evaluated
+            var short = false
             while (true) {
+                val optional = isOp("?.")
+                if (optional) {
+                    eat("?.")
+                    if (value == null) short = true
+                }
                 when {
-                    isOp(".") -> { eat("."); value = member(value, eat().value) }
-                    isOp("[") -> { eat("["); val key = ternary(); eat("]"); value = member(value, display(key)) } // rows[1]: the literal is 1.0, the index "1"
-                    else -> return value
+                    isOp(".") || (optional && peek()?.type == 'i') -> {
+                        if (!optional) eat(".")
+                        val prop = eat()
+                        require(prop.type == 'i') { "expected a property name" }
+                        if (isOp("(")) {
+                            // the one call an expression may make: a regex's `test` (the @Pattern condition)
+                            eat("("); val arg = ternary(); eat(")")
+                            if (short) continue
+                            require(value is Regex && prop.value == "test") { "'${prop.value}' is not callable in expressions" }
+                            value = (value as Regex).containsMatchIn(display(arg))
+                        } else {
+                            value = if (short) null else member(value, prop.value)
+                        }
+                    }
+                    isOp("[") -> {
+                        eat("["); val key = ternary(); eat("]")
+                        value = if (short) null else member(value, display(key)) // rows[1]: the literal is 1.0, the index "1"
+                    }
+                    optional -> throw IllegalArgumentException("unexpected ?.")
+                    else -> return if (short) null else value
                 }
             }
         }
@@ -260,6 +334,7 @@ object Expressions {
             return when {
                 t.type == 'n' -> { eat(); t.value.toDouble() }
                 t.type == 's' -> { eat(); t.value }
+                t.type == 'r' -> { eat(); regexOf(t.value, t.flags) }
                 t.type == 'i' -> {
                     eat()
                     when (t.value) {
@@ -272,7 +347,12 @@ object Expressions {
             }
         }
 
-        private fun member(target: Any?, prop: String): Any? = normalize(when (target) {
+        private fun member(target: Any?, prop: String): Any? {
+            require(prop !in BLOCKED_PROPERTIES) { "Access to '$prop' is not allowed in expressions" }
+            return memberOf(target, prop)
+        }
+
+        private fun memberOf(target: Any?, prop: String): Any? = normalize(when (target) {
             null -> null
             is Map<*, *> -> target[prop]
             is List<*> -> if (prop == "length") target.size.toDouble() else prop.toIntOrNull()?.let { target.getOrNull(it) }
@@ -325,20 +405,41 @@ object Expressions {
         else -> true
     }
 
+    /** JavaScript's numeric literal grammar for a string (Kotlin's parser also takes "1d", "1f"). */
+    private val JS_NUMBER = Regex("^[+-]?(\\d+\\.?\\d*|\\.\\d+)([eE][+-]?\\d+)?$")
+
+    /** A value as JavaScript's Number(): blank strings are 0, a non-numeric string NaN. */
     private fun num(v: Any?): Double = when (v) {
         is Number -> v.toDouble()
-        is String -> v.toDoubleOrNull() ?: Double.NaN
+        is String -> v.trim().let { t ->
+            when {
+                t.isEmpty() -> 0.0
+                JS_NUMBER.matches(t) -> t.toDouble()
+                t == "Infinity" || t == "+Infinity" -> Double.POSITIVE_INFINITY
+                t == "-Infinity" -> Double.NEGATIVE_INFINITY
+                else -> Double.NaN
+            }
+        }
         is Boolean -> if (v) 1.0 else 0.0
         else -> Double.NaN
     }
 
+    /** JavaScript's `==` on primitives: null only equals null; a boolean compares as a number;
+     *  a number and a string compare as numbers; two strings as text. */
     private fun looseEquals(a: Any?, b: Any?): Boolean {
-        if (a == null && b == null) return true
-        if (a == null || b == null) return false
-        if (a is Number || b is Number) {
-            val na = num(a); val nb = num(b)
-            if (!na.isNaN() && !nb.isNaN()) return na == nb
-        }
-        return a.toString() == b.toString()
+        if (a == null || b == null) return a == null && b == null
+        if (isPrimitive(a) && isPrimitive(b)) return if (a is String && b is String) a == b else num(a) == num(b)
+        return a == b || a.toString() == b.toString()
     }
+
+    /** JavaScript's `===`: same kind and same value (numbers compare numerically, whatever their
+     *  boxed type). */
+    private fun strictEquals(a: Any?, b: Any?): Boolean {
+        if (a == null || b == null) return a == null && b == null
+        if (a is Number && b is Number) return a.toDouble() == b.toDouble()
+        if (isPrimitive(a) || isPrimitive(b)) return a::class == b::class && a == b
+        return a == b
+    }
+
+    private fun isPrimitive(v: Any): Boolean = v is Number || v is Boolean || v is String
 }

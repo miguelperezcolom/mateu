@@ -104,6 +104,8 @@
     { "name": "== null is not the empty string", "expr": "state.nul == ''", "expected": false },
     { "name": "!= true and false", "expr": "state.flag != false", "expected": true },
     { "name": "== two strings", "expr": "state.name == 'Ana'", "expected": true },
+    { "name": "== true and the string 'true' is false (the boolean compares as 1)", "expr": "state.flag == 'true'", "expected": false },
+    { "name": "== true and 1", "expr": "state.flag == 1", "expected": true },
 
     { "name": "=== same number", "expr": "state.age === 30", "expected": true },
     { "name": "=== number and string is false", "expr": "state.age === '30'", "expected": false },
