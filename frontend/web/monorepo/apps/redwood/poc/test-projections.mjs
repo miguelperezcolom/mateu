@@ -13,11 +13,17 @@ import {
   confirmOpenOf, confirmDialogAtomOf, returnedConfirmDialogsOf, workflowAtomOf, formEditorFieldsOf,
   componentHtmlOf, gridPageOf, autoFitColClass, carouselPagerAtomOf, progressBarAtomOf, customComponentAtomOf,
   registerCustomComponent, setDataProviderFactory, toneOf, cssColorOf,
+  targetPageOf, listingSearchStateOf, listingSortOf, selectionOfKeySet, selectedRowsOf, rowAsArrived, lineValueText,
+  rowLinesSplit, rowLinesRows, statusTypeOfTone, statusTypeOfValue, humanizeConstant, filterDescriptorOf, filterChipsOf,
+  navTargetOf, queryFiltersOf, splitListingQuery, listingQueryOf, listingUrlOf, listingUrlPagingOf, multiValuesOf,
+  smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
+  smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 
 let passed = 0
-const test = (name, fn) => { fn(); passed++; console.log('  ✓ ' + name) }
+const queue = []
+const test = (name, fn) => queue.push({ name, fn })
 
 // ── colours ────────────────────────────────────────────────────────────────────────────────────
 
@@ -390,4 +396,187 @@ test('a progress bar reads its value from the state key; a custom component with
   assert.equal(unnamed.props, '{}')
 })
 
+// ── listings: paging, selection, rows, status words ────────────────────────────────────────────
+
+test('the pager: each button leads to its page, or nowhere at the edges; a number is a page', () => {
+  const middle = { hasPrev: true, hasNext: true, hasLast: true, pageNumber: 3, lastPage: 9 }
+  assert.deepEqual(['first', 'prev', 'next', 'last', '5', '-1', 'x'].map((w) => targetPageOf(middle, w)), [0, 2, 4, 9, 5, null, null])
+  const first = { hasPrev: false, hasNext: false, hasLast: false, pageNumber: 0 }
+  assert.deepEqual(['first', 'prev', 'next', 'last'].map((w) => targetPageOf(first, w)), [null, null, null, null])
+  assert.equal(targetPageOf(null, 'next'), null)
+})
+
+test('a listing search keeps the text and filters when paging; the sort travels only when there is one', () => {
+  const st = listingSearchStateOf({ mode: 'x', sort: [{ field: 'stale' }] }, { searchText: 'ada', page: 2, size: 50, filters: { status: 'OPEN', nights_from: 2 } })
+  assert.deepEqual(st, { mode: 'x', searchText: 'ada', page: 2, size: 50, status: 'OPEN', nights_from: 2 })
+  const sorted = listingSearchStateOf({}, { sort: [{ field: 'name', direction: 'descending', extra: 1 }] })
+  assert.deepEqual(sorted, { searchText: '', page: 0, size: 20, sort: [{ field: 'name', direction: 'descending' }] })
+  assert.deepEqual(listingSortOf({ header: 'code__uuidCell', direction: 'descending' }, { code: 'bookingCode' }), [{ field: 'bookingCode', direction: 'descending' }])
+  assert.deepEqual(listingSortOf({ header: 'name', direction: 'weird' }), [{ field: 'name', direction: 'ascending' }])
+  assert.deepEqual(listingSortOf({}), [])
+})
+
+test('a «select all» selection is everything but the unchecked rows; the rows go back as they arrived', () => {
+  const all = selectionOfKeySet({ isAddAll: () => true, deletedValues: () => new Set(['r2']) })
+  assert.deepEqual(all, { all: true, keys: [], except: ['r2'] })
+  assert.deepEqual(selectionOfKeySet({ isAddAll: () => false, values: () => new Set(['r1']) }), { all: false, keys: ['r1'], except: [] })
+  assert.deepEqual(selectionOfKeySet({ isAddAll: () => true }), { all: true, keys: [], except: [] })
+  assert.deepEqual(selectionOfKeySet(null), { all: false, keys: [], except: [] })
+  const rows = [
+    { _rowNumber: 'r1', id: 1, code: 'abc', code__uuidCell: 'a…', status: { badgeClass: 'x', plain: true, raw: 'OPEN', message: 'Open' } },
+    { _rowNumber: 'r2', id: 2, status: { badgeClass: 'y', plain: true, message: 'Closed' } },
+    { _rowNumber: 'r3', id: 3, status: { badgeClass: 'z', type: 'SUCCESS', message: 'Paid' } },
+  ]
+  assert.deepEqual(selectedRowsOf(rows, all).map((r) => [r.id, r.status]), [[1, 'OPEN'], [3, { type: 'SUCCESS', message: 'Paid' }]])
+  assert.ok(!('code__uuidCell' in selectedRowsOf(rows, all)[0]), 'the precomputed cells do not travel')
+  assert.deepEqual(selectedRowsOf(rows, { all: false, keys: ['r2'], except: [] })[0].status, 'Closed', 'a plain word without raw is its message')
+  assert.deepEqual(selectedRowsOf(rows, null), [])
+  assert.equal(rowAsArrived(null), null)
+})
+
+test('a row\'s extra lines (@Line): columns split by line, values as text (lists, money, states, yes/no)', () => {
+  const cols = [{ metadata: { id: 'a', line: 1 } }, { metadata: { id: 'b', line: 3, label: 'B' } }, { metadata: { id: 'c', line: 2.7 } }, { metadata: { type: 'GridGroupColumn', id: 'g', line: 5 } }]
+  const split = rowLinesSplit(cols)
+  assert.deepEqual(split.first.map((c) => c.metadata.id), ['a', 'g'])
+  assert.deepEqual(split.extra.map((l) => l.map((c) => c.metadata.id)), [['c'], ['b']])
+  assert.equal(lineValueText(['x', null, { message: 'Open' }]), 'x, Open')
+  assert.equal(lineValueText({ amount: 10, currency: 'EUR' }), '10 EUR')
+  assert.equal(lineValueText({ amount: 10 }), '10')
+  assert.equal(lineValueText({ name: 'Ada' }), 'Ada')
+  assert.equal(lineValueText({ message: null }), '')
+  assert.equal(lineValueText(true), '✓')
+  assert.equal(lineValueText(false), '✗')
+  assert.equal(lineValueText(3), '3')
+  const [row] = rowLinesRows([{ c: { message: 'Late', badgeClass: 'warn' }, b: 'x' }], split.extra)
+  assert.deepEqual(row.__rowLines.lines.map((l) => [l.key, l.pairs.map((p) => [p.label, p.text, p.cls])]), [['l2', [['c', 'Late', 'warn']]], ['l3', [['B', 'x', '']]]])
+  assert.deepEqual(rowLinesRows([{ a: 1 }], []), [{ a: 1 }])
+})
+
+test('a plain status word: the declared tone wins, then the lifecycle words; constants read as words', () => {
+  assert.deepEqual(['success', 'WARNING', 'error', 'danger', 'info', 'none', 'neutral', 'pink', null].map(statusTypeOfTone),
+    ['SUCCESS', 'WARNING', 'DANGER', 'DANGER', 'INFO', 'NONE', 'NONE', undefined, undefined])
+  assert.equal(statusTypeOfValue('shipped', { SHIPPED: 'info' }), 'INFO', 'the tone of the upper-cased word')
+  assert.equal(statusTypeOfValue('Odd', { Odd: 'pink' }), 'NONE', 'an unknown tone falls to the words')
+  assert.equal(statusTypeOfValue('in progress'), 'WARNING')
+  assert.equal(statusTypeOfValue('Cancelled'), 'DANGER')
+  assert.equal(statusTypeOfValue('whatever'), 'NONE')
+  assert.equal(humanizeConstant('IN_PROGRESS'), 'In progress')
+  assert.equal(humanizeConstant('ROOM1'), 'Room 1')
+  assert.equal(humanizeConstant('Already words'), 'Already words')
+  assert.equal(humanizeConstant(7), 7)
+})
+
+// ── listings: filters, chips, URL, smart search ───────────────────────────────────────────────
+
+const FILTERS = [
+  filterDescriptorOf({ fieldId: 'arrival', label: 'Arrival', stereotype: 'dateRange', dataType: 'dateTime' }, {}),
+  filterDescriptorOf({ fieldId: 'nights', label: 'Nights', stereotype: 'numberRange' }, {}),
+  filterDescriptorOf({ fieldId: 'tags', label: 'Tags', stereotype: 'multiSelect', options: [{ value: 'a', label: 'Alpha' }, { value: 'b' }] }, {}),
+  filterDescriptorOf({ fieldId: 'vip', label: 'VIP', dataType: 'boolean' }, {}),
+  filterDescriptorOf({ fieldId: 'status', label: 'Status', options: [{ value: 'OPEN', label: 'Open' }] }, {}),
+  filterDescriptorOf({ fieldId: 'amount', dataType: 'money' }, {}),
+]
+
+test('each filter knows its kind and the input it is typed in', () => {
+  assert.deepEqual(FILTERS.map((f) => [f.kind, f.inputType]), [['range', 'datetime-local'], ['range', 'number'], ['multi', 'text'], ['bool', 'text'], ['options', 'text'], ['text', 'number']])
+  assert.equal(FILTERS[5].label, 'amount', 'no label: its field id')
+  assert.equal(filterDescriptorOf({ fieldId: 'd', stereotype: 'dateRange' }, {}).inputType, 'date')
+  assert.deepEqual(FILTERS[2].options, [{ value: 'a', label: 'Alpha' }, { value: 'b', label: 'b' }])
+})
+
+test('filter chips: one per filter, the applied value as the user reads it; a range clears both keys', () => {
+  const chips = filterChipsOf(FILTERS, { arrival_to: '2026-10-20', nights_from: 2, nights_to: 4, tags: 'a,b', vip: 'false', status: 'OPEN', amount: 30, ids: 'X1,X2' })
+  assert.deepEqual(chips.map((c) => [c.fieldId, c.text, c.applied]), [
+    [IDS_PARAM, chromeText('idsFew') + 'X1, X2', true],
+    ['arrival', '≤ 2026-10-20', true], ['nights', '2 → 4', true], ['tags', 'Alpha, b', true], ['vip', 'No', true], ['status', 'Open', true], ['amount', '30', true]])
+  assert.deepEqual(chips[2].keys, ['nights_from', 'nights_to'])
+  assert.equal(filterChipsOf(FILTERS, { arrival_from: '2026-10-01' })[0].text, '≥ 2026-10-01')
+  assert.equal(filterChipsOf(FILTERS, { vip: true })[3].text, 'Yes')
+  assert.ok(filterChipsOf(FILTERS, {}).every((c) => !c.applied))
+  assert.equal(filterChipsOf(FILTERS, { ids: Array.from({ length: 5 }, (_, i) => 'I' + i) })[0].text, chromeText('idsMany', { n: 5 }))
+})
+
+test('the URL of a listing: filters, keyword, page and sort round-trip; paging is not a filter', () => {
+  const url = listingUrlOf('/bookings?old=1', { status: 'A B', tags: ['x', 'y'], empty: '', page: 3 }, ' ada ', { page: 2, sort: [{ field: 'name', direction: 'descending' }, { field: 'x' }] })
+  assert.equal(url, '/bookings?status=A%20B&tags=x,y&searchText=ada&page=2&sort=name:descending')
+  assert.equal(listingUrlOf('/b', {}, '', { page: 0, sort: [] }), '/b')
+  const query = url.split('?')[1]
+  const back = splitListingQuery(queryFiltersOf(query))
+  assert.deepEqual(back, { searchText: 'ada', values: { status: 'A B', tags: 'x,y' } })
+  assert.deepEqual(listingUrlPagingOf(query), { page: 2, sort: [{ field: 'name', direction: 'descending' }] })
+  assert.deepEqual(listingUrlPagingOf('page=-3&sort=a:sideways,b:ascending&=x&bad'), { page: 0, sort: [{ field: 'b', direction: 'ascending' }] })
+  assert.deepEqual(queryFiltersOf('?q=a+b&bad=%E0%A4%A&=x&size=10'), { q: 'a b', bad: '%E0%A4%A' }, 'a broken escape is kept as it came')
+  assert.equal(splitListingQuery({ q: 'alias' }).searchText, 'alias')
+  assert.deepEqual(navTargetOf('/r?x=1', '/r?x=1'), { route: '/r', full: '/r?x=1', filters: { x: '1' }, same: true })
+  assert.equal(navTargetOf('/r', '/r?x=1').same, false, 'the same screen with other filters is another navigation')
+  assert.equal(listingQueryOf(null, null), '')
+  assert.deepEqual(multiValuesOf(' a, ,b '), ['a', 'b'])
+  assert.deepEqual(multiValuesOf(null), [])
+  assert.deepEqual(multiValuesOf([1, 2]), ['1', '2'])
+})
+
+test('smart search: the applied chips from the state, and back — keywords, ids, ranges, lists, yes/no, picks', () => {
+  const value = smartFilterValueOf(FILTERS, { ids: 'K1', arrival_from: '2026-10-01', tags: ['b'], vip: true, status: 'OPEN', amount: 9 }, ' late ')
+  assert.deepEqual(value.map((c) => c.filter), ['keyword', IDS_PARAM, 'arrival', 'tags', 'vip', 'status', 'amount'])
+  assert.deepEqual(value[2].value, { gte: '2026-10-01', lte: null })
+  assert.equal(value[4].label, 'Yes')
+  assert.equal(value[5].label, 'Open')
+  const state = filterStateOfSmartFilters(FILTERS, [...value, { filter: 'keyword', value: 'more' }, { filter: 'nights', value: { lte: 3 } }, { filter: 'ghost', value: 1 }, null, { filter: 'tags', value: [] }])
+  assert.deepEqual(state, { searchText: 'late more', values: { ids: 'K1', arrival_from: '2026-10-01', tags: ['b'], vip: 'true', status: 'OPEN', amount: 9, nights_to: 3 } })
+  // a freshly picked suggestion has no value yet: it does not filter
+  assert.deepEqual(filterStateOfSmartFilters(FILTERS, [{ filter: 'status' }]).values, {})
+  const sugg = smartFilterSuggestionsOf(FILTERS)
+  assert.deepEqual(sugg[0].value, { gte: null, lte: null }, 'a range opens its popup with both bounds')
+  assert.equal(sugg[2].filterLabel, 'Tags')
+  assert.equal(sugg[5].filterLabel, undefined, 'a text filter shows its own label')
+})
+
+test('smart search providers: what is applied is not offered again, typing narrows, keys resolve', async () => {
+  const rows = smartFilterSuggestionsOf(FILTERS)
+  const legacy = suggestionFiltersProviderOf(rows)
+  const first = await legacy.fetchFirst({ filterCriterion: { op: '$and', criteria: [{ op: '$ne', value: { filters: [{ filter: 'vip' }] } }, { text: 'TA' }] } })[Symbol.asyncIterator]().next()
+  assert.deepEqual(first.value.data.map((r) => r.filter), ['tags', 'status'])
+  assert.deepEqual([...(await legacy.fetchByKeys({ keys: ['vip', 'nope'] })).results.keys()], ['vip'])
+  assert.deepEqual([...(await legacy.containsKeys({ keys: ['vip', 'nope'] })).results], ['vip'])
+  assert.equal(await legacy.getTotalSize(), 6)
+  assert.equal(legacy.isEmpty(), 'no')
+  assert.equal(suggestionFiltersProviderOf([]).isEmpty(), 'yes')
+  const dropdown = suggestionsProviderOf(smartFilterDropdownRowsOf(FILTERS))
+  const it = dropdown.fetchFirst({ filterCriterion: { text: 'n' } })[Symbol.asyncIterator]()
+  const block = await it.next()
+  assert.deepEqual(block.value.data.map((r) => r.id), ['nights', 'amount'])
+  assert.equal((await it.next()).done, true, 'then the empty end, like an ArrayDataProvider')
+  const page = await dropdown.fetchByOffset({ offset: 1, size: 2 })
+  assert.deepEqual(page.results.map((r) => r.data.id), ['nights', 'tags'])
+  assert.equal(page.done, false)
+  assert.equal((await dropdown.fetchByOffset({ offset: 4 })).done, true)
+  assert.deepEqual([...(await dropdown.containsKeys({ keys: ['vip', 'x'] })).results], ['vip'])
+  assert.equal((await dropdown.fetchByKeys({ keys: ['status'] })).results.get('status').data.id, 'status')
+  assert.equal(await dropdown.getTotalSize(), -1, 'unknown: the total depends on the filter')
+  assert.deepEqual(dropdown.getCapability('filter').operators, ['$and', '$ne'])
+  assert.equal(dropdown.getCapability('sort'), null)
+})
+
+test('smart search config: text only without filters; ids alone carry their chip; the editors\' metadata when JET is there', async () => {
+  const plain = await smartFiltersOf([], {}, 'x')
+  assert.deepEqual(Object.keys(plain).sort(), ['askHint', 'value'])
+  const ids = await smartFiltersOf([], { ids: 'A' }, '')
+  assert.equal(ids.suggestions, undefined)
+  setMetadataProviderFactory(async (data) => ({ metadataOf: data }))
+  try {
+    const full = await smartFiltersOf(FILTERS, {}, '')
+    assert.ok(full.suggestions && full.filtersMetadata && full.filtersMetadata.metadataOf)
+  } finally { setMetadataProviderFactory(null) }
+})
+
+for (const { name, fn } of queue) {
+  try {
+    await fn()
+    passed++
+    console.log('  ✓ ' + name)
+  } catch (e) {
+    console.error('  ✗ ' + name)
+    throw e
+  }
+}
 console.log(`\n${passed} projection tests OK`)
