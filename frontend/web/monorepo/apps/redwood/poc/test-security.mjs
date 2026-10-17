@@ -8,6 +8,7 @@ import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCred
 import { fetchWithPolicy, connectivity, classifyRequestFailure } from './resilience.mjs'
 import { chromeText } from './i18n.mjs'
 import { idleSignOutUrlOf } from './appExtras.mjs'
+import { routeQueryOf, currentRouteOf, setMount } from './mount.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
 import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf } from './widgets.mjs'
@@ -159,6 +160,19 @@ test('MINOR 4: the idle sign-out never follows a javascript: url', () => {
   assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: '/logout' } }), '/logout')
   assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: 'https://idp.example/logout' } }), 'https://idp.example/logout')
   assert.equal(idleSignOutUrlOf(null), '/')
+})
+
+// ── MINOR 31: the login flow's ?continue is no route parameter ──────────────────────────────────
+
+test('MINOR 31: ?continue after a form login does not reach the route', () => {
+  assert.equal(routeQueryOf('?continue'), '')
+  assert.equal(routeQueryOf('?page=2&continue&q=a%20b'), '?page=2&q=a%20b')
+  setMount('/')
+  try {
+    assert.equal(currentRouteOf({ pathname: '/products', search: '?continue', hash: '' }), '/products')
+  } finally {
+    setMount(null)
+  }
 })
 
 for (const { name, fn } of queue) {
