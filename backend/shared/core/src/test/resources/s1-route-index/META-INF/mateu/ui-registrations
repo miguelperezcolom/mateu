@@ -1,0 +1,11 @@
+class=com.acme.Shop
+path=/shop
+---
+class=com.acme.Orders
+path=/orders
+---
+class=com.acme.OldBackOffice
+path=/back-office
+---
+class=com.acme.Root
+path=
