@@ -32,6 +32,27 @@ public static class UiPage
     public const string TitleMarker = "AQUIELTITULODELAPAGINA";
     public const string UiFrom = "<!-- AQUIUI -->";
     public const string UiTo = "<!-- HASTAAQUIUI -->";
+    public const string FaviconMarker = "<!-- AQUIFAVICON -->";
+
+    /// <summary>Java's <c>IndexPage.DEFAULT_FAVICON</c>, byte for byte: the favicon a renderer page
+    /// carries (Mateu's icon, served by the renderer next to its assets), never the build tool's
+    /// <c>/vite.svg</c>; the app's own favicon arrives with the shell (<c>SetFavicon</c>).</summary>
+    public const string DefaultFavicon = "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/mateu-icon.svg\" />";
+
+    /// <summary>Java's <c>IndexPage.MARKERS</c>: the template markers none of which is left in a served page.</summary>
+    public static readonly string[] Markers =
+    [
+        "<!-- AQUIFAVICON -->", "<!-- AQUIKEYCLOAK -->", "<!-- AQUIJS -->", "<!-- HASTAAQUIJS -->",
+        "<!-- AQUIUI -->", "<!-- HASTAAQUIUI -->",
+    ];
+
+    /// <summary>Java's <c>IndexPage.withoutMarkers</c>: <paramref name="html"/> without the template's
+    /// marker comments (a served page showed them in view-source). Applied last.</summary>
+    public static string WithoutMarkers(string html)
+    {
+        foreach (var marker in Markers) html = html.Replace(marker, "");
+        return html;
+    }
 
     /// <summary>Java's <c>IndexPage.DEFERRED_BOOT</c>, byte for byte: boots a page that parks its
     /// scripts as <c>type="text/mateu-deferred"</c> (the Redwood / Visual Builder page), in order,
@@ -91,8 +112,11 @@ public static class UiPage
     }
 
     /// <summary>The renderer's page aimed at <paramref name="baseUrl"/> (the mount, "" for the root) and titled.</summary>
+    /// <remarks>Like Java's <c>IndexPage.render</c>: the favicon marker becomes
+    /// <see cref="DefaultFavicon"/> and no template marker is left in the page.</remarks>
     public static string RenderIndex(string template, string baseUrl, string title, bool debug = false) =>
-        MountUi(template.Replace(TitleMarker, title), baseUrl, debug);
+        WithoutMarkers(MountUi(
+            template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), baseUrl, debug));
 
     /// <summary>Java's <c>SpaFallback.candidate</c>: a deep link the page may answer — not the root
     /// itself, no file extension, and never the API (<c>/mateu/…</c>).</summary>
