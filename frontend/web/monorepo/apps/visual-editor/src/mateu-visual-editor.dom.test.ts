@@ -26,7 +26,10 @@ beforeEach(async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })))
     // jsdom has no ResizeObserver (the page header watches its own size)
     ;(globalThis as any).ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} }
-    await import('./mateu-visual-editor')
+    // boot like the shipped entry point: the DS-neutral renderer is installed BEFORE the first render
+    // (the editor's own switch to the project's renderer is async; without it a Play render could find no
+    // component renderer at all)
+    await import('./index')
 })
 afterEach(() => {
     document.body.innerHTML = ''
