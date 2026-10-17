@@ -253,7 +253,8 @@ export class MateuFilterBar extends LitElement {
     // ── filter typing helpers ────────────────────────────────────────────────
 
     private isBooleanFilter(field: FormField): boolean {
-        // the Java server emits dataType 'bool', the .NET one 'boolean' — accept both
+        // every server emits dataType 'bool' today; 'boolean' was what the .NET port sent before
+        // it aligned (and what an older or hand-written server may still send) — accept both
         return field.dataType === 'boolean' || field.dataType === 'bool'
             || field.stereotype === 'checkbox' || field.stereotype === 'toggle'
     }

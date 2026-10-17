@@ -191,8 +191,10 @@ values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier`
 property, rows binding back into the typed list), permission-driven field states
 (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
-TILES/HAMBURGER_MENU/MENU_ON_TOP; flat menus → TABS). What is still Java-only today is listed in
-[What is still Java-only](#what-is-still-java-only).
+TILES/HAMBURGER_MENU/MENU_ON_TOP; flat menus → TABS). (That closed the feature rows of the time;
+the component adapters were later given a real SPI in both ports — `IComponentAdapter<T>` /
+`ComponentAdapter`, 2026-10-10 — and what is still Java-only today is listed in
+[What is still Java-only](#what-is-still-java-only).)
 
 **2026-07-16 parity pass**: the front-office dogfooding wave (OfferCard toggle state, StatusItem
 avatar, StatusList compact/frameless, Notice status/noIcon/content, `@Audience`) landed on all
@@ -228,8 +230,7 @@ endpoint is taken from what the server holds (the view's own declarations), neve
 
 The shared wire-conformance corpus is a HARD gate on Python: every case must match the Java golden
 except an explicit, strictly-xfailed allow-list whose every entry is a defect of the golden itself
-(today one: `dashboard`, whose Java golden advertises list-row actions for the fields of a `Text`
-component).
+(today none: the Python, .NET and Java runners all run with empty allow-lists).
 
 ### What is still Java-only
 
