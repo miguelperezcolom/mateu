@@ -8463,11 +8463,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
     const out = []
     let last
+    // one key function for the group a row is in AND the rows a group counts: a row with no value is
+    // in the '' group, and String(null) is 'null' — counting with it gave that group « (0)»
+    const keyOf = (row) => String(row[groupBy] == null ? '' : row[groupBy])
     rows.forEach((row, i) => {
-      const key = String(row[groupBy] == null ? '' : row[groupBy])
+      const key = keyOf(row)
       if (i === 0 || key !== last) {
         const g = groups.find((x) => String(x.value) === key)
-          || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+          || { value: key, count: rows.filter((r) => keyOf(r) === key).length, aggregates: {} }
         const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
         for (const c of cols) {
           groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'

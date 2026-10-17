@@ -598,6 +598,13 @@ test('folio real agrupado por código: filas de grupo con subtotales y el total 
   assert.ok(!l.rows[1]._group && l.rows[1].code === groups[0].code.replace(/ \(\d+\)$/, ''))
 })
 
+test('a group of rows with no value (the server did not list it) counts its rows, not 0', () => {
+  const md = { groupBy: 'status', columns: [{ metadata: { id: 'status' } }, { metadata: { id: 'n' } }] }
+  const rows = [{ status: 'OPEN', n: 1 }, { status: null, n: 2 }, { n: 3 }]
+  const heads = groupedRows(rows, md, { groups: [{ value: 'OPEN', count: 1, aggregates: {} }] }).filter((r) => r._group)
+  assert.deepEqual(heads.map((r) => r.status), ['OPEN (1)', ' (2)'])
+})
+
 test('tonos de fila (@RowStatus): nombre, constante de enum o Status; y la plantilla los pinta', () => {
   assert.equal(rowToneOf({ t: 'warning' }, 't'), 'warning')
   assert.equal(rowToneOf({ t: 'ERROR' }, 't'), 'danger')
