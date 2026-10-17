@@ -151,7 +151,7 @@ class SelfNamedForm:
 @ui("fastener-catalogue")
 @title("Fastener catalogue")
 class FastenerCatalogue(Listing[Fastener], Navigable[Fastener, str]):
-    def search(self, request: SearchRequest) -> ListingData[Fastener]:
+    def search(self, request: SearchRequest) -> ListingData:
         return ListingData(rows=ALL)
 
     def view(self, id: str) -> Fastener:
