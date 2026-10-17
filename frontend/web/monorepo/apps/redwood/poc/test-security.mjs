@@ -8,6 +8,8 @@ import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCred
 import { fetchWithPolicy, connectivity } from './resilience.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
+import { sanitizeElementHtml } from './elements.mjs'
+import { sanitizeHtml } from './richtext.mjs'
 
 let passed = 0
 const queue = []
@@ -81,6 +83,16 @@ test('M-S6: inline bytes of HTML/SVG/XML are saved as opaque bytes, never shown 
   assert.equal(fileDownloadOf({ filename: 'p.html', mimeType: 'text/html', url: '/mateu/v3/documents/t', disposition: 'inline' }).inline, true)
   assert.equal(isPassiveInlineType('image/png'), true)
   assert.equal(isPassiveInlineType('image/svg+xml'), false)
+})
+
+// ── MINOR 7: Element HTML ─────────────────────────────────────────────────
+
+test('MINOR 7: Element HTML with data goes through the whitelist (no style, form, svg animation, math, template)', () => {
+  const out = sanitizeElementHtml('<style>body{display:none}</style><form action="//phish"><input name=p></form>'
+    + '<svg><set attributeName="href" to="javascript:alert(1)"/><animate/></svg><math><mi>x</mi></math>'
+    + '<template><img src=x onerror=1></template><table class="t"><tr><td style="color: red; background: url(//x)">1</td></tr></table>')
+  assert.equal(out, '<table class="t"><tr><td style="color: red">1</td></tr></table>')
+  assert.equal(sanitizeHtml('<b class="x">a</b>'), '<b>a</b>', 'a rich-text value keeps no attributes')
 })
 
 for (const { name, fn } of queue) {

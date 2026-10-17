@@ -7,6 +7,8 @@
 // renders siguientes solo se le reescriben los atributos. Mismo criterio que el renderer web
 // compartido (libs/mateu elementRenderer).
 
+import { sanitizeHtml } from './richtext.mjs'
+
 const loaded = {}
 
 // ── eventos del componente → acción en el servidor ─────────────────────────────────────────────
@@ -71,31 +73,12 @@ export function wireElementEvents(element, atom) {
 
 // ── HTML con DATOS: saneado ────────────────────────────────────────────────────────────────────
 // El contenido escrito en la definición se confía tal cual; en cuanto `${…}` ha metido datos en
-// él se sanea (sin scripts, sin manejadores on…, sin URLs javascript:) — XSS almacenado. El
-// renderer web lo hace con DOMPurify; aquí no hay dependencias, así que un saneado por DOM con
-// las mismas reglas.
-const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
-const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
-
-export function sanitizeElementHtml(html, doc = typeof document !== 'undefined' ? document : null) {
-  if (!doc || html == null) return html == null ? '' : String(html)
-  const tpl = doc.createElement('template')
-  tpl.innerHTML = String(html)
-  const walk = (root) => {
-    for (const el of [...root.querySelectorAll('*')]) {
-      if (DROP_TAGS.test(el.tagName)) { el.remove(); continue }
-      for (const attr of [...el.attributes]) {
-        const name = attr.name
-        const value = String(attr.value || '').replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
-        if (/^on/i.test(name)
-          || (URL_ATTRS.test(name) && (value.startsWith('javascript:') || value.startsWith('vbscript:')
-            || (value.startsWith('data:') && !value.startsWith('data:image/'))))
-          || (name === 'srcdoc')) el.removeAttribute(name)
-      }
-    }
-  }
-  walk(tpl.content)
-  return tpl.innerHTML
+// él se sanea. It used to be a hand-rolled DENY-list (it kept <style>, <form>, SVG <set>/<animate>,
+// <math>, and never looked inside a <template>); it is now the bridge's ONE whitelist sanitizer
+// (richtext.mjs sanitizeHtml) in its presentation mode: text markup, tables, images with a safe
+// src, class/title and a filtered style — nothing that runs.
+export function sanitizeElementHtml(html) {
+  return html == null ? '' : sanitizeHtml(String(html), { presentation: true })
 }
 
 /**
