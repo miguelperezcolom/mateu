@@ -331,7 +331,12 @@ export function routeLinksOf(html, options = {}) {
     const href = safeHref(routeHrefOf(detail.route, options))
     if (!href) return all
     targets[href] = detail
-    const rest = attrs.replace(HANDLER_ATTR, '').replace(HREF_ATTR, '')
+    // removed until nothing changes: one pass can leave a handler rebuilt from the pieces around it
+    let rest = attrs
+    for (let prev = null; prev !== rest; ) {
+      prev = rest
+      rest = rest.replace(HANDLER_ATTR, '').replace(HREF_ATTR, '')
+    }
     return `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest}>`
   })
   return { html: out, targets }

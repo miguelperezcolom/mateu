@@ -101,7 +101,7 @@ test("a hub UI does not resolve another UI's REST source refs", async () => {
   await b.c.runAction('load');
   // app A's entry (proxied) must not decide how app B's surface is fetched
   assert.ok(!b.calls.some((rq) => rq['actionId'] === '__restfetch__'), "app B resolved its ref against app A's catalogue");
-  assert.ok(!fetched.includes('https://a.example/countries'), `app B fetched app A's endpoint: ${fetched}`);
+  assert.ok(!fetched.some((u) => u === 'https://a.example/countries'), `app B fetched app A's endpoint: ${fetched}`);
   // ...while app A itself resolves its own catalogue
   assert.equal(a.session.sources.resolve({ ref: 'countries' })['url'], 'https://a.example/countries');
   assert.equal(b.session.sources.get('countries'), undefined);
