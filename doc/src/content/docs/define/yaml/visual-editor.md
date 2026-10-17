@@ -318,7 +318,11 @@ what a Redwood app shows, at the canvas's width, and the page is still editable:
 
 The page comes from the same place as on the Vaadin canvas: your backend's `__preview__` when you
 have one, otherwise the expansion in the browser. A YAML-only project with no backend running
-therefore previews in Redwood too. The canvas sends the result to the Redwood app, and the app
+therefore previews in Redwood too. The browser expansion resolves what the server would: a
+`type: Partial` or `type: ComponentRef` is inlined from the mount's files and a `${i18n.key}` is
+translated from its catalogues (your browser's language, then `en`, then the first declared) — on
+the canvas a partial is one selectable node, the reference, since the partial's own file is edited
+as itself. The canvas sends the result to the Redwood app, and the app
 renders it without asking a server for anything. Its renderer marks each element it paints with the
 component it came from, and that is how a click selects the right node. The marks exist only in the
 editor; an app in production never carries them.
