@@ -1,9 +1,10 @@
 import React from 'react';
-import { AppState, Linking, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { AppState, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { fetch as streamingFetch } from 'expo/fetch';
 import { theme } from '../theme';
 import { announce, announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { useAppContext } from '../context/AppContext';
+import { openExternal } from './openExternal';
 import {
   headerChangesOf, idlePhase, launchableShortcuts, parseSseChunk, quickLaunchMatch, reconnectDelay,
   signOutTarget, type AppShortcut, type HeaderValue, type IdleSession,
@@ -195,7 +196,7 @@ export function IdleSessionGuard({
     setPhase('active');
     lastActivity.current = Date.now();
     const target = signOutTarget(idle?.signOutUrl);
-    if (target.kind === 'url') void Linking.openURL(target.url);
+    if (target.kind === 'url') openExternal(target.url);
     else onSignOut();
   }, [idle?.signOutUrl, onSignOut]);
 

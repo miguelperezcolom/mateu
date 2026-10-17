@@ -31,18 +31,18 @@ fun renderPricingTable(r: ComponentRenderer, metadata: JsonNode): JComponent {
             foreground = Color(0x1A, 0x73, 0xE8)
             font = font.deriveFont(Font.BOLD, 10f)
         }, 2)
-        card.addStacked(JBLabel(plan.text("name")).apply {
+        card.addStacked(JBLabel(plain(plan.text("name"))).apply {
             foreground = ToneColors.secondaryText()
         }, 2)
         val price = plan.text("price") + plan.text("period").let { if (it.isNotBlank()) " $it" else "" }
-        card.addStacked(JBLabel(price).apply { font = font.deriveFont(Font.BOLD, 22f) }, 4)
+        card.addStacked(JBLabel(plain(price)).apply { font = font.deriveFont(Font.BOLD, 22f) }, 4)
         for (feature in plan.arr("features")) {
-            card.addStacked(JBLabel("✓ ${feature.asText()}"), 2)
+            card.addStacked(JBLabel(plain("✓ ${feature.asText()}")), 2)
         }
         val ctaLabel = plan.text("ctaLabel")
         val actionId = plan.text("actionId")
         if (ctaLabel.isNotBlank()) {
-            card.addStacked(JButton(ctaLabel).apply {
+            card.addStacked(JButton(plain(ctaLabel)).apply {
                 if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
             }, 0)
         }
@@ -61,12 +61,12 @@ fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
             JBUI.Borders.empty(10))
         val icon = feature.text("icon")
         val title = feature.text("title")
-        card.addStacked(JBLabel((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title).apply {
+        card.addStacked(JBLabel(plain((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title)).apply {
             font = font.deriveFont(Font.BOLD, 14f)
         }, 2)
         val desc = feature.text("description")
         if (desc.isNotBlank()) {
-            card.addStacked(JBLabel(desc).apply { foreground = ToneColors.secondaryText() }, 0)
+            card.addStacked(JBLabel(plain(desc)).apply { foreground = ToneColors.secondaryText() }, 0)
         }
         val actionId = feature.text("actionId")
         if (actionId.isNotBlank()) {
@@ -87,14 +87,14 @@ fun renderTestimonials(metadata: JsonNode): JComponent {
             JBUI.Borders.empty(12))
         val rating = item.path("rating").asInt(0).coerceIn(0, 5)
         if (rating > 0) {
-            card.addStacked(JBLabel("★".repeat(rating) + "☆".repeat(5 - rating)).apply {
+            card.addStacked(JBLabel(plain("★".repeat(rating) + "☆".repeat(5 - rating))).apply {
                 foreground = Color(0xF5, 0xA6, 0x23)
             }, 2)
         }
-        card.addStacked(JBLabel("<html><i>“${item.text("quote")}”</i></html>"), 4)
+        card.addStacked(JBLabel("<html><i>“${SafeHtml.escape(item.text("quote"))}”</i></html>"), 4)
         val avatar = item.text("avatar")
         val author = item.text("author") + item.text("role").let { if (it.isNotBlank()) " · $it" else "" }
-        card.addStacked(JBLabel((if (avatar.isNotBlank() && !avatar.contains(":")) "$avatar " else "") + author).apply {
+        card.addStacked(JBLabel(plain((if (avatar.isNotBlank() && !avatar.contains(":")) "$avatar " else "") + author)).apply {
             foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(card, 8)
@@ -108,8 +108,8 @@ fun renderFaq(metadata: JsonNode): JComponent {
     for (item in metadata.arr("items")) {
         val row = verticalPanel(2)
         row.border = JBUI.Borders.emptyBottom(6)
-        row.addStacked(JBLabel(item.text("question")).apply { font = font.deriveFont(Font.BOLD) }, 2)
-        row.addStacked(JBLabel("<html>${item.text("answer")}</html>").apply {
+        row.addStacked(JBLabel(plain(item.text("question"))).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        row.addStacked(JBLabel("<html>${SafeHtml.sanitize(item.text("answer"))}</html>").apply {
             foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(row, 6)
@@ -128,19 +128,19 @@ fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val body = verticalPanel(3)
     val icon = metadata.text("icon")
     val title = metadata.text("title")
-    body.addStacked(JBLabel((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title).apply {
+    body.addStacked(JBLabel(plain((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title)).apply {
         font = font.deriveFont(Font.BOLD, 15f)
     }, 2)
     val desc = metadata.text("description")
     if (desc.isNotBlank()) {
-        body.addStacked(JBLabel("<html>$desc</html>").apply {
+        body.addStacked(JBLabel("<html>${SafeHtml.sanitize(desc)}</html>").apply {
             foreground = ToneColors.secondaryText()
         }, 4)
     }
     val ctaLabel = metadata.text("ctaLabel")
     val actionId = metadata.text("actionId")
     if (ctaLabel.isNotBlank()) {
-        body.addStacked(JButton(ctaLabel).apply {
+        body.addStacked(JButton(plain(ctaLabel)).apply {
             if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
         }, 0)
     }
@@ -164,10 +164,10 @@ private fun commentNode(panel: JPanel, comment: JsonNode, depth: Int) {
     row.border = JBUI.Borders.emptyLeft(depth * 16)
     val author = comment.text("author")
     val ts = comment.text("timestamp")
-    row.addStacked(JBLabel(author + (if (ts.isNotBlank()) "  $ts" else "")).apply {
+    row.addStacked(JBLabel(plain(author + (if (ts.isNotBlank()) "  $ts" else ""))).apply {
         font = font.deriveFont(Font.BOLD)
     }, 2)
-    row.addStacked(JBLabel("<html>${comment.text("text")}</html>"), 0)
+    row.addStacked(JBLabel("<html>${SafeHtml.sanitize(comment.text("text"))}</html>"), 0)
     panel.addStacked(row, 6)
     for (reply in comment.arr("replies")) commentNode(panel, reply, depth + 1)
 }
@@ -183,9 +183,9 @@ fun renderFileList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.border = JBUI.Borders.empty(6, 8)
         row.isOpaque = false
         val icon = icons[file.text("type").lowercase()] ?: "📄"
-        row.add(JBLabel("$icon  ${file.text("name")}"), BorderLayout.WEST)
+        row.add(JBLabel(plain("$icon  ${file.text("name")}")), BorderLayout.WEST)
         val size = file.text("size")
-        if (size.isNotBlank()) row.add(JBLabel(size).apply {
+        if (size.isNotBlank()) row.add(JBLabel(plain(size)).apply {
             foreground = ToneColors.secondaryText()
         }, BorderLayout.EAST)
         val actionId = file.text("actionId")
@@ -203,13 +203,13 @@ fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val items = metadata.arr("items").toList()
     val done = items.count { it.path("done").asBoolean(false) }
     val title = metadata.text("title")
-    panel.addStacked(JBLabel((if (title.isNotBlank()) "$title  " else "") + "($done / ${items.size})").apply {
+    panel.addStacked(JBLabel(plain((if (title.isNotBlank()) "$title  " else "") + "($done / ${items.size})")).apply {
         font = font.deriveFont(Font.BOLD)
     }, 6)
     for (item in items) {
         val isDone = item.path("done").asBoolean(false)
         val box = if (isDone) "☑" else "☐"
-        val row = JBLabel("$box  ${item.text("label")}")
+        val row = JBLabel(plain("$box  ${item.text("label")}"))
         if (isDone) row.foreground = ToneColors.secondaryText()
         val actionId = item.text("actionId")
         if (actionId.isNotBlank()) {

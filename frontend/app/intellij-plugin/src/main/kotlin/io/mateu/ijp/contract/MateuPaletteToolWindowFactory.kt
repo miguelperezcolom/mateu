@@ -17,6 +17,7 @@ import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JPanel
+import io.mateu.ijp.ui.plain
 
 /**
  * The visual-builder component palette (first rung of drag-and-drop): a tool window of components;
@@ -39,7 +40,7 @@ class MateuPaletteToolWindowFactory : ToolWindowFactory, DumbAware {
     panel.add(Box.createVerticalStrut(8))
     for (item in PaletteSnippets.ITEMS) {
       panel.add(
-        JButton(item.label).apply {
+        JButton(plain(item.label)).apply {
           alignmentX = Component.LEFT_ALIGNMENT
           maximumSize = java.awt.Dimension(Int.MAX_VALUE, preferredSize.height)
           toolTipText = "Click to insert at the caret, or drag onto the preview"

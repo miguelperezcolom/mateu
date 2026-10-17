@@ -1,3 +1,5 @@
+import { safeExternalUrl } from '../core/linkTarget.ts';
+
 /** One inline span of a light-markdown line: plain text, **bold**, or a [link](url). */
 export type InlineSpan =
   | { kind: 'text'; text: string }
@@ -5,8 +7,7 @@ export type InlineSpan =
   | { kind: 'link'; text: string; url: string };
 
 /** Only links a phone may open: http(s), mailto and tel — never javascript: or data:. */
-export const safeLinkUrl = (url: string): string | null =>
-  /^(https?:|mailto:|tel:)/i.test(url.trim()) ? url.trim() : null;
+export const safeLinkUrl = (url: string): string | null => safeExternalUrl(url);
 
 /**
  * The spans of one markdown line. It used to know only **bold**: a [link](url) — what a Markdown

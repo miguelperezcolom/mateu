@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
 import { progressFraction } from '../core/uxRules';
@@ -7,6 +7,7 @@ import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { popoverOpensOnPress } from './hoverDetails';
+import { openExternal } from './openExternal';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -130,7 +131,7 @@ export function AnchorRenderer({ metadata }: { metadata: Dict }) {
   // Internal routes open in-app; external URLs (or target="_blank") hand off to the OS browser.
   const external = !url.startsWith('/') || (metadata['target'] as string) === '_blank';
   return (
-    <TouchableOpacity {...buttonA11y()} onPress={() => { if (!url) return; if (external) { void Linking.openURL(url); } else { navigate(url); } }}>
+    <TouchableOpacity {...buttonA11y()} onPress={() => { if (!url) return; if (external) { openExternal(url); } else { navigate(url); } }}>
       <Text style={styles.link}>{text}</Text>
     </TouchableOpacity>
   );

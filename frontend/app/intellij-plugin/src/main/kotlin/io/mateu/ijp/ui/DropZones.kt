@@ -70,14 +70,14 @@ fun renderDropZone(r: ComponentRenderer, component: JsonNode, metadata: JsonNode
     panel.border = idle
     val title = metadata.text("title")
     val subtitle = metadata.text("subtitle")
-    if (title.isNotBlank()) panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 0)
+    if (title.isNotBlank()) panel.addStacked(JBLabel(plain(title)).apply { font = font.deriveFont(Font.BOLD) }, 0)
     if (subtitle.isNotBlank()) {
-        panel.addStacked(JBLabel(subtitle).apply { foreground = ToneColors.secondaryText() }, 0)
+        panel.addStacked(JBLabel(plain(subtitle)).apply { foreground = ToneColors.secondaryText() }, 0)
     }
     component.path("children").forEach { child -> panel.addStacked(r.render(child, state, data), 4) }
     panel.accessibleName(title.ifBlank { subtitle })
     if (accept.isNotBlank()) {
-        panel.toolTipText = "Drop $accept rows here"
+        panel.toolTipText = plainTip("Drop $accept rows here")
     }
 
     panel.transferHandler = object : TransferHandler() {

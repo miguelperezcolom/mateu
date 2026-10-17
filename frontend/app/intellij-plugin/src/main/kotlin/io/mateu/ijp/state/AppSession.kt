@@ -158,7 +158,7 @@ class AppSession(
                     val root = appRootRoute.trimEnd('/')
                     openViewHandler?.invoke(effect.route, "$root/${effect.route}", appRootRoute, null, null)
                 }
-                is ShellFlows.Effect.Url -> runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(effect.url)) }
+                is ShellFlows.Effect.Url -> io.mateu.ijp.ui.SafeHtml.browse(effect.url) { java.awt.Desktop.getDesktop().browse(java.net.URI(it)) }
                 is ShellFlows.Effect.RunAction -> openViewHandler?.invoke(
                     t("label").ifBlank { effect.actionId },
                     homeRoute ?: appRootRoute,

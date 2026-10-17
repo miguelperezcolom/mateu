@@ -86,7 +86,7 @@ private fun box(
     return b
 }
 
-private fun muted(text: String, size: Float? = null) = JBLabel(text).apply {
+private fun muted(text: String, size: Float? = null) = JBLabel(plain(text)).apply {
     foreground = ToneColors.secondaryText()
     if (size != null) font = font.deriveFont(JBUI.scaleFontSize(size).toFloat())
 }
@@ -105,7 +105,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
     val model = Calendars.parse(metadata)
     var view = model.view
     val root = verticalPanel(6)
-    val title = JBLabel(Calendars.periodTitle(view, model.anchor)).apply { font = font.deriveFont(Font.BOLD, 15f) }
+    val title = JBLabel(plain(Calendars.periodTitle(view, model.anchor))).apply { font = font.deriveFont(Font.BOLD, 15f) }
     val body = JPanel(BorderLayout()).apply { isOpaque = false }
 
     fun dayAction(date: LocalDate): (() -> Unit)? =
@@ -117,14 +117,14 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
         val chip = box(Calendars.eventA11yName(e), null, JBUI.Borders.empty(1, 4), action, JBUI.Borders.customLine(color, 0, 3, 0, 0))
         val time = Calendars.timeRange(e)
         if (!compact && time.isNotBlank()) chip.add(muted(time, 11f))
-        chip.add(JBLabel(e.title).apply { if (compact) font = font.deriveFont(JBUI.scaleFontSize(11f).toFloat()) })
+        chip.add(JBLabel(plain(e.title)).apply { if (compact) font = font.deriveFont(JBUI.scaleFontSize(11f).toFloat()) })
         return chip
     }
 
     fun dayLabel(date: LocalDate): JComponent? {
         val info = Calendars.dayInfo(model, date)
         if (info.label.isBlank()) return null
-        return JBLabel(info.label).apply {
+        return JBLabel(plain(info.label)).apply {
             foreground = toneInk(info.tone) ?: ToneColors.secondaryText()
             font = font.deriveFont(Font.BOLD, JBUI.scaleFontSize(11f).toFloat())
         }
@@ -138,7 +138,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
             dayAction(date),
         )
         cell.add(muted(Calendars.weekdayShort(date).uppercase(), 11f))
-        cell.add(JBLabel(date.dayOfMonth.toString()).apply { font = font.deriveFont(Font.BOLD, 16f) })
+        cell.add(JBLabel(plain(date.dayOfMonth.toString())).apply { font = font.deriveFont(Font.BOLD, 16f) })
         dayLabel(date)?.let { cell.add(it) }
         return cell
     }
@@ -159,7 +159,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
                     JBUI.Borders.empty(2, 4),
                     dayAction(date),
                 )
-                cell.add(JBLabel(date.dayOfMonth.toString()).apply { font = font.deriveFont(Font.BOLD) })
+                cell.add(JBLabel(plain(date.dayOfMonth.toString())).apply { font = font.deriveFont(Font.BOLD) })
                 dayLabel(date)?.let { cell.add(it) }
                 events.take(MONTH_CELL_EVENTS).forEach { cell.add(eventChip(it, compact = true)) }
                 if (events.size > MONTH_CELL_EVENTS) cell.add(muted("+${events.size - MONTH_CELL_EVENTS}", 11f))
@@ -205,7 +205,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
     }
 
     fun rebuild() {
-        title.text = Calendars.periodTitle(view, model.anchor)
+        title.text = plain(Calendars.periodTitle(view, model.anchor))
         body.removeAll()
         body.add(
             when (view) {
@@ -227,7 +227,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
         switcher.accessibleName("Calendar view")
         val group = ButtonGroup()
         for (v in model.views) {
-            val btn = JToggleButton(Calendars.viewLabel(v), v == view)
+            val btn = JToggleButton(plain(Calendars.viewLabel(v)), v == view)
             btn.accessibleName("${Calendars.viewLabel(v)} view")
             btn.addActionListener {
                 if (view == v) return@addActionListener

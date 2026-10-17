@@ -28,17 +28,17 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val row = JPanel(BorderLayout(8, 0))
         row.isOpaque = false
         val icon = item.text("icon")
-        val dot = JBLabel(if (icon.isNotBlank()) icon else "●", SwingConstants.CENTER)
+        val dot = JBLabel(plain(if (icon.isNotBlank()) icon else "●"), SwingConstants.CENTER)
         runCatching { Color.decode(item.text("color")) }.getOrNull()?.let { dot.foreground = it }
         row.add(dot, BorderLayout.WEST)
         val body = verticalPanel(2)
         val title = item.text("title")
         val timestamp = item.text("timestamp")
         val head = if (timestamp.isNotBlank()) "$title  ($timestamp)" else title
-        body.addStacked(JBLabel(head).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        body.addStacked(JBLabel(plain(head)).apply { font = font.deriveFont(Font.BOLD) }, 2)
         val desc = item.text("description")
         if (desc.isNotBlank()) {
-            body.addStacked(JBLabel(desc).apply {
+            body.addStacked(JBLabel(plain(desc)).apply {
                 foreground = ToneColors.secondaryText()
             }, 0)
         }
@@ -65,7 +65,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
         val status = step.text("status", "upcoming")
         val label = if (status == "done") "✓" else (i + 1).toString()
         val align = if (vertical) SwingConstants.LEFT else SwingConstants.CENTER
-        val dot = JBLabel(label, SwingConstants.CENTER)
+        val dot = JBLabel(plain(label), SwingConstants.CENTER)
         dot.foreground =
             when (status) {
                 "done" -> Color(0x1A, 0x73, 0xE8)
@@ -73,7 +73,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
                 else -> ToneColors.secondaryText()
             }
         dot.font = dot.font.deriveFont(Font.BOLD, 15f)
-        val title = JBLabel(step.text("title"), align).apply {
+        val title = JBLabel(plain(step.text("title")), align).apply {
             if (status == "upcoming") foreground = ToneColors.secondaryText()
             else font = font.deriveFont(Font.BOLD)
         }
@@ -86,7 +86,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
             val textCell = verticalPanel(0)
             textCell.addStacked(title, 0)
             if (desc.isNotBlank()) {
-                textCell.addStacked(JBLabel(desc, align).apply {
+                textCell.addStacked(JBLabel(plain(desc), align).apply {
                     foreground = ToneColors.secondaryText()
                 }, 0)
             }
@@ -98,7 +98,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
             cell.addStacked(dot, 2)
             cell.addStacked(title, 0)
             if (desc.isNotBlank()) {
-                cell.addStacked(JBLabel(desc, align).apply {
+                cell.addStacked(JBLabel(plain(desc), align).apply {
                     foreground = ToneColors.secondaryText()
                 }, 0)
             }
@@ -121,19 +121,19 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     tile.border = JBUI.Borders.empty(12)
     val label = metadata.text("label")
     if (label.isNotBlank()) {
-        tile.addStacked(JBLabel(label).apply {
+        tile.addStacked(JBLabel(plain(label)).apply {
             foreground = ToneColors.secondaryText()
         }, 2)
     }
     val value = metadata.text("value") + metadata.text("unit").let { if (it.isNotBlank()) " $it" else "" }
-    tile.addStacked(JBLabel(value).apply { font = font.deriveFont(Font.BOLD, 24f) }, 4)
+    tile.addStacked(JBLabel(plain(value)).apply { font = font.deriveFont(Font.BOLD, 24f) }, 4)
     val delta = metadata.text("delta")
     val spark = metadata.arr("spark").mapNotNull { it.asDouble() }
     val foot = JPanel(BorderLayout(8, 0))
     foot.isOpaque = false
     if (delta.isNotBlank()) {
         val arrow = if (trend == "up") "▲" else if (trend == "down") "▼" else "→"
-        foot.add(JBLabel("$arrow $delta").apply { foreground = trendColor }, BorderLayout.WEST)
+        foot.add(JBLabel(plain("$arrow $delta")).apply { foreground = trendColor }, BorderLayout.WEST)
     }
     if (spark.size >= 2) {
         val min = spark.min()
@@ -184,7 +184,7 @@ private fun orgNodeRow(r: ComponentRenderer, panel: JPanel, node: JsonNode, dept
     val title = node.text("title")
     val subtitle = node.text("subtitle")
     val text = if (subtitle.isNotBlank()) "$title — $subtitle" else title
-    val label = JBLabel((if (avatar.isNotBlank()) "$avatar " else "") + text)
+    val label = JBLabel(plain((if (avatar.isNotBlank()) "$avatar " else "") + text))
     runCatching { Color.decode(node.text("color")) }.getOrNull()?.let { label.foreground = it }
     row.add(label)
     val actionId = node.text("actionId")
@@ -246,7 +246,7 @@ fun renderFunnel(metadata: JsonNode): JComponent {
         val value = stage.path("value").asDouble(0.0)
         val prev = if (i > 0) stages[i - 1].path("value").asDouble(0.0) else value
         val conv = if (i == 0) "" else if (prev > 0) "  (${Math.round(value / prev * 100)}% of previous)" else ""
-        panel.addStacked(JBLabel(stage.text("label") + conv).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        panel.addStacked(JBLabel(plain(stage.text("label") + conv)).apply { font = font.deriveFont(Font.BOLD) }, 2)
         val color = runCatching { Color.decode(stage.text("color")) }.getOrElse { Color(0x1A, 0x73, 0xE8) }
         val bar = object : JPanel() {
             override fun paintComponent(g: Graphics) {
@@ -273,7 +273,7 @@ fun renderTrendChart(metadata: JsonNode): JComponent {
     val values = metadata.arr("values").map { it.asDouble(0.0) }
     val panel = verticalPanel(4)
     val title = metadata.text("title")
-    if (title.isNotBlank()) panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 4)
+    if (title.isNotBlank()) panel.addStacked(JBLabel(plain(title)).apply { font = font.deriveFont(Font.BOLD) }, 4)
     if (values.size < 2) return panel
     val min = values.min()
     val max = values.max()

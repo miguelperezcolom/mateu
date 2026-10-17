@@ -17,7 +17,7 @@ import javax.swing.JProgressBar
 fun renderSection(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val panel = verticalPanel()
     val title = metadata.text("title")
-    panel.border = if (title.isNotBlank()) IdeBorderFactory.createTitledBorder(title, false) else JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground())
+    panel.border = if (title.isNotBlank()) IdeBorderFactory.createTitledBorder(plain(title), false) else JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground())
     stackChildren(r, panel, component, state, data)
     return panel
 }
@@ -27,7 +27,7 @@ fun renderSubSection(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
     val panel = verticalPanel()
     val title = metadata.text("title")
     if (title.isNotBlank()) {
-        val l = JBLabel(title)
+        val l = JBLabel(plain(title))
         l.font = l.font.deriveFont(Font.BOLD)
         panel.addStacked(l, 6)
     }
@@ -46,7 +46,7 @@ fun renderCard(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     if (titleNode.isTextual) {
         val t = titleNode.asText("")
         if (t.isNotBlank()) {
-            val l = JBLabel(t)
+            val l = JBLabel(plain(t))
             l.font = l.font.deriveFont(Font.BOLD)
             panel.addStacked(l, 6)
         }
@@ -83,7 +83,7 @@ fun renderCustomField(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     }
     val panel = verticalPanel(4)
     if (label.isNotBlank()) {
-        val l = JBLabel(label)
+        val l = JBLabel(plain(label))
         l.font = l.font.deriveFont(Font.BOLD)
         panel.addStacked(l, 4)
     }
@@ -93,7 +93,7 @@ fun renderCustomField(r: ComponentRenderer, component: JsonNode, metadata: JsonN
 }
 
 fun renderBadge(metadata: JsonNode): JComponent {
-    val label = JBLabel(metadata.text("text"))
+    val label = JBLabel(plain(metadata.text("text")))
     label.foreground = Color.WHITE
     label.isOpaque = true
     label.background = badgeColor(metadata.text("color"))
@@ -105,9 +105,9 @@ fun renderAnchor(ctx: AppContext, metadata: JsonNode): JComponent {
     val text = metadata.text("text", metadata.text("url"))
     val url = metadata.text("url")
     return if (url.startsWith("/")) {
-        ActionLink(text) { ctx.navigate(url, "", null, "") }
+        ActionLink(plain(text)) { ctx.navigate(url, "", null, "") }
     } else {
-        val l = JBLabel(text)
+        val l = JBLabel(plain(text))
         l.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
         l
     }

@@ -70,7 +70,7 @@ fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data:
             val body = verticalPanel()
             val inner = tab.path("children")
             if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
-            tabs.addTab(label, body)
+            tabs.addTab(plain(label), body)
         }
     }
     // Access keys: switching tab changes which buttons are showing — re-assign the screen's letters.
@@ -85,7 +85,7 @@ fun renderAccordion(r: ComponentRenderer, component: JsonNode, state: JsonNode, 
     if (children.isArray) {
         for (p in children) {
             val body = verticalPanel()
-            body.border = IdeBorderFactory.createTitledBorder(p.path("metadata").text("label"), false)
+            body.border = IdeBorderFactory.createTitledBorder(plain(p.path("metadata").text("label")), false)
             val inner = p.path("children")
             if (inner.isArray) for (child in inner) body.addStacked(r.render(child, state, data), JBGap)
             panel.addStacked(body, JBGap)

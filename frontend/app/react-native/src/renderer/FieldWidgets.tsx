@@ -3,7 +3,6 @@ import React, { useRef, useState } from 'react';
 import { theme } from '../theme';
 import {
   Image,
-  Linking,
   PanResponder,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import { buttonA11y } from '../a11y/a11y';
 import { decimalDraft, moneyText } from '../core/uxRules';
 import { stripHtml } from './htmlText';
 import { inlineSpans } from './markdownInline';
+import { openExternal } from './openExternal';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
  *  color, image upload, money text, light markdown) — dependency-free except expo-image-picker. */
@@ -272,7 +272,7 @@ export function formatMoney(value: unknown): string {
 export function LinkText({ value }: { value: string }) {
   if (!value) return <Text style={styles.emptyText}>—</Text>;
   return (
-    <TouchableOpacity {...buttonA11y()} onPress={() => void Linking.openURL(value)}>
+    <TouchableOpacity {...buttonA11y()} onPress={() => void openExternal(value)}>
       <Text style={styles.link}>{value}</Text>
     </TouchableOpacity>
   );
@@ -321,7 +321,7 @@ function renderInline(line: string, kind: string): React.ReactNode {
     span.kind === 'bold' ? (
       <Text key={i} style={styles.mdBold}>{span.text}</Text>
     ) : span.kind === 'link' ? (
-      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => void Linking.openURL(span.url)}>
+      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => void openExternal(span.url)}>
         {span.text}
       </Text>
     ) : (

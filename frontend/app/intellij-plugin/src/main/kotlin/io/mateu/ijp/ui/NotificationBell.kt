@@ -76,19 +76,19 @@ fun notificationBell(ctx: AppContext, metadata: JsonNode): JComponent {
         row.isOpaque = false
         row.border = JBUI.Borders.empty(4, 6)
         row.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-        val title = JBLabel(n.text("title"))
+        val title = JBLabel(plain(n.text("title")))
         if (unread) title.font = title.font.deriveFont(Font.BOLD)
         val body = verticalPanel(0)
         body.addStacked(title, 0)
         val text = n.text("text")
         if (text.isNotBlank()) {
-            body.addStacked(JBLabel(text).apply { foreground = ToneColors.secondaryText() }, 0)
+            body.addStacked(JBLabel(plain(text)).apply { foreground = ToneColors.secondaryText() }, 0)
         }
         row.add(body, BorderLayout.CENTER)
         val whenText = n.text("when")
         if (whenText.isNotBlank()) {
             row.add(
-                JBLabel(whenText).apply { foreground = ToneColors.secondaryText() },
+                JBLabel(plain(whenText)).apply { foreground = ToneColors.secondaryText() },
                 BorderLayout.EAST,
             )
         }

@@ -51,13 +51,13 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val header = verticalPanel(4)
     val title = metadata.text("title")
     if (title.isNotBlank()) {
-        val l = JBLabel(title)
+        val l = JBLabel(plain(title))
         l.font = l.font.deriveFont(Font.BOLD, 18f)
         header.addStacked(l, 2)
     }
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(subtitle)
+        val l = JBLabel(plain(subtitle))
         l.foreground = ToneColors.secondaryText()
         header.addStacked(l, 4)
     }
@@ -140,6 +140,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             return super.getToolTipText(e)
         }
     }
+    table.plainCells()
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(30)
     table.putClientProperty("terminateEditOnFocusLost", true)
@@ -148,7 +149,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     runCatching { TableSpeedSearch.installOn(table) }
 
     // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
-    table.emptyText.text = metadata.text("emptyStateMessage").ifBlank { "No data" }
+    table.emptyText.text = plain(metadata.text("emptyStateMessage").ifBlank { "No data" })
 
     // Per-user column personalization (show/hide via header right-click + native drag-reorder,
     // persisted per crud route). The identity/row-open column (first link column) is protected.
@@ -319,7 +320,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                     if (label.isBlank()) continue
                     if (!hadRowActions && menu.componentCount > 0) menu.addSeparator()
                     hadRowActions = true
-                    menu.add(JBMenuItem(label).apply {
+                    menu.add(JBMenuItem(plain(label)).apply {
                         isEnabled = !a.bool("disabled")
                         addActionListener { ctx.runAction("action-on-row-$method", mapOf("_clickedRow" to row)) }
                     })
@@ -399,10 +400,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val menu = com.intellij.openapi.ui.JBPopupMenu()
             val views = SavedViews.list(viewScope)
             for (view in views) {
-                val sub = javax.swing.JMenu(view.name + if (view.isDefault) "  ★" else "")
+                val sub = javax.swing.JMenu(plain(view.name + if (view.isDefault) "  ★" else ""))
                 sub.add(javax.swing.JMenuItem("Apply").apply { addActionListener { applyView(view) } })
                 sub.add(
-                    javax.swing.JMenuItem(if (view.isDefault) "Unset default" else "Set as default")
+                    javax.swing.JMenuItem(plain(if (view.isDefault) "Unset default" else "Set as default"))
                         .apply { addActionListener { SavedViews.toggleDefault(viewScope, view.name) } },
                 )
                 sub.add(javax.swing.JMenuItem("Delete").apply { addActionListener { SavedViews.delete(viewScope, view.name) } })
@@ -456,8 +457,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 if (row != null) {
                     val form = verticalPanel(6)
                     for (spec in specs) {
-                        val cell = JBLabel(row.path(spec.id).displayString())
-                        val cap = JBLabel(spec.label)
+                        val cell = JBLabel(plain(row.path(spec.id).displayString()))
+                        val cap = JBLabel(plain(spec.label))
                         cap.foreground = ToneColors.secondaryText()
                         form.addStacked(cap, 0)
                         form.addStacked(cell, 6)
@@ -609,7 +610,7 @@ internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Loc
  * formatted with [formatNumberCell].
  */
 private class NumberCellRenderer(private val money: Boolean) : DefaultTableCellRenderer() {
-    init { horizontalAlignment = javax.swing.SwingConstants.RIGHT }
+    init { horizontalAlignment = javax.swing.SwingConstants.RIGHT; htmlDisabled() }
     override fun setValue(value: Any?) {
         text = value?.toString()?.let { if (it.isBlank()) it else formatNumberCell(it, money) } ?: ""
     }
@@ -733,6 +734,7 @@ private fun buildEntries(
 
 /** Bold text on a tinted band — group headers and the totals footer. */
 private class SyntheticRowRenderer : DefaultTableCellRenderer() {
+    init { htmlDisabled() }
     override fun getTableCellRendererComponent(
         table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
     ): Component {
@@ -758,6 +760,7 @@ private fun extractRows(node: JsonNode): List<JsonNode> {
 
 /** Link-styled cell (an identifier column with an `actionId`); the row double-click opens it. */
 private class LinkCellRenderer(private val fixedText: String) : DefaultTableCellRenderer() {
+    init { htmlDisabled() }
     override fun getTableCellRendererComponent(
         table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
     ): Component {
@@ -794,7 +797,7 @@ private class StatusCellRenderer(
 /** A listing status cell: a solid chip whose text reaches AA on its fill (IJ-02). */
 internal fun statusBadge(text: String, type: String): JComponent {
     val (bg, fg) = ToneColors.solid(ToneColors.toneOf(type))
-    val badge = JLabel(text)
+    val badge = JLabel(plain(text))
     badge.isOpaque = true
     badge.foreground = fg
     badge.background = bg
@@ -913,7 +916,7 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     panel.border = JBUI.Borders.empty(16)
     val title = metadata.text("title")
     if (title.isNotBlank()) {
-        val l = JBLabel(title)
+        val l = JBLabel(plain(title))
         l.font = l.font.deriveFont(Font.BOLD, 18f)
         panel.add(l, BorderLayout.NORTH)
     }
@@ -932,7 +935,7 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     tree.isRootVisible = false
     tree.setCellRenderer { _, value, _, _, _, _, _ ->
         val row = (value as? javax.swing.tree.DefaultMutableTreeNode)?.userObject as? JsonNode
-        JBLabel(row?.path(firstColumn)?.displayString() ?: "").apply { border = JBUI.Borders.empty(2, 4) }
+        JBLabel(plain(row?.path(firstColumn)?.displayString() ?: "")).apply { border = JBUI.Borders.empty(2, 4) }
     }
     fun fill(parent: javax.swing.tree.DefaultMutableTreeNode, rows: List<JsonNode>) {
         for (row in rows) {

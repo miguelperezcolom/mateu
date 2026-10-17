@@ -21,6 +21,7 @@ import java.awt.Font
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import io.mateu.ijp.ui.plain
 
 /**
  * The visual-builder property panel: shows the component under the caret in a Mateu page and its
@@ -47,7 +48,7 @@ class MateuPropertiesToolWindowFactory : ToolWindowFactory, DumbAware {
         body.add(JBLabel("Place the caret on a component in a Mateu page.").apply { isEnabled = false })
       } else {
         body.add(
-          JBLabel(model.type).apply {
+          JBLabel(plain(model.type)).apply {
             font = font.deriveFont(font.style or Font.BOLD)
             alignmentX = Component.LEFT_ALIGNMENT
           },
@@ -64,7 +65,7 @@ class MateuPropertiesToolWindowFactory : ToolWindowFactory, DumbAware {
           }
           val row = JPanel(BorderLayout(8, 0)).apply {
             add(
-              JBLabel(prop.key).apply { preferredSize = Dimension(90, preferredSize.height) },
+              JBLabel(plain(prop.key)).apply { preferredSize = Dimension(90, preferredSize.height) },
               BorderLayout.WEST,
             )
             add(field, BorderLayout.CENTER)

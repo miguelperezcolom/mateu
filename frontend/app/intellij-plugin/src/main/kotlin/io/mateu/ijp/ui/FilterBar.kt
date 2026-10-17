@@ -50,7 +50,7 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             val dataType = f.text("dataType")
             val cell = verticalPanel(2)
             cell.isOpaque = false
-            val caption = JBLabel(label)
+            val caption = JBLabel(plain(label))
             caption.foreground = ToneColors.secondaryText()
             caption.alignmentX = Component.LEFT_ALIGNMENT
             cell.add(caption)
@@ -162,16 +162,16 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         val selected = LinkedHashSet<String>()
         val button = JButton("Any")
         fun refresh() {
-            button.text = if (selected.isEmpty()) "Any" else selected.joinToString(", ").let {
+            button.text = plain(if (selected.isEmpty()) "Any" else selected.joinToString(", ").let {
                 if (it.length > 24) "${selected.size} selected" else it
-            }
+            })
         }
         button.addActionListener {
             val menu = JBPopupMenu()
             for (opt in options) {
                 val value = opt.text("value")
                 val item = JBCheckBoxMenuItem()
-                item.text = opt.text("label", value)
+                item.text = plain(opt.text("label", value))
                 item.isSelected = value in selected
                 item.addActionListener {
                     if (item.isSelected) selected.add(value) else selected.remove(value)
@@ -236,8 +236,8 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         row.add(JBLabel("–"))
         row.add(to)
         // each end of a range is its own input: "Added from" / "Added to" (IJ-03)
-        JBLabel("$label from").labelling(from)
-        JBLabel("$label to").labelling(to)
+        JBLabel(plain("$label from")).labelling(from)
+        JBLabel(plain("$label to")).labelling(to)
         return row
     }
 }

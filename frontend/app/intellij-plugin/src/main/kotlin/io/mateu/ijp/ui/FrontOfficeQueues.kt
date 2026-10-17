@@ -39,7 +39,7 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
         col.border = JBUI.Borders.empty(10)
         col.background = Color(0xF4, 0xF4, 0xF5)
         col.isOpaque = true
-        val head = JBLabel("${column.text("title")}  (${column.arr("cards").size})")
+        val head = JBLabel(plain("${column.text("title")}  (${column.arr("cards").size})"))
         head.font = head.font.deriveFont(Font.BOLD)
         col.addStacked(head, 6)
         for (card in column.arr("cards")) {
@@ -47,15 +47,15 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
             cardPanel.border = JBUI.Borders.empty(8)
             cardPanel.background = JBColor.background()
             cardPanel.isOpaque = true
-            cardPanel.addStacked(JBLabel(card.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
+            cardPanel.addStacked(JBLabel(plain(card.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 2)
             val desc = card.text("description")
             if (desc.isNotBlank()) {
-                cardPanel.addStacked(JBLabel(desc).apply {
+                cardPanel.addStacked(JBLabel(plain(desc)).apply {
                     foreground = ToneColors.secondaryText()
                 }, 2)
             }
             val badge = card.text("badge")
-            if (badge.isNotBlank()) cardPanel.addStacked(JBLabel(badge), 0)
+            if (badge.isNotBlank()) cardPanel.addStacked(JBLabel(plain(badge)), 0)
             val actionId = card.text("actionId")
             if (actionId.isNotBlank()) {
                 cardPanel.activatable { r.ctx.runAction(actionId, null) }
@@ -92,7 +92,7 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
     }
     for (group in metadata.arr("groups")) {
         val label = group.text("label")
-        if (label.isNotBlank()) panel.addStacked(JBLabel(label.uppercase()).apply {
+        if (label.isNotBlank()) panel.addStacked(JBLabel(plain(label.uppercase())).apply {
             font = font.deriveFont(Font.BOLD, 10f)
             foreground = uxMuted()
         }, 4)
@@ -103,10 +103,10 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
             // height it has then, and restyle() adding the 9px frame afterwards clipped the caption
             // line (both frames — selected and not — are 9px a side, so the cap stays right).
             card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(8))
-            card.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
+            card.addStacked(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 2)
             val foot = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
             val caption = item.text("caption")
-            if (caption.isNotBlank()) foot.add(JBLabel(caption).apply { foreground = uxMuted() })
+            if (caption.isNotBlank()) foot.add(JBLabel(plain(caption)).apply { foreground = uxMuted() })
             for (badge in item.arr("badges")) foot.add(uxChip(badge.text("label"), badge.text("color")))
             if (foot.componentCount > 0) card.addStacked(foot, 0)
             card.activatable {
@@ -149,7 +149,7 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val card = verticalPanel(2)
         if (recommended) card.addStacked(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
             isOpaque = false
-            add(JBLabel(recommendedLabel).apply {
+            add(JBLabel(plain(recommendedLabel)).apply {
                 foreground = Color.WHITE
                 isOpaque = true
                 background = uxAccent()
@@ -157,19 +157,19 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
                 font = font.deriveFont(Font.BOLD, 8f)
             })
         }, 2)
-        card.addStacked(JBLabel(item.text("title")).apply {
+        card.addStacked(JBLabel(plain(item.text("title"))).apply {
             font = font.deriveFont(Font.BOLD, 16f)
             if (disabled) foreground = uxMuted()
         }, 1)
         val subtitle = item.text("subtitle")
-        if (subtitle.isNotBlank()) card.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 2)
+        if (subtitle.isNotBlank()) card.addStacked(JBLabel(plain(subtitle)).apply { foreground = uxMuted() }, 2)
         val statusLabel = item.text("statusLabel")
         if (statusLabel.isNotBlank()) card.addStacked(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
             isOpaque = false
             add(uxChip(statusLabel, item.text("statusColor")))
         }, 2)
         val note = item.text("note")
-        if (note.isNotBlank()) card.addStacked(JBLabel("● $note").apply {
+        if (note.isNotBlank()) card.addStacked(JBLabel(plain("● $note")).apply {
             foreground = uxPaletteColor(item.text("noteColor"))
             font = font.deriveFont(10f)
         }, 0)

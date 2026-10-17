@@ -16,6 +16,7 @@ import javax.swing.JComponent
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppSession
+import io.mateu.ijp.ui.plain
 
 /**
  * The app's menu as a **new-UI main-toolbar widget** — a combo button with the app title and a
@@ -35,7 +36,7 @@ class MateuToolbarWidget : ComboBoxAction(), DumbAware {
         val hasMenu = menu != null && menu.isArray && !menu.isEmpty
         e.presentation.isEnabledAndVisible = hasMenu
         if (hasMenu) {
-            e.presentation.text = session.appTitle?.takeIf { it.isNotBlank() } ?: "Mateu"
+            e.presentation.text = plain(session.appTitle?.takeIf { it.isNotBlank() } ?: "Mateu")
             e.presentation.icon = ICON
         }
     }
