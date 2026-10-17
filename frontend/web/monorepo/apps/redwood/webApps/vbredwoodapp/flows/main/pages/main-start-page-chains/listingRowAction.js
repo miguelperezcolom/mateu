@@ -1,6 +1,6 @@
-/* Acción de FILA del listado (ColumnActionGroup): despacha action-on-row-<método> con la
- * fila — su id y la fila entera en `_clickedRow`, como Vaadin — y Listing.handleActionOnRow
- * invoca el método en el server; el refresco llega por el bus (dispatchEvent + @Trigger
+/* Listing ROW action (ColumnActionGroup): dispatches action-on-row-<method> with the
+ * row — its id and the whole row in `_clickedRow`, as Vaadin does — and Listing.handleActionOnRow
+ * invokes the method on the server; the refresh arrives through the bus (dispatchEvent + @Trigger
  * OnCustomEvent → search). */
 
 define([
@@ -17,9 +17,9 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.methodName  método anunciado en el ColumnAction
-     * @param {string} params.rowId       id de la fila
-     * @param {string} params.rowKey      clave de la fila en la tabla (_rowNumber)
+     * @param {string} params.methodName  method announced in the ColumnAction
+     * @param {string} params.rowId       id of the row
+     * @param {string} params.rowKey      key of the row in the table (_rowNumber)
      */
     async run(context, { methodName, rowId, rowKey }) {
       if (!methodName) {

@@ -1,9 +1,9 @@
-// Un DOM mínimo para probar en Node, SIN dependencias, el cableado de DOM del core VB (teclas,
-// arrastre, paneles de acciones, matriz, gantt, ventanas flotantes, accesibilidad, reglas, campos
-// de captura). No es un navegador: lo justo que usan esos módulos — árbol de elementos, atributos,
-// clases, dataset, estilos, selectores CSS sencillos (tipo, #id, .clase, [attr], [attr="v"],
-// descendiente, listas con coma), eventos con captura y burbuja, foco, cajas configurables y
-// custom elements. No es un fichero de tests (test-dom.mjs lo usa); no entra en el bridge.
+// A minimal DOM to test in Node, WITHOUT dependencies, the DOM wiring of the VB core (keys,
+// dragging, action panels, matrix, gantt, floating windows, accessibility, rules, capture
+// fields). It is not a browser: just what those modules use — element tree, attributes,
+// classes, dataset, styles, simple CSS selectors (type, #id, .class, [attr], [attr="v"],
+// descendant, comma lists), events with capture and bubbling, focus, configurable boxes and
+// custom elements. It is not a test file (test-dom.mjs uses it); it does not go into the bridge.
 
 export class FakeEvent {
   constructor(type, init = {}) {
@@ -20,7 +20,7 @@ export class FakeEvent {
   composedPath() { return this.path || [] }
 }
 
-/** Una copia de un CustomEvent real que sigue llamándose así (quien serializa el evento lo mira). */
+/** A copy of a real CustomEvent that is still called that (whoever serializes the event looks at it). */
 const FakeCustomEvent = { CustomEvent: class CustomEvent extends FakeEvent {} }.CustomEvent
 
 class Target {
@@ -45,7 +45,7 @@ class Target {
     }
   }
   dispatchEvent(input) {
-    // los eventos reales (CustomEvent de Node) tienen target de sólo lectura: se copian
+    // real events (Node's CustomEvent) have a read-only target: they are copied
     const ev = input instanceof FakeEvent ? input
       : new (input.constructor && input.constructor.name === 'CustomEvent' ? FakeCustomEvent : FakeEvent)(input.type, { bubbles: input.bubbles, detail: input.detail })
     ev.target = this
@@ -87,7 +87,7 @@ function parseCompound(src) {
   }
   return sel
 }
-/** Partir por un separador que no esté dentro de [] ni de comillas. */
+/** Split on a separator that is not inside [] or quotes. */
 function splitTop(src, sep) {
   const out = []
   let depth = 0; let q = null; let cur = ''
@@ -117,7 +117,7 @@ function matchesChain(el, chain) {
 const compile = (selector) => splitTop(selector, ',').map((part) => splitTop(part, ' ').map(parseCompound))
 const matchesSelector = (el, compiled) => compiled.some((chain) => matchesChain(el, chain))
 
-// ── HTML: lo justo para innerHTML (etiquetas, atributos, texto) ─────────────────────────────────
+// ── HTML: just enough for innerHTML (tags, attributes, text) ────────────────────────────────────
 const VOID = new Set(['img', 'br', 'hr', 'input', 'meta', 'link', 'source', 'col', 'area', 'base', 'wbr'])
 class FakeText {
   constructor(text) { this.nodeType = 3; this.textContent = text; this.parentNode = null; this.childNodes = [] }
@@ -222,7 +222,7 @@ export class FakeElement extends Target {
   set textContent(v) { this.childNodes.forEach((c) => { c.parentNode = null }); this.childNodes = []; this._text = v == null ? '' : String(v) }
   get innerHTML() { return serialize(this.childNodes, this._text) }
   set innerHTML(v) { this.textContent = ''; for (const n of parseHtml(this.ownerDocument, String(v))) this.appendChild(n) }
-  get content() { return this } // <template>: su contenido es él mismo (basta para sanear)
+  get content() { return this } // <template>: its content is itself (enough for sanitizing)
   get attributes() { return [...this._attrs].map(([name, value]) => ({ name, value })) }
   get firstElementChild() { return this.children[0] || null }
   get parentElement() { return this.parentNode && this.parentNode.nodeType === 1 ? this.parentNode : null }
@@ -253,7 +253,7 @@ export class FakeElement extends Target {
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null }
   matches(sel) { return matchesSelector(this, compile(sel)) }
   closest(sel) { const c = compile(sel); for (let n = this; n && n.nodeType === 1; n = n.parentNode) if (matchesSelector(n, c)) return n; return null }
-  /** Una caja: por defecto 100×20 en el origen; `el.box({…})` la fija; `el.box(null)` = sin caja. */
+  /** A box: by default 100×20 at the origin; `el.box({…})` sets it; `el.box(null)` = no box. */
   box(r) { this._rect = r === null ? 'none' : { left: 0, top: 0, width: 100, height: 20, ...r }; return this }
   getBoundingClientRect() {
     const r = this._rect && this._rect !== 'none' ? this._rect : { left: 0, top: 0, width: this._rect === 'none' ? 0 : 100, height: this._rect === 'none' ? 0 : 20 }
@@ -261,7 +261,7 @@ export class FakeElement extends Target {
   }
   getClientRects() { return this._rect === 'none' ? [] : [this.getBoundingClientRect()] }
   focus() {
-    if (this._rect === 'none') return // sin caja no prende, como en el navegador
+    if (this._rect === 'none') return // without a box it does not take, as in the browser
     const doc = this.ownerDocument
     if (doc) doc.activeElement = this
   }
@@ -309,7 +309,7 @@ export class FakeDocument extends Target {
   contains(n) { return this.documentElement.contains(n) }
 }
 
-/** Un documento + ventana falsos. `el(tag, attrs, ...children)` construye árboles. */
+/** A fake document + window. `el(tag, attrs, ...children)` builds trees. */
 export function makeDom({ innerHeight = 800 } = {}) {
   const doc = new FakeDocument()
   const win = new Target()
@@ -331,7 +331,7 @@ export function makeDom({ innerHeight = 800 } = {}) {
     for (const c of children) e.appendChild(c)
     return e
   }
-  /** Lanza un evento como el navegador: en el destino, con captura y burbuja. */
+  /** Fires an event like the browser: at the target, with capture and bubbling. */
   const fire = (target, type, init = {}) => {
     const ev = new FakeEvent(type, { bubbles: true, ...init })
     target.dispatchEvent(ev)
@@ -340,10 +340,10 @@ export function makeDom({ innerHeight = 800 } = {}) {
   return { doc, win, el, fire }
 }
 
-/** Un DataTransfer con tipos (los MIME que lleva el arrastre). */
+/** A DataTransfer with types (the MIME types the drag carries). */
 export function dataTransfer(data = {}) {
   return { types: Object.keys(data), getData: (t) => data[t] ?? '', setData(t, v) { data[t] = v; this.types = Object.keys(data) }, dropEffect: 'none', effectAllowed: 'all' }
 }
 
-/** Avanzar timers reales sin bloquear (setTimeout de 0..N ms). */
+/** Advance real timers without blocking (setTimeout of 0..N ms). */
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))

@@ -36,6 +36,13 @@ code, and the equivalent keys in YAML. See the
 
 ## 2. Name your configuration: semantic annotations
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 When the same combination of annotations appears again and again, fold it into one annotation
 that speaks your domain:
 

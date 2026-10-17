@@ -11,6 +11,13 @@ Show a hierarchy — who reports to whom, a category tree, a decision tree — a
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `OrgChart` component: a single `root` `OrgNode` whose `children` fan out below it, connected by lines. Each node has a title, optional subtitle, an `avatar` (emoji or image URL) and accent `color`. A node with an `actionId` is clickable.
 
 ```java

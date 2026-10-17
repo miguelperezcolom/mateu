@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import java.util.Map;
  * parameters.initiatorState}; a request without it (a direct call, a test) carries the form as the
  * component state.
  */
+@Internal
 public final class CrudFormState {
 
   private CrudFormState() {}

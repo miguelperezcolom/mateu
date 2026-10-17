@@ -5,8 +5,8 @@
 //
 // The envelope shape is taken from a captured server golden (about.yaml → its increment):
 //   - one fragment, targetComponentId "ux_main", action "Replace", component = the expanded layout;
-//   - a SetWindowTitle command carrying the page title (the route name when the definition declares
-//     none);
+//   - a SetWindowTitle command carrying the page title (the route humanized when the definition
+//     declares none);
 //   - empty messages/banners, appendBanners false.
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
@@ -74,6 +74,33 @@ export interface ExpansionContext {
     path?: string
 }
 
+/** What a definition-only page names the window with — the server's rule
+ *  (`ActionInstanceCreator.nameTheWindow`, .NET/Python alike): the root component's own `title`, else
+ *  the route's last literal segment humanized (`orders/:id/edit-notes` → "Edit notes"). A title
+ *  reading the state has no value here (nothing is fetched yet), so it gives way to the route too. */
+export function definitionWindowTitle(layout: FluentNode, route: string): string {
+    if (typeof layout.title === 'string' && layout.title.trim() && !layout.title.includes('${')) {
+        return layout.title
+    }
+    const segments = (route ?? '').split('?')[0].split('/')
+    for (let i = segments.length - 1; i >= 0; i--) {
+        const segment = segments[i]
+        if (segment.trim() && !segment.startsWith(':') && !segment.startsWith('{')) return humanizeSegment(segment)
+    }
+    return route ?? ''
+}
+
+/** Java's `Humanizer.toUpperCaseFirst`: '.', '_' and '-' are spaces, words split at case and
+ *  letter/non-letter boundaries, lower case with the first letter upper. */
+function humanizeSegment(s: string): string {
+    let c = s.replace(/[._-]/g, ' ')
+        .replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g, ' ')
+        .toLowerCase()
+        .replace(/ +/g, ' ')
+    if (c.length > 1) c = c[0].toUpperCase() + c.slice(1)
+    return c
+}
+
 /** Expand a definition to a wire `UIIncrement`. `route` supplies the default window title when the
  *  definition declares none. Throws if the definition has no expandable layout.
  *
@@ -95,7 +122,7 @@ export function expandDefinition(spec: DefinitionSpec, route: string, title?: st
 
     if (layout.type === 'AppShell') return expandAppShell(layout)
 
-    const windowTitle = title ?? (typeof layout.title === 'string' ? layout.title : route)
+    const windowTitle = title ?? definitionWindowTitle(layout, route)
     const component = expandComponent(layout)
 
     return {

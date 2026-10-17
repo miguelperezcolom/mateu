@@ -1,5 +1,5 @@
-/* Cierra la banda de error del transporte. El mensaje ya viene TRADUCIDO desde
- * poc/resilience.mjs (classifyRequestFailure): aquí sólo se descarta. */
+/* Closes the transport's error band. The message already comes TRANSLATED from
+ * poc/resilience.mjs (classifyRequestFailure): here it is only discarded. */
 
 define([
   'vb/action/actionChain',

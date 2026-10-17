@@ -130,6 +130,30 @@ class DocumentDownloadsTest {
         .doesNotContainKey("Content-Security-Policy");
   }
 
+  /**
+   * M-S6: a small HTML/SVG document used to travel inline, and the client opened it as a blob of
+   * the app's own origin — unsandboxed. Active types are always parked (served sandboxed).
+   */
+  @Test
+  void anActiveTypeIsNeverInlined() {
+    var store = new DocumentStore(Duration.ofMinutes(5));
+    for (var type :
+        java.util.List.of(
+            "text/html",
+            "image/svg+xml",
+            "application/xhtml+xml",
+            "text/html; charset=utf-8",
+            "application/javascript")) {
+      var download =
+          DocumentCommands.toFileDownload(Document.inline("x", type, BYTES), "", store, 1024);
+      assertThat(download.base64Content()).as(type).isNull();
+      assertThat(download.url()).as(type).startsWith("/mateu/v3/documents/");
+    }
+    var pdf = DocumentCommands.toFileDownload(Document.pdf("x.pdf", BYTES), "", store, 1024);
+    assertThat(pdf.base64Content()).isNotNull();
+    assertThat(pdf.url()).isNull();
+  }
+
   @Test
   void aFailingLazyDocumentAnswers500() {
     var store = new DocumentStore(Duration.ofMinutes(5));

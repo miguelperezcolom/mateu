@@ -67,6 +67,19 @@ describe('renderElement', () => {
         expect(second.getAttribute('overlay')).toBe('two')
     })
 
+    it('M-S7: a data-bound url never becomes a javascript: link, srcdoc and data-bound handlers never pass', async () => {
+        const h = host('diagram')
+        const e = element({ href: '${state.url}', src: '${state.img}', srcdoc: '<p>x</p>', onclick: 'go(${state.id})',
+            title: '${state.title}', 'data-x': 'plain' })
+        const el = await render(h, e, { url: 'javascript:alert(1)', img: 'https://cdn.example/a.png', id: '1', title: 'T' })
+        expect(el.hasAttribute('href')).toBe(false)
+        expect(el.getAttribute('src')).toBe('https://cdn.example/a.png')
+        expect(el.hasAttribute('srcdoc')).toBe(false)
+        expect(el.hasAttribute('onclick')).toBe(false)
+        expect(el.getAttribute('title')).toBe('T')
+        expect(el.getAttribute('data-x')).toBe('plain')
+    })
+
     it('leaves a plain attribute alone', async () => {
         const h = host('diagram')
         const e = element({ readonly: 'true', overlay: '${state.overlay}' })

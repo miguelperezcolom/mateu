@@ -1,7 +1,7 @@
-// Batería de tests del renderer — corre en Node, SIN VB.
-// v3: valida el reducer contra increments REALES (fixtures/real/*.json, capturados con
-// capture.mjs contra demo/demo-vb :9005) — son tests de CONTRATO del wire, no sintéticos.
-// Regenerar fixtures: arrancar demo/demo-vb (mvn spring-boot:run, :9005) y `node capture.mjs`.
+// Renderer test suite — runs in Node, WITHOUT VB.
+// v3: validates the reducer against REAL increments (fixtures/real/*.json, captured with
+// capture.mjs against demo/demo-vb :9005) — these are wire CONTRACT tests, not synthetic ones.
+// Regenerate fixtures: start demo/demo-vb (mvn spring-boot:run, :9005) and `node capture.mjs`.
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
@@ -41,6 +41,9 @@ import {
 } from './chat.mjs'
 import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
 import { nlsFiles } from './make-nls.mjs'
+import { trustShellBase } from './hostHeaders.mjs'
+// the transport tests talk to these bases as the shell's own backend (hostHeaders.storedTokenMayGoTo)
+trustShellBase('http://x'); trustShellBase('https://x')
 import { classifyRequestFailure as i18nClassify } from './resilience.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -70,19 +73,19 @@ const empty = () => ({ contexts: {}, stack: [], shell: null })
 const fieldIds = (tree) => [...new Set(collectFields(tree).map((f) => f.fieldId))]
 
 let pass = 0
-// la interfaz del renderer, en inglés salvo que un test pida otro idioma (Node trae navigator.language)
+// the renderer's interface, in English unless a test asks for another language (Node ships navigator.language)
 setChromeLanguage('en')
 const test = (name, fn) => { fn(); console.log(`  ✓ ${name}`); pass++ }
 
-// Los tests del transporte son async y SUSTITUYEN globalThis.fetch por un doble. Tienen que
-// correr en SERIE: lanzados a la vez, el doble de uno reemplaza al del anterior mientras éste
-// sigue en vuelo, y el reintento del primero acaba hablando con el doble del segundo (me pasó).
+// The transport tests are async and REPLACE globalThis.fetch with a double. They have to
+// run in SERIES: launched together, one test's double replaces the previous one's while that one
+// is still in flight, and the first one's retry ends up talking to the second one's double (it happened to me).
 let queue = Promise.resolve()
 const atest = (name, fn) => {
   queue = queue.then(async () => { await fn(); console.log(`  ✓ ${name}`); pass++ })
 }
 
-// 1) Bootstrap: el App configura la shell (menú→navigator) y no crea contexto de contenido.
+// 1) Bootstrap: the App configures the shell (menu→navigator) and creates no content context.
 test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
   const { contexts, shell } = reduceContexts(empty(), fx('app'))
   assert.equal(Object.keys(contexts).length, 0)
@@ -90,7 +93,7 @@ test('bootstrap App → shell con menú; ningún contexto de contenido', () => {
   assert.deepEqual(shell.menu.map((m) => m.route), ['/hello', '/products', '/gestion'])
 })
 
-// 2) Carga de un form: target '' → host; el contexto guarda tree + state del fragment.
+// 2) Loading a form: target '' → host; the context stores the fragment's tree + state.
 test('load-form registra el host: tree, state del fragment, pageType, docTitle', () => {
   const { contexts, stack, effects } = reduceContexts(empty(), fx('load-form'))
   assert.equal(stack.length, 0)
@@ -104,8 +107,8 @@ test('load-form registra el host: tree, state del fragment, pageType, docTitle',
   assert.equal(effects.docTitle, 'Person')
 })
 
-// 3) Save: fragment State-only cuyo target es el ECO del initiator (aquí, el uuid del árbol)
-//    → merge de estado conservando el árbol; el toast sale como efecto.
+// 3) Save: State-only fragment whose target is the ECHO of the initiator (here, the tree's uuid)
+//    → state merge keeping the tree; the toast comes out as an effect.
 test('save-form: State-only por eco de id → merge sin perder el árbol + toast', () => {
   let reg = reduceContexts(empty(), fx('load-form'))
   const treeRef = reg.contexts[HOST_ID].tree
@@ -113,11 +116,11 @@ test('save-form: State-only por eco de id → merge sin perder el árbol + toast
   const c = reg.contexts[HOST_ID]
   assert.equal(c.state.name, 'Grace')
   assert.equal(c.state.age, 41)
-  assert.equal(c.tree, treeRef) // árbol conservado (misma ref: structural sharing)
+  assert.equal(c.tree, treeRef) // tree kept (same ref: structural sharing)
   assert.deepEqual(reg.effects.toasts, [{ text: 'Saved Grace', variant: 'success' }])
 })
 
-// 4) NavigateTo interno → efecto route; el registro no se toca.
+// 4) Internal NavigateTo → route effect; the registry is not touched.
 test('navigate produce efecto route sin tocar el registro', () => {
   const before = reduceContexts(empty(), fx('load-form'))
   const { effects, contexts } = reduceContexts(before, fx('navigate'))
@@ -125,21 +128,21 @@ test('navigate produce efecto route sin tocar el registro', () => {
   assert.ok(contexts[HOST_ID])
 })
 
-// 5) Crud: llega como MEDIADOR (ServerSide → child App chromeless) direccionado al initiator;
-//    mediatorOf da la info para la segunda carga (contenido).
+// 5) Crud: arrives as a MEDIATOR (ServerSide → chromeless child App) addressed to the initiator;
+//    mediatorOf provides the info for the second load (content).
 test('load-listing: mediador registrado por eco del initiator; mediatorOf → rootRoute/SST', () => {
   const { contexts, shell } = reduceContexts(empty(), fx('load-listing'))
   const c = contexts['crud1']
   assert.ok(c, 'contexto crud1 (eco del initiator)')
   assert.equal(c.kind, 'island')
-  assert.equal(shell, null) // un App de mediador NO configura la shell
+  assert.equal(shell, null) // a mediator App does NOT configure the shell
   const info = mediatorOf(c)
   assert.equal(info.rootRoute, '/products')
   assert.match(info.serverSideType, /ProductsCrud$/)
 })
 
-// 6) La segunda carga (contenido del mediador) REEMPLAZA el contexto del mediador por el
-//    listado; el host de al lado no cambia de ref (re-render quirúrgico).
+// 6) The second load (the mediator's content) REPLACES the mediator's context with the
+//    listing; the host next to it does not change ref (surgical re-render).
 test('load-listing-content reemplaza crud1 con el listado sin tocar otros contextos', () => {
   let reg = reduceContexts(empty(), fx('load-form'))
   const hostRef = () => reg.contexts[HOST_ID]
@@ -147,12 +150,12 @@ test('load-listing-content reemplaza crud1 con el listado sin tocar otros contex
   reg = reduceContexts(reg, fx('load-listing'))
   reg = reduceContexts(reg, fx('load-listing-content'))
   const c = reg.contexts['crud1']
-  assert.equal(mediatorOf(c), null) // ya no es el mediador: es el contenido
+  assert.equal(mediatorOf(c), null) // it is no longer the mediator: it is the content
   assert.equal(c.tree.children[0].metadata.type, 'Page')
-  assert.equal(hostBefore, hostRef()) // host intacto, MISMA ref
+  assert.equal(hostBefore, hostRef()) // host untouched, SAME ref
 })
 
-// 7) Add → drawer apilado; el estado inicial del drawer viene de metadata.initialData.
+// 7) Add → stacked drawer; the drawer's initial state comes from metadata.initialData.
 test('open-drawer apila un overlay con initialData y anatomía del Drawer', () => {
   let reg = reduceContexts(empty(), fx('load-listing'))
   reg = reduceContexts(reg, fx('open-drawer'))
@@ -166,8 +169,8 @@ test('open-drawer apila un overlay con initialData y anatomía del Drawer', () =
   assert.deepEqual(ov.state, { id: null, name: null, price: 0, active: false })
 })
 
-// 8) Guardar-en-drawer: CloseModal cierra por puro estado Y emite el evento del bus con el
-//    que el listado suscrito se refresca; MarkAsClean sin target aplica al initiator.
+// 8) Save-in-drawer: CloseModal closes by pure state AND emits the bus event with which
+//    the subscribed listing refreshes; MarkAsClean with no target applies to the initiator.
 test('save-in-drawer: pop del stack + evento mateu-crud:saved-in-drawer + toast', () => {
   let reg = reduceContexts(empty(), fx('load-listing'))
   reg = reduceContexts(reg, fx('open-drawer'))
@@ -180,8 +183,8 @@ test('save-in-drawer: pop del stack + evento mateu-crud:saved-in-drawer + toast'
   assert.equal(reg.effects.toasts[0].variant, 'success')
 })
 
-// 9) Host con isla embebida: la frontera es un ServerSide interior con id de campo y los
-//    marcadores en initialData — el dispatcher monta ahí un mateu-node anidado.
+// 9) Host with an embedded island: the boundary is an inner ServerSide with a field id and the
+//    markers in initialData — the dispatcher mounts a nested mateu-node there.
 test('island-host: collectIslands encuentra la frontera _guestNote con sus marcadores', () => {
   const { contexts } = reduceContexts(empty(), fx('island-host'))
   const islands = collectIslands(contexts[HOST_ID].tree)
@@ -191,8 +194,8 @@ test('island-host: collectIslands encuentra la frontera _guestNote con sus marca
   assert.equal(islands[0].initialData._embeddedMediator, true)
 })
 
-// 10) Ciclo de la isla: mediador → contenido → edit → save, SIEMPRE direccionado a
-//     '_guestNote' por el eco del initiator; el host nunca cambia de ref.
+// 10) Island cycle: mediator → content → edit → save, ALWAYS addressed to
+//     '_guestNote' through the initiator's echo; the host never changes ref.
 test('ciclo de isla: cada paso repinta solo _guestNote; host misma ref todo el tiempo', () => {
   let reg = reduceContexts(empty(), fx('island-host'))
   const hostRef = reg.contexts[HOST_ID]
@@ -205,7 +208,7 @@ test('ciclo de isla: cada paso repinta solo _guestNote; host misma ref todo el t
   assert.deepEqual(fieldIds(reg.contexts['_guestNote'].tree), ['paxName', 'note'])
 })
 
-// 11) State-only sobre una isla: MERGE conservando el árbol (un push del host no borra la isla).
+// 11) State-only on an island: MERGE keeping the tree (a push from the host does not erase the island).
 test('State-only sobre la isla fusiona estado sin perder el árbol', () => {
   let reg = reduceContexts(empty(), fx('island-host'))
   reg = reduceContexts(reg, fx('island-content'))
@@ -217,7 +220,7 @@ test('State-only sobre la isla fusiona estado sin perder el árbol', () => {
   assert.equal(reg.contexts['_guestNote'].state.note, 'cambiada')
 })
 
-// 12) Rama FormLayout (Fase 3): campos → metadata de oj-dyn-form; botones → acciones.
+// 12) FormLayout branch (Phase 3): fields → oj-dyn-form metadata; buttons → actions.
 test('dynFormMetadataOf/actionsOf proyectan el form de /person para oj-dyn-form', () => {
   const { contexts } = reduceContexts(empty(), fx('load-form'))
   const tree = contexts[HOST_ID].tree
@@ -229,41 +232,41 @@ test('dynFormMetadataOf/actionsOf proyectan el form de /person para oj-dyn-form'
   assert.equal(actions.find((a) => a.actionId === 'save').style, 'primary')
 })
 
-// 13) summarizeHost: form → título + form spec; listado (sin título de Page) → caption del menú.
+// 13) summarizeHost: form → title + form spec; listing (no Page title) → menu caption.
 test('summarizeHost proyecta form y cae al caption del menú en un listado', () => {
   let reg = reduceContexts(empty(), fx('app'))
   reg = reduceContexts(reg, fx('load-form'))
   const form = summarizeHost(reg, '/person')
   assert.equal(form.title, 'Person')
   assert.equal(form.formValue.name, 'Ada')
-  // el listado aterriza como contexto del initiator (crud1); simulamos su llegada al host
+  // the listing lands as the initiator's context (crud1); we simulate its arrival at the host
   const listing = fx('load-listing-content')
   listing.fragments[0].targetComponentId = ''
   reg = reduceContexts(reg, listing)
   const summary = summarizeHost(reg, '/products')
-  assert.equal(summary.title, 'Products') // Page sin título → caption del menú
-  assert.equal(summary.formMetadata, null) // pageType collection: sus FormFields son columnas
+  assert.equal(summary.title, 'Products') // Page without a title → menu caption
+  assert.equal(summary.formMetadata, null) // pageType collection: its FormFields are columns
 })
 
-// 14) Listing (Fase 4): el trigger OnLoad pide 'search'; la respuesta es un fragmento
-//     DATA-ONLY que mergea en ctx.data sin tocar el árbol; listingOf proyecta columnas+filas.
+// 14) Listing (Phase 4): the OnLoad trigger asks for 'search'; the response is a
+//     DATA-ONLY fragment merged into ctx.data without touching the tree; listingOf projects columns+rows.
 test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y filas', () => {
   const content = fx('load-listing-content')
-  content.fragments[0].targetComponentId = '' // simula la llegada al host
+  content.fragments[0].targetComponentId = '' // simulates the arrival at the host
   let reg = reduceContexts(empty(), content)
   const host = () => reg.contexts[HOST_ID]
   assert.deepEqual(onLoadTriggers(host()), ['search'])
   const before = listingOf(host())
   assert.equal(before.title, 'Products')
-  // un booleano se lee Sí/No (su celda lee active__labelCell), el precio va alineado al final
+  // a boolean reads Yes/No (its cell reads active__labelCell), the price is aligned to the end
   assert.deepEqual(before.columns.map((c) => c.field), ['id', 'name', 'price', 'active__labelCell'])
   assert.equal(before.columns.find((c) => c.id === 'price').className, 'oj-helper-text-align-end')
-  assert.equal(before.isEmpty, true) // aún sin filas: el search no ha corrido
+  assert.equal(before.isEmpty, true) // no rows yet: the search has not run
   const treeRef = host().tree
   const search = fx('search-listing')
   search.fragments[0].targetComponentId = ''
   reg = reduceContexts(reg, search)
-  assert.equal(host().tree, treeRef) // data-only: árbol intacto
+  assert.equal(host().tree, treeRef) // data-only: tree intact
   const after = listingOf(host())
   assert.deepEqual(after.rows.map((r) => r.name), ['Laptop', 'Mouse', 'Keyboard'])
   assert.equal(after.total, 3)
@@ -271,21 +274,21 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.ok(after.toolbar.some((b) => b.label === 'New'))
 })
 
-// 14 paginación) El listado se pagina en el SERVER: la Page (pageNumber/pageSize/totalElements)
-//     se proyecta a un pie con rango + primera/anterior/siguiente/última; paginar conserva texto,
-//     filtros y orden; la cabecera ordena en el server ([{field, direction}] = uidl Sort).
+// 14 pagination) The listing is paginated on the SERVER: the Page (pageNumber/pageSize/totalElements)
+//     is projected to a footer with range + first/previous/next/last; paging keeps text,
+//     filters and order; the header sorts on the server ([{field, direction}] = uidl Sort).
 test('listing: paginación — el pie sale de la Page del server', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
   let reg = reduceContexts(empty(), content)
   const search = JSON.parse(JSON.stringify(fx('search-listing')))
   search.fragments[0].targetComponentId = ''
-  // una sola página (3 filas de 20): sin pie
+  // a single page (3 rows out of 20): no footer
   reg = reduceContexts(reg, search)
   const one = listingOf(reg.contexts[HOST_ID], { lang: 'en' }).paging
   assert.equal(one.visible, false)
   assert.equal(one.rangeText, '1–3 of 3')
-  // segunda página de 57 a 10 por página
+  // second page of 57 at 10 per page
   const page = search.fragments[0].data.crud.page
   page.pageSize = 10
   page.pageNumber = 1
@@ -304,19 +307,19 @@ test('listing: paginación — el pie sale de la Page del server', () => {
   assert.equal(targetPageOf(p, 'prev'), 0)
   assert.equal(targetPageOf(p, 'next'), 2)
   assert.equal(targetPageOf(p, 'last'), 5)
-  // última página: 7 filas, sin siguiente
+  // last page: 7 rows, no next
   const last = listingPagingOf({ pageSize: 10, pageNumber: 5, totalElements: 57, content: new Array(7).fill({}) }, 20, 'en')
   assert.equal(last.rangeText, '51–57 of 57')
   assert.equal(last.nextDisabled, true)
   assert.equal(last.lastDisabled, true)
   assert.equal(targetPageOf(last, 'next'), null)
   assert.equal(targetPageOf(last, 'prev'), 4)
-  // sin total conocido: hay siguiente mientras la página venga llena
+  // no known total: there is a next as long as the page comes full
   const open = listingPagingOf({ pageSize: 10, pageNumber: 0, totalElements: null, content: new Array(10).fill({}) }, 20, 'en')
   assert.equal(open.hasNext, true)
   assert.equal(open.lastDisabled, true)
   assert.equal(open.pageText, 'Page 1')
-  // las columnas llevan su id del wire como clave (lo que devuelve el ojSort)
+  // the columns carry their wire id as the key (what ojSort returns)
   const listing = listingOf(reg.contexts[HOST_ID])
   assert.ok(listing.columns.every((c) => c.id))
 })
@@ -343,8 +346,8 @@ test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y capt
   assert.equal(col.field, 'name__primary')
   assert.deepEqual(listing.rows[0].name__primary, { title: 'Laptop', caption: 'VIP', leading: '/flags/at.svg' })
   assert.deepEqual(listing.rows[1].name__primary, { title: 'Mouse', caption: '', leading: '' })
-  assert.equal(listing.rows[0].name, 'Laptop') // la fila, intacta
-  // ordenar por ella ordena por su sortingProperty
+  assert.equal(listing.rows[0].name, 'Laptop') // the row, intact
+  // sorting by it sorts by its sortingProperty
   assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
 })
 
@@ -353,7 +356,7 @@ test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas,
   content.fragments[0].targetComponentId = ''
   const crud = findByType(content.fragments[0].component, 'Crud')
   const metas = crud.metadata.columns.map((c) => c.metadata || c)
-  // sin @Line el listado es el de siempre
+  // without @Line the listing is the usual one
   let reg = reduceContexts(empty(), content)
   const search = JSON.parse(JSON.stringify(fx('search-listing')))
   search.fragments[0].targetComponentId = ''
@@ -362,20 +365,20 @@ test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas,
   assert.equal(plain.tableClass, 'oj-sm-12')
   assert.ok(plain.columns.every((c) => c.id !== ROW_LINES_FIELD))
   assert.equal(plain.rows[0][ROW_LINES_FIELD], undefined)
-  // la última columna de datos, a la línea 2
+  // the last data column, to line 2
   const moved = metas.filter((c) => c.dataType === 'string' && c.id !== 'select').slice(-1)[0]
   moved.line = 2
   reg = reduceContexts(empty(), content)
   const listing = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
   assert.equal(listing.extraLines, 1)
   assert.match(listing.tableClass, /mateu-multiline-table mateu-lines-1/)
-  // fuera de las columnas de la tabla (cabecera, orden) — y la columna técnica de líneas al final
+  // out of the table's columns (header, sort) — and the technical lines column at the end
   assert.ok(!listing.columns.some((c) => c.id === moved.id))
   const last = listing.columns[listing.columns.length - 1]
   assert.equal(last.id, ROW_LINES_FIELD)
   assert.equal(last.template, 'cellLines')
   assert.equal(last.sortable, 'disabled')
-  // cada fila lleva sus líneas extra precomputadas: «Etiqueta: valor»
+  // each row carries its extra lines precomputed: «Label: value»
   const row = listing.rows[0]
   const lines = row[ROW_LINES_FIELD].lines
   assert.equal(lines.length, 1)
@@ -384,9 +387,9 @@ test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas,
   assert.equal(lines[0].pairs[0].label, moved.label || moved.id)
   const raw = search.fragments[0].data.crud.page.content[0][moved.id]
   assert.equal(lines[0].pairs[0].text, raw == null ? '' : String(raw))
-  // la columna sigue ordenable en el server por su sortField; el selector no lleva la técnica
+  // the column stays sortable on the server by its sortField; the selector does not carry the technical one
   assert.ok(listing.sortFields[moved.id])
-  // un estado en la línea 2 lleva su badge; un dinero, «importe moneda»; la línea 3 va aparte
+  // a status on line 2 carries its badge; a money value, «amount currency»; line 3 goes separately
   assert.deepEqual(rowLinesSplit([{ metadata: { id: 'a' } }, { metadata: { id: 'b', line: 3 } }, { metadata: { id: 'c', line: 2 } }]).extra
     .map((l) => l.map((c) => c.metadata.id)), [['c'], ['b']])
   assert.equal(lineOfColumn({ line: null }), 1)
@@ -405,7 +408,7 @@ test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabu
   assert.equal(state.hotel, 'MRU01')
   assert.equal(state.when_from, '2026-01-01')
   assert.deepEqual(state.sort, [{ field: 'when', direction: 'descending' }])
-  // sin orden pedido no se manda uno viejo; sin página, la primera
+  // with no sort requested an old one is not sent; with no page, the first
   const plain = listingSearchStateOf({ sort: [{ field: 'old', direction: 'ascending' }] }, { searchText: null, size: 20 })
   assert.equal(plain.sort, undefined)
   assert.equal(plain.page, 0)
@@ -415,9 +418,9 @@ test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabu
   assert.deepEqual(listingSortOf({}), [])
 })
 
-// 14 bis) Detalle de fila (@Details): viaja como detailPath del Crud; listingOf lo proyecta, y
-//     distingue el listado de consulta (el clic abre el detalle) del navegable (el clic abre el
-//     registro: su primera columna lleva actionId 'view').
+// 14 bis) Row detail (@Details): travels as the Crud's detailPath; listingOf projects it, and
+//     tells the lookup listing (the click opens the detail) from the navigable one (the click opens the
+//     record: its first column carries actionId 'view').
 test('listing: listingOf proyecta el detalle de fila y si la fila es navegable', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -441,8 +444,8 @@ test('listing: listingOf proyecta el detalle de fila y si la fila es navegable',
   }
 })
 
-// 14 ter) UUID abreviado: una columna de texto con UUIDs se pinta "…-<último bloque>" con el UUID
-//     en el tooltip; la fila conserva el valor entero (navegación, acciones, selección).
+// 14 ter) Abbreviated UUID: a text column with UUIDs is painted "…-<last block>" with the UUID
+//     in the tooltip; the row keeps the whole value (navigation, actions, selection).
 test('listing: una columna de UUIDs se abrevia sin tocar la fila', () => {
   const uuid = '750f3bce-b760-4370-9ceb-0994d4bb705b'
   assert.equal(abbreviateUuid(uuid), '…-0994d4bb705b')
@@ -464,15 +467,15 @@ test('listing: una columna de UUIDs se abrevia sin tocar la fila', () => {
   assert.equal(idCol.template, 'cellUuid')
   assert.deepEqual(listing.rows[0].id__uuidCell, { text: '…-0994d4bb705b', full: uuid })
   assert.deepEqual(listing.rows[1].id__uuidCell, { text: 'P-1', full: 'P-1' })
-  assert.equal(listing.rows[0].id, uuid) // la fila, intacta
-  assert.ok(listing.columns.find((c) => c.field === 'name').template === undefined) // no es UUID
+  assert.equal(listing.rows[0].id, uuid) // the row, untouched
+  assert.ok(listing.columns.find((c) => c.field === 'name').template === undefined) // not a UUID
   const picked = selectedRowsOf(listing.rows, { all: true, keys: [], except: [] })
-  assert.ok(picked.every((r) => !('id__uuidCell' in r))) // la selección manda la fila tal cual
+  assert.ok(picked.every((r) => !('id__uuidCell' in r))) // the selection sends the row as is
 })
 
-// 14 bis-b) La guarda de selección viaja EN EL BOTÓN (Button.rowsSelectedRequired): un botón de
-//     toolbar cuyo id no coincide con el de la acción anunciada (un @Action también se anuncia con
-//     su id nested-form-…) sigue sin dispararse sin filas marcadas.
+// 14 bis-b) The selection guard travels IN THE BUTTON (Button.rowsSelectedRequired): a toolbar
+//     button whose id does not match the advertised action's (an @Action is also advertised with
+//     its nested-form-… id) still does not fire without checked rows.
 test('listing: un botón de toolbar con rowsSelectedRequired exige selección aunque su id no esté anunciado', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -497,9 +500,9 @@ test('listing: un botón de toolbar con rowsSelectedRequired exige selección au
   assert.ok(!listing.selectionRequired.includes('purgeAll'))
 })
 
-// 14 ter) Selección de filas (Listing.rowsSelectionEnabled): la tabla pone casillas y una acción
-//     del host lleva las filas marcadas en crud_selected_items — el contrato de Vaadin, que
-//     HttpRequest.getSelectedRows lee del componentState.
+// 14 ter) Row selection (Listing.rowsSelectionEnabled): the table puts checkboxes and a host
+//     action carries the checked rows in crud_selected_items — the Vaadin contract, which
+//     HttpRequest.getSelectedRows reads from the componentState.
 test('listing: la selección de filas se proyecta y viaja en crud_selected_items', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -512,7 +515,7 @@ test('listing: la selección de filas se proyecta y viaja en crud_selected_items
   assert.deepEqual(listing.selectionMode, { row: 'multiple' })
   assert.deepEqual(listing.selectionRequired, ['delete'])
 
-  // el KeySet de oj-table: explícito, y "todas menos"
+  // oj-table's KeySet: explicit, and "all except"
   const explicit = { isAddAll: () => false, values: () => new Set([listing.rows[1]._rowNumber]) }
   const allBut = { isAddAll: () => true, deletedValues: () => new Set([listing.rows[0]._rowNumber]) }
   const one = selectionOfKeySet(explicit)
@@ -523,24 +526,24 @@ test('listing: la selección de filas se proyecta y viaja en crud_selected_items
   const state = withListingSelection({ page: 0 }, listing, listing.rows, one)
   assert.equal(state.page, 0)
   assert.deepEqual(state.crud_selected_items.map((r) => r.name), ['Mouse'])
-  // sin nada marcado viaja la lista vacía (el servidor distingue "ninguna" de "no aplica")
+  // with nothing checked the empty list travels (the server tells "none" from "not applicable")
   assert.deepEqual(withListingSelection({}, listing, listing.rows, null).crud_selected_items, [])
-  // un listado sin selección no toca el estado
+  // a listing without selection does not touch the state
   const plain = { ...listing, rowsSelectionEnabled: false }
   const untouched = { page: 1 }
   assert.equal(withListingSelection(untouched, plain, listing.rows, one), untouched)
 })
 
-// el badge precomputado de @Status no viaja de vuelta en la fila seleccionada
+// the precomputed @Status badge does not travel back in the selected row
 test('listing: una fila seleccionada con @Status se manda sin el badge precomputado', () => {
   const rows = [{ _rowNumber: 0, name: 'A', outcome: { type: 'SUCCESS', message: 'Ok', badgeClass: 'oj-badge' } }]
   const [row] = selectedRowsOf(rows, { all: false, keys: [0], except: [] })
   assert.deepEqual(row.outcome, { type: 'SUCCESS', message: 'Ok' })
-  assert.equal(rows[0].outcome.badgeClass, 'oj-badge') // la fila pintada no se toca
+  assert.equal(rows[0].outcome.badgeClass, 'oj-badge') // the painted row is not touched
 })
 
-// 15) CRUD en drawer (Fase 5): new→Add proyectable; view→drawer Edit con la fila;
-//     save→CloseModal(eventName) y el trigger OnCustomEvent del listing pide 'search'.
+// 15) CRUD in a drawer (Phase 5): new→projectable Add; view→Edit drawer with the row;
+//     save→CloseModal(eventName) and the listing's OnCustomEvent trigger asks for 'search'.
 test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresco suscrito', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
@@ -551,14 +554,14 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
   assert.deepEqual(overlay.fields.map((f) => f.fieldId), ['id', 'name', 'price', 'active'])
   assert.ok(overlay.fields.find((f) => f.fieldId === 'price').isNumber)
   assert.deepEqual(overlay.actions.map((a) => a.actionId), ['cancel-new', 'create'])
-  // guardar: cierra por estado y emite el evento del bus…
+  // save: closes by state and emits the bus event…
   reg = reduceContexts(reg, fx('save-in-drawer'))
   assert.equal(overlayOf(reg), null)
   const eventName = reg.effects.events[0].name
   assert.equal(eventName, 'mateu-crud:saved-in-drawer')
-  // …que el listing tiene suscrito a 'search' (el refresco viaja EN el wire)
+  // …which the listing has subscribed to 'search' (the refresh travels IN the wire)
   assert.deepEqual(eventTriggersOf(reg.contexts[HOST_ID], eventName), ['search'])
-  // edit: el clic de fila (view + parameters=fila) abre el drawer con la fila cargada
+  // edit: the row click (view + parameters=row) opens the drawer with the row loaded
   reg = reduceContexts(reg, fx('open-edit-drawer'))
   overlay = overlayOf(reg)
   assert.equal(overlay.title, 'Edit')
@@ -566,8 +569,8 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
   assert.deepEqual(overlay.actions.map((a) => a.actionId).sort(), ['cancel-edit', 'delete', 'save'].filter((x) => overlay.actions.some((a) => a.actionId === x)))
 })
 
-// 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
-//     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+// 16) Complex shell (Phase 6): groups with children by TERMINAL route, @AppContext selectors
+//     and header actions (dropdown with children) projected for simple bindings.
 test('foldout: los Element de los paneles también se montan (la tabla «In other systems»)', () => {
   const el = (id) => ({ isElement: true, elementId: id, name: 'div', content: '<table></table>', asHtml: true })
   const content = { overview: { blocks: [{ items: [el('o1'), { isText: true }] }] },
@@ -594,7 +597,7 @@ test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ningu
   const a = navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas')
   assert.deepEqual(a, { route: '/reservas', full: '/reservas?vista=LLEGADAS_HOY', filters: { vista: 'LLEGADAS_HOY' }, same: false })
   const b = navTargetOf('/reservas', '/reservas?vista=LLEGADAS_HOY')
-  assert.equal(b.same, false) // antes: mismo path → «eco», no recargaba y el chip se quedaba
+  assert.equal(b.same, false) // before: same path → «echo», it did not reload and the chip stayed
   assert.deepEqual(b.filters, {})
   assert.equal(navTargetOf('/reservas?vista=SALIDAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, false)
   assert.equal(navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, true) // eco
@@ -608,7 +611,7 @@ test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en 
   for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle', 'tablet']) {
     assert.ok(ojIconOf('vaadin:' + v), v)
   }
-  assert.equal(ojIconOf('vaadin:nope'), undefined) // estricto: widgets y FAB conservan su caída
+  assert.equal(ojIconOf('vaadin:nope'), undefined) // strict: widgets and FAB keep their fallback
   assert.equal(ojIconOrGenericOf('vaadin:nope'), GENERIC_ICON)
   assert.equal(ojIconOrGenericOf(undefined), undefined)
   const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
@@ -622,7 +625,7 @@ test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en 
 })
 
 test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un grupo', () => {
-  // @Menu @Hidden en una página local: la alcanza el botón New del listado, no el menú
+  // @Menu @Hidden on a local page: the listing's New button reaches it, not the menu
   const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
     { label: 'Call center', path: '/callCenter', submenus: [
       { label: 'Bookings', path: '/callCenter/bookings', route: '/callCenter/bookings' },
@@ -642,12 +645,12 @@ test('shellNavOf: MENU_ON_TOP es la SUBCABECERA (título, sin acento); TABS con 
   const onTop = shellNavOf({ shell: { variant: 'MENU_ON_TOP', title: 'Consola de datos', accentColor: '#D2232A', menu } })
   assert.equal(onTop.mode, 'subheader')
   assert.equal(onTop.title, 'Consola de datos')
-  // el acento de marca (@App(accentColor)) es del renderer web: la banda de Redwood va con los
-  // tokens neutros del tema, así que el nav ni lo lleva
+  // the brand accent (@App(accentColor)) belongs to the web renderer: the Redwood band uses the
+  // theme's neutral tokens, so the nav does not even carry it
   assert.equal(onTop.accentColor, undefined)
-  // TABS con grupos (no caben en la barra inferior): siguen en la cabecera oscura, como antes
+  // TABS with groups (they don't fit in the bottom bar): they stay in the dark header, as before
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu } }).mode, 'topbar')
-  // TABS plano (el front office): la barra inferior, intacta
+  // flat TABS (the front office): the bottom bar, intact
   assert.equal(shellNavOf({ shell: { variant: 'TABS', menu: [{ label: 'Hoy', route: '/hoy' }, { label: 'Reservas', route: '/reservas' }] } }).mode, 'tabs')
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
 })
@@ -666,22 +669,22 @@ test('shellNavOf: HAMBURGER_SECTIONS — la hamburguesa lleva las secciones, cad
       { label: 'Modelos', route: '/catalogues/llms', baseUrl: '/_ai' },
     ] },
     { label: 'Usuarios', path: '/users', submenus: [
-      // un grupo en el segundo nivel: el tercer nivel, en desplegable
+      // a group on the second level: the third level, in a dropdown
       { label: 'Permisos', path: '/perm', submenus: [{ label: 'Roles', route: '/users/roles', baseUrl: '/_users' }] },
       { label: 'Users', route: '/users/users', baseUrl: '/_users' },
     ] },
-    // un pod que no contestó: deshabilitado, sin home
+    // a pod that did not answer: disabled, no home
     { label: 'Audit', path: '/audit', remote: true, unavailable: true, description: 'Audit no está disponible ahora.' },
   ]
   const nav = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', title: 'Control plane', menu } })
   assert.equal(nav.mode, 'sections')
   assert.deepEqual(nav.sections.map((s) => s.label), ['Inicio', 'IA', 'Usuarios', 'Audit'])
-  // el id de la lista es la HOME: elegir la sección navega a su primera pantalla (como Opera)
+  // the list's id is the HOME: choosing the section navigates to its first screen (like Opera)
   assert.deepEqual(nav.sections.map((s) => s.id), ['/inicio', '/catalogues/agents', '/users/roles', nav.menuTree[3].id])
   assert.ok(nav.sections.every((s) => !s.hasChildren), 'la hamburguesa sólo lleva el primer nivel')
   assert.equal(nav.sections[3].disabled, true)
   assert.equal(nav.sections[3].hint, 'Audit no está disponible ahora.')
-  // las demás variantes no cambian; HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU
+  // the other variants do not change; HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGER_MENU', menu } }).mode, 'drawer')
   assert.equal(shellNavOf({ shell: { variant: 'HAMBURGUER_MENU', menu } }).mode, 'drawer')
   assert.equal(shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu } }).mode, 'subheader')
@@ -702,7 +705,7 @@ test('HAMBURGER_SECTIONS: la sección en pantalla y su segundo nivel salen de la
   assert.equal(sectionOf(tree, '/catalogues/llms/7').label, 'IA', 'el detalle de un registro sigue en su sección')
   assert.equal(sectionOf(tree, '/users/roles').label, 'Usuarios')
   assert.equal(sectionOf(tree, '/'), null)
-  // el segundo nivel de la sección: el ítem marcado en la banda — un grupo, por lo que contiene
+  // the section's second level: the item marked in the band — a group, by what it contains
   const items = sectionOf(tree, '/users/roles').children
   assert.deepEqual(items.map((n) => n.label), ['Permisos', 'Users'])
   assert.equal(activeSectionOf(items, '/users/roles'), items[0].id)
@@ -715,14 +718,14 @@ test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la
   const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
     { label: 'Call center', path: '/callcenter', submenus: [
       { label: 'Bookings', route: '/booking/bookings', baseUrl: '/_booking' },
-      // oculta: una pantalla bajo ella sigue siendo de Call center
+      // hidden: a screen under it still belongs to Call center
       { label: 'Nueva', route: '/booking/new', baseUrl: '/_booking', visible: false },
     ] },
     { label: 'Admin', path: '/admin', submenus: [
-      // tercer nivel (shell federada): grupo del pod con sus pantallas
+      // third level (federated shell): the pod's group with its screens
       { label: 'Workflow', path: '/workflow', remote: false, submenus: [{ label: 'Processes', route: '/workflow/processes', baseUrl: '/_workflow' }] },
     ] },
-    // remota que aún no contestó: cuenta por su prefijo
+    // a remote that has not answered yet: counts by its prefix
     { label: 'ERP', path: '/erp', remote: true, routePrefix: '/erp' },
     { label: 'Avisos', route: '/inbox' },
     { label: 'Llegadas', route: '/reservas?vista=LLEGADAS_HOY' },
@@ -736,11 +739,11 @@ test('activeSectionOf: la sección en pantalla — la entrada, o el grupo que la
   assert.equal(activeSectionOf(tree, '/erp/partners'), ids[2])
   assert.equal(activeSectionOf(tree, '/inbox'), ids[3])
   assert.equal(activeSectionOf(tree, '/reservas?vista=LLEGADAS_HOY'), ids[4])
-  // la home (o una ruta de nadie): ninguna marcada
+  // the home (or a route nobody owns): none marked
   assert.equal(activeSectionOf(tree, '/inicio'), null)
   assert.equal(activeSectionOf(tree, ''), null)
   assert.equal(activeSectionOf(tree, null), null)
-  // un prefijo más corto no se queda con las pantallas de otra sección
+  // a shorter prefix does not take the screens of another section
   const overlap = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
     { label: 'Clientes', route: '/customers' },
     { label: 'Cambios', route: '/customers/changes' },
@@ -753,12 +756,12 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   const { shell } = reduceContexts(empty(), fx('app'))
   const nav = shellNavOf({ shell })
   assert.deepEqual(nav.items.map((i) => i.id), ['/hello', '/products', '/gestion'])
-  // HAMBURGUER_MENU (explícito en el demo) → drawer izquierdo con oj-navigation-list
+  // HAMBURGUER_MENU (explicit in the demo) → left drawer with oj-navigation-list
   assert.equal(nav.mode, 'drawer')
   const group = nav.menuTree.find((m) => m.hasChildren)
   assert.equal(group.label, 'Gestion')
-  // la ruta COMPUESTA, como Vaadin: resuelve con el serverSideType del app (loadMenuRouteInto),
-  // y un RouteLink de grupo (/gestion/island-host) cae a su terminal si el servidor no la reconoce
+  // the COMPOSED route, like Vaadin: resolves with the app's serverSideType (loadMenuRouteInto),
+  // and a group RouteLink (/gestion/island-host) falls back to its terminal if the server does not recognise it
   assert.deepEqual(group.children.map((c) => c.id), ['/gestion/person', '/gestion/island-host'])
   assert.equal(nav.selectors[0].fieldName, 'hotel')
   assert.deepEqual(nav.selectors[0].options.map((o) => o.value), ['Playa', 'Centro'])
@@ -768,18 +771,18 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
 })
 
 test('primaryToolbarButton: manda el wire; si calla, la última que no sea de vuelta', () => {
-  // La cabecera Spectra enseña la primaria y la PRIMERA secundaria; lo demás va al `···`.
-  // Con el toolbar de la vista de un crud (nadie marcado primary) `Edit` quedaba escondido.
+  // The Spectra header shows the primary and the FIRST secondary; the rest goes to the `···`.
+  // With a crud view's toolbar (nobody marked primary) `Edit` ended up hidden.
   const view = [
     { actionId: 'cancel-view', label: 'Back to list', chroming: 'outlined' },
     { actionId: 'new', label: 'Add another', chroming: 'outlined' },
     { actionId: 'edit', label: 'Edit', chroming: 'outlined' },
   ]
   assert.equal(primaryToolbarButton(view).actionId, 'edit')
-  // lo que declara el wire gana, esté donde esté
+  // what the wire declares wins, wherever it is
   const declared = [{ actionId: 'a', chroming: 'callToAction' }, { actionId: 'b', chroming: 'outlined' }]
   assert.equal(primaryToolbarButton(declared).actionId, 'a')
-  // un toolbar de solo vueltas no promociona nada (mejor sin primaria que con una que saca de la pantalla)
+  // a toolbar of only back buttons promotes nothing (better no primary than one that takes you off the screen)
   assert.equal(primaryToolbarButton([{ actionId: 'cancel-edit' }, { actionId: 'back' }]), null)
   assert.equal(primaryToolbarButton([]), null)
   // editor: Cancel + Save → Save
@@ -787,33 +790,33 @@ test('primaryToolbarButton: manda el wire; si calla, la última que no sea de vu
 })
 
 test('detalle de proceso (wire real): campos, pestañas, grid embebido y el componente del grafo', () => {
-  // Página de FORMULARIO con pestañas dentro. Antes la reclamaba el arquetipo item-overview
-  // por el mero hecho de llevar un TabLayout, y quedaba en rótulos de pestaña sin nada debajo:
-  // ni los campos de fuera, ni las tablas de dentro, ni el grafo.
+  // FORM page with tabs inside. It used to be claimed by the item-overview archetype
+  // just for carrying a TabLayout, and ended up as tab labels with nothing under them:
+  // neither the fields outside, nor the tables inside, nor the graph.
   const reg = reduceContexts(empty(), fx('wf-process'))
   const host = reg.contexts[HOST_ID]
   assert.equal(itemOverviewOf(host), null, 'sin panel de datos clave no es un item overview')
 
-  // como en la chain: el título de la Page lo pinta la banda del header, no el contenido
+  // as in the chain: the Page title is painted by the header band, not by the content
   const titulo = summarizeHost(reg, '').title
   const bloques = hostContentOf(host, null, { title: titulo }) || []
-  // el card sin título que envuelve la página NO se pinta como tarjeta: el contenedor de
-  // contenido ya es el marco, y con panel quedaba una caja dentro de otra
+  // the untitled card wrapping the page is NOT painted as a card: the content container
+  // is already the frame, and with a panel it ended up as a box inside another
   assert.equal(bloques.length, 1)
   assert.equal(bloques[0].isCard, false)
   assert.equal(bloques[0].isPlain, true)
   const items = bloques.flatMap((b) => b.items)
-  // los campos que están FUERA de las pestañas: en el form layout de JET de su FormLayout
+  // the fields OUTSIDE the tabs: in the JET form layout of their FormLayout
   const campos = items.filter((a) => a.isFormLayout).flatMap((a) => a.fields)
   assert.ok(campos.some((f) => f.fieldId === 'id'))
   assert.ok(campos.some((f) => f.fieldId === 'name'))
-  // la barra de pestañas, entera y con la primera activa
+  // the tab bar, whole and with the first one active
   const tabs = items.find((a) => a.isTabs)
   assert.ok(tabs, 'no se proyectó la barra de pestañas')
   assert.deepEqual(tabs.tabs.map((t) => t.label),
     ['Diagram', 'Steps', 'Messages', 'Errors', 'Resources', 'Variables'])
   assert.equal(tabs.selectedId, 'tab-0')
-  // …y el contenido de la ACTIVA: el grafo, con sus atributos ya interpolados del estado
+  // …and the content of the ACTIVE one: the graph, with its attributes already interpolated from the state
   const element = items.find((a) => a.isElement)
   assert.ok(element, 'el componente del grafo no se proyectó')
   assert.equal(element.name, 'eventconductor-workflow-graph')
@@ -822,13 +825,13 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
     'el value del grafo llegó sin interpolar')
   assert.ok(!items.some((a) => a.isGrid), 'la pestaña Diagram no tiene tablas')
 
-  // otra pestaña: su grid embebido, con columnas y filas del estado
+  // another tab: its embedded grid, with columns and rows from the state
   const steps = (hostContentOf(host, null, { title: titulo, activeTab: 'tab-1' }) || [])
     .flatMap((b) => b.items).find((a) => a.isGrid)
   assert.ok(steps, 'no se proyectó la tabla de la pestaña Steps')
   assert.deepEqual(steps.columns.map((c) => c.headerText), ['Name', 'Status'])
   assert.ok(steps.rows.length > 0)
-  // la columna de estado llega con su clase de badge precomputada (CSP)
+  // the status column arrives with its badge class precomputed (CSP)
   assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
 })
 
@@ -836,8 +839,8 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
   const tab = (label, children, active) => ({ type: 'ClientSide', metadata: { type: 'Tab', label, active: !!active }, children })
   const tabLayout = (id, tabs) => ({ type: 'ClientSide', id, metadata: { type: 'TabLayout' }, children: tabs })
-  // exterior [General, Detalle]; dentro de Detalle otra barra [General, Notas] — mismo rótulo
-  // «General» en las dos y el mismo id "_tabs" que mandaba el backend antes del arreglo
+  // outer [General, Detalle]; inside Detalle another bar [General, Notas] — same label
+  // «General» in both and the same id "_tabs" the backend sent before the fix
   const inner = tabLayout('_tabs', [tab('General', [text('interior general')]), tab('Notas', [text('interior notas')])])
   const outer = tabLayout('_tabs', [tab('General', [text('exterior general')]), tab('Detalle', [inner])])
   const ctx = { tree: outer, state: {} }
@@ -845,7 +848,7 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   const barsOf = (opts) => atomsOf(opts).filter((a) => a.isTabs)
   const textsOf = (opts) => atomsOf(opts).filter((a) => a.isText).map((a) => a.text)
 
-  // de entrada: solo la barra exterior (la interior vive en una pestaña no activa), ids de siempre
+  // initially: only the outer bar (the inner one lives in an inactive tab), the usual ids
   let bars = barsOf({})
   assert.equal(bars.length, 1)
   assert.deepEqual(bars[0].tabs.map((t) => t.id), ['tab-0', 'tab-1'])
@@ -853,7 +856,7 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   assert.equal(bars[0].stripKey, '')
   assert.deepEqual(textsOf({}), ['exterior general'])
 
-  // clic en Detalle: aparece la barra interior con ids PROPIOS (prefijados por su pestaña)
+  // click on Detalle: the inner bar appears with its OWN ids (prefixed by its tab)
   let active = withActiveTab({}, 'tab-1')
   bars = barsOf({ activeTabs: active })
   assert.equal(bars.length, 2)
@@ -867,7 +870,7 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   assert.equal(new Set(allIds).size, allIds.length, 'ids de pestaña repetidos entre barras')
   assert.deepEqual(textsOf({ activeTabs: active }), ['interior general'])
 
-  // clic en la 2ª INTERIOR: la exterior se queda en Detalle (antes saltaba a su 2ª… o a la 1ª)
+  // click on the 2nd INNER one: the outer one stays on Detalle (before, it jumped to its 2nd… or to the 1st)
   assert.equal(tabStripOf('tab-1/tab-1'), 'tab-1')
   assert.equal(tabStripOf('tab-1'), '')
   active = withActiveTab(active, 'tab-1/tab-1')
@@ -877,16 +880,16 @@ test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interi
   assert.equal(bars[1].selectedId, 'tab-1/tab-1')
   assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
 
-  // y volver a la exterior General no olvida la interior elegida
+  // and going back to the outer General does not forget the chosen inner one
   active = withActiveTab(active, 'tab-0')
   assert.deepEqual(textsOf({ activeTabs: active }), ['exterior general'])
   active = withActiveTab(active, 'tab-1')
   assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
 
-  // compatibilidad: el activeTab de un solo id sigue mandando en la barra de primer nivel
+  // compatibility: a single-id activeTab still drives the first-level bar
   assert.equal(barsOf({ activeTab: 'tab-1' })[0].selectedId, 'tab-1')
 
-  // dos barras HERMANAS de primer nivel tampoco comparten ids
+  // two top-level SIBLING bars do not share ids either
   const twins = { tree: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
     tabLayout('a', [tab('X', [text('a-x')]), tab('Y', [text('a-y')])]),
     tabLayout('b', [tab('X', [text('b-x')]), tab('Y', [text('b-y')])]),
@@ -905,27 +908,27 @@ test('item overview con pestañas anidadas: solo las de la barra exterior en la 
   const tree = { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [card, outer] }
   const overview = itemOverviewOf({ tree, state: {} })
   assert.deepEqual(overview.tabs.map((t) => t.label), ['A', 'B'])
-  // el contenido de la barra interior va DENTRO de su pestaña
+  // the inner bar's content goes INSIDE its tab
   assert.deepEqual(overview.tabs[1].texts, ['i1', 'i2'])
 })
 
-// 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
-// @FoldoutDetail: la vista (solo lectura) de un registro como foldout — overview en lista de
-// propiedades, un panel por sección con contenido; lo vacío no viaja (backend FoldoutDetailSyncTest).
+// 17) Foldout (Phase 7): headers in metadata.panels, slotted content overview/panel-N.
+// @FoldoutDetail: the (read-only) view of a record as a foldout — overview as a property
+// list, one panel per section with content; empty things do not travel (backend FoldoutDetailSyncTest).
 test('una vista @FoldoutDetail proyecta overview en propiedades y paneles solo con contenido', () => {
   const { contexts } = reduceContexts(empty(), fx('crud-view-foldout'))
   const foldout = foldoutOf(contexts['fv_app'])
   assert.ok(foldout)
   const rows = foldout.overview.blocks.flatMap((b) => b.items || []).filter((i) => i.isPropertyRow)
-  // un lookup se lee por su etiqueta (data['hotel-label']), no por el código
+  // a lookup is read by its label (data['hotel-label']), not by the code
   assert.deepEqual(rows.map((r) => [r.label, r.value]), [['Locator', 'QN29HB'], ['Hotel', 'MRU01 — Riu Demo Mauricio'], ['Total', '306.00 EUR']])
   assert.deepEqual(foldout.panels.map((p) => [p.title, p.open]), [['Titular', true], ['Seguimiento', false]])
   const fields = foldout.panels[0].blocks.flatMap((b) => b.items || []).flatMap((i) => i.fields || [])
   assert.deepEqual(fields.map((f) => [f.fieldId, f.value, f.readonly]), [['holder', 'Giulia Keller', true]])
 })
 
-// La vista real de una reserva de ec-demo1 con @FoldoutDetail: los lookups de sólo lectura
-// (hotel, canal) viajan como '<campo>-label' con la etiqueta en data — el overview la lee de ahí.
+// The real view of an ec-demo1 booking with @FoldoutDetail: the read-only lookups
+// (hotel, channel) travel as '<field>-label' with the label in data — the overview reads it from there.
 test('el overview @FoldoutDetail de una reserva real pinta hotel y canal por su etiqueta', () => {
   const { contexts } = reduceContexts(empty(), fx('crud-view-foldout-booking'))
   const foldout = foldoutOf(contexts[HOST_ID])
@@ -937,15 +940,15 @@ test('el overview @FoldoutDetail de una reserva real pinta hotel y canal por su 
   assert.ok(foldout.panels.map((p) => p.title).includes('History'))
 })
 
-// La insignia de la página (@Status «Confirmed») encabeza el overview del foldout: el web la pinta
-// junto al título y la cabecera de VB no tiene sitio para ella.
+// The page badge (@Status «Confirmed») heads the foldout's overview: the web paints it
+// next to the title and the VB header has no room for it.
 test('el overview @FoldoutDetail lleva la insignia de estado de la página, con la clase badge de JET', () => {
   const { contexts } = reduceContexts(empty(), fx('crud-view-foldout-booking'))
   const foldout = foldoutOf(contexts[HOST_ID])
   assert.deepEqual(foldout.badges.map((b) => [b.label, b.badgeClass]),
     [['Confirmed', 'oj-badge oj-badge-success oj-badge-subtle']])
-  // el primer bloque es PLANO y lleva la insignia como átomo: el template del overview no pinta
-  // un bloque isBadge suelto (solo isCard/isPlain), así que la insignia no se veía
+  // the first block is PLAIN and carries the badge as an atom: the overview template does not paint
+  // a loose isBadge block (only isCard/isPlain), so the badge was not visible
   const first = foldout.overview.blocks[0]
   assert.equal(first.isPlain, true)
   assert.deepEqual(first.items.map((i) => [i.isBadge, i.label]), [[true, 'Confirmed']])
@@ -963,8 +966,8 @@ test('foldoutOf proyecta overview + paneles (título/subtítulo/open) con sus te
   assert.deepEqual(foldout.panels[0].texts, ['02/05 · Deposit · 620 €', '12/08 · Balance · pending'])
 })
 
-// 18) Wizard (Fase 8): ProgressSteps del wire → tren del guided-process; el paso actual
-//     viaja como status 'current' y los campos/botones del paso van por las ramas existentes.
+// 18) Wizard (Phase 8): the wire's ProgressSteps → the guided-process train; the current step
+//     travels as status 'current' and the step's fields/buttons go through the existing branches.
 test('wizardOf proyecta los pasos y el paso actual; el form del paso fluye como form normal', () => {
   const { contexts } = reduceContexts(empty(), fx('load-wizard'))
   const host = contexts[HOST_ID]
@@ -972,23 +975,23 @@ test('wizardOf proyecta los pasos y el paso actual; el form del paso fluye como 
   assert.deepEqual(wizard.steps.map((s) => s.id), ['cliente', 'envio', 'pago'])
   assert.equal(wizard.currentStep, 'cliente')
   assert.equal(host.pageType, 'process')
-  // el paso actual es un form normal para el switch widgetFor…
+  // the current step is a normal form for the widgetFor switch…
   const metadata = dynFormMetadataOf(host.tree)
   assert.deepEqual(Object.keys(metadata), ['name', 'email'])
-  // …y los botones de navegación son acciones normales
+  // …and the navigation buttons are normal actions
   assert.deepEqual(actionsOf(host.tree).map((a) => a.actionId).sort(), ['back', 'next'])
 })
 
-// 19) Fronteras (Fase 9): los campos/acciones de una ISLA no se cuelan en el form del host.
+// 19) Boundaries (Phase 9): an ISLAND's fields/actions do not leak into the host's form.
 test('el host de una isla no ve los campos ni las acciones del otro lado de la frontera', () => {
   const { contexts } = reduceContexts(empty(), fx('island-host'))
   const host = contexts[HOST_ID]
   const metadata = dynFormMetadataOf(host.tree)
-  assert.deepEqual(Object.keys(metadata), ['room', 'status']) // sin paxName/note (de la isla)
-  assert.ok(!actionsOf(host.tree).some((a) => a.actionId === 'edit')) // el Edit es de la isla
+  assert.deepEqual(Object.keys(metadata), ['room', 'status']) // without paxName/note (the island's)
+  assert.ok(!actionsOf(host.tree).some((a) => a.actionId === 'edit')) // the Edit belongs to the island
 })
 
-// 20) Route-flip de mediador/isla: la ruta interna conserva los marcadores query.
+// 20) Mediator/island route-flip: the inner route keeps the query markers.
 test('composeInnerRoute: base + flip + marcadores (?_embeddedMediator sigue viajando)', () => {
   assert.equal(
     composeInnerRoute('/guest-note?_embeddedMediator=1&_inline=1', '/edit'),
@@ -997,12 +1000,12 @@ test('composeInnerRoute: base + flip + marcadores (?_embeddedMediator sigue viaj
   assert.equal(composeInnerRoute('/x?m=1', '/'), '/x?m=1')
 })
 
-// 21) Puertas 1.3/1.6: banners de página y anatomía pageWidth.
+// 21) Gates 1.3/1.6: page banners and pageWidth anatomy.
 test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la anatomía RDS', () => {
   const { contexts } = reduceContexts(empty(), fx('load-form'))
-  // load-form (Person) no lleva banners
+  // load-form (Person) carries no banners
   assert.deepEqual(bannersOf(contexts[HOST_ID]), [])
-  // anatomía: person (sin pageWidth) → fixed; foldout → edgeToEdge
+  // anatomy: person (no pageWidth) → fixed; foldout → edgeToEdge
   // fixed: capped at 1408px, and the cap leaves BOTH gutters — a narrow area (the editor's canvas,
   // a laptop) must not hug the left edge with the only blank strip on the right
   const fixedStyle = pageStyleOf(contexts[HOST_ID])
@@ -1013,7 +1016,7 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
   assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })
 })
 
-// 22) Arquetipos compuestos: welcome, general overview e item overview se proyectan del núcleo.
+// 22) Composed archetypes: welcome, general overview and item overview are projected from the core.
 test('welcomeLookOf: el hero rota al entrar en la welcome y se queda mientras se sigue en ella', () => {
   const ctx = reduceContexts(empty(), fx('load-welcome')).contexts[HOST_ID]
   const key = welcomeKeyOf(ctx)
@@ -1021,9 +1024,9 @@ test('welcomeLookOf: el hero rota al entrar en la welcome y se queda mientras se
   const first = welcomeLookOf(key, null, () => 0.5)
   assert.equal(first.theme, 'dark-plum')
   assert.ok(first.illu.endsWith('illust-welcome-banner-fg-03.png'))
-  // la respuesta de una acción lanzada desde ella (un CTA que navega) la reproyecta: mismo aspecto
+  // the response of an action launched from it (a CTA that navigates) re-projects it: same look
   assert.equal(welcomeLookOf(key, first, () => 0), first)
-  // otra welcome, o volver a entrar tras otra pantalla (no había welcome pintada): rota
+  // another welcome, or re-entering after another screen (no welcome was painted): rotates
   assert.equal(welcomeLookOf('otra.Welcome', first, () => 0).theme, 'dark-ocean')
   assert.equal(welcomeLookOf(key, null, () => 0.99).theme, 'dark-teal')
 })
@@ -1047,17 +1050,17 @@ test('welcomeOf/generalOverviewOf/itemOverviewOf proyectan los tres arquetipos',
   assert.match(item.tabs[1].texts[0], /4.6/)
 })
 
-// 23) Edición inline (@InlineEditing): columnas editable → grid + plantillas de editor por
-// tipo; el commit es update-row + parameters._editedRow y responde SOLO un toast success
-// (sin fragments — el valor editado ya está en el cliente).
+// 23) Inline editing (@InlineEditing): editable columns → grid + editor templates per
+// type; the commit is update-row + parameters._editedRow and answers ONLY a success toast
+// (no fragments — the edited value is already on the client).
 test('inline editing: plantillas por editorType y update-row = toast sin fragments', () => {
-  const stock = fx('load-stock') // contenido del mediador; se simula su llegada al host
+  const stock = fx('load-stock') // the mediator's content; its arrival at the host is simulated
   stock.fragments[0].targetComponentId = ''
   const listing = listingOf(reduceContexts(empty(), stock).contexts[HOST_ID])
   assert.equal(listing.display, 'grid')
   assert.equal(listing.editable, true)
   const byField = Object.fromEntries(listing.columns.map((c) => [c.field, c.template]))
-  assert.equal(byField.id, undefined) // @ReadOnly → sin editor
+  assert.equal(byField.id, undefined) // @ReadOnly → no editor
   assert.equal(byField.product, 'cellEditText')
   assert.equal(byField.units, 'cellEditNumber')
   assert.equal(byField.price, 'cellEditNumber')
@@ -1068,9 +1071,9 @@ test('inline editing: plantillas por editorType y update-row = toast sin fragmen
   assert.equal(inc.messages[0].variant, 'success')
 })
 
-// 24) Front-office: los "listados" de check-in/out/en-casa son TaskQueue con los datos
-// INLINE en la metadata (grupos → cards con badges); el EmptyState del panel de detalle
-// se proyecta aparte. Contrato del clic: actionId con parameters._item = id.
+// 24) Front office: the check-in/out/in-house "listings" are TaskQueues with the data
+// INLINE in the metadata (groups → cards with badges); the detail panel's EmptyState
+// is projected separately. Click contract: actionId with parameters._item = id.
 test('front-office: taskQueueOf proyecta grupos/cards/badges y emptyStateOf el placeholder', () => {
   const reg = reduceContexts(empty(), fx('fo-load-checkin'))
   const queue = taskQueueOf(reg.contexts[HOST_ID].tree)
@@ -1085,11 +1088,11 @@ test('front-office: taskQueueOf proyecta grupos/cards/badges y emptyStateOf el p
   assert.match(placeholder.title, /Selecciona un huésped/)
 })
 
-// 24 bis) NOT FOUND: la ruta nombra un registro que no existe (una reserva borrada). El server ya
-// no contesta un toast de error sobre una página vacía sino un componente NotFound (capturado de
-// mvc-app1: /hotel/stays/FO-X6JB7F, cuyo view(id) lanza NoSuchElementException). Se proyecta al
-// oj-sp-empty-state a página completa: el mensaje de la excepción de titular y la vuelta al padre
-// como su navigationAction.
+// 24 bis) NOT FOUND: the route names a record that does not exist (a deleted booking). The server no
+// longer answers an error toast over an empty page but a NotFound component (captured from
+// mvc-app1: /hotel/stays/FO-X6JB7F, whose view(id) throws NoSuchElementException). It is projected to
+// the full-page oj-sp-empty-state: the exception's message as the headline and the way back to the parent
+// as its navigationAction.
 test('not found: notFoundOf proyecta titular, texto y vuelta atrás del componente NotFound', () => {
   const reg = reduceContexts(empty(), fx('load-not-found'))
   const tree = reg.contexts[HOST_ID].tree
@@ -1098,9 +1101,9 @@ test('not found: notFoundOf proyecta titular, texto y vuelta atrás del componen
   assert.equal(page.message, 'It may have been deleted, or the link is wrong.')
   assert.equal(page.backRoute, '/hotel/stays')
   assert.deepEqual(page.navigationAction, { label: 'Go back', display: 'on' })
-  // no es un error: ni toast ni contenido de host que pintar además
+  // it is not an error: neither a toast nor host content to paint as well
   assert.equal(reg.effects.toasts.length, 0)
-  // cualquier otra pantalla no es un not-found
+  // any other screen is not a not-found
   assert.equal(notFoundOf(reduceContexts(empty(), fx('load-form')).contexts[HOST_ID].tree, 'en'), null)
 })
 
@@ -1115,10 +1118,10 @@ test('not found: sin textos del server, los genéricos en el idioma de la págin
   assert.deepEqual(back.navigationAction, { label: 'Volver', display: 'on' })
 })
 
-// 25) Front-office: el detalle del TaskQueue es una isla-mediador de sabor App (nodo
-// ClientSide App MEDIATOR con id estable y homeRoute/homeConsumedRoute/homeServerSideType
-// en su metadata) y su contenido (el CheckInWizard embebido) se proyecta como BLOQUES
-// display precomputados (flags is*, textos ${state.x} interpolados).
+// 25) Front office: the TaskQueue's detail is an App-flavoured mediator island (a
+// ClientSide App MEDIATOR node with a stable id and homeRoute/homeConsumedRoute/homeServerSideType
+// in its metadata) and its content (the embedded CheckInWizard) is projected as precomputed
+// display BLOCKS (is* flags, ${state.x} texts interpolated).
 test('front-office: isla-App detectada e islandContentOf proyecta el wizard embebido', () => {
   const island = fx('fo-island-wizard')
   const blocks = islandContentOf(island)
@@ -1130,12 +1133,12 @@ test('front-office: isla-App detectada e islandContentOf proyecta el wizard embe
   assert.equal(notice.buttons[0].actionId, 'selectPax')
   assert.deepEqual(notice.buttons[0].parameters, { paxIndex: 1 })
   assert.ok(blocks.some((b) => b.isCard))
-  assert.ok(atoms.every((a) => !a.isText || !a.text.includes('${'))) // interpolación hecha
+  assert.ok(atoms.every((a) => !a.isText || !a.text.includes('${'))) // interpolation done
   assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((btn) => btn.actionId === 'next')))
 })
 
-// 25 bis) Los chips de un EntityHeader llevan el tono de su color, también el chip normal: en
-// Vaadin es el primario, y aquí caía al neutro — un tier Platinum y uno Silver se veían iguales.
+// 25 bis) An EntityHeader's chips carry their colour's tone, the normal chip too: in
+// Vaadin it is the primary, and here it fell back to neutral — a Platinum tier and a Silver one looked the same.
 test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
   const island = JSON.parse(JSON.stringify(fx('fo-island-wizard')))
   const find = (n) => n && typeof n === 'object'
@@ -1157,9 +1160,9 @@ test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
   ])
 })
 
-// 26) Front-office: átomos de negocio — ResourceGrid/OfferCard (habitación), AddOnPicker/
-// StatusList (extras/confirmar), Ledger/PaymentPicker (check-out), Meter/Stat (en casa).
-// Contratos de despacho = los del renderer web compartido (_item / _method / _added+_total).
+// 26) Front office: business atoms — ResourceGrid/OfferCard (room), AddOnPicker/
+// StatusList (extras/confirm), Ledger/PaymentPicker (check-out), Meter/Stat (in house).
+// Dispatch contracts = those of the shared web renderer (_item / _method / _added+_total).
 test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan del wire real', () => {
   const atomsOf = (name) => islandContentOf(fx(name)).flatMap((b) => b.items)
   const conf = atomsOf('fo-island-step-last')
@@ -1182,11 +1185,11 @@ test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan d
   assert.ok(casa.some((a) => a.isStat))
 })
 
-// 27) Isla ANIDADA (el documento del check-in): collectIslands detecta el nodo App con su
-// initialData (el SEED del host: stayId/paxIndex — debe viajar como componentState en la
-// carga Y en cada acción, el server no lo eca); mergeNestedContent fusiona sus átomos en
-// el bloque de la isla madre MARCADOS fromNested (leer $application.variables en templates
-// profundos no re-liga los contextos en el evaluador CSP de VB).
+// 27) NESTED island (the check-in document): collectIslands detects the App node with its
+// initialData (the host's SEED: stayId/paxIndex — it must travel as componentState on the
+// load AND on every action, the server does not echo it); mergeNestedContent merges its atoms into
+// the parent island's block MARKED fromNested (reading $application.variables in deep
+// templates does not re-bind the contexts in VB's CSP evaluator).
 test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre', () => {
   const wizard = fx('fo-island-wizard')
   const nestedInfo = collectIslandsFn(wizard.tree)[0]
@@ -1203,9 +1206,9 @@ test('isla anidada: seed en collectIslands y fusión fromNested en la isla madre
   assert.equal(btn.buttons[0].fromNested, true) // enruta a runMateuNestedAction
 })
 
-// 28) Checklist de operaciones de check-in (Reserva 360, estado por-llegar): el banner
-// TaskProgress proyecta N-de-M precomputado (el CSP de VB no compara) y el StatusList
-// lleva las acciones rápidas por operación (Crear wifi / Grabar llave → {_item}).
+// 28) Check-in operations checklist (Reserva 360, pending-arrival state): the
+// TaskProgress banner projects a precomputed N-of-M (VB's CSP does not compare) and the StatusList
+// carries the quick actions per operation (Create wifi / Write key → {_item}).
 test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por operación', () => {
   const atoms = islandContentOf(fx('fo-reserva-arriving')).flatMap((b) => b.items)
   const tp = atoms.find((a) => a.isTaskProgress)
@@ -1215,14 +1218,14 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   assert.match(tp.panelClass, /oj-panel/)
   const ops = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
-  // columns=3 → grid responsive: wrapper oj-flex + cada fila oj-flex-item oj-md-4
+  // columns=3 → responsive grid: oj-flex wrapper + each row oj-flex-item oj-md-4
   assert.match(ops.wrapClass, /oj-flex/)
   assert.equal(ops.items[0].gridCell, true)
-  assert.match(ops.items[0].cellClass, /mateu-grid-cell/) // rejilla fija del cockpit (22rem)
+  assert.match(ops.items[0].cellClass, /mateu-grid-cell/) // the cockpit's fixed grid (22rem)
   assert.match(ops.wrapClass, /mateu-grid/)
   const huespedes = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Klaus Hoffmann'))
-  // lista de UNA columna con acciones → rama APILADA (h3 sin avatar), no tarjetas
+  // ONE-column list with actions → STACKED branch (h3 without avatar), not cards
   assert.equal(huespedes.wrapClass, '')
   assert.ok(!huespedes.items[0].gridCell)
   assert.equal(huespedes.items[0].hasActions, true)
@@ -1231,31 +1234,31 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   assert.equal(wifi.actions[0].label, 'Crear')
   assert.equal(wifi.actions[0].actionId, 'opWifi')
   assert.deepEqual(wifi.actions[0].parameters, { _item: 'wifi' })
-  // filas de pax: DOS acciones (escanear / a mano) y proyección APILADA (hasActions)
+  // pax rows: TWO actions (scan / by hand) and STACKED projection (hasActions)
   const paxRow = huespedes.items.find((i) => i.title === 'Acompañante 2')
   assert.equal(paxRow.hasActions, true)
   assert.deepEqual(paxRow.actions.map((a) => a.actionId), ['escanearPax', 'rellenarPax'])
   assert.deepEqual(paxRow.actions[0].parameters, { _item: '2' })
 })
 
-// 29) Fila zonada (@Zones 36/64 de la Reserva 360): el HorizontalLayout de columnas
-// flex-calc se proyecta como bloques-columna (colClass en doceavos: 36→4, 64→8) y
-// hostContentOf estampa blockClass (los no zonados van a oj-sm-12).
+// 29) Zoned row (@Zones 36/64 of the Reserva 360): the HorizontalLayout of flex-calc
+// columns is projected as column blocks (colClass in twelfths: 36→4, 64→8) and
+// hostContentOf stamps blockClass (the non-zoned ones go to oj-sm-12).
 test('zonas: huéspedes md-4 a la izquierda y operativa md-8 a la derecha', () => {
   const ctx = fx('fo-reserva-arriving')
   const blocks = hostContentOf(ctx, null, { dropEntityHeader: true })
   const zoned = blocks.filter((b) => /oj-md-/.test(b.blockClass))
   assert.equal(zoned.length, 2)
-  assert.match(zoned[0].blockClass, /oj-md-4/) // 36% → 4/12 (huéspedes, card)
+  assert.match(zoned[0].blockClass, /oj-md-4/) // 36% → 4/12 (guests, card)
   assert.ok(zoned[0].isCard)
   assert.match(zoned[1].blockClass, /oj-md-8/) // 64% → 8/12 (operativa)
   assert.ok(zoned[1].items.some((a) => a.isTaskProgress))
   assert.ok(blocks.every((b) => b.blockClass))
 })
 
-// 30) Diálogo de progreso de un LongTask (SSE del host: escanearPax de la 360): el vigía
-// consume el Add del Dialog-con-ProgressBar y los state-only dirigidos a su id; el último
-// increment trae _closeAfterMillis + los commands del refresco en rest.
+// 30) A LongTask's progress dialog (host SSE: the 360's escanearPax): the watcher
+// consumes the Add of the Dialog-with-ProgressBar and the state-only ones addressed to its id; the last
+// increment brings _closeAfterMillis + the refresh commands in rest.
 test('longTaskWatcher: open → 4 progress → cierre con rest.commands (dispatchEvent)', () => {
   const stream = fx('fo-sse-scan-stream')
   const watcher = longTaskWatcher()
@@ -1271,18 +1274,18 @@ test('longTaskWatcher: open → 4 progress → cierre con rest.commands (dispatc
   assert.equal(last.title, 'Documento verificado')
   assert.equal(watcher.closeAfter, 1000)
   assert.equal(last.rest.commands.length, 1)
-  assert.equal(last.rest.fragments.length, 0) // el fragment del diálogo NO se reduce
+  assert.equal(last.rest.fragments.length, 0) // the dialog's fragment is NOT reduced
 })
 
-// 31) ITEM OVERVIEW nativo: página de entidad con la zona ESTRECHA primero (panel de
-// datos clave + main ancho) → oj-sp-item-overview-page; la ancha primero sigue siendo
-// general overview (null aquí). El EntityHeader pasa al oj-sp-item-overview (badge del
-// primer Chip, subtítulo SIN badges) y "Volver…" del toolbar a la flecha goToParent.
+// 31) Native ITEM OVERVIEW: entity page with the NARROW zone first (key-data
+// panel + wide main) → oj-sp-item-overview-page; wide-first is still a
+// general overview (null here). The EntityHeader goes to the oj-sp-item-overview (badge from the
+// first Chip, subtitle WITHOUT badges) and the toolbar's "Volver…" to the goToParent arrow.
 test('item overview: zona estrecha primero → panel clave + main; ancha primero → null', () => {
   const ctx = fx('fo-reserva-arriving')
   const entity = entityHeaderOf(ctx)
-  // la página de entidad pura son SOLO las dos zonas (el fixture arriving lleva además
-  // una banda de cabecera oj-sm-12; el detector exige exactamente dos bloques, como el gop)
+  // the pure entity page is ONLY the two zones (the arriving fixture also carries
+  // an oj-sm-12 header band; the detector requires exactly two blocks, like the gop)
   const blocks = hostContentOf(ctx, null, { dropEntityHeader: true })
     .filter((b) => /oj-md-/.test(b.blockClass))
   const toolbar = [
@@ -1293,26 +1296,26 @@ test('item overview: zona estrecha primero → panel clave + main; ancha primero
   assert.ok(iop && iop.on)
   assert.ok(entity.title.length > 0)
   assert.equal(iop.overview.title, entity.title)
-  assert.equal(iop.overview.subtitle, entity.subtitlePlain) // sin los badges concatenados
+  assert.equal(iop.overview.subtitle, entity.subtitlePlain) // without the concatenated badges
   assert.ok(iop.overview.badge, 'el primer Chip del EntityHeader es el badge del panel')
   assert.equal(iop.overview.badge.status, 'neutral') // color contrast → neutral
   assert.equal(iop.overview.blocks.length, 1)
-  assert.match(iop.overview.blocks[0].blockClass, /oj-sm-12/) // a ancho completo del slot
+  assert.match(iop.overview.blocks[0].blockClass, /oj-sm-12/) // at the slot's full width
   assert.equal(iop.main.blocks.length, 1)
-  assert.ok(iop.main.blocks[0].items.some((a) => a.isTaskProgress)) // la operativa es el main
+  assert.ok(iop.main.blocks[0].items.some((a) => a.isTaskProgress)) // the operations are the main
   assert.ok(iop.back.show)
   assert.equal(iop.back.actionId, 'volverReserva')
-  assert.equal(iop.back.label, 'Volver a la reserva') // la etiqueta viaja a translations.goToParent
+  assert.equal(iop.back.label, 'Volver a la reserva') // the label travels to translations.goToParent
   assert.equal(iop.secondary.length, 1)
   assert.equal(iop.secondary[0].id, 'otra')
-  // la ancha primero (anatomía general overview) NO es item overview
+  // wide first (general overview anatomy) is NOT an item overview
   assert.equal(itemOverviewPageOf(entity, [blocks[1], blocks[0]].map((b) => b), toolbar), null)
 })
 
-// 32) Modal de decisión (Dialog): TODOS los botones del contenido pasan al pie CON sus
-// parameters — el modal del check-in de grupo ofrece "Check-in de <nombre>" (con _item)
-// además de "Volver al listado" (en un drawer, los botones con parameters se quedan en
-// el contenido: son listas de opciones).
+// 32) Decision modal (Dialog): ALL the content's buttons move to the footer WITH their
+// parameters — the group check-in modal offers "Check-in de <name>" (with _item)
+// besides "Volver al listado" (in a drawer, buttons with parameters stay in
+// the content: they are option lists).
 test('overlay Dialog: los botones con parameters van al pie del modal', () => {
   const dialogCtx = {
     id: 'dlg1',
@@ -1338,17 +1341,17 @@ test('overlay Dialog: los botones con parameters van al pie del modal', () => {
   assert.ok(ids.includes('siguienteReserva'), 'el botón con parameters está en el pie')
   assert.ok(ids.includes('volverListado'))
   const siguiente = overlay.actions.find((a) => a.actionId === 'siguienteReserva')
-  assert.equal(siguiente.parameters._item, 'st-ana') // el _item viaja con la acción
+  assert.equal(siguiente.parameters._item, 'st-ana') // the _item travels with the action
   assert.equal(siguiente.chroming, 'callToAction')
-  // y el contenido ya NO lleva botones (irían duplicados)
+  // and the content NO longer carries buttons (they would be duplicated)
   assert.ok(!overlay.content.some((b) => b.items.some((a) => a.isButtons)))
 })
 
 
-// ── resiliencia del transporte ───────────────────────────────────────────────────────────
-// Este core no comparte nada con libs/mateu, así que las mismas garantías se testean aquí
-// otra vez. Lo que cambia respecto a los renderers web es la FORMA del fallo: fetch resuelve
-// un 5xx como éxito y señala un fallo de red con un TypeError sin código.
+// ── transport resilience ─────────────────────────────────────────────────────────────────
+// This core shares nothing with libs/mateu, so the same guarantees are tested here
+// again. What changes compared with the web renderers is the SHAPE of the failure: fetch resolves
+// a 5xx as success and signals a network failure with a TypeError without a code.
 
 test('clasifica un 5xx como fallo de servidor reintentable, con su status', () => {
   const err = Object.assign(new Error('HTTP 503'), { status: 503 })
@@ -1360,7 +1363,7 @@ test('clasifica un 5xx como fallo de servidor reintentable, con su status', () =
 })
 
 test('un TypeError de fetch se lee como sin-conexión aunque el navegador diga que hay red', () => {
-  // "Failed to fetch" es TODO lo que da fetch: sin respuesta, la falta de respuesta es la prueba.
+  // "Failed to fetch" is ALL fetch gives: with no response, the lack of a response is the proof.
   const f = classifyRequestFailure(Object.assign(new TypeError('Failed to fetch')), { online: true })
   assert.equal(f.kind, 'offline')
 })
@@ -1397,9 +1400,9 @@ test('reconoce las lecturas del framework — incluida la carga de ruta, que usa
   for (const id of ['save', 'create', 'delete', '_notifications-read']) {
     assert.ok(!isIdempotentAction(id), `${id} NO debería ser lectura`)
   }
-  // un id AUSENTE es trabajo desconocido, y no debe confundirse con el vacío de la carga
+  // an ABSENT id is unknown work, and must not be confused with the load's empty one
   assert.ok(!isIdempotentAction(undefined))
-  // la bandera del wire es un opt-IN: nunca saca a una lectura conocida de la lista
+  // the wire flag is an opt-IN: it never takes a known read off the list
   assert.ok(isIdempotentAction('recalcular', true))
   assert.ok(isIdempotentAction('search', false))
 })
@@ -1409,13 +1412,13 @@ test('reintenta una lectura transitoria y JAMÁS una escritura', () => {
   const server = classifyRequestFailure(Object.assign(new Error('x'), { status: 500 }))
   assert.ok(shouldRetry(timeout, 1, { idempotent: true }))
   assert.ok(shouldRetry(server, 1, { idempotent: true }))
-  // tras un timeout no sabemos si el servidor lo aplicó: repetir arriesga un duplicado
+  // after a timeout we don't know whether the server applied it: repeating risks a duplicate
   assert.ok(!shouldRetry(timeout, 1, { idempotent: false }))
   assert.ok(!shouldRetry(server, 1, { idempotent: false }))
-  // el offline lo lleva connectivity, no el bucle de reintentos
+  // offline is handled by connectivity, not by the retry loop
   const offline = classifyRequestFailure(new TypeError('Failed to fetch'), { online: false })
   assert.ok(!shouldRetry(offline, 1, { idempotent: true }))
-  // y hay presupuesto
+  // and there is budget
   assert.ok(shouldRetry(timeout, MAX_RETRIES, { idempotent: true }))
   assert.ok(!shouldRetry(timeout, MAX_RETRIES + 1, { idempotent: true }))
 })
@@ -1443,7 +1446,7 @@ test('el guard deja pasar la primera y descarta la idéntica en vuelo', () => {
   assert.equal(pendingActions.begin(k), false)
   pendingActions.end(k)
   assert.equal(pendingActions.begin(k), true)
-  // el bloqueo es por (componente, acción): otra acción u otro componente no se ven afectados
+  // the lock is per (component, action): another action or another component is not affected
   assert.equal(pendingActions.begin(pendingActions.key('form-1', 'delete')), true)
   assert.equal(pendingActions.begin(pendingActions.key('form-2', 'save')), true)
   pendingActions.reset()
@@ -1477,7 +1480,7 @@ atest('fetchWithPolicy reintenta una lectura ante un 503 y lo reporta como UN so
     const res = await fetchWithPolicy('http://x/', {}, { actionId: 'search' })
     assert.ok(res.ok)
     assert.equal(calls, 2, 'la lectura se reenvió una vez')
-    // N intentos = UN estado de carga y UN resultado de cara a la UI
+    // N attempts = ONE loading state and ONE outcome as far as the UI is concerned
     assert.deepEqual(events, [['start', 'search'], ['settle', 'search', 'ok']])
   } finally {
     globalThis.fetch = original
@@ -1514,10 +1517,10 @@ const remoteApp = (menu, route = '', serverSideType = 'Home') => ({
 })
 
 atest('opción de menú → crud: el App de mediador (ClientSide/App) se sigue y proyecta el listado', async () => {
-  // El bug: al abrir CUALQUIER opción de menú se veía la misma pantalla sin search form ni listado.
-  // La 1ª carga de la ruta llega como App de mediador con forma ClientSide/App (la misma del
-  // bootstrap, pero pedida para una SUB-ruta), que reduceContexts absorbe como shell; mediatorOf
-  // no la ve y la 2ª carga —el contenido del crud— no se disparaba. Ahora se saca del incremento.
+  // The bug: opening ANY menu option showed the same screen with no search form or listing.
+  // The route's 1st load arrives as a mediator App with ClientSide/App shape (the same as the
+  // bootstrap, but requested for a SUB-route), which reduceContexts absorbs as the shell; mediatorOf
+  // does not see it and the 2nd load —the crud's content— was not fired. Now it is taken from the increment.
   const original = globalThis.fetch
   const shellApp = {
     fragments: [{ targetComponentId: '', component: { type: 'ClientSide', metadata: {
@@ -1535,7 +1538,7 @@ atest('opción de menú → crud: el App de mediador (ClientSide/App) se sigue y
   let secondCallSaw = null
   globalThis.fetch = async (_url, init) => {
     const body = JSON.parse(init.body)
-    // El 2º salto es el que lleva consumedRoute + serverSideType del App de mediador.
+    // The 2nd hop is the one carrying the mediator App's consumedRoute + serverSideType.
     if (body.serverSideType) { secondCallSaw = body; return { ok: true, json: async () => crudContent } }
     return { ok: true, json: async () => shellApp }
   }
@@ -1552,8 +1555,8 @@ atest('opción de menú → crud: el App de mediador (ClientSide/App) se sigue y
 })
 
 atest('bootstrap del App (route === rootRoute) NO dispara un 2º salto: es la shell, no contenido', async () => {
-  // El guardarraíl del fix: sólo una navegación POR DEBAJO de la raíz busca contenido. La raíz del
-  // app es la shell/home y la resuelve el bootstrap — seguirla aquí sería una carga de más.
+  // The fix's guardrail: only a navigation BELOW the root looks for content. The app's root
+  // is the shell/home and the bootstrap resolves it — following it here would be one load too many.
   const original = globalThis.fetch
   let calls = 0
   globalThis.fetch = async (_url, init) => {
@@ -1570,7 +1573,7 @@ atest('bootstrap del App (route === rootRoute) NO dispara un 2º salto: es la sh
 })
 
 atest('expandRemoteMenus pide su menú a cada pod y lo pone donde estaba la opción', async () => {
-  // Lo que este renderer no hacía: pintaba el rótulo que la shell escribió y nada debajo.
+  // What this renderer did not do: it painted the label the shell wrote and nothing below it.
   const original = globalThis.fetch
   const asked = []
   globalThis.fetch = async (url) => {
@@ -1589,8 +1592,8 @@ atest('expandRemoteMenus pide su menú a cada pod y lo pone donde estaba la opci
 })
 
 atest('expandRemoteMenus con HAMBURGER_SECTIONS: un pod montado arriba es UNA sección', async () => {
-  // con MENU_ON_TOP sus dos pantallas se pegan en el primer nivel; como secciones, cada una
-  // sería una sección sin segundo nivel
+  // with MENU_ON_TOP its two screens stick to the first level; as sections, each one
+  // would be a section without a second level
   const original = globalThis.fetch
   globalThis.fetch = async () => ({ ok: true, json: async () => remoteApp([
     { label: 'Page', route: '/remote/page' }, { label: 'Things', route: '/remote/things' },
@@ -1606,8 +1609,8 @@ atest('expandRemoteMenus con HAMBURGER_SECTIONS: un pod montado arriba es UNA se
 })
 
 atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async () => {
-  // La mitad que hace que el menú sirva de algo: sin esto la navegación llamaría al base de
-  // la shell, que no conoce esa ruta.
+  // The half that makes the menu good for something: without this the navigation would call the
+  // shell's base, which does not know that route.
   const original = globalThis.fetch
   globalThis.fetch = async () => ({
     ok: true,
@@ -1620,15 +1623,15 @@ atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async ()
     assert.equal(where.baseUrl, '/_workflow')
     assert.equal(where.consumedRoute, '/workflow')
     assert.equal(where.serverSideType, 'WorkflowHome')
-    // También por la forma sin barra inicial, que es como la ve el nav
+    // Also through the form without the leading slash, which is how the nav sees it
     assert.ok(remoteRouteOf('workflow/processes'))
   } finally { globalThis.fetch = original }
 })
 
 atest('un deep-link bajo un GRUPO de un pod que no es ninguna de sus hojas va a ese pod', async () => {
-  // /tasksgrp/task/<id> —la página de una tarea— no está en el menú: sus hojas son /tasksgrp/tasks y
-  // /tasksgrp/executions, y el grupo que las contiene es /tasksgrp. Sin registrar el grupo salía al
-  // backend de la shell, que contestaba "Not found.". La shell (servidor) ya lo reclama así.
+  // /tasksgrp/task/<id> —a task's page— is not in the menu: its leaves are /tasksgrp/tasks and
+  // /tasksgrp/executions, and the group containing them is /tasksgrp. Without registering the group it went out to
+  // the shell's backend, which answered "Not found.". The shell (server) already claims it this way.
   const original = globalThis.fetch
   globalThis.fetch = async () => ({
     ok: true,
@@ -1644,7 +1647,7 @@ atest('un deep-link bajo un GRUPO de un pod que no es ninguna de sus hojas va a 
     assert.equal(where.baseUrl, '/_tasksgrp-admin')
     assert.equal(where.serverSideType, 'TasksGrpHome')
     assert.ok(remoteRouteOf('tasksgrp/task/977984b8'), 'también sin la barra inicial, como la ve el nav')
-    // la hoja sigue ganándole al grupo, y lo que no cuelga del grupo no es del pod
+    // the leaf still beats the group, and what does not hang from the group does not belong to the pod
     assert.equal(remoteRouteOf('/tasksgrp/tasks').baseUrl, '/_tasksgrp-admin')
     assert.equal(remoteRouteOf('/tasksgrpx/task/1'), undefined)
   } finally { globalThis.fetch = original }
@@ -1678,7 +1681,7 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
-    // la caída se queda, deshabilitada y diciendo por qué — igual que en el renderer web
+    // the fallback stays, disabled and saying why — the same as in the web renderer
     assert.equal(menu[1].unavailable, true)
     assert.equal(menu[1].disabled, true)
     assert.match(menu[1].description, /Forms/)
@@ -1711,7 +1714,7 @@ atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
       { remote: true, baseUrl: '/_booking', route: '', path: '/booking', label: 'Call center', shellLabel: true },
       { remote: true, baseUrl: '/_erp', route: '', path: '/erp', label: 'Erp', shellLabel: false },
     ])
-    // declarado: manda la shell; sin declarar (el nombre del campo): manda el pod, como siempre
+    // declared: the shell decides; undeclared (the field name): the pod decides, as always
     assert.deepEqual(menu.map((o) => o.label), ['Call center', 'Reservas'])
     assert.deepEqual(menu[0].submenus.map((o) => o.label), ['Bookings'])
   } finally { globalThis.fetch = original }
@@ -1725,16 +1728,16 @@ test('migas en frío: una sección remota sin contestar da la sección, por su p
     { label: 'Notices', route: '/notices', submenus: [] },
     { remote: true, baseUrl: '/_notices', route: '', path: '/notices', label: 'Avisos' },
   ]
-  // el path del grupo es /admin/forms; las pantallas del pod viven bajo /forms
+  // the group's path is /admin/forms; the pod's screens live under /forms
   assert.deepEqual(autoTrail(menu, '/forms/tasks', { title: 'Tareas' }), [{ text: 'Admin' }, { text: 'Forms' }, { text: 'Tareas' }])
-  // una entrada de verdad gana al prefijo de una sección de la misma longitud
+  // a real entry beats the prefix of a section of the same length
   assert.deepEqual(autoTrail(menu, '/notices/7', { title: 'Aviso 7' }), [{ text: 'Notices', route: '/notices' }, { text: 'Aviso 7' }])
   assert.deepEqual(autoTrail(menu, '/otra', { title: 'x' }), [])
 })
 
 atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (deep-link)', async () => {
-  // `@Menu @Hidden RemoteMenu inbox`: se llega a ella desde un widget de la cabecera. Sin entrada
-  // en el menú, pero una recarga de /inbox/pending tiene que seguir yendo a su pod.
+  // `@Menu @Hidden RemoteMenu inbox`: it is reached from a header widget. No entry
+  // in the menu, but a reload of /inbox/pending must still go to its pod.
   const original = globalThis.fetch
   const asked = []
   globalThis.fetch = async (url) => {
@@ -1749,7 +1752,7 @@ atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (
       { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
     ])
     assert.equal(asked.length, 2, 'la oculta también se pregunta: sus rutas hay que conocerlas')
-    // sigue en el árbol, oculta: no se pinta, pero una página bajo ella tiene sus migas
+    // still in the tree, hidden: it is not painted, but a page under it has its breadcrumbs
     assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Bookings'])
     assert.deepEqual(shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } }).items.map((i) => i.label), ['Bookings'])
     assert.deepEqual(autoTrail(menu, '/inbox/pending/n-7', { title: 'n-7' }), [
@@ -1770,53 +1773,53 @@ atest('una remota oculta que no contesta tampoco deja su rótulo', async () => {
       { label: 'Local', route: '/local' },
     ])
     assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Local'])
-    // el marcador se queda, oculto: la sección se conoce por su prefijo
+    // the marker stays, hidden: the section is known by its prefix
     assert.deepEqual(autoTrail(menu, '/inbox/tasks', { title: 'Tareas' }), [{ text: 'Inbox' }, { text: 'Tareas' }])
   } finally { globalThis.fetch = original }
 })
 
 test('routeFlipOf: un fragmento solo-estado con _route nuevo pide recargar la ruta interna', () => {
-  // Lo que contesta un crud de PÁGINA al clic de fila: ni componente ni navegación, un
-  // `_route` nuevo. Quien no lo sigue se queda en el listado sin un solo error a la vista.
+  // What a PAGE crud answers to a row click: neither a component nor a navigation, a
+  // new `_route`. Whoever does not follow it stays on the listing without a single error in sight.
   const stateOnly = { fragments: [{ targetComponentId: '', component: null, state: { _route: '/2CSXZN' } }] }
   const ctx = { state: { _route: '/2CSXZN' }, outbound: { route: '/booking/bookings' } }
   assert.equal(routeFlipOf({ _route: 'list' }, ctx, stateOnly), '/booking/bookings/2CSXZN')
-  // sin cambio de _route no hay flip…
+  // without a _route change there is no flip…
   assert.equal(routeFlipOf({ _route: '/2CSXZN' }, ctx, stateOnly), null)
-  // …ni cuando la respuesta TRAE componente (eso ya repinta por sí solo)
+  // …nor when the response BRINGS a component (that already repaints on its own)
   const withComponent = { fragments: [{ component: { type: 'ServerSide' }, state: { _route: '/2CSXZN' } }] }
   assert.equal(routeFlipOf({ _route: 'list' }, ctx, withComponent), null)
-  // los marcadores de query del mediador embebido siguen viajando
+  // the embedded mediator's query markers keep travelling
   const embedded = { state: { _route: '/edit' }, outbound: { route: '/pax?_embeddedMediator=1' } }
   assert.equal(routeFlipOf({}, embedded, { fragments: [{ component: null }] }),
     '/pax/edit?_embeddedMediator=1')
 })
 
 test('mediatorBaseOf: un detalle abierto por enlace directo pega su Edit a lo consumido, no a su ruta', () => {
-  // wire real (rw.ec1, booking QN29HB pegado en la barra): la carga va con route
-  // /booking/bookings/QN29HB y consumedRoute /booking/bookings; el Edit contesta _route
-  // /QN29HB/edit. Pegado a la ruta daba /booking/bookings/QN29HB/QN29HB/edit.
+  // real wire (rw.ec1, booking QN29HB pasted in the bar): the load goes with route
+  // /booking/bookings/QN29HB and consumedRoute /booking/bookings; the Edit answers _route
+  // /QN29HB/edit. Appended to the route it gave /booking/bookings/QN29HB/QN29HB/edit.
   const deepLinked = { route: '/booking/bookings/QN29HB', consumedRoute: '/booking/bookings' }
   assert.equal(mediatorBaseOf(deepLinked), '/booking/bookings')
   const stateOnly = { fragments: [{ component: null, state: { _route: '/QN29HB/edit' } }] }
   assert.equal(routeFlipOf({}, { state: { _route: '/QN29HB/edit' }, outbound: deepLinked }, stateOnly),
     '/booking/bookings/QN29HB/edit')
-  // desde el listado ya coincidían
+  // from the listing they already matched
   assert.equal(mediatorBaseOf({ route: '/booking/bookings', consumedRoute: '/booking/bookings' }), '/booking/bookings')
-  // sin consumedRoute (mediador embebido) se queda la ruta, con su query
+  // without consumedRoute (embedded mediator) the route stays, with its query
   assert.equal(mediatorBaseOf({ route: '/pax?_embeddedMediator=1' }), '/pax?_embeddedMediator=1')
-  // una ruta 'null' no se pega nunca
+  // a 'null' route is never appended
   assert.equal(mediatorBaseOf({ route: 'null' }, ''), '')
   assert.equal(mediatorBaseOf({ route: 'null', consumedRoute: '/integrations' }, '/integrations/7'), '/integrations')
 })
 
 atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compuesta', async () => {
-  // La forma REAL de un menú federado (ec-demo1): la shell declara la sección `Booking` como
-  // remota, y el pod NO contesta con hojas sueltas sino con SU grupo — `Booking` con
-  // `/booking/bookings` debajo. El nav recorta el prefijo del padre a los hijos porque una ruta
-  // compuesta de menú LOCAL no resuelve por sync; aplicado a una hoja de otro pod, ese recorte
-  // la dejaba en `/bookings`, que no la sirve nadie: ni casa con el registro de rutas remotas
-  // ni existe en la shell. El resultado era un crud que contestaba "Not found." al abrirlo.
+  // The REAL shape of a federated menu (ec-demo1): the shell declares the `Booking` section as
+  // remote, and the pod does NOT answer with loose leaves but with ITS group — `Booking` with
+  // `/booking/bookings` under it. The nav trims the parent's prefix off the children because a composed
+  // LOCAL menu route does not resolve via sync; applied to a leaf of another pod, that trim
+  // left it at `/bookings`, which nobody serves: it neither matches the remote route registry
+  // nor exists in the shell. The result was a crud that answered "Not found." when opened.
   const original = globalThis.fetch
   globalThis.fetch = async () => ({
     ok: true,
@@ -1833,7 +1836,7 @@ atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compu
     const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
     const group = nav.menuTree.find((m) => m.hasChildren)
     assert.deepEqual(group.children.map((c) => c.id), ['/booking/bookings'])
-    // …y por esa ruta el registro sabe a qué pod ir, con qué consumedRoute y qué serverSideType
+    // …and through that route the registry knows which pod to go to, with which consumedRoute and which serverSideType
     const where = remoteRouteOf('/booking/bookings')
     assert.equal(where.baseUrl, '/_booking')
     assert.equal(where.consumedRoute, '')
@@ -1842,10 +1845,10 @@ atest('un pod que contesta con un GRUPO: la hoja adoptada conserva su ruta compu
 })
 
 atest('una shell federada de TRES niveles conserva el nivel de abajo', async () => {
-  // La shell agrupa `Admin` y mete DENTRO tres pods; cada pod contesta con SU grupo y sus
-  // pantallas debajo. El árbol resultante tiene tres niveles, y el proyector solo modelaba dos:
-  // el grupo del pod quedaba como si fuese pantalla —clic → ruta de grupo → contenido vacío— y
-  // sus pantallas no aparecían en ninguna parte.
+  // The shell groups `Admin` and puts three pods INSIDE it; each pod answers with ITS group and its
+  // screens under it. The resulting tree has three levels, and the projector only modelled two:
+  // the pod's group was left as if it were a screen —click → group route → empty content— and
+  // its screens appeared nowhere.
   const original = globalThis.fetch
   globalThis.fetch = async () => ({
     ok: true,
@@ -1876,10 +1879,10 @@ atest('una shell federada de TRES niveles conserva el nivel de abajo', async () 
 })
 
 atest('deep-link a una sub-ruta: el mediador consume SU ruta, no la entera', async () => {
-  // Entrando por el enlace del detalle de un proceso salía el LISTADO: el mediador contesta con
-  // rootRoute = la ruta que se pidió (la entera) y homeConsumedRoute = la suya
-  // (/workflow/processes). Mandando la entera como consumedRoute el servidor sirve la vista por
-  // defecto del crud.
+  // Entering through the link to a process's detail showed the LISTING: the mediator answers with
+  // rootRoute = the requested route (the whole one) and homeConsumedRoute = its own
+  // (/workflow/processes). Sending the whole one as consumedRoute the server serves the crud's
+  // default view.
   const original = globalThis.fetch
   const consumed = []
   globalThis.fetch = async (url, init) => {
@@ -1908,8 +1911,8 @@ atest('deep-link a una sub-ruta: el mediador consume SU ruta, no la entera', asy
 })
 
 atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado', async () => {
-  // Al registro solo llegan las rutas del MENÚ. Un deep-link al detalle de un proceso
-  // (/workflow/processes/<id>) no casaba con nada y salía al backend de la shell → "Not found.".
+  // Only the MENU's routes reach the registry. A deep link to a process's detail
+  // (/workflow/processes/<id>) matched nothing and went out to the shell's backend → "Not found.".
   const original = globalThis.fetch
   globalThis.fetch = async () => ({
     ok: true,
@@ -1921,9 +1924,9 @@ atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado',
     assert.ok(detalle, 'el detalle no encontró su pod')
     assert.equal(detalle.baseUrl, '/_workflow')
     assert.equal(remoteRouteOf('/workflow/processes/4df04a98/edit').baseUrl, '/_workflow')
-    // lo que no cuelga de una ruta registrada NO se adopta (un prefijo no es un "empieza por").
-    // /workflow/processesXX ya no sirve de ejemplo: cuelga del GRUPO /workflow que otro test le
-    // registró al mismo pod, y bajo un grupo del pod, es del pod
+    // what does not hang from a registered route is NOT adopted (a prefix is not a "starts with").
+    // /workflow/processesXX no longer works as an example: it hangs from the GROUP /workflow that another test
+    // registered for the same pod, and under a group of the pod, it belongs to the pod
     assert.equal(remoteRouteOf('/workflowXX/processes'), undefined)
     assert.equal(remoteRouteOf('/workflow/processes').baseUrl, '/_workflow')
     assert.equal(remoteRouteOf('/otra/cosa'), undefined)
@@ -1931,9 +1934,9 @@ atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado',
 })
 
 atest('una hoja LOCAL bajo un grupo se navega por su ruta compuesta (como Vaadin)', async () => {
-  // El contrapunto del test anterior: sin baseUrl no hay pod. La ruta compuesta (/gestion/person)
-  // resuelve con el serverSideType del app — loadMenuRouteInto lo añade, y cae a la terminal si
-  // el servidor no la reconoce (un RouteLink de grupo); ver test-pms.mjs.
+  // The counterpoint to the previous test: without a baseUrl there is no pod. The composed route (/gestion/person)
+  // resolves with the app's serverSideType — loadMenuRouteInto adds it, and falls back to the terminal if
+  // the server does not recognise it (a group RouteLink); see test-pms.mjs.
   const nav = shellNavOf({ shell: { menu: [
     { label: 'Gestion', route: '/gestion', submenus: [{ label: 'Person', route: '/gestion/person' }] },
   ] } })
@@ -1941,9 +1944,9 @@ atest('una hoja LOCAL bajo un grupo se navega por su ruta compuesta (como Vaadin
 })
 
 atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí', async () => {
-  // La segunda mitad del mismo fallo: con la ruta ya bien resuelta, el crud pintaba columnas y
-  // toolbar pero SIN filas — el trigger `search` que el listado pide al cargar salía al base de
-  // la shell, que contesta 200 con cero fragments. Un listado vacío y ni un error a la vista.
+  // The second half of the same failure: with the route already resolved properly, the crud painted columns and
+  // toolbar but WITHOUT rows — the `search` trigger the listing asks for on load went out to the shell's
+  // base, which answers 200 with zero fragments. An empty listing and not one error in sight.
   const original = globalThis.fetch
   const asked = []
   globalThis.fetch = async (url) => {
@@ -1962,10 +1965,10 @@ atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí'
 })
 
 atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
-  // La regresión que esto fija: el bootstrap autenticaba y guardaba el token, y NADA lo leía.
-  // Cada llamada salía sin cabecera, el gateway devolvía 401, y el clasificador lo traducía a
-  // "tu sesión ya no es válida" — con la sesión perfectamente viva. La consola cargaba sin un
-  // solo menú.
+  // The regression this pins: the bootstrap authenticated and stored the token, and NOTHING read it.
+  // Every call went out without the header, the gateway returned 401, and the classifier translated it into
+  // "your session is no longer valid" — with the session perfectly alive. The console loaded without a
+  // single menu.
   connectivity.reset()
   let seen = null
   const originalFetch = globalThis.fetch
@@ -1976,7 +1979,7 @@ atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
     await fetchWithPolicy('http://x/', { headers: { 'Content-Type': 'application/json' } },
                           { actionId: 'search' })
     assert.equal(seen.headers.Authorization, 'Bearer un-token')
-    // Y sin pisar lo que el llamante ya traía.
+    // And without overwriting what the caller already brought.
     assert.equal(seen.headers['Content-Type'], 'application/json')
   } finally {
     globalThis.fetch = originalFetch
@@ -1986,9 +1989,9 @@ atest('fetchWithPolicy adjunta el token que dejó el bootstrap', async () => {
 })
 
 atest('fetchWithPolicy ante un 401 pide reautenticar y reenvía UNA vez con el token nuevo', async () => {
-  // El token caduca entre dos refrescos (pestaña dormida): la petición vuelve 401. En vez de
-  // enseñar "tu sesión ya no es válida", se lanza mateu-session-expired; el bootstrap refresca,
-  // deja el token nuevo y llama a retry, y la petición sale otra vez — con ESE token.
+  // The token expires between two refreshes (sleeping tab): the request comes back 401. Instead of
+  // showing "your session is no longer valid", mateu-session-expired is fired; the bootstrap refreshes,
+  // leaves the new token and calls retry, and the request goes out again — with THAT token.
   connectivity.reset()
   const sent = []
   let token = 'caducado'
@@ -2030,7 +2033,7 @@ atest('fetchWithPolicy ante un 401 sin nadie que reautentique falla como siempre
     await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
       (e) => e.failure && e.failure.kind === 'unauthorized')
     assert.equal(calls, 1)
-    // Con alguien que reautentica pero el 401 persiste: un reintento, no más.
+    // With someone who re-authenticates but the 401 persists: one retry, no more.
     calls = 0
     globalThis.document.addEventListener('mateu-session-expired', (e) => { e.preventDefault(); e.detail.retry() })
     await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'search' }),
@@ -2044,8 +2047,8 @@ atest('fetchWithPolicy ante un 401 sin nadie que reautentique falla como siempre
 })
 
 atest('fetchWithPolicy: dos 401 a la vez comparten UN refresco, y los dos salen con el token nuevo', async () => {
-  // La pestaña vuelve del fondo: el badge del inbox y la sincronización del banner salen con el
-  // token caducado y vuelven 401 juntos. Un solo refresco forzado, no uno por petición.
+  // The tab comes back from the background: the inbox badge and the banner sync go out with the
+  // expired token and come back 401 together. A single forced refresh, not one per request.
   connectivity.reset()
   const sent = []
   let token = 'caducado'
@@ -2059,7 +2062,7 @@ atest('fetchWithPolicy: dos 401 a la vez comparten UN refresco, y los dos salen 
   globalThis.document.addEventListener('mateu-session-expired', (e) => {
     e.preventDefault()
     refreshes++
-    // el refresco tarda: el segundo 401 llega con éste aún en marcha
+    // the refresh takes a while: the second 401 arrives with this one still running
     pending.push(() => { token = 'nuevo'; e.detail.retry() })
   })
   let rejected = 0
@@ -2087,8 +2090,8 @@ atest('fetchWithPolicy: dos 401 a la vez comparten UN refresco, y los dos salen 
 })
 
 atest('fetchWithPolicy: un 401 de una petición que salió ANTES del refresco se reenvía sin forzar otro', async () => {
-  // El visibilitychange ya dejó el token nuevo mientras la petición volaba con el viejo: basta
-  // con reenviar, sin tirar el token recién emitido pidiendo otro.
+  // The visibilitychange already left the new token while the request was flying with the old one: it is enough
+  // to resend, without throwing away the freshly issued token by asking for another.
   connectivity.reset()
   const sent = []
   let token = 'caducado'
@@ -2104,7 +2107,7 @@ atest('fetchWithPolicy: un 401 de una petición que salió ANTES del refresco se
   globalThis.fetch = async (url, init) => {
     sent.push(init.headers.Authorization)
     if (init.headers.Authorization === 'Bearer caducado') {
-      token = 'nuevo' // el refresco del bootstrap aterriza con la petición en vuelo
+      token = 'nuevo' // the bootstrap's refresh lands with the request in flight
       return { ok: false, status: 401, text: async () => '' }
     }
     return { ok: true, json: async () => ({}) }
@@ -2147,8 +2150,8 @@ atest('fetchWithPolicy: si el refresco falla, el 401 acaba en "sesión no válid
 })
 
 atest('fetchWithPolicy: un 403 no refresca la sesión ni dice que haya caducado', async () => {
-  // Un 403 es una negativa de verdad (p. ej. una acción que la vista no declara): ni se pide
-  // reautenticar ni se manda al usuario a un login que no lo arregla.
+  // A 403 is a real refusal (e.g. an action the view does not declare): neither is re-authentication
+  // requested nor is the user sent to a login that does not fix it.
   connectivity.reset()
   let calls = 0
   let raised = 0
@@ -2175,8 +2178,8 @@ atest('fetchWithPolicy: un 403 no refresca la sesión ni dice que haya caducado'
 })
 
 atest('fetchWithPolicy llama sin cabecera cuando no hay token, en vez de no llamar', async () => {
-  // Sin token se sigue adelante: que conteste el backend. Un 401 explicado es mejor que una
-  // pantalla en blanco que no ha preguntado a nadie.
+  // Without a token we carry on: let the backend answer. An explained 401 is better than a
+  // blank screen that has asked nobody.
   connectivity.reset()
   let seen = null
   const originalFetch = globalThis.fetch
@@ -2202,7 +2205,7 @@ atest('fetchWithPolicy envía una escritura EXACTAMENTE una vez ante un 503, con
     await assert.rejects(
       () => fetchWithPolicy('http://x/', {}, { actionId: 'save' }),
       (e) => {
-        assert.equal(e.failure.kind, 'server')     // el error viaja clasificado
+        assert.equal(e.failure.kind, 'server')     // the error travels classified
         assert.ok(e.failure.message.includes('503'))
         return true
       },
@@ -2218,7 +2221,7 @@ atest('fetchWithPolicy corta una petición colgada por timeout — fetch no trae
   connectivity.reset()
   const original = globalThis.fetch
   globalThis.fetch = (url, init) => new Promise((_, reject) => {
-    // simula el servidor que nunca responde: sólo termina cuando abortamos
+    // simulates the server that never answers: it only ends when we abort
     init.signal.addEventListener('abort', () => {
       reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
     })
@@ -2227,7 +2230,7 @@ atest('fetchWithPolicy corta una petición colgada por timeout — fetch no trae
     await assert.rejects(
       () => fetchWithPolicy('http://x/', {}, { actionId: 'save', timeoutMillis: 60 }),
       (e) => {
-        assert.equal(e.failure.kind, 'timeout')   // no 'cancelled': al usuario sí le importa
+        assert.equal(e.failure.kind, 'timeout')   // not 'cancelled': the user does care
         return true
       },
     )
@@ -2255,7 +2258,7 @@ atest('timeoutMillis negativo = sin ceiling, para un stream que dura lo que dure
   }
 })
 
-// ── static bundle (modo sin backend) ──────────────────────────────────────────────────────
+// ── static bundle (backend-less mode) ──────────────────────────────────────────────────────
 test('bundle: toSyncPath refleja el transporte/web', () => {
   assert.equal(toSyncPath(''), '_no_route')
   assert.equal(toSyncPath('/'), '_no_route')
@@ -2268,10 +2271,10 @@ test('bundle: matchBundledTemplate casa :param e inyecta el param en state y dat
     { regex: /^orders\/([^/]+)$/, paramNames: ['id'],
       increment: { fragments: [{ targetComponentId: null, state: { id: '__mateu_param__' } }] } },
   ])
-  assert.equal(getBundledIncrement('orders/42'), undefined) // una plantilla no es entrada exacta
+  assert.equal(getBundledIncrement('orders/42'), undefined) // a template is not an exact entry
   const inc = matchBundledTemplate('orders/42')
   assert.ok(inc)
-  assert.equal(inc.fragments[0].state.id, '42')  // el valor real gana al placeholder
+  assert.equal(inc.fragments[0].state.id, '42')  // the real value wins over the placeholder
   assert.equal(inc.fragments[0].data.id, '42')
   assert.equal(matchBundledTemplate('customers/7'), undefined)
   __setBundleForTests(undefined)
@@ -2284,10 +2287,10 @@ test('bundle: bundledIncrementFor re-apunta el targetComponentId nulo al initiat
   __setBundleForTests(undefined)
 })
 
-// ── registro de rutas embarcado (el routes.yaml del mount, dentro del manifest) ───────────────
-// La precedencia tiene que ser IDÉNTICA a la del servidor y a la de libs/mateu; si no, la misma
-// ruta se comportaría distinto según el renderer o según haya backend:
-//   fixed > path > lo que ya trae el increment > defaults
+// ── shipped route registry (the mount's routes.yaml, inside the manifest) ──────────────────────
+// The precedence has to be IDENTICAL to the server's and to libs/mateu's; otherwise the same
+// route would behave differently depending on the renderer or on whether there is a backend:
+//   fixed > path > what the increment already brings > defaults
 const inc1 = (state) => ({ fragments: [{ state, data: {} }] })
 const st = (inc) => (inc && inc.fragments && inc.fragments[0].state) || {}
 
@@ -2323,7 +2326,7 @@ test('registro: un fijado gana también al parámetro del path con su mismo nomb
 })
 
 test('registro: una ruta parametrizada NO se traga a su hermana estática', () => {
-  // orders/:id se declara ANTES a propósito: el matching no puede depender del orden.
+  // orders/:id is declared FIRST on purpose: the matching cannot depend on the order.
   __setBundleForTests(undefined, [], [
     { route: 'orders/:id', viewModel: 'Detail' },
     { route: 'orders/new', viewModel: 'New' },
@@ -2453,7 +2456,7 @@ atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO est
   __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
   connectivity.reset()
   const original = globalThis.fetch
-  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') } // backend caído
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') } // backend down
   try {
     const inc = await bootstrapShell('https://x', 'shell')
     assert.ok(inc && inc.fragments, 'la shell debe arrancar desde el bundle sin backend')
@@ -2465,12 +2468,12 @@ atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO est
   }
 })
 
-// ── Filtros del listado ────────────────────────────────────────────────────────
-// Un listado declara sus filtros en el wire y el buscador tiene que ofrecerlos TODOS: antes
-// sólo salían los de opciones —y sólo el primero—, así que un booleano, un lookup y dos
-// fechas no existían para el usuario aunque el server los mandara. El kind se precomputa
-// aquí porque las plantillas de VB corren bajo CSP; el orden de resolución es el mismo de la
-// barra compartida (rango → multi → opciones → booleano → texto).
+// ── Listing filters ────────────────────────────────────────────────────────────
+// A listing declares its filters on the wire and the search box has to offer ALL of them: before,
+// only the option ones came out —and only the first—, so a boolean, a lookup and two
+// dates did not exist for the user even though the server sent them. The kind is precomputed
+// here because VB templates run under CSP; the resolution order is the same as the shared
+// bar's (range → multi → options → boolean → text).
 
 const PROCESS_FILTERS = [
   { fieldId: 'onlyErrors', label: 'Only errors', stereotype: 'regular', dataType: 'bool' },
@@ -2540,10 +2543,10 @@ test('multi: los valores llegan como lista o como cadena separada por comas', ()
   assert.deepEqual(multiValuesOf(null), [])
 })
 
-// ── Filtros DENTRO de la cabecera del buscador (smartFilters de oj-sp-smart-filter-search) ──
-// Los filtros ya no son una fila propia bajo el componente —quedaba al otro lado de la franja
-// de color de Redwood—: viajan por su API. Sugerencias = filtros sin aplicar; value = los
-// aplicados (y el texto libre como keyword); filtersMetadata = el editor de cada uno.
+// ── Filters INSIDE the search box header (smartFilters of oj-sp-smart-filter-search) ──
+// The filters are no longer a row of their own under the component —it ended up on the other side of
+// Redwood's colour strip—: they travel through its API. Suggestions = unapplied filters; value = the
+// applied ones (and the free text as keyword); filtersMetadata = each one's editor.
 
 const BOOKING_FILTERS = [
   { fieldId: 'hotel', label: 'Hotel', stereotype: 'select', dataType: 'string', options: [] },
@@ -2566,7 +2569,7 @@ test('smart filters: el editor de cada kind es el widget de oj-dynamic que toca'
   assert.deepEqual(valueOf('status').options.map((o) => o.value), ['Pending', 'Confirmed'])
   assert.equal(valueOf('vista').componentType, 'oj-select-single')
   assert.deepEqual(valueOf('vip').options.map((o) => o.value), ['true', 'false'])
-  // gte/lte con esa forma exacta: el componente reconoce el rango y lo pinta "desde - hasta"
+  // gte/lte with that exact shape: the component recognises the range and paints it "from - to"
   const arrival = valueOf('arrival')
   assert.equal(arrival.type, 'object')
   assert.equal(arrival.properties.gte.componentType, 'oj-input-date')
@@ -2604,7 +2607,7 @@ test('smart filters: los chips del componente vuelven a texto + valores del comp
     { filter: 'keyword', label: 'hoy', value: 'hoy' },
     { filter: 'arrival', label: 'Arrival', value: { gte: '2026-09-01', lte: '2026-09-30' } },
     { filter: 'status', label: 'Pending', filterLabel: 'Status', value: ['Pending'] },
-    { filter: 'vista', label: 'Vista', filterLabel: 'Vista' }, // recién sugerido: aún sin valor
+    { filter: 'vista', label: 'Vista', filterLabel: 'Vista' }, // just suggested: no value yet
     { filter: 'desconocido', label: 'x', value: 'y' },
   ])
   assert.equal(state.searchText, 'sale hoy')
@@ -2634,17 +2637,17 @@ atest('smart filters: las sugerencias excluyen los filtros aplicados y filtran p
 atest('smart filters: el desplegable del buscador ofrece un filtro por fila, sin los aplicados y filtrado por texto', async () => {
   const rows = smartFilterDropdownRowsOf(BOOKING_FILTERS)
   assert.equal(rows.length, BOOKING_FILTERS.length)
-  // cada fila, un chip complejo (sin valor) de su filtro, con el icono de «sugerencia»
+  // each row, a complex chip (no value) of its filter, with the «suggestion» icon
   assert.deepEqual(rows[0].chips.map((c) => c.filter), [rows[0].id])
   assert.equal(rows[0].category, 'suggestion')
-  // un rango lleva las claves de su valor: sin ellas el editor del popup sale vacío
+  // a range carries its value's keys: without them the popup's editor comes out empty
   const range = rows.filter((r) => r.chips[0].value && 'gte' in r.chips[0].value)[0]
   assert.ok(range, 'hay un filtro de rango')
   const dp = suggestionsProviderOf(rows)
   const criterion = { op: '$and', criteria: [{ op: '$ne', value: { filters: [{ filter: 'vista' }] } }, { text: '' }] }
   const it = dp.fetchFirst({ filterCriterion: criterion })[Symbol.asyncIterator]()
   const first = await it.next()
-  // un bloque con datos y después el final vacío, como un ArrayDataProvider
+  // a block with data and then the empty end, like an ArrayDataProvider
   assert.equal(first.done, false)
   const last = await it.next()
   assert.equal(last.done, true)
@@ -2657,7 +2660,7 @@ atest('smart filters: el desplegable del buscador ofrece un filtro por fila, sin
   assert.equal(page.results.length, 2)
   const byKeys = await dp.fetchByKeys({ keys: new Set(['status']) })
   assert.equal(byKeys.results.get('status').data.chips[0].label, 'Status')
-  // el total depende del texto tecleado: desconocido (con el de todas, la lista repetía filas)
+  // the total depends on the typed text: unknown (with the total of all, the list repeated rows)
   assert.equal(await dp.getTotalSize(), -1)
 })
 
@@ -2666,7 +2669,7 @@ atest('smart filters: la config completa lleva sugerencias y metadata; sin filtr
   try {
     const config = await smartFiltersOf(BOOKING_FILTERS, { vista: 'IN_HOUSE' }, '')
     assert.equal(config.value.length, 1)
-    // los filtros sin aplicar van en el DESPLEGABLE del buscador, no como botones bajo la caja
+    // the unapplied filters go in the search box's DROPDOWN, not as buttons under the box
     assert.equal(typeof config.suggestions.fetchFirst, 'function')
     assert.equal(config.suggestionFilters, undefined)
     assert.equal(config.filtersMetadata.provided.discriminator, 'filter')
@@ -2687,14 +2690,14 @@ test('smart filters: las plantillas pintan los filtros DENTRO de la cabecera, no
     assert.match(h, /smart-filters="\[\[ \$application\.variables\.mateuSmartFilters \]\]"/)
     assert.match(h, /on-smart-filters-changed="\[\[ \$listeners\.smartFiltersChanged \]\]"/)
   }
-  // ningún chip de filtro propio fuera del componente (quedaba bajo la franja de color)
+  // no filter chip of our own outside the component (it ended up under the colour strip)
   const outside = headers.reduce((acc, h) => acc.replace(h, ''), html)
   assert.equal(/<oj-sp-filter-chip/.test(outside), false, 'no hay fila de filtros fuera del componente')
   assert.equal(/mateuFilterChips|mateuFilterEditing/.test(html), false)
-  // la navegación proyecta la config; la búsqueda lanzada por el componente no la reasigna
+  // the navigation projects the config; the search fired by the component does not reassign it
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateuSmartFilters = await bridge\.smartFiltersOf\(/)
   assert.equal(/mateuSmartFilters\s*=/.test(webApp('flows/main/pages/main-start-page-chains/runMateuSearch.js')), false)
-  // las sugerencias (sin aplicar) no enseñan la parte de valor: un rango vacío se leería "Llegada -"
+  // the (unapplied) suggestions do not show the value part: an empty range would read "Llegada -"
   assert.match(webApp('resources/css/app.css'),
     /oj-sp-smart-filter-search \.oj-sp-filter-chip-non-applied \.oj-sp-filter-chip-non-applied-value-count-focusable \{\s*display: none;/)
 })
@@ -2727,14 +2730,14 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   const shell = webApp('pages/shell-page.html')
   const dialog = shell.match(/<oj-dialog id="mateuAskOracle"[\s\S]*?<\/oj-dialog>/)[0]
   assert.equal(/mateuChatInput|mateuChatMode|chatShowChat/.test(dialog), false, 'la paleta es sólo el buscador')
-  // ya no hay FAB del chat: el que queda en la esquina es sólo el de Ask Oracle
+  // there is no chat FAB any more: the one left in the corner is only Ask Oracle's
   assert.equal(/mateuChatFab|mateu-chat-fab/.test(shell), false, 'sin FAB del chat')
   assert.equal(/mateu-chat-fab/.test(webApp('resources/css/app.css')), false)
-  // el botón: en las acciones de la cabecera global (slot end), antes de los widgets del App,
-  // sólo si la app declara el chat; su icono Redwood y su etiqueta (display=icons → aria-label +
-  // tooltip), y marcado mientras el panel está abierto
+  // the button: in the global header's actions (slot end), before the App's widgets,
+  // only if the app declares the chat; its Redwood icon and its label (display=icons → aria-label +
+  // tooltip), and marked while the panel is open
   const header = shell.match(/<oj-sp-global-header[\s\S]*?<\/oj-sp-global-header>/)[0]
-  const end = header.match(/<div slot="end"[\s\S]*?<!-- ÁREA DE PERFIL/)[0]
+  const end = header.match(/<div slot="end"[\s\S]*?<!-- PROFILE AREA/)[0]
   const toggle = end.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatSseUrl \]\]">\s*<oj-button id="mateuChatToggle"[\s\S]*?<\/oj-button>/)
   assert.ok(toggle, 'el botón del chat está en la zona de acciones, sólo con sseUrl')
   assert.ok(end.indexOf('id="mateuChatToggle"') < end.indexOf('mateu-header-widgets'), 'antes de los widgets')
@@ -2749,8 +2752,8 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   const chain = webApp('pages/shell-page-chains/toggleMateuChat.js')
   assert.match(chain, /#mateuChatToggle button/, 'al cerrar, el foco vuelve al botón')
   assert.match(chain, /setAttribute\('aria-expanded', open \? 'true' : 'false'\)/)
-  // el drawer: START de un oj-drawer-layout (reflow en ancho, overlay en estrecho) que envuelve
-  // el contenido — no un oj-drawer-popup, que taparía la pantalla
+  // the drawer: START of an oj-drawer-layout (reflow when wide, overlay when narrow) wrapping
+  // the content — not an oj-drawer-popup, which would cover the screen
   const layout = shell.match(/<oj-drawer-layout id="mateuChatDrawer"[\s\S]*?>/)[0]
   assert.match(layout, /start-opened="\[\[ \$application\.variables\.mateuChatOpen \]\]"/)
   assert.match(layout, /on-oj-before-close="\[\[ \$listeners\.chatClose \]\]"/)
@@ -2760,7 +2763,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" :aria-label="\[\[ \$application\.translations\.appBundle\.chatPanel \]\]"/)
   assert.match(shell, /id="mateuChatInput"/)
   assert.match(shell, /aria-live="polite"/)
-  // cableado: listeners y cadena
+  // wiring: listeners and chain
   const page = JSON.parse(webApp('pages/shell-page.json'))
   assert.equal(page.eventListeners.chatToggle.chains[0].chain, 'toggleMateuChat')
   assert.equal(page.eventListeners.chatClose.chains[0].parameters.open, false)
@@ -2768,8 +2771,8 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   const flow = JSON.parse(webApp('app-flow.json'))
   assert.equal(flow.variables.mateuChatOpen.defaultValue, false)
   assert.equal(flow.variables.mateuChatMode, undefined)
-  // el envío conserva streaming + agente por ruta y presenta el token, leído en CADA envío y
-  // recuperando un 401 como el resto del tráfico
+  // sending keeps streaming + per-route agent and presents the token, read on EVERY send and
+  // recovering a 401 like the rest of the traffic
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /currentRoute: vars\.mateuSelectedRoute/)
   assert.match(send, /headers: \(\) => bridge\.authHeadersOf\(\)/)
@@ -2788,12 +2791,12 @@ test('chat: la respuesta del asistente se pinta como markdown, con el HTML escap
   assert.equal(md('línea 1\nlínea 2'), '<p>línea 1<br>línea 2</p>')
   assert.equal(md('| Hotel | Estado |\n|---|---|\n| MRU01 | ACTIVE |'),
     '<table><thead><tr><th>Hotel</th><th>Estado</th></tr></thead><tbody><tr><td>MRU01</td><td>ACTIVE</td></tr></tbody></table>')
-  // el código, tal cual y escapado; sin cerrar (el stream a medias) llega hasta el final
+  // the code, as is and escaped; unclosed (the stream half done) it runs to the end
   assert.equal(md('```\n<b>x</b>\n```'), '<pre><code>&lt;b&gt;x&lt;/b&gt;</code></pre>')
   assert.equal(md('```\nmedio'), '<pre><code>medio</code></pre>')
-  // a medias, un ** sin pareja es texto
+  // half done, an unpaired ** is text
   assert.equal(md('Hay **2'), '<p>Hay **2</p>')
-  // seguridad: el HTML del texto sale como texto, y solo hay enlaces http(s), en otra pestaña
+  // security: the text's HTML comes out as text, and there are only http(s) links, in another tab
   assert.equal(md('<script>alert(1)</script><img src=x onerror=alert(1)>'),
     '<p>&lt;script&gt;alert(1)&lt;/script&gt;&lt;img src=x onerror=alert(1)&gt;</p>')
   assert.equal(md('[x](javascript:alert(1))'), '<p>[x](javascript:alert(1))</p>')
@@ -2801,7 +2804,7 @@ test('chat: la respuesta del asistente se pinta como markdown, con el HTML escap
     '<p><a href="https://a.b/c?d=1&amp;e=&quot;2&quot;" target="_blank" rel="noopener noreferrer">doc</a></p>')
   assert.equal(md(''), '')
   assert.equal(md(null), '')
-  // la burbuja del asistente lo pinta con oj-bind-dom (la de la persona, texto tal cual)
+  // the assistant's bubble paints it with oj-bind-dom (the person's, text as is)
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /<oj-bind-dom config="\[\[ \$functions\.chatMessageDom\(\$current\.data\.text\) \]\]"><\/oj-bind-dom>/)
   assert.match(shell, /<span class="mateu-chat-user-text"><oj-bind-text value="\[\[ \$current\.data\.text \]\]"><\/oj-bind-text><\/span>/)
@@ -2812,24 +2815,24 @@ test('chat: la respuesta del asistente se pinta como markdown, con el HTML escap
 
 test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
   const shell = webApp('pages/shell-page.html')
-  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- Navigator PERSISTENTE/)[0]
-  // la respuesta vacía no se pinta; la fila de estado, con el progress circle de JET, sí
+  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- PERSISTENT navigator/)[0]
+  // the empty response is not painted; the status row, with JET's progress circle, is
   assert.match(panel, /<oj-bind-if test="\[\[ \$current\.data\.role === 'user' \|\| !!\$current\.data\.text \]\]">/)
   const status = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatStatus \]\]">[\s\S]*?<\/oj-bind-if>/)[0]
   assert.match(status, /<oj-progress-circle size="sm" value="-1"/)
   assert.match(status, /role="status"/)
-  // tokens: badges de JET, sólo cuando hay alguno
+  // tokens: JET badges, only when there is any
   const tokens = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatTokens \]\]">[\s\S]*?id="mateuChatTokens"/)
   assert.ok(tokens, 'la fila de tokens sale sólo con tokens')
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensIn/)
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensOut/)
-  // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
+  // microphone: Redwood icon oj-button, only where there is speech recognition, before the field
   const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-bind-if test="\[\[ !\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
   assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
   assert.match(mic[0], /oj-ux-ico-mic-on/)
   assert.match(mic[0], /\$listeners\.chatMic/)
   assert.ok(panel.indexOf('id="mateuChatMic"') < panel.indexOf('id="mateuChatInput"'))
-  // cableado: listener, imports, variables y cadenas
+  // wiring: listener, imports, variables and chains
   const page = JSON.parse(webApp('pages/shell-page.json'))
   assert.equal(page.eventListeners.chatMic.chains[0].chain, 'chatMic')
   assert.equal(page.imports.components['oj-progress-circle'].path, 'ojs/ojprogress-circle')
@@ -2840,12 +2843,12 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.chatStatusText\(/)
   assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
-  // el agente manda el uso de toda la conversación: se sustituye, no se suma
+  // the agent sends the usage of the whole conversation: it is replaced, not added
   assert.match(send, /mateuChatTokens = bridge\.latestUsage\(/)
-  // la fila de estado lee el progreso que informa el agente
+  // the status row reads the progress the agent reports
   assert.match(send, /onProgress: \(p\) => \{\s*progress = p;\s*vars\.mateuChatSteps = bridge\.chatToolStepsOf\(p\);\s*showStatus\(\);\s*\}/)
   assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
-  // y un navigation-requested navega al acabar, si no hay pantalla generada
+  // and a navigation-requested navigates when done, if there is no generated screen
   assert.match(send, /ev\.event === 'navigation-requested'/)
   assert.match(send, /\} else if \(navigateTo\) \{\s*await Actions\.callChain\(context, \{\s*chain: 'onMateuNavigate'/)
   assert.match(send, /clearInterval\(ticking\)/)
@@ -2874,7 +2877,7 @@ test('chat: el stream presenta el token de la sesión; sin token, sin cabecera',
   }
 })
 
-// ── Chat de IA (núcleo de transporte, paridad con mateu-chat) ───────────────────
+// ── AI chat (transport core, parity with mateu-chat) ───────────────────
 test('chat: buildChatMenuContext aplana el menú a path + navigation (salta separador/remoto)', () => {
   const menu = [
     { label: 'Bookings', submenus: [
@@ -2907,7 +2910,7 @@ test('chat: los discriminadores de payload distinguen uso, evento y texto', () =
   assert.equal(tryParseCustomEvent('texto plano'), null)
 })
 
-// Un doble de reader SSE: emite los trozos dados y luego {done:true}.
+// An SSE reader double: emits the given chunks and then {done:true}.
 const sseResponse = (chunks) => {
   const enc = new TextEncoder()
   let i = 0
@@ -2921,7 +2924,7 @@ atest('chat: streamChat lee por EVENTO: un texto por evento es una línea, y buf
   const texts = []
   const out = await streamChat({
     url: '/sse', body: { message: 'hola' },
-    // el 2º evento llega partido en trozos → se bufferea hasta la línea en blanco que lo cierra
+    // the 2nd event arrives split into chunks → it is buffered until the blank line that closes it
     fetchImpl: async () => sseResponse(['data: uno\n\n', 'data: d', 'os\n', '\n']),
     onText: (t) => texts.push(t),
   })
@@ -2962,7 +2965,7 @@ atest('chat: los trozos (agent-delta) se añaden y la respuesta entera del final
   })
   assert.deepEqual(deltas, ['Te ', 'llevo.\n'])
   assert.equal(out, 'Te llevo ahora.')
-  // el uso todo-cero (marcador de agentes anteriores) no llega; el real sí
+  // the all-zero usage (marker of previous agents) does not get through; the real one does
   assert.deepEqual(texts, ['Te ', 'Te llevo.\n', { inputTokens: 10, outputTokens: 5, totalTokens: 15 }, 'Te llevo ahora.'])
 })
 
@@ -3016,9 +3019,9 @@ atest('chat: streamChat lanza un error legible ante una respuesta no-ok', async 
   )
 })
 
-// El chat no pasa por fetchWithPolicy, y un 401 lo dejaba en "Servidor respondió 401" mientras las
-// pantallas reautenticaban y seguían: en ec1 salió sin token porque en ese instante localStorage no
-// tenía ninguno. Ahora se recupera igual: reautenticar y reenviar UNA vez, con el token de ENTONCES.
+// The chat does not go through fetchWithPolicy, and a 401 left it at "Servidor respondió 401" while the
+// screens re-authenticated and carried on: in ec1 it went out without a token because at that instant
+// localStorage had none. Now it recovers the same way: re-authenticate and resend ONCE, with the token of THEN.
 atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el token nuevo', async () => {
   const originalStorage = globalThis.localStorage
   const originalDocument = globalThis.document
@@ -3075,7 +3078,7 @@ atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle',
   assert.equal(calls, 2)
 })
 
-// ── @Notice: un campo a null o en blanco oculta el aviso (paridad con el web) ─────
+// ── @Notice: a null or blank field hides the notice (parity with the web) ─────
 test('notice: a null el aviso no se pinta; con valor, sí', () => {
   const noticesWith = (state) => {
     const inc = {
@@ -3103,7 +3106,7 @@ test('notice: a null el aviso no se pinta; con valor, sí', () => {
   assert.equal(shown.text, '2 quejas pendientes')
 })
 
-// ── Custom components (#14) en VB: placeholder + hijos slotted ──────────────────
+// ── Custom components (#14) in VB: placeholder + slotted children ──────────────────
 test('custom component: placeholder visible + hijos slotted (escape hatch #14)', () => {
   const inc = {
     commands: [], messages: [], banners: [],
@@ -3124,39 +3127,40 @@ test('custom component: placeholder visible + hijos slotted (escape hatch #14)',
   const reg = reduceContexts(empty(), inc)
   const host = reg.contexts[HOST_ID]
   const atoms = (hostContentOf(host, null, { title: '' }) || []).flatMap((b) => b.items)
-  // placeholder con el nombre del tipo custom
+  // placeholder with the name of the custom type
   const placeholder = atoms.find((a) => a.isNotice && /org-chart/.test(a.text || ''))
   assert.ok(placeholder, 'el custom component muestra un placeholder con su nombre')
-  // y los hijos slotted se pintan igualmente
+  // and the slotted children are painted all the same
   assert.ok(atoms.some((a) => a.isText && a.text === 'fallback content'), 'los hijos slotted se renderizan')
 })
 
-// ── Widgets de cabecera del App (WidgetSupplier) ────────────────────────────────────────────
-// Fixture real: el App de la shell de ec-demo1 (Vaadin) — un HorizontalLayout con slot
-// "widgets": MicroFrontend /_inbox/badge + Popover(Text "Hola, …") con Email y Logout.
+// ── App header widgets (WidgetSupplier) ────────────────────────────────────────────
+// Real fixture: the App of the ec-demo1 shell (Vaadin) — a HorizontalLayout with slot
+// "widgets": MicroFrontend /_inbox/badge + Popover(Text "Hola, …") with Email and Logout.
 test('widgets: el App los guarda en la shell (hijos con slot "widgets")', () => {
   const { shell, contexts } = reduceContexts(empty(), fx('app-widgets'))
   assert.equal(Object.keys(contexts).length, 0)
   assert.equal(shell.widgets.length, 1)
   assert.equal(shell.widgets[0].metadata.type, 'HorizontalLayout')
-  // un App sin widgets no inventa ninguno
+  // an App without widgets does not invent any
   assert.deepEqual(reduceContexts(empty(), fx('app')).shell.widgets, [])
 })
 
 test('widgets: Popover(Text) → área de perfil (iniciales + nombre + email/Logout); MicroFrontend → acciones', () => {
   const reg = reduceContexts(empty(), fx('app-widgets'))
   const { user, items } = headerWidgetsOf(reg)
-  // el saludo, sin el HTML de pantalla estrecha (el <vaadin-icon vaadin:user> y su <span>)
+  // the greeting, without the narrow-screen HTML (the <vaadin-icon vaadin:user> and its <span>)
   assert.equal(user.label, 'Hola, Demo User')
   assert.equal(user.initials, 'DU')
   assert.deepEqual(user.rows.map((r) => r.isText ? r.text : `${r.label} → ${r.href}`),
-    ['Email: demo@mateu.io', 'Logout → javascript: window.logout();'])
-  // el badge: remoto, con su pod y su ruta; el Popover de usuario NO se repite en la zona de acciones
+    // a javascript: url is never a link (M-S7 — the web renderer's anchor already refused it)
+    ['Email: demo@mateu.io', 'Logout → #'])
+  // the badge: remote, with its pod and its route; the user Popover is NOT repeated in the actions area
   assert.equal(items.length, 1)
   assert.equal(items[0].isRemote, true)
   assert.equal(items[0].baseUrl, '/_inbox')
   assert.equal(items[0].route, '/badge')
-  // ids por POSICIÓN: el mismo en cada bootstrap
+  // ids by POSITION: the same on every bootstrap
   assert.equal(items[0].id, headerWidgetsOf(reduceContexts(empty(), fx('app-widgets'))).items[0].id)
 })
 
@@ -3185,7 +3189,7 @@ test('widgets: <vaadin-icon> → icono de fuente Redwood, conservando el style (
   const html = '<a href="#"><vaadin-icon icon="vaadin:bell" style="width: 1em; color: var(--lumo-error-color);"></vaadin-icon><span>Inbox (3)</span></a>'
   assert.equal(redwoodHtmlOf(html),
     '<a href="#"><span class="oj-ux-ico-notification mateu-widget-icon" aria-hidden="true" style="width: 1em; color: var(--lumo-error-color);"></span><span>Inbox (3)</span></a>')
-  // autocerrado, y un icono sin equivalente se quita en vez de dejar un elemento que no pinta
+  // self-closing, and an icon with no equivalent is removed instead of leaving an element that paints nothing
   assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:user"/>x'), '<span class="oj-ux-ico-contact mateu-widget-icon" aria-hidden="true"></span>x')
   assert.equal(redwoodHtmlOf('<vaadin-icon icon="vaadin:no-such-icon"></vaadin-icon>x'), 'x')
   assert.equal(plainTextOf('<span>Hola,&nbsp;Demo</span>  <i>User</i>'), 'Hola, Demo User')
@@ -3212,7 +3216,7 @@ atest('widgets: el MicroFrontend se carga de SU pod y se refresca con sus trigge
   const call = async (base, body, options) => {
     calls.push({ base, body, options })
     if (body.actionId === '') return badge
-    // refresh → fragmento SOLO-ESTADO (como State(this) del server)
+    // refresh → STATE-ONLY fragment (like the server's State(this))
     count += 1
     return { fragments: [{ targetComponentId: body.initiatorComponentId, state: { content: `<a href="#">Inbox (${count})</a>` } }] }
   }
@@ -3226,10 +3230,10 @@ atest('widgets: el MicroFrontend se carga de SU pod y se refresca con sus trigge
   assert.equal(calls[0].body.route, '/badge')
   assert.equal(calls[0].body.actionId, '')
   assert.equal(calls[0].body.initiatorComponentId, items[0].id)
-  // de fondo: ni barra de ocupado ni banda de error
+  // background: neither busy bar nor error band
   assert.equal(calls[0].options.quiet, true)
   assert.match(htmls[0], /Inbox \(16\)/)
-  // OnLoad: refresh a los 10 s
+  // OnLoad: refresh after 10 s
   assert.equal(timers.length, 1)
   assert.equal(timers[0].ms, 10000)
   await timers[0].fn()
@@ -3237,13 +3241,13 @@ atest('widgets: el MicroFrontend se carga de SU pod y se refresca con sus trigge
   assert.equal(calls[1].body.serverSideType, 'io.mateu.ecdemo1.communication.ui.inbox.InboxBadge')
   assert.match(calls[1].body.componentState.content, /Inbox \(16\)/)
   assert.equal(htmls[1], '<a href="#">Inbox (17)</a>')
-  // OnSuccess(refresh) → otro refresh a los 10 s, y así sucesivamente
+  // OnSuccess(refresh) → another refresh after 10 s, and so on
   assert.equal(timers.length, 2)
   assert.equal(timers[1].ms, 10000)
   await timers[1].fn()
   assert.equal(htmls[2], '<a href="#">Inbox (18)</a>')
   assert.equal(timers.length, 3)
-  // parar corta el bucle: un refresco ya programado no pinta ni reprograma
+  // stopping breaks the loop: an already scheduled refresh neither paints nor reschedules
   stopRemoteWidgets()
   await timers[2].fn()
   assert.equal(htmls.length, 3)
@@ -3281,20 +3285,20 @@ atest('widgets: las peticiones quiet no avisan a los ganchos de ocupado/error', 
 test('widgets: navigation-requested registra la ruta en su pod si el menú no la conoce; el menú manda', () => {
   assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_inbox', serverSideType: 'x.InboxHome', consumedRoute: '' }), true)
   assert.deepEqual(remoteRouteOf('/inbox/widget-only'), { baseUrl: '/_inbox', consumedRoute: '', serverSideType: 'x.InboxHome', uriPrefix: '' })
-  // ya registrada (p.ej. por el menú): no se pisa
+  // already registered (e.g. by the menu): not overwritten
   assert.equal(registerRemoteRoute('/inbox/widget-only', { baseUrl: '/_otro' }), false)
   assert.equal(remoteRouteOf('/inbox/widget-only').baseUrl, '/_inbox')
-  // sin pod, nada que registrar
+  // no pod, nothing to register
   assert.equal(registerRemoteRoute('/local', { route: '/local' }), false)
 })
 
 
-// ── Editor de filas modal (@DetailFormCustomisation position = modal) — wire real del booking
-// de ec-demo1 (fixtures/real/rowedit-*.json): el wizard de nueva reserva en su paso Rooms y el
-// formulario de edición de una reserva.
+// ── Modal row editor (@DetailFormCustomisation position = modal) — real wire of the ec-demo1
+// booking (fixtures/real/rowedit-*.json): the new-booking wizard on its Rooms step and the
+// edit form of a booking.
 const WIZ_ID = '5c242863-bc33-4be8-8aeb-cac417f95673'
-// el host del wizard en el paso Rooms: la respuesta real del Next, sobre un host cuyo árbol
-// tenía el id al que el Next se mandó
+// the wizard host on the Rooms step: the real response of the Next, over a host whose tree
+// had the id the Next was sent to
 const wizardAtRooms = () => {
   const seeded = { contexts: { [HOST_ID]: { id: HOST_ID, kind: 'host', state: {}, data: {},
     tree: { type: 'ServerSide', id: 'c1e58725-6bda-42a7-8f80-e51c95f9f6dc' },
@@ -3302,8 +3306,8 @@ const wizardAtRooms = () => {
   stack: [], shell: null }
   return reduceContexts(seeded, fx('rowedit-wizard-rooms'))
 }
-// la captura del "+" se mandó con el id previo al Next como initiator; el renderer manda el
-// id del árbol que tiene (tree.id) y el servidor lo ECOA — se reescribe el eco en consecuencia
+// the capture of the "+" was sent with the pre-Next id as initiator; the renderer sends the
+// id of the tree it has (tree.id) and the server ECHOES it — the echo is rewritten accordingly
 const echoTo = (inc, from, to) => ({ ...inc, fragments: inc.fragments.map((f) => (f.targetComponentId === from ? { ...f, targetComponentId: to } : f)) })
 const wizardAddInc = () => echoTo(fx('rowedit-wizard-add'), 'c1e58725-6bda-42a7-8f80-e51c95f9f6dc', WIZ_ID)
 
@@ -3320,16 +3324,16 @@ test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila
   assert.equal(grid.addActionId, 'rooms_add')
   assert.ok(!grid.columns.some((c) => c.field === '_select'), 'la columna-botón del wire no se pinta como columna de datos')
   assert.equal(grid.columns[grid.columns.length - 1].template, 'cellListRowActions')
-  // la lista no es un campo de texto del form genérico (salía un input "Rooms" bajo la tabla)
+  // the list is not a text field of the generic form (an input "Rooms" used to come out under the table)
   assert.ok(!fieldListOf(host.tree, host.state).some((f) => f.fieldId === 'rooms'))
-  // una habitación recién añadida (sin línea ni total: los pone el servidor) dice «—» en esas
-  // celdas, no un hueco
+  // a just-added room (no line or total: the server sets them) says «—» in those
+  // cells, not a gap
   const withNew = { ...host, state: { ...host.state, rooms: [{ line: null, roomTypeCode: 'DBL', adults: 2, total: null }] } }
   const fresh = (islandContentOf(withNew) || []).flatMap((b) => b.items).find((a) => a.isGrid && a.fieldId === 'rooms')
   assert.equal(fresh.rows[0].line, '—')
   assert.equal(fresh.rows[0].total, '—')
   assert.equal(fresh.rows[0].roomTypeCode, 'DBL')
-  // y el estado que vuelve al servidor no se toca
+  // and the state that goes back to the server is not touched
   assert.equal(withNew.state.rooms[0].line, null)
 })
 
@@ -3377,8 +3381,8 @@ test('rowedit: la respuesta del "+" abre el editor — "New room", pie Cancel ·
   assert.ok(byId.adults.isNumber)
   assert.equal(byId.adults.value, 2)
   assert.ok(byId.line.readonly)
-  // la línea (y el total) de una habitación nueva los pone el servidor: un texto «—», no una
-  // cajita de número vacía
+  // the line (and the total) of a new room are set by the server: a «—» text, not an
+  // empty number box
   assert.ok(byId.line.isEmptyReadonly && !byId.line.isText && !byId.line.isNumber)
   assert.equal(byId.line.value, '—')
   assert.ok(!byId.childrenAges, 'una lista anidada no se edita en el diálogo')
@@ -3421,7 +3425,7 @@ test('rowedit: los lookups de la fila los resuelve el ServerSide de la FILA con 
   assert.equal(rq.componentState.adults, 2)
 })
 
-// el formulario de EDICIÓN de una reserva: host '_edit' (BookingViewModel) con la lista rooms
+// the EDIT form of a booking: host '_edit' (BookingViewModel) with the rooms list
 const editForm = () => {
   const wiz = wizardAtRooms().contexts[HOST_ID]
   const holderState = JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'rowedit-add.json'), 'utf8'))
@@ -3442,7 +3446,7 @@ test('rowedit (edición): buscar un lookup llena las opciones del diálogo', () 
   assert.equal(pendingLookupsOf(row).length, 2)
   const roomType = rowFieldsOf(row).find((f) => f.fieldId === 'roomTypeCode')
   assert.ok(roomType.options.some((o) => o.value === 'JSUSV' && o.label === 'JSUSV — Junior suite vista mar'))
-  // el contenedor no se toca con la búsqueda
+  // the container is not touched by the search
   assert.deepEqual(reg.contexts[HOST_ID].state._show_detail, { rooms: true })
 })
 
@@ -3487,7 +3491,7 @@ test('rowedit (edición): Create añade la fila y cierra; "Save and add another"
   const editor = rowEditorOf(again)
   assert.equal(editor.title, 'New room')
   assert.equal(editor.fields.find((f) => f.fieldId === 'roomTypeCode').value, null, 'fila NUEVA, vacía')
-  // la fila nueva vuelve a necesitar sus opciones (su ServerSide es otro)
+  // the new row needs its options again (its ServerSide is a different one)
   assert.equal(pendingLookupsOf(again.contexts['rooms-container']).length, 3)
 })
 
@@ -3500,7 +3504,7 @@ test('rowedit (edición): Quitar una fila la manda en <campo>_selected_items, ta
 
 test('rowedit (edición): los otros editores — New guest (select de opciones, fecha) y New payment (lookup)', () => {
   const guest = rowEditorOf(reduceContexts(editForm(), fx('rowedit-guests-add')))
-  // guests no es modal en el árbol sembrado (el del wizard sólo trae rooms): se usa la fila
+  // guests is not modal in the seeded tree (the wizard's only carries rooms): the row is used
   assert.equal(guest, null)
   const guestRow = reduceContexts(editForm(), fx('rowedit-guests-add')).contexts['guests-container']
   const g = Object.fromEntries(rowFieldsOf(guestRow).map((f) => [f.fieldId, f]))
@@ -3514,7 +3518,7 @@ test('rowedit (edición): los otros editores — New guest (select de opciones, 
   assert.ok(p.paymentId.readonly)
 })
 
-// ── FAB de "ask" del shell: neutro (Search con la lupa), o la marca del @App(askLabel, askIcon) ──
+// ── Shell "ask" FAB: neutral (Search with the magnifier), or the @App(askLabel, askIcon) brand ──
 const brandedApp = (askLabel, askIcon) => {
   const increment = fx('app')
   for (const fr of increment.fragments) {
@@ -3530,7 +3534,7 @@ test('ask FAB: sin @App(askLabel/askIcon) es neutro — Search con la lupa —, 
   assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Search', kind: 'glyph', glyph: 'oj-ux-ico-search' })
   assert.equal(ASK_FAB_GLYPH, 'oj-ux-ico-search')
   assert.notEqual(ASK_FAB_GLYPH, SHELL_CHAT_GLYPH)
-  // ni el App del shell: un registro sin shell tampoco rompe
+  // nor the shell App: a registry without a shell does not break either
   assert.equal(askFabOf(null).label, 'Search')
 })
 
@@ -3548,12 +3552,12 @@ test('ask FAB: askIcon imagen (relativa al backend como el logo, o absoluta) e i
   assert.equal(askFabOf({ askIcon: 'data:image/svg+xml;base64,AAA' }, 'http://b').src, 'data:image/svg+xml;base64,AAA')
   assert.deepEqual(askFabOf({ askIcon: 'oj-ux-ico-oracle-o' }), { label: 'Search', kind: 'glyph', glyph: 'oj-ux-ico-oracle-o' })
   assert.equal(askFabOf({ askIcon: 'vaadin:cog' }).glyph, 'oj-ux-ico-settings')
-  // lo que no es nada de eso no deja el FAB vacío: vuelve a la lupa
+  // anything that is none of those does not leave the FAB empty: it goes back to the magnifier
   assert.equal(askFabOf({ askIcon: 'vaadin:no-existe' }).glyph, ASK_FAB_GLYPH)
   assert.equal(askFabOf({ askIcon: 'RIU Hotels' }).glyph, ASK_FAB_GLYPH)
 })
 
-// un DOM mínimo: el <a> del shell con su div role=img
+// a minimal DOM: the shell's <a> with its div role=img
 const fakeEl = (tag, classes = []) => {
   const el = {
     tagName: tag, attrs: {}, children: [], listeners: {}, textContent: '', parent: null,
@@ -3591,7 +3595,7 @@ test('ask FAB: brandAskFab cambia el bocadillo por la lupa y le da nombre y tecl
   assert.equal(brandAskFab(fab, askFabOf(null)), true)
   assert.ok(icon.classList.contains('oj-ux-ico-search'))
   assert.ok(!icon.classList.contains(SHELL_CHAT_GLYPH))
-  assert.ok(icon.classList.contains('oj-sp-ux-icon-size-11x')) // el tamaño lo sigue poniendo el shell
+  assert.ok(icon.classList.contains('oj-sp-ux-icon-size-11x')) // the size is still set by the shell
   assert.equal(fab.attrs.role, 'button')
   assert.equal(fab.attrs.tabindex, '0')
   assert.equal(fab.attrs['aria-label'], 'Search')
@@ -3599,7 +3603,7 @@ test('ask FAB: brandAskFab cambia el bocadillo por la lupa y le da nombre y tecl
   let prevented = false
   fab.listeners.keydown[0]({ key: 'Enter', preventDefault: () => { prevented = true } })
   assert.ok(prevented && fab.clicked === 1)
-  // sin el FAB (el shell aún no lo pintó) no hace nada y lo dice
+  // without the FAB (the shell has not painted it yet) it does nothing and says so
   assert.equal(brandAskFab(null, askFabOf(null)), false)
   assert.equal(brandAskFab(fakeEl('a'), askFabOf(null)), false)
 })
@@ -3613,13 +3617,13 @@ test('ask FAB: brandAskFab con la marca del App (inicial, imagen) — idempotent
   assert.equal(icon.children.length, 1)
   assert.equal(icon.children[0].textContent, 'R')
   assert.equal(icon.children[0].attrs['aria-hidden'], 'true')
-  // otra vez, con una imagen: no se acumulan marcas ni manejadores de teclado
+  // again, with an image: brands and keyboard handlers do not pile up
   brandAskFab(fab, askFabOf({ askLabel: 'Ask RIU', askIcon: '/images/riu.svg' }, 'http://b'))
   assert.equal(icon.children.length, 1)
   assert.equal(icon.children[0].tagName, 'img')
   assert.equal(icon.children[0].attrs.src, 'http://b/images/riu.svg')
   assert.equal(fab.listeners.keydown.length, 1)
-  // y de vuelta al glifo: sin marca
+  // and back to the glyph: no brand
   brandAskFab(fab, askFabOf(null))
   assert.equal(icon.children.length, 0)
   assert.ok(icon.classList.contains(ASK_FAB_GLYPH) && !icon.classList.contains('mateu-ask-fab-branded'))
@@ -3646,8 +3650,8 @@ test('interpolate: ${state.x} y ${state[\'x\']}', () => {
   assert.equal(interpolate('${state["a"]}', { a: 'x' }), 'x')
 })
 
-// Formularios de PÁGINA (no sólo el editor de fila): el walk-in del front-office de ec-demo1
-// (fixture real) — selects con opciones del OptionsSupplier, fechas y tres @Section.
+// PAGE forms (not only the row editor): the ec-demo1 front-office walk-in
+// (real fixture) — selects with OptionsSupplier options, dates and three @Section.
 test('page form: el walk-in pinta selects con sus opciones, fechas y sus secciones', () => {
   const reg = reduceContexts(empty(), fx('fo-walkin-form'))
   const summary = summarizeHost(reg, '/walk-in')
@@ -3666,13 +3670,13 @@ test('page form: el walk-in pinta selects con sus opciones, fechas y sus seccion
   assert.ok(byId.nombre.isText)
   assert.ok(byId.precio.isText && byId.precio.readonly)
   assert.equal(byId.habitacion.isLookup, false, 'en una página nadie lanza búsquedas de lookup')
-  // las secciones, en el orden del wire, con su título y sus columnas
+  // the sections, in wire order, with their title and their columns
   assert.deepEqual(summary.sections.map((s) => [s.title, s.hasTitle, s.columns]),
     [['Estancia', true, 2], ['Titular', true, 2], ['Precio del CRS', true, 1]])
   assert.deepEqual(summary.sections[0].fields.map((f) => f.fieldId),
     ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
   assert.deepEqual(summary.sections[2].fields.map((f) => f.fieldId), ['precio'])
-  // ningún campo se pierde ni se repite al agrupar
+  // no field is lost or repeated when grouping
   assert.deepEqual(summary.sections.flatMap((s) => s.fields.map((f) => f.fieldId)).sort(),
     summary.fields.map((f) => f.fieldId).sort())
 })
@@ -3703,41 +3707,41 @@ test('page form: fecha-hora, enum con opciones y lookup remoto sin opciones', ()
     .map((f) => [f.fieldId, f]))
   assert.ok(byId.at.isDateTime && !byId.at.isDate && !byId.at.isText)
   assert.equal(byId.at.value, '2026-09-27T10:30:00')
-  // stereotype radio → un oj-radioset de verdad (antes se degradaba a desplegable)
+  // stereotype radio → a real oj-radioset (it used to degrade to a dropdown)
   assert.ok(byId.status.isRadio && !byId.status.isSelect)
   assert.deepEqual(byId.status.options, [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED', label: 'CLOSED' }])
-  // un lookup remoto con valor es un desplegable con ese valor (y su etiqueta) aunque sus
-  // opciones no hayan llegado: un select con un valor fuera de sus opciones se pinta vacío
+  // a remote lookup with a value is a dropdown with that value (and its label) even if its
+  // options have not arrived: a select with a value outside its options paints empty
   assert.ok(byId.hotel.isSelect && byId.hotel.isLookup)
   assert.deepEqual(byId.hotel.options, [{ value: 'H1', label: 'Hotel 1' }])
   assert.equal(byId.hotel.value, 'H1')
-  // sin valor ni opciones sigue siendo texto en la página (un select vacío sería peor)
+  // with neither value nor options it is still text on the page (an empty select would be worse)
   const empty = fieldListOf(tree, {}).find((f) => f.fieldId === 'hotel')
   assert.ok(empty.isText && !empty.isSelect)
   assert.ok(byId.vip.isBoolean)
-  // sin secciones en el árbol: un grupo sin título con todo
+  // no sections in the tree: one untitled group with everything
   assert.deepEqual(formSectionsOf(tree, {}).map((s) => s.fields.length), [4])
 })
 
 test('page form: a todo el ancho, con las columnas del wire o dos por defecto', () => {
   const field = (fieldId, extra) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', stereotype: 'regular', ...extra } })
-  // sin FormLayout: dos columnas (como el FormLayout de Vaadin en escritorio)
+  // no FormLayout: two columns (like Vaadin's FormLayout on desktop)
   const loose = { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'Page' }, children: [
     field('id'), field('name'), field('description'),
   ] }] }
   const [plain] = formSectionsOf(loose, {})
   assert.equal(plain.wideColumns, 2)
   assert.equal(plain.columns, 1, 'las columnas de siempre siguen ahí para la isla (media columna)')
-  // con FormLayout(maxColumns) en la raíz, las suyas
+  // with FormLayout(maxColumns) at the root, its own
   const declared = { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'FormLayout', maxColumns: 4 }, children: [
     field('a'), field('b'),
   ] }] }
   const [four] = formSectionsOf(declared, {})
   assert.equal(four.wideColumns, 4)
-  // el formulario de página y los dos wizards: oj-form-layout a todo el ancho, con wideColumns
+  // the page form and the two wizards: full-width oj-form-layout, with wideColumns
   const html = webApp('flows/main/pages/main-start-page.html')
   assert.equal((html.match(/<oj-form-layout class="oj-formlayout-full-width" max-columns="\[\[ \$current\.data\.wideColumns \]\]"/g) || []).length, 3)
-  // y el formulario de página ya no va en media columna (oj-md-6)
+  // and the page form no longer sits in a half column (oj-md-6)
   const pageForm = html.slice(html.indexOf('$application.variables.mateuFormMetadata && !$application.variables.mateuWizard'))
   assert.ok(!pageForm.slice(0, 300).includes('oj-md-6'))
 })
@@ -3747,39 +3751,39 @@ test('secondaryActionOf: la secundaria del header se resuelve por su actionId (y
     { actionId: 'seedDemo', label: '＋ 10 reservas demo' },
     { actionId: 'walkIn', label: '＋ Walk-in' },
   ]
-  // el header devuelve el id del item que le dimos (mateuListSecondary: {id, value, label})
+  // the header returns the id of the item we gave it (mateuListSecondary: {id, value, label})
   assert.equal(secondaryActionOf({ secondaryItem: 'walkIn' }, toolbar).actionId, 'walkIn')
   const items = toolbar.map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }))
   assert.equal(secondaryActionOf({ secondaryItem: items[1] }, toolbar).actionId, 'walkIn')
-  // variantes viejas: el rótulo
+  // old variants: the caption
   assert.equal(secondaryActionOf({ secondaryItem: { label: '＋ Walk-in' } }, toolbar).actionId, 'walkIn')
   assert.equal(secondaryActionOf({ secondaryItem: '＋ 10 reservas demo' }, toolbar).actionId, 'seedDemo')
-  // nada que casar
+  // nothing to match
   assert.equal(secondaryActionOf({ secondaryItem: 'nope' }, toolbar), null)
   assert.equal(secondaryActionOf({}, toolbar), null)
   assert.equal(secondaryActionOf(null, null), null)
 })
 
-// WIZARD: cada campo UNA vez, y el tren ARRIBA con @WizardProgress(STEPS). El walk-in del front
-// office de ec-demo1 (fixture real): antes los FormFields salían dos veces — arriba como átomos
-// isInput (texto) del contenido y abajo en el form de secciones, con su desplegable.
+// WIZARD: each field ONCE, and the train ON TOP with @WizardProgress(STEPS). The ec-demo1 front
+// office walk-in (real fixture): before, the FormFields came out twice — on top as isInput (text)
+// atoms of the content and below in the sections form, with their dropdown.
 test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arriba', () => {
   const reg = reduceContexts(empty(), fx('fo-walkin-wizard'))
   const host = reg.contexts[HOST_ID]
   const summary = summarizeHost(reg, '/walk-in')
   const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
-  // STEPS → horizontal: tren arriba, no el rail del guided process
+  // STEPS → horizontal: train on top, not the guided process rail
   assert.equal(view.wizard.horizontal, true)
   assert.deepEqual(view.wizard.trainSteps.map((s) => [s.id, s.disabled, s.visited]),
     [['estancia', false, false], ['precio', true, false], ['titular', true, false], ['confirmar', true, false]])
   assert.equal(view.wizard.currentLabel, 'Estancia')
   assert.deepEqual(view.wizard.listSteps.map((s) => s.marker), ['1', '2', '3', '4'])
   assert.match(view.wizard.listSteps[0].cls, /mateu-wizard-step-current/)
-  // el título del wizard (su h2) sube a la cabecera y no se repite en el contenido
+  // the wizard title (its h2) moves up to the header and is not repeated in the content
   assert.equal(view.title, 'Walk-in')
   const atoms = view.content.flatMap((b) => b.items)
   assert.ok(!atoms.some((a) => a.isText && a.text === 'Walk-in'))
-  // ningún campo del form queda además como input de texto en el contenido
+  // no form field is also left as a text input in the content
   assert.ok(!atoms.some((a) => a.isInput), 'sin inputs duplicados en el contenido')
   assert.ok(!atoms.some((a) => a.isFormLayout), 'ni un form layout con los mismos campos')
   const fields = view.sections.flatMap((sec) => sec.fields)
@@ -3787,8 +3791,8 @@ test('wizard: el walk-in pinta cada campo una vez, con su widget, y el tren arri
     ['llegada', 'salida', 'habitacion', 'tarifa', 'regimen', 'adultos', 'edadesNinos'])
   assert.ok(fields.find((f) => f.fieldId === 'habitacion').isSelect)
   assert.ok(fields.find((f) => f.fieldId === 'llegada').isDate)
-  // el pie Back/Next del wire va a la barra del pie (Back deshabilitado en el primer paso),
-  // con los rótulos que manda el servidor
+  // the wire's Back/Next footer goes to the footer bar (Back disabled on the first step),
+  // with the captions the server sends
   assert.deepEqual(view.nav.map((b) => [b.actionId, b.label, b.disabled, b.chroming]),
     [['back', 'Back', true, 'outlined'], ['next', 'Next', false, 'callToAction']])
   assert.ok(!atoms.some((a) => a.isButtons && a.buttons.some((b) => b.actionId === 'next')))
@@ -3805,8 +3809,8 @@ test('wizard: el check-in (contenido rico) conserva su contenido y sus acciones 
   const atoms = view.content.flatMap((b) => b.items)
   assert.ok(atoms.some((a) => a.isEntityHeader) && atoms.some((a) => a.isNotice))
   assert.ok(atoms.some(isRichAtom))
-  assert.deepEqual(view.sections, []) // rico → sin form genérico (misma regla que el host)
-  // los botones de pax son acciones de página (con parámetros): se quedan en el contenido
+  assert.deepEqual(view.sections, []) // rich → no generic form (same rule as the host)
+  // the pax buttons are page actions (with parameters): they stay in the content
   assert.ok(atoms.some((a) => (a.buttons || []).some((b) => b.actionId === 'selectPax')))
   assert.deepEqual(view.nav.map((b) => b.actionId), ['back', 'next'])
 })
@@ -3828,9 +3832,9 @@ test('wizard: con RAIL (ProgressSteps vertical) sigue el guided process — sin 
   assert.equal(view.wizard.horizontal, false)
   assert.deepEqual(view.nav, [])
   const atoms = view.content.flatMap((b) => b.items)
-  // el pie back/next lo aporta el guided process: fuera del contenido, como siempre
+  // the back/next footer is provided by the guided process: outside the content, as always
   assert.ok(!atoms.some((a) => a.isButtons && a.buttons.every((b) => b.actionId === 'back' || b.actionId === 'next')))
-  // y también aquí cada campo una vez
+  // and here too each field once
   assert.ok(!atoms.some((a) => a.isInput))
   assert.ok(!atoms.some((a) => a.isFormLayout))
   assert.deepEqual(view.sections.flatMap((sec) => sec.fields.map((f) => f.fieldId)), ['name', 'email'])
@@ -3842,8 +3846,8 @@ test('wizard: el alta de reserva (secciones en tarjetas) no deja tarjetas vacía
   const view = wizardStepViewOf(reg.contexts[HOST_ID], null, { title: summary.title, sections: summary.sections })
   assert.equal(view.wizard.horizontal, true)
   assert.equal(view.title, 'New booking')
-  // cada @Section va al form con su título; su tarjeta (sólo con el título) no se repite arriba.
-  // La que se llama como su paso («Stay») no repite el rótulo del paso que va encima
+  // each @Section goes to the form with its title; its card (with just the title) is not repeated on top.
+  // The one named like its step («Stay») does not repeat the caption of the step above it
   assert.deepEqual(view.content, [])
   assert.deepEqual(view.sections.map((sec) => [sec.title, sec.hasTitle]),
     [['', false], ['Holder', true], ['Comments', true]])
@@ -3851,19 +3855,19 @@ test('wizard: el alta de reserva (secciones en tarjetas) no deja tarjetas vacía
   assert.deepEqual(view.nav.map((b) => b.actionId), ['back', 'next'])
 })
 
-// El Next de un wizard es validationRequired (como en Vaadin): con los obligatorios vacíos la
-// acción no sale — se marcan los campos, el primero con el foco. El alta de reserva de ec-demo1
-// avanzaba con hotel, canal, fechas y titular vacíos.
+// A wizard's Next is validationRequired (as in Vaadin): with the required fields empty the
+// action does not go out — the fields are marked, the first one gets the focus. The ec-demo1
+// booking creation advanced with hotel, channel, dates and holder empty.
 test('wizard: el Next valida los obligatorios del paso antes de salir', () => {
   const reg = reduceContexts(empty(), fx('booking-new-wizard'))
   const host = reg.contexts[HOST_ID]
   const summary = summarizeHost(reg, '/booking/newBooking')
   const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
   assert.deepEqual(validationOf(host, 'next'), { fields: [] })
-  assert.equal(validationOf(host, 'back'), null) // el comodín '*' no pide validar
+  assert.equal(validationOf(host, 'back'), null) // the '*' wildcard does not ask to validate
   assert.deepEqual(formErrorsOf(view.sections, {}),
     ['hotelCode', 'channelCode', 'arrival', 'departure', 'holderFirstName', 'holderLastName'])
-  // lo escrito (el borrador) cuenta, aunque el estado del servidor siga vacío
+  // what was typed (the draft) counts, even if the server state is still empty
   assert.deepEqual(formErrorsOf(view.sections, {
     hotelCode: 'H1', channelCode: { value: 'WEB', label: 'Web' }, arrival: '2026-10-01',
     departure: '2026-10-03', holderFirstName: 'Ana', holderLastName: '  ',
@@ -3883,9 +3887,9 @@ test('validationOf: la acción exacta gana al comodín, y sin validationRequired
   assert.equal(validationOf(null, 'next'), null)
 })
 
-// El guided process (@WizardProgress RAIL) de Redwood: su OVERVIEW enseña el título del proceso
-// (el h2 del wizard) y su subtítulo sobre las columnas de los pasos, y cada columna hecha lleva
-// el status del template ('success' → «Completado»).
+// Redwood's guided process (@WizardProgress RAIL): its OVERVIEW shows the process title
+// (the wizard's h2) and its subtitle over the step columns, and each done column carries
+// the template status ('success' → «Completado»).
 test('wizard: el guided process lleva título, subtítulo y el estado de cada paso', () => {
   const increment = fx('fo-walkin-wizard')
   const walk = (n, fn) => {
@@ -3900,10 +3904,10 @@ test('wizard: el guided process lleva título, subtítulo y el estado de cada pa
   walk(increment, (n) => {
     if (n.metadata && n.metadata.type === 'ProgressSteps') {
       n.metadata.vertical = true
-      // en el paso 2: el primero hecho
+      // on step 2: the first one done
       n.metadata.steps = n.metadata.steps.map((st, i) => ({ ...st, status: i === 0 ? 'done' : i === 1 ? 'current' : 'upcoming' }))
     }
-    // el subtítulo del wizard (@Subtitle) viaja como un Text con la clase mateu-wizard-subtitle
+    // the wizard subtitle (@Subtitle) travels as a Text with the class mateu-wizard-subtitle
     if (!subtitleAdded && Array.isArray(n.children) && n.children.some((c) => c && c.metadata
         && c.metadata.type === 'Text' && c.metadata.container === 'h2')) {
       const at = n.children.findIndex((c) => c.metadata && c.metadata.container === 'h2')
@@ -3922,14 +3926,14 @@ test('wizard: el guided process lleva título, subtítulo y el estado de cada pa
   assert.deepEqual(wizard.steps.map((st) => [st.id, st.status, st.display]),
     [['estancia', 'success', 'on'], ['precio', 'none', 'on'], ['titular', 'none', 'on'], ['confirmar', 'none', 'on']])
   assert.equal(wizard.currentStep, 'precio')
-  assert.equal(wizard.resumeStepId, 'precio') // ya empezado: «Reanudar» en su paso
+  assert.equal(wizard.resumeStepId, 'precio') // already started: «Reanudar» on its step
   const summary = summarizeHost(reg, '/walk-in')
   const view = wizardStepViewOf(host, null, { title: summary.title, sections: summary.sections })
-  // el título y el subtítulo son del proceso: no se repiten dentro del paso
+  // the title and the subtitle belong to the process: they are not repeated inside the step
   assert.equal(view.title, 'Walk-in')
   const atoms = view.content.flatMap((b) => b.items)
   assert.ok(!atoms.some((a) => a.isText && (a.text === 'Walk-in' || a.text === wizard.subtitle)))
-  // en el primer paso aún no hay nada que reanudar
+  // on the first step there is nothing to resume yet
   const fresh = reduceContexts(empty(), fx('fo-walkin-wizard'))
   assert.equal(wizardOf(fresh.contexts[HOST_ID]).resumeStepId, '')
 })
@@ -3954,7 +3958,7 @@ test('chat: los totales de la conversación suman cada respuesta; sin contadores
   let total = addUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
   total = addUsage(total, { inputTokens: 200, outputTokens: 60, totalTokens: 260 })
   assert.deepEqual(total, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
-  // una respuesta sin uso no borra lo que había
+  // a response without usage does not erase what was there
   assert.deepEqual(addUsage(total, {}), total)
 })
 
@@ -3963,7 +3967,7 @@ test('chat: el uso que se enseña es el último que manda el agente (el de la co
   const first = latestUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
   const second = latestUsage(first, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
   assert.deepEqual(second, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
-  // una respuesta sin uso deja el que había
+  // a response without usage keeps the one that was there
   assert.deepEqual(latestUsage(second, {}), second)
   assert.equal(isEmptyUsage({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }), true)
   assert.equal(isEmptyUsage({ totalTokens: 3 }), false)
@@ -4014,26 +4018,26 @@ test('chat: Ctrl+Shift+M activa/desactiva el micrófono (también en macOS: Ctrl
   assert.equal(isChatMicShortcut(k({ metaKey: true })), false)
   assert.equal(isChatMicShortcut(k({ repeat: true })), false)
   assert.equal(isChatMicShortcut(k({ key: 'N', code: 'KeyN' })), false)
-  // por el carácter en teclados latinos (AZERTY: la M está donde QWERTY tiene «;»), por posición en el resto
+  // by character on Latin keyboards (AZERTY: the M is where QWERTY has «;»), by position on the rest
   assert.equal(isChatMicShortcut(k({ key: 'M', code: 'Semicolon' })), true)
   assert.equal(isChatMicShortcut(k({ key: 'Q', code: 'KeyM' })), false)
   assert.equal(isChatMicShortcut(k({ key: 'Ь', code: 'KeyM' })), true)
   assert.equal(isChatMicShortcut(null), false)
   assert.equal(CHAT_MIC_ARIA_KEYSHORTCUTS, 'Control+Shift+M')
-  // la página lo engancha al documento y pulsa el botón del micrófono (solo existe con el panel abierto
-  // y reconocimiento de voz); el botón lo anuncia
+  // the page hooks it to the document and presses the microphone button (it only exists with the panel open
+  // and speech recognition); the button announces it
   const page = webApp('pages/shell-page.js')
   assert.match(page, /bridge\.isChatMicShortcut\(event\)/)
   assert.match(page, /#mateuChatMic/)
   assert.match(page, /setAttribute\('aria-keyshortcuts', bridge\.CHAT_MIC_ARIA_KEYSHORTCUTS\)/)
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /aria-keyshortcuts="Control\+Shift\+M"/)
-  // un botón por estado (el texto de un oj-button no sigue a un oj-bind-text): el de escuchar resaltado
+  // one button per state (an oj-button's text does not follow an oj-bind-text): the listening one highlighted
   assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?appBundle\.chatStopDictation \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
   assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?appBundle\.chatDictate \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
 })
 
-// ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
+// ── Redwood gaps seen in the ec-demo1 demo (3.0-alpha.376) ─────────────────────────
 
 test('cabecera: «Cancel booking» (cancelBooking) es una acción, no la vuelta; cancel-view sí lo es', () => {
   const host = reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID]
@@ -4049,19 +4053,19 @@ test('cabecera: «Cancel booking» (cancelBooking) es una acción, no la vuelta;
 
 test('acciones del host: la que declara la vista va a la vista; las del crud, al mediador', () => {
   let reg = reduceContexts(empty(), fx('crud-view-booking'))
-  // la vista se cargó a través del crud orquestador: su outbound es el del mediador
+  // the view was loaded through the orchestrator crud: its outbound is the mediator's
   const orchestrator = 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingCrudOrchestrator'
   const host = { ...reg.contexts[HOST_ID], outbound: { serverSideType: orchestrator, route: '/booking/bookings/X', consumedRoute: '/booking/bookings', baseUrl: '/_booking' } }
   const view = 'io.mateu.ecdemo1.booking.infra.in.ui.pages.BookingViewModel'
-  // «Ver recorrido» y «Cancel booking» son @Toolbar de la vista: el crud no las conoce
+  // «Ver recorrido» and «Cancel booking» are @Toolbar of the view: the crud does not know them
   assert.equal(actionTransportOf(host, 'verRecorrido').outbound.serverSideType, view)
   assert.equal(actionTransportOf(host, 'cancelBooking').outbound.serverSideType, view)
-  // la ruta, el mediador consumido y el pod no cambian
+  // the route, the consumed mediator and the pod do not change
   assert.equal(actionTransportOf(host, 'verRecorrido').outbound.consumedRoute, '/booking/bookings')
   assert.equal(actionTransportOf(host, 'verRecorrido').outbound.baseUrl, '/_booking')
-  // edit / new / cancel-view no las declara la vista: suben al crud
+  // edit / new / cancel-view are not declared by the view: they bubble up to the crud
   for (const id of ['edit', 'new', 'cancel-view']) assert.equal(actionTransportOf(host, id), host)
-  // una declarada con bubble también sube
+  // one declared with bubble also goes up
   const bubbling = { ...host, tree: { ...host.tree, actions: [{ id: 'verRecorrido', bubble: true }] } }
   assert.equal(actionTransportOf(bubbling, 'verRecorrido'), bubbling)
 })
@@ -4087,15 +4091,15 @@ test('confirmación: «Activate» pide confirmar con sus textos; los que no decl
   const activate = confirmationOf(host, 'activate')
   assert.equal(activate.title, 'Activate this integration?')
   assert.match(activate.message, /Real-time traffic/)
-  // la acción no declara los botones: caen, cada uno por su cuenta, a los genéricos
+  // the action does not declare the buttons: they fall back, each on its own, to the generic ones
   assert.equal(activate.confirmText, 'Yes')
   assert.equal(activate.denyText, 'No')
-  // y va a la vista, que es quien la declara
+  // and it goes to the view, which is the one declaring it
   const routed = actionTransportOf({ ...host, outbound: { serverSideType: 'Crud' } }, 'activate')
   assert.equal(routed.outbound.serverSideType, 'io.mateu.ecdemo1.integrations.ui.pages.IntegrationViewModel')
-  // una acción sin confirmationRequired no pregunta
+  // an action without confirmationRequired does not ask
   assert.equal(confirmationOf(host, 'edit'), null)
-  // un comodín no tapa a la exacta, y la exacta con textos propios manda
+  // a wildcard does not hide the exact one, and the exact one with its own texts wins
   const ctx = { tree: { type: 'ServerSide', actions: [{ id: 'action-on-row-*' }, { id: 'action-on-row-seed', confirmationRequired: true, confirmationTexts: { title: 'T', message: 'M', confirmationText: 'Crear', denialText: 'Cancelar' } }] } }
   assert.deepEqual(confirmationOf(ctx, 'action-on-row-seed'), { title: 'T', message: 'M', confirmText: 'Crear', denyText: 'Cancelar' })
   assert.equal(declaredActionOf(ctx, 'action-on-row-other').id, 'action-on-row-*')
@@ -4107,10 +4111,10 @@ test('confirmación: los textos genéricos van en el idioma de la interfaz (Sí 
   const es = confirmationOf(host, 'activate', 'es-ES')
   assert.equal(es.confirmText, 'Sí')
   assert.equal(es.denyText, 'No')
-  // lo declarado por la acción sigue mandando
+  // what the action declares still wins
   assert.equal(es.title, 'Activate this integration?')
   assert.deepEqual(confirmationDefaultsOf('es'), { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' })
-  // un idioma sin traducción cae al inglés
+  // a language without translation falls back to English
   assert.equal(confirmationDefaultsOf('de-DE').confirmText, 'Yes')
   assert.equal(confirmationOf(host, 'activate', 'en-GB').confirmText, 'Yes')
 })
@@ -4121,7 +4125,7 @@ atest('confirmación: la chain espera la respuesta; abrir otra da la anterior po
   assert.equal(await first, false)
   answerConfirmation(true)
   assert.equal(await second, true)
-  // sin nadie esperando, contestar no hace nada (el ojBeforeClose tras el close)
+  // with nobody waiting, answering does nothing (the ojBeforeClose after the close)
   answerConfirmation(false)
 })
 
@@ -4131,10 +4135,10 @@ test('diálogo con formulario embebido (EmbeddedView): sus campos, su estado, su
   const overlay = overlayOf(reg)
   assert.ok(overlay.isDialog)
   assert.equal(overlay.title, 'Cancel booking UWS52M')
-  // el estado es el del formulario: la reserva que se cancela y a dónde volver
+  // the state is the form's: the booking being cancelled and where to go back to
   assert.equal(overlay.state.bookingIds, 'UWS52M')
   assert.equal(overlay.state.returnTo, '/booking/bookings/UWS52M')
-  // el motivo es un desplegable con las opciones del OptionsSupplier
+  // the reason is a dropdown with the OptionsSupplier options
   const reason = overlay.sections.flatMap((sec) => sec.fields).find((f) => f.fieldId === 'cancellationReasonCode')
   assert.ok(reason && reason.isSelect)
   assert.deepEqual(reason.options.map((o) => o.value), ['IMPAGO', 'DUPLICADA', 'CANCELA-TTOO', 'OTR'])
@@ -4152,9 +4156,9 @@ test('diálogo con formulario embebido: sus botones van a SU ServerSide, sin rut
   assert.equal(ctx.outbound.route, '')
   assert.equal(ctx.state.bookingIds, 'UWS52M')
   assert.equal(ctx.id, fx('dialog-embedded-cancel').fragments[0].component.metadata.content.id)
-  // una acción que el formulario no declara no se le manda
+  // an action the form does not declare is not sent to it
   assert.equal(overlayTransportOf(reg, 'save'), null)
-  // su CloseModal (dirigido a su id) cierra el diálogo
+  // its CloseModal (addressed to its id) closes the dialog
   const closed = reduceContexts(reg, { commands: [{ type: 'CloseModal', targetComponentId: ctx.id }], fragments: [] })
   assert.equal(overlayOf(closed), null)
 })
@@ -4178,7 +4182,7 @@ test('lookups de página: los editables sin opciones se buscan; los cargados y l
   const loaded = markLookupsLoaded(reg, HOST_ID, ['crsHotelCode'])
   assert.deepEqual(formLookupsOf(loaded.contexts[HOST_ID]), [])
   assert.ok(loaded.contexts[HOST_ID].data.crsHotelCode[LOOKUP_LOADED])
-  // la opción suelta del valor (la etiqueta que manda el server al editar) no cuenta como cargadas
+  // the lone option of the value (the label the server sends when editing) does not count as loaded
   const labelled = { ...reg.contexts[HOST_ID], data: { crsHotelCode: { pageSize: 1, content: [{ value: 'MRU01', label: 'MRU01 · Riu' }] } } }
   assert.equal(formLookupsOf(labelled).length, 1)
 })
@@ -4205,7 +4209,7 @@ atest('lookups de página: loadLookups busca cada uno contra quien lo declara y 
     const widget = fieldListOf(out.contexts[HOST_ID].tree, { crsHotelCode: 'MRU01' }, out.contexts[HOST_ID].data)[0]
     assert.ok(widget.isSelect)
     assert.deepEqual(widget.options.map((o) => o.value), ['MRU01', 'MRU02'])
-    // ya cargadas: una segunda pasada no vuelve a buscar
+    // already loaded: a second pass does not search again
     await loadLookups('', out, HOST_ID, {})
     assert.equal(calls.length, 1)
   } finally {
@@ -4226,7 +4230,7 @@ test('filtro @Lookup: con las opciones de su búsqueda es un desplegable y su ch
   assert.equal(smartFilterValueOf([descriptor], { integration: 'MRU01' }, '').filter((c) => c.filter === 'integration')[0].label, 'MRU01 · Riu Demo Mauricio')
 })
 
-// ── P1: maestro de un registro con pestañas que son páginas ─────────────────────────────────────
+// ── P1: master of a record with tabs that are pages ─────────────────────────────────────
 import { rowRouteOf as p1RowRouteOf } from './reduceContexts.mjs'
 
 test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin resolver no navega', () => {
@@ -4280,7 +4284,7 @@ test('P1: un App anidado (el maestro) es un NIVEL de contenido, no la shell', ()
   assert.equal(level.backRoute, '/customers')
   assert.equal(level.backLabel, 'Customers')
   assert.deepEqual(level.home, { route: '/customers/3/orders', consumedRoute: '/customers/3', serverSideType: 'demo.CustomerOrders' })
-  // la shell, un mediador o un App que es su propia home NO son niveles
+  // the shell, a mediator or an App that is its own home are NOT levels
   assert.equal(p1AppLevelOf(p1Master({ serverSideType: 'demo.VbHome' }), 'demo.VbHome'), null)
   assert.equal(p1AppLevelOf(p1Master({ variant: 'MEDIATOR' }), 'demo.VbHome'), null)
   assert.equal(p1AppLevelOf(p1Master({ homeServerSideType: 'demo.CustomerMaster' }), 'demo.VbHome'), null)
@@ -4330,7 +4334,7 @@ atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no 
   } finally { globalThis.fetch = original }
 })
 
-// ── P1 en Redwood: páginas-formulario con pestañas y @Subresource, y páginas de solo lectura ────
+// ── P1 on Redwood: form pages with tabs and @Subresource, and read-only pages ────
 import {
   subresourceIslandOf as p1SubresourceIslandOf, pendingSubresourcesOf as p1PendingSubresourcesOf,
   withSubresources as p1WithSubresources, hostContentShown as p1HostContentShown,
@@ -4349,31 +4353,31 @@ test('P1: un @Subresource es su propia superficie, no la isla de la pantalla', (
   const invoices = subs[1]
   assert.equal(invoices.serverSideType, 'io.mateu.mdd.demovb.infra.in.ui.mastertabs.InvoicesOfCustomer')
   assert.equal(invoices.consumedRoute, '/_subresource/CustomerOverview/invoices')
-  // el padre le siembra el id del maestro, y la marca de ámbito viaja con él (como en Vaadin)
+  // the parent seeds the master id into it, and the scope mark travels with it (as in Vaadin)
   assert.equal(invoices.componentState.customerId, '3')
   assert.equal(invoices.componentState._scope, 'customerId')
-  // el baile de la isla (mateuIsland) no los toca: los carga loadSubresources
+  // the island dance (mateuIsland) does not touch them: loadSubresources loads them
   assert.deepEqual(collectIslands(host.tree), [])
-  // el documento del check-in (un mediador embebido que no es sub-recurso) sigue siendo isla
+  // the check-in document (an embedded mediator that is not a sub-resource) is still an island
   assert.ok(collectIslands(reduceContexts(empty(), fx('fo-checkin-wizard')).contexts[HOST_ID].tree).some((i) => i.id === '_documento'))
 })
 
 test('P1: una página-formulario con la pestaña de los @Subresource activa conserva la barra y sus huecos', () => {
   const host = p1Overview().contexts[HOST_ID]
-  // enlace directo a /customer-overview/3/billing: el servidor marca Billing activa
+  // direct link to /customer-overview/3/billing: the server marks Billing active
   const blocks = hostContentOf(host, null, { title: 'Customer 3' })
   const atoms = p1Atoms(blocks)
   const bar = atoms.find((a) => a.isTabs)
   assert.ok(bar, 'la barra de pestañas sigue ahí')
   assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Details', 'details'], ['Orders (23)', 'orders'], ['Billing', 'billing']])
   assert.equal(bar.selectedId, 'tab-2')
-  // sólo los de la pestaña a la vista, apilados con su título y su ayuda
+  // only those of the tab in view, stacked with their title and their help
   assert.deepEqual(atoms.filter((a) => a.isSubresource).map((a) => a.islandId), ['_invoices', '_payments'])
   assert.ok(atoms.some((a) => a.isText && a.text === 'Invoices issued to this customer'))
   assert.ok(!blocks.some((b) => b.isNestedBlock), 'no se confunden con la isla anidada (que vaciaba el bloque)')
   assert.equal(p1HostContentShown(blocks, summarizeHost(p1Overview(), '/customer-overview/3/billing')), true,
     'el contenido manda sobre el form genérico')
-  // con la pestaña Orders elegida a mano, su listado; Billing espera a que se abra
+  // with the Orders tab chosen by hand, its listing; Billing waits until it is opened
   const orders = p1Atoms(hostContentOf(host, null, { title: 'Customer 3', activeTab: 'tab-1' }))
   assert.deepEqual(orders.filter((a) => a.isSubresource).map((a) => a.islandId), ['_orders'])
 })
@@ -4425,13 +4429,13 @@ atest('P1: loadSubresources carga cada @Subresource a la vista por su tipo, con 
 })
 
 test('P1: en modo path el historial es solo de Mateu — la shell le quita a VB su onpopstate', () => {
-  // VB toma la ruta de arranque por «application URL» (/customers → /customers/) y lee lo que
-  // cuelga de ella como una página suya: tras entrar al maestro desde una fila (/customers/5), un
-  // atrás le hacía salir de la shell y dejaba «disposed» el contexto de las chains (no repintaba).
-  // Guardia de regresión sobre la chain (en Node no hay VB que arrancar): ver e2e/master-tabs-check.mjs
+  // VB takes the startup route as «application URL» (/customers → /customers/) and reads whatever
+  // hangs from it as one of its own pages: after entering the master from a row (/customers/5), a
+  // back made it leave the shell and left the chains' context «disposed» (it did not repaint).
+  // Regression guard on the chain (in Node there is no VB to boot): see e2e/master-tabs-check.mjs
   const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'loadMateuShell.js'), 'utf8')
   assert.match(chain, /if \(pathMode\) \{\s*window\.onpopstate = null;\s*\}/)
-  // y antes de cablear el listener propio del popstate
+  // and before wiring our own popstate listener
   assert.ok(chain.indexOf('window.onpopstate = null') < chain.indexOf("addEventListener(pathMode ? 'popstate'"))
 })
 
@@ -4441,13 +4445,13 @@ test('P1: una página de solo lectura (sus campos son textos) se pinta, no sale 
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: summary.title })
   assert.deepEqual(p1Atoms(blocks).filter((a) => a.isText).map((a) => a.text), ['3', 'Customer 3 created 2026-01-01'])
   assert.equal(p1HostContentShown(blocks, summary), true)
-  // pero si el form genérico tiene campos, unos textos sueltos no le quitan el sitio
+  // but if the generic form has fields, a few loose texts do not take its place
   assert.equal(p1HostContentShown(blocks, { ...summary, fields: [{ fieldId: 'x' }] }), false)
   assert.equal(p1HostContentShown(null, summary), false)
 })
 
-// ── errores del cliente → log del servidor (clientLog.mjs) ──────────────────────────────────
-// Reloj, temporizador y envío inyectados: nada de esperas reales.
+// ── client errors → server log (clientLog.mjs) ──────────────────────────────────
+// Clock, timer and sending injected: no real waits.
 const fakeClientLog = (opts = {}) => {
   let t = 1_000_000
   const timers = []
@@ -4487,7 +4491,7 @@ test('clientLog: el mismo error repetido es UNA línea, y las repeticiones van e
   assert.equal(first.route, '/bookings', 'la ruta se saca de la URL de sync')
   assert.equal(first.renderer, 'redwood')
   assert.equal(first.pageUrl, 'https://app/x?code=***&tab=2', 'sin fragmento y sin el code del login')
-  // tres más dentro de la ventana: nada sale hasta que se cierra
+  // three more inside the window: nothing goes out until it closes
   advance(1000); reporter.report(e); advance(1000); reporter.report(e); reporter.report(e)
   advance(10000)
   assert.equal(sent.length, 1)
@@ -4496,7 +4500,7 @@ test('clientLog: el mismo error repetido es UNA línea, y las repeticiones van e
   const summary = lines()[1]
   assert.equal(summary.count, 3)
   assert.ok(summary.firstAt < summary.lastAt)
-  // pasada la ventana, el mismo error vuelve a ser noticia
+  // once the window has passed, the same error is news again
   reporter.report(e); advance(2000)
   assert.equal(lines().length, 3)
   assert.equal(lines()[2].count, 1)
@@ -4609,7 +4613,7 @@ atest('clientLog: un fallo clasificado de fetchWithPolicy se informa una vez; un
     assert.match(reports[0].detail, /HTTP 401/)
     globalThis.fetch = async () => { const e = new Error('aborted'); e.name = 'AbortError'; throw e }
     await assert.rejects(fetchWithPolicy('/mateu/v3/sync/x', {}, { actionId: 'go' }))
-    // el reporter de verdad descarta 'cancelled'; aquí se comprueba que el kind llega como tal
+    // the real reporter discards 'cancelled'; here we check that the kind arrives as such
     assert.equal(reports[1].kind, 'cancelled')
     const real = fakeClientLog()
     real.reporter.report(reports[1])
@@ -4622,11 +4626,11 @@ atest('clientLog: un fallo clasificado de fetchWithPolicy se informa una vez; un
   }
 })
 
-// ── respuestas para una pantalla que ya no está (la regla de staleViewGuard.ts del renderer web) ──
-// Una petición sale con la pantalla A; el usuario navega a B (onMateuNavigate → beginView) antes
-// de que conteste. Su respuesta — buena o mala — muere en silencio: el chain recibe un rechazo
-// `isStaleResponse` (no la pinta), el ocupado se apaga sin fallo (sin banda de error) y un 401 no
-// pide reautenticar.
+// ── responses for a screen that is no longer there (the web renderer's staleViewGuard.ts rule) ──
+// A request goes out with screen A; the user navigates to B (onMateuNavigate → beginView) before
+// it answers. Its response — good or bad — dies silently: the chain receives an
+// `isStaleResponse` rejection (it does not paint it), busy turns off without a failure (no error
+// band) and a 401 does not ask to re-authenticate.
 const staleHarness = () => {
   const pending = []
   const settles = []
@@ -4658,7 +4662,7 @@ atest('una búsqueda que contesta después de navegar a otra pantalla no se apli
     const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {}).then(
       (inc) => ({ inc }), (error) => ({ error }))
     await tick()
-    beginView() // el usuario navega a otra pantalla
+    beginView() // the user navigates to another screen
     h.pending[0].answer(rowsOf('io.example.RuleCrud'))
     const outcome = await search
     assert.ok(outcome.error && isStaleResponse(outcome.error), 'el chain recibe el rechazo silencioso, no el incremento')
@@ -4699,11 +4703,11 @@ atest('un 401 de una pantalla que ya no está no pide reautenticar', async () =>
 atest('una navegación superada por otra más nueva no deja su registro (onMateuNavigate corta)', async () => {
   const h = staleHarness()
   try {
-    beginView() // navegación 1
+    beginView() // navigation 1
     const first = loadRouteInto('/_integrations', empty(), '/integrations/frontoffice', '', {}).then(
       (reg) => ({ reg }), (error) => ({ error }))
     await tick()
-    beginView() // navegación 2, antes de que conteste la 1
+    beginView() // navigation 2, before 1 answers
     h.pending[0].answer({ fragments: [{ targetComponentId: '', component: { type: 'ServerSide', id: 'x', serverSideType: 'io.example.Integrations', children: [] } }] })
     const outcome = await first
     assert.ok(outcome.error && isStaleResponse(outcome.error), 'la carga vieja no devuelve registro que pintar')
@@ -4719,14 +4723,14 @@ atest('la pantalla en curso sigue recibiendo sus respuestas; las de fondo (quiet
     await tick()
     h.pending[0].answer(rowsOf('io.example.RuleCrud'))
     assert.equal((await search).fragments[0].data.rows[0].of, 'io.example.RuleCrud')
-    beginView() // navegar no corta el refresco de un widget de cabecera
+    beginView() // navigating does not cut a header widget's refresh
     h.pending[1].answer({ fragments: [{ targetComponentId: 'badge', data: { count: 3 } }] })
     assert.equal((await widget).fragments[0].data.count, 3)
     assert.equal(typeof currentView(), 'number')
   } finally { h.restore() }
 })
 
-// ── i18n: las palabras del propio renderer (i18n.mjs) ──────────────────────────────────────
+// ── i18n: the renderer's own words (i18n.mjs) ──────────────────────────────────────
 test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos en inglés clave a clave', () => {
   assert.equal(chromeText('retry'), 'Retry')
   assert.equal(chromeText('retry', null, 'es-ES'), 'Reintentar')
@@ -4761,7 +4765,7 @@ test('i18n: el bundle nls de VB sale del catálogo y está al día; las páginas
   assert.equal(JSON.parse(files['root/appBundle-strings.json']).retry, 'Retry')
   const nls = join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'strings', 'appBundle', 'nls')
   for (const [f, c] of Object.entries(files)) assert.equal(readFileSync(join(nls, f), 'utf8'), c, f + ': npm run bridge')
-  // sin restos del starter de VB
+  // no leftovers of the VB starter
   assert.doesNotMatch(files['root/appBundle-strings.json'], /Welcome to your First Redwood App|Lorem ipsum/)
   const pages = ['pages/shell-page.html', 'flows/main/pages/main-start-page.html']
     .map((rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')).join('\n')
@@ -4780,7 +4784,7 @@ test('i18n: la chrome de las páginas no lleva español escrito a mano', () => {
 })
 
 
-// ── chat: paridad con el chat web (mateu-chat.ts) ─────────────────────────────────────────────
+// ── chat: parity with the web chat (mateu-chat.ts) ─────────────────────────────────────────────
 test('chat: la config del panel sale del App — sseUrl/uploadUrl/mcpUrl con la base del backend, y el título es su marca', () => {
   const reg = reduceContexts(empty(), { fragments: [{ targetComponentId: '', component: { type: 'ClientSide', metadata: {
     type: 'App', title: 'X', menu: [], sseUrl: '/agent/stream', uploadUrl: '/agent/upload', mcpUrl: '/mcp', askLabel: 'Ask RIU' } } }] })
@@ -4817,9 +4821,9 @@ test('chat: el turno lleva lo mismo que el web — contexto, pantalla proyectada
   const next = chatTurnOf({ message: 'otra', sessionId: 's', registry, menu, sendMenu: false })
   assert.equal(next.body.menuContext, undefined)
   assert.equal(next.shown, 'otra')
-  // sin pantalla (aún no hay host) no viaja `screen`
+  // with no screen (no host yet) `screen` does not travel
   assert.equal('screen' in chatTurnOf({ message: 'x', sessionId: 's', registry: { contexts: {} } }).body, false)
-  // un mensaje con SÓLO adjuntos
+  // a message with ONLY attachments
   assert.equal(chatTurnOf({ message: '', sessionId: 's', attachments: [{ name: 'b', path: 'b' }] }).shown, '📎 b')
 })
 
@@ -5003,9 +5007,9 @@ import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
-// CRUD de ec-demo1 (booking del CRS, fixtures reales): sus @Section son Cards con un FormLayout
-// (maxColumns 2) de FormRows. Antes cada FormField salía como un oj-input-text suelto — editable
-// aunque la vista de detalle los manda todos readOnly, sin columnas de verdad y sin las fechas.
+// ec-demo1 CRUD (CRS booking, real fixtures): its @Section are Cards with a FormLayout
+// (maxColumns 2) of FormRows. Before, each FormField came out as a loose oj-input-text — editable
+// even though the detail view sends them all readOnly, with no real columns and no dates.
 const layoutsOf = (name) => {
   const reg = reduceContexts(empty(), fx(name))
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, {}) || []
@@ -5018,15 +5022,15 @@ test('crud: la vista de detalle pinta cada sección con el form layout de JET, d
   assert.equal(booking.columns, 2)
   assert.deepEqual(booking.fields.map((f) => f.fieldId),
     ['hotelCode-label', 'channelCode-label', 'partnerCode', 'externalReference', 'arrival', 'departure'])
-  // todo readonly: el propio layout también, y JET pinta valores, no cajas
+  // all readonly: the layout itself too, and JET paints values, not boxes
   assert.ok(layouts.every((l) => l.readonly && l.fields.every((f) => f.readonly)))
-  // las fechas ya salen, con su widget
+  // the dates come out now, with their widget
   assert.ok(booking.fields.find((f) => f.fieldId === 'arrival').isDate)
-  // la etiqueta de un lookup de sólo lectura viene en data, no en el state
+  // the label of a read-only lookup comes in data, not in the state
   assert.match(String(booking.fields.find((f) => f.fieldId === 'hotelCode-label').value), /MRU01/)
-  // cada campo ocupa su colspan del wire, sin pasar de las columnas del layout
+  // each field takes its wire colspan, without exceeding the layout columns
   assert.ok(layouts.every((l) => l.fields.every((f) => f.colspan >= 1 && f.colspan <= l.columns)))
-  // los grids de la sección siguen siendo tablas, fuera del layout
+  // the section grids are still tables, outside the layout
   const atoms = (hostContentOf(reduceContexts(empty(), fx('crud-view-booking')).contexts[HOST_ID], null, {}) || [])
     .flatMap((b) => b.items)
   assert.ok(atoms.some((a) => a.isGrid && a.fieldId === 'rooms'))
@@ -5051,7 +5055,7 @@ test('crud: el colspan de un campo viaja acotado a las columnas del layout', () 
   assert.equal(wide.colspan, 2)
   assert.equal(layoutFieldOf({ ...md, colspan: 5 }, {}, {}, 2).colspan, 2)
   assert.equal(layoutFieldOf({ ...md, colspan: 1 }, {}, {}, 2).colspan, 1)
-  // un grid o una property row no son campos del layout
+  // a grid or a property row are not layout fields
   assert.equal(layoutFieldOf({ ...md, columns: [{}] }, {}, {}, 2), null)
   assert.equal(layoutFieldOf({ ...md, dataType: 'array' }, {}, {}, 2), null)
 })
@@ -5080,7 +5084,7 @@ test('breadcrumbs: un grupo con ruta propia (prefijo de una sección federada) n
   ]
   const trail = autoTrail(menu, '/workflow/processes/42', { lang: 'es' })
   assert.deepEqual(trail, [{ text: 'Admin' }, { text: 'Workflow' }, { text: 'Processes', route: '/workflow/processes' }, { text: '42' }])
-  // el «ir al padre» de un listado colgado de grupos: no hay padre navegable → no se pinta
+  // the «go to parent» of a listing hanging from groups: there is no navigable parent → not painted
   assert.equal(parentCrumb(autoTrail(menu, '/workflow/processes', { lang: 'es' })), undefined)
   assert.deepEqual(autoTrail(menu, '/mapping/dictionary/7', { lang: 'es' })[0], { text: 'Mapping', route: '/mapping' })
 })
@@ -5096,12 +5100,12 @@ test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o sh
   assert.deepEqual(summarizeHost(regOf({}, { noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
 })
 
-// ── @Searchable: chips + el selector en un diálogo (fixtures/real/searchable-multi-*, capturados
-//    contra demo/demo-admin-panel Page 5: un List<String> hotelIds y un String hotelId) ─────────
+// ── @Searchable: chips + the selector in a dialog (fixtures/real/searchable-multi-*, captured
+//    against demo/demo-admin-panel Page 5: a List<String> hotelIds and a String hotelId) ─────────
 
 const searchableHost = () => {
   const form = fx('searchable-multi-form')
-  form.fragments[0].targetComponentId = '' // la carga del host
+  form.fragments[0].targetComponentId = '' // the host load
   return reduceContexts(empty(), form)
 }
 
@@ -5115,12 +5119,12 @@ test('@Searchable: un campo de varios ids son chips rotulados + «Add» que abre
   assert.equal(multi.actionId, 'codesearch-hotelIds')
   assert.deepEqual(multi.chips.map((c) => [c.id, c.label, c.remaining]), [['3', 'Hotel 3', []]])
   assert.equal(multi.addLabel, 'Add')
-  // el de un solo id: sin chip mientras está vacío, «Search»
+  // the single-id one: no chip while empty, «Search»
   const single = fields.find((f) => f.fieldId === 'hotelId')
   assert.ok(single.isSearchable && !single.isSearchableMulti)
   assert.equal(single.hasChips, false)
   assert.equal(single.addLabel, 'Search')
-  // las secciones del formulario los llevan igual
+  // the form sections carry them the same
   assert.ok(formSectionsOf(host.tree, host.state, host.data)[0].fields.some((f) => f.fieldId === 'hotelIds' && f.isSearchable))
 })
 
@@ -5151,13 +5155,13 @@ test('@Searchable: codesearch abre el SELECTOR (no el modal de decisión): multi
   assert.equal(picker.addLabel, 'Add selected')
   assert.equal(picker.addActionId, 'action-on-row-select-selected')
   assert.equal(picker.pickActionId, 'action-on-row-select')
-  assert.equal(picker.rows.length, 0) // las filas llegan con su `search`
-  // su búsqueda va a SU ServerSide (el selector), con su estado
+  assert.equal(picker.rows.length, 0) // the rows arrive with their `search`
+  // its search goes to ITS ServerSide (the selector), with its state
   const transport = overlayTransportOf(reg, 'search')
   assert.equal(transport.tree.serverSideType, 'io.mateu.mdd.demoadminpanel.infra.in.ui.HotelSelector')
   assert.equal(transport.state._searchableMulti, true)
   assert.deepEqual(pickerSearchStateOf(picker, { searchText: 'Ho' }), { searchText: 'Ho', page: 0, size: 10 })
-  // un overlay que no es un selector no es un picker
+  // an overlay that is not a selector is not a picker
   assert.equal(searchPickerOf(reduceContexts(reduceContexts(empty(), fx('load-listing')), fx('open-drawer'))), null)
 })
 
@@ -5201,7 +5205,7 @@ test('@Searchable: la búsqueda del selector llena SUS filas (data-only a su id)
   const picker = searchPickerOf(reg)
   assert.equal(picker.rows.length, 30)
   assert.equal(picker.rows[0].name, 'Hotel 1')
-  assert.equal(reg.contexts[HOST_ID].state.hotelIds[0], '3') // el host, intacto
+  assert.equal(reg.contexts[HOST_ID].state.hotelIds[0], '3') // the host, untouched
 })
 
 test('@Searchable: «Add selected» devuelve al host los ids fusionados y sus rótulos, y cierra el selector', () => {
@@ -5214,7 +5218,7 @@ test('@Searchable: «Add selected» devuelve al host los ids fusionados y sus r�
   const host = reg.contexts[HOST_ID]
   assert.deepEqual(host.state.hotelIds, ['3', '1', '5'])
   assert.equal(host.data['hotelIds-labels']['5'], 'Hotel 5')
-  assert.deepEqual(reg.effects.events, []) // no siguen al bus
+  assert.deepEqual(reg.effects.events, []) // they do not follow the bus
   const multi = fieldListOf(host.tree, host.state, host.data).find((f) => f.fieldId === 'hotelIds')
   assert.deepEqual(multi.chips.map((c) => c.label), ['Hotel 3', 'Hotel 1', 'Hotel 5'])
 })
@@ -5234,7 +5238,7 @@ test('@Searchable: quitar un chip rehace los chips de la proyección sin ir al s
   const after = withSearchableIds(sections, 'hotelIds', ['9'])
   const field = after[0].fields.find((f) => f.fieldId === 'hotelIds')
   assert.deepEqual(field.chips.map((c) => [c.id, c.label]), [['9', 'Hotel 9']])
-  // lo demás, intacto
+  // the rest, untouched
   assert.equal(after[0].fields.length, sections[0].fields.length)
   const merged = withContextState(reg, HOST_ID, { hotelId: '2' })
   assert.equal(merged.contexts[HOST_ID].state.hotelId, '2')
@@ -5255,7 +5259,7 @@ test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta c
 })
 
 
-// ── Filtros por URL (declarados, texto libre y selección por ids) y enlaces del chat ──────────────
+// ── URL filters (declared, free text and selection by ids) and chat links ──────────────
 
 test('url filters: cada tipo de filtro declarado se pone desde la query, y sale como chip aplicado', () => {
   const q = queryFiltersOf('status=Pending,Confirmed&hotel=Riu&arrival_from=2026-11-01&arrival_to=2026-11-30&vip=true&nights_from=2&vista=IN_HOUSE')
@@ -5284,15 +5288,15 @@ test('url filters: ?ids=… es la selección — un chip que se quita, y viaja a
   assert.equal(idsChipLabelOf(['a', 'b', 'c', 'd'], 'es-ES'), '4 elementos seleccionados')
   assert.equal(idsChipLabelOf('a', 'en'), 'Selection: a')
   assert.equal(idsChipLabelOf('a,b,c,d', 'en'), '4 selected items')
-  // vuelve del componente: con el chip, ids; sin él (quitado con la ✕), nada
+  // comes back from the component: with the chip, ids; without it (removed with the ✕), nothing
   assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, chips).values, { ids: '4MBZS7,JXD3G6' })
   assert.deepEqual(filterStateOfSmartFilters(BOOKING_FILTERS, []).values, {})
-  // en el search, en el componentState como cualquier filtro
+  // in the search, in the componentState like any filter
   assert.equal(listingSearchStateOf({}, { filters: values }).ids, '4MBZS7,JXD3G6')
-  // y el chip puede abrir su editor: tiene metadata, también en un listado sin filtros declarados
+  // and the chip can open its editor: it has metadata, also on a listing with no declared filters
   assert.ok(smartFiltersMetadataOf(BOOKING_FILTERS).polymorphicTypes.ids)
   assert.deepEqual(filterChipsOf(BOOKING_FILTERS, values)[0].keys, ['ids'])
-  // un listado que DECLARA su propio filtro ids lo trata como suyo (sin chip doble)
+  // a listing that DECLARES its own ids filter treats it as its own (no double chip)
   const own = [filterDescriptorOf({ fieldId: 'ids', label: 'Ids', dataType: 'string' })]
   assert.equal(smartFilterValueOf(own, { ids: 'x' }, '').length, 1)
 })
@@ -5313,7 +5317,7 @@ test('url filters: la URL refleja los filtros aplicados (comas legibles, el rest
   assert.equal(listingUrlOf('/booking/bookings?ids=a', {}, ''), '/booking/bookings', 'quitar el último chip deja la ruta limpia')
   assert.equal(listingQueryOf({ ids: '4MBZS7,JXD3G6', arrival_from: '2026-11-01' }, 'Nora D'),
     'ids=4MBZS7,JXD3G6&arrival_from=2026-11-01&searchText=Nora%20D')
-  // ida y vuelta por la query
+  // round trip through the query
   const back = splitListingQuery(queryFiltersOf(listingQueryOf({ status: 'Cancelled', ids: 'a,b' }, 'x y')))
   assert.deepEqual(back, { searchText: 'x y', values: { status: 'Cancelled', ids: 'a,b' } })
 })
@@ -5325,25 +5329,25 @@ test('url filters: ir al MISMO listado con otra query aplica exactamente la nuev
   const b = navTargetOf('/booking/bookings?ids=4MBZS7,JXD3G6', '/booking/bookings?status=Cancelled')
   assert.equal(b.same, false)
   assert.deepEqual(b.filters, { ids: '4MBZS7,JXD3G6' })
-  // la navegación pedida (chat) se compara con lo CARGADO, no con la entrada del menú
+  // the requested navigation (chat) is compared with what is LOADED, not with the menu entry
   const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
   assert.match(nav, /window\.__mateuLoadedFull/)
   assert.match(nav, /bridge\.splitListingQuery\(target\.filters\)/)
-  // un deep-link con query la conserva en la URL (el router de VB la quitaba al arrancar)
+  // a deep link with a query keeps it in the URL (the VB router removed it on startup)
   assert.match(nav, /history\.replaceState\(window\.history\.state, '', bridge\.urlOfRoute\(target\.full\)\)/)
-  // cambiar filtros reescribe la URL
+  // changing filters rewrites the URL
   assert.match(webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js'), /bridge\.listingUrlOf\(/)
 })
 
 test('chat: un enlace a una ruta de la app se pinta como enlace (no texto, no vacío) y navega dentro', () => {
   const html = chatMarkdownToHtml('Nora Duarte: [4MBZS7](/booking/bookings/4MBZS7)')
   assert.equal(html, '<p>Nora Duarte: <a href="/booking/bookings/4MBZS7" class="mateu-chat-route" data-mateu-route="/booking/bookings/4MBZS7">4MBZS7</a></p>')
-  // la query (& escapado en el atributo) y los _ del href no se rompen con la cursiva
+  // the query (& escaped in the attribute) and the href's _ are not broken by the italics
   assert.equal(chatMarkdownToHtml('[ver](/booking/bookings?ids=A_B,C_D&status=Cancelled) _ok_'),
     '<p><a href="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled" class="mateu-chat-route" data-mateu-route="/booking/bookings?ids=A_B,C_D&amp;status=Cancelled">ver</a> <em>ok</em></p>')
-  // //host no es una ruta de la app
+  // //host is not an app route
   assert.equal(chatMarkdownToHtml('[x](//evil.com/a)'), '<p>[x](//evil.com/a)</p>')
-  // el clic: sólo uno normal sobre un enlace nuestro
+  // the click: only a normal one on one of our links
   const anchor = { getAttribute: (n) => (n === 'data-mateu-route' ? '/booking/bookings/4MBZS7' : null) }
   assert.equal(chatRouteOfLink(anchor, { button: 0 }), '/booking/bookings/4MBZS7')
   assert.equal(chatRouteOfLink(anchor, { button: 0, metaKey: true }), null, 'Cmd-clic: otra pestaña, lo hace el navegador')
@@ -5386,32 +5390,32 @@ test('chat: el menuContext lleva el descriptor de listado de cada entrada (filtr
   assert.equal(ctx[0].description, 'Las reservas del CRS')
   assert.deepEqual(ctx[0].path, ['Call center', 'Bookings'])
   assert.equal(ctx[1].listing, undefined)
-  // el chat de Redwood lo manda en el primer mensaje de la sesión (antes no lo mandaba nunca)
+  // Redwood's chat sends it in the first message of the session (before, it never sent it)
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.chatTurnOf\(/)
   assert.match(send, /sendMenu = window\.__mateuChatMenuSentFor !== sessionId/)
 })
 
 test('guided process: el overview sólo va en columna en teléfono (< 600px), no en ventanas bajas', () => {
-  // la consulta con la que oj-sp-guided-process decide la columna se reescribe; el resto, intacta
+  // the query oj-sp-guided-process uses to decide the column is rewritten; the rest, untouched
   assert.equal(guidedProcessMediaQuery('(max-width: 767px), (max-height: 767px)'), '(max-width: 599px)')
   assert.equal(guidedProcessMediaQuery(' (max-width: 767px),  (max-height: 767px) '), '(max-width: 599px)')
   assert.equal(guidedProcessMediaQuery('(min-width: 768px)'), '(min-width: 768px)')
   assert.equal(guidedProcessMediaQuery('(max-width: 767px)'), '(max-width: 767px)')
-  // la rueda vuelve a la página cuando los pasos ya no desbordan a lo ancho
+  // the wheel goes back to the page when the steps no longer overflow horizontally
   assert.equal(guidedProcessWheelIsNative({ scrollWidth: 1200, clientWidth: 1200 }), true)
   assert.equal(guidedProcessWheelIsNative({ scrollWidth: 1600, clientWidth: 1200 }), false)
   assert.equal(guidedProcessWheelIsNative(null), false)
-  // el guard del wizard lo instala, y app.css reparte los paneles a lo ancho desde tablet
+  // the wizard guard installs it, and app.css spreads the panels horizontally from tablet up
   assert.match(webApp('resources/js/mateu-bridge.js'), /relaxGuidedProcessOverview\(\)/)
   const css = webApp('resources/css/app.css')
   assert.match(css, /@media \(min-width: 600px\)[\s\S]*#mateuWizardEl \.oj-sp-guided-process-step-container[\s\S]*display: grid/)
   assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(/)
 })
 
-// ANCHO de columna (@ColumnWidth: width "420px" + flexGrow "0" + tooltipPath en el GridColumn,
-// Mateu #703): oj-table fija el ancho (min = max = width), la celda se corta con elipsis y el
-// texto entero va al title; las demás columnas no cambian. La fila queda intacta.
+// Column WIDTH (@ColumnWidth: width "420px" + flexGrow "0" + tooltipPath on the GridColumn,
+// Mateu #703): oj-table fixes the width (min = max = width), the cell is cut with an ellipsis and
+// the whole text goes to the title; the other columns do not change. The row stays untouched.
 test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las demás, igual', () => {
   assert.deepEqual(columnWidthOf({ width: '420px', flexGrow: '0' }), { width: '420px', minWidth: '420px', maxWidth: '420px' })
   assert.deepEqual(columnWidthOf({ width: '12rem', flexGrow: '1' }), { width: '12rem', minWidth: '12rem' })
@@ -5438,17 +5442,17 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   assert.equal(name.field, 'name__clipCell')
   assert.equal(name.template, 'cellClip')
   assert.deepEqual(listing.rows[0].name__clipCell, { text: rows[0].name, title: rows[0].name, hover: '', cls: 'mateu-cell-clip' })
-  assert.equal(listing.rows[0].name, rows[0].name) // la fila, intacta
-  // el resto de columnas, como antes: sin ancho ni plantilla de recorte
+  assert.equal(listing.rows[0].name, rows[0].name) // the row, untouched
+  // the rest of the columns, as before: no width and no clipping template
   for (const c of listing.columns.filter((c) => c.id !== 'name')) {
     assert.equal(c.width, undefined)
     assert.notEqual(c.template, 'cellClip')
   }
-  // ordenar por la cabecera devuelve el id del wire; la selección manda la fila sin la celda
+  // sorting by the header returns the wire id; the selection sends the row without the cell
   assert.deepEqual(listingSortOf({ header: 'name__clipCell', direction: 'ascending' }, listing.sortFields)[0].field, 'name')
   assert.ok(selectedRowsOf(listing.rows, { all: true, keys: [], except: [] }).every((r) => !('name__clipCell' in r)))
-  // la plantilla existe en la tabla del listado (y en el picker, y en el listado de un drawer), y
-  // app.css corta con elipsis
+  // the template exists in the listing table (and in the picker, and in a drawer's listing), and
+  // app.css cuts with an ellipsis
   const html = webApp('flows/main/pages/main-start-page.html')
   assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 3)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
@@ -5480,15 +5484,15 @@ test('chat: la lista sigue el último mensaje mientras crece; si el lector subi�
     const listeners = {}
     const el = { scrollHeight: 1000, scrollTop: 0, clientHeight: 400, addEventListener: (t, f) => { listeners[t] = f }, removeEventListener: () => {} }
     const stop = stickChatToBottom(el)
-    assert.equal(el.scrollTop, 1000)            // al conectar, al final
+    assert.equal(el.scrollTop, 1000)            // on connecting, at the end
     el.scrollHeight = 1300; observed([{ addedNodes: [] }])
-    assert.equal(el.scrollTop, 1300)            // llega un trozo de respuesta: sigue al final
-    el.scrollTop = 200; listeners.scroll()      // el lector sube a releer
+    assert.equal(el.scrollTop, 1300)            // a chunk of response arrives: it keeps following the end
+    el.scrollTop = 200; listeners.scroll()      // the reader moves up to re-read
     el.scrollHeight = 1500; observed([{ addedNodes: [] }])
-    assert.equal(el.scrollTop, 200)             // no lo arrastra
+    assert.equal(el.scrollTop, 200)             // does not drag it along
     const userBubble = { nodeType: 1, querySelector: (s) => s === '.mateu-chat-user-text' ? {} : null, classList: { contains: () => false } }
     el.scrollHeight = 1700; observed([{ addedNodes: [userBubble] }])
-    assert.equal(el.scrollTop, 1700)            // envía otra pregunta: vuelve a seguir el final
+    assert.equal(el.scrollTop, 1700)            // sends another question: follows the end again
     stop()
   } finally { globalThis.MutationObserver = saved }
 })
@@ -5514,9 +5518,9 @@ test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de l
   const a = (href, attrs = {}) => ({ getAttribute: (n) => (n === 'href' ? href : (n in attrs ? attrs[n] : null)) })
   const click = { button: 0 }
   const route = (href, attrs, ev = click, hashMode = false) => inAppRouteOfLink(a(href, attrs), ev, loc, hashMode)
-  // el caso: «Ver recorrido» de la ficha de una reserva
+  // the case: «Ver recorrido» of a booking's record page
   assert.equal(route('/journey/bookings/ZUAAKJ'), '/journey/bookings/ZUAAKJ')
-  // con su query; relativo y absoluto del mismo origen también
+  // with its query; relative and absolute of the same origin too
   assert.equal(route('/booking/bookings?status=Cancelled&ids=A_B'), '/booking/bookings?status=Cancelled&ids=A_B')
   assert.equal(route('https://rw.ec1.mateu.io/journey/bookings/X1'), '/journey/bookings/X1')
   assert.equal(route('../customers/7'), '/booking/customers/7')
@@ -5524,37 +5528,37 @@ test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de l
   assert.equal(route('/'), '/', 'la home: la shell la traduce a su ruta de inicio')
   assert.equal(route('/journey/bookings/X1', { target: '_self' }), '/journey/bookings/X1')
   assert.equal(route('/journey/bookings/X1', {}, { button: 0, key: 'Enter' }), '/journey/bookings/X1', 'Enter llega como click')
-  // otra consola / otro host / otro esquema: el navegador
+  // another console / another host / another scheme: the browser
   assert.equal(route('https://vaadin.ec1.mateu.io/journey/bookings/X1'), null)
   assert.equal(route('//evil.com/x'), null)
   assert.equal(route('http://rw.ec1.mateu.io/journey/bookings/X1'), null, 'otro origen (esquema)')
   assert.equal(route('mailto:a@b.c'), null)
   assert.equal(route('javascript:void(0)'), null)
-  // lo que el autor quiso fuera: otra pestaña, descarga, router-ignore
+  // what the author wanted outside: another tab, download, router-ignore
   assert.equal(route('/journey/bookings/X1', { target: '_blank' }), null)
   assert.equal(route('/journey/bookings/X1', { download: '' }), null)
   assert.equal(route('/journey/bookings/X1', { 'router-ignore': '' }), null)
-  // clic que no es el normal, o que ya atendió otro (chat, badge de widget)
+  // a click that is not the normal one, or that someone else already handled (chat, widget badge)
   assert.equal(route('/journey/bookings/X1', {}, { button: 1 }), null, 'botón del medio')
   for (const k of ['ctrlKey', 'metaKey', 'shiftKey', 'altKey']) {
     assert.equal(route('/journey/bookings/X1', {}, { button: 0, [k]: true }), null, k)
   }
   assert.equal(route('/journey/bookings/X1', {}, { button: 0, defaultPrevented: true }), null)
-  // anclas de la misma página, href vacío o sin href
+  // same-page anchors, empty href or no href
   assert.equal(route('#'), null)
   assert.equal(route('#expand=recorrido'), null)
   assert.equal(route('/booking/bookings/ZUAAKJ#expand=recorrido'), null)
   assert.equal(route(''), null)
   assert.equal(route(null), null)
-  // no son pantallas: rutas internas, API, login, ficheros, estáticos
+  // they are not screens: internal routes, API, login, files, static assets
   for (const href of ['/_inbox', '/_journey/mateu/v3/ui', '/api/bookings', '/oauth2/authorization/keycloak', '/login',
     '/logout', '/files/factura.pdf', '/export/bookings.csv', '/version_123/resources/js/x.js', '/assets/logo.png']) {
     assert.equal(route(href), null, href)
   }
-  // en estático (modo hash) `#/ruta` también es una pantalla
+  // in static (hash mode) `#/ruta` is also a screen
   assert.equal(route('#/journey/bookings/X1', {}, click, true), '/journey/bookings/X1')
   assert.equal(route('#/journey/bookings/X1', {}, click, false), null)
-  // la shell lo cablea: escucha clics en #pageContent y navega con onMateuNavigate
+  // the shell wires it: listens for clicks on #pageContent and navigates with onMateuNavigate
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.match(shell, /bridge\.inAppRouteOfLink\(anchor, event, window\.location/)
   assert.match(shell, /getElementById\('pageContent'\)/)
@@ -5563,8 +5567,8 @@ test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de l
 })
 
 test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constantes, no de vuelta de la variable', () => {
-  // una variable `any` de VB que tenía un objeto y se pone a null se lee DENTRO de la chain como un
-  // proxy truthy: del detalle de una reserva (foldout) al recorrido, el host no se proyectaba
+  // a VB `any` variable that held an object and is set to null reads INSIDE the chain as a
+  // truthy proxy: from a booking's detail (foldout) to the itinerary, the host was not projected
   for (const rel of ['pages/shell-page-chains/onMateuNavigate.js', 'flows/main/pages/main-start-page-chains/runMateuAction.js']) {
     const src = webApp(rel)
     assert.doesNotMatch(src, /!\s*\$application\.variables\.mateu(Foldout|Queue|Wizard)\b/, rel)
@@ -5601,7 +5605,7 @@ test('wireVersion: mismo major vale; otro major se avisa UNA vez, en claro; sin 
     setWireMismatchListener(null)
     resetWireVersionCheck()
   }
-  // la shell lo cablea a la banda de error
+  // the shell wires it to the error band
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.match(shell, /bridge\.setWireMismatchListener\(/)
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'wireVersion\.mjs'/)

@@ -15,6 +15,13 @@ A user fills out a long form, the session times out or the tab is accidentally c
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate the view class with `@AutoSave`. Mateu debounces field changes and automatically triggers the designated save action, keeping the backend in sync without any user gesture.
 
 ```java

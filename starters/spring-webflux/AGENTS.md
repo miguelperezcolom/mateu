@@ -57,6 +57,21 @@ mvn package                  # target/*.jar
 - Do not add `io.mateu` to `scanBasePackages`: Mateu's beans come with its adapter jar as an
   auto-configuration. Keep your `@UI` classes inside the package `Application` scans.
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.
+- **Actions are declared.** An `actionId` only runs a method marked as an action (`@Action`,
+  `@Button`, `@Toolbar`…) or one the view itself names (a fluent button's `actionId`, a trigger, a
+  menu rule) — strict action mode, the default. A method only an undo toast, a test or another
+  backend dispatches needs `@Action`; a plain public helper is not reachable from the browser.
+- **Security is Spring Security's.** Mateu does not authenticate: add Spring Security (e.g.
+  `spring-boot-starter-oauth2-resource-server`) and Mateu reads the principal it authenticated
+  (https://mateu.io/java-user-manual/advanced/security/). Mateu's adapter exempts its own JSON
+  calls (`<baseUrl>/mateu/v3/**`) from Spring Security's CSRF check automatically: do not disable
+  CSRF for it. Only if you set `mateu.security.csrf-exemption.enabled=false`, add
+  `csrf.ignoringRequestMatchers(MateuCsrfAutoConfiguration.MATEU_JSON_CALLS)` (`io.mateu.security`)
+  yourself (WebFlux:
+  `requireCsrfProtectionMatcher(MateuCsrfWebFluxAutoConfiguration.CSRF_PROTECTED)`), or every
+  action answers 403.
+- `mateu.*` settings (`mateu.actions.strict`, `mateu.errors.detailed`…) go in
+  `application.properties` like any other.
 - Prefer annotations and capability interfaces over custom components; check the docs before
   inventing an API.
 

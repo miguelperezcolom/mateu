@@ -1,16 +1,16 @@
-// COBERTURA REAL del renderer Redwood/VB por tipo de componente del wire — la fuente de la tabla
-// «Redwood component coverage» de reference/parity.md (que se GENERA de aquí: node
-// parity-check.mjs --write). parity-check.mjs, en CI, falla si:
-//   - un tipo del wire (ComponentMetadataDto) no está aquí, o aquí hay uno que el wire no tiene;
-//   - un tipo 'full'/'partial' no tiene la rama que dice (`via`, por defecto `t === 'X'` en
-//     reduceContexts.mjs) — la documentación prometería algo sin código detrás;
-//   - un tipo 'none' SÍ tiene rama (la tabla se quedó atrás: hay que subirlo);
-//   - la sección generada de parity.md no coincide con esta tabla.
-// status: full (✅ lo pinta un componente Oracle o el átomo propio) · partial (🟡, con nota) ·
-// layout (✅ contenedor: sus hijos se pintan en el flujo de la página) · part (pieza de otro
-// componente: se juzga con su dueño) · none (— no se pinta: se pierde en silencio, ojo).
+// REAL COVERAGE of the Redwood/VB renderer per wire component type — the source of the table
+// «Redwood component coverage» in reference/parity.md (which is GENERATED from here: node
+// parity-check.mjs --write). parity-check.mjs, in CI, fails if:
+//   - a wire type (ComponentMetadataDto) is not here, or here there is one the wire does not have;
+//   - a 'full'/'partial' type does not have the branch it claims (`via`, by default `t === 'X'` in
+//     reduceContexts.mjs) — the documentation would promise something with no code behind it;
+//   - a 'none' type DOES have a branch (the table fell behind: it must be raised);
+//   - the generated section of parity.md does not match this table.
+// status: full (✅ painted by an Oracle component or our own atom) · partial (🟡, with a note) ·
+// layout (✅ container: its children are painted in the page flow) · part (piece of another
+// component: judged with its owner) · none (— not painted: lost silently, careful).
 export const REDWOOD_COVERAGE = {
-  // ── páginas y estructura ──
+  // ── pages and structure ──
   App: { status: 'full', note: 'oj-sp shell: navigation drawer / top tabs / card menus' },
   Page: { status: 'full', note: 'oj-sp header (title, subtitle, KPIs, toolbar, banners, status badge, peer arrows, timestamp; overline + title placeholder drawn over it)' },
   Form: { status: 'full', via: "'Form'", note: 'oj-form-layout' },
@@ -45,7 +45,7 @@ export const REDWOOD_COVERAGE = {
   DashboardPanel: { status: 'full', note: 'oj-panel tile (title, subtitle, content)' },
   Scoreboard: { status: 'full', note: 'KPI band' },
   HeroSection: { status: 'full', note: 'the Welcome archetype: oj-sp-header-welcome-banner; in the content, a hero band (title, subtitle, background image) over its children' },
-  // ── campos y entrada ──
+  // ── fields and input ──
   FormField: { status: 'full', note: 'oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields' },
   CustomField: { status: 'layout', note: 'its component in place' },
   Button: { status: 'full', note: 'oj-button' },
@@ -134,7 +134,7 @@ export const REDWOOD_COVERAGE = {
 
 export const STATUS_MARK = { full: '✅', layout: '✅ layout', partial: '🟡', part: '↳', none: '—' }
 
-/** La tabla Markdown de parity.md (sección generada). */
+/** The Markdown table of parity.md (generated section). */
 export function coverageTable(coverage = REDWOOD_COVERAGE) {
   const order = { full: 0, layout: 1, partial: 2, part: 3, none: 4 }
   const rows = Object.entries(coverage)

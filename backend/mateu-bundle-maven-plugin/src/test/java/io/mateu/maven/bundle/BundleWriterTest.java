@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import io.mateu.core.application.export.MateuBundleExporter;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.uidl.data.ProjectRenderer;
 import java.io.FileOutputStream;
 import java.net.URL;
@@ -80,8 +80,8 @@ public class BundleWriterTest {
             "/* bridge */"));
   }
 
-  private static MateuBundleExporter.BundleManifest manifest() {
-    return new MateuBundleExporter.BundleManifest("", "now", true, List.of());
+  private static BundleManifest manifest() {
+    return new BundleManifest("", "now", true, List.of());
   }
 
   @Test

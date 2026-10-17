@@ -1,10 +1,10 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.core.application.contract.ModelViewContractExtractor;
+import io.mateu.core.domain.ComponentState;
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.infra.StructureHashPostProcessor;
-import io.mateu.core.infra.TemplateInterpolator;
 import io.mateu.dtos.ModelViewContractDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
@@ -35,24 +35,22 @@ public class RunActionUseCase {
   private final RestSourceRegistry restSourceRegistry;
   private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
 
-  // ── Public static helpers (used by other classes in the framework) ────────
+  // ── Public static helpers: delegates, the implementation is domain-side ──────────────────
+  // io.mateu.core.domain.ComponentState holds them; wrap / getState are deprecated in its favour.
 
   public static void setResolvedRoute(HttpRequest httpRequest, String route) {
-    setResolvedRoute(httpRequest, route, true);
+    ComponentState.setResolvedRoute(httpRequest, route);
   }
 
   public static void setResolvedRoute(HttpRequest httpRequest, String route, boolean force) {
-    if (force || httpRequest.getAttribute("resolvedRoute") == null) {
-      httpRequest.setAttribute("resolvedRoute", route);
-    }
+    ComponentState.setResolvedRoute(httpRequest, route, force);
   }
 
   public static void setResolvedPath(HttpRequest httpRequest, String path) {
-    httpRequest.setAttribute("resolvedPath", path);
+    ComponentState.setResolvedPath(httpRequest, path);
   }
 
-  // Keep static wrap/getState here as a forwarding facade so existing callers compile unchanged.
-  // The actual implementation lives in ComponentStateHelper.
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static io.mateu.dtos.ServerSideComponentDto wrap(
       Component component,
       Object modelView,
@@ -61,10 +59,11 @@ public class RunActionUseCase {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return ComponentStateHelper.wrap(
+    return ComponentState.wrap(
         component, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
   }
 
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static io.mateu.dtos.ServerSideComponentDto wrap(
       List<Component> components,
       Object modelView,
@@ -73,12 +72,13 @@ public class RunActionUseCase {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return ComponentStateHelper.wrap(
+    return ComponentState.wrap(
         components, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
   }
 
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static Object getState(Object modelView, HttpRequest httpRequest) {
-    return ComponentStateHelper.getState(modelView, httpRequest);
+    return ComponentState.getState(modelView, httpRequest);
   }
 
   // ── Main entry point ──────────────────────────────────────────────────────
@@ -114,17 +114,7 @@ public class RunActionUseCase {
     if (APP_SOURCE_ACTION.equals(command.actionId())) {
       return handleAppSource(command);
     }
-    return (Mono.just(command)
-            .flatMap(ignored -> actionInstanceCreator.createInstance(command))
-            .map(instance -> enforceClassLevelAccess(instance, command))
-            // a plain routed Listing declaring interaction capabilities is bridged into the CRUD
-            // engine BEFORE routing/dispatch, so it gets the mediator with only its declared routes
-            .map(
-                instance ->
-                    io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud
-                        .bridgeIfNeeded(instance, command.componentState()))
-            .flatMap(instance -> routeIfNeeded(command, instance))
-            .map(instance -> enforceClassLevelAccess(instance, command))
+    return (resolveInstance(command)
             .flatMapMany(
                 instance ->
                     actionRunnerProvider
@@ -181,6 +171,25 @@ public class RunActionUseCase {
   }
 
   /**
+   * The instance the request is addressed to, as every path sees it: created for the route, checked
+   * against its class-level {@code @EyesOnly}, bridged into the CRUD engine when it is a plain
+   * routed Listing declaring interaction capabilities (BEFORE routing/dispatch, so it gets the
+   * mediator with only its declared routes), routed when it handles routes itself, and checked
+   * again on what a route handler handed over.
+   */
+  private Mono<?> resolveInstance(RunActionCommand command) {
+    return Mono.just(command)
+        .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+        .map(instance -> enforceClassLevelAccess(instance, command))
+        .map(
+            instance ->
+                io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
+                    instance, command.componentState()))
+        .flatMap(instance -> routeIfNeeded(command, instance))
+        .map(instance -> enforceClassLevelAccess(instance, command));
+  }
+
+  /**
    * The {@link java.util.NoSuchElementException} behind a failed LOAD of a route — the record or
    * screen the route names does not exist — or null when the failure is anything else, or happened
    * running an action on a screen that does exist.
@@ -202,15 +211,7 @@ public class RunActionUseCase {
   public static final String CONTRACT_KEY = "_contract";
 
   private Flux<UIIncrementDto> handleContract(RunActionCommand command) {
-    return Mono.just(command)
-        .flatMap(ignored -> actionInstanceCreator.createInstance(command))
-        .map(instance -> enforceClassLevelAccess(instance, command))
-        .map(
-            instance ->
-                io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
-                    instance, command.componentState()))
-        .flatMap(instance -> routeIfNeeded(command, instance))
-        .map(instance -> enforceClassLevelAccess(instance, command))
+    return resolveInstance(command)
         // Map the instance as a plain load (no action is run) so we get its component, then reduce
         // the response to just the extracted contract.
         .flatMap(instance -> mapToUiIncrement(instance, command))
@@ -271,102 +272,16 @@ public class RunActionUseCase {
   // error rather than treating an empty body as success. {status, message} — status 0 = transport.
   public static final String RESTFETCH_ERROR_KEY = "_restfetchError";
 
-  private static final java.net.http.HttpClient REST_HTTP =
-      java.net.http.HttpClient.newBuilder()
-          .connectTimeout(java.time.Duration.ofSeconds(10))
-          .build();
-  private static final com.fasterxml.jackson.databind.ObjectMapper REST_MAPPER =
-      new com.fasterxml.jackson.databind.ObjectMapper();
-
   private Flux<UIIncrementDto> handleRestFetch(RunActionCommand command) {
-    return Mono.just(command)
-        .flatMap(ignored -> actionInstanceCreator.createInstance(command))
-        .map(instance -> enforceClassLevelAccess(instance, command))
-        .map(
-            instance ->
-                io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
-                    instance, command.componentState()))
-        .flatMap(instance -> routeIfNeeded(command, instance))
-        .map(instance -> enforceClassLevelAccess(instance, command))
+    return resolveInstance(command)
         // The upstream call is a BLOCKING java.net.http send (once per selected row on the bulk
         // path): it must not run on the reactive event-loop thread that serves every other request,
         // so the whole fetch moves to the bounded elastic pool, made for exactly this.
         .flatMap(
             instance ->
-                Mono.fromCallable(() -> toRestFetchResponse(instance, command))
+                Mono.fromCallable(() -> restProxy().fetch(instance, command))
                     .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()))
         .flux();
-  }
-
-  private UIIncrementDto toRestFetchResponse(Object instance, RunActionCommand command) {
-    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
-    var params =
-        rq != null && rq.parameters() != null
-            ? rq.parameters()
-            : java.util.Map.<String, Object>of();
-    var kind = String.valueOf(params.getOrDefault("_sourceKind", ""));
-    var id = String.valueOf(params.getOrDefault("_sourceId", ""));
-    var source = RestSourceResolver.resolve(instance, kind, id, restSourceRegistry.catalog());
-    if (source == null) {
-      return UIIncrementDto.builder()
-          .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))
-          .build();
-    }
-    var state =
-        command.componentState() != null
-            ? command.componentState()
-            : java.util.Map.<String, Object>of();
-    // SAMPLE mode (opt-in only, see SampleSources): a source carrying sample data answers with it
-    // instead of being called — the proxied twin of the browser's short-circuit in
-    // fetchExternalJson, so both legs agree. A read gets the sample; a write (and a bulk one)
-    // succeeds without persisting anything.
-    if (SampleSources.enabled() && source.carriesSample()) {
-      var method = source.method() == null ? "GET" : source.method().trim().toUpperCase();
-      Object body = "GET".equals(method) || method.isEmpty() ? source.sample() : java.util.Map.of();
-      return UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, body)).build();
-    }
-    // Bulk (forEachSelectedRow): the loop runs on the SERVER, once per selected listing row, each
-    // row merged OVER the component state so a per-id url like `.../people/${state.id}` resolves to
-    // that row's id. Doing it here — rather than firing N calls from the browser — keeps the secret
-    // server-side, needs a single round trip, and sidesteps the client's write-exclusivity guard
-    // (which would otherwise drop all but the first of N identical `__restfetch__` actions).
-    if (Boolean.parseBoolean(String.valueOf(params.get("_forEachSelectedRow")))) {
-      var list =
-          state.get("crud_selected_items") instanceof java.util.List<?> l ? l : java.util.List.of();
-      int failed = 0;
-      RestProxyException firstError = null;
-      for (var row : list) {
-        var rowState = new java.util.LinkedHashMap<String, Object>(state);
-        if (row instanceof java.util.Map<?, ?> map) {
-          map.forEach((k, v) -> rowState.put(String.valueOf(k), v));
-        }
-        try {
-          performRestCall(source, rowState);
-        } catch (RestProxyException e) {
-          failed++;
-          if (firstError == null) {
-            firstError = e;
-          }
-        }
-      }
-      if (failed > 0) {
-        // A failed row must not read as success: surface it rather than reload as if all deleted.
-        return restFetchError(
-            firstError.status,
-            failed + " of " + list.size() + " failed" + statusSuffix(firstError.status));
-      }
-      // The rows are gone; the client reloads the listing via successRoute, so no body is needed.
-      return UIIncrementDto.builder()
-          .appData(java.util.Map.of(RESTFETCH_KEY, java.util.Map.of()))
-          .build();
-    }
-    try {
-      return UIIncrementDto.builder()
-          .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(source, state)))
-          .build();
-    } catch (RestProxyException e) {
-      return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
-    }
   }
 
   // ── App-shell sources through the server ───────────────────────────────────
@@ -382,7 +297,7 @@ public class RunActionUseCase {
     // one the specs are read with); only the blocking upstream call moves to the elastic pool.
     java.util.concurrent.Callable<UIIncrementDto> call;
     try {
-      call = appSourceCall(command);
+      call = restProxy().appSourceCall(command);
     } catch (RuntimeException e) {
       return Flux.error(e);
     }
@@ -391,188 +306,44 @@ public class RunActionUseCase {
         .flux();
   }
 
-  private java.util.concurrent.Callable<UIIncrementDto> appSourceCall(RunActionCommand command) {
-    var rq = command.httpRequest() != null ? command.httpRequest().runActionRq() : null;
-    var params =
-        rq != null && rq.parameters() != null
-            ? rq.parameters()
-            : java.util.Map.<String, Object>of();
-    var shell = actionInstanceCreator.declaredShellFor(command.route());
-    var declared =
-        AppShellSources.declared(
-            shell,
-            String.valueOf(params.getOrDefault("_appSource", "")),
-            String.valueOf(params.getOrDefault("_field", "")));
-    if (declared == null) {
-      return () -> restFetchError(404, "The app shell declares no such source");
+  private volatile RestProxyCalls restProxy;
+
+  /** The proxied REST calls, sharing this use case's catalogue, shell resolution and secrets. */
+  private RestProxyCalls restProxy() {
+    var proxy = restProxy;
+    if (proxy == null) {
+      proxy = new RestProxyCalls(restSourceRegistry, actionInstanceCreator, this::resolveSecret);
+      restProxy = proxy;
     }
-    var source =
-        declared.hasRef()
-            ? restSourceRegistry
-                .catalog()
-                .get(declared.ref())
-                .map(declared::resolvedAgainst)
-                .orElse(declared)
-            : declared;
-    if (SampleSources.enabled() && source.carriesSample()) {
-      var method = source.method() == null ? "GET" : source.method().trim().toUpperCase();
-      Object body = "GET".equals(method) || method.isEmpty() ? source.sample() : java.util.Map.of();
-      return () -> UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, body)).build();
-    }
-    // the variables the browser interpolates with (searchText, ids…), minus the routing keys
-    var state = new java.util.LinkedHashMap<String, Object>();
-    params.forEach(
-        (key, value) -> {
-          if (!key.startsWith("_")) {
-            state.put(key, value);
-          }
-        });
-    var resolved = source;
-    return () -> {
-      try {
-        return UIIncrementDto.builder()
-            .appData(java.util.Map.of(RESTFETCH_KEY, performRestCall(resolved, state)))
-            .build();
-      } catch (RestProxyException e) {
-        return restFetchError(e.status, "Request failed" + statusSuffix(e.status));
-      }
-    };
+    return proxy;
   }
 
-  /** A proxied REST call that failed: a >=400 upstream status, or a transport error (status 0). */
-  private static final class RestProxyException extends RuntimeException {
-    final int status;
-
-    RestProxyException(int status, String message) {
-      super(message);
-      this.status = status;
-    }
-  }
-
-  private static String statusSuffix(int status) {
-    return status > 0 ? " (HTTP " + status + ")" : "";
-  }
-
-  private static UIIncrementDto restFetchError(int status, String message) {
-    return UIIncrementDto.builder()
-        .appData(
-            java.util.Map.of(
-                RESTFETCH_ERROR_KEY, java.util.Map.of("status", status, "message", message)))
-        .build();
-  }
-
-  /**
-   * One proxied REST call: interpolate the resolved source's url/headers/body against {@code state}
-   * (with {@code ${secret.X}} resolved server-side) and send it, returning the parsed JSON
-   * response. Throws {@link RestProxyException} on a >=400 status or a transport failure — the
-   * caller decides how to surface it, rather than an empty body being mistaken for success. The
-   * single unit both the single-fetch and bulk paths reuse.
-   */
-  private Object performRestCall(
-      io.mateu.uidl.data.RestDataSource source, java.util.Map<String, Object> state) {
-    java.util.function.Function<String, String> secrets = this::resolveSecret;
-    var method =
-        source.method() == null || source.method().isBlank()
-            ? "GET"
-            : source.method().toUpperCase();
-    // Logged by its TEMPLATE, never the resolved url: that may carry a ${secret.X} in its query.
-    var url = source.url();
-    try {
-      // Values are percent-encoded by position (TemplateInterpolator.interpolateUrl), so a value
-      // from the client state cannot add path segments, a query or another host to the request.
-      var resolvedUrl = TemplateInterpolator.interpolateUrl(source.url(), state, secrets);
-      var builder =
-          java.net.http.HttpRequest.newBuilder()
-              .uri(java.net.URI.create(resolvedUrl))
-              .timeout(java.time.Duration.ofSeconds(60))
-              .header("Accept", "application/json");
-      if (source.headers() != null) {
-        for (var e : source.headers().entrySet()) {
-          builder.header(
-              e.getKey(), TemplateInterpolator.interpolate(e.getValue(), state, secrets));
-        }
-      }
-      if (!"GET".equals(method)
-          && !"HEAD".equals(method)
-          && source.body() != null
-          && !source.body().isBlank()) {
-        // The values go into the body ESCAPED when the request declares JSON: a name with a quote
-        // or a description with a newline would otherwise close the string early and the endpoint
-        // would answer 400 with nothing on screen to say why. Only the values — the template's own
-        // punctuation is what gives the body its shape.
-        var escape =
-            TemplateInterpolator.declaresJson(source.headers())
-                ? (java.util.function.UnaryOperator<String>) TemplateInterpolator::jsonEscape
-                : java.util.function.UnaryOperator.<String>identity();
-        builder.method(
-            method,
-            java.net.http.HttpRequest.BodyPublishers.ofString(
-                TemplateInterpolator.interpolate(source.body(), state, secrets, escape)));
-      } else {
-        builder.method(method, java.net.http.HttpRequest.BodyPublishers.noBody());
-      }
-      var response =
-          REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() >= 400) {
-        throw new RestProxyException(response.statusCode(), "HTTP " + response.statusCode());
-      }
-      return parseBody(response.body());
-    } catch (RestProxyException e) {
-      log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
-      throw e;
-    } catch (Exception e) {
-      log.warn("proxy rest fetch failed: {} url={} method={}", e.getMessage(), url, method);
-      throw new RestProxyException(0, e.getMessage());
-    }
-  }
-
-  /**
-   * What a proxied response's body becomes.
-   *
-   * <p>An empty body is a legitimate success, not something to parse: <b>204 No Content</b> is
-   * exactly what a DELETE answers. Feeding "" to the mapper threw, and on the bulk path a throw is
-   * counted as a failed row — so a delete that had deleted everything asked of it reported "1 of 1
-   * failed", with the rows already gone and the screen saying they were not. Malformed JSON still
-   * fails: an empty body is the exception, not a blanket amnesty.
-   */
+  /** What a proxied response's body becomes (see {@link RestProxyCalls#parseBody}). */
   static Object parseBody(String body) throws java.io.IOException {
-    if (body == null || body.isBlank()) {
-      return java.util.Map.of();
-    }
-    return REST_MAPPER.readValue(body, Object.class);
+    return RestProxyCalls.parseBody(body);
   }
 
-  /** The only environment variables a {@code ${secret.X}} may fall back to. */
-  public static final String SECRET_ENV_PREFIX = "MATEU_SECRET_";
+  /**
+   * The only environment variables a {@code ${secret.X}} may fall back to.
+   *
+   * @deprecated use {@link SecretResolver#SECRET_ENV_PREFIX}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
+  public static final String SECRET_ENV_PREFIX = SecretResolver.SECRET_ENV_PREFIX;
 
   /**
-   * The environment variable {@code ${secret.KEY}} falls back to: {@code MATEU_SECRET_KEY} (a key
-   * that already carries the prefix is used as is). Restricted on purpose: the fallback used to
-   * read ANY variable of the process, so a template naming {@code ${secret.DB_PASSWORD}} (or a
-   * cloud credential) would send it to whatever endpoint the source declared.
+   * The environment variable {@code ${secret.KEY}} falls back to.
+   *
+   * @deprecated use {@link SecretResolver#secretEnvName(String)}
    */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static String secretEnvName(String key) {
-    return key.startsWith(SECRET_ENV_PREFIX) ? key : SECRET_ENV_PREFIX + key;
+    return SecretResolver.secretEnvName(key);
   }
 
-  /**
-   * A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment
-   * variable {@code MATEU_SECRET_X} (see {@link #secretEnvName}).
-   */
+  /** A {@code ${secret.X}} value (see {@link SecretResolver#resolve(String)}). */
   String resolveSecret(String key) {
-    try {
-      for (var p :
-          io.mateu.uidl.di.MateuBeanProvider.getBeans(
-              io.mateu.uidl.interfaces.SecretsProvider.class)) {
-        var v = p.getSecret(key);
-        if (v != null) {
-          return v;
-        }
-      }
-    } catch (Exception ignored) {
-      // no provider registered (e.g. tests) — fall through to the environment
-    }
-    return System.getenv(secretEnvName(key));
+    return SecretResolver.resolve(key);
   }
 
   private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {

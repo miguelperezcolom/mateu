@@ -15,6 +15,13 @@ The default CRUD flow persists through the detail form: click the row, edit one 
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Annotate the `AutoCrud` class itself with `@InlineEditing`. Every data column becomes an editable input in place (a field marked `@ReadOnly` stays display-only), and **each committed cell persists its row immediately** through `CrudStore.save(...)` — no explicit save button.
 
 ```java

@@ -17,6 +17,7 @@ import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {
     isActiveFor,
     mergeRemoteMenus,
+    plainText,
     RemoteAnswer,
     RemoteApp,
     remoteMounts,
@@ -29,8 +30,10 @@ import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
+import { trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 import { windowTitleChanged } from '@infra/ui/composedHeading.ts'
+import { literalText } from '@infra/ui/interpolation.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -113,6 +116,9 @@ export default abstract class ConnectedElement extends LitElement {
                 if (drawn !== app.menu || source !== app.menu) {
                     clientSideComponent.metadata = { ...app, menu: drawn, navMenu: source } as App
                 }
+                // the remotes this app names may receive the user's credentials — when this app was
+                // itself served by a trusted origin; a remote's own remotes may not (credentialScope.ts)
+                trustDeclaredRemotes(this.baseUrl, remoteMounts(source).map(option => option.baseUrl))
                 const mounts = remoteMounts(source).filter(option =>
                     option.visible !== false
                     || isActiveFor(option, here)
@@ -238,7 +244,9 @@ export default abstract class ConnectedElement extends LitElement {
     applyCommand(command: UICommand) {
 
         if ('SetWindowTitle' == command.type) {
-            document.title = command.data as string
+            // the page title as plain text: the server's literal escapes resolved (`\${` → `${`) and
+            // markup dropped — the same string the heading and the breadcrumb show
+            document.title = plainText(literalText(command.data as string))
             // a composed page (Dashboard, SmartSearchPage…) shows it as its heading (composedHeading.ts)
             windowTitleChanged(document.title)
             // A single-page app changes what is on screen without changing the page, so a screen

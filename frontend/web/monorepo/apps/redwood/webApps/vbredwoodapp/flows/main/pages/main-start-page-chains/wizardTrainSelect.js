@@ -1,8 +1,8 @@
-/* Wizard HORIZONTAL (@WizardProgress STEPS): clic en un paso del TREN de arriba. Sólo los
- * pasos ya hechos están habilitados (los que faltan se alcanzan con el botón del paso, que
- * valida): ir a uno anterior ejecuta los 'back' necesarios contra Mateu, que re-pinta el
- * paso y re-liga el selected-step del tren. Cualquier otro cambio (el re-pintado mismo, o
- * un paso no anterior) no navega. */
+/* HORIZONTAL wizard (@WizardProgress STEPS): click on a step of the TRAIN at the top. Only the
+ * steps already done are enabled (the missing ones are reached with the step's button, which
+ * validates): going to an earlier one runs the needed 'back's against Mateu, which repaints the
+ * step and re-binds the train's selected-step. Any other change (the repaint itself, or
+ * a step that is not earlier) does not navigate. */
 
 define([
   'vb/action/actionChain',
@@ -18,14 +18,14 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  selectedStepChanged del oj-train ({detail: {value, previousValue, updatedFrom}})
+     * @param {Object} params.event  oj-train's selectedStepChanged ({detail: {value, previousValue, updatedFrom}})
      */
     async run(context, { event }) {
       const { $application } = context;
 
       const detail = (event && event.detail) || {};
       if (detail.updatedFrom !== 'internal') {
-        return; // el re-pintado desde el servidor, no un clic
+        return; // the repaint from the server, not a click
       }
       const wizard = $application.variables.mateuWizard;
       if (!wizard || !wizard.horizontal) {

@@ -10,42 +10,14 @@ declaratively, with no filter chains or interceptors in your UI code.
 
 ---
 
-## `@KeycloakSecured` (deprecated)
-
-:::caution[Deprecated in 3.0-alpha.412]
-`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
-not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
-[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
-register a `PrincipalResolver`.
-:::
-
-`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
-
-```java
-@UI("")
-@KeycloakSecured(
-        url      = "https://auth.example.com/auth",
-        realm    = "my-realm",
-        clientId = "my-client"
-)
-public class App {
-    @Menu Products products;
-    @Menu Orders orders;
-}
-```
-
-| Parameter | Description |
-|---|---|
-| `url` | Base URL of your Keycloak server |
-| `realm` | Keycloak realm name |
-| `clientId` | OAuth2 client ID registered in Keycloak |
-| `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
-
-When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
-
----
-
 ## Authorization with `@EyesOnly`
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 `@EyesOnly` can be applied to fields, methods, and types. It hides the annotated element from any user who does not satisfy the required conditions.
 
@@ -65,9 +37,10 @@ public class App {
 ```
 
 `@EyesOnly` can be applied to:
-- `@Menu` fields — hides the menu entry
-- `@Menu` methods — hides the menu entry
-- Classes (types) — hides the whole page or orchestrator
+- `@Menu` fields — hides the menu entry (`@Menu` targets fields, not methods)
+- form fields — hides the field and keeps its value out of the page state
+- action methods (`@Button`, `@Toolbar`, …) — hides the button and refuses the call
+- classes (types) — hides the whole page or orchestrator and refuses its actions
 
 ---
 
@@ -116,6 +89,34 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/rea
 To read Keycloak's `realm_access.roles`, Mateu also reads the authenticated token's claims, so no
 authorities converter is needed.
 
+**CSRF.** Spring Security turns CSRF protection on for every `POST`. Mateu's adapters contribute an
+exemption for **its own JSON calls** (`<baseUrl>/mateu/v3/**` and `/mateu/mcp` with
+`Content-Type: application/json`, plus the development endpoints `/mateu/dev/**`, served only with
+`mateu.dev=true`), applied to every `SecurityFilterChain` you build from the
+injected `HttpSecurity` / `ServerHttpSecurity` — nothing to configure, form login and session
+cookies included. Your own endpoints, and any form-encoded, multipart or `text/plain` request to a
+Mateu path, keep the CSRF check. It is safe because a cross-site page can only make the browser send
+those three content types without asking first: a JSON `POST` from another origin needs a CORS
+preflight, and Mateu's CORS is off unless you list the origins (`mateu.cors.allowed-origins`). Turn
+the exemption off with `mateu.security.csrf-exemption.enabled=false` — and then exempt the Mateu
+paths yourself, or every action answers 403 ("You are not allowed to do this."):
+
+```java
+@Bean
+SecurityFilterChain security(HttpSecurity http) throws Exception {
+  return http
+      .csrf(csrf -> csrf.ignoringRequestMatchers(
+          MateuCsrfAutoConfiguration.MATEU_JSON_CALLS)) // io.mateu.security
+      .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
+      .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+      .build();
+}
+```
+
+(WebFlux: `csrf.requireCsrfProtectionMatcher(MateuCsrfWebFluxAutoConfiguration.CSRF_PROTECTED)`.)
+The automatic exemption relies on Spring Security 7's top-level customizer beans; on an older
+Spring Security, add the line above.
+
 **Quarkus** — `quarkus-oidc` (or `quarkus-smallrye-jwt`):
 
 ```properties
@@ -141,6 +142,11 @@ your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
 `mp.jwt.verify.issuer` in `microprofile-config.properties`. (Mateu's streamed actions, MCP and YAML
 mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
 `PrincipalResolver` if those need roles.)
+
+**CSRF on Quarkus, Micronaut and Helidon MP.** None of them adds CSRF protection to JSON requests
+by default, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
+`application/json` requests to `<baseUrl>/mateu/v3/**` and `/mateu/mcp` the same way
+(`io.mateu.core.infra.security.CsrfExemption.isMateuJsonCall(path, contentType)` is the rule).
 
 **Your own identity source** — a `PrincipalResolver` bean:
 
@@ -234,47 +240,47 @@ Anything else — a library class, a service or repository bean, an interface �
 
 **Actions.** An `actionId` only runs a method that is an action:
 
-- a method marked `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`, `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction` or `@RestAction` (any visibility but `private`);
-- a `public` method of the view itself — not a getter/setter, not `toString`/`equals`/…, not a framework callback such as `search` or `handleAction`;
-- a row action: a method that receives the clicked row or the selected rows (`ColumnAction("retry")` → `retry(Row row)`);
-- an id a `ComponentAdapter` declares in its `AdaptedView`.
+- a method marked `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`, `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction`, `@RestAction` or `@Menu` (any visibility but `private`, directly or through a composed annotation);
+- a method whose id the view itself **advertises** — writes as a string literal in its own code (a `confirmActionId("doArchive")` of the dialog one of its actions returns, a `Button.builder().actionId("go")`), or names in one of its declarations: a component it holds or supplies (a fluent `Button`, a `MetricCard`, a map marker, an `EntityHeader` fact, a toolbar or header button, a menu `Rule` leaf, an `AppHeaderAction`), its triggers and subscriptions (`@Trigger`, `@SubscribeTo`, a `TriggersSupplier`), `@OnRowSelected`, `@AutoSave`, `@AppShortcut`, a `@Section` affordance (`addAction`/`editAction`/`viewMoreAction`), its `ActionSupplier` list, or the YAML layout bound to it. The method must not be plumbing: not a getter/setter, not `toString`/`equals`/…, not a framework callback such as `search` or `handleAction`;
+- an id a `ComponentAdapter` declares in its `AdaptedView`;
+- a field marked as an action, or holding a function (`Runnable`, `Callable`, `Supplier`, `Function`, `Consumer`).
 
-`private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403.
+**Writes.** A save takes from the posted state only what the form let the user change. On a CRUD
+edit, the record saved is the one the route names: its id, and every field the editor showed
+read-only for this request (`@ReadOnly`, `@EditableOnlyWhenCreating`, a `ReadOnlySupplier`, a
+`@ReadOnlyUnless` the caller does not satisfy) or did not show (`@HiddenInEditor`), keep the
+values of the loaded record whatever the request carries; on a create, the fields the creation
+form showed read-only or hid (`@HiddenInCreate`) keep the values of a fresh creation form (a
+`@GeneratedValue` stays the one generated for the form). `@EyesOnly` / `@ReadOnlyUnless` fields are
+never written from the wire on any view. The optimistic-lock `@Version` is the client's copy on
+purpose — the save compares it.
 
-### Strict action mode (`mateu.actions.strict`)
+`private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403, and so does an `actionId` that names nothing at all (a CRUD included): one WARN line, no stack trace.
+
+### Strict action mode (`mateu.actions.strict`) — the default
 
 **The threat.** An `actionId` is a string the client sends, and anyone can send any string — not
-just the ids of the buttons on screen. With the default convention, *every* public method of a view
-model is an action. That is convenient (a fluent `Button` can name a method without annotating it),
-and the framework already excludes accessors, `Object`/framework callbacks, lifecycle methods,
-statics and anything outside the view's own code. But a view model that grows a public method that
-was never meant to be a button — a helper, a `recalculatePrices()`, a `deleteDraftsOlderThan(...)`
-called by another action — exposes it to every user who can open that view, whether or not a button
-for it is drawn. Visibility rules (`@EyesOnly`, `@DisabledUnless`) protect it only if they were put
-on that method too. Likewise a non-public method that takes a row (`retry(Row row)`) is inferred to
-be a row action.
+just the ids of the buttons on screen. Under the old convention *every* public method of a view
+model was an action, so a view model that grew a public method never meant to be a button — a
+helper, a `recalculatePrices()`, a `deleteDraftsOlderThan(...)` called by another action — exposed
+it to every user who could open that view, whether or not a button for it was drawn.
 
-**The mode.** Set `mateu.actions.strict=true` (JVM system property, or `MATEU_ACTIONS_STRICT=true`)
-and an action is only what is *declared* as one:
+**The mode.** Since 3.0-alpha.426 strict mode is **on by default**: an action is what is
+*declared* as one — marked, or advertised by the view (the list above). A public method nobody
+marked and nothing on the view names answers HTTP 403. What needs a marker is an id only a previous
+*response* named — an undo toast's action (`Message.undoable(…, "restore", …)`), a method only
+another backend or a test dispatches: mark it `@Action` (it adds nothing to the screen). Row actions
+(`action-on-row-<method>`) must be marked too (`@ListToolbarButton`, `@Action`…): the old inference
+"a method taking the clicked row is a row action" is off.
 
-- a method carrying an action marker — `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`,
-  `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction`, `@RestAction`, `@Menu`
-  (directly or through a composed annotation);
-- an id a `ComponentAdapter` declares in its `AdaptedView`;
-- a field marked as an action, or holding a function (`Runnable`, `Callable`, `Supplier`,
-  `Function`, `Consumer`) — a field of that type is already a deliberate UI declaration.
+`mateu.actions.strict=false` (in `application.properties`, as a JVM system property, or
+`MATEU_ACTIONS_STRICT=false`) brings back the old convention, for an app that has not been
+migrated yet. Strict is the recommended setting for anything exposed to the internet.
 
-Unmarked public methods and inferred row actions answer HTTP 403. Before turning it on, mark the
-methods your fluent buttons, `ColumnAction`s and `@SubscribeTo`/`@OnRowSelected` handlers name with
-`@Action` (it adds nothing else to the screen). The default is `false` for now so existing apps keep
-working; strict is the recommended setting for anything exposed to the internet, and it is expected
-to become the default in a later release.
-
-**The .NET and Python backends are always strict.** Their action resolution (`ActionGuard` /
-`action_guard`) only reaches a method that is marked (`[Action]`/`[Button]`/`[Fab]`,
+**The .NET and Python backends are always strict**, with the same rule: their action resolution
+(`ActionGuard` / `action_guard`) only reaches a method that is marked (`[Action]`/`[Button]`/`[Fab]`,
 `@action`/`@button`/`@fab`) or whose id the view itself advertises (its component tree,
-`OnRowSelected`, `SubscribeTo`, rule and header-action ids) — there is no "public methods are
-actions" convention to switch off.
+`OnRowSelected`, `SubscribeTo`, rule and header-action ids) — there is no switch for them.
 
 **Errors do not leak.** When an action throws, the user sees one of three things:
 
@@ -299,7 +305,7 @@ void reserve() {
 }
 ```
 
-In development, `mateu.errors.detailed=true` (system property, or `MATEU_ERRORS_DETAILED=true`)
+In development, `mateu.errors.detailed=true` (`application.properties`, a system property, or `MATEU_ERRORS_DETAILED=true`)
 puts the raw exception class and message back in the toast. The .NET (`Mateu.Uidl.UserFacingException`,
 `System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_uidl.UserFacingException`,
 pydantic `ValidationError`) backends apply the same boundary with the same texts — and an exception
@@ -405,6 +411,27 @@ The storage key is `__mateu_auth_token`. When your backend can use them, **HttpO
 cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
 throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
 
+### Which origins receive it
+
+The token, the `X-Session-Id` and the `@AppContext` values go only to origins trusted with them:
+
+- the page's own origin, and the base url of the top-level `<mateu-ui>` (the host page wrote it);
+- the remotes **your** app names in its menu (`RemoteMenu`) — your app chose them, just as
+  `mateu.remote.allowed-hosts` does for the server's own calls;
+- the origins you list yourself:
+
+```html
+<meta name="mateu-credential-origins" content="https://forms.example.com, https://api.example.com">
+```
+
+or `configureCredentialOrigins(['https://forms.example.com'])` (from `mateu`) before the UI boots.
+
+A remote cannot hand out your credentials: the remotes **it** names, and a `MicroFrontend` island
+on an origin not listed above, are called without them (a public remote still works). List such an
+origin explicitly when it needs the user's identity. A lost-session redirect (the 302 to a login
+page) is followed only for a trusted backend and only to an `http(s)` URL. The Redwood renderer
+applies the same rule to the token it reads from storage.
+
 ---
 
 ## Content Security Policy
@@ -431,8 +458,23 @@ Content-Security-Policy:
 - `img-src data: blob:` covers uploaded/captured images and signatures, which travel as data URIs.
 - Add the origins of any REST source, SSE endpoint, remote menu or federated backend to
   `connect-src`, and your identity provider to `connect-src`/`frame-src` when it uses an iframe.
-- The inline theme script in the default `index.html` needs either a hash in `script-src` or
-  moving to a file; the shipped bundle's own scripts are external.
+- The Vaadin renderer's page has **no inline script**: its theme script is a file
+  (`/assets/mateu-theme.js`) and the module bundle is external, so `script-src 'self'` is enough.
+- Two pages do carry inline scripts, and then `script-src` must allow them by hash (or by nonce):
+  a `@KeycloakSecured` UI (the token bootstrap, which embeds the Keycloak url/realm/client) and a
+  page served by the Redwood renderer (Oracle Visual Builder's boot, plus Mateu's replayer of it).
+  Their hashes are stable for a given configuration; compute them from the page Mateu serves with
+  `IndexPage.inlineScriptHashes(html)` (core, `io.mateu.core.infra`) and put them in your header:
+
+  ```java
+  // e.g. once, at startup, from the page your mount serves
+  String page = IndexPage.render(MyIndexController.class, "/static/_index.html", spec);
+  String scriptSrc = "script-src 'self' " + String.join(" ", IndexPage.inlineScriptHashes(page));
+  ```
+
+  A filter that issues a per-request **nonce** works too: add `nonce="…"` to every inline
+  `<script>` of the page and `'nonce-…'` to `script-src`. Redwood additionally loads JET and the
+  Visual Builder runtime from Oracle's CDN: add that origin to `script-src`/`style-src`.
 
 **`RunJS`** — the one feature that executes arbitrary JavaScript sent by the server (a
 `RunJS` rule action or an action's `js`) — is **off by default**. Enable it explicitly, and then
@@ -453,6 +495,41 @@ without an opener. `javascript:` URLs are never followed.
 In a microservices deployment, each service enforces `@EyesOnly` independently. The shell forwards the JWT to the service backend, which applies its own rules. A user who lacks a role sees the menu entry removed in the service's response — not just hidden in the shell.
 
 See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) for how this fits into a distributed architecture.
+
+---
+
+## Legacy: `@KeycloakSecured` (deprecated)
+
+:::caution[Deprecated in 3.0-alpha.412]
+`@KeycloakSecured` keeps working, but it is deprecated: logging the user in is your framework's job,
+not the UI's. Configure an OIDC login / resource server for Keycloak in your framework (below, under
+[Wiring each framework](#wiring-each-framework)) and, for an identity Mateu cannot see by itself,
+register a `PrincipalResolver`.
+:::
+
+`@KeycloakSecured` is a type-level annotation. Applied to your `@UI` class, the generated index page logs the user in against Keycloak before the application loads:
+
+```java
+@UI("")
+@KeycloakSecured(
+        url      = "https://auth.example.com/auth",
+        realm    = "my-realm",
+        clientId = "my-client"
+)
+public class App {
+    @Menu Products products;
+    @Menu Orders orders;
+}
+```
+
+| Parameter | Description |
+|---|---|
+| `url` | Base URL of your Keycloak server |
+| `realm` | Keycloak realm name |
+| `clientId` | OAuth2 client ID registered in Keycloak |
+| `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
+
+When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
 
 ---
 

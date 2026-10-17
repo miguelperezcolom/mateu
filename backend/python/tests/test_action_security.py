@@ -206,9 +206,11 @@ def render(inc) -> str:
 
 
 def assert_not_found(h: SyncHandler, request: RunActionRq) -> None:
-    j = render(h.handle(request))
-    assert '"variant": "error"' in j, j
-    assert "Action not found" in j, j
+    """An id no declared action has is refused (403) — the answer Java and .NET give too."""
+    with pytest.raises(Exception) as e:
+        h.handle(request)
+    assert type(e.value).__name__ == "MateuForbiddenException", repr(e.value)
+    assert "no such action" in str(e.value)
 
 
 def assert_forbidden(h: SyncHandler, request: RunActionRq) -> None:

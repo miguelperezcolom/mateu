@@ -97,7 +97,7 @@ class MobileAppSyncTest {
     assertThat(MobileManifest.json(AcmeApp.class.getName()))
         .isEqualTo(
             "{\"name\":\"Acme CRM\",\"shortName\":\"CRM\",\"icon\":\"/images/acme.svg\","
-                + "\"themeColor\":\"#1f6feb\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\","
+                + "\"themeColor\":\"#1f6feb\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://auth.acme.com/realms/acme\","
                 + "\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"]}}");
   }
@@ -106,7 +106,7 @@ class MobileAppSyncTest {
   void thePlainManifestOmitsWhatIsNotDeclared() {
     assertThat(MobileManifest.json(PlainApp.class.getName()))
         .isEqualTo(
-            "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}");
+            "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}");
   }
 
   @Test
@@ -116,7 +116,7 @@ class MobileAppSyncTest {
     System.setProperty(MobileManifest.OIDC_SCOPES, "openid email");
     assertThat(MobileManifest.json(PlainApp.class.getName()))
         .isEqualTo(
-            "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\","
+            "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\",\"clientId\":\"app\","
                 + "\"scopes\":[\"openid\",\"email\"]}}");
     System.setProperty(MobileManifest.NAME, "Acme Sales");
@@ -124,7 +124,7 @@ class MobileAppSyncTest {
     assertThat(MobileManifest.json(AcmeApp.class.getName()))
         .startsWith(
             "{\"name\":\"Acme Sales\",\"shortName\":\"CRM\",\"icon\":\"/images/acme.svg\","
-                + "\"themeColor\":\"#1f6feb\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.2.0\","
+                + "\"themeColor\":\"#1f6feb\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.2.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\"");
   }
 
@@ -139,7 +139,7 @@ class MobileAppSyncTest {
     assertThat(MobileManifest.json(BackOfficeHome.class.getName()))
         .isEqualTo(
             "{\"name\":\"Back office home\",\"shortName\":\"Back office home\","
-                + "\"themeColor\":\"#D2232A\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}");
+                + "\"themeColor\":\"#D2232A\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}");
     assertThat(MobileManifest.json("no.such.Ui")).contains("\"name\":\"Mateu\"");
   }
 
@@ -154,7 +154,7 @@ class MobileAppSyncTest {
     assertThat(MobileManifest.json(shell))
         .isEqualTo(
             "{\"name\":\"Orders\",\"shortName\":\"Orders\",\"icon\":\"https://cdn.example/orders.png\","
-                + "\"themeColor\":\"#123456\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}");
+                + "\"themeColor\":\"#123456\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}");
     assertThat(MobileManifest.json((AppShell) null)).contains("\"name\":\"Mateu\"");
   }
 

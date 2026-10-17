@@ -1,7 +1,7 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
-// Módulo de la aplicación VB. Carga la configuración del shell de Spectra (oj-sp) antes de que
-// arranque cualquier página; no aporta funciones propias, la lógica vive en el bridge (poc/).
+// The VB application module. Loads the Spectra shell (oj-sp) configuration before any page
+// starts; it contributes no functions of its own, the logic lives in the bridge (poc/).
 define(['oj-sp/spectra-shell/config/config'], () => {
   'use strict';
   return class MateuAppModule {};

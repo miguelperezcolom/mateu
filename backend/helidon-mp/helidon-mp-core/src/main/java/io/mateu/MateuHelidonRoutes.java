@@ -137,7 +137,8 @@ public class MateuHelidonRoutes {
             res.status(ClientErrorLog.BAD_REQUEST).send();
             return;
           }
-          res.status(ClientErrorLog.handle(body, null)).send();
+          // rate-limited per client address (the endpoint is open to anonymous callers)
+          res.status(ClientErrorLog.handle(body, null, req.remotePeer().host())).send();
         });
 
     // GET <baseUrl>/mateu/v3/documents/<token>: a document an action produced, served once

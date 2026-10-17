@@ -5,7 +5,7 @@ using Mateu.Dtos;
 using Mateu.Uidl;
 using Xunit;
 
-#pragma warning disable CS0618 // exercises the deprecated ContentLayout on purpose
+#pragma warning disable CS0618, MATEU003 // exercises the deprecated ContentLayout on purpose
 
 namespace Mateu.Tests;
 

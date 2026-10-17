@@ -187,8 +187,20 @@ class WireTypesTest {
     throw new AssertionError("no method " + name);
   }
 
+  /**
+   * The convention ("public methods are actions"), now behind {@code mateu.actions.strict=false}.
+   */
   @Test
   void actionsAreMarkedMethodsPublicMethodsAndRowMethods() throws Exception {
+    System.setProperty(ActionMethods.STRICT, "false");
+    try {
+      conventionalRecognition();
+    } finally {
+      System.clearProperty(ActionMethods.STRICT);
+    }
+  }
+
+  private static void conventionalRecognition() throws Exception {
     assertThat(invocable("marked")).isTrue();
     assertThat(invocable("bulk")).isTrue();
     assertThat(invocable("publicConvention")).isTrue();
@@ -207,7 +219,8 @@ class WireTypesTest {
   }
 
   @Test
-  void strictModeOnlyAcceptsMarkedMethods() throws Exception {
+  void strictModeIsTheDefaultAndOnlyAcceptsMarkedMethods() throws Exception {
+    assertThat(ActionMethods.isStrict()).isTrue(); // nothing configured: strict (M-S1)
     System.setProperty(ActionMethods.STRICT, "true");
     try {
       assertThat(ActionMethods.isStrict()).isTrue();
@@ -219,18 +232,31 @@ class WireTypesTest {
       assertThat(invocable("selectedRows")).isFalse();
       assertThatThrownBy(() -> ActionMethods.findInvocable(Actions.class, "publicConvention"))
           .isInstanceOf(MateuForbiddenException.class);
+      // ...but a conventional method is still a HANDLER: an id the view advertises reaches it
+      assertThat(
+              ActionMethods.isHandler(
+                  Actions.class.getDeclaredMethod("publicConvention"), Actions.class))
+          .isTrue();
     } finally {
       System.clearProperty(ActionMethods.STRICT);
     }
-    assertThat(ActionMethods.isStrict()).isFalse();
-    assertThat(invocable("publicConvention")).isTrue();
+    assertThat(ActionMethods.isStrict()).isTrue();
+    System.setProperty(ActionMethods.STRICT, "false");
+    try {
+      assertThat(ActionMethods.isStrict()).isFalse();
+      assertThat(invocable("publicConvention")).isTrue();
+    } finally {
+      System.clearProperty(ActionMethods.STRICT);
+    }
   }
 
   @Test
   void recordAccessorsAreNotActions() throws Exception {
     assertThat(ActionMethods.isInvocable(RecordView.class.getMethod("name"), RecordView.class))
         .isFalse();
-    assertThat(ActionMethods.isInvocable(RecordView.class.getMethod("act"), RecordView.class))
+    assertThat(ActionMethods.isHandler(RecordView.class.getMethod("name"), RecordView.class))
+        .isFalse();
+    assertThat(ActionMethods.isHandler(RecordView.class.getMethod("act"), RecordView.class))
         .isTrue();
   }
 

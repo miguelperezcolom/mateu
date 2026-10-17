@@ -1,5 +1,5 @@
-/* Cierre del DETALLE de fila (✕/Esc/backdrop): solo lectura, no hay nada que descartar en el
- * servidor — se cierra el panel y se vacía. */
+/* Closing the row DETAIL (✕/Esc/backdrop): read-only, there is nothing to discard on the
+ * server — the panel is closed and emptied. */
 
 define([
   'vb/action/actionChain',

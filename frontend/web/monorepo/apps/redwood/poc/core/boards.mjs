@@ -2,12 +2,12 @@ import { ojIconOrGenericOf } from './shellNav.mjs'
 import { dataProviderFactory } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
-// ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+// ── PlanningBoard (Room Diary) on oj-gantt ────────────────────────────────────────────────────
 //
-// oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
-// redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
-// el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
-// pinta como el día siguiente y se devuelve restando uno.
+// oj-gantt is JET's tape chart: rows with tasks, drag to move (dnd.move) and edges to resize
+// (task-defaults.resizable), its own tooltip (shortDesc). Mateu sends the blocks with an
+// INCLUSIVE end (the last night); the gantt paints [start, end) in time, so the end is painted
+// as the following day and returned by subtracting one.
 
 export const DAY_MS = 86400000
 export const isoDay = (d) => {
@@ -26,7 +26,7 @@ export function planningAtomOf(m, id) {
     return {
       _rowNumber: i,
       id: r.id,
-      // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+      // the row label carries the attributes: oj-gantt's row axis only paints text
       label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
       group: r.group || '',
       iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
@@ -37,8 +37,8 @@ export function planningAtomOf(m, id) {
         label: (b.icon ? '★ ' : '') + (b.label || ''),
         shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
         svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
-        // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
-        // completo sigue en el tooltip)
+        // inside the bar or nothing: outside, white text on the background is unreadable (and the full
+        // summary is still in the tooltip)
         labelPosition: ['innerCenter', 'innerStart', 'none'],
         labelStyle: { fill: '#ffffff' },
       })),
@@ -59,7 +59,7 @@ export function planningAtomOf(m, id) {
     openActionId: m.openActionId || '',
     selectActionId: m.selectActionId || '',
     rangeSelectActionId: m.rangeSelectActionId || '',
-    // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+    // for range selection (poc/planning.mjs reads these data-* off the oj-gantt)
     rangeAction: m.rangeSelectActionId || '',
     startDay: from,
     endDay: plusDays(to, 1),
@@ -70,9 +70,9 @@ export function planningAtomOf(m, id) {
   }
 }
 
-/** Un GANTT de tareas (Gantt: título, inicio, fin, avance, color) sobre el mismo oj-gantt que el
- *  tape chart: una fila por tarea con su barra, el avance como el relleno de progreso de JET, y la
- *  tarea pulsada → onTaskSelectionActionId con _clickedTaskId (el contrato del renderer web). */
+/** A task GANTT (Gantt: title, start, end, progress, color) on the same oj-gantt as the tape
+ *  chart: one row per task with its bar, progress as JET's progress fill, and the clicked task
+ *  → onTaskSelectionActionId with _clickedTaskId (the web renderer's contract). */
 export function ganttAtomOf(m, id) {
   const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
   const atom = planningAtomOf({
@@ -91,20 +91,20 @@ export function ganttAtomOf(m, id) {
     ...atom,
     isGantt: true,
     selectParam: '_clickedTaskId',
-    // escala a la medida del plan: un proyecto de meses se lee por meses/semanas
+    // scale to fit the plan: a months-long project reads by months/weeks
     majorScale: days > 60 ? 'months' : 'weeks',
     minorScale: days > 60 ? 'weeks' : 'days',
   }
 }
 
 /**
- * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
- * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+ * An oj-gantt event → Mateu { actionId, parameters }, or null if there is no action. Dates to
+ * days (inclusive end). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
  */
 export function planningActionOf(atom, kind, detail) {
   if (!atom) return null
-  // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
-  // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+  // the gantt returns instants (the exact point where it was dropped, in UTC): they are rounded to
+  // the nearest LOCAL day — a stay starts and ends on days, not at 09:38
   const day = (v) => {
     if (!v) return null
     const text = String(v)
@@ -119,7 +119,7 @@ export function planningActionOf(atom, kind, detail) {
     const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
       : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
     return { actionId: atom.moveActionId, parameters: {
-      // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+      // start/end: the bar's new bounds (value is the instant under the pointer)
       _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
   }
   if (kind === 'resize' && atom.resizeActionId && taskId) {
@@ -129,7 +129,7 @@ export function planningActionOf(atom, kind, detail) {
       _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
   }
   if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
-  // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
+  // the Gantt (Gantt.onTaskSelectionActionId) receives the task as _clickedTaskId; the tape chart, _blockId
   if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
   if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
     const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
@@ -139,10 +139,10 @@ export function planningActionOf(atom, kind, detail) {
 }
 
 
-// ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
-// Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
-// groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
-// conjunto filtrado) y `groups` (por grupo, en orden).
+// ── listings: row tones (@RowStatus) and groups/totals (@GroupBy/@Aggregate) ──────────────────
+// Same contract as libs/mateu listingGroups.ts / rowTone.ts (the web renderer): the crud brings
+// groupBy and rowStatusField; the columns, `aggregate`; the search (data.crud), `aggregates` (of
+// the filtered set) and `groups` (per group, in order).
 
 export const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
 
@@ -173,7 +173,7 @@ export function aggregatableColumns(md) {
   return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
 }
 
-/** Los totales por columna (texto) o null si no hay nada que totalizar. */
+/** The per-column totals (text) or null if there is nothing to total. */
 export function aggregateFootersOf(md, listing) {
   const aggregates = listing && listing.aggregates
   const cols = aggregatableColumns(md)
@@ -188,7 +188,7 @@ export function aggregateFootersOf(md, listing) {
   return out
 }
 
-/** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+/** GROUP rows interleaved where the groupBy value changes (rows arrive sorted). */
 export function groupedRows(rows, md, listing) {
   const groupBy = md.groupBy
   const groups = (listing && listing.groups) || []

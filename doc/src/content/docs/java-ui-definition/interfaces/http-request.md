@@ -3,6 +3,13 @@ title: "HttpRequest"
 description: "Interface for accessing HTTP request data, headers, state and selected rows in action methods."
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `HttpRequest` is injected into any backend method that declares it as a parameter. It gives you access to every piece of contextual data available when an action is triggered: URL parameters, request headers, the serialised component state, app-level state, and the rows the user has selected or clicked.
 
 ```java

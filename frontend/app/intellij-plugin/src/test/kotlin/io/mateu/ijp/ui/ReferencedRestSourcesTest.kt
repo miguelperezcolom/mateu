@@ -8,20 +8,17 @@ class ReferencedRestSourcesTest : TestCase() {
 
     private val mapper = ObjectMapper()
 
-    override fun tearDown() {
-        RestFetch.registerRestSources(null)
-        RestFetch.clearReferencedRestSources()
-    }
+    private val sources = RestSourceCatalogue()
 
     fun testAResponsesSourcesResolveItsRefs() {
-        RestFetch.registerRestSources(null)
-        RestFetch.addReferencedRestSources(mapper.readTree("""[{"name":"late","source":{"url":"https://late.example.com/x"}}]"""))
-        assertEquals("https://late.example.com/x", RestFetch.restSource("late")?.path("source")?.path("url")?.asText())
+        sources.registerRestSources(null)
+        sources.addReferencedRestSources(mapper.readTree("""[{"name":"late","source":{"url":"https://late.example.com/x"}}]"""))
+        assertEquals("https://late.example.com/x", sources.restSource("late")?.path("source")?.path("url")?.asText())
     }
 
     fun testTheAppCatalogueStillWinsANameClash() {
-        RestFetch.addReferencedRestSources(mapper.readTree("""[{"name":"late","source":{"url":"/response"}}]"""))
-        RestFetch.registerRestSources(mapper.readTree("""[{"name":"late","source":{"url":"/app"}}]"""))
-        assertEquals("/app", RestFetch.restSource("late")?.path("source")?.path("url")?.asText())
+        sources.addReferencedRestSources(mapper.readTree("""[{"name":"late","source":{"url":"/response"}}]"""))
+        sources.registerRestSources(mapper.readTree("""[{"name":"late","source":{"url":"/app"}}]"""))
+        assertEquals("/app", sources.restSource("late")?.path("source")?.path("url")?.asText())
     }
 }

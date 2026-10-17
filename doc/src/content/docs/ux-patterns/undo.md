@@ -13,6 +13,13 @@ archivado — Deshacer"*, and only the mistaken click costs anything.
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Return `Message.undoable(...)` from the action:
 
 ```java
@@ -22,6 +29,7 @@ public Message archive(HttpRequest httpRequest) {
     return Message.undoable("Documento archivado", "restore", Map.of("docId", docId));
 }
 
+@Action // only the toast names it: mark it, or strict action mode refuses it
 public Message restore(HttpRequest httpRequest) {
     var docId = String.valueOf(httpRequest.runActionRq().parameters().get("docId"));
     service.restore(docId);

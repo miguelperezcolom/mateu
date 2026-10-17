@@ -10,7 +10,6 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.FieldTypeCatalogSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +31,15 @@ import lombok.extern.slf4j.Slf4j;
 @Named
 @Singleton
 public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
+
+  /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_TYPES = "specs/ui/types.yaml";
@@ -56,12 +64,15 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public FieldTypeCatalog catalog() {
     var loaded = catalog;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = catalog;
         if (loaded == null) {
           loaded = load(classLoader());
           catalog = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;
@@ -146,15 +157,7 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? FieldTypeRegistry.class.getClassLoader() : classLoader);
-    var files = new java.util.LinkedHashSet<String>();
-    if (cl.getResource(CONVENTIONAL_TYPES) != null) {
-      files.add(CONVENTIONAL_TYPES);
-    }
-    for (var path : MountRegistry.yamlResourcePaths(cl)) {
-      if (!path.equals(CONVENTIONAL_TYPES) && TYPE.equals(typeOf(cl, path))) {
-        files.add(path);
-      }
-    }
+    var files = SpecsIndex.filesOfType(cl, TYPE, CONVENTIONAL_TYPES);
     var byId = new LinkedHashMap<String, FieldTypeEntry>();
     for (var file : files) {
       for (var entry : read(cl, file)) {
@@ -165,11 +168,8 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
   }
 
   private List<FieldTypeEntry> read(ClassLoader cl, String path) {
-    try (InputStream is = cl.getResourceAsStream(path)) {
-      if (is == null) {
-        return List.of();
-      }
-      var root = yaml.readTree(is);
+    try {
+      var root = SpecsIndex.treeOf(cl, path);
       if (root == null) {
         return List.of();
       }
@@ -188,20 +188,6 @@ public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
     } catch (Exception e) {
       log.warn("Failed to read {}: {}", path, e.getMessage());
       return List.of();
-    }
-  }
-
-  private String typeOf(ClassLoader cl, String path) {
-    try (InputStream is = cl.getResourceAsStream(path)) {
-      if (is == null) {
-        return "";
-      }
-      var root = yaml.readTree(is);
-      return root != null && root.isObject() && root.hasNonNull("type")
-          ? root.get("type").asText()
-          : "";
-    } catch (Exception e) {
-      return "";
     }
   }
 

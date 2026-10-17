@@ -11,6 +11,13 @@ Answer "are the automations healthy?" in one glance — each integration/robot a
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `ProcessMonitor` component: a list of `ProcessItem`s. Each row shows a colored `status` dot (`ok | warning | error`), the process `name` with its `systems` joined ` · ` in muted small text below, right-aligned counters (`✓ 847 OK` always; `⚠ warnings` and `⛔ errors` only when greater than zero) and, when `actionLabel` + `actionId` are present, a small warning-styled button.
 
 ```java

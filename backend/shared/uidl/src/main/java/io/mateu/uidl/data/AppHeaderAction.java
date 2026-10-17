@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import java.util.List;
+import lombok.Builder;
 
 /**
  * An action button rendered on the app header, next to the {@code @AppContext} selectors. {@code
@@ -12,6 +13,7 @@ import java.util.List;
  * {@code headerActions:}); and an {@code actionId} naming one of the shell's {@code actions:} or an
  * action-catalogue entry runs that in the browser, like a menu leaf's {@code RunAction} rule.
  */
+@Builder
 public record AppHeaderAction(
     String actionId,
     String label,

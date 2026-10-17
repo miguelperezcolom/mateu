@@ -1,25 +1,30 @@
-// Widgets de CABECERA del App (WidgetSupplier.widgets / @Widget): llegan como hijos del App con
-// slot "widgets" — un layout con, típicamente, un MicroFrontend (el badge de la bandeja, otro pod
-// que se refresca solo) y un Popover sobre un Text (el saludo al usuario, que abre su email y el
-// Logout). El renderer Vaadin los pinta tal cual en su barra; aquí se reparten entre las DOS zonas
-// que declara oj-sp-global-header:
+// App HEADER widgets (WidgetSupplier.widgets / @Widget): they arrive as children of the App with
+// slot "widgets" — a layout with, typically, a MicroFrontend (the inbox badge, another pod
+// that refreshes itself) and a Popover over a Text (the user greeting, which opens their email and
+// Logout). The Vaadin renderer paints them as they are in its bar; here they are split between the TWO zones
+// oj-sp-global-header declares:
 //
-//  - slot `usermenu`: el área de perfil de la cabecera global de Redwood (FA pone ahí el avatar del
-//    usuario, y al pulsarlo su menú). Un Popover cuyo disparador es un TEXT es el idioma Mateu de
-//    "quién soy + un menú": un texto no es un control, así que lo único que puede estar diciendo es
-//    un rótulo — y en la cabecera, el del usuario. El PRIMERO de esos va al área de perfil como
-//    avatar con iniciales + nombre, y su contenido a un oj-popup anclado. Es un reconocimiento de
-//    FORMA, no de valores: no se mira qué dice el texto.
-//  - slot `end` (zona de acciones): todo lo demás, en orden — HTML de un Text, el HTML vivo de un
-//    MicroFrontend, y cualquier otro Popover como botón + oj-popup.
+//  - slot `usermenu`: the profile area of Redwood's global header (FA puts the user's avatar
+//    there, and their menu on click). A Popover whose trigger is a TEXT is the Mateu idiom for
+//    "who I am + a menu": a text is not a control, so the only thing it can be saying is
+//    a label — and in the header, the user's. The FIRST of those goes to the profile area as an
+//    avatar with initials + name, and its content to an anchored oj-popup. It is a recognition of
+//    SHAPE, not of values: what the text says is not looked at.
+//  - slot `end` (actions zone): everything else, in order — a Text's HTML, a
+//    MicroFrontend's live HTML, and any other Popover as button + oj-popup.
 //
-// El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
-// navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
-// por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+// HTML is painted as HTML (it is HTML on the wire: an <a> with an onclick that emits
+// navigation-requested), with two translations: <vaadin-icon> does not exist in Redwood and is replaced
+// by the equivalent oj-ux-ico font icon, and — since no handler passes the sanitiser (M-S7) — such a
+// link becomes a route href (routeLinksOf) whose click the header turns back into the same
+// navigation-requested, which the shell listens to.
 
 import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
+import { sanitizeHtml } from './richtext.mjs'
+import { safeHref } from './core/display.mjs'
+import { isPathMode, currentMount, pathOfRoute } from './mount.mjs'
 
 const CONTAINERS = new Set([
   'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
@@ -28,7 +33,7 @@ const CONTAINERS = new Set([
 
 const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
 
-/** El texto visible de un fragmento HTML: sin etiquetas, entidades resueltas, blancos plegados. */
+/** The visible text of an HTML fragment: no tags, entities resolved, whitespace collapsed. */
 export function plainTextOf(html) {
   return String(html == null ? '' : html)
     .replace(/<[^>]*>/g, ' ')
@@ -37,7 +42,7 @@ export function plainTextOf(html) {
     .trim()
 }
 
-/** Iniciales para el avatar: del nombre que sigue al saludo ("Hola, Demo User" → "DU"). */
+/** Initials for the avatar: from the name following the greeting ("Hola, Demo User" → "DU"). */
 export function initialsOf(label) {
   const text = plainTextOf(label)
   const who = text.indexOf(',') >= 0 ? text.slice(text.lastIndexOf(',') + 1) : text
@@ -54,10 +59,10 @@ const attrOf = (attrs, name) => {
 }
 
 /**
- * El HTML de un widget, apto para Redwood: cada <vaadin-icon icon="vaadin:x"> pasa a un
- * <span class="oj-ux-ico-…"> (fuente de iconos de Redwood) conservando su style — su tamaño, su
- * alineación y su color (p.ej. el rojo del badge cuando hay algo urgente). Un icono sin
- * equivalente se quita: un elemento desconocido no pinta nada y ocupa su sitio igual.
+ * A widget's HTML, fit for Redwood: each <vaadin-icon icon="vaadin:x"> becomes a
+ * <span class="oj-ux-ico-…"> (Redwood's icon font) keeping its style — its size, its
+ * alignment and its colour (e.g. the badge's red when something is urgent). An icon without an
+ * equivalent is removed: an unknown element paints nothing and takes up its space all the same.
  */
 export function redwoodHtmlOf(html) {
   const swap = (all, attrs) => {
@@ -71,7 +76,7 @@ export function redwoodHtmlOf(html) {
     .replace(/<vaadin-icon\b([^>]*)>\s*<\/vaadin-icon>/gi, swap)
 }
 
-/** El contenido de un Popover → filas del popup (texto, enlace), en orden. */
+/** A Popover's content → popup rows (text, link), in order. */
 export function popoverContentOf(node) {
   const out = []
   const visit = (n) => {
@@ -84,12 +89,12 @@ export function popoverContentOf(node) {
       return
     }
     if (md.type === 'Anchor') {
-      out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: md.url || '#', target: md.target || '' })
+      out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: safeHref(md.url) || '#', target: md.target || '' })
       return
     }
     if (md.type === 'Button') {
-      // un botón en el popup de un widget solo puede navegar o ejecutar JS del cliente: sin
-      // contexto propio no tiene a quién mandar una acción de servidor
+      // a button in a widget's popup can only navigate or run client JS: without
+      // its own context it has nobody to send a server action to
       const label = md.label || md.text || ''
       if (label) out.push({ id: 'r' + out.length, isText: true, text: label })
       return
@@ -102,9 +107,9 @@ export function popoverContentOf(node) {
 }
 
 /**
- * La proyección de los widgets de cabecera del registro: `user` (el área de perfil) o null, e
- * `items` (la zona de acciones), cada uno con un id estable por POSICIÓN — el mismo en cada
- * bootstrap, que es lo que deja al DOM y al refresco reencontrar su hueco.
+ * The projection of the registry's header widgets: `user` (the profile area) or null, and
+ * `items` (the actions zone), each with an id stable by POSITION — the same on every
+ * bootstrap, which is what lets the DOM and the refresh find their slot again.
  */
 export function headerWidgetsOf(reg) {
   const nodes = (reg && reg.shell && reg.shell.widgets) || []
@@ -149,19 +154,24 @@ export function headerWidgetsOf(reg) {
       return
     }
     if (md.type === 'Anchor') {
-      items.push({ id, isHtml: true, html: `<a href="${String(md.url || '#').replace(/"/g, '&quot;')}"${md.target ? ` target="${md.target}"` : ''}>${md.text || ''}</a>` })
+      // the url only as a safe link, the text as TEXT (M-S7); mountHeaderHtml sanitizes the result
+      const href = safeHref(md.url) || '#'
+      const text = String(md.text == null ? '' : md.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      items.push({ id, isHtml: true, html: `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${text}</a>` })
     }
   }
   nodes.forEach((node, i) => visit(node, String(i)))
   return { user, items }
 }
 
-/** El HTML de un widget remoto ya cargado: sus Text, interpolados contra su state. */
+/** The HTML of an already loaded remote widget: its Texts, interpolated against its state. */
 export function remoteWidgetHtmlOf(tree, state) {
   const parts = []
   const visit = (n) => {
     if (!n) return
     const md = n.metadata || {}
+    // the remote's state may carry markup (a badge's link and icon): it reaches the page only
+    // through mountHeaderHtml's whitelist (M-S7)
     if (md.type === 'Text') parts.push(redwoodHtmlOf(interpolate(md.text, state)))
     for (const child of n.children || []) visit(child)
   }
@@ -172,15 +182,15 @@ export function remoteWidgetHtmlOf(tree, state) {
 const widgetRuntimes = new Map()
 
 /**
- * Carga un MicroFrontend de cabecera y lo mantiene vivo con SUS triggers: OnLoad al cargar y
- * OnSuccess tras cada acción que los nombre (el badge: `refresh` cada 10 s, encadenado). Es el
- * mismo contrato que el renderer web — si un refresco falla, no se reprograma (OnSuccess).
+ * Loads a header MicroFrontend and keeps it alive with ITS triggers: OnLoad on load and
+ * OnSuccess after each action that names them (the badge: `refresh` every 10 s, chained). It is the
+ * same contract as the web renderer — if a refresh fails, it is not rescheduled (OnSuccess).
  *
- * Las peticiones van en modo `quiet`: un refresco de fondo cada pocos segundos no debe encender la
- * barra de ocupado ni la banda de error de la pantalla, que hablan de lo que el usuario hace.
+ * Requests go in `quiet` mode: a background refresh every few seconds must not turn on the
+ * screen's busy bar or error band, which are about what the user does.
  *
- * `deps` existe para los tests (call/schedule/cancel); `onHtml(html)` recibe cada repintado.
- * Arrancar de nuevo el mismo id para el anterior: un rebootstrap no deja dos bucles.
+ * `deps` exists for the tests (call/schedule/cancel); `onHtml(html)` receives each repaint.
+ * Starting the same id again stops the previous one: a rebootstrap does not leave two loops.
  */
 export function startRemoteWidget(item, onHtml, deps = {}) {
   const call = deps.call || callMateu
@@ -233,7 +243,7 @@ export function startRemoteWidget(item, onHtml, deps = {}) {
   const load = (async () => {
     try {
       apply(await request(''))
-      // un remoto que conteste con un mediador (App chromeless) trae el contenido en un 2º salto
+      // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
       const info = rt.ctx && mediatorOf(rt.ctx)
       if (info) {
         rt.outbound = { consumedRoute: info.rootRoute || item.route || '', serverSideType: info.serverSideType }
@@ -248,7 +258,7 @@ export function startRemoteWidget(item, onHtml, deps = {}) {
   return {
     loaded: load,
     stop: () => stopRemoteWidget(item.id, cancel),
-    // para los tests: cuántos refrescos hay programados
+    // for the tests: how many refreshes are scheduled
     pending: () => rt.timers.size,
   }
 }
@@ -270,12 +280,104 @@ export function stopRemoteWidgets() {
   }
 }
 
+// ── Navigation links ───────────────────────────────────────────────────────────────────────────
+// The Mateu idiom for a widget link (the inbox badge) is an <a href="#" onclick="…dispatchEvent(new
+// CustomEvent('navigation-requested', {detail: {route: '/inbox/pending', baseUrl: '/_inbox', …}}))">.
+// The sanitiser drops every handler, so the link would go nowhere: it is rewritten into a link to
+// the ROUTE (the path under the mount, `#/route` when served statically) and the detail is kept
+// beside the HTML, keyed by that href, for the header's click to emit. Only string values of the
+// known keys are read — the handler is never evaluated.
+
+const NAV_DETAIL_KEYS = new Set(['route', 'consumedRoute', 'baseUrl', 'uriPrefix', 'serverSideType'])
+
+/** The detail of the navigation-requested an inline handler emits, or null if it emits none. */
+export function navigationDetailOfHandler(handler) {
+  const js = String(handler == null ? '' : handler)
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&amp;/g, '&')
+  if (!/new\s+CustomEvent\(\s*(['"])navigation-requested\1/.test(js)) return null
+  const body = /\bdetail\s*:\s*\{([^{}]*)\}/.exec(js)
+  if (!body) return null
+  const detail = {}
+  const re = /([A-Za-z_$][\w$]*)\s*:\s*(?:'([^']*)'|"([^"]*)")/g
+  let m
+  while ((m = re.exec(body[1]))) {
+    if (NAV_DETAIL_KEYS.has(m[1])) detail[m[1]] = m[2] != null ? m[2] : m[3]
+  }
+  if (typeof detail.route !== 'string') return null
+  // a route is a path of this app: an absolute url or a scheme is never navigated to
+  if (detail.route !== '' && (detail.route.charAt(0) !== '/' || detail.route.charAt(1) === '/')) return null
+  return detail
+}
+
+/** The href of an app route: its path under the mount (path mode) or `#/route` (static serving). */
+export function routeHrefOf(route, { pathMode = true, mount = '' } = {}) {
+  const r = String(route == null ? '' : route)
+  if (pathMode) return pathOfRoute(r, mount)
+  return '#' + (r.charAt(0) === '/' ? r : '/' + r)
+}
+
+
+/**
+ * `html` with each link whose handler emits navigation-requested turned into a link to its route,
+ * and `targets`: href → the detail to emit when it is clicked.
+ */
+const LINK_ATTR = /\s+([a-zA-Z_:][-\w:.]*)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s>]+))?/g
+const SAFE_LINK_ATTRS = new Set(['class', 'id', 'title', 'style', 'role', 'tabindex', 'lang', 'dir', 'slot'])
+
+/** The attributes of an `<a>` worth keeping on a rebuilt route link: inert ones only. */
+function keptLinkAttributes(attrs) {
+  let kept = ''
+  for (const m of String(attrs).matchAll(LINK_ATTR)) {
+    const name = m[1].toLowerCase()
+    if (SAFE_LINK_ATTRS.has(name) || name.startsWith('aria-') || name.startsWith('data-')) {
+      kept += m[2] === undefined ? ` ${name}` : ` ${name}=${m[2]}`
+    }
+  }
+  return kept
+}
+
+export function routeLinksOf(html, options = {}) {
+  const targets = {}
+  const out = String(html == null ? '' : html).replace(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi, (all, attrs) => {
+    const detail = navigationDetailOfHandler(attrOf(attrs, 'onclick'))
+    if (!detail) return all
+    const href = safeHref(routeHrefOf(detail.route, options))
+    if (!href) return all
+    targets[href] = detail
+    // the link is rebuilt from an allow-list of inert attributes (never a handler, never another href;
+    // style is kept here and filtered by the whitelist sanitizer at the sink)
+    const rest = keptLinkAttributes(attrs)
+    return `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest}>`
+  })
+  return { html: out, targets }
+}
+
+/** The detail a click on a header link emits, or null when the click is the browser's (a modified
+ *  or non-primary click opens the href as any link; a link that is not a route link). */
+export function headerNavigationOf(href, event, targets) {
+  if (href == null || !targets || !Object.prototype.hasOwnProperty.call(targets, href)) return null
+  if (event && (event.defaultPrevented || event.button > 0
+    || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
+  return targets[href]
+}
+
+function onHeaderLinkClick(hole, event) {
+  const path = typeof event.composedPath === 'function' ? event.composedPath() : []
+  const anchor = path.find((node) => node && node.tagName === 'A')
+    || (event.target && typeof event.target.closest === 'function' ? event.target.closest('a') : null)
+  if (!anchor || typeof anchor.getAttribute !== 'function') return
+  const detail = headerNavigationOf(anchor.getAttribute('href'), event, hole.__mateuNavTargets)
+  if (!detail) return
+  event.preventDefault()
+  anchor.dispatchEvent(new CustomEvent('navigation-requested', { detail: { ...detail }, bubbles: true, composed: true }))
+}
+
 // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
-// VB no sabe estampar HTML crudo desde un binding: el hueco (<span class="mateu-header-widget"
-// data-widget-id>) lo pinta la plantilla y el HTML lo pone el bridge, como con los componentes web
-// de terceros (elements.mjs). Se recuerda el último HTML de cada hueco: si VB lo re-estampa, el
-// siguiente montaje lo rellena otra vez; si no cambió, no se toca (un clic en curso sobre el
-// enlace no pierde su elemento cada 10 s).
+// VB cannot stamp raw HTML from a binding: the slot (<span class="mateu-header-widget"
+// data-widget-id>) is painted by the template and the HTML is put in by the bridge, as with third-party
+// web components (elements.mjs). The last HTML of each slot is remembered: if VB re-stamps it, the
+// next mount fills it again; if it did not change, it is not touched (a click in progress on the
+// link does not lose its element every 10 s).
 
 const lastHtml = {}
 
@@ -286,13 +388,22 @@ export function mountHeaderHtml(id, html) {
   if (!hole) return false
   const next = lastHtml[id] || ''
   if (hole.__mateuHtml !== next) {
-    hole.innerHTML = next
+    // a widget's HTML carries DATA (a remote's state interpolated into its Text): whitelist-sanitized
+    // at the one sink, keeping the icon spans' class/style (M-S7)
+    // (its navigation links become route hrefs first: their handler would not survive)
+    const linked = routeLinksOf(next, { pathMode: isPathMode(), mount: currentMount() })
+    hole.innerHTML = sanitizeHtml(linked.html, { presentation: true })
     hole.__mateuHtml = next
+    hole.__mateuNavTargets = linked.targets
+    if (!hole.__mateuNavWired && typeof hole.addEventListener === 'function') {
+      hole.__mateuNavWired = true
+      hole.addEventListener('click', (event) => onHeaderLinkClick(hole, event))
+    }
   }
   return true
 }
 
-/** Igual, esperando a que VB pinte el hueco (sus bindings son asíncronos). */
+/** The same, waiting for VB to paint the slot (its bindings are asynchronous). */
 export function mountHeaderHtmlSoon(id, html, frames = 30) {
   if (html != null) lastHtml[id] = html
   if (typeof requestAnimationFrame === 'undefined') return
@@ -305,30 +416,30 @@ export function mountHeaderHtmlSoon(id, html, frames = 30) {
   requestAnimationFrame(tick)
 }
 
-// ── FAB de "ask" del shell ──────────────────────────────────────────────────────────────────
-// oj-sp-simple-ui-shell estampa su propio FAB (evento ojSpChatAction) con `oj-ux-ico-oracle-chat`:
-// el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre el buscador de
-// destinos, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos bocadillos para dos
-// cosas distintas. Por defecto es NEUTRO — «Search» con la lupa —: una app Mateu no es un producto
-// de Oracle y no debe parecerlo (riesgo de marca). Quien quiera el aspecto de Ask Oracle, o su
-// propia marca, lo pone con @App(askLabel, askIcon): una inicial, una imagen (su logo) o un icono
-// (`oj-ux-ico-oracle-o` es la "O" de Ask Oracle).
+// ── The shell's "ask" FAB ──────────────────────────────────────────────────────────────────
+// oj-sp-simple-ui-shell stamps its own FAB (ojSpChatAction event) with `oj-ux-ico-oracle-chat`:
+// the speech bubble of Oracle's DIGITAL assistant. Here that FAB opens the destination
+// finder, and the agent chat has its own FAB with `oj-ux-ico-chat`: two bubbles for two
+// different things. By default it is NEUTRAL — «Search» with the magnifier —: a Mateu app is not an Oracle
+// product and must not look like one (brand risk). Whoever wants the Ask Oracle look, or their
+// own brand, sets it with @App(askLabel, askIcon): an initial, an image (their logo) or an icon
+// (`oj-ux-ico-oracle-o` is the "O" of Ask Oracle).
 
 export const ASK_FAB_LABEL = 'Search'
 export const ASK_FAB_GLYPH = 'oj-ux-ico-search'
-/** El glifo con el que lo estampa el shell (el que se quita). */
+/** The glyph the shell stamps it with (the one that is removed). */
 export const SHELL_CHAT_GLYPH = 'oj-ux-ico-oracle-chat'
 
 const isImageRef = (value) => /^(data:|https?:|\/\/)/i.test(value) || /[/.]/.test(value)
 
 /**
- * Qué lleva el FAB de "ask" del shell: `{ label, kind, glyph?, text?, src? }`.
- *  - sin @App(askIcon): la lupa (kind 'glyph'), neutra;
- *  - una o dos letras ("R"): la inicial (kind 'initial');
- *  - una ruta o url ("/images/riu.svg"): la imagen (kind 'image'), relativa al backend como el logo;
- *  - `oj-ux-ico-…` o un nombre Mateu (`vaadin:…`) con equivalente: ese icono (kind 'glyph').
- * Un askIcon que no es nada de eso (un icono sin equivalente, una palabra) no deja el FAB vacío:
- * vuelve a la lupa.
+ * What the shell's "ask" FAB carries: `{ label, kind, glyph?, text?, src? }`.
+ *  - without @App(askIcon): the magnifier (kind 'glyph'), neutral;
+ *  - one or two letters ("R"): the initial (kind 'initial');
+ *  - a path or url ("/images/riu.svg"): the image (kind 'image'), relative to the backend like the logo;
+ *  - `oj-ux-ico-…` or a Mateu name (`vaadin:…`) with an equivalent: that icon (kind 'glyph').
+ * An askIcon that is none of those (an icon without an equivalent, a word) does not leave the FAB empty:
+ * it falls back to the magnifier.
  */
 export function askFabOf(shell, base = '') {
   const label = String((shell && shell.askLabel) || '').trim() || chromeText('askSearch')
@@ -349,9 +460,9 @@ const MARK_CLASS = 'mateu-ask-fab-mark'
 const BRANDED_CLASS = 'mateu-ask-fab-branded'
 
 /**
- * Pone la marca y el nombre al FAB del shell (`fab`, el `<a>`; dentro, el `div role=img` del
- * glifo). Idempotente: se puede volver a aplicar con otra marca. Además le da lo que el shell no le
- * da: sin href ni rol, no se alcanzaba con el tabulador y sólo decía "Ask".
+ * Puts the brand and the name on the shell's FAB (`fab`, the `<a>`; inside, the glyph's `div role=img`).
+ * Idempotent: it can be applied again with another brand. It also gives it what the shell does not:
+ * without href or role, it was not reachable with Tab and only said "Ask".
  */
 export function brandAskFab(fab, spec) {
   if (!fab || !spec) return false

@@ -222,9 +222,7 @@ public class FieldMetadataExtractor {
     return io.mateu.uidl.data.RestDataSource.builder()
         .ref(a.source())
         .url(a.url())
-        .method(
-            io.mateu.core.application.runaction.DeclaredRestMethod.of(
-                a.source(), a.method(), "GET"))
+        .method(io.mateu.core.domain.DeclaredRestMethod.of(a.source(), a.method(), "GET"))
         .headers(headers)
         .body(a.body())
         .itemsPath(a.itemsPath())

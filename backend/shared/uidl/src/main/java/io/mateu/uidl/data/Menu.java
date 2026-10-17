@@ -8,6 +8,11 @@ import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
 
+/**
+ * A menu entry built in code (the fluent counterpart of a {@code @Menu} field): a {@code label},
+ * the {@code path} it navigates to, or a {@code submenu} of further entries; {@code selected},
+ * {@code disabled} and {@code hidden} as their names say.
+ */
 @Builder
 @lombok.With
 public record Menu(

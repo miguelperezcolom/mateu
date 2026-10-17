@@ -1,42 +1,57 @@
-import {fieldButton} from '@vaadin/vaadin-lumo-styles/mixins/field-button.js';
-import {menuOverlay} from '@vaadin/vaadin-lumo-styles/mixins/menu-overlay.js';
-import {overlay} from '@vaadin/vaadin-lumo-styles/mixins/overlay.js';
-import {requiredField} from '@vaadin/vaadin-lumo-styles/mixins/required-field.js';
 // Vaadin 25 removed the Lumo token JS modules (color, typography, sizing, spacing, style, badge,
-// user-colors, utility, font-icons) — Lumo now ships as pre-assembled CSS. We import those
-// stylesheets as inline strings (`?inline`) and inject them at runtime into the global <style>
-// below, exactly like the old per-module `cssText` injection — so the styles apply wherever
-// mateu-vaadin.js is loaded, without depending on an extracted <link>. (The mixins above still
-// ship in v25 — deprecated, to be removed in V26 — and carry component-level styles.)
+// user-colors, utility, font-icons) — Lumo now ships as pre-assembled CSS, which also carries every
+// component's shadow styles (the `@media lumo_components_*` blocks Vaadin injects into each shadow
+// root). We import those stylesheets as inline strings (`?inline`) and inject them at runtime into
+// the global <style> below, so the styles apply wherever mateu-vaadin.js is loaded, without
+// depending on an extracted <link>.
+//
+// NOT imported any more: the Lumo `.js` mixins (field-button, menu-overlay, overlay,
+// required-field). They are deprecated (each one logs "Lumo .js mixins are deprecated and will be
+// removed in V26" in every page's console) and their cssText targeted `[part=…]` / `:host`
+// selectors that only exist inside shadow roots, so injected at document level they matched
+// nothing — the components get those styles from lumo.css above.
 import lumoCss from '@vaadin/vaadin-lumo-styles/dist/lumo.css?inline';
 import utilityCss from '@vaadin/vaadin-lumo-styles/dist/utility.css?inline';
 import '@vaadin/icons/vaadin-iconset.js';
+
 import {css, registerStyles} from '@vaadin/vaadin-themable-mixin/register-styles.js';
 
 // Mateu @Section cards render borderless (like a plain div) in the Vaadin renderer.
 // Every section card carries the `mateu-section` marker class (SectionFormRenderer); we keep
 // the <vaadin-card> element intact — the @Toc index, scrollspy and sticky logic still enumerate
 // `vaadin-card.mateu-section` in the DOM — and only strip the card chrome through the card's own
-// custom properties. This is injected into every vaadin-card's shadow DOM (which the app-level
-// index.css cannot reach), scoped to section cards, and is specific to the Vaadin app.
-registerStyles(
-    'vaadin-card',
-    css`
-      :host(.mateu-section) {
-        --vaadin-card-border-width: 0 !important;
-        --vaadin-card-background: transparent !important;
-        --vaadin-card-shadow: none !important;
-        --vaadin-card-padding: 0 !important;
-      }
-    `,
-);
+// custom properties. This is injected into every vaadin-card's shadow DOM (the cards live inside
+// mateu-component's shadow root, which no document stylesheet reaches), scoped to section cards,
+// and is specific to the Vaadin app.
+//
+// The registration necessarily comes AFTER vaadin-card is defined: the bundler hoists the Vaadin
+// vendor chunk (which defines every component, and holds registerStyles itself) ahead of this
+// module's body. registerStyles then still restyles the finalized class and its instances, but
+// warns "The custom element definition for vaadin-card was finalized before a style module was
+// registered" on every page. That warning is expected here, so it is silenced for THIS call only —
+// with the switch the warning itself names — and the previous value is restored right after, so a
+// late registration anywhere else still warns.
+const vaadinGlobal = (window.Vaadin = window.Vaadin || {});
+const suppressedBefore = vaadinGlobal.suppressPostFinalizeStylesWarning;
+vaadinGlobal.suppressPostFinalizeStylesWarning = true;
+try {
+  registerStyles(
+      'vaadin-card',
+      css`
+        :host(.mateu-section) {
+          --vaadin-card-border-width: 0 !important;
+          --vaadin-card-background: transparent !important;
+          --vaadin-card-shadow: none !important;
+          --vaadin-card-padding: 0 !important;
+        }
+      `,
+  );
+} finally {
+  vaadinGlobal.suppressPostFinalizeStylesWarning = suppressedBefore;
+}
 
 const sheet = document.createElement('style')
 sheet.innerHTML = `
-${fieldButton.cssText}
-${menuOverlay.cssText}
-${overlay.cssText}
-${requiredField.cssText}
 ${lumoCss}
 ${utilityCss}
 `;

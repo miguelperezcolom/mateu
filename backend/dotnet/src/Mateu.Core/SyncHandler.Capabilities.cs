@@ -40,7 +40,7 @@ public sealed partial class SyncHandler
                 profile.Searchable ? SearchText(rq) : null,
                 profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
                 null,
-                new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
+                new Pageable(0, int.MaxValue, PageableOf(rq).Sort)) with { FilterState = rq.ComponentState };
             return ExportRows(export, profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [all]),
                 profile.RowType, profile.ListingType, rq);
         }
@@ -83,7 +83,7 @@ public sealed partial class SyncHandler
                     _mapper.MapCapabilityListing(profile, baseRoute), rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => CapabilityActionOnRows(profile, listing, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
+            _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
 
@@ -95,7 +95,7 @@ public sealed partial class SyncHandler
             profile.Searchable ? SearchText(rq) : null,
             profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
             null,
-            PageableOf(rq));
+            PageableOf(rq)) with { FilterState = rq.ComponentState };
         var found = profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [request]);
         return EmitListingData(found, profile.RowType, rq, listing);
     }
@@ -197,7 +197,7 @@ public sealed partial class SyncHandler
 
     private static UIIncrementDto CapabilityDelete(CapabilityProfile profile, object listing, RunActionRqDto rq)
     {
-        var idField = Naming.CamelCase(profile.RowType.GetProperty("Id")?.Name ?? "Id");
+        var idField = EntityIds.FieldName(profile.RowType);
         var ids = (System.Collections.IList)Activator.CreateInstance(
             typeof(List<>).MakeGenericType(profile.IdType))!;
         if (GetState(rq.ComponentState, "crud_selected_items")
@@ -221,7 +221,7 @@ public sealed partial class SyncHandler
     {
         var name = rq.ActionId!["action-on-row-".Length..];
         var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
         var result = method.Invoke(listing, BuildBulkArguments(method, rq));
         return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
@@ -231,7 +231,7 @@ public sealed partial class SyncHandler
     /// (under the row type's camelCased Id property).</summary>
     private static string? CapabilityRowId(RunActionRqDto rq, CapabilityProfile profile)
     {
-        var idField = Naming.CamelCase(profile.RowType.GetProperty("Id")?.Name ?? "Id");
+        var idField = EntityIds.FieldName(profile.RowType);
         return StateString(GetState(rq.Parameters, idField))
             ?? StateString(GetState(rq.ComponentState, idField));
     }

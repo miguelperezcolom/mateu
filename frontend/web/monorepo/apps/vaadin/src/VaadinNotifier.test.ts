@@ -18,7 +18,7 @@ vi.mock('@vaadin/notification', () => {
 const announce = vi.fn()
 vi.mock('@infra/a11y/announcer.ts', () => ({ announce: (...a: unknown[]) => announce(...a) }))
 
-import { vaadinNotifier } from './VaadinNotifier'
+import { themeOf, vaadinNotifier } from './VaadinNotifier'
 
 /**
  * The Vaadin toast adapter. vaadin-notification's overlay is NOT a live region, so the adapter
@@ -45,6 +45,13 @@ describe('vaadinNotifier', () => {
             { text: 'Hi', options: { position: 'top-center', theme: 'success', duration: 3000 } },
             { text: 'Default', options: { position: 'bottom-end', theme: undefined, duration: undefined } },
         ])
+    })
+
+    it('an info toast takes the accent theme (Lumo has no info theme)', () => {
+        vaadinNotifier.show({ text: 'FYI', variant: 'info' } as never, document.body)
+        expect(shown.at(-1)).toEqual({ text: 'FYI', options: { position: 'bottom-end', theme: 'primary', duration: undefined } })
+        expect(themeOf('success')).toBe('success')
+        expect(themeOf(undefined)).toBeUndefined()
     })
 
     const drawn = () => {

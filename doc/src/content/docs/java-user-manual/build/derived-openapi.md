@@ -47,6 +47,13 @@ It is what gives an operation its identity — two surfaces referencing one name
 declared rather than guessed by comparing URL strings — and that name becomes the `operationId` a
 generated server is built around.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Or in code:
 
 ```java

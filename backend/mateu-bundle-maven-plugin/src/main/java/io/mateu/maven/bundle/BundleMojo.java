@@ -1,5 +1,6 @@
 package io.mateu.maven.bundle;
 
+import io.mateu.core.application.export.BundleEntry;
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.application.export.RouteRegistrations;
 import io.mateu.core.infra.ProjectRendererCheck;
@@ -210,7 +211,7 @@ public class BundleMojo extends AbstractMojo {
         BundleWriter.write(
             outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle, chosen);
 
-        long ok = manifest.entries().stream().filter(MateuBundleExporter.BundleEntry::ok).count();
+        long ok = manifest.entries().stream().filter(BundleEntry::ok).count();
         manifest.entries().stream()
             .filter(e -> !e.ok())
             .forEach(

@@ -102,10 +102,12 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         return output;
       }
     }
-    throw new UnsupportedOperationException(
-        actionId + " not supported by " + getClass().getSimpleName());
+    // an id no handler claims is wire input naming nothing: refused (403, one WARN line) like an
+    // unknown action anywhere else — not an application error with a stack trace and a reference
+    throw io.mateu.core.application.security.ActionMethods.noSuchAction(getClass(), actionId);
   }
 
+  @io.mateu.uidl.annotations.Internal
   public Object list(HttpRequest httpRequest) {
     return this;
   }
@@ -116,6 +118,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * {@code @Toolbar(order)} — reflection does not guarantee method order, so a toolbar of more than
    * one button needs a way to fix it.
    */
+  @io.mateu.uidl.annotations.Internal
   public void addButtonsToList(List<UserTrigger> toolbar) {
     addButtonsToList(toolbar, null);
   }
@@ -124,6 +127,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * The bulk buttons of the listing toolbar for this request: a method restricted by an {@code
    * EyesOnly} the caller does not satisfy is left out (it is refused on invocation anyway).
    */
+  @io.mateu.uidl.annotations.Internal
   public void addButtonsToList(List<UserTrigger> toolbar, HttpRequest httpRequest) {
     getAllMethods(behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
@@ -188,6 +192,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * view is resolved). Everything else names a record page ({@code new}, {@code edit}, {@code
    * view}).
    */
+  @io.mateu.uidl.annotations.Internal
   public static boolean isListingRoute(String route) {
     return route == null || route.isBlank() || LIST_VIEW.equals(route) || "/list".equals(route);
   }
@@ -267,6 +272,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return CrudOrchestratorMetadata.title(this);
   }
 
+  @io.mateu.uidl.annotations.Internal
   public String getStyleForList(List<GridContent> columns) {
     return CrudOrchestratorMetadata.getStyleForList(this, columns);
   }
@@ -405,11 +411,13 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   }
 
   /** Class whose annotations (@Title/@ReadOnly/@Style/@Not*…) describe this crud. */
+  @io.mateu.uidl.annotations.Internal
   public Class<?> metadataSource() {
     return getClass();
   }
 
   /** Instance whose fields are serialized as the listing page state. */
+  @io.mateu.uidl.annotations.Internal
   protected Object stateSource() {
     return this;
   }
@@ -420,6 +428,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * methods, {@code UploadEnabled}/{@code Auditable} — and on which row/view methods are invoked.
    * The capability bridge points it at the underlying listing.
    */
+  @io.mateu.uidl.annotations.Internal
   public Object behaviourSource() {
     return this;
   }

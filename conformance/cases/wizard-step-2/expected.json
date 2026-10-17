@@ -1,0 +1,123 @@
+{
+  "commands" : [ {
+    "data" : "Sign up",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "container" : "h2",
+            "text" : "Sign up",
+            "type" : "Text"
+          },
+          "style" : "margin: 0;",
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "max" : 3,
+            "text" : "Plan",
+            "type" : "ProgressBar",
+            "value" : 1.0
+          },
+          "style" : "width: 100%;",
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "integer",
+                          "fieldId" : "seats",
+                          "label" : "Seats",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stepButtonsVisible" : true,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 2,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "Div"
+                },
+                "style" : "flex: 1; min-width: 0; width:100%;",
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "type" : "Div"
+          },
+          "style" : "width: 100%; margin-top: 1rem;",
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "actionId" : "back",
+              "color" : "normal",
+              "label" : "Back",
+              "type" : "Button"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "actionId" : "signUp",
+              "buttonStyle" : "primary",
+              "color" : "normal",
+              "label" : "Sign up",
+              "type" : "Button"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "justification" : "END",
+            "spacing" : true,
+            "type" : "HorizontalLayout"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "VerticalLayout"
+        },
+        "style" : "width: 100%",
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "process",
+      "route" : "_empty",
+      "style" : "max-width:900px;margin: auto;",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

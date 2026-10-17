@@ -46,7 +46,7 @@ ASP.NET Core and by FastAPI, with `Content-Type: application/json`,
   "shortName": "CRM",
   "icon": "/images/acme.svg",
   "themeColor": "#1f6feb",
-  "wireVersion": "3",
+  "wireVersion": "3.0",
   "minAppVersion": "1.0.0",
   "auth": {
     "type": "oidc",
@@ -63,8 +63,9 @@ relative: the app resolves it against the manifest's URL.
 
 ### Where each member comes from
 
-Highest precedence first. A **setting** is, in Java, a JVM system property (`mateu.mobile.…`) or
-the matching environment variable (`MATEU_MOBILE_…`); in .NET and Python, the environment variable.
+Highest precedence first. A **setting** is, in Java, a JVM system property (`mateu.mobile.…`), a
+key in the framework's configuration (`application.properties`, MicroProfile Config…) or the
+matching environment variable (`MATEU_MOBILE_…`); in .NET and Python, the environment variable.
 Settings win because the identity provider usually changes per environment while the code does not.
 
 | Member | Setting (env var) | `@MobileApp` / `[MobileApp]` / `@mobile_app` | Fallback |
@@ -73,11 +74,18 @@ Settings win because the identity provider usually changes per environment while
 | `shortName` | `MATEU_MOBILE_SHORT_NAME` | `shortName` / `ShortName` / `short_name` | = `name` |
 | `icon` | `MATEU_MOBILE_ICON` | `icon` | Java: the app's `@Logo`, else its `@FavIcon`; else omitted |
 | `themeColor` | `MATEU_MOBILE_THEME_COLOR` | `themeColor` / `ThemeColor` / `theme_color` | Java: `@App(accentColor)`; else omitted |
-| `wireVersion` | — | — | always `"3"` |
+| `wireVersion` | — | — | the server's wire version, the same value every response carries (`"3.0"`; servers before 3.0-alpha.426 sent `"3"` — the app compares the major only, so both are the same wire) |
 | `minAppVersion` | `MATEU_MOBILE_MIN_APP_VERSION` | `minAppVersion` / `MinAppVersion` / `min_app_version` | `"1.0.0"` |
 | `auth.issuer` | `MATEU_MOBILE_OIDC_ISSUER` | `oidcIssuer` / `OidcIssuer` / `oidc_issuer` | — |
 | `auth.clientId` | `MATEU_MOBILE_OIDC_CLIENT_ID` | `oidcClientId` / `OidcClientId` / `oidc_client_id` | — |
 | `auth.scopes` | `MATEU_MOBILE_OIDC_SCOPES` (comma and/or space separated) | `scopes` / `Scopes` / `scopes` | `["openid", "profile"]` |
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 `auth` is emitted only when **both** the issuer and the client id resolve; blank values count as
 unset. The .NET and Python ports have no app logo, favicon or accent colour, so there `icon` and

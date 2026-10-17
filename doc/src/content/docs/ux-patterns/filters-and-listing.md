@@ -15,7 +15,14 @@ A listing without live filters, row actions, and bulk actions forces users to na
 
 ## Solution
 
-Use `@List` for the collection class, `@Filterable` on filter fields, a `ColumnActionGroup` column on the row for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
+Extend `AutoCrud<T>` (or implement `Listing<Row>`) for the collection — no annotation is needed on the collection class —, mark filter fields with `@Filterable`, use a `ColumnActionGroup` column on the row for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
 
 ```java
 @UI("/products")

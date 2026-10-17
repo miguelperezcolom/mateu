@@ -45,6 +45,13 @@ Shell header
 
 ### 1. The notification widget
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 @UI(value = "/_forms/my-tasks")
 @Title("")
@@ -62,8 +69,9 @@ public class TasksWidget implements Hydratable, ComponentTreeSupplier {
     // Called before rendering — refresh data from the backend
     @Override
     public void hydrate(HttpRequest httpRequest) {
-        long pending = repository.countPendingFor(
-                JwtExtractor.getUsername(httpRequest).orElse(""));
+        // the caller as the host framework authenticated it (Mateu never reads the token itself)
+        var user = IdentityResolver.resolve(httpRequest).name();
+        long pending = repository.countPendingFor(user == null ? "" : user);
 
         if (pending > 0) {
             content = "<a href=\"#\" onclick=\"" + navScript() + "\" "
@@ -160,7 +168,7 @@ The interval is set independently on each trigger, so you can load immediately b
 - **Badge count** — render an integer and style it as a pill badge.
 - **System alert banner** — render a full-width coloured banner when a critical condition is detected.
 - **Cross-service** — the widget `@UI` lives in a different microservice from the shell; the shell embeds it via `MicroFrontend` pointing to that service's base URL.
-- **Auth-aware** — read the JWT from `HttpRequest` in `hydrate()` to filter tasks by the current user (see example above with `JwtExtractor`).
+- **Auth-aware** — resolve the current user in `hydrate()` to filter tasks by it (see the example above: `IdentityResolver.resolve(httpRequest).name()` is the identity the host framework authenticated — see [security](/java-user-manual/advanced/security/#how-authorization-works)).
 
 ---
 

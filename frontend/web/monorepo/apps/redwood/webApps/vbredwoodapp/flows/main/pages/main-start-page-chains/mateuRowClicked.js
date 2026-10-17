@@ -1,9 +1,9 @@
-/* Clic en una fila del listing (ojRowAction de oj-table): resuelve la fila y dispara la
- * acción 'view' del crud con la fila como parameters — el server responde el drawer Edit.
- * Se usa ojRowAction y no la selección (la selección deja estado que la tabla re-emite al
- * refrescar tras guardar). DEDUPE por timeStamp: el runtime VB puede RE-INVOCAR el listener
- * con el mismo evento almacenado tras el refresco del listado (carrera observada: un 'view'
- * fantasma ~30ms después del save reabría el drawer; a nivel DOM solo hubo UN ojRowAction). */
+/* Click on a listing row (oj-table's ojRowAction): resolves the row and fires the crud's
+ * 'view' action with the row as parameters — the server answers with the Edit drawer.
+ * ojRowAction is used and not the selection (the selection leaves state the table re-emits on
+ * refreshing after a save). DEDUPE by timeStamp: the VB runtime may RE-INVOKE the listener
+ * with the same stored event after the listing refreshes (race observed: a ghost 'view'
+ * ~30ms after the save reopened the drawer; at DOM level there was only ONE ojRowAction). */
 
 define([
   'vb/action/actionChain',
@@ -30,17 +30,17 @@ define([
 
       const listing = $application.variables.mateuListing;
       const detail = (event && event.detail) || {};
-      // CLIC DE FILA ENTERA (decisión U1): toda la fila abre el registro, salvo las celdas con clic
-      // propio — un BOTÓN de la fila (el «Open» de la bandeja), un enlace, la casilla de selección,
-      // un EDITOR inline (en una tabla de trabajo sólo esas celdas se editan; el resto abre) o una
-      // columna de display (clase mateu-cell-noopen, precomputada en listingOf). Ver rowActionIsRows.
+      // WHOLE-ROW CLICK (decision U1): the whole row opens the record, except cells with a click
+      // of their own — a row BUTTON (the queue's «Open»), a link, the selection checkbox,
+      // an inline EDITOR (in a work table only those cells are edited; the rest opens) or a
+      // display column (class mateu-cell-noopen, precomputed in listingOf). See rowActionIsRows.
       const origin = detail.originalEvent && detail.originalEvent.target;
       if (!bridge.rowActionIsRows(origin)) {
         return;
       }
       const stamp = (detail.originalEvent && detail.originalEvent.timeStamp) || event.timeStamp || 0;
       if (stamp === lastHandledStamp) {
-        return; // replay del mismo evento — no es un clic nuevo
+        return; // replay of the same event — not a new click
       }
       lastHandledStamp = stamp;
 
@@ -51,10 +51,10 @@ define([
         row = rows.find((r) => r._rowNumber === rowContext.key);
       }
       if (!row || row._group) {
-        return; // una fila de GRUPO (@GroupBy) es sólo presentación: ni se abre ni se navega
+        return; // a GROUP row (@GroupBy) is presentation only: it neither opens nor navigates
       }
-      // DETALLE de fila (@Details) en un listado de consulta: el clic lo abre en su panel en vez
-      // de pedir un 'view' que no lleva a ninguna parte. Una fila navegable sigue abriendo el registro.
+      // Row DETAILS (@Details) in a query listing: the click opens them in their panel instead
+      // of asking for a 'view' that leads nowhere. A navigable row still opens the record.
       if (listing && listing.detailPath && !listing.navigable) {
         const value = row[listing.detailPath];
         const first = (listing.columns || [])[0];
@@ -66,7 +66,7 @@ define([
         $application.variables.mateuRowDetailOpen = true;
         return;
       }
-      // @RowRoute: la fila abre una RUTA (el maestro de un registro con pestañas que son páginas)
+      // @RowRoute: the row opens a ROUTE (the master of a record with tabs that are pages)
       const rowRoute = listing && listing.rowRoute ? bridge.rowRouteOf(listing.rowRoute, row) : '';
       if (rowRoute) {
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: rowRoute } });

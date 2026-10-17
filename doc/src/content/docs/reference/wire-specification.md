@@ -27,7 +27,7 @@ See also: [Renderer contract](/design-systems/renderer-contract/) (what a render
   (unknown fields and types are still tolerated). A response without `wireVersion` is accepted.
 - **Freeze-and-pin is the supported migration stance:** if you build against the wire (an alternate
   renderer, or an extraction), pin the `wireVersion` you targeted; that snapshot is a stable contract.
-- The published JSON Schemas (below) are the machine-readable half; this page is the normative prose
+- The published JSON Schemas ([below](#the-machine-readable-schemas)) are the machine-readable half; this page is the normative prose
   for the parts a schema cannot express (behaviour).
 
 ## The exchange
@@ -45,6 +45,11 @@ Body: {
 }
 ```
 
+- **This is the canonical endpoint** — the one every first-party renderer sends its requests to,
+  and the one to document and build against. The body decides, not the path, so every server
+  (Java, .NET, Python) also serves the older spelling `POST /{baseUrl}/mateu/v3/components/_/action`
+  the same way (the Redwood shell still bootstraps through it); the Java adapters answer any `POST
+  …/mateu/v3/<operation>/…` other than `sse` so.
 - The response is a **`UIIncrementDto`** (the envelope). The `v3` in `/mateu/v3/sync/…` is a **route
   path segment**, not the schema version — the schema version is `wireVersion` in the payload.
 - The **route load** is dispatched as `actionId: ""` (empty), not `"__load__"` — both are treated as
@@ -58,7 +63,7 @@ Body: {
 | `wireVersion` | Wire protocol version this payload conforms to (e.g. `"3.0"`). Always present. |
 | `commands` | Client commands to run (`SetWindowTitle`, `navigateTo`, `PushStateToHistory`, `CloseModal`, `DispatchEvent`, `MarkAsClean`/`MarkAsDirty`, …). |
 | `messages` | Toasts / alerts (may be `undoable`). |
-| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`. |
+| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`/`ReplaceKeepData`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`; a state-only refresh arrives as `ReplaceKeepData`, which keeps the component's existing state and data instead of wiping them. |
 | `banners` + `appendBanners` | Page banners; append vs replace. |
 | `appData` / `appState` | App-level data / merged app state. |
 
@@ -66,34 +71,76 @@ The three "effects" a producer can return from an action reduce to this envelope
 (a command), **ui-delta** (fragments), **data** (fragment `data`/`appData`), and **commands**. A
 returned `Step`/`List<Step>` (the flow language) lowers 1:1 to `commands` — it is behaviour, not a view.
 
-## The component model (authoring surface)
+## The machine-readable schemas
 
-Components are a polymorphic family discriminated on `type`. The **normative, machine-readable**
-description is the generated JSON Schema, published at:
+Every schema is **generated from the records and pinned by a test**, and served from the repository
+(raw files on `master` — the URLs editors and the starters point at):
 
-- `https://mateu.io/uidl/uidl-schema.json` — the component catalog.
-- `https://mateu.io/uidl/routes-schema.json` — the route registry (`routes.yaml`).
-- `https://mateu.io/uidl/sources-schema.json` — the REST source catalogue (`sources.yaml`).
-- `https://mateu.io/uidl/specs-schema.json` — the unified `specs/ui/**` schema (a `oneOf` of every kind).
+**The wire** — what a server sends and a renderer reads:
 
-These are **generated from the records and pinned by a test**, so the authored YAML keys *are* the
-record components (no sugar the schema does not describe). Wire-plumbing types
-(`ServerSideComponent`, `ModelViewComponent`, `PageView`) are intentionally excluded from the authoring
-surface.
+- [`wire-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/wire-schema.json)
+  — the response envelope (`UIIncrementDto`) and everything reachable from it: every component
+  metadata type (`type`-discriminated), every trigger, command, message, fragment and option, plus
+  the request body (`RunActionRqDto`). Derived from the `mateu-dtos` records through Jackson's own
+  introspection, so it lists exactly the members that travel. It is **open** (unknown members are
+  allowed — a reader must ignore them) and requires nothing but the `type` discriminator, because a
+  member at its default may be absent (see [Normalisation](#normalisation-what-is-normative-vs-noise)).
+  Its test (`WireSchemaTest`) fails on an added member until the schema is regenerated, and fails on
+  a **removed, renamed or retyped** member *even when regenerating*: that is a breaking change and
+  needs a wire major.
+
+**The authoring surface** — what an author writes in YAML/JSON:
+
+- [`uidl-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json) — the component catalog.
+- [`routes-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json) — the route registry (`routes.yaml`).
+- [`sources-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json) — the REST source catalogue (`sources.yaml`).
+- [`specs-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json) — the unified `specs/ui/**` schema (a `oneOf` of every kind).
+
+The authored YAML keys *are* the record components (no sugar the schema does not describe).
+Wire-plumbing types (`ServerSideComponent`, `ModelViewComponent`, `PageView`) are intentionally
+excluded from the authoring surface — they appear in the wire schema instead.
 
 ## Normalisation (what is normative vs. noise)
 
-The wire carries values that legitimately differ between servers and runs. The
-[conformance corpus](/design-systems/renderer-contract/) defines the canonical normalisation both
+### Absent == default
+
+A member at its type's **zero value** — `null`, `[]`, `{}`, `false`, `0`, `""` — **may be omitted**,
+and a reader MUST treat an absent member exactly like that zero value. Producers legitimately
+differ here (the Java backend sends every member; the .NET and Python ones omit most defaults), and
+both are conformant. The wire schema therefore requires nothing but the `type` discriminator.
+
+**Exception — members whose zero is meaningful.** For these the absent value is a NON-zero
+default, so a producer MUST send `false`/`0` explicitly, and a reader MUST NOT read an absent one
+as zero:
+
+| Member | Absent means | Zero means |
+|---|---|---|
+| `MessageDto.duration` (also `CarouselLayoutDto.duration`) | the renderer's default timeout | a sticky toast (every error message is sent with `0`) |
+| `MenuOptionDto.visible` | visible | hidden |
+| `DetailsDto.opened`, `FaqItemDto.open`, `FoldoutPanelInfoDto.open` | open | closed |
+| `CrudlDto.searchable`, `RecordSwitcherDto.searchable` | a search box | no search box |
+| `HeroSectionDto.centered`, `ContentLayoutDto.asideSticky` | `true` | `false` |
+| `AutoSaveTriggerDto.debounceMillis` | 800 ms | no debounce |
+
+A new member whose zero is meaningful must be added to this table and to the conformance runners'
+`MEANINGFUL_ZERO` set in the same change.
+
+### What the conformance corpus compares
+
+The [conformance corpus](/design-systems/renderer-contract/) defines the canonical normalisation both
 producers and the reference apply before comparing:
 
-- **Drop** server-invented `id`s and empty/null members.
+- **Drop** server-invented `id`s (not an action's `id` — that is the name the client sends) and
+  members at their default, **keeping** the members of the table above at `false`/`0`.
+- **Mask** the error boundary's per-request reference (`Reference: <ref>`).
 - **Sort** object keys.
 - **Keep** everything that says *what the screen is*: types, field ids, labels, data types, actions,
   layout structure — and scalar envelope fields such as `wireVersion`.
 
 If two producers normalise to the same tree for the same fixture, they are wire-equivalent. This corpus
-(`conformance/cases/*`) is the **executable half** of this spec.
+(`conformance/cases/*`) is the **executable half** of this spec: first loads and second requests
+(an action's messages and commands, an overlay, a rejected save, an error-boundary answer, a wizard's
+second step, a CRUD's new/edit/view forms, a search).
 
 ## Derivation semantics (behaviour a schema cannot express)
 
@@ -192,15 +239,15 @@ are shared by every renderer.
 | `messages[]`, `commands[]` | `UIIncrementDto.messages`; and non-`SetWindowTitle` `commands` (e.g. `navigateTo`) surfaced so the agent sees navigation/effects. |
 
 **The request mapping** — a tool call becomes a sync request (see [The exchange](#the-exchange)):
-- `describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
+- `mateu_describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
   component aimed at the route), the host follows it to the content it loads — `homeRoute` /
   `homeConsumedRoute` / `homeServerSideType`, the request the shell's own content area sends — and
-  again through a CRUD mediator, so the agent is given the screen, not the shell. `run_action` and
-  `search` are sent where that screen lives (its route, consumed route and `serverSideType`).
-- `list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
+  again through a CRUD mediator, so the agent is given the screen, not the shell. `mateu_run_action` and
+  `mateu_search` are sent where that screen lives (its route, consumed route and `serverSideType`).
+- `mateu_list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
   `label`).
-- `run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
-- `search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
+- `mateu_run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
+- `mateu_search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
   `componentState`, where the listing reads them (as the search box writes them).
 
 **Two transport gotchas** (verified against a live backend, both belong to the contract):

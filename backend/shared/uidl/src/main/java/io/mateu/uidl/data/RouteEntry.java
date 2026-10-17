@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 
 /**
  * One entry of a mount's route registry: what a URL resolves to.
@@ -68,6 +69,7 @@ import java.util.Map;
  *     class-level {@code @EyesOnly} on a {@code @UI}; a menu link to it is hidden. {@code null} =
  *     anybody. Decided on the server from the request identity.
  */
+@Builder
 public record RouteEntry(
     String route,
     String definition,

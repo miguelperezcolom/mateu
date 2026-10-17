@@ -26,7 +26,7 @@ public final class RouteChains {
 
   static RouteRegistry registry() {
     try {
-      return MateuBeanProvider.getBean(RouteRegistry.class);
+      return MateuBeanProvider.getSingletonBean(RouteRegistry.class);
     } catch (Throwable t) {
       return null;
     }

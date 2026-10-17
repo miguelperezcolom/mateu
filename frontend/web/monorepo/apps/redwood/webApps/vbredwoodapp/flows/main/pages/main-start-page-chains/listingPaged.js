@@ -1,6 +1,6 @@
-/* Paginación del listing: un botón del pie de la tabla (data-page = first|prev|next|last) →
- * la página destino sobre el paging actual (el que mandó el server) → runMateuSearch con el
- * mismo texto, los mismos filtros y el mismo orden. */
+/* Listing pagination: a button in the table footer (data-page = first|prev|next|last) →
+ * the target page over the current paging (the one the server sent) → runMateuSearch with the
+ * same text, the same filters and the same sort. */
 
 define([
   'vb/action/actionChain',

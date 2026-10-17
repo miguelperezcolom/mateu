@@ -109,18 +109,19 @@ Three notes on how to read the table:
   fluent `FormField` are the vocabulary the archetypes themselves are written in.
 - **Uniform content-page slot grammar.** The templates with a *main + contextual aside* shape
   (`ItemOverview` — key-info panel + tabs; `CollectionDetail` — searchable list + detail pane)
-  compose a single `ContentLayout` with named regions — `main`, `aside` (which side via
-  `asidePosition`, width via `asideWidth`, optionally `asideSticky`) and a full-width `footer` —
-  instead of each reinventing a bespoke layout. Vaadin and the native renderers paint it with one
-  responsive grammar (Redwood stacks the regions): the aside sits beside the main region on wide viewports and stacks under it when narrow.
-  It is a wire component like `DashboardLayout`/`FoldoutLayout`, so you can also compose it directly
-  in a custom view. Ported to .NET and Python (`ContentLayout`).
+  compose a single `ResponsiveGrid` **template**: named areas (`gridTemplateAreas`, e.g.
+  `"keyinfo tabs"`), the content dropped into them as `Slotted` children, `stickyAreas` for a pinned
+  region and `stackBelow` for the width under which the areas stack — instead of each reinventing a
+  bespoke layout. The aside sits beside the main region on wide viewports and stacks under it when
+  narrow. It is a wire component like `FoldoutLayout`, so you can also compose it directly in a
+  custom view; ported to .NET and Python. (The older `ContentLayout` with `main`/`aside`/`footer`
+  regions is deprecated: no archetype produces it any more.)
 - **`@Aside` — content-page from a plain form.** The minimal way to get the content-page grammar
   without composing anything: on an ordinary reflected form, mark one component-holder field
   `@Aside` (`.NET` `[Aside]`, Python `Aside()`). That field is pulled out of the form body and
-  placed in the `aside`; the rest of the form becomes the `main` region of a `ContentLayout`
-  (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual and just
-  point at the one supporting panel that belongs to the side.
+  placed in the aside area; the rest of the form becomes the main area of the same kind of grid
+  template (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual
+  and just point at the one supporting panel that belongs to the side.
 
 ## The header in YAML
 
@@ -130,6 +131,13 @@ navigation, the record switcher, banners and page FABs — is authorable on a YA
 [YAML pages › Page header](/define/yaml/pages/#page-header--type-form).
 
 ## Record and context switcher
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 The Redwood header's `selectObject` / `selectContext` element, available on **any** page with a
 header — not only inside `GeneralOverview`. Implement `RecordSwitcherSupplier` (the sibling of

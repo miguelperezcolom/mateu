@@ -44,7 +44,7 @@ final class ComponentCatalogMapper {
    */
   private static ComponentCatalog catalogue() {
     try {
-      var registry = MateuBeanProvider.getBean(ComponentRegistry.class);
+      var registry = MateuBeanProvider.getSingletonBean(ComponentRegistry.class);
       return registry == null ? ComponentCatalog.empty() : registry.catalog();
     } catch (Throwable t) {
       log.debug("No component registry available ({})", t.toString());

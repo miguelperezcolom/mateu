@@ -1,7 +1,7 @@
-/* Header de colección: acción secundaria (＋ Walk-in, Delete…). El header devuelve el item
- * por su id — el actionId que le estampamos en mateuListSecondary — (o el item entero / su
- * label, según la variante): se resuelve contra la toolbar del crud por actionId y, si no,
- * por rótulo (bridge.secondaryActionOf), y se despacha su actionId. */
+/* Collection header: secondary action (＋ Walk-in, Delete…). The header returns the item
+ * by its id — the actionId we stamp on it in mateuListSecondary — (or the whole item / its
+ * label, depending on the variant): it is resolved against the crud's toolbar by actionId and, failing that,
+ * by caption (bridge.secondaryActionOf), and its actionId is dispatched. */
 
 define([
   'vb/action/actionChain',

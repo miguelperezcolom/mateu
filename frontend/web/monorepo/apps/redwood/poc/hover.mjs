@@ -1,11 +1,11 @@
 import { sanitizeHtml } from './richtext.mjs'
-// VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
-// detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
-// le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
-// al pasar o enfocar y la cierra al salir; uno con data-mateu-pop-click, al pulsar. Las celdas
-// de un listado con @Tooltip(otro campo) y los Popover (trigger hover/click) pasan por aquí.
+// FLOATING WINDOWS on mouse hover (and on keyboard focus): a rate's summary, a
+// cell's detail. ONE shared JET oj-popup, created outside Knockout, whose
+// content is swapped: any element with data-mateu-hover (text, lines with \n) opens it
+// on hover or focus and closes it on leave; one with data-mateu-pop-click, on click. The cells
+// of a listing with @Tooltip(another field) and Popovers (hover/click trigger) go through here.
 
-/** Las líneas del contenido (puro). */
+/** The content's lines (pure). */
 export const hoverLinesOf = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean)
 
 export function installHover(doc = typeof document !== 'undefined' ? document : null) {
@@ -53,8 +53,8 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
     if (!el.id) el.id = 'mateuHover-' + (++hoverAnchorSeq)
     anchor = el
     el.setAttribute('aria-describedby', 'mateuHoverPopup')
-    // un oj-popup recién creado tarda en «actualizarse» (JET lo hace de forma asíncrona): hasta
-    // entonces sus métodos lanzan — se reintenta unos frames
+    // a freshly created oj-popup takes a while to «upgrade» (JET does it asynchronously): until
+    // then its methods throw — it retries for a few frames
     const tryOpen = (left) => {
       if (anchor !== el) return
       try {
@@ -70,7 +70,7 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
     if (openTimer) { clearTimeout(openTimer); openTimer = null }
     if (anchor) anchor.removeAttribute('aria-describedby')
     anchor = null
-    try { if (popup && popup.isOpen()) popup.close() } catch (err) { /* aún sin actualizar */ }
+    try { if (popup && popup.isOpen()) popup.close() } catch (err) { /* not upgraded yet */ }
   }
   const scheduleClose = () => {
     if (closeTimer) clearTimeout(closeTimer)
@@ -86,7 +86,7 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
     if (openTimer) clearTimeout(openTimer)
     openTimer = setTimeout(() => { openTimer = null; open(el, el.getAttribute('data-mateu-hover')) }, 300)
   }
-  // se crea ya: cuando llegue el primer hover JET habrá tenido tiempo de actualizarlo
+  // it is created right away: when the first hover arrives JET will have had time to upgrade it
   if (doc.body) ensure()
   doc.addEventListener('mouseover', (e) => { const el = hoverTarget(e.target); if (el) show(el) }, true)
   doc.addEventListener('mouseout', (e) => {

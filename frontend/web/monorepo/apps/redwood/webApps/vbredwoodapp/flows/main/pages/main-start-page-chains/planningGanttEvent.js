@@ -1,7 +1,7 @@
-/* Un evento del tape chart (PlanningBoard sobre oj-gantt): mover o redimensionar una estancia, o
- * doble clic en ella. bridge.planningActionOf lo traduce a la acción de Mateu (fechas en días, fin
- * inclusivo) y se despacha como cualquier acción de un bloque del host. Sin cambio optimista: el
- * servidor contesta con el tablero (o rechaza con un mensaje) y el gantt se repinta desde él. */
+/* A tape chart event (PlanningBoard over oj-gantt): moving or resizing a stay, or
+ * double-clicking it. bridge.planningActionOf translates it into the Mateu action (dates in days, inclusive
+ * end) and it is dispatched like any action of a host block. No optimistic change: the
+ * server answers with the board (or rejects with a message) and the gantt is repainted from it. */
 
 define([
   'vb/action/actionChain',
@@ -21,12 +21,12 @@ define([
      * @param {Object} params
      * @param {string} params.kind  move | resize | open
      * @param {Object} params.event
-     * @param {Object} params.atom  el átomo isPlanning
+     * @param {Object} params.atom  the isPlanning atom
      */
     async run(context, { kind, event, atom }) {
       let detail = (event && event.detail) || {};
       if (kind === 'open') {
-        // doble clic: la tarea bajo el puntero (getContextByNode → fila e índice de tarea)
+        // double click: the task under the pointer (getContextByNode → row and task index)
         const gantt = event && event.currentTarget;
         const ctx = gantt && gantt.getContextByNode ? gantt.getContextByNode(event.target) : null;
         const row = ctx && atom.rows ? atom.rows[ctx.rowIndex] : null;
@@ -35,7 +35,7 @@ define([
         detail = { taskId: task.id };
       }
       if (kind === 'select') {
-        // la selección del oj-gantt (un clic en una barra): sólo la del usuario, y la tarea elegida
+        // the oj-gantt's selection (a click on a bar): only the user's, and the chosen task
         if (detail.updatedFrom === 'internal') return;
         const selected = Array.isArray(detail.value) ? detail.value : [];
         if (!selected.length) return;

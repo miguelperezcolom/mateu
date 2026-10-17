@@ -53,7 +53,8 @@ public abstract class Wizard
   @Override
   public void onHydrated(HttpRequest httpRequest) {
     var state = httpRequest.runActionRq().componentState();
-    final InstanceFactory instanceFactory = MateuBeanProvider.getBean(InstanceFactory.class);
+    final InstanceFactory instanceFactory =
+        MateuBeanProvider.getSingletonBean(InstanceFactory.class);
     try {
       setValue(
           currentStepField(),
@@ -514,6 +515,7 @@ public abstract class Wizard
     return position;
   }
 
+  @io.mateu.uidl.annotations.Internal
   public Field currentStepField() {
     return WizardStepInspector.currentStepField(this);
   }

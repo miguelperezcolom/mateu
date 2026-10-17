@@ -46,7 +46,13 @@ public class DefaultTranslator implements Translator {
     }
     Locale locale = resolveLocale(httpRequest);
     try {
-      ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+      // without the JVM-default fallback: a request in a language the app has no bundle for gets
+      // the base bundle, never the server machine's language
+      ResourceBundle bundle =
+          ResourceBundle.getBundle(
+              "messages",
+              locale,
+              ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT));
       if (bundle.containsKey(text)) {
         return bundle.getString(text);
       }
@@ -66,15 +72,16 @@ public class DefaultTranslator implements Translator {
     return Locale.forLanguageTag(tag).toLanguageTag();
   }
 
+  /** The request's language — English when it names none, never the JVM's default locale. */
   private Locale resolveLocale(HttpRequest httpRequest) {
-    if (httpRequest == null) return Locale.getDefault();
+    if (httpRequest == null) return Locale.ENGLISH;
     String acceptLanguage = httpRequest.getHeaderValue("Accept-Language");
-    if (acceptLanguage == null || acceptLanguage.isBlank()) return Locale.getDefault();
+    if (acceptLanguage == null || acceptLanguage.isBlank()) return Locale.ENGLISH;
     try {
       String tag = acceptLanguage.split(",")[0].trim().split(";")[0].trim();
       return Locale.forLanguageTag(tag);
     } catch (Exception e) {
-      return Locale.getDefault();
+      return Locale.ENGLISH;
     }
   }
 }

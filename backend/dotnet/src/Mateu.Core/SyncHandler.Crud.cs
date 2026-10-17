@@ -120,7 +120,7 @@ public sealed partial class SyncHandler
                 _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
+            _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
 
@@ -135,7 +135,7 @@ public sealed partial class SyncHandler
         // Only a [ListToolbarButton] method is a bulk row action — never Save/Delete/any public
         // method of the crud (security: the actionId comes from the wire).
         var method = ActionGuard.ResolveRowAction(crudType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
         var result = method.Invoke(crud, BuildBulkArguments(method, rq));
         return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
@@ -213,7 +213,7 @@ public sealed partial class SyncHandler
 
     private static string? RowId(RunActionRqDto rq, Type element)
     {
-        var idField = Naming.CamelCase(element.GetProperty("Id")?.Name ?? "Id");
+        var idField = EntityIds.FieldName(element);
         return StateString(GetState(rq.Parameters, idField))
             ?? StateString(GetState(rq.ComponentState, idField));
     }
@@ -264,7 +264,7 @@ public sealed partial class SyncHandler
             : storedVersion is null ? stored
             : CopyOf(stored, element);
         BindState(entity, rq.ComponentState);
-        if (id is not null) element.GetProperty("Id")?.SetValue(entity, id);
+        if (id is not null) EntityIds.SetId(entity, id);
 
         var missing = RequiredMissing(entity, element);
         if (missing.Count > 0)
@@ -308,7 +308,7 @@ public sealed partial class SyncHandler
                     _mapper.EntityState(element, entity), message)]);
         }
         if (saveAndNext
-            && (element.GetProperty("Id")?.GetValue(entity)?.ToString() ?? id) is { } savedId
+            && (EntityIds.Of(entity) ?? id) is { } savedId
             && (crud as ICrudAffordances)?.NextIdAfter(savedId) is { } nextId)
         {
             // the drawer stays open and is re-sent with the same id for the next row — the Add
@@ -360,7 +360,7 @@ public sealed partial class SyncHandler
 
         // Optimistic locking ([Version] property): Overwrite re-sends the SAME edited row (the
         // button's parameters merge into the action request), Reload re-runs the search.
-        var id = element.GetProperty("Id")?.GetValue(entity)?.ToString();
+        var id = EntityIds.Of(entity);
         var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
         if (IsStale(entity, StoredVersionOf(stored), rq))
             return ConflictDialog(
@@ -489,7 +489,7 @@ public sealed partial class SyncHandler
     /// crud_selected_items, by its id field), then the listing searches again in place.</summary>
     private static UIIncrementDto DeleteSelected(object crud, Type element, RunActionRqDto rq)
     {
-        var idField = Naming.CamelCase(element.GetProperty("Id")?.Name ?? "Id");
+        var idField = EntityIds.FieldName(element);
         if (GetState(rq.ComponentState, "crud_selected_items")
             is JsonElement { ValueKind: JsonValueKind.Array } selected)
             foreach (var row in selected.EnumerateArray())

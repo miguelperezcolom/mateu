@@ -4,14 +4,14 @@ import { PANE_TYPES, findOutside, pageHeaderNodeOf } from './pageHeader.mjs'
 import { STATUS_BADGE, findByType, findFirst } from './listing.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
-/** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
- *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
- *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
- *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
- *  como forma legada para tests/fixtures. */
+/** FOLDOUT projection (Phase 7): overview + panels with their headers (metadata.panels)
+ *  and their slotted content (overview / panel-N). null if the context is not a foldout.
+ *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList
+ *  cards, buttons, inputs, notices…) — the markup paints blocks and keeps texts only
+ *  as the legacy form for tests/fixtures. */
 export function foldoutOf(ctx) {
-  // el foldout de PÁGINA: uno metido en una pestaña (o en un panel de consola) es contenido de esa
-  // pestaña — visit() lo pinta allí, con sus paneles plegables — y no se adueña de la pantalla
+  // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
+  // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
   const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
   if (!node) return null
   const md = node.metadata
@@ -22,16 +22,16 @@ export function foldoutOf(ctx) {
     const blocks = slotNode
       ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
       : null
-    // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
-    // el resto a fila completa
+    // same visual contract as hostContentOf: column blocks with their colClass,
+    // the rest full-row
     return (blocks || []).map((block) => ({
       ...block,
       blockClass: block.colClass || 'oj-flex-item oj-sm-12',
     }))
   }
-  // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
-  // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
-  // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
+  // The PAGE badges (the header @Status: «Confirmed») head the overview:
+  // the web paints them next to the title, and the VB header has no room for them. Same
+  // JET badge classes as the @Status cells; an unresolved template is not painted.
   const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   const state = (ctx && ctx.state) || {}
   const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
@@ -51,8 +51,8 @@ export function foldoutOf(ctx) {
     badges: pageBadges,
     overview: {
       texts: collectTexts(bySlot['overview']),
-      // un bloque PLANO que las lleva como átomos: el template del overview solo pinta bloques
-      // isCard/isPlain e isBadge es un átomo de sus items — un bloque isBadge suelto no se veía
+      // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
+      // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
       blocks: (pageBadges.length
         ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
         : []).concat(blocksOf(bySlot['overview'])),
@@ -60,13 +60,13 @@ export function foldoutOf(ctx) {
     panels: (md.panels || []).map((panel, i) => ({
       title: panel.title || '',
       subtitle: panel.subtitle || '',
-      // título compuesto del panel: "Operaciones · 1 de 7" — el contador vive en la
-      // CABECERA (leído del contenido vivo por índice, refresca sin re-stampar)
+      // composed panel title: "Operaciones · 1 de 7" — the counter lives in the
+      // HEADER (read from the live content by index, refreshes without re-stamping)
       headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
       open: panel.open !== false,
-      // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
-      // medida — sin él, el motor responsive del foldout reparte a su aire y las
-      // tarjetas del cockpit se solapan
+      // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
+      // size — without it, the foldout's responsive engine distributes as it likes and the
+      // cockpit cards overlap
       width: panel.width || '',
       texts: collectTexts(bySlot['panel-' + i]),
       blocks: blocksOf(bySlot['panel-' + i]),
@@ -96,22 +96,22 @@ export function foldoutSummaryOf(slotNode) {
   return { hasSummary: !!text, summary: text }
 }
 
-/** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → pasos ({id,label} + currentStep
- *  por id). null si la página no es un wizard. En la pantalla de resultado todos los pasos van
- *  'done' → currentStep = el último.
+/** WIZARD projection (Phase 8): the wire's ProgressSteps → steps ({id,label} + currentStep
+ *  by id). null if the page is not a wizard. On the result screen every step is
+ *  'done' → currentStep = the last one.
  *
- *  ORIENTACIÓN: la decide el propio wizard con @WizardProgress — RAIL manda un ProgressSteps
- *  VERTICAL (el rail lateral: el oj-sp-guided-process auténtico, con su columna de pasos a la
- *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
- *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
- *  tren de 4-5 rótulos no cabe en un móvil). */
+ *  ORIENTATION: decided by the wizard itself with @WizardProgress — RAIL sends a VERTICAL
+ *  ProgressSteps (the side rail: the genuine oj-sp-guided-process, with its column of steps on
+ *  the right); STEPS sends a HORIZONTAL one, and that is a train of steps ON TOP (horizontal:
+ *  true → oj-train above the content, and on narrow screens the step list vertical, since a
+ *  train of 4-5 labels does not fit on a phone). */
 /** Whether some component of the tree advertises (or a button runs) the wizard's `next`. */
 function advertisesNext(tree) {
   return !!findFirst(tree, (n) => (Array.isArray(n.actions) && n.actions.some((a) => a && a.id === 'next'))
     || (n.metadata && n.metadata.type === 'Button' && n.metadata.actionId === 'next'))
 }
 
-/** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
+/** Id of the virtual step the guided process shows once the wizard has finished. */
 export const WIZARD_DONE_STEP = '_completed'
 
 export function wizardOf(ctx) {
@@ -127,9 +127,9 @@ export function wizardOf(ctx) {
   const currentId = current ? current.id : (wire.length ? wire[wire.length - 1].id : null)
   const currentIndex = Math.max(0, wire.findIndex((s) => s.id === currentId))
   const statusOf = (s, i) => s.status || (i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'upcoming')
-  // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on'. El
-  // status es el del TEMPLATE (success | error | none), no el de Mateu: un paso hecho es
-  // 'success' — el overview pinta «Completado» al pie de su columna y el rail su marca
+  // display:'on' MANDATORY: the rail marks every step without display='on' as oj-disabled. The
+  // status is the TEMPLATE's (success | error | none), not Mateu's: a done step is
+  // 'success' — the overview paints «Completado» at the foot of its column and the rail its mark
   const steps = wire.map((s, i) => ({
     id: s.id,
     label: s.title || s.id,
@@ -137,17 +137,17 @@ export function wizardOf(ctx) {
     display: 'on',
     status: statusOf(s, i) === 'done' ? 'success' : 'none',
   }))
-  // RESULTADO: con todos los pasos hechos (el wire no trae el paso de resultado, que no es un
-  // paso del proceso) el guided process se quedaba en el último paso — su título y su pie
-  // Cancel/Done. Se añade un paso final «Completed», hecho y actual: el título dice que terminó y
-  // el pie se oculta (completed → clase mateu-wizard-completed en la página)
+  // RESULT: with every step done (the wire does not bring the result step, which is not a
+  // step of the process) the guided process stayed on the last step — its title and its
+  // Cancel/Done footer. A final «Completed» step is added, done and current: the title says it
+  // finished and the footer is hidden (completed → class mateu-wizard-completed on the page)
   const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
   if (completed) {
     steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
   }
   const currentStep = completed ? WIZARD_DONE_STEP : currentId
-  // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
-  // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
+  // the process title (the wizard's h2) and its subtitle (@Subtitle): the guided process
+  // overview paints them top-left, above the step columns
   const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
     && n.metadata.container === 'h2' && !!n.metadata.text) : null
   const subtitleNode = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
@@ -155,7 +155,7 @@ export function wizardOf(ctx) {
   return {
     title: heading ? String(heading.metadata.text) : '',
     subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
-    // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
+    // Overview Start: the first step; with the wizard already started, «Reanudar» on its own
     resumeStepId: !completed && currentIndex > 0 && currentId ? currentId : '',
     steps,
     currentStep,
@@ -164,8 +164,8 @@ export function wizardOf(ctx) {
     currentIndex: completed ? steps.length - 1 : currentIndex,
     currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
     total: steps.length,
-    // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
-    // se avanza con el botón del paso, que valida
+    // the train (oj-train): done steps can be VISITED (go back), the remaining ones cannot —
+    // you advance with the step's button, which validates
     trainSteps: wire.map((s, i) => {
       const status = statusOf(s, i)
       return {
@@ -175,7 +175,7 @@ export function wizardOf(ctx) {
         disabled: status === 'upcoming',
       }
     }),
-    // la misma lista, para la variante vertical (pantallas estrechas): número o ✓ + rótulo
+    // the same list, for the vertical variant (narrow screens): number or ✓ + label
     listSteps: wire.map((s, i) => {
       const status = statusOf(s, i)
       return {

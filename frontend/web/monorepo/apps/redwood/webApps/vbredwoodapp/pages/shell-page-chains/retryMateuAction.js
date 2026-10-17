@@ -1,6 +1,6 @@
-/* "Reintentar" de la banda de error: vuelve a entrar en la CHAIN que falló, con sus mismos
- * parámetros — reenviar sólo la petición no valdría, porque una respuesta que nadie procesa
- * no cambia nada en pantalla. El cierre lo dejó registrado quien falló (bridge.setLastRetry). */
+/* "Retry" of the error band: re-enters the CHAIN that failed, with its same
+ * parameters — resending just the request would not do, because a response nobody processes
+ * changes nothing on screen. The closure was registered by whoever failed (bridge.setLastRetry). */
 
 define([
   'vb/action/actionChain',
@@ -21,15 +21,15 @@ define([
       const retry = bridge.takeLastRetry();
       if (!retry) return;
       if (retry.kind === 'navigate') {
-        // Misma página que esta chain: se la llama directamente, con ESTE contexto (vivo).
+        // Same page as this chain: it is called directly, with THIS (live) context.
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: { event: { route: retry.route }, force: true },
         });
         return;
       }
-      // La acción vive en la página de CONTENIDO, que es otra: no se puede llamar su chain
-      // desde aquí, así que viaja como evento de aplicación y allí se reencamina.
+      // The action lives on the CONTENT page, which is a different one: its chain cannot be called
+      // from here, so it travels as an application event and is rerouted there.
       await Actions.fireEvent(context, {
         name: 'application:mateuRetryAction',
         payload: { actionId: retry.actionId, parameters: retry.parameters },

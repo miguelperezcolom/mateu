@@ -44,6 +44,16 @@ test('every wire type is classified and none is left unrendered', () => {
   assert.deepEqual(none, [])
 })
 
+test('every type claimed rendered really projects without the "Unsupported component" placeholder', () => {
+  // the gate behind coverage.mjs is not a string search: a minimal node of each claimed type goes
+  // through the real visitor, and a claim the visitor answers with the placeholder fails here
+  const placeholders = Object.entries(REDWOOD_COVERAGE)
+    .filter(([, c]) => c.status !== 'none')
+    .filter(([t]) => atomsOf(node({ type: 'VerticalLayout' }, [node({ type: t }, [], 'n1')])).some((a) => a.isUnsupported))
+    .map(([t]) => t)
+  assert.deepEqual(placeholders, [])
+})
+
 test('containers and parts reach the fall-through without a placeholder; anything else gets one', () => {
   for (const [t, c] of Object.entries(REDWOOD_COVERAGE)) {
     if (c.status === 'layout' || c.status === 'part') assert.ok(VISITOR_PASS_THROUGH[t], t + ' should pass through')

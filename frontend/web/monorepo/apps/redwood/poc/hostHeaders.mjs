@@ -71,3 +71,57 @@ export function lastHostHeadersOf() { return { ...lastHostHeaders } }
 export function hostAuthorizes(headers) {
   return !!headers && Object.keys(headers).some((h) => h.toLowerCase() === 'authorization')
 }
+
+// ── where OUR stored token may go (M-S5) ─────────────────────────────────────────────────────────
+// The stored Bearer used to ride on every Mateu request whatever its origin: a federated remote got
+// it, and so did any remote a remote named. It now goes to the page's own origin, the base the
+// shell booted against, and the remotes THAT app names in its menu — never to the remotes a remote
+// names. (A host's own provider — embedded mode — is asked with the url and decides for itself.)
+
+const rootCredentialOrigins = new Set()
+const declaredCredentialOrigins = new Set()
+
+function credentialOriginOf(url) {
+  try {
+    const page = typeof location !== 'undefined' && location.href ? location.href : undefined
+    const parsed = page ? new URL(String(url ?? ''), page) : new URL(String(url ?? ''))
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.origin : null
+  } catch (e) {
+    return null
+  }
+}
+
+function isRootCredentialOrigin(origin) {
+  const page = typeof location !== 'undefined' && location.href ? credentialOriginOf(location.href) : null
+  return origin === page || rootCredentialOrigins.has(origin)
+}
+
+/** The base the shell boots against: the page (or its configuration) chose it. */
+export function trustShellBase(base) {
+  const origin = credentialOriginOf(base || '/')
+  if (origin) rootCredentialOrigins.add(origin)
+}
+
+/** The remotes the SHELL's app names (expandRemoteMenus): trusted like the app that names them. */
+export function trustDeclaredRemoteBases(bases) {
+  for (const base of bases || []) {
+    const origin = credentialOriginOf(base)
+    if (origin) declaredCredentialOrigins.add(origin)
+  }
+}
+
+/** True when a request to `url` may carry the stored token. */
+export function storedTokenMayGoTo(url) {
+  const text = String(url ?? '').trim()
+  // a relative url (no scheme, not protocol-relative) is the page's own origin
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(text) && !text.startsWith('//')) return true
+  const origin = credentialOriginOf(text)
+  if (!origin) return false
+  return isRootCredentialOrigin(origin) || declaredCredentialOrigins.has(origin)
+}
+
+/** Tests only. */
+export function resetCredentialOrigins() {
+  rootCredentialOrigins.clear()
+  declaredCredentialOrigins.clear()
+}

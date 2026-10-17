@@ -241,6 +241,8 @@ public class Things : Crud<Thing>
 {
     public override IEnumerable<Thing> Fetch(string? search) =>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
+
+    public override void Save(Thing entity) { }
 }
 
 /// <summary>A record that names itself (an overridden ToString), and one that does not.</summary>
@@ -2551,7 +2553,7 @@ public class SyncHandlerTests
 
         Assert.Contains("\"emitsName\":\"ev-out\"", json);
         Assert.Contains("\"type\":\"OnCustomEvent\"", json);
-        Assert.Contains("\"event\":\"ev-in\"", json);
+        Assert.Contains("\"eventName\":\"ev-in\"", json);
         Assert.Contains("\"actionId\":\"act\"", json);
     }
 

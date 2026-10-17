@@ -171,6 +171,21 @@ public class DocumentsTests
         Assert.Equal("sandbox", DocumentDownloads.Serve(html, store).Headers["Content-Security-Policy"]);
     }
 
+    /// <summary>A small active document (HTML, SVG…) is never inlined: inline content becomes a
+    /// blob of the app's own origin on the client, where it would run unsandboxed.</summary>
+    [Fact]
+    public void An_active_type_is_never_inlined()
+    {
+        var store = new DocumentStore(TimeSpan.FromMinutes(5));
+        foreach (var type in new[] { "text/html", "image/svg+xml", "application/xhtml+xml", "application/javascript" })
+        {
+            var file = DocumentCommands.ToFileDownload(Document.Inline("x", type, [1]), "", store);
+            Assert.Null(file.Base64Content);
+            Assert.StartsWith("/mateu/v3/documents/", file.Url);
+        }
+        Assert.NotNull(DocumentCommands.ToFileDownload(Document.Pdf("x.pdf", [1]), "", store).Base64Content);
+    }
+
     [Fact]
     public void Document_rules()
     {

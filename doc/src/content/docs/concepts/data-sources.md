@@ -7,6 +7,13 @@ description: "Declare each endpoint your UI consumes once, and reference it by n
 This page covers one of the [building blocks of a Mateu UI](/concepts/building-blocks/).
 :::
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A screen can declare a REST endpoint inline, right where it is consumed:
 
 ```java
@@ -116,7 +123,7 @@ has to build**:
 | value | meaning |
 |---|---|
 | `existing` | somebody else's. Documented, verifiable against their published OpenAPI, never generated. |
-| `generate` | yours to build. It is what [`mateu:server`](/java-user-manual/build/derived-openapi/) generates a controller for. |
+| `generate` | yours to build. It is what [`mateu-bundle:server`](/java-user-manual/build/derived-openapi/) generates a controller for. |
 | `auto` (default) | inferred from the URL: relative or same-origin is yours, another origin is somebody else's. |
 
 Declare it explicitly when you disagree with the inference:

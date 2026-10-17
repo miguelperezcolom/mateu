@@ -100,6 +100,28 @@ class Colspan:
 
 
 @dataclass(frozen=True)
+class Help:
+    """The field's help text (Java's ``@Help``): shown with the control and read as its
+    accessible description. Travels as the field's ``description``."""
+
+    value: str
+
+
+@dataclass(frozen=True)
+class SliderMin:
+    """Lower bound of a slider field (Java's ``@SliderMin``; 0 by default)."""
+
+    value: int
+
+
+@dataclass(frozen=True)
+class SliderMax:
+    """Upper bound of a slider field (Java's ``@SliderMax``; 100 by default)."""
+
+    value: int
+
+
+@dataclass(frozen=True)
 class DetailForm:
     """Customises a grid field's row editor (Java's ``@DetailFormCustomisation`` +
     ``@MasterDetail``): where it opens (``right``/``left``/``top``/``bottom``/``modal``), its column
@@ -110,7 +132,7 @@ class DetailForm:
     columns: int = 0
     style: str | None = None
     theme: str | None = None
-    min_height_when_detail_visible: str = "16rem;"
+    min_height_when_detail_visible: str = "16rem"
 
 
 @dataclass(frozen=True)
@@ -133,6 +155,7 @@ class Signature:
     value as a PNG data URI (same self-contained contract as the uploadable image)."""
 
 
+@dataclass(frozen=True)
 class PhotoCapture:
     """Photo capture on a str field: the device camera, storing the shot in the value as a JPEG
     data URI (file-input fallback opens the native camera on phones)."""
@@ -189,35 +212,45 @@ class AggregateFunction(Enum):
     count = "count"
 
 
+@dataclass(frozen=True)
 class Aggregate:
     """Aggregates a listing column over the WHOLE filtered result set (not just the visible
     page): the listing shows a totals footer with the computed value, and when combined with
     ``GroupBy`` each group's subtotal row shows the per-group value too. The Python analogue of
     Java's ``@Aggregate``."""
 
-    def __init__(self, function: AggregateFunction = AggregateFunction.sum):
-        self.function = function
+    function: AggregateFunction = AggregateFunction.sum
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.function, AggregateFunction):
+            try:
+                object.__setattr__(self, "function", AggregateFunction(self.function))
+            except ValueError:
+                raise ValueError(
+                    f"Aggregate(function={self.function!r}) is not one of: "
+                    + ", ".join(repr(f.value) for f in AggregateFunction)
+                ) from None
 
 
+@dataclass(frozen=True)
 class Tooltip:
     """On a listing row's field: hovering the field's CELL shows the text of another field of the
     same row — e.g. ``rate: Annotated[float, Tooltip("rate_breakdown")]`` shows the per-night
     breakdown on the rate cell. Line breaks in that text are kept. The Python analogue of Java's
     ``@Tooltip`` (the column's wire ``tooltip_path``, camelCased like every column id)."""
 
-    def __init__(self, value: str):
-        self.value = value
+    value: str
 
 
+@dataclass(frozen=True)
 class PrimaryColumn:
     """Marks a listing/CRUD row field as the rich "primary" column (coherence-plan #6): its value is
     the cell title, with an optional secondary caption line (``caption`` — another field's name) and
     an optional leading avatar/icon (``leading``). Sets the column's stereotype to "primary" and its
     caption_path/leading_path. The Python analogue of Java's ``@PrimaryColumn``."""
 
-    def __init__(self, caption: str | None = None, leading: str | None = None):
-        self.caption = caption
-        self.leading = leading
+    caption: str | None = None
+    leading: str | None = None
 
 
 @dataclass(frozen=True)
@@ -239,14 +272,15 @@ class RowStatus:
     ``CrudMetadata.row_status_field``. The Python analogue of Java's ``@RowStatus``."""
 
 
+@dataclass(frozen=True)
 class TreeSelect:
     """Renders the field's dropdown as a TREE: the options carry children (supply them from the
     view's ``options(field_name)`` method). With ``leaves_only=True`` only leaves select."""
 
-    def __init__(self, leaves_only: bool = False):
-        self.leaves_only = leaves_only
+    leaves_only: bool = False
 
 
+@dataclass(frozen=True)
 class PlainText:
     """Renders the field as read-only plain text."""
 

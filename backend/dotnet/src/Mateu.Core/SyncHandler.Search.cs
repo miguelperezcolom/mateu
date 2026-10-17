@@ -95,7 +95,7 @@ public sealed partial class SyncHandler
     private static UIIncrementDto ListingSearch(object view, Type filtersType, Type rowType, RunActionRqDto rq)
     {
         var request = new SearchRequest(
-            SearchText(rq), AssembleFilters(filtersType, rq.ComponentState), null, PageableOf(rq));
+            SearchText(rq), AssembleFilters(filtersType, rq.ComponentState), null, PageableOf(rq)) with { FilterState = rq.ComponentState };
         var found = view.GetType().GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [request]);
         return EmitListingData(found, rowType, rq, view);
     }

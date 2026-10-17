@@ -93,6 +93,17 @@ describe('expression evaluator — the sandbox', () => {
         }
     })
 
+    it('MINOR 3: no descriptor hands back Function, and a forbidden function is no callback', () => {
+        const F = "Object.getOwnPropertyDescriptor(Object.getPrototypeOf(parseInt), 'constructor').value"
+        for (const bad of [F, `[${'"1+1"'}].map(${F})`, "Object.getOwnPropertyDescriptors(Object.getPrototypeOf(parseInt))",
+            "['1'].map(eval)", "[1].forEach(Object.assign)", "[state].map(Object.freeze)"]) {
+            expect(() => ev(bad), bad).toThrow()
+        }
+        // ordinary callbacks keep working
+        expect(ev('[1, 2].map(x => x * 2).join(",")')).toBe('2,4')
+        expect(ev("['1', '2'].map(parseFloat)[1]")).toBe(2)
+    })
+
     it('lets a data field be called like a function property name', () => {
         expect(ev('state.call', { state: { call: 'x', bind: 2 } })).toBe('x')
         expect(ev('state.bind', { state: { call: 'x', bind: 2 } })).toBe(2)

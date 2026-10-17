@@ -1,10 +1,10 @@
 import { writeTileOrder, moveTile, moveTileBy } from './prefs.mjs'
-// ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
-// del propio oj-table de JET (dnd.drag.rows.data-types = el tipo MIME del tipo); un DropZone
-// (atom isDropZone) acepta ese tipo MIME — se resalta mientras pasa por encima algo suyo — y al
-// soltar lanza su acción con sus parámetros más _draggedIds y _dragType: origen y destino.
+// DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
+// of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
+// (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
+// drop it launches its action with its parameters plus _draggedIds and _dragType: source and destination.
 
-/** Los ids de lo que trae el arrastre: el JSON que JET pone por tipo (filas, o {data,key}). */
+/** The ids of what the drag carries: the JSON JET puts per type (rows, or {data,key}). */
 export function draggedIdsOf(json) {
   let rows
   try { rows = JSON.parse(json) } catch (e) { return [] }
@@ -18,21 +18,21 @@ export function draggedIdsOf(json) {
   }).filter((id) => id != null)
 }
 
-/** El tipo «charge» de un MIME «application/x-mateu-charge». */
+/** The «charge» type of a MIME «application/x-mateu-charge». */
 export const dragTypeOfMime = (mime) => String(mime || '').replace(/^application\/x-mateu-/, '')
 
 let dropSink = null
 export function setDropSink(fn) { dropSink = typeof fn === 'function' ? fn : null }
 
-// ── TILES REORDENABLES (ResponsiveGrid.reorderable): el bloque de cada tile lleva data-mateu-tile
-// (su clave) y data-mateu-tile-scope; arrastrar uno sobre otro lo coloca ahí, y Alt+←/→ con el
-// tile enfocado lo mueve un puesto. El orden se guarda (prefs: el mismo almacén que el web) y la
-// página re-proyecta el host sin ir al servidor (tileSink).
+// ── REORDERABLE TILES (ResponsiveGrid.reorderable): each tile's block carries data-mateu-tile
+// (its key) and data-mateu-tile-scope; dragging one over another places it there, and Alt+←/→ with the
+// tile focused moves it one place. The order is saved (prefs: the same store as the web) and the
+// page re-projects the host without going to the server (tileSink).
 const TILE_MIME = 'application/x-mateu-tile'
 let tileSink = null
 export function setTileReorderSink(fn) { tileSink = typeof fn === 'function' ? fn : null }
 
-/** Las claves de los tiles de un ámbito, en el orden en que están pintados. */
+/** The keys of a scope's tiles, in the order they are painted. */
 export function paintedTileOrder(doc, scope) {
   return Array.from(doc.querySelectorAll('[data-mateu-tile]'))
     .filter((el) => el.getAttribute('data-mateu-tile-scope') === scope)
@@ -47,7 +47,7 @@ export function installTileReorder(doc = typeof document !== 'undefined' ? docum
     writeTileOrder(scope, next)
     if (tileSink) tileSink(scope)
     if (focusKey) {
-      // tras re-proyectar, el foco vuelve al tile movido (VB repinta de forma asíncrona)
+      // after re-projecting, focus returns to the moved tile (VB repaints asynchronously)
       let tries = 0
       const refocus = () => {
         const el = Array.from(doc.querySelectorAll('[data-mateu-tile]'))
@@ -59,7 +59,7 @@ export function installTileReorder(doc = typeof document !== 'undefined' ? docum
       setTimeout(refocus, 0)
     }
   }
-  // el atributo draggable se pone al empezar el gesto (el bloque lo pinta la plantilla sin él)
+  // the draggable attribute is set when the gesture starts (the template paints the block without it)
   doc.addEventListener('mousedown', (e) => { const tile = tileOf(e.target); if (tile) tile.draggable = true }, true)
   doc.addEventListener('dragstart', (e) => {
     const tile = tileOf(e.target)
@@ -127,7 +127,7 @@ export function installDragAndDrop(doc = typeof document !== 'undefined' ? docum
     const zone = e.target && e.target.closest ? e.target.closest('.mateu-drop-zone') : null
     if (zone && !(e.relatedTarget && zone.contains(e.relatedTarget))) zone.classList.remove('mateu-drop-over')
   }, true)
-  // mientras se arrastra algo con tipo, los destinos que lo aceptan se ofrecen (borde punteado)
+  // while something with a type is being dragged, the destinations that accept it offer themselves (dotted border)
   doc.addEventListener('dragstart', (e) => {
     const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
     setTimeout(() => {

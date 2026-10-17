@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * Lateral navigation across peer objects, shown as previous/next arrows in the page header (the
  * Oracle Redwood "next/previous object" header element). Each side carries a {@code label} (shown
@@ -7,6 +9,7 @@ package io.mateu.uidl.data;
  * arrow. Supplied programmatically by a page implementing {@link
  * io.mateu.uidl.interfaces.PeerNavigationSupplier}.
  */
+@Builder
 public record PeerNav(String prevLabel, String prevRoute, String nextLabel, String nextRoute) {
 
   public static PeerNav of(String prevRoute, String nextRoute) {

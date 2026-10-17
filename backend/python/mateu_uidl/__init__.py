@@ -37,6 +37,9 @@ from .markers import (  # noqa: F401
     AggregateFunction,
     BulletedList,
     Colspan,
+    Help,
+    SliderMin,
+    SliderMax,
     DetailForm,
     Disabled,
     FileUpload,
@@ -121,9 +124,6 @@ from .class_decorators import (  # noqa: F401
     PageType,
     PageWidth,
     SizeMode,
-    _Banner,
-    _Fab,
-    _ListToolbarButton,
     ai,
     app,
     app_context,
@@ -151,6 +151,10 @@ from .class_decorators import (  # noqa: F401
     size,
     static_view,
     subscribe_to,
+    SubscriptionSource,
+    TriggerType,
+    TriggerSpec,
+    trigger,
     subtitle,
     title,
     title_placeholder,
@@ -161,11 +165,11 @@ from .class_decorators import (  # noqa: F401
     zones,
 )
 from .method_decorators import (  # noqa: F401
-    _maybe_bare,
     action,
     action_options,
     banner,
     button,
+    toolbar,
     drag_rows,
     fab,
     group_action,
@@ -267,6 +271,7 @@ from .adapters import (  # noqa: F401
     ComponentAdapter,
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .request import ActionRequest  # noqa: F401
 from .environments import Environment, SourceOverride  # noqa: F401
 from .field_types import (  # noqa: F401
     FieldType,
@@ -293,6 +298,7 @@ BadgeInHeader = HeaderBadge  # Java @BadgeInHeader
 PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width takes it)
 
 __all__ = [
+    "ActionRequest",
     "Document",
     "DocumentDisposition",
     "Access",
@@ -332,6 +338,9 @@ __all__ = [
     "RestSourceSupplier",
     "rest_source",
     "Colspan",
+    "Help",
+    "SliderMin",
+    "SliderMax",
     "DetailForm",
     "Max",
     "Min",
@@ -352,8 +361,8 @@ __all__ = [
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
-    "button", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
+    "plain_text", "emits", "subscribe_to", "SubscriptionSource", "TriggerType", "TriggerSpec", "trigger", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
+    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",

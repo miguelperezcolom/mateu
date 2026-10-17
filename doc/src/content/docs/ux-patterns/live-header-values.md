@@ -13,6 +13,13 @@ Operational apps show a few facts on the header that everybody works against: th
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The app class supplies the values; each has an `id` the server addresses it by:
 
 ```java

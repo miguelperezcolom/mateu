@@ -2,8 +2,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './mateu-column-chooser'
 import type { MateuColumnChooser } from './mateu-column-chooser'
-import './mateu-tree-select'
-import type { MateuTreeSelect } from './mateu-tree-select'
 import { readColumnPrefs } from '../columnPrefsStore.ts'
 
 /**
@@ -109,96 +107,3 @@ describe('mateu-column-chooser', () => {
     })
 })
 
-/** @TreeSelect: a select whose options are a tree; with leavesOnly a group only expands. */
-describe('mateu-tree-select', () => {
-    const OPTIONS = [
-        { value: 'eu', label: 'Europe', children: [
-            { value: 'es', label: 'Spain', children: [{ value: 'pmi', label: 'Palma' }] },
-            { value: 'fr', label: 'France' },
-        ] },
-        { value: 'us', label: 'USA' },
-    ]
-    let picked: unknown[]
-
-    const mount = async (props: Partial<MateuTreeSelect> = {}) => {
-        const t = document.createElement('mateu-tree-select') as MateuTreeSelect
-        Object.assign(t, { fieldId: 'zone', options: OPTIONS, ...props })
-        t.addEventListener('value-changed', (e) => picked.push((e as CustomEvent).detail))
-        document.body.appendChild(t)
-        await t.updateComplete
-        return t
-    }
-    const $ = (t: MateuTreeSelect, sel: string) => t.shadowRoot!.querySelector(sel) as HTMLElement
-    const nodes = (t: MateuTreeSelect) => Array.from(t.shadowRoot!.querySelectorAll('.node:not(.node--clear)')) as HTMLElement[]
-    const labels = (t: MateuTreeSelect) => nodes(t).map(n => n.textContent!.replace(/[▸▾]/g, '').trim())
-    const open = async (t: MateuTreeSelect) => { $(t, '.control').click(); await t.updateComplete }
-
-    beforeEach(() => { picked = [] })
-    afterEach(() => { document.body.innerHTML = '' })
-
-    it('shows the current value by its label (found at any depth)', async () => {
-        const t = await mount({ value: 'pmi' })
-        expect($(t, '.control').textContent).toContain('Palma')
-    })
-
-    it('opens with the path to the current value expanded, so the selection is visible', async () => {
-        const t = await mount({ value: 'pmi' })
-        await open(t)
-        expect($(t, '.control').getAttribute('aria-expanded')).toBe('true')
-        expect(labels(t)).toEqual(['Europe', 'Spain', 'Palma', 'France', 'USA'])
-        expect(t.shadowRoot!.querySelector('.node--selected')!.textContent).toContain('Palma')
-    })
-
-    it('the caret expands a node without selecting it', async () => {
-        const t = await mount()
-        await open(t)
-        expect(labels(t)).toEqual(['Europe', 'USA'])
-        const caret = nodes(t)[0].querySelector('.caret') as HTMLElement
-        expect(caret.getAttribute('aria-expanded')).toBe('false')
-        caret.click()
-        await t.updateComplete
-        expect(labels(t)).toEqual(['Europe', 'Spain', 'France', 'USA'])
-        expect(picked).toEqual([])
-    })
-
-    it('a group IS selectable by default', async () => {
-        const t = await mount()
-        await open(t)
-        nodes(t)[0].click()
-        expect(picked).toEqual([{ value: 'eu', fieldId: 'zone' }])
-    })
-
-    it('leavesOnly: clicking a group only expands it; a leaf commits and closes', async () => {
-        const t = await mount({ leavesOnly: true })
-        await open(t)
-        nodes(t)[0].click()
-        await t.updateComplete
-        expect(picked).toEqual([])
-        expect(labels(t)).toContain('France')
-        nodes(t).find(n => n.textContent!.includes('France'))!.click()
-        await t.updateComplete
-        expect(picked).toEqual([{ value: 'fr', fieldId: 'zone' }])
-        expect($(t, '.panel')).toBeNull()
-    })
-
-    it('nodes are operable with the keyboard', async () => {
-        const t = await mount()
-        await open(t)
-        nodes(t)[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
-        expect(picked).toEqual([{ value: 'us', fieldId: 'zone' }])
-    })
-
-    it('with a value, offers a clear row in the page language', async () => {
-        document.documentElement.lang = 'es'
-        try {
-            const t = await mount({ value: 'us' })
-            await open(t)
-            const clear = $(t, '.node--clear')
-            expect(clear.textContent).toBe('— Limpiar')
-            clear.click()
-            expect(picked).toEqual([{ value: undefined, fieldId: 'zone' }])
-        } finally {
-            document.documentElement.lang = ''
-        }
-    })
-})

@@ -93,7 +93,7 @@ type: Routes
 routes:
   # The root route binds the app shell (a type: AppShell definition).
   - route: ""
-    definition: app.yaml
+    layout: app.yaml
 
   # Two routes over ONE screen, told apart by a pinned parameter.
   - route: orders/pending
@@ -115,16 +115,16 @@ routes:
 
   # One definition, two view models. The definition declares NO modelView (see below).
   - route: catalog/books
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Books
   - route: catalog/films
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Films
 
   # No view model: a definition plus client-side data. Valid and complete — this is the
   # statically served case, not a degraded one.
   - route: about
-    definition: about.yaml
+    layout: about.yaml
 ```
 
 | Field | Meaning |
@@ -252,6 +252,13 @@ routes:
         viewModel: com.acme.CustomerAudit
         show: audit                    # a tab behind a feature flag
 ```
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 **2. The master** — an `@App(TABS)` with **no menu of its own**: its tabs are its children,
 labelled with each child's `@Title`. `backLink = PARENT` draws «← Customers» (the title of the
@@ -409,12 +416,20 @@ public class TenantRoutes implements RouteEntrySupplier {
     return List.of(
         RouteEntry.of("orders", "com.acme.Orders"),
         // The case an annotation cannot express: two routes over one screen, each pinning a scope.
-        new RouteEntry("orders/pending", null, "com.acme.Orders", Map.of("status", "pending"), Map.of()),
+        RouteEntry.builder()
+            .route("orders/pending")
+            .viewModel("com.acme.Orders")
+            .fixedParams(Map.of("status", "pending"))
+            .build(),
         // A viewModel-less route: a definition plus client-side data.
-        new RouteEntry("about", "about.yaml", null, Map.of(), Map.of()));
+        RouteEntry.builder().route("about").definition("about.yaml").build());
   }
 }
 ```
+
+Build entries with `RouteEntry.builder()` (or `RouteEntry.of(route, viewModel)` for the plain case):
+the positional constructors are kept for compatibility, but they break every time the record grows a
+component, and an unset component is normalised exactly as YAML leaves it (empty params, no parent).
 
 **Precedence: `routes.yaml` > code supplier > annotation-derived.** An entry in `routes.yaml` for the
 same route still wins — the last-mile override that re-points a deployment without a rebuild — and a

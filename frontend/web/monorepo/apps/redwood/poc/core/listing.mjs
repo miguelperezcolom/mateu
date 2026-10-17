@@ -7,7 +7,7 @@ import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-/** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
+/** RENDER helper: first node of the tree with the given metadata.type. */
 export function findByType(tree, type) {
   let found = null
   const walk = (node) => {
@@ -22,20 +22,20 @@ export function findByType(tree, type) {
   return found
 }
 
-/** Primer nodo de la SUPERFICIE (sin cruzar islas) que cumple `test`; null si ninguno. */
+/** First node of the SURFACE (without crossing islands) that satisfies `test`; null if none. */
 export function findFirst(tree, test) {
   let found = null
   walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
   return found
 }
 
-/** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
- *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
- *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+/** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
+ *  null if the context contains no Crud. Rows arrive through the 'search' action
+ *  (OnLoad trigger) as a data-only fragment: data.crud.page.content. */
 /**
- * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
- * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
- * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+ * The host's listing ready to paint. `allColumns` are all those on the wire (the columns
+ * dialog starts from them) and `columns` the ones painted, with the user's preferences applied
+ * (prefs.mjs: hidden ones out, in their order) — read by columnPrefsReader (localStorage per route).
  */
 export function listingOf(ctx, opts = {}) {
   const listing = listingBaseOf(ctx, opts)
@@ -118,8 +118,8 @@ export function listingPreSearchBlocksOf(ctx) {
   return out.length ? out : null
 }
 
-/** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
- *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+/** The HEADER components of the listing page (HeaderSupplier → Page.metadata.header)
+ *  as atom blocks: the listing has no content of its own to put them in. */
 /** The siblings that precede the first node of `type` in its parent (none when it is the root or
  *  inside a Page — a Page's own header is metadata.header). */
 function siblingsBefore(tree, type) {
@@ -158,18 +158,18 @@ export function listingBaseOf(ctx, opts = {}) {
   // ever sees plain columns
   const md = { ...crudNode.metadata, columns: leafColumnsOf(crudNode.metadata.columns) }
   const page = (((ctx.data || {}).crud || {}).page) || {}
-  // FILAS DE VARIAS LÍNEAS (@Line → GridColumn.line): las columnas de la línea 1 son las de la
-  // tabla (cabecera, orden, anchos); las demás se pintan DEBAJO de cada fila, a lo ancho, como
-  // pares «Etiqueta: valor» secundarios — ver rowLinesOf / la plantilla cellLines
+  // MULTI-LINE ROWS (@Line → GridColumn.line): the line-1 columns are the table's
+  // (header, sort, widths); the rest are painted BELOW each row, full width, as secondary
+  // «Label: value» pairs — see rowLinesOf / the cellLines template
   const lines = rowLinesSplit(md.columns || [])
   const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
   return {
-    // PAGINACIÓN: la página que mandó el server (Page: pageNumber/pageSize/totalElements) →
-    // pie de la tabla con el rango y los controles; precomputado (CSP de VB)
+    // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
+    // table footer with the range and the controls; precomputed (VB CSP)
     paging: listingPagingOf(page, md.pageSize || 20, opts.lang),
     title: md.title || '',
     subtitle: md.subtitle || '',
-    // @RowRoute / Listing.rowRoute: una fila ABRE una ruta (el maestro de un registro) — ver rowRouteOf
+    // @RowRoute / Listing.rowRoute: a row OPENS a route (a record's master) — see rowRouteOf
     rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
@@ -177,48 +177,48 @@ export function listingBaseOf(ctx, opts = {}) {
     columns: tableColumns.map((col) => {
       const c = col.metadata || col
       const def = { headerText: c.label || c.id, field: c.id }
-      // celda editable → plantilla de editor por tipo (siempre visible, commit por celda:
-      // el contrato es update-row + parameters._editedRow; fixtures/real/update-row.json)
+      // editable cell → editor template per type (always visible, commit per cell:
+      // the contract is update-row + parameters._editedRow; fixtures/real/update-row.json)
       if (c.editable && c.editorType) {
         def.template = c.editorType === 'boolean' ? 'cellEditBoolean'
           : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
             : 'cellEditText'
       }
-      // ACCIONES por fila (ColumnActionGroup): botones que despachan
-      // action-on-row-<método> con el id de la fila (Listing.handleActionOnRow)
+      // per-row ACTIONS (ColumnActionGroup): buttons that dispatch
+      // action-on-row-<method> with the row's id (Listing.handleActionOnRow)
       if (c.dataType === 'actionGroup') {
         def.template = 'cellRowActions'
         def.headerText = ''
         def.sortable = 'disabled'
       }
-      // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
-      // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
+      // the column key = the wire id: ojSort returns it and it is what the server
+      // sorts by (the cell may read another field, e.g. the abbreviated UUID)
       def.id = c.id
-      // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+      // totals footer (@Aggregate): the footerTotal template reads totals[columnKey]
       if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
-      // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
-      // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
+      // STATUS as a badge (@Status): the cell value is {type, message} — the badge's JET
+      // class is precomputed on the rows (statusBadgeRows, CSP without ternaries)
       if (c.dataType === 'status') {
         def.template = 'cellStatusBadge'
       }
-      // COLUMNA PRINCIPAL (@PrimaryColumn: stereotype 'primary'): imagen delante del título
-      // (leadingPath, p.ej. la bandera del huésped) y línea de caption debajo (captionPath) —
-      // campos de la fila que no son columnas. Precomputado por fila en primaryCellRows (CSP).
+      // PRIMARY COLUMN (@PrimaryColumn: stereotype 'primary'): image before the title
+      // (leadingPath, e.g. the guest's flag) and a caption line below (captionPath) —
+      // row fields that are not columns. Precomputed per row in primaryCellRows (CSP).
       if (!def.template && c.stereotype === 'primary') {
         def.field = c.id + PRIMARY_CELL_SUFFIX
         def.template = 'cellPrimary'
       }
-      // UUID abreviado: una columna de texto cuyos valores son UUID se pinta "…-<último bloque>"
-      // con el UUID entero en el tooltip. La fila NO cambia: la celda lee un campo aparte,
-      // precomputado en uuidCellRows (CSP de VB: la plantilla no puede recortar el texto).
+      // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
+      // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
+      // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
       if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
         def.field = c.id + UUID_CELL_SUFFIX
         def.template = 'cellUuid'
       }
-      // ANCHO de la columna (@ColumnWidth: width + flexGrow "0" + tooltipPath en el wire, el
-      // mismo contrato que aplica el gridRenderer de Vaadin): oj-table fija ese ancho; con
-      // flexGrow 0 la columna no crece (min = max = width) y su texto se corta con elipsis,
-      // entero en el tooltip (tooltipPath). Las demás columnas siguen a su contenido.
+      // column WIDTH (@ColumnWidth: width + flexGrow "0" + tooltipPath on the wire, the
+      // same contract Vaadin's gridRenderer applies): oj-table fixes that width; with
+      // flexGrow 0 the column does not grow (min = max = width) and its text is clipped with an ellipsis,
+      // whole in the tooltip (tooltipPath). The other columns follow their content.
       Object.assign(def, columnWidthOf(c))
       const align = alignOf(c)
       if (align && !def.template) {
@@ -230,59 +230,59 @@ export function listingBaseOf(ctx, opts = {}) {
         def.field = c.id + CLIP_CELL_SUFFIX
         def.template = 'cellClip'
       }
-      // un enum se lee por su etiqueta («In house», no IN_HOUSE): la celda lee <id>__labelCell
+      // an enum is read by its label («In house», not IN_HOUSE): the cell reads <id>__labelCell
       if (!def.template && labelColumn(c)) {
         def.field = c.id + LABEL_CELL_SUFFIX
       }
-      // CLIC DE FILA ENTERA: una celda con clic propio (editor, botones, enlace, menú, componente,
-      // columna con su propia acción) lleva la clase que mateuRowClicked respeta — ver isDisplayColumn
+      // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
+      // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
-    // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio
-    // (PRECOMPUTADA: CSP de VB)
+    // number of extra lines (0 = normal listing) and the table class that makes room for them
+    // (PRECOMPUTED: VB CSP)
     extraLines: lines.extra.length,
     tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
-    // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
-    // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
-    // como editable en el wire); un listado de consulta queda en 'list' (aireado).
-    // PRECOMPUTADO (CSP de VB).
-    // Y un listado @Compact (CrudlDto.compact) pide la misma densidad de trabajo: filas de
-    // 'grid' en vez de las aireadas de 'list'.
+    // Redwood table density: the compact 'grid' is for WORK tables —
+    // it switches on when the crud is inline-editable (@InlineEditing marks the columns
+    // as editable on the wire); a lookup listing stays at 'list' (airy).
+    // PRECOMPUTED (VB CSP).
+    // And a @Compact listing (CrudlDto.compact) asks for the same work density: 'grid'
+    // rows instead of the airy 'list' ones.
     display: md.compact === true || (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
-    // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
+    // WORK table: a row click does NOT navigate (cells are edited in place)
     editable: (md.columns || []).some((col) => (col.metadata || col).editable),
     // the accessible NAME of an in-cell editor = its column header (the cellEdit* templates read it)
     editorLabels: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
       .filter((c) => c.editable).map((c) => [c.id, c.label || c.id])),
-    // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
-    // fila. Una fila NAVEGABLE (primera columna con actionId 'view') sigue abriendo el registro:
-    // el detalle es para los listados de consulta, donde el clic no tenía otro destino.
+    // row DETAIL (@Details on the row): the field that is not a column and opens when the
+    // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
+    // the detail is for lookup listings, where the click had no other destination.
     detailPath: md.detailPath || null,
     navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
-    // SELECCIÓN de filas (Listing.rowsSelectionEnabled): casillas en la tabla, y las acciones de la
-    // toolbar reciben las filas marcadas en crud_selected_items — el mismo contrato que Vaadin
-    // (HttpRequest.getSelectedRows lo lee del componentState). El modo va PRECOMPUTADO (CSP de VB).
+    // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
+    // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
+    // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
     rowsSelectionEnabled: !!md.rowsSelectionEnabled,
     selectionMode: { row: md.rowsSelectionEnabled ? 'multiple' : 'none' },
-    // las acciones que no tienen sentido sin selección (Action.rowsSelectedRequired: Delete…)
-    // (las acciones declaradas del ServerSide host, no los botones)
-    // + los botones de la toolbar que traen la guarda ELLOS MISMOS (Button.rowsSelectedRequired, todo
-    // @ListToolbarButton): el id que dispara el botón y el de la acción anunciada no siempre coinciden
+    // the actions that make no sense without a selection (Action.rowsSelectedRequired: Delete…)
+    // (the declared actions of the ServerSide host, not the buttons)
+    // + the toolbar buttons that carry the guard THEMSELVES (Button.rowsSelectedRequired, every
+    // @ListToolbarButton): the id the button fires and that of the advertised action do not always match
     selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
       .filter((a) => a.rowsSelectedRequired).map((a) => a.id)
       .concat((md.toolbar || []).filter((b) => b && b.rowsSelectedRequired).map((b) => b.actionId)),
-    // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
-    // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+    // @RowStatus: each row carries its tone (_tone) — tables.mjs paints it on the oj-table's tr;
+    // @GroupBy: interleaved group rows (value (n) + subtotals), presentation only
     rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
-    // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+    // @Aggregate: the totals of the filtered set, per column (oj-table footer)
     totals: aggregateFootersOf(md, (ctx.data || {}).crud),
     hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
     rowStatusField: md.rowStatusField || '',
-    // @DragRows: las filas se arrastran (JET oj-table dnd) con este tipo MIME — dnd.mjs
+    // @DragRows: rows are dragged (JET oj-table dnd) with this MIME type — dnd.mjs
     dragType: md.dragType || '',
     dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
-    // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
+    // the property the server sorts each column by (GridColumn.sortingProperty or its id)
     sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
       .map((c) => [c.id, c.sortingProperty || c.id])),
     total: page.totalElements == null ? null : page.totalElements,
@@ -293,15 +293,15 @@ export function listingBaseOf(ctx, opts = {}) {
       chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       disabled: !!b.disabled,
     })),
-    // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
-    // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
-    // los filtros viajan como FormField select en la metadata (a veces en el mediator,
-    // no en el nodo Crud — se busca en todo el árbol)
+    // QUICK selector of the listing: option filters (e.g. an enum in Filters, like
+    // the View of the bookings listing) → oj-sp-filter-chip chips next to the smart search;
+    // the filters travel as select FormFields in the metadata (sometimes in the mediator,
+    // not in the Crud node — the whole tree is searched)
     filters: filtersOf(ctx),
   }
 }
 
-// los textos del pie, del catálogo de la interfaz (i18n.mjs)
+// the footer texts, from the interface catalogue (i18n.mjs)
 export function pagingLangOf(lang) {
   const l = chromeLanguage(lang)
   const t = (key) => chromeText(key, null, l)
@@ -309,10 +309,10 @@ export function pagingLangOf(lang) {
 }
 
 /**
- * La PAGINACIÓN del listado, de la Page que manda el server (pageNumber/pageSize/totalElements) →
- * lo que pinta el pie de la tabla: "11–20 de 57", "Página 2 de 6" y qué botones están activos.
- * Sin total conocido (un Listing que no cuenta) hay "siguiente" mientras la página venga llena.
- * `visible` = hay más de una página (un listado corto no lleva pie).
+ * The listing's PAGINATION, from the Page the server sends (pageNumber/pageSize/totalElements) →
+ * what the table footer paints: "11–20 of 57", "Page 2 of 6" and which buttons are active.
+ * With no known total (a Listing that does not count) there is a "next" while the page comes full.
+ * `visible` = there is more than one page (a short listing has no footer).
  */
 export function listingPagingOf(page, fallbackSize, lang) {
   const p = page || {}
@@ -335,7 +335,7 @@ export function listingPagingOf(page, fallbackSize, lang) {
     hasPrev,
     hasNext,
     hasLast: hasNext && pageCount != null,
-    // los disabled ya negados (CSP de VB: la plantilla no evalúa "!")
+    // the disabled flags already negated (VB CSP: the template does not evaluate "!")
     prevDisabled: !hasPrev,
     nextDisabled: !hasNext,
     lastDisabled: !(hasNext && pageCount != null),
@@ -347,8 +347,8 @@ export function listingPagingOf(page, fallbackSize, lang) {
 }
 
 /**
- * La página a la que lleva un botón del pie: 'first' | 'prev' | 'next' | 'last' sobre el paging
- * actual → número de página, o null si el botón no lleva a ningún sitio.
+ * The page a footer button leads to: 'first' | 'prev' | 'next' | 'last' over the current
+ * paging → page number, or null if the button leads nowhere.
  */
 export function targetPageOf(paging, which) {
   if (!paging) return null
@@ -361,10 +361,10 @@ export function targetPageOf(paging, which) {
 }
 
 /**
- * El componentState de una búsqueda del listado: el estado del host + el texto, la página, el
- * tamaño, el orden y los filtros aplicados (los chips; un rango ocupa dos claves) — lo que
- * SearchActionHandler lee. Paginar o reordenar conserva texto y filtros; el orden viaja como
- * lista [{field, direction}] y sólo si lo hay.
+ * The componentState of a listing search: the host state + the text, the page, the
+ * size, the sort and the applied filters (the chips; a range takes two keys) — what
+ * SearchActionHandler reads. Paging or re-sorting keeps text and filters; the sort travels as a
+ * [{field, direction}] list and only if there is one.
  */
 export function listingSearchStateOf(hostState, opts = {}) {
   const state = Object.assign({}, hostState || {}, {
@@ -380,10 +380,10 @@ export function listingSearchStateOf(hostState, opts = {}) {
 }
 
 /**
- * El orden pedido por la cabecera de oj-table (ojSort: detail.header = clave de la columna,
- * detail.direction 'ascending'|'descending') → [{field, direction}] en el vocabulario del
- * server (io.mateu.uidl.data.Sort). La clave es el id del wire (listingOf la fija); si llega el
- * campo de la celda (p.ej. el UUID abreviado), se le quita el sufijo.
+ * The sort requested by the oj-table header (ojSort: detail.header = the column key,
+ * detail.direction 'ascending'|'descending') → [{field, direction}] in the server's
+ * vocabulary (io.mateu.uidl.data.Sort). The key is the wire id (listingOf sets it); if the
+ * cell's field arrives (e.g. the abbreviated UUID), the suffix is stripped.
  */
 export function listingSortOf(detail, sortFields) {
   if (!detail || !detail.header) return []
@@ -394,9 +394,9 @@ export function listingSortOf(detail, sortFields) {
 }
 
 /**
- * La selección de la tabla, en una forma que sobrevive a un refresco: el KeySet de oj-table
- * (`detail.value.row` de ojSelectedChanged) → { all, keys, except }. Un "seleccionar todo" es
- * un KeySet de tipo addAll: todas menos las desmarcadas, no una lista de claves.
+ * The table selection, in a form that survives a refresh: oj-table's KeySet
+ * (`detail.value.row` of ojSelectedChanged) → { all, keys, except }. A "select all" is
+ * an addAll KeySet: all except the unchecked ones, not a list of keys.
  */
 export function selectionOfKeySet(keySet) {
   if (!keySet) return { all: false, keys: [], except: [] }
@@ -408,8 +408,8 @@ export function selectionOfKeySet(keySet) {
   return { all: false, keys: values, except: [] }
 }
 
-/** Las filas marcadas, resueltas contra las filas ACTUALES por su clave (_rowNumber). Lo que se
- *  manda es la fila tal como llegó: el badge precomputado de las columnas @Status no viaja. */
+/** The checked rows, resolved against the CURRENT rows by their key (_rowNumber). What is
+ *  sent is the row as it arrived: the precomputed badge of the @Status columns does not travel. */
 export function selectedRowsOf(rows, selection) {
   if (!selection) return []
   const picked = selection.all
@@ -439,15 +439,15 @@ export function rowAsArrived(row) {
   return out
 }
 
-/** El componentState de una acción del host de un listado con selección: lleva las filas
- *  marcadas en crud_selected_items, como Vaadin. Sin listado o sin selección, intacto. */
+/** The componentState of a host action of a listing with selection: it carries the checked
+ *  rows in crud_selected_items, like Vaadin. Without a listing or without a selection, untouched. */
 export function withListingSelection(componentState, listing, rows, selection) {
   if (!listing || !listing.rowsSelectionEnabled) return componentState
   return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
 }
 
-// filas con columnas @Status: al valor {type, message} se le estampa la clase badge de
-// JET (Redwood, sistema) — el template de celda no puede mapear (CSP sin ternarios)
+// rows with @Status columns: the {type, message} value gets stamped with the JET badge
+// class (Redwood, system) — the cell template cannot map (CSP without ternaries)
 export const STATUS_BADGE = {
   SUCCESS: 'oj-badge oj-badge-success oj-badge-subtle',
   WARNING: 'oj-badge oj-badge-warning oj-badge-subtle',
@@ -458,14 +458,14 @@ export const STATUS_BADGE = {
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const UUID_CELL_SUFFIX = '__uuidCell'
 
-/** "…-<último bloque>" de un UUID canónico; cualquier otro valor, tal cual. */
+/** "…-<last block>" of a canonical UUID; any other value, as is. */
 export function abbreviateUuid(value) {
   return typeof value === 'string' && UUID.test(value)
     ? '…-' + value.substring(value.lastIndexOf('-') + 1)
     : value
 }
 
-// las columnas de TEXTO (sin plantilla propia, ni editables) con algún valor que es un UUID entero
+// the TEXT columns (no template of their own, not editable) with some value that is a whole UUID
 export function uuidColumnIds(rows, columns) {
   return columns
     .map((col) => col.metadata || col)
@@ -474,8 +474,8 @@ export function uuidColumnIds(rows, columns) {
     .map((c) => c.id)
 }
 
-// filas con columnas de UUID: a cada una se le añade <id>__uuidCell = {text, full}, que es lo que
-// pinta la celda; el valor original de la fila queda intacto (navegación, acciones, selección)
+// rows with UUID columns: each one gets <id>__uuidCell = {text, full}, which is what
+// the cell paints; the row's original value stays intact (navigation, actions, selection)
 export function uuidCellRows(rows, columns) {
   const ids = uuidColumnIds(rows, columns)
   if (!ids.length) return rows
@@ -491,7 +491,7 @@ export function uuidCellRows(rows, columns) {
 
 export const PRIMARY_CELL_SUFFIX = '__primary'
 
-/** La celda (de la columna técnica ROW_LINES_COLUMN) que pinta las líneas extra de cada fila. */
+/** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
 export const ROW_LINES_FIELD = '__rowLines'
 
 export const ROW_LINES_COLUMN = {
@@ -536,14 +536,14 @@ export function leafColumnsOf(columns, interp = (s) => s) {
   return out
 }
 
-/** La línea (1-based) de una columna: su `line` si es > 1; si no, 1. */
+/** The (1-based) line of a column: its `line` if > 1; otherwise 1. */
 export function lineOfColumn(c) {
   const line = c && typeof c.line === 'number' ? c.line : 0
   return line > 1 ? Math.floor(line) : 1
 }
 
-/** Reparte las columnas del wire por línea: {first: las de la línea 1, extra: [[línea 2], [línea 3]…]}
- *  en el orden del wire (las líneas vacías no cuentan). Sin @Line, extra = [] y nada cambia. */
+/** Splits the wire columns by line: {first: those of line 1, extra: [[line 2], [line 3]…]}
+ *  in wire order (empty lines do not count). Without @Line, extra = [] and nothing changes. */
 export function rowLinesSplit(columns) {
   const first = []
   const byLine = new Map()
@@ -559,7 +559,7 @@ export function rowLinesSplit(columns) {
   return { first, extra: [...byLine.keys()].sort((a, b) => a - b).map((k) => byLine.get(k)) }
 }
 
-/** El texto de un valor en una línea extra: un estado por su mensaje, dinero «importe moneda». */
+/** The text of a value in an extra line: a status by its message, money as «amount currency». */
 export function lineValueText(v) {
   if (v == null) return ''
   if (Array.isArray(v)) return v.map(lineValueText).filter(Boolean).join(', ')
@@ -572,8 +572,8 @@ export function lineValueText(v) {
   return String(v)
 }
 
-/** A cada fila, <ROW_LINES_FIELD> = {lines: [{key, pairs: [{key, label, text, cls}]}]}: lo que pinta
- *  la plantilla cellLines (CSP de VB: precomputado). Un estado lleva su badge (cls). */
+/** On each row, <ROW_LINES_FIELD> = {lines: [{key, pairs: [{key, label, text, cls}]}]}: what the
+ *  cellLines template paints (VB CSP: precomputed). A status carries its badge (cls). */
 export function rowLinesRows(rows, extra) {
   if (!extra || !extra.length) return rows
   const lines = extra.map((line) => line.map((col) => col.metadata || col))
@@ -628,8 +628,8 @@ export function labelColumn(c) {
     && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
 }
 
-/** A cada columna con etiquetas se le añade <id>__labelCell = el texto que pinta la celda (CSP de
- *  VB: la plantilla no puede buscar en un mapa). La fila queda intacta. */
+/** Each column with labels gets <id>__labelCell = the text the cell paints (VB
+ *  CSP: the template cannot look up a map). The row stays intact. */
 export function labelCellRows(rows, columns) {
   const cols = (columns || []).map((c) => c.metadata || c).filter(labelColumn)
   if (!cols.length) return rows
@@ -643,8 +643,8 @@ export function labelCellRows(rows, columns) {
   })
 }
 
-/** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
- *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
+/** The width the wire asks for a column (GridColumn.width / flexGrow), in oj-table's
+ *  keys: width (and, if it does not grow — flexGrow "0" —, minWidth = maxWidth = width). Without width, {}. */
 export function columnWidthOf(c) {
   const width = c && typeof c.width === 'string' ? c.width.trim() : (c && typeof c.width === 'number' ? c.width + 'px' : '')
   if (!width || width === 'auto') return {}
@@ -653,15 +653,15 @@ export function columnWidthOf(c) {
     : { width, minWidth: width }
 }
 
-// una columna de TEXTO con ancho fijo (flexGrow 0) o con tooltip: su celda se corta con elipsis
-// y el texto entero (o el del campo tooltipPath) va al title
+// a TEXT column with a fixed width (flexGrow 0) or with a tooltip: its cell is clipped with an ellipsis
+// and the whole text (or that of the tooltipPath field) goes to the title
 export function clipColumn(c) {
   return !c.editable && c.dataType !== 'actionGroup' && c.dataType !== 'status' && c.stereotype !== 'primary'
     && (!!c.tooltipPath || (!!columnWidthOf(c).maxWidth))
 }
 
-/** A cada columna recortable se le añade <id>__clipCell = {text, title, cls}: lo que pinta la celda
- *  (CSP de VB: la plantilla no puede leer un campo variable de la fila). La fila queda intacta. */
+/** Each clippable column gets <id>__clipCell = {text, title, cls}: what the cell paints
+ *  (VB CSP: the template cannot read a variable field of the row). The row stays intact. */
 export function clipCellRows(rows, columns) {
   const cols = (columns || []).map((c) => c.metadata || c).filter(clipColumn)
   if (!cols.length) return rows
@@ -670,19 +670,19 @@ export function clipCellRows(rows, columns) {
     const out = { ...row }
     for (const c of cols) {
       const shown = text(valueLabelOf(c, row[c.id]))
-      // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
-      // fijo que corta): el texto entero en el title de siempre
+      // tooltipPath to ANOTHER field (@Tooltip): a detail → the floating window; to itself (a fixed
+      // width that clips): the whole text in the usual title
       const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
-      // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
-      // con @Tooltip(otro campo) el detalle sale en la ventana flotante (hover.mjs), no en el title
-      // del navegador: varias líneas y estilo Redwood; sin él, el title enseña lo que se corta
+      // only the fixed-width column is clipped; with tooltipPath and no width, the text stays whole
+      // with @Tooltip(another field) the detail shows in the floating window (hover.mjs), not in the
+      // browser's title: several lines and Redwood style; without it, the title shows what is clipped
       out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip ? '' : shown, hover: tip, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
     }
     return out
   })
 }
 
-/** La celda de cada columna principal: {title, caption, leading} (vacíos si no hay). */
+/** The cell of each primary column: {title, caption, leading} (empty if none). */
 export function primaryCellRows(rows, columns) {
   const cols = (columns || []).map((c) => c.metadata || c).filter((c) => c.stereotype === 'primary')
   if (!cols.length) return rows
@@ -773,25 +773,25 @@ export function statusBadgeRows(rows, columns) {
 }
 
 /**
- * TODOS los filtros que declara el listado, cada uno ya resuelto al widget que le toca.
+ * ALL the filters the listing declares, each one already resolved to the widget it gets.
  *
- * Antes sólo salían los de opciones, y sólo el primero: un listado con un booleano, un
- * lookup, un enum y dos fechas mostraba una tira de chips sueltos con los valores del enum
- * —sin decir siquiera de qué campo eran— y los otros cuatro filtros no existían para el
- * usuario. En el renderer Vaadin salen los cinco.
+ * Before, only the option ones came out, and only the first: a listing with a boolean, a
+ * lookup, an enum and two dates showed a strip of loose chips with the enum's values
+ * —without even saying which field they were— and the other four filters did not exist for the
+ * user. In the Vaadin renderer all five come out.
  *
- * El `kind` se PRECOMPUTA aquí porque las plantillas de VB corren bajo CSP y no pueden
- * evaluar expresiones; el orden de resolución es el mismo que el de la barra compartida
- * (rango → multi → opciones → booleano → texto), para que un mismo listado ofrezca lo
- * mismo en los dos renderers.
+ * The `kind` is PRECOMPUTED here because VB templates run under CSP and cannot
+ * evaluate expressions; the resolution order is the same as the shared bar's
+ * (range → multi → options → boolean → text), so that the same listing offers the
+ * same in both renderers.
  */
 export function filtersOf(ctx) {
   const found = []
   const walk = (node) => {
     if (!node || typeof node !== 'object') return
     for (const f of ((node.metadata || {}).filters) || []) {
-      // un filtro readOnly es el ÁMBITO del listado (el :id del maestro que lo contiene, el
-      // contexto de un @Subresource): lo fija la ruta, no es una condición que el usuario quite
+      // a readOnly filter is the listing's SCOPE (the :id of the master that contains it, the
+      // context of a @Subresource): the route sets it, it is not a condition the user removes
       if (f.readOnly) continue
       found.push(filterDescriptorOf(f, ctx && ctx.data))
     }
@@ -802,10 +802,10 @@ export function filtersOf(ctx) {
 }
 
 export function filterDescriptorOf(f, data) {
-  // un filtro @Lookup trae sus opciones por su búsqueda (search-<campo>, bridge.loadLookups):
-  // llegan a data[campo] como las de un campo del formulario
+  // a @Lookup filter gets its options through its search (search-<field>, bridge.loadLookups):
+  // they arrive at data[field] like those of a form field
   const options = optionsOf(f, data).map((o) => ({ value: o.value, label: o.label || o.value }))
-  // 'bool' lo emite el server Java y 'boolean' el .NET
+  // 'bool' is emitted by the Java server and 'boolean' by .NET
   const isBool = f.dataType === 'bool' || f.dataType === 'boolean'
     || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
   const isNumeric = ['integer', 'decimal', 'number', 'money'].indexOf(f.dataType) >= 0
@@ -820,7 +820,7 @@ export function filterDescriptorOf(f, data) {
     label: f.label || f.fieldId,
     kind,
     options,
-    // el tipo del <input> de los kinds 'range' y 'text' (una fecha se teclea fatal como texto)
+    // the <input> type of the 'range' and 'text' kinds (a date is awful to type as text)
     inputType: f.stereotype === 'dateRange'
       ? (f.dataType === 'dateTime' ? 'datetime-local' : 'date')
       : (f.stereotype === 'numberRange' || isNumeric) ? 'number' : 'text',
@@ -835,15 +835,15 @@ export function filterDescriptorOf(f, data) {
 }
 
 /**
- * Los filtros como CHIPS: uno por filtro, aplicado o no.
+ * The filters as CHIPS: one per filter, applied or not.
  *
- * Uno por FILTRO y no uno por valor posible, que es lo que se pintaba antes: los ocho
- * estados de un enum salían como ocho chips sueltos, sin decir de qué campo eran, y ocupando
- * la fila entera que debían compartir los otros cuatro filtros. Un chip sin aplicar abre su
- * editor; uno aplicado enseña el valor y se quita por la ✕.
+ * One per FILTER and not one per possible value, which is what was painted before: the eight
+ * states of an enum came out as eight loose chips, without saying which field they were, and taking
+ * the whole row the other four filters were meant to share. An unapplied chip opens its
+ * editor; an applied one shows the value and is removed with the ✕.
  *
- * `keys` son las claves de estado que hay que borrar para quitarlo — un rango ocupa dos, y
- * quitarlo a medias deja el listado filtrado por algo que ya no se ve.
+ * `keys` are the state keys that must be cleared to remove it — a range takes two, and
+ * removing it halfway leaves the listing filtered by something no longer visible.
  */
 export function filterChipsOf(filters, values) {
   const v = values || {}
@@ -875,7 +875,7 @@ export function filterChipsOf(filters, values) {
     }
     return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
   })
-  // la selección por ids (?ids=…): sólo cuando está aplicada — no es un filtro que se ofrezca
+  // the selection by ids (?ids=…): only when applied — it is not a filter that is offered
   if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
     chips.unshift({ fieldId: IDS_PARAM, label: 'Ids', text: idsChipLabelOf(v[IDS_PARAM]), applied: true, keys: [IDS_PARAM] })
   }
@@ -883,16 +883,16 @@ export function filterChipsOf(filters, values) {
 }
 
 /**
- * Los filtros que trae la query de una ruta (`integration=MRU01&status=PROPOSED,APPROVED`) →
- * { campo: valor }. Todos los parámetros, decodificados (`+` es un espacio, como en un
- * formulario); los vacíos no filtran, ni la página ni el orden. Un multi-select toma la lista separada por comas
- * (multiValuesOf), igual que la escribe Vaadin en la URL.
+ * The filters a route's query carries (`integration=MRU01&status=PROPOSED,APPROVED`) →
+ * { field: value }. All the parameters, decoded (`+` is a space, as in a
+ * form); empty ones do not filter, nor do the page and the sort. A multi-select takes the comma-separated list
+ * (multiValuesOf), just as Vaadin writes it in the URL.
  */
 /**
- * Una navegación pedida (ruta con o sin ?query) frente a la que hay en pantalla. `full` (ruta +
- * query) es lo que la identifica — el id de la entrada del menú, la URL —; `filters` son
- * EXACTAMENTE los de su query: ninguno si no trae (ir a /reservas desde /reservas?vista=… quita el
- * filtro). `same` = es la que ya hay (el eco del writeback de la selección del menú): no recargar.
+ * A requested navigation (route with or without ?query) versus the one on screen. `full` (route +
+ * query) is what identifies it — the menu entry's id, the URL —; `filters` are
+ * EXACTLY those of its query: none if it has none (going to /reservas from /reservas?vista=… removes the
+ * filter). `same` = it is the one already there (the echo of the menu selection writeback): do not reload.
  */
 export function navTargetOf(requested, currentFull) {
   const raw = String(requested || '')
@@ -920,17 +920,17 @@ export function queryFiltersOf(query) {
   return out
 }
 
-// la página y el orden también viajan en la URL de un listado de Vaadin, pero no son filtros
+// the page and the sort also travel in a Vaadin listing's URL, but they are not filters
 export const PAGING_PARAMS = { page: true, size: true, sort: true }
 
-// ── Filtros por URL: los declarados, el texto libre y la selección por ids ─────────────────────
-// Cualquier filtro declarado de un listado se pone desde la URL con su nombre de campo (un rango,
-// con <campo>_from / <campo>_to; un multi-select, separado por comas). Además, dos que no declara
-// nadie: el texto libre (`searchText`, o `q` como alias al leer) y `ids`, la SELECCIÓN — un
-// conjunto concreto de filas por su id (`?ids=4MBZS7,JXD3G6`), que el framework aplica en el
-// server a cualquier listado. Todos salen como chips que se quitan, y la URL los refleja.
+// ── Filters by URL: the declared ones, the free text and the selection by ids ─────────────────────
+// Any declared filter of a listing is set from the URL with its field name (a range,
+// with <field>_from / <field>_to; a multi-select, comma-separated). Plus two that nobody
+// declares: the free text (`searchText`, or `q` as an alias when reading) and `ids`, the SELECTION — a
+// concrete set of rows by their id (`?ids=4MBZS7,JXD3G6`), which the framework applies on the
+// server to any listing. All of them come out as removable chips, and the URL reflects them.
 
-/** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
+/** The reserved filter of the selection by ids (the server applies it, no listing declares it). */
 export const IDS_PARAM = 'ids'
 
 export function idsTextsOf(lang) {
@@ -938,7 +938,7 @@ export function idsTextsOf(lang) {
   return { few: chromeText('idsFew', null, l), many: (n) => chromeText('idsMany', { n }, l) }
 }
 
-/** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
+/** The selection chip's caption: the ids if there are few (≤3), otherwise how many. */
 export function idsChipLabelOf(ids, lang) {
   const list = multiValuesOf(ids)
   const texts = idsTextsOf(lang)
@@ -946,8 +946,8 @@ export function idsChipLabelOf(ids, lang) {
 }
 
 /**
- * Los filtros de una query (queryFiltersOf) separados en el texto libre y el resto: `searchText`
- * (o su alias `q`, si no viene searchText) es lo que se busca, no un filtro — va al chip keyword.
+ * A query's filters (queryFiltersOf) split into the free text and the rest: `searchText`
+ * (or its alias `q`, if searchText is absent) is what is searched, not a filter — it goes to the keyword chip.
  */
 export function splitListingQuery(filters) {
   const values = Object.assign({}, filters || {})
@@ -960,9 +960,9 @@ export function splitListingQuery(filters) {
 }
 
 /**
- * La query que refleja los filtros aplicados de un listado (sin '?'): cada valor con su clave, las
- * listas separadas por comas (como las escribe Vaadin), el texto libre como `searchText`. Las comas
- * se dejan legibles; el resto, codificado.
+ * The query reflecting a listing's applied filters (without '?'): each value with its key, the
+ * lists comma-separated (as Vaadin writes them), the free text as `searchText`. Commas
+ * are left readable; the rest, encoded.
  */
 export function listingQueryOf(values, searchText) {
   const enc = (s) => encodeURIComponent(String(s)).replace(/%2C/gi, ',')
@@ -978,10 +978,10 @@ export function listingQueryOf(values, searchText) {
   return parts.join('&')
 }
 
-/** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. Con
- *  `paging` ({page, sort}) también la página (si no es la primera) y el orden, con el contrato de
- *  Vaadin y del bundle estático: `page=N`, `sort=campo:ascending,otro:descending` — así volver de
- *  una ficha, recargar o compartir el enlace conserva la página y el orden, no sólo los filtros. */
+/** The FULL route (with its query) of a listing with those filters: what goes to the URL. With
+ *  `paging` ({page, sort}) also the page (if not the first) and the sort, with the contract of
+ *  Vaadin and the static bundle: `page=N`, `sort=field:ascending,other:descending` — so coming back from
+ *  a record, reloading or sharing the link keeps the page and the sort, not just the filters. */
 export function listingUrlOf(route, values, searchText, paging) {
   const bare = String(route || '').split('?')[0]
   const parts = []
@@ -996,8 +996,8 @@ export function listingUrlOf(route, values, searchText, paging) {
   return parts.length ? bare + '?' + parts.join('&') : bare
 }
 
-/** La página y el orden que trae la query de un listado (`page=2&sort=name:descending`) →
- *  { page, sort: [{field, direction}] }; la primera página y ningún orden si no vienen. */
+/** The page and sort a listing's query carries (`page=2&sort=name:descending`) →
+ *  { page, sort: [{field, direction}] }; the first page and no sort if absent. */
 export function listingUrlPagingOf(query) {
   const out = { page: 0, sort: [] }
   for (const part of String(query || '').replace(/^\?/, '').split('&')) {
@@ -1021,7 +1021,7 @@ export function listingUrlPagingOf(query) {
 
 export const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)
 
-/** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
+/** The values of a multi-select, which arrive as a list or as a comma-separated string. */
 export function multiValuesOf(value) {
   if (value == null) return []
   if (Array.isArray(value)) return value.map(String)
@@ -1029,30 +1029,30 @@ export function multiValuesOf(value) {
   return text === '' ? [] : text.split(',').map((s) => s.trim()).filter((s) => s)
 }
 
-// ── Filtros DENTRO de la cabecera del buscador ────────────────────────────────────────────
-// Los filtros viajan por la API `smartFilters` de oj-sp-smart-filter-search, no en una fila
-// propia debajo: el componente pinta su cabecera (título + buscador + filtros) y, al pie, la
-// franja de color de Redwood. Una fila de filtros FUERA del componente quedaba al otro lado de
-// la franja, que así parecía una ilustración suelta en mitad de la página.
+// ── Filters INSIDE the search header ────────────────────────────────────────────
+// The filters travel through the `smartFilters` API of oj-sp-smart-filter-search, not in a row
+// of their own below: the component paints its header (title + search box + filters) and, at the bottom, the
+// Redwood colour strip. A filter row OUTSIDE the component ended up on the other side of
+// the strip, which then looked like a loose illustration in the middle of the page.
 //
-// La API cubre todos los kinds de Mateu, cada uno con el editor que el propio componente abre
-// en su popup (un oj-dynamic-form alimentado por `filtersMetadata`):
-//   - `suggestionFilters`: los filtros SIN aplicar — un chip por filtro declarado bajo el
-//     buscador; el componente quita de ahí los que ya están aplicados.
-//   - `value`: los aplicados — chips DENTRO del campo de búsqueda, con su ✕; el texto libre
-//     viaja ahí mismo como chips `keyword`.
-//   - `filtersMetadata`: un JsonMetadataProvider de oj-dynamic, polimórfico por `filter` (el
-//     fieldId): el editor del valor de cada filtro.
+// The API covers all of Mateu's kinds, each one with the editor the component itself opens
+// in its popup (an oj-dynamic-form fed by `filtersMetadata`):
+//   - `suggestionFilters`: the UNAPPLIED filters — one chip per declared filter under the
+//     search box; the component removes from there those already applied.
+//   - `value`: the applied ones — chips INSIDE the search field, with their ✕; the free text
+//     travels right there as `keyword` chips.
+//   - `filtersMetadata`: an oj-dynamic JsonMetadataProvider, polymorphic by `filter` (the
+//     fieldId): the editor of each filter's value.
 
 export const KEYWORD_FILTER = 'keyword'
 export const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
 
-/** El editor del valor de un filtro, en el vocabulario de oj-dynamic (lo que abre el popup). */
+/** The editor of a filter's value, in oj-dynamic's vocabulary (what the popup opens). */
 export function smartFilterValueMetadataOf(f) {
   const labelHint = f.label
   if (f.isRange) {
-    // gte/lte oj-input-date (string) u oj-input-number (number): con esa forma exacta el
-    // componente reconoce el rango y pinta el chip como "desde - hasta" formateado
+    // gte/lte oj-input-date (string) or oj-input-number (number): with that exact shape the
+    // component recognises the range and paints the chip as a formatted "from - to"
     const numeric = f.inputType === 'number'
     const componentType = numeric ? 'oj-input-number'
       : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
@@ -1077,15 +1077,15 @@ export function smartFilterValueMetadataOf(f) {
 }
 
 /**
- * `filtersMetadata` en crudo (JSON de oj-dynamic): polimórfico por `filter`, un tipo por filtro
- * declarado. El componente lo consulta con getMetadataByDiscriminator('filter', fieldId).
+ * Raw `filtersMetadata` (oj-dynamic JSON): polymorphic by `filter`, one type per declared
+ * filter. The component queries it with getMetadataByDiscriminator('filter', fieldId).
  */
 export function smartFiltersMetadataOf(filters) {
   const polymorphicTypes = {}
   for (const f of filters || []) {
     polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
   }
-  // el chip de la selección por ids también puede abrir su editor: un texto (ids separados por comas)
+  // the selection-by-ids chip can also open its editor: a text (comma-separated ids)
   if (!declaresIds(filters)) {
     polymorphicTypes[IDS_PARAM] = { type: 'object',
       properties: { value: { type: 'string', componentType: 'oj-input-text', labelHint: 'Ids' } } }
@@ -1098,31 +1098,31 @@ export function smartFiltersMetadataOf(filters) {
   }
 }
 
-// Los de opciones llevan `filterLabel` (el nombre del campo): el componente pone en `label` la
-// etiqueta de la opción elegida y el chip se lee "Vista Llegadas hoy". Un texto o un rango NO:
-// con filterLabel el componente enseña la etiqueta en vez del valor tecleado.
+// Option filters carry `filterLabel` (the field name): the component puts the chosen option's
+// label in `label` and the chip reads "Vista Llegadas hoy". A text or a range does NOT:
+// with filterLabel the component shows the label instead of the typed value.
 export const usesFilterLabel = (f) => f.isOptions || f.isMulti || f.isBool
 
-/** Los chips de `suggestionFilters`: uno por filtro declarado, sin valor. */
+/** The `suggestionFilters` chips: one per declared filter, without a value. */
 export function smartFilterSuggestionsOf(filters) {
   return (filters || []).map((f) => {
     const chip = { filter: f.fieldId, label: f.label }
     if (usesFilterLabel(f)) chip.filterLabel = f.label
-    // el formulario del popup saca sus campos de las claves del valor: sin ellas, un rango
-    // abre un popup vacío
+    // the popup form takes its fields from the value's keys: without them, a range
+    // opens an empty popup
     if (f.isRange) chip.value = { gte: null, lte: null }
     return chip
   })
 }
 
-/** El `value` del componente (los chips aplicados) a partir del estado de Mateu. */
+/** The component's `value` (the applied chips) from Mateu's state. */
 export function smartFilterValueOf(filters, values, searchText) {
   const v = values || {}
   const out = []
   const text = searchText == null ? '' : String(searchText).trim()
   if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
-  // la selección por ids: un chip más, que se quita como cualquiera (sin filterLabel: el rótulo
-  // ya dice qué es)
+  // the selection by ids: one more chip, removed like any other (no filterLabel: the caption
+  // already says what it is)
   if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
     const ids = multiValuesOf(v[IDS_PARAM])
     if (ids.length) out.push({ filter: IDS_PARAM, label: idsChipLabelOf(ids), value: ids.join(',') })
@@ -1155,9 +1155,9 @@ export function smartFilterValueOf(filters, values, searchText) {
 }
 
 /**
- * Lo inverso: los chips aplicados del componente → el texto buscado (los keywords, en orden) y
- * los valores de filtro que viajan en el componentState. Un chip recién sacado de las
- * sugerencias todavía no tiene valor: no filtra hasta que se elige uno en su popup.
+ * The reverse: the component's applied chips → the searched text (the keywords, in order) and
+ * the filter values that travel in the componentState. A chip just taken from the
+ * suggestions has no value yet: it does not filter until one is chosen in its popup.
  */
 export function filterStateOfSmartFilters(filters, chips) {
   const byId = {}
@@ -1192,10 +1192,10 @@ export function filterStateOfSmartFilters(filters, chips) {
 }
 
 /**
- * Las sugerencias que tocan para un fetch del componente: fuera las de los filtros ya
- * aplicados (el criterio trae `{op:'$ne', value:{filters}}`) y, si hay texto, las que no lo
- * contienen. Es el contrato del SuggestionFiltersDataProvider de oj-sp, que es REST; aquí las
- * sugerencias son locales.
+ * The suggestions that apply to a component fetch: out go those of already
+ * applied filters (the criterion carries `{op:'$ne', value:{filters}}`) and, if there is text, those that do not
+ * contain it. It is the contract of oj-sp's SuggestionFiltersDataProvider, which is REST; here the
+ * suggestions are local.
  */
 export function suggestionRowsFor(rows, criterion) {
   const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
@@ -1211,7 +1211,7 @@ export function suggestionRowsFor(rows, criterion) {
     .filter((r) => !text || String(r.filterLabel || r.label).toLowerCase().indexOf(text) >= 0)
 }
 
-/** Un DataProvider (la parte que usa oj-sp-smart-filters) sobre las sugerencias locales. */
+/** A DataProvider (the part oj-sp-smart-filters uses) over the local suggestions. */
 export function suggestionFiltersProviderOf(rows) {
   const all = rows || []
   const block = (data, params) => ({
@@ -1248,17 +1248,17 @@ export function suggestionFiltersProviderOf(rows) {
 }
 
 /**
- * Las filas del DESPLEGABLE del buscador (la propiedad `suggestions` de oj-sp-smart-filters, un
- * SmartSuggestionChipsDataProvider): una por filtro declarado, cada una con su chip. Al entrar en
- * el campo el componente las abre en su popup bajo la caja; elegir una aplica ese filtro y, como
- * es un chip complejo, abre su editor (oj-dynamic, filtersMetadata) — el mismo editor que los chips.
- * `category: 'suggestion'` es el icono de caja del componente (los otros son historial y texto).
+ * The rows of the search box's DROPDOWN (the `suggestions` property of oj-sp-smart-filters, a
+ * SmartSuggestionChipsDataProvider): one per declared filter, each with its chip. On entering
+ * the field the component opens them in its popup under the box; choosing one applies that filter and, since
+ * it is a complex chip, opens its editor (oj-dynamic, filtersMetadata) — the same editor as the chips.
+ * `category: 'suggestion'` is the component's box icon (the others are history and text).
  */
 export function smartFilterDropdownRowsOf(filters) {
   return smartFilterSuggestionsOf(filters).map((chip) => ({ id: chip.filter, category: 'suggestion', chips: [chip] }))
 }
 
-/** Las filas del desplegable que tocan: fuera los filtros ya aplicados y, si hay texto, las que no lo contienen. */
+/** The dropdown rows that apply: out go the already applied filters and, if there is text, those that do not contain it. */
 export function dropdownRowsFor(rows, criterion) {
   const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
   let applied = []
@@ -1273,13 +1273,13 @@ export function dropdownRowsFor(rows, criterion) {
     .filter((r) => !text || r.chips.some((chip) => String(chip.filterLabel || chip.label).toLowerCase().indexOf(text) >= 0))
 }
 
-/** Un DataProvider (lo que usa el popup del buscador) sobre las filas locales del desplegable. */
+/** A DataProvider (what the search box's popup uses) over the dropdown's local rows. */
 export function suggestionsProviderOf(rows) {
   const all = rows || []
   return {
-    // como un ArrayDataProvider de JET: un bloque con las filas (done: false) y después el final
-    // vacío (done: true). Un único bloque ya «done» lo pinta bien el primer fetch, pero al
-    // refiltrar el oj-list-view del popup conservaba las filas de antes con el dato nuevo
+    // like a JET ArrayDataProvider: one block with the rows (done: false) and then the empty
+    // end (done: true). A single block already «done» paints fine on the first fetch, but on
+    // refiltering the popup's oj-list-view kept the previous rows with the new data
     fetchFirst(params) {
       const data = dropdownRowsFor(all, params && params.filterCriterion)
       return {
@@ -1322,11 +1322,11 @@ export function suggestionsProviderOf(rows) {
         results: slice.map((r) => ({ data: r, metadata: { key: r.id } })),
       })
     },
-    // el filtrado lo hace el propio provider (texto + aplicados): el ListDataProviderView del
-    // componente se lo pasa tal cual
+    // the filtering is done by the provider itself (text + applied): the component's
+    // ListDataProviderView passes it through as is
     getCapability(name) { return name === 'filter' ? { operators: ['$and', '$ne'], textFilter: {} } : null },
-    // el total depende del filtro: «desconocido» (-1). Con el de todas las filas, el oj-list-view
-    // del popup pintaba seis veces «Business key» al teclear «busi»
+    // the total depends on the filter: «unknown» (-1). With that of all the rows, the popup's
+    // oj-list-view painted «Business key» six times when typing «busi»
     getTotalSize() { return Promise.resolve(-1) },
     isEmpty() { return all.length ? 'no' : 'yes' },
     addEventListener() {},
@@ -1335,23 +1335,23 @@ export function suggestionsProviderOf(rows) {
   }
 }
 
-// el JsonMetadataProvider de oj-dynamic: lo pone el módulo AMD (el core no depende de JET)
+// oj-dynamic's JsonMetadataProvider: the AMD module sets it (the core does not depend on JET)
 export let metadataProviderFactory = null
 export function setMetadataProviderFactory(factory) { metadataProviderFactory = factory }
 
 /**
- * La configuración ENTERA de `smart-filters` para un listado: el desplegable de filtros, los
- * aplicados y el editor de cada filtro. Sin filtros declarados, sólo el buscador de texto.
+ * The WHOLE `smart-filters` configuration for a listing: the filters dropdown, the
+ * applied ones and each filter's editor. Without declared filters, only the text search box.
  *
- * Los filtros sin aplicar se ofrecen en el DESPLEGABLE que abre el buscador al entrar en él
- * (`suggestions`), no como una fila de botones bajo la caja (`suggestionFilters`, lo que hubo
- * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
+ * Unapplied filters are offered in the DROPDOWN the search box opens on entering it
+ * (`suggestions`), not as a row of buttons under the box (`suggestionFilters`, what there was
+ * since 8af850e63): the listing's search box is once again a box with its filters menu.
  */
 export async function smartFiltersOf(filters, values, searchText) {
   const config = { askHint: chromeText('search'), value: smartFilterValueOf(filters, values, searchText) }
   const hasIds = !isBlank((values || {})[IDS_PARAM])
   if ((!filters || !filters.length) && !hasIds) return config
-  // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
+  // without declared filters but with selection by ids: the chip needs its metadata, not suggestions
   if (filters && filters.length) {
     config.suggestions = suggestionsProviderOf(smartFilterDropdownRowsOf(filters))
   }

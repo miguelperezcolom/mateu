@@ -235,6 +235,27 @@ describe('the crud header and toolbar', () => {
         expect(actions().at(-1)).toMatchObject({ actionId: 'process-import', parameters: { fileId: 'file-7' } })
     })
 
+    it('a file picked in the dialog is uploaded and the id the server answered is processed', async () => {
+        const realFetch = globalThis.fetch
+        const answers = ['file-9', JSON.stringify({ fileId: 'file-10' })]
+        globalThis.fetch = (async () => new Response(answers.shift()!, { status: 200 })) as typeof fetch
+        try {
+            const { el, root, actions } = await mount(crud(), rows)
+            for (const expected of ['file-9', 'file-10']) {
+                el.showImportDialog = true
+                await el.updateComplete
+                const input = root.querySelector('.crud-modal input[type="file"]') as HTMLInputElement
+                Object.defineProperty(input, 'files', { value: [new File(['a,b'], 'rows.csv')] })
+                input.dispatchEvent(new Event('change'))
+                for (let i = 0; i < 5; i++) await settle()
+                expect(el.showImportDialog).toBe(false)
+                expect(actions().at(-1)).toMatchObject({ actionId: 'process-import', parameters: { fileId: expected } })
+            }
+        } finally {
+            globalThis.fetch = realFetch
+        }
+    })
+
     it('inside a page that shows the toolbar, the crud does not repeat it', async () => {
         const page = document.createElement('mateu-page') as HTMLElement & { component?: unknown }
         page.component = { metadata: { toolbar: [{ id: 'x' }] } }

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { AxiosMateuApiClient } from './AxiosMateuApiClient'
 import { setAuthToken } from './authToken'
+import { configureCredentialOrigins, resetCredentialScope, trustDeclaredRemotes } from './credentialScope'
 import { onSessionExpired } from './sessionGuard'
 import { loopGuard } from '@infra/ui/loopGuard'
 import { StaleResponse } from '@infra/ui/staleViewGuard'
@@ -52,6 +53,7 @@ afterEach(() => {
     localStorage.clear()
     setAuthToken(null)
     onSessionExpired(undefined)
+    resetCredentialScope()
 })
 
 describe('the request', () => {
@@ -85,6 +87,52 @@ describe('the request', () => {
         expect(sent[0].headers.Authorization).toBe('Bearer tok-1')
         expect(sent[0].headers['X-Session-Id']).toBeTruthy()
         expect(sent[0].timeout).toBe(1234)
+    })
+
+    it('M-S5: the credentials and the app context never go to an origin not trusted with them', async () => {
+        setAuthToken('tok-1')
+        localStorage.setItem('mateu-app-context', JSON.stringify({ hotel: 'H1' }))
+        const client = new AxiosMateuApiClient()
+        const sent = answering(client, [200])
+        const remote = (base: string) => client.runAction(base, '/x', '_empty', '', 'c', undefined, undefined,
+            {}, {}, initiatorEvents().initiator, true, {})
+        await remote('https://attacker.example')
+        expect(sent[0].headers.Authorization).toBeUndefined()
+        expect(sent[0].headers['X-Session-Id']).toBeUndefined()
+        expect(sent[0].data.appState).toEqual({})
+        // a remote the page's own app names is trusted; one a REMOTE names is not
+        trustDeclaredRemotes('', ['https://forms.example'])
+        trustDeclaredRemotes('https://forms.example', ['https://attacker.example'])
+        await remote('https://forms.example')
+        await remote('https://attacker.example')
+        expect(sent[1].headers.Authorization).toBe('Bearer tok-1')
+        expect(sent[1].data.appState).toEqual({ hotel: 'H1' })
+        expect(sent[2].headers.Authorization).toBeUndefined()
+        // what the host configures is trusted
+        configureCredentialOrigins(['https://api.example'])
+        await remote('https://api.example')
+        expect(sent[3].headers.Authorization).toBe('Bearer tok-1')
+    })
+
+    it('M-S5: a lost-session redirect is followed only for a trusted backend, and only to http(s)', async () => {
+        const assign = vi.fn()
+        const original = window.location
+        Object.defineProperty(window, 'location', { configurable: true, value: { ...original, href: original.href, assign } })
+        try {
+            const client = new AxiosMateuApiClient()
+            client.axiosInstance.defaults.adapter = async (config: InternalAxiosRequestConfig) => ({
+                data: '<html>login</html>', status: 200, statusText: 'OK', config,
+                headers: { 'content-type': 'text/html' },
+                request: { responseURL: String(config.url).startsWith('https://attacker') ? 'https://phish.example/login' : 'javascript:alert(1)' },
+            }) as AxiosResponse
+            const call = (base: string) => client.runAction(base, '/x', '_empty', '', 'c', undefined, undefined,
+                {}, {}, initiatorEvents().initiator, true, { quiet: true }).catch(() => undefined)
+            await call('https://attacker.example')
+            await call('/base')
+            expect(assign).not.toHaveBeenCalled()
+        } finally {
+            Object.defineProperty(window, 'location', { configurable: true, value: original })
+        }
     })
 
     it('without a timeout of its own the default ceiling applies', async () => {

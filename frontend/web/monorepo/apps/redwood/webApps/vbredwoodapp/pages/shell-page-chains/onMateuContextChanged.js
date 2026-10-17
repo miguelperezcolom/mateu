@@ -1,6 +1,6 @@
-/* Selector @AppContext del header (Fase 6): fija el valor en el appState de aplicación
- * (viaja en CADA request) y recarga la ruta actual contra el nuevo contexto — la
- * reactividad uniforme de Mateu (la pantalla se reconstruye con el contexto nuevo). */
+/* The header's @AppContext selector (Phase 6): sets the value in the application appState
+ * (it travels in EVERY request) and reloads the current route against the new context — Mateu's
+ * uniform reactivity (the screen is rebuilt with the new context). */
 
 define([
   'vb/action/actionChain',
@@ -24,7 +24,7 @@ define([
 
       const detail = (event && (event.detail || event)) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
-        return; // eco del set inicial del binding
+        return; // echo of the binding's initial set
       }
       if (!fieldName) {
         return;

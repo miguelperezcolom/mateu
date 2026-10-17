@@ -15,11 +15,17 @@ public sealed partial class ReflectionMapper
         // The page is named after the RECORD, as Java's CrudFormComponentBuilder does (getTitle(entity)):
         // the entity's [Title], else its own ToString(), else its class name — never the crud's title.
         var title = TitleOf(element, entity);
+        // The toolbar exactly as Java's CrudFormComponentBuilder / ViewToolbarBuilder draw it: the way
+        // back (Cancel / Back to list) is a tertiary button, the view page offers "Add another"
+        // before "Edit", and an EDIT form saves through "save" ("create" is the creation form's).
         var toolbar = (mode switch
         {
-            "view" => new List<ButtonDto> { new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new") },
-            "edit" => [new("Cancel", "cancel-edit"), new("Save", "create") { ButtonStyle = "primary" }],
-            _ /* new */ => [new("Cancel", "cancel-new"), new("Save", "create") { ButtonStyle = "primary" }],
+            "view" => new List<ButtonDto>
+            {
+                new("Back to list", "cancel-view") { ButtonStyle = "tertiary" }, new("Add another", "new"), new("Edit", "edit"),
+            },
+            "edit" => [new("Cancel", "cancel-edit") { ButtonStyle = "tertiary" }, new("Save", "save") { ButtonStyle = "primary" }],
+            _ /* new */ => [new("Cancel", "cancel-new") { ButtonStyle = "tertiary" }, new("Save", "create") { ButtonStyle = "primary" }],
         });
         // The edit drawer's "Save and next" (CrudDisplay.SaveAndNext, the Redwood
         // spPrimaryActionAndNext): saves and moves the drawer on to the next row — beside Save
@@ -29,8 +35,9 @@ public sealed partial class ReflectionMapper
             {
                 Disabled = !affordances.Display.SaveAndNext.Enabled(),
             });
-        var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
-            FormCards(element, entity, readOnly: mode == "view"));
+        // Java's form Page carries the title only (no pageTitle) and the record-form style.
+        var page = Client(new PageMetadataDto(title, null, null, toolbar, []), null,
+            FormCards(element, entity, readOnly: mode == "view")) with { Style = "max-width:900px;margin: auto;" };
         // The entity's field values ARE the form state: seed them into initialData (and, via
         // FragmentResponse, the fragment state) so a view/edit form arrives prefilled — the values
         // no longer ride as per-field initialValue (Java parity).
@@ -42,8 +49,8 @@ public sealed partial class ReflectionMapper
             // SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
             // Saving validates the form on the client first.
             [.. FieldActions(element), .. toolbar.Select(b => new ActionDto(b.ActionId!,
-                ValidationRequired: b.ActionId == "create"))],
-            [], null, null, null)
+                ValidationRequired: b.ActionId is "create" or "save"))],
+            [], "width: 100%;", null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
@@ -52,7 +59,9 @@ public sealed partial class ReflectionMapper
             Validations = mode == "view" ? [] : MapValidations(element),
             // A create/edit form IS a form page (Java's crud forms answer pageType "form") and
             // guards its unsaved changes, like Java's (automatic there): leaving it half-typed asked nothing.
-            PageType = mode == "view" ? PageTypeOf(crudType) : "form",
+            // A record's view is a detail page (Java's crud view answers "detail"); the crud's own
+            // type (collection) describes its listing, not its records.
+            PageType = mode == "view" ? "detail" : "form",
             ConfirmOnNavigationIfDirty = mode != "view",
         };
     }
@@ -441,6 +450,10 @@ public sealed partial class ReflectionMapper
             // [Colspan(n)] wins; otherwise 1 — an intrinsically wide widget (textarea, rich text…)
             // is widened to the full row by FormRows, which knows the section's column count.
             Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
+            // [Help]: the field's help text (Java's @Help → FormFieldDto.description)
+            Description = p.Find<HelpAttribute>() is { } help ? T(help.Value) : null,
+            SliderMin = p.Find<SliderMinAttribute>()?.Value ?? 0,
+            SliderMax = p.Find<SliderMaxAttribute>()?.Value ?? 100,
             Link = LinkOf(p, instance),
             // [Lookup]: the combo box loads its options remotely through the field's
             // search-<fieldId> action (answered from the view's IOptionsSupplier).
@@ -497,6 +510,8 @@ public sealed partial class ReflectionMapper
         // a List/Set of enum constants with no stereotype: pick several (Java's ChoiceCollections;
         // owner, 2026-10-12)
         if (ElementEnum(p.PropertyType) is not null) return "multiSelect";
+        // slider bounds make it a slider (Java's FieldTypeMapper)
+        if (p.Find<SliderMinAttribute>() != null || p.Find<SliderMaxAttribute>() != null) return "slider";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
             return p.Find<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
@@ -571,6 +586,20 @@ public sealed partial class ReflectionMapper
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
         return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
+    }
+
+    /// <summary>A [Toolbar] method as a header toolbar button (Java's @Toolbar).</summary>
+    private ButtonDto MapToolbarButton(MethodInfo m)
+    {
+        var toolbar = m.Find<ToolbarAttribute>()!;
+        var label = toolbar.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
+        return new ButtonDto(T(label), Naming.CamelCase(m.Name))
+        {
+            ButtonStyle = string.IsNullOrWhiteSpace(toolbar.ButtonStyle) || toolbar.ButtonStyle == "none"
+                ? null : toolbar.ButtonStyle,
+            Shortcut = m.Find<ShortcutAttribute>()?.Keys,
+            Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
+        };
     }
 
     private ButtonDto MapButton(MethodInfo m)

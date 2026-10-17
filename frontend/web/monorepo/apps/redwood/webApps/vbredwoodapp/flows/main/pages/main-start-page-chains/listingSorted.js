@@ -1,6 +1,6 @@
-/* Orden del listing: la cabecera de oj-table (ojSort) ordena EN EL SERVER — la tabla sólo tiene
- * la página actual, y ordenarla en local mentiría sobre las demás. El orden se guarda (lo
- * conservan las páginas siguientes) y se vuelve a la primera página. */
+/* Listing sort: oj-table's header (ojSort) sorts ON THE SERVER — the table only has
+ * the current page, and sorting it locally would lie about the others. The sort is stored (the
+ * following pages keep it) and it goes back to the first page. */
 
 define([
   'vb/action/actionChain',

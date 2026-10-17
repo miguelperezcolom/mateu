@@ -15,6 +15,13 @@ description: "Add a dedicated filter model to your CRUD without switching to the
 
 ## FilteredAutoCrud&lt;Filters, T&gt;
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Separate filter and entity types. Everything else — view, edit form, creation form, and row — still uses `T`.
 
 ```java

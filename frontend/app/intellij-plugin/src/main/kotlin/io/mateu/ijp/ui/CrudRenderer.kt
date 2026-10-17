@@ -533,7 +533,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val rowsSource = metadata.path("rowsSource")
     if (rowsSource.isObject) {
         // Resolve a catalogue `ref` so url, itemsPath and the proxy flag come from the resolved source.
-        val rowsResolved = RestFetch.resolveRestSource(rowsSource)
+        val rowsResolved = ctx.session.sources.resolveRestSource(rowsSource)
         val columnIds = metadata.leafColumns()
             .map { it.path("metadata").text("id", it.text("id")) }
             .filter { it.isNotBlank() }
@@ -558,8 +558,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                 // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
                 // server-side); direct fetch otherwise. Both resolve to the same JSON.
                 // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
-                val json = if (RestFetch.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
-                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
+                val json = if (ctx.session.sources.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
+                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx, ctx.session.sources)
                 val arr = RestFetch.valueAtPath(json, rowsResolved.text("itemsPath"))
                 val rows = ArrayList<JsonNode>()
                 if (arr != null && arr.isArray) for (item in arr) {

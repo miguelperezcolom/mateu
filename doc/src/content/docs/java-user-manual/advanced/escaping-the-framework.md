@@ -43,6 +43,13 @@ At page altitude — the bigger drop — this is measured, not asserted:
 
 ### The header is the one that surprises people
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A `ComponentTreeSupplier` that returns a bare layout gets **exactly that** — no page metadata, so no
 title, badges, `@KPI` facts or peer navigation, even if the class carries `@Title`:
 

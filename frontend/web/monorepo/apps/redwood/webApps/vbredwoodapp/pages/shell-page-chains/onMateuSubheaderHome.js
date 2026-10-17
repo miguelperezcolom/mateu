@@ -1,7 +1,7 @@
-/* Clic en el título de la subcabecera. MENU_ON_TOP: vuelve a la home del App, como el título de la
- * banda 2 del renderer web. HAMBURGER_SECTIONS: el título es el de la sección en pantalla, y lleva a
- * la home de la sección (su primera pantalla). Es un <button> con aspecto de título y no un enlace: la
- * chain corre asíncrona y no llegaría a cancelar la navegación por defecto de un href. */
+/* Click on the subheader's title. MENU_ON_TOP: goes back to the App's home, like the title of the
+ * web renderer's band 2. HAMBURGER_SECTIONS: the title is that of the section on screen, and leads to
+ * the section's home (its first screen). It is a <button> that looks like a title and not a link: the
+ * chain runs asynchronously and would not manage to cancel an href's default navigation. */
 
 define([
   'vb/action/actionChain',

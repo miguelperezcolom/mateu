@@ -144,6 +144,18 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return (T) o;
   }
 
+  private static final java.util.concurrent.atomic.LongAdder FIELD_SCANS =
+      new java.util.concurrent.atomic.LongAdder();
+
+  /**
+   * How many times a class's declared fields were walked looking for injection points, since the
+   * JVM started. A diagnostic for the request-budget test (reflection on the request path); not
+   * part of any contract.
+   */
+  public static long injectionFieldScans() {
+    return FIELD_SCANS.sum();
+  }
+
   /** The injection annotations a view model Mateu instantiates may use on its fields. */
   private static final java.util.Set<String> FIELD_INJECTION =
       java.util.Set.of("Autowired", "Inject", "Resource");
@@ -159,36 +171,69 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     if (o == null) {
       return;
     }
-    for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-      for (var field : c.getDeclaredFields()) {
-        if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+    for (var field : INJECTABLE_FIELDS.get(o.getClass())) {
+      try {
+        if (field.get(o) != null) {
           continue;
         }
-        boolean injected = false;
-        for (var annotation : field.getAnnotations()) {
-          if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
-            injected = true;
-            break;
-          }
+        var bean = beanProvider.getBean(field.getType());
+        if (bean != null) {
+          field.set(o, bean);
         }
-        if (!injected) {
-          continue;
-        }
-        try {
-          field.setAccessible(true);
-          if (field.get(o) != null) {
-            continue;
-          }
-          var bean = beanProvider.getBean(field.getType());
-          if (bean != null) {
-            field.set(o, bean);
-          }
-        } catch (RuntimeException | IllegalAccessException e) {
-          log.warn(
-              "Could not inject {}.{}: {}", c.getSimpleName(), field.getName(), e.getMessage());
-        }
+      } catch (RuntimeException | IllegalAccessException e) {
+        log.warn(
+            "Could not inject {}.{}: {}",
+            field.getDeclaringClass().getSimpleName(),
+            field.getName(),
+            e.getMessage());
       }
     }
+  }
+
+  /**
+   * The injection points of a class (its own and its superclasses'), found once per class: walking
+   * the declared fields and their annotations on every instantiation — every view model and nested
+   * object, on every request — was pure overhead. The BEAN is still looked up per instance: its
+   * scope is the app's decision.
+   */
+  private static final ClassValue<List<java.lang.reflect.Field>> INJECTABLE_FIELDS =
+      new ClassValue<>() {
+        @Override
+        protected List<java.lang.reflect.Field> computeValue(Class<?> type) {
+          var fields = new ArrayList<java.lang.reflect.Field>();
+          for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            FIELD_SCANS.increment();
+            for (var field : c.getDeclaredFields()) {
+              if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                  || field.isSynthetic()) {
+                continue;
+              }
+              if (!isInjectionPoint(field)) {
+                continue;
+              }
+              try {
+                field.setAccessible(true);
+                fields.add(field);
+              } catch (RuntimeException e) {
+                log.warn(
+                    "Could not inject {}.{}: {}",
+                    c.getSimpleName(),
+                    field.getName(),
+                    e.getMessage());
+              }
+            }
+          }
+          return List.copyOf(fields);
+        }
+      };
+
+  private static boolean isInjectionPoint(java.lang.reflect.Field field) {
+    for (var annotation : field.getAnnotations()) {
+      if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private Object createInstance(

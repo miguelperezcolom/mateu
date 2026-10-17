@@ -42,8 +42,12 @@ public final class MobileManifest {
   /** Every UI's base URL followed by this is the endpoint. */
   public static final String PATH_SUFFIX = "/mateu/v3/manifest";
 
-  /** The wire version the renderers speak ({@code /mateu/v3/*}). */
-  public static final String WIRE_VERSION = "3";
+  /**
+   * The wire version the renderers speak: the SAME value every response envelope carries ({@link
+   * io.mateu.dtos.UIIncrementDto#WIRE_VERSION}, "3.0"). It used to be "3"; a reader compares the
+   * major only, so both spellings are the same wire to it.
+   */
+  public static final String WIRE_VERSION = io.mateu.dtos.UIIncrementDto.WIRE_VERSION;
 
   public static final String DEFAULT_MIN_APP_VERSION = "1.0.0";
   public static final List<String> DEFAULT_SCOPES = List.of("openid", "profile");

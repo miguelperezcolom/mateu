@@ -115,6 +115,13 @@ describe('idle-session warning', () => {
         expect(el.shadowRoot!.querySelector('.stay')).toBeNull()
     })
 
+    it('MINOR 4: a javascript: sign-out url is never followed — it signs out to /', async () => {
+        const el = await mount({ signOutUrl: 'javascript:alert(document.cookie)' })
+        await advance(el, 61)
+        expect(signOuts).toHaveLength(1)
+        expect(signOuts[0].detail.url).toBe('/')
+    })
+
     it('signs out by itself when the countdown reaches zero, once', async () => {
         const el = await mount({ signOutUrl: null })
         await advance(el, 61)

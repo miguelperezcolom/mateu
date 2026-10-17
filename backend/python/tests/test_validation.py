@@ -121,8 +121,8 @@ def test_markers_travel_as_java_validations_in_java_order():
         ("name", REQUIRED("name"), "Cannot be empty"),
         ("age", ABSENT("age") + " || state['age'] >= 18", "Must be at least 18"),
         ("age", ABSENT("age") + " || state['age'] <= 99", "Must be at most 99"),
-        ("code", "state['code'] && state['code'].length < 3", "Size must be between 3 and 8"),
-        ("code", "state['code'] && state['code'].length > 8", "Size must be between 3 and 8"),
+        ("code", "state['code'] == null || state['code'] === '' || state['code'].length === undefined || state['code'].length >= 3", "Size must be between 3 and 8"),
+        ("code", "state['code'] == null || state['code'] === '' || state['code'].length === undefined || state['code'].length <= 8", "Size must be between 3 and 8"),
         ("code", ABSENT("code") + " || /^[A-Z]+$/.test(state['code'])", "Invalid format"),
     ]
 

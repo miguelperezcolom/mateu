@@ -1,5 +1,5 @@
-/* Fase 9: value-changed de un campo de la ISLA → borrador propio de la isla (separado del
- * host y del drawer). Solo ediciones del usuario (updatedFrom internal). */
+/* Phase 9: value-changed of an ISLAND field → the island's own draft (separate from the
+ * host's and the drawer's). Only user edits (updatedFrom internal). */
 
 define([
   'vb/action/actionChain',

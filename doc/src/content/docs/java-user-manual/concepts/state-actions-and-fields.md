@@ -6,6 +6,13 @@ A Mateu ViewModel is a plain Java class. Its fields are the UI state; its annota
 
 ## State (fields)
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Each field in a ViewModel maps to a form control in the browser. Mateu infers the control type from the Java type.
 
 ```java
@@ -115,7 +122,7 @@ Hidden fields carry state across requests but are not rendered.
 
 ## Actions
 
-Actions are public methods that the user can trigger from the browser.
+Actions are methods that the user can trigger from the browser: marked ones (`@Toolbar`, `@Button`, `@Action`…), or public ones the view names in a component, a trigger or a menu rule. A public method nothing names is not reachable from the browser (see [strict action mode](/java-user-manual/advanced/security/#strict-action-mode-mateuactionsstrict--the-default)).
 
 ### Toolbar actions
 

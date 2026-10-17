@@ -2,7 +2,7 @@
 title: "Action behavior"
 ---
 
-Actions are public methods on your ViewModel that are exposed to the browser as interactive triggers.
+Actions are methods on your ViewModel that are exposed to the browser as interactive triggers: a method marked as an action (`@Button`, `@Toolbar`, `@Action`…), or a public method whose id the view itself names — a fluent button, a trigger, a menu rule. A public method nothing on the view names is not an action ([strict action mode](/java-user-manual/advanced/security/#strict-action-mode-mateuactionsstrict--the-default)).
 
 Where an action appears, how it behaves before execution, and what it returns are all controlled declaratively.
 
@@ -11,6 +11,13 @@ Where an action appears, how it behaves before execution, and what it returns ar
 ## Where actions appear: @Button vs @Toolbar vs @ListToolbarButton
 
 ### @Button
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 `@Button` places the action as a button in the **form footer area**.
 

@@ -15,6 +15,13 @@ A routed `Listing` preloads its rows and reads as "a grid page"; a crud adds cre
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `SmartSearchPage<Filters, Row>` and implement `search(SearchRequest, HttpRequest)` exactly like any [listing](/java-user-manual/build/capability-listings/) (the archetype already declares `Searchable` and `Filterable<Filters>` for you). It composes the optional `pageSubtitle()` intro line over the standard smart-search listing. It is read-only and starts **empty** (the user searches).
 
 ```java

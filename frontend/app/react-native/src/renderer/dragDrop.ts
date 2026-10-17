@@ -72,36 +72,57 @@ export function canMove(dragType: string | null | undefined, selectedCount: numb
 
 // ── mounted-zone registry ─────────────────────────────────────────────────────
 
-const zones = new Map<string, MountedDropZone>();
-const listeners = new Set<() => void>();
+/** The zones mounted on ONE app's screens (each hub session owns a registry). */
+export class DropZoneRegistry {
+  private readonly zones = new Map<string, MountedDropZone>();
+  private readonly listeners = new Set<() => void>();
 
-function notify(): void {
-  listeners.forEach((l) => l());
+  private notify(): void {
+    this.listeners.forEach((l) => l());
+  }
+
+  /** Registers (or replaces) a mounted zone; returns its unregister function. */
+  register(zone: MountedDropZone): () => void {
+    this.zones.set(zone.key, zone);
+    this.notify();
+    return () => {
+      if (this.zones.get(zone.key) === zone) {
+        this.zones.delete(zone.key);
+        this.notify();
+      }
+    };
+  }
+
+  /** The mounted zones accepting the drag type, in mount order. */
+  zonesAccepting(dragType: string | null | undefined): MountedDropZone[] {
+    return [...this.zones.values()].filter((z) => accepts(z.meta, dragType));
+  }
+
+  /** Subscribes to registry changes; returns the unsubscribe function. */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
 }
+
+/** The process-wide registry: the single-backend app's. */
+export const sharedDropZones = new DropZoneRegistry();
 
 /** Registers (or replaces) a mounted zone; returns its unregister function. */
 export function registerDropZone(zone: MountedDropZone): () => void {
-  zones.set(zone.key, zone);
-  notify();
-  return () => {
-    if (zones.get(zone.key) === zone) {
-      zones.delete(zone.key);
-      notify();
-    }
-  };
+  return sharedDropZones.register(zone);
 }
 
 /** The mounted zones accepting the drag type, in mount order. */
 export function zonesAccepting(dragType: string | null | undefined): MountedDropZone[] {
-  return [...zones.values()].filter((z) => accepts(z.meta, dragType));
+  return sharedDropZones.zonesAccepting(dragType);
 }
 
 /** Subscribes to registry changes; returns the unsubscribe function. */
 export function subscribeDropZones(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return sharedDropZones.subscribe(listener);
 }
 
 /** Runs the drop of `rows` on `zone`: dispatches the zone's action with the drop parameters.

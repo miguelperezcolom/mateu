@@ -5,6 +5,13 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 
+/**
+ * One field of a fluent form: an id (the key of the component state it is bound to), a label, a
+ * {@link FieldDataType} and an optional {@link FieldStereotype} (how it is edited — select,
+ * textarea, grid…), plus the usual modifiers (required, read-only, placeholder, options…). It is
+ * what a reflected form field becomes, so anything an annotation can say about a field can be said
+ * here. Build it with {@code FormField.builder()}.
+ */
 @Builder(toBuilder = true)
 public record FormField(
     String id,

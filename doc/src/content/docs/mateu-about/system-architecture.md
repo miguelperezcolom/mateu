@@ -48,6 +48,13 @@ The REST API still exists for external consumers. It is not replaced. It is just
 
 Mateu works well with DDD because ViewModels map naturally to domain concepts.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A `ProductEditor` ViewModel calls `SaveProductUseCase`. It does not call a generic `/api/products` endpoint that was designed to serve any consumer. It calls the specific use case that represents the intent.
 
 ```java

@@ -74,6 +74,13 @@ renderer build a CDN serves it with. The honest compatibility question is not *"
 *"does the loaded renderer implement everything this app relies on?"* — so Mateu negotiates
 **by capability, not by version window**.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Every app advertises, on `AppDto.requiredCapabilities` (and, for a static bundle, on
 `manifest.json`), the capability tokens it needs from its host renderer. Most are **derived** from
 the app's own metadata — it needs `command-center` because it opted into it, `sse` because it

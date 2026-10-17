@@ -9,6 +9,13 @@ These annotations add interactive buttons and actions to pages, forms, and listi
 
 ## @Action
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Attaches a configurable action to a method. Repeatable via the `@Actions` container, so multiple `@Action` entries can stack on the same method.
 
 ```java
@@ -93,7 +100,7 @@ public class OrderForm {
 
 A component can name an action itself: a `PlanningBoard`'s `moveActionId`, a `MetricCard`'s, a `Button`'s or an `EntityHeader` `Fact`'s `actionId`, a `Calendar`'s `dayActionId`, and so on. The web client only sends an action to the server when the screen **advertises** it. Any other action bubbles up unclaimed and is lost.
 
-The screen advertises every action id in its component tree that it has an **action method** for: a public method with that name, or a non-public one marked `@Action` (the same rule the server applies before running it). So `@Action` is only needed for its options (confirmation, `sse`, a shortcut…) or on a non-public method:
+The screen advertises every action id in its component tree that it has an **action method** for: a public method with that name, or a non-public one marked `@Action` (the same rule the server applies before running it — in strict action mode, the default, an unmarked public method runs only for an id its view advertises like this). So `@Action` is only needed for its options (confirmation, `sse`, a shortcut…) or on a non-public method:
 
 ```java
 public class RoomDiary implements ComponentTreeSupplier {
@@ -379,7 +386,7 @@ Object test() { ... }
 
 ### Shortcut format
 
-Shortcuts are expressed as a `+`-separated string. Modifier keys (`ctrl`, `alt`, `shift`, `meta`) can appear in any order before the main key. The main key is the last segment and must match the browser's `KeyboardEvent.key` value (case-insensitive).
+Shortcuts are expressed as a `+`-separated string. Modifier keys (`ctrl`, `alt`, `shift`, `meta`) can appear in any order before the main key. The main key is the last segment and is matched against the browser's `KeyboardEvent.key` value (case-insensitive) **or** its `KeyboardEvent.code` (`KeyS`, `Digit1`, `Numpad1`…), so a modifier+letter or modifier+digit shortcut works whatever the keyboard layout (on layouts where Ctrl+Alt or AltGr remaps `key` to a symbol) and on the numeric keypad.
 
 | Example | Triggers on |
 |---|---|
@@ -483,12 +490,17 @@ Every time the user edits a field, a timer starts counting down `debounceMillis`
 Marks the final action in a multi-step wizard flow. When the annotated method is invoked, Mateu collects the state from all wizard steps before calling it.
 
 ```java
-@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WizardCompletionAction {}
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+public @interface WizardCompletionAction {
+  @Experimental("early wizard completion (3.0-alpha.409)")
+  String availableFromStep() default "";
+}
 ```
 
-No attributes.
+| Attribute | Default | Description |
+|---|---|---|
+| `availableFromStep` | `""` | **Experimental.** The step (its field name) from which the completion action is already offered beside "Next", so a user with nothing more to add can finish early. Empty = only on the last step before the result. |
 
 ### Example
 

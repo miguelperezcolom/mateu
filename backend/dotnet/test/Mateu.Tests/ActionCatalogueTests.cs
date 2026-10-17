@@ -43,6 +43,7 @@ public class CataloguePage : IComponentTreeSupplier
 
 /// <summary>The shared ACTION catalogue (mirrors Java's ActionCatalogueSyncTest): actions.yaml plus any
 /// <c>type: Actions</c> file, over <see cref="IActionCatalogSupplier"/> implementers — owner first.</summary>
+[Collection(ProcessWideStateCollection.Name)]
 public class ActionCatalogueTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);

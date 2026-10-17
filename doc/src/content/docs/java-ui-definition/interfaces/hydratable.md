@@ -5,6 +5,13 @@ description: "Take full control of ViewModel hydration, bypassing automatic fiel
 
 **Interface** — `io.mateu.uidl.interfaces.Hydratable`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 By default, Mateu hydrates a ViewModel by iterating over the component state sent by the browser and writing each key-value pair into the matching field via reflection. When a ViewModel implements `Hydratable`, this automatic injection is **skipped entirely** and `hydrate()` is called instead, letting the ViewModel deserialise the request state however it needs.
 
 ```java

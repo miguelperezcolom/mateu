@@ -1,15 +1,15 @@
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from '../navTree.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
 
-/** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
- *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
- *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
- *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
- *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
-// Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
-// p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
-// font Redwood (oj-ux-ico-*, clases del gallery bundle). Un valor que ya venga como
-// clase oj-ux pasa tal cual; sin traducción conocida → sin icono.
+/** Shell NAVIGATION projection: top-level items + groups with their children.
+ *  A group's children navigate by their COMPOSED route (/gestion/person) with the app's
+ *  serverSideType (like Vaadin); a RouteLink inside a group does not resolve that way and is loaded
+ *  by its TERMINAL route (loadMenuRouteInto, in transport.mjs).
+ *  Context selectors and header actions come out ready for simple bindings. */
+// Menu icons: the wire brings NEUTRAL names (Mateu convention: Vaadin's set,
+// e.g. "vaadin:calendar-user") — each renderer translates them to its set; here, to the Redwood
+// icon font (oj-ux-ico-*, gallery bundle classes). A value that already comes as an
+// oj-ux class passes as is; with no known translation → no icon.
 export const OJ_ICONS = {
   'vaadin:calendar-user': 'oj-ux-ico-calendar-contact',
   'vaadin:calendar': 'oj-ux-ico-calendar',
@@ -37,7 +37,7 @@ export const OJ_ICONS = {
   'vaadin:cart': 'oj-ux-ico-cart',
   'vaadin:check': 'oj-ux-ico-check',
   'vaadin:clock': 'oj-ux-ico-clock',
-  // la campana del badge de la bandeja (widget de cabecera)
+  // the tray badge's bell (header widget)
   'vaadin:bell': 'oj-ux-ico-notification',
   'vaadin:bell-o': 'oj-ux-ico-notification',
   'vaadin:envelope': 'oj-ux-ico-email',
@@ -56,14 +56,14 @@ export function ojIconOf(icon) {
   return OJ_ICONS[icon] || undefined
 }
 
-/** El icono genérico para un icono DECLARADO que no tiene traducción a Redwood. */
+/** The generic icon for a DECLARED icon that has no Redwood translation. */
 export const GENERIC_ICON = 'oj-ux-ico-arrow-circle-right'
 
 /**
- * Como ojIconOf, pero un icono declarado sin traducción cae en uno genérico: una entrada de menú
- * o un botón de sólo icono nunca se queda en blanco («Llegadas» con vaadin:sign-in salía sin
- * icono junto a sus hermanas). ojIconOf sigue estricto: el HTML de los widgets quita los que no
- * conoce y el FAB de Ask cae en su propio glifo.
+ * Like ojIconOf, but a declared icon with no translation falls back to a generic one: a menu entry
+ * or an icon-only button is never left blank («Llegadas» with vaadin:sign-in came out with no
+ * icon next to its siblings). ojIconOf stays strict: the widgets' HTML drops the ones it does not
+ * know and the Ask FAB falls back to its own glyph.
  */
 export function ojIconOrGenericOf(icon) {
   if (!icon) return undefined
@@ -71,16 +71,16 @@ export function ojIconOrGenericOf(icon) {
 }
 
 /**
- * Una opción de menú → nodo del árbol que pintan la barra y el navigator.
+ * A menu option → node of the tree the bar and the navigator paint.
  *
- * RECURSIVO porque el menú lo es: una shell federada llega con tres niveles sin pedir permiso
- * (grupo de la shell → grupo del pod → sus pantallas), y aplanarlo no deja el tercer nivel feo,
- * lo deja INALCANZABLE — el grupo del pod se navega como si fuese pantalla y contesta vacío.
+ * RECURSIVE because the menu is: a federated shell arrives with three levels without asking
+ * (shell group → pod group → its screens), and flattening it does not make the third level ugly,
+ * it makes it UNREACHABLE — the pod group is navigated as if it were a screen and answers empty.
  *
- * `id` es la ruta con la que se navega: la TERMINAL para una hoja local (la compuesta,
- * /gestion/person, es un camino de menú y no una ruta que el backend resuelva) y la COMPUESTA
- * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
- * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
+ * `id` is the route it navigates with: the TERMINAL one for a local leaf (the composed one,
+ * /gestion/person, is a menu path and not a route the backend resolves) and the COMPOSED one
+ * for one brought from another pod (the mark is the baseUrl expandRemoteMenus left on it): there it
+ * is exactly the other way round — it is the one that pod serves, and trimming it leaves it ownerless.
  */
 /** The id prefix of a menu leaf that runs rules instead of navigating (RuleLink). */
 export const MENU_RULE_PREFIX = '__menuRule:'
@@ -93,31 +93,31 @@ export function menuNodeIdOf(option, raw) {
 
 export function navNodeOf(option, parentRoute) {
   const raw = option.route || option.path || ''
-  // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
-  // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
-  // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
-  // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+  // the COMPOSED route (/gestion/person), as in Vaadin: it is a menu path the backend
+  // resolves with the app's serverSideType (onMateuNavigate adds it via localMenuOptionOf).
+  // Trimming it to the terminal (/person) only worked if the @Menu field was named like its
+  // class's @UI route; with `@Menu FloorPlan floorPlan` + @UI("/floor-plan") it was left ownerless.
   void parentRoute
   // a leaf that RUNS rules (RuleLink — e.g. a RunAction naming one of the shell's flows) does not
   // navigate: its id is marked so onMateuNavigate runs its rules instead (shellFlows.mjs)
   const id = menuNodeIdOf(option, raw)
-  // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
-  // sigue resolviendo (la registra el transporte), pero el menú no la enseña
+  // a HIDDEN entry (@Menu @Hidden, visible:false) is not drawn at any depth: its route
+  // still resolves (the transport registers it), but the menu does not show it
   const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
   return {
     id,
     label: option.caption || option.label || id,
     icon: ojIconOrGenericOf(option.icon),
-    // una sección remota cuyo pod no contestó: está, pero no se abre, y dice por qué
+    // a remote section whose pod did not answer: it is there, but it does not open, and says why
     disabled: !!option.unavailable,
     hint: option.unavailable ? (option.description || '') : '',
     hasChildren: children.length > 0,
-    // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
+    // a grandchild's parent is the child's RAW route, not its already trimmed id
     children: children.map((child) => navNodeOf(child, raw)),
-    // MENÚ DE TARJETAS (@Menu(display = cards) en un grupo): en vez de un oj-menu, un oj-popup
-    // con una rejilla de oj-action-card — título, descripción, icono/imagen y, si la entrada tiene
-    // hijos, esos hijos como acciones de la tarjeta. Los ids del popup y de su lanzador van
-    // precalculados (el CSP de VB no concatena en las plantillas).
+    // CARD MENU (@Menu(display = cards) on a group): instead of an oj-menu, an oj-popup
+    // with a grid of oj-action-card — title, description, icon/image and, if the entry has
+    // children, those children as the card's actions. The ids of the popup and its launcher are
+    // precomputed (VB's CSP does not concatenate in templates).
     ...cardsOf(option, children, raw),
   }
 }
@@ -136,7 +136,7 @@ export function cardsOf(option, children, raw) {
         id: node.id,
         label: node.label,
         description: child.description || '',
-        // un icono declarado sin equivalente Redwood toma el genérico: las tarjetas quedan alineadas
+        // a declared icon with no Redwood equivalent takes the generic one: the cards stay aligned
         iconClass: child.icon ? ojIconOrGenericOf(child.icon) : '',
         image: child.image || '',
         hasImage: !!child.image,
@@ -154,30 +154,30 @@ export function shellNavOf(reg) {
   const menuTree = []
   let hasGroups = false
   for (const option of shell.menu || []) {
-    // una opción que viaja sin pintarse (remota oculta): expandRemoteMenus ya la quita, pero un
-    // menú que no pase por ahí tampoco debe dibujarla
+    // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
+    // menu that does not go through there must not draw it either
     if (option.visible === false) continue
     const node = navNodeOf(option, '')
     items.push(node.disabled
       ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
       : { id: node.id, label: node.label, icon: node.icon })
     if (node.hasChildren) hasGroups = true
-    // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
+    // the routes the section covers: with them the one on screen is marked (activeSectionOf)
     node.routes = sectionRoutes(option, node)
-    // HAMBURGER_SECTIONS: adónde lleva elegir la sección en la hamburguesa (su primera pantalla)
+    // HAMBURGER_SECTIONS: where choosing the section in the hamburger leads (its first screen)
     node.home = sectionHomeOf(node)
     menuTree.push(node)
   }
-  // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
-  // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
-  // FA); MENU_ON_TOP → SUBCABECERA: una banda clara bajo la cabecera oscura con el título de la
-  // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
-  // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
-  // dentro de la cabecera oscura (topbar)
-  // HAMBURGER_SECTIONS (Opera Cloud) → SECCIONES: la hamburguesa abre un drawer con el primer
-  // nivel (sólo las secciones) y la subcabecera lleva el segundo nivel de la sección en pantalla.
-  // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU: los servidores la mandan desde
-  // 3.0-alpha.412; la vieja se sigue aceptando (un servidor anterior, un bundle estático).
+  // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+  // hamburger that opens a left DRAWER with oj-navigation-list (like the FA
+  // navigator); MENU_ON_TOP → SUBHEADER: a light band under the dark header with the
+  // console title and the top-level options (oj-menu dropdown for the groups), like band 2
+  // of the web renderer; TABS with groups (they do not fit in the bottom bar) → those same options
+  // inside the dark header (topbar)
+  // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
+  // level (only the sections) and the subheader carries the second level of the section on screen.
+  // HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU: servers send it since
+  // 3.0-alpha.412; the old one is still accepted (an older server, a static bundle).
   let mode = 'tabs'
   if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
   else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
@@ -188,8 +188,8 @@ export function shellNavOf(reg) {
     title: shell.title || '',
     items,
     menuTree,
-    // la lista de la hamburguesa en modo secciones: cada sección, sin lo que cuelga de ella; su id
-    // es su home (lo que navega al elegirla) y `section` el de la sección (lo que se marca)
+    // the hamburger list in sections mode: each section, without what hangs from it; its id
+    // is its home (what navigates when chosen) and `section` the section's (what gets marked)
     sections: menuTree.map((node) => ({
       id: node.home || node.id,
       section: node.id,
@@ -215,9 +215,9 @@ export function shellNavOf(reg) {
       children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label, route: c.route || '' })),
     })),
     serverSideType: shell.serverSideType,
-    // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
-    // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
-    // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+    // no declared home (server sentinel) → the menu's first screen IN DEPTH:
+    // with sections (HAMBURGER_SECTIONS) the first level is groups and the section's home is its
+    // first entry; the sentinel used to be loaded as is and the app started on «Not found.»
     homeRoute: isSentinelHome(shell.homeRoute)
       ? ((menuTree.find((node) => node.home) || {}).home || '')
       : shell.homeRoute,

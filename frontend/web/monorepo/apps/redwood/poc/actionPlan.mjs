@@ -1,5 +1,5 @@
 import {
-  HOST_ID, overlayOf, withListingSelection, validationOf, formErrorsOf, listActionRequestOf, ROW_VALIDATING_VERBS,
+  HOST_ID, overlayOf, withListingSelection, validationOf, formRefusalOf, listActionRequestOf, ROW_VALIDATING_VERBS,
   validateRow, rowEditorOf, overlayTransportOf, actionTransportOf,
 } from './reduceContexts.mjs'
 
@@ -35,12 +35,24 @@ export function outboundActionOf(reg, id, inputs = {}) {
       return { stop: 'selectionRequired' }
     }
   }
-  // validationRequired (a wizard's next, a form's save): empty required fields are marked on their
-  // field and the action does not leave — what Vaadin does in the browser; the server checks again
+  // validationRequired (a wizard's next, a form's save): empty required fields and the wire
+  // validations that fail (a bound, a pattern) are marked on their field and the action does not
+  // leave — what Vaadin does in the browser; the server checks again
   const validation = !overlay && validationOf(host, id)
   if (validation) {
-    const missing = formErrorsOf(formSections, draft, validation.fields)
-    if (missing.length) return { stop: 'fieldErrors', missing }
+    const refusal = formRefusalOf(formSections, host && host.state, draft,
+      host && host.tree && host.tree.validations, validation.fields)
+    if (refusal.missing.length) return fieldErrorsStop(refusal, false)
+  }
+  // ...and the same for a form that is a component of its own INSIDE the overlay (the crud's
+  // create/edit drawer, an EmbeddedView): its create/save is declared validated by ITS ServerSide.
+  // Its draft was sent unchecked — an empty required field reached the server, which refused it.
+  const surface = overlay && overlaySurfaceOf(reg)
+  const overlayValidation = surface && validationOf({ tree: surface }, id)
+  if (overlayValidation) {
+    const refusal = formRefusalOf(overlay.sections, overlay.state, drawerDraft, surface.validations,
+      overlayValidation.fields)
+    if (refusal.missing.length) return fieldErrorsStop(refusal, true)
   }
   // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to
   // the CONTAINER's ServerSide with ITS state, the dialog's row in parameters.initiatorState
@@ -70,6 +82,49 @@ export function outboundActionOf(reg, id, inputs = {}) {
     transportCtx = actionTransportOf(host, id)
   }
   return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
+}
+
+/** The stop of an action refused in the browser: the fields to mark, the messages the wire
+ *  validations gave (the required ones take their JET text), and whether they are in the overlay. */
+function fieldErrorsStop(refusal, inOverlay) {
+  const stop = { stop: 'fieldErrors', missing: refusal.missing }
+  if (Object.keys(refusal.messages).length) stop.messages = refusal.messages
+  if (inOverlay) stop.inOverlay = true
+  return stop
+}
+
+/** The ServerSide form of the top overlay (its `surface`), or null when it has none. */
+function overlaySurfaceOf(reg) {
+  const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+  const top = id && reg.contexts ? reg.contexts[id] : null
+  return (top && top.surface) || null
+}
+
+/**
+ * The fields the SERVER refused in the answer to an action (a data fragment carrying `errors`:
+ * fieldId → messages — what a crud drawer's refused save sends for its form): → { missing,
+ * messages, inOverlay } to mark exactly as a browser-side refusal, or null.
+ */
+export function refusedFieldsOf(increment, reg) {
+  for (const fr of (increment && increment.fragments) || []) {
+    const errors = fr && fr.data && fr.data.errors
+    if (!errors || typeof errors !== 'object') continue
+    const messages = {}
+    for (const fieldId of Object.keys(errors)) {
+      const list = Array.isArray(errors[fieldId]) ? errors[fieldId] : [errors[fieldId]]
+      const text = list.filter((m) => m != null && String(m).trim()).map(String).join(' ')
+      if (text && fieldId !== '_component') messages[fieldId] = text
+    }
+    if (!Object.keys(messages).length) continue
+    const target = fr.targetComponentId
+    const contexts = (reg && reg.contexts) || {}
+    const inOverlay = ((reg && reg.stack) || []).some((ctxId) => {
+      const ctx = contexts[ctxId]
+      return ctx && (ctxId === target || (ctx.surface && ctx.surface.id === target) || (ctx.tree && ctx.tree.id === target))
+    })
+    return { missing: Object.keys(messages), messages, inOverlay }
+  }
+  return null
 }
 
 /**

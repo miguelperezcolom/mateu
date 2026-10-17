@@ -111,14 +111,16 @@ grid-like pages → `collection`; General/Item Overview, Foldout and Gantt → `
 
 A page's header lives on its `type: Form` node: `title`, `subtitle`, `avatar`, `header`,
 `toolbar`, `buttons`, `footer`, `noHeader` — and every other element a Java page gets from its
-annotations and suppliers, now authorable as data:
+annotations and suppliers, now authorable as data. The keys in the table below are
+**experimental** (`@Experimental("YAML page header (3.0 beta)")` on the `Form` record): their names
+and shapes may still change before they are declared stable.
 
 | Key | Shape | Java twin |
 |---|---|---|
 | `overline` | text above the title | `@Overline` / `OverlineSupplier` |
 | `titlePlaceholder` | what the header shows while the title is empty | `@TitlePlaceholder` |
 | `timestamp` | the "last updated" line under the subtitle | `@Timestamp` field |
-| `badges` | list of `{label, color}` chips | `@BadgeInHeader` / `BadgeSupplier` |
+| `badges` | list of `{label, color}` chips | `@BadgeInHeader` / `HeaderBadgesSupplier` |
 | `kpis` | list of `{label, value}` key facts | `@KPI` |
 | `peerNav` | `{prevLabel, prevRoute, nextLabel, nextRoute}` | `PeerNavigationSupplier` |
 | `recordSwitcher` | `{label, value, type, searchable, disabled, options \| optionsSource, route \| actionId}` | `RecordSwitcherSupplier` |
@@ -210,12 +212,15 @@ Install the [YAML extension by Red Hat](https://marketplace.visualstudio.com/ite
 ```json
 {
   "yaml.schemas": {
-    "./backend/shared/uidl/uidl-schema.json": "src/**/specs/ui/**/*.yaml"
+    "https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json": "src/**/specs/ui/**/*.yaml"
   }
 }
 ```
 
 This activates IntelliSense for every `*.yaml` file under any `specs/ui/` directory in the project.
+`specs-schema.json` is the unified schema — a `oneOf` of every file kind (pages, `type: Routes`,
+`type: UI` mounts, `sources.yaml`, `project.yaml`…), so a routes or sources file validates too; the
+component catalogue `uidl-schema.json` alone would flag those as invalid.
 
 **Option B — per-file comment**
 
@@ -227,7 +232,8 @@ type: VerticalLayout
 ...
 ```
 
-Adjust the relative path so it points to `uidl-schema.json` from the YAML file's location.
+`uidl-schema.json` covers a page's component tree; for any other kind of file (routes, sources,
+project settings) point at `specs-schema.json` instead.
 
 ---
 
@@ -238,7 +244,7 @@ Adjust the relative path so it points to `uidl-schema.json` from the YAML file's
 3. Click **+** to add a new mapping.
 4. Fill in:
    - **Name:** `Mateu UIDL`
-   - **Schema file or URL:** click the folder icon and select `https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json`
+   - **Schema file or URL:** `https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/specs-schema.json` (the unified schema of every `specs/ui` file kind)
    - **Schema version:** `JSON Schema version 7`
 5. Under **File path pattern**, click **+** and enter: `specs/ui/**/*.yaml`
 6. Click **OK**.
@@ -329,6 +335,13 @@ is a flat run of the model's own fields the next save comes back as a delta.
 ## Hybrid: YAML layout + Java logic with `@UISpec`
 
 A pure YAML file has no Java class, so it cannot run server-side logic. A pure Java `ComponentTreeSupplier` has no YAML file, so the layout is hard-coded.
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 `@UISpec` is the middle ground: a **Java ViewModel class** whose component tree is loaded from a YAML file. The Java class provides state (fields), actions (methods), rules, and validations; the YAML file defines the layout.
 

@@ -1,6 +1,6 @@
-/* SELECTOR DE COLUMNAS del listado (prefs.mjs): abrir el diálogo con las columnas en su orden y
- * visibilidad, encender/apagar y mover, aplicar (se guarda por ruta en localStorage —mismo
- * formato que el renderer web— y la tabla se re-proyecta), restablecer o cancelar. */
+/* COLUMN CHOOSER of the listing (prefs.mjs): opening the dialog with the columns in their order and
+ * visibility, switching on/off and moving, applying (saved per route in localStorage —same
+ * format as the web renderer— and the table is re-projected), resetting or cancelling. */
 
 define([
   'vb/action/actionChain',
@@ -42,7 +42,7 @@ define([
       }
       if (op === 'apply' || op === 'reset') {
         bridge.writeColumnPrefs(scope, op === 'reset' ? null : bridge.prefsFromChooser($page.variables.mateuColumnsModel || []));
-        // re-proyectar el listado: listingOf aplica las preferencias recién guardadas
+        // re-project the listing: listingOf applies the just-saved preferences
         $application.variables.mateuListing = bridge.listingOf($application.variables.mateuRegistry.contexts[bridge.HOST_ID]);
         dialog().close();
         return;

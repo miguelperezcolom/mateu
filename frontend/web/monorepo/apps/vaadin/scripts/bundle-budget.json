@@ -1,7 +1,8 @@
 {
-  "rawBytes": 3019865,
-  "gzipBytes": 727789,
-  "measuredRawBytes": 2876061,
-  "measuredGzipBytes": 693132,
-  "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why."
+  "rawBytes": 2698865,
+  "gzipBytes": 649581,
+  "measuredRawBytes": 2570347,
+  "measuredGzipBytes": 618648,
+  "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why.",
+  "reason": "2026-10-17 (GA phase 4, R5): lowered after the optional elements moved to lazy chunks (chat, workflow, form editor + sortablejs, planning board, gantt, matrix grid, signature, camera, vaadin-markdown + marked, vcf-date-range-picker): 693132 \u2192 618648 gzip bytes measured."
 }

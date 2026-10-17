@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,7 +33,8 @@ import java.lang.annotation.Target;
  * the row count on the tab ("Subnets 12").
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Documented
 public @interface Subresource {
 
   /** When a sub-listing is fetched. */

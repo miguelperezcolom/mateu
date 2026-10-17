@@ -15,6 +15,13 @@ Object pages with many categories of associated information usually hide them be
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Extend `Foldout`. The first component field is the **overview** (always visible, left); each component field annotated with `@Panel` becomes a **fold-out panel**. Closed panels render as a narrow strip with the rotated title; clicking a strip folds the panel out, and several panels can be open side by side (the row scrolls horizontally when it overflows).
 
 ```java

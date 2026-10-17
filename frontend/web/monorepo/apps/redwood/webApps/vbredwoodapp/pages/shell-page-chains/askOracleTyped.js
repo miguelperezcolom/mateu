@@ -1,6 +1,6 @@
-/* Tecleo en el buscador del Ask Oracle: re-filtra los destinos en vivo y, si el App tiene un
- * GlobalSearchSupplier, busca también sus entidades (debounce 250ms; la respuesta de un tecleo
- * viejo no pisa la del último) — bridge.fetchGlobalSearch / paletteRowsOfHits (poc/globalSearch.mjs). */
+/* Typing in the Ask Oracle search box: re-filters the destinations live and, if the App has a
+ * GlobalSearchSupplier, also searches its entities (debounce 250ms; the response to an old
+ * keystroke does not overwrite the latest one's) — bridge.fetchGlobalSearch / paletteRowsOfHits (poc/globalSearch.mjs). */
 
 define([
   'vb/action/actionChain',

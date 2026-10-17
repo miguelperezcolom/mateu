@@ -29,6 +29,13 @@ On that background request the client tells the server which structure it alread
 
 ### 3. Skip the round-trip — `@StaticView` (opt-in)
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Some screens never change at all: a help or "about" page, a fixed reference screen, a dashboard of constants. Mark the view `@StaticView` and Mateu caches its **whole response** (structure *and* data) for the session. On a return visit within that session it renders from the cache and makes **no server call** at all.
 
 ```java

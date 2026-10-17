@@ -15,7 +15,8 @@ import java.time.Duration
  *
  * Wire contract: `POST {baseUrl}/mateu/v3/sync/{route|_no_route}` with a JSON body of
  * `{route, consumedRoute, actionId, serverSideType, initiatorComponentId, componentState, appState,
- * parameters}` and header `X-Session-Id` (+ `Authorization: Bearer …` when [tokenProvider] has a token).
+ * parameters}` and header `X-Session-Id` (+ `Authorization: Bearer …` when [tokenProvider] has a token)
+ * — both only when the target is trusted with them ([CredentialScope]).
  *
  * A 401 is answered ONCE: first the [tokenProvider] (refresh / sign in), then the legacy
  * [SessionGuard] hook; when either produces new credentials the request is REBUILT (so it carries the
@@ -27,7 +28,22 @@ class MateuApiClient(
     private val mapper: ObjectMapper = ObjectMapper(),
     /** Credentials: a Bearer token is sent on every Mateu call when the provider has one. */
     var tokenProvider: TokenProvider = TokenProvider.NONE,
+    /** Whether a request to a url may carry the credentials (see [CredentialScope]); by default only
+     *  this client's own backend. */
+    private val credentialsFor: (String) -> Boolean = CredentialScope(baseUrl)::mayCarryCredentials,
 ) {
+    /** True when a request to [url] (this client's backend by default) may carry the credentials. */
+    fun carriesCredentials(url: String = baseUrl): Boolean = credentialsFor(url)
+
+    /** The credential headers (`X-Session-Id`, `Authorization`) a request to [url] carries — none
+     *  when [url] is not trusted with them (an island or a chat a remote answer named). */
+    fun credentialHeaders(url: String = baseUrl, token: String? = tokenProvider.accessToken()): Map<String, String> {
+        if (!carriesCredentials(url)) return emptyMap()
+        val headers = linkedMapOf("X-Session-Id" to sessionId)
+        bearer(token)?.let { headers["Authorization"] = it }
+        return headers
+    }
+
     /** Host hook: told ONCE when the server's `wireVersion` is another major (see [WireVersion]). */
     var onWireMismatch: ((String) -> Unit)? = null
 
@@ -78,15 +94,16 @@ class MateuApiClient(
                 .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .header("X-Session-Id", sessionId)
-            bearer(token)?.let { b.header("Authorization", it) }
+            credentialHeaders(url, token).forEach { (k, v) -> b.header(k, v) }
             return b.POST(HttpRequest.BodyPublishers.ofString(json)).build()
         }
 
-        val token = tokenProvider.accessToken()
+        val trusted = carriesCredentials(url)
+        val token = if (trusted) tokenProvider.accessToken() else null
         var response = http.send(request(token), HttpResponse.BodyHandlers.ofString())
-        // Session expiry / missing credentials: one chance to re-authenticate, then retry once.
-        if (response.statusCode() == 401 &&
+        // Session expiry / missing credentials: one chance to re-authenticate, then retry once
+        // (only against a backend trusted with them: an anonymous island's 401 is not ours to fix).
+        if (response.statusCode() == 401 && trusted &&
             (tokenProvider.onUnauthorized(token) || SessionGuard.handleSessionExpired())
         ) {
             response = http.send(request(tokenProvider.accessToken()), HttpResponse.BodyHandlers.ofString())
@@ -140,8 +157,7 @@ class MateuApiClient(
             .uri(URI.create(url))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
-            .header("X-Session-Id", sessionId)
-        bearer(tokenProvider.accessToken())?.let { b.header("Authorization", it) }
+        credentialHeaders(url).forEach { (k, v) -> b.header(k, v) }
         val response = http.send(b.POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body))).build(), HttpResponse.BodyHandlers.ofLines())
         if (response.statusCode() == 401) throw UnauthorizedException(url)
         if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")

@@ -106,8 +106,12 @@ def test_a_camel_case_action_reaches_the_snake_case_method():
 
 
 def test_an_unlisted_method_is_never_reachable():
-    out = load(Order, action_id="secret", component_state={})
-    assert out["messages"][0]["variant"] == "error"
+    import pytest
+
+    from mateu_core import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        load(Order, action_id="secret", component_state={})
 
 
 def test_a_field_holding_an_adapted_object_is_an_island():

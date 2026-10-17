@@ -100,7 +100,7 @@ public class AppContextSearchActionRunner implements ActionRunner {
     if (LookupOptionsSupplier.class.isAssignableFrom(field.getType())) {
       var supplier =
           (LookupOptionsSupplier)
-              MateuBeanProvider.getBean(InstanceFactory.class)
+              MateuBeanProvider.getSingletonBean(InstanceFactory.class)
                   .newInstance(field.getType(), Map.of(), httpRequest);
       var listingData =
           supplier.search(

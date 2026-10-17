@@ -1,0 +1,138 @@
+{
+  "commands" : [ {
+    "data" : "Components",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "breadcrumbs" : [ {
+              "link" : "/",
+              "text" : "Home"
+            }, {
+              "link" : "/orders",
+              "text" : "Orders"
+            } ],
+            "currentItemText" : "Order 42",
+            "type" : "Breadcrumbs"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "icon" : "vaadin:plus-circle",
+            "type" : "Icon"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "text" : "The order was saved",
+            "title" : "Saved",
+            "type" : "Notification"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "attributes" : {
+              "kind" : "bar"
+            },
+            "content" : "loading",
+            "name" : "order-chart",
+            "on" : {
+              "click" : "drill"
+            },
+            "type" : "Element"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "text" : "Total including taxes",
+            "type" : "Tooltip",
+            "wrapped" : {
+              "metadata" : {
+                "container" : "div",
+                "text" : "1250 EUR",
+                "type" : "Text"
+              },
+              "type" : "ClientSide"
+            }
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "content" : {
+              "metadata" : {
+                "container" : "div",
+                "text" : "Delivery notes",
+                "type" : "Text"
+              },
+              "type" : "ClientSide"
+            },
+            "opened" : true,
+            "summary" : {
+              "metadata" : {
+                "container" : "div",
+                "text" : "More",
+                "type" : "Text"
+              },
+              "type" : "ClientSide"
+            },
+            "type" : "Details"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Master",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          }, {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Detail",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "orientation" : "vertical",
+            "type" : "SplitLayout",
+            "variant" : "small"
+          },
+          "type" : "ClientSide"
+        }, {
+          "children" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "This cannot be undone",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "canCancel" : true,
+            "cancelActionId" : "keepOrder",
+            "confirmActionId" : "deleteOrder",
+            "confirmText" : "Delete",
+            "header" : "Delete order?",
+            "openedCondition" : "true",
+            "type" : "ConfirmDialog"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "type" : "VerticalLayout"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

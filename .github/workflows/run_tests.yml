@@ -145,10 +145,10 @@ jobs:
           --test-coverage-exclude='test*.mjs' --test-coverage-exclude='make-*.mjs'
           --test-coverage-exclude='capture*.mjs' --test-coverage-exclude='probe*.mjs'
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
-          --test-coverage-lines=97 --test-coverage-functions=95 --test-coverage-branches=84
+          --test-coverage-lines=98 --test-coverage-functions=95 --test-coverage-branches=85
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
-          test-vb-chains.mjs test-projections.mjs
+          test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -176,7 +176,7 @@ jobs:
           cd frontend/app/react-native && node --test --experimental-test-module-mocks
           --experimental-test-coverage --test-coverage-include='src/**/*.ts'
           --test-coverage-exclude='src/**/*.test.ts' --test-coverage-lines=98
-          --test-coverage-branches=86 --test-coverage-functions=95 'src/**/*.test.ts'
+          --test-coverage-branches=89 --test-coverage-functions=95 'src/**/*.test.ts'
 
       - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
         run: cd frontend/app/react-native && node scripts/parity-check.mjs
@@ -254,9 +254,19 @@ jobs:
           path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
           key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
 
-  e2e:
+  # The browser suite, split into legs that run side by side (scripts/ci-e2e-leg.sh says which SUT
+  # apps and Playwright projects each one owns). As ONE job on one worker it was the critical path of
+  # the whole workflow (22-26 min, ~20 of them the tests: the shared suite takes ~4 min per adapter,
+  # five times). Each leg has its own SUT apps, so every test still has its server to itself and the
+  # specs did not have to become safe to run concurrently against one SUT.
+  e2e-legs:
+    name: e2e (${{ matrix.leg }})
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        leg: [core, webflux-quarkus, micronaut-helidon]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -269,65 +279,19 @@ jobs:
           java-version: 21
           distribution: zulu
 
-      - name: Build backend
-        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
-
-      - name: Build SUT apps
-        run: |
-          mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml
-          # the YAML-only federation: a console, a served domain and a static bundle (README.md)
-          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/yaml-federation/pom.xml
-
-      - name: Start SUT apps
-        run: |
-          java -jar e2e/sut/apps/mvc-app1/target/mvc-app1-1.0.0-SNAPSHOT.jar      > /tmp/mvc-app1.log      2>&1 &
-          java -jar e2e/sut/apps/webflux-app1/target/webflux-app1-1.0.0-SNAPSHOT.jar > /tmp/webflux-app1.log  2>&1 &
-          java -jar e2e/sut/apps/quarkus-app1/target/quarkus-app1-1.0.0-SNAPSHOT-runner.jar > /tmp/quarkus-app1.log 2>&1 &
-          java -jar e2e/sut/apps/micronaut-app1/target/micronaut-app1-1.0.0-SNAPSHOT.jar > /tmp/micronaut-app1.log 2>&1 &
-          java -jar e2e/sut/apps/helidon-app1/target/helidon-app1.jar > /tmp/helidon-app1.log 2>&1 &
-          java -jar e2e/sut/apps/fed-remote-app/target/fed-remote-app-1.0.0-SNAPSHOT.jar > /tmp/fed-remote-app.log 2>&1 &
-          java -jar e2e/sut/apps/fed-shell-app/target/fed-shell-app-1.0.0-SNAPSHOT.jar > /tmp/fed-shell-app.log 2>&1 &
-          java -jar e2e/sut/apps/fed-sections-app/target/fed-sections-app-1.0.0-SNAPSHOT.jar > /tmp/fed-sections-app.log 2>&1 &
-
-      - name: Wait for SUT apps to be ready
-        run: |
-          # mode "ok" requires a 2xx from / (curl -f); "any" accepts any HTTP response.
-          # Bounded (max 3 min) so a SUT app that fails to boot fails the job fast with logs,
-          # instead of hanging the runner forever on an unbounded `until curl` loop.
-          wait_port() {
-            port=$1; mode=$2; tries=0
-            echo "Waiting for port $port ($mode)..."
-            while true; do
-              if [ "$mode" = ok ]; then
-                curl -sf "http://localhost:$port/" > /dev/null && break
-              else
-                curl -s -o /dev/null "http://localhost:$port/" && break
-              fi
-              tries=$((tries + 1))
-              if [ "$tries" -ge 90 ]; then
-                echo "::error::port $port was not ready after 3 minutes"
-                exit 1
-              fi
-              sleep 2
-            done
-            echo "Port $port is ready"
-          }
-          for port in 8080 8081 8082 8083 8086; do wait_port "$port" ok; done
-          # the federation apps answer 404 on / — any HTTP response means they are up
-          for port in 8084 8085 8087; do wait_port "$port" any; done
-
-      - name: Dump SUT logs on failure
-        if: failure()
-        run: |
-          for f in /tmp/*-app1.log /tmp/fed-*.log e2e/sut/yaml-federation/*.log; do
-            [ -f "$f" ] || continue
-            echo "===== $f ====="
-            tail -n 60 "$f"
-          done
-
+      # Before the SUT start: the YAML federation's static host (core leg) is a node script.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+
+      - name: Build backend
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
+
+      - name: Build the leg's SUT apps
+        run: scripts/ci-e2e-leg.sh ${{ matrix.leg }} build
+
+      - name: Start the leg's SUT apps
+        run: scripts/ci-e2e-leg.sh ${{ matrix.leg }} start
 
       # --ignore-scripts: nothing in e2e/ needs an install hook (the lockfile's only one is fsevents,
       # macOS-only); the browsers come from the explicit `playwright install` below.
@@ -351,36 +315,61 @@ jobs:
       - name: Install Playwright browsers
         run: cd e2e && npx --no -- playwright install --with-deps chromium
 
-      # Its own script: two Spring Boot apps plus the static file host (node), waited for on start.
-      - name: Start the YAML-only federation
-        run: timeout 300 e2e/sut/yaml-federation/run.sh --no-build
+      # Bounded (max 3 min per port) so a SUT app that fails to boot fails the job fast with logs,
+      # instead of hanging the runner forever on an unbounded `until curl` loop.
+      - name: Wait for the SUT apps to be ready
+        run: scripts/ci-e2e-leg.sh ${{ matrix.leg }} wait
 
-      # Every listed project: the shared suite on the five adapters, federation, renderer-vaadin, the
-      # YAML federation and `journeys` (tests/journeys — end-to-end user journeys on mvc-app1 only;
-      # yaml-proxy.spec.ts starts its own upstream on :19395).
+      # core: mvc-app1, renderer-vaadin, both federations, the YAML federation and `journeys`
+      # (tests/journeys — end-to-end user journeys on mvc-app1 only; yaml-proxy.spec.ts starts its
+      # own upstream on :19395). The other legs: the shared suite on their two adapters.
       - name: Run Playwright tests
-        run: cd e2e && YAML_FEDERATION=1 npx --no -- playwright test
+        run: scripts/ci-e2e-leg.sh ${{ matrix.leg }} test
 
       # The web renderer under a bad connection (skeleton, busy control, no double submit, offline
       # banner, Retry, 503 handling), against mvc-app1. Timing-based, so ONE retry: a real regression
       # fails both runs.
       - name: Slow-network probe (web renderer)
+        if: matrix.leg == 'core'
         run: cd e2e && (BASE=http://localhost:8080 OUT=slow-network-shots node slow-network-probe.mjs || (sleep 5 && BASE=http://localhost:8080 OUT=slow-network-shots node slow-network-probe.mjs))
 
       # axe-core (WCAG 2.1 A/AA) over representative routes, journeys included; fails on any
       # violation or on a route it could not scan (a11y-audit.mjs).
       - name: Accessibility audit (axe)
+        if: matrix.leg == 'core'
         run: cd e2e && BASE=http://localhost:8080 ROUTES=/,/all-types,/validation,/app,/items,/tabs,/sections,/accordion,/capability-books,/j/tasks,/j/stock,/j/sales,/j/charges,/j/fields,/j/roles,/j/proxied node a11y-audit.mjs
+
+      - name: Dump SUT logs on failure
+        if: failure()
+        run: scripts/ci-e2e-leg.sh ${{ matrix.leg }} logs
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.leg }}
           path: |
             e2e/playwright-report/
             e2e/slow-network-shots/
           retention-days: 7
+          if-no-files-found: ignore
+
+  # Branch protection on master still requires a check named `e2e` (design/ci-required-checks.md:
+  # until it is swapped for `ci-ok`). A matrix reports one check PER LEG ("e2e (core)", …) and none
+  # called `e2e`, which would block every PR forever — so this job keeps the name and reports the
+  # legs' verdict: green only when every leg succeeded.
+  e2e:
+    if: always()
+    needs: e2e-legs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every e2e leg passed
+        env:
+          RESULT: ${{ needs.e2e-legs.result }}
+        run: |
+          echo "e2e legs: $RESULT"
+          [ "$RESULT" = success ] || { echo "::error::an e2e leg failed or was cancelled ($RESULT)"; exit 1; }
 
   # The Python port (PyPI `mateu-ui`): the suite — including its wire-conformance runner, a HARD
   # gate (an unexpected corpus diff fails; only allow-listed cases xfail, strictly) — on every
@@ -586,34 +575,32 @@ jobs:
           java-version: 21
           distribution: zulu
 
-      # Install the reactor artifacts to the local repo first, then run the module suites with the
-      # JaCoCo coverage gate (`verify`). Core is where the ~1200 unit tests + the Java conformance
-      # runner live; uidl (schema/annotation tests), the two annotation processors (one carries a
-      # 70% per-package coverage floor) and webflux-core's in-JVM *IT suite also have
-      # tests, which used to run nowhere because `-pl shared/core` left them out. Every adapter
-      # runs its own AdapterParityITFoundation suite (security, CORS, MCP, documents, error
-      # boundary over real HTTP) and carries a coverage floor, as does the bundle plugin; the e2e
-      # job above exercises them end to end on top.
+      # ONE reactor build that installs AND tests (it used to be `install -DskipTests` of everything
+      # followed by `verify` of the tested modules, compiling the backend twice). Every module with a
+      # suite runs it with the JaCoCo coverage gate. Core is where the ~1200 unit tests + the Java
+      # conformance runner live; uidl (schema/annotation tests), the two annotation processors (one
+      # carries a 70% per-package coverage floor) and webflux-core's in-JVM *IT suite also have
+      # tests. Every adapter runs its own AdapterParityITFoundation suite (security, CORS, MCP,
+      # documents, error boundary over real HTTP) and carries a coverage floor, as does the bundle
+      # plugin; the e2e legs above exercise them end to end on top.
       #
       # `coverage` (last) merges every module's JaCoCo data and gates mateu-uidl and mateu-dtos over
       # ALL the suites — per module, uidl only counts its own tests and dtos has none, so neither
       # had a meaningful gate. Its full cross-module report is uploaded below.
-      - name: Build backend
-        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
-
-      # javadoc is skipped: `verify` otherwise triggers the parent pom's javadoc jar, which fails to
-      # generate on core (a pre-existing doclint issue) and is not what this gate is for — the gate is
+      #
+      # The archetype's integration test (generating and packaging sample projects) stays skipped,
+      # as it was under -DskipTests. javadoc is skipped: it is not what this gate is for — the gate is
       # the test suite + JaCoCo coverage check.
       #
-      # `verify` also runs the public-API compatibility check (japicmp) of uidl, dtos and core's
+      # The build also runs the public-API compatibility check (japicmp) of uidl, dtos and core's
       # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). It is
       # REPORT-ONLY while the version is an alpha (<mateu.japicmp.enforce>false</...>); from the
       # beta tag on it fails the build on an incompatible change that is neither @Experimental nor in
       # backend/api-compat/japicmp-exclusions.properties.
       - name: Java module tests + coverage gate + API compatibility
         run: >-
-          mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
-          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core,mvc/mvc-core,micronaut/micronaut-core,quarkus/quarkus-core,helidon-mp/helidon-mp-core,mateu-bundle-maven-plugin,coverage
+          mvn -B install -Dgpg.skip=true -Dmaven.javadoc.skip=true -Darchetype.test.skip=true
+          --file backend/pom.xml
 
       - name: Upload the cross-module coverage report
         if: always()
@@ -698,6 +685,7 @@ jobs:
       - frontend-lib
       - tooling-tests
       - intellij-plugin
+      - e2e-legs
       - e2e
       - python
       - python-lowest-deps

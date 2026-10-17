@@ -104,6 +104,7 @@ export const CHROME_TEXTS = {
     errServerStatus: 'The server could not complete the request (error {status}). Try again.',
     errUnauthorized: 'Your session is no longer valid. Sign in again.',
     errForbidden: "You're not allowed to do this.",
+    errSecurityRefused: "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
     errNotFound: 'This is no longer available. It may have been moved or deleted.',
     errClient: 'The request was rejected.',
     errClientStatus: 'The request was rejected (error {status}).',
@@ -305,6 +306,7 @@ export const CHROME_TEXTS = {
     errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
     errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
     errForbidden: 'No tienes permiso para hacer esto.',
+    errSecurityRefused: 'La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.',
     errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
     errClient: 'La petición ha sido rechazada.',
     errClientStatus: 'La petición ha sido rechazada (error {status}).',
@@ -343,7 +345,7 @@ export const CHROME_TEXTS = {
     chatRestore: 'Ancho normal',
     selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
     searchResults: 'Resultados',
-    // ── abrir en el móvil (@App(mobileQr), qr.mjs) ──
+    // ── open on mobile (@App(mobileQr), qr.mjs) ──
     mobileQrAction: 'Abrir en el móvil',
     mobileQrTitle: 'Ábrelo en tu móvil',
     mobileQrHint: 'Escanéalo con la cámara del móvil o con la app Mateu. El código solo dice dónde está esta aplicación: inicias sesión en el móvil.',
@@ -354,7 +356,7 @@ export const CHROME_TEXTS = {
     mobileQrLink: 'Enlace',
     mobileQrCopy: 'Copiar enlace',
     mobileQrCopied: 'Enlace copiado',
-    // ── componentes display (core/display.mjs) ──
+    // ── display components (core/display.mjs) ──
     recommended: 'Recomendado',
     choose: 'Elegir',
     learnMore: 'Más información',

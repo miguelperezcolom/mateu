@@ -4,6 +4,11 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
+/**
+ * A responsive form grid: its {@code content} (fields, rows) flows into up to {@code maxColumns}
+ * columns, with labels on top or, with {@code labelsAside}, to the left of each field. The fluent
+ * counterpart of the {@code @FormLayout} annotation.
+ */
 @Builder(toBuilder = true)
 public record FormLayout(
     String id,

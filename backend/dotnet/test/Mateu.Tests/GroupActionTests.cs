@@ -120,11 +120,10 @@ public class GroupActionTests
     [Fact]
     public void Only_group_action_methods_are_reachable()
     {
-        var inc = Handler().Handle(new RunActionRqDto
+        Assert.Throws<MateuForbiddenException>(() => Handler().Handle(new RunActionRqDto
         {
             Route = "grouped-files", ActionId = "action-on-row-groupActionVisible",
             ServerSideType = typeof(GroupedFiles).FullName,
-        });
-        Assert.Equal("error", Assert.Single(inc.Messages).Variant);
+        }));
     }
 }

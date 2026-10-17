@@ -1,21 +1,21 @@
-// Selección de RANGO en el tape chart (PlanningBoard → oj-gantt): arrastrar por celdas VACÍAS de
-// una fila lanza rangeSelectActionId con { _resourceId, _start, _end } (el «clic en la celda de
-// inicio y en la de fin» del Room Diary de OPERA → I Want To: reserva, walk-in, fuera de servicio).
-// oj-gantt no lo trae: mueve y redimensiona tareas, pero no selecciona tiempo vacío. Así que una
-// capa fina por encima, sin sustituir al componente:
-//   - la fila, del propio gantt (getContextByNode → rowIndex);
-//   - el día, de las posiciones REALES de las etiquetas del eje de días (respeta zoom y scroll);
-//   - mientras se arrastra, una banda translúcida; al soltar, la acción por el canal de la página.
-// Lo puro (x → día) está exportado y probado en Node.
+// RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
+// a row launches rangeSelectActionId with { _resourceId, _start, _end } (the «click on the start
+// cell and on the end cell» of OPERA's Room Diary → I Want To: booking, walk-in, out of service).
+// oj-gantt does not have it: it moves and resizes tasks, but does not select empty time. So a
+// thin layer on top, without replacing the component:
+//   - the row, from the gantt itself (getContextByNode → rowIndex);
+//   - the day, from the REAL positions of the day axis labels (respects zoom and scroll);
+//   - while dragging, a translucent band; on release, the action through the page's channel.
+// The pure part (x → day) is exported and tested in Node.
 
-/** Día (índice) bajo `x` a partir de los centros de las etiquetas del eje de días. */
+/** Day (index) under `x` from the centres of the day axis labels. */
 export function dayIndexAtX(x, centers) {
   if (!centers || !centers.length) return null
   if (centers.length === 1) return centers[0].index
   const sorted = [...centers].sort((a, b) => a.x - b.x)
   const width = (sorted[sorted.length - 1].x - sorted[0].x) / (sorted[sorted.length - 1].index - sorted[0].index)
   if (!(width > 0)) return sorted[0].index
-  // el día i ocupa [centro_i - w/2, centro_i + w/2)
+  // day i occupies [centre_i - w/2, centre_i + w/2)
   return Math.round((x - sorted[0].x) / width) + sorted[0].index
 }
 
@@ -23,15 +23,15 @@ const DAY = 86400000
 const isoUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
 
 let rangeSink = null
-/** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+/** Who runs the action (the shell reuses the Elements' sink). */
 export function setPlanningRangeSink(fn) { rangeSink = typeof fn === "function" ? fn : null }
 
-/** Los centros (x en pantalla) de las etiquetas de días del eje menor de un gantt. */
+/** The centres (on-screen x) of the day labels of a gantt's minor axis. */
 function dayCenters(gantt, startIso, days) {
   const labels = [...gantt.querySelectorAll('text')]
   const out = []
-  // las etiquetas del eje menor tienen el formato del locale ("10/14", "14/10"…): se casan por
-  // orden con los días de la ventana, quedándose con la fila de etiquetas más baja del eje
+  // the minor axis labels have the locale's format ("10/14", "14/10"…): they are matched in
+  // order with the window's days, keeping the lowest row of labels of the axis
   const rows = {}
   for (const t of labels) {
     const r = t.getBoundingClientRect()
@@ -40,7 +40,7 @@ function dayCenters(gantt, startIso, days) {
     ;(rows[key] = rows[key] || []).push({ t, r })
   }
   const axisRows = Object.keys(rows).map(Number).sort((a, b) => a - b)
-  // el eje menor: la fila con más etiquetas entre las primeras (la cabecera), no las barras
+  // the minor axis: the row with the most labels among the first ones (the header), not the bars
   const minor = axisRows.slice(0, 3).map((k) => rows[k]).sort((a, b) => b.length - a.length)[0] || []
   minor.sort((a, b) => a.r.left - b.r.left).forEach((e, i) => {
     if (i < days) out.push({ x: e.r.left + e.r.width / 2, index: i })
@@ -48,7 +48,7 @@ function dayCenters(gantt, startIso, days) {
   return out
 }
 
-/** Instala (una vez) el arrastre de rango sobre cualquier oj-gantt.mateu-planning del documento. */
+/** Installs (once) the range drag on any oj-gantt.mateu-planning in the document. */
 export function installPlanningRange(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuPlanningRange) return
   doc.__mateuPlanningRange = true
@@ -66,9 +66,9 @@ export function installPlanningRange(doc = typeof document !== 'undefined' ? doc
   doc.addEventListener('pointerdown', (e) => {
     const gantt = e.target && e.target.closest && e.target.closest('oj-gantt.mateu-planning')
     if (!gantt || !gantt.dataset.rangeAction || e.button > 0) return
-    // sólo tiempo VACÍO de una fila (el fondo de la fila, rect.oj-gantt-row): una tarea se mueve y
-    // redimensiona como siempre. getContextByNode no da contexto para ese fondo, así que la fila
-    // sale de la etiqueta del eje de filas más cercana en vertical (vale también con scroll)
+    // only EMPTY time of a row (the row's background, rect.oj-gantt-row): a task moves and
+    // resizes as always. getContextByNode gives no context for that background, so the row
+    // comes from the vertically closest row-axis label (also works with scroll)
     const cls = (e.target.getAttribute && e.target.getAttribute('class')) || ''
     if (!/(^|\s)oj-gantt-row(\s|$)/.test(cls)) return
     const labels = (gantt.dataset.rowLabels || '').split('\u001f')

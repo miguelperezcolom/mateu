@@ -9,7 +9,7 @@ target app when taking Redwood screenshots.
 
 | Route        | Class                | Pattern                                                        |
 |--------------|----------------------|---------------------------------------------------------------|
-| `/`          | `ShowcaseApp`        | App shell (`HAMBURGUER_MENU`, dark left rail, theme toggle)    |
+| `/`          | `ShowcaseApp`        | App shell (`HAMBURGER_MENU`, dark left rail, theme toggle)    |
 | `/dashboard` | `OverviewDashboard`  | `Dashboard` archetype — scoreboard band + `@Panel` tiles       |
 | `/catalog`   | `Catalog`            | `AutoCrud` listing — cards, status badges, pagination, search  |
 | `/guest`     | `GuestProfile`       | `@Zones` form — sections, field types, header badge            |

@@ -8,8 +8,9 @@ import java.util.Base64;
  * Lowers an action's {@link Document} to the payload of the {@code DownloadFile} command.
  *
  * <p>The transport is decided here: a document of at most {@link DocumentStore#inlineMaxBytes()}
- * bytes travels inline (base64, one round trip, nothing kept on the server); a larger one — and
- * every lazy one, whose size is unknown until it is produced — is parked in the {@link
+ * bytes travels inline (base64, one round trip, nothing kept on the server); a larger one, every
+ * lazy one (whose size is unknown until it is produced) and every ACTIVE one (HTML, SVG, XML,
+ * scripts — which must run sandboxed, never in the app's origin) is parked in the {@link
  * DocumentStore} and the command carries a single-use URL under the UI's base URL instead.
  */
 public final class DocumentCommands {
@@ -26,7 +27,13 @@ public final class DocumentCommands {
     String filename = DocumentDownloads.safeFilename(document.filename());
     String mediaType = DocumentDownloads.safeMediaType(document.mediaType());
     String disposition = document.disposition().name();
-    if (!document.producedOnDemand() && document.content().length <= inlineMaxBytes) {
+    // an ACTIVE type (HTML, SVG, XML, script) is never inlined: the client turns inline content
+    // into
+    // a blob of the app's own origin, where an echoed <script> would run with the session's token.
+    // Parked, it is served with Content-Security-Policy: sandbox + nosniff instead.
+    if (!document.producedOnDemand()
+        && document.content().length <= inlineMaxBytes
+        && !DocumentDownloads.isActive(mediaType)) {
       return new FileDownload(
           filename,
           mediaType,

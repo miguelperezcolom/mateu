@@ -83,7 +83,7 @@ class MateuYamlMountControllerTest {
     assertThat(
         response.body(),
         equalTo(
-            "{\"name\":\"YAML parity\",\"shortName\":\"YAML parity\",\"wireVersion\":\"3\","
+            "{\"name\":\"YAML parity\",\"shortName\":\"YAML parity\",\"wireVersion\":\"3.0\","
                 + "\"minAppVersion\":\"1.0.0\"}"));
     assertThat(
         controller.manifest("elsewhere/mateu/v3/manifest").status(), equalTo(HttpStatus.NOT_FOUND));

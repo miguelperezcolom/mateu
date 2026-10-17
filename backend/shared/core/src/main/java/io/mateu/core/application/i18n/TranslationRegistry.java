@@ -1,12 +1,10 @@
 package io.mateu.core.application.i18n;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.mateu.core.application.runaction.MountRegistry;
+import io.mateu.core.application.runaction.SpecsIndex;
 import io.mateu.uidl.data.Translations;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +12,6 @@ import io.mateu.uidl.interfaces.TranslationsSupplier;
 import io.mateu.uidl.interfaces.Translator;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,6 +50,15 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
+  /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
   /** The {@code ${i18n.key}} expression, anywhere inside a text. */
   public static final Pattern EXPRESSION =
       Pattern.compile("\\$\\{\\s*i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)\\s*}");
@@ -66,7 +72,6 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   static final String CONVENTIONAL_DIR = "specs/ui/translations/";
 
-  private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
   private final Set<String> warned = ConcurrentHashMap.newKeySet();
   private volatile Map<String, Map<String, String>> catalogue;
 
@@ -84,12 +89,15 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public Map<String, Map<String, String>> catalogue() {
     var loaded = catalogue;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = catalogue;
         if (loaded == null) {
           loaded = load(classLoader());
           catalogue = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;
@@ -159,12 +167,10 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? TranslationRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<Translations>();
-    for (var path : MountRegistry.yamlResourcePaths(cl)) {
-      try (InputStream is = cl.getResourceAsStream(path)) {
-        if (is == null) {
-          continue;
-        }
-        var root = yaml.readTree(is);
+    var index = SpecsIndex.of(cl);
+    for (var path : index.paths()) {
+      try {
+        var root = index.tree(path);
         var translations = parse(root, path);
         if (translations != null) {
           found.add(translations);
@@ -388,10 +394,7 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The locale used when the request's has no catalogue or lacks a key. */
   public static String fallbackLocale() {
-    var configured = System.getProperty("mateu.i18n.fallback");
-    if (configured == null || configured.isBlank()) {
-      configured = System.getenv("MATEU_I18N_FALLBACK");
-    }
+    var configured = io.mateu.core.infra.MateuSettings.get("mateu.i18n.fallback");
     return configured == null || configured.isBlank() ? "en" : configured.trim();
   }
 

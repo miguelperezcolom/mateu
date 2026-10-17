@@ -8,6 +8,13 @@ These interfaces define the most important extension points in Mateu's public DS
 
 ## `Component`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The base interface for fluent UI components.
 
 ```java
@@ -51,7 +58,7 @@ Used in layout-like and container-like components.
 
 ## `ActionSupplier`
 
-Marks a type that exposes executable actions through `actions()`.
+Marks a type that exposes executable actions through `actions(HttpRequest)` (a `default` method returning `List<Action>`).
 
 Useful in page-like components such as the fluent `Page`.
 
@@ -176,7 +183,7 @@ Combine with `LookupLabelSupplier` on the same class so the same bean handles bo
 
 ## `UploadEnabled`
 
-Adds a bulk-import button to a `Listing` toolbar. The uploaded file is sent to `POST /upload`; on completion the framework calls `processUpload()` with the file id returned by that endpoint.
+Adds a bulk-import button to a `Listing` toolbar. The uploaded file is sent to `POST /upload` — an endpoint **your application serves** (Mateu ships none: storing files is not a UI concern). It stores the file and answers with its id as the response body; the framework then calls `processUpload()` with that id.
 
 ```java
 public interface UploadEnabled {

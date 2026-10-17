@@ -78,6 +78,7 @@ class AppShellExtrasSyncTest {
       return new Message("synced");
     }
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public UICommand closeDay() {
       return UICommand.updateHeaderValue("businessDate", "13 Oct 2026");
     }

@@ -1,8 +1,8 @@
-// Tests de contrato de lo que se añadió para el reto PMS (OPERA Cloud sobre Mateu + Redwood):
-// cada componente o comportamiento nuevo del renderer, con fixtures de wire real capturados de
-// demo/demo-vb-pms (poc/fixtures/pms/*.json) o, cuando el wire es trivial, construidos a mano
-// con la MISMA forma que emite el backend (record → DTO).
-// Uso: node test-pms.mjs   (npm test ejecuta test.mjs y este)
+// Contract tests for what was added for the PMS challenge (OPERA Cloud on Mateu + Redwood):
+// every new component or behaviour of the renderer, with real wire fixtures captured from
+// demo/demo-vb-pms (poc/fixtures/pms/*.json) or, when the wire is trivial, built by hand
+// with the SAME shape the backend emits (record → DTO).
+// Usage: node test-pms.mjs   (npm test runs test.mjs and this one)
 
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
@@ -15,7 +15,7 @@ import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
 import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
 import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.mjs'
 import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
-import { coverageProblems } from './parity-check.mjs'
+import { coverageProblems, wireTypesOf } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
@@ -58,14 +58,14 @@ export const fixture = (name) => {
 }
 const webApp = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')
 const empty = () => ({ contexts: {}, stack: [], shell: null })
-/** Átomos que la plantilla pinta para un árbol (todas las superficies usan la misma proyección). */
+/** Atoms the template paints for a tree (every surface uses the same projection). */
 export const atomsOf = (tree, state = {}, data = {}, opts = {}) =>
   (islandContentOf({ tree, state, data }, opts) || []).flatMap((b) => b.items || [])
 const node = (metadata, children = []) => ({ type: 'ClientSide', id: metadata.id || '', metadata, children })
 
-// ── P0 #2: descargas y enlaces ─────────────────────────────────────────────────────────────────
+// ── P0 #2: downloads and links ─────────────────────────────────────────────────────────────────────
 
-/** Un DOM mínimo que registra lo que se hace con él. */
+/** A minimal DOM that records what is done with it. */
 const fakeEnv = () => {
   const log = []
   const env = {
@@ -85,7 +85,7 @@ test('DownloadFile: el reducer acumula TODOS los ficheros del increment', () => 
   const file = (n) => ({ type: 'DownloadFile', data: { filename: n, mimeType: 'text/csv', base64Content: 'YSxiCjEsMg==' } })
   const reg = reduceContexts(empty(), { commands: [file('a.csv'), file('b.csv')] })
   assert.deepEqual(reg.effects.downloads.map((d) => d.filename), ['a.csv', 'b.csv'])
-  assert.equal(reg.effects.download.filename, 'b.csv') // compat: el último
+  assert.equal(reg.effects.download.filename, 'b.csv') // compat: the last one
 })
 
 test('DownloadFile: se descarga como Blob con su nombre y tipo; sin contenido no hace nada', () => {
@@ -119,7 +119,7 @@ test('Document: los grandes llegan por una URL de un solo uso, resuelta contra e
   assert.equal(f.url, 'http://localhost:9005/mateu/v3/documents/tok')
   assert.equal(f.print, true)
   assert.equal(fileDownloadOf({ filename: 'x', url: 'javascript:alert(1)' }), null)
-  // print sólo tiene sentido mostrado
+  // print only makes sense when shown
   assert.equal(fileDownloadOf({ filename: 'x', base64Content: 'eA==', print: true }).print, false)
   noteDocumentBase('')
   const { env, log } = fakeEnv()
@@ -145,7 +145,7 @@ test('Document: print lo imprime en un iframe oculto, sin popup', () => {
     open: () => { log.push(['open']); return {} },
     document: { body: { appendChild: (f) => log.push(['append', f.src]) }, createElement: () => frame },
   }
-  assert.equal(triggerDownload({ filename: 'f.pdf', base64Content: 'JVBERi0=', disposition: 'inline', print: true }, env), 'printing')
+  assert.equal(triggerDownload({ filename: 'f.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=', disposition: 'inline', print: true }, env), 'printing')
   assert.deepEqual(log.find((l) => l[0] === 'append'), ['append', 'blob:p'])
   onload()
   assert.ok(log.some((l) => l[0] === 'print'))
@@ -198,7 +198,7 @@ test('Anchor: enlace real; _blank abre otra pestaña con noopener; la url se int
     node({ type: 'Anchor', text: 'Folio en PDF', url: '/files/folio-${state.id}.pdf', target: '_blank' }),
     node({ type: 'Anchor', text: 'Reserva', url: '/reservations/${state.id}' }),
     node({ type: 'Anchor', text: 'sin url', url: '' }),
-    // un Anchor declarado como CAMPO de un formulario llega envuelto en un CustomField (children)
+    // an Anchor declared as a form FIELD arrives wrapped in a CustomField (children)
     node({ type: 'CustomField' }, [node({ type: 'Anchor', text: 'Guía', url: 'https://docs.example', target: '_blank' })]),
   ]), { id: 'R1' })
   const links = atoms.filter((a) => a.isAnchor)
@@ -224,7 +224,7 @@ test('plantilla: el átomo isAnchor está en la plantilla única y expandido en 
   assert.equal((page.match(/\$current\.data\.isAnchor \]\]/g) || []).length, surfaces)
 })
 
-// ── P0 #3: Element, la vía de escape, entera ─────────────────────────────────────────────────
+// ── P0 #3: Element, the escape hatch, in full ────────────────────────────────────────────────
 
 test('Element (/floor-plan real): el átomo lleva `on`, un id propio y su módulo; dentro de pestañas', () => {
   const reg = reduceContexts(empty(), fixture('floor-plan'))
@@ -252,12 +252,12 @@ test('Element: el evento viaja al servidor como parámetro `event` con la acció
   const sent = []
   setElementEventSink((actionId, parameters, atom) => sent.push({ actionId, parameters, nested: !!atom.fromNested }))
   wireElementEvents(element, { on: { 'room-selected': 'roomSelected' } })
-  // un re-render con otra acción NO añade otro listener: cambia la acción que se lanza
+  // a re-render with another action does NOT add another listener: it changes the action fired
   wireElementEvents(element, { on: { 'room-selected': 'openRoom' }, fromNested: true })
   assert.equal(listeners['room-selected'].length, 1)
   listeners['room-selected'][0]({ detail: { room: '104' }, constructor: { name: 'CustomEvent' } })
   assert.deepEqual(sent, [{ actionId: 'openRoom', parameters: { event: { room: '104' } }, nested: true }])
-  // un evento que no es CustomEvent viaja con sus propiedades primitivas
+  // an event that is not a CustomEvent travels with its primitive properties
   assert.deepEqual(serializeElementEvent({ clientX: 3, key: 'a', target: {}, fn() {} }), { clientX: 3, key: 'a' })
   setElementEventSink(null)
 })
@@ -283,7 +283,7 @@ test('Element: la shell cablea módulo y sumidero ANTES de navegar; la página e
   assert.ok(shell.indexOf('setElementEventSink') < shell.indexOf("chain: 'onMateuNavigate'"))
   assert.match(shell, /setElementModuleBase\(assetBase\)/)
   const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
-  // los eventos de aplicación se escuchan con el prefijo `application:` (sin él no llegan nunca)
+  // application events are listened to with the `application:` prefix (without it they never arrive)
   assert.ok(page.eventListeners['application:mateuElementEvent'])
   assert.ok(page.eventListeners['application:mateuRetryAction'])
   assert.ok(!page.eventListeners.mateuRetryAction && !page.eventListeners.mateuElementEvent)
@@ -291,11 +291,11 @@ test('Element: la shell cablea módulo y sumidero ANTES de navegar; la página e
     assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /mountElementsSoon/, rel)
 })
 
-// ── shell tipo OPERA (HAMBURGER_SECTIONS con secciones anidadas) ──────────────────────────────
+// ── OPERA-style shell (HAMBURGER_SECTIONS with nested sections) ──────────────────────────────
 
 test('shell PMS real: sin home declarada arranca en la primera pantalla de la primera sección', () => {
   const reg = reduceContexts(empty(), fixture('shell'))
-  assert.equal(reg.shell.homeRoute, '_no_home_route') // lo que manda el servidor
+  assert.equal(reg.shell.homeRoute, '_no_home_route') // what the server sends
   const nav = shellNavOf(reg)
   assert.equal(nav.mode, 'sections')
   assert.equal(nav.homeRoute, '/inventory/floorPlan')
@@ -306,7 +306,7 @@ test('shell PMS real: sin home declarada arranca en la primera pantalla de la pr
 test('shell PMS real: una ruta del menú se carga con el serverSideType del app que la declara', () => {
   const menu = reduceContexts(empty(), fixture('shell')).shell.menu
   assert.equal(localMenuOptionOf(menu, '/inventory/floorPlan').serverSideType, 'io.mateu.mdd.demovbpms.infra.in.ui.PmsHome')
-  // una sub-ruta (el detalle de un crud del menú) también es del app; una ruta que no es del menú, no
+  // a sub-route (the detail of a menu crud) also belongs to the app; a route that is not in the menu does not
   assert.equal(localMenuOptionOf(menu, '/financials/billing/R1001?x=1').route, '/financials/billing')
   assert.equal(localMenuOptionOf(menu, '/floor-plan'), null)
   assert.equal(localMenuOptionOf(menu, '/inventoryX'), null)
@@ -351,7 +351,7 @@ atest('loadMenuRouteInto: compuesta + SST del app; un RouteLink de grupo cae a s
 test('MasterDetailLayout real (consola de la operadora): lista 5/12 a la izquierda, ficha 7/12 a la derecha', () => {
   const reg = reduceContexts(empty(), fixture('telephone-console'))
   const host = reg.contexts[HOST_ID]
-  // ni la cola es el «modo cola» de página, ni la ficha del elegido es la cabecera de la página
+  // the queue is not the page "queue mode", and the chosen item's card is not the page header
   assert.equal(taskQueueOf(host.tree), null)
   assert.equal(entityHeaderOf(host), null)
   const blocks = hostContentOf(host, null, {})
@@ -375,7 +375,7 @@ test('SplitLayout vertical o anidado: se proyecta en su sitio, sin columnas', ()
   assert.deepEqual(atoms.filter((a) => a.isText).map((a) => a.text), ['arriba', 'abajo'])
 })
 
-// ── P0 #5: tipos de campo ──────────────────────────────────────────────────────────────────────
+// ── P0 #5: field types ────────────────────────────────────────────────────────────────────────
 
 test('tarjeta de registro real: cada estereotipo con su widget (radio, múltiple, importe, captura)', () => {
   const reg = reduceContexts(empty(), fixture('registration-card'))
@@ -384,16 +384,16 @@ test('tarjeta de registro real: cada estereotipo con su widget (radio, múltiple
   const by = Object.fromEntries(fields.map((f) => [f.fieldId, f]))
   assert.ok(by.documentType.isRadio)
   assert.deepEqual(by.documentType.options.map((o) => o.value), ['PASSPORT', 'ID_CARD', 'DRIVING_LICENCE'])
-  // la lista de elección múltiple es UN campo (antes, una tabla o nada) con su valor como lista
+  // the multiple-choice list is ONE field (before, a table or nothing) with its value as a list
   assert.ok(by.preferences.isMultiSelect)
   assert.deepEqual(by.preferences.value, ['QUIET_ROOM'])
   assert.equal(by.preferences.options.length, 6)
-  // importe: número con el conversor de moneda de JET (en Node, su especificación)
+  // amount: a number with JET's currency converter (in Node, its specification)
   assert.ok(by.deposit.isMoney && by.deposit.value === 150)
   assert.equal(by.deposit.converter.options.style, 'currency')
   assert.deepEqual(['documentScan', 'voucher', 'photo', 'signature'].map((id) => by[id].isCapture && by[id].captureMode),
     ['camera', 'file', 'image', 'signature'])
-  // ningún widget queda con flags a undefined (la plantilla los evalúa todos)
+  // no widget is left with flags set to undefined (the template evaluates all of them)
   for (const f of fields) for (const flag of ['isRadio', 'isMultiSelect', 'isCheckboxSet', 'isMoney', 'isCapture', 'isText'])
     assert.equal(typeof f[flag], 'boolean', f.fieldId + '.' + flag)
 })
@@ -412,7 +412,7 @@ test('plantilla: los widgets nuevos están en cada superficie de átomos y en la
   // (a field's oj-checkboxset opens a line of its own; the Checklist atom's one does not)
   for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset\n', '<mateu-capture-field', '<oj-slider', '<mateu-rich-text-field', '<mateu-color-field'])
     assert.equal(page.split(tag).length - 1, surfaces + 7, tag)
-  // cada copia conserva SU listener de cambio
+  // each copy keeps ITS change listener
   assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
   const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
   for (const c of ['oj-radioset', 'oj-checkboxset', 'oj-select-many', 'oj-option']) assert.ok(imports[c], c)
@@ -426,7 +426,7 @@ test('campo de captura: lo que enseña de un fichero y cuándo un valor es image
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /defineCaptureField\(\)/)
 })
 
-// ── P0 #4: reglas y campos dependientes en el navegador ─────────────────────────────────────
+// ── P0 #4: rules and dependent fields in the browser ────────────────────────────────────────
 
 test('evaluador de reglas sin eval (CSP de VB): lo que escriben las expresiones de Mateu', () => {
   const scope = { state: { guarantee: 'COMPANY', vip: false, nights: 3, tags: ['a', 'b'], name: 'Ana' }, data: {} }
@@ -438,9 +438,9 @@ test('evaluador de reglas sin eval (CSP de VB): lo que escriben las expresiones 
   assert.equal(ev("state.tags.includes('b')"), true)
   assert.equal(ev('state.name.length'), 3)
   assert.equal(ev("state['name'].toUpperCase()"), 'ANA')
-  assert.equal(ev('state.missing.deep'), undefined) // sin romper
+  assert.equal(ev('state.missing.deep'), undefined) // without breaking
   assert.equal(ev('alert(1)'), undefined) // ni funciones globales…
-  assert.equal(ev('state.constructor.constructor("x")()'), undefined) // …ni escapar por el prototipo
+  assert.equal(ev('state.constructor.constructor("x")()'), undefined) // …nor escape through the prototype
   assert.equal(evaluateTemplate('${state.nights}', scope), 3)
   assert.equal(evaluateTemplate('${state.nights} nights', scope), '3 nights')
 })
@@ -454,7 +454,7 @@ test('reglas de la nueva reserva real: @Hidden/@Disabled con expresión y un Rul
   assert.deepEqual(flagsFor({ guarantee: 'CREDIT_CARD', vip: true }),
     { company: { disabled: true }, cardNumber: { hidden: false }, vipNotes: { hidden: false } })
   assert.equal(flagsFor({ guarantee: 'COMPANY' }).company.disabled, false)
-  // llegada/noches disparan su acción del servidor (@Trigger OnValueChange); otro campo no
+  // arrival/nights fire their server action (@Trigger OnValueChange); another field does not
   assert.equal(valueChangeActionOf(ctx, 'nights', ctx.state), 'recalculate')
   assert.equal(valueChangeActionOf(ctx, 'arrival', ctx.state), 'recalculate')
   assert.equal(valueChangeActionOf(ctx, 'guest', ctx.state), null)
@@ -480,7 +480,7 @@ test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValue
   }
 })
 
-// ── menú de tarjetas (@Menu(display = cards)) ──────────────────────────────────────────────────
+// ── card menu (@Menu(display = cards)) ──────────────────────────────────────────────────────────
 
 test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las entradas con hijos llevan acciones', () => {
   const nav = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', menu: [
@@ -497,7 +497,7 @@ test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las en
   ] } })
   const group = nav.menuTree[0].children.find((c) => c.label === 'Quick access')
   assert.ok(group.isCards && group.popupId && group.anchorId && group.popupId !== group.anchorId)
-  // estable entre proyecciones (el lanzador apunta al popup por id)
+  // stable across projections (the launcher points at the popup by id)
   const again = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', menu: [{ label: 'Bookings', route: '/bookings', submenus: [
     { label: 'Quick access', route: '/bookings/quickAccess', display: 'cards', submenus: [{ label: 'X', route: '/bookings/quickAccess/x' }] }] }] } })
   assert.equal(again.menuTree[0].children[0].popupId, group.popupId)
@@ -507,7 +507,7 @@ test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las en
   assert.deepEqual([checkIn.hasImage, checkIn.image, checkIn.hasIcon], [true, '/img/c.png', false])
   assert.equal(billing.navigable, false)
   assert.deepEqual(billing.actions, [{ id: '/bookings/quickAccess/billing/folio', label: 'Folio' }])
-  // un grupo normal sigue siendo un desplegable
+  // a normal group is still a dropdown
   assert.equal(nav.menuTree[0].isCards, false)
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /\$current\.data\.hasChildren && !\$current\.data\.isCards/)
@@ -532,7 +532,7 @@ test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, re
   assert.match(task.shortDesc, /VIP/)
   assert.ok(task.svgStyle && task.svgStyle.fill)
   void block
-  // el día de fin (inclusivo en Mateu) se pinta hasta el día siguiente
+  // the end day (inclusive in Mateu) is painted up to the next day
   const m = { resources: [{ id: '101', label: '101' }], blocks: [{ id: 'b', resourceId: '101', start: '2026-10-12', end: '2026-10-13' }], from: '2026-10-11', to: '2026-10-24' }
   const one = planningAtomOf(m, 'x').rows[0].tasks[0]
   assert.deepEqual([one.start, one.end], ['2026-10-12T00:00:00', '2026-10-14T00:00:00'])
@@ -542,7 +542,7 @@ test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, re
 test('Room Diary: los eventos de oj-gantt se traducen a la acción de Mateu (días locales, fin inclusivo)', () => {
   const atom = planningAtomOf({ moveActionId: 'move', resizeActionId: 'resize', openActionId: 'open', rangeSelectActionId: 'range', resources: [], blocks: [] }, 'x')
   const local = (y, mo, d, h) => new Date(y, mo - 1, d, h).toISOString()
-  // ojMove: start/end = nuevos límites (value = instante bajo el puntero, se ignora); se redondea al día
+  // ojMove: start/end = new bounds (value = instant under the pointer, ignored); rounded to the day
   assert.deepEqual(planningActionOf(atom, 'move', {
     taskContexts: [{ data: { id: 'R1' } }], rowContext: { rowData: { id: '104' } },
     value: local(2026, 10, 16, 9), start: local(2026, 10, 13, 9), end: local(2026, 10, 19, 9) }),
@@ -551,7 +551,7 @@ test('Room Diary: los eventos de oj-gantt se traducen a la acción de Mateu (dí
     taskContexts: [{ data: { id: 'R2' }, rowData: { id: '102' } }], start: local(2026, 10, 15, 0), end: local(2026, 10, 21, 1) }),
   { actionId: 'resize', parameters: { _blockId: 'R2', _resourceId: '102', _start: '2026-10-15', _end: '2026-10-20' } })
   assert.deepEqual(planningActionOf(atom, 'open', { taskId: 'R3' }), { actionId: 'open', parameters: { _blockId: 'R3' } })
-  // sin la acción declarada, nada
+  // without the declared action, nothing
   assert.equal(planningActionOf(planningAtomOf({ resources: [], blocks: [] }, 'y'), 'move', { taskContexts: [{ data: { id: 'R1' } }] }), null)
 })
 
@@ -560,7 +560,7 @@ test('Room Diary: el día bajo el puntero sale de las etiquetas reales del eje (
   assert.equal(dayIndexAtX(240, centers), 0)
   assert.equal(dayIndexAtX(280, centers), 0)
   assert.equal(dayIndexAtX(285, centers), 1)
-  assert.equal(dayIndexAtX(1060, centers), 10) // más allá de las etiquetas medidas: extrapola
+  assert.equal(dayIndexAtX(1060, centers), 10) // beyond the measured labels: extrapolates
   assert.equal(dayIndexAtX(10, []), null)
   const tpl = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
   assert.match(tpl, /<oj-gantt class="mateu-planning/)
@@ -579,7 +579,7 @@ test('Drawer: el subtítulo del wire llega a la proyección del overlay', () => 
   assert.equal(o.subtitle, 'Room 102 · 12 oct → 14 oct')
 })
 
-// ── P0 #7: listados (grupos y totales, tonos, columnas, vistas, exportación) ─────────────────
+// ── P0 #7: listings (groups and totals, tones, columns, views, export) ───────────────────────
 
 const memoryStorage = () => { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v) } } }
 
@@ -594,7 +594,7 @@ test('folio real agrupado por código: filas de grupo con subtotales y el total 
   assert.equal(groups[0]._tone, 'group')
   assert.ok(l.hasTotals && l.totals.amount && l.totals.tax)
   assert.ok(l.columns.some((c) => c.footerTemplate === 'footerTotal'))
-  // la fila de grupo va ANTES de las suyas
+  // the group row goes BEFORE its own rows
   assert.ok(!l.rows[1]._group && l.rows[1].code === groups[0].code.replace(/ \(\d+\)$/, ''))
 })
 
@@ -659,7 +659,7 @@ test('listado: menú de vistas con refresh, diálogos de columnas/vista y vista 
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /row\._group/)
 })
 
-// ── #6 paneles plegables, foldout dentro de pestaña, cabecera fija ───────────────────────────
+// ── #6 collapsible panels, foldout inside a tab, sticky header ───────────────────────────────
 const ctext = (t) => node({ type: 'Text', text: t })
 test('AccordionLayout y Details se aplanan en átomos isCollapsible; plegar es estado de cliente', () => {
   const acc = { type: 'ClientSide', id: 'acc1', metadata: { type: 'AccordionLayout' }, children: [
@@ -758,7 +758,7 @@ test('ActionPanel: poblados primero, corte en maxPerCategory con «Show more», 
   assert.ok(modify.actions[2].itemClass.includes('mateu-ap-unpopulated'))
   assert.equal(modify.hasMore, true)
   assert.equal(modify.moreLabel, 'Show more (2)')
-  // lo que esconde «Show more» son sólo vacías → con «ocultar vacías» también se va
+  // what «Show more» hides is only empty ones → with «hide empty» it goes too
   assert.ok(modify.moreClass.includes('mateu-ap-unpopulated'))
   assert.ok(a.categories[1].columnClass.includes('mateu-ap-column-unpopulated'))
   assert.deepEqual(modify.actions[0].parameters, { what: 'Traces' })
@@ -810,7 +810,7 @@ test('MatrixGrid: árbol de secciones (nodos §), columnas c0..cN, grupos de mes
   assert.deepEqual(spec.columnKeys, ['c0', 'c1', 'c2'])
   assert.deepEqual(spec.data.map((r) => r.id), ['§house', '§controls', 'loose/note'])
   assert.deepEqual(spec.data[0].children.map((r) => r.id), ['house/available'])
-  // abierta la que no viene plegada; la plegada, cerrada
+  // the one that does not come collapsed is open; the collapsed one, closed
   assert.deepEqual(spec.expanded, ['§house'])
   assert.deepEqual(spec.columnHeaders, [
     { data: 'Oct 2026', children: [{ data: 'Sat 17' }, { data: 'Sat 31' }] },
@@ -868,7 +868,7 @@ test('MatrixGrid: la plantilla usa oj-data-grid con cell.editable/cell.class-nam
   assert.match(webApp('resources/js/mateu-bridge.js'), /new RowDataGridProvider\.RowDataGridProvider\(flat/)
 })
 
-// ── #11 parity.md dice la verdad ─────────────────────────────────────────────────────────────
+// ── #11 parity.md tells the truth ─────────────────────────────────────────────────────────────
 test('parity-check: detecta tipos sin clasificar, promesas sin rama, ramas sin promesa y tabla rancia', () => {
   const coverage = { Text: { status: 'full' }, Kanban: { status: 'none' }, Chart: { status: 'partial', via: "findByType(panel, 'Chart')" } }
   const source = "if (t === 'Text') {} findByType(panel, 'Chart')"
@@ -879,9 +879,18 @@ test('parity-check: detecta tipos sin clasificar, promesas sin rama, ramas sin p
   assert.match(coverageProblems({ ...ok, source: "findByType(panel, 'Chart')" }).join(), /Text is claimed full but the renderer has no t === 'Text'/)
   assert.match(coverageProblems({ ...ok, source: source + " t === 'Kanban'" }).join(), /Kanban is marked none but the renderer has/)
   assert.match(coverageProblems({ ...ok, parity: '<!-- redwood-coverage:start -->\nold\n<!-- redwood-coverage:end -->' }).join(), /stale/)
+  // un tipo deprecado (registrado, nadie lo produce) no se exige ni es fantasma si está clasificado
+  assert.deepEqual(coverageProblems({ ...ok, wireTypes: ['Text', 'Kanban'], deprecated: ['Chart'] }), [])
 })
 
-// ── P1 #13 dashboard y gráficos en cualquier página ──────────────────────────────────────────
+test('parity-check: los tipos salen del wire-schema.json, los deprecados aparte', () => {
+  const repo = join(here, '..', '..', '..', '..', '..', '..')
+  const { produced, deprecated } = wireTypesOf(readFileSync(join(repo, 'backend/shared/uidl/wire-schema.json'), 'utf8'))
+  assert.ok(produced.length >= 114)
+  assert.deepEqual([...deprecated].sort(), ['Result', 'Stepper'])
+})
+
+// ── P1 #13 dashboard and charts on any page ──────────────────────────────────────────────────
 test('dashboard real (/home/dashboard): KPIs en una banda a todo el ancho y paneles con su colSpan', () => {
   const reg = fixture('dashboard').reduce((r, inc) => reduceContexts(r, inc), empty())
   const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Dashboard' })
@@ -919,7 +928,7 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.equal(k.value, '53')
   assert.equal(k.trendText, '▼ vs LW')
   assert.match(k.trendClass, /mateu-trend-down/)
-  // timeframe: bajo el valor y dentro del texto accesible; en blanco no se pinta
+  // timeframe: under the value and inside the accessible text; blank is not painted
   assert.equal(k.timeframe, '')
   assert.equal(k.ariaLabel, 'Occ, 53 %, vs LW')
   const t = metricOf({ title: 'Revenue', value: '12.4k', unit: '€', timeframe: ' Last 7 days ', trendLabel: '+8%', description: 'Gross' })
@@ -931,13 +940,13 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.deepEqual(gridTrackWeights('62% 38%'), [62, 38], 'las zonas de @Zones viajan en %')
   assert.deepEqual(gridTrackWeights('repeat(auto-fill, minmax(16rem, 1fr))'), [], 'auto-fill: lo decide el ancho, se apila')
   assert.deepEqual(gridColClasses('64fr 36fr', [], 2).map((c) => c.match(/oj-md-(\d+)/)[1]), ['8', '4'])
-  // span 2 + span 2 en 3 pistas: el segundo no cabe → fila nueva
+  // span 2 + span 2 in 3 tracks: the second does not fit → new row
   assert.deepEqual(gridColClasses('1fr 1fr 1fr', [2, 2, 1], 3).map((c) => c.match(/oj-md-(\d+)/)[1]), ['8', '8', '4'])
   assert.equal(gridColClasses('1fr', [], 2), null)
   assert.match(panelColClass(2, 3), /oj-md-8/)
 })
 
-// ── P1 #12 calendario: mes, semana, día, lista; celdas por fecha; fechas que actúan ─────────
+// ── P1 #12 calendar: month, week, day, list; cells per date; dates that act ──────────────────
 const calWire = {
   type: 'Calendar', month: '2026-10-28', view: 'month', views: ['month', 'week', 'day', 'list'], dayActionId: 'openCalendarDay',
   days: [{ date: '2026-10-30', label: 'Avail 3', tone: 'danger' }],
@@ -987,7 +996,7 @@ test('calendario: la plantilla pinta las vistas por data-cal-shown, con oj-butto
   assert.match(webApp('resources/css/app.css'), /\.mateu-cal\[data-cal-shown="week"\] \.mateu-cal-view\[data-for="week"\]/)
 })
 
-// ── P1 #17 campana de notificaciones y toasts con deshacer ───────────────────────────────────
+// ── P1 #17 notification bell and toasts with undo ────────────────────────────────────────────
 test('campana: la lista de la respuesta Data, no leídas en negrita, insignia y etiqueta accesible', () => {
   const inc = { fragments: [{ targetComponentId: '', data: { _notifications: [
     { id: 'vip', title: 'VIP arriving', text: 'Room 106', route: '/bookings/reservation', unread: true, when: '08:12' },
@@ -1036,7 +1045,7 @@ test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain;
   assert.match(webApp('resources/js/mateu-bridge.js'), /slot', 'detail'/)
 })
 
-// ── P1 #16 refresco periódico (OnLoad con espera + OnSuccess) ────────────────────────────────
+// ── P1 #16 periodic refresh (OnLoad with delay + OnSuccess) ──────────────────────────────────
 test('polling: los OnLoad con espera se programan (no se lanzan ya) y cada éxito programa la siguiente vuelta', () => {
   const pending = []
   const timer = (fn, ms) => { pending.push({ fn, ms }); return pending.length }
@@ -1054,13 +1063,13 @@ test('polling: los OnLoad con espera se programan (no se lanzan ya) y cada éxit
   assert.equal(pending[0].ms, 10000)
   pending[0].fn()
   assert.deepEqual(ran, [['refreshRooms', true]])
-  // la vuelta terminó bien → la siguiente
+  // the round finished fine → the next one
   assert.equal(actionSucceeded(host, 'refreshRooms', timer), 1)
   assert.equal(pending.length, 2)
-  // otra acción no reprograma nada; otra pantalla tampoco
+  // another action reschedules nothing; another screen neither
   assert.equal(actionSucceeded(host, 'save', timer), 0)
   assert.equal(actionSucceeded({ tree: { serverSideType: 'Other', triggers: host.tree.triggers } }, 'refreshRooms', timer), 0)
-  // se navega a otra pantalla: lo programado para la anterior vence sin ejecutarse
+  // navigating to another screen: what was scheduled for the previous one expires without running
   startPolling({ tree: { serverSideType: 'Dashboard', triggers: [] } }, timer)
   pending[1].fn()
   assert.equal(ran.length, 1, 'una pantalla que ya no se ve deja de preguntar')
@@ -1077,7 +1086,7 @@ test('polling: dos éxitos seguidos del mismo trigger dejan UNA vuelta pendiente
   ] } }
   startPolling(host, timer)
   actionSucceeded(host, 'search', timer)
-  actionSucceeded(host, 'search', timer) // el OnLoad relanzado al repintar el host
+  actionSucceeded(host, 'search', timer) // the OnLoad fired again when the host is repainted
   pending.forEach((p) => p.fn())
   assert.deepEqual(ran, ['search'], 'sólo la última vuelta programada corre')
   setPollingRunner(null)
@@ -1089,7 +1098,7 @@ test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxi
   assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) \(isErrorAnswer\(inc\) \? actionFailed : actionSucceeded\)\(source, actionId\)/)
 })
 
-// ── P1 #15 atajos y teclas de acceso ─────────────────────────────────────────────────────────
+// ── P1 #15 shortcuts and access keys ─────────────────────────────────────────────────────────
 test('teclas de acceso: iniciales primero, sin repetir, saltando las reservadas; luego letras y cifras', () => {
   assert.deepEqual(assignAccessKeys(['Reservations', 'Room diary', 'Property availability', 'New reservation'], ['n']), ['r', 'd', 'p', 'e'])
   assert.deepEqual(assignAccessKeys(['aa', 'a', 'a']), ['a', '1', '2'])
@@ -1133,7 +1142,7 @@ test('atajos: sólo las acciones de la pantalla con modificador; las pestañas l
   assert.match(webApp('resources/js/mateu-bridge.js'), /setShortcutContext\(reg\.contexts\[HOST_ID\]\)/)
 })
 
-// ── P1 #18 ventanas flotantes al pasar el ratón ──────────────────────────────────────────────
+// ── P1 #18 floating windows on mouse hover ───────────────────────────────────────────────────
 test('popover: hover → texto para la ventana flotante; click → al pulsar; lo envuelto, como disparador', () => {
   const pop = (trigger) => node({ type: 'Popover', trigger,
     wrapped: node({ type: 'Text', text: 'Rate information' }),
@@ -1177,7 +1186,7 @@ test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigabl
 })
 
 test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas con clic propio', () => {
-  // las columnas de display (y los editores inline) llevan la clase que el chain respeta
+  // display columns (and inline editors) carry the class the chain respects
   assert.equal(isDisplayColumn({ id: 'name', actionId: 'view' }), false, 'la columna que abre no es de display')
   assert.equal(isDisplayColumn({ id: 'city', dataType: 'string' }), false)
   assert.equal(isDisplayColumn({ id: 's', dataType: 'status' }), false)
@@ -1195,7 +1204,7 @@ test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas c
   assert.doesNotMatch(cls('name'), new RegExp(NO_OPEN_CELL_CLASS))
   assert.match(cls('stock'), new RegExp(NO_OPEN_CELL_CLASS), 'la celda editable no abre')
   assert.match(cls('ops'), new RegExp(NO_OPEN_CELL_CLASS))
-  // el origen del ojRowAction: una celda normal es de la fila; un control o una celda de display no
+  // the origin of ojRowAction: a normal cell belongs to the row; a control or a display cell does not
   const at = (hits) => ({ closest: (sel) => hits.some((h) => sel.split(',').map((x) => x.trim()).includes(h)) ? {} : null })
   assert.equal(rowActionIsRows(at([])), true, 'texto de una celda normal')
   assert.equal(rowActionIsRows(at(['.' + NO_OPEN_CELL_CLASS])), false, 'celda de display / editable')
@@ -1203,13 +1212,13 @@ test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas c
   assert.equal(rowActionIsRows(at(['a'])), false, 'un enlace')
   assert.equal(rowActionIsRows(at(['[role="checkbox"]'])), false, 'la casilla de selección')
   assert.equal(rowActionIsRows(null), true, 'sin origen (Enter en la fila): es de la fila')
-  // una tabla de TRABAJO (inline editing) ya no corta el clic de fila entero: sólo sus editores
+  // a WORK table (inline editing) no longer cuts the whole row click: only its editors
   const chain = webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js')
   assert.match(chain, /bridge\.rowActionIsRows\(origin\)/)
   assert.doesNotMatch(chain, /listing\.editable\)/)
 })
 
-// ── P1 #14 arrastrar filas a un destino (@DragRows + DropZone) ───────────────────────────────
+// ── P1 #14 drag rows to a destination (@DragRows + DropZone) ───────────────────────────────
 test('arrastre: el tipo viaja como MIME; los ids se leen de filas, {data,key} o ids sueltos', () => {
   assert.equal(dragMimeOf('charge'), 'application/x-mateu-charge')
   assert.equal(dragMimeOf('Folio Charge'), 'application/x-mateu-folio-charge')
@@ -1239,7 +1248,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(page, /dnd\.drag\.rows\.data-types="\[\[ \$application\.variables\.mateuListing\.dragTypes \|\| \[\] \]\]"/)
   assert.match(page, /mateuListing\.headerBlocks/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDragAndDrop\(\)/)
-  // una acción que repinta el host vuelve a pedir su carga OnLoad (el listado no queda vacío)
+  // an action that repaints the host requests its OnLoad load again (the listing is not left empty)
   assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /bridge\.hostReRendered\(lastIncrement, host, hostNow\)/)
 })
 
@@ -1403,9 +1412,9 @@ test('P2 #20 imagen, avatares y galería: <img> del backend, oj-avatar con +N, o
   assert.ok(gallery.isGallery)
   assert.deepEqual(gallery.images.map((i) => i.src), ['https://x/a.png', 'https://x/b.png'])
   assert.equal(gallery.looping, 'page')
-  // un carrusel de contenido arbitrario sigue apilando
+  // a carousel of arbitrary content still stacks
   assert.ok(atomsOf(node({ type: 'CarouselLayout' }, [node({ type: 'Text', text: 'slide' })])).some((a) => a.isText))
-  // el título de un Card fluido es un componente Text
+  // the title of a fluent Card is a Text component
   const cardAtoms = atomsOf(node({ type: 'Card', title: node({ type: 'Text', text: 'Suite' }), content: node({ type: 'Image', src: 'https://x/c.png' }) }))
   assert.equal(cardAtoms[0].text, 'Suite')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /<oj-film-strip class="mateu-atom-gallery/)
@@ -1428,7 +1437,7 @@ test('P2 #22 tiles reordenables: el orden guardado del usuario manda; cada bloqu
   const blocks = hostContentOf({ tree: grid(true), state: {}, data: {} }, []) || []
   assert.deepEqual(blocks.map((b) => b.tileKey), ['departures', 'arrivals'])
   assert.ok(blocks.every((b) => b.tileScope === tileScopeOf('dash')))
-  // sin reorderable: el orden del servidor y sin marcas
+  // without reorderable: the server's order and no marks
   assert.ok((hostContentOf({ tree: grid(false), state: {}, data: {} }, []) || []).every((b) => !b.tileKey))
   delete globalThis.localStorage
   const page = webApp('flows/main/pages/main-start-page.html')
@@ -1449,16 +1458,16 @@ test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador'
   assert.equal(spec.markerActionId, 'openProperty')
   assert.deepEqual(spec.markers.map((m) => m.id), ['PMI01', 'PMI03'])
   assert.equal(spec.markers[1].color, '')
-  // altura por defecto, como el <mateu-map> del web
+  // default height, like the web's <mateu-map>
   assert.equal(mapHeightOf(''), '25rem')
   assert.equal(mapAtomOf({ markers: [] }, 'm', 'width: 100%').mapStyle.height, '25rem')
-  // la vista: posición explícita > marcadores (uno centrado, varios encuadrados) > mundo
+  // the view: explicit position > markers (one centred, several framed) > world
   assert.deepEqual(mapViewPlanOf({ position: '40.4, -3.7', zoom: '9', markers: [palma, port] }), { kind: 'center', center: { lat: 40.4, lon: -3.7 }, zoom: 9 })
   assert.deepEqual(mapViewPlanOf({ markers: [palma] }), { kind: 'center', center: { lat: 39.5715, lon: 2.649 }, zoom: SINGLE_MARKER_ZOOM })
   assert.deepEqual(mapViewPlanOf(spec), { kind: 'fit', min: { lat: 39.558, lon: 2.649 }, max: { lat: 39.5715, lon: 2.6735 } })
   assert.deepEqual(mapViewPlanOf({ markers: [] }), { kind: 'center', center: { lat: 0, lon: 0 }, zoom: 3 })
   assert.deepEqual(mapMarkerParams('PMI03'), { _markerId: 'PMI03' })
-  // teselas: sin tileUrl en el wire, OSM con su atribución; con tileUrl, la del Map
+  // tiles: without tileUrl on the wire, OSM with its attribution; with tileUrl, the Map's
   assert.equal(spec.tileUrl, '')
   assert.equal(tileLayerOf(spec).url, OSM_TILES)
   assert.match(tileLayerOf(spec).options.attribution, /OpenStreetMap/)
@@ -1466,7 +1475,7 @@ test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador'
   assert.equal(custom.tileUrl, 'https://{s}.tiles.example.com/{z}/{x}/{y}.png')
   assert.deepEqual(tileLayerOf(custom), { url: 'https://{s}.tiles.example.com/{z}/{x}/{y}.png', options: { maxZoom: 19, attribution: '© Example' } })
   assert.deepEqual(tileLayerOf({ tileUrl: 'https://t.example/{z}/{x}/{y}.png' }).options, { maxZoom: 19 })
-  // cableado: plantilla con el contenedor, shell que lo instala
+  // wiring: template with the container, shell that installs it
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /:data-map-spec="\[\[ \$current\.data\.mapSpec \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installMaps\(\)/)

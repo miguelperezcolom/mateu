@@ -2,6 +2,13 @@
 title: "App"
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 The full application shell record. Use it to define the top-level structure of a Mateu application, including navigation menu, layout variant, header, favicon, and home route.
 
 ```java

@@ -1,8 +1,13 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { LitElement, render } from 'lit'
-import { renderClientSideComponent, updateMedata, updateStyle } from './renderClientSideComponent'
-import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
+import { readFileSync, existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { RENDERERS, renderClientSideComponent, updateMedata, updateStyle } from './renderClientSideComponent'
+import {
+    ComponentMetadataType, DEPRECATED_WIRE_TYPES, DRAWN_BY_THEIR_PARENT,
+} from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { ComponentRenderer, componentRenderer } from './ComponentRenderer'
 import { BasicComponentRenderer } from './BasicComponentRenderer'
@@ -18,9 +23,29 @@ afterAll(() => componentRenderer.set({} as ComponentRenderer))
  * overrides a rule writes (`<id>.hidden`, `<id>.disabled`) must reach what is drawn.
  */
 
-// Types the shared switch does not draw on its own: they are rendered by their parent component
-// (a form row by its form layout, a grid column by its grid, a stepper/result by the page).
-const DRAWN_BY_THEIR_PARENT = new Set(['Result', 'Stepper', 'FormRow', 'FormItem', 'GridColumn', 'GridGroupColumn'])
+// Types the shared switch does not draw on its own (their parent does), and wire types no server
+// produces (deprecated): both are declared next to the enum, so the RENDERERS type agrees.
+const NOT_IN_THE_SWITCH = new Set<string>([...DRAWN_BY_THEIR_PARENT, ...DEPRECATED_WIRE_TYPES])
+
+// NOT a wire type: a client-only alias kept for hand-built components (see the enum).
+const CLIENT_ONLY = new Set<string>([ComponentMetadataType.Table])
+
+/** The wire's component types, read from the generated wire-schema.json (backend/shared/uidl). */
+const wire = (() => {
+    let dir = dirname(fileURLToPath(import.meta.url))
+    while (!existsSync(join(dir, 'backend/shared/uidl/wire-schema.json'))) {
+        const up = dirname(dir)
+        if (up === dir) throw new Error('wire-schema.json not found above ' + fileURLToPath(import.meta.url))
+        dir = up
+    }
+    const defs = JSON.parse(readFileSync(join(dir, 'backend/shared/uidl/wire-schema.json'), 'utf8')).$defs
+    const all = new Map<string, boolean>()
+    for (const ref of defs.ComponentMetadataDto.oneOf as { $ref: string }[]) {
+        const def = defs[ref.$ref.split('/').pop()!]
+        all.set(def.properties.type.const, def.deprecated === true)
+    }
+    return all
+})()
 
 // The minimum some renderers need to have something to draw.
 const MINIMAL: Record<string, Record<string, unknown>> = {
@@ -48,11 +73,38 @@ afterEach(() => {
     vi.restoreAllMocks()
 })
 
+describe('wire-type parity (wire-schema.json)', () => {
+    it('the enum names exactly the wire component types (plus the client-only alias)', () => {
+        const enumNames = new Set<string>(Object.values(ComponentMetadataType))
+        expect([...wire.keys()].filter(t => !enumNames.has(t)).sort()).toEqual([])
+        expect([...enumNames].filter(t => !wire.has(t) && !CLIENT_ONLY.has(t)).sort()).toEqual([])
+    })
+
+    it('every wire type a server produces has a renderer, or is drawn by its parent', () => {
+        const rendered = new Set(Object.keys(RENDERERS))
+        const missing = [...wire.entries()]
+            .filter(([type, deprecated]) => !deprecated && !rendered.has(type)
+                && !(DRAWN_BY_THEIR_PARENT as readonly string[]).includes(type))
+            .map(([type]) => type)
+        expect(missing).toEqual([])
+    })
+
+    it('the deprecated set is exactly what the schema marks deprecated', () => {
+        const deprecated = [...wire.entries()].filter(([, d]) => d).map(([t]) => t).sort()
+        expect(deprecated).toEqual([...DEPRECATED_WIRE_TYPES].sort())
+    })
+
+    it('RENDERERS has no key that is not a wire type', () => {
+        const strangers = Object.keys(RENDERERS).filter(t => !wire.has(t) && !CLIENT_ONLY.has(t))
+        expect(strangers).toEqual([])
+    })
+})
+
 describe('the client-side switch', () => {
     it('draws every type it lists with its own renderer', () => {
         const unknown: string[] = []
         for (const type of Object.values(ComponentMetadataType)) {
-            if (DRAWN_BY_THEIR_PARENT.has(type)) continue
+            if (NOT_IN_THE_SWITCH.has(type)) continue
             const target = draw({ id: 'x', type: ComponentType.ClientSide, children: CHILDREN[type],
                 metadata: { type, ...MINIMAL[type] } })
             if (target.innerHTML.includes('Unknown metadata type')) unknown.push(type)

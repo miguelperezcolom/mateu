@@ -11,6 +11,13 @@ Show a set of tasks with their completion state and overall progress — an onbo
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Checklist` component: an optional `title` and a list of `ChecklistItem`s (label, `done` flag, optional `actionId`). The header shows `done / total` and a progress bar; toggling a checkbox flips it locally and, when the item has an `actionId`, dispatches the standard `action-requested` event (with the item and its new state) so a developer method can persist it.
 
 ```java

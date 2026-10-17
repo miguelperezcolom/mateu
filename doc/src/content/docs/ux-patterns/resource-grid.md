@@ -11,6 +11,13 @@ Let the operator assign a physical resource — a room, a table, a berth, a time
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `ResourceGrid` component: a component-level `actionId`, a fixed `columns` count (0/absent → responsive auto-fill), an optional `recommendedLabel` (default "Recommended"), and a list of `ResourceItem`s. Each card shows a big `title`, a muted `subtitle`, a `statusLabel` chip (`statusColor` from the badge palette) and an optional colored `note` line. `disabled(true)` greys the card out and blocks clicks; `recommended(true)` adds an accent border plus a floating mini-tag; `selected(true)` marks the current choice.
 
 ```java

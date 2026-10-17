@@ -1,6 +1,6 @@
-/* Two-way (Fases 3–5): cada value-changed acumula {fieldId: valor} en el borrador — el del
- * DRAWER si hay uno abierto, el del form del host si no. Solo ediciones del usuario
- * (updatedFrom internal): el set inicial del binding también dispara value-changed. */
+/* Two-way (Phases 3–5): each value-changed accumulates {fieldId: value} in the draft — the
+ * DRAWER's if one is open, the host form's otherwise. Only user edits
+ * (updatedFrom internal): the binding's initial set also fires value-changed. */
 
 define([
   'vb/action/actionChain',
@@ -31,13 +31,13 @@ define([
       if (!fieldId) {
         return;
       }
-      // un campo marcado como obligatorio vacío deja de estarlo en cuanto se escribe en él
+      // a field flagged as required-but-empty stops being so as soon as something is typed in it
       if (event && event.target) {
         bridge.clearFieldError(event.target);
       }
       context.$application.variables.mateuDirty = true;
-      // el formulario de un diálogo (el modal de un overlay Dialog) escribe en el borrador del
-      // overlay, como el del drawer: es el estado que viaja con sus acciones
+      // a dialog's form (the modal of a Dialog overlay) writes to the overlay's draft,
+      // like the drawer's: it is the state that travels with its actions
       if ($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) {
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
         // an Amount keeps its currency: the money input edits only the number
@@ -49,10 +49,10 @@ define([
         // an Amount keeps its currency: the money input edits only the number
         draft[fieldId] = bridge.committedValueOf(fieldId in draft ? draft[fieldId] : hostState[fieldId], detail.value);
         $page.variables.mateuDraft = draft;
-        // live reload (modo dev): la shell repone lo tecleado al repintar esta pantalla
+        // live reload (dev mode): the shell restores what was typed when repainting this screen
         bridge.noteLiveDraft(window.__mateuLoadedFull, draft);
-        // @Trigger(OnValueChange): el campo cambiado dispara su acción (el borrador ya lleva el valor
-        // nuevo, así que el servidor recalcula con él —llegada + noches → salida— sin guardar)
+        // @Trigger(OnValueChange): the changed field fires its action (the draft already carries the new
+        // value, so the server recalculates with it —arrival + nights → departure— without saving)
         const vcHost = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID];
         const vcAction = bridge.valueChangeActionOf(vcHost, fieldId,
           Object.assign({}, (vcHost && vcHost.state) || {}, $page.variables.mateuDraft));

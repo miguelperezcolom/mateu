@@ -158,7 +158,7 @@ public static class DocumentDownloads
         return MediaType.IsMatch(trimmed) ? trimmed : "application/octet-stream";
     }
 
-    private static bool IsActive(string mediaType)
+    internal static bool IsActive(string mediaType)
     {
         var b = mediaType.Split(';')[0].Trim().ToLowerInvariant();
         return b == "text/html" || b.Contains("xml") || b.Contains("svg") || b.Contains("javascript") || b == "text/xsl";
@@ -191,7 +191,10 @@ public static class DocumentCommands
         var filename = DocumentDownloads.SafeFilename(document.Filename);
         var mediaType = DocumentDownloads.SafeMediaType(document.MediaType);
         var disposition = document.Disposition == DocumentDisposition.Inline ? "inline" : "attachment";
-        if (document.Content is { } bytes && bytes.Length <= (inlineMaxBytes ?? DocumentStore.InlineMaxBytes))
+        // an ACTIVE type (HTML, SVG, XML, script) is never inlined: the client would open it as a
+        // blob of the app's own origin; parked, it is served sandboxed
+        if (document.Content is { } bytes && bytes.Length <= (inlineMaxBytes ?? DocumentStore.InlineMaxBytes)
+            && !DocumentDownloads.IsActive(mediaType))
             return new FileDownloadDto(filename, mediaType, Convert.ToBase64String(bytes), null, disposition, document.Print);
         var token = (store ?? DocumentStore.Shared).Park(document);
         return new FileDownloadDto(filename, mediaType, null, UrlFor(baseUrl, token), disposition, document.Print);

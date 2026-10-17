@@ -64,11 +64,25 @@ describe('classifyRequestFailure', () => {
         expect(en.message).not.toMatch(/session/i)
         vi.stubGlobal('document', { documentElement: { lang: 'es' } })
         try {
-            expect(classifyRequestFailure({ response: { status: 403 } }).message)
+            expect(classifyRequestFailure({ response: { status: 403, data: 'Forbidden' } }).message)
                 .toBe('No tienes permiso para esta acción.')
             expect(classifyRequestFailure({ response: { status: 401 } }).kind).toBe('unauthorized')
         } finally {
             vi.unstubAllGlobals()
+        }
+    })
+
+    it('MINOR 1: a 403 Mateu did not send (CSRF, the framework\'s security, a proxy) says so', () => {
+        // Mateu's own refusal: the Java adapters' plain "Forbidden", the ports' increment
+        expect(classifyRequestFailure({ response: { status: 403, data: 'Forbidden' } }).message).toBe('You are not allowed to do this.')
+        expect(classifyRequestFailure({ response: { status: 403, data: { messages: [{ text: 'Forbidden' }] } } }).message)
+            .toBe('You are not allowed to do this.')
+        // Spring Security's CSRF 403, an empty body, a proxy's HTML page
+        for (const data of [{ timestamp: 'x', status: 403, error: 'Forbidden', path: '/mateu/v3/sync/x' }, '', undefined, '<html>403</html>']) {
+            const f = classifyRequestFailure({ response: { status: 403, data } })
+            expect(f.kind).toBe('forbidden')
+            expect(f.message).toMatch(/security layer refused/)
+            expect(f.message).not.toMatch(/not allowed|session/i)
         }
     })
 

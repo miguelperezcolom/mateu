@@ -16,6 +16,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     components as fluent,
+    ActionRequest,
     Document,
     UserFacingException,
     FlowStep,
@@ -34,15 +35,15 @@ class ActionHandlerMixin(MixinBase):
     def run_action(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         """Runs a view action. The action id comes from the wire, so it only reaches a method
         DECLARED as an action (see :mod:`mateu_core.action_guard`) and only when the caller
-        passes its access gates; anything else is "Action not found" / 403."""
+        passes its access gates; anything else answers 403."""
         fn = action_guard.resolve_action(
             type_, rq.action_id,
             lambda: action_guard.advertised_ids(self.mapper, type_, instance, layout_override),
         )
         if fn is None:
-            return self.error(f"Action not found: {rq.action_id}")
+            action_guard.no_such_action(type_, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
-        if getattr(fn, "__mateu_button__", None):
+        if getattr(fn, "__mateu_button__", None) or getattr(fn, "__mateu_toolbar__", None):
             # a @button / @toolbar is advertised validation_required: the client checks the
             # form's constraints first, and the server does not take its word for it
             from ..validation import VALIDATION_TITLE, describe, form_violations
@@ -82,7 +83,11 @@ class ActionHandlerMixin(MixinBase):
             # The action request itself can be injected (the port's analogue of Java's
             # HttpRequest injection) — e.g. an undoable toast's undo action reads its
             # undoParameters from request.parameters.
-            if ann is RunActionRq or (ann is inspect.Parameter.empty and p.name == "request"):
+            if (
+                ann is RunActionRq
+                or ann is ActionRequest
+                or (ann is inspect.Parameter.empty and p.name == "request")
+            ):
                 args.append(rq)
             elif isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
                 row = ann()

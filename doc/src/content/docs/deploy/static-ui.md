@@ -3,8 +3,8 @@ title: A 100 % static UI — no backend of your own
 description: Serve a Mateu UI as plain files — definitions read by the browser, data straight from a REST API — the way a cloud console like OCI's is built. How to author it, build it, host it, and what cannot be static yet.
 ---
 
-**Status:** ✅ Works today for listings, record pages, linked child listings and REST writes (Vaadin
-renderer). Proven end to end by `demo/demo-static-vcn` and its e2e. Gaps are listed
+**Status:** ✅ Works today for listings, record pages, linked child listings and REST writes, on the
+Vaadin and the Redwood renderer (Redwood bundles are always pre-rendered — see below). Proven end to end by `demo/demo-static-vcn` and its e2e. Gaps are listed
 [at the end](#what-is-not-possible-statically-yet).
 
 A Mateu UI does not need a Mateu server. The model can travel to the browser as data, and every
@@ -46,11 +46,12 @@ usual meaning of the word (available/active → success, provisioning/updating �
 failed/terminated → error).
 
 Inner routes are data: `@UI("")` declares the mount (the app shell); `specs/ui/routes.yaml` binds the
-routes inside it — to a Java view model (`viewModel:`) or to a definition only (`definition:`).
+routes inside it — to a Java view model (`viewModel:`) or to a definition only (`layout:`; the older
+key `definition:` is a deprecated alias).
 
 ## Two ways to build it
 
-**From Java** — `mateu:bundle` boots your classes at build time and **pre-renders** every route into
+**From Java** — the `bundle` goal (`mvn mateu-bundle:bundle`) boots your classes at build time and **pre-renders** every route into
 `manifest.json` (`:id` routes as templates, filled in the browser):
 
 ```xml
@@ -105,7 +106,7 @@ know:
 **From the visual editor**, **Export** writes a `manifest.json` for the project's renderer. For a
 Redwood project it adds the pre-rendered entries the Redwood renderer reads. They are expanded in the
 browser with the same runtime as Play. Put the manifest next to the Redwood static app, whose
-`index.html` names it with `<mateu-ui bundleUrl="/manifest.json">`. Letting `mateu-bundle:bundle`
+`index.html` names it with `<mateu-ui bundleUrl="./manifest.json">`. Letting `mateu-bundle:bundle`
 write the whole site does that for you.
 
 ## The static-safety report
@@ -148,8 +149,10 @@ backend at `baseUrl`. That is a legitimate deployment too.
 ## Auth, and what it can and cannot do
 
 - **Who the user is** comes from your identity provider in the browser. Register a provider with
-  `registerExternalAuthProvider` (libs/mateu) to add an `Authorization` header to every direct call;
-  the API validates the token.
+  `registerExternalAuthProvider` (libs/mateu) to add an `Authorization` header to the direct calls;
+  the API validates the token. The provider is asked for every direct call, so it must decide by
+  `url` and answer `{}` for an endpoint the token is not for (see
+  [client-side auth](/java-ui-definition/annotations/rest-options/#client-side-auth-for-the-direct-path-registerexternalauthprovider)).
 - **Authorization lives in the API.** UI gating in a static bundle is advisory — the files are
   public, and a hidden button is not a permission. `@EyesOnly` screens are refused by the static
   check on purpose (a bundle also reveals structure).
@@ -176,19 +179,19 @@ The e2e fails if anything calls `/mateu/v3/**`: there is no Mateu backend in the
 The demo covers the read-navigate-delete loop of a console. What MAUI does beyond it, and Mateu does
 not yet do without a server, is on the roadmap:
 
-- **Expressions** (S1) — `${…}` is JavaScript evaluated with `new Function` (needs CSP
-  `unsafe-eval`), with no `route`/`flags`/`t()` scopes; a safe, symmetric expression language is S1.
+- **Expression scopes** (S1) — `${…}` runs in Mateu's own sandboxed evaluator (no `new Function`,
+  so a CSP without `unsafe-eval` is fine — see [Security](/java-user-manual/advanced/security/)); it
+  sees `state`, `data`, `appState`, `appData` and `component`, but no `route`/`flags` scopes.
 - **Named data slots and `bind`** (S1) — a source's result goes into the page state; there is no
   `data.<name>` with loading/error status, and nothing re-fetches when a dependency changes.
-- **Server-side paging and sorting of REST rows** (S1) — client paging works over the whole fetched
-  collection; offset paging / prefetch-all and client sorting of REST rows are missing.
 - **A declared status mapping** (S1) — `@Status(mappings)` is applied on the server only; REST rows
   use the built-in word table above.
 - **Action chains** (S2) — `onSuccess`/`onError` steps, `If`/`Set`/`Refresh(target)`, overlays
   opened with arguments, polling (`OnTimer`).
-- **Editable forms in the expander** (S3) — the YAML path expands read-only record pages; editable
-  forms with validators (and `layoutDelta`) are pre-rendered from Java only. Routed tabs (P1) and
-  client i18n (`t()`, catalogues) too.
-- **Redwood** (S4) — its bundle mode reads pre-rendered entries only (with `contentJson` under an
-  app shell): no raw definitions (specs mode), source catalogue or `restAction` yet.
+- **Validators beyond `required` in the expander** (S3) — the client-side expander gives editable
+  fields their required check (the same condition and message the server emits), but `min`/`max`/
+  `pattern` validators and `layoutDelta` are pre-rendered from Java only. Routed tabs (P1) too.
+- **Redwood raw definitions** (S4) — Redwood's bundle mode reads pre-rendered entries only (with
+  `contentJson` under an app shell), so `specsOnly` does not apply to it. It does read the source
+  catalogue and translations from the manifest and runs `restAction`s in the browser.
 - **Auth** (S4) — no built-in OIDC/PKCE client; bring your own provider.

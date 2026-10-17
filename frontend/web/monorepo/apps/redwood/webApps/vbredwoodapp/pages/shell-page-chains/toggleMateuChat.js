@@ -1,12 +1,12 @@
-/* El CHAT del agente (botón de la cabecera, distinto del FAB de Ask Oracle): abre/cierra su drawer izquierdo.
- * Al abrir, foco al input y Enter→Enviar (imperativo: el on-keydown declarativo de VB no engancha
- * el keydown del oj-input-text); al cerrar, el foco vuelve al botón que lo abrió. */
+/* The agent CHAT (header button, distinct from the Ask Oracle FAB): opens/closes its left drawer.
+ * On open, focus to the input and Enter→Send (imperative: VB's declarative on-keydown does not hook
+ * oj-input-text's keydown); on close, the focus goes back to the button that opened it. */
 define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge'], (ActionChain, Actions, bridge) => {
   'use strict';
 
-  // en estrecho el drawer es OVERLAY y JET, al acabar de abrirlo (~0,5 s), lleva el foco al
-  // primer tabulable del panel (la ✕). Se vuelve a poner en el campo de escribir mientras el foco
-  // siga dentro del panel en otro sitio — si el usuario ya se ha ido a otra parte, no se le quita.
+  // when narrow the drawer is an OVERLAY and JET, once it finishes opening it (~0.5 s), moves the focus to the
+  // panel's first tabbable (the ✕). It is put back in the typing field as long as the focus
+  // is still elsewhere inside the panel — if the user has already gone somewhere else, it is not taken away.
   const focusInput = () => {
     const el = document.querySelector('#mateuChatInput input');
     if (el) el.focus();
@@ -42,8 +42,8 @@ define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge
     if (toggle) toggle.focus();
   }, 50);
 
-  // el estado del botón de la cabecera para tecnologías de apoyo: oj-button no expone uno propio,
-  // así que se marca su <button> interno (el velo de «abierto» lo pone la clase mateu-chat-open)
+  // the header button's state for assistive technologies: oj-button does not expose one of its own,
+  // so its inner <button> is marked (the «open» veil is set by the mateu-chat-open class)
   const markToggle = (open) => {
     const toggle = document.querySelector('#mateuChatToggle button');
     if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -53,14 +53,14 @@ define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.open  sin valor = alternar (el botón abre y cierra)
+     * @param {boolean} params.open  no value = toggle (the button opens and closes)
      */
     async run(context, { open }) {
       const { $application } = context;
       const next = open == null ? !$application.variables.mateuChatOpen : !!open;
       if (next === $application.variables.mateuChatOpen) return;
       $application.variables.mateuChatOpen = next;
-      // el micrófono solo donde el navegador reconoce la voz (no en Firefox)
+      // the microphone only where the browser recognizes speech (not in Firefox)
       if (next) $application.variables.mateuChatMicAvailable = !!bridge.speechRecognitionCtor(window);
       markToggle(next);
       if (next) focusAndWireEnter(); else focusToggle();

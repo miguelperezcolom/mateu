@@ -151,4 +151,32 @@ class IdentityResolverTest {
   void noRequestIsNobody() {
     assertThat(IdentityResolver.resolve(null)).isEqualTo(CallerIdentity.anonymous());
   }
+
+  /** The security guide promises a WARN at startup when nothing authenticates callers. */
+  @Test
+  void startingWithoutASecurityModuleWarnsOnce() throws Exception {
+    var warned = IdentityResolver.class.getDeclaredField("WARNED");
+    warned.setAccessible(true);
+    ((java.util.concurrent.atomic.AtomicBoolean) warned.get(null)).set(false);
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(IdentityResolver.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      IdentityResolver.warnOnStartup(true, "add it"); // a security module: nothing to say
+      IdentityResolver.warnOnStartup(false, "add Spring Security");
+      IdentityResolver.warnOnStartup(false, "add Spring Security");
+      assertThat(logs.list)
+          .singleElement()
+          .satisfies(
+              e -> {
+                assertThat(e.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
+                assertThat(e.getFormattedMessage()).contains("add Spring Security");
+              });
+    } finally {
+      logger.detachAppender(logs);
+    }
+  }
 }

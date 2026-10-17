@@ -1,7 +1,7 @@
-/* Dispatcher de acciones de los bloques display: los átomos de la isla madre despachan
- * contra su contexto (runMateuIslandAction) y los fusionados desde la isla ANIDADA
- * (marcados fromNested en la proyección) contra el contexto anidado. Un botón con RouteLink
- * (route) NAVEGA (bridge.blockClickOf). */
+/* Dispatcher of the display blocks' actions: the atoms of the parent island dispatch
+ * against its context (runMateuIslandAction) and those merged from the NESTED island
+ * (marked fromNested in the projection) against the nested context. A button with a RouteLink
+ * (route) NAVIGATES (bridge.blockClickOf). */
 
 define([
   'vb/action/actionChain',

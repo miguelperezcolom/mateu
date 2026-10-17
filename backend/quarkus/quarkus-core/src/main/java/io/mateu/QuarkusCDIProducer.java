@@ -34,7 +34,18 @@ public class QuarkusCDIProducer {
    */
   @Inject Instance<QuarkusBeanProvider> beanProvider;
 
+  /** Mateu's own settings ({@code mateu.actions.strict}…) read from the Quarkus configuration. */
+  private AutoCloseable settings = () -> {};
+
   void eagerlyInitStaticFactories(@Observes StartupEvent ev) {
+    // application.properties / profiles / env: every mateu.* key core reads (MateuSettings) is
+    // honoured like any Quarkus property
+    settings =
+        io.mateu.core.infra.MateuSettings.register(
+            key ->
+                org.eclipse.microprofile.config.ConfigProvider.getConfig()
+                    .getOptionalValue(key, String.class)
+                    .orElse(null));
     instanceFactory.get().toString();
     beanProvider.get().toString();
     // warns, once, when nothing will authenticate callers (no security module, no resolver)
@@ -42,6 +53,10 @@ public class QuarkusCDIProducer {
         io.mateu.core.infra.security.IdentityResolver.present(
             "io.quarkus.security.identity.SecurityIdentity"),
         "Add quarkus-oidc or quarkus-smallrye-jwt");
+  }
+
+  void forgetSettings(@Observes io.quarkus.runtime.ShutdownEvent ev) throws Exception {
+    settings.close();
   }
 
   @Produces

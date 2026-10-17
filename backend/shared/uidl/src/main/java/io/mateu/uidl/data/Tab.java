@@ -3,6 +3,11 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/**
+ * One tab of a {@link TabLayout}: a {@code label} (with an optional {@code badge}) and the {@code
+ * content} it shows. {@code active} makes it the tab selected on first render; {@code shortcut}
+ * (e.g. {@code "alt+1"}) selects it from the keyboard.
+ */
 @Builder
 public record Tab(
     String label,

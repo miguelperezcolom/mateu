@@ -20,6 +20,13 @@ Mateu infers the UI control for each field from its Java type. `@Stereotype` ove
 | Class / record (no actions) | Embedded field group (fields rendered inline) |
 | Class / record (with `@Button` / `@Toolbar`) | Subform with its own toolbar and button bar |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 This means a basic form requires no annotations beyond field declarations:
 
 ```java

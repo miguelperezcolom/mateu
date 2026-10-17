@@ -51,8 +51,8 @@ purpose, because a promise nothing checks erodes quietly.
 ## Leaving
 
 - The model is already in your repo — there is nothing to export.
-- `mateu:bundle` renders the declared screens into a static bundle a CDN serves.
-- `mateu:openapi` exports the same declarations as an OpenAPI document.
+- `mateu-bundle:bundle` renders the declared screens into a static bundle a CDN serves.
+- `mateu-bundle:openapi` exports the same declarations as an OpenAPI document.
 - The wire protocol is documented and the renderer contract is public, so a renderer you write
   yourself is a supported path, not a hack.
 

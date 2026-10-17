@@ -1,7 +1,7 @@
-/* Tecleo EN VIVO en un input del host (raw-value): si el host declara un trigger
- * AutoSave (p.ej. buscar-al-teclear del posteo de cargos), cada pulsación actualiza el
- * borrador y re-lanza la acción debounced — sin esperar a Enter/blur. El repintado
- * recrea el input, así que al terminar se devuelve el foco con el cursor al final. */
+/* LIVE typing in a host input (raw-value): if the host declares an AutoSave
+ * trigger (e.g. the search-as-you-type of the charge posting), each keystroke updates the
+ * draft and relaunches the action debounced — without waiting for Enter/blur. The repaint
+ * recreates the input, so at the end the focus is given back with the caret at the end. */
 
 define([
   'vb/action/actionChain',
@@ -14,7 +14,7 @@ define([
 ) => {
   'use strict';
 
-  // token de debounce a nivel de módulo: la última pulsación gana
+  // module-level debounce token: the last keystroke wins
   let debounceToken = 0;
 
   class hostInputTyped extends ActionChain {
@@ -22,8 +22,8 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.fieldId  id del campo Mateu
-     * @param {Object} params.event    rawValueChanged de oj-input-text ({detail: {value}})
+     * @param {string} params.fieldId  id of the Mateu field
+     * @param {Object} params.event    oj-input-text's rawValueChanged ({detail: {value}})
      */
     async run(context, { fieldId, event }) {
       const { $application, $page } = context;
@@ -42,7 +42,7 @@ define([
         ? draft[fieldId]
         : ((host && host.state && host.state[fieldId]) || '');
       if ((previous || '') === (value || '')) {
-        return; // eco del re-render / sin cambio real
+        return; // echo of the re-render / no real change
       }
       draft[fieldId] = value;
       $page.variables.mateuDraft = draft;
@@ -50,13 +50,13 @@ define([
       const token = ++debounceToken;
       await new Promise((resolve) => setTimeout(resolve, auto.debounceMillis));
       if (token !== debounceToken) {
-        return; // llegó otra pulsación después
+        return; // another keystroke arrived afterwards
       }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
         params: { actionId: auto.actionId },
       });
-      // devolver el foco al input recreado (tick para que knockout re-ligue el subárbol)
+      // give the focus back to the recreated input (a tick so knockout re-binds the subtree)
       setTimeout(() => {
         const el = document.querySelector('[data-field-id="' + fieldId + '"]');
         if (!el) return;
@@ -64,7 +64,7 @@ define([
         if (inner) {
           inner.focus();
           const end = (inner.value || '').length;
-          try { inner.setSelectionRange(end, end); } catch (ignored) { /* no aplica */ }
+          try { inner.setSelectionRange(end, end); } catch (ignored) { /* does not apply */ }
         } else if (el.focus) {
           el.focus();
         }

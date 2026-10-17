@@ -13,6 +13,13 @@ Show a single metric at a glance — revenue, active users, churn — as a big n
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Stat` component: a `label`, a big `value` with optional `unit`, a `delta` with a `trend` of `"up"`, `"down"` or `"flat"` (which colors the delta green / red / grey and picks the sparkline color), and a `spark` list of numbers drawn as an inline sparkline. An `actionId` makes the whole tile clickable (drill-in).
 
 ```java

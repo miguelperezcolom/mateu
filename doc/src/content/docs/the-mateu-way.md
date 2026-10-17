@@ -52,6 +52,13 @@ the point: the first version of every screen should be minutes, not days.
 
 ### Collection — `AutoCrud<T>`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 @UI("/products")
 public class Products extends AutoCrud<Product> {

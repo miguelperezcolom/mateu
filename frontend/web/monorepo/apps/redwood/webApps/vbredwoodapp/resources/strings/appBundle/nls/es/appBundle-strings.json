@@ -81,6 +81,7 @@
   "errServerStatus": "El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.",
   "errUnauthorized": "Tu sesión ya no es válida. Vuelve a iniciar sesión.",
   "errForbidden": "No tienes permiso para hacer esto.",
+  "errSecurityRefused": "La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.",
   "errNotFound": "Esto ya no está disponible. Puede que se haya movido o borrado.",
   "errClient": "La petición ha sido rechazada.",
   "errClientStatus": "La petición ha sido rechazada (error {status}).",

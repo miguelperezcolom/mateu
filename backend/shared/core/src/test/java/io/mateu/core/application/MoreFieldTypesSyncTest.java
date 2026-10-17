@@ -38,6 +38,7 @@ class MoreFieldTypesSyncTest {
     Status status = new Status(StatusType.SUCCESS, "All good");
     String name = "Ada";
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public String echo() {
       return big
           + "|"

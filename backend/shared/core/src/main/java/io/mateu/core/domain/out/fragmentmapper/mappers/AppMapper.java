@@ -212,7 +212,7 @@ public final class AppMapper {
     }
     var supplier =
         (io.mateu.uidl.interfaces.AppActionsSupplier)
-            io.mateu.uidl.di.MateuBeanProvider.getBean(
+            io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
                     io.mateu.uidl.interfaces.InstanceFactory.class)
                 .newInstance(appClass, java.util.Map.of(), httpRequest);
     var actions = supplier.appActions(httpRequest);
@@ -224,7 +224,8 @@ public final class AppMapper {
   static String getLocale(HttpRequest httpRequest) {
     try {
       var translator =
-          io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.Translator.class);
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
+              io.mateu.uidl.interfaces.Translator.class);
       return translator != null ? translator.locale(httpRequest) : null;
     } catch (RuntimeException noTranslator) {
       return null;
@@ -352,7 +353,7 @@ public final class AppMapper {
     if (io.mateu.uidl.interfaces.LookupOptionsSupplier.class.isAssignableFrom(field.getType())) {
       var supplier =
           (io.mateu.uidl.interfaces.LookupOptionsSupplier)
-              io.mateu.uidl.di.MateuBeanProvider.getBean(
+              io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
                       io.mateu.uidl.interfaces.InstanceFactory.class)
                   .newInstance(field.getType(), java.util.Map.of(), httpRequest);
       var listing =
@@ -517,7 +518,7 @@ public final class AppMapper {
     String[] link = {null, null};
     try {
       var resolver =
-          io.mateu.uidl.di.MateuBeanProvider.getBean(
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
               io.mateu.core.application.RoutedClassResolver.class);
       var path = io.mateu.core.infra.Slashes.trimTrailing(appRoute);
       while (resolver != null && path.lastIndexOf('/') > 0) {

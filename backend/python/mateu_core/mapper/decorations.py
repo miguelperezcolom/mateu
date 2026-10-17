@@ -8,6 +8,10 @@ from mateu_dtos import (
     Badge,
     Banner,
     CustomTrigger,
+    OnErrorTrigger,
+    OnLoadTrigger,
+    OnSuccessTrigger,
+    OnValueChangeTrigger,
     Fab,
     Kpi,
     Option,
@@ -16,13 +20,15 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     HeaderBadge,
+    Label,
+    TriggerType,
     kpi as KpiMarker,
     PeerNavigationSupplier,
     RecordSwitcherSupplier,
     Timestamp,
 )
 
-from ..naming import camel_case
+from ..naming import camel_case, humanize
 from ..reflection import (
     methods_with,
     view_fields,
@@ -50,7 +56,15 @@ class DecorationMapperMixin(MixinBase):
             if hb is None:
                 continue
             value = getattr(instance, f.name, None)
-            text = None if value is None else str(value)
+            if f.type is bool:
+                # Java's @BadgeInHeader on a boolean: the label while true, no chip while false
+                text = (
+                    (hb.label or (f.marker(Label).value if f.has(Label) else humanize(f.name)))
+                    if value is True
+                    else None
+                )
+            else:
+                text = None if value is None else str(value)
             if not text or not text.strip():
                 continue
             out.append(Badge(text=text, color=hb.color))
@@ -150,9 +164,53 @@ class DecorationMapperMixin(MixinBase):
         return out
 
     def events_of(self, cls) -> tuple[list[Any], str | None]:
-        triggers = [
-            # the action id is the camelCase of the method name, as for every other action id
-            CustomTrigger(event=e, action_id=camel_case(a))
-            for (e, a) in getattr(cls, "__mateu_subscriptions__", ())
-        ]
+        # @trigger()s first, then @subscribe_to()s — Java's TriggerMapper.createTriggers order
+        triggers: list[Any] = [_trigger_wire(t) for t in getattr(cls, "__mateu_triggers__", ())]
+        options = getattr(cls, "__mateu_subscription_options__", {})
+        for e, a in getattr(cls, "__mateu_subscriptions__", ()):
+            source, from_, condition = options.get((e, a), ("DOCUMENT", "", ""))
+            triggers.append(
+                # the action id is the camelCase of the method name, as for every other action id
+                CustomTrigger(
+                    event=e, action_id=camel_case(a), source=source,
+                    from_=from_ or None, condition=condition or None,
+                )
+            )
         return triggers, getattr(cls, "__mateu_emits__", None)
+
+
+def triggered_action_ids(cls) -> list[str]:
+    """The action ids a view's own triggers name: each @trigger's action, the action an
+    on_success / on_error trigger follows, and each @subscribe_to's action (Java's
+    ActionMapper.triggeredActions)."""
+    ids: list[str] = []
+    for t in getattr(cls, "__mateu_triggers__", ()):
+        ids.append(camel_case(t.action))
+        if t.type in (TriggerType.on_success, TriggerType.on_error) and t.called_action:
+            ids.append(camel_case(t.called_action))
+    ids.extend(camel_case(a) for _e, a in getattr(cls, "__mateu_subscriptions__", ()) if a)
+    return [i for i in dict.fromkeys(ids) if i]
+
+
+def _trigger_wire(t) -> Any:
+    """A @trigger declaration as its wire DTO (mirrors Java's TriggerMapper.mapToTrigger: a raw
+    on_custom_event trigger listens on the component itself, SELF)."""
+    action_id = camel_case(t.action)
+    called = camel_case(t.called_action) if t.called_action else t.called_action
+    if t.type is TriggerType.on_success:
+        return OnSuccessTrigger(
+            action_id=action_id, called_action_id=called, condition=t.condition,
+            timeout_millis=t.timeout_millis, background=t.background,
+        )
+    if t.type is TriggerType.on_error:
+        return OnErrorTrigger(action_id=action_id, called_action_id=called, condition=t.condition)
+    if t.type is TriggerType.on_value_change:
+        return OnValueChangeTrigger(action_id=action_id, property_name=t.property_name, condition=t.condition)
+    if t.type is TriggerType.on_custom_event:
+        return CustomTrigger(
+            event=t.event_name, action_id=action_id, source="SELF", condition=t.condition or None
+        )
+    return OnLoadTrigger(
+        action_id=action_id, timeout_millis=t.timeout_millis, times=t.times,
+        condition=t.condition, background=t.background,
+    )

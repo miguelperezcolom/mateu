@@ -106,11 +106,28 @@ export function urlOfRoute(route) {
   return mountPath != null ? pathOfRoute(route, mountPath) : '#' + (route || '')
 }
 
+// query keys the host's login flow adds and no screen reads (Spring Security's ?continue after a
+// form login): never a route parameter — same list as libs/mateu routeQuery.ts
+const LOGIN_FLOW_QUERY_KEYS = ['continue']
+
+/** The browser query as the route's: the login flow's artefacts dropped, the rest as written. */
+export function routeQueryOf(search) {
+  const raw = String(search || '').replace(/^\?/, '')
+  if (!raw) return ''
+  const kept = raw.split('&').filter((pair) => {
+    if (!pair) return false
+    let key = pair.split('=')[0]
+    try { key = decodeURIComponent(key.replace(/\+/g, ' ')) } catch (e) { /* kept as written */ }
+    return !LOGIN_FLOW_QUERY_KEYS.includes(key)
+  })
+  return kept.length ? '?' + kept.join('&') : ''
+}
+
 /** The route (with its ?query) the browser URL names. */
 export function currentRouteOf(location) {
   if (!location) return ''
   if (mountPath == null) return (location.hash || '').replace(/^#/, '')
-  return routeOfPath(location.pathname, mountPath) + (location.search || '')
+  return routeOfPath(location.pathname, mountPath) + routeQueryOf(location.search)
 }
 
 /** A route the server names in full (an App's homeRoute '/console/home') as a route under the mount

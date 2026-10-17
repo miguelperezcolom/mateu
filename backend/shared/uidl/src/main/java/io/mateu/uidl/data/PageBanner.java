@@ -1,5 +1,8 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
+@Builder
 public record PageBanner(
     BannerTheme theme, String title, String description, boolean closeable, int timeoutSeconds) {
 

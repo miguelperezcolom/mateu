@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 
 /**
  * What the visual editor changed about a screen's layout, expressed as a DELTA over the inferred
@@ -28,6 +29,7 @@ import java.util.Map;
  * Anchoring to ids is exactly what makes it survive model change, and a delta that could rebuild
  * the tree freely would be a snapshot wearing a different name.
  */
+@Builder
 public record LayoutDelta(
     List<String> order, List<String> hidden, Map<String, FieldOverride> overrides) {
 

@@ -1,12 +1,13 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { findByType, findFirst } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
+import { literalText } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
-/** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
+/** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
 export function onLoadTriggers(ctx) {
   const ids = ((ctx && ctx.tree && ctx.tree.triggers) || [])
-    // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+    // the ones with a delay (periodic refresh) are scheduled by polling.mjs, not launched now
     .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
     .map((t) => t.actionId)
   // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
@@ -19,8 +20,8 @@ export function onLoadTriggers(ctx) {
 }
 
 /**
- * La URL de una pestaña con clave de ruta (@Tab(key)): la ruta de la página con la clave de la
- * pestaña de su barra que ya nombre (si la hay) sustituida — /vcns/7/subnets → /vcns/7/gateways.
+ * The URL of a tab with a route key (@Tab(key)): the page route with the key of the
+ * tab of its bar that it already names (if any) replaced — /vcns/7/subnets → /vcns/7/gateways.
  */
 export function tabRoutePath(pathname, keys, key) {
   const trimmed = String(pathname || '').replace(/\/+$/, '')
@@ -30,30 +31,30 @@ export function tabRoutePath(pathname, keys, key) {
   return base + '/' + key
 }
 
-// ── APPS ANIDADAS: el maestro de un registro con pestañas que son páginas (P1) ──────────────────
+// ── NESTED APPS: the master of a record with tabs that are pages (P1) ─────────────────────────
 //
-// Una ruta con HIJOS en routes.yaml (`customers/:customerId` → orders, addresses…) la pinta un
-// @App(TABS) cuyo contenido es la pestaña. En el wire llega como un ClientSide App de PRIMER nivel
-// — igual que el App del bootstrap —, y tratarlo como la shell la machacaba y dejaba el contenido
-// en blanco. Un App anidado es CONTENIDO: un NIVEL (título, pestañas, «← padre») sobre la
-// pantalla que ocupa su hueco. Hay una barra de pestañas por nivel.
+// A route with CHILDREN in routes.yaml (`customers/:customerId` → orders, addresses…) is painted by
+// an @App(TABS) whose content is the tab. On the wire it arrives as a TOP-level ClientSide App
+// — just like the bootstrap App —, and treating it as the shell clobbered it and left the content
+// blank. A nested App is CONTENT: a LEVEL (title, tabs, «← parent») over the
+// screen that fills its slot. There is one tab bar per level.
 
-/** Si el fragmento es un App ANIDADO (no la shell, no un mediador), su nivel; si no, null. */
+/** If the fragment is a NESTED App (not the shell, not a mediator), its level; otherwise, null. */
 export function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
   const c = fragment && fragment.component
   const md = c && c.metadata
   if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App') return null
   if (md.variant === 'MEDIATOR') return null
   if (shellServerSideType && md.serverSideType === shellServerSideType) return null
-  // un App sin hueco que rellenar (su home es él mismo) es una shell, no un nivel
+  // an App with no slot to fill (its home is itself) is a shell, not a level
   if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) return null
   const path = (r) => String(r || '').split('?')[0].replace(/\/+$/, '')
   const requested = path(requestedRoute || md.homeRoute)
   const tabs = (md.menu || [])
     .filter((o) => o && !o.separator && (o.route || o.path))
     .map((o) => ({ id: o.route || o.path, label: o.label || '', route: o.route || o.path }))
-  // la pestaña activa: la de ruta más larga que sea prefijo de lo que se pidió (un registro
-  // dentro del crud de la pestaña sigue en esa pestaña)
+  // the active tab: the one with the longest route that is a prefix of what was requested (a record
+  // inside the tab's crud stays on that tab)
   const pick = (target) => {
     let found = ''
     for (const tab of tabs) {
@@ -62,7 +63,7 @@ export function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
     }
     return found
   }
-  // …o, con el maestro pedido a secas (/customers/3), la de su home: la pestaña por defecto
+  // …or, with the master requested on its own (/customers/3), its home's: the default tab
   const selected = pick(requested) || pick(path(md.homeRoute))
   return {
     id: 'mateuAppTabs-' + path(md.route).replace(/[^a-zA-Z0-9]/g, '_'),
@@ -70,7 +71,7 @@ export function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
     route: md.route || '',
     serverSideType: md.serverSideType,
     tabs,
-    // una sola pestaña visible no es una elección: sin barra (la ruta se conserva)
+    // a single visible tab is not a choice: no bar (the route is kept)
     showTabs: tabs.length > 1,
     selected,
     backRoute: md.backRoute || '',
@@ -81,8 +82,8 @@ export function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
 }
 
 /**
- * Separa del incremento los Apps ANIDADOS: devuelve el incremento sin ellos (para que el reducer
- * no los tome por la shell) y sus niveles, en orden.
+ * Splits the NESTED Apps off the increment: returns the increment without them (so the reducer
+ * does not take them for the shell) and their levels, in order.
  */
 export function splitNestedApps(increment, shellServerSideType, requestedRoute) {
   const levels = []
@@ -98,7 +99,7 @@ export function splitNestedApps(increment, shellServerSideType, requestedRoute) 
 /** A mediator App of a crud mounted at the ROOT: what it consumes is "" by both accounts. */
 const atMountRoot = (md) => md.homeConsumedRoute === '' && md.rootRoute === ''
 
-/** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
+/** If the context is a MEDIATOR (ServerSide → child App), the info to load its content. */
 export function mediatorOf(ctx) {
   const tree = ctx?.tree
   if (tree?.type !== 'ServerSide') return null
@@ -106,13 +107,13 @@ export function mediatorOf(ctx) {
   const md = child?.metadata
   if (md?.type !== 'App') return null
   return {
-    // homeConsumedRoute ANTES que rootRoute: en un deep-link a una sub-ruta (el detalle de un
-    // proceso) `rootRoute` es la ruta ENTERA que se pidió, mientras que lo consumido por el
-    // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
-    // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
-    // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
-    // …y cuando los dos dicen "" (un crud montado en la RAÍZ, @UI("")), lo consumido es la raíz:
-    // no el _route del estado, que en un deep-link es el registro (/P-001)
+    // homeConsumedRoute BEFORE rootRoute: in a deep-link to a sub-route (a process's
+    // detail) `rootRoute` is the WHOLE route that was requested, whereas what the mediator
+    // consumed is its own route (`/workflow/processes`). Sending the whole one as consumedRoute
+    // makes the server serve the crud's default view: you came in through a process's link
+    // and the listing appeared. On a menu option (the crud's root) both are the same.
+    // …and when both say "" (a crud mounted at the ROOT, @UI("")), what is consumed is the root:
+    // not the state's _route, which in a deep-link is the record (/P-001)
     rootRoute: md.homeConsumedRoute || md.rootRoute || (atMountRoot(md) ? '' : ctx.state?._route) || '',
     rootKnown: !!(md.homeConsumedRoute || md.rootRoute) || atMountRoot(md),
     homeRoute: md.homeRoute ?? '',
@@ -123,9 +124,9 @@ export function mediatorOf(ctx) {
 
 export const metaOf = (fr) => fr.component?.metadata || {}
 
-/** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
- *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
- *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+/** A surface's state with the INITIAL VALUES of its fields (FormField.initialValue) that
+ *  have no value yet: the web renderer falls back to that value when the state lacks the key, and here
+ *  it is seeded into the state so it is painted AND travels in the next action. */
 export function withInitialValues(tree, state) {
   const out = { ...(state || {}) }
   if (!tree) return out
@@ -136,20 +137,20 @@ export function withInitialValues(tree, state) {
 }
 
 export let overlaySeq = 0
-/** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
+/** Builds an overlay context (drawer/dialog) from an Add fragment. */
 export function buildOverlay(fr, opener) {
   const md = metaOf(fr)
   const id = 'overlay-' + ++overlaySeq
-  // Un formulario EMBEBIDO (EmbeddedView: el «Cancel booking» de una reserva) llega como un
-  // ServerSide propio en md.content, con SU estado (initialData), SU título (el de su Page) y
-  // SUS acciones: es la superficie del overlay.
+  // An EMBEDDED form (EmbeddedView: a reservation's «Cancel booking») arrives as its own
+  // ServerSide in md.content, with ITS state (initialData), ITS title (its Page's) and
+  // ITS actions: it is the overlay's surface.
   const surface = md.content && md.content.type === 'ServerSide' ? md.content : null
   const filled = (o) => (o && typeof o === 'object' && Object.keys(o).length ? o : null)
   const surfacePage = surface ? findByType(surface, 'Page') : null
   return {
     id,
     kind: 'drawer',
-    tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
+    tree: fr.component, // the whole tree — md.content carries the content (Card pattern)
     surface,
     state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
     title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
@@ -158,26 +159,26 @@ export function buildOverlay(fr, opener) {
     width: md.width,
     size: md.size,
     dirty: false,
-    // quien lo abrió: a él van los value-changed/data-changed del overlay (applyOverlayEvent)
+    // whoever opened it: the overlay's value-changed/data-changed go to it (applyOverlayEvent)
     opener: opener || HOST_ID,
   }
 }
 
-/** Resuelve a qué clave del registro va un target: eco del initiator; ''/null → host. */
+/** Resolves which registry key a target goes to: echo of the initiator; ''/null → host. */
 export const resolveTarget = (contexts, t) => {
   if (t == null || t === '') return HOST_ID
   if (contexts[t]) return t
-  // eco de un id de componente ya registrado (p.ej. SSE que responde al uuid del árbol, o el
-  // formulario embebido de un overlay, que contesta a SU id)
+  // echo of an already registered component id (e.g. SSE answering to the tree's uuid, or an
+  // overlay's embedded form, which answers to ITS id)
   const byTreeId = Object.keys(contexts).find((k) => contexts[k].tree?.id === t || contexts[k].surface?.id === t)
   return byTreeId || t
 }
 
 /**
- * EL REDUCER. reg = { contexts, stack, shell }; devuelve el NUEVO reg + los efectos que VB
- * aplica. Puro e inmutable con structural sharing: solo las entradas tocadas cambian de ref.
- * opts.initiator = contextId de la superficie que lanzó la request (para comandos sin target,
- * como el MarkAsClean del save-in-drawer).
+ * THE REDUCER. reg = { contexts, stack, shell }; returns the NEW reg + the effects VB
+ * applies. Pure and immutable with structural sharing: only the touched entries change ref.
+ * opts.initiator = contextId of the surface that launched the request (for commands without a target,
+ * like the save-in-drawer's MarkAsClean).
  */
 export function reduceContexts(reg, increment, opts = {}) {
   const contexts = { ...reg.contexts }
@@ -189,8 +190,8 @@ export function reduceContexts(reg, increment, opts = {}) {
     navigate: null,
     urlPush: null,
     download: null,
-    downloads: [], // todos los DownloadFile del increment (download = el último, compat)
-    print: false, // UICommand.print: imprimir la página actual (files.printPage)
+    downloads: [], // every DownloadFile of the increment (download = the last one, compat)
+    print: false, // UICommand.print: print the current page (files.printPage)
     runActions: [],
     docTitle: null,
     // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
@@ -203,7 +204,7 @@ export function reduceContexts(reg, increment, opts = {}) {
   for (const m of increment.messages || [])
     effects.toasts.push({
       text: m.text || m.title, variant: m.variant || 'info',
-      // Message.undoable: el toast lleva su «Undo» (notify.mjs lo pinta con oj-message)
+      // Message.undoable: the toast carries its «Undo» (notify.mjs paints it with oj-message)
       ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
     })
 
@@ -218,14 +219,14 @@ export function reduceContexts(reg, increment, opts = {}) {
   for (const fr of increment.fragments || []) {
     const md = metaOf(fr)
 
-    // El App del BOOTSTRAP (root ClientSide type App) configura el chrome. Un App de
-    // mediador NO pasa por aquí: llega envuelto en un ServerSide (child0) y es contenido.
+    // The BOOTSTRAP App (root ClientSide type App) configures the chrome. A mediator
+    // App does NOT go through here: it arrives wrapped in a ServerSide (child0) and is content.
     if (fr.component?.type === 'ClientSide' && md.type === 'App') {
       shell = {
         title: md.title,
         menu: md.menu || [],
         variant: md.variant,
-        serverSideType: md.serverSideType, // para las acciones de cabecera (app-level)
+        serverSideType: md.serverSideType, // for the header actions (app-level)
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         // the shell's FLOWS (AppShell.actions): a menu RuleLink whose RunAction names one runs
@@ -235,7 +236,7 @@ export function reduceContexts(reg, increment, opts = {}) {
         // declare runs the catalogue's lowered flow client-side, owner first (shellFlows.mjs)
         actionCatalogue: md.actionCatalogue || [],
         themeToggle: md.themeToggle,
-        // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
+        // @App(accessKeys): holding Alt shows the access keys (keys.mjs)
         accessKeys: !!md.accessKeys,
         // E2 patterns (appExtras.mjs): app shortcuts / quick launch, live header values, idle warning
         shortcuts: md.shortcuts || [],
@@ -244,32 +245,32 @@ export function reduceContexts(reg, increment, opts = {}) {
         idleSession: md.idleSession || null,
         // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
         mobileQr: !!md.mobileQr,
-        // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
+        // The App's NotificationsSupplier → the header bell (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
-        // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
+        // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
         globalSearchEnabled: !!md.globalSearchEnabled,
         // a data-authored shell's inbox and palette search from REST sources (type: AppShell
         // notifications.source/markRead, globalSearch.source) instead of the app-level actions
         notificationsSource: md.notificationsSource || null,
         notificationsReadSource: md.notificationsReadSource || null,
         globalSearchSource: md.globalSearchSource || null,
-        // @Fab del App: botones flotantes globales (fabs.mjs)
+        // The App's @Fab: global floating buttons (fabs.mjs)
         fabs: md.fabs || [],
-        // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
+        // the @App logo (@Logo, e.g. /images/riu.svg — relative to the backend)
         logo: md.logo || '',
-        // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
-        // primera opción del menú
+        // the app's HOME (@HomeRoute) — the shell boot prefers it over the
+        // first menu option
         homeRoute: md.homeRoute || '',
-        // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
+        // AI chat (@AI → App.sseUrl): if present, the shell paints the agent chat button in the header
         sseUrl: md.sseUrl || '',
-        // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+        // @AI(upload) → the chat's attach button; @AI(mcp) → the mcpUrl the agent uses to operate the app
         uploadUrl: md.uploadUrl || '',
         mcpUrl: md.mcpUrl || '',
-        // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
+        // the shell's "ask" FAB (@App(askLabel, askIcon)): empty = the neutral FAB (Search)
         askLabel: md.askLabel || '',
         askIcon: md.askIcon || '',
-        // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
-        // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
+        // the HEADER widgets (WidgetSupplier / @Widget): they travel as children of the App with
+        // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
         widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
       }
       continue
@@ -302,23 +303,23 @@ export function reduceContexts(reg, increment, opts = {}) {
       continue
     }
 
-    // Replace / ReplaceKeepData / State-only: MISMO camino para form, mediador, isla…
+    // Replace / ReplaceKeepData / State-only: SAME path for form, mediator, island…
     const id = resolveTarget(contexts, fr.targetComponentId)
     const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {}, data: {} }
     const ss = fr.component?.type === 'ServerSide' ? fr.component : null
     contexts[id] = {
       ...prev,
       kind: prev.kind,
-      tree: fr.component || prev.tree, // sin component => State-only: conserva el árbol
+      tree: fr.component || prev.tree, // no component => State-only: keeps the tree
       pageType: ss?.pageType ?? (fr.component ? undefined : prev.pageType),
       pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
       state: !fr.component
-        ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
+        ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (do not erase the island)
         : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
           ? { ...prev.state, ...(fr.state || md.initialData || {}) }
           : (fr.state ?? md.initialData ?? prev.state)),
-      // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
-      // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
+      // data = axis of DATA computed by the server (e.g. the listing rows, keyed
+      // by component id: {crud: {page: …}}); a data-only fragment MERGES
       data: !fr.component
         ? { ...prev.data, ...(fr.data || {}) }
         : (fr.data ?? {}),
@@ -326,7 +327,7 @@ export function reduceContexts(reg, increment, opts = {}) {
     }
   }
 
-  // ── comandos → efectos (algunos mutan el registro) ────────────────────────
+  // ── commands → effects (some mutate the registry) ─────────────────────────
   // `source`: the surface whose answer emitted it (opts.initiator) — the @SubscribeTo scopes
   // (COMPONENT `from`, SELF) are decided from it (transport busSubscribersOf)
   const source = opts.initiator || null
@@ -339,7 +340,8 @@ export function reduceContexts(reg, increment, opts = {}) {
     const t = c.targetComponentId
     switch (c.type) {
       case 'SetWindowTitle':
-        effects.docTitle = c.data
+        // as the header shows it: the server's literal escapes around data resolved (`\${` → `${`)
+        effects.docTitle = typeof c.data === 'string' ? literalText(c.data) : c.data
         break
       case 'NavigateTo': {
         const d = String(c.data || '')
@@ -356,12 +358,12 @@ export function reduceContexts(reg, increment, opts = {}) {
           const i = stack.indexOf(id)
           if (i >= 0) stack.splice(i, 1)
         }
-        emit(c.data) // eventName del cierre → bus (p.ej. refresco del listado del crud)
+        emit(c.data) // the close's eventName → bus (e.g. refresh of the crud's listing)
         break
       }
       case 'DispatchEvent':
-        // lo que un componente del overlay devuelve a quien lo abrió (el selector de un
-        // @Searchable: el valor elegido, su rótulo, y cerrarse)
+        // what an overlay component returns to whoever opened it (the selector of a
+        // @Searchable: the chosen value, its label, and closing itself)
         if (applyOverlayEvent(contexts, stack, c.data)) break
         emit(c.data)
         break
@@ -401,8 +403,8 @@ export function reduceContexts(reg, increment, opts = {}) {
     }
   }
 
-  // los niveles de app (P1) son de la PANTALLA, no de un incremento: una acción sobre la pestaña
-  // (la búsqueda OnLoad del listado) no los borra
+  // the app levels (P1) belong to the SCREEN, not to an increment: an action on the tab
+  // (the listing's OnLoad search) does not erase them
   const kept = {}
   if (reg.appLevels) kept.appLevels = reg.appLevels
   if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute

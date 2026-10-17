@@ -75,12 +75,31 @@ export function base64ToBytes(b64: string, atobFn: (s: string) => string): Uint8
     return bytes
 }
 
+/**
+ * Types the browser only DISPLAYS — no script, no document that can run one. Inline bytes become a
+ * `blob:` URL, and a blob URL belongs to the page's ORIGIN: an HTML or SVG document (or anything
+ * the browser might sniff as one) opened or printed from it would run inside the app, with the
+ * user's token in reach. Only these are shown or printed in place; everything else is saved. (A
+ * server-parked document is served with `Content-Security-Policy: sandbox` and needs no such rule.)
+ */
+const PASSIVE_INLINE_TYPES = [
+    /^application\/pdf$/, /^image\/(png|jpe?g|gif|webp|bmp|avif|x-icon|vnd\.microsoft\.icon)$/,
+    /^text\/(plain|csv)$/, /^application\/json$/, /^audio\//, /^video\//,
+]
+
+/** True when inline bytes of `mimeType` may be shown or printed in the page's origin. */
+export function isPassiveInlineType(mimeType: string | undefined): boolean {
+    const base = (mimeType ?? '').split(';')[0].trim().toLowerCase()
+    return PASSIVE_INLINE_TYPES.some(re => re.test(base))
+}
+
 /** Where the bytes are: an object URL over the inline content, or the server URL. */
 function hrefOf(data: FileDownloadData, env: DocumentEnv, baseUrl?: string): { href: string, objectUrl: boolean } | undefined {
     if (data.base64Content) {
-        const blob = new env.Blob([base64ToBytes(data.base64Content, env.atob) as BlobPart], {
-            type: data.mimeType || 'application/octet-stream',
-        })
+        // an active type is only ever SAVED (handleFileDownload): typed as opaque bytes so no browser
+        // renders the blob even if it ignored the download attribute
+        const type = isPassiveInlineType(data.mimeType) ? data.mimeType! : 'application/octet-stream'
+        const blob = new env.Blob([base64ToBytes(data.base64Content, env.atob) as BlobPart], { type })
         return { href: env.URL.createObjectURL(blob), objectUrl: true }
     }
     const href = documentUrl(data.url, baseUrl)
@@ -133,7 +152,8 @@ export function handleFileDownload(
     const href = hrefOf(data, env, baseUrl)
     if (!href) return 'none'
     const filename = data.filename || 'download'
-    const inline = data.disposition === 'inline'
+    // inline bytes of an active type (HTML, SVG, XML…) are never shown in the app's origin: saved
+    const inline = data.disposition === 'inline' && (!href.objectUrl || isPassiveInlineType(data.mimeType))
 
     if (inline && data.print) {
         printInFrame(href.href, env, () => {

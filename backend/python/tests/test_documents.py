@@ -181,6 +181,17 @@ def test_content_disposition_and_media_type_are_safe():
     assert documents.serve(html, store).headers["Content-Security-Policy"] == "sandbox"
 
 
+def test_an_active_type_is_never_inlined():
+    # inline content becomes a blob of the app's own origin on the client: an HTML/SVG document
+    # would run there unsandboxed, so it always travels behind a (sandboxed) single-use URL
+    store = documents.DocumentStore()
+    for media_type in ("text/html", "image/svg+xml", "application/xhtml+xml", "application/javascript"):
+        file = documents.to_file_download(Document.inline("x", media_type, b"<p>"), "", store)
+        assert file.base64_content is None, media_type
+        assert file.url.startswith("/mateu/v3/documents/"), media_type
+    assert documents.to_file_download(Document.pdf("x.pdf", b"%PDF"), "", store).base64_content
+
+
 def test_document_rules():
     with pytest.raises(ValueError):
         Document("x")

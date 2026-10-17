@@ -1,6 +1,7 @@
 package io.mateu.maven.bundle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.infra.IndexPage;
 import io.mateu.uidl.data.ProjectRenderer;
@@ -45,12 +46,12 @@ final class BundleWriter {
   }
 
   /**
-   * As {@link #write(Path, MateuBundleExporter.BundleManifest, String, ClassLoader, String, String,
-   * ProjectRenderer)} for the Vaadin renderer.
+   * As {@link #write(Path, BundleManifest, String, ClassLoader, String, String, ProjectRenderer)}
+   * for the Vaadin renderer.
    */
   static void write(
       Path outputDirectory,
-      MateuBundleExporter.BundleManifest manifest,
+      BundleManifest manifest,
       String assetsFrom,
       ClassLoader appLoader,
       String baseUrl,
@@ -66,7 +67,7 @@ final class BundleWriter {
    */
   static void write(
       Path outputDirectory,
-      MateuBundleExporter.BundleManifest manifest,
+      BundleManifest manifest,
       String assetsFrom,
       ClassLoader appLoader,
       String baseUrl,
@@ -224,7 +225,9 @@ final class BundleWriter {
     // The shared mount (core IndexPage) also appends the deferred-boot replayer, so a bundle built
     // with the redwood (Visual Builder) renderer starts too — and shows a fallback page when the
     // Oracle runtime cannot be loaded. The Redwood app reads the bundleUrl off this same element.
-    return IndexPage.mountUi(html, ui);
+    html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
+    // no template marker is left in the published page
+    return IndexPage.withoutMarkers(IndexPage.mountUi(html, ui));
   }
 
   private static void copyTree(Path src, Path dest) throws IOException {

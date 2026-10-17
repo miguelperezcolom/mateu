@@ -96,8 +96,8 @@ public class IslandRoundTripTests
     [Fact]
     public void A_declared_action_without_a_model_method_is_refused()
     {
-        var inc = Run("anular", new());
-        Assert.Equal("Action not found: anular", Assert.Single(inc.Messages).Text);
+        var e = Assert.Throws<MateuForbiddenException>(() => Run("anular", new()));
+        Assert.Contains("no such action", e.Message);
     }
 
     [Theory]

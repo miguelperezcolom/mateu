@@ -3,12 +3,14 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 
 /**
  * The result of {@link io.mateu.uidl.interfaces.ComponentAdapter#adapt}: the components to render
  * plus the state and data maps that back them, and the action ids the view exposes (so the bridge
  * can advertise them; an action is only sent to the server if the component claims it).
  */
+@Builder
 public record AdaptedView(
     List<Component> components,
     Map<String, Object> state,

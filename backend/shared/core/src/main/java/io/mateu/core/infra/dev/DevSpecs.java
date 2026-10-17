@@ -40,6 +40,21 @@ public final class DevSpecs {
 
   private static final List<WeakReference<SpecsCache>> CACHES = new CopyOnWriteArrayList<>();
 
+  /**
+   * The indexes the caches are built from (the specs index): dropped BEFORE the caches, so a cache
+   * rebuilt while the others are still being dropped never reads the old files.
+   */
+  private static final List<SpecsCache> INDEXES = new CopyOnWriteArrayList<>();
+
+  /**
+   * The last source-directory view handed out in dev mode, reused so the caches keyed by
+   * classloader (the specs index) are shared by every reader instead of missing on each call. One
+   * slot only: a map would keep every replaced application classloader (a devtools restart) alive.
+   */
+  private record DevLoader(ClassLoader parent, List<Path> dirs, DevSpecsClassLoader loader) {}
+
+  private static volatile DevLoader lastDevLoader;
+
   private static final Sinks.Many<DevEvent> EVENTS = Sinks.many().multicast().directBestEffort();
 
   private static final Pattern APP_LEVEL_TYPE =
@@ -73,6 +88,16 @@ public final class DevSpecs {
   }
 
   /**
+   * Registers an index the caches are built from (strongly held: an index is a static facility): it
+   * is dropped before every registered {@link SpecsCache}.
+   */
+  public static void registerIndex(SpecsCache index) {
+    if (index != null) {
+      INDEXES.add(index);
+    }
+  }
+
+  /**
    * The classloader to read {@code specs/ui/**} through: {@code classLoader} itself outside dev
    * mode; in dev mode a view of it where the specs come from the source directory.
    */
@@ -82,11 +107,27 @@ public final class DevSpecs {
       return parent;
     }
     var dirs = DevMode.specsDirs();
-    return dirs.isEmpty() ? parent : new DevSpecsClassLoader(parent, dirs);
+    if (dirs.isEmpty()) {
+      return parent;
+    }
+    var cached = lastDevLoader;
+    if (cached != null && cached.parent() == parent && cached.dirs().equals(dirs)) {
+      return cached.loader();
+    }
+    var loader = new DevSpecsClassLoader(parent, dirs);
+    lastDevLoader = new DevLoader(parent, List.copyOf(dirs), loader);
+    return loader;
   }
 
   /** Drops every registered cache. */
   public static void invalidateAll() {
+    for (var index : INDEXES) {
+      try {
+        index.invalidateSpecs();
+      } catch (RuntimeException e) {
+        log.warn("Could not invalidate {}: {}", index.getClass().getName(), e.getMessage());
+      }
+    }
     for (var ref : CACHES) {
       var cache = ref.get();
       if (cache == null) {

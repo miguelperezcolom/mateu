@@ -157,6 +157,13 @@ in `specs/ui/actions.yaml` and runnable from the menu and any page. An id the sh
 the catalogue's, even one without steps. Anything else keeps its old meaning: an app-level action
 dispatched to the server (an `@Action` on the app class).
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Built in code, the shell carries flows the same way:
 
 ```java

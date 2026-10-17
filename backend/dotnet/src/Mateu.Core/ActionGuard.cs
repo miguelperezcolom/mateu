@@ -4,11 +4,6 @@ using Mateu.Uidl;
 
 namespace Mateu.Core;
 
-/// <summary>Thrown when a request asks for something the caller may not do: an action gated by
-/// [DisabledUnless]/[EyesOnly] the caller does not satisfy, or a view hidden by a
-/// class-level [EyesOnly]. The ASP.NET Core endpoint answers it with HTTP 403.</summary>
-public sealed class MateuForbiddenException(string message) : Exception(message);
-
 /// <summary>The security gate of the action pipeline (mirrors Java's action authorization).
 ///
 /// <para>An actionId arrives from the wire, so it must only ever reach a method that is DECLARED
@@ -81,7 +76,8 @@ internal static class ActionGuard
     private static bool IsFramework(Type? type) => type is not null && FrameworkAssemblies.Contains(type.Assembly);
 
     private static bool HasActionMarker(MethodInfo m) =>
-        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null || m.Find<FabAttribute>() != null;
+        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null
+        || m.Find<ToolbarAttribute>() != null || m.Find<FabAttribute>() != null;
 
     /// <summary>Declared by a framework base class (or overriding a framework virtual).</summary>
     private static bool IsFrameworkMethod(MethodInfo m) =>
@@ -163,16 +159,26 @@ internal static class ActionGuard
             reason = "[EyesOnly]";
             return false;
         }
-#pragma warning disable CS0618 // [Secured] is deprecated, and still enforced
+#pragma warning disable CS0618, MATEU001 // [Secured] is deprecated, and still enforced
         if (type.Find<SecuredAttribute>() is { } secured
             && !Satisfies([], [], [], [secured.Permission], id))
-#pragma warning restore CS0618
+#pragma warning restore CS0618, MATEU001
         {
             reason = "[Secured]";
             return false;
         }
         reason = "";
         return true;
+    }
+
+    /// <summary>The refusal of an action id no handler of the view claims: wire input naming
+    /// nothing — logged as a security WARN and answered 403 (the answer Java and Python give),
+    /// never an error toast.</summary>
+    internal static MateuForbiddenException NoSuchAction(string actionId)
+    {
+        var id = actionId.Length > 120 ? actionId[..120] + "…" : actionId;
+        Console.Error.WriteLine($"[mateu] security: action '{id}': no such action — the request was rejected (403)");
+        return new MateuForbiddenException($"Forbidden: action '{id}': no such action");
     }
 
     internal static void Deny(string what)
@@ -189,8 +195,8 @@ internal static class ActionGuard
         foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             if (p.Find<OnRowSelectedAttribute>() is { } onRow && onRow.Value.Length > 0)
                 ids.Add(Naming.CamelCase(onRow.Value));
-        foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
-            if (s.Action.Length > 0) ids.Add(s.Action);
+        // the actions the view's own [Trigger]s / [SubscribeTo]s name
+        foreach (var id in ReflectionMapper.TriggeredActionIds(type)) ids.Add(id);
         // an app-wide shortcut's action runs on the app, whatever screen is below it
         foreach (var shortcut in type.GetCustomAttributes<AppShortcutAttribute>())
             if (!string.IsNullOrWhiteSpace(shortcut.ActionId)) ids.Add(shortcut.ActionId.Trim());

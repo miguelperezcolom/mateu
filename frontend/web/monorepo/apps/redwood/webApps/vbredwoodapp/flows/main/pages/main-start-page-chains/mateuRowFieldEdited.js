@@ -1,6 +1,6 @@
-/* Un campo del EDITOR DE FILA (el oj-dialog de una lista modal): su valor va al borrador de
- * la fila, que runMateuAction manda en parameters.initiatorState al guardar. Si el campo
- * estaba marcado como obligatorio vacío, la marca se quita al rellenarlo. */
+/* A field of the ROW EDITOR (the oj-dialog of a modal list): its value goes to the row's
+ * draft, which runMateuAction sends in parameters.initiatorState on save. If the field
+ * was flagged as required-but-empty, the flag is removed when it is filled in. */
 
 define([
   'vb/action/actionChain',

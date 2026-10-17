@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
 
+from ._enums import check_choice, coerce_enum
 from .messages import BannerTheme
 
 
@@ -82,6 +83,10 @@ def wizard_progress(style: str) -> Callable[[type], type]:
     ``current | total`` counter over the vertical step list. (Python analogue of Java's
     @WizardProgress.)"""
 
+    style = check_choice(
+        str(style).lower(), ("bar", "steps", "rail"), "@wizard_progress(style)"
+    )
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_wizard_progress__", style)
         return cls
@@ -116,6 +121,7 @@ def size(mode: SizeMode, length: str = "") -> Callable[[type], type]:
     default (a listing infers fill). On a view it sizes the whole surface, e.g. a full-canvas
     screen that fills the viewport and scrolls internally. The Python analogue of Java's @Size."""
 
+    mode = coerce_enum(mode, SizeMode, "@size(mode)")
     wire = "fixed:" + length if mode == SizeMode.FIXED else mode.value
 
     def deco(cls: type) -> type:
@@ -131,8 +137,10 @@ def page_width(width: PageWidth) -> Callable[[type], type]:
     the width from the page content (full-bleed canvases → edge-to-edge, dense inline-editing
     datagrids → full width, anything else → fixed). The Python analogue of Java's @PageWidth."""
 
+    value = coerce_enum(width, PageWidth, "@page_width(width)").value
+
     def deco(cls: type) -> type:
-        setattr(cls, "__mateu_page_width__", width.value if isinstance(width, PageWidth) else width)
+        setattr(cls, "__mateu_page_width__", value)
         return cls
 
     return deco
@@ -159,12 +167,10 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
     view's shape (archetype base class, a MetricCard field, plain form). The explicit template
     always wins over the inference. The Python analogue of Java's @PageTemplate."""
 
+    value = coerce_enum(page_type, PageType, "@page_template(page_type)").value
+
     def deco(cls: type) -> type:
-        setattr(
-            cls,
-            "__mateu_page_type__",
-            page_type.value if isinstance(page_type, PageType) else page_type,
-        )
+        setattr(cls, "__mateu_page_type__", value)
         return cls
 
     return deco
@@ -382,6 +388,7 @@ def app(
             stacklevel=2,
         )
         raw = _DEPRECATED_VARIANTS[raw].value
+    raw = coerce_enum(raw, AppVariant, "@app(variant)").value
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_app__", title_)
@@ -588,9 +595,11 @@ def form_layout(columns: int = 2, labels_aside: LabelsAsideMode = LabelsAsideMod
     default ``AUTO`` Mateu infers it from the form's shape. The Python analogue of Java's
     ``@FormLayout``."""
 
+    mode = coerce_enum(labels_aside, LabelsAsideMode, "@form_layout(labels_aside)")
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_form_layout_columns__", columns)
-        setattr(cls, "__mateu_labels_aside__", labels_aside)
+        setattr(cls, "__mateu_labels_aside__", mode)
         return cls
 
     return deco
@@ -626,11 +635,93 @@ def emits(name: str) -> Callable[[type], type]:
     return deco
 
 
-def subscribe_to(event: str, action: str) -> Callable[[type], type]:
+class SubscriptionSource(Enum):
+    """Where a :func:`subscribe_to` listens: ``DOCUMENT`` = the global bus (reaches sibling and
+    unrelated components), ``COMPONENT`` = the bus filtered by the emitter's :func:`emits` name
+    (``from_``), ``SELF`` = only events bubbling up from the component's own descendants. Mirrors
+    ``io.mateu.uidl.annotations.SubscriptionSource``."""
+
+    DOCUMENT = "DOCUMENT"
+    COMPONENT = "COMPONENT"
+    SELF = "SELF"
+
+
+def subscribe_to(
+    event: str,
+    action: str,
+    *,
+    source: SubscriptionSource | str = SubscriptionSource.DOCUMENT,
+    from_: str = "",
+    condition: str = "",
+) -> Callable[[type], type]:
+    """Runs ``action`` (a method of the view) when the named custom event fires — on the global
+    bus by default; ``source``/``from_``/``condition`` as Java's ``@SubscribeTo``."""
+    src = source.value if isinstance(source, SubscriptionSource) else SubscriptionSource(str(source).upper()).value
+
     def deco(cls: type) -> type:
         subs = list(getattr(cls, "__mateu_subscriptions__", ()))
         subs.append((event, action))
         setattr(cls, "__mateu_subscriptions__", subs)
+        # kept apart from the (event, action) pairs, which other code unpacks as pairs
+        options = dict(getattr(cls, "__mateu_subscription_options__", {}))
+        options[(event, action)] = (src, from_, condition)
+        setattr(cls, "__mateu_subscription_options__", options)
+        return cls
+
+    return deco
+
+
+class TriggerType(Enum):
+    """When a :func:`trigger` fires (mirrors ``io.mateu.uidl.annotations.TriggerType``)."""
+
+    on_load = "OnLoad"
+    on_success = "OnSuccess"
+    on_error = "OnError"
+    on_value_change = "OnValueChange"
+    on_custom_event = "OnCustomEvent"
+
+
+@dataclass(frozen=True)
+class TriggerSpec:
+    """One :func:`trigger` declaration as stored on the class."""
+
+    type: TriggerType
+    action: str
+    called_action: str = ""
+    property_name: str = ""
+    event_name: str = ""
+    condition: str = ""
+    timeout_millis: int = 0
+    times: int = 1
+    background: bool = False
+
+
+def trigger(
+    when: TriggerType | str,
+    action: str,
+    *,
+    called_action: str = "",
+    property_name: str = "",
+    event_name: str = "",
+    condition: str = "",
+    timeout_millis: int = 0,
+    times: int = 1,
+    background: bool = False,
+) -> Callable[[type], type]:
+    """Runs ``action`` (a method of the view) when ``when`` happens — the Python analogue of Java's
+    ``@Trigger``: ``on_load`` (with ``timeout_millis`` and ``times`` — 0 = unbounded — a periodic
+    refresh), ``on_success`` / ``on_error`` of ``called_action`` (chained actions, polls),
+    ``on_value_change`` of ``property_name`` (any field when blank), ``on_custom_event`` of
+    ``event_name`` (listening on the component itself; :func:`subscribe_to` is the bus form).
+    Method names become camelCase action ids, as everywhere."""
+    kind = when if isinstance(when, TriggerType) else TriggerType(when)
+    spec = TriggerSpec(
+        kind, action, called_action, property_name, event_name, condition, timeout_millis, times, background
+    )
+
+    def deco(cls: type) -> type:
+        # decorators apply bottom-up: prepend, so the declared order is the wire order
+        setattr(cls, "__mateu_triggers__", [spec, *getattr(cls, "__mateu_triggers__", ())])
         return cls
 
     return deco

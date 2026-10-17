@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.Builder;
 
 /**
  * One named entry of the {@link RestSourceCatalog}: an endpoint declared ONCE, that any number of
@@ -35,6 +36,7 @@ import java.util.Map;
  * @param sampleFile the same sample read from a JSON/YAML file, relative to {@code specs/ui}; the
  *     loader inlines it into {@code sample} (an inline {@code sample} wins)
  */
+@Builder
 public record RestSourceEntry(
     String name,
     RestDataSource source,

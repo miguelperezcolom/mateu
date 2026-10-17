@@ -1,0 +1,234 @@
+{
+  "about": "Client expression corpus: rule filters, validation conditions and ${...} expressions, evaluated by the four renderers (web libs/mateu expression.ts = the reference, Redwood poc/rules.mjs, React Native src/core/expressions.ts, IntelliJ state/Expressions.kt). See README.md for the encoding of expected values and the override rules.",
+  "context": {
+    "state": {
+      "name": "Ana",
+      "age": 30,
+      "zero": 0,
+      "empty": "",
+      "nul": null,
+      "flag": true,
+      "off": false,
+      "tags": ["a", "b"],
+      "rows": [{ "id": 1, "qty": 2 }, { "id": 2, "qty": 0 }],
+      "nested": { "inner": { "v": 7 } },
+      "a-b": "dash",
+      "email": "ana@example.com",
+      "from": "2026-01-01",
+      "to": "2026-02-01",
+      "numStr": "42"
+    },
+    "data": { "total": 12.5 },
+    "appState": { "hotel": "H1" },
+    "appData": { "user": { "name": "u1" } },
+    "component": { "id": "c1" }
+  },
+  "cases": [
+    { "name": "integer literal", "expr": "42", "expected": 42 },
+    { "name": "decimal literal", "expr": "3.5", "expected": 3.5 },
+    { "name": "single-quoted string", "expr": "'str'", "expected": "str" },
+    { "name": "double-quoted string", "expr": "\"dq\"", "expected": "dq" },
+    { "name": "escaped quote", "expr": "'it\\'s'", "expected": "it's" },
+    { "name": "true", "expr": "true", "expected": true },
+    { "name": "false", "expr": "false", "expected": false },
+    { "name": "null", "expr": "null", "expected": null },
+    { "name": "undefined", "expr": "undefined", "expected": { "$undefined": true } },
+
+    { "name": "dot member", "expr": "state.name", "expected": "Ana" },
+    { "name": "bracket member", "expr": "state['name']", "expected": "Ana" },
+    { "name": "bracket member with a non-identifier key (the server's form)", "expr": "state['a-b']", "expected": "dash" },
+    { "name": "deep member", "expr": "state.nested.inner.v", "expected": 7 },
+    { "name": "array index", "expr": "state.tags[1]", "expected": "b" },
+    { "name": "member of an array element", "expr": "state.rows[0].id", "expected": 1 },
+    { "name": "array length", "expr": "state.tags.length", "expected": 2 },
+    { "name": "string length", "expr": "state.name.length", "expected": 3 },
+    { "name": "missing key", "expr": "state.missing", "expected": { "$undefined": true } },
+    { "name": "length of a number is undefined", "expr": "state.age.length", "expected": { "$undefined": true } },
+    { "name": "every context scope: data", "expr": "data.total", "expected": 12.5 },
+    { "name": "every context scope: appState", "expr": "appState.hotel", "expected": "H1" },
+    { "name": "every context scope: appData", "expr": "appData.user.name", "expected": "u1" },
+    { "name": "every context scope: component", "expr": "component.id", "expected": "c1" },
+
+    { "name": "?. on null", "expr": "state.nul?.x", "expected": { "$undefined": true } },
+    { "name": "?. short-circuits the rest of the chain", "expr": "state.missing?.x.y", "expected": { "$undefined": true } },
+    { "name": "?. on a present value", "expr": "state.nested?.inner?.v", "expected": 7 },
+    { "name": "?.[] on an array", "expr": "state.tags?.[0]", "expected": "a" },
+    { "name": "?.[] on undefined", "expr": "state.missing?.[0]", "expected": { "$undefined": true } },
+    { "name": "?. next to a ternary with a decimal is not optional chaining", "expr": "state.flag?.5:1", "expected": 0.5 },
+
+    { "name": "?? on null", "expr": "state.nul ?? 'd'", "expected": "d" },
+    { "name": "?? on undefined", "expr": "state.missing ?? 'd'", "expected": "d" },
+    { "name": "?? keeps 0", "expr": "state.zero ?? 5", "expected": 0 },
+    { "name": "?? keeps the empty string", "expr": "state.empty ?? 'x'", "expected": "" },
+    { "name": "?? keeps false", "expr": "state.off ?? true", "expected": false },
+    { "name": "?? inside parentheses with ||", "expr": "(state.nul ?? state.empty) || 'fb'", "expected": "fb" },
+
+    { "name": "&& returns the last operand", "expr": "state.name && state.age", "expected": 30 },
+    { "name": "&& returns the falsy operand", "expr": "state.empty && state.age", "expected": "" },
+    { "name": "|| returns the fallback", "expr": "state.empty || 'fb'", "expected": "fb" },
+    { "name": "|| returns the last falsy operand", "expr": "state.zero || state.nul", "expected": null },
+    { "name": "! on true", "expr": "!state.flag", "expected": false },
+    { "name": "!! on a string", "expr": "!!state.name", "expected": true },
+    { "name": "! on the empty string", "expr": "!state.empty", "expected": true },
+    { "name": "! on 0", "expr": "!state.zero", "expected": true },
+    { "name": "! on an empty array is false (arrays are truthy)", "expr": "!state.rows", "expected": false },
+    { "name": "&& binds tighter than ||", "expr": "state.off && state.flag || state.name", "expected": "Ana" },
+
+    { "name": "precedence of * over +", "expr": "1 + 2 * 3", "expected": 7 },
+    { "name": "parentheses", "expr": "(1 + 2) * 3", "expected": 9 },
+    { "name": "division is not integer division", "expr": "7 / 2", "expected": 3.5 },
+    { "name": "remainder", "expr": "7 % 3", "expected": 1 },
+    { "name": "unary minus", "expr": "-state.age", "expected": -30 },
+    { "name": "left-associative subtraction", "expr": "10 - 3 - 2", "expected": 5 },
+    { "name": "number plus number", "expr": "state.age + 1", "expected": 31 },
+    { "name": "decimal arithmetic", "expr": "data.total * 2", "expected": 25 },
+    { "name": "string concatenation", "expr": "'a' + 'b'", "expected": "ab" },
+    { "name": "string plus number prints the number as JS does", "expr": "state.name + ' ' + state.age", "expected": "Ana 30" },
+    { "name": "string plus decimal", "expr": "'t' + data.total", "expected": "t12.5" },
+    { "name": "number plus string concatenates", "expr": "1 + '1'", "expected": "11" },
+
+    { "name": ">= true", "expr": "state.age >= 18", "expected": true },
+    { "name": "< false", "expr": "state.age < 18", "expected": false },
+    { "name": "two strings compare lexicographically (ISO dates)", "expr": "state.from <= state.to", "expected": true },
+    { "name": "two strings compare lexicographically", "expr": "'b' > 'a'", "expected": true },
+    { "name": "lexicographic, not numeric, for two strings", "expr": "'10' < '9'", "expected": true },
+    { "name": "a numeric string against a number compares numerically", "expr": "state.numStr > 40", "expected": true },
+
+    { "name": "== number and numeric string", "expr": "state.age == '30'", "expected": true },
+    { "name": "== numeric string and number", "expr": "state.numStr == 42", "expected": true },
+    { "name": "== null and undefined", "expr": "state.nul == undefined", "expected": true },
+    { "name": "== missing and null", "expr": "state.missing == null", "expected": true },
+    { "name": "== 0 and false", "expr": "state.zero == false", "expected": true },
+    { "name": "== empty string and 0", "expr": "state.empty == 0", "expected": true },
+    { "name": "== null is not 0", "expr": "state.nul == 0", "expected": false },
+    { "name": "== null is not the empty string", "expr": "state.nul == ''", "expected": false },
+    { "name": "!= true and false", "expr": "state.flag != false", "expected": true },
+    { "name": "== two strings", "expr": "state.name == 'Ana'", "expected": true },
+    { "name": "== true and the string 'true' is false (the boolean compares as 1)", "expr": "state.flag == 'true'", "expected": false },
+    { "name": "== true and 1", "expr": "state.flag == 1", "expected": true },
+
+    { "name": "=== same number", "expr": "state.age === 30", "expected": true },
+    { "name": "=== number and string is false", "expr": "state.age === '30'", "expected": false },
+    { "name": "=== 0 and false is false", "expr": "state.zero === false", "expected": false },
+    { "name": "=== 0 and the empty string is false", "expr": "state.zero === ''", "expected": false },
+    { "name": "=== null", "expr": "state.nul === null", "expected": true },
+    { "name": "=== missing and undefined", "expr": "state.missing === undefined", "expected": true },
+    {
+      "name": "=== null and undefined is false", "expr": "state.nul === undefined", "expected": false,
+      "overrides": { "intellij": { "expected": true, "why": "Kotlin has one null: a null value and a missing key read alike" } }
+    },
+    { "name": "!== empty string", "expr": "state.empty !== ''", "expected": false },
+
+    { "name": "ternary", "expr": "state.flag ? 'y' : 'n'", "expected": "y" },
+    { "name": "ternary on a falsy 0", "expr": "state.zero ? 'y' : 'n'", "expected": "n" },
+    { "name": "nested ternary is right-associative", "expr": "state.age > 60 ? 'old' : state.age > 18 ? 'adult' : 'kid'", "expected": "adult" },
+
+    {
+      "name": "server @NotEmpty condition, value present",
+      "expr": "state['email'] != null && state['email'] !== '' && (state['email'].length === undefined || state['email'].length > 0)",
+      "expected": true
+    },
+    {
+      "name": "server @NotEmpty condition, value empty",
+      "expr": "state['empty'] != null && state['empty'] !== '' && (state['empty'].length === undefined || state['empty'].length > 0)",
+      "expected": false
+    },
+    {
+      "name": "server @NotNull condition on a number 0 (a value, Bean semantics)",
+      "expr": "state['zero'] != null && state['zero'] !== '' && (state['zero'].length === undefined || state['zero'].length > 0)",
+      "expected": true
+    },
+    { "name": "server @Min condition, absent value passes", "expr": "state['missing'] == null || state['missing'] === '' || state['missing'] >= 18", "expected": true },
+    { "name": "server @Min condition, low value fails", "expr": "state['age'] == null || state['age'] === '' || state['age'] >= 31", "expected": false },
+    { "name": "server @Size(min) condition", "expr": "state['name'] && state['name'].length < 5", "expected": true },
+    { "name": "server @Pattern condition, matching", "expr": "state['email'] == null || state['email'] === '' || /^[^@]+@[^@]+\\.[a-z]+$/.test(state['email'])", "expected": true },
+    { "name": "server @Pattern condition, not matching", "expr": "state['name'] == null || state['name'] === '' || /^[0-9]+$/.test(state['name'])", "expected": false },
+    { "name": "regex test is a search, not a full match", "expr": "/n/.test(state.name)", "expected": true },
+    { "name": "regex with a flag", "expr": "/^ana$/i.test(state.name)", "expected": true },
+    { "name": "regex with a class containing a slash", "expr": "/^[a/]+$/.test('a/a')", "expected": true },
+    { "name": "regex with an escaped slash", "expr": "/a\\/b/.test('a/b')", "expected": true },
+    { "name": "division is still division after a value", "expr": "state.age / 2 / 3", "expected": 5 },
+
+    { "name": "refuses constructor", "expr": "state.constructor", "expected": { "$error": true } },
+    { "name": "refuses __proto__", "expr": "state['__proto__']", "expected": { "$error": true } },
+    { "name": "refuses constructor of an array", "expr": "state.tags.constructor", "expected": { "$error": true } },
+    { "name": "refuses prototype", "expr": "state.prototype", "expected": { "$error": true } },
+    { "name": "refuses assignment", "expr": "state.age = 3", "expected": { "$error": true } },
+
+    { "name": "syntax: dangling operator", "expr": "state.age +", "expected": { "$error": true } },
+    {
+      "name": "syntax: unclosed parenthesis", "expr": "(1 + 2", "expected": { "$error": true },
+      "overrides": { "redwood": { "expected": 3, "why": "Redwood forgives a parenthesis left open at the very end, so a half-typed rule still evaluates" } }
+    },
+    { "name": "syntax: a misplaced closing parenthesis", "expr": "(1 + ) 2", "expected": { "$error": true } },
+    { "name": "syntax: double dot", "expr": "state..x", "expected": { "$error": true } },
+    { "name": "syntax: two values", "expr": "1 2", "expected": { "$error": true } },
+    { "name": "syntax: unknown character", "expr": "state.age # 2", "expected": { "$error": true } },
+    { "name": "syntax: unterminated string", "expr": "'abc", "expected": { "$error": true } },
+    { "name": "syntax: ternary without else", "expr": "state.flag ? 1", "expected": { "$error": true } },
+
+    {
+      "name": "method call on a string", "expr": "state.name.toUpperCase()", "expected": "ANA",
+      "overrides": {
+        "rn": { "expected": { "$error": true }, "why": "no method calls on the native renderers (only a regex's .test, which the server emits)" },
+        "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers (only a regex's .test, which the server emits)" }
+      }
+    },
+    {
+      "name": "includes on an array", "expr": "state.tags.includes('a')", "expected": true,
+      "overrides": {
+        "rn": { "expected": { "$error": true }, "why": "no method calls on the native renderers" },
+        "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers" }
+      }
+    },
+    {
+      "name": "array literal", "expr": "['Ana', 'Bo'].includes(state.name)", "expected": true,
+      "overrides": {
+        "rn": { "expected": { "$error": true }, "why": "no array literals or method calls on the native renderers" },
+        "intellij": { "expected": { "$error": true }, "why": "no array literals or method calls on the native renderers" }
+      }
+    },
+    {
+      "name": "arrow function", "expr": "state.rows.some(r => r.qty > 1)", "expected": true,
+      "overrides": {
+        "redwood": { "expected": { "$error": true }, "why": "Redwood calls only an allow-list of string/array methods without callbacks" },
+        "rn": { "expected": { "$error": true }, "why": "no method calls on the native renderers" },
+        "intellij": { "expected": { "$error": true }, "why": "no method calls on the native renderers" }
+      }
+    },
+    {
+      "name": "global allow-list", "expr": "Math.max(1, state.age)", "expected": 30,
+      "overrides": {
+        "redwood": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" },
+        "rn": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" },
+        "intellij": { "expected": { "$error": true }, "why": "no globals outside the web evaluator" }
+      }
+    },
+    {
+      "name": "typeof", "expr": "typeof state.age", "expected": "number",
+      "overrides": {
+        "redwood": { "expected": { "$error": true }, "why": "typeof is web-only" },
+        "rn": { "expected": { "$error": true }, "why": "typeof is web-only" },
+        "intellij": { "expected": { "$error": true }, "why": "typeof is web-only" }
+      }
+    },
+    {
+      "name": "an unknown root name", "expr": "nope", "expected": { "$error": true },
+      "overrides": {
+        "rn": { "expected": { "$undefined": true }, "why": "the native renderers read an unknown root name as undefined" },
+        "intellij": { "expected": { "$undefined": true }, "why": "the native renderers read an unknown root name as undefined" }
+      }
+    },
+    {
+      "name": "a member of undefined", "expr": "state.missing.x", "expected": { "$error": true },
+      "overrides": {
+        "rn": { "expected": { "$undefined": true }, "why": "member access is null-safe on the native renderers" },
+        "intellij": { "expected": { "$undefined": true }, "why": "member access is null-safe on the native renderers" }
+      }
+    },
+    {
+      "name": "null below a number", "expr": "state.nul < 1", "expected": true,
+      "overrides": { "intellij": { "expected": false, "why": "Kotlin has one null: null compares as undefined (NaN), as a missing key does" } }
+    }
+  ]
+}

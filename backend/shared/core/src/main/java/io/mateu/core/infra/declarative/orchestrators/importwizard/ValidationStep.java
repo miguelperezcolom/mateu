@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
@@ -12,6 +13,7 @@ import java.util.List;
  * per conversion failure or constraint violation, computed when entering the step. Carries the
  * {@code @WizardCompletionAction} button.
  */
+@Internal
 public class ValidationStep implements WizardStep {
 
   @PlainText

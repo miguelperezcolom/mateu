@@ -12,6 +12,13 @@ All rules are declared as annotations directly on the field. No JavaScript is re
 
 ## Conditional visibility with `@Hidden`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `@Hidden` accepts an expression that is evaluated in the browser against the current form state.
 
 ```java

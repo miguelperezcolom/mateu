@@ -1,9 +1,9 @@
-/* Input de un bloque display del HOST (FormField fluido, p.ej. el buscador de cargos del
- * modo check-out, o un campo del form layout de un crud): el valor va al draft
- * (runMateuAction lo fusiona en componentState) y, SI el host declara @AutoSave, se relanza
- * su acción — value-changed de oj-input dispara en blur/Enter, que hace de debounce natural.
- * Antes relanzaba siempre "buscarCargos" (la del check-out del front office): cualquier otro
- * formulario posteaba esa acción en cada cambio de campo. */
+/* Input of a HOST display block (fluent FormField, e.g. the charge search box of the
+ * check-out mode, or a field of a crud's form layout): the value goes to the draft
+ * (runMateuAction merges it into componentState) and, IF the host declares @AutoSave, its
+ * action is relaunched — oj-input's value-changed fires on blur/Enter, which acts as a natural debounce.
+ * It used to always relaunch "buscarCargos" (the front office check-out's): any other
+ * form posted that action on every field change. */
 
 define([
   'vb/action/actionChain',
@@ -34,9 +34,9 @@ define([
       if (!fieldId) {
         return;
       }
-      // input de la ISLA fusionada (fromNested, p.ej. el editor del documento): su valor
-      // va al draft de la isla (runMateuIslandAction lo fusiona en su componentState) y
-      // NO relanza el auto-save del host
+      // input of the merged ISLAND (fromNested, e.g. the document editor): its value
+      // goes to the island's draft (runMateuIslandAction merges it into its componentState) and
+      // does NOT relaunch the host's auto-save
       if (fromNested) {
         const islandDraft = Object.assign({}, $page.variables.mateuIslandDraft);
         islandDraft[fieldId] = detail.value;
@@ -46,8 +46,8 @@ define([
       const draft = Object.assign({}, $page.variables.mateuDraft);
       draft[fieldId] = detail.value;
       $page.variables.mateuDraft = draft;
-      // @Trigger(OnValueChange): el campo cambiado dispara su acción (el borrador ya lleva el valor
-      // nuevo, así que el servidor recalcula con él —llegada + noches → salida— sin guardar)
+      // @Trigger(OnValueChange): the changed field fires its action (the draft already carries the new
+      // value, so the server recalculates with it —arrival + nights → departure— without saving)
       const vcHost = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID];
       const vcAction = bridge.valueChangeActionOf(vcHost, fieldId,
         Object.assign({}, (vcHost && vcHost.state) || {}, $page.variables.mateuDraft));

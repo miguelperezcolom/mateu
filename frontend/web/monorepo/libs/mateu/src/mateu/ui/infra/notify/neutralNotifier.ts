@@ -34,6 +34,10 @@ function variantColors(variant: string | undefined): { bg: string; fg: string } 
         case 'error': return { bg: 'var(--lumo-error-color, #c62828)', fg: '#fff' }
         case 'warning': return { bg: 'var(--lumo-warning-color, #f9a825)', fg: '#1a1a1a' }
         case 'contrast': return { bg: 'var(--lumo-contrast-90pct, #1a1a1a)', fg: '#fff' }
+        // 'info' is what every backend sends for an informational toast ('primary' is Java's older
+        // spelling of the same intent): the accent colour.
+        case 'info':
+        case 'primary': return { bg: 'var(--lumo-primary-color, #1565c0)', fg: 'var(--lumo-primary-contrast-color, #fff)' }
         default: return { bg: 'var(--lumo-base-color, #fff)', fg: 'var(--lumo-body-text-color, #1a1a1a)' }
     }
 }

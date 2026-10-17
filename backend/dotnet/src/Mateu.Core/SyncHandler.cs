@@ -255,7 +255,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                     // the route's seeds (state:, fixed/default/path params, already folded into the
                     // component state) are the page's state: a seeded bare page is wrapped so it
                     // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
-                    ? FragmentResponse(rq.Route ?? "", WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
+                    ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
                         routeEntry is not null ? rq.ComponentState : null), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
@@ -274,7 +274,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             if (ExportKind(view, rq.ActionId) is { } listingExport)
             {
                 var all = new SearchRequest(SearchText(rq), AssembleFilters(listing.Filters, rq.ComponentState),
-                    null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
+                    null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort)) with { FilterState = rq.ComponentState };
                 return ExportRows(listingExport,
                     type.GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [all]), listing.Row, type, rq);
             }
@@ -580,6 +580,38 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             LookupLabels(type, instance, instance), emitWindowTitle: namesWindow && !embedded);
     }
 
+    /// <summary>What a definition-only page names the window with (Java's
+    /// ActionInstanceCreator.nameTheWindow): the root component's own <c>Title</c>, interpolated
+    /// against the page state — unless an expression in it has no value yet —, else the route's
+    /// last literal segment humanized (<c>orders/:id/edit-notes</c> → "Edit notes"). It used to be
+    /// the RAW route ("/about").</summary>
+    internal static string DefinitionWindowTitle(
+        IComponent layout, IReadOnlyDictionary<string, object?>? state, string? route)
+    {
+        if (layout.GetType().GetProperty("Title") is { PropertyType: var t } property && t == typeof(string)
+            && property.GetValue(layout) is string title && !string.IsNullOrWhiteSpace(title))
+        {
+            var placeholder = new System.Text.RegularExpressions.Regex(@"\$\{([^}]+)}");
+            string? ValueOf(string expression)
+            {
+                var key = expression.Trim();
+                if (key.StartsWith("state.")) key = key["state.".Length..];
+                return state is not null && state.TryGetValue(key, out var v) && v is not null
+                       && !string.IsNullOrWhiteSpace(v.ToString()) ? v.ToString() : null;
+            }
+            if (placeholder.Matches(title).All(m => ValueOf(m.Groups[1].Value) is not null))
+                return placeholder.Replace(title, m => ValueOf(m.Groups[1].Value) ?? "");
+        }
+        var segments = (route ?? "").Split('?')[0].Split('/');
+        for (var i = segments.Length - 1; i >= 0; i--)
+        {
+            var segment = segments[i];
+            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{'))
+                return Naming.HumanizeConstant(segment);
+        }
+        return route ?? "";
+    }
+
     /// <summary>The <c>pageType:</c> of the route's definition when it is bound to
     /// <paramref name="type"/>, else null (inferred).</summary>
     private string? DeclaredPageTypeFor(string? route, Type type) =>
@@ -610,11 +642,11 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
     {
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
-        // A [Button] is advertised validationRequired: the client checks the form's constraints
+        // A [Button] / [Toolbar] is advertised validationRequired: the client checks the form's constraints
         // first, and the server does not take its word for it (Java's ServerConstraintCheck).
-        if (method.Find<ButtonAttribute>() != null
+        if ((method.Find<ButtonAttribute>() != null || method.Find<ToolbarAttribute>() != null)
             && _mapper.Violations(type, instance) is { Count: > 0 } broken)
             throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));

@@ -1,18 +1,18 @@
-<!-- Shell Redwood AUTÉNTICA: oj-sp-simple-ui-shell + oj-sp-global-header (slots declarados
-     por el componente). El contenido del starter (banner, toast, router) va en el slot
-     stretchingContents. Cero HTML/CSS propio: solo composición de componentes oj-sp. -->
+<!-- AUTHENTIC Redwood shell: oj-sp-simple-ui-shell + oj-sp-global-header (slots declared
+     by the component). The starter's content (banner, toast, router) goes in the
+     stretchingContents slot. Zero HTML/CSS of our own: only composition of oj-sp components. -->
 
 <oj-sp-simple-ui-shell id="shell" page-layout="[[ $application.variables.mateuShellPageLayout ]]"
   on-oj-sp-chat-action="[[ $listeners.askOracleOpen ]]">
 
   <oj-sp-global-header slot="globalHeader" id="globalHeader"
     on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
-    <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->
+    <!-- HAMBURGUER_MENU: the hamburger OPENS the left navigator-drawer (not a dropdown) -->
     <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
-      <!-- la HAMBURGUESA va a la izquierda del todo, delante del logo (como en Redwood / Opera
-           Cloud), y su glifo dice qué hace: ☰ con el menú cerrado, ✕ con él abierto.
-           HAMBURGER_SECTIONS: el menú es un panel FLOTANTE sobre la subcabecera y el contenido
-           (mateuSectionsOverlay, abajo); HAMBURGUER_MENU: el navigator persistente de siempre. -->
+      <!-- the HAMBURGER goes at the far left, before the logo (as in Redwood / Opera
+           Cloud), and its glyph says what it does: ☰ with the menu closed, ✕ with it open.
+           HAMBURGER_SECTIONS: the menu is a FLOATING panel over the subheader and the content
+           (mateuSectionsOverlay, below); HAMBURGUER_MENU: the usual persistent navigator. -->
       <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
@@ -22,13 +22,13 @@
           <oj-bind-text value="[[ $application.translations.appBundle.menu ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
-      <!-- logo del @App (marca del cliente, p.ej. RIU) delante de la navegación -->
+      <!-- the @App's logo (the customer's brand, e.g. RIU) before the navigation -->
       <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]">
         <img :src="[[ $application.variables.mateuShellLogo ]]" alt="logo"
           class="oj-sm-margin-3x-end" style="height: 22px; display: block;">
       </oj-bind-if>
-      <!-- TABS con grupos: opciones de PRIMER NIVEL visibles en el header, sin hamburguesa;
-           los grupos despliegan un oj-menu (MENU_ON_TOP va en la subcabecera, más abajo) -->
+      <!-- TABS with groups: TOP-LEVEL options visible in the header, no hamburger;
+           the groups open an oj-menu (MENU_ON_TOP goes in the subheader, further down) -->
       <oj-bind-if test="[[ $application.variables.mateuMenuTopbar ]]">
         <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
           <template>
@@ -45,13 +45,13 @@
                 <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.menuNavAction ]]">
                   <oj-bind-for-each data="[[ $current.data.children ]]">
                     <template>
-                      <!-- hoja -->
+                      <!-- leaf -->
                       <oj-bind-if test="[[ !$current.data.hasChildren ]]">
                         <oj-option :value="[[ $current.data.id ]]" :disabled="[[ !!$current.data.disabled ]]" :title="[[ $current.data.hint || '' ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
                       </oj-bind-if>
-                      <!-- grupo: una shell federada trae TRES niveles (grupo de la shell →
-                           grupo del pod → sus pantallas); el submenú de JET es un oj-menu
-                           anidado dentro de la propia oj-option -->
+                      <!-- group: a federated shell brings THREE levels (shell group →
+                           pod group → its screens); JET's submenu is an oj-menu
+                           nested inside the oj-option itself -->
                       <oj-bind-if test="[[ $current.data.hasChildren ]]">
                         <oj-option :value="[[ $current.data.id ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
                           <oj-menu>
@@ -72,12 +72,12 @@
         </oj-bind-for-each>
       </oj-bind-if>
     </div>
-    <!-- @AppContext: un ICONO abre el drawer lateral con los selectores (los dropdowns
-         directos no casaban con el header oscuro) + acciones de cabecera del App -->
+    <!-- @AppContext: an ICON opens the side drawer with the selectors (direct
+         dropdowns did not fit the dark header) + the App's header actions -->
     <div slot="end" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
       <oj-bind-if test="[[ $application.variables.mateuContextSelectors.length > 0 ]]">
-        <!-- oj-color-invert: iconografía clara sobre el header oscuro (utilidad JET),
-             mismo blanco que el icono home del propio global-header -->
+        <!-- oj-color-invert: light iconography on the dark header (JET utility),
+             the same white as the global-header's own home icon -->
         <oj-button chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-3x-end"
           on-oj-action="[[ $listeners.contextDrawerToggle ]]">
           <span slot="startIcon" class="oj-ux-ico-settings"></span>
@@ -105,11 +105,11 @@
           </oj-bind-if>
         </template>
       </oj-bind-for-each>
-      <!-- CHAT DEL AGENTE: un botón de la cabecera (no un FAB), justo antes de los widgets del App
-           (la campana de la bandeja…), que abre y cierra el drawer izquierdo del chat (abajo).
-           Solo si la app declara el chat. display=icons → la etiqueta ("Chat", fija: oj-button no
-           repinta un texto enlazado) es su nombre accesible y su tooltip; mientras el panel está
-           abierto queda marcado (mateu-chat-open) y su botón lleva aria-expanded (toggleMateuChat). -->
+      <!-- AGENT CHAT: a header button (not a FAB), right before the App's widgets
+           (the inbox bell…), that opens and closes the chat's left drawer (below).
+           Only if the app declares the chat. display=icons → the label ("Chat", fixed: oj-button does
+           not repaint a bound text) is its accessible name and its tooltip; while the panel is
+           open it stays marked (mateu-chat-open) and its button carries aria-expanded (toggleMateuChat). -->
       <oj-bind-if test="[[ !!$application.variables.mateuChatSseUrl ]]">
         <oj-button id="mateuChatToggle" chroming="borderless" display="icons"
           :class="[[ 'mateu-chat-toggle oj-color-invert oj-sm-margin-1x-start' + ($application.variables.mateuChatOpen ? ' mateu-chat-open' : '') ]]"
@@ -130,8 +130,8 @@
           <oj-bind-text value="[[ $application.translations.appBundle.mobileQrAction ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
-      <!-- CAMPANA de la bandeja (NotificationsSupplier del App): oj-button con la insignia de no
-           leídas y un oj-popup con un oj-list-view; activar una entrada la marca leída y navega -->
+      <!-- inbox BELL (the App's NotificationsSupplier): oj-button with the unread
+           badge and an oj-popup with an oj-list-view; activating an entry marks it read and navigates -->
       <oj-bind-if test="[[ $application.variables.mateuNotifications.enabled ]]">
         <span class="mateu-bell oj-sm-margin-1x-start">
           <oj-button id="mateuBellButton" chroming="borderless" display="icons" class="oj-color-invert"
@@ -169,11 +169,11 @@
           </div>
         </oj-popup>
       </oj-bind-if>
-      <!-- WIDGETS de cabecera del App (WidgetSupplier): la zona de ACCIONES de la cabecera global.
-           HTML de un Text y HTML vivo de un MicroFrontend (el badge de la bandeja, que se refresca
-           con sus triggers) van a un hueco que rellena el bridge — VB no estampa HTML crudo desde
-           un binding; cualquier otro Popover, botón + oj-popup. oj-color-invert: texto e iconos
-           claros sobre el header oscuro, como el icono home del propio global-header. -->
+      <!-- the App's header WIDGETS (WidgetSupplier): the ACTIONS area of the global header.
+           A Text's HTML and the live HTML of a MicroFrontend (the inbox badge, which refreshes
+           with its triggers) go into a slot the bridge fills — VB does not stamp raw HTML from
+           a binding; any other Popover, button + oj-popup. oj-color-invert: light text and icons
+           on the dark header, like the global-header's own home icon. -->
       <!-- LIVE HEADER VALUES (HeaderValuesSupplier / headerValues:): «Business date: 12 Oct». The bridge
            paints them (appExtras.mjs) and repaints on UpdateHeaderValue, another tab, or the app
            event stream of @App(liveUpdates) -->
@@ -208,9 +208,9 @@
         </oj-bind-for-each>
       </div>
     </div>
-    <!-- ÁREA DE PERFIL (slot usermenu del global-header, donde FA pone el avatar del usuario): el
-         widget Popover(Text) del App — el saludo — como avatar con iniciales + nombre; al pulsarlo,
-         su contenido (email, Logout) en un popup anclado. En pantalla estrecha, solo el avatar. -->
+    <!-- PROFILE AREA (the global-header's usermenu slot, where FA puts the user's avatar): the
+         App's Popover(Text) widget — the greeting — as an avatar with initials + name; when clicked,
+         its content (email, Logout) in an anchored popup. On a narrow screen, only the avatar. -->
     <div slot="usermenu" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
       <oj-bind-if test="[[ !!$application.variables.mateuUserWidget ]]">
         <oj-button id="mateuUserButton" class="mateu-user-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless"
@@ -241,17 +241,17 @@
 
   <div slot="stretchingContents" id="pageContent" class="oj-web-applayout-page">
 
-    <!-- SUBCABECERA (MENU_ON_TOP): la banda 2 bajo la cabecera oscura, como la del renderer web —
-         la cabecera (banda 1) se queda con el logo, el chat, la bandeja y el usuario; aquí van el
-         título de la consola y sus opciones de primer nivel, en color de texto, con la sección en
-         pantalla marcada por un subrayado discreto. Los grupos despliegan un oj-menu (con el tercer
-         nivel de una shell federada anidado). Una sección remota que no contestó sale deshabilitada
-         y dice por qué (hint). Sin acento de marca: la banda usa los tokens neutros de Redwood.
-         Va fuera del drawer del chat: no se desplaza con él. -->
+    <!-- SUBHEADER (MENU_ON_TOP): band 2 under the dark header, like the web renderer's —
+         the header (band 1) keeps the logo, the chat, the inbox and the user; here go the
+         console's title and its top-level options, in text color, with the section on
+         screen marked by a discreet underline. Groups open an oj-menu (with the third
+         level of a federated shell nested). A remote section that did not answer comes out disabled
+         and says why (hint). No brand accent: the band uses Redwood's neutral tokens.
+         It sits outside the chat drawer: it does not move with it. -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
-      <!-- sin contenido (HAMBURGER_SECTIONS en la home: ninguna sección en pantalla) la banda se
-           PLIEGA —no queda una franja blanca vacía—, y aparece/desaparece con una transición
-           (app.css, sin ella con prefers-reduced-motion) -->
+      <!-- with no content (HAMBURGER_SECTIONS on the home: no section on screen) the band
+           COLLAPSES —no empty white strip is left—, and appears/disappears with a transition
+           (app.css, without it under prefers-reduced-motion) -->
       <nav :class="[[ $functions.subheaderClassOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]"
         :aria-hidden="[[ $functions.subheaderClassOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) === 'mateu-subheader' ? null : 'true' ]]"
         :aria-label="[[ $functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) || 'Menu' ]]">
@@ -270,7 +270,7 @@
                   :title="[[ $current.data.hint || '' ]]"
                   on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
               </oj-bind-if>
-              <!-- grupo como TARJETAS (@Menu(display = cards)): botón + oj-popup con oj-action-card -->
+              <!-- group as CARDS (@Menu(display = cards)): button + oj-popup with oj-action-card -->
               <oj-bind-if test="[[ $current.data.isCards ]]">
                 <oj-button chroming="borderless" data-nav-item
                   :id="[[ $current.data.anchorId ]]"
@@ -357,12 +357,12 @@
       </nav>
     </oj-bind-if>
 
-    <!-- HAMBURGER_SECTIONS: el menú de secciones es OTRO NIVEL, flotando por encima de la
-         subcabecera y del contenido (no los empuja): un panel a la izquierda bajo la cabecera
-         global —la hamburguesa, ya ✕, queda a la vista para cerrarlo— con un velo detrás. Se
-         cierra con la ✕, con Esc, con un clic fuera (el velo) o al elegir una sección. El id de
-         cada sección es su home —elegirla navega allí, como en Opera— y queda marcada la que
-         está en pantalla. Entra deslizándose (sin animación con prefers-reduced-motion). -->
+    <!-- HAMBURGER_SECTIONS: the sections menu is ANOTHER LEVEL, floating above the
+         subheader and the content (it does not push them): a panel on the left under the global
+         header —the hamburger, now ✕, stays visible to close it— with a scrim behind. It
+         closes with the ✕, with Esc, with a click outside (the scrim) or on choosing a section. The id of
+         each section is its home —choosing it navigates there, as in Opera— and the one
+         on screen is marked. It slides in (no animation with prefers-reduced-motion). -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSections ]]">
       <div :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-sections-scrim mateu-open' : 'mateu-sections-scrim' ]]"
         aria-hidden="true" on-click="[[ $listeners.sectionsScrimClicked ]]"></div>
@@ -383,10 +383,10 @@
       </div>
     </oj-bind-if>
 
-    <!-- ASK ORACLE: el FAB del propio shell (con el glifo de Ask Oracle, oj-ux-ico-oracle-o, o la
-         marca del @App(askLabel, askIcon): bridge.brandAskFab) abre esta paleta —
-         buscador que filtra la navegación y las vistas rápidas del listado; cada fila navega y
-         cierra. El chat del agente NO vive aquí: tiene su botón en la cabecera y su drawer (abajo). -->
+    <!-- ASK ORACLE: the shell's own FAB (with the Ask Oracle glyph, oj-ux-ico-oracle-o, or the
+         brand of @App(askLabel, askIcon): bridge.brandAskFab) opens this palette —
+         a search box that filters the navigation and the listing's quick views; each row navigates and
+         closes. The agent chat does NOT live here: it has its button in the header and its drawer (below). -->
     <!-- «Keyboard shortcuts» (the ? key, @AppShortcut): the app's shortcuts (picking one runs it), the
          screen's own and the shell's; the body is filled by the bridge (appExtras.mjs) -->
     <oj-dialog id="mateuShortcutsHelp" cancel-behavior="icon" drag-affordance="none"
@@ -411,8 +411,8 @@
       dialog-title="[[ $application.variables.mateuAskLabel ]]">
       <div slot="body" style="width: 560px; max-width: 90vw; min-height: 320px;">
 
-        <!-- BUSCAR: Ask Oracle es sólo el buscador de destinos (el chat del agente tiene su
-             propio botón en la cabecera y su drawer, ver abajo) -->
+        <!-- SEARCH: Ask Oracle is only the destination finder (the agent chat has its
+             own button in the header and its drawer, see below) -->
         <div>
           <oj-input-search id="mateuAskInput" class="oj-form-control-full-width"
             placeholder="[[ $application.translations.appBundle.searchOrGo ]]"
@@ -466,7 +466,7 @@
       </div>
     </oj-dialog>
 
-    <!-- drawer de CONTEXTO (@AppContext): los selectores en un panel lateral estándar -->
+    <!-- CONTEXT drawer (@AppContext): the selectors in a standard side panel -->
     <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}">
       <div class="oj-sm-padding-6x" style="width: 320px;">
         <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.workContext ]]"></oj-bind-text></h2>
@@ -490,14 +490,14 @@
       </div>
     </oj-drawer-popup>
 
-    <!-- CHAT DEL AGENTE: su botón en las acciones de la cabecera global (ver arriba, antes de
-         los widgets) abre un drawer a la IZQUIERDA. Patrón JET: oj-drawer-layout con START drawer, que en
-         pantalla ancha es REFLOW (el contenido se estrecha y se desplaza a la derecha, nada
-         queda tapado) y en estrecha OVERLAY (start-display "auto", el corte de JET) — ahí el
-         panel ocupa todo el ancho. Va DENTRO de stretchingContents: la cabecera global queda
-         fuera del layout y no se mueve, y la barra de pestañas es un overlay fijo que estampa
-         su componente (tampoco se mueve; el panel le reserva su alto). oj-drawer-popup no
-         sirve: es siempre overlay y taparía el contenido que el usuario le está preguntando. -->
+    <!-- AGENT CHAT: its button in the global header's actions (see above, before
+         the widgets) opens a drawer on the LEFT. JET pattern: oj-drawer-layout with a START drawer, which on a
+         wide screen is REFLOW (the content narrows and shifts to the right, nothing
+         is covered) and on a narrow one OVERLAY (start-display "auto", JET's breakpoint) — there the
+         panel takes the full width. It goes INSIDE stretchingContents: the global header stays
+         outside the layout and does not move, and the tab bar is a fixed overlay stamped by
+         its component (it does not move either; the panel reserves its height). oj-drawer-popup does not
+         work: it is always overlay and would cover the content the user is asking about. -->
     <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0"
       start-opened="[[ $application.variables.mateuChatOpen ]]"
       on-oj-before-close="[[ $listeners.chatClose ]]">
@@ -507,8 +507,8 @@
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header">
             <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span>
             <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0"><oj-bind-text value="[[ $application.variables.mateuChatTitle || $application.translations.appBundle.chatTitle ]]"></oj-bind-text></h2>
-            <!-- modo ancho (60vw), como el del chat web: un botón por estado (el texto de un
-                 oj-button no sigue a un binding) -->
+            <!-- wide mode (60vw), like the web chat's: one button per state (the text of an
+                 oj-button does not follow a binding) -->
             <oj-bind-if test="[[ !$application.variables.mateuChatExpanded ]]">
               <oj-button id="mateuChatExpand" chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatExpand ]]">
                 <span slot="startIcon" class="oj-ux-ico-expand"></span>
@@ -533,15 +533,15 @@
             </oj-bind-if>
             <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
               <template>
-                <!-- la respuesta del asistente todavía vacía no se pinta: lo que pasa lo dice la
-                     fila de estado de abajo -->
+                <!-- the assistant's still-empty reply is not painted: what is going on is told by the
+                     status row below -->
                 <oj-bind-if test="[[ $current.data.role === 'user' || !!$current.data.text ]]">
                   <div class="oj-flex oj-sm-margin-3x-bottom"
                     :class="[[ $current.data.role === 'user' ? 'oj-sm-justify-content-flex-end' : 'oj-sm-justify-content-flex-start' ]]">
                     <div class="oj-sm-padding-3x oj-typography-body-md mateu-chat-bubble"
                       :class="[[ $current.data.role === 'user' ? 'oj-bg-brand-10 mateu-chat-bubble' : 'oj-bg-neutral-20 mateu-chat-bubble' ]]">
-                      <!-- lo que escribe la persona, tal cual; lo que contesta el asistente es markdown:
-                           se pinta formado (listas, negritas, tablas, código), con el HTML escapado -->
+                      <!-- what the person writes, as is; what the assistant answers is markdown:
+                           it is painted formatted (lists, bold, tables, code), with the HTML escaped -->
                       <oj-bind-if test="[[ $current.data.role === 'user' ]]">
                         <span class="mateu-chat-user-text"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
                       </oj-bind-if>
@@ -555,7 +555,7 @@
                 </oj-bind-if>
               </template>
             </oj-bind-for-each>
-            <!-- el asistente trabaja: «Pensando… N s» hasta el primer texto, «Respondiendo…» después -->
+            <!-- the assistant is working: «Thinking… N s» until the first text, «Answering…» after -->
             <oj-bind-if test="[[ !!$application.variables.mateuChatStatus ]]">
               <div id="mateuChatStatus" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-margin-3x-bottom"
                 role="status">
@@ -565,8 +565,8 @@
                 </span>
               </div>
             </oj-bind-if>
-            <!-- las herramientas del turno en curso: hechas (✓ y su tiempo), fallidas (✕ y el error)
-                 o en marcha (…), como el chat web -->
+            <!-- the tools of the current turn: done (✓ and its time), failed (✕ and the error)
+                 or running (…), like the web chat -->
             <oj-bind-if test="[[ ($application.variables.mateuChatSteps || []).length > 0 ]]">
               <ul id="mateuChatSteps" class="mateu-chat-steps" :aria-label="[[ $application.translations.appBundle.chatToolsUsed ]]">
                 <oj-bind-for-each data="[[ $application.variables.mateuChatSteps ]]">
@@ -582,7 +582,7 @@
               </ul>
             </oj-bind-if>
           </div>
-          <!-- tokens de la conversación, sumados respuesta a respuesta -->
+          <!-- the conversation's tokens, summed reply by reply -->
           <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]">
             <div id="mateuChatTokens" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top">
               <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $application.translations.appBundle.chatTokens ]]"></oj-bind-text></span>
@@ -597,7 +597,7 @@
               </oj-bind-if>
             </div>
           </oj-bind-if>
-          <!-- los adjuntos del SIGUIENTE mensaje (@AI(upload)): un chip por fichero, con su ✕ -->
+          <!-- the attachments of the NEXT message (@AI(upload)): one chip per file, with its ✕ -->
           <oj-bind-if test="[[ ($application.variables.mateuChatAttachments || []).length > 0 ]]">
             <div id="mateuChatAttachments" class="oj-flex oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top mateu-chat-attachments">
               <oj-bind-for-each data="[[ $application.variables.mateuChatAttachments ]]">
@@ -615,7 +615,7 @@
             </div>
           </oj-bind-if>
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
-            <!-- adjuntar: sólo con @AI(upload) -->
+            <!-- attach: only with @AI(upload) -->
             <oj-bind-if test="[[ !!$application.variables.mateuChatUploadUrl ]]">
               <oj-button id="mateuChatAttach" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
                 :disabled="[[ $application.variables.mateuChatBusy || $application.variables.mateuChatUploading ]]"
@@ -624,9 +624,9 @@
                 <oj-bind-text value="[[ $application.translations.appBundle.chatAttach ]]"></oj-bind-text>
               </oj-button>
             </oj-bind-if>
-            <!-- dictar: solo donde el navegador reconoce la voz; lo dictado se envía.
-                 Ctrl+Shift+M lo pulsa con el panel abierto (shell-page.js). Un botón por estado: el
-                 texto de un oj-button (su tooltip y su nombre accesible) no sigue a un oj-bind-text -->
+            <!-- dictate: only where the browser recognises speech; what is dictated is sent.
+                 Ctrl+Shift+M presses it with the panel open (shell-page.js). One button per state: the
+                 text of an oj-button (its tooltip and its accessible name) does not follow an oj-bind-text -->
             <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]">
               <oj-bind-if test="[[ !$application.variables.mateuChatListening ]]">
                 <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
@@ -656,15 +656,15 @@
         </oj-bind-if>
       </div>
 
-    <!-- Navigator PERSISTENTE (HAMBURGUER_MENU): oj-drawer-layout (reflow) DEBAJO del
-         header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
-         y el contenido se desplaza -->
+    <!-- PERSISTENT navigator (HAMBURGUER_MENU): oj-drawer-layout (reflow) BELOW the
+         header — open from the start, it is NOT hidden on navigation; the hamburger collapses it
+         and the content shifts -->
     <oj-drawer-layout style="flex: 1 1 auto" id="mateuNavDrawer"
       start-opened="[[ $application.variables.mateuNavDrawerOpen && !$application.variables.mateuMenuSections ]]"
       on-oj-before-close="[[ $listeners.navDrawerClosed ]]">
 
-      <!-- 280px = ancho estándar del navigation drawer (patrón del cookbook JET/RDS);
-           oj-drawer-layout dimensiona el panel por su contenido, no expone variable -->
+      <!-- 280px = standard width of the navigation drawer (JET/RDS cookbook pattern);
+           oj-drawer-layout sizes the panel by its content, it exposes no variable -->
       <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px">
         <oj-bind-if test="[[ !$application.variables.mateuMenuSections ]]">
                 <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
@@ -684,7 +684,7 @@
                           <oj-bind-if test="[[ !$current.data.hasChildren ]]">
                             <li :id="[[ $current.data.id ]]" :class="[[ $current.data.disabled ? 'oj-disabled' : '' ]]" :title="[[ $current.data.hint || '' ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
                           </oj-bind-if>
-                          <!-- tercer nivel (shell federada): el grupo del pod con sus pantallas -->
+                          <!-- third level (federated shell): the pod's group with its screens -->
                           <oj-bind-if test="[[ $current.data.hasChildren ]]">
                             <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
                               <ul>
@@ -708,16 +708,16 @@
         </oj-bind-if>
       </div>
 
-      <!-- sin oj-web-applayout-max-width: capaba el área a 1440 y desalineaba el ancho fixed
-           (anclado al viewport, como la caja del shell) del chrome flotante del shell -->
+      <!-- no oj-web-applayout-max-width: it capped the area at 1440 and misaligned the fixed width
+           (anchored to the viewport, like the shell's box) from the shell's floating chrome -->
       <div class="oj-web-applayout-content-nopad">
 
         <!-- @embedded-frame: down to @end-embedded-frame, the frame the <mateu-ui> component reuses around the content page (poc/make-embedded.mjs) -->
-        <!-- Resiliencia del transporte (poc/resilience.mjs). Perder la conexión es un ESTADO,
-             no un evento: se sostiene una banda mientras dure, en vez de un aviso por clic que
-             el usuario ve pasar cinco segundos cada vez. La barra de ocupado sólo aparece
-             pasado medio segundo (animación con delay): por debajo de eso la petición suele
-             ganar y un destello sería peor que no mostrar nada. -->
+        <!-- Transport resilience (poc/resilience.mjs). Losing the connection is a STATE,
+             not an event: a band is held while it lasts, instead of a per-click notice that
+             the user sees go by for five seconds every time. The busy bar only appears
+             after half a second (animation with delay): below that the request usually
+             wins and a flash would be worse than showing nothing. -->
         <oj-bind-if test="[[ $application.variables.mateuOffline ]]">
           <div class="mateu-offline-band" role="status">
             <oj-bind-text value="[[ $application.translations.appBundle.offlineBand ]]"></oj-bind-text>
@@ -729,9 +729,9 @@
         <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]">
           <div class="mateu-error-band" role="alert">
             <span><oj-bind-text value="[[ $application.variables.mateuLastError ]]"></oj-bind-text></span>
-            <!-- Lo que el cliente podía reintentar solo, ya lo ha hecho en silencio. El que se
-                 ofrece aquí es el caso en que repetir era NUESTRA decisión y decidimos no
-                 tomarla: la toma el usuario, que sabe si puede permitirse un duplicado. -->
+            <!-- What the client could retry on its own, it has already done silently. The one
+                 offered here is the case where repeating was OUR decision and we decided not
+                 to make it: the user makes it, who knows whether they can afford a duplicate. -->
             <oj-button chroming="callToAction" display="all"
               on-oj-action="[[ $listeners.retryMateuAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.retry ]]"></oj-bind-text></oj-button>
             <oj-button chroming="borderless" display="all"
@@ -747,10 +747,10 @@
 
         <oj-sp-messages-toast primary-text="[[ $variables.messageToast ]]" id="messageToast"></oj-sp-messages-toast>
 
-        <!-- Cambiar de pantalla: pasado el mismo retardo que la barra de ocupado, la pantalla
-             vieja se oculta y el esqueleto ocupa SU sitio, encima — no se apila sobre ella.
-             Una acción dentro de la misma pantalla no navega: sólo la barra, y el contenido se
-             queda, que es el contexto de lo que se está esperando. -->
+        <!-- Changing screen: after the same delay as the busy bar, the old
+             screen is hidden and the skeleton takes ITS place, on top — it does not stack over it.
+             An action within the same screen does not navigate: only the bar, and the content
+             stays, which is the context of what is being waited for. -->
         <div class="oj-flex mateu-content" :class="[[ $application.variables.mateuNavigating ? 'mateu-navigating' : '' ]]">
           <oj-bind-if test="[[ $application.variables.mateuNavigating ]]">
             <div class="mateu-skeleton" aria-hidden="true">
@@ -761,9 +761,9 @@
               <div class="mateu-skeleton-pair"><div class="mateu-skeleton-bone mateu-skeleton-label"></div><div class="mateu-skeleton-bone mateu-skeleton-field"></div></div>
             </div>
           </oj-bind-if>
-          <!-- Renders flow content. min-width:0 = fix estándar flexbox (min-width:auto):
-               sin él, contenido ancho (foldout, tablas) DESBORDA el área en vez de quedar
-               acotado — y la lógica responsive de los oj-sp-* nunca se activa -->
+          <!-- Renders flow content. min-width:0 = standard flexbox fix (min-width:auto):
+               without it, wide content (foldout, tables) OVERFLOWS the area instead of staying
+               bounded — and the responsive logic of the oj-sp-* never kicks in -->
           <oj-vb-content id="vbRouterContent" role="main" class="oj-flex-item" style="min-width:0" config="[[vbRouterFlow]]">
 
           </oj-vb-content>
@@ -774,12 +774,13 @@
     </oj-drawer-layout>
     </oj-drawer-layout>
 
-    <!-- Menú PLANO (variante TABS): in-app navigation Redwood (su barra REAL es un overlay
-         fijo abajo que estampa el propio componente; el elemento host va al FINAL del
-         contenido para que su caja en flujo reserve esos 64px al hacer scroll al fondo).
-         Sale en TODAS las páginas, la home incluida: la navegación de la app no desaparece
-         según dónde estés. En la home no hay ninguna pestaña seleccionada (su ruta no es
-         una opción del menú) y a ella se vuelve por el icono casa del global-header. -->
+    <!-- FLAT menu (TABS variant): Redwood in-app navigation (its REAL bar is a fixed
+         overlay at the bottom stamped by the component itself; the host element goes at the END of the
+         content so that its in-flow box reserves those 64px when scrolling to the bottom).
+         It shows on ALL pages, the home included: the app's navigation does not disappear
+         depending on where you are. On the home no tab is selected (its route is not
+         a menu option) and you get back to it via the global-header's home icon. -->
+
     <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"

@@ -11,6 +11,13 @@ Draw attention to a single message with an action — an upgrade prompt, a "you'
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `CalloutCard` component: an icon, a title, a description and an optional CTA (`ctaLabel` + `actionId`). `theme` — `info`, `success`, `warning` or `danger` — tints the background and accent and colors the CTA; the button dispatches the standard `action-requested` event.
 
 ```java

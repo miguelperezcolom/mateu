@@ -126,3 +126,147 @@ def test_secured_warns_naming_eyes_only():
             pass
 
     assert Guarded.__mateu_secured__ == "admin"  # still accepted (and enforced: test_secured_enforced)
+
+
+# ── M-A7: the package shape ─────────────────────────────────────────────────────────────────
+
+
+def test_no_published_export_is_removed():
+    """``tests/api/public-exports.json`` is the published surface: every name in it must still be
+    exported (removing one is a breaking change — deprecate it instead). A NEW export is added to
+    the file in the same change, so the review sees it."""
+    import importlib
+    import json
+
+    published = json.loads((Path(__file__).parent / "api" / "public-exports.json").read_text())
+    removed = {
+        module: sorted(set(names) - set(importlib.import_module(module).__all__))
+        for module, names in published.items()
+    }
+    removed = {m: n for m, n in removed.items() if n}
+    assert removed == {}, f"exports removed (deprecate them instead): {removed}"
+    for module, names in published.items():
+        mod = importlib.import_module(module)
+        assert all(hasattr(mod, n) for n in names), module
+
+
+def test_private_helpers_do_not_leak_into_the_namespace():
+    for name in ("_Banner", "_Fab", "_ListToolbarButton", "_maybe_bare"):
+        assert not hasattr(mateu_uidl, name), name
+
+
+def test_the_request_types_are_public():
+    import mateu_core
+    from mateu_core import MateuRequest, RunActionRq, current_request
+    from mateu_uidl import ActionRequest
+
+    assert {"MateuRequest", "current_request", "RunActionRq"} <= set(mateu_core.__all__)
+    assert current_request() is None
+    assert isinstance(RunActionRq(action_id="x"), ActionRequest)
+    assert MateuRequest(headers={"a": "b"}).header("A") == "b"
+
+
+from mateu_uidl import ActionRequest, Message, action  # noqa: E402
+
+SEEN: dict = {}
+
+
+@ui("freeze-request")
+class RequestView:
+    name: str = ""
+
+    @action
+    def echo(self, rq: ActionRequest):
+        SEEN["rq"] = rq
+        return Message(f"{rq.action_id}:{rq.parameters.get('n')}")
+
+
+def test_an_action_parameter_typed_action_request_receives_the_request():
+    from mateu_core import MateuRegistry, RunActionRq, SyncHandler
+    from mateu_core.registry import type_name
+
+    handler = SyncHandler(MateuRegistry(sys.modules[__name__]))
+    inc = handler.handle(RunActionRq(
+        route="/freeze-request", consumed_route="/freeze-request",
+        server_side_type=type_name(RequestView), action_id="echo",
+        initiator_component_id="c1", parameters={"n": 7},
+    ))
+    assert SEEN["rq"].action_id == "echo"
+    assert inc.messages[0].text == "echo:7"
+
+
+def test_the_progress_step_clash_is_resolved_by_add_and_deprecate():
+    from mateu_uidl import Step as WizardStepMarker
+    from mateu_uidl.components import ProgressStep, Step
+
+    assert WizardStepMarker(2).step == 2  # the wizard marker keeps the top-level name
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        ProgressStep(id="s1", title="Cart")
+    with pytest.warns(DeprecationWarning, match="ProgressStep"):
+        old = Step(id="s1", title="Cart")
+    assert isinstance(old, ProgressStep)
+
+
+def test_bare_kpi_uses_the_method_name_and_keeps_the_method():
+    from mateu_uidl import kpi
+
+    class Page:
+        @kpi
+        def open_orders(self):
+            return 3
+
+        @kpi("Revenue")
+        def revenue(self):
+            return 10
+
+    assert callable(Page.open_orders) and Page().open_orders() == 3
+    assert Page.open_orders.__mateu_kpi__ == "Open orders"
+    assert Page.revenue.__mateu_kpi__ == "Revenue"
+    assert kpi("A") == kpi("A")
+
+
+def test_markers_compare_by_value():
+    from mateu_uidl import Aggregate, AggregateFunction, Audience, PlainText, PrimaryColumn
+    from mateu_uidl import PhotoCapture, Searchable, Tooltip, TreeSelect
+
+    assert Tooltip("a") == Tooltip("a")
+    assert Aggregate() == Aggregate(AggregateFunction.sum) == Aggregate("sum")
+    assert PrimaryColumn("c") == PrimaryColumn("c")
+    assert TreeSelect(True) == TreeSelect(leaves_only=True)
+    assert PlainText() == PlainText() and PhotoCapture() == PhotoCapture()
+    assert Audience("staff", "guest") == Audience("staff", "guest")
+    assert Searchable(FreezeHome) == Searchable(FreezeHome)
+    with pytest.raises(Exception):
+        Tooltip("a").value = "b"  # frozen
+    with pytest.raises(ValueError, match="sum"):
+        Aggregate("total")
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda: mateu_uidl.page_width("wide"),
+        lambda: mateu_uidl.page_template("home"),
+        lambda: mateu_uidl.size("big"),
+        lambda: mateu_uidl.form_layout(labels_aside="left"),
+        lambda: mateu_uidl.wizard_progress("dots"),
+        lambda: mateu_uidl.banner(theme="ALERT"),
+        lambda: mateu_uidl.menu_group("G", display="tiles"),
+        lambda: app("Bad", variant="SIDEBAR"),
+    ],
+)
+def test_enum_valued_decorators_reject_unknown_values(build):
+    with pytest.raises(ValueError, match="is not one of"):
+        build()
+
+
+def test_enum_valued_decorators_accept_the_member_its_value_or_its_name():
+    from mateu_uidl import PageWidth, page_width
+
+    for spelling in (PageWidth.FULL_WIDTH, "fullWidth", "FULL_WIDTH"):
+        @page_width(spelling)
+        class Wide:
+            pass
+
+        assert Wide.__mateu_page_width__ == "fullWidth"

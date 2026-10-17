@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
+import lombok.Builder;
 
 /**
  * How a {@link io.mateu.uidl.interfaces.DocumentRenderer} (implemented by the application — Mateu
@@ -19,6 +20,7 @@ import io.mateu.uidl.annotations.Experimental;
  * @param footer the running footer, or null for none
  */
 @Experimental("documents API, 2026-10")
+@Builder
 public record PageSetup(
     Paper paper, boolean landscape, float marginMm, String title, String header, String footer) {
 

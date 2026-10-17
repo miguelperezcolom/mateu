@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.PrimaryKey;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
@@ -26,6 +27,7 @@ import java.util.Set;
  * returned (exact when they all fit in that page, which is what a short list of ids does unless the
  * listing ignores it AND has many pages).
  */
+@Internal
 public final class IdSetFilter {
 
   /** The ids in a component state's reserved {@code ids} entry; empty when absent or blank. */

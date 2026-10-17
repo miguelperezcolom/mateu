@@ -11,6 +11,13 @@ Sell small extras — parking, late check-out, an all-inclusive package — as a
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `AddOnPicker` component: a `totalLabel` and `currency` for the header-right running total, an optional `actionId`, and a list of `AddOn` cards. Each card has an `icon` chip, a `title`, a muted `description`, and either a price line (`price`, optionally `/ unit`) with a `+`/`✓` toggle, or an `includedLabel` (e.g. a loyalty perk) shown instead of a price and with no toggle. `added(true)` pre-selects a card.
 
 ```java

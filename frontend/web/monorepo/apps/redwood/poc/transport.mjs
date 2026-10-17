@@ -1,7 +1,7 @@
-// Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
-// "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
-// sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
-// testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
+// Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
+// "Transport"): shell bootstrap through components/_/action; everything else through
+// sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
+// tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf } from './reduceContexts.mjs'
@@ -12,16 +12,17 @@ import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { noteDocumentBase } from './files.mjs'
+import { trustShellBase, trustDeclaredRemoteBases } from './hostHeaders.mjs'
 
-/** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
- *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
- *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
- *  son de ninguna pantalla; `options.view` la fija a mano (null: de ninguna). */
+/** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
+ *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
+ *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
+ *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
 export async function callMateu(base, body, options = {}) {
   const view = options.view !== undefined ? options.view
     : (options.quiet || options.isolated) ? null : currentView()
   const bare = (body.route || '').replace(/^\//, '')
-  noteDocumentBase(base) // un Document aparcado se pide a ESTE backend
+  noteDocumentBase(base) // a parked Document is requested from THIS backend
   const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -40,17 +41,19 @@ export async function callMateu(base, body, options = {}) {
   observeWireVersion(increment)
   // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
   adoptReferencedSources(increment)
-  // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
+  // the body takes time too: whatever arrives after the screen changed is not applied either
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
 }
 
-/** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
- *  Static-bundle: la shell NO se exporta (el bundle guarda cargas de ruta, no el __load__ del App),
- *  así que en modo híbrido (bundle + backend) el menú sale del backend como siempre; pero si el
- *  backend NO está (despliegue estático puro) y el bundle trae la ruta raíz, se cae a ella para que
- *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
+/** Shell bootstrap: the root App only resolves through the generic endpoint.
+ *  Static-bundle: the shell is NOT exported (the bundle stores route loads, not the App's __load__),
+ *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
+ *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
+ *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
 export async function bootstrapShell(base, initiator = 'shell') {
+  // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
+  trustShellBase(base)
   await awaitBundle()
   // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
   // its absence is the normal case, not an error band nor a sign of being offline
@@ -72,8 +75,8 @@ export async function bootstrapShell(base, initiator = 'shell') {
   }
 }
 
-/** Ruta INTERNA de un mediador/isla tras un flip de state._route: base del outbound +
- *  flip + marcadores query (los ?_embeddedMediator=1&_inline=1 deben seguir viajando). */
+/** INTERNAL route of a mediator/island after a state._route flip: outbound base +
+ *  flip + query markers (the ?_embeddedMediator=1&_inline=1 must keep travelling). */
 export function composeInnerRoute(outboundRoute, flip) {
   if (!flip || flip === '/' ) return outboundRoute
   const queryIndex = outboundRoute.indexOf('?')
@@ -83,12 +86,12 @@ export function composeInnerRoute(outboundRoute, flip) {
 }
 
 /**
- * La base de un crud de PÁGINA a la que se pegan sus rutas internas (`/QN29HB`, `/QN29HB/edit`,
- * `/new`): su `consumedRoute`, no la ruta con la que se cargó. Entrando desde el listado las dos
- * coinciden (`/booking/bookings`), pero un detalle abierto por enlace directo se carga con
- * `/booking/bookings/QN29HB` y lo consumido es `/booking/bookings`: pegar ahí el `/QN29HB/edit`
- * del Edit daba `/booking/bookings/QN29HB/QN29HB/edit`. Solo cuando lo consumido es un prefijo de
- * la ruta; un mediador embebido (sin consumedRoute) conserva su ruta y sus marcadores de query.
+ * The base of a PAGE crud to which its internal routes are appended (`/QN29HB`, `/QN29HB/edit`,
+ * `/new`): its `consumedRoute`, not the route it was loaded with. Coming from the listing both
+ * match (`/booking/bookings`), but a detail opened by direct link is loaded with
+ * `/booking/bookings/QN29HB` and what is consumed is `/booking/bookings`: appending the Edit's
+ * `/QN29HB/edit` there gave `/booking/bookings/QN29HB/QN29HB/edit`. Only when what is consumed is
+ * a prefix of the route; an embedded mediator (no consumedRoute) keeps its route and its query markers.
  */
 export function mediatorBaseOf(outbound, fallbackRoute = '') {
   const o = outbound || {}
@@ -110,16 +113,16 @@ export function mediatorBaseOf(outbound, fallbackRoute = '') {
 }
 
 /**
- * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
- * null si no hay flip.
+ * Does the response to an action ask to reload the mediator's internal route? Returns that route,
+ * or null if there is no flip.
  *
- * Un crud de PÁGINA no contesta el detalle: contesta un fragmento SOLO-ESTADO cuyo `_route`
- * apunta a él (clic de fila → `/2CSXZN`, New → `/new`), que significa "recarga mi ruta interna
- * con este estado". Quien no sigue el flip se queda mirando el listado: la petición sale, el
- * servidor contesta 200, y no pasa nada — el fallo más difícil de ver de todos.
+ * A PAGE crud does not answer with the detail: it answers a STATE-ONLY fragment whose `_route`
+ * points at it (row click → `/2CSXZN`, New → `/new`), meaning "reload my internal route
+ * with this state". Whoever does not follow the flip is left looking at the listing: the request
+ * goes out, the server answers 200, and nothing happens — the hardest failure of all to spot.
  *
- * El criterio es SEMÁNTICO (comparar el valor de `_route` antes y después), no por identidad:
- * los objetos de VB son proxies y las referencias no dicen nada.
+ * The criterion is SEMANTIC (compare the `_route` value before and after), not by identity:
+ * VB objects are proxies and references say nothing.
  */
 export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '') {
   const stateOnly = increment && (increment.fragments || []).length > 0
@@ -165,10 +168,10 @@ export function bootstrapHasApp(increment) {
 
 export function setMountWithoutApp(value) { mountWithoutApp = !!value }
 
-/** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
- *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
- *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
- *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
+/** Load of a route (actionId '': the real __load__; extra = consumedRoute/serverSideType…).
+ *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
+ *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
+ *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
 export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
   if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
@@ -194,9 +197,9 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
 }
 
-/** Acción saliente: arma la request desde el CONTEXTO — "manda el estado que ya tienes".
- *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
- *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
+/** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
+ *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
+ *  context (a mediator needs consumedRoute + serverSideType on actions too). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
   // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
   // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
@@ -209,26 +212,26 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
       { ...extra, parameters, idempotent: !!idempotent }),
   })
   if (restAnswer) return restAnswer
-  // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
+  // the OnSuccess ones (periodic refresh) are read from the context that LAUNCHES the action
   const source = ctx
-  // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
-  // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
+  // the action goes to the ServerSide that DECLARES it (the view, not the mediator that loaded it): also
+  // the triggers — the «refresh» OnLoad of a view loaded by a crud —, not only the buttons
   ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
-  // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
-  // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
-  // trigger `search` de un listado, un botón del toolbar) sabe de qué contexto sale, pero
-  // no de qué backend vino — y mandarla a la shell la contesta vacía, sin error.
+  // A surface loaded from another pod keeps talking to THAT pod. The base travels in the
+  // outbound for the same reason as the 4 route fields: whoever fires an action (a listing's
+  // `search` trigger, a toolbar button) knows which context it comes from, but
+  // not which backend it came from — and sending it to the shell answers it empty, with no error.
   base = outbound.baseUrl != null ? outbound.baseUrl : base
   const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
-  // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
-  // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
-  // lectura sólo significa datos más frescos — y bloquearlas rompería el type-ahead, donde la
-  // búsqueda de "mad" se descartaría por estar en vuelo la de "ma".
+  // Double-submit guard. A read is EXEMPT from exclusivity: the guard exists because
+  // a second POST of a write means a second row, whereas a second
+  // read only means fresher data — and blocking them would break type-ahead, where the
+  // search for "mad" would be dropped because the one for "ma" is in flight.
   const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
   const key = pendingActions.key(initiator, actionId)
   if (exclusive && !pendingActions.begin(key)) {
-    // Duplicado: se descarta ANTES de construir la petición.
+    // Duplicate: dropped BEFORE building the request.
     return Promise.resolve(null)
   }
   const release = () => { if (exclusive) pendingActions.end(key) }
@@ -249,12 +252,12 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
 }
 
 /**
- * Carga las opciones de los lookups REMOTOS de un contexto que aún no las tienen (los campos
- * editables de su formulario y los filtros de su listado; formLookupsOf): una búsqueda vacía
- * por lookup (`search-<campo>`, hasta 200), en paralelo, contra el ServerSide que la declara
- * — o el mediador, que la resuelve con la clase de sus filtros —, con el estado del contexto.
- * Cada respuesta deja sus opciones en ctx.data[campo]; se marcan como cargadas también las que
- * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
+ * Loads the options of a context's REMOTE lookups that do not have them yet (the editable
+ * fields of its form and the filters of its listing; formLookupsOf): one empty search
+ * per lookup (`search-<field>`, up to 200), in parallel, against the ServerSide that declares it
+ * — or the mediator, which resolves it with its filters class —, with the context's state.
+ * Each response leaves its options in ctx.data[field]; the failing ones are marked as loaded too,
+ * so they are not repeated on every action. Returns the new registry.
  */
 export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
   // the options of the fields backed by a REST source (optionsSource) — direct, or proxied
@@ -279,21 +282,21 @@ export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
     }).catch(() => null)))
   let out = reg
   for (const inc of found) {
-    // sólo los DATOS: un lookup que falla no debe pintar su error encima de la pantalla
+    // only the DATA: a failing lookup must not paint its error over the screen
     if (inc) out = reduceContexts(out, { fragments: (inc.fragments || []).filter((f) => !f.component) })
   }
   return markLookupsLoaded(out, ctxId, pending.map((lookup) => lookup.fieldId))
 }
 
-/** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
- *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
- *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
- *  progreso del LongTask se pinta mientras el stream avanza); si el callback devuelve
- *  true, el increment se considera CONSUMIDO y se excluye de la lista devuelta. Sin
- *  callback, comportamiento clásico: lista completa al acabar. */
+/** SSE action (Action.sse(true), e.g. LongTask): POST {base}/mateu/v3/sse/{route} with
+ *  Accept text/event-stream — the response is a STREAM of UIIncrements (data: …\n\n).
+ *  Increments are DELIVERED LIVE via `extra.onIncrement(inc)` (async; the LongTask's progress
+ *  dialog is painted while the stream advances); if the callback returns
+ *  true, the increment is considered CONSUMED and excluded from the returned list. Without a
+ *  callback, classic behaviour: full list at the end. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
   const { onIncrement, ...bodyExtra } = extra || {}
-  // atada a la pantalla en curso, como callMateu: cada increment se comprueba al llegar
+  // tied to the current screen, like callMateu: each increment is checked as it arrives
   const view = currentView()
   ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
@@ -301,8 +304,8 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   const effectiveRoute = outbound.route || route || ''
   const bare = effectiveRoute.replace(/^\//, '')
   noteDocumentBase(base)
-  // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
-  // mataría a mitad. Pasa igualmente por la política para que el fallo llegue clasificado.
+  // No timeout: a LongTask keeps the stream open by design, so a ceiling would
+  // kill it halfway. It still goes through the policy so the failure arrives classified.
   const res = await fetchWithPolicy(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -355,15 +358,15 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
 }
 
 /**
- * Un mediador cuyo WRAPPER llega como App de chrome (ClientSide type App) en vez de envuelto en un
- * ServerSide. Es la forma que hoy manda el backend al abrir una opción de menú: el mismo App que en
- * el bootstrap, pero pedido para una SUB-ruta (route por debajo de rootRoute). reduceContexts lo
- * absorbe como shell y el contexto queda vacío, así que mediatorOf(host) no lo detecta y la 2ª carga
- * —la del contenido real: search form + listado del crud— nunca se dispara. Se lee entonces del
- * incremento: si trae un App cuyo rootRoute es prefijo de la ruta pedida, hay contenido que buscar.
+ * A mediator whose WRAPPER arrives as a chrome App (ClientSide type App) instead of wrapped in a
+ * ServerSide. It is the shape the backend sends today when opening a menu option: the same App as in
+ * the bootstrap, but requested for a SUB-route (route below rootRoute). reduceContexts absorbs
+ * it as the shell and the context stays empty, so mediatorOf(host) does not detect it and the 2nd load
+ * —the one with the real content: the crud's search form + listing— never fires. So it is read from the
+ * increment: if it carries an App whose rootRoute is a prefix of the requested route, there is content to fetch.
  *
- * La raíz del app (route === rootRoute) es la shell/home y NO pasa por aquí: la resuelve el
- * bootstrap. Sólo una navegación por debajo de la raíz necesita el segundo salto.
+ * The app root (route === rootRoute) is the shell/home and does NOT go through here: the
+ * bootstrap resolves it. Only a navigation below the root needs the second hop.
  */
 function mediatorFromShellApp(increment, route) {
   for (const fr of increment?.fragments || []) {
@@ -381,15 +384,15 @@ function mediatorFromShellApp(increment, route) {
   return null
 }
 
-/** ¿La carga contestó el «Not found.» del servidor (un Text suelto, sin ServerSide)? */
+/** Did the load answer the server's «Not found.» (a lone Text, no ServerSide)? */
 export function isServerNotFound(ctx) {
   const t = ctx && ctx.tree
   return !!(t && t.type === 'ClientSide' && t.metadata && t.metadata.type === 'Text'
     && /^not found\.?$/i.test(String(t.metadata.text || '').trim()))
 }
 
-/** La ruta TERMINAL de una entrada de menú dentro de un grupo (/gestion/island-host → /island-host),
- *  o null si no cuelga de ningún grupo. */
+/** The TERMINAL route of a menu entry inside a group (/gestion/island-host → /island-host),
+ *  or null if it hangs from no group. */
 export function terminalMenuRouteOf(menu, route) {
   const path = String(route || '').split('?')[0]
   const query = String(route || '').slice(path.length)
@@ -407,10 +410,10 @@ export function terminalMenuRouteOf(menu, route) {
 }
 
 /**
- * Carga una ruta del MENÚ LOCAL: la compuesta con el serverSideType del app que la declara (lo
- * que hace Vaadin al elegir la opción); si el servidor no la reconoce —un RouteLink metido en un
- * grupo apunta a una ruta absoluta que no es camino de menú— se reintenta por la terminal.
- * Una ruta que no es del menú se carga tal cual.
+ * Loads a LOCAL MENU route: the composed one with the serverSideType of the app that declares it (what
+ * Vaadin does when the option is chosen); if the server does not recognise it —a RouteLink placed in a
+ * group points at an absolute route that is not a menu path— it retries through the terminal one.
+ * A route that is not from the menu is loaded as is.
  */
 export async function loadMenuRouteInto(base, reg, route, targetId = '', extra = {}) {
   const shell = (reg && reg.shell) || {}
@@ -425,31 +428,31 @@ export async function loadMenuRouteInto(base, reg, route, targetId = '', extra =
 }
 
 /**
- * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
- * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
- * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
+ * Loads a route INTO the registry and follows the mediator if there is one (crud/island: the 1st load
+ * returns the chromeless App; the content arrives with consumedRoute + serverSideType).
+ * Returns the new registry. targetId = key of the target context (initiator).
  */
 export async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
-  // live reload (liveReload.mjs): lo tecleado viaja con la carga — un view model se hidrata con
-  // ello — y se vuelve a poner sobre la respuesta, para que una página sólo-definición lo conserve
+  // live reload (liveReload.mjs): what was typed travels with the load — a view model is hydrated with
+  // it — and is put back over the response, so a definition-only page keeps it
   const liveState = extra && extra.liveState
   if (extra && 'liveState' in extra) {
     const { liveState: _omit, ...rest } = extra
     extra = liveState ? { ...rest, componentState: liveState } : rest
   }
-  // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
-  // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
-  // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
+  // the raw INCREMENT is kept: the 1st load of a menu option arrives as a mediator App
+  // (ClientSide type App), which reduceContexts routes to the CHROME (shell) and not to the context —
+  // mediatorOf(host) does not see it, so the mediator has to be taken from the increment itself.
   let firstIncrement = await loadRoute(base, route, targetId, extra)
   const ctxId = targetId === '' ? HOST_ID : targetId
   let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
-  // La CADENA de rutas (P1): un registro con pestañas que son páginas llega como uno o varios Apps
-  // ANIDADOS (el maestro) antes de la pantalla de su hueco. Cada uno es un NIVEL (título +
-  // pestañas), no la shell; se sigue su home hasta llegar al contenido.
+  // The route CHAIN (P1): a record whose tabs are pages arrives as one or more NESTED Apps
+  // (the master) before the screen of its slot. Each one is a LEVEL (title +
+  // tabs), not the shell; its home is followed until the content is reached.
   const shellType = reg && reg.shell ? reg.shell.serverSideType : undefined
   const appLevels = []
-  // la ruta que de verdad se carga: un maestro alcanzado solo (/customers/7) abre su pestaña
-  // por defecto (/customers/7/orders)
+  // the route that is really loaded: a master reached on its own (/customers/7) opens its default
+  // tab (/customers/7/orders)
   let effectiveRoute = route
   for (let hop = 0; hop < 4; hop++) {
     const split = splitNestedApps(firstIncrement, shellType, route)
@@ -465,8 +468,8 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
     })
   }
   let next = reduceContexts(reg, firstIncrement)
-  // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
-  // la carga de contenido las pierde, así que se conservan aquí
+  // the component's ACTIONS (with their sse flag) travel in the mediator's WRAPPER —
+  // the content load loses them, so they are kept here
   const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
   const wrapperActions = (wrapperTree && wrapperTree.actions) || []
   const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
@@ -492,9 +495,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
       }),
     )
   }
-  // el contexto RECUERDA cómo se cargó: las acciones salientes reconstruyen los campos
-  // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada).
-  // sseActionIds: acciones anunciadas Action.sse(true) — van por el endpoint /sse
+  // the context REMEMBERS how it was loaded: outgoing actions rebuild the route fields
+  // from here (structural sharing: only this entry's ref changes).
+  // sseActionIds: actions announced Action.sse(true) — they go through the /sse endpoint
   next = {
     ...next,
     contexts: {
@@ -518,15 +521,15 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
       },
     }
   }
-  // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
+  // the app levels (masters) of the HOST screen: one tab bar per level
   if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }
   return next
 }
 
 /**
- * Carga un @Subresource (subresourceIslandOf) en SU contexto: la carga por su tipo — sin el baile
- * del mediador: el App que lo envuelve ya dice qué clase es — con el estado que le siembra el padre,
- * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
+ * Loads a @Subresource (subresourceIslandOf) into ITS context: loads it by its type — without the
+ * mediator dance: the App wrapping it already says which class it is — with the state the parent seeds,
+ * and its OnLoad search (the rows). Returns the new registry.
  */
 export async function loadSubresource(base, reg, sub, extra = {}) {
   // an inline island arrived with its tree: nothing to load, its context comes from the node
@@ -553,9 +556,9 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
 }
 
 /**
- * Carga los @Subresource que el contenido deja a la vista y aún no están cargados (los de la
- * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
- * hueco: no tumba la pantalla.
+ * Loads the @Subresources the content leaves in view and that are not loaded yet (those of the
+ * active tab: what is in another tab waits until it is opened). One that fails stays as a
+ * gap: it does not bring the screen down.
  */
 /**
  * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
@@ -730,47 +733,47 @@ export async function loadSubresources(base, reg, blocks, extra = {}) {
   for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
     try {
       next = await loadSubresource(base, next, sub, extra)
-    } catch (ignored) { /* la banda de error ya lo cuenta (onSettle) */ }
+    } catch (ignored) { /* the error band already reports it (onSettle) */ }
   }
   return next
 }
 
 /**
- * De qué backend se cargó una superficie, o undefined si aún no se sabe.
+ * Which backend a surface was loaded from, or undefined if not known yet.
  *
- * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
- * dispara conoce el id del contexto, no el pod. Preguntándoselo al HOST (el valor por defecto)
- * la isla se carga de donde vino la pantalla que la contiene, que es lo que siempre quiere.
+ * An island is loaded with `loadRouteInto`, which receives the base as an argument: the chain that
+ * fires it knows the context id, not the pod. By asking the HOST (the default value)
+ * the island is loaded from wherever the screen containing it came from, which is always what it wants.
  */
 export function baseOf(reg, ctxId = HOST_ID) {
   const ctx = reg && reg.contexts && reg.contexts[ctxId]
   return ctx && ctx.outbound ? ctx.outbound.baseUrl : undefined
 }
 
-// ── menús federados ────────────────────────────────────────────────────────────────────────
+// ── federated menus ────────────────────────────────────────────────────────────────────────
 //
-// Una shell declara secciones que sirve OTRO pod: `RemoteMenu("/_workflow")`. El árbol que llega
-// en el bootstrap trae esas opciones marcadas `remote` y SIN hijos — los hijos son del pod, y hay
-// que ir a buscarlos. Hasta ahora este renderer no lo hacía: pintaba el rótulo que la shell había
-// escrito y nada debajo, que se lee como "ese servicio no tiene pantallas" en vez de como "nadie
-// se lo ha preguntado".
+// A shell declares sections served by ANOTHER pod: `RemoteMenu("/_workflow")`. The tree arriving
+// in the bootstrap carries those options marked `remote` and WITHOUT children — the children belong
+// to the pod, and they have to be fetched. Until now this renderer did not do it: it painted the
+// label the shell had written and nothing below, which reads as "that service has no screens"
+// instead of "nobody has asked it".
 //
-// Lo que sigue es la mitad fácil. La otra está en la navegación: una entrada traída de otro pod
-// solo se puede cargar llamando a ESE pod, y este bridge llamaba siempre al base de la shell. Por
-// eso cada opción adoptada queda registrada en `remoteRoutes`, y la cadena de navegación consulta
-// ahí a dónde tiene que ir. Sin esa segunda mitad, expandir el menú es peor que no expandirlo:
-// aparecen entradas que al pulsarlas no llevan a ninguna parte.
+// What follows is the easy half. The other is in navigation: an entry brought from another pod
+// can only be loaded by calling THAT pod, and this bridge always called the shell's base. That is
+// why each adopted option is recorded in `remoteRoutes`, and the navigation chain looks up
+// there where it has to go. Without that second half, expanding the menu is worse than not expanding it:
+// entries appear that lead nowhere when clicked.
 
-/** Ruta de menú → dónde vive de verdad. La llena expandRemoteMenus; la lee la navegación. */
+/** Menu route → where it really lives. Filled by expandRemoteMenus; read by navigation. */
 const remoteRoutes = new Map()
 
 /**
- * Dónde vive una ruta, o undefined si la sirve la propia shell.
+ * Where a route lives, or undefined if the shell itself serves it.
  *
- * Casa también por PREFIJO, con el registro más largo que encaje: al registro solo llegan las
- * rutas del MENÚ (`/workflow/processes`), y todo lo que cuelga de ellas —el detalle de un
- * proceso, `/new`, `/{id}/edit`— vive en el mismo pod. Sin esto, un deep-link a
- * `/workflow/processes/<id>` salía al backend de la shell, que contesta "Not found.".
+ * It also matches by PREFIX, with the longest registered entry that fits: only MENU routes reach the
+ * registry (`/workflow/processes`), and everything hanging from them —a process's
+ * detail, `/new`, `/{id}/edit`— lives in the same pod. Without this, a deep-link to
+ * `/workflow/processes/<id>` went to the shell's backend, which answers "Not found.".
  */
 export function remoteRouteOf(route) {
   if (route == null) return undefined
@@ -791,9 +794,9 @@ export function remoteRouteOf(route) {
 }
 
 /**
- * Registra a qué pod va una ruta que NO vino del menú: la navegación que pide un widget remoto
- * (el enlace del badge de la bandeja emite navigation-requested con su baseUrl y su
- * serverSideType). Una ruta que el menú ya registró se queda como está — el menú manda.
+ * Records which pod a route that did NOT come from the menu goes to: the navigation requested by a
+ * remote widget (the inbox badge's link emits navigation-requested with its baseUrl and its
+ * serverSideType). A route the menu already registered stays as it is — the menu rules.
  */
 export function registerRemoteRoute(route, descriptor) {
   if (!route || !descriptor || !descriptor.baseUrl || remoteRouteOf(route)) return false
@@ -810,8 +813,8 @@ export function registerRemoteRoute(route, descriptor) {
 
 const childrenOf = (option) => option.submenus || option.submenu || []
 
-/** Las opciones remotas del árbol, a cualquier profundidad.
- *  No se baja DENTRO de una remota: lo que cuelgue de ella es del pod, y aún no ha contestado. */
+/** The remote options of the tree, at any depth.
+ *  It does not descend INTO a remote one: whatever hangs from it belongs to the pod, which has not answered yet. */
 function collectRemoteMenus(menu, found = []) {
   for (const option of menu || []) {
     if (option.remote) found.push(option)
@@ -820,7 +823,7 @@ function collectRemoteMenus(menu, found = []) {
   return found
 }
 
-/** El menú del App que contesta un pod, o null si no contestó con uno. */
+/** The menu of the App a pod answers with, or null if it did not answer with one. */
 function appMenuOf(increment) {
   for (const fragment of (increment && increment.fragments) || []) {
     const md = (fragment.component && fragment.component.metadata) || {}
@@ -832,10 +835,10 @@ function appMenuOf(increment) {
 }
 
 /**
- * Marca las hojas traídas de un pod con dónde vive ese pod.
+ * Marks the leaves brought from a pod with where that pod lives.
  *
- * Solo las que no traen `baseUrl` propio: un pod puede a su vez federar, y su respuesta ya viene
- * resuelta. Un grupo no se marca, se recorre — lo que navega es la hoja.
+ * Only those without their own `baseUrl`: a pod can federate in turn, and its response already comes
+ * resolved. A group is not marked, it is walked — what navigates is the leaf.
  */
 function adoptRemote(menu, option, app) {
   const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
@@ -843,13 +846,13 @@ function adoptRemote(menu, option, app) {
     if (child.baseUrl) continue
     if (childrenOf(child).length) {
       adoptRemote(childrenOf(child), option, app)
-      // El grupo también es del pod: lo que cuelga de su ruta y no es ninguna de sus hojas —la
-      // página de UNA tarea, /forms/task/<id>, bajo el grupo /forms cuyas hojas son /forms/tasks
-      // y /forms/executions— vive en el mismo pod. Es lo que reclama el servidor de la shell
-      // (RemoteMenuHandler.claimLength cuenta todas las rutas del menú, grupos incluidos); sin
-      // esto ese deep-link salía al backend de la shell, que contesta "Not found.". Solo como
-      // prefijo de respaldo: remoteRouteOf se queda con el registro más largo, así que una hoja
-      // sigue ganándole al grupo que la contiene. El grupo no se marca: lo que navega es la hoja.
+      // The group belongs to the pod too: whatever hangs from its route and is none of its leaves —the
+      // page of ONE task, /forms/task/<id>, under the group /forms whose leaves are /forms/tasks
+      // and /forms/executions— lives in the same pod. It is what the shell's server claims
+      // (RemoteMenuHandler.claimLength counts every menu route, groups included); without
+      // this that deep-link went to the shell's backend, which answers "Not found.". Only as a
+      // fallback prefix: remoteRouteOf keeps the longest registered entry, so a leaf
+      // still beats the group containing it. The group is not marked: what navigates is the leaf.
       registerGroupRoute(child.route || child.path || '', option, app, serverSideType)
       continue
     }
@@ -863,16 +866,16 @@ function adoptRemote(menu, option, app) {
       serverSideType,
       uriPrefix: option.route,
     }
-    // Por la ruta tal cual, y por la que verá la navegación cuando shellNavOf le quite el
-    // prefijo del padre. Dos claves para la misma entrada es más barato que reconstruir
-    // aquí el cálculo que hace el nav, y que se desincronicen luego.
+    // By the route as is, and by the one navigation will see when shellNavOf strips the
+    // parent's prefix. Two keys for the same entry is cheaper than rebuilding
+    // here the calculation the nav does, and having them drift apart later.
     const route = child.route || child.path || ''
     remoteRoutes.set(route, descriptor)
     remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
   }
 }
 
-/** La ruta de un grupo de un pod, registrada como prefijo; la de una hoja ya registrada no se pisa. */
+/** The route of a pod's group, registered as a prefix; that of an already registered leaf is not overwritten. */
 function registerGroupRoute(route, option, app, serverSideType) {
   const bare = String(route || '').replace(/^\//, '')
   if (!bare || remoteRoutes.has(bare)) return
@@ -891,13 +894,13 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
   for (const option of menu || []) {
     if (option.remote) {
       const app = answers.get(option)
-      // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
-      // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
-      // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
-      // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
-      // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
-      // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
-      // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
+      // HIDDEN remote (`@Menu @Hidden RemoteMenu`, visible:false on the wire): its routes are
+      // registered all the same —a deep-link or a reload under them has to go to its pod— but it
+      // contributes nothing to the menu, not even the label if the pod did not answer.
+      // HIDDEN remote (`@Menu @Hidden RemoteMenu`, visible:false on the wire): its routes are
+      // registered all the same —a deep-link or a reload under them has to go to its pod— and its
+      // entries stay in the tree, hidden: they are not painted (shellNavOf), but a page under
+      // them has its breadcrumbs. If the pod did not answer, the placeholder stays, hidden too.
       if (option.visible === false) {
         if (app) {
           adoptRemote(app.menu, option, app)
@@ -909,14 +912,14 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
       }
       if (app) {
         adoptRemote(app.menu, option, app)
-        // HAMBURGER_SECTIONS: un pod montado en el primer nivel es UNA sección conteste lo que
-        // conteste (asSection, navTree.mjs); si no, el rótulo que la shell declaró manda sobre el
-        // del pod
+        // HAMBURGER_SECTIONS: a pod mounted at the first level is ONE section whatever it
+        // answers (asSection, navTree.mjs); otherwise, the label the shell declared wins over
+        // the pod's
         const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
         out.push(...labelledByShell(entries, option))
       } else {
-        // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
-        // vacía se entiende, una que desaparece parece que nunca existió.
+        // The pod did not answer. The section stays, disabled and saying why: an empty section
+        // is understandable, one that disappears looks like it never existed.
         out.push(unavailableMount(option))
       }
     } else if (childrenOf(option).length) {
@@ -929,15 +932,17 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
 }
 
 /**
- * Pide a cada pod su menú y lo pone donde estaba su opción.
+ * Asks each pod for its menu and puts it where its option was.
  *
- * En paralelo, y un pod que falle no tumba al resto: su sección se queda como estaba en vez de
- * llevarse por delante las que sí contestaron. Con `sections` (HAMBURGER_SECTIONS) cada pod
- * montado en el primer nivel queda como una sola sección (asSection).
+ * In parallel, and one failing pod does not bring down the rest: its section stays as it was instead of
+ * taking down the ones that did answer. With `sections` (HAMBURGER_SECTIONS) each pod
+ * mounted at the first level stays as a single section (asSection).
  */
 export async function expandRemoteMenus(menu, { sections = false } = {}) {
   const remotes = collectRemoteMenus(menu)
   if (!remotes.length) return menu
+  // the remotes the SHELL's app names may receive the token; those a remote names may not
+  trustDeclaredRemoteBases(remotes.map((option) => option.baseUrl || ''))
   const answers = new Map()
   await Promise.all(remotes.map(async (option) => {
     try {
@@ -947,12 +952,12 @@ export async function expandRemoteMenus(menu, { sections = false } = {}) {
         consumedRoute: '_empty',
         initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
         parameters: option.params || {},
-        // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+        // its failure is ITS section's: no error band or "offline" for the whole app
       }, { quiet: true, isolated: true, timeoutMillis: 20000 })
       const app = appMenuOf(increment)
       if (app) answers.set(option, app)
     } catch (e) {
-      // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
+      // Silent on purpose (quiet/isolated): the section stays unavailable (spliceRemote).
     }
   }))
   return spliceRemote(menu, answers, sections)

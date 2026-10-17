@@ -91,17 +91,26 @@ The flag lives on the grid the archetype composes (`ResponsiveGrid.reorderable`;
 
 ### Fluent variant
 
-Everything is also available as fluent components for `ComponentTreeSupplier` pages: build a `DashboardLayout` with `Scoreboard`, `DashboardPanel` and `MetricCard` items directly when the layout is data-dependent.
+Everything is also available as fluent components for `ComponentTreeSupplier` pages: put a `Scoreboard`, `DashboardPanel`s and `MetricCard`s on a `ResponsiveGrid` — the grid the `Dashboard` archetype composes — when the layout is data-dependent. (`DashboardLayout` is deprecated: use `ResponsiveGrid`.)
 
 ```java
+import io.mateu.uidl.data.DashboardPanel;
+import io.mateu.uidl.data.GridTrack;
+import io.mateu.uidl.data.ResponsiveGrid;
+import io.mateu.uidl.data.Scoreboard;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
+
 @Override
 public Component component(HttpRequest request) {
-    return DashboardLayout.builder()
-            .items(List.of(
+    return new ResponsiveGrid(
+            "dashboard",
+            List.of(),                         // no tracks = auto-fit; or N × GridTrack.fill()
+            List.of(
                     Scoreboard.builder().metrics(kpis()).build(),
                     DashboardPanel.builder().title("Monthly sales").colSpan(2)
-                            .content(salesChart()).build()))
-            .build();
+                            .content(salesChart()).build()));
 }
 ```
 

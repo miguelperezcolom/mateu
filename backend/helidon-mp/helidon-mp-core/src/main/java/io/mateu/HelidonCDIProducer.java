@@ -35,7 +35,18 @@ public class HelidonCDIProducer {
    */
   @Inject Instance<HelidonMPBeanProvider> beanProvider;
 
+  /** Mateu's own settings ({@code mateu.actions.strict}…) read from MicroProfile Config. */
+  private AutoCloseable settings = () -> {};
+
   void eagerlyInitStaticFactories(@Observes @Initialized(ApplicationScoped.class) Object event) {
+    // microprofile-config.properties / application.yaml / env: every mateu.* key core reads
+    // (MateuSettings) is honoured like any Helidon property
+    settings =
+        io.mateu.core.infra.MateuSettings.register(
+            key ->
+                org.eclipse.microprofile.config.ConfigProvider.getConfig()
+                    .getOptionalValue(key, String.class)
+                    .orElse(null));
     instanceFactory.get().toString();
     beanProvider.get().toString();
     // warns, once, when nothing will authenticate callers (no security module, no resolver)
@@ -43,6 +54,12 @@ public class HelidonCDIProducer {
         io.mateu.core.infra.security.IdentityResolver.present(
             "org.eclipse.microprofile.jwt.JsonWebToken"),
         "Add helidon-microprofile-jwt-auth (MicroProfile JWT)");
+  }
+
+  void forgetSettings(
+      @Observes @jakarta.enterprise.context.BeforeDestroyed(ApplicationScoped.class) Object event)
+      throws Exception {
+    settings.close();
   }
 
   @Produces

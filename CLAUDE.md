@@ -13,7 +13,9 @@ It spans the spectrum from **code-first** (pro developers) to **low-code/no-code
 ```
 backend/          ← Maven multi-module Java backend
   shared/
-    core/         ← Framework kernel (hexagonal: application / domain / infra layers)
+    core/         ← Framework kernel, in application / domain / infra packages. The layering is NOT
+                    clean (domain and application still import infra in many files): it is guarded by
+                    a ratchet test, `CoreLayeringTest`, whose allow-list of existing leaks may only shrink
     uidl/         ← Public API: annotations (@UI, @Action, @Button, etc.) and interfaces (CrudStore, Listing + capability interfaces, …)
     dtos/         ← Wire DTOs exchanged between backend and frontend (UIIncrementDto, FormDto, …)
     annotation-processor-core/   ← AP logic shared by all framework adapters
@@ -44,13 +46,14 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
   libs/mateu/             ← Shared lib: API client, domain state, base web-components
   apps/vaadin/            ← Vaadin-themed renderer (builds → backend/shared/frontend/vaadin-lit)
   apps/redwood/           ← Redwood renderer sobre Oracle Visual Builder (movido 2026-07-30 desde
-                            .dev/vb). OJO: cae bajo el glob de workspaces apps/* — su package.json
+                            .dev/vb, que se BORRÓ en la fase 4 — la historia está en git). OJO: cae bajo el glob de workspaces apps/* — su package.json
                             trae el tooling grunt de Oracle como devDependencies (tarballs del CDN
                             de Oracle), así que un yarn/npm install en la RAÍZ del monorepo los
                             descarga; para trabajar solo con él, npm install DENTRO del dir.
                             webApps/vbredwoodapp = la app VB (chains + bridge AMD
                             generado desde poc/); poc/ = fuente única del core (reduceContexts +
-                            transport) con 32 tests de contrato (node test.mjs); `npm run build`
+                            transport) con 17 suites de test (`npm test`: test.mjs, test-pms…, test-conformance,
+                            test-security); `npm run build`
                             (grunt vb-build) → build/optimized; `npm run copy` empaqueta ese build
                             en backend/shared/frontend/redwood (jar io.mateu:mateu-redwood — añadirlo
                             como dependencia en lugar de vaadin-lit sirve la app VB: _index.html
@@ -97,7 +100,7 @@ A routed ViewModel (`@UI` or a `routes.yaml` entry) that is NOT a container-mana
 
 ### Runtime Flow
 
-Frontend → `POST /{baseUrl}/mateu/v3/components/_/action` → `MateuController` (infra) → application use case → domain → reflection-based mappers → `UIIncrementDto` (JSON) → frontend renders via web-components.
+Frontend → `POST /{baseUrl}/mateu/v3/sync/{route}` (canonical; the legacy `…/components/_/action` is still served) → `MateuController` (infra) → application use case → domain → reflection-based mappers → `UIIncrementDto` (JSON) → frontend renders via web-components.
 
 The same `UIIncrementDto` carries `commands` (e.g. `SetWindowTitle`, `navigateTo`), `messages` (toasts/alerts), and `fragments` (partial UI updates).
 
@@ -172,7 +175,7 @@ the one-to-one case.
 - **Static bundle**: the authored table travels in `manifest.json` (only the authored half — a class
   is what a bundle with no backend cannot use), and routes that exist only in `routes.yaml` are
   exported too, including those with no view model (pre-rendered through the ordinary sync path, or —
-  `mateu:bundle` `specsOnly` — shipped RAW and expanded in the browser by `libs/mateu/.../expander`).
+  `mateu-bundle:bundle` `specsOnly` — shipped RAW and expanded in the browser by `libs/mateu/.../expander`).
   **Under an app shell a route has TWO loads** (fresh `_empty` → the shell aimed at the route;
   content → the screen): the exporter ships `json` + `contentJson`, `bundleStore.resolveBundledLoad`
   picks by consumed route and never answers a content load with a shell (#557, the "deep link renders
@@ -453,7 +456,7 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   name `mateu` is taken) from the same release tag (`3.0.0aN`), only when `PYPI_API_TOKEN` or
   `PYPI_TRUSTED_PUBLISHING=true` is set. .NET is split into partial files (`ReflectionMapper.*.cs`,
   `SyncHandler.*.cs`), targets net8.0+net10.0 and has a NuGet release job.
-- **Conformance.** `conformance/cases` (25) match EXACTLY in Java, .NET and Python, with empty
+- **Conformance.** `conformance/cases` (52 since the beta integration — first loads AND second requests: action effects, drawer, rejected save, error boundary, wizard step 2, crud new/edit/view) match EXACTLY in Java, .NET and Python, with empty
   allow-lists; `homeServerSideType` is volatile in all three normalisers; Java renders the corpus with
   an empty REST source catalogue (the core test classpath carries one). `ActionMapper` does not treat a
   component-holder field as a nested form.
@@ -471,6 +474,80 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   kotlin 8096 — `demo/README.md`). The docs site must pass `npm run verify` (build + link check). A
   servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
   host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
+
+## Beta integration (2026-10-18) — refactor phase 4 + Fable review fixes
+
+Merged on `integration/beta` (R1–R7 refactor streams, F1–F8 review fixes, fixes/extra, fixes/natives2).
+Durable rules and where they live:
+
+- **Security defaults changed.** Java **strict action mode is the DEFAULT** (`mateu.actions.strict=false`
+  opts back): an `actionId` runs only a marked method or one the view advertises (`AdvertisedActions`,
+  shared with the check). An **unknown actionId is 403 + one WARN** in Java (CRUD included), .NET and
+  Python. **CSRF**: adding Spring Security no longer kills every action — `MateuCsrfAutoConfiguration`
+  (mvc-core) / `MateuCsrfWebFluxAutoConfiguration` exempt Mateu's JSON endpoints (`CsrfExemption`); a
+  403 Mateu did not send gets its own client text. CRUD saves are not a mass-assignment channel
+  (`ClientWritableFields`). Active document types (HTML/SVG/XML/script) are never inlined. The
+  client-log endpoint is rate-limited.
+- **Settings from the framework config**: `MateuSettings` reads registered `MateuSettings.Source`s
+  (each adapter registers its `Environment`/`Config`) before `-D`/env — `mateu.*` in
+  `application.properties` now works for every core setting.
+- **Client sanitising**: data HTML goes through ONE DOMPurify policy, `sanitizePolicy.ts` (allow-list:
+  no custom element from data but `vaadin-icon`, no form controls); markdown values render with
+  `mateu-markdown` (vaadin-markdown let custom elements through). Credentials (Bearer, session, app
+  context) go only to the page origin, the shell's backend and the remotes the app names
+  (`credentialScope.ts`; Redwood `hostHeaders.mjs`; RN + IntelliJ mirror it). `routeQuery.ts` drops a
+  login flow's `?continue`. Served pages carry no template markers and Mateu's favicon
+  (`IndexPage.withoutMarkers` / `DEFAULT_FAVICON`; the .NET/Python index pages too); the theme script
+  is external (`assets/mateu-theme.js`) and the remaining inline scripts get CSP hashes
+  (`IndexPage.inlineScriptHashes`), so the Vaadin page runs under `script-src 'self'`.
+- **Core structure (R1/R2).** `SpecsIndex` = ONE walk of `specs/ui` per classloader (type sniffed once,
+  tree cached, invalidated by the watcher; its jar scan uses `setUseCaches(false)` — closing the
+  JVM-cached JarFile broke concurrent readers). `RunActionUseCase` lost the REST proxy and secrets to
+  `RestProxyCalls` + `SecretResolver` (`${secret.X}` still only a `SecretsProvider` or
+  `MATEU_SECRET_<X>`). State helpers live in domain `ComponentState` (the `RunActionUseCase` /
+  `ComponentStateHelper` statics are deprecated delegates). `BundleManifest`/`BundleEntry` are
+  top-level records in `application.export`. `JwtExtractor` is deprecated → `IdentityResolver`.
+  **`CoreLayeringTest`** pins core's domain→application/infra and application→infra edges against
+  `src/test/resources/architecture/core-layering-allowlist.txt` (a new edge is a reviewed line; a
+  stale line fails). **`RequestBudgetTest`** pins container lookups + injection scans per warm
+  request: a SINGLETON bean on the request path is resolved with `MateuBeanProvider.getSingletonBean(s)`
+  (memoised), never `getBean` — only request/prototype-scoped types stay lookups.
+- **Adapters (R3).** `BundleEndpoint` (core) is the one body of `GET /mateu/v3/bundle`; the five
+  `MateuBundleController`s are shells; a failure answers through the error boundary. .NET tests that
+  assert on process-wide state (MateuLogging, statics) go in the `ProcessWideStateCollection`.
+- **Client conformance corpus (R4).** `conformance/client/expressions.json` + `route-params.json`, run
+  by libs/mateu (the reference), Redwood (`test-conformance.mjs`), RN and IntelliJ — a renderer fix to
+  expressions (`?.`, `??`, regex literals for `@Pattern`, the sandbox) or route-param seeding lands
+  as a corpus case.
+- **Web renderer (R5).** `mateu-field.ts` is split into `fields/<kind>.ts` / `fields/string/<stereotype>.ts`;
+  optional elements load on first use through `lazyElements.ts` (`registerLazyElement` /
+  `ensureElement` / `requireElement`; chat, workflow, form-editor, planning board, gantt, matrix grid,
+  signature, camera, markdown, date-range picker) — keep their classes exported (`mateu-vaadin` is on
+  npm); rules settle in `willUpdate` (one render per change); libs' `mateu-tree-select` is gone (Vaadin
+  has `mateu-vaadin-tree-select`). Bundle budget ratcheted to the lazy result.
+- **Natives/Redwood (R6).** `.dev/vb` deleted; Redwood comments are English (keep them so); IntelliJ
+  `AppContext.kt`/`DisplayRenderer.kt` split per concern/family; RN registries are per session.
+- **CI (R7).** e2e runs as three legs (`core` | `webflux-quarkus` | `micronaut-helidon`) through
+  `scripts/ci-e2e-leg.sh <leg> build|start|wait|test|logs|stop` (`E2E_PORT_OFFSET` for local runs);
+  an `e2e` summary job is the required check; backend-tests is one Maven build.
+- **Public API (F4/F3/F5).** `@Internal` (uidl annotations) marks plumbing that is public only for
+  technical reasons — outside the stability promise, listed by `ApiStabilityListTest`; japicmp
+  baseline `3.0-alpha.425`, `-Dmateu.api.enforce=true` must pass on dtos+uidl+core (dtos report-only).
+  **Every annotation has `@Target` (incl. `ANNOTATION_TYPE`) and `@Documented`** (`AnnotationDeclarationsTest`);
+  **a uidl record with 3+ components has a `@Builder`** (`RecordBuildersTest`). .NET:
+  `MateuForbiddenException` lives in `Mateu.Uidl`; `[Obsolete]`s carry DiagnosticIds `MATEU001–003`;
+  `Crud<T>.Save/Delete` refuse by default (override them); ids from `[Id]` (else `Id`). Python:
+  `ActionRequest`/`current_request` are public; `tests/api/public-exports.json` pins `__all__`
+  (a removal fails). Ports gained `[Trigger]`/`@trigger` (OnLoad/OnSuccess/OnError/OnValueChange),
+  `[Toolbar]`/`@toolbar`, `[Help]`/help + placeholder/autofocus/step/slider bounds, and the generic
+  fluent components (Breadcrumbs, Icon, Notification, Element, Tooltip, Details, SplitLayout,
+  ConfirmDialog).
+- **Wire (F5).** `backend/shared/uidl/wire-schema.json` is GENERATED from the dtos and pinned by
+  `WireSchemaTest` — an added member needs `mvn -pl shared/uidl test -Dtest=WireSchemaTest
+  -Dwire.schema.write=true`; a removed/renamed/retyped one fails even then (wire major). **114 live
+  wire types + 2 deprecated** (`Result`, `Stepper`: registered, never produced); libs/mateu has a
+  wire-type gate like RN/IntelliJ/Redwood (parity checks read the schema). Normalisers: absent ==
+  default EXCEPT the `MEANINGFUL_ZERO` members (e.g. `MessageDto.duration`).
 
 ## New Mateu project — one generator, three front doors (2026-10-10)
 
@@ -496,7 +573,7 @@ byte-identical `specs/ui` (pinned by a test). A starter change flows to all thre
 
 ## Backend testing (core integration harness)
 
-`backend/shared/core/src/test/.../testutil/TestMateu.java` boots the ENTIRE core bean graph in-JVM (Spring test context understands the framework's jakarta.inject annotations), registers fixture classes exactly like the annotation processor's generated `RoutedClassProvider`s, provides the platform beans adapters normally contribute (BeanProvider→MateuBeanProvider, ObjectMapper, "baseUrl" request attribute; extra beans via `withUisAndBeans`, e.g. fake Excel/Pdf `ListingExporter`s), and calls the same `MateuService` entry point the generated controllers call. One `mateu.sync("/route")` exercises route resolution → instance creation → reflective mapping → wire DTOs; `mateu.run(RunActionRqDto...)` drives any action. Feature suites live in `core/src/test/.../application/*SyncTest.java` (fields, layout, app/menu, crud lifecycle, wizards, archetypes, actions/commands/triggers, editable grid fields, validation, nested state). Wire-shape gotchas the suites document: fragment state lives on UIFragmentDto (not the component); grid columns nest inside CrudlDto metadata; Card title/content and form fields nest inside METADATA records (walkers must descend reflectively); AccordionLayoutDto.panels is empty on the wire (panels are children); filtered/sorted listing rows come back as maps; in-JVM the search Data still carries the typed ListingData. Coverage: plain `mvn verify` on backend/shared/core now runs JaCoCo end to end (agent → report at `target/site/jacoco/` → **check gate**: BUNDLE line coverage ≥ `${jacoco.min.bundle.coverage}`, set to 84% in core's pom — ratchet it up as suites grow; other modules default to 0%). Core's surefire argLine composes via `@{argLine}` — don't overwrite it or JaCoCo silently records nothing. **Exclusions** (backend/pom.xml jacoco config): `DefaultMateuHttpClient` and `RemoteMenuHandler` — thin wrappers over live HTTP that cannot run in-JVM (federated menus are fetched by the frontend in normal operation); they're exercised by the e2e suites. Repo-root `lombok.config` sets `addLombokGeneratedAnnotation` so lombok-generated members don't count. Line coverage as of 2026-07-05: 77.8% measured (was 11%); the gate is now 84% (core's pom). The residual to 80% is dominated by catch/defensive branches and sub-20-line variant tails across mappers/converters — ratchet the gate as suites grow rather than writing noise tests against exception handlers.
+`backend/shared/core/src/test/.../testutil/TestMateu.java` boots the ENTIRE core bean graph in-JVM (Spring test context understands the framework's jakarta.inject annotations), registers fixture classes exactly like the annotation processor's generated `RoutedClassProvider`s, provides the platform beans adapters normally contribute (BeanProvider→MateuBeanProvider, ObjectMapper, "baseUrl" request attribute; extra beans via `withUisAndBeans`, e.g. fake Excel/Pdf `ListingExporter`s), and calls the same `MateuService` entry point the generated controllers call. One `mateu.sync("/route")` exercises route resolution → instance creation → reflective mapping → wire DTOs; `mateu.run(RunActionRqDto...)` drives any action. Feature suites live in `core/src/test/.../application/*SyncTest.java` (fields, layout, app/menu, crud lifecycle, wizards, archetypes, actions/commands/triggers, editable grid fields, validation, nested state). Wire-shape gotchas the suites document: fragment state lives on UIFragmentDto (not the component); grid columns nest inside CrudlDto metadata; Card title/content and form fields nest inside METADATA records (walkers must descend reflectively); AccordionLayoutDto.panels is empty on the wire (panels are children); filtered/sorted listing rows come back as maps; in-JVM the search Data still carries the typed ListingData. Coverage: plain `mvn verify` on backend/shared/core now runs JaCoCo end to end (agent → report at `target/site/jacoco/` → **check gate**: BUNDLE line coverage ≥ `${jacoco.min.bundle.coverage}` and branch coverage ≥ `${jacoco.min.bundle.branch.coverage}`, set to 89% / 77% in core's pom — ratchet it up as suites grow; other modules default to 0%). Core's surefire argLine composes via `@{argLine}` — don't overwrite it or JaCoCo silently records nothing. **Exclusions** (backend/pom.xml jacoco config): `DefaultMateuHttpClient` and `RemoteMenuHandler` — thin wrappers over live HTTP that cannot run in-JVM (federated menus are fetched by the frontend in normal operation); they're exercised by the e2e suites. Repo-root `lombok.config` sets `addLombokGeneratedAnnotation` so lombok-generated members don't count. Line coverage as of 2026-10-17: 89.3% L / 77.7% B measured (2155 tests; was 11% before the harness); the gates are 89% L / 77% B (core's pom). The residual is dominated by catch/defensive branches and sub-20-line variant tails across mappers/converters — ratchet the gate as suites grow rather than writing noise tests against exception handlers.
 
 ## Figma design-to-code pipeline (IN PROGRESS, 2026-07-15)
 
@@ -566,7 +643,7 @@ yarn test                        # from monorepo root (delegates to libs/mateu) 
 ```bash
 npm install        # once, run INSIDE the dir; downloads Oracle's grunt tooling
 npm run bridge     # regenerate webApps/.../resources/js/mateu-bridge.js from poc/
-npm test           # 32 contract tests of the reducer (poc/test.mjs)
+npm test           # all 17 poc suites (contract, PMS, DOM, chains, conformance corpus, security…)
 npm run build      # grunt vb-build → build/optimized (exit code unreliable — check the artifact)
 npm run serve      # grunt vb-serve --port=9006 against demo-vb (:9005), CORS already open
 npm run copy       # package build/optimized into backend/shared/frontend/redwood (then mvn install)
@@ -634,7 +711,7 @@ The script waits for `mateu-page` to appear, then adds a 1.5 s settle delay so w
 Every Mateu app exposes the same REST contract regardless of framework:
 
 ```
-POST /{baseUrl}/mateu/v3/components/_/action
+POST /{baseUrl}/mateu/v3/sync/{route}          (canonical; /mateu/v3/components/_/action is a legacy alias)
 Body: { "route": "...", "actionId": "__load__" | "<methodName>", "componentState": {...} }
 ```
 

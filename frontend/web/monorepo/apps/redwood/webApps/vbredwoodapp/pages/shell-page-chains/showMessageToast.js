@@ -1,6 +1,6 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
-// Un toast del shell: el mensaje del evento al oj-sp-messages-toast de la página.
+// A shell toast: the event's message to the page's oj-sp-messages-toast.
 define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 

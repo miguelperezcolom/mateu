@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
-import { registerDropZone, type DropZoneMeta } from './dragDrop';
+import { type DropZoneMeta } from './dragDrop';
 
 let seq = 0;
 
@@ -23,7 +23,7 @@ export function DropZoneRenderer({ component, state, renderComponent }: {
   const key = React.useRef(`${String(component['id'] ?? 'dropzone')}#${++seq}`).current;
 
   React.useEffect(
-    () => registerDropZone({
+    () => controller.session.dropZones.register({
       key,
       meta,
       dispatch: (actionId, parameters) => void controller.runAction(actionId, parameters),

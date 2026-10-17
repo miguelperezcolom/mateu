@@ -31,7 +31,9 @@ for the sibling implementation.
   on the view for programmatic links — it wins, `None` falls back to the marker); `@kpi` → KPI
   cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
   `@confirm_on_navigation_if_dirty`.
-- **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `@secured`.
+- **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `EyesOnly` /
+  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods (`@secured` is
+  deprecated: it is enforced as `@eyes_only(permissions=[...])`).
 - **Layout inference** — `@auto_layout` (opt-in, `@auto_layout(False)` opts out) ports the Java
   `LayoutInference` decision table (same constants/thresholds): heavy unstructured editable forms
   fold optional fields into a collapsed "More options" accordion panel; heavy `@read_only` views
@@ -41,7 +43,7 @@ for the sibling implementation.
   the class opted in. Explicit layout markers always win.
 - **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
-  `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
+  `ResponsiveGrid` (`DashboardLayout` is deprecated), `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
   `GanttTask`, plus fluent `Text` and `Button`. `PlanningBoard` (tape chart: `PlanningResource`
   rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`
@@ -54,7 +56,8 @@ for the sibling implementation.
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
   Or subclass `ComponentTreeSupplier` and return any fluent component tree from `component()`.
 
-- **Validation** — `Required()`, `Min`/`Max`/`Size`/`Pattern`, `@validation`, `ValidationSupplier`
+- **Validation** — `Required()`, `Min`/`Max`/`Length`/`Pattern` (`Size` is the
+  deprecated pre-3.0-alpha.412 name of `Length`), `@validation`, `ValidationSupplier`
   → the component's client-side `validations` (Java's conditions and messages), re-checked on save.
 - **Grid fields** — a `list[Row]` field is a grid with a row editor (add / edit / save / prev /
   next / remove / move), `InlineEditing()` for in-place cells; wide fields span the row.
@@ -109,7 +112,7 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-To open it in a browser, tell the server where a web renderer is — `add_mateu(app, views, ui="<path>")` or `MATEU_UI=<path>`: the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar from Maven Central, or its extracted `static/` folder (e.g. `MATEU_UI=mateu-vaadin-3.0-alpha.422.jar uvicorn samples.demo.main:app --port 8594` → http://localhost:8594). It then serves the page at the mount and its deep links and the assets at the origin root, like a Java app; `mateu-ui` does not package the renderer. Without it the server answers the sync API only — point a renderer served elsewhere at it, e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web`; the server must list that origin in its CORS settings).
+To open it in a browser, tell the server where a web renderer is — `add_mateu(app, views, ui="<path>")` or `MATEU_UI=<path>`: the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar from Maven Central, or its extracted `static/` folder (e.g. `MATEU_UI=mateu-vaadin-3.0-alpha.425.jar uvicorn samples.demo.main:app --port 8594` → http://localhost:8594). It then serves the page at the mount and its deep links and the assets at the origin root, like a Java app; `mateu-ui` does not package the renderer. Without it the server answers the sync API only (a browser opening the mount gets a short hint page, with status 404, saying so) — point a renderer served elsewhere at it, e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web`; the server must list that origin in its CORS settings).
 The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Android emulator
 (`10.0.2.2:8594`) reach it too.
 

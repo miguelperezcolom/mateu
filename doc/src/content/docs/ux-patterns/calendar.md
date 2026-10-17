@@ -11,6 +11,13 @@ Show dated items — a team schedule, a content plan, bookings — on a familiar
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Calendar` component: `month` is any `LocalDate` in the month to display (the grid is derived from it), and each `CalendarEvent` is placed on its `date` as a small chip. A chip carries an optional accent `color` and an optional `actionId` that makes it clickable (dispatches the standard `action-requested` event).
 
 ```java

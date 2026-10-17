@@ -27,6 +27,12 @@ Nothing to configure: it is on by default. Turn it off with `mateu.client-log.en
 endpoint then answers 404 and the renderers stop reporting for that page). The logger is a normal
 SLF4J logger, so `logging.level.mateu.client=OFF` silences the lines without touching the endpoint.
 
+The endpoint takes anonymous reports (an expired session is one of the things it reports), so it is
+**rate-limited**: at most 60 reports a minute per authenticated user, else per client address
+(`mateu.client-log.max-reports-per-minute`); the rest are dropped and answered `429`, which the
+renderers take as "try later", not "stop". Behind a reverse proxy every client shares the proxy's
+address — lower the cap, or let the proxy limit it.
+
 ### What is reported
 
 | Source | `kind` |

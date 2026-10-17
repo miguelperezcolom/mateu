@@ -11,6 +11,13 @@ Show a set of attached files — a ticket's attachments, a record's documents, a
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `FileList` component: a list of `FileItem`s (name, size label, type, and a `url` and/or `actionId`). The `type` (e.g. `"pdf"`, `"image"`, `"excel"`, `"zip"`, `"video"`) picks the icon. A file with a `url` renders as a download link; one with an `actionId` dispatches the standard `action-requested` event (e.g. to preview it).
 
 ```java

@@ -42,7 +42,9 @@ final class PageContentBuilder {
     Object instance;
     if (instanceOrType instanceof Class<?> type) {
       try {
-        instance = MateuBeanProvider.getBean(InstanceFactory.class).newInstance(type, httpRequest);
+        instance =
+            MateuBeanProvider.getSingletonBean(InstanceFactory.class)
+                .newInstance(type, httpRequest);
       } catch (java.lang.reflect.InvocationTargetException e) {
         // surface the constructor's real failure, not the reflective wrapper / lombok mask
         var cause = e.getCause() != null ? e.getCause() : e;

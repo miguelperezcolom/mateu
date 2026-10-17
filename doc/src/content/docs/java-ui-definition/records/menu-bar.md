@@ -2,6 +2,13 @@
 title: "MenuBar"
 ---
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 A horizontal or vertical navigation bar composed of `Actionable` items. Use it to add inline navigation to a page without wrapping the whole page in an `App` shell.
 
 ```java

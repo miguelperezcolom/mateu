@@ -13,6 +13,13 @@ Shared terminals — a front desk, a counter, a ward — must not stay signed in
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 @App(idleTimeoutMinutes = 15, idleWarningSeconds = 60, idleSignOutUrl = "/logout")
 public class Shell implements KeepAliveHandler {

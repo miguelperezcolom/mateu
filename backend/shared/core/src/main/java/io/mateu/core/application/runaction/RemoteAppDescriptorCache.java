@@ -113,10 +113,7 @@ public class RemoteAppDescriptorCache {
   }
 
   private static long configuredTtlMs() {
-    var configured = System.getProperty(TTL_PROPERTY);
-    if (configured == null || configured.isBlank()) {
-      configured = System.getenv(TTL_ENV);
-    }
+    var configured = io.mateu.core.infra.MateuSettings.get(TTL_PROPERTY);
     if (configured == null || configured.isBlank()) {
       return DEFAULT_TTL_MS;
     }

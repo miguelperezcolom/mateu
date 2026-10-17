@@ -54,7 +54,19 @@ export interface RequestFailure {
 interface TransportError {
     code?: string
     message?: string
-    response?: { status?: number }
+    response?: { status?: number, data?: unknown }
+}
+
+/**
+ * Whether a 403 is MATEU's refusal (an @EyesOnly/access rule, a type or member the app does not
+ * expose): the Java adapters answer the plain text `Forbidden`, the .NET and Python ones an
+ * increment with messages. Anything else — Spring Security's CSRF filter, an authorization rule of
+ * the host framework, a proxy — refused the request before Mateu saw it, and "you are not allowed
+ * to do this" would send the user (and the developer) looking in the wrong place.
+ */
+export const isMateuRefusal = (data: unknown): boolean => {
+    if (typeof data === 'string') return data.trim() === 'Forbidden'
+    return !!data && typeof data === 'object' && Array.isArray((data as { messages?: unknown }).messages)
 }
 
 const errorStatus = (status?: number): string => (status ? chromeTextf('errorStatus', { status }) : '')
@@ -116,7 +128,10 @@ export const classifyRequestFailure = (
         return failure('unknown')
     }
     if (status === 401) return failure('unauthorized')
-    if (status === 403) return failure('forbidden')
+    if (status === 403) {
+        const refused = failure('forbidden')
+        return isMateuRefusal(err.response?.data) ? refused : { ...refused, message: chromeText('failSecurityRefused') }
+    }
     if (status === 404 || status === 410) return failure('notFound')
     // 408 Request Timeout / 429 Too Many Requests / 503 are all "come back in a moment".
     if (status === 408 || status === 429) return failure('timeout')

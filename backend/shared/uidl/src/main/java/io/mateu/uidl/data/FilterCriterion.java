@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import java.util.List;
+import lombok.Builder;
 
 /**
  * A listing filter condition that the entity-shaped (query-by-example) filters object cannot
@@ -15,4 +16,5 @@ import java.util.List;
  * @param values {@code between}: [from, to] — {@code gte}/{@code lte}: [bound] — {@code in}: the
  *     accepted values
  */
+@Builder
 public record FilterCriterion(String field, FilterOperator operator, List<Object> values) {}

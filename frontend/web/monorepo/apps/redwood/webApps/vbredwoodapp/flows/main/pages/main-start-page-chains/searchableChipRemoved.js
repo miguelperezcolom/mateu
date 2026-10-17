@@ -1,6 +1,6 @@
-/* Quitar un chip de un @Searchable: el valor que queda (precomputado en el chip: `remaining`)
- * va al borrador del formulario (viaja con la siguiente acción) y al estado del host, y los
- * chips se rehacen en las proyecciones que los pintan — sin ir al servidor, como en Vaadin. */
+/* Removing a chip of a @Searchable: the remaining value (precomputed in the chip: `remaining`)
+ * goes to the form's draft (it travels with the next action) and to the host's state, and the
+ * chips are rebuilt in the projections that paint them — without going to the server, as in Vaadin. */
 
 define([
   'vb/action/actionChain',
@@ -18,8 +18,8 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.fieldId    el campo @Searchable
-     * @param {Array}  params.remaining  los ids que quedan (null: el campo de un solo id, vacío)
+     * @param {string} params.fieldId    the @Searchable field
+     * @param {Array}  params.remaining  the remaining ids (null: the single-id field, empty)
      */
     async run(context, { fieldId, remaining }) {
       const { $application, $page } = context;

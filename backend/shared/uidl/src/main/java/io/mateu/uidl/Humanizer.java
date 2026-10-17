@@ -1,5 +1,8 @@
 package io.mateu.uidl;
 
+import io.mateu.uidl.annotations.Internal;
+
+@Internal
 public class Humanizer {
 
   public static String toKebabCase(String s) {

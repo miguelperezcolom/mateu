@@ -47,7 +47,7 @@ public class WireConformanceTests
                 {
                     if (Volatile_.Contains(name) && !(name == "id" && inActions)) continue;
                     var value = Normalise(obj[name]?.DeepClone(), name == "actions");
-                    if (IsDefault(value)) continue;
+                    if (IsDefault(value) && !(MeaningfulZero.Contains(name) && IsZero(value))) continue;
                     result[name] = value;
                 }
                 return result;
@@ -62,10 +62,28 @@ public class WireConformanceTests
             // System.Text.Json as 3 — the same number to every renderer.
             case JsonValue v when v.GetValueKind() == JsonValueKind.Number && v.TryGetValue<double>(out var d):
                 return JsonValue.Create(d);
+            // the error boundary's per-request reference id: a log key, masked (Java's REFERENCE)
+            case JsonValue v when v.GetValueKind() == JsonValueKind.String
+                                  && Reference.IsMatch(v.GetValue<string>()):
+                return JsonValue.Create(Reference.Replace(v.GetValue<string>(), "Reference: <ref>"));
             default:
                 return node;
         }
     }
+
+    /// <summary>Members whose zero value is NOT their absent value: a renderer reads an absent one
+    /// as a non-zero default, so <c>false</c>/<c>0</c> must be sent explicitly and is kept here
+    /// (<c>duration</c> 0 = a sticky toast; the booleans default to TRUE when absent;
+    /// <c>debounceMillis</c> 0 = no debounce). Identical in the three runners (Java's
+    /// <c>MEANINGFUL_ZERO</c>) and listed in reference/wire-specification.md.</summary>
+    private static readonly HashSet<string> MeaningfulZero =
+        ["duration", "visible", "opened", "open", "searchable", "centered", "asideSticky", "debounceMillis"];
+
+    private static readonly System.Text.RegularExpressions.Regex Reference =
+        new("Reference: [A-Za-z0-9-]+");
+
+    private static bool IsZero(JsonNode? value) =>
+        value is JsonValue v && (v.GetValueKind() is JsonValueKind.False or JsonValueKind.Number);
 
     private static bool IsDefault(JsonNode? value)
     {
@@ -102,9 +120,21 @@ public class WireConformanceTests
                     : new Dictionary<string, object?>(),
             };
         }
-        var increment = handler.Handle(rq);
+        UIIncrementDto increment;
+        try
+        {
+            increment = handler.Handle(rq);
+        }
+        catch (Exception error)
+        {
+            // the adapter's error boundary (MateuExtensions), as it travels
+            increment = MateuErrors.Increment(error, "conformance", detailed: false);
+        }
         var json = JsonSerializer.Serialize(increment, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var normalised = Normalise(JsonNode.Parse(json))!;
+        if (@case is not null && MediatedForms.Contains(@case) && normalised["fragments"] is JsonArray forms)
+            foreach (var fragment in forms.OfType<JsonObject>())
+                (fragment["component"] as JsonObject)?.Remove("route");
         return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
     }
 
@@ -117,7 +147,13 @@ public class WireConformanceTests
     /// <para>The wizard is the same story: Java's is a mediator too (a <c>*</c> catch-all, its
     /// position in its own state), .NET lists next/back/skip/the completion and keeps
     /// <c>__step</c> — so its actions and state stay out as well.</para>
-    private static readonly HashSet<string> Mediated = ["crud", "crud-grouped", "listing-navigable", "wizard"];
+    private static readonly HashSet<string> Mediated =
+        ["crud", "crud-grouped", "listing-navigable", "wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view"];
+
+    /// <summary>The CRUD's record forms: Java's mediator answers them on the CRUD's own route, the
+    /// ports on the record's (<c>/new</c>, <c>/P-001/edit</c>) — the mediator protocol, left out on
+    /// every side (Java's <c>MEDIATED_FORMS</c>).</summary>
+    private static readonly HashSet<string> MediatedForms = ["crud-new", "crud-edit", "crud-view"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     private static JsonNode WithoutMediatorProtocol(JsonNode increment)
@@ -185,6 +221,19 @@ public class WireConformanceTests
         { "crud-search", typeof(ProductsCrud) },
         { "wizard", typeof(Wire.SignUpWizard) },
         { "rest-source", typeof(Wire.RestSourceForm) },
+        { "action-effects", typeof(Wire.ActionEffectsPage) },
+        { "drawer", typeof(Wire.DrawerPage) },
+        { "rejected-save", typeof(Wire.RejectedSaveForm) },
+        { "error-boundary", typeof(Wire.FailingActionPage) },
+        { "wizard-step-2", typeof(Wire.SignUpWizard) },
+        { "crud-new", typeof(ProductsCrud) },
+        { "crud-edit", typeof(ProductsCrud) },
+        { "crud-view", typeof(ProductsCrud) },
+        { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "triggers", typeof(Wire.TriggersForm) },
+        { "field-help", typeof(Wire.FieldHelpForm) },
+        { "field-hints", typeof(Wire.FieldHintsPage) },
+        { "page-toolbar", typeof(Wire.PageToolbarForm) },
     };
 
     [Fact]

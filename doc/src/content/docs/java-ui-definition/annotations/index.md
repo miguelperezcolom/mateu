@@ -70,7 +70,7 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 |---|---|---|
 | [`@Section`](sections/) | Field, method | Groups following fields under a heading |
 | [`@Tab`](sections/) | Field, method | Assigns a field to a named tab |
-| [`@List`](sections/) | Field | Renders a list (ordered or unordered) |
+| [`@BulletedList`](/ux-patterns/status-list/) | Field | Renders a `List<String>` field as a plain bulleted list (`<ul>`). (`@List` was never implemented and is deprecated.) |
 | [`@Text`](heading/) | Field | Renders the field value as text or a heading (`container = h1`…`h6`) |
 
 ## Actions and buttons

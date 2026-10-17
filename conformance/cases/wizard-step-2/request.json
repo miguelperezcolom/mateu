@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/wizard",
+  "actionId": "next",
+  "componentState": {
+    "email": "ada@example.com"
+  }
+}

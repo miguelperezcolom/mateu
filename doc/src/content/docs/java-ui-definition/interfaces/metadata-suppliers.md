@@ -10,6 +10,13 @@ These lightweight interfaces let you provide page metadata (title, subtitle, bro
 
 Provides page banners dynamically. Banners appear below the page header and above the first form section, rendered as highlighted message cards.
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 `BannerSupplier` takes precedence over `@Banner`-annotated methods when both are present.
 
 ```java

@@ -175,7 +175,7 @@ public final class YamlMounts {
   public static String indexHtml(String basePath, String title) {
     ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     String html = InputStreamReader.readFromClasspath(YamlMounts.class, "/static/_index.html");
-    html = html.replace("<!-- AQUIFAVICON -->", "");
+    html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
     // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
     html = html.replace("AQUIELTITULODELAPAGINA", title);
@@ -185,11 +185,12 @@ public final class YamlMounts {
     // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
     // the mount on them.
     return IndexPage.devHead(
-        IndexPage.mountUi(
-            html,
-            "<mateu-ui baseUrl=\""
-                + uiPath(basePath)
-                + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"));
+        IndexPage.withoutMarkers(
+            IndexPage.mountUi(
+                html,
+                "<mateu-ui baseUrl=\""
+                    + uiPath(basePath)
+                    + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>")));
   }
 
   /** The {@code baseUrl} of a mount's {@code <mateu-ui>}: "" or "/back-office". */

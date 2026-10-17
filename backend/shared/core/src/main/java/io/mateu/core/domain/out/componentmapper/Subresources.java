@@ -130,7 +130,7 @@ final class Subresources {
   static Long rows(Field field, Object host, HttpRequest httpRequest) {
     try {
       var factory =
-          io.mateu.uidl.di.MateuBeanProvider.getBean(
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
               io.mateu.uidl.interfaces.InstanceFactory.class);
       var listing =
           factory.newInstance(field.getType(), context(field, host, httpRequest), httpRequest);

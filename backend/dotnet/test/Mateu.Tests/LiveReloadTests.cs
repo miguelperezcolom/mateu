@@ -12,8 +12,9 @@ using Xunit;
 namespace Mateu.Tests;
 
 /// <summary>Development mode (live reload): the registries forget what they read when a spec changes,
-/// the watcher reports edits on disk, and the dev endpoints exist only with dev mode on.</summary>
-[Collection("DevMode")]
+/// the watcher reports edits on disk, and the dev endpoints exist only with dev mode on. Forces dev
+/// mode on, which every host booting in parallel reads, so it runs apart from them.</summary>
+[Collection(ProcessWideStateCollection.Name)]
 public class LiveReloadTests : IDisposable
 {
     private readonly string _dir = Directory.CreateTempSubdirectory("mateu-live-").FullName;

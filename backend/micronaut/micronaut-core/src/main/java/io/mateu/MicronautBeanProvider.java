@@ -26,10 +26,17 @@ public class MicronautBeanProvider implements BeanProvider {
     MateuBeanProvider.setBeanProvider(this);
   }
 
+  /**
+   * {@code findBean}, not {@code getBean}: Mateu asks for optional beans on every request (a
+   * translator, an exporter, an adapter the app may not have), and a miss through {@code getBean}
+   * builds a {@code NoSuchBeanException} whose message walks the whole context — candidate lookups
+   * and DEBUG logging inside Micronaut's synchronized sections, which pin virtual threads on JDK
+   * 21.
+   */
   @Override
   public <T> T getBean(Class<T> clazz) {
     try {
-      return applicationContext.getBean(clazz);
+      return applicationContext.findBean(clazz).orElse(null);
     } catch (Exception ignored) {
       return null;
     }

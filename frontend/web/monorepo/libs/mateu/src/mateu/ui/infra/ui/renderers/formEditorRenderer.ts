@@ -1,5 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import {html, nothing} from "lit";
+import { requireElement } from "@infra/ui/lazyElements.ts";
 
 interface FormEditorMetadata {
     value?: string;
@@ -7,6 +8,7 @@ interface FormEditorMetadata {
 
 export const renderFormEditor = (component: ClientSideComponent) => {
     const metadata = component.metadata as FormEditorMetadata;
+    requireElement('mateu-form-editor')
     return html`
         <mateu-form-editor
                 style="${component.style ?? nothing}"

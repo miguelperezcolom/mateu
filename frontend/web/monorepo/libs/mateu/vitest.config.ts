@@ -40,10 +40,10 @@ export default defineConfig({
       // 92.8% lines, 88.3% functions, 80.9% branches (v8 in vitest 4 counts template-literal arrows
       // and short-circuit branches the 3.x remapper merged away).
       thresholds: {
-        lines: 92,
+        lines: 92, // CI measures 92.99 (local 93.0x): rounding noise between runners
         statements: 91,
         functions: 88,
-        branches: 80,
+        branches: 81,
       },
     },
   },

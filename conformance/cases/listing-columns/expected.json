@@ -114,6 +114,7 @@
             "gridLayout" : "auto",
             "pageSize" : 10,
             "searchOnEnter" : true,
+            "searchable" : false,
             "type" : "Crud"
           },
           "sizing" : "fill",

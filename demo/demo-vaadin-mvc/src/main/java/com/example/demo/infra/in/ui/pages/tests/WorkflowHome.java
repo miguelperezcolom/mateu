@@ -10,7 +10,6 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 
 @UI("/_workflow")
-//@KeycloakSecured(url = "https://lemur-11.cloud-iam.com/auth", realm = "mateu", clientId = "demo")
 @FavIcon("/images/riu.svg")
 @PageTitle("Workflow")
 @Logo("/images/riu.svg")

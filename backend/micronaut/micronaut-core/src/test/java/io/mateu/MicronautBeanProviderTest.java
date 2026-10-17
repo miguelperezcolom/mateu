@@ -27,4 +27,13 @@ class MicronautBeanProviderTest {
         is(true));
     assertThat(MateuBeanProvider.isInitialized(), is(true));
   }
+
+  @Test
+  void aMissingBeanIsNullNotAnException() {
+    assertThat(
+        context.getBean(MicronautBeanProvider.class).getBean(NoSuchBeanAnywhere.class) == null,
+        is(true));
+  }
+
+  interface NoSuchBeanAnywhere {}
 }

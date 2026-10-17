@@ -17,6 +17,13 @@ and [`@RestAction`](/java-ui-definition/annotations/rest-action/) (button calls)
 
 ## Example
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 @UI("/profile")
 @RestData(url = "https://api.example.com/me", resultPath = "profile")

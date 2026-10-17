@@ -100,6 +100,13 @@ and selection-driven bulk actions. A row opens the record, or edits it in a draw
 | Data management (grid ⇄ Gantt) | `DataManagement` | [Data management](/ux-patterns/data-management/) |
 | Split view, tree | `@SplitCrud`, `GridLayout.tree` | [Split view](/ux-patterns/split-view/), [Tree CRUD](/ux-patterns/tree-crud/) |
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Listing behaviours worth knowing: [filters and listing](/ux-patterns/filters-and-listing/),
 [bulk actions](/ux-patterns/bulk-actions/), [saved views](/ux-patterns/saved-views/),
 [totals and grouping](/ux-patterns/aggregates/), [column chooser](/ux-patterns/column-chooser/),
@@ -351,7 +358,7 @@ The `Wizard` archetype handles navigation, progress, cross-step state and branch
 **Anatomy:** a band of KPI cards (each optionally clickable), then a responsive grid of titled
 tiles (charts, short lists, notes). No form, no footer.
 
-**Components you meet here:** `Scoreboard`, `MetricCard`, `DashboardLayout`, `DashboardPanel`,
+**Components you meet here:** `Scoreboard`, `MetricCard`, `ResponsiveGrid`, `DashboardPanel`,
 `Chart`, `TrendChart`, `Stat`, `Meter`, `Funnel`, `Heatmap`.
 
 | Template | Archetype or piece | Detail |
@@ -369,9 +376,9 @@ content:
     metrics:
       - {type: MetricCard, title: Revenue, value: "1.2M", unit: EUR, trend: up, trendLabel: +8% vs last month}
       - {type: MetricCard, title: Orders, value: "3,480", trend: up, trendLabel: +3%}
-  - type: DashboardLayout
-    columns: 2
-    items:
+  - type: ResponsiveGrid
+    columns: [{size: fill}, {size: fill}]
+    content:
       - {type: DashboardPanel, title: Sales by region, content: {type: Text, text: Put a Chart here}}
       - {type: DashboardPanel, title: Latest orders, content: {type: Text, text: Put a Listing here}}
 ```
@@ -407,7 +414,7 @@ Consecutive `MetricCard` fields form the KPI band; `@Panel` fields become tiles.
 **Anatomy:** a hero (title, subtitle, optional image or tone) with calls to action, then highlight
 tiles; or a hero hosting a search with results as cards.
 
-**Components you meet here:** `HeroSection`, `Button`, `DashboardLayout`, `FeatureGrid`,
+**Components you meet here:** `HeroSection`, `Button`, `ResponsiveGrid`, `FeatureGrid`,
 `CalloutCard`, `Listing` as cards.
 
 | Template | Archetype or piece | Detail |
@@ -427,9 +434,9 @@ content:
     centered: true
     content:
       - {type: Button, label: Start check-in, actionId: startCheckin, buttonStyle: primary}
-  - type: DashboardLayout
-    columns: 3
-    items:
+  - type: ResponsiveGrid
+    columns: [{size: fill}, {size: fill}, {size: fill}]
+    content:
       - {type: DashboardPanel, title: Arrivals, content: {type: Text, text: Today's arrivals.}}
       - {type: DashboardPanel, title: Departures, content: {type: Text, text: Today's departures.}}
 ```

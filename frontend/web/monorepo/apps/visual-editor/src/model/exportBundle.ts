@@ -16,7 +16,7 @@ export interface BundleManifest {
     /**
      * PRE-RENDERED route loads — what a renderer with no client-side expander (Redwood) answers route
      * loads from. Only for a Redwood project (see {@link renderedEntries}); the shape of the server
-     * exporter's entries (`MateuBundleExporter.BundleEntry`).
+     * exporter's entries (`io.mateu.core.application.export.BundleEntry`).
      */
     entries?: RenderedEntry[]
     routes?: { routes: unknown[] }

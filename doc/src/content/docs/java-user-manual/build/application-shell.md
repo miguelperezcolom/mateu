@@ -112,13 +112,19 @@ routes:
 |---|---|
 | `TABS` | Tab bar at the top (what the default, `AUTO`, picks for a menu with no groups) |
 | `MENU_ON_LEFT` | Collapsible sidebar on the left |
-| `MENU_ON_TOP` | Horizontal nav bar at the top |
+| `MENU_ON_TOP` | Horizontal nav bar at the top (`AUTO`'s pick for a menu with groups, ≤ 7 entries, one level deep, or one with remote menus) |
+| `HAMBURGER_MENU` | A hamburger button opening the whole menu in a drawer (`AUTO`'s pick for more than 7 top-level entries with groups). `HAMBURGUER_MENU` is its deprecated misspelling |
+| `HAMBURGER_SECTIONS` | The hamburger holds the sections (first level) and a band under the header the entries of the section on screen; `AUTO` never picks it |
+| `TILES` | A top bar whose groups open as a hub of tiles (`AUTO`'s pick for a menu nested more than one level deep) |
+| `RAIL` | A narrow icon rail on the left whose groups open a side panel |
+
+`AUTO` (the default) applies the rules in parentheses (`AppMetadataExtractor.getVariant`).
 
 ---
 
 ## Style helpers
 
-`StyleConstants` provides three ready-made style values:
+`StyleConstants` provides four ready-made style values:
 
 ```java
 import io.mateu.uidl.StyleConstants;
@@ -126,6 +132,7 @@ import io.mateu.uidl.StyleConstants;
 @Style(StyleConstants.CONTAINER)                 // max-width: 900px; margin: auto;
 @Style(StyleConstants.FULL_WIDTH)                // width: 100%;
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)   // width: 100%; with side padding
+@Style(StyleConstants.COMPACT)                   // the high-density preset @Compact applies
 ```
 
 Or use arbitrary CSS:
@@ -174,9 +181,11 @@ return UICommand.builder()
 
 ---
 
-## Widgets (home page content)
+## Header widgets
 
-The `@UI` class can implement `WidgetSupplier` to render content in the main area when no sub-page is selected:
+The `@UI` class can implement `WidgetSupplier` to place components in the app **header** — the
+widgets slot on the right of the header bar (a user badge, a search box, a custom control). They do
+not fill the main area:
 
 ```java
 @UI("")
@@ -189,13 +198,15 @@ public class MyApp implements WidgetSupplier {
     @Override
     public List<Component> widgets(HttpRequest httpRequest) {
         return List.of(
-                new Text("Welcome to the backoffice.")
+                new Text("Signed in as Ada")
         );
     }
 }
 ```
 
-For a full dashboard, return a `BoardLayout` with KPI cards and charts. See [Dashboard home page](/java-user-manual/build/dashboard-home-page/).
+For home-page content — a welcome screen or a dashboard — make the home route a page of its own
+(a `Dashboard` or `Welcome` archetype) and name it with `homeRoute`. See
+[Dashboard home page](/java-user-manual/build/dashboard-home-page/).
 
 ---
 

@@ -30,6 +30,13 @@ This case shows the `Listing<Row>` pattern, which gives you full control over wh
 
 ## 1. The row type
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 ```java
 public record ChangeRow(
         @Hidden String id,

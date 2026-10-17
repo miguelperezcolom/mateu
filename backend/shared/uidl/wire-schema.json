@@ -1,0 +1,5982 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/wire-schema.json",
+  "version" : "3.0",
+  "title" : "Mateu wire schema",
+  "description" : "JSON Schema of the Mateu wire: the response envelope (UIIncrementDto) a backend sends and a renderer reads, and the request (RunActionRqDto) a renderer sends. Open by design — additive within a major, readers ignore unknown members — and nothing is required but the 'type' discriminator, since a member at its default may be omitted. GENERATED from the mateu-dtos records by WireSchemaGenerator — do not edit by hand.",
+  "$ref" : "#/$defs/UIIncrementDto",
+  "$defs" : {
+    "AccordionLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "AccordionLayout"
+        },
+        "panels" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AccordionPanelDto"
+          }
+        },
+        "variant" : {
+          "$ref" : "#/$defs/AccordionLayoutVariantDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AccordionLayoutVariantDto" : {
+      "type" : "string",
+      "enum" : [ "filled", "small", "reverse" ]
+    },
+    "AccordionPanelDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "AccordionPanel"
+        },
+        "active" : {
+          "type" : "boolean"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ActionDto" : {
+      "type" : "object",
+      "properties" : {
+        "background" : {
+          "type" : "boolean"
+        },
+        "bubble" : {
+          "type" : "boolean"
+        },
+        "commands" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/UICommandDto"
+          }
+        },
+        "confirmationRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationTexts" : {
+          "$ref" : "#/$defs/ConfirmationTextsDto"
+        },
+        "customEvent" : {
+          "$ref" : "#/$defs/CustomEventDto"
+        },
+        "fieldsToValidate" : {
+          "type" : "string"
+        },
+        "href" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "idempotent" : {
+          "type" : "boolean"
+        },
+        "js" : {
+          "type" : "string"
+        },
+        "modalStyle" : {
+          "type" : "string"
+        },
+        "modalTitle" : {
+          "type" : "string"
+        },
+        "restAction" : {
+          "$ref" : "#/$defs/RestActionDto"
+        },
+        "rowsSelectedRequired" : {
+          "type" : "boolean"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "sse" : {
+          "type" : "boolean"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        },
+        "validationRequired" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "ActionPanelCategoryDto" : {
+      "type" : "object",
+      "properties" : {
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelItemDto"
+          }
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ActionPanelDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ActionPanel"
+        },
+        "categories" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelCategoryDto"
+          }
+        },
+        "hideUnpopulatedToggle" : {
+          "type" : "boolean"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "maxPerCategory" : {
+          "type" : "integer"
+        },
+        "shortcut" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ActionPanelItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "count" : {
+          "type" : "integer"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "populated" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "AddOnDto" : {
+      "type" : "object",
+      "properties" : {
+        "added" : {
+          "type" : "boolean"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "includedLabel" : {
+          "type" : "string"
+        },
+        "price" : {
+          "type" : "number"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "unit" : {
+          "type" : "string"
+        }
+      }
+    },
+    "AddOnPickerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "AddOnPicker"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "currency" : {
+          "type" : "string"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AddOnDto"
+          }
+        },
+        "totalLabel" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AnchorDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Anchor"
+        },
+        "target" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AppContextSelectorDto" : {
+      "type" : "object",
+      "properties" : {
+        "fieldName" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OptionDto"
+          }
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        }
+      }
+    },
+    "AppDescriptorDto" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        }
+      }
+    },
+    "AppDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "App"
+        },
+        "accentColor" : {
+          "type" : "string"
+        },
+        "accentStrip" : {
+          "type" : "string"
+        },
+        "accessKeys" : {
+          "type" : "boolean"
+        },
+        "actionCatalogue" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionDto"
+          }
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionDto"
+          }
+        },
+        "appDataSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "apps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppDescriptorDto"
+          }
+        },
+        "askIcon" : {
+          "type" : "string"
+        },
+        "askLabel" : {
+          "type" : "string"
+        },
+        "backLabel" : {
+          "type" : "string"
+        },
+        "backRoute" : {
+          "type" : "string"
+        },
+        "chromeless" : {
+          "type" : "boolean"
+        },
+        "commandCenterEnabled" : {
+          "type" : "boolean"
+        },
+        "components" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentEntryDto"
+          }
+        },
+        "contextActions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppHeaderActionDto"
+          }
+        },
+        "contextSelectors" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppContextSelectorDto"
+          }
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "drawerClosed" : {
+          "type" : "boolean"
+        },
+        "fabs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FabDto"
+          }
+        },
+        "favicon" : {
+          "type" : "string"
+        },
+        "generatedAccentStrip" : {
+          "type" : "string"
+        },
+        "globalSearchEnabled" : {
+          "type" : "boolean"
+        },
+        "globalSearchSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "headerValues" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/HeaderValueDto"
+          }
+        },
+        "home" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "homeBaseUrl" : {
+          "type" : "string"
+        },
+        "homeConsumedRoute" : {
+          "type" : "string"
+        },
+        "homeRoute" : {
+          "type" : "string"
+        },
+        "homeServerSideType" : {
+          "type" : "string"
+        },
+        "homeUriPrefix" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "idleSession" : {
+          "$ref" : "#/$defs/IdleSessionDto"
+        },
+        "layout" : {
+          "$ref" : "#/$defs/AppLayoutDto"
+        },
+        "liveUpdates" : {
+          "type" : "boolean"
+        },
+        "locale" : {
+          "type" : "string"
+        },
+        "loginUrl" : {
+          "type" : "string"
+        },
+        "logo" : {
+          "type" : "string"
+        },
+        "logoutUrl" : {
+          "type" : "string"
+        },
+        "mcpUrl" : {
+          "type" : "string"
+        },
+        "menu" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MenuOptionDto"
+          }
+        },
+        "mobileQr" : {
+          "type" : "boolean"
+        },
+        "mockSources" : {
+          "type" : "boolean"
+        },
+        "noBreadcrumbs" : {
+          "type" : "boolean"
+        },
+        "notificationsEnabled" : {
+          "type" : "boolean"
+        },
+        "notificationsReadSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "notificationsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "requiredCapabilities" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "restSources" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RestSourceEntryDto"
+          }
+        },
+        "rootRoute" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "serverSideType" : {
+          "type" : "string"
+        },
+        "shortcuts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppShortcutDto"
+          }
+        },
+        "sseUrl" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "themeToggle" : {
+          "type" : "boolean"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "totalMenuOptions" : {
+          "type" : "integer"
+        },
+        "uploadUrl" : {
+          "type" : "string"
+        },
+        "variant" : {
+          "$ref" : "#/$defs/AppVariantDto"
+        },
+        "welcomeMessage" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AppHeaderActionDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AppHeaderActionDto"
+          }
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
+    "AppLayoutDto" : {
+      "type" : "string",
+      "enum" : [ "SINGLE_SLOT", "SPLIT" ]
+    },
+    "AppShortcutDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "code" : {
+          "type" : "string"
+        },
+        "key" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
+    "AppVariantDto" : {
+      "type" : "string",
+      "enum" : [ "HAMBURGUER_MENU", "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
+    },
+    "AutoSaveTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "AutoSave"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "debounceMillis" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AvatarDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Avatar"
+        },
+        "abbreviation" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "AvatarGroupDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "AvatarGroup"
+        },
+        "avatars" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/AvatarDto"
+          }
+        },
+        "maxItemsVisible" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BadgeDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Badge"
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "iconOnLeft" : {
+          "type" : "string"
+        },
+        "iconOnRight" : {
+          "type" : "string"
+        },
+        "pill" : {
+          "type" : "boolean"
+        },
+        "primary" : {
+          "type" : "boolean"
+        },
+        "small" : {
+          "type" : "boolean"
+        },
+        "text" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BannerDto" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        },
+        "hasCloseButton" : {
+          "type" : "boolean"
+        },
+        "hasIcon" : {
+          "type" : "boolean"
+        },
+        "theme" : {
+          "$ref" : "#/$defs/BannerThemeDto"
+        },
+        "timeoutSeconds" : {
+          "type" : "integer"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "BannerThemeDto" : {
+      "type" : "string",
+      "enum" : [ "NONE", "INFO", "SUCCESS", "WARNING", "DANGER", "CONTRAST", "SECONDARY", "LIGHT" ]
+    },
+    "BoardLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "BoardLayout"
+        },
+        "rows" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BoardLayoutRowDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BoardLayoutItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "BoardLayoutItem"
+        },
+        "boardCols" : {
+          "type" : "integer"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ClientSideComponentDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BoardLayoutRowDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "BoardLayoutRow"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ClientSideComponentDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BpmnDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Bpmn"
+        },
+        "xml" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BreadcrumbDto" : {
+      "type" : "object",
+      "properties" : {
+        "link" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        }
+      }
+    },
+    "BreadcrumbsDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Breadcrumbs"
+        },
+        "breadcrumbs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BreadcrumbDto"
+          }
+        },
+        "currentItemText" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "BulletedListDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "BulletedList"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ButtonColorDto" : {
+      "type" : "string",
+      "enum" : [ "none", "success", "error", "warning", "contrast", "normal" ]
+    },
+    "ButtonDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Button"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "autofocus" : {
+          "type" : "boolean"
+        },
+        "buttonStyle" : {
+          "$ref" : "#/$defs/ButtonStyleDto"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        },
+        "color" : {
+          "$ref" : "#/$defs/ButtonColorDto"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "iconOnLeft" : {
+          "type" : "string"
+        },
+        "iconOnRight" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "description" : "Any JSON value."
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "rowsSelectedRequired" : {
+          "type" : "boolean"
+        },
+        "separatorBefore" : {
+          "type" : "boolean"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "size" : {
+          "$ref" : "#/$defs/ButtonSizeDto"
+        },
+        "variant" : {
+          "$ref" : "#/$defs/ButtonVariantDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ButtonSizeDto" : {
+      "type" : "string",
+      "enum" : [ "none", "small", "normal", "large" ]
+    },
+    "ButtonStyleDto" : {
+      "type" : "string",
+      "enum" : [ "primary", "secondary", "tertiary", "tertiaryInline" ]
+    },
+    "ButtonVariantDto" : {
+      "type" : "string",
+      "enum" : [ "danger", "warning", "error" ]
+    },
+    "CalendarDayDto" : {
+      "type" : "object",
+      "properties" : {
+        "date" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CalendarDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Calendar"
+        },
+        "dayActionId" : {
+          "type" : "string"
+        },
+        "days" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarDayDto"
+          }
+        },
+        "events" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarEventDto"
+          }
+        },
+        "month" : {
+          "type" : "string"
+        },
+        "view" : {
+          "type" : "string"
+        },
+        "views" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CalendarEventDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "date" : {
+          "type" : "string"
+        },
+        "endDate" : {
+          "type" : "string"
+        },
+        "endTime" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "startTime" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CalloutCardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CalloutCard"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "ctaLabel" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "theme" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Card"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "footer" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "header" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "headerPrefix" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "headerSuffix" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "media" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "subtitle" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "title" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "variants" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CardVariantDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CardVariantDto" : {
+      "type" : "string",
+      "enum" : [ "outlined", "elevated", "horizontal", "stretchMedia", "coverMedia" ]
+    },
+    "CarouselLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CarouselLayout"
+        },
+        "alt" : {
+          "type" : "boolean"
+        },
+        "animating" : {
+          "type" : "boolean"
+        },
+        "auto" : {
+          "type" : "boolean"
+        },
+        "direction" : {
+          "$ref" : "#/$defs/OrientationDto"
+        },
+        "disableKeys" : {
+          "type" : "boolean"
+        },
+        "disableSwipe" : {
+          "type" : "boolean"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "dots" : {
+          "type" : "boolean"
+        },
+        "duration" : {
+          "type" : "integer"
+        },
+        "end" : {
+          "type" : "boolean"
+        },
+        "loop" : {
+          "type" : "boolean"
+        },
+        "nav" : {
+          "type" : "boolean"
+        },
+        "selected" : {
+          "type" : "integer"
+        },
+        "total" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ChartAxisScaleDto" : {
+      "type" : "object",
+      "properties" : {
+        "beginAtZero" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "ChartDataDto" : {
+      "type" : "object",
+      "properties" : {
+        "datasets" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ChartDatasetDto"
+          }
+        },
+        "labels" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "ChartDatasetDto" : {
+      "type" : "object",
+      "properties" : {
+        "data" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number"
+          }
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ChartDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Chart"
+        },
+        "chartData" : {
+          "$ref" : "#/$defs/ChartDataDto"
+        },
+        "chartOptions" : {
+          "$ref" : "#/$defs/ChartOptionsDto"
+        },
+        "chartType" : {
+          "$ref" : "#/$defs/ChartTypeDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ChartOptionsDto" : {
+      "type" : "object",
+      "properties" : {
+        "maintainAspectRatio" : {
+          "type" : "boolean"
+        },
+        "scales" : {
+          "$ref" : "#/$defs/ChartScalesDto"
+        }
+      }
+    },
+    "ChartScalesDto" : {
+      "type" : "object",
+      "properties" : {
+        "y" : {
+          "$ref" : "#/$defs/ChartAxisScaleDto"
+        },
+        "z" : {
+          "$ref" : "#/$defs/ChartAxisScaleDto"
+        }
+      }
+    },
+    "ChartTypeDto" : {
+      "type" : "string",
+      "enum" : [ "bar", "line", "scatter", "polarArea", "bubble", "pie", "doughnut", "radar" ]
+    },
+    "ChatDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Chat"
+        },
+        "sseUrl" : {
+          "type" : "string"
+        },
+        "uploadUrl" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ChecklistDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Checklist"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ChecklistItemDto"
+          }
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ChecklistItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "done" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ChipDto" : {
+      "type" : "object",
+      "properties" : {
+        "color" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ClientSideComponentDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ClientSide"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "metadata" : {
+          "$ref" : "#/$defs/ComponentMetadataDto"
+        },
+        "sizing" : {
+          "type" : "string"
+        },
+        "slot" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CommentDto" : {
+      "type" : "object",
+      "properties" : {
+        "author" : {
+          "type" : "string"
+        },
+        "avatar" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "replies" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CommentDto"
+          }
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "timestamp" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CommentThreadDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CommentThread"
+        },
+        "comments" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CommentDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ComparisonCardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ComparisonCard"
+        },
+        "delta" : {
+          "type" : "string"
+        },
+        "leftLabel" : {
+          "type" : "string"
+        },
+        "leftValue" : {
+          "type" : "string"
+        },
+        "rightLabel" : {
+          "type" : "string"
+        },
+        "rightValue" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "trend" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ComponentDto" : {
+      "description" : "Polymorphic: discriminated by 'type'.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/ClientSideComponentDto"
+      }, {
+        "$ref" : "#/$defs/ServerSideComponentDto"
+      } ]
+    },
+    "ComponentEntryDto" : {
+      "type" : "object",
+      "properties" : {
+        "component" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ComponentMetadataDto" : {
+      "description" : "Polymorphic: discriminated by 'type'.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/AccordionLayoutDto"
+      }, {
+        "$ref" : "#/$defs/AccordionPanelDto"
+      }, {
+        "$ref" : "#/$defs/ActionPanelDto"
+      }, {
+        "$ref" : "#/$defs/AddOnPickerDto"
+      }, {
+        "$ref" : "#/$defs/AnchorDto"
+      }, {
+        "$ref" : "#/$defs/AppDto"
+      }, {
+        "$ref" : "#/$defs/AvatarDto"
+      }, {
+        "$ref" : "#/$defs/AvatarGroupDto"
+      }, {
+        "$ref" : "#/$defs/BadgeDto"
+      }, {
+        "$ref" : "#/$defs/BoardLayoutDto"
+      }, {
+        "$ref" : "#/$defs/BoardLayoutItemDto"
+      }, {
+        "$ref" : "#/$defs/BoardLayoutRowDto"
+      }, {
+        "$ref" : "#/$defs/BpmnDto"
+      }, {
+        "$ref" : "#/$defs/BreadcrumbsDto"
+      }, {
+        "$ref" : "#/$defs/BulletedListDto"
+      }, {
+        "$ref" : "#/$defs/ButtonDto"
+      }, {
+        "$ref" : "#/$defs/CalendarDto"
+      }, {
+        "$ref" : "#/$defs/CalloutCardDto"
+      }, {
+        "$ref" : "#/$defs/CardDto"
+      }, {
+        "$ref" : "#/$defs/CarouselLayoutDto"
+      }, {
+        "$ref" : "#/$defs/ChartDto"
+      }, {
+        "$ref" : "#/$defs/ChatDto"
+      }, {
+        "$ref" : "#/$defs/ChecklistDto"
+      }, {
+        "$ref" : "#/$defs/CommentThreadDto"
+      }, {
+        "$ref" : "#/$defs/ComparisonCardDto"
+      }, {
+        "$ref" : "#/$defs/ConfirmDialogDto"
+      }, {
+        "$ref" : "#/$defs/ContainerDto"
+      }, {
+        "$ref" : "#/$defs/ContentLayoutDto"
+      }, {
+        "$ref" : "#/$defs/ContextMenuDto"
+      }, {
+        "$ref" : "#/$defs/CookieConsentDto"
+      }, {
+        "$ref" : "#/$defs/CrudlDto"
+      }, {
+        "$ref" : "#/$defs/CustomComponentDto"
+      }, {
+        "$ref" : "#/$defs/CustomFieldDto"
+      }, {
+        "$ref" : "#/$defs/DashboardLayoutDto"
+      }, {
+        "$ref" : "#/$defs/DashboardPanelDto"
+      }, {
+        "$ref" : "#/$defs/DetailsDto"
+      }, {
+        "$ref" : "#/$defs/DialogDto"
+      }, {
+        "$ref" : "#/$defs/DirectoryDto"
+      }, {
+        "$ref" : "#/$defs/DivDto"
+      }, {
+        "$ref" : "#/$defs/DrawerDto"
+      }, {
+        "$ref" : "#/$defs/DropZoneDto"
+      }, {
+        "$ref" : "#/$defs/ElementDto"
+      }, {
+        "$ref" : "#/$defs/EmptyStateDto"
+      }, {
+        "$ref" : "#/$defs/EntityHeaderDto"
+      }, {
+        "$ref" : "#/$defs/FaqDto"
+      }, {
+        "$ref" : "#/$defs/FeatureGridDto"
+      }, {
+        "$ref" : "#/$defs/FileListDto"
+      }, {
+        "$ref" : "#/$defs/FoldoutLayoutDto"
+      }, {
+        "$ref" : "#/$defs/FormDto"
+      }, {
+        "$ref" : "#/$defs/FormEditorDto"
+      }, {
+        "$ref" : "#/$defs/FormFieldDto"
+      }, {
+        "$ref" : "#/$defs/FormItemDto"
+      }, {
+        "$ref" : "#/$defs/FormLayoutDto"
+      }, {
+        "$ref" : "#/$defs/FormRowDto"
+      }, {
+        "$ref" : "#/$defs/FormSectionDto"
+      }, {
+        "$ref" : "#/$defs/FormSubSectionDto"
+      }, {
+        "$ref" : "#/$defs/FullWidthDto"
+      }, {
+        "$ref" : "#/$defs/FunnelDto"
+      }, {
+        "$ref" : "#/$defs/GanttDto"
+      }, {
+        "$ref" : "#/$defs/GridDto"
+      }, {
+        "$ref" : "#/$defs/GridColumnDto"
+      }, {
+        "$ref" : "#/$defs/GridGroupColumnDto"
+      }, {
+        "$ref" : "#/$defs/HeatmapDto"
+      }, {
+        "$ref" : "#/$defs/HeroSectionDto"
+      }, {
+        "$ref" : "#/$defs/HorizontalLayoutDto"
+      }, {
+        "$ref" : "#/$defs/IconDto"
+      }, {
+        "$ref" : "#/$defs/ImageDto"
+      }, {
+        "$ref" : "#/$defs/KanbanDto"
+      }, {
+        "$ref" : "#/$defs/LedgerDto"
+      }, {
+        "$ref" : "#/$defs/MapDto"
+      }, {
+        "$ref" : "#/$defs/MarkdownDto"
+      }, {
+        "$ref" : "#/$defs/MasterDetailLayoutDto"
+      }, {
+        "$ref" : "#/$defs/MatrixGridDto"
+      }, {
+        "$ref" : "#/$defs/MenuBarDto"
+      }, {
+        "$ref" : "#/$defs/MessageInputDto"
+      }, {
+        "$ref" : "#/$defs/MessageListDto"
+      }, {
+        "$ref" : "#/$defs/MeterDto"
+      }, {
+        "$ref" : "#/$defs/MetricCardDto"
+      }, {
+        "$ref" : "#/$defs/MicroFrontendDto"
+      }, {
+        "$ref" : "#/$defs/NotFoundDto"
+      }, {
+        "$ref" : "#/$defs/NoticeDto"
+      }, {
+        "$ref" : "#/$defs/NotificationDto"
+      }, {
+        "$ref" : "#/$defs/OfferCardDto"
+      }, {
+        "$ref" : "#/$defs/OrgChartDto"
+      }, {
+        "$ref" : "#/$defs/PageDto"
+      }, {
+        "$ref" : "#/$defs/PaymentPickerDto"
+      }, {
+        "$ref" : "#/$defs/PlanningBoardDto"
+      }, {
+        "$ref" : "#/$defs/PopoverDto"
+      }, {
+        "$ref" : "#/$defs/PricingTableDto"
+      }, {
+        "$ref" : "#/$defs/ProcessMonitorDto"
+      }, {
+        "$ref" : "#/$defs/ProgressBarDto"
+      }, {
+        "$ref" : "#/$defs/ProgressStepsDto"
+      }, {
+        "$ref" : "#/$defs/RecordMergeDto"
+      }, {
+        "$ref" : "#/$defs/ResourceGridDto"
+      }, {
+        "$ref" : "#/$defs/ResponsiveGridDto"
+      }, {
+        "$ref" : "#/$defs/ResultDto"
+      }, {
+        "$ref" : "#/$defs/ScoreboardDto"
+      }, {
+        "$ref" : "#/$defs/ScrollerDto"
+      }, {
+        "$ref" : "#/$defs/SeparatorDto"
+      }, {
+        "$ref" : "#/$defs/SkeletonDto"
+      }, {
+        "$ref" : "#/$defs/SplitLayoutDto"
+      }, {
+        "$ref" : "#/$defs/StatDto"
+      }, {
+        "$ref" : "#/$defs/StatusListDto"
+      }, {
+        "$ref" : "#/$defs/StepperDto"
+      }, {
+        "$ref" : "#/$defs/TabDto"
+      }, {
+        "$ref" : "#/$defs/TabLayoutDto"
+      }, {
+        "$ref" : "#/$defs/TaskProgressDto"
+      }, {
+        "$ref" : "#/$defs/TaskQueueDto"
+      }, {
+        "$ref" : "#/$defs/TestimonialsDto"
+      }, {
+        "$ref" : "#/$defs/TextDto"
+      }, {
+        "$ref" : "#/$defs/TimelineDto"
+      }, {
+        "$ref" : "#/$defs/TooltipDto"
+      }, {
+        "$ref" : "#/$defs/TrendChartDto"
+      }, {
+        "$ref" : "#/$defs/VerticalLayoutDto"
+      }, {
+        "$ref" : "#/$defs/VirtualListDto"
+      }, {
+        "$ref" : "#/$defs/WorkflowDto"
+      } ]
+    },
+    "ConfirmDialogDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ConfirmDialog"
+        },
+        "canCancel" : {
+          "type" : "boolean"
+        },
+        "canReject" : {
+          "type" : "boolean"
+        },
+        "cancelActionId" : {
+          "type" : "string"
+        },
+        "confirmActionId" : {
+          "type" : "string"
+        },
+        "confirmText" : {
+          "type" : "string"
+        },
+        "header" : {
+          "type" : "string"
+        },
+        "openedCondition" : {
+          "type" : "string"
+        },
+        "rejectActionId" : {
+          "type" : "string"
+        },
+        "rejectText" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ConfirmationTextsDto" : {
+      "type" : "object",
+      "properties" : {
+        "confirmationText" : {
+          "type" : "string"
+        },
+        "denialText" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ContainerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Container"
+        },
+        "id" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ContentLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ContentLayout"
+        },
+        "asidePosition" : {
+          "type" : "string"
+        },
+        "asideSticky" : {
+          "type" : "boolean"
+        },
+        "asideWidth" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ContextMenuDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ContextMenu"
+        },
+        "activateOnLeftClick" : {
+          "type" : "boolean"
+        },
+        "menu" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MenuOptionDto"
+          }
+        },
+        "wrapped" : {
+          "$ref" : "#/$defs/ComponentDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CookieConsentDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CookieConsent"
+        },
+        "cookieName" : {
+          "type" : "string"
+        },
+        "dismiss" : {
+          "type" : "string"
+        },
+        "learnMore" : {
+          "type" : "string"
+        },
+        "learnMoreLink" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "position" : {
+          "$ref" : "#/$defs/CookieConsentPositionDto"
+        },
+        "theme" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CookieConsentPositionDto" : {
+      "type" : "string",
+      "enum" : [ "Top", "Bottom", "TopLeft", "TopRight", "BottomLeft", "BottomRight" ]
+    },
+    "CrudlDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Crud"
+        },
+        "allRowsVisible" : {
+          "type" : "boolean"
+        },
+        "autoFocusOnSearchText" : {
+          "type" : "boolean"
+        },
+        "canEdit" : {
+          "type" : "boolean"
+        },
+        "child" : {
+          "type" : "boolean"
+        },
+        "columnBorders" : {
+          "type" : "boolean"
+        },
+        "columnReorderingAllowed" : {
+          "type" : "boolean"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "compact" : {
+          "type" : "boolean"
+        },
+        "contentHeight" : {
+          "type" : "string"
+        },
+        "crudlType" : {
+          "$ref" : "#/$defs/CrudlTypeDto"
+        },
+        "detailPath" : {
+          "type" : "string"
+        },
+        "dragType" : {
+          "type" : "string"
+        },
+        "emptyStateMessage" : {
+          "type" : "string"
+        },
+        "filters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FormFieldDto"
+          }
+        },
+        "filtersLayout" : {
+          "type" : "string"
+        },
+        "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "gridLayout" : {
+          "type" : "string"
+        },
+        "gridStyle" : {
+          "type" : "string"
+        },
+        "groupActions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        },
+        "groupBy" : {
+          "type" : "string"
+        },
+        "hasActionOnSelectedRow" : {
+          "type" : "boolean"
+        },
+        "header" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "infiniteScrolling" : {
+          "type" : "boolean"
+        },
+        "initialPage" : {
+          "type" : "integer"
+        },
+        "lazyColumnRendering" : {
+          "type" : "boolean"
+        },
+        "lazyLoading" : {
+          "type" : "boolean"
+        },
+        "multipleRowSelectionEnabled" : {
+          "type" : "boolean"
+        },
+        "noBorder" : {
+          "type" : "boolean"
+        },
+        "noRowBorder" : {
+          "type" : "boolean"
+        },
+        "onRowSelectionChangedActionId" : {
+          "type" : "string"
+        },
+        "pageSize" : {
+          "type" : "integer"
+        },
+        "preSearch" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "rowRoute" : {
+          "type" : "string"
+        },
+        "rowStatusField" : {
+          "type" : "string"
+        },
+        "rowStripes" : {
+          "type" : "boolean"
+        },
+        "rowsSelectionEnabled" : {
+          "type" : "boolean"
+        },
+        "rowsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "searchOnEnter" : {
+          "type" : "boolean"
+        },
+        "searchable" : {
+          "type" : "boolean"
+        },
+        "selectionListened" : {
+          "type" : "boolean"
+        },
+        "showCards" : {
+          "type" : "boolean"
+        },
+        "size" : {
+          "type" : "integer"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "toolbar" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        },
+        "useButtonForDetail" : {
+          "type" : "boolean"
+        },
+        "vaadinGridCellBackground" : {
+          "type" : "string"
+        },
+        "vaadinGridCellPadding" : {
+          "type" : "string"
+        },
+        "wrapCellContent" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CrudlTypeDto" : {
+      "type" : "string",
+      "enum" : [ "table", "card" ]
+    },
+    "CustomComponentDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CustomComponent"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "props" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "CustomEventDto" : {
+      "type" : "object",
+      "properties" : {
+        "detail" : {
+          "description" : "Any JSON value."
+        },
+        "eventName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CustomFieldDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "CustomField"
+        },
+        "colspan" : {
+          "type" : "integer"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DashboardLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "DashboardLayout"
+        },
+        "columns" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DashboardPanelDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "DashboardPanel"
+        },
+        "colSpan" : {
+          "type" : "integer"
+        },
+        "rowSpan" : {
+          "type" : "integer"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DataPageDto" : {
+      "type" : "object",
+      "properties" : {
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "totalElements" : {
+          "type" : "integer"
+        }
+      }
+    },
+    "DestinationDto" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/DestinationTypeDto"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "DestinationTypeDto" : {
+      "type" : "string",
+      "enum" : [ "ActionId", "Url", "CustomEvent", "Component", "View" ]
+    },
+    "DetailsDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Details"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "opened" : {
+          "type" : "boolean"
+        },
+        "summary" : {
+          "$ref" : "#/$defs/ComponentDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DialogDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Dialog"
+        },
+        "closeButtonOnHeader" : {
+          "type" : "boolean"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "draggable" : {
+          "type" : "boolean"
+        },
+        "footer" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "header" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "headerTitle" : {
+          "type" : "string"
+        },
+        "height" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "initialData" : {
+          "description" : "Any JSON value."
+        },
+        "left" : {
+          "type" : "string"
+        },
+        "modeless" : {
+          "type" : "boolean"
+        },
+        "noPadding" : {
+          "type" : "boolean"
+        },
+        "resizable" : {
+          "type" : "boolean"
+        },
+        "top" : {
+          "type" : "string"
+        },
+        "width" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DirectoryDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Directory"
+        },
+        "menu" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MenuOptionDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DivDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Div"
+        },
+        "content" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DrawerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Drawer"
+        },
+        "collapsible" : {
+          "type" : "boolean"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "footer" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "header" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "headerTitle" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "initialData" : {
+          "description" : "Any JSON value."
+        },
+        "layout" : {
+          "type" : "boolean"
+        },
+        "maximizable" : {
+          "type" : "boolean"
+        },
+        "modeless" : {
+          "type" : "boolean"
+        },
+        "noPadding" : {
+          "type" : "boolean"
+        },
+        "peerNav" : {
+          "$ref" : "#/$defs/PeerNavDto"
+        },
+        "position" : {
+          "$ref" : "#/$defs/DrawerPositionDto"
+        },
+        "size" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "width" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "DrawerPositionDto" : {
+      "type" : "string",
+      "enum" : [ "start", "end", "bottom" ]
+    },
+    "DropZoneDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "DropZone"
+        },
+        "accept" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ElementDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Element"
+        },
+        "attributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "content" : {
+          "type" : "string"
+        },
+        "html" : {
+          "type" : "boolean"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "on" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "EmptyStateDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "EmptyState"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "EntityHeaderDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "EntityHeader"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ChipDto"
+          }
+        },
+        "facts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FactDto"
+          }
+        },
+        "metricCaption" : {
+          "type" : "string"
+        },
+        "metricLabel" : {
+          "type" : "string"
+        },
+        "metricValue" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FabDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "buttonStyle" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FactDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FaqDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Faq"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FaqItemDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FaqItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "answer" : {
+          "type" : "string"
+        },
+        "open" : {
+          "type" : "boolean"
+        },
+        "question" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FeatureDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FeatureGridDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FeatureGrid"
+        },
+        "columns" : {
+          "type" : "integer"
+        },
+        "features" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FeatureDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FileItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "size" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FileListDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FileList"
+        },
+        "files" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FileItemDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FoldoutLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FoldoutLayout"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "headerTitle" : {
+          "type" : "string"
+        },
+        "navigation" : {
+          "$ref" : "#/$defs/FoldoutNavigationDto"
+        },
+        "orientation" : {
+          "type" : "string"
+        },
+        "overviewEditActionId" : {
+          "type" : "string"
+        },
+        "panels" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FoldoutPanelInfoDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FoldoutNavigationDto" : {
+      "type" : "object",
+      "properties" : {
+        "nextActionId" : {
+          "type" : "string"
+        },
+        "parentActionId" : {
+          "type" : "string"
+        },
+        "parentLabel" : {
+          "type" : "string"
+        },
+        "previousActionId" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FoldoutPanelInfoDto" : {
+      "type" : "object",
+      "properties" : {
+        "icon" : {
+          "type" : "string"
+        },
+        "open" : {
+          "type" : "boolean"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "width" : {
+          "type" : "string"
+        }
+      }
+    },
+    "FormDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Form"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionDto"
+          }
+        },
+        "avatar" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BadgeDto"
+          }
+        },
+        "banners" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BannerDto"
+          }
+        },
+        "buttons" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        },
+        "fabs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FabDto"
+          }
+        },
+        "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "header" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "kpis" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/KPIDto"
+          }
+        },
+        "noHeader" : {
+          "type" : "boolean"
+        },
+        "overline" : {
+          "type" : "string"
+        },
+        "peerNav" : {
+          "$ref" : "#/$defs/PeerNavDto"
+        },
+        "readOnly" : {
+          "type" : "boolean"
+        },
+        "status" : {
+          "$ref" : "#/$defs/StatusDto"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "switcher" : {
+          "$ref" : "#/$defs/RecordSwitcherDto"
+        },
+        "timestamp" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "titlePlaceholder" : {
+          "type" : "string"
+        },
+        "toolbar" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormEditorDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormEditor"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormFieldDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormField"
+        },
+        "attributes" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PairDto"
+          }
+        },
+        "autofocus" : {
+          "type" : "boolean"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BadgeDto"
+          }
+        },
+        "bold" : {
+          "type" : "boolean"
+        },
+        "colspan" : {
+          "type" : "integer"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "dataType" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "detailPath" : {
+          "type" : "string"
+        },
+        "fieldId" : {
+          "type" : "string"
+        },
+        "formColumns" : {
+          "type" : "integer"
+        },
+        "formPosition" : {
+          "$ref" : "#/$defs/FormPositionDto"
+        },
+        "formStyle" : {
+          "type" : "string"
+        },
+        "formTheme" : {
+          "type" : "string"
+        },
+        "initialValue" : {
+          "description" : "Any JSON value."
+        },
+        "inlineEditing" : {
+          "type" : "boolean"
+        },
+        "itemIdPath" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "link" : {
+          "$ref" : "#/$defs/NavLinkDto"
+        },
+        "mainFilter" : {
+          "type" : "boolean"
+        },
+        "minHeightWhenDetailVisible" : {
+          "type" : "string"
+        },
+        "multiline" : {
+          "type" : "boolean"
+        },
+        "observed" : {
+          "type" : "boolean"
+        },
+        "onItemSelectionActionId" : {
+          "type" : "string"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OptionDto"
+          }
+        },
+        "optionsColumns" : {
+          "type" : "integer"
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "placeholder" : {
+          "type" : "string"
+        },
+        "propertyRow" : {
+          "type" : "boolean"
+        },
+        "readOnly" : {
+          "type" : "boolean"
+        },
+        "remoteCoordinates" : {
+          "$ref" : "#/$defs/RemoteCoordinatesDto"
+        },
+        "required" : {
+          "type" : "boolean"
+        },
+        "rightAligned" : {
+          "type" : "boolean"
+        },
+        "rowSelectionShortcut" : {
+          "type" : "string"
+        },
+        "sliderMax" : {
+          "type" : "integer"
+        },
+        "sliderMin" : {
+          "type" : "integer"
+        },
+        "step" : {
+          "type" : "number"
+        },
+        "stepButtonsVisible" : {
+          "type" : "boolean"
+        },
+        "stereotype" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "treeLeavesOnly" : {
+          "type" : "boolean"
+        },
+        "useButtonForDetail" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormItem"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormLayout"
+        },
+        "autoResponsive" : {
+          "type" : "boolean"
+        },
+        "columnSpacing" : {
+          "type" : "string"
+        },
+        "columnWidth" : {
+          "type" : "string"
+        },
+        "expandColumns" : {
+          "type" : "boolean"
+        },
+        "expandFields" : {
+          "type" : "boolean"
+        },
+        "itemLabelSpacing" : {
+          "type" : "string"
+        },
+        "itemLabelWidth" : {
+          "type" : "string"
+        },
+        "itemRowSpacing" : {
+          "type" : "string"
+        },
+        "labelsAside" : {
+          "type" : "boolean"
+        },
+        "maxColumns" : {
+          "type" : "integer"
+        },
+        "responsiveSteps" : {
+          "description" : "Any JSON value."
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormPositionDto" : {
+      "type" : "string",
+      "enum" : [ "top", "right", "bottom", "left", "modalLeft", "modalRight", "modal" ]
+    },
+    "FormRowDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormRow"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormSectionDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormSection"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FormSubSectionDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FormSubSection"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FullWidthDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "FullWidth"
+        },
+        "id" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FunnelDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Funnel"
+        },
+        "stages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FunnelStageDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "FunnelStageDto" : {
+      "type" : "object",
+      "properties" : {
+        "color" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "number"
+        }
+      }
+    },
+    "GanttDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Gantt"
+        },
+        "onTaskSelectionActionId" : {
+          "type" : "string"
+        },
+        "tasks" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/GanttTaskDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "GanttTaskDto" : {
+      "type" : "object",
+      "properties" : {
+        "color" : {
+          "type" : "string"
+        },
+        "end" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "progress" : {
+          "type" : "number"
+        },
+        "start" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "GridColumnDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "GridColumn"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "aggregate" : {
+          "type" : "string"
+        },
+        "align" : {
+          "type" : "string"
+        },
+        "autoWidth" : {
+          "type" : "boolean"
+        },
+        "captionPath" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "dataType" : {
+          "type" : "string"
+        },
+        "editable" : {
+          "type" : "boolean"
+        },
+        "editorOptions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OptionDto"
+          }
+        },
+        "editorType" : {
+          "type" : "string"
+        },
+        "filterable" : {
+          "type" : "boolean"
+        },
+        "flexGrow" : {
+          "type" : "string"
+        },
+        "frozen" : {
+          "type" : "boolean"
+        },
+        "frozenToEnd" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "identifier" : {
+          "type" : "boolean"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "leadingPath" : {
+          "type" : "string"
+        },
+        "line" : {
+          "type" : "integer"
+        },
+        "priority" : {
+          "type" : "integer"
+        },
+        "resizable" : {
+          "type" : "boolean"
+        },
+        "sortable" : {
+          "type" : "boolean"
+        },
+        "sortingProperty" : {
+          "type" : "string"
+        },
+        "stereotype" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "tones" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "tooltipPath" : {
+          "type" : "string"
+        },
+        "valueLabels" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "weight" : {
+          "type" : "number"
+        },
+        "width" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "GridDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Grid"
+        },
+        "columnBorders" : {
+          "type" : "boolean"
+        },
+        "compact" : {
+          "type" : "boolean"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "noBorder" : {
+          "type" : "boolean"
+        },
+        "noRowBorder" : {
+          "type" : "boolean"
+        },
+        "page" : {
+          "$ref" : "#/$defs/DataPageDto"
+        },
+        "rowStripes" : {
+          "type" : "boolean"
+        },
+        "size" : {
+          "type" : "integer"
+        },
+        "tree" : {
+          "type" : "boolean"
+        },
+        "vaadinGridCellBackground" : {
+          "type" : "string"
+        },
+        "vaadinGridCellPadding" : {
+          "type" : "string"
+        },
+        "wrapCellContent" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "GridGroupColumnDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "GridGroupColumn"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "GroupRelationshipDto" : {
+      "type" : "string",
+      "enum" : [ "alternative", "sequential", "simultaneous" ]
+    },
+    "HeaderValueDto" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "HeatCellDto" : {
+      "type" : "object",
+      "properties" : {
+        "date" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "number"
+        }
+      }
+    },
+    "HeatmapDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Heatmap"
+        },
+        "cells" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/HeatCellDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "HeroSectionDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "HeroSection"
+        },
+        "centered" : {
+          "type" : "boolean"
+        },
+        "height" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "HorizontalAlignmentDto" : {
+      "type" : "string",
+      "enum" : [ "STRETCH", "START", "CENTER", "END" ]
+    },
+    "HorizontalLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "HorizontalLayout"
+        },
+        "flexGrows" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer"
+          }
+        },
+        "fullWidth" : {
+          "type" : "boolean"
+        },
+        "justification" : {
+          "$ref" : "#/$defs/JustificationDto"
+        },
+        "margin" : {
+          "type" : "boolean"
+        },
+        "padding" : {
+          "type" : "boolean"
+        },
+        "spacing" : {
+          "type" : "boolean"
+        },
+        "spacingVariant" : {
+          "$ref" : "#/$defs/SpacingVariantDto"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "verticalAlignment" : {
+          "$ref" : "#/$defs/VerticalAlignmentDto"
+        },
+        "wrap" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "IconDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Icon"
+        },
+        "icon" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "IdleSessionDto" : {
+      "type" : "object",
+      "properties" : {
+        "keepAliveActionId" : {
+          "type" : "string"
+        },
+        "signOutUrl" : {
+          "type" : "string"
+        },
+        "timeoutSeconds" : {
+          "type" : "integer"
+        },
+        "warningSeconds" : {
+          "type" : "integer"
+        }
+      }
+    },
+    "ImageDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Image"
+        },
+        "src" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "JustificationDto" : {
+      "type" : "string",
+      "enum" : [ "START", "CENTER", "END", "BETWEEN", "AROUND", "EVENLY" ]
+    },
+    "KPIDto" : {
+      "type" : "object",
+      "properties" : {
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "KanbanCardDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "badge" : {
+          "type" : "string"
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "KanbanColumnDto" : {
+      "type" : "object",
+      "properties" : {
+        "cards" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/KanbanCardDto"
+          }
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "KanbanDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Kanban"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/KanbanColumnDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "LedgerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Ledger"
+        },
+        "currency" : {
+          "type" : "string"
+        },
+        "lines" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/LedgerLineDto"
+          }
+        },
+        "total" : {
+          "type" : "number"
+        },
+        "totalLabel" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "LedgerLineDto" : {
+      "type" : "object",
+      "properties" : {
+        "amount" : {
+          "type" : "number"
+        },
+        "concept" : {
+          "type" : "string"
+        },
+        "included" : {
+          "type" : "boolean"
+        },
+        "includedLabel" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ListingDescriptorDto" : {
+      "type" : "object",
+      "properties" : {
+        "filters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ListingFilterDto"
+          }
+        },
+        "idField" : {
+          "type" : "string"
+        },
+        "idsParam" : {
+          "type" : "string"
+        },
+        "searchParam" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ListingFilterDto" : {
+      "type" : "object",
+      "properties" : {
+        "fromParam" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "multiple" : {
+          "type" : "boolean"
+        },
+        "param" : {
+          "type" : "string"
+        },
+        "toParam" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "values" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "MapDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Map"
+        },
+        "attribution" : {
+          "type" : "string"
+        },
+        "markerActionId" : {
+          "type" : "string"
+        },
+        "markers" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MapMarkerDto"
+          }
+        },
+        "position" : {
+          "type" : "string"
+        },
+        "tileUrl" : {
+          "type" : "string"
+        },
+        "zoom" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MapMarkerDto" : {
+      "type" : "object",
+      "properties" : {
+        "color" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "latitude" : {
+          "type" : "number"
+        },
+        "longitude" : {
+          "type" : "number"
+        }
+      }
+    },
+    "MarkdownDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Markdown"
+        },
+        "markdown" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MasterDetailLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MasterDetailLayout"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MatrixCellDto" : {
+      "type" : "object",
+      "properties" : {
+        "link" : {
+          "type" : "boolean"
+        },
+        "tone" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MatrixColumnDto" : {
+      "type" : "object",
+      "properties" : {
+        "group" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MatrixGridDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MatrixGrid"
+        },
+        "cellActionId" : {
+          "type" : "string"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixColumnDto"
+          }
+        },
+        "editActionId" : {
+          "type" : "string"
+        },
+        "rowHeaderLabel" : {
+          "type" : "string"
+        },
+        "sections" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixSectionDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MatrixRowDto" : {
+      "type" : "object",
+      "properties" : {
+        "cells" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixCellDto"
+          }
+        },
+        "editable" : {
+          "type" : "boolean"
+        },
+        "emphasis" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MatrixSectionDto" : {
+      "type" : "object",
+      "properties" : {
+        "collapsed" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "rows" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixRowDto"
+          }
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MenuBarDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MenuBar"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MenuOptionDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MenuOptionDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "baseUrl" : {
+          "type" : "string"
+        },
+        "className" : {
+          "type" : "string"
+        },
+        "component" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "consumedRoute" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "disabledOnClick" : {
+          "type" : "boolean"
+        },
+        "display" : {
+          "type" : "string"
+        },
+        "explode" : {
+          "type" : "boolean"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "itemData" : {
+          "description" : "Any JSON value."
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "listing" : {
+          "$ref" : "#/$defs/ListingDescriptorDto"
+        },
+        "params" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "path" : {
+          "type" : "string"
+        },
+        "remote" : {
+          "type" : "boolean"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "routePrefix" : {
+          "type" : "string"
+        },
+        "rules" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RuleDto"
+          }
+        },
+        "selected" : {
+          "type" : "boolean"
+        },
+        "separator" : {
+          "type" : "boolean"
+        },
+        "serverSideType" : {
+          "type" : "string"
+        },
+        "shellLabel" : {
+          "type" : "boolean"
+        },
+        "submenus" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MenuOptionDto"
+          }
+        },
+        "type" : {
+          "$ref" : "#/$defs/MenuTypeDto"
+        },
+        "uriPrefix" : {
+          "type" : "string"
+        },
+        "visible" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MenuTypeDto" : {
+      "type" : "string",
+      "enum" : [ "MenuOption", "Submenu", "Remote" ]
+    },
+    "MergeFieldDto" : {
+      "type" : "object",
+      "properties" : {
+        "chosen" : {
+          "type" : "string"
+        },
+        "differs" : {
+          "type" : "boolean"
+        },
+        "editable" : {
+          "type" : "boolean"
+        },
+        "fieldId" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "values" : {
+          "type" : "array",
+          "items" : {
+            "description" : "Any JSON value."
+          }
+        }
+      }
+    },
+    "MergeRecordDto" : {
+      "type" : "object",
+      "properties" : {
+        "caption" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MessageDto" : {
+      "type" : "object",
+      "properties" : {
+        "duration" : {
+          "type" : "integer"
+        },
+        "position" : {
+          "$ref" : "#/$defs/NotificationPositionDto"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "undoActionId" : {
+          "type" : "string"
+        },
+        "undoLabel" : {
+          "type" : "string"
+        },
+        "undoParameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "variant" : {
+          "$ref" : "#/$defs/NotificationVariantDto"
+        }
+      }
+    },
+    "MessageInputDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MessageInput"
+        },
+        "actionId" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MessageListDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MessageList"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MessageListItemDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MessageListItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "text" : {
+          "type" : "string"
+        },
+        "time" : {
+          "type" : "string"
+        },
+        "userAbbr" : {
+          "type" : "string"
+        },
+        "userColorIndex" : {
+          "type" : "integer"
+        },
+        "userImg" : {
+          "type" : "string"
+        },
+        "userName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MeterDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Meter"
+        },
+        "caption" : {
+          "type" : "string"
+        },
+        "dangerAt" : {
+          "type" : "number"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "max" : {
+          "type" : "number"
+        },
+        "unit" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "number"
+        },
+        "warnAt" : {
+          "type" : "number"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MetricCardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MetricCard"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "timeframe" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "trend" : {
+          "$ref" : "#/$defs/MetricTrendDto"
+        },
+        "trendLabel" : {
+          "type" : "string"
+        },
+        "unit" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MetricTrendDto" : {
+      "type" : "string",
+      "enum" : [ "up", "down", "neutral" ]
+    },
+    "MicroFrontendDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MicroFrontend"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "appState" : {
+          "description" : "Any JSON value."
+        },
+        "baseUrl" : {
+          "type" : "string"
+        },
+        "consumedRoute" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "serverSideType" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "NavLinkDto" : {
+      "type" : "object",
+      "properties" : {
+        "href" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "target" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "NotFoundDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "NotFound"
+        },
+        "backLabel" : {
+          "type" : "string"
+        },
+        "backRoute" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "NoticeDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Notice"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "fullWidth" : {
+          "type" : "boolean"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "inlineContent" : {
+          "type" : "boolean"
+        },
+        "noIcon" : {
+          "type" : "boolean"
+        },
+        "slim" : {
+          "type" : "boolean"
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "theme" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "NotificationDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Notification"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "NotificationPositionDto" : {
+      "type" : "string",
+      "enum" : [ "topStretch", "topStart", "topCenter", "topEnd", "middle", "bottomStart", "bottomCenter", "bottomEnd", "bottomStretch" ]
+    },
+    "NotificationVariantDto" : {
+      "type" : "string",
+      "enum" : [ "success", "warning", "error", "primary", "contrast", "info" ]
+    },
+    "OfferCardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OfferCard"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "added" : {
+          "type" : "boolean"
+        },
+        "addedLabel" : {
+          "type" : "string"
+        },
+        "current" : {
+          "type" : "boolean"
+        },
+        "currentLabel" : {
+          "type" : "string"
+        },
+        "features" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "priceLabel" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "tag" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OnCustomEventTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OnCustomEvent"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "condition" : {
+          "type" : "string"
+        },
+        "eventName" : {
+          "type" : "string"
+        },
+        "from" : {
+          "type" : "string"
+        },
+        "source" : {
+          "$ref" : "#/$defs/SubscriptionSourceDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OnErrorTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OnError"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "calledActionId" : {
+          "type" : "string"
+        },
+        "condition" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OnLoadTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OnLoad"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
+        },
+        "condition" : {
+          "type" : "string"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        },
+        "times" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OnSuccessTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OnSuccess"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
+        },
+        "calledActionId" : {
+          "type" : "string"
+        },
+        "condition" : {
+          "type" : "string"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OnValueChangeTriggerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OnValueChange"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "condition" : {
+          "type" : "string"
+        },
+        "propertyName" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OptionDto" : {
+      "type" : "object",
+      "properties" : {
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OptionDto"
+          }
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "imageStyle" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "value" : {
+          "description" : "Any JSON value."
+        }
+      }
+    },
+    "OrgChartDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "OrgChart"
+        },
+        "root" : {
+          "$ref" : "#/$defs/OrgNodeDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "OrgNodeDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "avatar" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OrgNodeDto"
+          }
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "OrientationDto" : {
+      "type" : "string",
+      "enum" : [ "horizontal", "vertical" ]
+    },
+    "PageDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Page"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionDto"
+          }
+        },
+        "avatar" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BadgeDto"
+          }
+        },
+        "banners" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BannerDto"
+          }
+        },
+        "breadcrumbs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BreadcrumbDto"
+          }
+        },
+        "buttons" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        },
+        "fabs" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/FabDto"
+          }
+        },
+        "favicon" : {
+          "type" : "string"
+        },
+        "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "header" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "kpis" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/KPIDto"
+          }
+        },
+        "level" : {
+          "type" : "integer"
+        },
+        "noBreadcrumbs" : {
+          "type" : "boolean"
+        },
+        "overline" : {
+          "type" : "string"
+        },
+        "pageTitle" : {
+          "type" : "string"
+        },
+        "pageType" : {
+          "type" : "string"
+        },
+        "pageWidth" : {
+          "type" : "string"
+        },
+        "peerNav" : {
+          "$ref" : "#/$defs/PeerNavDto"
+        },
+        "readOnly" : {
+          "type" : "boolean"
+        },
+        "status" : {
+          "$ref" : "#/$defs/StatusDto"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "switcher" : {
+          "$ref" : "#/$defs/RecordSwitcherDto"
+        },
+        "timestamp" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "titlePlaceholder" : {
+          "type" : "string"
+        },
+        "toc" : {
+          "type" : "boolean"
+        },
+        "toolbar" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ButtonDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "PairDto" : {
+      "type" : "object",
+      "properties" : {
+        "key" : {
+          "type" : "string"
+        },
+        "value" : {
+          "description" : "Any JSON value."
+        }
+      }
+    },
+    "PaymentMethodDto" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PaymentPickerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "PaymentPicker"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "confirmLabel" : {
+          "type" : "string"
+        },
+        "contextLabel" : {
+          "type" : "string"
+        },
+        "contextValue" : {
+          "type" : "string"
+        },
+        "methodActionId" : {
+          "type" : "string"
+        },
+        "methods" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PaymentMethodDto"
+          }
+        },
+        "selected" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "PeerNavDto" : {
+      "type" : "object",
+      "properties" : {
+        "nextLabel" : {
+          "type" : "string"
+        },
+        "nextRoute" : {
+          "type" : "string"
+        },
+        "prevLabel" : {
+          "type" : "string"
+        },
+        "prevRoute" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PlanningBlockDto" : {
+      "type" : "object",
+      "properties" : {
+        "color" : {
+          "type" : "string"
+        },
+        "end" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "resourceId" : {
+          "type" : "string"
+        },
+        "start" : {
+          "type" : "string"
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "summary" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PlanningBoardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "PlanningBoard"
+        },
+        "attributeColumns" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "blocks" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PlanningBlockDto"
+          }
+        },
+        "from" : {
+          "type" : "string"
+        },
+        "moveActionId" : {
+          "type" : "string"
+        },
+        "openActionId" : {
+          "type" : "string"
+        },
+        "rangeSelectActionId" : {
+          "type" : "string"
+        },
+        "resizeActionId" : {
+          "type" : "string"
+        },
+        "resources" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PlanningResourceDto"
+          }
+        },
+        "selectActionId" : {
+          "type" : "string"
+        },
+        "to" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "PlanningResourceDto" : {
+      "type" : "object",
+      "properties" : {
+        "attributes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "group" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PopoverDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Popover"
+        },
+        "content" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "trigger" : {
+          "type" : "string"
+        },
+        "wrapped" : {
+          "$ref" : "#/$defs/ComponentDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "PricingPlanDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "ctaLabel" : {
+          "type" : "string"
+        },
+        "featured" : {
+          "type" : "boolean"
+        },
+        "features" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "period" : {
+          "type" : "string"
+        },
+        "price" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PricingTableDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "PricingTable"
+        },
+        "plans" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/PricingPlanDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ProcessItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "errors" : {
+          "type" : "integer"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "ok" : {
+          "type" : "integer"
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "systems" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "warnings" : {
+          "type" : "integer"
+        }
+      }
+    },
+    "ProcessMonitorDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ProcessMonitor"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessItemDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ProgressBarDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ProgressBar"
+        },
+        "indeterminate" : {
+          "type" : "boolean"
+        },
+        "max" : {
+          "type" : "integer"
+        },
+        "min" : {
+          "type" : "integer"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "theme" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "number"
+        },
+        "valueKey" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ProgressStepsDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ProgressSteps"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/StepDto"
+          }
+        },
+        "vertical" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "QueueGroupDto" : {
+      "type" : "object",
+      "properties" : {
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/QueueItemDto"
+          }
+        },
+        "label" : {
+          "type" : "string"
+        }
+      }
+    },
+    "QueueItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "badges" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ChipDto"
+          }
+        },
+        "caption" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "selected" : {
+          "type" : "boolean"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RecordMergeDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "RecordMerge"
+        },
+        "differencesOnly" : {
+          "type" : "boolean"
+        },
+        "fields" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MergeFieldDto"
+          }
+        },
+        "mergeActionId" : {
+          "type" : "string"
+        },
+        "mergeLabel" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "records" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MergeRecordDto"
+          }
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "RecordSwitcherDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/OptionDto"
+          }
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "searchable" : {
+          "type" : "boolean"
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RemoteCoordinatesDto" : {
+      "type" : "object",
+      "properties" : {
+        "action" : {
+          "type" : "string"
+        },
+        "baseUrl" : {
+          "type" : "string"
+        },
+        "consumedRoute" : {
+          "type" : "string"
+        },
+        "params" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ResourceGridDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ResourceGrid"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "columns" : {
+          "type" : "integer"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ResourceItemDto"
+          }
+        },
+        "recommendedLabel" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ResourceItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "disabled" : {
+          "type" : "boolean"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string"
+        },
+        "noteColor" : {
+          "type" : "string"
+        },
+        "recommended" : {
+          "type" : "boolean"
+        },
+        "selected" : {
+          "type" : "boolean"
+        },
+        "statusColor" : {
+          "type" : "string"
+        },
+        "statusLabel" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ResponsiveGridDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ResponsiveGrid"
+        },
+        "colSpans" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer"
+          }
+        },
+        "gap" : {
+          "type" : "string"
+        },
+        "gridTemplateAreas" : {
+          "type" : "string"
+        },
+        "gridTemplateColumns" : {
+          "type" : "string"
+        },
+        "reorderable" : {
+          "type" : "boolean"
+        },
+        "stackBelow" : {
+          "type" : "string"
+        },
+        "stickyAreas" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "RestActionDto" : {
+      "type" : "object",
+      "properties" : {
+        "forEachSelectedRow" : {
+          "type" : "boolean"
+        },
+        "resultPath" : {
+          "type" : "string"
+        },
+        "source" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "successMessage" : {
+          "type" : "string"
+        },
+        "successRoute" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RestDataSourceDto" : {
+      "type" : "object",
+      "properties" : {
+        "body" : {
+          "type" : "string"
+        },
+        "headers" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "itemsPath" : {
+          "type" : "string"
+        },
+        "labelPath" : {
+          "type" : "string"
+        },
+        "method" : {
+          "type" : "string"
+        },
+        "proxy" : {
+          "type" : "boolean"
+        },
+        "ref" : {
+          "type" : "string"
+        },
+        "sample" : {
+          "description" : "Any JSON value."
+        },
+        "url" : {
+          "type" : "string"
+        },
+        "valuePath" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RestSourceEntryDto" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        },
+        "fields" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "provenance" : {
+          "type" : "string"
+        },
+        "sample" : {
+          "description" : "Any JSON value."
+        },
+        "source" : {
+          "$ref" : "#/$defs/RestDataSourceDto"
+        },
+        "totalPath" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ResultDto" : {
+      "type" : "object",
+      "deprecated" : true,
+      "properties" : {
+        "type" : {
+          "const" : "Result"
+        },
+        "actionHandler" : {
+          "$ref" : "#/$defs/ServerSideObjectDto"
+        },
+        "interestingLinks" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/DestinationDto"
+          }
+        },
+        "leftSideImageUrl" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "nowTo" : {
+          "$ref" : "#/$defs/DestinationDto"
+        },
+        "resultType" : {
+          "$ref" : "#/$defs/ResultTypeDto"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ResultTypeDto" : {
+      "type" : "string",
+      "enum" : [ "Success", "Info", "Warning", "Error", "Ignored" ]
+    },
+    "RuleActionDto" : {
+      "type" : "string",
+      "enum" : [ "SetAppDataValue", "SetAppStateValue", "SetDataValue", "RunAction", "RunJS", "SetAttributeValue", "SetStateValue", "SetCssClass", "SetStyle" ]
+    },
+    "RuleDto" : {
+      "type" : "object",
+      "properties" : {
+        "action" : {
+          "$ref" : "#/$defs/RuleActionDto"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "expression" : {
+          "type" : "string"
+        },
+        "fieldAttribute" : {
+          "$ref" : "#/$defs/RuleFieldAttributeDto"
+        },
+        "fieldName" : {
+          "type" : "string"
+        },
+        "filter" : {
+          "type" : "string"
+        },
+        "result" : {
+          "$ref" : "#/$defs/RuleResultDto"
+        },
+        "value" : {
+          "description" : "Any JSON value."
+        }
+      }
+    },
+    "RuleFieldAttributeDto" : {
+      "type" : "string",
+      "enum" : [ "required", "disabled", "hidden", "pattern", "minValue", "maxValue", "minLength", "maxLength", "css", "style", "theme", "errorMessage", "description", "none" ]
+    },
+    "RuleResultDto" : {
+      "type" : "string",
+      "enum" : [ "Continue", "Stop" ]
+    },
+    "RunActionRqDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "appState" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "componentState" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "consumedRoute" : {
+          "type" : "string"
+        },
+        "initiatorComponentId" : {
+          "type" : "string"
+        },
+        "knownStructureHash" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "serverSideComponentRoute" : {
+          "type" : "string"
+        },
+        "serverSideType" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ScoreboardDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Scoreboard"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ScrollerDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Scroller"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "SeparatorDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Separator"
+        },
+        "attributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ServerSideComponentDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "ServerSide"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionDto"
+          }
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ComponentDto"
+          }
+        },
+        "confirmOnNavigationIfDirty" : {
+          "type" : "boolean"
+        },
+        "containerId" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "emitsName" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "initialData" : {
+          "description" : "Any JSON value."
+        },
+        "pageType" : {
+          "type" : "string"
+        },
+        "pageWidth" : {
+          "type" : "string"
+        },
+        "route" : {
+          "type" : "string"
+        },
+        "rules" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RuleDto"
+          }
+        },
+        "serverSideType" : {
+          "type" : "string"
+        },
+        "slot" : {
+          "type" : "string"
+        },
+        "staticView" : {
+          "type" : "boolean"
+        },
+        "structureHash" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "triggers" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/TriggerDto"
+          }
+        },
+        "validations" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ValidationDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ServerSideObjectDto" : {
+      "type" : "object",
+      "properties" : {
+        "className" : {
+          "type" : "string"
+        },
+        "data" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "description" : "Any JSON value."
+          }
+        }
+      }
+    },
+    "SkeletonDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Skeleton"
+        },
+        "count" : {
+          "type" : "integer"
+        },
+        "variant" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "SpacingVariantDto" : {
+      "type" : "string",
+      "enum" : [ "xs", "s", "m", "l", "xl" ]
+    },
+    "SplitLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "SplitLayout"
+        },
+        "fullWidth" : {
+          "type" : "boolean"
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/OrientationDto"
+        },
+        "variant" : {
+          "$ref" : "#/$defs/SplitLayoutVariantDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "SplitLayoutVariantDto" : {
+      "type" : "string",
+      "enum" : [ "small", "minimal" ]
+    },
+    "StatDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Stat"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "delta" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "spark" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number"
+          }
+        },
+        "trend" : {
+          "type" : "string"
+        },
+        "unit" : {
+          "type" : "string"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "StatusDto" : {
+      "type" : "object",
+      "properties" : {
+        "message" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/StatusTypeDto"
+        }
+      }
+    },
+    "StatusItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionIcon" : {
+          "type" : "string"
+        },
+        "actionIcon2" : {
+          "type" : "string"
+        },
+        "actionIcon3" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionId2" : {
+          "type" : "string"
+        },
+        "actionId3" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "actionLabel2" : {
+          "type" : "string"
+        },
+        "actionLabel3" : {
+          "type" : "string"
+        },
+        "avatar" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "lines" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "statusColor" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "StatusListDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "StatusList"
+        },
+        "columns" : {
+          "type" : "integer"
+        },
+        "compact" : {
+          "type" : "boolean"
+        },
+        "frameless" : {
+          "type" : "boolean"
+        },
+        "itemHeadingLevel" : {
+          "type" : "integer"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/StatusItemDto"
+          }
+        },
+        "rowActionId" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "StatusTypeDto" : {
+      "type" : "string",
+      "enum" : [ "NONE", "INFO", "SUCCESS", "WARNING", "DANGER" ]
+    },
+    "StepDto" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "status" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "StepperDto" : {
+      "type" : "object",
+      "deprecated" : true,
+      "properties" : {
+        "type" : {
+          "const" : "Stepper"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "SubscriptionSourceDto" : {
+      "type" : "string",
+      "enum" : [ "DOCUMENT", "COMPONENT", "SELF" ]
+    },
+    "TabDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Tab"
+        },
+        "active" : {
+          "type" : "boolean"
+        },
+        "badge" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "routeKey" : {
+          "type" : "string"
+        },
+        "shortcut" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TabLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "TabLayout"
+        },
+        "adaptable" : {
+          "type" : "boolean"
+        },
+        "groupRelationship" : {
+          "$ref" : "#/$defs/GroupRelationshipDto"
+        },
+        "orientation" : {
+          "$ref" : "#/$defs/OrientationDto"
+        },
+        "variant" : {
+          "$ref" : "#/$defs/TabLayoutVariantDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TabLayoutVariantDto" : {
+      "type" : "string",
+      "enum" : [ "small", "minimal", "centered", "bordered", "equalWidth" ]
+    },
+    "TaskProgressDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "TaskProgress"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "actionLabel" : {
+          "type" : "string"
+        },
+        "done" : {
+          "type" : "integer"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "total" : {
+          "type" : "integer"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TaskQueueDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "TaskQueue"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "groups" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/QueueGroupDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TestimonialDto" : {
+      "type" : "object",
+      "properties" : {
+        "author" : {
+          "type" : "string"
+        },
+        "avatar" : {
+          "type" : "string"
+        },
+        "quote" : {
+          "type" : "string"
+        },
+        "rating" : {
+          "type" : "integer"
+        },
+        "role" : {
+          "type" : "string"
+        }
+      }
+    },
+    "TestimonialsDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Testimonials"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/TestimonialDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TextContainerDto" : {
+      "type" : "string",
+      "enum" : [ "div", "p", "h1", "h2", "h3", "h4", "h5", "h6", "span" ]
+    },
+    "TextDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Text"
+        },
+        "attributes" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "container" : {
+          "$ref" : "#/$defs/TextContainerDto"
+        },
+        "noMargins" : {
+          "type" : "boolean"
+        },
+        "size" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TimelineDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Timeline"
+        },
+        "items" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/TimelineItemDto"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TimelineItemDto" : {
+      "type" : "object",
+      "properties" : {
+        "actionId" : {
+          "type" : "string"
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "timestamp" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        }
+      }
+    },
+    "TooltipDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Tooltip"
+        },
+        "text" : {
+          "type" : "string"
+        },
+        "wrapped" : {
+          "$ref" : "#/$defs/ComponentDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TrendChartDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "TrendChart"
+        },
+        "area" : {
+          "type" : "boolean"
+        },
+        "color" : {
+          "type" : "string"
+        },
+        "labels" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "values" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number"
+          }
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "TriggerDto" : {
+      "description" : "Polymorphic: discriminated by 'type'.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/AutoSaveTriggerDto"
+      }, {
+        "$ref" : "#/$defs/OnCustomEventTriggerDto"
+      }, {
+        "$ref" : "#/$defs/OnErrorTriggerDto"
+      }, {
+        "$ref" : "#/$defs/OnLoadTriggerDto"
+      }, {
+        "$ref" : "#/$defs/OnSuccessTriggerDto"
+      }, {
+        "$ref" : "#/$defs/OnValueChangeTriggerDto"
+      } ]
+    },
+    "UICommandDto" : {
+      "type" : "object",
+      "properties" : {
+        "data" : {
+          "description" : "Any JSON value."
+        },
+        "targetComponentId" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/UICommandTypeDto"
+        }
+      }
+    },
+    "UICommandTypeDto" : {
+      "type" : "string",
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue" ]
+    },
+    "UIFragmentActionDto" : {
+      "type" : "string",
+      "enum" : [ "Add", "Replace", "ReplaceKeepData" ]
+    },
+    "UIFragmentDto" : {
+      "type" : "object",
+      "properties" : {
+        "action" : {
+          "$ref" : "#/$defs/UIFragmentActionDto"
+        },
+        "component" : {
+          "$ref" : "#/$defs/ComponentDto"
+        },
+        "containerId" : {
+          "type" : "string"
+        },
+        "data" : {
+          "description" : "Any JSON value."
+        },
+        "state" : {
+          "description" : "Any JSON value."
+        },
+        "targetComponentId" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UIIncrementDto" : {
+      "type" : "object",
+      "properties" : {
+        "appData" : {
+          "description" : "Any JSON value."
+        },
+        "appState" : {
+          "description" : "Any JSON value."
+        },
+        "appendBanners" : {
+          "type" : "boolean"
+        },
+        "banners" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/BannerDto"
+          }
+        },
+        "commands" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/UICommandDto"
+          }
+        },
+        "fragments" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/UIFragmentDto"
+          }
+        },
+        "messages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MessageDto"
+          }
+        },
+        "restSources" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/RestSourceEntryDto"
+          }
+        },
+        "wireVersion" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ValidationDto" : {
+      "type" : "object",
+      "properties" : {
+        "condition" : {
+          "type" : "string"
+        },
+        "fieldId" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        }
+      }
+    },
+    "VerticalAlignmentDto" : {
+      "type" : "string",
+      "enum" : [ "STRETCH", "START", "CENTER", "END", "BASELINE" ]
+    },
+    "VerticalLayoutDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "VerticalLayout"
+        },
+        "flexGrows" : {
+          "type" : "array",
+          "items" : {
+            "type" : "integer"
+          }
+        },
+        "fullWidth" : {
+          "type" : "boolean"
+        },
+        "horizontalAlignment" : {
+          "$ref" : "#/$defs/HorizontalAlignmentDto"
+        },
+        "justification" : {
+          "$ref" : "#/$defs/JustificationDto"
+        },
+        "margin" : {
+          "type" : "boolean"
+        },
+        "padding" : {
+          "type" : "boolean"
+        },
+        "spacing" : {
+          "type" : "boolean"
+        },
+        "spacingVariant" : {
+          "$ref" : "#/$defs/SpacingVariantDto"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "wrap" : {
+          "type" : "boolean"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "VirtualListDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "VirtualList"
+        },
+        "page" : {
+          "$ref" : "#/$defs/DataPageDto"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "WorkflowDto" : {
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Workflow"
+        },
+        "value" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "type" ]
+    }
+  }
+}

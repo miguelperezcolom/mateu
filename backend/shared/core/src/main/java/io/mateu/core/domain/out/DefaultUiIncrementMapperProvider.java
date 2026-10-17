@@ -17,9 +17,24 @@ public class DefaultUiIncrementMapperProvider implements UiIncrementMapperProvid
     this.beanProvider = beanProvider;
   }
 
+  /**
+   * The mappers, asked for once: they are core and app singletons, and the container's {@code
+   * getBeansOfType} on every request was a scan of every bean definition.
+   */
+  private volatile java.util.List<UiIncrementMapper> mappers;
+
+  private java.util.List<UiIncrementMapper> mappers() {
+    var known = mappers;
+    if (known == null) {
+      known = java.util.List.copyOf(beanProvider.getBeans(UiIncrementMapper.class));
+      mappers = known;
+    }
+    return known;
+  }
+
   @Override
   public UiIncrementMapper get(Object instance) {
-    return beanProvider.getBeans(UiIncrementMapper.class).stream()
+    return mappers().stream()
         .filter(mapper -> mapper.supports(instance))
         .min(Comparator.comparingInt(UiIncrementMapper::priority))
         .get();

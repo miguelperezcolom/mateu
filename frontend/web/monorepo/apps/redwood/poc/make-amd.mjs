@@ -1,9 +1,9 @@
-// Genera el módulo AMD del bridge para la app VB a partir de la FUENTE ÚNICA del core:
-// reduceContexts.mjs + resilience.mjs + transport.mjs (los mismos ficheros que testea
-// test.mjs/capture.mjs). El orden importa: transport.mjs usa lo de resilience.mjs, y al
-// concatenar todo cae en un mismo scope sin imports.
-// Uso: node make-amd.mjs   → escribe ../webApps/vbredwoodapp/resources/js/mateu-bridge.js
-//      node make-amd.mjs --check   → falla si el bridge commiteado no es el que genera poc/ (CI)
+// Generates the bridge's AMD module for the VB app from the core's SINGLE SOURCE:
+// reduceContexts.mjs + resilience.mjs + transport.mjs (the same files test.mjs/capture.mjs
+// test). Order matters: transport.mjs uses what resilience.mjs provides, and when
+// concatenated everything falls into one scope with no imports.
+// Usage: node make-amd.mjs   → writes ../webApps/vbredwoodapp/resources/js/mateu-bridge.js
+//        node make-amd.mjs --check   → fails if the committed bridge is not the one poc/ generates (CI)
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -26,9 +26,9 @@ const strip = (file) =>
 const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
   .matchAll(/^export \* from '\.\/(core\/[\w-]+\.mjs)'/gm)].map((m) => m[1])
 
-// bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
-// restSources.mjs (fuentes REST + modo muestra) antes de bundle.mjs y transport.mjs, que lo usan.
-// chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
+// bundle.mjs before transport.mjs: transport.loadRoute consults the loaded manifest.
+// restSources.mjs (REST sources + sample mode) before bundle.mjs and transport.mjs, which use it.
+// chat.mjs is self-contained (only the SSE transport of the AI chat); it goes at the end of the shared scope.
 export const MODULES = [
   'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
@@ -41,9 +41,9 @@ export const MODULES = [
 ]
 const body = MODULES.map(strip).join('\n\n')
 
-// Todos los módulos caen en UN scope: dos declaraciones de nivel superior con el mismo nombre no
-// fallan, la ÚLTIMA gana en silencio — así el sanitizador de elements.mjs tapó al de richtext.mjs
-// (el que comprobaban los tests) en todo el bridge. Cualquier nombre repetido rompe el build.
+// All modules fall into ONE scope: two top-level declarations with the same name do not
+// fail, the LAST one silently wins — that is how elements.mjs's sanitizer shadowed richtext.mjs's
+// (the one the tests checked) in the whole bridge. Any repeated name breaks the build.
 {
   const seen = new Map()
   const decl = /^(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)|^(?:const|let|var|class)\s+([A-Za-z_$][\w$]*)/
@@ -463,6 +463,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     takeLastRetry,
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
+    // ...once what the answer re-drew is on screen (the fields a refused drawer save names)
+    showFieldErrorsSoon,
     clearFieldError,
     clearFieldErrorMarks,
     guardGuidedProcess,
@@ -531,6 +533,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    // the fields the server refused in an answer (a data fragment with errors), to mark them
+    refusedFieldsOf,
     blockClickOf,
     hostReRendered,
     touchesHost,
@@ -549,9 +553,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 `
 
 mkdirSync(dirname(out), { recursive: true })
-// El cuerpo concatenado comparte UN scope: dos módulos que declaren el mismo nombre de nivel
-// superior lo rompen en el navegador («Identifier … has already been declared») y la app entera no
-// carga, aunque cada módulo por separado pase sus tests. Se comprueba aquí, antes de escribirlo.
+// The concatenated body shares ONE scope: two modules declaring the same top-level name
+// break it in the browser («Identifier … has already been declared») and the whole app does not
+// load, even if each module passes its tests on its own. It is checked here, before writing it.
 try {
   new Function(body)
 } catch (e) {

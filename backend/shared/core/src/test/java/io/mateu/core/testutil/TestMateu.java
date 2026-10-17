@@ -210,9 +210,51 @@ public final class TestMateu implements AutoCloseable {
     ctx.close();
   }
 
-  private record ContextBeanProvider(ApplicationContext ctx) implements BeanProvider {
+  /**
+   * Every container lookup the core made through the test's bean provider since the last {@link
+   * #resetLookups()}, as {@code "getBean <type name>"} / {@code "getBeans <type name>"} → count.
+   * This is what an adapter's provider would answer by asking Spring's {@code getBeansOfType} or
+   * CDI's {@code BeanManager}, so it is the number the request budget gates.
+   */
+  public java.util.Map<String, Integer> lookups() {
+    return provider().lookups();
+  }
+
+  /** Forget the lookups counted so far (typically after a warm-up request). */
+  public void resetLookups() {
+    provider().lookups.clear();
+  }
+
+  private ContextBeanProvider provider() {
+    return (ContextBeanProvider) ctx.getBean(BeanProvider.class);
+  }
+
+  private static final class ContextBeanProvider implements BeanProvider {
+    private final ApplicationContext ctx;
+    private final java.util.concurrent.ConcurrentHashMap<
+            String, java.util.concurrent.atomic.LongAdder>
+        lookups = new java.util.concurrent.ConcurrentHashMap<>();
+
+    ContextBeanProvider(ApplicationContext ctx) {
+      this.ctx = ctx;
+    }
+
+    private void count(String kind, Class<?> clazz) {
+      lookups
+          .computeIfAbsent(
+              kind + " " + clazz.getName(), k -> new java.util.concurrent.atomic.LongAdder())
+          .increment();
+    }
+
+    java.util.Map<String, Integer> lookups() {
+      var out = new java.util.TreeMap<String, Integer>();
+      lookups.forEach((k, v) -> out.put(k, v.intValue()));
+      return out;
+    }
+
     @Override
     public <T> T getBean(Class<T> clazz) {
+      count("getBean", clazz);
       try {
         return ctx.getBean(clazz);
       } catch (Exception e) {
@@ -222,6 +264,7 @@ public final class TestMateu implements AutoCloseable {
 
     @Override
     public <T> Collection<T> getBeans(Class<T> clazz) {
+      count("getBeans", clazz);
       try {
         return ctx.getBeansOfType(clazz).values();
       } catch (Exception e) {

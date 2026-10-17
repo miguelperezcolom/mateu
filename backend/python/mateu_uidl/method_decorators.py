@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 from .class_decorators import (
     _Banner,
     _Fab,
     _ListToolbarButton,
 )
+from ._enums import check_choice, coerce_enum
 from .messages import BannerTheme
 
 
@@ -29,6 +30,24 @@ def _maybe_bare(arg, attr: str, build):
 
 def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
+
+
+def toolbar(arg=None, *, button_style: str | None = None):
+    """A method exposed as a button on the page header's TOOLBAR (Java's ``@Toolbar``): labelled
+    by the decorator's argument, else the humanized method name; styled ``button_style``
+    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default). Advertised
+    as an action like a ``@button``, with client and server validation. Supports ``@toolbar``,
+    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``."""
+    if callable(arg) and not isinstance(arg, str):  # used bare: arg is the method
+        setattr(arg, "__mateu_toolbar__", True)
+        return arg
+
+    def deco(fn):
+        setattr(fn, "__mateu_toolbar__", arg or True)
+        setattr(fn, "__mateu_toolbar_style__", button_style)
+        return fn
+
+    return deco
 
 
 def action(arg=None):
@@ -99,6 +118,8 @@ def menu_group(
     Repeatable. The Python analogue of Java's ``@Menu(display, description, image)`` + ``@Icon``
     on a group field."""
 
+    check_choice(display, ("", MenuDisplay.list, MenuDisplay.cards), "@menu_group(display)")
+
     def deco(cls: type) -> type:
         looks = dict(getattr(cls, "__mateu_menu_groups__", {}))
         looks.setdefault(
@@ -115,10 +136,31 @@ class kpi:
     """A KPI: usable BOTH as a method decorator (``@kpi("Amount")``) and as a field marker
     (``Annotated[str, kpi("Amount")]``). As a decorator it stamps ``__mateu_kpi__`` on the method;
     as a marker its instance is found in the field's Annotated metadata. Either way the field/method
-    value becomes a header KPI and is hoisted out of the form body (Java parity)."""
+    value becomes a header KPI and is hoisted out of the form body (Java parity). Used bare
+    (``@kpi``) on a method, the title is the method's humanized name."""
 
-    def __init__(self, title_: str):
+    title: str
+
+    def __new__(cls, title_: Any = ""):
+        if callable(title_) and not isinstance(title_, str):
+            # bare @kpi: the argument is the method itself — stamp it and give it back
+            fn = title_
+            name = fn.__name__.replace("_", " ").strip()
+            setattr(fn, "__mateu_kpi__", name[:1].upper() + name[1:])
+            return fn
+        return super().__new__(cls)
+
+    def __init__(self, title_: str = ""):
         self.title = title_
+
+    def __eq__(self, other: object) -> bool:
+        return type(other) is kpi and other.title == self.title
+
+    def __hash__(self) -> int:
+        return hash((kpi, self.title))
+
+    def __repr__(self) -> str:
+        return f"kpi({self.title!r})"
 
     def __call__(self, fn):
         setattr(fn, "__mateu_kpi__", self.title)
@@ -155,6 +197,8 @@ def action_options(timeout_millis: int = 0, idempotent: bool = False):
 
 
 def banner(theme: BannerTheme = BannerTheme.INFO, title_: str | None = None):
+    theme = coerce_enum(theme, BannerTheme, "@banner(theme)")
+
     def deco(fn):
         setattr(fn, "__mateu_banner__", _Banner(theme, title_))
         return fn

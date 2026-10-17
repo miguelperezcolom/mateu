@@ -3,7 +3,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.core.application.security.ActionMethods;
-import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +19,7 @@ final class CrudViewMethodInvoker {
       }
       for (Method method : getAllMethods(subject.getClass())) {
         if (methodName.equals(method.getName())) {
-          if (!ActionMethods.isInvocable(method, subject.getClass())) {
+          if (!ActionMethods.isInvocable(method, subject, httpRequest)) {
             continue;
           }
           ActionMethods.checkAccess(method, subject.getClass(), httpRequest);
@@ -59,7 +58,7 @@ final class CrudViewMethodInvoker {
       if (subject != null
           && getAllMethods(subject.getClass()).stream()
               .anyMatch(method -> methodName.equals(method.getName()))) {
-        throw new MateuForbiddenException("view action not allowed: " + methodName);
+        throw ActionMethods.notAnAction(subject.getClass(), methodName);
       }
     }
     return null;

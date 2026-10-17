@@ -7,11 +7,11 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.application.runaction.ComponentStateHelper;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.application.security.WireTypes;
+import io.mateu.core.domain.ComponentState;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder;
 import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
@@ -50,6 +50,7 @@ public class RunMethodActionRunner implements ActionRunner {
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var methodName = command.actionId();
+    var view = instance;
     if (command.actionId().startsWith("nested-form-action-")) {
       var fieldAndMethod = command.actionId().substring("nested-form-action-".length());
       var fieldId = fieldAndMethod.substring(0, fieldAndMethod.indexOf('-'));
@@ -69,7 +70,21 @@ public class RunMethodActionRunner implements ActionRunner {
         instance = nestedForm;
       }
     }
-    Method m = ActionMethods.resolve(instance, methodName, command.httpRequest());
+    // strict mode: an unmarked method runs only for an id its view advertised — a nested form's
+    // under the prefixed id the HOLDING view advertises, or its own id on the nested form
+    var target = instance;
+    var name = methodName;
+    Method m =
+        ActionMethods.resolve(
+            instance,
+            methodName,
+            command.httpRequest(),
+            () ->
+                io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions.advertises(
+                        view, command.httpRequest(), command.actionId())
+                    || (target != view
+                        && io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions
+                            .advertises(target, command.httpRequest(), name)));
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
       if (!command.actionId().startsWith("nested-form-action-")) {
@@ -77,7 +92,7 @@ public class RunMethodActionRunner implements ActionRunner {
       }
       Object result = invoke(m, instance, command);
       if (result == null) {
-        var state = ComponentStateHelper.getState(instance, command.httpRequest());
+        var state = ComponentState.getState(instance, command.httpRequest());
         return Flux.just(
             new UIFragmentDto(
                 command.initiatorComponentId(),

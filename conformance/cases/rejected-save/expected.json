@@ -1,0 +1,10 @@
+{
+  "messages" : [ {
+    "duration" : 0,
+    "position" : "middle",
+    "text" : "• Name: Cannot be empty",
+    "title" : "There are validation errors",
+    "variant" : "error"
+  } ],
+  "wireVersion" : "3.0"
+}

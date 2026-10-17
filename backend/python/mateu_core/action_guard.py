@@ -27,7 +27,7 @@ from __future__ import annotations
 import dataclasses
 import inspect
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
 
 from mateu_uidl import (
     AppActionsSupplier,
@@ -44,7 +44,7 @@ from .reflection import view_fields
 log = logging.getLogger("mateu.security")
 
 #: Decorator markers that make a method invocable as a view action.
-ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_fab__")
+ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_toolbar__", "__mateu_fab__")
 ROW_ACTION_MARKER = "__mateu_list_toolbar_button__"
 
 _FRAMEWORK_PACKAGES = {"mateu_uidl", "mateu_core", "mateu_dtos", "mateu_fastapi"}
@@ -173,7 +173,14 @@ def ensure_class_access(mapper, type_, what: str = "request") -> None:
         )
 
 
-def deny(what: str) -> None:
+def no_such_action(type_, action_id: str | None) -> NoReturn:
+    """Refuses an action id no handler of the view claims: wire input naming nothing — a WARN and
+    a 403, never an error toast (the same answer Java and .NET give)."""
+    name = f"{type_.__module__}.{type_.__qualname__}" if isinstance(type_, type) else str(type_)
+    deny(f"action '{(action_id or '')[:120]}' on {name}: no such action")
+
+
+def deny(what: str) -> NoReturn:
     log.warning("Mateu request denied: %s — rejected with 403, the action did not run", what)
     raise MateuForbiddenException(f"Forbidden: {what}")
 
@@ -198,9 +205,10 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
         on_row = f.marker(OnRowSelected)
         if on_row is not None and on_row.value:
             ids.add(camel_case(on_row.value))
-    for _event, act in getattr(type_, "__mateu_subscriptions__", ()) or ():
-        if act:
-            ids.add(camel_case(act))
+    # the actions the view's own @trigger()s / @subscribe_to()s name
+    from .mapper.decorations import triggered_action_ids
+
+    ids.update(triggered_action_ids(type_))
     # Section(add_action / edit_action / view_more_action) affordance buttons
     from .mapper.layout import section_affordance_ids
 

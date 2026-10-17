@@ -11,6 +11,13 @@ Present an upsell the way a salesperson would — the upgrade next to what the c
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `OfferCard` component: an optional `image` header (16:9 cover, skipped when absent), a floating `tag` chip, `title` + `subtitle`, `features` rendered as outline chips, and a footer. A non-current card shows a full-width primary button (`actionLabel`, with `priceLabel` right-aligned inside) and an accent border; the current/assigned variant (`current(true)`) shows a muted `currentLabel` instead of any CTA.
 
 ```java

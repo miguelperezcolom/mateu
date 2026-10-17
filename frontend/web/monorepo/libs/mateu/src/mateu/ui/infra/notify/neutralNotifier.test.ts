@@ -42,6 +42,14 @@ describe('neutralNotifier', () => {
         expect(toasts()).toHaveLength(0)
     })
 
+    it('an info toast is painted in the accent colour, not as a plain base-colour toast', () => {
+        neutralNotifier.show({ text: 'FYI', variant: 'info' } as never, document.body)
+        neutralNotifier.show({ text: 'Plain' } as never, document.body)
+        const [info, plain] = toasts()
+        expect(info.style.background).toContain('--lumo-primary-color')
+        expect(plain.style.background).toContain('--lumo-base-color')
+    })
+
     it('a custom action label is used as written', () => {
         neutralNotifier.show({ text: 'x', onAction: () => {}, actionLabel: 'Try again' } as never, document.body)
         expect(document.body.querySelector('button')!.textContent).toBe('Try again')

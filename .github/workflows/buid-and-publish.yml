@@ -96,6 +96,69 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
 
+  # Once the release is VISIBLE on Maven Central — not when the tag is pushed: a starter pinned to a
+  # version Central does not serve yet fails for everyone who copies it — point the starters, the
+  # "start here" demos, the AI reference files, the port guides and the japicmp baseline at it
+  # (scripts/bump-example-version.sh) and open a pull request with the change.
+  #
+  # Fail-soft by design: the release is already published when this runs, so nothing here may turn it
+  # red. If Central is still not serving the version after the wait, or the repository does not let
+  # the workflow token push a branch / open a PR (Settings › Actions › General › "Allow GitHub
+  # Actions to create and approve pull requests"), the job ends green with a warning that prints the
+  # command to run by hand. A PR opened with the workflow token does not trigger the PR workflows by
+  # itself (GitHub's rule against recursive runs): close and reopen it, or push to its branch, to get
+  # the checks. Touches no publishing step and needs no publishing secret.
+  bump-examples:
+    needs: all
+    if: startsWith(github.event.release.tag_name, 'v3.')
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    permissions:
+      contents: write # push the bump branch
+      pull-requests: write # open the PR
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+      - name: Wait until Maven Central serves the release
+        id: central
+        run: |
+          V="${TAG#v}"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          url="https://repo1.maven.org/maven2/io/mateu/mateu-bom/$V/mateu-bom-$V.pom"
+          for i in $(seq 1 90); do   # up to 3 hours, every 2 minutes
+            if curl -fsSIL "$url" > /dev/null; then echo "visible=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            sleep 120
+          done
+          echo "visible=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::$V is not on Maven Central after 3 hours. Once it is, run: scripts/bump-example-version.sh $V"
+      - name: Bump the examples and open the pull request
+        if: steps.central.outputs.visible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.central.outputs.version }}
+        run: |
+          set -uo pipefail
+          hint="Run by hand: scripts/bump-example-version.sh $V, then commit and open a PR."
+          scripts/bump-example-version.sh "$V" || { echo "::warning::The bump script failed. $hint"; exit 0; }
+          if git diff --quiet; then echo "Already pinned to $V — nothing to do."; exit 0; fi
+          git diff --stat
+          branch="chore/bump-examples-$V"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -qam "Point the examples at $V (scripts/bump-example-version.sh)"
+          if ! git push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$branch"; then
+            echo "::warning::Could not push $branch with the workflow token. $hint"; exit 0
+          fi
+          body="The starters, the \"start here\" demos, the AI reference files, the .NET/Python guides and the japicmp baseline now pin \`$V\`, which Maven Central serves. Review \`backend/api-compat/japicmp-exclusions.properties\` against the new baseline. Opened by the release workflow: close and reopen this PR to run the checks."
+          if ! gh pr create --base master --head "$branch" --title "Point the examples at $V" --body "$body"; then
+            echo "::warning::Pushed $branch but could not open the PR (is 'Allow GitHub Actions to create and approve pull requests' off?). Open it by hand from $branch."
+          fi
+
   # The Redwood EMBEDDED component (<mateu-ui>, a JET Custom Component a Visual Builder developer
   # imports into their own app) is not a Maven/PyPI/NuGet artifact: it ships as a zip attached to the
   # framework's GitHub Release, built from the committed sources (poc/ + the generated bridge +

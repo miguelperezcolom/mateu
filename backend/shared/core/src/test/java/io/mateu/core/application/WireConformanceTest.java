@@ -498,6 +498,175 @@ class WireConformanceTest {
   }
 
   /**
+   * The generic fluent building blocks ported to .NET and Python in 3.0-alpha.426 (M-A5):
+   * Breadcrumbs, Icon, Notification, Element, Tooltip, Details, SplitLayout and ConfirmDialog in
+   * one component tree. Pins their member names and where their parts travel (Tooltip/Details wrap
+   * components IN the metadata; SplitLayout and ConfirmDialog carry theirs as children).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/generic-components")
+  @Title("Components")
+  public static class GenericComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.Breadcrumbs(
+              "Order 42",
+              List.of(
+                  new io.mateu.uidl.data.Breadcrumb("Home", "/"),
+                  new io.mateu.uidl.data.Breadcrumb("Orders", "/orders")),
+              null,
+              null),
+          new io.mateu.uidl.data.Icon(io.mateu.uidl.interfaces.IconKey.PlusCircle, null, null),
+          new io.mateu.uidl.data.Notification("Saved", "The order was saved", null, null),
+          io.mateu.uidl.data.Element.builder()
+              .name("order-chart")
+              .attributes(java.util.Map.of("id", "chart", "kind", "bar"))
+              .on(java.util.Map.of("click", "drill"))
+              .content("loading")
+              .build(),
+          new io.mateu.uidl.data.Tooltip(
+              "Total including taxes", new io.mateu.uidl.data.Text("1250 EUR"), null, null),
+          io.mateu.uidl.data.Details.builder()
+              .summary(new io.mateu.uidl.data.Text("More"))
+              .content(new io.mateu.uidl.data.Text("Delivery notes"))
+              .opened(true)
+              .build(),
+          io.mateu.uidl.data.SplitLayout.builder()
+              .master(new io.mateu.uidl.data.Text("Master"))
+              .detail(new io.mateu.uidl.data.Text("Detail"))
+              .orientation(io.mateu.uidl.data.Orientation.vertical)
+              .variant(io.mateu.uidl.data.SplitLayoutVariant.small)
+              .build(),
+          io.mateu.uidl.data.ConfirmDialog.builder()
+              .header("Delete order?")
+              .content(new io.mateu.uidl.data.Text("This cannot be undone"))
+              .canCancel(true)
+              .confirmText("Delete")
+              .confirmActionId("deleteOrder")
+              .cancelActionId("keepOrder")
+              .build());
+    }
+  }
+
+  /**
+   * Every trigger kind a view can declare, ported to .NET ({@code [Trigger]}) and Python
+   * ({@code @trigger}) in 3.0-alpha.426 (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
+   * another action (chained actions), OnValueChange of one field, and a {@code @SubscribeTo} on the
+   * global bus. The actions they name are advertised (the client only sends what the component
+   * advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/triggers")
+  @Title("Triggers")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnLoad,
+      actionId = "refresh",
+      timeoutMillis = 5000,
+      times = 0,
+      background = true)
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnSuccess,
+      actionId = "reload",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnError,
+      actionId = "notifyFailure",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnValueChange,
+      actionId = "recalculate",
+      propertyName = "quantity")
+  @io.mateu.uidl.annotations.SubscribeTo(event = "order-saved", action = "reload")
+  public static class TriggersForm {
+    public int quantity = 1;
+
+    public void refresh() {}
+
+    public void reload() {}
+
+    public void save() {}
+
+    public void notifyFailure() {}
+
+    public void recalculate() {}
+  }
+
+  /**
+   * Field help text and slider bounds on a reflected form, ported to .NET ({@code [Help]}, {@code
+   * [SliderMin]}, {@code [SliderMax]}) and Python ({@code Help()}, {@code SliderMin()}, {@code
+   * SliderMax()}) in 3.0-alpha.426 (M-A5): {@code @Help} travels as the field's {@code
+   * description}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-help")
+  @Title("Field help")
+  public static class FieldHelpForm {
+    @io.mateu.uidl.annotations.Help("We never share it")
+    public String email = "";
+
+    @io.mateu.uidl.annotations.SliderMin(10)
+    @io.mateu.uidl.annotations.SliderMax(50)
+    public int volume = 20;
+  }
+
+  /**
+   * The input hints of a fluent FormField, ported with it to .NET and Python (M-A5): placeholder,
+   * description (help text), autofocus, step and the slider bounds.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-hints")
+  @Title("Field hints")
+  public static class FieldHintsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.data.FormField.builder()
+          .id("amount")
+          .label("Amount")
+          .dataType(io.mateu.uidl.data.FieldDataType.number)
+          .placeholder("0.00")
+          .description("Including taxes")
+          .autofocus(true)
+          .step(0.5)
+          .sliderMin(10)
+          .sliderMax(50)
+          .colspan(1)
+          .optionsColumns(1)
+          .build();
+    }
+  }
+
+  /**
+   * A page toolbar action, ported to .NET ({@code [Toolbar]}) and Python ({@code @toolbar}) in
+   * 3.0-alpha.426 (M-A5): a {@code @Toolbar} method is a header toolbar button (its label from
+   * {@code @Label}, else the humanized method name; its style from the annotation) and an
+   * advertised action. One method only: the JVM does not promise the order of a class's declared
+   * methods, so two actions could swap places between runs.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-toolbar")
+  @Title("Page toolbar")
+  public static class PageToolbarForm {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Toolbar(buttonStyle = io.mateu.uidl.data.ButtonStyle.primary)
+    @io.mateu.uidl.annotations.Label("Publish now")
+    public void publish() {}
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -938,15 +1107,106 @@ class WireConformanceTest {
     public String currency;
   }
 
+  // ── Second requests: what an ACTION answers, not what a first load draws ────────────────────
+
+  /**
+   * An action's effects on the envelope: two messages (a success toast with an explicit duration,
+   * and an error, which every backend makes sticky — duration 0) and a navigation command.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/action-effects")
+  @Title("Action effects")
+  public static class ActionEffectsPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object confirm() {
+      return List.of(
+          Message.builder()
+              .variant(io.mateu.uidl.data.NotificationVariant.success)
+              .position(io.mateu.uidl.data.NotificationPosition.middle)
+              .title("Done")
+              .text("Saved")
+              .duration(4000)
+              .build(),
+          Message.builder()
+              .variant(io.mateu.uidl.data.NotificationVariant.error)
+              .position(io.mateu.uidl.data.NotificationPosition.middle)
+              .title("Warehouse")
+              .text("Could not notify the warehouse")
+              .duration(4000)
+              .build(),
+          io.mateu.uidl.data.UICommand.navigateTo("/conformance/simple-form"));
+    }
+  }
+
+  /** An action that opens a drawer: an ADD fragment carrying the Drawer and its content. */
+  @SuppressWarnings("unused")
+  @UI("/conformance/drawer")
+  @Title("Drawer")
+  public static class DrawerPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object openDetails() {
+      return io.mateu.uidl.data.Drawer.builder()
+          .headerTitle("Details")
+          .subtitle("Read only")
+          .content(new io.mateu.uidl.data.Text("Nothing to edit here"))
+          .position(io.mateu.uidl.data.DrawerPosition.end)
+          .build();
+    }
+  }
+
+  /**
+   * A save the server refuses: the button is advertised validationRequired, the state leaves the
+   * required field empty, and the server re-checks it instead of trusting the client.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/rejected-save")
+  @Title("Rejected save")
+  public static class RejectedSaveForm {
+    @NotEmpty public String name;
+
+    @io.mateu.uidl.annotations.Button
+    public Object save() {
+      return Message.success("Saved");
+    }
+  }
+
+  /**
+   * An action that fails unexpectedly: the error boundary answers "Something went wrong" with a
+   * reference id (normalised away, it is per request) and never the exception.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/error-boundary")
+  @Title("Error boundary")
+  public static class FailingActionPage {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Action
+    public Object explode() {
+      throw new IllegalStateException("database is down at db-01");
+    }
+  }
+
   /**
    * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
    * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
    * request to the case's fixture type instead of the first load. Identical in the three runners.
    */
   private static final java.util.Map<String, Class<?>> REQUESTED =
-      java.util.Map.of(
-          "app-no-home-content", NoHomeApp.class,
-          "crud-search", ProductsCrud.class);
+      java.util.Map.ofEntries(
+          java.util.Map.entry("app-no-home-content", NoHomeApp.class),
+          java.util.Map.entry("crud-search", ProductsCrud.class),
+          java.util.Map.entry("action-effects", ActionEffectsPage.class),
+          java.util.Map.entry("drawer", DrawerPage.class),
+          java.util.Map.entry("rejected-save", RejectedSaveForm.class),
+          java.util.Map.entry("error-boundary", FailingActionPage.class),
+          java.util.Map.entry("wizard-step-2", SignUpWizard.class),
+          java.util.Map.entry("crud-new", ProductsCrud.class),
+          java.util.Map.entry("crud-edit", ProductsCrud.class),
+          java.util.Map.entry("crud-view", ProductsCrud.class));
 
   private static final List<String> CASES =
       List.of(
@@ -988,7 +1248,20 @@ class WireConformanceTest {
           "welcome-banner",
           "crud-search",
           "wizard",
-          "rest-source");
+          "rest-source",
+          "action-effects",
+          "drawer",
+          "rejected-save",
+          "error-boundary",
+          "wizard-step-2",
+          "crud-new",
+          "crud-edit",
+          "crud-view",
+          "generic-components",
+          "triggers",
+          "field-help",
+          "field-hints",
+          "page-toolbar");
 
   static TestMateu mateu;
 
@@ -1033,7 +1306,16 @@ class WireConformanceTest {
             ExtrasApp.class,
             WelcomeBannerPage.class,
             SignUpWizard.class,
-            RestSourceForm.class);
+            RestSourceForm.class,
+            ActionEffectsPage.class,
+            DrawerPage.class,
+            RejectedSaveForm.class,
+            FailingActionPage.class,
+            GenericComponentsPage.class,
+            TriggersForm.class,
+            FieldHelpForm.class,
+            FieldHintsPage.class,
+            PageToolbarForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1105,7 +1387,7 @@ class WireConformanceTest {
           continue;
         }
         var value = normalise(node.get(name), name.equals("actions"));
-        if (isDefault(value)) {
+        if (isDefault(value) && !(MEANINGFUL_ZERO.contains(name) && isZero(value))) {
           continue; // absent and default mean the same thing to a renderer
         }
         out.set(name, value);
@@ -1117,7 +1399,43 @@ class WireConformanceTest {
       node.forEach(child -> out.add(normalise(child, inActions)));
       return out;
     }
+    if (node.isTextual() && REFERENCE.matcher(node.asText()).find()) {
+      return MAPPER
+          .getNodeFactory()
+          .textNode(REFERENCE.matcher(node.asText()).replaceAll("Reference: <ref>"));
+    }
     return node;
+  }
+
+  /**
+   * The error boundary's per-request reference id ("… Reference: 5e7a29f0ad71"): a server's log
+   * key, different on every run and in every server, so it is masked — the text around it is not.
+   */
+  static final java.util.regex.Pattern REFERENCE =
+      java.util.regex.Pattern.compile("Reference: [A-Za-z0-9-]+");
+
+  /**
+   * Members whose zero value is NOT their absent value: a renderer reads an absent one as a
+   * non-zero default, so {@code false}/{@code 0} must be sent explicitly and is kept here — the
+   * "absent == default" rule would otherwise hide a producer that omits it. {@code duration} 0 is a
+   * sticky toast (absent = the renderer's default timeout); the booleans default to TRUE when
+   * absent ({@code visible}, {@code opened}, {@code open}, {@code searchable}, {@code centered},
+   * {@code asideSticky}); {@code debounceMillis} 0 is "no debounce" (absent = 800). Identical in
+   * the three runners and listed in {@code reference/wire-specification.md}.
+   */
+  static final Set<String> MEANINGFUL_ZERO =
+      Set.of(
+          "duration",
+          "visible",
+          "opened",
+          "open",
+          "searchable",
+          "centered",
+          "asideSticky",
+          "debounceMillis");
+
+  private static boolean isZero(JsonNode value) {
+    return value.isBoolean() || value.isNumber();
   }
 
   /**
@@ -1159,7 +1477,8 @@ class WireConformanceTest {
    * next/back/skip/the completion and keep {@code __step}. Their actions and state stay out on
    * every side, exactly as for {@link #MEDIATED}; everything the wizard draws is pinned.
    */
-  private static final Set<String> MEDIATOR_PROTOCOL_ONLY = Set.of("wizard");
+  private static final Set<String> MEDIATOR_PROTOCOL_ONLY =
+      Set.of("wizard", "wizard-step-2", "crud-new", "crud-edit", "crud-view");
 
   private static JsonNode actual(String route) {
     var requested = REQUESTED.get(route);
@@ -1172,16 +1491,23 @@ class WireConformanceTest {
             request.has("componentState")
                 ? MAPPER.convertValue(request.get("componentState"), java.util.Map.class)
                 : java.util.Map.of();
-        return roundTrip(
-            mateu.run(
-                io.mateu.dtos.RunActionRqDto.builder()
-                    .route(request.path("route").asText(""))
-                    .consumedRoute(
-                        request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
-                    .actionId(request.path("actionId").asText(""))
-                    .serverSideType(requested.getName())
-                    .componentState(state)
-                    .build()));
+        var answer =
+            roundTrip(
+                mateu.run(
+                    io.mateu.dtos.RunActionRqDto.builder()
+                        .route(request.path("route").asText(""))
+                        .consumedRoute(
+                            request.has("consumedRoute")
+                                ? request.get("consumedRoute").asText()
+                                : null)
+                        .actionId(request.path("actionId").asText(""))
+                        .serverSideType(requested.getName())
+                        .componentState(state)
+                        .build()));
+        if (MEDIATED_FORMS.contains(route)) {
+          answer = withoutMediatedRoute(answer);
+        }
+        return MEDIATOR_PROTOCOL_ONLY.contains(route) ? withoutMediatorProtocol(answer) : answer;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -1204,6 +1530,24 @@ class WireConformanceTest {
       return withoutMediatorProtocol(roundTrip(increment));
     }
     return roundTrip(increment);
+  }
+
+  /**
+   * The CRUD's record forms (new / edit / view): Java's mediator answers them on the CRUD's own
+   * route (the mediator's, the one every later action is sent back to), the ports — which have no
+   * mediator — on the record's route ({@code /new}, {@code /P-001/edit}). Which route a component
+   * answers on is the mediator protocol; everything the form draws is pinned. Identical in the
+   * three runners.
+   */
+  static final Set<String> MEDIATED_FORMS = Set.of("crud-new", "crud-edit", "crud-view");
+
+  static JsonNode withoutMediatedRoute(JsonNode increment) {
+    for (var fragment : increment.path("fragments")) {
+      if (fragment.get("component") instanceof com.fasterxml.jackson.databind.node.ObjectNode c) {
+        c.remove("route");
+      }
+    }
+    return increment;
   }
 
   /** Drops the mediator protocol of a mediated case — identical in the three runners. */

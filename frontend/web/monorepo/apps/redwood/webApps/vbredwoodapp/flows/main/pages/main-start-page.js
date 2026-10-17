@@ -1,16 +1,16 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
-// Módulo de la página de contenido: las chains están en *-chains/; aquí solo lo que una
-// expresión de binding necesita llamar.
+// The content page module: the chains are in *-chains/; here only what a binding
+// expression needs to call.
 define([], () => {
   'use strict';
   return class MateuContentPageModule {
     /**
-     * Las filas del listing tal como las ordenó el SERVER: el proveedor de datos de la página
-     * sin la ordenación local. oj-table, al pulsar una cabecera, pide al proveedor la página
-     * actual con `sortCriteria` y el ArrayDataProvider la ordenaba EN LOCAL, encima del orden que
-     * el server ya aplicó a TODAS las filas (listingSorted pide la búsqueda ordenada): el segundo
-     * clic (descendente) traía la página buena del server y la tabla la pintaba al revés.
+     * The listing rows as the SERVER sorted them: the page's data provider without the local
+     * sorting. oj-table, when a header is clicked, asks the provider for the current page with
+     * `sortCriteria` and the ArrayDataProvider sorted it LOCALLY, on top of the order the server
+     * had already applied to ALL rows (listingSorted asks for the sorted search): the second
+     * click (descending) brought the right page from the server and the table painted it reversed.
      */
     serverSorted(dp) {
       if (!dp || typeof dp.fetchFirst !== 'function') return dp;

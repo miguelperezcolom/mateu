@@ -1,13 +1,13 @@
 import { isMount, mountPrefix, routeCovers } from './navTree.mjs'
 import { chromeText } from './i18n.mjs'
-// El rastro automático de una pantalla — la MISMA regla que el renderer web
-// (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
-// la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
-// (con el título de su propia página) y «Editar» / «Nuevo».
+// The automatic trail of a screen — the SAME rule as the web renderer
+// (libs/mateu/.../breadcrumbTrail.ts): the path of menus up to the route (groups and the entry that
+// shows it, a pod's sections included) and, past the entry, the CRUD level — the record
+// (with the title of its own page) and «Editar» / «Nuevo».
 //
-// Redwood no tiene migas: Spectra no trae componente de breadcrumbs y su cabecera ofrece, en su
-// lugar, la afordancia «ir al padre» (displayOptions.goToParent). De este rastro sale ese padre:
-// la última miga con ruta antes de la actual.
+// Redwood has no breadcrumbs: Spectra has no breadcrumbs component and its header offers, in their
+// place, the «go to parent» affordance (displayOptions.goToParent). That parent comes from this trail:
+// the last breadcrumb with a route before the current one.
 
 const crumbRoute = (r) => {
   let s = String(r == null ? '' : r).trim()
@@ -18,8 +18,8 @@ const crumbRoute = (r) => {
   return s
 }
 
-// el título como texto: fuera el marcado (repetidamente, para que nada se recomponga con los
-// trozos) y después cualquier corchete que quede
+// the title as text: markup out (repeatedly, so nothing recomposes from the
+// pieces) and then any remaining bracket
 const crumbText = (text) => {
   let s = String(text == null ? '' : text)
   let previous
@@ -30,7 +30,7 @@ const crumbText = (text) => {
   return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
 }
 
-// las rutas que abren las ENTRADAS del menú (no los grupos): a donde una miga puede llevar
+// the routes the menu ENTRIES open (not the groups): where a breadcrumb can lead
 function crumbLeafRoutes(menu) {
   const out = new Set()
   const walk = (options) => {
@@ -46,18 +46,18 @@ function crumbLeafRoutes(menu) {
   return out
 }
 
-// Las entradas OCULTAS cuentan: no se pintan, pero una página bajo una sigue estando en algún sitio
-// (la bandeja a la que se llega desde un widget sigue siendo Bandeja › Tareas). Una sección remota
-// que no ha contestado cuenta por su prefijo (navTree.mjs), como la sección sola — `pending`, porque
-// lo que hay debajo aún no se sabe.
+// HIDDEN entries count: they are not painted, but a page under one is still somewhere
+// (the inbox reached from a widget is still Bandeja › Tareas). A remote section
+// that has not answered counts by its prefix (navTree.mjs), like the section alone — `pending`, because
+// what is below is not known yet.
 export function menuTrail(menu, path) {
   const current = crumbRoute(path)
   let best = null
-  // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
-  // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
+  // a group is a heading, not a page: its route (the prefix of a federated section,
+  // "/admin") usually leads nowhere. Its breadcrumb only navigates if an ENTRY has that route.
   const pages = crumbLeafRoutes(menu)
   const consider = (route, crumbs, pending) => {
-    // una entrada de verdad gana a un prefijo de sección de la misma longitud: dice más
+    // a real entry beats a section prefix of the same length: it says more
     if (!best || route.length > best.route.length || (route.length === best.route.length && best.pending && !pending)) {
       best = { crumbs, route, pending }
     }
@@ -92,8 +92,8 @@ export function autoTrail(menu, path, page = {}) {
   if (!matched) return []
   const trail = [...crumbs]
   if (pending) {
-    // una sección remota que no ha contestado: la sección se sabe (la nombró la shell) y lo de
-    // debajo no. La sección, y después el título de la propia página.
+    // a remote section that has not answered: the section is known (the shell named it) and what is
+    // below is not. The section, and then the title of the page itself.
     const title = crumbText(page.title)
     if (title && title !== trail[trail.length - 1].text) trail.push({ text: title })
     return trail.length < 2 ? [] : trail

@@ -21,6 +21,8 @@ import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 import { installLiveReload } from '@infra/dev/liveReload.ts'
 import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
+import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
+import { routeQueryOf } from '@infra/ui/routeQuery.ts'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -136,6 +138,10 @@ export class MateuUi extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
+
+        // the host page wrote this element (data never can — sanitizePolicy.ts): its backend is
+        // trusted with the user's credentials (credentialScope.ts)
+        trustRootBaseUrl(this.baseUrl)
 
         // <html lang>: the browser's until the app shell says the server's (AppDto.locale).
         applyUiLanguage()
@@ -257,7 +263,8 @@ export class MateuUi extends LitElement {
     }
 
     private addQueryParams(route: string, location: Location) {
-        return route + (location.search?'' + location.search:'')
+        // without the login flow's artefacts (Spring Security's ?continue): routeQuery.ts
+        return route + routeQueryOf(location.search)
     }
 
     extractGrossRouteFromUrl(w: Window) {

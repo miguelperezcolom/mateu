@@ -1,15 +1,15 @@
-// TECLADO de la shell VB: los atajos declarados y las TECLAS DE ACCESO.
-//  - @Action(shortcut) de la pantalla en curso: el atajo lanza la acción (por el canal de los
-//    Element), como en el renderer web; sólo combinaciones con Ctrl/Alt/Meta — una tecla suelta
-//    es del campo donde se escribe — o una TECLA DE FUNCIÓN (F1–F12, sola o combinada): no
-//    escribe nada en un campo, y las aplicaciones de back-office las usan (F2, F9…).
-//  - @Tab(shortcut): selecciona la pestaña (el li del oj-tab-bar lleva data-shortcut).
-//  - @App(accessKeys): mantener Alt enseña una tecla junto a cada botón y pestaña visibles — su
-//    atajo si lo declara, si no una letra de su etiqueta asignada sin repetir — y Alt+letra lo
-//    pulsa. Lo de OPERA con su tecla de acceso. Lo puro (qué letra toca a quién) se prueba en Node.
+// KEYBOARD of the VB shell: the declared shortcuts and the ACCESS KEYS.
+//  - @Action(shortcut) of the current screen: the shortcut launches the action (through the Element
+//    channel), as in the web renderer; only combinations with Ctrl/Alt/Meta — a bare key
+//    belongs to the field being typed in — or a FUNCTION KEY (F1–F12, alone or combined): it does not
+//    type anything into a field, and back-office applications use them (F2, F9…).
+//  - @Tab(shortcut): selects the tab (the oj-tab-bar li carries data-shortcut).
+//  - @App(accessKeys): holding Alt shows a key next to each visible button and tab — its
+//    shortcut if it declares one, otherwise a letter of its label assigned without repeats — and Alt+letter
+//    presses it. OPERA's thing with its access key. The pure part (which letter goes to whom) is tested in Node.
 
-/** Las letras de acceso para unas etiquetas: primero las iniciales de sus palabras, luego cualquier
- *  letra de la etiqueta, luego cifras; sin repetir y saltando las reservadas. '' si no queda. */
+/** The access letters for some labels: first the initials of their words, then any
+ *  letter of the label, then digits; without repeats and skipping the reserved ones. '' if none is left. */
 export function assignAccessKeys(labels, reserved = []) {
   const used = new Set(reserved.map((k) => String(k).toLowerCase()))
   return labels.map((label) => {
@@ -23,17 +23,17 @@ export function assignAccessKeys(labels, reserved = []) {
   })
 }
 
-/** Etiqueta legible de un atajo: «ctrl+shift+s» → «Ctrl+Shift+S». */
+/** Readable label of a shortcut: «ctrl+shift+s» → «Ctrl+Shift+S». */
 export const keyHint = (shortcut) => String(shortcut || '').split('+').filter(Boolean)
   .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
 
-// ── atajos de acción de la pantalla en curso ──────────────────────────────────────────────────
+// ── action shortcuts of the current screen ──────────────────────────────────────────────────
 let shortcutActions = []
-/** Una tecla de función (F1–F12): la de un atajo («f2», «shift+f9») o la de un evento (e.key). */
+/** A function key (F1–F12): that of a shortcut («f2», «shift+f9») or that of an event (e.key). */
 const FUNCTION_KEY = /^f([1-9]|1[0-2])$/i
 export const isFunctionKeyShortcut = (shortcut) =>
   FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
-/** La pantalla en curso (afterReduce): sus acciones con atajo con modificador o tecla de función. */
+/** The current screen (afterReduce): its actions with a modifier or function-key shortcut. */
 export function setShortcutContext(hostCtx) {
   const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
   shortcutActions = actions
@@ -57,7 +57,7 @@ const keyTargetVisible = (el) => {
 }
 const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
 
-/** Lo que se puede pulsar con una tecla de acceso: botones (no deshabilitados) y pestañas. */
+/** What can be pressed with an access key: buttons (not disabled) and tabs. */
 function accessCandidates(doc) {
   const out = []
   for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
@@ -116,26 +116,26 @@ export function installKeys(doc = typeof document !== 'undefined' ? document : n
   doc.__mateuKeys = true
   let holdTimer = null
   doc.addEventListener('keydown', (e) => {
-    // mantener Alt (sola): aparecen las teclas
+    // holding Alt (alone): the keys appear
     if (e.key === 'Alt' && accessKeysOn && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       if (!holdTimer) holdTimer = setTimeout(() => showAccessKeys(doc), 250)
       return
     }
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
     if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
-    // 1. una acción de la pantalla
+    // 1. an action of the screen
     const action = shortcutActions.find((a) => matches(a.shortcut, e))
     if (action && keysSink) {
       e.preventDefault(); e.stopPropagation()
       keysSink(action.id, {}, {})
       return
     }
-    // 2. una pestaña
+    // 2. a tab
     for (const li of doc.querySelectorAll('oj-tab-bar li[data-shortcut]')) {
       const sc = li.getAttribute('data-shortcut')
       if (sc && keyTargetVisible(li) && matches(sc, e)) { e.preventDefault(); e.stopPropagation(); activate(li); return }
     }
-    // 3. una tecla de acceso (Alt+letra, por el código físico: en Mac Alt cambia e.key)
+    // 3. an access key (Alt+letter, by physical code: on Mac Alt changes e.key)
     if (accessKeysOn && e.altKey && !e.ctrlKey && !e.metaKey) {
       const m = /^(Key([A-Z])|Digit([0-9]))$/.exec(e.code || '')
       const letter = m ? (m[2] || m[3]).toLowerCase() : ''

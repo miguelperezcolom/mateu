@@ -93,9 +93,9 @@ public final class IdentityResolver {
       return;
     }
     if (WARNED.compareAndSet(false, true)) {
-      // INFO, not WARN: it is printed by every fresh app, including the starters, which restrict
-      // nothing — a warning there teaches people to ignore Mateu's warnings.
-      log.info(
+      // WARN, as the security guide says (and as the Python port logs it): restricted UI with no
+      // authenticated caller is hidden for everyone, which is worth noticing before it ships.
+      log.warn(
           "No security module found. That only matters if your UI restricts something"
               + " (@EyesOnly / @ReadOnlyUnless / @DisabledUnless / YAML access:): Mateu does not"
               + " authenticate, so restricted UI then stays hidden for everyone. To secure it: {}"

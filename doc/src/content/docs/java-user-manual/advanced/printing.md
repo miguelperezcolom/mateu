@@ -41,6 +41,13 @@ You can supplement or override those defaults with a global print stylesheet in 
 
 ## Applying print styles to specific components
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use `@Style` on a page or field to inject inline CSS that includes a `@media print` block:
 
 ```java

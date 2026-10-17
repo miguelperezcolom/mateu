@@ -141,12 +141,16 @@ def test_groups_the_listing_computed_itself_are_kept():
 
 
 def test_a_method_that_is_not_a_group_action_is_not_reachable():
-    inc = handler().handle(
-        RunActionRq(
-            server_side_type=type_name(Files),
-            route="ga-files",
-            action_id="action-on-row-groupActionVisible",
-            parameters={"_groupValue": "F-2"},
+    import pytest
+
+    from mateu_core import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        handler().handle(
+            RunActionRq(
+                server_side_type=type_name(Files),
+                route="ga-files",
+                action_id="action-on-row-groupActionVisible",
+                parameters={"_groupValue": "F-2"},
+            )
         )
-    )
-    assert inc.messages[0].variant == "error"

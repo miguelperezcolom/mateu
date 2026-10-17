@@ -11,6 +11,13 @@ Show social proof — customer quotes, reviews, endorsements — as a grid of qu
 
 ## Solution
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Use the `Testimonials` component: a list of `Testimonial`s (quote, author, role, avatar, rating 0–5). The renderer lays them out in an auto-fitting grid; the rating renders as filled/empty stars.
 
 ```java

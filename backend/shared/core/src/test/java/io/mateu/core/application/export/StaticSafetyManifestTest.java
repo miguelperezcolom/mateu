@@ -29,15 +29,13 @@ class StaticSafetyManifestTest {
   @Test
   void anUnbundledRouteAndAJavaActionHandlerAreReportedOncePerReason() {
     var manifest =
-        new MateuBundleExporter.BundleManifest(
+        new BundleManifest(
             "",
             "now",
             true,
             List.of(
-                new MateuBundleExporter.BundleEntry(
-                    "/needs-db", "needs-db", null, false, "the database is down"),
-                new MateuBundleExporter.BundleEntry(
-                    "/handled", "handled", "{\"fragments\":[]}", true, null)));
+                new BundleEntry("/needs-db", "needs-db", null, false, "the database is down"),
+                new BundleEntry("/handled", "handled", "{\"fragments\":[]}", true, null)));
     var violations =
         StaticSafetyCheck.check(
             manifest,

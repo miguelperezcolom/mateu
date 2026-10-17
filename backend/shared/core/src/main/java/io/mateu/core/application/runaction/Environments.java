@@ -1,13 +1,10 @@
 package io.mateu.core.application.runaction;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.mateu.uidl.data.Environment;
 import io.mateu.uidl.data.RestDataSource;
 import io.mateu.uidl.data.RestSourceCatalog;
 import io.mateu.uidl.data.RestSourceEntry;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,16 +37,11 @@ public final class Environments {
   public static final String ENV_VAR = "MATEU_ENVIRONMENT";
   static final String CONVENTIONAL_DIR = "specs/ui/environments/";
 
-  private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
-
   private Environments() {}
 
   /** The name of the active environment, or null when none is configured. */
   public static String activeName() {
-    var name = System.getProperty(PROPERTY);
-    if (name == null || name.isBlank()) {
-      name = System.getenv(ENV_VAR);
-    }
+    var name = io.mateu.core.infra.MateuSettings.get(PROPERTY);
     return name == null || name.isBlank() ? null : name.trim();
   }
 
@@ -60,12 +52,10 @@ public final class Environments {
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? Environments.class.getClassLoader() : classLoader);
     var byName = new LinkedHashMap<String, Environment>();
-    for (var path : MountRegistry.yamlResourcePaths(cl)) {
-      try (InputStream is = cl.getResourceAsStream(path)) {
-        if (is == null) {
-          continue;
-        }
-        var environment = parse(YAML.readTree(is), path);
+    var index = SpecsIndex.of(cl);
+    for (var path : index.paths()) {
+      try {
+        var environment = parse(index.tree(path), path);
         if (environment != null) {
           byName.put(environment.name(), environment);
         }
