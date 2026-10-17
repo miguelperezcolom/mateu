@@ -51,8 +51,7 @@ class WireDiscriminatorsTest {
    *       wire name has always been the default {@code "KPIDto"}, which the ports mirror.
    * </ul>
    */
-  private static final java.util.Set<Class<?>> KNOWN_UNREGISTERED =
-      java.util.Set.of(KPIDto.class);
+  private static final java.util.Set<Class<?>> KNOWN_UNREGISTERED = java.util.Set.of(KPIDto.class);
 
   /** {@code BreadcrumbDto} is registered but is no component (it travels inside Breadcrumbs). */
   private static final java.util.Set<Class<?>> KNOWN_STRANGERS =
