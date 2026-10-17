@@ -19,7 +19,7 @@ import {
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
   welcomeOf, returnedConfirmDialogsOf, reduceContexts, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
-  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf,
+  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf, buttonRouteOf,
 } from './reduceContexts.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
@@ -695,6 +695,20 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
+})
+
+test('a button route resolves its ${state.x}; a missing or blank value disables the button', () => {
+  assert.equal(buttonRouteOf('/p/${state.id}', { id: 7 }), '/p/7')
+  assert.equal(buttonRouteOf('/p/${state.id}', {}), null)
+  assert.equal(buttonRouteOf('/p/${state.id}', { id: '  ' }), null)
+  assert.equal(buttonRouteOf('products', {}), 'products')
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Button', label: 'Open', actionId: 'open', route: '/p/${state.id}' })])
+  const open = (state) => {
+    const ctx = { id: HOST_ID, kind: 'host', tree, state, data: {} }
+    return (islandContentOf(ctx) || []).flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons)[0]
+  }
+  assert.deepEqual([open({ id: 3 }).route, open({ id: 3 }).disabled], ['/p/3', false])
+  assert.deepEqual([open({}).route, open({}).disabled], [undefined, true])
 })
 
 // ── the actions walkthrough (design/walkthrough/actions.md): answers the shell dropped ─────────────
