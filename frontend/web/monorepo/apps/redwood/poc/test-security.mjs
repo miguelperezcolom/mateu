@@ -8,7 +8,8 @@ import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCred
 import { fetchWithPolicy, connectivity } from './resilience.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
-import { sanitizeElementHtml } from './elements.mjs'
+import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf } from './widgets.mjs'
+import { elementAttributeValue, sanitizeElementHtml } from './elements.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 
 let passed = 0
@@ -85,7 +86,47 @@ test('M-S6: inline bytes of HTML/SVG/XML are saved as opaque bytes, never shown 
   assert.equal(isPassiveInlineType('image/svg+xml'), false)
 })
 
-// ── MINOR 7: Element HTML ─────────────────────────────────────────────────
+// ── M-S7 / MINOR 7: header widgets and Elements ─────────────────────────────────────────────────
+
+const withHole = (fn) => {
+  const hole = { innerHTML: '' }
+  const before = globalThis.document
+  globalThis.document = { querySelector: () => hole }
+  try { return fn(hole) } finally { if (before === undefined) delete globalThis.document; else globalThis.document = before }
+}
+
+test('M-S7: a remote widget\'s HTML (its state interpolated) is whitelist-sanitized at the sink, icons kept', () => {
+  const tree = { metadata: { type: 'Text', text: '<vaadin-icon icon="vaadin:bell" style="color:red"></vaadin-icon> ${state.n}' } }
+  const html = remoteWidgetHtmlOf(tree, { n: '<img src=x onerror="steal()"><form action=//phish><input></form><b>3</b>' })
+  withHole((hole) => {
+    mountHeaderHtml('w1', html)
+    assert.doesNotMatch(hole.innerHTML, /onerror|onclick|<form|<input/)
+    assert.match(hole.innerHTML, /<span class="oj-ux-ico-[\w-]+ mateu-widget-icon" aria-hidden="true" style="color: red"><\/span>/)
+    // and HTML the widget's own definition carries still passes the whitelist (no handler survives)
+    mountHeaderHtml('w2', '<b onclick="x()">3</b><img src="//beacon.example/x" onerror="y()">')
+    assert.equal(hole.innerHTML, '<b>3</b><img src="//beacon.example/x">')
+  })
+})
+
+test('M-S7: a header Anchor is a safe link with its text as text', () => {
+  const reg = { shell: { widgets: [{ metadata: { type: 'Anchor', url: 'javascript:alert(1)', text: '<img src=x onerror=1>Go' } }] } }
+  const { items } = headerWidgetsOf(reg)
+  assert.equal(items[0].html, '<a href="#">&lt;img src=x onerror=1&gt;Go</a>')
+  const ok = headerWidgetsOf({ shell: { widgets: [{ metadata: { type: 'Anchor', url: 'https://docs.example/a?b=1&c="2"', text: 'Docs' } }] } })
+  assert.equal(ok.items[0].html, '<a href="https://docs.example/a?b=1&amp;c=&quot;2&quot;">Docs</a>')
+})
+
+test('M-S7: a data-bound Element attribute never becomes code; srcdoc never passes', () => {
+  assert.equal(elementAttributeValue('a', 'href', '${state.u}', 'javascript:alert(1)'), undefined)
+  assert.equal(elementAttributeValue('a', 'href', '${state.u}', ' java\tscript:alert(1)'), undefined)
+  assert.equal(elementAttributeValue('a', 'href', '${state.u}', '/orders/1'), '/orders/1')
+  assert.equal(elementAttributeValue('img', 'src', '${state.u}', 'https://cdn.example/a.png'), 'https://cdn.example/a.png')
+  assert.equal(elementAttributeValue('script', 'src', '${state.u}', 'https://cdn.example/a.js'), undefined)
+  assert.equal(elementAttributeValue('iframe', 'srcdoc', '<p>x</p>', '<p>x</p>'), undefined)
+  assert.equal(elementAttributeValue('x-el', 'onclick', 'go(${state.id})', 'go(1)'), undefined)
+  assert.equal(elementAttributeValue('x-el', 'onclick', 'go()', 'go()'), 'go()', 'a literal handler is the author\'s')
+  assert.equal(elementAttributeValue('x-el', 'label', '${state.l}', 'javascript:1'), 'javascript:1', 'not a url attribute')
+})
 
 test('MINOR 7: Element HTML with data goes through the whitelist (no style, form, svg animation, math, template)', () => {
   const out = sanitizeElementHtml('<style>body{display:none}</style><form action="//phish"><input name=p></form>'

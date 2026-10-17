@@ -6,6 +6,7 @@ import { MateuComponent } from "@infra/ui/mateu-component.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { sanitizeHtml } from "@infra/ui/safeHtml.ts";
+import { elementAttributeValue } from "@infra/ui/renderers/elementAttributes.ts";
 
 const serialize = (e: any) => {
     if (e instanceof CustomEvent) {
@@ -41,7 +42,10 @@ const resolve = (
     const extra = { appState: appState ?? {}, appData: appData ?? {} }
     const attributes: Record<string, string> = {}
     for (const k in element.attributes) {
-        attributes[k] = interpolate(element.attributes[k], state, data, extra)
+        // a data-bound attribute never becomes code: no srcdoc, no handler, only safe urls
+        const value = elementAttributeValue(element.name, k, element.attributes[k],
+            interpolate(element.attributes[k], state, data, extra))
+        if (value !== undefined) attributes[k] = value
     }
     return { attributes, content: interpolate(element.content, state, data, extra) }
 }

@@ -1,7 +1,7 @@
 import { calendarAtomOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
-import { elementModuleUrl } from '../elements.mjs'
+import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
@@ -691,7 +691,11 @@ export function islandContentOf(ctx, opts = {}) {
       // son VALORES y se reevalúan en cada render — mismo idioma que cualquier rótulo. El
       // módulo del atributo `import` lo carga la app la primera vez que se usa la etiqueta.
       const attributes = {}
-      for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
+      for (const key of Object.keys(m.attributes || {})) {
+        // a data-bound attribute never becomes code: no srcdoc, no handler, only safe urls (M-S7)
+        const value = elementAttributeValue(m.name, key, m.attributes[key], interp(m.attributes[key]))
+        if (value !== undefined) attributes[key] = value
+      }
       atom({
         isElement: true,
         // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):

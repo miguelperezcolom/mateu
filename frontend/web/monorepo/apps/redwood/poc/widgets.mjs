@@ -20,6 +20,8 @@
 import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
+import { sanitizeHtml } from './richtext.mjs'
+import { safeHref } from './core/display.mjs'
 
 const CONTAINERS = new Set([
   'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
@@ -84,7 +86,7 @@ export function popoverContentOf(node) {
       return
     }
     if (md.type === 'Anchor') {
-      out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: md.url || '#', target: md.target || '' })
+      out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: safeHref(md.url) || '#', target: md.target || '' })
       return
     }
     if (md.type === 'Button') {
@@ -149,7 +151,10 @@ export function headerWidgetsOf(reg) {
       return
     }
     if (md.type === 'Anchor') {
-      items.push({ id, isHtml: true, html: `<a href="${String(md.url || '#').replace(/"/g, '&quot;')}"${md.target ? ` target="${md.target}"` : ''}>${md.text || ''}</a>` })
+      // the url only as a safe link, the text as TEXT (M-S7); mountHeaderHtml sanitizes the result
+      const href = safeHref(md.url) || '#'
+      const text = String(md.text == null ? '' : md.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      items.push({ id, isHtml: true, html: `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${text}</a>` })
     }
   }
   nodes.forEach((node, i) => visit(node, String(i)))
@@ -162,6 +167,8 @@ export function remoteWidgetHtmlOf(tree, state) {
   const visit = (n) => {
     if (!n) return
     const md = n.metadata || {}
+    // the remote's state may carry markup (a badge's link and icon): it reaches the page only
+    // through mountHeaderHtml's whitelist (M-S7)
     if (md.type === 'Text') parts.push(redwoodHtmlOf(interpolate(md.text, state)))
     for (const child of n.children || []) visit(child)
   }
@@ -286,7 +293,9 @@ export function mountHeaderHtml(id, html) {
   if (!hole) return false
   const next = lastHtml[id] || ''
   if (hole.__mateuHtml !== next) {
-    hole.innerHTML = next
+    // a widget's HTML carries DATA (a remote's state interpolated into its Text): whitelist-sanitized
+    // at the one sink, keeping the icon spans' class/style (M-S7)
+    hole.innerHTML = sanitizeHtml(next, { presentation: true })
     hole.__mateuHtml = next
   }
   return true

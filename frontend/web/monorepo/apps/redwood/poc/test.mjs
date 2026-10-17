@@ -3153,7 +3153,8 @@ test('widgets: Popover(Text) → área de perfil (iniciales + nombre + email/Log
   assert.equal(user.label, 'Hola, Demo User')
   assert.equal(user.initials, 'DU')
   assert.deepEqual(user.rows.map((r) => r.isText ? r.text : `${r.label} → ${r.href}`),
-    ['Email: demo@mateu.io', 'Logout → javascript: window.logout();'])
+    // a javascript: url is never a link (M-S7 — the web renderer's anchor already refused it)
+    ['Email: demo@mateu.io', 'Logout → #'])
   // el badge: remoto, con su pod y su ruta; el Popover de usuario NO se repite en la zona de acciones
   assert.equal(items.length, 1)
   assert.equal(items[0].isRemote, true)

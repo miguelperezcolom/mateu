@@ -8,6 +8,7 @@
 // compartido (libs/mateu elementRenderer).
 
 import { sanitizeHtml } from './richtext.mjs'
+import { safeHref } from './core/display.mjs'
 
 const loaded = {}
 
@@ -79,6 +80,29 @@ export function wireElementEvents(element, atom) {
 // src, class/title and a filtered style — nothing that runs.
 export function sanitizeElementHtml(html) {
   return html == null ? '' : sanitizeHtml(String(html), { presentation: true })
+}
+
+// ── atributos con DATOS (M-S7) ─────────────────────────────────────────────────────────────────
+// Un atributo escrito literal es del autor y pasa tal cual (salvo srcdoc: un documento entero en
+// el origen de la app). Uno cuyo valor declarado lleva `${…}` trae DATOS: nunca un manejador on…,
+// y una URL sólo como enlace seguro (safeHref) — y en un elemento que carga CÓDIGO por su URL
+// (script, object, embed, base, link, meta) ni eso. Misma regla que libs/mateu elementAttributes.ts.
+const ELEMENT_URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'background', 'poster',
+  'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
+const CODE_LOADING_ELEMENTS = new Set(['script', 'object', 'embed', 'base', 'link', 'meta', 'applet', 'frame'])
+
+/** The value to set for an Element attribute, or undefined to leave it out. */
+export function elementAttributeValue(elementName, attribute, declared, resolved) {
+  const name = String(attribute).toLowerCase()
+  if (name === 'srcdoc') return undefined
+  if (!String(declared == null ? '' : declared).includes('${')) return resolved
+  if (name.startsWith('on')) return undefined
+  if (ELEMENT_URL_ATTRIBUTES.has(name)) {
+    if (CODE_LOADING_ELEMENTS.has(String(elementName).toLowerCase())) return undefined
+    const cleaned = String(resolved == null ? '' : resolved).replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
+    return safeHref(cleaned) || undefined
+  }
+  return resolved
 }
 
 /**
