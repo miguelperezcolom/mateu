@@ -1,6 +1,6 @@
 package io.mateu.core.application.runaction;
 
-import static io.mateu.core.application.runaction.ComponentStateHelper.getAppRoute;
+import static io.mateu.core.domain.ComponentState.getAppRoute;
 import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.getSelectedOption;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;

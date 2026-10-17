@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
+import static io.mateu.core.domain.ComponentState.setResolvedPath;
 
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.RemoteMenu;

@@ -1,6 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.ComponentState.wrap;
 import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addData;
 
 import io.mateu.core.domain.out.componentmapper.DeclaredPageType;

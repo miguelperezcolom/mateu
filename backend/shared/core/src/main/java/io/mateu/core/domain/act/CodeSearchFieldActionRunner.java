@@ -1,6 +1,6 @@
 package io.mateu.core.domain.act;
 
-import static io.mateu.core.application.runaction.ComponentStateHelper.getState;
+import static io.mateu.core.domain.ComponentState.getState;
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.createActions;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.createComponent;

@@ -181,7 +181,7 @@ public final class ComponentToFragmentDtoMapper {
           List.of(page),
           // The state as every page serialises it — field by field, not the object handed to the
           // JSON writer, which only sees what has a getter: a form without them travelled empty.
-          io.mateu.core.application.runaction.ComponentStateHelper.getState(view, httpRequest),
+          io.mateu.core.domain.ComponentState.getState(view, httpRequest),
           "",
           "",
           TreeActionHarvester.withTreeActions(

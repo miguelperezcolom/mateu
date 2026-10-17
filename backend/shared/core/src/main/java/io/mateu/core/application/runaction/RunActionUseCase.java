@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.core.application.contract.ModelViewContractExtractor;
+import io.mateu.core.domain.ComponentState;
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
 import io.mateu.core.infra.StructureHashPostProcessor;
@@ -34,24 +35,40 @@ public class RunActionUseCase {
   private final RestSourceRegistry restSourceRegistry;
   private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
 
-  // ── Public static helpers (used by other classes in the framework) ────────
+  // ── Public static helpers: kept as delegates, the implementation is domain-side ──────────
 
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#setResolvedRoute(HttpRequest,
+   *     String)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static void setResolvedRoute(HttpRequest httpRequest, String route) {
-    setResolvedRoute(httpRequest, route, true);
+    ComponentState.setResolvedRoute(httpRequest, route);
   }
 
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#setResolvedRoute(HttpRequest,
+   *     String, boolean)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static void setResolvedRoute(HttpRequest httpRequest, String route, boolean force) {
-    if (force || httpRequest.getAttribute("resolvedRoute") == null) {
-      httpRequest.setAttribute("resolvedRoute", route);
-    }
+    ComponentState.setResolvedRoute(httpRequest, route, force);
   }
 
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#setResolvedPath(HttpRequest,
+   *     String)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static void setResolvedPath(HttpRequest httpRequest, String path) {
-    httpRequest.setAttribute("resolvedPath", path);
+    ComponentState.setResolvedPath(httpRequest, path);
   }
 
-  // Keep static wrap/getState here as a forwarding facade so existing callers compile unchanged.
-  // The actual implementation lives in ComponentStateHelper.
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#wrap(Component, Object, String,
+   *     String, String, String, HttpRequest)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static io.mateu.dtos.ServerSideComponentDto wrap(
       Component component,
       Object modelView,
@@ -60,10 +77,15 @@ public class RunActionUseCase {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return ComponentStateHelper.wrap(
+    return ComponentState.wrap(
         component, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
   }
 
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#wrap(List, Object, String, String,
+   *     String, String, HttpRequest)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static io.mateu.dtos.ServerSideComponentDto wrap(
       List<Component> components,
       Object modelView,
@@ -72,12 +94,16 @@ public class RunActionUseCase {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return ComponentStateHelper.wrap(
+    return ComponentState.wrap(
         components, modelView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
   }
 
+  /**
+   * @deprecated use {@link io.mateu.core.domain.ComponentState#getState(Object, HttpRequest)}
+   */
+  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
   public static Object getState(Object modelView, HttpRequest httpRequest) {
-    return ComponentStateHelper.getState(modelView, httpRequest);
+    return ComponentState.getState(modelView, httpRequest);
   }
 
   // ── Main entry point ──────────────────────────────────────────────────────

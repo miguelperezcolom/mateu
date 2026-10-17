@@ -1,6 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.ComponentState.wrap;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;

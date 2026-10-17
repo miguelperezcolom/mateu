@@ -1,4 +1,4 @@
-package io.mateu.core.application.runaction;
+package io.mateu.core.domain;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
