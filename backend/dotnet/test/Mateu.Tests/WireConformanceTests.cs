@@ -186,6 +186,7 @@ public class WireConformanceTests
         { "wizard", typeof(Wire.SignUpWizard) },
         { "rest-source", typeof(Wire.RestSourceForm) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "triggers", typeof(Wire.TriggersForm) },
     };
 
     [Fact]

@@ -27,6 +27,7 @@ from enum import Enum  # noqa: E402
 from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
 from mateu_uidl.components import Notice, StatusItem, StatusList  # noqa: E402
+from mateu_uidl import TriggerType, subscribe_to, trigger  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_dtos import MenuItem  # noqa: E402
 from mateu_uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
@@ -354,6 +355,35 @@ class GenericComponentsPage(ComponentTreeSupplier):
                 confirm_text="Delete", confirm_action_id="deleteOrder", cancel_action_id="keepOrder",
             ),
         ))
+
+
+@ui("/conformance/triggers")
+@title("Triggers")
+@trigger(TriggerType.on_load, "refresh", timeout_millis=5000, times=0, background=True)
+@trigger(TriggerType.on_success, "reload", called_action="save")
+@trigger(TriggerType.on_error, "notify_failure", called_action="save")
+@trigger(TriggerType.on_value_change, "recalculate", property_name="quantity")
+@subscribe_to("order-saved", "reload")
+class TriggersForm:
+    """Every trigger kind a view can declare (M-A5): a periodic on_load refresh, on_success /
+    on_error of another action, on_value_change of one field, and a subscription on the bus."""
+
+    quantity: int = 1
+
+    def refresh(self):
+        pass
+
+    def reload(self):
+        pass
+
+    def save(self):
+        pass
+
+    def notify_failure(self):
+        pass
+
+    def recalculate(self):
+        pass
 
 
 @ui("/conformance/bulleted-list")
@@ -788,7 +818,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("generic-components", GenericComponentsPage)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("generic-components", GenericComponentsPage), ("triggers", TriggersForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():

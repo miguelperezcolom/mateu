@@ -246,8 +246,53 @@ public record ActionDto(
 /// the object at that path in the JSON response into the form state.</summary>
 public record RestActionDto(RestDataSourceDto Source, string? SuccessMessage, string? ResultPath);
 
-/// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
-public record CustomTriggerDto(string Event, string ActionId)
+/// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received (mirrors
+/// io.mateu.dtos.OnCustomEventTriggerDto). The event travels as <c>eventName</c>, the member every
+/// renderer reads; the constructor's <c>Event</c> is not serialised (until 3.0-alpha.426 the
+/// port sent only <c>event</c>, which no renderer reads, so its subscriptions listened to
+/// nothing).</summary>
+public record CustomTriggerDto([property: System.Text.Json.Serialization.JsonIgnore] string Event, string ActionId)
 {
     public string Type { get; init; } = "OnCustomEvent";
+
+    /// <summary>The event listened to.</summary>
+    public string EventName => Event;
+
+    /// <summary>Where the subscription listens: DOCUMENT (the global bus, [SubscribeTo]'s default),
+    /// COMPONENT (the bus filtered by <see cref="From"/>) or SELF (only events bubbling up from
+    /// the component's descendants).</summary>
+    public string Source { get; init; } = "DOCUMENT";
+
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? From { get; init; }
+
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? Condition { get; init; }
+}
+
+/// <summary>Runs <c>ActionId</c> when the view loads — once, or every <c>TimeoutMillis</c> up to
+/// <c>Times</c> times (0 = unbounded): the periodic refresh (mirrors io.mateu.dtos.OnLoadTriggerDto).</summary>
+public record OnLoadTriggerDto(string ActionId, int TimeoutMillis, int Times, string? Condition, bool Background)
+{
+    public string Type { get; init; } = "OnLoad";
+}
+
+/// <summary>Runs <c>ActionId</c> after <c>CalledActionId</c> succeeds — after <c>TimeoutMillis</c>
+/// when set: chained actions and polls (mirrors io.mateu.dtos.OnSuccessTriggerDto).</summary>
+public record OnSuccessTriggerDto(string ActionId, string? CalledActionId, string? Condition, int TimeoutMillis, bool Background)
+{
+    public string Type { get; init; } = "OnSuccess";
+}
+
+/// <summary>Runs <c>ActionId</c> after <c>CalledActionId</c> fails (mirrors io.mateu.dtos.OnErrorTriggerDto).</summary>
+public record OnErrorTriggerDto(string ActionId, string? CalledActionId, string? Condition)
+{
+    public string Type { get; init; } = "OnError";
+}
+
+/// <summary>Runs <c>ActionId</c> when the field <c>PropertyName</c> (any field when blank) changes
+/// (mirrors io.mateu.dtos.OnValueChangeTriggerDto).</summary>
+public record OnValueChangeTriggerDto(string ActionId, string? PropertyName, string? Condition)
+{
+    public string Type { get; init; } = "OnValueChange";
 }

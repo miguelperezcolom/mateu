@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import Field
 
@@ -261,6 +261,64 @@ class Trigger(Wire):
 
 
 class CustomTrigger(Wire):
-    event: str
+    """A trigger that fires ``action_id`` when a named custom event is received (mirrors
+    ``OnCustomEventTriggerDto``). The event travels as ``eventName``, the member every renderer
+    reads (filled from ``event`` when omitted); ``event`` itself is not serialised — until
+    3.0-alpha.426 the port sent only ``event``, which no renderer reads, so its subscriptions
+    listened to nothing."""
+
+    event: str = Field(exclude=True)
     action_id: str
     type: str = "OnCustomEvent"
+    event_name: str | None = None
+    #: DOCUMENT (the global bus, @subscribe_to's default) | COMPONENT (filtered by ``from``) | SELF.
+    source: str = "DOCUMENT"
+    from_: str | None = Field(default=None, alias="from")
+    condition: str | None = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.event_name is None:
+            self.event_name = self.event
+
+
+class OnLoadTrigger(Wire):
+    """Runs ``action_id`` when the view loads — once, or every ``timeout_millis`` up to ``times``
+    times (0 = unbounded): the periodic refresh (mirrors ``OnLoadTriggerDto``)."""
+
+    type: str = "OnLoad"
+    action_id: str
+    timeout_millis: int = 0
+    times: int = 1
+    condition: str | None = None
+    background: bool = False
+
+
+class OnSuccessTrigger(Wire):
+    """Runs ``action_id`` after ``called_action_id`` succeeds — after ``timeout_millis`` when set:
+    chained actions and polls (mirrors ``OnSuccessTriggerDto``)."""
+
+    type: str = "OnSuccess"
+    action_id: str
+    called_action_id: str | None = None
+    condition: str | None = None
+    timeout_millis: int = 0
+    background: bool = False
+
+
+class OnErrorTrigger(Wire):
+    """Runs ``action_id`` after ``called_action_id`` fails (mirrors ``OnErrorTriggerDto``)."""
+
+    type: str = "OnError"
+    action_id: str
+    called_action_id: str | None = None
+    condition: str | None = None
+
+
+class OnValueChangeTrigger(Wire):
+    """Runs ``action_id`` when the field ``property_name`` (any field when blank) changes (mirrors
+    ``OnValueChangeTriggerDto``)."""
+
+    type: str = "OnValueChange"
+    action_id: str
+    property_name: str | None = None
+    condition: str | None = None

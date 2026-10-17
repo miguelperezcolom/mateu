@@ -556,6 +556,49 @@ class WireConformanceTest {
   }
 
   /**
+   * Every trigger kind a view can declare, ported to .NET ({@code [Trigger]}) and Python
+   * ({@code @trigger}) in 3.0-alpha.426 (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
+   * another action (chained actions), OnValueChange of one field, and a {@code @SubscribeTo} on the
+   * global bus. The actions they name are advertised (the client only sends what the component
+   * advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/triggers")
+  @Title("Triggers")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnLoad,
+      actionId = "refresh",
+      timeoutMillis = 5000,
+      times = 0,
+      background = true)
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnSuccess,
+      actionId = "reload",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnError,
+      actionId = "notifyFailure",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnValueChange,
+      actionId = "recalculate",
+      propertyName = "quantity")
+  @io.mateu.uidl.annotations.SubscribeTo(event = "order-saved", action = "reload")
+  public static class TriggersForm {
+    public int quantity = 1;
+
+    public void refresh() {}
+
+    public void reload() {}
+
+    public void save() {}
+
+    public void notifyFailure() {}
+
+    public void recalculate() {}
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -1047,7 +1090,8 @@ class WireConformanceTest {
           "crud-search",
           "wizard",
           "rest-source",
-          "generic-components");
+          "generic-components",
+          "triggers");
 
   static TestMateu mateu;
 
@@ -1093,7 +1137,8 @@ class WireConformanceTest {
             WelcomeBannerPage.class,
             SignUpWizard.class,
             RestSourceForm.class,
-            GenericComponentsPage.class);
+            GenericComponentsPage.class,
+            TriggersForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

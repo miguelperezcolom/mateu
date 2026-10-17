@@ -629,3 +629,22 @@ public class GenericComponentsPage : IComponentTreeSupplier
 
     public string? Style => null;
 }
+
+// Every trigger kind a view can declare (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
+// another action, OnValueChange of one field, and a [SubscribeTo] on the global bus.
+[UI("conformance/triggers"), Title("Triggers")]
+[Trigger(TriggerType.OnLoad, "refresh", TimeoutMillis = 5000, Times = 0, Background = true)]
+[Trigger(TriggerType.OnSuccess, "reload", CalledActionId = "save")]
+[Trigger(TriggerType.OnError, "notifyFailure", CalledActionId = "save")]
+[Trigger(TriggerType.OnValueChange, "recalculate", PropertyName = "quantity")]
+[SubscribeTo("order-saved", "reload")]
+public class TriggersForm
+{
+    public int Quantity { get; set; } = 1;
+
+    public void Refresh() { }
+    public void Reload() { }
+    public void Save() { }
+    public void NotifyFailure() { }
+    public void Recalculate() { }
+}
