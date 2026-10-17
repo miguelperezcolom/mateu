@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import io.mateu.maven.bundle.fixtures.BrokenPage;
 import io.mateu.maven.bundle.fixtures.ServerPage;
 import io.mateu.maven.bundle.fixtures.StaticPage;
 import java.io.File;
@@ -147,5 +148,58 @@ public class BundleMojoTest {
 
     assertNull(System.getProperty("mateu.environment"));
     assertTrue(new File(out.toFile(), "manifest.json").exists());
+  }
+
+  /** A route that cannot render is skipped, the rest still ship: a partial bundle by default. */
+  @Test
+  public void aRouteThatCannotRenderIsSkippedAndTheOthersShip() throws Exception {
+    var mojo = mojo(StaticPage.class, BrokenPage.class);
+
+    mojo.execute();
+
+    var manifest = Files.readString(out.resolve("manifest.json"));
+    assertTrue(manifest, manifest.contains("Static page"));
+  }
+
+  /** {@code failOnSkipped}: a CI that must ship every route gets the list of those that did not. */
+  @Test
+  public void failOnSkippedFailsTheBuildNamingEachSkippedRoute() throws Exception {
+    var mojo = mojo(StaticPage.class, BrokenPage.class);
+    set(mojo, "failOnSkipped", true);
+
+    var failure = assertThrows(MojoFailureException.class, mojo::execute);
+    assertTrue(failure.getMessage(), failure.getMessage().contains("could not be bundled"));
+    assertTrue(failure.getMessage(), failure.getMessage().contains("broken"));
+  }
+
+  /** An indexed class missing from the classpath is reported, not a build failure. */
+  @Test
+  public void anIndexedClassThatCannotBeLoadedIsLeftOut() throws Exception {
+    var mojo = mojo(StaticPage.class);
+    Files.writeString(
+        app.resolve("META-INF/mateu/ui-registrations"),
+        "class=com.acme.Gone\npath=/gone\n---\nclass="
+            + StaticPage.class.getName()
+            + "\npath=/about\n");
+
+    mojo.execute();
+
+    assertTrue(Files.readString(out.resolve("manifest.json")).contains("Static page"));
+  }
+
+  /** The build's own environment is put back, not cleared, after a build for another one. */
+  @Test
+  public void aPreviousEnvironmentIsPutBack() throws Exception {
+    System.setProperty("mateu.environment", "dev");
+    try {
+      var mojo = mojo(StaticPage.class);
+      set(mojo, "environment", " staging ");
+
+      mojo.execute();
+
+      org.junit.Assert.assertEquals("dev", System.getProperty("mateu.environment"));
+    } finally {
+      System.clearProperty("mateu.environment");
+    }
   }
 }

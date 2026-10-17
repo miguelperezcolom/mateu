@@ -17,9 +17,10 @@
     UI can be served from static hosting / a CDN with no (or optional) backend.</description>
 
   <properties>
-    <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 59.9%
-         (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
-    <jacoco.min.bundle.coverage>58%</jacoco.min.bundle.coverage>
+    <!-- BUNDLE floors (jacoco:check, mvn verify), at the value measured when last raised: 90.1%
+         lines / 75.4% branches (2026-10, design/coverage/coverage-map.md). Ratchet. -->
+    <jacoco.min.bundle.coverage>90%</jacoco.min.bundle.coverage>
+    <jacoco.min.bundle.branch.coverage>75%</jacoco.min.bundle.branch.coverage>
     <maven.version>3.9.9</maven.version>
   </properties>
 
@@ -80,6 +81,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.27.7</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
