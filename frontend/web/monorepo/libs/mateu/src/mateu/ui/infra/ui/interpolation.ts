@@ -242,28 +242,6 @@ export const interpolateNested = (
     return content
 }
 
-/**
- * {@link interpolateNested} for a text rendered as HTML (a `Text` in a div container): the text's
- * own markup is kept and every substituted value is HTML-escaped, like {@link possiblyHtml}.
- * Callers still sanitize the result (`safeHtml`).
- */
-export const interpolateNestedHtml = (
-    text: string | undefined,
-    state: ComponentState,
-    data: ComponentData,
-    appState: ComponentState,
-    appData: ComponentData
-): string | undefined => {
-    if (!text?.includes('${')) return text
-    const ctx = buildContext(state, data, { appState: appState ?? {}, appData: appData ?? {} })
-    try {
-        return renderDisplayTemplate(text, ctx, escapeHtml)
-    } catch (e) {
-        console.error(e, text, state, data, appState, appData)
-        return escapeHtml('when evaluating ' + text + ' :' + e)
-    }
-}
-
 // ---------------------------------------------------------------------------------------------
 // interpolateAndEvaluate: substituting values into SOURCE CODE safely
 // ---------------------------------------------------------------------------------------------

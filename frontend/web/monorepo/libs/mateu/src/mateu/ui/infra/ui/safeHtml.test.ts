@@ -57,18 +57,18 @@ describe('sanitizeHtml (HTML sinks fed with data: header texts, texts, html cell
 })
 
 describe('rendered HTML sinks', () => {
-    it('textRenderer (div container) keeps the text\'s <b> and shows interpolated data as text (M-S4)', () => {
+    it('textRenderer (div container) renders state markup sanitized: no handler, no form, no mateu-ux', () => {
         const host = document.createElement('div')
         const component: any = {
             type: 'ClientSide', id: 't1', metadata: { type: 'Text', container: TextContainer.div,
                 text: '<b>Hi</b> ${state.name}' }
         }
-        render(renderText(component, { name: XSS }, {}, {}, {}), host)
+        render(renderText(component, { name: XSS + '<form><input type=password></form><mateu-ux baseurl="https://x"></mateu-ux><i>ok</i>' }, {}, {}, {}), host)
         const div = host.querySelector('div')!
         expect(div.querySelector('b')?.textContent).toBe('Hi')
-        expect(div.querySelector('img')).toBeNull()
-        expect(div.querySelector('script')).toBeNull()
-        expect(div.textContent).toContain('<img src=x onerror=')
+        expect(div.querySelector('i')?.textContent).toBe('ok')
+        expect(div.querySelector('img')!.hasAttribute('onerror')).toBe(false)
+        expect(div.querySelector('script, form, input, mateu-ux')).toBeNull()
     })
 
     it('htmlColumnRenderer sanitizes the cell value', () => {
