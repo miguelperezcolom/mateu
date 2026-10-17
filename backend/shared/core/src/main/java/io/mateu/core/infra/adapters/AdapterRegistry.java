@@ -14,7 +14,7 @@ public final class AdapterRegistry {
       return null;
     }
     try {
-      for (ComponentAdapter adapter : MateuBeanProvider.getBeans(ComponentAdapter.class)) {
+      for (ComponentAdapter adapter : MateuBeanProvider.getSingletonBeans(ComponentAdapter.class)) {
         var adapted = adapter.type();
         if (adapted != null && adapted.isAssignableFrom(type)) {
           return adapter;
@@ -32,7 +32,7 @@ public final class AdapterRegistry {
       return null;
     }
     try {
-      for (ComponentAdapter adapter : MateuBeanProvider.getBeans(ComponentAdapter.class)) {
+      for (ComponentAdapter adapter : MateuBeanProvider.getSingletonBeans(ComponentAdapter.class)) {
         var adapted = adapter.type();
         if (adapted != null && adapted.getName().equals(className)) {
           return adapter;

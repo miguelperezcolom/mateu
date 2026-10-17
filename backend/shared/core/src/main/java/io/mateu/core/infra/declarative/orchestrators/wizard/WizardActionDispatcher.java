@@ -48,7 +48,7 @@ final class WizardActionDispatcher {
       setValue(
           stepField,
           wizard,
-          MateuBeanProvider.getBean(InstanceFactory.class)
+          MateuBeanProvider.getSingletonBean(InstanceFactory.class)
               .newInstance(
                   stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
       // A step is left only with its required fields filled in: the browser checks them first
@@ -139,7 +139,7 @@ final class WizardActionDispatcher {
       setValue(
           stepField,
           wizard,
-          MateuBeanProvider.getBean(InstanceFactory.class)
+          MateuBeanProvider.getSingletonBean(InstanceFactory.class)
               .newInstance(
                   stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
       var params = httpRequest.runActionRq().parameters();
@@ -172,7 +172,7 @@ final class WizardActionDispatcher {
         setValue(
             stepField,
             wizard,
-            MateuBeanProvider.getBean(InstanceFactory.class)
+            MateuBeanProvider.getSingletonBean(InstanceFactory.class)
                 .newInstance(
                     stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
         var missing = requiredMissing(wizard, httpRequest);
@@ -242,7 +242,7 @@ final class WizardActionDispatcher {
     setValue(
         stepField,
         wizard,
-        MateuBeanProvider.getBean(InstanceFactory.class)
+        MateuBeanProvider.getSingletonBean(InstanceFactory.class)
             .newInstance(
                 stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
   }

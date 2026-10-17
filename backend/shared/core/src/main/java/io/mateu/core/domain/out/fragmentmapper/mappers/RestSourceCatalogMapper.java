@@ -65,7 +65,7 @@ final class RestSourceCatalogMapper {
    */
   private static RestSourceCatalog catalogue() {
     try {
-      var registry = MateuBeanProvider.getBean(RestSourceRegistry.class);
+      var registry = MateuBeanProvider.getSingletonBean(RestSourceRegistry.class);
       return registry == null ? RestSourceCatalog.empty() : registry.catalog();
     } catch (Throwable t) {
       log.debug("No REST source registry available ({})", t.toString());

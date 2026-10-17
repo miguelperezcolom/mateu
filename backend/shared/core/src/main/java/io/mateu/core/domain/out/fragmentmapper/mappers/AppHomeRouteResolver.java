@@ -185,7 +185,7 @@ final class AppHomeRouteResolver {
       return chained;
     }
     try {
-      var resolver = MateuBeanProvider.getBean(RoutedClassResolver.class);
+      var resolver = MateuBeanProvider.getSingletonBean(RoutedClassResolver.class);
       if (resolver == null) {
         return null;
       }

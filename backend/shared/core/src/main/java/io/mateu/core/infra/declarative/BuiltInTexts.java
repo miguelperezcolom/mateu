@@ -21,7 +21,7 @@ public final class BuiltInTexts {
     Translator translator = null;
     if (httpRequest != null) {
       try {
-        translator = MateuBeanProvider.getBean(Translator.class);
+        translator = MateuBeanProvider.getSingletonBean(Translator.class);
       } catch (RuntimeException ignored) {
         // no bean provider (e.g. a plain unit test): fall back to the translator context
       }

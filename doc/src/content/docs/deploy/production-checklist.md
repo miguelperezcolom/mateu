@@ -1,6 +1,6 @@
 ---
 title: "Deploy to production"
-description: "Packaging, reverse proxies and paths, authentication, stateless view models, static bundles on a CDN, CSP and CORS — the checklist for running a Mateu app in production."
+description: "Packaging, reverse proxies and paths, response compression, authentication, stateless view models, static bundles on a CDN, CSP and CORS — the checklist for running a Mateu app in production."
 ---
 
 A Mateu app is an ordinary application of its framework — a Spring Boot jar, a Quarkus app, a
@@ -63,6 +63,24 @@ What follows from it:
   buffering for the action endpoint on the proxy (`proxy_buffering off;` in nginx) and raise its read
   timeout above your longest task.
 - Sticky sessions are **not** needed — see the next section.
+
+### Compress the responses
+
+Every action answers with JSON, and that JSON compresses well: over Mateu's conformance corpus a
+response is about **three times smaller gzipped** (58 KB raw, 20 KB gzip). Mateu ships UI only, so
+compression is your server's or your proxy's job — and most frameworks leave it off:
+
+| Runtime | Turn it on |
+|---|---|
+| Spring Boot (MVC / WebFlux) | `server.compression.enabled=true` (JSON is in the default `server.compression.mime-types`) |
+| Quarkus | `quarkus.http.enable-compression=true` |
+| Micronaut | on by default (Netty compresses responses above `micronaut.server.netty.compression-threshold`) |
+| Helidon MP / anything else | compress at the reverse proxy |
+
+At a proxy, compress `application/json` (nginx: `gzip on; gzip_types application/json;`) but keep
+`text/event-stream` **out** of the list: a compressed event stream is held back until a block fills,
+which is the buffering the previous point warns about. The renderer's static assets are hashed and
+cacheable; compress them there too, or let the CDN do it.
 
 ## 3. Stateless view models
 
@@ -175,6 +193,7 @@ only where an agent should operate the app, behind the same authentication as th
 - [ ] Generated controllers present in the artifact; every menu entry loads
 - [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend
 - [ ] SSE not buffered by the proxy (if you use long-running actions)
+- [ ] JSON responses compressed by the server or the proxy (`server.compression.enabled=true` on Spring Boot)
 - [ ] No singleton view model with mutable fields
 - [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions
 - [ ] CSP set (report-only first), CORS limited to the origins you need

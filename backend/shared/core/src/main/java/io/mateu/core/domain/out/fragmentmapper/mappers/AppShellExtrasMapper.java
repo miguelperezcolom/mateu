@@ -105,7 +105,7 @@ public final class AppShellExtrasMapper {
     if (appClass != null && HeaderValuesSupplier.class.isAssignableFrom(appClass)) {
       var supplier =
           (HeaderValuesSupplier)
-              io.mateu.uidl.di.MateuBeanProvider.getBean(
+              io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
                       io.mateu.uidl.interfaces.InstanceFactory.class)
                   .newInstance(appClass, Map.of(), httpRequest);
       var supplied = supplier.headerValues(httpRequest);

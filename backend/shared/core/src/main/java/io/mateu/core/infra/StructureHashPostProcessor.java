@@ -1,6 +1,5 @@
 package io.mateu.core.infra;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -8,6 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -88,11 +90,16 @@ public final class StructureHashPostProcessor {
     // structure), and the hash slot itself must not feed back into the hash. Nested/structural ids
     // (field ids, etc.) are kept — they ARE part of the structure. The client never computes this
     // hash, only echoes the server's, so nulling id here is symmetric across request and response.
+    //
+    // The canonical JSON is digested AS IT IS WRITTEN — the same bytes, so the same hash, as
+    // serializing to a byte[] first, without holding a copy of the whole structure per request.
     try {
-      byte[] json = CANONICAL.writeValueAsBytes(component.withId(null).withStructureHash(null));
-      byte[] digest = MessageDigest.getInstance("SHA-256").digest(json);
-      return HexFormat.of().formatHex(digest);
-    } catch (JsonProcessingException | NoSuchAlgorithmException e) {
+      var digest = MessageDigest.getInstance("SHA-256");
+      try (var out = new DigestOutputStream(OutputStream.nullOutputStream(), digest)) {
+        CANONICAL.writeValue(out, component.withId(null).withStructureHash(null));
+      }
+      return HexFormat.of().formatHex(digest.digest());
+    } catch (IOException | NoSuchAlgorithmException e) {
       throw new IllegalStateException("Cannot compute structure hash", e);
     }
   }

@@ -19,9 +19,24 @@ public class DefaultInstanceFactoryProvider implements InstanceFactoryProvider {
     this.beanProvider = beanProvider;
   }
 
+  /**
+   * The factories, asked for once: they are core and app singletons, and the container's {@code
+   * getBeansOfType} on every request was a scan of every bean definition.
+   */
+  private volatile java.util.List<InstanceFactory> factories;
+
+  private java.util.List<InstanceFactory> factories() {
+    var known = factories;
+    if (known == null) {
+      known = java.util.List.copyOf(beanProvider.getBeans(InstanceFactory.class));
+      factories = known;
+    }
+    return known;
+  }
+
   @Override
   public InstanceFactory get(String className) {
-    return beanProvider.getBeans(InstanceFactory.class).stream()
+    return factories().stream()
         .filter(factory -> factory.supports(className))
         .min(Comparator.comparingInt(InstanceFactory::priority))
         .get();
