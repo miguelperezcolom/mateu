@@ -5,41 +5,41 @@ import { ROW_LINES_FIELD, findByType, isBlank, listingOf } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
-// ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
+// ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
 //
-// Contrato del wire (fixtures/real/rowedit-*.json, capturados contra el booking de ec-demo1):
-//  - `<campo>_add` / `<campo>_select` (con parameters._rowNumber) contestan DOS fragmentos: el
-//    State del contenedor (con `_show_detail[campo] = true`) y un ServerSide con el formulario
-//    de la fila dirigido a `<campo>-container` (title "New room"/"Edit room", `buttons` al pie:
-//    Save —primary—, "Save and add another" al crear, Cancel —tertiary—; Prev/Next en
-//    `toolbar` al editar, y la posición "1/3" como Text de `header`).
-//  - Save/Create/Cancel/Prev/Next viajan con el estado del CONTENEDOR (el formulario o el
-//    wizard) y la fila en parameters.initiatorState — como Vaadin desde 367
-//    (libs/mateu … common.ts resolveComponentState/isOwnListAction). Mandar la fila como
-//    componentState reconstruía el contenedor desde una habitación: el wizard volvía vacío a
-//    su primer paso.
-//  - El contenedor contesta un State con la lista nueva y `_show_detail[campo] = false`
-//    (cierra); `_create-and-stay` contesta además una fila nueva en `<campo>-container`.
-//  - Prev/Next contestan un State-only a `<campo>-container` (la fila vecina).
-//  - Los lookups de la fila (`search-<campo>`) los resuelve el ServerSide de la FILA con el
-//    estado de la fila: su respuesta es un fragmento data-only a su id.
+// Wire contract (fixtures/real/rowedit-*.json, captured against the ec-demo1 booking):
+//  - `<campo>_add` / `<campo>_select` (with parameters._rowNumber) answer TWO fragments: the
+//    container's State (with `_show_detail[campo] = true`) and a ServerSide with the row's form
+//    targeted at `<campo>-container` (title "New room"/"Edit room", `buttons` in the footer:
+//    Save —primary—, "Save and add another" when creating, Cancel —tertiary—; Prev/Next in
+//    `toolbar` when editing, and the position "1/3" as a `header` Text).
+//  - Save/Create/Cancel/Prev/Next travel with the CONTAINER's state (the form or the
+//    wizard) and the row in parameters.initiatorState — like Vaadin since 367
+//    (libs/mateu … common.ts resolveComponentState/isOwnListAction). Sending the row as
+//    componentState rebuilt the container from a room: the wizard went back empty to
+//    its first step.
+//  - The container answers a State with the new list and `_show_detail[campo] = false`
+//    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
+//  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+//  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
+//    row's state: its response is a data-only fragment to its id.
 
-/** Las acciones que el editor de una fila manda al contenedor de la lista: `rooms_create`… */
+/** The actions a row editor sends to the list's container: `rooms_create`… */
 export const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
 
-/** Verbos que llevan la fila del diálogo en parameters.initiatorState. */
+/** Verbs that carry the dialog's row in parameters.initiatorState. */
 export const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
 
-/** Verbos que validan la fila antes de salir (los obligatorios vacíos). */
+/** Verbs that validate the row before leaving (the empty required fields). */
 export const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
 
-/** ¿El FormField es una lista cuyo editor de fila se abre en un diálogo? */
+/** Is the FormField a list whose row editor opens in a dialog? */
 export function isModalRowEditor(field) {
   return !!(field && !field.readOnly && !field.inlineEditing
     && (field.columns || []).length && /^modal/.test(field.formPosition || ''))
 }
 
-/** Las listas con editor modal de un árbol (sin cruzar islas): fieldId → FormField. */
+/** The lists of a tree with a modal editor (without crossing islands): fieldId → FormField. */
 export function modalListsOf(tree) {
   const out = {}
   for (const f of collectFields(tree)) if (isModalRowEditor(f)) out[f.fieldId] = f
@@ -47,9 +47,9 @@ export function modalListsOf(tree) {
 }
 
 /**
- * ¿`actionId` es una acción de una lista del contenedor? → { fieldId, verb } o null. La lista
- * se reconoce como en Vaadin (el `<campo>_rowClass` que su estado lleva por cada lista) o, si
- * el estado no lo trae, por un FormField lista con ese id en el árbol del contenedor.
+ * Is `actionId` an action of one of the container's lists? → { fieldId, verb } or null. The list
+ * is recognised as in Vaadin (the `<campo>_rowClass` its state carries for each list) or, if
+ * the state doesn't bring it, by a list FormField with that id in the container's tree.
  */
 export function listActionOf(state, actionId, tree) {
   const match = actionId ? LIST_ACTION.exec(actionId) : null
@@ -60,9 +60,9 @@ export function listActionOf(state, actionId, tree) {
   return known ? { fieldId, verb: match[2] } : null
 }
 
-/** El contexto de transporte del contenedor: las acciones de sus listas van a SU ServerSide
- *  (el formulario, el wizard), no al mediador por el que se cargó la pantalla — el crud
- *  orquestador no sabe qué es `rooms_add` ("component() … DtoSupplier"). */
+/** The container's transport context: its lists' actions go to ITS ServerSide
+ *  (the form, the wizard), not to the mediator the screen was loaded through — the crud
+ *  orchestrator doesn't know what `rooms_add` is ("component() … DtoSupplier"). */
 export function holderTransportOf(holder) {
   const outbound = holder.outbound || {}
   const tree = holder.tree || {}
@@ -75,17 +75,17 @@ export function holderTransportOf(holder) {
   }
 }
 
-/** El _rowNumber REAL (número o uuid) de la fila cuyo texto es `key` — el DOM sólo da texto,
- *  y el servidor compara con equals: "0" no es 0. */
+/** The REAL _rowNumber (number or uuid) of the row whose text is `key` — the DOM only gives text,
+ *  and the server compares with equals: "0" is not 0. */
 export function rowOf(rows, key) {
   return (rows || []).find((row) => row && String(row._rowNumber) === String(key)) || null
 }
 
 /**
- * La request de una acción de lista: componentState = el estado del CONTENEDOR (+ su borrador),
- * y la fila del diálogo (+ su borrador) en parameters.initiatorState para los verbos del
- * editor. `_select` lleva el _rowNumber real; `_remove` de una fila, la fila en
- * `<campo>_selected_items` (el servidor quita las filas iguales). null si no es de una lista.
+ * The request of a list action: componentState = the CONTAINER's state (+ its draft),
+ * and the dialog's row (+ its draft) in parameters.initiatorState for the editor's
+ * verbs. `_select` carries the real _rowNumber; a row's `_remove`, the row in
+ * `<campo>_selected_items` (the server removes the equal rows). null if it is not a list's.
  */
 export function listActionRequestOf(reg, actionId, opts = {}) {
   const holderId = opts.holderId || HOST_ID
@@ -122,7 +122,7 @@ export function rowButtonOf(b) {
   }
 }
 
-/** Opciones de un select/lookup: las estáticas del campo o las que trajo su búsqueda. */
+/** Options of a select/lookup: the field's static ones or those its search brought. */
 export function optionsOf(field, data) {
   const found = data && data[field.fieldId] && data[field.fieldId].content
   const raw = (field.options && field.options.length) ? field.options : (found || [])
@@ -146,7 +146,7 @@ export function treeOptionsOf(options, leavesOnly, depth = 0) {
   return out
 }
 
-/** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
+/** A field's value as its widget edits it: a lookup may arrive as {value,label}. */
 export function plainValueOf(value) {
   if (value && typeof value === 'object' && !Array.isArray(value) && 'value' in value) return value.value
   return value
@@ -155,10 +155,10 @@ export function plainValueOf(value) {
 export const NUMERIC_TYPES = { integer: true, int: true, long: true, number: true, double: true, float: true, money: true }
 
 /**
- * Los campos del formulario de la fila, cada uno resuelto al widget que le toca (flags
- * PRECOMPUTADOS: el CSP de VB no evalúa expresiones) con su valor, sus opciones y sus
- * errores (messagesCustom de JET). Las listas anidadas (p.ej. las edades de los niños) no
- * se editan aquí.
+ * The fields of the row's form, each resolved to the widget it gets (flags
+ * PRECOMPUTED: VB's CSP does not evaluate expressions) with its value, its options and its
+ * errors (JET messagesCustom). Nested lists (e.g. the children's ages) are not
+ * edited here.
  */
 export function rowFieldsOf(ctx, values, errors) {
   if (!ctx || !ctx.tree) return []
@@ -172,10 +172,10 @@ export function rowFieldsOf(ctx, values, errors) {
     const raw = plainValueOf(state[f.fieldId])
     const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
     const error = errors && errors[f.fieldId]
-    // un campo de SÓLO LECTURA todavía vacío (la «Line» y el «Total» de una habitación nueva, que
-    // pone el servidor) se pinta como su rótulo y «—», texto que no se enfoca: un oj-input-number
-    // readonly sin valor es una cajita punteada de 20px que parece un control roto (y, el primero
-    // del diálogo, se quedaba con el foco)
+    // a READ-ONLY field that is still empty (the «Line» and «Total» of a new room, which
+    // the server sets) is painted as its label and «—», text that does not take focus: a readonly
+    // oj-input-number with no value is a 20px dotted box that looks like a broken control (and, as the first
+    // in the dialog, it kept the focus)
     if (widget.readonly && !widget.isBoolean && (raw == null || raw === '')) {
       out.push({
         ...widget, ...EMPTY_READONLY_WIDGET,
@@ -193,7 +193,7 @@ export function rowFieldsOf(ctx, values, errors) {
   return out
 }
 
-/** Lo que se pinta en lugar de un valor que todavía no hay (sólo lectura). */
+/** What is painted instead of a value that doesn't exist yet (read-only). */
 export const EMPTY_VALUE = '—'
 
 /** A password is never shown, not even read-only: a fixed mask (one length, so it does not tell
@@ -206,17 +206,17 @@ export function shownReadOnlyValueOf(md, value) {
 export const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
   isSelect: false, isLookup: false, lookupActionId: '', options: [] }
 
-/** Tipos de campo que el form layout sabe pintar con un widget de JET. */
+/** Field types the form layout knows how to paint with a JET widget. */
 export const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
   float: true, date: true, dateTime: true, bool: true, boolean: true,
   // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
   time: true }
 
 /**
- * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
- * su valor y su colspan. El valor sale del state o, si no está, de data — ahí manda el server
- * la etiqueta de un lookup de sólo lectura (hotelCode-label), que antes salía vacía. null si
- * no es un campo que el layout pinte (un grid, una property row, un tipo sin widget).
+ * A SCALAR field of a FormLayout, ready for the oj-form-layout: its widget (fieldWidgetOf),
+ * its value and its colspan. The value comes from the state or, if absent, from data — that's where the server sends
+ * the label of a read-only lookup (hotelCode-label), which used to come out empty. null if
+ * it is not a field the layout paints (a grid, a property row, a type without a widget).
  */
 export function layoutFieldOf(md, state, data, columns = 1) {
   const fieldId = md.fieldId || md.id
@@ -239,31 +239,31 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   return {
     ...widget,
     value,
-    // el del wire, acotado a las columnas del layout. La plantilla (oj-form-layout clásico, con
-    // los labels dentro) aún no lo aplica: eso pide oj-c-form-layout y sus column-span
+    // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
+    // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
     colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
     messagesCustom: [],
   }
 }
 
-// ── @Searchable: el selector en un diálogo ─────────────────────────────────────────────────
+// ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────
 //
-// Un @Searchable (un id, o una List/Set/array de ids) se pinta como chips — uno por id, con su
-// rótulo de data `<campo>-labels` ({id → rótulo}; en uno simple, `<campo>-label`) — y un botón
-// que abre su selector (`codesearch-<campo>`): un listado en un Dialog. Elegir una fila
-// (`action-on-row-select`) o «Add selected» (`action-on-row-select-selected`, con las filas
-// marcadas en crud_selected_items) contesta value-changed / data-changed / close-modal-requested,
-// que aquí se aplican al contexto que abrió el diálogo. El servidor fusiona: un campo de varios
-// valores AÑADE a los que tenía. Quitar un chip es sólo del cliente. Vaadin hace lo mismo
+// A @Searchable (one id, or a List/Set/array of ids) is painted as chips — one per id, with its
+// label from data `<campo>-labels` ({id → label}; in a single one, `<campo>-label`) — and a button
+// that opens its selector (`codesearch-<campo>`): a listing in a Dialog. Picking a row
+// (`action-on-row-select`) or «Add selected» (`action-on-row-select-selected`, with the
+// checked rows in crud_selected_items) answers value-changed / data-changed / close-modal-requested,
+// which here are applied to the context that opened the dialog. The server merges: a multi-valued
+// field ADDS to the ones it had. Removing a chip is client-only. Vaadin does the same
 // (libs/mateu searchableMulti.ts).
 
-/** ¿Es un @Searchable editable como tal? (la vista de detalle lo manda como `<campo>-label`:
- *  su texto, que se pinta como cualquier valor de sólo lectura) */
+/** Is it a @Searchable editable as such? (the detail view sends it as `<campo>-label`:
+ *  its text, painted like any read-only value) */
 export function isSearchableField(f) {
   return !!f && f.stereotype === 'searchable' && !/-label$/.test(String(f.fieldId || ''))
 }
 
-/** Los ids de un campo, lleguen como lleguen (lista, un id suelto, nada). */
+/** A field's ids, however they arrive (list, a single id, nothing). */
 export function searchableIdsOf(value) {
   if (value == null || value === '') return []
   const list = Array.isArray(value) ? value : [value]
@@ -271,8 +271,8 @@ export function searchableIdsOf(value) {
 }
 
 /**
- * Los chips de un @Searchable: uno por id, rotulado (o el propio id si no hay rótulo). Cada chip
- * lleva lo que queda al quitarlo (`remaining`: en uno simple, null) — precomputado (CSP de VB).
+ * The chips of a @Searchable: one per id, labelled (or the id itself if there is no label). Each chip
+ * carries what remains when removing it (`remaining`: in a single one, null) — precomputed (VB's CSP).
  */
 export function searchableChipsOf(fieldId, ids, labels, opts = {}) {
   const map = labels && typeof labels === 'object' ? labels : {}
@@ -290,7 +290,7 @@ export function searchableChipsOf(fieldId, ids, labels, opts = {}) {
   })
 }
 
-/** El widget de un @Searchable: sus chips y el botón que abre el selector. */
+/** The widget of a @Searchable: its chips and the button that opens the selector. */
 export function searchableWidgetOf(f, data, value) {
   const fieldId = f.fieldId
   const multi = f.dataType === 'array'
@@ -310,7 +310,7 @@ export function searchableWidgetOf(f, data, value) {
     isSearchableMulti: multi,
     chips,
     hasChips: chips.length > 0,
-    // el botón despacha como cualquier bloque del host (hostBlockAction: actionId + parameters)
+    // the button dispatches like any host block (hostBlockAction: actionId + parameters)
     actionId: 'codesearch-' + fieldId,
     parameters: {},
     addLabel: multi ? 'Add' : 'Search',
@@ -327,7 +327,7 @@ export function searchableWidgetOf(f, data, value) {
   }
 }
 
-/** ¿Es el overlay el diálogo de un selector (un listado cuyo ServerSide atiende la elección)? */
+/** Is the overlay a selector's dialog (a listing whose ServerSide handles the pick)? */
 export function isPickerOverlay(ctx) {
   const surface = ctx && ctx.surface
   if (!surface || !findByType(surface, 'Crud')) return false
@@ -338,9 +338,9 @@ export const SEARCHABLE_PICK_ACTION = 'action-on-row-select'
 export const SEARCHABLE_ADD_ACTION = 'action-on-row-select-selected'
 
 /**
- * ¿Es el overlay un LISTADO (un Listing incrustado — EmbeddedView — en un Drawer o un Dialog: su
- * superficie es un Crud), sin ser el selector de un @Searchable? Se pinta como un listado de
- * verdad — búsqueda, columnas, páginas, clic en la fila —, no como el formulario genérico.
+ * Is the overlay a LISTING (a Listing embedded — EmbeddedView — in a Drawer or a Dialog: its
+ * surface is a Crud), without being a @Searchable's selector? It is painted as a real
+ * listing — search, columns, pages, row click —, not as the generic form.
  */
 export function isListingOverlay(ctx) {
   const surface = ctx && ctx.surface
@@ -348,14 +348,14 @@ export function isListingOverlay(ctx) {
 }
 
 /**
- * El SELECTOR de un @Searchable abierto (el overlay superior, si lo es), listo para el oj-dialog
- * del selector: título, columnas (sin la columna-botón «Select»: elegir es pulsar la fila),
- * filas, búsqueda, paginación y — en un campo de varios valores — la selección múltiple y el
- * botón «Add selected». También un LISTADO en un overlay (isListingOverlay), con la misma
- * maquinaria: en un Drawer se pinta DENTRO del drawer (`inDrawer`), en un Dialog en el diálogo
- * del selector; su clic de fila es el `view` del listado con la fila, como en una página
- * (`pickWithRow`), y `loaded` dice si su primera búsqueda ya contestó. null si el overlay
- * superior no es ninguna de las dos cosas.
+ * The SELECTOR of an open @Searchable (the top overlay, if it is one), ready for the selector's
+ * oj-dialog: title, columns (without the «Select» button column: picking is clicking the row),
+ * rows, search, paging and — in a multi-valued field — multiple selection and the
+ * «Add selected» button. Also a LISTING in an overlay (isListingOverlay), with the same
+ * machinery: in a Drawer it is painted INSIDE the drawer (`inDrawer`), in a Dialog in the selector's
+ * dialog; its row click is the listing's `view` with the row, as on a page
+ * (`pickWithRow`), and `loaded` says whether its first search has answered. null if the top
+ * overlay is neither of the two.
  */
 export function searchPickerOf(reg) {
   const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
@@ -367,7 +367,7 @@ export function searchPickerOf(reg) {
   const multi = state._searchableMulti === true || state._searchableMulti === 'true'
     || !!listing.rowsSelectionEnabled
   const addButton = (listing.toolbar || []).find((b) => b.actionId === SEARCHABLE_ADD_ACTION)
-  // sin título propio, el del campo que lo abrió (su rótulo)
+  // without its own title, that of the field that opened it (its label)
   const opener = reg.contexts[ctx.opener || HOST_ID]
   const field = opener && opener.tree && state._searchableField
     ? collectFields(opener.tree).find((f) => f.fieldId === state._searchableField) : null
@@ -390,7 +390,7 @@ export function searchPickerOf(reg) {
   }
 }
 
-/** Un listado incrustado en un overlay, con la forma del selector (searchPickerOf). */
+/** A listing embedded in an overlay, with the selector's shape (searchPickerOf). */
 function listingOverlayOf(id, ctx) {
   const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
   const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
@@ -417,7 +417,7 @@ function listingOverlayOf(id, ctx) {
   }
 }
 
-/** El estado de la búsqueda del selector: lo que su `search` lleva en componentState. */
+/** The selector's search state: what its `search` carries in componentState. */
 export function pickerSearchStateOf(picker, opts = {}) {
   const size = (picker && picker.pageSize) || 20
   return {
@@ -428,11 +428,11 @@ export function pickerSearchStateOf(picker, opts = {}) {
 }
 
 /**
- * Aplica al contexto que abrió el overlay superior los eventos con los que un componente del
- * overlay le devuelve un valor — value-changed {fieldId, value}, data-changed {key, value} — y
- * close-modal-requested (cierra el overlay). Es lo que en Vaadin hace el mateu-event-interceptor
- * del diálogo al reenviarlos a su dueño. true si el evento se aplicó; sin overlay, false (el
- * evento sigue al bus, como siempre).
+ * Applies to the context that opened the top overlay the events with which an overlay component
+ * returns a value to it — value-changed {fieldId, value}, data-changed {key, value} — and
+ * close-modal-requested (closes the overlay). It is what, in Vaadin, the dialog's mateu-event-interceptor
+ * does when forwarding them to its owner. true if the event was applied; without an overlay, false (the
+ * event goes on to the bus, as always).
  */
 export function applyOverlayEvent(contexts, stack, data) {
   const name = data && data.eventName
@@ -460,8 +460,8 @@ export function applyOverlayEvent(contexts, stack, data) {
   return false
 }
 
-/** El registro con `values` fundidos en el estado del contexto `id` (p.ej. el borrador del
- *  formulario al abrir un selector: lo escrito no se pierde cuando el diálogo se cierra). */
+/** The registry with `values` merged into the state of context `id` (e.g. the form's draft
+ *  when opening a selector: what was typed is not lost when the dialog closes). */
 export function withContextState(reg, id, values) {
   const ctx = reg && reg.contexts && reg.contexts[id]
   if (!ctx || !values || !Object.keys(values).length) return reg
@@ -469,9 +469,9 @@ export function withContextState(reg, id, values) {
 }
 
 /**
- * Una proyección (secciones del formulario, bloques del host…) con los chips del @Searchable
- * `fieldId` rehechos para `ids` — al quitar un chip, sin volver al servidor. Los rótulos salen
- * de los chips que ya había.
+ * A projection (form sections, host blocks…) with the chips of @Searchable
+ * `fieldId` rebuilt for `ids` — when removing a chip, without going back to the server. The labels come
+ * from the chips that were already there.
  */
 export function withSearchableIds(projection, fieldId, ids) {
   const visit = (node) => {
@@ -493,19 +493,19 @@ export function withSearchableIds(projection, fieldId, ids) {
 }
 
 /**
- * El WIDGET que le toca a un FormField (flags PRECOMPUTADOS: el CSP de VB no evalúa
- * expresiones), compartido por el editor de fila y los formularios de página/drawer/isla:
- * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
- * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
+ * The WIDGET a FormField gets (flags PRECOMPUTED: VB's CSP does not evaluate
+ * expressions), shared by the row editor and the page/drawer/island forms:
+ * select if it brings options (static, or those its search brought) — or, with lookups, if it is a
+ * remote lookup —, date, date-time, number, boolean, text area or text.
  */
-// Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
-// PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
-// plantilla (ver poc/templates/fields-extra.html).
+// Field stereotypes with their own widget beyond text/number/date/boolean/select (PMS
+// challenge): radio, multiple selection, amount and the capture ones. Each family is an is* flag of the
+// template (see poc/templates/fields-extra.html).
 export const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
 export const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
 export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
 
-/** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+/** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
 export function extraWidgetOf(f, options) {
   const st = f.stereotype
   // an editable password is typed into a masked input (oj-input-password): as plain text it
@@ -519,7 +519,7 @@ export function extraWidgetOf(f, options) {
     const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
     return {
       isMoney: true,
-      // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+      // JET converter (oj-input-number): number with 2 decimals and its currency symbol
       converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
     }
   }
@@ -559,7 +559,7 @@ export function committedValueOf(previous, value) {
   return value
 }
 
-/** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+/** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
 export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
     || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
@@ -598,17 +598,17 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   }
   const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
   let options = optionsOf(f, data)
-  // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
-  // del valor) lo lleva como opción propia, con su etiqueta si el server la mandó: un
-  // oj-select-one con un valor que no está en sus opciones se pinta VACÍO.
+  // A lookup with a value that is not yet among its options (they haven't arrived, or only the
+  // value's one arrived) carries it as an option of its own, with its label if the server sent it: an
+  // oj-select-one with a value that is not among its options is painted EMPTY.
   const current = plainValueOf(value)
   if (lookups && lookupActionId && current != null && current !== ''
       && !options.some((o) => String(o.value) === String(current))) {
     const label = (value && typeof value === 'object' && value.label) || (data && data[f.fieldId + '-label'])
     options = [{ value: current, label: label != null && label !== '' ? String(label) : String(current) }].concat(options)
   }
-  // en una página, un lookup cuya búsqueda no trajo nada se queda en texto: un desplegable
-  // vacío no deja ni escribir el código (el editor de fila sí lo pinta siempre como select)
+  // on a page, a lookup whose search brought nothing stays as text: an empty
+  // dropdown doesn't even let you type the code (the row editor always paints it as a select)
   const isSelect = (lookups && !!lookupActionId && !(textWhenEmpty && !options.length)) || options.length > 0
   const isBoolean = !isSelect && (f.dataType === 'bool' || f.dataType === 'boolean')
   const isDate = !isSelect && f.dataType === 'date'
@@ -636,7 +636,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   }
 }
 
-/** Los obligatorios vacíos de la fila → { fieldId: mensaje }; {} si está bien. */
+/** The row's empty required fields → { fieldId: message }; {} if it is fine. */
 export function validateRow(ctx, values) {
   const errors = {}
   for (const f of rowFieldsOf(ctx, values)) {
@@ -646,9 +646,9 @@ export function validateRow(ctx, values) {
 }
 
 /**
- * La acción `actionId` tal como la DECLARA el ServerSide del contexto (`tree.actions`), o null.
- * La exacta gana a un comodín ('*', 'prefijo*'), como en Vaadin: un flag de la declarada
- * (confirmación, validación) no puede quedar tapado por un catch-all listado antes.
+ * The action `actionId` as the context's ServerSide DECLARES it (`tree.actions`), or null.
+ * The exact one beats a wildcard ('*', 'prefix*'), as in Vaadin: a flag of the declared one
+ * (confirmation, validation) cannot be hidden by a catch-all listed earlier.
  */
 export function declaredActionOf(ctx, actionId) {
   const actions = (ctx && ctx.tree && ctx.tree.actions) || []
@@ -660,16 +660,16 @@ export function declaredActionOf(ctx, actionId) {
 }
 
 /**
- * El contexto de TRANSPORTE de una acción del host: a qué ServerSide va.
+ * The TRANSPORT context of a host action: which ServerSide it goes to.
  *
- * Una pantalla cargada a través de un mediador (el crud orquestador, el home de un pod remoto)
- * guarda en `outbound.serverSideType` el del mediador, y el árbol del host es el componente que
- * pintó — la vista de la reserva, `BookingViewModel`. Las acciones que ese componente DECLARA
- * (sus `@Toolbar`: «Ver recorrido», «Cancel booking», «Activate») son suyas: el mediador no las
- * conoce y contestaba «verRecorrido not supported by BookingCrudOrchestrator». Las que no
- * declara (edit, new, cancel-view: las del crud) y las marcadas `bubble` siguen subiendo al
- * mediador. Es la regla de Vaadin (mateu-component: la acción la atiende el ServerSide que la
- * anuncia; si no, burbujea).
+ * A screen loaded through a mediator (the crud orchestrator, the home of a remote pod)
+ * keeps the mediator's in `outbound.serverSideType`, and the host tree is the component it
+ * painted — the booking view, `BookingViewModel`. The actions that component DECLARES
+ * (its `@Toolbar`s: «Ver recorrido», «Cancel booking», «Activate») are its own: the mediator doesn't
+ * know them and answered «verRecorrido not supported by BookingCrudOrchestrator». Those it doesn't
+ * declare (edit, new, cancel-view: the crud's) and those marked `bubble` keep going up to the
+ * mediator. It is Vaadin's rule (mateu-component: the action is handled by the ServerSide that
+ * advertises it; otherwise it bubbles).
  */
 export function actionTransportOf(ctx, actionId) {
   const tree = ctx && ctx.tree
@@ -682,11 +682,11 @@ export function actionTransportOf(ctx, actionId) {
 }
 
 /**
- * El transporte de una acción del OVERLAY superior cuando la declara su formulario embebido
- * (EmbeddedView: un ServerSide propio dentro del Dialog/Drawer): va a ESE componente — su
- * serverSideType, su id como initiator, su estado — sin ruta, como en Vaadin. null si no hay
- * overlay o su formulario no declara la acción (entonces va al host, como siempre: el drawer
- * del crud no lleva ServerSide propio).
+ * The transport of a TOP-overlay action when its embedded form declares it
+ * (EmbeddedView: its own ServerSide inside the Dialog/Drawer): it goes to THAT component — its
+ * serverSideType, its id as initiator, its state — with no route, as in Vaadin. null if there is no
+ * overlay or its form doesn't declare the action (then it goes to the host, as always: the crud's
+ * drawer carries no ServerSide of its own).
  */
 export function overlayTransportOf(reg, actionId) {
   const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
@@ -704,9 +704,9 @@ export function overlayTransportOf(reg, actionId) {
   }
 }
 
-// Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
-// documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
-// pregunta «Yes / No».
+// The generic texts of the confirmation dialog, in the interface language (the document's
+// lang, which copy.mjs sets to the browser's — like pagingLangOf): a console in Spanish doesn't
+// ask «Yes / No».
 export function confirmationDefaultsOf(lang) {
   const l = chromeLanguage(lang)
   return { title: chromeText('confirmTitle', null, l), message: chromeText('confirmMessage', null, l),
@@ -714,9 +714,9 @@ export function confirmationDefaultsOf(lang) {
 }
 
 /**
- * El diálogo de confirmación que pide la acción antes de salir (`confirmationRequired`), o null
- * si no pide ninguno. Cada texto cae por su cuenta al genérico — como en Vaadin
- * (confirmationTexts.ts): una acción que sólo declara el mensaje los trae vacíos al resto.
+ * The confirmation dialog the action asks for before leaving (`confirmationRequired`), or null
+ * if it asks for none. Each text falls back to the generic one on its own — as in Vaadin
+ * (confirmationTexts.ts): an action that only declares the message brings the rest empty.
  */
 export function confirmationOf(ctx, actionId, lang) {
   const action = declaredActionOf(ctx, actionId)
@@ -732,18 +732,18 @@ export function confirmationOf(ctx, actionId, lang) {
   }
 }
 
-// La respuesta pendiente del diálogo de confirmación: la chain que lanza la acción espera la
-// promesa; los botones del diálogo (y su ✕ / Esc) la resuelven. Una sola a la vez: abrir otra
-// antes de contestar la primera la da por denegada.
+// The pending answer of the confirmation dialog: the chain that launches the action awaits the
+// promise; the dialog's buttons (and its ✕ / Esc) resolve it. Only one at a time: opening another
+// before answering the first counts it as denied.
 export let pendingConfirmation = null
 
-/** Espera la respuesta del diálogo de confirmación (true = confirmar). */
+/** Waits for the confirmation dialog's answer (true = confirm). */
 export function awaitConfirmation() {
   if (pendingConfirmation) pendingConfirmation(false)
   return new Promise((resolve) => { pendingConfirmation = resolve })
 }
 
-/** Contesta el diálogo de confirmación abierto; sin ninguno esperando, no hace nada. */
+/** Answers the open confirmation dialog; with none waiting, it does nothing. */
 export function answerConfirmation(confirmed) {
   const resolve = pendingConfirmation
   pendingConfirmation = null
@@ -751,11 +751,11 @@ export function answerConfirmation(confirmed) {
 }
 
 /**
- * ¿Pide la acción `actionId` del contexto validar el formulario antes de salir? Es el
- * validationRequired de las acciones del ServerSide (p.ej. el `next` de un wizard, el `save`
- * de un formulario): lo que Vaadin comprueba en el navegador antes de llamar al servidor.
- * → { fields } (los fieldsToValidate de la acción; [] = todos) o null si no pide validar.
- * La acción EXACTA gana a un comodín ('*', 'prefijo*'), como en Vaadin.
+ * Does the context's action `actionId` ask to validate the form before leaving? It is the
+ * validationRequired of the ServerSide's actions (e.g. a wizard's `next`, a form's
+ * `save`): what Vaadin checks in the browser before calling the server.
+ * → { fields } (the action's fieldsToValidate; [] = all) or null if it doesn't ask to validate.
+ * The EXACT action beats a wildcard ('*', 'prefix*'), as in Vaadin.
  */
 export function validationOf(ctx, actionId) {
   const action = declaredActionOf(ctx, actionId)
@@ -764,9 +764,9 @@ export function validationOf(ctx, actionId) {
 }
 
 /**
- * Los obligatorios vacíos del formulario de la página (sus secciones, tal como se pintan) con
- * lo que el usuario ha escrito (el borrador gana al estado) → [fieldId] en el orden del
- * formulario: el primero es el que recibe el foco. `only` restringe a esos campos.
+ * The empty required fields of the page's form (its sections, as they are painted) with
+ * what the user has typed (the draft beats the state) → [fieldId] in form
+ * order: the first is the one that receives focus. `only` restricts to those fields.
  */
 export function formErrorsOf(sections, draft, only) {
   const restrict = Array.isArray(only) && only.length ? new Set(only) : null
@@ -784,21 +784,21 @@ export function formErrorsOf(sections, draft, only) {
 }
 
 /**
- * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
- * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
- * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
+ * The dropdowns' placeholder in language `lang` (the browser's; English if it is not
+ * known). One is needed: an oj-select-one WITHOUT a placeholder picks the first option on its
+ * own, and an empty required field passed validation with a value nobody had chosen.
  */
 export function selectPlaceholder(lang) {
   return chromeText('selectValue', null, String(lang || '').split(/[-_]/)[0] || 'en')
 }
 
 /**
- * Los lookups REMOTOS de un contexto cuyas opciones no se han cargado todavía → [{ fieldId,
- * actionId }]: los campos editables del formulario (una página, un paso de wizard, un
- * formulario nuevo) y los filtros del listado. Un lookup de una página se pintaba como texto
- * sin opciones — vacío en un alta — porque sólo el editor de fila lanzaba su búsqueda. La
- * opción suelta que el server manda con el valor (su etiqueta) no cuenta como cargadas: con
- * ella sola no se puede elegir otra. Los de sólo lectura no la necesitan.
+ * The REMOTE lookups of a context whose options have not been loaded yet → [{ fieldId,
+ * actionId }]: the form's editable fields (a page, a wizard step, a
+ * new form) and the listing's filters. A page lookup was painted as text
+ * without options — empty on a create — because only the row editor launched its search. The
+ * single option the server sends with the value (its label) doesn't count as loaded: with
+ * it alone you cannot pick another. Read-only ones don't need it.
  */
 export function formLookupsOf(ctx) {
   if (!ctx || !ctx.tree) return []
@@ -815,10 +815,10 @@ export function formLookupsOf(ctx) {
   return out
 }
 
-/** Marca de las opciones de un lookup ya buscadas (en ctx.data[campo]): no se repite la búsqueda. */
+/** Mark of a lookup's options already searched (in ctx.data[campo]): the search is not repeated. */
 export const LOOKUP_LOADED = '_mateuLoaded'
 
-/** El registro con las opciones de esos lookups del contexto marcadas como cargadas. */
+/** The registry with the options of those lookups of the context marked as loaded. */
 export function markLookupsLoaded(reg, ctxId, fieldIds) {
   const ctx = reg && reg.contexts && reg.contexts[ctxId]
   if (!ctx) return reg
@@ -830,7 +830,7 @@ export function markLookupsLoaded(reg, ctxId, fieldIds) {
   return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...ctx, data } } }
 }
 
-/** Los lookups de la fila que aún no tienen opciones → [{ fieldId, actionId }]. */
+/** The row's lookups that don't have options yet → [{ fieldId, actionId }]. */
 export function pendingLookupsOf(ctx) {
   if (!ctx || !ctx.tree) return []
   return rowFieldsOf(ctx)
@@ -839,9 +839,9 @@ export function pendingLookupsOf(ctx) {
 }
 
 /**
- * La request de la búsqueda de un lookup de la fila: la resuelve el ServerSide de la FILA
- * (su serverSideType, su id como initiator) con el estado de la fila; la ruta y el backend
- * son los del contenedor.
+ * The request for a row lookup's search: the ROW's ServerSide resolves it
+ * (its serverSideType, its id as initiator) with the row's state; the route and the backend
+ * are the container's.
  */
 export function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
   const row = reg && reg.contexts && reg.contexts[rowCtxId]
@@ -864,9 +864,9 @@ export function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
 }
 
 /**
- * Proyección del EDITOR DE FILA abierto (el oj-dialog): null si ninguna lista modal del
- * contenedor tiene su detalle abierto (`_show_detail[campo]`) con el formulario ya recibido
- * en `<campo>-container`.
+ * Projection of the open ROW EDITOR (the oj-dialog): null if no modal list of the
+ * container has its detail open (`_show_detail[campo]`) with the form already received
+ * in `<campo>-container`.
  */
 export function rowEditorOf(reg, opts = {}) {
   const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
@@ -893,7 +893,7 @@ export function rowEditorOf(reg, opts = {}) {
       title: interpolate(md.title || lists[fieldId].label || '', rowState),
       subtitle: header.join(' · '),
       toolbar: (md.toolbar || []).filter((b) => b && b.actionId).map(rowButtonOf),
-      // pie Redwood: la primaria a la DERECHA del todo — el wire la manda primera
+      // Redwood footer: the primary at the far RIGHT — the wire sends it first
       buttons: buttons.slice().reverse(),
       fields: rowFieldsOf(ctx, opts.rowDraft, opts.errors),
     }

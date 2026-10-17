@@ -4,12 +4,12 @@ import { fieldWidgetOf, isExtraLayoutField, isListingOverlay, plainValueOf } fro
 
 export const HOST_ID = '__root__'
 
-/** Recorrido que NO cruza fronteras de isla: un ServerSide INTERIOR es otra superficie
- *  (sus campos/acciones pertenecen a su propio contexto, no al host). */
+/** A walk that does NOT cross island boundaries: an INNER ServerSide is another surface
+ *  (its fields/actions belong to its own context, not to the host). */
 export function walkWithinSurface(node, visit) {
   const walk = (n, isRoot) => {
     if (!n || typeof n !== 'object') return
-    if (!isRoot && n.type === 'ServerSide') return // frontera de isla: parar
+    if (!isRoot && n.type === 'ServerSide') return // island boundary: stop
     visit(n)
     for (const [k, v] of Object.entries(n)) {
       // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
@@ -37,33 +37,33 @@ export function ownerIdsOf(tree) {
   return ids
 }
 
-/** Helper de RENDER: recolecta los FormFields de la superficie (sin cruzar islas). */
+/** RENDER helper: collects the surface's FormFields (without crossing islands). */
 export function collectFields(node, out = []) {
   walkWithinSurface(node, (n) => { if (n.fieldId) out.push(n) })
   return out
 }
 
-/** Helper de RENDER: recolecta botones/acciones de la superficie (sin cruzar islas). */
+/** RENDER helper: collects the surface's buttons/actions (without crossing islands). */
 export function collectActions(node, out = []) {
   walkWithinSurface(node, (n) => { if (n.actionId && n.label && !n.fieldId) out.push(n) })
   return out
 }
 
-/** Fronteras de isla embebida — DOS sabores confirmados en wire real:
- *  (a) nodos ServerSide INTERIORES (id propio, p.ej. '_guestNote');
- *  (b) nodos ClientSide App variant=MEDIATOR con id estable (p.ej.
- *      'island_checkin_st_maria') cuya PROPIA metadata trae homeRoute
+/** Embedded island boundaries — TWO flavours confirmed on the real wire:
+ *  (a) INNER ServerSide nodes (own id, e.g. '_guestNote');
+ *  (b) ClientSide App variant=MEDIATOR nodes with a stable id (e.g.
+ *      'island_checkin_st_maria') whose OWN metadata carries homeRoute
  *      (?_embeddedMediator=1) + homeConsumedRoute + homeServerSideType —
- *      el detalle del TaskQueue del front-office llega así. */
+ *      the front-office TaskQueue detail arrives like this. */
 export function collectIslands(tree, out = []) {
   const walk = (node, isRoot) => {
     if (!node || typeof node !== 'object') return
     if (!isRoot && node.type === 'ServerSide') {
-      // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
-      // la vista (ver subresourceIslandOf); ni una isla INLINE (un campo-componente con su propio
-      // ServerSide, árbol incluido): es otra superficie, pintada en su hueco (inlineIslandOf)
+      // a @Subresource is not the screen's island: loadSubresources loads it when it comes into
+      // view (see subresourceIslandOf); nor is an INLINE island (a component field with its own
+      // ServerSide, tree included): it is another surface, painted in its slot (inlineIslandOf)
       if (!subresourceIslandOf(node) && !inlineIslandOf(node)) out.push(node)
-      return // sus hijos pertenecen a la isla, no al host
+      return // its children belong to the island, not the host
     }
     if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
         && node.metadata.type === 'App' && node.metadata.variant === 'MEDIATOR') {
@@ -72,8 +72,8 @@ export function collectIslands(tree, out = []) {
         route: node.metadata.homeRoute,
         consumedRoute: node.metadata.homeConsumedRoute || node.metadata.homeRoute,
         serverSideType: node.metadata.homeServerSideType,
-        // el CONTEXTO sembrado por el host (stayId, paxIndex…): debe viajar como
-        // componentState en la carga inicial de la isla (mateu-ux.initialState)
+        // the CONTEXT seeded by the host (stayId, paxIndex…): it must travel as
+        // componentState in the island's initial load (mateu-ux.initialState)
         initialData: node.initialData || null,
       })
       return
@@ -87,16 +87,16 @@ export function collectIslands(tree, out = []) {
   return out
 }
 
-/** Helper de RENDER: FormField[] del árbol → metadata de oj-dyn-form (mapa campo → meta).
- *  null si el árbol no tiene campos (página sin formulario). */
+/** RENDER helper: FormField[] of the tree → oj-dyn-form metadata (field → meta map).
+ *  null if the tree has no fields (page without a form). */
 export function dynFormMetadataOf(tree) {
   const NUMERIC = ['integer', 'int', 'long', 'number', 'double', 'float', 'money']
   const metadata = {}
   for (const f of collectFields(tree)) {
-    if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
-    // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
-    // (un @Searchable de varios ids sí es un campo: sus chips)
-    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    if (!f.dataType || metadata[f.fieldId]) continue // duplicates = FormRow references
+    // a LIST (form grid) is not a text field: the content paints it as a table
+    // (a multi-id @Searchable IS a field: its chips)
+    // a list is a table (not a field) except @Searchable and multiple-choice ones
     if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
     metadata[f.fieldId] = {
       type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
@@ -110,9 +110,9 @@ export function dynFormMetadataOf(tree) {
   return Object.keys(metadata).length ? metadata : null
 }
 
-/** Helper de RENDER: botones únicos del árbol. chroming viene PRECOMPUTADO (los bindings
- *  VB deben quedar como paths simples: un ternario en un atributo rompe la evaluación CSP
- *  de TODAS las propiedades del elemento). */
+/** RENDER helper: the tree's unique buttons. chroming comes PRECOMPUTED (VB bindings
+ *  must stay simple paths: a ternary in an attribute breaks the CSP evaluation
+ *  of ALL the element's properties). */
 export function actionsOf(tree) {
   const seen = {}
   const out = []
@@ -136,13 +136,13 @@ export function actionsOf(tree) {
   return out
 }
 
-/** Helper de RENDER: lista de campos para el switch widgetFor (isText/isNumber/isBoolean/
- *  isSelect/isDate/isDateTime PRECOMPUTADOS — los bindings VB deben ser paths simples), con el
- *  valor sacado del state. Es la MISMA resolución de widget que el editor de fila
- *  (fieldWidgetOf): un select con opciones (options/OptionsSupplier/enum) se pinta como
- *  oj-select-one y una fecha como oj-input-date también en el formulario de página, el drawer
- *  y la isla, no sólo en el diálogo de la fila. Un lookup REMOTO sin opciones todavía se queda
- *  en texto: aquí nadie lanza su búsqueda (sólo el editor de fila lo hace). */
+/** RENDER helper: list of fields for the widgetFor switch (isText/isNumber/isBoolean/
+ *  isSelect/isDate/isDateTime PRECOMPUTED — VB bindings must be simple paths), with the
+ *  value taken from the state. It is the SAME widget resolution as the row editor
+ *  (fieldWidgetOf): a select with options (options/OptionsSupplier/enum) is painted as
+ *  oj-select-one and a date as oj-input-date also in the page form, the drawer
+ *  and the island, not only in the row dialog. A REMOTE lookup with no options yet stays
+ *  as text: nobody launches its search here (only the row editor does). */
 export function fieldListOf(tree, state, data) {
   if (!dynFormMetadataOf(tree)) return []
   const s = state || {}
@@ -152,12 +152,12 @@ export function fieldListOf(tree, state, data) {
   for (const f of collectFields(tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
-    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    // a list is a table (not a field) except @Searchable and multiple-choice ones
     if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
-    // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
+    // the detail view of a @Searchable arrives as `<campo>-label`: its text travels in data
     const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
-    // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
-    // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
+    // a REMOTE lookup is a dropdown here too: the chain loads its options
+    // (bridge.loadLookups) when the screen opens, like the row editor's
     const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
     let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
     if (widget.isMultiSelect || widget.isCheckboxSet)
@@ -168,14 +168,14 @@ export function fieldListOf(tree, state, data) {
   return out
 }
 
-/** ¿Es este nodo una SECCIÓN del formulario (@Section)? El wire la manda como una Card con la
- *  clase mateu-section, su título en un Text de cabecera (h3) y sus campos en un FormLayout. */
+/** Is this node a form SECTION (@Section)? The wire sends it as a Card with the
+ *  mateu-section class, its title in a header Text (h3) and its fields in a FormLayout. */
 export function isSectionNode(n) {
   return !!(n && n.metadata && n.metadata.type === 'Card' && /(^|\s)mateu-section(\s|$)/.test(n.cssClasses || ''))
 }
 
-/** El título y las columnas de una sección: el primer Text de cabecera y el primer FormLayout
- *  de SU contenido (sin bajar a una sección anidada ni a otra isla). */
+/** A section's title and columns: the first header Text and the first FormLayout
+ *  of ITS content (without descending into a nested section or another island). */
 export function sectionHeadOf(card) {
   let title = ''
   let columns = 0
@@ -237,10 +237,10 @@ export function sectionButtonsOf(card) {
 }
 
 /**
- * Las columnas de un grupo de campos en un formulario a TODO EL ANCHO (página, wizard): las
- * declaradas (FormLayout maxColumns, @Section(columns)) o, sin declarar, dos — el reparto por
- * defecto del FormLayout de Vaadin en escritorio. oj-form-layout las baja solo cuando no caben
- * (cada columna pide 18rem como mínimo), así que en un teléfono vuelve a ser una.
+ * The columns of a field group in a FULL-WIDTH form (page, wizard): the declared ones
+ * (FormLayout maxColumns, @Section(columns)) or, when undeclared, two — the default split
+ * of Vaadin's FormLayout on desktop. oj-form-layout lowers them by itself only when they don't fit
+ * (each column asks for at least 18rem), so on a phone it is one again.
  */
 export function wideColumnsOf(section) {
   return section.declaredColumns ? section.columns : 2
@@ -269,10 +269,10 @@ export function layoutColumnsOf(layout, byId) {
 }
 
 /**
- * Helper de RENDER: los campos del formulario AGRUPADOS por sus secciones (@Section), en el
- * orden del wire → [{ key, title, hasTitle, columns, fields }]. Los campos fuera de toda
- * sección van a un grupo sin título; un formulario sin secciones es UN grupo sin título, así
- * que el template pinta siempre secciones → campos. [] si el árbol no tiene formulario.
+ * RENDER helper: the form fields GROUPED by their sections (@Section), in
+ * wire order → [{ key, title, hasTitle, columns, fields }]. Fields outside any
+ * section go to an untitled group; a form without sections is ONE untitled group, so
+ * the template always paints sections → fields. [] if the tree has no form.
  */
 export function formSectionsOf(tree, state, data, opts = {}) {
   const fields = fieldListOf(tree, state, data)
@@ -290,7 +290,7 @@ export function formSectionsOf(tree, state, data, opts = {}) {
     && (n.metadata.type === 'FormLayout' || n.metadata.type === 'HorizontalLayout'))
   const walk = (n, isRoot, section, layout) => {
     if (!n || typeof n !== 'object') return
-    if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
+    if (!isRoot && n.type === 'ServerSide') return // island boundary: its fields are not ours
     let here = section
     if (isSectionNode(n)) {
       here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
@@ -323,24 +323,24 @@ export function formSectionsOf(tree, state, data, opts = {}) {
     }
   }
   walk(tree, true, null, null)
-  // un formulario sin FormLayout propio (los campos sueltos de un ServerSide) toma sus columnas
-  // del FormLayout raíz, si lo hay
+  // a form without its own FormLayout (the loose fields of a ServerSide) takes its columns
+  // from the root FormLayout, if there is one
   const rootColumns = sectionHeadOf(tree)
   return sections
     .filter((sec) => sec.fields.length)
     .map((sec) => {
       const head = !sec.declaredColumns && rootColumns.declaredColumns ? { ...sec, columns: rootColumns.columns, declaredColumns: true } : sec
-      // (el @Colspan de un campo no se aplica: de los hijos del oj-form-layout clásico sólo
-      // oj-label-value tiene colspan, y envolver el control en uno descuadra la rejilla)
+      // (a field's @Colspan is not applied: of the classic oj-form-layout's children only
+      // oj-label-value has colspan, and wrapping the control in one misaligns the grid)
       return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head),
         hasTitleButtons: !!(sec.titleButtons && sec.titleButtons.length),
         hasFooterButtons: !!(sec.footerButtons && sec.footerButtons.length) }
     })
 }
 
-/** Proyección del OVERLAY superior del stack (drawer del crud): título + campos + acciones.
- *  null si no hay overlays. Sus acciones se postean contra el HOST (el drawer no lleva
- *  ServerSide propio — confirmado en el wire). */
+/** Projection of the TOP OVERLAY of the stack (the crud's drawer): title + fields + actions.
+ *  null if there are no overlays. Its actions are posted against the HOST (the drawer carries
+ *  no ServerSide of its own — confirmed on the wire). */
 export function overlayOf(reg) {
   const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
   return overlayProjectionOf(reg, id)
@@ -384,25 +384,25 @@ export function dismissOverlayById(reg, id) {
 function overlayProjectionOf(reg, id) {
   if (!id || !reg.contexts[id]) return null
   const ctx = reg.contexts[id]
-  // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
-  // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
-  // es solo campos y botones (p.ej. el picker de habitaciones)
-  // los FormFields del drawer ya los pinta su gramática de CAMPOS (oj-form-layout):
-  // fuera los átomos isInput de los bloques o saldrían DUPLICADOS (y el usuario
-  // escribiría en el par equivocado)
-  // pauta del drawer Redwood: las ACCIONES van en la barra del pie. Un Button del
-  // contenido SIN parámetros se mueve al pie (p.ej. Enviar); los que llevan parameters
-  // (listas de opciones: métodos de cobro, habitaciones…) se quedan en su sitio y NO se
-  // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
-  // acciones del pie — el listener del modal despacha actionId + parameters, así que
-  // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
+  // display blocks of the drawer content (ResourceGrid/OfferCard/StatusList…):
+  // the VB panel paints them with the SAME atoms template as the host — a drawer is not
+  // just fields and buttons (e.g. the room picker)
+  // the drawer's FormFields are already painted by its FIELDS grammar (oj-form-layout):
+  // drop the blocks' isInput atoms or they would come out DUPLICATED (and the user
+  // would type into the wrong one of the pair)
+  // Redwood drawer guideline: ACTIONS go in the footer bar. A content Button
+  // WITHOUT parameters moves to the footer (e.g. Send); those carrying parameters
+  // (option lists: payment methods, rooms…) stay in place and are NOT
+  // repeated in the footer. In a DIALOG (one-off decision modal) ALL buttons are
+  // footer actions — the modal's listener dispatches actionId + parameters, so
+  // "Check-in de <nombre>" (with its _item) travels just like "Volver al listado"
   const isDialog = isDialogOverlay(ctx)
   const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
   const keepInContent = isDialog ? () => false : conParams
-  // un formulario EMBEBIDO en el overlay (EmbeddedView: un ServerSide propio dentro del Dialog
-  // o del Drawer) es la superficie: sus campos, sus botones y sus textos. Recorrer el árbol
-  // del overlay no los encontraba — el recorrido no cruza a otro ServerSide — y el diálogo
-  // salía vacío.
+  // a form EMBEDDED in the overlay (EmbeddedView: its own ServerSide inside the Dialog
+  // or the Drawer) is the surface: its fields, its buttons and its texts. Walking the
+  // overlay's tree did not find them — the walk does not cross into another ServerSide — and the dialog
+  // came out empty.
   const surface = ctx.surface || ctx.tree
   const surfaceCtx = surface === ctx.tree ? ctx : { ...ctx, tree: surface }
   // the overlay's header already shows its title (an EmbeddedView form's TitleSupplier title is
@@ -443,7 +443,7 @@ function overlayProjectionOf(reg, id) {
   return {
     id,
     title: ctx.title || '',
-    // el subtítulo del Drawer (General Drawer: «Room 102 · 12 oct → 14 oct») bajo el título
+    // the Drawer subtitle (General Drawer: «Room 102 · 12 oct → 14 oct») under the title
     subtitle: ctx.subtitle || '',
     position: ctx.position || 'end',
     width: ctx.width,
@@ -455,8 +455,8 @@ function overlayProjectionOf(reg, id) {
     actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
     content: content,
     hasContent: !!content.length,
-    // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
-    // drawer (tarea con formulario); texts = sus líneas de mensaje
+    // a Dialog overlay is painted as a MODAL (oj-dialog: one-off decision), not as a
+    // drawer (task with a form); texts = its message lines
     isDialog,
     texts: withoutFirst(collectTexts(surface), overlayTitle),
   }
@@ -468,11 +468,11 @@ function withoutFirst(list, value) {
   return i < 0 ? list : list.slice(0, i).concat(list.slice(i + 1))
 }
 
-/** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del
- *  Dialog-con-ProgressBar y los state-only dirigidos a su id; devuelve eventos
- *  {kind: open|progress, title?, text?, value?, rest} para que el chain pinte el
- *  oj-dialog — `rest` lleva los commands/messages del increment (el último los trae:
- *  dispatchEvent del refresco) SIN el fragment del diálogo, listos para reducir. */
+/** Watcher of a LongTask's progress dialog over the SSE stream: consumes the Add of the
+ *  Dialog-with-ProgressBar and the state-only fragments targeted at its id; returns events
+ *  {kind: open|progress, title?, text?, value?, rest} so the chain paints the
+ *  oj-dialog — `rest` carries the increment's commands/messages (the last one brings them:
+ *  the refresh dispatchEvent) WITHOUT the dialog fragment, ready to reduce. */
 export function longTaskWatcher() {
   const hasProgressBar = (node) => {
     if (!node || typeof node !== 'object') return false
@@ -517,7 +517,7 @@ export function longTaskWatcher() {
   return w
 }
 
-/** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
+/** RENDER helper: collects the texts (metadata.type Text) of a subtree. */
 export function collectTexts(node, out = []) {
   if (!node || typeof node !== 'object') return out
   if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {

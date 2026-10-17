@@ -6,7 +6,7 @@ import { metricAriaLabel } from './atoms.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
-/** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
+/** RENDER helper: every node of a type (without crossing island boundaries). */
 export function findAllByType(tree, type) {
   const out = []
   const walk = (n, isRoot) => {
@@ -35,37 +35,37 @@ export function textNodesOf(node, out = []) {
   return out
 }
 
-/** Card → {title, texts} (el título del Card es un componente Text anidado). */
+/** Card → {title, texts} (the Card's title is a nested Text component). */
 export function cardOf(node) {
   const md = (node && node.metadata) || {}
   return { title: collectTexts(md.title)[0] || '', texts: collectTexts(md.content) }
 }
 
-/** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
-/** Los pares color + ilustración del hero de la welcome: las 5 parejas bg+fg de la galería OFICIAL
- *  (fnd/gallery illust-welcome-banner-*-01..05), cada una con su tono de la paleta oscura RDS. */
+/** WELCOME archetype: hero (title/subtitle + CTAs) + DashboardLayout tiles. */
+/** The color + illustration pairs of the welcome hero: the 5 bg+fg pairs from the OFFICIAL gallery
+ *  (fnd/gallery illust-welcome-banner-*-01..05), each with its tone from the dark RDS palette. */
 export const WELCOME_LOOKS = [
   ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
   ['dark-sienna', '04'], ['dark-teal', '05'],
 ]
 export const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
 
-/** Qué welcome es la que se pinta: su clase de servidor (o, sin ella, el id del árbol). */
+/** Which welcome is being painted: its server class (or, without one, the tree id). */
 export function welcomeKeyOf(ctx) {
   const tree = ctx && ctx.tree
   return tree ? (tree.serverSideType || tree.id || '') : ''
 }
 
 /**
- * El aspecto del hero: uno al azar al ENTRAR en una welcome, y el mismo mientras se siga en ella.
+ * The hero's look: a random one on ENTERING a welcome, and the same one while staying on it.
  *
- * Rotaba en cada proyección, y una welcome se reproyecta con la respuesta de cada acción que se
- * lanza desde ella — también la de un CTA que devuelve una ruta ("Ir a Reservas"): el hero cambiaba
- * de color justo antes de navegar, durante todo lo que tardara en llegar la página siguiente.
- * Ahora sólo rota en una visita nueva: no había welcome pintada (`previous` nulo) o era otra.
+ * It rotated on every projection, and a welcome is reprojected with the response of every action
+ * launched from it — including that of a CTA returning a route ("Ir a Reservas"): the hero changed
+ * color right before navigating, for as long as the next page took to arrive.
+ * Now it only rotates on a new visit: no welcome was painted (`previous` null) or it was another one.
  *
- * @param key       welcomeKeyOf del contexto que se proyecta
- * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
+ * @param key       welcomeKeyOf of the context being projected
+ * @param previous  the painted look ({key, theme, illuBg, illu}) if there was already a welcome, or null
  */
 /** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
  *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
@@ -122,15 +122,15 @@ export function welcomeOf(ctx) {
   const md = hero.metadata
   const ctas = actionsOf(hero)
   const panels = findAllByType(ctx.tree, 'DashboardPanel')
-  // un TrendChart en un tile → CHART a todo el ancho bajo los KPIs (oj-chart en VB);
-  // items PRECOMPUTADOS (id/value/group/series) — el CSP de VB no construye arrays
+  // a TrendChart in a tile → full-width CHART under the KPIs (oj-chart in VB);
+  // PRECOMPUTED items (id/value/group/series) — VB's CSP does not build arrays
   const trendPanel = panels.find(
     (panel) => findByType(panel, 'TrendChart') || findByType(panel, 'Chart'))
   const chartNode = trendPanel
     ? findByType(trendPanel, 'TrendChart') || findByType(trendPanel, 'Chart') : null
   const tm = chartNode ? chartNode.metadata : null
-  // valores/labels de las dos formas del wire: TrendChart (values/labels planos) o
-  // Chart (chartData.labels + datasets[0].data — se toma la primera serie)
+  // values/labels from the two wire shapes: TrendChart (flat values/labels) or
+  // Chart (chartData.labels + datasets[0].data — the first series is taken)
   const dataset = tm && tm.chartData && tm.chartData.datasets && tm.chartData.datasets.length
     ? tm.chartData.datasets[0] : null
   const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
@@ -148,7 +148,7 @@ export function welcomeOf(ctx) {
       }
     : null
   const tiles = panels.filter((panel) => panel !== trendPanel).map((panel) => {
-    // un MetricCard dentro del tile → KPI (valor grande + etiqueta + caption)
+    // a MetricCard inside the tile → KPI (big value + label + caption)
     const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
     const mm = metric ? metric.metadata : null
     return {
@@ -224,14 +224,14 @@ export function overviewInfoCardOf(ctx, node) {
   }
 }
 
-/** Arquetipo GENERAL OVERVIEW: switcher de registro + EntityHeader + cards. */
+/** GENERAL OVERVIEW archetype: record switcher + EntityHeader + cards. */
 export function generalOverviewOf(ctx) {
   const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
   if (!header) return null
   const md = header.metadata
   const switcher = collectFields(ctx.tree).find((f) => f.options && f.options.length)
-  // el arquetipo REQUIERE el switcher de registro: un EntityHeader suelto (p.ej. el 360
-  // de en casa o el folio de check-out como página) NO es un General Overview
+  // the archetype REQUIRES the record switcher: a standalone EntityHeader (e.g. the in-house
+  // 360 or the check-out folio as a page) is NOT a General Overview
   if (!switcher) return null
   const state = ctx.state || {}
   const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
@@ -246,14 +246,14 @@ export function generalOverviewOf(ctx) {
     .filter((node) => !infoNode || node !== infoNode.node)
     .map((node) => {
       const card = cardOf(node)
-      // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
-      // se pintaban vacías porque sólo se recogía el texto
+      // the card content as ATOMS (not just its texts): a StatusList, a table…
+      // were painted empty because only the text was collected
       const content = (node.metadata && node.metadata.content) || []
       const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
         children: Array.isArray(content) ? content : [content] } }) || []
       return { ...card, items: blocks.flatMap((b) => b.items || []) }
     })
-    .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
+    .filter((card) => card.title) // Cards without a title are section/structure wrappers
   if (infoCard) {
     // a side column next to other cards; alone, as wide as a card
     if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
@@ -274,31 +274,31 @@ export function generalOverviewOf(ctx) {
   }
 }
 
-/** Clave de una barra de pestañas del contenido: '' para la primera de primer nivel (la de
- *  siempre, así una página con una sola barra no cambia); dentro de una pestaña, el id de esa
- *  pestaña; las hermanas siguientes llevan '/tabs-N'. */
+/** Key of a content tab bar: '' for the first top-level one (the usual one, so a page with a
+ *  single bar does not change); inside a tab, that tab's id; the following sibling bars
+ *  carry '/tabs-N'. */
 export function tabStripKeyOf(scope, ordinal) {
   return [scope || '', ordinal ? 'tabs-' + ordinal : ''].filter(Boolean).join('/')
 }
 
-/** Id de la pestaña i de una barra: 'tab-i' en la de primer nivel, '<clave>/tab-i' en el resto. */
+/** Id of tab i of a bar: 'tab-i' in the top-level one, '<key>/tab-i' in the rest. */
 export function tabIdOf(stripKey, index) {
   return (stripKey ? stripKey + '/' : '') + 'tab-' + index
 }
 
-/** La barra a la que pertenece una pestaña (inversa de tabIdOf). */
+/** The bar a tab belongs to (inverse of tabIdOf). */
 export function tabStripOf(tabId) {
   const s = String(tabId || '')
   const cut = s.lastIndexOf('/')
   return cut < 0 ? '' : s.slice(0, cut)
 }
 
-/** Anota la pestaña elegida en el mapa de activas (una por barra), sin tocar las demás barras. */
+/** Records the chosen tab in the active map (one per bar), without touching the other bars. */
 export function withActiveTab(activeTabs, tabId) {
   return { ...(activeTabs || {}), [tabStripOf(tabId)]: tabId }
 }
 
-/** Ids de las barras de pestañas (átomos isTabs) de unos bloques: las chains las refrescan. */
+/** Ids of the tab bars (isTabs atoms) of some blocks: the chains refresh them. */
 export function tabBarIdsOf(blocks) {
   const ids = []
   const walk = (items) => (items || []).forEach((a) => {
@@ -320,7 +320,7 @@ function parentOfNode(node, target) {
   return null
 }
 
-/** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
+/** ITEM OVERVIEW archetype: key-data panel + tabs. */
 export function itemOverviewOf(ctx) {
   const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
   if (!tabLayout) return null
@@ -331,14 +331,14 @@ export function itemOverviewOf(ctx) {
   const parent = parentOfNode(ctx.tree, tabLayout)
   const keyCard = ((parent && parent.children) || [])
     .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
-  // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
-  // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
-  // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
-  // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
+  // The archetype is key-data panel + tabs: without a panel this is not an item overview,
+  // it is a FORM that happens to carry tabs inside. Claiming it anyway left the page
+  // without its fields (there is no key card to paint) and the tabs reduced to their labels
+  // (only loose texts are taken from their content). It happened to a process detail.
   if (!keyCard) return null
-  // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
-  // pestaña (sus textos van en los de ella), no hermanas de la lista
-  // el contenido como ÁTOMOS (un Markdown, un Chart, una StatusList…): antes solo sus textos sueltos
+  // only the tabs of the OUTER bar: those of a nested bar are content of their
+  // tab (their texts go in its texts), not siblings in the list
+  // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
   const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
     metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
   const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
@@ -358,13 +358,13 @@ export function itemOverviewOf(ctx) {
   }
 }
 
-/** Puerta 1.3: banners de página (Page.metadata.banners) → items del
- *  oj-sp-messages-banner del starter (MessagesBannerType). */
+/** Gate 1.3: page banners (Page.metadata.banners) → items of the
+ *  starter's oj-sp-messages-banner (MessagesBannerType). */
 export function bannersOf(ctx) {
   // a YAML page authors them on its `type: Form` (same wire field): its ${state.x} resolved here
   const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
   const interp = (t) => (page && page.fromForm ? interpolate(t || '', (ctx && ctx.state) || {}) : (t || ''))
-  // los messageType del oj-sp-messages-banner van con prefijo general-* (patrón del starter)
+  // the oj-sp-messages-banner messageTypes carry a general-* prefix (starter pattern)
   const THEMES = { INFO: 'general-info', SUCCESS: 'general-success', WARNING: 'general-warning', DANGER: 'general-error' }
   return (((page || {}).metadata || {}).banners || []).map((banner, i) => ({
     id: 'mateu-banner-' + i,
@@ -374,16 +374,16 @@ export function bannersOf(ctx) {
   }))
 }
 
-/** Puerta 1.6: anatomía RDS del ancho de página (medición Toolkit 24C) — el wrapper del
- *  contenido aplica contexts[host].pageWidth: fixed = tope 1408px con gutters 24px;
- *  fullWidth = fluido con gutters 24px; edgeToEdge = 0 márgenes. En FIXED el borde
- *  DERECHO se ancla a la MISMA fórmula con la que oj-sp-simple-ui-shell coloca su
- *  chrome flotante (chat FAB: right = (100vw - 1536px)/2, medido) — el shell calcula
- *  su caja sobre el viewport COMPLETO e ignora el navigator drawer, así que centrar
- *  el contenido en el área restante lo desalineaba del FAB en viewports anchos;
- *  izquierda auto (absorbe el drawer), tope 1408 — y nunca menos de 24px a la izquierda: el tope
- *  descuenta ambos gutters, o un área estrecha quedaba pegada a la izquierda con hueco sólo a la
- *  derecha. */
+/** Gate 1.6: RDS anatomy of the page width (Toolkit 24C measurement) — the content
+ *  wrapper applies contexts[host].pageWidth: fixed = 1408px cap with 24px gutters;
+ *  fullWidth = fluid with 24px gutters; edgeToEdge = 0 margins. In FIXED the RIGHT
+ *  edge is anchored to the SAME formula oj-sp-simple-ui-shell uses to place its
+ *  floating chrome (chat FAB: right = (100vw - 1536px)/2, measured) — the shell computes
+ *  its box over the FULL viewport and ignores the navigator drawer, so centering
+ *  the content in the remaining area misaligned it from the FAB on wide viewports;
+ *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
+ *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
+ *  right. */
 export function pageStyleOf(ctx) {
   const width = (ctx && ctx.pageWidth) || 'fixed'
   if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }

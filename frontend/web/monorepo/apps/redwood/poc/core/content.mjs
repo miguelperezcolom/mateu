@@ -15,7 +15,7 @@ import { VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
-/** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
+/** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
 export const BADGE_CLASSES = {
   error: 'oj-badge oj-badge-danger oj-badge-subtle',
   danger: 'oj-badge oj-badge-danger oj-badge-subtle',
@@ -27,20 +27,20 @@ export const BADGE_CLASSES = {
   info: 'oj-badge oj-badge-info oj-badge-subtle',
 }
 
-/** Proyección del TaskQueue (cola de trabajo del front-office): grupos de cards con
- *  badges; el clic despacha metadata.actionId con parameters._item = id del item
- *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
- *  INLINE en la metadata — no hay eje data ni triggers. */
+/** Projection of the TaskQueue (front-office work queue): groups of cards with
+ *  badges; the click dispatches metadata.actionId with parameters._item = the item's id
+ *  (contract of the shared web renderer: mateu-task-queue.ts). The data travels
+ *  INLINE in the metadata — there is no data axis and no triggers. */
 export function taskQueueOf(tree) {
-  // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
-  // dispatcher), no el modo «cola de trabajo + isla» de página completa
+  // a queue INSIDE a console panel is that console's list (the dispatcher's isQueue
+  // atom), not the full-page «work queue + island» mode
   const node = findOutsidePanes(tree, 'TaskQueue')
-  // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
-  // es contenido, y el detalle que llega al elegir se pinta a su lado
+  // …nor the list of a template with slots (CollectionDetail: TaskQueue@list next to its @detail):
+  // it is content, and the detail that arrives on picking is painted beside it
   if (!node || node.slot) return null
-  // …ni una cola que es UNA pieza más de una página con otro contenido: el modo cola pinta la
-  // cola + el detalle y NADA más, así que una página con una TaskQueue entre gráficos, tableros,
-  // calendarios… perdía todo lo demás (sólo quedaban la cola y un «Nothing here»)
+  // …nor a queue that is ONE more piece of a page with other content: queue mode paints the
+  // queue + the detail and NOTHING else, so a page with a TaskQueue among charts, boards,
+  // calendars… lost everything else (only the queue and a «Nothing here» remained)
   if (holdsOtherContent(tree, true)) return null
   return queueProjectionOf(node.metadata)
 }
@@ -63,7 +63,7 @@ const QUEUE_PAGE_TYPES = new Set(['TaskQueue', 'EmptyState', 'Page', 'VerticalLa
   'FormLayout', 'FormRow', 'FormItem', 'FormField', 'FormSection', 'FormSubSection', 'CustomField', 'Card',
   'Text', 'Button', 'Div', 'Container', 'Scroller', 'FullWidth', 'Separator', 'Badge'])
 
-/** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
+/** The card groups of a TaskQueue, ready to paint (page mode and the isQueue atom). */
 export function queueProjectionOf(md) {
   return {
     actionId: md.actionId,
@@ -79,8 +79,8 @@ export function queueProjectionOf(md) {
           label: badge.label,
           badgeClass: BADGE_CLASSES[badge.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
         })),
-        // opción de LÍNEA (p.ej. "Check-out" solo en reservas in house): botón en la card
-        // que despacha su propio actionId con {_item} — mismo contrato que el renderer web
+        // LINE option (e.g. "Check-out" only on in-house bookings): a button on the card
+        // that dispatches its own actionId with {_item} — same contract as the web renderer
         hasAction: !!(item.actionLabel && item.actionId),
         actionLabel: item.actionLabel || '',
         actionId: item.actionId || '',
@@ -90,8 +90,8 @@ export function queueProjectionOf(md) {
   }
 }
 
-/** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
- *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+/** Projection of the standalone EmptyState (placeholder of the detail panel, or welcome
+ *  page). Once an item is selected the server replaces it with the island → null. */
 /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
  *  one — the @detail placeholder of a CollectionDetail — is content). */
 export const pageEmptyStateNode = (tree) => {
@@ -126,13 +126,13 @@ export const NOT_FOUND_TEXTS = {
   en: { title: 'Not found', message: 'It may have been deleted, or the link is wrong.', back: 'Go back' },
 }
 
-/** Proyección de la página NOT FOUND: lo que contesta el server cuando la ruta nombra un registro
- *  o una pantalla que no existe (una reserva borrada, un enlace mal copiado) — en lugar de un
- *  toast de error sobre una página vacía. Se pinta con el idioma de Redwood para esto, el
- *  oj-sp-empty-state a página completa (su ilustración de fondo + texto primario/secundario + la
- *  navigationAction como vuelta atrás), dentro de la shell. Los textos los manda el server (el
- *  mensaje de la excepción como titular); si faltan, los genéricos en el idioma de la página.
- *  null si el host no es un not-found. */
+/** Projection of the NOT FOUND page: what the server answers when the route names a record
+ *  or a screen that does not exist (a deleted booking, a badly copied link) — instead of an
+ *  error toast over an empty page. It is painted with Redwood's idiom for this, the
+ *  full-page oj-sp-empty-state (its background illustration + primary/secondary text + the
+ *  navigationAction as the way back), inside the shell. The texts come from the server (the
+ *  exception message as the headline); if missing, the generic ones in the page's language.
+ *  null if the host is not a not-found. */
 export function notFoundOf(tree, lang) {
   const node = findByType(tree, 'NotFound')
   if (!node) return null
@@ -143,13 +143,13 @@ export function notFoundOf(tree, lang) {
     title: md.title || texts.title,
     message: md.message || texts.message,
     backRoute,
-    // la vuelta atrás es la navigationAction del empty-state (un enlace); sin ruta, ninguna
+    // the way back is the empty-state's navigationAction (a link); without a route, none
     navigationAction: backRoute ? { label: md.backLabel || texts.back, display: 'on' } : null,
   }
 }
 
-/** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
-/** La ruta que abre una fila (`/customers/${row.id}`), o '' si la plantilla no se resuelve entera. */
+/** Wire interpolation (labels with templates): ${state.clave} → value from the state. */
+/** The route a row opens (`/customers/${row.id}`), or '' if the template does not fully resolve. */
 export function rowRouteOf(template, row) {
   if (!template) return ''
   let unresolved = false
@@ -162,14 +162,14 @@ export function rowRouteOf(template, row) {
 }
 
 export function interpolate(text, state) {
-  // `${i18n.clave}` lo resuelve el servidor (o el bundle) antes de llegar aquí; si aún llega, no hay
-  // catálogo detrás: se muestra la CLAVE, nunca la expresión cruda.
+  // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
+  // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
   if (text != null && String(text).includes('i18n.')) {
     text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
   }
-  // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
-  // llega como ${state['_position']})
-  // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
+  // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
+  // arrives as ${state['_position']})
+  // and nested paths: `${state.status.message}` (the badge of a header @Status)
   return String(text == null ? '' : text).replace(
     /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
     (all, dotted, quoted) => {
@@ -208,26 +208,26 @@ export const NOTICE_CLASSES = {
   info: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-info-30',
 }
 
-/** Proyección GENÉRICA del contenido display de una isla (p.ej. el CheckInWizard
- *  embebido del front-office): BLOQUES (plain | card) de átomos precomputados para el
- *  CSP de VB (flags is*, clases, textos interpolados contra el state). Las islas
- *  ANIDADAS (App mediador dentro de la isla, p.ej. el documento) se saltan — fase
- *  posterior. null si el árbol no aporta nada display (isla de formulario puro). */
-/** Fábrica de data providers de JET, inyectada por la app (en Node no hay ninguna: el atom
- *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
+/** GENERIC projection of an island's display content (e.g. the front-office's embedded
+ *  CheckInWizard): BLOCKS (plain | card) of atoms precomputed for VB's
+ *  CSP (is* flags, classes, texts interpolated against the state). NESTED islands
+ *  (a mediator App inside the island, e.g. the document) are skipped — later
+ *  phase. null if the tree contributes nothing display (a pure form island). */
+/** Factory of JET data providers, injected by the app (in Node there is none: the atom
+ *  travels with the rows and without a provider, which is what the tests check). */
 export let dataProviderFactory = null
 export function setDataProviderFactory(factory) { dataProviderFactory = factory }
 
-/** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
- *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
- *  especificación, que es lo que los tests comprueban. */
-/** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
- *  ruta). En Node, nadie: las columnas salen tal cual. */
+/** Factory of JET converters (the oj-input-number of an amount): JET 18 no longer accepts the
+ *  converter as JSON, it wants an IntlNumberConverter instance. In Node the
+ *  specification stays, which is what the tests check. */
+/** Who reads the column preferences of the listing on screen (the app: localStorage per
+ *  route). In Node, nobody: the columns come out as they are. */
 export let columnPrefsReader = null
 export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
 
-/** Paneles plegables abiertos/cerrados por el usuario (clave → bool); lo no tocado, como manda
- *  el wire (AccordionPanel.active, Details.opened). Estado de cliente, como la pestaña activa. */
+/** Collapsible panels opened/closed by the user (key → bool); anything untouched follows
+ *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
 export const panelState = {}
 export function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
 export function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
@@ -259,11 +259,11 @@ export function converterOf(spec) {
 
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
-  // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
-  // opts.activeTab (un único id) sigue valiendo para la barra de primer nivel.
+  // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
+  // opts.activeTab (a single id) still works for the top-level strip.
   const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
-  // Barras ANIDADAS (un TabLayout dentro de una pestaña): cada barra tiene su clave, derivada de
-  // la pestaña que la contiene (tabScope) y de su ordinal entre hermanas — ver tabStripKeyOf.
+  // NESTED strips (a TabLayout inside a tab): each strip has its key, derived from
+  // the tab that contains it (tabScope) and its ordinal among siblings — see tabStripKeyOf.
   let tabScope = ''
   const stripsPerScope = {}
   let tabBars = 0
@@ -324,7 +324,7 @@ export function islandContentOf(ctx, opts = {}) {
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
   }
-  // los hijos de un nodo viajan en children Y/O en metadata.content (CustomField, Notice…)
+  // a node's children travel in children AND/OR in metadata.content (CustomField, Notice…)
   const kidsOf = (node) => {
     const out = [...(node.children || [])]
     const inner = node.metadata && node.metadata.content
@@ -343,14 +343,14 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
   }
-  // Proyecta hijos como BLOQUES-COLUMNA de la rejilla oj-flex (colClass oj-md-(NN→doceavos)): las
-  // zonas de @Zones y los dos paneles de un maestro-detalle. Si una columna genera varios bloques
-  // se FUSIONAN en uno (un flex no puede apilar dos items en la misma celda de fila).
+  // Projects children as COLUMN-BLOCKS of the oj-flex grid (colClass oj-md-(NN→twelfths)): the
+  // zones of @Zones and the two panels of a master-detail. If a column generates several blocks
+  // they are MERGED into one (a flex cannot stack two items in the same row cell).
   const projectColumns = (children, percents, extraClass) => {
     children.forEach((child, i) => {
       const col = Math.min(11, Math.max(1, Math.round(percents[i] * 12 / 100)))
-      // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
-      // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
+      // the wire cssClasses of the COLUMN travel to the block (e.g. the neutral
+      // band of the general overview's secondary info: oj-panel + oj-bg-*)
       const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
         + (extraClass ? ' ' + extraClass : '')
         + (child.cssClasses ? ' ' + child.cssClasses : '')
@@ -367,10 +367,10 @@ export function islandContentOf(ctx, opts = {}) {
       }
     })
   }
-  // hijos con su clase de columna YA calculada (rejillas: ResponsiveGrid, DashboardLayout)
-  // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
-  // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
-  // especial sin átomos — entonces el llamante apila los hijos como antes.
+  // children with their column class ALREADY computed (grids: ResponsiveGrid, DashboardLayout)
+  // Returns false (and leaves nothing) if some column generates blocks that cannot be merged into
+  // one cell: a nested island (hoisting turns its whole block into the island) or a special
+  // block without atoms — then the caller stacks the children as before.
   const projectSized = (children, colClasses, tags = null) => {
     const start = blocks.length
     const out = []
@@ -395,7 +395,7 @@ export function islandContentOf(ctx, opts = {}) {
     blocks.push(...out)
     return true
   }
-  // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
+  // a DashboardPanel = a card-block (title + subtitle + its content) with its width
   const visitDashboardPanel = (panel, colClass) => {
     // editor mode: the card (and its title atoms) is the PANEL's node, not the layout's
     if (editorNodeIds && panel && panel.id) {
@@ -430,10 +430,10 @@ export function islandContentOf(ctx, opts = {}) {
     if (!node || typeof node !== 'object') return
     const isRoot = !rootSeen
     rootSeen = true
-    // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
-    // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
-    // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
-    // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
+    // @Subresource: the embedded listing is ANOTHER surface (its ServerSide). Leaves a slot that
+    // withSubresources fills with its table once loaded — descending into its mediator App
+    // took it for the check-in's nested island (isNested), and the merge emptied the whole block:
+    // with the Orders or Billing tab active not even the tab strip remained
     if (!isRoot) {
       const sub = subresourceIslandOf(node)
       if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
@@ -444,10 +444,10 @@ export function islandContentOf(ctx, opts = {}) {
     }
     const m = node.metadata
     const t = m && m.type
-    // FILA ZONADA (@Zones): HorizontalLayout cuyos hijos son columnas con
-    // flex: 1 1 calc(NN% …) — cada zona se proyecta como bloque-columna (colClass
-    // oj-md-(NN→doceavos)); si una zona genera varios bloques se FUSIONAN en uno
-    // (un flex no puede apilar dos items en la misma celda de fila)
+    // ZONED ROW (@Zones): HorizontalLayout whose children are columns with
+    // flex: 1 1 calc(NN% …) — each zone is projected as a column-block (colClass
+    // oj-md-(NN→twelfths)); if a zone generates several blocks they are MERGED into one
+    // (a flex cannot stack two items in the same row cell)
     if (t === 'HorizontalLayout' && !container) {
       const zoneMatches = (node.children || []).map(
         (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
@@ -456,11 +456,11 @@ export function islandContentOf(ctx, opts = {}) {
         return
       }
     }
-    // CONSOLA / MAESTRO-DETALLE (MasterDetailLayout, SplitLayout): children = [maestro, detalle].
-    // Misma proyección que las zonas: dos bloques-columna de la rejilla oj-flex (lista a la
-    // izquierda, detalle a la derecha, 5/12 + 7/12), que bajo md se apilan — como la vista
-    // Console de OPERA. Vertical (SplitLayout orientation vertical) → uno debajo del otro. Dentro
-    // de otro bloque no hay columnas que repartir: se proyecta en su sitio, en orden.
+    // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
+    // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
+    // left, detail on the right, 5/12 + 7/12), which stack below md — like OPERA's
+    // Console view. Vertical (SplitLayout orientation vertical) → one below the other. Inside
+    // another block there are no columns to share out: it is projected in place, in order.
     if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
       const kids = (node.children || []).filter(Boolean)
       if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
@@ -471,19 +471,19 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'App') {
-      // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
-      // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
+      // NESTED island (e.g. the check-in's document): a placeholder — the
+      // content lives in its own context and mateuNested paints it in that slot
       atom({ isNested: true, islandId: node.id }, container)
       return
     }
-    // FORMULARIO (FormLayout: sus FormRow de FormFields, con maxColumns y el colspan de cada
-    // campo) → UN atom isFormLayout que la plantilla pinta con el oj-form-layout de JET
-    // (max-columns / direction=row / colspan en cada hijo): el reparto en columnas es el de
-    // JET, no una rejilla propia. Cada campo lleva su widget de verdad (texto, número, fecha,
-    // booleano, select) y su readonly — la vista de detalle de un crud manda todos sus campos
-    // readOnly y se tienen que ver como tales, no como inputs editables. Lo que no es un
-    // campo escalar (un grid, una property row, otro componente) corta el grupo y se proyecta
-    // como siempre, en su sitio.
+    // FORM (FormLayout: its FormRows of FormFields, with maxColumns and each field's
+    // colspan) → ONE isFormLayout atom that the template paints with JET's oj-form-layout
+    // (max-columns / direction=row / colspan on each child): the column layout is JET's,
+    // not a grid of our own. Each field carries its real widget (text, number, date,
+    // boolean, select) and its readonly — a crud's detail view sends all its fields
+    // readOnly and they have to look like that, not like editable inputs. Whatever is not a
+    // scalar field (a grid, a property row, another component) cuts the group and is projected
+    // as always, in its place.
     if (t === 'FormLayout') {
       const columns = Math.min(4, Math.max(1, m.maxColumns || m.columns || 1))
       const layouts = []
@@ -507,39 +507,39 @@ export function islandContentOf(ctx, opts = {}) {
         visit(n, container)
       }
       kidsOf(node).forEach(walkLayout)
-      // todo de sólo lectura (la vista de detalle): el propio form layout va readonly y JET
-      // pinta cada campo como valor, sin caja de input
+      // all read-only (the detail view): the form layout itself goes readonly and JET
+      // paints each field as a value, without an input box
       for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
       return
     }
     if (t === 'FormField') {
       const fieldId = m.fieldId || m.id
-      // GRID embebido en un formulario (una lista con columnas: los Steps/Messages de un
-      // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
-      // búsqueda—, es una tabla más del contenido.
+      // GRID embedded in a form (a list with columns: the Steps/Messages of a
+      // process). It is not a crud's listing —that one has its own branch and its search
+      // header—, it is one more table of the content.
       if ((m.columns || []).length) {
         // the field's column groups flattened, the group label prefixing its columns' (leafColumnsOf)
         const leafCols = leafColumnsOf(m.columns, interp)
         const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
-        // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
-        // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
+        // EDITABLE list with the row editor in a dialog (@DetailFormCustomisation
+        // position = modal): "+" below and, per row, Edit / Remove in its last column
         const rowEditable = isModalRowEditor(m)
         const columns = leafCols
           .map((col) => col.metadata || col)
-          // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
+          // the wire's `_select` button column ("Edit") is replaced by the row-actions one
           .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
           .map((c) => {
             const def = { headerText: c.label || c.id, field: c.id }
             if (c.dataType === 'status') def.template = 'cellStatusBadge'
-            // un enum se lee por su etiqueta («In house»): la celda lee <id>__labelCell
+            // an enum is read by its label («In house»): the cell reads <id>__labelCell
             if (!def.template && labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
             return def
           })
         if (rowEditable) {
           columns.push({ headerText: '', field: '__rowActions', template: 'cellListRowActions', sortable: 'disabled' })
         }
-        // en una lista editable, una celda que aún no tiene valor (la línea y el total de una
-        // habitación recién añadida: los pone el servidor al crear) dice «—», no un hueco
+        // in an editable list, a cell that has no value yet (the line and the total of a
+        // just-added room: the server sets them on create) says «—», not a gap
         const dashEmpty = (row) => {
           const out = { ...row }
           for (const col of columns) {
@@ -562,7 +562,7 @@ export function islandContentOf(ctx, opts = {}) {
           label: m.label || '',
           columns,
           rows: shown,
-          // el data provider lo construye la app (JET); en Node no hay, y el atom viaja igual
+          // the data provider is built by the app (JET); in Node there is none, and the atom travels anyway
           adp: dataProviderFactory ? dataProviderFactory(shown) : null,
           isEmpty: rows.length === 0,
           rowEditable,
@@ -572,15 +572,15 @@ export function islandContentOf(ctx, opts = {}) {
         return
       }
       if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
-        // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
-        // en el form layout — JET no trae editor de texto enriquecido)
+        // READ-ONLY richText / html / markdown: with its formatting (editable: an oj-text-area
+        // in the form layout — JET ships no rich text editor)
         const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
         atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
         return
       }
       if (m.stereotype === 'bulletedList') {
-        // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
-        // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+        // @BulletedList on a List<String>: its label and its values as the usual bulleted
+        // list (the BulletedList component was already an atom; the field fell into the void)
         const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
         const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
         if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
@@ -588,8 +588,8 @@ export function islandContentOf(ctx, opts = {}) {
         return
       }
       if (m.propertyRow) {
-        // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
-        // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
+        // a read-only lookup travels as the field '<campo>-label', with its LABEL in
+        // data['<campo>-label'] (not in the state); a normal field may bring its label the same way
         const data = ctx.data || {}
         const fromData = (key) => (data[key] != null && typeof data[key] !== 'object' ? data[key] : null)
         const raw = state[fieldId] != null ? state[fieldId]
@@ -599,8 +599,8 @@ export function islandContentOf(ctx, opts = {}) {
         atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
         return
       }
-      // FormField FLUIDO editable (p.ej. el buscador de cargos del modo check-out):
-      // input ligado por fieldId al estado del contexto (draft + auto-save)
+      // editable FLUENT FormField (e.g. the charge search box of the check-out mode):
+      // input bound by fieldId to the context state (draft + auto-save)
       if (m.dataType === 'string' || m.dataType === 'integer' || m.dataType === 'number') {
         atom({
           isInput: true,
@@ -612,21 +612,21 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'TabLayout') {
-      // Las pestañas se APLANAN: el atom de la barra + el contenido de la pestaña activa
-      // como átomos normales del mismo contenedor. Anidar átomos dentro de átomos obligaría a
-      // duplicar toda la plantilla dentro de la pestaña y a pelearse con el $current anidado
-      // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
+      // Tabs are FLATTENED: the strip's atom + the active tab's content
+      // as normal atoms of the same container. Nesting atoms inside atoms would force
+      // duplicating the whole template inside the tab and fighting VB's nested $current;
+      // this way the existing vocabulary paints the content without noticing.
       const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
       if (!tabs.length) return
-      // una sola pestaña visible no es una elección: su contenido sin barra (conserva su clave de
-      // ruta, así nada se mueve cuando un flag vuelve a mostrar las otras)
+      // a single visible tab is not a choice: its content without a strip (it keeps its route
+      // key, so nothing moves when a flag shows the others again)
       if (tabs.length === 1) {
         for (const child of tabs[0].children || []) visit(child, container)
         return
       }
-      // cada barra con SU clave y SUS ids (la de primer nivel conserva 'tab-N'): con ids y
-      // pestaña activa compartidos, pulsar la pestaña 2 de una barra interior cambiaba también
-      // la exterior
+      // each strip with ITS key and ITS ids (the top-level one keeps 'tab-N'): with shared ids
+      // and active tab, clicking tab 2 of an inner strip also changed
+      // the outer one
       const ordinal = stripsPerScope[tabScope] || 0
       stripsPerScope[tabScope] = ordinal + 1
       const stripKey = tabStripKeyOf(tabScope, ordinal)
@@ -636,18 +636,18 @@ export function islandContentOf(ctx, opts = {}) {
       const current = selected >= 0 ? selected : 0
       atom({
         isTabs: true,
-        // la primera barra conserva el id de siempre (las chains la refrescan por selector)
+        // the first strip keeps the usual id (the chains refresh it by selector)
         barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
         stripKey,
         selectedId: ids[current],
         tabs: tabs.map((tab, i) => ({
           id: ids[i],
-          // el contador de sus @Subresource EAGER viaja con la pestaña («Subnets (12)»)
+          // the count of its EAGER @Subresource travels with the tab («Subnets (12)»)
           label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1))
             + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
-          // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
+          // @Tab(key): selecting it pushes its URL (see contentTabSelected)
           routeKey: tab.metadata.routeKey || '',
-          // @Tab(shortcut): la selecciona por teclado (keys.mjs)
+          // @Tab(shortcut): selects it by keyboard (keys.mjs)
           shortcut: String(tab.metadata.shortcut || '').toLowerCase(),
         })),
       }, container)
@@ -661,9 +661,9 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'CustomField') {
-      // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
-      // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
-      // en children: mirando solo content esos campos desaparecían sin dejar rastro
+      // wrapper: what matters is what it carries inside — in metadata.content or, for a
+      // field holding a component (an Anchor, a Chart… declared as a form field),
+      // in children: looking only at content those fields vanished without a trace
       // A HOLDER (no FormField inside, no island — a `Callable<Component>`'s Text, a Button…) marks
       // what it brings: the generic form, which drew a plain form, dropped it (walk-behaviour)
       const kids = kidsOf(node)
@@ -673,18 +673,18 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Element') {
-      // Componente WEB de terceros (el grafo de un proceso). Los atributos son su único canal
-      // de datos y viajan en la METADATA, que un State no reenvía: escritos como `${state.x}`
-      // son VALORES y se reevalúan en cada render — mismo idioma que cualquier rótulo. El
-      // módulo del atributo `import` lo carga la app la primera vez que se usa la etiqueta.
+      // Third-party WEB component (a process's graph). The attributes are its only data
+      // channel and travel in the METADATA, which a State does not resend: written as `${state.x}`
+      // they are VALUES and are re-evaluated on every render — same idiom as any label. The
+      // module of the `import` attribute is loaded by the app the first time the tag is used.
       const attributes = {}
       for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
       atom({
         isElement: true,
-        // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
-        // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
-        // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
-        // de la pantalla no cambie
+        // the server sends a filler id ("fieldId") to ALL Elements (a record without an id):
+        // two on the same screen (one floor plan per floor, two tables in a foldout) shared
+        // a slot and clobbered each other. Without an id of its own, name + ordinal: stable as long
+        // as the screen's structure does not change
         elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
         name: m.name,
         importUrl: (m.attributes || {}).import || '',
@@ -693,19 +693,19 @@ export function islandContentOf(ctx, opts = {}) {
         cssClasses: node.cssClasses || '',
         content: interp(m.content || ''),
         asHtml: !!m.html,
-        // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+        // the content carried `${…}` → DATA has entered the markup: it is sanitized when mounting
         dataInContent: String(m.content || '').indexOf('${') >= 0,
         on: m.on || null,
       }, container)
       return
     }
-    // ── DASHBOARD en cualquier página: rejilla de paneles (cada DashboardPanel, una tarjeta con su
-    // ancho en columnas), banda de KPIs (Scoreboard/MetricCard) y gráficos (oj-chart) ──
-    // ResponsiveGrid (la rejilla general): sus pistas (grid-template-columns) y los colSpans de
-    // cada hijo → bloques-columna oj-flex de su ancho. Dentro de una tarjeta, apilado.
+    // ── DASHBOARD on any page: grid of panels (each DashboardPanel, a card with its
+    // width in columns), KPI band (Scoreboard/MetricCard) and charts (oj-chart) ──
+    // ResponsiveGrid (the general grid): its tracks (grid-template-columns) and each child's
+    // colSpans → oj-flex column-blocks of their width. Inside a card, stacked.
     if (t === 'ResponsiveGrid' && !container) {
-      // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
-      // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
+      // each child's span: the wire's (colSpans) or the one the child carries itself — a
+      // DashboardPanel its colSpan, the KPI band (Scoreboard) the whole row
       // a slot TEMPLATE places its children by NAME (slot `main` → area `main`), not by list order:
       // the GeneralOverview's promoted info slot travels FIRST in the list (so a stacking web grid
       // puts it on top) and must still take the `info` column on a wide page
@@ -713,8 +713,8 @@ export function islandContentOf(ctx, opts = {}) {
       const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
         || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
           : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
-      // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
-      // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+      // REORDERABLE (ResponsiveGrid.reorderable): the tiles in the user's saved order, each
+      // block marked with its key and its scope — installTileReorder drags and re-projects them
       let order = serverKids.map((_, i) => i)
       let tags = null
       if (m.reorderable) {
@@ -755,7 +755,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'MetricCard') {
-      // consecutivos se juntan en la misma banda (como los botones)
+      // consecutive ones join in the same band (like the buttons)
       const target = container || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
       if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
@@ -776,7 +776,7 @@ export function islandContentOf(ctx, opts = {}) {
       }
       blocks.push(card)
       plain = null
-      // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
+      // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
       const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
       if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
       for (const child of node.children || []) visit(child, card)
@@ -787,7 +787,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Page') {
-      // título de la isla + su TOOLBAR (los @Toolbar del server viajan en metadata.toolbar)
+      // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
       const pageTitle = interp(m.title || '')
       if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
       const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
@@ -802,8 +802,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'CustomComponent') {
-      // Escape hatch (#14): VB no trae un renderer para el tipo → placeholder visible + los hijos
-      // slotted igualmente (paridad con el <mateu-unsupported> del web).
+      // Escape hatch (#14): VB has no renderer for the type → visible placeholder + the slotted
+      // children anyway (parity with the web's <mateu-unsupported>).
       atom({
         isNotice: true,
         text: 'Custom component "' + (m.name || '') + '" — no VB renderer',
@@ -816,8 +816,8 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Text') {
       const text = interp(m.text)
       if (text) {
-        // container h1..h6 → HEADING de contenido: h3 real (el escalón siguiente al h2
-        // de la sección), con ritmo de grupo (margin-top) cuando no abre el bloque
+        // container h1..h6 → content HEADING: a real h3 (the next step after the section's
+        // h2), with group rhythm (margin-top) when it does not open the block
         const heading = /^h[1-6]$/.test(m.container || '')
         if (heading) {
           const target = container || plain
@@ -825,8 +825,8 @@ export function islandContentOf(ctx, opts = {}) {
           atom({
             isText: true,
             isHeading: true,
-            // un h2 al frente de una zona es el TITULO del fold (el gop lo asciende a
-            // cabecera de slot con el subrayado del foldout)
+            // an h2 at the head of a zone is the fold's TITLE (the gop promotes it to
+            // a slot header with the foldout's underline)
             isH2: m.container === 'h2',
             text,
             cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
@@ -837,9 +837,9 @@ export function islandContentOf(ctx, opts = {}) {
       }
       return
     }
-    // ENLACE (Anchor): un <a> de verdad — el tema Redwood lo pinta como enlace, el manejador
-    // global de links.mjs navega DENTRO de la shell si es una ruta de la app, y target=_blank
-    // (una URL externa, un PDF) abre otra pestaña sin pasar por el servidor
+    // LINK (Anchor): a real <a> — the Redwood theme paints it as a link, the global
+    // handler in links.mjs navigates INSIDE the shell if it is an app route, and target=_blank
+    // (an external URL, a PDF) opens another tab without going through the server
     if (t === 'Anchor') {
       const href = interp(m.url)
       if (href) {
@@ -854,9 +854,9 @@ export function islandContentOf(ctx, opts = {}) {
       }
       return
     }
-    // FOLDOUT DENTRO DE UNA PESTAÑA (el de página lo pinta oj-sp-foldout-layout, foldoutOf): el
-    // overview en su sitio y cada panel como un panel plegable — su título y, abierto, su
-    // contenido; los paneles abiertos por defecto (open) se respetan
+    // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
+    // overview in its place and each panel as a collapsible panel — its title and, when open, its
+    // content; the panels open by default (open) are respected
     if (t === 'FoldoutLayout' && tabScope) {
       const bySlot = {}
       for (const child of node.children || []) bySlot[child.slot || ''] = child
@@ -878,10 +878,10 @@ export function islandContentOf(ctx, opts = {}) {
       for (const child of kidsOf(node)) if (!/^summary-/.test(child && child.slot ? child.slot : '')) visit(child, container)
       return
     }
-    // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
-    // APLANAN — la cabecera es un átomo isCollapsible (un oj-collapsible de JET) y el contenido
-    // del panel va detrás, como átomos normales, sólo si está abierto. Abierto/cerrado es estado
-    // del CLIENTE (panelExpanded, por clave): plegar re-proyecta sin preguntar al servidor.
+    // COLLAPSIBLE PANELS (AccordionLayout of AccordionPanel, Details): like the tabs, they are
+    // FLATTENED — the header is an isCollapsible atom (a JET oj-collapsible) and the panel's
+    // content goes after it, as normal atoms, only if it is open. Open/closed is CLIENT
+    // state (panelExpanded, by key): collapsing re-projects without asking the server.
     if (t === 'AccordionLayout') {
       kidsOf(node).forEach((panel, i) => {
         const pm = panel.metadata || {}
@@ -900,17 +900,17 @@ export function islandContentOf(ctx, opts = {}) {
       if (expanded && m.content) visit(m.content, container)
       return
     }
-    // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
-    // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
-    // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+    // TAPE CHART (PlanningBoard → JET's oj-gantt): rows = resources (with their attribute
+    // columns in the label), tasks = blocks. Projection in planningAtomOf (pure, tested);
+    // JET's events (ojMove, ojResize, double click, range) are translated by planningActionOf.
     if (t === 'PlanningBoard') {
       atom(planningAtomOf(m, node.id), container)
       return
     }
-    // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
-    // oj-action-card del modo cola; cada una lleva su acción (la de la cola, con {_item}) para
-    // que el despachador genérico de bloques la ejecute, y la opción de línea va DEBAJO de la
-    // tarjeta (dentro, su clic sería también el de la tarjeta)
+    // QUEUE as a piece of content (the list of a master-detail console): the same
+    // oj-action-card cards as queue mode; each carries its action (the queue's, with {_item}) so
+    // the generic block dispatcher runs it, and the line option goes BELOW the
+    // card (inside, its click would also be the card's)
     if (t === 'TaskQueue') {
       const q = queueProjectionOf(m)
       atom({
@@ -947,8 +947,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Notice') {
-      // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
-      // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
+      // As on the web: a notice without text (a @Notice whose field is null or blank) and without
+      // content is not painted — the field's value is its own visibility switch.
       const noticeText = interp(m.text)
       const kids = kidsOf(node)
       if (!noticeText.trim() && !kids.length) return
@@ -967,15 +967,15 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Markdown') {
-      // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
-      // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+      // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
+      // that installRichText dumps into its container (VB does not stamp HTML from a binding)
       const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
       if (html) atom({ isRichText: true, label: '', html }, container)
       return
     }
     if (t === 'Grid') {
-      // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
-      // un campo de tipo lista — oj-table en modo lista; column groups are flattened (oj-table has
+      // a fluent Grid (columns in content, rows in page.content): the same embedded table as
+      // a list-typed field — oj-table in list mode; column groups are flattened (oj-table has
       // no grouped headers): the group's label prefixes its columns' — leafColumnsOf
       const leafColumns = leafColumnsOf(m.content, interp).filter((c) => c.type === 'GridColumn' || c.id)
       const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
@@ -1023,8 +1023,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'DropZone') {
-      // un destino donde soltar filas arrastradas (@DragRows): título, subtítulo y su contenido como
-      // líneas de texto; dnd.mjs lo resalta mientras se arrastra su tipo y lanza su acción al soltar
+      // a destination to drop dragged rows on (@DragRows): title, subtitle and its content as
+      // text lines; dnd.mjs highlights it while its type is dragged and fires its action on drop
       const lines = kidsOf(node).flatMap((k) => collectTexts(k)).map(interp).filter(Boolean)
       atom({
         isDropZone: true,
@@ -1039,8 +1039,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Popover') {
-      // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
-      // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
+      // the wrapped part is painted as a trigger with its text; the content, as lines in the
+      // shared floating window (hover.mjs) — on hover/focus (hover) or on press (click)
       const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
       const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
       const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
@@ -1082,8 +1082,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Image') {
-      // JET no tiene componente de imagen: un <img> con el ancho de su contenedor como tope
-      // una ruta RELATIVA la sirve el backend (como el módulo de un Element), no la app VB
+      // JET has no image component: an <img> capped at its container's width
+      // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
       if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
       return
     }
@@ -1092,15 +1092,15 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'AvatarGroup') {
-      // oj-avatar por persona hasta maxItemsVisible, y «+N» con las que no caben
+      // an oj-avatar per person up to maxItemsVisible, and «+N» for the ones that do not fit
       const all = (m.avatars || []).map(avatarOf)
       const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
       atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
       return
     }
     if (t === 'CarouselLayout') {
-      // una GALERÍA (todas las diapositivas son imágenes) → oj-film-strip de JET, con sus flechas
-      // y su paginación; un carrusel de contenido arbitrario sigue apilando sus diapositivas
+      // a GALLERY (all the slides are images) → JET's oj-film-strip, with its arrows
+      // and its pagination; a carousel of arbitrary content still stacks its slides
       const slides = kidsOf(node)
       const images = slides.map((n) => (n && n.metadata && n.metadata.type === 'Image' && n.metadata.src ? n.metadata : null))
       if (slides.length && images.every(Boolean)) {
@@ -1179,20 +1179,20 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'StatusList') {
-      // columns > 1 → grid responsive de N columnas: el wrapper pasa a oj-flex (wrap) y
-      // cada ítem se pinta como TARJETA (oj-panel: borde propio, badge de estado dentro)
-      // — celdas sin borde dejaban ambiguo a qué tarea pertenece cada chip y el conjunto
-      // no se leía como listado de tareas. La celda exterior es a su vez oj-flex para que
-      // el panel interior estire a la altura de la fila (align-items stretch).
-      // Todo precomputado por ítem — el CSP de VB no divide ni compara.
+      // columns > 1 → responsive grid of N columns: the wrapper becomes oj-flex (wrap) and
+      // each item is painted as a CARD (oj-panel: its own border, status badge inside)
+      // — borderless cells left it ambiguous which task each chip belonged to and the whole
+      // did not read as a task listing. The outer cell is itself oj-flex so that
+      // the inner panel stretches to the row's height (align-items stretch).
+      // All precomputed per item — VB's CSP does not divide or compare.
       const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
       const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-      // SOLO columns>1 fuerza tarjetas: una lista de una columna con acciones (los
-      // huéspedes) se pinta con la rama APILADA del markup — nombre como h3 (nivel
-      // siguiente al h2 de la sección), sin avatar, ritmo .mateu-list-item
+      // ONLY columns>1 forces cards: a one-column list with actions (the
+      // guests) is painted with the STACKED branch of the markup — name as h3 (the level
+      // after the section's h2), without avatar, .mateu-list-item rhythm
       const asCards = cols > 0
-      // la rejilla del cockpit: celdas de MEDIDA FIJA (.mateu-grid-cell, 22rem) con el
-      // aire entre tarjetas como gap de la rejilla (.mateu-grid) — ver app.css
+      // the cockpit grid: FIXED-SIZE cells (.mateu-grid-cell, 22rem) with the
+      // space between cards as the grid's gap (.mateu-grid) — see app.css
       const cellClass = cols
         ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
         : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
@@ -1200,11 +1200,11 @@ export function islandContentOf(ctx, opts = {}) {
         isStatusList: true,
         wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
         items: (m.items || []).map((it) => {
-          // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
-          // precomputado; una fila CON acciones se pinta APILADA (título+chip /
-          // descripción / botones) para no descolocarse en carriles estrechos
-          // hasta TRES acciones por fila; con actionIcon* el botón se pinta SOLO-ICONO
-          // (label como tooltip/aria) — iconClass precomputado vía ojIconOf
+          // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
+          // array; a row WITH actions is painted STACKED (title+chip /
+          // description / buttons) so it does not break up in narrow lanes
+          // up to THREE actions per row; with actionIcon* the button is painted ICON-ONLY
+          // (label as tooltip/aria) — iconClass precomputed via ojIconOf
           const rowActions = []
           if (it.actionLabel && it.actionId) {
             rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
@@ -1231,16 +1231,16 @@ export function islandContentOf(ctx, opts = {}) {
             statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
             actions: rowActions,
             hasActions: rowActions.length > 0,
-            // nivel del heading del titulo apilado: h4 bajo un grupo con h3 propio
+            // heading level of the stacked title: h4 under a group with its own h3
             isH4: m.itemHeadingLevel === 4,
-            // cronologia bajo el titulo (p.ej. las entradas de una incidencia)
+            // timeline under the title (e.g. the entries of an incident)
             lines: (it.lines || []).map(interp),
             hasLines: !!(it.lines && it.lines.length),
             actionLabel: it.actionLabel || '',
             actionId: it.actionId || m.rowActionId || '',
             parameters: { _item: it.id },
-            // rowActionId SIN botón propio = la FILA ENTERA es actuable (contrato del
-            // renderer web: clic de fila → rowActionId con {_item})
+            // rowActionId WITHOUT its own button = the WHOLE ROW is actionable (contract of the
+            // web renderer: row click → rowActionId with {_item})
             rowClickable: !!(m.rowActionId && !it.actionLabel),
           }
         }),
@@ -1289,8 +1289,8 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'TaskProgress') {
-      // banner de subtareas N-de-M (checklist de operaciones): completo → panel success y
-      // sin botón (contrato del componente); todo precomputado (el CSP de VB no compara)
+      // N-of-M subtasks banner (operations checklist): complete → success panel and
+      // no button (the component's contract); all precomputed (VB's CSP does not compare)
       const total = m.total || 0
       const done = m.done || 0
       const complete = total > 0 && done >= total
@@ -1468,9 +1468,9 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) visit(child, container)
   }
   visit(ctx.tree, null)
-  // HOISTING de la isla anidada: un bloque cuyo contenido es la isla (card "Documento")
-  // se convierte en bloque isNestedBlock — el markup la pinta a nivel de BLOQUE porque
-  // a más profundidad el evaluador CSP de VB deja de resolver los bindings del template
+  // HOISTING of the nested island: a block whose content is the island (card "Documento")
+  // becomes an isNestedBlock block — the markup paints it at BLOCK level because
+  // at greater depth VB's CSP evaluator stops resolving the template's bindings
   const hoisted = blocks.map((block) => (
     block.items.some((a) => a.isNested)
       ? { ...block, isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
@@ -1495,12 +1495,12 @@ function hasFormField(node, isRoot = true) {
   return false
 }
 
-/** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
+/** Does the screen's content serve as the page body? (if not, the generic form paints it)
  *
- *  Sí cuando trae algo RICO (isRichAtom, una barra de pestañas, una tabla, un componente web, un
- *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
- *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
- *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+ *  Yes when it brings something RICH (isRichAtom, a tab strip, a table, a web component, a
+ *  @Subresource listing): its fields are already visible there. And yes when the generic form has NOTHING
+ *  to paint: a read-only page arrives as loose texts — its @ReadOnly fields are
+ *  Text on the wire, not FormFields — and without this rule it came out empty (CustomerHistory). */
 /**
  * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
  * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
@@ -1576,15 +1576,15 @@ export function hostContentShown(blocks, summary) {
   return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
 }
 
-// ── @Subresource: listados embebidos en el contenido (P1) ─────────────────────────────────────
+// ── @Subresource: listings embedded in the content (P1) ───────────────────────────────────────
 //
-// Un campo @Subresource llega como un ServerSide INTERIOR (su isla) con un App de mediador cuya
-// homeRoute lleva `_hideTitle=1` (y `_scope`, y `_lazy` si es ON_OPEN): el servidor solo marca
-// así a los sub-recursos. Se carga al quedar a la vista — la pestaña activa —, con el estado que
-// el padre le siembra (initialData: el id del maestro) y su búsqueda OnLoad, y se pinta como una
-// tabla en su sitio del contenido.
+// A @Subresource field arrives as an INNER ServerSide (its island) with a mediator App whose
+// homeRoute carries `_hideTitle=1` (and `_scope`, and `_lazy` if ON_OPEN): the server marks only
+// sub-resources that way. It is loaded when it comes into view — the active tab —, with the state
+// the parent seeds into it (initialData: the master's id) and its OnLoad search, and is painted as a
+// table in its place in the content.
 
-/** Si el nodo es la frontera de un @Subresource, cómo cargarlo; si no, null. */
+/** If the node is the boundary of a @Subresource, how to load it; otherwise null. */
 export function subresourceIslandOf(node) {
   if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
   const app = (node.children || [])[0]
@@ -1603,7 +1603,7 @@ export function subresourceIslandOf(node) {
     route: md.homeRoute,
     consumedRoute: md.homeConsumedRoute || path,
     serverSideType: md.homeServerSideType || node.serverSideType,
-    // la marca de la ruta viaja también en el estado (_scope: lo que el padre fija), como en Vaadin
+    // the route's mark also travels in the state (_scope: what the parent pins), as in Vaadin
     componentState: { ...params, ...(node.initialData || {}) },
     lazy: params._lazy === '1',
   }
@@ -1634,7 +1634,7 @@ export function inlineIslandOf(node) {
   }
 }
 
-/** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
+/** The @Subresource slots of the content that do not have their surface loaded yet. */
 export function pendingSubresourcesOf(blocks, contexts) {
   const out = []
   for (const block of blocks || []) {
@@ -1645,8 +1645,8 @@ export function pendingSubresourcesOf(blocks, contexts) {
   return out
 }
 
-/** El contenido con cada hueco @Subresource cargado convertido en su tabla (o, si no es un
- *  listado, en su contenido). Los que aún no están cargados se quedan como hueco (no pintan). */
+/** The content with each loaded @Subresource slot turned into its table (or, if it is not a
+ *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
 export function withSubresources(blocks, contexts) {
   if (!blocks) return blocks
   return blocks.map((block) => ({
@@ -1666,7 +1666,7 @@ export function withSubresources(blocks, contexts) {
       }
       const md = crud.metadata || {}
       const wire = leafColumnsOf(md.columns)
-        // las acciones por fila no tienen sitio en la tabla de solo consulta
+        // the per-row actions have no place in the query-only table
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}
       const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
@@ -1690,12 +1690,12 @@ export function withSubresources(blocks, contexts) {
   }))
 }
 
-/** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
- *  el bloque isNestedBlock (la card que solo contenía la isla) pasa a ser una card
- *  normal cuyos items son los átomos de la anidada, MARCADOS fromNested (también sus
- *  botones) para que el dispatcher enrute sus acciones al contexto anidado. Motivo:
- *  leer $application.variables DENTRO de un template anidado no re-liga los contextos
- *  internos en el evaluador CSP de VB — los datos deben fluir por $current. */
+/** Merges the content of the NESTED island into the blocks of the parent island:
+ *  the isNestedBlock block (the card that only contained the island) becomes a normal
+ *  card whose items are the nested one's atoms, MARKED fromNested (its buttons
+ *  too) so the dispatcher routes their actions to the nested context. Reason:
+ *  reading $application.variables INSIDE a nested template does not re-bind the inner
+ *  contexts in VB's CSP evaluator — the data must flow through $current. */
 export function mergeNestedContent(islandBlocks, nestedBlocks) {
   if (!islandBlocks) return islandBlocks
   const nestedAtoms = (nestedBlocks || []).reduce((out, block) => out.concat(block.items), [])
@@ -1714,13 +1714,13 @@ export function mergeNestedContent(islandBlocks, nestedBlocks) {
   ))
 }
 
-/** Contenido display del HOST (páginas de detalle standalone: /encasa/:id, /checkout/:id,
- *  y los pasos del wizard /checkin/:id): los mismos bloques que una isla, con la PRIMERA
- *  isla del host (p.ej. el documento) fusionada en su hueco (atomos fromNested → despachan
- *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
- *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
-/** ¿El card llevaba título? visit() lo mete como primer átomo de texto con la clase del
- *  subencabezado — que es justo lo que distingue una tarjeta de verdad del marco de la página. */
+/** Display content of the HOST (standalone detail pages: /encasa/:id, /checkout/:id,
+ *  and the wizard steps /checkin/:id): the same blocks as an island, with the FIRST
+ *  island of the host (e.g. the document) merged into its slot (fromNested atoms → dispatch
+ *  to the island's context). In wizard mode the page title, the ProgressSteps
+ *  and the back/next buttons are filtered out: the guided process already provides rail, title and Continue. */
+/** Did the card carry a title? visit() puts it as the first text atom with the
+ *  subheading class — which is exactly what tells a real card apart from the page frame. */
 export function cardHasTitle(block) {
   const first = (block.items || [])[0]
   return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
@@ -1758,31 +1758,31 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
     .map((block) => ({
       ...block,
       items: block.items.map(withoutWizardNav).filter((atom) => {
-        // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
+        // the Page title is redundant: the header band (or the guided process) already paints it
         if (!titleDropped && atom.isText && title && atom.text === title) {
           titleDropped = true
           return false
         }
-        // el TOOLBAR de Page tampoco va al contenido: se proyecta a las acciones del
-        // header (pageToolbarOf → primary/secondary de la banda) — SALVO el de la ISLA
-        // fusionada (fromNested, p.ej. Cancel/Save del editor del documento): ese
-        // pertenece a la isla y se pinta en su bloque
+        // the Page TOOLBAR does not go into the content either: it is projected to the header's
+        // actions (pageToolbarOf → primary/secondary of the band) — EXCEPT the one of the merged
+        // ISLAND (fromNested, e.g. Cancel/Save of the document editor): that one
+        // belongs to the island and is painted in its block
         if (atom.fromPageToolbar && !atom.fromNested) return false
-        // y el EntityHeader tampoco cuando el header de pantalla lo muestra (título/
-        // subtítulo/facts del huésped en la banda, en vez del título genérico)
+        // and neither the EntityHeader when the screen header shows it (guest's title/
+        // subtitle/facts in the band, instead of the generic title)
         if (opts.dropEntityHeader && atom.isEntityHeader && !entityDropped) {
           entityDropped = true
           return false
         }
         if (opts.forWizard) {
           if (atom.isProgress) return false
-          // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
-          // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+          // the RAIL's «2 | 3» counter (@WizardProgress(RAIL)): the guided process's oj-sp
+          // already paints its own in its rail, one more in the content is a duplicate
           if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
           if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
-          // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
-          // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+          // the footer of the LAST step: Back + the completion action (@WizardCompletionAction) — the
+          // guided process's footer already paints them (wizardForwardOf), here they came out duplicated
           if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
               && atom.buttons.some((b) => b.actionId === 'back')
               && !atom.buttons.some((b) => b.actionId === 'next')) return false
@@ -1791,23 +1791,23 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
       }),
     }))
     .filter((block) => block.items.length)
-    // el loop del host pinta los bloques dentro de un oj-flex: los bloques-columna de una
-    // fila zonada llevan su colClass; el resto ocupa la fila entera (oj-sm-12)
+    // the host loop paints the blocks inside an oj-flex: the column-blocks of a
+    // zoned row carry their colClass; the rest take the whole row (oj-sm-12)
     .map((block) => ({ ...block, blockClass: block.colClass || 'oj-flex-item oj-sm-12' }))
-  // Un ÚNICO card SIN TÍTULO que envuelve todo el contenido no es una tarjeta: es el marco de
-  // la página, y ése ya lo pinta el contenedor de contenido. Pintarlo además como oj-panel deja
-  // una caja dentro de otra, que es como se veía cualquier pantalla con pestañas o con una
-  // tabla dentro — mientras que una ficha normal (la rama de formulario) no la tiene. Con
-  // título sí es una tarjeta de verdad y se respeta, igual que cuando hay varias.
+  // A SINGLE UNTITLED card wrapping all the content is not a card: it is the page's
+  // frame, and that one is already painted by the content container. Painting it also as an oj-panel leaves
+  // a box inside another, which is how any screen with tabs or with a
+  // table inside looked — whereas a normal record (the form branch) has none. With a
+  // title it is a real card and is respected, same as when there are several.
   if (merged.length === 1 && merged[0].isCard && !cardHasTitle(merged[0])) {
     merged = [{ ...merged[0], isCard: false, isPlain: true }]
   }
   return merged.length ? merged : null
 }
 
-/** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
- *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
- *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+/** Wizard FORWARD action (Continue/Complete): derived from the real FOOTER of the tree — the
+ *  button block that goes with 'back' (rich wizards also have page
+ *  actions like selectPax that are NOT the forward; picking "first non-back action" failed). */
 const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
 
 export function wizardForwardOf(ctx) {

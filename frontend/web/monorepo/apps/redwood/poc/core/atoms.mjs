@@ -6,17 +6,17 @@ import { dataProviderFactory, hostContentOf, panelExpanded } from './content.mjs
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
 // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
-// La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
-// el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
-// secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
-// la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+// The matrix (rows × dates, collapsible sections, linking cells and editable rows) is painted by
+// JET's oj-data-grid over a RowDataGridProvider of a FlattenedTreeDataProviderView: the
+// sections are tree nodes (JET paints the disclosure), the columns c0..cN. Here the PURE
+// specification is built (tested in Node); the provider is created by the bridge's factory.
 export let matrixProviderFactory = null
 export function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
 
 export const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
 export const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
 
-/** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+/** Key of a section's collapsed state (the same store as the collapsible panels). */
 export const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
 
 export function matrixSpecOf(m, id) {
@@ -50,7 +50,7 @@ export function matrixSpecOf(m, id) {
       data.push(...rows)
     }
   }
-  // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+  // headers: if there are groups (the month), two levels — the group spans its consecutive columns
   const hasGroups = columns.some((c) => c.group)
   const columnHeaders = []
   if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
@@ -66,15 +66,15 @@ export function matrixSpecOf(m, id) {
     rowHeaderLabel: m.rowHeaderLabel || '' }
 }
 
-/** La altura que el wire pide para el mapa (su `style`), o 25rem como el <mateu-map> del web. */
+/** The height the wire asks for the map (its `style`), or 25rem like the web's <mateu-map>. */
 export function mapHeightOf(style) {
   const m = /(?:^|;)\s*height\s*:\s*([^;]+)/i.exec(style || '')
   return m ? m[1].trim() : '25rem'
 }
 
-/** Map: JET no tiene mapa de calles (oj-thematic-map pide geografía GeoJSON), así que el átomo
- *  es un contenedor que installMaps (poc/map.mjs) llena con Leaflet y teselas de OpenStreetMap.
- *  La especificación viaja serializada en un data-attribute, como el HTML del texto enriquecido. */
+/** Map: JET has no street map (oj-thematic-map needs GeoJSON geography), so the atom
+ *  is a container that installMaps (poc/map.mjs) fills with Leaflet and OpenStreetMap tiles.
+ *  The specification travels serialized in a data-attribute, like the rich text's HTML. */
 export function mapAtomOf(m, id, style) {
   const markers = (m.markers || []).map((k) => ({
     id: k.id, latitude: k.latitude, longitude: k.longitude,
@@ -85,7 +85,7 @@ export function mapAtomOf(m, id, style) {
     mapId: 'mateuMap-' + (id || 'map'),
     mapSpec: JSON.stringify({
       position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '',
-      // el proveedor de teselas del wire ('' = OSM, ver tileLayerOf en map.mjs)
+      // the wire's tile provider ('' = OSM, see tileLayerOf in map.mjs)
       tileUrl: m.tileUrl || '', attribution: m.attribution || '',
     }),
     mapStyle: { width: '100%', height: mapHeightOf(style) },
@@ -101,17 +101,17 @@ export function matrixAtomOf(m, id, interp = (x) => x) {
     matrixId: spec.gridId,
     cellActionId: m.cellActionId || '',
     editActionId: m.editActionId || '',
-    // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
-    // (un OBJETO: el :style de JET no acepta la cadena CSS)
+    // height to fit (header(s) + visible rows), with a ceiling: the grid scrolls inside
+    // (an OBJECT: JET's :style does not accept the CSS string)
     gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
     provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
-    // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+    // the tone goes on the grid CELL (not on the text): JET asks for the class per context
     cellClassName: (ctx) => {
-      // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+      // in the class callback the value comes in ctx.data.data (in the template, in cell.item)
       const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
       return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
     },
-    // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+    // which cells are edited is decided by JET (cell.editable): the rest stay natively read-only
     cellEditable: (ctx) => {
       const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
       return d && d.editable ? 'enable' : 'disable'
@@ -124,17 +124,17 @@ export function matrixAtomOf(m, id, interp = (x) => x) {
   }
 }
 
-/** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
+/** «ctrl+i» → «Ctrl+I», for the trigger's label. */
 export function shortcutHintOf(shortcut) {
   if (!shortcut) return ''
   return String(shortcut).split('+').map((k) => k.trim()).filter(Boolean)
     .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
 }
 
-/** PANEL DE ACCIONES por categorías («I want to…»): columnas por categoría, las acciones CON
- *  datos primero (y en negrita), hasta maxPerCategory visibles y el resto tras «Show more».
- *  Mostrar más / ocultar las vacías / abrir y cerrar es estado del DOM (installActionPanels):
- *  sin ida y vuelta al servidor y sin re-proyectar. */
+/** ACTION PANEL by categories («I want to…»): columns per category, the actions WITH
+ *  data first (and in bold), up to maxPerCategory visible and the rest behind «Show more».
+ *  Show more / hide empty ones / open and close is DOM state (installActionPanels):
+ *  no round trip to the server and no re-projection. */
 export function actionPanelAtomOf(m, id, interp = (x) => x) {
   const max = m.maxPerCategory > 0 ? m.maxPerCategory : 10
   const panelId = 'mateuActionPanel-' + String(id || m.label || 'actions').replace(/[^A-Za-z0-9_-]/g, '_')
@@ -150,9 +150,9 @@ export function actionPanelAtomOf(m, id, interp = (x) => x) {
         itemClass: 'mateu-ap-item' + (a.populated ? ' mateu-ap-populated' : ' mateu-ap-unpopulated') + (i >= max ? ' mateu-ap-extra' : ''),
       }))
     const extra = Math.max(0, actions.length - max)
-    // con «ocultar vacías» una columna sin acciones con datos sobra entera, y el «mostrar más»
-    // también cuando lo que esconde son sólo vacías (los poblados van primero: si alguno queda
-    // fuera del corte, todo lo que hay antes también es poblado)
+    // with «hide empty» a column with no populated actions is entirely superfluous, and so is «show more»
+    // when what it hides is only empty ones (the populated ones go first: if any is left
+    // past the cut, everything before it is populated too)
     const populated = (c.actions || []).filter((a) => a.populated).length
     return {
       key: panelId + ':' + ci, title: interp(c.title || ''), actions, hasMore: extra > 0,
@@ -172,13 +172,13 @@ export function actionPanelAtomOf(m, id, interp = (x) => x) {
   }
 }
 
-/** Las pistas de un grid-template-columns como PESOS: repeat(N, x) se expande, «Nfr», «N%» y
- *  minmax(…, Nfr) pesan N, lo demás (px, rem, auto, min-content…) pesa 1 — una aproximación: el
- *  flex de JET reparte en doceavos, no en pistas. */
+/** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded, «Nfr», «N%» and
+ *  minmax(…, Nfr) weigh N, the rest (px, rem, auto, min-content…) weighs 1 — an approximation:
+ *  JET's flex distributes in twelfths, not in tracks. */
 export function gridTrackWeights(template) {
   const src = String(template || '').trim()
   if (!src) return []
-  // trocea por espacios de primer nivel (no dentro de paréntesis)
+  // split on top-level spaces (not inside parentheses)
   const tokens = []
   let depth = 0, cur = ''
   for (const ch of src) {
@@ -197,14 +197,14 @@ export function gridTrackWeights(template) {
     if (rep) {
       const inner = gridTrackWeights(rep[2])
       for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
-    } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: lo decide el ancho, no se sabe aquí
+    } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: decided by the width, unknown here
     else out.push(weightOf(tok))
   }
   return out
 }
 
-/** Clase oj-flex de cada hijo de una rejilla (auto-colocación CSS: en orden, saltando de fila
- *  cuando el span no cabe). null si la rejilla es de una pista (o no se sabe): se apila. */
+/** oj-flex class of each child of a grid (CSS auto-placement: in order, wrapping to a new row
+ *  when the span does not fit). null if the grid has a single track (or it is unknown): it stacks. */
 export function gridColClasses(template, colSpans, count) {
   const weights = gridTrackWeights(template)
   if (weights.length < 2) return null
@@ -222,25 +222,25 @@ export function gridColClasses(template, colSpans, count) {
   return classes
 }
 
-/** El tipo MIME de un tipo de arrastre: así el destino sabe, mientras se arrastra (cuando aún no
- *  puede leer los datos), si lo que viene es suyo. */
+/** The MIME type of a drag type: this way the target knows, while dragging (when it still
+ *  cannot read the data), whether what is coming is its own. */
 export const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
 
-/** Un Avatar del wire → lo que pinta oj-avatar: iniciales (las dadas o las del nombre) e imagen. */
+/** A wire Avatar → what oj-avatar paints: initials (the given ones or the name's) and image. */
 export function avatarOf(m) {
   const name = String((m && m.name) || '')
   const initials = (m && m.abbreviation) || name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
   return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
 }
 
-/** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+/** Rich text (richText/html/markdown) of a field or component → its sanitized HTML. */
 export const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
 export function richHtmlOf(kind, value) {
   const text = value == null ? '' : String(value)
   return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
 }
 
-/** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
+/** «colSpan of N columns» → the block's oj-flex class (twelfths, never more than 12). */
 export function panelColClass(colSpan, columns) {
   const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
   const twelfths = Math.max(1, Math.min(12, Math.round((12 * span) / columns)))
@@ -248,21 +248,21 @@ export function panelColClass(colSpan, columns) {
 }
 
 export const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
-/** El texto accesible de un KPI, en orden de lectura: "Revenue, 12.4k €, Last 7 days, +8%, …"
- *  (igual que el de la web: el periodo viaja con el número al que califica). */
+/** A KPI's accessible text, in reading order: "Revenue, 12.4k €, Last 7 days, +8%, …"
+ *  (same as the web's: the period travels with the number it qualifies). */
 export function metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }) {
   const present = (s) => s != null && String(s).trim() !== ''
   const v = [value, unit].filter(present).map((s) => String(s).trim()).join(' ')
   return [title, v, timeframe, trendLabel, description].filter(present).map((s) => String(s).trim()).join(', ')
 }
-/** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
- *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
+/** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
+ *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
 export function metricOf(m, interp = (x) => x) {
   const trend = m.trend || ''
   const title = interp(m.title || '')
   const value = String(m.value == null ? '' : m.value)
   const unit = m.unit || ''
-  // el periodo que cubre el número ("Last 7 days"): bajo el valor, y en el texto accesible
+  // the period the number covers ("Last 7 days"): under the value, and in the accessible text
   const timeframe = String(interp(m.timeframe || '') || '').trim()
   const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
   const description = interp(m.description || '')
@@ -280,14 +280,14 @@ export function metricOf(m, interp = (x) => x) {
   }
 }
 
-// Chart.js (el vocabulario del wire) → oj-chart de JET
+// Chart.js (the wire's vocabulary) → JET's oj-chart
 export const CHART_TYPES = {
   bar: { type: 'bar' }, line: { type: 'line' }, pie: { type: 'pie' }, doughnut: { type: 'pie', innerRadius: 0.55 },
   radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
   scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
 }
-/** Un Chart (series × etiquetas) o un TrendChart (una serie) → átomo de oj-chart: los ITEMS
- *  precomputados ({series, group, value}); en una tarta cada etiqueta es una serie (una porción). */
+/** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
+ *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
 export function chartAtomOf(m, t, interp = (x) => x) {
   const trend = t === 'TrendChart'
   const labels = (trend ? m.labels : m.chartData && m.chartData.labels) || []
@@ -322,13 +322,13 @@ export function chartAtomOf(m, t, interp = (x) => x) {
   }
 }
 
-/** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
- *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+/** Is it a RICH atom (a real display, not a loose field)? When a screen's content
+ *  brings them, the generic form is superfluous: its fields are already seen in them. */
 export const RICH_ATOM_FLAGS = [
   'isEntityHeader', 'isTaskProgress', 'isMeter', 'isStatusList', 'isLedger', 'isPayment',
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
-  // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
-  // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
+  // PMS challenge: any NEW atom has to be here — otherwise, on a page that also
+  // carries fields the generic form wins (it only paints fields) and the atom disappears
   'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isRecordMerge', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
   // the display components of core/display.mjs
   'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
@@ -341,23 +341,23 @@ export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
 }
 
-/** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
+/** Is this button block the wizard's FOOTER (Back / Next / the completion action)? */
 export function isWizardNavAtom(a) {
   return !!(a && a.isButtons && (a.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next'))
 }
 
 /**
- * El PASO actual de un wizard, listo para pintar: { title, content, sections, nav }.
+ * A wizard's current STEP, ready to paint: { title, content, sections, nav }.
  *
- * - content: los bloques display del paso (hostContentOf en modo wizard, con la isla fusionada).
- * - sections: los campos del paso agrupados por @Section (formSectionsOf), o [] si el contenido
- *   es RICO (la misma regla que el host: el header/las property rows ya muestran esos datos).
- * - Cada campo UNA vez: los FormFields que el formulario pinta (con su widget de verdad: select,
- *   fecha…) salen del contenido, donde sólo serían un oj-input-text de texto — antes salían dos
- *   veces, arriba como texto y abajo con su desplegable. Los de una isla fusionada (fromNested)
- *   son de otro contexto y se quedan.
- * - En HORIZONTAL (tren arriba) el pie Back/Next del wire sale del contenido a `nav` (la barra
- *   del pie), y el título del wizard (su h2) sale a `title` si la página no trae otro.
+ * - content: the step's display blocks (hostContentOf in wizard mode, with the island merged).
+ * - sections: the step's fields grouped by @Section (formSectionsOf), or [] if the content
+ *   is RICH (the same rule as the host: the header/property rows already show that data).
+ * - Each field ONCE: the FormFields the form paints (with their real widget: select,
+ *   date…) are removed from the content, where they would only be a text oj-input-text — before they
+ *   appeared twice, above as text and below with their dropdown. Those of a merged island (fromNested)
+ *   belong to another context and stay.
+ * - In HORIZONTAL (train on top) the wire's Back/Next footer moves from the content to `nav` (the
+ *   footer bar), and the wizard's title (its h2) moves to `title` if the page brings no other.
  */
 export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
   const wizard = wizardOf(ctx)
@@ -381,8 +381,8 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
     }).filter((a) => {
       if (a.isFormLayout && !a.fields.length) return false
       if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
-      // el título del wizard (su h2) va a la cabecera — el h1 sobre el tren, o el título del
-      // proceso del guided process —, y su subtítulo con él: ninguno se repite en el paso
+      // the wizard's title (its h2) goes to the header — the h1 above the train, or the guided
+      // process's process title —, and its subtitle with it: neither is repeated in the step
       if (a.isText && a.isH2 && (!title || a.text === title || a.text === wizard.title)) {
         if (!title) title = a.text
         return false
@@ -394,19 +394,19 @@ export function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
       if (wizard.horizontal && isWizardNavAtom(a)) { nav = a.buttons; return false }
       return true
     })
-    // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
-    // ya pinta esa sección con su encabezado — fuera la tarjeta vacía
+    // a @Section card whose fields went to the form keeps only its title: the form
+    // already paints that section with its heading — drop the empty card
     const onlyHeadings = items.every((a) => a.isText && a.isHeading)
     return { ...block, items: movedToForm && onlyHeadings ? [] : items }
   }).filter((block) => block.items.length)
-  // el rótulo del paso ya lo pinta la cabecera del paso (el h2 bajo el tren, o el título del
-  // paso del guided process): una @Section que se llama igual que su paso no lo repite
+  // the step's label is already painted by the step header (the h2 under the train, or the
+  // guided process's step title): a @Section named like its step does not repeat it
   const stepLabel = wizard.currentLabel
   sections = sections.map((section) => (
     stepLabel && section.title && section.title.trim() === stepLabel.trim()
       ? { ...section, title: '', hasTitle: false }
       : section))
-  // la acción de AVANCE (Next, o la de completar) es la llamada a la acción del pie
+  // the ADVANCE action (Next, or the completion one) is the footer's call to action
   nav = nav.map((b) => ({
     ...b,
     chroming: b.actionId === 'back' ? 'outlined' : 'callToAction',
