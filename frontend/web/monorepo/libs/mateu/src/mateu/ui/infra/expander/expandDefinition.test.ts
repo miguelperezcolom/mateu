@@ -46,13 +46,20 @@ describe('client-side expander — bare-layout definition (Phase 6, increment 1)
         expect(JSON.stringify(expandComponent(noted as any))).not.toContain('note')
     })
 
-    it('titles the window with the route when the definition declares none, and can override', () => {
+    it('titles the window with the route humanized when the definition declares none, and can override', () => {
         expect(expandDefinition(aboutSpec, 'about').commands![0]).toMatchObject({
             type: 'SetWindowTitle',
-            data: 'about',
+            data: 'About',
             targetComponentId: 'ux_main',
         })
-        expect(expandDefinition(aboutSpec, 'about', 'About').commands![0]).toMatchObject({ data: 'About' })
+        expect(expandDefinition(aboutSpec, 'orders/:id/edit-notes').commands![0]).toMatchObject({ data: 'Edit notes' })
+        expect(expandDefinition(aboutSpec, 'about', 'Custom').commands![0]).toMatchObject({ data: 'Custom' })
+    })
+
+    it('titles the window with the definition\'s own title — unless it reads state not fetched yet', () => {
+        const form = (title: string): DefinitionSpec => ({ layout: { type: 'Form', title, content: [] } })
+        expect(expandDefinition(form('Sign up'), 'sign-up').commands![0]).toMatchObject({ data: 'Sign up' })
+        expect(expandDefinition(form('Customer ${state.name}'), 'customer').commands![0]).toMatchObject({ data: 'Customer' })
     })
 
     it('emits one Replace fragment targeting ux_main', () => {

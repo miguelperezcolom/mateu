@@ -30,7 +30,7 @@ describe('bundle specs mode — client-side definition expansion (Phase 6, incre
         const c = inc!.fragments![0].component as any
         expect(c.metadata.type).toBe('VerticalLayout')
         expect(c.children[0].metadata).toMatchObject({ type: 'Text', text: 'About this app' })
-        expect(inc!.commands![0]).toMatchObject({ type: 'SetWindowTitle', data: 'about' })
+        expect(inc!.commands![0]).toMatchObject({ type: 'SetWindowTitle', data: 'About' })
     })
 
     it('applies the route registry params to the expanded increment', () => {

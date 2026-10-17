@@ -3,7 +3,7 @@
     {
       "targetComponentId": "ux_main",
       "type": "SetWindowTitle",
-      "data": "about"
+      "data": "About"
     }
   ],
   "messages": [],

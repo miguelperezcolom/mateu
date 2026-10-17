@@ -280,10 +280,95 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
-      return Mono.justOrEmpty(
-          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), spec.pageType(), command));
+      var page =
+          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), spec.pageType(), command);
+      if (page != null) {
+        nameTheWindow(spec.layout(), page, command);
+      }
+      return Mono.justOrEmpty(page);
     }
     return createInstanceAndPostHydrate(spec.modelView(), command);
+  }
+
+  /**
+   * A definition-only page names the window like any page: its definition's title (the root
+   * component's {@code title:}, interpolated against the page state), else its route humanized. It
+   * used to send no SetWindowTitle at all — a layout is not reflected as a page — so the tab kept
+   * the previous (often the root) page's title and screen readers heard no route change. Only on a
+   * LOAD: a fetch or a trigger answered by the same page must not re-announce it.
+   */
+  private void nameTheWindow(
+      io.mateu.uidl.fluent.Component layout, Object page, RunActionCommand command) {
+    var httpRequest = command.httpRequest();
+    if (httpRequest == null
+        || httpRequest.getAttribute("windowTitle") != null
+        || (command.actionId() != null
+            && !command.actionId().isEmpty()
+            && !"__load__".equals(command.actionId()))) {
+      return;
+    }
+    var state =
+        page instanceof SeededYamlPage seeded && seeded.state() != null
+            ? seeded.state()
+            : command.componentState();
+    var title = definitionTitle(layout, state);
+    if (title == null) {
+      title = humanizedRoute(command.route());
+    }
+    if (title != null && !title.isBlank()) {
+      httpRequest.setAttribute("windowTitle", title);
+    }
+  }
+
+  /** The root component's own String {@code title}, when every expression in it resolves. */
+  static String definitionTitle(
+      io.mateu.uidl.fluent.Component layout, java.util.Map<String, Object> state) {
+    if (layout == null || !layout.getClass().isRecord()) {
+      return null;
+    }
+    for (var component : layout.getClass().getRecordComponents()) {
+      if (!"title".equals(component.getName()) || component.getType() != String.class) {
+        continue;
+      }
+      try {
+        var title = (String) component.getAccessor().invoke(layout);
+        if (title == null || title.isBlank()) {
+          return null;
+        }
+        if (!title.contains("${")) {
+          return title;
+        }
+        var values = state == null ? java.util.Map.<String, Object>of() : state;
+        var matcher = java.util.regex.Pattern.compile("\\$\\{[^}]+}").matcher(title);
+        while (matcher.find()) {
+          var value =
+              io.mateu.core.infra.TemplateInterpolator.interpolate(
+                  matcher.group(), values, key -> "");
+          if (value == null || value.isBlank()) {
+            return null; // not known yet (the data arrives later): the route names the window
+          }
+        }
+        return io.mateu.core.infra.TemplateInterpolator.interpolate(title, values, key -> "");
+      } catch (ReflectiveOperationException e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /** The route's last literal segment, humanized ({@code orders/:id/edit-notes} → Edit notes). */
+  static String humanizedRoute(String route) {
+    if (route == null) {
+      return null;
+    }
+    var segments = stripQuery(route).split("/");
+    for (int i = segments.length - 1; i >= 0; i--) {
+      var segment = segments[i];
+      if (!segment.isBlank() && !segment.startsWith(":") && !segment.startsWith("{")) {
+        return io.mateu.uidl.Humanizer.toUpperCaseFirst(segment);
+      }
+    }
+    return null;
   }
 
   /**
