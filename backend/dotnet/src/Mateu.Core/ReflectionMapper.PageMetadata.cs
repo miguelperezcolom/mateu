@@ -150,9 +150,9 @@ public sealed partial class ReflectionMapper
     }
 
     /// <summary>Floating action buttons from [Fab] methods (the method name is the action id).</summary>
-    private static List<FabDto> Fabs(Type type) =>
+    private List<FabDto> Fabs(Type type) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<FabAttribute>() != null)
+            .Where(m => m.Find<FabAttribute>() != null && Authorized(m.Find<EyesOnlyAttribute>()))
             .Select(m =>
             {
                 var a = m.Find<FabAttribute>()!;

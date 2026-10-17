@@ -290,3 +290,23 @@ test("under an app shell, a route is described by the content the shell loads", 
   assert.equal(action.serverSideType, "com.acme.Books");
   assert.equal(action.consumedRoute, "");
 });
+
+test("actions: a page toolbar button (a bare button, not a component node) labels its action", () => {
+  const s = projectIncrement({
+    fragments: [
+      {
+        component: {
+          type: "ServerSide",
+          actions: [{ id: "greet" }],
+          children: [
+            {
+              type: "ClientSide",
+              metadata: { type: "Page", toolbar: [{ type: "Button", label: "Say hello", actionId: "greet" }] },
+            },
+          ],
+        },
+      },
+    ],
+  });
+  assert.deepEqual(s.actions, [{ id: "greet", label: "Say hello" }]);
+});

@@ -63,6 +63,9 @@ def project_increment(increment):
             ctx["crudl"] = md
         elif t == "Button" and md.get("actionId"):
             buttons_by_action.setdefault(md["actionId"], md.get("label"))
+        elif node.get("type") == "Button" and node.get("actionId"):
+            # a page toolbar / buttons entry is a bare button, not a component node
+            buttons_by_action.setdefault(node["actionId"], node.get("label"))
 
     for fragment in fragments:
         if ctx["state"] is None and isinstance(fragment.get("state"), dict):

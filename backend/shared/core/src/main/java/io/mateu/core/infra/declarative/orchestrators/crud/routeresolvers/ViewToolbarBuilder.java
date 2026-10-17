@@ -28,6 +28,7 @@ final class ViewToolbarBuilder {
     // the same composition the listing toolbar uses (see ToolbarButtons).
     getAllMethods(orchestrator.behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .sorted(
             java.util.Comparator.comparingInt(
                 method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))
@@ -49,6 +50,7 @@ final class ViewToolbarBuilder {
             method ->
                 !(finalEntity instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .forEach(
             method ->
                 toolbar.add(

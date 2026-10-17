@@ -36,6 +36,7 @@ public final class FormViewToolbarBuilder {
             method ->
                 !(instance instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .forEach(
             method -> {
               var action = MetaAnnotations.find(method, Action.class);

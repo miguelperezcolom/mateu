@@ -101,6 +101,9 @@ export function projectIncrement(increment) {
         if (!buttonsByAction.has(node.metadata.actionId)) {
           buttonsByAction.set(node.metadata.actionId, node.metadata.label);
         }
+      } else if (node.type === "Button" && node.actionId && !buttonsByAction.has(node.actionId)) {
+        // a page toolbar / buttons entry is a bare button, not a component node
+        buttonsByAction.set(node.actionId, node.label);
       }
     });
   }

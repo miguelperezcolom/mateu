@@ -52,6 +52,11 @@ public static class McpProjection
                     var aid = Str(mb["actionId"])!;
                     if (buttonSeen.Add(aid)) buttonsByAction.Add(new(aid, Str(mb["label"])));
                 }
+                else if (Str(node["type"]) == "Button" && Str(node["actionId"]) is { } bare)
+                {
+                    // a page toolbar / buttons entry is a bare button, not a component node
+                    if (buttonSeen.Add(bare)) buttonsByAction.Add(new(bare, Str(node["label"])));
+                }
             });
         }
 

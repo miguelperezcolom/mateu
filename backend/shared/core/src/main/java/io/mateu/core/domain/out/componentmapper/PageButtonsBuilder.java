@@ -100,7 +100,8 @@ final class PageButtonsBuilder {
 
   /**
    * A field/method contributes a button unless it is {@code @Hidden}, hidden by a supplier, or
-   * projected out by an unmatched {@code @Audience}.
+   * projected out by an unmatched {@code @Audience}, or restricted by an {@code @EyesOnly} the
+   * caller does not satisfy (refused on invocation; not even advertised).
    */
   private static boolean isVisible(Object instance, Member member, HttpRequest httpRequest) {
     var element = (AnnotatedElement) member;
@@ -111,7 +112,10 @@ final class PageButtonsBuilder {
         !(instance instanceof VisibilitySupplier vs) || !vs.isHidden(member.getName(), httpRequest);
     boolean forCurrentAudience =
         AudienceGate.visible(MetaAnnotations.find(element, Audience.class), httpRequest);
-    return notHidden && notHiddenBySupplier && forCurrentAudience;
+    return notHidden
+        && notHiddenBySupplier
+        && forCurrentAudience
+        && Authorizer.isVisible(element, httpRequest);
   }
 
   /**
@@ -268,6 +272,7 @@ final class PageButtonsBuilder {
             method ->
                 !(instance instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
+        .filter(method -> Authorizer.isVisible(method, httpRequest))
         .sorted(
             java.util.Comparator.comparingInt(
                 method -> MetaAnnotations.find(method, Fab.class).order()))

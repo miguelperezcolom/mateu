@@ -42,6 +42,27 @@ public class McpTests
                 .Where(b => b.Title.Contains(request.SearchText ?? "")).ToList());
     }
 
+    [UI("mcp-restricted"), Title("Restricted")]
+    public class McpRestrictedForm
+    {
+        public string Name { get; set; } = "Ada";
+        [Button] public string Greet() => "done";
+        [Button("Purge everything"), EyesOnly(Roles = ["admin"])] public string Purge() => "purged";
+        [Fab("vaadin:bomb"), EyesOnly(Roles = ["admin"])] public string Detonate() => "boom";
+    }
+
+    [UI("mcp-restricted-books"), Title("Restricted books")]
+    public class McpRestrictedBooks : IListing<McpBook>, IDeletable<string>
+    {
+        public ListingData<McpBook> Search(SearchRequest request) =>
+            ListingData.From(new List<McpBook> { new("b1", "El Quijote") });
+
+        public void DeleteAllById(IReadOnlyList<string> selectedIds) { }
+
+        [ListToolbarButton, Label("Archive selected"), EyesOnly(Roles = ["admin"])]
+        public void Archive(List<McpBook> selection) { }
+    }
+
     static McpService Service() => new(new SyncHandler(new MateuRegistry(typeof(McpDemoForm).Assembly)), Json);
 
     // ---- pure projection (inline wire) ----
@@ -172,6 +193,26 @@ public class McpTests
         Assert.Equal(1, (int)found["listing"]!["totalElements"]!);
 
         Assert.Equal(2, mcp.Search("mcp-books", "", null)["listing"]!["rows"]!.AsArray().Count);
+    }
+
+    static McpService ServiceAs(Identity? identity) =>
+        new(new SyncHandler(new MateuRegistry(typeof(McpDemoForm).Assembly), null, () => identity), Json);
+
+    [Fact]
+    public void An_eyesonly_action_is_not_advertised_to_a_caller_who_may_not_run_it()
+    {
+        var anonymous = ServiceAs(null).DescribeScreen("mcp-restricted").ToJsonString();
+        Assert.Contains("greet", anonymous);
+        Assert.DoesNotContain("purge", anonymous);
+        Assert.DoesNotContain("Purge everything", anonymous);
+        Assert.DoesNotContain("detonate", anonymous);
+        var listing = ServiceAs(null).DescribeScreen("mcp-restricted-books").ToJsonString();
+        Assert.DoesNotContain("archive", listing);
+        Assert.DoesNotContain("Archive selected", listing);
+
+        var admin = ServiceAs(new Identity(Roles: ["admin"]));
+        Assert.Contains("Purge everything", admin.DescribeScreen("mcp-restricted").ToJsonString());
+        Assert.Contains("Archive selected", admin.DescribeScreen("mcp-restricted-books").ToJsonString());
     }
 
     // ---- JSON-RPC protocol ----

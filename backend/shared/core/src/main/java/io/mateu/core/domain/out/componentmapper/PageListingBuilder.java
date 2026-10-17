@@ -101,7 +101,7 @@ public class PageListingBuilder {
       }
     }
 
-    getToolbarButtons(instance).forEach(builder::toolbarItem);
+    getToolbarButtons(instance, httpRequest).forEach(builder::toolbarItem);
     if (isMultiValuedSelector(instance, httpRequest)) {
       // the selector of a multi-valued @Searchable field: checkboxes + «Add selected»
       builder.toolbarItem(
@@ -142,9 +142,10 @@ public class PageListingBuilder {
    * import/history/export entries. Shared by the crud metadata AND the routed listing's PAGE
    * toolbar (the page header shows title + toolbar on one line; the crud suppresses its copy).
    */
-  public static List<Button> getToolbarButtons(Object instance) {
+  public static List<Button> getToolbarButtons(Object instance, HttpRequest httpRequest) {
     var buttons = new java.util.ArrayList<Button>();
     getAllMethods(instance.getClass()).stream()
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .filter(
             method ->
                 MetaAnnotations.isPresent(

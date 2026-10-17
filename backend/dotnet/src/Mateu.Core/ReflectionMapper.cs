@@ -105,7 +105,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         var title = TitleOf(type, instance);
 
         var buttonMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m))
+            // an [EyesOnly] action the caller may not run is refused on invocation (ActionGuard)
+            // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
+            .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m)
+                        && Authorized(m.Find<EyesOnlyAttribute>()))
             .ToList();
         var buttons = buttonMethods.Select(MapButton).ToList();
         var fabs = Fabs(type);

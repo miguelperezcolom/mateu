@@ -68,6 +68,11 @@ public final class McpProjection {
                 String actionId = node.get("metadata").get("actionId").asText();
                 buttonsByAction.putIfAbsent(
                     actionId, node.get("metadata").path("label").asText(null));
+              } else if ("Button".equals(node.path("type").asText(null))
+                  && node.hasNonNull("actionId")) {
+                // a page toolbar / buttons entry is a bare ButtonDto, not a component node
+                buttonsByAction.putIfAbsent(
+                    node.get("actionId").asText(), node.path("label").asText(null));
               }
             });
       }
