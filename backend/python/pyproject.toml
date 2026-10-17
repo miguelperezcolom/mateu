@@ -72,16 +72,24 @@ exclude = ["**/__pycache__"]
 pythonpath = ["."]
 testpaths = ["tests"]
 
-# The suite's coverage floor (CI: `python -m coverage run -m pytest && python -m coverage report`).
-# Measured 91.3% (lines + branches) when it was introduced; ratchet it up as suites grow — a floor
-# below the measured value only catches a real regression, never a refactor that moved lines.
+# The suite's coverage floors (CI: `python -m coverage run -m pytest && python -m coverage report`,
+# then `coverage json` checked against the two floors below). `fail_under` is coverage.py's COMBINED
+# lines+branches figure; because a branch regression can hide behind line gains in it, CI also gates
+# lines and branches SEPARATELY (the run_tests.yml python job reads [tool.mateu.coverage]).
+# Ratchet: raise them to the measured value as suites grow — measured 2026-10-17: combined 93.7%,
+# lines 95.3%, branches 88.0% (the branch floor sits one point under: branch arcs vary slightly
+# between the 3.11–3.13 interpreters CI runs).
 [tool.coverage.run]
 source = ["mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 93
 skip_covered = true
+
+[tool.mateu.coverage]
+lines = 95
+branches = 87
 
 [tool.mypy]
 python_version = "3.11"

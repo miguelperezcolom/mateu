@@ -390,6 +390,22 @@ jobs:
           cd backend/python
           python -m coverage run -m pytest -q -p no:cacheprovider tests/
           python -m coverage report
+      # coverage.py's fail_under is lines+branches COMBINED; gate each one on its own floor too
+      - name: Line and branch coverage floors (pyproject's [tool.mateu.coverage])
+        run: |
+          cd backend/python
+          python -m coverage json -q -o /tmp/python-coverage.json
+          python - <<'EOF'
+          import json, sys, tomllib
+          floors = tomllib.load(open("pyproject.toml", "rb"))["tool"]["mateu"]["coverage"]
+          totals = json.load(open("/tmp/python-coverage.json"))["totals"]
+          measured = {"lines": totals["percent_statements_covered"], "branches": totals["percent_branches_covered"]}
+          failed = False
+          for kind, floor in floors.items():
+              print(f"{kind}: {measured[kind]:.2f}% (floor {floor}%)")
+              failed |= measured[kind] < floor
+          sys.exit(1 if failed else 0)
+          EOF
       - name: Types
         run: cd backend/python && mypy
       - name: The wheel builds, installs and imports
