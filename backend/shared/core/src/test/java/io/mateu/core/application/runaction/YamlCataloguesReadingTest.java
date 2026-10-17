@@ -132,6 +132,12 @@ class YamlCataloguesReadingTest {
           var registry = new ActionRegistry();
           assertThat(registry.restrictsAny()).isFalse();
           assertThat(registry.catalogFor(request("anyone"))).isSameAs(registry.catalog());
+          // any `*ActionId` key names an action (a board's moveActionId, a tile's actionId…)
+          var board = Map.of("type", "PlanningBoard", "moveActionId", "a", "label", "a");
+          assertThat(registry.referencedBy(board, null, null))
+              .extracting(x -> x.id())
+              .containsExactly("a");
+          assertThat(registry.referencedBy(Map.of("label", "a"), null, null)).isEmpty();
           return null;
         });
   }
@@ -355,6 +361,53 @@ class YamlCataloguesReadingTest {
       } else {
         System.setProperty(Environments.PROPERTY, previous);
       }
+    }
+  }
+
+  @Test
+  void everyKindOfLiteralCredentialHeaderIsWarnedAboutButAPlaceholderIsNot() {
+    var logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Environments.class);
+    var appender =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      var yaml =
+          new com.fasterxml.jackson.databind.ObjectMapper(
+              new com.fasterxml.jackson.dataformat.yaml.YAMLFactory());
+      Environments.parse(
+          yaml.readTree(
+              """
+              type: Environment
+              name: pre
+              sources:
+                orders:
+                  headers:
+                    X-ApiKey: abc
+                    X-Auth-Token: def
+                    Client-Secret: ghi
+                    Accept: application/json
+                    X-Api-Key: ${secret.ORDERS_KEY}
+              """),
+          null);
+      var warned =
+          appender.list.stream()
+              .map(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+              .filter(m -> m.contains("never put a secret"))
+              .toList();
+      assertThat(warned).hasSize(3);
+      assertThat(String.join("\n", warned))
+          .contains("'X-ApiKey'")
+          .contains("'X-Auth-Token'")
+          .contains("'Client-Secret'")
+          .doesNotContain("'Accept'")
+          .doesNotContain("'X-Api-Key'")
+          .contains("Environment ? gives");
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    } finally {
+      logger.detachAppender(appender);
     }
   }
 

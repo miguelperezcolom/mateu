@@ -252,6 +252,34 @@ class YamlDefinitionReadingTest {
             OnLoadTrigger.class, t -> assertThat(t.actionId()).isEqualTo("refresh"));
   }
 
+  @Test
+  void textsInsideListsAreTranslatedForTheCallersLanguage() {
+    var page =
+        """
+        layout:
+          type: BulletedList
+          items:
+            - ${i18n.perks.breakfast}
+            - Wi-Fi
+        """;
+    var items =
+        with(
+            Map.of(
+                "perks.yaml",
+                page,
+                "translations/es.yaml",
+                "messages:\n  perks: {breakfast: Desayuno incluido}\n"),
+            loader -> {
+              var spanish =
+                  new io.mateu.core.testutil.FakeHttpRequest(
+                          io.mateu.dtos.RunActionRqDto.builder().route("/perks").build())
+                      .withHeader("Accept-Language", "es");
+              var spec = loader.loadSpec("perks", spanish);
+              return ((io.mateu.uidl.data.BulletedList) spec.layout()).items();
+            });
+    assertThat(items).containsExactly("Desayuno incluido", "Wi-Fi");
+  }
+
   public static class Owner {}
 
   public static class Other {}

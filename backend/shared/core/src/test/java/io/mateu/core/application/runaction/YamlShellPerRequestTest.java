@@ -172,4 +172,32 @@ class YamlShellPerRequestTest {
       throw new AssertionError(e);
     }
   }
+
+  @Test
+  void withoutAHomeRouteTheShellOpensOnItsFirstNavigableItem() throws Exception {
+    var mapper = YamlUidlMapperFactory.create();
+    var shell =
+        new YamlAppLoader()
+            .parse(
+                mapper.readTree(
+                    """
+                    type: AppShell
+                    title: Home by menu
+                    menu:
+                      - type: Menu
+                        label: Group without a page of its own
+                        submenu:
+                          - type: RouteLink
+                            label: Inside
+                            route: inside
+                      - type: RouteLink
+                        label: Blank route, path given
+                        route: ""
+                        path: dashboard
+                      - type: RouteLink
+                        label: Later
+                        route: later
+                    """));
+    assertThat(shell.homeRoute()).isEqualTo("dashboard");
+  }
 }
