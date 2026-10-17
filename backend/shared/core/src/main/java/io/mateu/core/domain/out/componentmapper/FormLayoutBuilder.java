@@ -106,6 +106,21 @@ class FormLayoutBuilder {
     return MetaAnnotations.isPresent(type, io.mateu.uidl.annotations.Compact.class) ? "7em" : null;
   }
 
+  /**
+   * The field, preceded by a full-width divider when it carries {@code @SeparatorBefore}. Shared by
+   * the untabbed rows and every tab's rows (TabFormLayoutBuilder) — a separator inside a
+   * {@code @Tab} used to be ignored.
+   */
+  static java.util.stream.Stream<Component> withSeparatorBefore(
+      Field field, Component formField, int columns) {
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.SeparatorBefore.class)) {
+      return java.util.stream.Stream.of(
+          Separator.builder().attributes(java.util.Map.of("data-colspan", "" + columns)).build(),
+          formField);
+    }
+    return java.util.stream.Stream.of(formField);
+  }
+
   static Component toFormLayout(
       SectionFields section,
       String prefix,
@@ -218,17 +233,7 @@ class FormLayoutBuilder {
                                             forCreationForm,
                                             maxColumns,
                                             level);
-                                // @SeparatorBefore: paint a full-width divider above the field.
-                                if (MetaAnnotations.isPresent(
-                                    field, io.mateu.uidl.annotations.SeparatorBefore.class)) {
-                                  return java.util.stream.Stream.of(
-                                      Separator.builder()
-                                          .attributes(
-                                              java.util.Map.of("data-colspan", "" + maxColumns))
-                                          .build(),
-                                      formField);
-                                }
-                                return java.util.stream.Stream.of(formField);
+                                return withSeparatorBefore(field, formField, maxColumns);
                               })
                           .toList(),
                       maxColumns))

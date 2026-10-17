@@ -254,7 +254,8 @@ class LayoutMapperMixin(MixinBase):
                 # The field that opens a group carries its Tab.open flag (mirrors the Java
                 # pair.first().open() rule); fields before any Tab fall into the default group.
                 tabs.append((current, tb.open if tb is not None else False, []))
-            tabs[-1][2].append(self.map_field(f, instance, read_only))
+            # map_fields: a SeparatorBefore() inside a tab paints its divider too (it was dropped)
+            tabs[-1][2].extend(self.map_fields([f], instance, read_only))
         # A tab is marked active ONLY when it declares @Tab(open=True); the renderer defaults to
         # the first tab otherwise, so Java does not emit active on the default-selected tab.
         comps = []

@@ -80,6 +80,17 @@ public class SeparatorForm
     public string? Email { get; set; }
 }
 
+/// <summary>[SeparatorBefore] inside a [Tab] (Java: SeparatorAndTextSizeSyncTest).</summary>
+[UI("sections/separator-in-tab")]
+public class TabbedSeparatorForm
+{
+    [Tab("Contact")] public string? Name { get; set; } = "María";
+
+    [Tab("Contact"), SeparatorBefore] public string? Email { get; set; }
+
+    [Tab("Other")] public string? Notes { get; set; }
+}
+
 /// <summary>The fluent Text with a size + a Separator in a component-tree view.</summary>
 [UI("sections/text-size")]
 public class TextSizeView : IComponentTreeSupplier
@@ -218,6 +229,13 @@ public class SectionFeatureTests
             .ToList();
         Assert.Single(separators);
         Assert.Equal("2", separators[0].GetProperty("attributes").GetProperty("data-colspan").GetString());
+    }
+
+    [Fact]
+    public void Separator_before_is_honoured_inside_a_tab()
+    {
+        var root = RenderView(typeof(TabbedSeparatorForm));
+        Assert.Single(Objects(root), o => o.TryGetProperty("type", out var t) && t.GetString() == "Separator");
     }
 
     [Fact]

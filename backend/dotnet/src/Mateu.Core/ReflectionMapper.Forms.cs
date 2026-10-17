@@ -227,7 +227,8 @@ public sealed partial class ReflectionMapper
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
                 tabs.Add((current, attr?.Open ?? false, new List<PropertyInfo>(), new List<ClientSideComponentDto>()));
             tabs[^1].props.Add(p);
-            tabs[^1].fields.Add(MapField(p, instance, readOnly));
+            // MapFields: a [SeparatorBefore] inside a tab paints its divider too (it was dropped)
+            tabs[^1].fields.AddRange(MapFields([p], instance, readOnly));
         }
         // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
         // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
