@@ -48,7 +48,9 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
                 ${options.map(o => html`<option value="${o.value as any}" ?selected="${o.value === value}">${o.label}</option>`)}
             </select>`
     } else if (stereotype === 'textarea' || stereotype === 'richText' || stereotype === 'html') {
-        control = html`<textarea style="${inputStyle}" rows="3" ?disabled="${disabled}" @input="${onInput(field)}">${String(value ?? '')}</textarea>`
+        // bound as a PROPERTY: text inside <textarea> is only its default value, so once the user
+        // typed, a value sent afterwards (a reset, a server-side change) never showed
+        control = html`<textarea style="${inputStyle}" rows="3" .value="${String(value ?? '')}" ?disabled="${disabled}" @input="${onInput(field)}"></textarea>`
     } else {
         const inputType =
             dataType === 'integer' || dataType === 'number' || dataType === 'double' || dataType === 'money' ? 'number'
