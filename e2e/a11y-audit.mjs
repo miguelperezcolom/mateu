@@ -5,6 +5,10 @@
  * Usage (with a SUT app running):
  *   cd e2e && node a11y-audit.mjs
  *   BASE=http://localhost:8080 node a11y-audit.mjs
+ *   ROUTES=/,/j/tasks node a11y-audit.mjs
+ *
+ * Exits non-zero when any violation is found OR a route could not be scanned (a route that fails
+ * to load is not a clean one), so CI can run it as a gate (run_tests.yml, job `e2e`).
  */
 import { chromium } from 'playwright'
 import { AxeBuilder } from '@axe-core/playwright'
@@ -28,6 +32,7 @@ const page = await context.newPage()
 
 const byRule = new Map()
 let total = 0
+const skipped = []
 
 for (const route of ROUTES) {
     try {
@@ -51,6 +56,7 @@ for (const route of ROUTES) {
         }
         console.log(`  scanned ${route.padEnd(14)} ${results.violations.length} rule(s) violated`)
     } catch (e) {
+        skipped.push(route)
         console.log(`  SKIP ${route}: ${e.message.split('\n')[0]}`)
     }
 }
@@ -69,3 +75,5 @@ for (const [id, e] of rows) {
     console.log(`${' '.repeat(17)}e.g.:   ${e.sample}`)
 }
 console.log(`\n${total} violation(s) across ${byRule.size} rule(s), ${ROUTES.length} route(s)`)
+if (skipped.length) console.log(`${skipped.length} route(s) could not be scanned: ${skipped.join(', ')}`)
+process.exit(total > 0 || skipped.length > 0 ? 1 : 0)
