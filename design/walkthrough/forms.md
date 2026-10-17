@@ -33,7 +33,7 @@ VB/Redwood projects).
 | bool checkbox / toggle | ✅ | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | enum select, humanized labels, @Label constant | ✅ (forms-walk) | N/A | ✅ | ✅ (conformance) | ⏳ | ⏳ |
 | small enum → radio | ✅ under @AutoLayout (layout-walk) — plain forms keep a select, as documented | N/A | ✅ | ✅ conformance | ⏳ | ⏳ |
-| List<Enum> without stereotype | ❌ renders a grid of the enum's Name/Ordinal/Hash (ChoiceCollections keeps it deliberately: "an undeclared collection keeps its previous rendering") — **owner: default it to multiSelect?** | | | | | |
+| List<Enum> without stereotype | 🔧 batch 1, decision 7: a `List`/`Set<Enum>` with no stereotype is a `multiSelect` (Java, .NET, Python) | | | | | |
 | multiSelect / checkbox set of enums | ✅ edit+echo (forms-walk) | ⏳ | ✅ render | ✅ | ⏳ | ⏳ |
 | OptionsSupplier.supports() | 🔧 6efd3f039 (ignored on forms: a tree's options replaced every enum's) | N/A | ✅ (same wire) | ⏳ ports have no supports() equivalent to check | | |
 | @Lookup combo (search-as-you-type, label of the stored id) | ✅ edit+echo | ⏳ | ✅ render | ✅ conformance | ⏳ | ⏳ |
@@ -42,9 +42,9 @@ VB/Redwood projects).
 | stars / slider | ✅ edit+echo | N/A | 🔧 2c975fd51 (rating drew 100 stars as a hairline) | ✅ | ⏳ | ⏳ |
 | @UploadableImage / @FileUpload / @Signature | ✅ upload/draw + echo | N/A | ✅ render | ✅ | ⏳ | ⏳ |
 | @PhotoCapture | ✅ render (no camera headless) | N/A | ✅ render | ✅ | ⏳ | ⏳ |
-| markdown / html | ✅ render | N/A | ❌ shown as editable raw source (Vaadin renders it) — owner: which is the contract for an editable markdown field? | ✅ | ⏳ | ⏳ |
+| markdown / html | ✅ render | N/A | 🔧 batch 1, decision 8: an editable markdown/html field is a source + Preview editor on Vaadin (`mateu-markup-editor`) and Redwood (`mateu-markup-field`) | ✅ | ⏳ | ⏳ |
 | @PlainText / @Multiline / @ReadOnly | ✅ | N/A | 🔧 7a7317893 (@PlainText was an editable input) | ✅ | ⏳ | ⏳ |
-| @Badge / @BulletedList / @Notice / @Text(size) / @SeparatorBefore | ✅ | N/A | 🔧 @Badge was an editable switch (7a7317893); others ✅ render; separator line not visible ❌ cosmetic | ✅ | ⏳ | ⏳ |
+| @Badge / @BulletedList / @Notice / @Text(size) / @SeparatorBefore | ✅ | N/A | 🔧 @Badge was an editable switch (7a7317893); others ✅ render; separator line 🔧 visible since batch 1 (coordinator) | ✅ | ⏳ | ⏳ |
 | placeholder (FormField / field type) | 🔧 0627d3afa (Vaadin never rendered it) | 🔧 same | ⏳ | N/A | ⏳ | ⏳ |
 | field types catalogue (`types.yaml`, `fieldType:`) | N/A | ✅ label/stereotype/placeholder/required applied | ⏳ | ✅ suites | ⏳ | ⏳ |
 | identity gates: @EyesOnly / @ReadOnlyUnless / @DisabledUnless | 🔧 34f69ea2e (@DisabledUnless / @Disabled / disabling rules never disabled a Vaadin field or button) ✅ hidden, read-only, tampered write ignored | ⏳ | ✅ (renderer/forms) | ✅ suites | N/A | ⏳ |

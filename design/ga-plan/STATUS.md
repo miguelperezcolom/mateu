@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 2 integrated locally on `integration/walkthrough-2`, pending CI).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 2 integrated locally on `integration/walkthrough-2`, pending CI; the open owner decisions resolved on `pending/decisions`, batch 3 below).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -185,22 +185,88 @@ quarkus-core 25 · helidon-mp-core 26 ✅ · libs/mateu vitest 1516 ✅ · Redwo
 Not run locally: WebFlux/Quarkus/Helidon e2e, renderer-vb and static-bundle Playwright projects, VS Code extension tests,
 the .NET net10.0 target (no SDK here) — CI covers them.
 
+### Decisions applied 2026-10-17 (batch 3) — branch `pending/decisions` (from origin/master, NOT pushed)
+The ❌ items the walkthrough left (authoring §4, native-ports, and the leftovers of the other matrices + the "Known
+doc/CLAUDE.md corrections" below), decided with the owner's rules (UI only; everything supported everywhere; the
+documented behaviour wins) — one commit each, each with a test that fails without it. Matrices marked 🔧 in place.
+1. ✅ **VS Code schema cost** (authoring 6): a per-editor SPELLING of the one generated schema — the extension stages
+   `Component`/`Actionable`/`Step`/`Trigger`/`UserTrigger` as `type` dispatches (`scripts/schema-dispatch.mjs`; the
+   yaml-language-server validates the 4 KB page in ~50 ms instead of 5 s); IntelliJ keeps the generated `oneOf`
+   (it completes a nested `type:` from a dispatch with one value). `specsSchema.test.ts` runs every shipped file on
+   both spellings (+3 tests). Doc: `native/ide-tooling.md`.
+2. ✅ **Field types from any `type: Types` file** (doc correction): Java/.NET/Python read `specs/ui/types.yaml` then
+   every YAML under `specs/ui` with that header, in discovery order, later id wins — the action catalogue's rule;
+   a Types file is app-level for live reload. `FieldTypesSyncTest`, `FieldTypesAndSampleSourcesTests`,
+   `test_field_types_and_samples.py` (+1 each). Docs: `field-types.md`, building-blocks, visual-editor.
+3. ✅ **Ports' YAML builder** (authoring 5 / native-ports 8): the generic builder already covered the fluent catalogue
+   (pages #14); the real gaps were `type: Listing` over a REST source and a `Button` with `actionable: RouteLink`
+   (the ports' wire had no Button `route`). Both ports now emit the client-side Crud Java's CrudlMapper emits for a
+   definition-only listing (`rowsSource` by ref/inline, columns with identifier/sortable/tones, filters, pageSize)
+   and `ButtonMetadataDto.Route` / `ButtonMetadata.route` — the yaml starter's pages render on .NET and Python.
+   `YamlListingTests` (3), `test_yaml_listing.py` (3); manuals + parity updated. `type: AppShell` definitions and
+   `rowRoute` stay Java-only (shells are authored in code there).
+4. ✅ **The ports serve the web renderer's page** (authoring 2 / native-ports 1, 9): `add_mateu(ui=…)` /
+   `MapMateu(ui:)` / `MATEU_UI` pointing at the `mateu-vaadin` (or `mateu-redwood`) jar or its `static/` folder,
+   read in place — Java's `IndexPage` + `SpaRedirectFilter` + `StaticAssetCaching` rules (index at the mount and
+   its deep links when the GET accepts HTML and names no file; assets at the origin root; the app's routes and the
+   API always win; Python = a pure ASGI middleware stepping in on a 404 so SSE streams pass through; .NET =
+   `app.Use` after the pipeline). `test_ui_serving.py` (9), `UiServingTests` (7, in-process Kestrel); the Python
+   starter with `MATEU_UI` verified in a browser (`/products` renders on the checked-in Vaadin bundle). Manuals,
+   READMEs, starters' AGENTS/README/Program/main updated. **Left for the owner**: packaging the renderer into
+   PyPI/NuGet and publishing `mateu-vaadin` to npm per release (external accounts / release artifacts).
+5. ✅ **.NET `PageBanners.Replace/Append`** (actions leftover): wire `appendBanners`, also inside a mixed result.
+   `Page_banners_replace_and_append`; parity row closed.
+6. ✅ **Record page titled by the record in the ports** (listings leftover): Java's rule (`@Title` on the entity, an
+   own `toString`/`__str__`, else the class name) in `ReflectionMapper.EntityTitle` / `mapper.entity_title`, page
+   header + `SetWindowTitle`. Tests in both suites.
+7. ✅ **`Callable<String>` as an empty editable box** (doc correction): a Callable of a basic value renders its result
+   as read-only text (a Component/adapted/orchestrator result keeps its island). `HolderFieldsSyncTest` (+1);
+   `viewmodel-lifecycle.md`.
+8. ✅ **Number fields storing strings** (doc correction): `mateu-field.convert` commits a number (null for blank) for
+   `dataType: number`, as it already did for integers. `mateu-field.branches.test.ts` (+1).
+9. ✅ **Offline canvas placeholders** (authoring 1): the client-side canvas and the board miniatures inline
+   `Partial`/`ComponentRef` and translate `${i18n.…}` from the mount's files; the inlined roots keep the
+   REFERENCE's `ve-` id (`inlineReferences` `keepReferenceId`), so a partial is one selectable node and
+   click-to-select keeps working. `canvasReferences.test.ts` (4); `visual-editor.md`.
+10. ✅ **Structural divergences of the ports' create forms / CollectionDetail / wizard `*` / `""` vs `_empty`**
+    (native-ports 7): deliberate port idioms, documented in `parity.md` "Port idioms" (same screen, same ids; not
+    conformance cases) — consistent with the pre-beta API decision not to converge idioms.
+11. ✅ **IntelliJ shell with no home** (native-ports 5): already covered by decision 1 of batch 1 (first menu item on
+    the wire as `homeRoute`; `AppRenderer` follows it) — marked, no plugin change.
+12. ✅ **`@AppContext` preselection** (doc correction): the contract is "nothing selected until the user picks"
+    (`appContext()` null; a preselected first option would scope every search and save to a choice the user never
+    made) — written into `ux-patterns/app-context.md`. Redwood's first-option preselection is left to the Redwood
+    area to align (`apps/redwood`, not touched here).
+13. ✅ `e2e/renderer/layout-sizing.spec.ts` detects the shared layout in the DOM (`mateu-ux`), not by project name.
+14. ✅ CLAUDE.md: Code + YAML is offered on Micronaut/Helidon; tooling gotchas (workspace `npm ci`, RN test on Node 23,
+    the ports' `MATEU_UI`). Authoring 3 (Redwood 400) was already fixed at integration — marked.
+Not decided here, left as they were: authoring 10 (Redwood canvas stray filter select) and every VB/Redwood and
+IntelliJ-layout bug — other agents own those areas.
+
+Verification (local, 2026-10-17): core `mvn verify` 1799 ✅ (JaCoCo 84 % gate met) · libs/mateu vitest 1516 ✅ ·
+apps/vaadin `test:coverage` 89 ✅ · visual-editor vitest 436 ✅ + `tsc` clean · VS Code extension vitest 172 ✅ + `tsc`
+clean · Python 853 ✅ + mypy clean · .NET net8 785 ✅ (one run had `LiveReloadTests.The_watcher_reports_an_edit_on_disk`
+time out under full-suite load; green alone and on rerun) · Playwright `--list` of the layout spec · bundles rebuilt
+once (vaadin, visual-editor) and committed; bundle freshness, design tokens (553), annotation density 5.38 ≤ 5.45,
+licences ✅. Not run: the e2e Playwright projects against a SUT (the Java changes are covered by core; the UI-serving
+path was checked in a real browser on the Python starter), Redwood `npm test` (untouched), the .NET net10.0 target,
+IntelliJ gradle (no plugin code changed; its visual-editor resources were rebuilt).
+
 ### Left for the next session (not done — budget)
 - Push `integration/walkthrough-2`, open the ONE batch-2 PR, merge when green, cut the phase release (v3.0-alpha.423) with the
   behaviour notes: validation re-checked server-side on `@Button`/`@Toolbar`; an app with no home opens on its first menu
   item on every backend; a data fetch to a missing endpoint answers 404, never the index page.
-- Open ❌ items of authoring (7, section 4 of its matrix — notably the yaml-language-server cost of the 125-way Component
-  `oneOf`) and native-ports (5: the ports serve no web UI / stale `mateu-vaadin` on npm, structural divergences of the
-  ports' create forms, …) need owner decisions.
+- ~~Open ❌ items of authoring and native-ports~~ — resolved on `pending/decisions` (batch 3 above); merge it after
+  batch 2. Owner-only leftovers: publish `mateu-vaadin` to npm per release / package the renderer into PyPI and NuGet.
 - Then phase 3 (coverage) and 4 (refactor) as planned.
 - Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog
   over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
   nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —
   likely a gantt laid out while hidden). All need a browser session.
 - IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed on long pages (needs `renderProbe`).
-- Listings: double `search` after delete/bulk and on filtered deep links (harmless); record page title is the class
-  title in Python AND .NET (decide whether the record should name it, as Java does).
-- .NET `PageBanners` (append) for full parity.
+- Listings: double `search` after delete/bulk and on filtered deep links (harmless). (The record page title in the
+  ports — batch 3, decision 6.)
+- ~~.NET `PageBanners` (append)~~ — batch 3, decision 5.
 - Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
 
 ## (Superseded) Pending owner decisions — the original list, all applied above
@@ -218,15 +284,15 @@ the .NET net10.0 target (no SDK here) — CI covers them.
 
 ## Known doc/CLAUDE.md corrections to apply at integration
 - ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).
-- Tooling: `npm ci` for the Redwood workspace wipes the other workspaces' node_modules and vice versa; RN `MateuViewController.test` fails on the local Node.
+- ✅ (batch 3, in CLAUDE.md) Tooling: `npm ci` for the Redwood workspace wipes the other workspaces' node_modules and vice versa; RN `MateuViewController.test` needs Node 24 (or `--experimental-test-module-mocks` on 23).
 - Behaviour change (walkthrough/forms): `@Button`/`@Toolbar` actions now get "There are validation errors" when the form breaks a bean-validation constraint (server re-checks what the browser enforced). Mention in the release notes.
-- Field types are read only from `specs/ui/types.yaml`; a Types file created from the IDE wizard under another name is silently ignored → fix or document.
-- `Callable<String>` renders as an empty editable text box; number fields store strings like "19.95" in the browser state.
+- ✅ (batch 3) Field types are read from `specs/ui/types.yaml` AND any `type: Types` file under `specs/ui`.
+- ✅ (batch 3) `Callable<String>` renders its result as read-only text; number fields commit numbers.
 - ✅ (applied) CLAUDE.md says `@Action(runOnEnter=true)` exists — it doesn't; `shortcut = "enter"` is the way.
 - ✅ (applied) CLAUDE.md's description of the Vaadin `@AppContext` picker is out of date: the shell uses the shared `mateu-app-context-picker`.
 - ✅ (applied) CLAUDE.md says core's JaCoCo floor is 75 %; the pom has 84 %.
-- Redwood pre-selects the first option of each context picker; Vaadin leaves it empty (decide which is right).
-- `renderer/layout-sizing.spec.ts` only skips geometry checks when the project is named `renderer-vb` (test issue).
+- ✅ decided (batch 3): nothing is selected until the user picks (`app-context.md`); Redwood to align (Redwood area).
+- ✅ (batch 3) `renderer/layout-sizing.spec.ts` detects the shared layout in the DOM.
 
 ## Budget (owner, 2026-10-12)
 Weekly usage 33 % at Mon 18:15 (resets Sun 19 Oct 09:00). Cap: ≤ 60 % before Friday. **Thursday 15 Oct: important demo** — Tue/Wed are for securing it. Coverage paused; refactor + pre-beta review the weekend of 17–18 Oct with what's left. Ask Miguel for `/usage` before launching anything big.

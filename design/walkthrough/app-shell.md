@@ -36,7 +36,7 @@ renderer; **RN / IntelliJ** = native renderers; **Static** = `mateu:bundle`.
 | Feature | MVC (Vaadin) | 5 adapters | YAML | Redwood | Python | .NET | RN / IJ | Static |
 |---|---|---|---|---|---|---|---|---|
 | Mount at a non-root path, deep link, reload, back/forward | ✅ shell-menu | ✅ | ✅ yaml-federation | ✅ renderer/shell | ✅ browser | — | — | — |
-| Home of an app with no home route | ❌ (1) | ❌ (1) | ✅ `home:` | ✅ first menu entry (the documented rule — Vaadin differs) | 🔧 `67d648e89` (nested shell + loop) | 🔧 `67d648e89` | — | — |
+| Home of an app with no home route | 🔧 (1, batch 1: first menu item on the wire) | 🔧 (1) | ✅ `home:` | ✅ first menu entry (the documented rule — Vaadin differs) | 🔧 `67d648e89` (nested shell + loop) | 🔧 `67d648e89` | — | — |
 | Page entry / nested group / RouteLink | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | — |
 | Card group (card + card actions) | ✅ | ✅ | ✅ | ✅ walked | ✅ | — | — | — |
 | `@EyesOnly` entry hidden to anonymous | ✅ | ✅ | — | — | ✅ | — | — | N/A |
@@ -53,12 +53,12 @@ renderer; **RN / IntelliJ** = native renderers; **Static** = `mateu:bundle`.
 | `@AppContext` picker keyboard / screen reader | 🔧 `a48db01e0` | 🔧 | 🔧 | 🔧 `c0d20ff55` (focus lost behind the drawer) | 🔧 | — | — | — |
 | `@AppContext` searchable picker (> 7, server search) | ✅ | ✅ | — | — | 🔧 `71b496e54` (error toast) | 🔧 `71b496e54` | — | — |
 | Header actions (button + dropdown) | ✅ | ✅ | ✅ (route action) | ✅ | 🔧 `395fb916f` (request not injected) | — | — | — |
-| Notification inbox (list, navigate, mark read) | ✅ | ✅ | — | ✅ (bell drawn) | ❌ (2) | — | — | — |
-| ⌘K global search (entities + menu) | 🔧 `a48db01e0` (typed keys lost) | 🔧 | — | — | ❌ (2) | — | — | — |
+| Notification inbox (list, navigate, mark read) | ✅ | ✅ | — | ✅ (bell drawn) | 🔧 (2, batch 1: mount-absolute routes accepted) | — | — | — |
+| ⌘K global search (entities + menu) | 🔧 `a48db01e0` (typed keys lost) | 🔧 | — | — | 🔧 (2, batch 1) | — | — | — |
 | Theme toggle | ✅ | ✅ | ✅ | ✅ (drawn) | 🔧 `28f992ff4` (no way to ask) | 🔧 `28f992ff4` | — | — |
 | Access keys (Alt + letter) | ✅ | ✅ | — | — | ✅ | — | — | — |
 | Skip link, main/nav landmarks, window title | ✅ | ✅ | — | ✅ (landmarks) | ✅ | — | — | — |
-| Chrome i18n (es) | ✅ | ✅ | — | — | ❌ (3) | — | — | — |
+| Chrome i18n (es) | ✅ | ✅ | — | — | 🔧 (3, batch 1: `Accept-Language`) | — | — | — |
 | Federation: RemoteMenu, static remote, remote deep links | ✅ (existing `federation/**`, not re-run) | — | ✅ yaml-federation (re-run) | — | — | — | — | ✅ static remote in yaml-federation |
 | MicroFrontend, consuming external Mateu UIs | — | — | — | — | — | — | — | — |
 | `appState` / `appData` route scopes | — (core SyncTests only) | — | — | — | — | — | — | — |
@@ -92,6 +92,10 @@ Counts (cells above, excluding "—"): ✅ 63 · 🔧 33 · ❌ 5 · N/A 3 · no
     of a shorter route of the same view model (`orders`).
 
 ## ❌ Owner decisions
+
+All four applied in integration batch 1 (2026-10-12, owner delegated) — see `design/ga-plan/STATUS.md`
+"Owner decisions — APPLIED" 1–4: the documented default home, mount-absolute routes in the ports, Python
+chrome locale, YAML mounts next to `@UI` classes.
 
 1. **Home of an app with no home route.** Seven doc pages say the landing page is "the first menu
    item"; Redwood does that (loadMateuShell), the Vaadin shell and the server never did (it renders the app class itself — an empty page with its title;
