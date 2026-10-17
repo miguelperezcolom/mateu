@@ -75,6 +75,41 @@ annotationProcessor("io.mateu:mateu-annotation-processor-micronaut")
 See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
 notably cross-origin access (off unless you list the origins) and the MCP endpoint (off unless enabled).
 
+### Logging and virtual threads on JDK 21
+
+Two settings matter for a Micronaut app that serves Mateu under concurrent load:
+
+- **Ship a `logback.xml`.** Without one, logback logs *everything* at DEBUG — Micronaut's own bean
+  resolution included — and every line takes the console appender's lock. Put one at INFO in
+  `src/main/resources` (the [`starters/micronaut`](https://github.com/miguelperezcolom/mateu/tree/master/starters/micronaut)
+  project has it):
+
+  ```xml
+  <configuration>
+      <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+          <encoder><pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern></encoder>
+      </appender>
+      <root level="info"><appender-ref ref="STDOUT"/></root>
+  </configuration>
+  ```
+
+- **Know which threads run the handlers.** On Java 21+ Micronaut's `blocking` executor — where it
+  dispatches Mateu's action endpoints — runs on **virtual threads**. On **JDK 21–23** a virtual
+  thread that blocks while it holds, or waits for, a `synchronized` monitor *pins* its carrier
+  thread; Micronaut's bean context resolves beans inside `synchronized` sections, and with DEBUG
+  logging those sections wait on logback's lock. A burst of concurrent requests on a cold server can
+  then pin every carrier and the server stops answering (a thread dump shows every
+  `ForkJoinPool-1-worker` "Carrying virtual thread" parked in `OutputStreamAppender.writeBytes`).
+  Mateu's own one-time loads no longer hold a monitor, and INFO logging removes the trigger, but if
+  you must stay on JDK 21 with verbose logging or other pinning libraries, either:
+  - run on **JDK 24 or later**, where `synchronized` no longer pins
+    ([JEP 491](https://openjdk.org/jeps/491)) — the recommended fix; or
+  - give the blocking executor platform threads:
+
+    ```properties
+    micronaut.executors.blocking.virtual=false
+    ```
+
 ## Step 3: Create your Mateu UI
 
 Nothing special is required. Your application class stays as usual:
