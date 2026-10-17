@@ -108,8 +108,9 @@ public sealed partial class ReflectionMapper
             if (p.Find<DisabledAttribute>() != null
                 || !Authorized(p.Find<DisabledUnlessAttribute>()))
                 rules.Add(new RuleDto("true", "SetDataValue", fieldId, "disabled", null, "true", "Continue", null));
-            if (p.Find<HiddenAttribute>() is { Value.Length: > 0 } hidden)
-                rules.Add(new RuleDto("true", "SetDataValue", fieldId, "hidden", null, hidden.Value, "Continue", null));
+            if (p.Find<HiddenAttribute>() is { } hidden)
+                rules.Add(new RuleDto("true", "SetDataValue", fieldId, "hidden", null,
+                    string.IsNullOrWhiteSpace(hidden.Value) ? "true" : hidden.Value, "Continue", null));
         }
         if (instance is IRuleSupplier supplier)
             rules.AddRange(supplier.Rules().Select(r => new RuleDto(
@@ -131,10 +132,24 @@ public sealed partial class ReflectionMapper
     private static List<BadgeDto> Badges(Type type, object instance) =>
         EditableProperties(type)
             .Where(p => p.Find<HeaderBadgeAttribute>() != null)
-            .Select(p => (text: p.GetValue(instance)?.ToString(), color: p.Find<HeaderBadgeAttribute>()!.Color))
+            .Select(p => (text: HeaderBadgeText(p, instance), color: p.Find<HeaderBadgeAttribute>()!.Color))
             .Where(x => !string.IsNullOrWhiteSpace(x.text))
             .Select(x => new BadgeDto(x.text!, x.color))
             .ToList();
+
+    /// <summary>A [HeaderBadge] chip's text (Java's @BadgeInHeader): a bool shows its label while
+    /// true and nothing while false; anything else shows its value.</summary>
+    private static string? HeaderBadgeText(PropertyInfo p, object instance)
+    {
+        var value = p.GetValue(instance);
+        if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType) != typeof(bool))
+            return value?.ToString();
+        if (value is not true) return null;
+        var label = p.Find<HeaderBadgeAttribute>()!.Label;
+        return string.IsNullOrWhiteSpace(label)
+            ? p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)
+            : label;
+    }
 
     /// <summary>KPI cards for the page header (mirrors Java's PageMetadataExtractor.getKpis): from
     /// [Kpi] methods (the title is the attribute, the value is the call result) AND from [Kpi]
@@ -142,11 +157,17 @@ public sealed partial class ReflectionMapper
     private static List<KpiDto> Kpis(Type type, object instance)
     {
         var fromFields = EditableProperties(type)
-            .Where(p => p.Find<KpiAttribute>() != null)
-            .Select(p => new KpiDto(p.Find<KpiAttribute>()!.Title, p.GetValue(instance)?.ToString() ?? ""));
+            .SelectMany(p => p.FindAll<KpiAttribute>()
+                .Select(k => new KpiDto(k.Title, p.GetValue(instance)?.ToString() ?? "")));
         var fromMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<KpiAttribute>() != null && m.GetParameters().Length == 0)
-            .Select(m => new KpiDto(m.Find<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""));
+            .Where(m => m.GetParameters().Length == 0)
+            .SelectMany(m =>
+            {
+                var kpis = m.FindAll<KpiAttribute>();
+                if (kpis.Count == 0) return [];
+                var value = m.Invoke(instance, [])?.ToString() ?? "";
+                return kpis.Select(k => new KpiDto(k.Title, value));
+            });
         return fromFields.Concat(fromMethods).ToList();
     }
 

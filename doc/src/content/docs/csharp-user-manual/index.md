@@ -139,6 +139,15 @@ public class Reservations : Crud<Reservation>
 }
 ```
 
+`Fetch` is the only abstract member, but a crud that writes must also override `Save` and
+`Delete`: their defaults refuse with a "Not implemented" error naming the override, so a crud that
+forgot them can never answer "Saved" and drop the change. A crud that should not write narrows
+`CanCreate`/`CanEdit`/`CanDelete` instead, which also hides the buttons.
+
+The record id is the entity's `Id` property; when the key is called something else, mark it
+`[Id]` (`[Id] public string Code { get; set; }`). An entity with neither is refused when the crud
+renders, with that fix in the message.
+
 The listing renders a **smart search bar** whose filters come straight from the entity: enums
 become multi-selects (IN over the picked values), `DateOnly`/`DateTime` properties become from–to
 date ranges, numerics annotated `[RangeFilter]` become min–max ranges, and strings/bools/plain

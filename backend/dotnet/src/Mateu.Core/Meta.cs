@@ -24,6 +24,15 @@ public static class Meta
         element.GetCustomAttributes<TA>().FirstOrDefault()
         ?? FindOnComposed<TA>(element.GetCustomAttributes(), []);
 
+    /// <summary>Every A attribute on <paramref name="element"/> — for repeatable attributes
+    /// (AllowMultiple): the direct ones in declaration order, else the first composed match.</summary>
+    public static IReadOnlyList<TA> FindAll<TA>(this MemberInfo element) where TA : Attribute
+    {
+        var direct = element.GetCustomAttributes<TA>().ToList();
+        if (direct.Count > 0) return direct;
+        return FindOnComposed<TA>(element.GetCustomAttributes(), []) is { } composed ? [composed] : [];
+    }
+
     private static TA? FindOnComposed<TA>(IEnumerable<Attribute> attributes, HashSet<Type> visited)
         where TA : Attribute
     {

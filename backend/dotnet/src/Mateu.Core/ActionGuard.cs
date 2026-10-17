@@ -4,11 +4,6 @@ using Mateu.Uidl;
 
 namespace Mateu.Core;
 
-/// <summary>Thrown when a request asks for something the caller may not do: an action gated by
-/// [DisabledUnless]/[EyesOnly] the caller does not satisfy, or a view hidden by a
-/// class-level [EyesOnly]. The ASP.NET Core endpoint answers it with HTTP 403.</summary>
-public sealed class MateuForbiddenException(string message) : Exception(message);
-
 /// <summary>The security gate of the action pipeline (mirrors Java's action authorization).
 ///
 /// <para>An actionId arrives from the wire, so it must only ever reach a method that is DECLARED
@@ -163,10 +158,10 @@ internal static class ActionGuard
             reason = "[EyesOnly]";
             return false;
         }
-#pragma warning disable CS0618 // [Secured] is deprecated, and still enforced
+#pragma warning disable CS0618, MATEU001 // [Secured] is deprecated, and still enforced
         if (type.Find<SecuredAttribute>() is { } secured
             && !Satisfies([], [], [], [secured.Permission], id))
-#pragma warning restore CS0618
+#pragma warning restore CS0618, MATEU001
         {
             reason = "[Secured]";
             return false;

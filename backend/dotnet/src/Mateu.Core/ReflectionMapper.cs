@@ -56,6 +56,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         && member.Find<Mateu.Uidl.TimestampAttribute>() == null
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
         && member.Find<KpiAttribute>() == null
+        // [HeaderBadge] properties are header chips, never form fields (Java's FormFieldFilter).
+        && member.Find<HeaderBadgeAttribute>() == null
         // [Aside] properties render in the ContentLayout aside slot, not the form body.
         && member.Find<Mateu.Uidl.AsideAttribute>() == null
         // [AppContext] properties are the shell header's selectors, never form fields (Java's

@@ -16,13 +16,14 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     HeaderBadge,
+    Label,
     kpi as KpiMarker,
     PeerNavigationSupplier,
     RecordSwitcherSupplier,
     Timestamp,
 )
 
-from ..naming import camel_case
+from ..naming import camel_case, humanize
 from ..reflection import (
     methods_with,
     view_fields,
@@ -50,7 +51,15 @@ class DecorationMapperMixin(MixinBase):
             if hb is None:
                 continue
             value = getattr(instance, f.name, None)
-            text = None if value is None else str(value)
+            if f.type is bool:
+                # Java's @BadgeInHeader on a boolean: the label while true, no chip while false
+                text = (
+                    (hb.label or (f.marker(Label).value if f.has(Label) else humanize(f.name)))
+                    if value is True
+                    else None
+                )
+            else:
+                text = None if value is None else str(value)
             if not text or not text.strip():
                 continue
             out.append(Badge(text=text, color=hb.color))

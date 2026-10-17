@@ -16,6 +16,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     components as fluent,
+    ActionRequest,
     Document,
     UserFacingException,
     FlowStep,
@@ -82,7 +83,11 @@ class ActionHandlerMixin(MixinBase):
             # The action request itself can be injected (the port's analogue of Java's
             # HttpRequest injection) — e.g. an undoable toast's undo action reads its
             # undoParameters from request.parameters.
-            if ann is RunActionRq or (ann is inspect.Parameter.empty and p.name == "request"):
+            if (
+                ann is RunActionRq
+                or ann is ActionRequest
+                or (ann is inspect.Parameter.empty and p.name == "request")
+            ):
                 args.append(rq)
             elif isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
                 row = ann()

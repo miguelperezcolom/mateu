@@ -126,11 +126,12 @@ public sealed class SearchableAttribute(Type selector) : Attribute
 
 /// <summary>Hides the field while the client-side expression is truthy, re-evaluated on every
 /// state change without a server round-trip — e.g. <c>[Hidden("!state.special")]</c> shows the
-/// field only when Special is set. (C# analogue of Java's @Hidden.)</summary>
+/// field only when Special is set. Without an expression (<c>[Hidden]</c> or <c>[Hidden("")]</c>)
+/// the field is always hidden but still travels in the state. (C# analogue of Java's @Hidden.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
-public sealed class HiddenAttribute(string value) : Attribute
+public sealed class HiddenAttribute(string value = "") : Attribute
 {
-    /// <summary>Client-side expression over <c>state</c>; truthy → the field hides.</summary>
+    /// <summary>Client-side expression over <c>state</c>; truthy → the field hides. Blank = always.</summary>
     public string Value { get; } = value;
 }
 

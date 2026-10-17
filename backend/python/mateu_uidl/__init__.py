@@ -121,9 +121,6 @@ from .class_decorators import (  # noqa: F401
     PageType,
     PageWidth,
     SizeMode,
-    _Banner,
-    _Fab,
-    _ListToolbarButton,
     ai,
     app,
     app_context,
@@ -161,7 +158,6 @@ from .class_decorators import (  # noqa: F401
     zones,
 )
 from .method_decorators import (  # noqa: F401
-    _maybe_bare,
     action,
     action_options,
     banner,
@@ -267,6 +263,7 @@ from .adapters import (  # noqa: F401
     ComponentAdapter,
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .request import ActionRequest  # noqa: F401
 from .environments import Environment, SourceOverride  # noqa: F401
 from .field_types import (  # noqa: F401
     FieldType,
@@ -293,6 +290,7 @@ BadgeInHeader = HeaderBadge  # Java @BadgeInHeader
 PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width takes it)
 
 __all__ = [
+    "ActionRequest",
     "Document",
     "DocumentDisposition",
     "Access",

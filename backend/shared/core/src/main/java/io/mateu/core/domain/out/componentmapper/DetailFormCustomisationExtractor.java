@@ -33,7 +33,7 @@ final class DetailFormCustomisationExtractor {
     if (MetaAnnotations.isPresent(field, MasterDetail.class)) {
       return MetaAnnotations.find(field, MasterDetail.class).minHeightWhenDetailVisible();
     }
-    return "16rem;";
+    return "16rem";
   }
 
   private DetailFormCustomisationExtractor() {}

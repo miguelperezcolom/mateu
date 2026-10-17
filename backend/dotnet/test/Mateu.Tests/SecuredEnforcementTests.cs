@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-#pragma warning disable CS0618 // [Secured] is deprecated — these fixtures pin that it is still ENFORCED
+#pragma warning disable CS0618, MATEU001 // [Secured] is deprecated — these fixtures pin that it is still ENFORCED
 
 /// <summary>A view carrying the deprecated [Secured] — before 3.0-alpha.412 nothing read it, so it
 /// was open to everyone; now it means exactly [EyesOnly(Permissions = ["orders.read"])].</summary>
@@ -31,7 +31,7 @@ public class SecSecuredApp
     [MenuItem("Open")] public FreezeHome Open() => new();
 }
 
-#pragma warning restore CS0618
+#pragma warning restore CS0618, MATEU001
 
 /// <summary>[Secured] / @secured is ENFORCED with the semantics of [EyesOnly] (3.0-alpha.412): the
 /// view (and every action on it) is refused with 403 to a caller without the permission or with no

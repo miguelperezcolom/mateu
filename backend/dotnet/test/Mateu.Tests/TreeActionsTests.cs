@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Mateu.Tests;
 
-#pragma warning disable CS0618 // DashboardLayout / ContentLayout are deprecated but still rendered
+#pragma warning disable CS0618, MATEU002, MATEU003 // DashboardLayout / ContentLayout are deprecated but still rendered
 
 /// <summary>A tree supplier whose every container nests an action-referencing component; each
 /// referenced id but one has a method behind it.</summary>
@@ -81,7 +81,7 @@ public class TreeActionsView : IComponentTreeSupplier
     public void SwitchRecord() { }
 }
 
-#pragma warning restore CS0618
+#pragma warning restore CS0618, MATEU002, MATEU003
 
 /// <summary>
 /// A view advertises every action its component tree references — through every container a

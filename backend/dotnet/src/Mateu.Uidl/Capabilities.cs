@@ -32,6 +32,12 @@ public sealed record SearchRequest
     public IReadOnlyList<FilterCriterion> Criteria { get; init; } = [];
     public Pageable Pageable { get; init; } = new(0, int.MaxValue, []);
 
+    /// <summary>The raw component state the request was built from (camelCase keys; range bounds
+    /// as &lt;field&gt;_from/&lt;field&gt;_to, multi-selects as value lists) — what a database
+    /// pushdown (<see cref="Crud{T}.Find"/>) filters by. Empty when the request was built by hand.</summary>
+    public IReadOnlyDictionary<string, object?> FilterState { get; init; } =
+        new Dictionary<string, object?>();
+
     public SearchRequest() { }
 
     public SearchRequest(

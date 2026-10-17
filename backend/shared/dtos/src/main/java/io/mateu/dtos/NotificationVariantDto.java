@@ -5,5 +5,6 @@ public enum NotificationVariantDto {
   warning,
   error,
   primary,
-  contrast
+  contrast,
+  info
 }

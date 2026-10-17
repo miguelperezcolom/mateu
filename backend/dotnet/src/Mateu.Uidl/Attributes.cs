@@ -588,11 +588,18 @@ public sealed class BannerAttribute(BannerTheme theme = BannerTheme.Info, string
     public string? Title { get; } = title;
 }
 
-/// <summary>A status chip in the page header strip, from a string property's value.</summary>
+/// <summary>A status chip in the page header strip (Java's @BadgeInHeader). On a string property
+/// the value is the chip text (null/blank = no chip); on a bool property the chip shows only while
+/// it is true, reading <see cref="Label"/> (default: the property's [Label] or humanized name).
+/// The property is shown in the header only, never in the form body.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class HeaderBadgeAttribute(string color = "normal") : Attribute
 {
     public string Color { get; } = color;
+
+    /// <summary>The chip text of a bool property while it is true; null/blank = the property's
+    /// label.</summary>
+    public string? Label { get; init; }
 }
 
 /// <summary>Assigns a property to a wizard step (1-based).</summary>

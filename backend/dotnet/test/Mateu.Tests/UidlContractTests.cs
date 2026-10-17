@@ -179,6 +179,7 @@ public class UidlContractTests
     public class NoIdItems : Crud<NoIdItem>
     {
         public override IEnumerable<NoIdItem> Fetch(string? search) => [new() { Name = "x" }];
+        public override void Save(NoIdItem entity) { }
     }
 
     [Fact]
@@ -200,8 +201,11 @@ public class UidlContractTests
         Assert.Equal("1", ((IEditable<Item, string>)crud).Save(edited));
         Assert.Equal("3", ((ICreatable<Item, string>)crud).Create(new Item { Id = "3" }));
         Assert.Equal(["1", "3"], crud.Saved.Select(i => i.Id).ToArray());
-        Assert.Equal("", ((ICreatable<NoIdItem, string>)new NoIdItems()).Create(new NoIdItem()));
-        Assert.Null(Crud<NoIdItem>.IdOf(new NoIdItem()));
+        // an entity with no Id property and no [Id] cannot be identified: refused, never a null id
+        var noId = Assert.Throws<InvalidOperationException>(
+            () => ((ICreatable<NoIdItem, string>)new NoIdItems()).Create(new NoIdItem()));
+        Assert.Contains("[Id]", noId.Message);
+        Assert.Throws<InvalidOperationException>(() => Crud<NoIdItem>.IdOf(new NoIdItem()));
     }
 
     [Fact]

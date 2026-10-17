@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
 
+from ._enums import check_choice, coerce_enum
 from .messages import BannerTheme
 
 
@@ -82,6 +83,10 @@ def wizard_progress(style: str) -> Callable[[type], type]:
     ``current | total`` counter over the vertical step list. (Python analogue of Java's
     @WizardProgress.)"""
 
+    style = check_choice(
+        str(style).lower(), ("bar", "steps", "rail"), "@wizard_progress(style)"
+    )
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_wizard_progress__", style)
         return cls
@@ -116,6 +121,7 @@ def size(mode: SizeMode, length: str = "") -> Callable[[type], type]:
     default (a listing infers fill). On a view it sizes the whole surface, e.g. a full-canvas
     screen that fills the viewport and scrolls internally. The Python analogue of Java's @Size."""
 
+    mode = coerce_enum(mode, SizeMode, "@size(mode)")
     wire = "fixed:" + length if mode == SizeMode.FIXED else mode.value
 
     def deco(cls: type) -> type:
@@ -131,8 +137,10 @@ def page_width(width: PageWidth) -> Callable[[type], type]:
     the width from the page content (full-bleed canvases → edge-to-edge, dense inline-editing
     datagrids → full width, anything else → fixed). The Python analogue of Java's @PageWidth."""
 
+    value = coerce_enum(width, PageWidth, "@page_width(width)").value
+
     def deco(cls: type) -> type:
-        setattr(cls, "__mateu_page_width__", width.value if isinstance(width, PageWidth) else width)
+        setattr(cls, "__mateu_page_width__", value)
         return cls
 
     return deco
@@ -159,12 +167,10 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
     view's shape (archetype base class, a MetricCard field, plain form). The explicit template
     always wins over the inference. The Python analogue of Java's @PageTemplate."""
 
+    value = coerce_enum(page_type, PageType, "@page_template(page_type)").value
+
     def deco(cls: type) -> type:
-        setattr(
-            cls,
-            "__mateu_page_type__",
-            page_type.value if isinstance(page_type, PageType) else page_type,
-        )
+        setattr(cls, "__mateu_page_type__", value)
         return cls
 
     return deco
@@ -382,6 +388,7 @@ def app(
             stacklevel=2,
         )
         raw = _DEPRECATED_VARIANTS[raw].value
+    raw = coerce_enum(raw, AppVariant, "@app(variant)").value
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_app__", title_)
@@ -588,9 +595,11 @@ def form_layout(columns: int = 2, labels_aside: LabelsAsideMode = LabelsAsideMod
     default ``AUTO`` Mateu infers it from the form's shape. The Python analogue of Java's
     ``@FormLayout``."""
 
+    mode = coerce_enum(labels_aside, LabelsAsideMode, "@form_layout(labels_aside)")
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_form_layout_columns__", columns)
-        setattr(cls, "__mateu_labels_aside__", labels_aside)
+        setattr(cls, "__mateu_labels_aside__", mode)
         return cls
 
     return deco

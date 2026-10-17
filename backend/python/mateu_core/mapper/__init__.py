@@ -337,6 +337,9 @@ class ReflectionMapper(
         # Aside() fields render in the ContentLayout aside slot, not the form body.
         if f.has(Aside):
             return False
+        # HeaderBadge() fields are header chips, never form fields (Java's FormFieldFilter).
+        if f.has(HeaderBadge):
+            return False
         return self._permitted(f)
 
     def _permitted(self, f) -> bool:
