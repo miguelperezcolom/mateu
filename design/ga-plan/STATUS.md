@@ -157,7 +157,9 @@ sinks, M-S5 credential scope (web, Redwood, RN, IntelliJ), M-S6 active documents
 M-S9 Python gates (F1/F2/F3); M-A1/A2(part)/A3/A4/A6/A7(part)/A8 (F3/F4); M-A5 parity: honest page + ported
 toolbar/triggers/help/hints/generic components (F5/F6); M-W1 wire-schema.json, M-W2 absent==default contract +
 second-request cases, M-W3 Result/Stepper deprecated + web wire-type gate (F5); M-D1–D4 (F7); M-F1, M-X2 (F8);
-M-X1 wording + CoreLayeringTest (F7/R2). MINORs 1–4, 7–13, 15–18, 21–24, 26, 28, 30–34 fixed.
+M-X1 wording + CoreLayeringTest (F7/R2). MINORs 1–4, 7–18, 21–24, 26, 28, 30–34 fixed. **Still open (bugs, not decisions): MINOR 5** (React Native
+opens any URL scheme from data — route through `safeLinkUrl`) **and MINOR 6** (IntelliJ puts html/richText values
+raw into `JEditorPane`, browses any scheme) — native-renderer hardening for the next batch; MINOR 25 was N/A.
 **Left for the owner** (decisions, not bugs):
 - M-A2 rest: .NET `Mateu.Core` exposes 72 public engine types (`ReflectionMapper`, `SyncHandler`, `MateuRegistry`…)
   with no `InternalsVisibleTo` — make them internal before the freeze, or declare them API.
@@ -171,7 +173,7 @@ M-X1 wording + CoreLayeringTest (F7/R2). MINORs 1–4, 7–13, 15–18, 21–24,
   one-line legal confirmation of the template's terms.
 - MINOR 27 / refactor §5.10: `vaadin-lit` ships every asset twice (`static/` + `META-INF/resources/`, 8 MB for
   4) — touches all five adapters and both ports; post-beta.
-- MINOR 19 (port string APIs where Java has enums), MINOR 14 rest, the 34 Java-only wire types beyond those F6
+- MINOR 19 (port string APIs where Java has enums), the Java-only wire types beyond those F6
   ported (listed honestly in parity.md).
 
 ## Coverage integration (phase 3, 2026-10-17 — `integration/coverage`, pending CI)
