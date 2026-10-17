@@ -100,6 +100,28 @@ class Colspan:
 
 
 @dataclass(frozen=True)
+class Help:
+    """The field's help text (Java's ``@Help``): shown with the control and read as its
+    accessible description. Travels as the field's ``description``."""
+
+    value: str
+
+
+@dataclass(frozen=True)
+class SliderMin:
+    """Lower bound of a slider field (Java's ``@SliderMin``; 0 by default)."""
+
+    value: int
+
+
+@dataclass(frozen=True)
+class SliderMax:
+    """Upper bound of a slider field (Java's ``@SliderMax``; 100 by default)."""
+
+    value: int
+
+
+@dataclass(frozen=True)
 class DetailForm:
     """Customises a grid field's row editor (Java's ``@DetailFormCustomisation`` +
     ``@MasterDetail``): where it opens (``right``/``left``/``top``/``bottom``/``modal``), its column

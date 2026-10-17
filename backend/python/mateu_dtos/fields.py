@@ -38,6 +38,17 @@ class FormFieldMetadata(Wire):
     slider_max: int = 100
     #: Whether an integer field shows the +/- step buttons (Java's FormFieldDto.stepButtonsVisible).
     step_buttons_visible: bool = False
+    #: Slider stereotype lower bound (Java's FormFieldDto.sliderMin, ``SliderMin()``; default 0).
+    slider_min: int = 0
+    #: The field's help text (``Help()``; Java's FormFieldDto.description from ``@Help``): shown
+    #: with the control and read as its accessible description.
+    description: str | None = None
+    #: Hint shown inside the empty control (a fluent FormField's ``placeholder``, as in Java).
+    placeholder: str | None = None
+    #: The control takes the focus when rendered (Java's FormFieldDto.autofocus).
+    autofocus: bool = False
+    #: The increment of a number / slider control; 0 = the control's own (FormFieldDto.step).
+    step: float = 0
     #: A per-field initial value. Reflected forms do NOT set this (their values ride in the
     #: component initialData / fragment state, Java parity); only a fluent FormField may carry one.
     initial_value: Any | None = None

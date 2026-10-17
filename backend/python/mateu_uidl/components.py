@@ -769,6 +769,17 @@ class FormField(Component):
     read_only: bool = False
     initial_value: object | None = None
     options: tuple = ()
+    #: Hint shown inside the empty control.
+    placeholder: str | None = None
+    #: Help text shown with the control (its accessible description).
+    description: str | None = None
+    #: The control takes the focus when rendered.
+    autofocus: bool = False
+    #: Slider bounds (0 and 100 by default).
+    slider_min: int = 0
+    slider_max: int = 100
+    #: The increment of a number / slider control; 0 = the control's own.
+    step: float = 0
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

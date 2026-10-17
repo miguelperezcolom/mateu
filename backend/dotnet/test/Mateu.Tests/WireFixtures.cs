@@ -648,3 +648,27 @@ public class TriggersForm
     public void NotifyFailure() { }
     public void Recalculate() { }
 }
+
+// Field help text and slider bounds on a reflected form (M-A5): [Help] travels as description.
+[UI("conformance/field-help"), Title("Field help")]
+public class FieldHelpForm
+{
+    [Help("We never share it")]
+    public string Email { get; set; } = "";
+
+    [SliderMin(10), SliderMax(50)]
+    public int Volume { get; set; } = 20;
+}
+
+// The input hints of a fluent FormField (M-A5).
+[UI("conformance/field-hints"), Title("Field hints")]
+public class FieldHintsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new FormField
+    {
+        FieldId = "amount", Label = "Amount", DataType = "number", Placeholder = "0.00",
+        Description = "Including taxes", Autofocus = true, Step = 0.5, SliderMin = 10, SliderMax = 50,
+    };
+
+    public string? Style => null;
+}

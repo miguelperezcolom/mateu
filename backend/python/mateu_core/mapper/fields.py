@@ -29,7 +29,7 @@ from mateu_dtos import (
     RestDataSource,
 )
 from mateu_uidl import components as fluent
-from mateu_uidl import Colspan, DetailForm, Hidden, Inline, Max, Min, Pattern, Size
+from mateu_uidl import Colspan, DetailForm, Help, Hidden, Inline, Max, Min, Pattern, Size, SliderMax, SliderMin
 from mateu_uidl.rest_sources import RestSourceSupplier
 from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
@@ -317,6 +317,10 @@ class FieldMapperMixin(MixinBase):
             # an explicit Colspan() wins; intrinsically wide fields are widened to the full row
             # when the rows are laid out (LayoutMapperMixin.form_rows)
             colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
+            # Help(): the field's help text (Java's @Help → FormFieldDto.description)
+            description=self.T(f.marker(Help).value) if f.has(Help) else None,
+            slider_min=f.marker(SliderMin).value if f.has(SliderMin) else 0,
+            slider_max=f.marker(SliderMax).value if f.has(SliderMax) else 100,
             link=self.link_of(f, instance),
             # Lookup(): the combo box loads its options remotely through the field's
             # search-<fieldId> action (answered from the view's options(field_name) method).
@@ -682,6 +686,9 @@ class FieldMapperMixin(MixinBase):
             # a list/set of enum constants with no stereotype: pick several (Java's
             # ChoiceCollections; owner, 2026-10-12)
             return "multiSelect"
+        if f.has(SliderMin) or f.has(SliderMax):
+            # slider bounds make it a slider (Java's FieldTypeMapper)
+            return "slider"
         if plain:
             return "plainText"
         if is_enum(f.type):

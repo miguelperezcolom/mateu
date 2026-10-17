@@ -187,6 +187,8 @@ public class WireConformanceTests
         { "rest-source", typeof(Wire.RestSourceForm) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
         { "triggers", typeof(Wire.TriggersForm) },
+        { "field-help", typeof(Wire.FieldHelpForm) },
+        { "field-hints", typeof(Wire.FieldHintsPage) },
     };
 
     [Fact]

@@ -599,6 +599,56 @@ class WireConformanceTest {
   }
 
   /**
+   * Field help text and slider bounds on a reflected form, ported to .NET ({@code [Help]}, {@code
+   * [SliderMin]}, {@code [SliderMax]}) and Python ({@code Help()}, {@code SliderMin()}, {@code
+   * SliderMax()}) in 3.0-alpha.426 (M-A5): {@code @Help} travels as the field's {@code
+   * description}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-help")
+  @Title("Field help")
+  public static class FieldHelpForm {
+    @io.mateu.uidl.annotations.Help("We never share it")
+    public String email = "";
+
+    @io.mateu.uidl.annotations.SliderMin(10)
+    @io.mateu.uidl.annotations.SliderMax(50)
+    public int volume = 20;
+  }
+
+  /**
+   * The input hints of a fluent FormField, ported with it to .NET and Python (M-A5): placeholder,
+   * description (help text), autofocus, step and the slider bounds.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-hints")
+  @Title("Field hints")
+  public static class FieldHintsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.data.FormField.builder()
+          .id("amount")
+          .label("Amount")
+          .dataType(io.mateu.uidl.data.FieldDataType.number)
+          .placeholder("0.00")
+          .description("Including taxes")
+          .autofocus(true)
+          .step(0.5)
+          .sliderMin(10)
+          .sliderMax(50)
+          .colspan(1)
+          .optionsColumns(1)
+          .build();
+    }
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -1091,7 +1141,9 @@ class WireConformanceTest {
           "wizard",
           "rest-source",
           "generic-components",
-          "triggers");
+          "triggers",
+          "field-help",
+          "field-hints");
 
   static TestMateu mateu;
 
@@ -1138,7 +1190,9 @@ class WireConformanceTest {
             SignUpWizard.class,
             RestSourceForm.class,
             GenericComponentsPage.class,
-            TriggersForm.class);
+            TriggersForm.class,
+            FieldHelpForm.class,
+            FieldHintsPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

@@ -1,0 +1,33 @@
+{
+  "commands" : [ {
+    "data" : "Field hints",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "autofocus" : true,
+          "colspan" : 1,
+          "dataType" : "number",
+          "description" : "Including taxes",
+          "fieldId" : "amount",
+          "label" : "Amount",
+          "optionsColumns" : 1,
+          "placeholder" : "0.00",
+          "sliderMax" : 50,
+          "sliderMin" : 10,
+          "step" : 0.5,
+          "stereotype" : "regular",
+          "type" : "FormField"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

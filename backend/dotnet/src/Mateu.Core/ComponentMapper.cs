@@ -76,6 +76,12 @@ public static class ComponentMapper
             ReadOnly = ff.ReadOnly,
             InitialValue = ff.InitialValue,
             Options = ff.Options.Select(o => new OptionDto(o.Value, o.Label)).ToList(),
+            Placeholder = ff.Placeholder,
+            Description = ff.Description,
+            Autofocus = ff.Autofocus,
+            SliderMin = ff.SliderMin,
+            SliderMax = ff.SliderMax,
+            Step = ff.Step,
         }),
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(

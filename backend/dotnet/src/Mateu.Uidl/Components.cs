@@ -48,6 +48,17 @@ public sealed record FormField : ComponentBase
     public bool ReadOnly { get; init; }
     public object? InitialValue { get; init; }
     public IReadOnlyList<Option> Options { get; init; } = [];
+    /// <summary>Hint shown inside the empty control.</summary>
+    public string? Placeholder { get; init; }
+    /// <summary>Help text shown with the control (its accessible description).</summary>
+    public string? Description { get; init; }
+    /// <summary>The control takes the focus when rendered.</summary>
+    public bool Autofocus { get; init; }
+    /// <summary>Slider bounds (0 and 100 by default).</summary>
+    public int SliderMin { get; init; }
+    public int SliderMax { get; init; } = 100;
+    /// <summary>The increment of a number / slider control; 0 = the control's own.</summary>
+    public double Step { get; init; }
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────

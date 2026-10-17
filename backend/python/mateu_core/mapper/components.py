@@ -425,6 +425,12 @@ class ComponentMapperMixin(MixinBase):
                     read_only=c.read_only,
                     initial_value=c.initial_value,
                     options=[Option(value=str(v), label=l) for v, l in c.options],
+                    placeholder=self.T(c.placeholder) if c.placeholder else c.placeholder,
+                    description=self.T(c.description) if c.description else c.description,
+                    autofocus=c.autofocus,
+                    slider_min=c.slider_min,
+                    slider_max=c.slider_max,
+                    step=c.step,
                 ),
                 c,
             )

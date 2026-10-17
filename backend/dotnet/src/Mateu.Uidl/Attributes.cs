@@ -83,6 +83,28 @@ public sealed class ColspanAttribute(int value) : Attribute
     public int Value { get; } = value;
 }
 
+/// <summary>The field's help text (Java's <c>@Help</c>): shown with the control and read as its
+/// accessible description. Travels as the field's <c>description</c>.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class HelpAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>Lower bound of a slider field (Java's <c>@SliderMin</c>; 0 by default).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SliderMinAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
+/// <summary>Upper bound of a slider field (Java's <c>@SliderMax</c>; 100 by default).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SliderMaxAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
 /// <summary>Renders a collection property (typically a list of strings) as a plain read-only
 /// bulleted list (&lt;ul&gt;). Shorthand for the "bulletedList" stereotype; the fluent counterpart
 /// is the BulletedList component.</summary>
