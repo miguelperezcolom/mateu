@@ -4,7 +4,8 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
 
-class CrudIdExtractor {
+/** Where a crud action finds the id of the record it works on. */
+public class CrudIdExtractor {
 
   static Object extractId(Crud orchestrator, HttpRequest httpRequest) {
     var idField = orchestrator.getIdFieldForRow();
@@ -33,7 +34,7 @@ class CrudIdExtractor {
    * crsHotelCode}). Opened from the listing the id travels with the row; opened by its URL the only
    * place it is written is that URL — without this, Edit there went to {@code <crud>/null/edit}.
    */
-  static String idFromRoute(Crud orchestrator, HttpRequest httpRequest) {
+  public static String idFromRoute(Crud orchestrator, HttpRequest httpRequest) {
     var rq = httpRequest.runActionRq();
     if (rq == null || rq.route() == null) {
       return null;

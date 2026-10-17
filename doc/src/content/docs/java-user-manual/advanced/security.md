@@ -272,6 +272,16 @@ Anything else — a library class, a service or repository bean, an interface �
 - an id a `ComponentAdapter` declares in its `AdaptedView`;
 - a field marked as an action, or holding a function (`Runnable`, `Callable`, `Supplier`, `Function`, `Consumer`).
 
+**Writes.** A save takes from the posted state only what the form let the user change. On a CRUD
+edit, the record saved is the one the route names: its id, and every field the editor showed
+read-only for this request (`@ReadOnly`, `@EditableOnlyWhenCreating`, a `ReadOnlySupplier`, a
+`@ReadOnlyUnless` the caller does not satisfy) or did not show (`@HiddenInEditor`), keep the
+values of the loaded record whatever the request carries; on a create, the fields the creation
+form showed read-only or hid (`@HiddenInCreate`) keep the values of a fresh creation form (a
+`@GeneratedValue` stays the one generated for the form). `@EyesOnly` / `@ReadOnlyUnless` fields are
+never written from the wire on any view. The optimistic-lock `@Version` is the client's copy on
+purpose — the save compares it.
+
 `private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403, and so does an `actionId` that names nothing at all (a CRUD included): one WARN line, no stack trace.
 
 ### Strict action mode (`mateu.actions.strict`) — the default

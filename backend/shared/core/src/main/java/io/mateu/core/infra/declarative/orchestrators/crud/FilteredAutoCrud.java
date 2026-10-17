@@ -128,6 +128,88 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     return httpRequest.getComponentState(entityClass());
   }
 
+  /** The state the save was posted with: the bubbled form's ({@code initiatorState}), else own. */
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> postedState(HttpRequest httpRequest) {
+    var parameters = httpRequest.runActionRq().parameters();
+    var initiatorState =
+        parameters != null ? (Map<String, Object>) parameters.get("initiatorState") : null;
+    return initiatorState != null ? initiatorState : httpRequest.runActionRq().componentState();
+  }
+
+  /**
+   * The entity an edit saves: the posted state, except for what the edit form did not let the user
+   * change — its read-only and hidden fields and the record's id — which keep the values of the
+   * record the route names (see {@link ClientWritableFields}).
+   */
+  @SuppressWarnings("unchecked")
+  T toEditedEntity(HttpRequest httpRequest) {
+    var posted = postedState(httpRequest);
+    var routeId =
+        io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
+            .idFromRoute(this, httpRequest);
+    var postedId = posted != null ? posted.get(getIdFieldForRow()) : null;
+    var loaded = routeId != null ? recordAt(routeId) : null;
+    if (loaded == null && routeId == null && postedId != null) {
+      loaded = store().findById(String.valueOf(postedId)).orElse(null); // a drawer: no record url
+    }
+    if (loaded == null) {
+      return toEntity(httpRequest); // nothing loaded to compare with: a new record by its id
+    }
+    var restricted =
+        ClientWritableFields.restrict(
+            entityClass(),
+            posted,
+            loaded,
+            io.mateu.core.infra.declarative.FormViewModel.toMap(loaded),
+            getIdFieldForRow(),
+            false,
+            httpRequest);
+    return (T) MateuInstanceFactory.newInstance(entityClass(), restricted, httpRequest);
+  }
+
+  /**
+   * The record a route tail names: the tail itself (an id may carry slashes), else what is left of
+   * it once leading segments are dropped — the mount the browser left on the route.
+   */
+  private T recordAt(String tail) {
+    var candidate = tail;
+    while (candidate != null && !candidate.isEmpty()) {
+      var found = store().findById(candidate);
+      if (found.isPresent()) {
+        return found.get();
+      }
+      int slash = candidate.indexOf('/');
+      candidate = slash >= 0 ? candidate.substring(slash + 1) : null;
+    }
+    return null;
+  }
+
+  /**
+   * The entity a create saves: the posted state, except for the fields the creation form showed
+   * read-only or did not show, which keep the values of a fresh creation form.
+   */
+  @SuppressWarnings("unchecked")
+  T toCreatedEntity(HttpRequest httpRequest) {
+    var fresh =
+        MateuBeanProvider.getBean(InstanceFactory.class)
+            .newInstance(
+                entityClass(),
+                io.mateu.core.application.runaction.RouteChains.scopeValuesFor(
+                    entityClass(), httpRequest),
+                httpRequest);
+    var restricted =
+        ClientWritableFields.restrict(
+            entityClass(),
+            postedState(httpRequest),
+            fresh,
+            io.mateu.core.infra.declarative.FormViewModel.toMap(fresh),
+            getIdFieldForRow(),
+            true,
+            httpRequest);
+    return (T) MateuInstanceFactory.newInstance(entityClass(), restricted, httpRequest);
+  }
+
   @Override
   public Class<T> entityClass() {
     return getGenericClass(getClass(), FilteredAutoCrud.class, "T");
@@ -157,7 +239,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
   @Override
   public String save(HttpRequest httpRequest) {
-    var entity = toEntity(httpRequest);
+    var entity = toEditedEntity(httpRequest);
     // the browser checked the entity's constraints; the server does not take its word for it
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, false);
@@ -181,7 +263,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
   @Override
   public String create(HttpRequest httpRequest) {
-    var entity = toEntity(httpRequest);
+    var entity = toCreatedEntity(httpRequest);
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, true);
     return store().save(entity);
