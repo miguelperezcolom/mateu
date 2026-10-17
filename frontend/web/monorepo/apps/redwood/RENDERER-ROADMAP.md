@@ -18,7 +18,7 @@
 
 Los intentos anteriores fallaron porque **aproximaban** el chrome y los componentes en vez de usar los reales.
 
-- **Construir DENTRO de una app VB real** (base: `.dev/vb/frontoffice`), montando desde la Fase 1 el
+- **Construir DENTRO de una app VB real** (base: la app de referencia `frontoffice`, antes en `.dev/vb`, eliminada el 2026-10-17), montando desde la Fase 1 el
   `oj-sp-simple-ui-shell` auténtico + `oj-sp-global-header` + `oj-sp-navigator`, y usando los componentes
   reales `oj-dynamic`/`oj-sp`/`oj-c` para cada superficie.
 - La fidelidad visual se **hereda** de esos componentes; el bridge (reducer + efectos) **solo alimenta datos**.

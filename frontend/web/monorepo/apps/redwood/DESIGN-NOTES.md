@@ -11,8 +11,9 @@
 - **POC ejecutable** (valida la LÓGICA): `frontend/web/monorepo/apps/redwood/poc/` — `reduceContexts.mjs` + `fixtures/*.json` +
   `test.mjs`. Correr: `cd frontend/web/monorepo/apps/redwood/poc && node test.mjs` → 10 tests OK.
 - **Diseño completo (PDF)**: `frontend/web/monorepo/apps/redwood-renderer-design.pdf`
-- **Apps VB de referencia**: `.dev/vb/dashboard` (JET clásico), `.dev/vb/empty` (dynamic UI), `.dev/vb/frontoffice`
-  (Redwood Starter con el pack `oj-sp`/Spectra — la BASE sobre la que construir).
+- **Apps VB de referencia** (histórico): `dashboard` (JET clásico), `empty` (dynamic UI) y `frontoffice`
+  (Redwood Starter con el pack `oj-sp`/Spectra — la BASE sobre la que se construyó esta app). Vivían en `.dev/vb`
+  y se eliminaron el 2026-10-17; `webApps/vbredwoodapp` es ahora la única app VB.
 
 ## Qué es el proyecto (en una frase)
 
@@ -140,7 +141,7 @@ dar por buena la Fase 9 (app anidada).
 
 ## Builtins de action chain de VB
 
-**Confirmados** (vistos en `.dev/vb/dashboard/**/*.json`):
+**Confirmados** (vistos en el JSON de la app de referencia `dashboard`, ya eliminada):
 - `vb/action/builtin/assignVariablesAction` — `{ "$scope.variables.x": { "source": "{{ … }}" } }`
 - `vb/action/builtin/ifAction` — `{ condition }` + `outcomes.{true,false}`
 - `vb/action/builtin/callModuleFunctionAction` — `{ module: "[[ $application.functions ]]", functionName, params }`;
