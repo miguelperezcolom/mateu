@@ -56,6 +56,14 @@ public final class ServerConstraintCheck {
    */
   public static List<String> violations(
       Object instance, HttpRequest httpRequest, boolean forCreationForm) {
+    // the messages are the client's — translated, and in the request's language — so the check runs
+    // with the translator context a mapping has (an action runs outside one)
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+        httpRequest, () -> check(instance, httpRequest, forCreationForm));
+  }
+
+  private static List<String> check(
+      Object instance, HttpRequest httpRequest, boolean forCreationForm) {
     var violations = new ArrayList<String>();
     if (instance == null || instance instanceof ValidationSupplier) {
       return violations;
@@ -84,6 +92,32 @@ public final class ServerConstraintCheck {
       }
     }
     return violations;
+  }
+
+  /**
+   * The message the browser shows for {@code constraint} — the same text a refusal here gives —, or
+   * null for a constraint the client does not check.
+   */
+  public static String clientMessage(java.lang.annotation.Annotation constraint) {
+    if (constraint instanceof NotNull notNull) {
+      return ConstraintValidationMapper.notNullMessage(notNull);
+    }
+    if (constraint instanceof NotEmpty notEmpty) {
+      return ConstraintValidationMapper.notEmptyMessage(notEmpty);
+    }
+    if (constraint instanceof Size size) {
+      return ConstraintValidationMapper.sizeMessage(size);
+    }
+    if (constraint instanceof Min min) {
+      return ConstraintValidationMapper.minMessage(min);
+    }
+    if (constraint instanceof Max max) {
+      return ConstraintValidationMapper.maxMessage(max);
+    }
+    if (constraint instanceof Pattern pattern) {
+      return ConstraintValidationMapper.patternMessage(pattern);
+    }
+    return null;
   }
 
   static List<String> violatedMessages(Field field, Object value) {

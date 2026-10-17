@@ -513,7 +513,8 @@ const withDocument = (doc, fn) => async () => {
     ;[jet, lazy, chips, inDialog].forEach((x) => doc.body.appendChild(x))
     assert.equal(await showFieldErrors(['name', 'email', 'tags'], 'Required'), 3, 'el del diálogo no cuenta')
     assert.equal(doc.activeElement, jet.querySelector('input'))
-    assert.deepEqual(lazy.messagesCustom, [{ severity: 'error', summary: 'Required', detail: '' }])
+    // Redwood draws the DETAIL under the field: a summary alone showed only the error icon
+    assert.deepEqual(lazy.messagesCustom, [{ severity: 'error', summary: 'Required', detail: 'Required' }])
     assert.equal(chips.getAttribute('data-error'), 'Required')
     assert.ok(chips.classList.contains('mateu-field-error'))
     clearFieldError(lazy)
@@ -521,6 +522,27 @@ const withDocument = (doc, fn) => async () => {
     clearFieldErrorMarks('tags')
     assert.ok(!chips.classList.contains('mateu-field-error') && !chips.hasAttribute('data-error'))
     assert.equal(await showFieldErrors([], 'x'), 0)
+  }))
+}
+
+{
+  const { doc, el } = makeDom()
+  test('a11y: the open drawer\'s fields are marked — a failed bound with its own message, not the page\'s twin', withDocument(doc, async () => {
+    const onPage = el('oj-input-number', { 'data-field-id': 'beds' }, el('input'))
+    onPage.validate = async () => 'valid'
+    onPage.messagesCustom = []
+    const inDrawer = el('oj-input-number', { 'data-field-id': 'beds' }, el('input'))
+    inDrawer.validate = async () => 'valid' // 12 is a number: its own validator has nothing to say
+    inDrawer.messagesCustom = []
+    const name = el('oj-input-text', { 'data-field-id': 'name' }, el('input'))
+    name.validate = async () => 'invalid'
+    const drawer = el('oj-drawer-popup', {}, el('div', {}, name, inDrawer))
+    ;[onPage, drawer].forEach((x) => doc.body.appendChild(x))
+    assert.equal(await showFieldErrors(['name', 'beds'], null,
+      { inOverlay: true, messages: { beds: 'Must be at most 9' } }), 2)
+    assert.deepEqual(inDrawer.messagesCustom, [{ severity: 'error', summary: 'Must be at most 9', detail: 'Must be at most 9' }])
+    assert.deepEqual(onPage.messagesCustom, [], 'the page\'s field is not the drawer\'s')
+    assert.equal(doc.activeElement, name.querySelector('input'))
   }))
 }
 

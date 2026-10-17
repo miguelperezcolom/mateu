@@ -12,7 +12,9 @@ import {
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
   overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
-import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
+import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf, refusedFieldsOf } from './actionPlan.mjs'
+import { validationErrorsOf } from './core/rowEditor.mjs'
+import { evaluateExpression } from './rules.mjs'
 import {
   HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf,
   reduceContexts, overlayOf, drawerOverlayOf, dialogOverlayOf, dismissOverlayById,
@@ -147,6 +149,89 @@ test('outbound action: the state it carries, the rows it needs, the required fie
   const sections = [{ fields: [{ fieldId: 'name', required: true, value: '' }] }]
   assert.deepEqual(outboundActionOf(reg, 'save', { formSections: sections }), { stop: 'fieldErrors', missing: ['name'] })
   assert.ok(!outboundActionOf(reg, 'save', { formSections: sections, draft: { name: 'Ada' } }).stop)
+})
+
+// The conditions exactly as the server emits them (ConstraintValidationMapper): each holds when the
+// value is VALID.
+const req = (k) => `state['${k}'] != null && state['${k}'] !== '' && (state['${k}'].length === undefined || state['${k}'].length > 0)`
+const absentOr = (k, cmp) => `state['${k}'] == null || state['${k}'] === '' || state['${k}'] ${cmp}`
+const wireValidations = [
+  { fieldId: 'name', condition: req('name'), message: 'Cannot be empty' },
+  { fieldId: 'beds', condition: absentOr('beds', '>= 1'), message: 'Must be at least 1' },
+  { fieldId: 'beds', condition: absentOr('beds', '<= 9'), message: 'Must be at most 9' },
+  { fieldId: 'code', condition: `state['code'] == null || state['code'] === '' || /^[A-Z]{3}$/.test(state['code'])`, message: 'Invalid format' },
+  { fieldId: 'notes', condition: `state['notes'] == null || state['notes'] === '' || state['notes'].length === undefined || state['notes'].length <= 5`, message: 'Size must be between 0 and 5' },
+]
+
+test('the wire validations are read without eval — a @Pattern regular expression included', () => {
+  assert.equal(evaluateExpression(`/^[A-Z]{3}$/.test(state['c'])`, { state: { c: 'ABC' } }), true)
+  assert.equal(evaluateExpression(`/^[A-Z]{3}$/.test(state['c'])`, { state: { c: 'ab' } }), false)
+  assert.equal(evaluateExpression(String.raw`/a\/b[/]/.test('a/b/')`, {}), true)
+  // a division is still a division
+  assert.equal(evaluateExpression(`state['x'] / 2`, { state: { x: 8 } }), 4)
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', beds: 12, code: 'abc' }),
+    { beds: 'Must be at most 9', code: 'Invalid format' })
+  // absent optional values pass their bounds and patterns; fieldsToValidate restricts
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', beds: '', code: null }), {})
+  // a @Size bound holds for a valid length
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', notes: 'abcde' }), {})
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: 'Ada', notes: 'abcdef' }), { notes: 'Size must be between 0 and 5' })
+  assert.deepEqual(validationErrorsOf(wireValidations, { name: '', beds: 0 }, ['beds']), { beds: 'Must be at least 1' })
+  // a condition the evaluator cannot read is the server's to check
+  assert.deepEqual(validationErrorsOf([{ fieldId: 'x', condition: 'state.x ~ 1', message: 'm' }], {}), {})
+})
+
+test('the create/edit drawer validates its own form before Save leaves — required, bounds, pattern', () => {
+  // the crud's drawer: its form is a ServerSide of its own (crud-edit-drawer-form) whose create
+  // declares validationRequired and bubbles to the crud
+  const surface = {
+    type: 'ServerSide', id: 'crud-edit-drawer-form', serverSideType: 'com.acme.Room', validations: wireValidations,
+    actions: [{ id: 'create', validationRequired: true, bubble: true }, { id: 'cancel-new', bubble: true }],
+    children: [node({ type: 'FormLayout' }, [
+      node({ type: 'FormField', fieldId: 'name', label: 'Name', dataType: 'string', required: true }, [], 'name'),
+      node({ type: 'FormField', fieldId: 'beds', label: 'Beds', dataType: 'integer' }, [], 'beds'),
+      node({ type: 'FormField', fieldId: 'code', label: 'Code', dataType: 'string' }, [], 'code'),
+    ])],
+  }
+  const drawer = { id: 'overlay-1', kind: 'drawer', tree: node({ type: 'Drawer', content: surface }), surface,
+    state: { name: '', beds: 1, code: '' }, title: 'New' }
+  const host = { id: HOST_ID, state: {}, tree: { id: 'h', type: 'ServerSide', actions: [{ id: 'create' }] }, outbound: {} }
+  const reg = { contexts: { [HOST_ID]: host, 'overlay-1': drawer }, stack: ['overlay-1'] }
+
+  // the empty required name never leaves: marked in the DRAWER
+  assert.deepEqual(outboundActionOf(reg, 'create', { drawerDraft: {} }),
+    { stop: 'fieldErrors', missing: ['name'], inOverlay: true })
+  // a bound and a pattern refused with the wire's messages, in form order
+  assert.deepEqual(outboundActionOf(reg, 'create', { drawerDraft: { name: 'Attic', beds: 12, code: 'ab' } }),
+    { stop: 'fieldErrors', missing: ['beds', 'code'], messages: { beds: 'Must be at most 9', code: 'Invalid format' }, inOverlay: true })
+  // valid: it leaves, to the crud (the form's create bubbles), with the drawer's values
+  const ok = outboundActionOf(reg, 'create', { drawerDraft: { name: 'Attic', beds: 2, code: 'ATT' } })
+  assert.ok(!ok.stop)
+  assert.deepEqual(ok.componentState, { name: 'Attic', beds: 2, code: 'ATT' })
+  // an action the form does not declare validated (cancel) is never stopped
+  assert.ok(!outboundActionOf(reg, 'cancel-new', { drawerDraft: {} }).stop)
+})
+
+test('the routed form refuses a failed bound or pattern too, not only an empty required field', () => {
+  const host = { id: HOST_ID, state: { name: 'Ada', beds: 1 },
+    tree: { id: 'h', type: 'ServerSide', validations: wireValidations, actions: [{ id: 'save', validationRequired: true }] }, outbound: {} }
+  const reg = { contexts: { [HOST_ID]: host }, stack: [] }
+  const sections = [{ fields: [{ fieldId: 'name', required: true, value: 'Ada' }, { fieldId: 'beds', value: 1 }, { fieldId: 'code', value: '' }] }]
+  assert.deepEqual(outboundActionOf(reg, 'save', { formSections: sections, draft: { beds: 0 } }),
+    { stop: 'fieldErrors', missing: ['beds'], messages: { beds: 'Must be at least 1' } })
+  assert.ok(!outboundActionOf(reg, 'save', { formSections: sections, draft: { beds: 3 } }).stop)
+})
+
+test('the fields a refused save names are marked where they are (the drawer\'s form, or the page)', () => {
+  const surface = { type: 'ServerSide', id: 'crud-edit-drawer-form' }
+  const reg = { contexts: { [HOST_ID]: { id: HOST_ID }, 'overlay-1': { id: 'overlay-1', surface } }, stack: ['overlay-1'] }
+  const refused = { fragments: [{ targetComponentId: 'crud-edit-drawer-form', data: { errors: { email: ['must be a well-formed email address'] }, _valid: false }, action: 'Replace' }] }
+  assert.deepEqual(refusedFieldsOf(refused, reg),
+    { missing: ['email'], messages: { email: 'must be a well-formed email address' }, inOverlay: true })
+  const onPage = { fragments: [{ targetComponentId: 'h', data: { errors: { name: ['Cannot be empty'], _component: ['x'] } } }] }
+  assert.deepEqual(refusedFieldsOf(onPage, reg), { missing: ['name'], messages: { name: 'Cannot be empty' }, inOverlay: false })
+  assert.equal(refusedFieldsOf({ fragments: [{ data: { errors: {} } }] }, reg), null)
+  assert.equal(refusedFieldsOf({ fragments: [] }, reg), null)
 })
 
 test('after the answer: host re-rendered, touched, or only messages', () => {

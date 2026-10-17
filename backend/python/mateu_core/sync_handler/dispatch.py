@@ -237,7 +237,7 @@ class DispatchMixin(MixinBase):
                 # SeededYamlPage does (they were dropped: ${state.x} rendered blank).
                 seeded = dict(rq.component_state or {}) if route_match is not None else {}
                 return self.fragment_response(
-                    rq.route or "",
+                    _definition_window_title(yaml_spec.layout, seeded, rq.route),
                     _with_declared_page_type(
                         self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq, seeded
                     ),
@@ -453,6 +453,34 @@ def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, sta
         initial_data=dict(state or {}),
         page_type=page_type,
     )
+
+
+def _definition_window_title(layout, state: dict | None, route: str | None) -> str:
+    """What a definition-only page names the window with (Java's
+    ``ActionInstanceCreator.nameTheWindow``): the root component's own ``title``, interpolated
+    against the page state — unless an expression in it has no value yet —, else the route's last
+    literal segment humanized (``orders/:id/edit-notes`` → "Edit notes")."""
+    import re
+
+    from ..naming import humanize_constant
+
+    title = getattr(layout, "title", None)
+    if isinstance(title, str) and title.strip():
+        values = state or {}
+
+        def value_of(expression: str):
+            key = expression.strip()
+            key = key[len("state.") :] if key.startswith("state.") else key
+            value = values.get(key)
+            return None if value is None or str(value).strip() == "" else str(value)
+
+        placeholders = re.findall(r"\$\{([^}]+)}", title)
+        if all(value_of(p) is not None for p in placeholders):
+            return re.sub(r"\$\{([^}]+)}", lambda m: value_of(m.group(1)) or "", title)
+    for segment in reversed((route or "").split("?", 1)[0].split("/")):
+        if segment.strip() and not segment.startswith(":") and not segment.startswith("{"):
+            return humanize_constant(segment)
+    return route or ""
 
 
 def _with_page_type_on_view(increment: UIIncrement, server_side_type: str, page_type: str):

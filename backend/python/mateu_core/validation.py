@@ -46,10 +46,14 @@ def field_constraints(f) -> list[tuple[str, str]]:
     if size is not None:
         upper = size.max if size.max is not None else "∞"
         default = f"Size must be between {size.min} and {upper}"
+        # a condition HOLDS when the value is valid (it read `x && x.length < min`, true for a value
+        # too SHORT); an absent value and one with no length pass, as on the server — Java's
+        # ConstraintValidationMapper.sized, character for character
+        sized = f"{ref} == null || {ref} === '' || {ref}.length === undefined || {ref}.length"
         if size.min > 0:
-            out.append((f"{ref} && {ref}.length < {size.min}", size.message or default))
+            out.append((f"{sized} >= {size.min}", size.message or default))
         if size.max is not None:
-            out.append((f"{ref} && {ref}.length > {size.max}", size.message or default))
+            out.append((f"{sized} <= {size.max}", size.message or default))
     # Bean Validation reads an absent value as valid for Min / Max / Pattern (requiring it is the
     # not-empty constraint's job), so an optional bounded field left empty passes.
     absent = f"{ref} == null || {ref} === ''"

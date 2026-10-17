@@ -463,6 +463,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     takeLastRetry,
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
+    // ...once what the answer re-drew is on screen (the fields a refused drawer save names)
+    showFieldErrorsSoon,
     clearFieldError,
     clearFieldErrorMarks,
     guardGuidedProcess,
@@ -531,6 +533,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    // the fields the server refused in an answer (a data fragment with errors), to mark them
+    refusedFieldsOf,
     blockClickOf,
     hostReRendered,
     touchesHost,

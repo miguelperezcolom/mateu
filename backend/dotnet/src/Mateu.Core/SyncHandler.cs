@@ -255,7 +255,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                     // the route's seeds (state:, fixed/default/path params, already folded into the
                     // component state) are the page's state: a seeded bare page is wrapped so it
                     // carries them, as Java's SeededYamlPage does (they were dropped: ${state.x} blank)
-                    ? FragmentResponse(rq.Route ?? "", WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
+                    ? FragmentResponse(DefinitionWindowTitle(bare, rq.ComponentState, rq.Route), WithDeclaredPageType(ComponentMapper.Map(bare), yamlSpec.PageType, rq,
                         routeEntry is not null ? rq.ComponentState : null), rq)
                     : Error($"Route not found: {rq.Route}");
             type = registry.TypeByName(yamlSpec.ModelView);
@@ -578,6 +578,38 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         var namesWindow = isPage || type.Find<TitleAttribute>() is not null;
         return FragmentResponse(_mapper.TitleOf(type, instance), view, rq,
             LookupLabels(type, instance, instance), emitWindowTitle: namesWindow && !embedded);
+    }
+
+    /// <summary>What a definition-only page names the window with (Java's
+    /// ActionInstanceCreator.nameTheWindow): the root component's own <c>Title</c>, interpolated
+    /// against the page state — unless an expression in it has no value yet —, else the route's
+    /// last literal segment humanized (<c>orders/:id/edit-notes</c> → "Edit notes"). It used to be
+    /// the RAW route ("/about").</summary>
+    internal static string DefinitionWindowTitle(
+        IComponent layout, IReadOnlyDictionary<string, object?>? state, string? route)
+    {
+        if (layout.GetType().GetProperty("Title") is { PropertyType: var t } property && t == typeof(string)
+            && property.GetValue(layout) is string title && !string.IsNullOrWhiteSpace(title))
+        {
+            var placeholder = new System.Text.RegularExpressions.Regex(@"\$\{([^}]+)}");
+            string? ValueOf(string expression)
+            {
+                var key = expression.Trim();
+                if (key.StartsWith("state.")) key = key["state.".Length..];
+                return state is not null && state.TryGetValue(key, out var v) && v is not null
+                       && !string.IsNullOrWhiteSpace(v.ToString()) ? v.ToString() : null;
+            }
+            if (placeholder.Matches(title).All(m => ValueOf(m.Groups[1].Value) is not null))
+                return placeholder.Replace(title, m => ValueOf(m.Groups[1].Value) ?? "");
+        }
+        var segments = (route ?? "").Split('?')[0].Split('/');
+        for (var i = segments.Length - 1; i >= 0; i--)
+        {
+            var segment = segments[i];
+            if (!string.IsNullOrWhiteSpace(segment) && !segment.StartsWith(':') && !segment.StartsWith('{'))
+                return Naming.HumanizeConstant(segment);
+        }
+        return route ?? "";
     }
 
     /// <summary>The <c>pageType:</c> of the route's definition when it is bound to

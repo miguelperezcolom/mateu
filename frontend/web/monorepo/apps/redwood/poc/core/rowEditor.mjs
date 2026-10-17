@@ -3,6 +3,7 @@ import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, findByType, isBlank, listingOf } from './listing.mjs'
 import { chromeText, chromeLanguage } from '../i18n.mjs'
+import { evaluateExpression, evaluateTemplate } from '../rules.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
 // ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
@@ -780,6 +781,67 @@ export function formErrorsOf(sections, draft, only) {
       if (isBlank(plainValueOf(value)) && out.indexOf(f.fieldId) < 0) out.push(f.fieldId)
     }
   }
+  return out
+}
+
+/**
+ * The WIRE validations a form's ServerSide carries (`tree.validations`: the @NotEmpty / @Min /
+ * @Max / @Pattern / @Size of its fields, each a `condition` that holds when the value is valid),
+ * evaluated against `state` the way the web client's checkValidations does: a condition that does
+ * not hold fails its field with its message. A condition the CSP-safe evaluator cannot read
+ * (undefined) is left to the server, which checks again. `only` restricts to those fields (the
+ * action's fieldsToValidate). → { fieldId: message }, first failure per field.
+ */
+export function validationErrorsOf(validations, state, only) {
+  const restrict = Array.isArray(only) && only.length ? new Set(only) : null
+  const scope = { state: state || {}, data: {} }
+  const out = {}
+  for (const v of validations || []) {
+    if (!v || !v.condition) continue
+    const fieldIds = String(v.fieldId || '_component').split(',').map((id) => id.trim())
+    if (restrict && !fieldIds.some((id) => restrict.has(id))) continue
+    const holds = String(v.condition).includes('${')
+      ? evaluateTemplate(v.condition, scope)
+      : evaluateExpression(v.condition, scope)
+    if (holds === undefined || holds) continue
+    let message = v.message || ''
+    if (message.includes('${')) {
+      const evaluated = evaluateTemplate(message, scope)
+      if (evaluated != null) message = String(evaluated)
+    }
+    for (const id of fieldIds) {
+      if (!(id in out)) out[id] = message
+    }
+  }
+  return out
+}
+
+/**
+ * What a validationRequired action may not leave with, on ONE form: its required fields left
+ * empty (formErrorsOf, the JET-drawn «Enter a value») plus its wire validations that fail
+ * (validationErrorsOf — a bound, a pattern, a size). → { missing: [fieldId] in form order,
+ * messages: { fieldId: message } for the ones a wire validation refused }.
+ */
+export function formRefusalOf(sections, state, draft, validations, only) {
+  const missing = formErrorsOf(sections, draft, only)
+  const merged = Object.assign({}, state || {}, plainDraftOf(draft))
+  const messages = validationErrorsOf(validations, merged, only)
+  // an empty required field is marked by its own JET validator; a class-level check (_component)
+  // names no field to mark, so it is the server's to refuse
+  for (const id of missing) delete messages[id]
+  delete messages._component
+  const order = []
+  for (const section of sections || []) for (const f of section.fields || []) order.push(f.fieldId)
+  const ids = [...missing]
+  for (const id of Object.keys(messages)) if (ids.indexOf(id) < 0) ids.push(id)
+  const at = (id) => { const i = order.indexOf(id); return i < 0 ? order.length : i }
+  ids.sort((a, b) => at(a) - at(b))
+  return { missing: ids, messages }
+}
+
+const plainDraftOf = (draft) => {
+  const out = {}
+  for (const k of Object.keys(draft || {})) out[k] = plainValueOf(draft[k])
   return out
 }
 

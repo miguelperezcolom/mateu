@@ -26,15 +26,7 @@ final class ConstraintValidationMapper {
                   validations.add(
                       Validation.builder()
                           .fieldId(prefix + field.getName())
-                          .condition(
-                              "state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'] && state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'].length < "
-                                  + annotation.min())
+                          .condition(sized(prefix + field.getName(), ">= " + annotation.min()))
                           .message(sizeMessage(annotation))
                           .build());
                 }
@@ -42,15 +34,7 @@ final class ConstraintValidationMapper {
                   validations.add(
                       Validation.builder()
                           .fieldId(prefix + field.getName())
-                          .condition(
-                              "state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'] && state['"
-                                  + prefix
-                                  + field.getName()
-                                  + "'].length > "
-                                  + annotation.max())
+                          .condition(sized(prefix + field.getName(), "<= " + annotation.max()))
                           .message(sizeMessage(annotation))
                           .build());
                 }
@@ -142,8 +126,28 @@ final class ConstraintValidationMapper {
     return ref + " == null || " + ref + " === '' || " + ref + " " + comparison;
   }
 
+  /**
+   * A {@code @Size} bound — like every condition here, one that HOLDS when the value is valid. It
+   * used to read {@code state['x'] && state['x'].length < 3}, which holds for a value that is too
+   * SHORT: the client passed "ab" (which the server then refused) and refused "abcd". An absent
+   * value and one with no length (a number) pass, as on the server ({@link ServerConstraintCheck}).
+   */
+  static String sized(String key, String comparison) {
+    var ref = "state['" + key + "']";
+    return ref
+        + " == null || "
+        + ref
+        + " === '' || "
+        + ref
+        + ".length === undefined || "
+        + ref
+        + ".length "
+        + comparison;
+  }
+
   static String sizeMessage(Size annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -152,7 +156,8 @@ final class ConstraintValidationMapper {
   }
 
   static String minMessage(Min annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -161,7 +166,8 @@ final class ConstraintValidationMapper {
   }
 
   static String maxMessage(Max annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace(
@@ -170,23 +176,40 @@ final class ConstraintValidationMapper {
   }
 
   static String patternMessage(Pattern annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.Pattern.message}", "Invalid format"));
   }
 
   static String notEmptyMessage(NotEmpty annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"));
   }
 
   static String notNullMessage(NotNull annotation) {
-    return TranslatorContext.translate(
+    return message(
+        annotation,
         annotation
             .message()
             .replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"));
+  }
+
+  /**
+   * A constraint message as the user reads it: its {@code {key}} templates resolved in the
+   * REQUEST's language (English when it names none — never the JVM's), then through the Translator.
+   * The client's validations and the server's own refusal ({@link ServerConstraintCheck}) both come
+   * from here, so they always say the same thing.
+   */
+  private static String message(java.lang.annotation.Annotation annotation, String text) {
+    return TranslatorContext.translate(
+        io.mateu.core.infra.ValidationLocale.resolve(
+            text,
+            annotation,
+            io.mateu.core.infra.ValidationLocale.of(TranslatorContext.request())));
   }
 }

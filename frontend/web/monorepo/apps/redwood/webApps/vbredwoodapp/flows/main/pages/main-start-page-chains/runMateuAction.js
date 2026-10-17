@@ -113,8 +113,9 @@ define([
         return;
       }
       if (plan.stop === 'fieldErrors') {
-        // the required fields are marked as a Redwood form does, the focus goes to the first
-        await bridge.showFieldErrors(plan.missing);
+        // the required fields are marked as a Redwood form does (a failed bound or pattern with
+        // its wire message), the focus goes to the first — the page's, or the open drawer's
+        await bridge.showFieldErrors(plan.missing, null, { messages: plan.messages, inOverlay: plan.inOverlay });
         return;
       }
       if (plan.stop === 'rowErrors') {
@@ -158,10 +159,13 @@ define([
       let hostRepainted = false;
       const touchesHost = bridge.touchesHost;
       let lastIncrement = null; const returnedConfirms = []; // ConfirmDialogs RETURNED: asked below
+      // the fields the SERVER refused (a refused drawer save names them): marked at the end
+      let refusedFields = null;
       const applyInc = (inc) => {
         lastIncrement = inc;
         returnedConfirms.push(...bridge.returnedConfirmDialogsOf(inc));
         reg = bridge.reduceContexts(reg, inc);
+        refusedFields = bridge.refusedFieldsOf(inc, reg) || refusedFields;
         bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
@@ -684,6 +688,11 @@ define([
           selector: '#mateuToast',
           method: 'open',
         });
+      }
+      if (refusedFields) {
+        // after the drawer / form has been re-drawn with the answer (VB binds asynchronously)
+        await bridge.showFieldErrorsSoon(refusedFields.missing, null,
+          { messages: refusedFields.messages, inOverlay: refusedFields.inOverlay });
       }
       if (effects.docTitle) {
         // the host page owns its title when embedded (bridge.setDocTitle → the mateuTitle event)
