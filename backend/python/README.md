@@ -31,7 +31,9 @@ for the sibling implementation.
   on the view for programmatic links — it wins, `None` falls back to the marker); `@kpi` → KPI
   cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
   `@confirm_on_navigation_if_dirty`.
-- **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `@secured`.
+- **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `EyesOnly` /
+  `ReadOnlyUnless` / `DisabledUnless` on fields, `@eyes_only` on classes and methods (`@secured` is
+  deprecated: it is enforced as `@eyes_only(permissions=[...])`).
 - **Layout inference** — `@auto_layout` (opt-in, `@auto_layout(False)` opts out) ports the Java
   `LayoutInference` decision table (same constants/thresholds): heavy unstructured editable forms
   fold optional fields into a collapsed "More options" accordion panel; heavy `@read_only` views
@@ -41,7 +43,7 @@ for the sibling implementation.
   the class opted in. Explicit layout markers always win.
 - **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
-  `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
+  `ResponsiveGrid` (`DashboardLayout` is deprecated), `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
   `GanttTask`, plus fluent `Text` and `Button`. `PlanningBoard` (tape chart: `PlanningResource`
   rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`
@@ -54,7 +56,8 @@ for the sibling implementation.
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
   Or subclass `ComponentTreeSupplier` and return any fluent component tree from `component()`.
 
-- **Validation** — `Required()`, `Min`/`Max`/`Size`/`Pattern`, `@validation`, `ValidationSupplier`
+- **Validation** — `Required()`, `Min`/`Max`/`Length`/`Pattern` (`Size` is the
+  deprecated pre-3.0-alpha.412 name of `Length`), `@validation`, `ValidationSupplier`
   → the component's client-side `validations` (Java's conditions and messages), re-checked on save.
 - **Grid fields** — a `list[Row]` field is a grid with a row editor (add / edit / save / prev /
   next / remove / move), `InlineEditing()` for in-place cells; wide fields span the row.
