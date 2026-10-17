@@ -1,7 +1,7 @@
 import {customElement, property} from "lit/decorators.js";
 import { standInForOnLoad } from "@infra/ui/onLoadTimes.ts";
 import { jsonSafe } from '@infra/http/jsonTemplate.ts'
-import { viaProxy } from '@infra/http/restSourceCatalogue.ts'
+import { UnknownRestSourceError, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -627,7 +627,12 @@ export class MateuComponent extends ComponentElement {
         }
         const onError = (e: unknown) => {
             console.warn('mateu: rest action failed', e)
-            showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+            // a source nobody declared is a configuration mistake the user can name to someone,
+            // not a transient failure: say which source, and keep the toast until it is read
+            const text = e instanceof UnknownRestSourceError
+                ? chromeTextf('unknownRestSource', { name: e.sourceName })
+                : chromeTextf('requestFailed', { status: '' })
+            showToast({ text, variant: 'error', position: 'bottomEnd', duration: e instanceof UnknownRestSourceError ? 0 : 3000 }, this)
         }
         // A proxied call reports failure on appData._restfetchError ({status, message}) instead of on
         // _restfetch — the server no longer swallows an upstream 4xx/5xx into an empty body that reads

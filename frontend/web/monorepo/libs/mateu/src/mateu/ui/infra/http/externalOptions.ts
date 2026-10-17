@@ -1,7 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
-import { getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
+import { UnknownRestSourceError, getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
 
 /**
@@ -130,7 +130,10 @@ export async function fetchExternalJson(
         if (method !== 'GET' && method !== 'HEAD') return null
         return structuredClone(sampleOf(declared))
     }
-    if (!source.url) throw new Error(`External REST fetch has no url${declared.ref ? ` (unknown source "${declared.ref}")` : ''}`)
+    if (!source.url) {
+        if (declared.ref && !getRestSource(declared.ref)) throw new UnknownRestSourceError(declared.ref)
+        throw new Error('External REST fetch has no url')
+    }
     const url = resolveUrl(source.url) ?? source.url
     const headers: Record<string, string> = {}
     for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v

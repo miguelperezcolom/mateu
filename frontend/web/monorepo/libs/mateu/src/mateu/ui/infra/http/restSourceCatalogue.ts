@@ -42,7 +42,25 @@ export const setRemoteRestSources = (remote: string, incoming: RestSourceEntry[]
     else remoteLayers.delete(remote)
 }
 
-/** The entry with this name — the app's own first, then the remotes' — or undefined. */
+/**
+ * The entries a RESPONSE named (`UIIncrement.restSources`): every response carries the entries its
+ * own components reference, because a page served with NO app shell never receives the app's
+ * catalogue (it rides `AppDto.restSources`) and its by-ref calls could not be resolved. Merged by
+ * name — a later response's entry replaces an earlier one of the same name — and consulted after
+ * the app's own catalogue and the remotes' layers, so it only ever fills a gap.
+ */
+const referenced = new Map<string, RestSourceEntry>()
+
+/** Adds the entries a response references (see {@link referenced}). */
+export const addReferencedRestSources = (incoming: RestSourceEntry[] | undefined): void => {
+    if (!Array.isArray(incoming)) return
+    for (const entry of incoming) {
+        if (entry?.name) referenced.set(entry.name, entry)
+    }
+}
+
+/** The entry with this name — the app's own first, then the remotes', then what responses named —
+ *  or undefined. */
 export const getRestSource = (name: string | undefined): RestSourceEntry | undefined => {
     if (!name) return undefined
     const own = entries.find((entry) => entry.name === name)
@@ -51,7 +69,18 @@ export const getRestSource = (name: string | undefined): RestSourceEntry | undef
         const found = layer.find((entry) => entry.name === name)
         if (found) return found
     }
-    return undefined
+    return referenced.get(name)
+}
+
+/**
+ * Thrown when a surface names a source nobody declared (or whose catalogue never arrived). A
+ * half-resolved endpoint is never fetched; the caller tells the USER, not only the console.
+ */
+export class UnknownRestSourceError extends Error {
+    constructor(readonly sourceName: string) {
+        super(`No REST source named "${sourceName}" in the app's catalogue`)
+        this.name = 'UnknownRestSourceError'
+    }
 }
 
 /** Everything currently in the catalogue — for diagnostics and tests. */
@@ -75,9 +104,10 @@ export const trackRemoteCatalogues = (asking: Promise<unknown>): void => {
 export const remoteCataloguesSettled = (): Promise<void> =>
     Promise.all([...pendingRemoteCatalogues]).then(() => undefined)
 
-/** Test hook: forget every remote layer. */
+/** Test hook: forget every remote layer (and what responses named). */
 export const __clearRemoteRestSources = (): void => {
     remoteLayers.clear()
+    referenced.clear()
     pendingRemoteCatalogues.clear()
 }
 
