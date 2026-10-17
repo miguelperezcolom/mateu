@@ -4062,7 +4062,7 @@
     },
     "NotificationVariantDto" : {
       "type" : "string",
-      "enum" : [ "success", "warning", "error", "primary", "contrast" ]
+      "enum" : [ "success", "warning", "error", "primary", "contrast", "info" ]
     },
     "OfferCardDto" : {
       "type" : "object",
