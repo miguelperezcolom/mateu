@@ -44,8 +44,11 @@ test('the hub UiStore persists the UI list as metadata, and forgetting a UI clea
   keychain.clear();
   asyncStorage.clear();
   const url = 'https://apps.example.com/admin';
-  // exact token match (not a substring test of the host)
-  const stored = () => [...asyncStorage.values()].some((v) => v.split('"').includes(url));
+  // the URL is stored as a JSON string value somewhere in the persisted metadata: compare values exactly
+  const strings = (x: unknown): string[] =>
+    typeof x === 'string' ? [x] : x && typeof x === 'object' ? Object.values(x).flatMap(strings) : [];
+  const parsed = (v: string): unknown => { try { return JSON.parse(v); } catch { return v; } };
+  const stored = () => [...asyncStorage.values()].some((v) => strings(parsed(v)).some((s) => s === url));
   const { entry } = await storage.uiStore.add(url);
   assert.ok(asyncStorage.size > 0);
   assert.ok(stored());
