@@ -1,6 +1,6 @@
-// CI: la fila Redwood de parity.md dice la verdad. Ver coverage.mjs.
-// Uso: node parity-check.mjs           → comprueba (sale ≠ 0 si algo no cuadra)
-//      node parity-check.mjs --write   → regenera la sección de parity.md desde coverage.mjs
+// CI: the Redwood row of parity.md tells the truth. See coverage.mjs.
+// Usage: node parity-check.mjs           → checks (exits ≠ 0 if something does not add up)
+//        node parity-check.mjs --write   → regenerates the parity.md section from coverage.mjs
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -13,7 +13,7 @@ const parityFile = join(repo, 'doc/src/content/docs/reference/parity.md')
 const START = '<!-- redwood-coverage:start -->'
 const END = '<!-- redwood-coverage:end -->'
 
-/** Los problemas de cobertura (puro: lo prueba test-pms.mjs). */
+/** The coverage problems (pure: test-pms.mjs tests it). */
 export function coverageProblems({ wireTypes, coverage, source, parity }) {
   const problems = []
   for (const t of wireTypes) if (!coverage[t]) problems.push(`wire type ${t} is not classified in coverage.mjs`)

@@ -1,8 +1,8 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
 'use strict';
 
-// Build de la app VB con las tareas de grunt-vb-build (vb-build, vb-serve): npm run build / serve.
+// Build of the VB app with the grunt-vb-build tasks (vb-build, vb-serve): npm run build / serve.
 module.exports = (grunt) => {
   require('load-grunt-tasks')(grunt);
 };

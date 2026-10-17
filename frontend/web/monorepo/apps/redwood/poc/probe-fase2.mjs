@@ -1,6 +1,6 @@
-// Puerta visual de la Fase 2: captura la app VB (:9006) con el menú Redwood alimentado por
-// Mateu, navega clicando una opción y captura el contenido cambiado SIN recargar la shell.
-// Uso: node probe-fase2.mjs   (usa el playwright instalado en e2e/)
+// Visual gate of Phase 2: captures the VB app (:9006) with the Redwood menu fed by
+// Mateu, navigates by clicking an option and captures the changed content WITHOUT reloading the shell.
+// Usage: node probe-fase2.mjs   (uses the playwright installed in e2e/)
 
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -20,13 +20,13 @@ page.on('pageerror', (e) => console.log('  [pageerror]', String(e).slice(0, 200)
 
 await page.goto(URL, { waitUntil: 'domcontentloaded' })
 await page.waitForSelector('h1', { timeout: 90000 })
-// espera a que el menú de Mateu esté poblado y el hola mundo cargado
+// wait until Mateu's menu is populated and the hello world loaded
 await page.waitForFunction(() => document.body.innerText.includes('Hello'), null, { timeout: 60000 })
 await page.waitForTimeout(4000)
 await page.screenshot({ path: join(shots, 'fase2.png') })
 console.log('✓ fase2.png (shell + menú + primera ruta)')
 
-// clic en la opción "Person" del in-app navigation
+// click on the "Person" option of the in-app navigation
 const marker = await page.evaluate(() => document.body.innerText.includes('Person'))
 if (!marker) console.log('⚠ no se ve la opción Person en el DOM')
 await page.getByText('Person', { exact: true }).first().click()

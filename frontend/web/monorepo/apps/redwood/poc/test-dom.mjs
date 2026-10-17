@@ -1,11 +1,11 @@
-// El CABLEADO DE DOM del core VB, en Node y sin VB: lo que el usuario hace con el teclado y el
-// ratón sobre la página pintada — atajos y teclas de acceso, arrastrar filas a un destino, el panel
-// «I want to…», la matriz (plegar, editar, enlace), el rango del tape chart, el mapa, las ventanas
-// flotantes, la accesibilidad (regiones vivas, salto al contenido, foco tras navegar, errores de
-// obligatorio), las reglas del cliente sobre los campos pintados, el calendario y los campos de
-// captura. Lo puro de esos módulos ya lo fijan test.mjs/test-pms.mjs; aquí, lo que vive en los
-// listeners. El DOM es el mínimo de test-harness-dom.mjs.
-// Uso: node test-dom.mjs
+// The DOM WIRING of the VB core, in Node and without VB: what the user does with keyboard and
+// mouse on the painted page — shortcuts and access keys, dragging rows to a destination, the
+// «I want to…» panel, the matrix (collapse, edit, link), the tape chart range, the map, the
+// floating windows, accessibility (live regions, skip to content, focus after navigating,
+// required errors), the client rules on the painted fields, the calendar and the capture
+// fields. The pure part of those modules is already pinned by test.mjs/test-pms.mjs; here, what
+// lives in the listeners. The DOM is the minimal one of test-harness-dom.mjs.
+// Usage: node test-dom.mjs
 import './test-locale.mjs' // first: off English the suite reruns in English (see the module)
 import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
@@ -34,8 +34,8 @@ import { installCookieConsent, installContextMenus, installCustomComponents, dra
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
 import { defineMarkupField, defineRichTextField, installRichText } from './richtext.mjs'
 
-// en el bridge todo comparte un scope: keys.mjs usa el shortcutMatches de actionPanels.mjs sin
-// importarlo. En Node, módulos separados — se le da por el global, como lo vería el bridge.
+// in the bridge everything shares one scope: keys.mjs uses actionPanels.mjs's shortcutMatches
+// without importing it. In Node, separate modules — it is given through the global, as the bridge would see it.
 globalThis.shortcutMatches = shortcutMatches
 
 let passed = 0
@@ -59,7 +59,7 @@ test('keys: un atajo @Action(ctrl+s) de la pantalla lanza la acción; una tecla 
   assert.equal(sink.calls.length, 1, 'una tecla suelta es del campo donde se escribe')
   fire(field, 'keydown', { key: 'F2' })
   assert.deepEqual(sink.calls[1], ['find', {}, {}], 'una tecla de función sola sí es atajo')
-  // independiente de la distribución: Alt cambia e.key en un Mac, el código físico no
+  // layout-independent: Alt changes e.key on a Mac, the physical code does not
   setShortcutContext({ tree: { actions: [{ id: 'open', shortcut: 'alt+o' }] } })
   fire(field, 'keydown', { key: 'ø', code: 'KeyO', altKey: true })
   assert.deepEqual(sink.calls[2], ['open', {}, {}])
@@ -101,7 +101,7 @@ test('keys: con accessKeys, mantener Alt enseña letras; Alt+letra pulsa el bot�
   assert.equal(doc.querySelector('.mateu-access-keys').getAttribute('aria-hidden'), 'true')
   fire(doc.body, 'keyup', { key: 'Alt' })
   assert.equal(doc.querySelector('.mateu-access-keys'), null)
-  // sin mantener: Alt+R calcula las letras y pulsa directamente
+  // without holding: Alt+R computes the letters and presses directly
   fire(doc.body, 'keydown', { key: '®', code: 'KeyR', altKey: true })
   fire(doc.body, 'keydown', { key: '∂', code: 'KeyD', altKey: true })
   assert.deepEqual(pressed, ['reports', 'save'], 'el oj-button con un <button> dentro se pulsa por dentro')
@@ -111,7 +111,7 @@ test('keys: con accessKeys, mantener Alt enseña letras; Alt+letra pulsa el bot�
   setShortcutContext(null)
 })
 
-// ── panel de acciones ────────────────────────────────────────────────────────────────────────
+// ── action panel ────────────────────────────────────────────────────────────────────────────
 test('action panel: el disparador (o su atajo) abre el diálogo; «mostrar más» y «ocultar vacías» viven en el DOM', () => {
   const { doc, el, fire } = makeDom()
   const dialog = el('oj-dialog', { id: 'ap1' })
@@ -189,7 +189,7 @@ test('dnd: los tiles reordenables se mueven arrastrando y con Alt+←/→, y el 
   assert.deepEqual(sink.calls, [['dash']])
   fire(doc.body, 'dragend')
   assert.equal(doc.querySelectorAll('.mateu-tile-dragging, .mateu-tile-over').length, 0)
-  // teclado: el tile enfocado se mueve un puesto (sobre lo PINTADO: a, b, c)
+  // keyboard: the focused tile moves one position (over what is PAINTED: a, b, c)
   fire(tiles[1], 'keydown', { key: 'ArrowLeft', altKey: true })
   assert.deepEqual(readTileOrder('dash'), ['b', 'a', 'c'])
   assert.deepEqual(paintedTileOrder(doc, 'dash'), ['a', 'b', 'c'])
@@ -254,7 +254,7 @@ test('planning: arrastrar por tiempo VACÍO de una fila lanza el rango (recurso 
   fire(doc.body, 'pointerup')
   assert.equal(band.style.display, 'none')
   assert.deepEqual(sink.calls, [['newBooking', { _resourceId: 'r2', _start: '2026-10-02', _end: '2026-10-04' }, {}]])
-  // hacia atrás: el rango se ordena
+  // backwards: the range is sorted
   fire(rowBg, 'pointerdown', { button: 0, clientX: 230, clientY: 88 })
   fire(doc.body, 'pointermove', { clientX: 110 })
   fire(doc.body, 'pointerup')
@@ -358,7 +358,7 @@ test('map: un marcador pintado lanza markerActionId con _markerId; varios se enc
   assert.deepEqual(log.find((x) => x[0] === 'fit')[1], [[40.4, -3.7], [41.4, 2.2]])
   assert.ok(log.some((x) => x[0] === 'attr' && x[1] === 'aria-label' && x[2] === 'Madrid · 120 rooms'), 'el marcador tiene nombre accesible')
   assert.ok(log.some((x) => x[0] === 'tiles' && /openstreetmap/.test(x[1])))
-  // re-dibujar con UN marcador: centrado a zoom 15
+  // re-draw with ONE marker: centred at zoom 15
   box.setAttribute('data-map-spec', JSON.stringify({ markers: [spec.markers[0]], markerActionId: 'openHotel' }))
   FakeObserver.last.fn([{ type: 'attributes', target: box }])
   await sleep(5)
@@ -385,7 +385,7 @@ test('map: el clic en un marcador sale por el sumidero; si Leaflet no carga, se 
   await sleep(5)
   handlers[0].click()
   assert.deepEqual(sink.calls, [['openHotel', { _markerId: 'h9' }, {}]])
-  // sin Leaflet (CDN caído): se pide por <script> con su CSS y, si falla, el mapa lo dice
+  // without Leaflet (CDN down): it is requested via <script> with its CSS and, if that fails, the map says so
   const offline = makeDom()
   globalThis.window = {}
   const failing = offline.el('div', { 'data-map-spec': '{"markers":[]}' })
@@ -487,13 +487,13 @@ const withDocument = (doc, fn) => async () => {
     assert.ok(save.hasAttribute('data-mateu-pending'))
     clearPressedControlBusy()
     assert.equal(save.hasAttribute('aria-busy'), false)
-    // fuera de la ventana de gracia (un OnLoad, un autosave): no se marca
+    // outside the grace window (an OnLoad, an autosave): not marked
     const realNow = Date.now
     fire(save.querySelector('span'), 'click')
     Date.now = () => realNow() + 1000
     try { markPressedControlBusy() } finally { Date.now = realNow }
     assert.equal(save.hasAttribute('aria-busy'), false)
-    // un clic en algo que no es un botón no marca nada
+    // a click on something that is not a button marks nothing
     fire(doc.body, 'click')
     markPressedControlBusy()
     assert.equal(doc.querySelectorAll('[aria-busy]').length, 0)
@@ -506,7 +506,7 @@ const withDocument = (doc, fn) => async () => {
     const jet = el('oj-input-text', { 'data-field-id': 'name' }, el('input'))
     jet.validate = async () => 'invalid'
     const lazy = el('oj-input-text', { 'data-field-id': 'email' })
-    lazy.validate = async () => 'valid' // su valor aún no llegó al widget
+    lazy.validate = async () => 'valid' // its value has not reached the widget yet
     lazy.messagesCustom = []
     const chips = el('div', { 'data-field-id': 'tags' })
     const inDialog = el('oj-dialog', {}, el('oj-input-text', { 'data-field-id': 'name' }))
@@ -543,7 +543,7 @@ const withDocument = (doc, fn) => async () => {
   }))
 }
 
-// ── reglas del cliente sobre los campos pintados ─────────────────────────────────────────────
+// ── client rules on the painted fields ───────────────────────────────────────────────────────
 {
   const { doc, el, fire } = makeDom()
   test('rules: ocultar/deshabilitar/copiar un valor según otro campo, por superficie, sin ida y vuelta', withDocument(doc, () => {
@@ -587,7 +587,7 @@ const withDocument = (doc, fn) => async () => {
     fire(kind, 'valueChanged', { bubbles: false, detail: { value: 'person', updatedFrom: 'internal' } })
     fire(el('oj-input-text', { 'data-field-id': 'name' }), 'valueChanged', { detail: { value: 'Annabel', updatedFrom: 'internal' } })
     void fire
-    // nombres largos → notes y el id con comillas, deshabilitados (selector de atributo escapado)
+    // long names → notes and the id with quotes, disabled (escaped attribute selector)
     setRulesContexts({ contexts: { __root__: { ...ctx, state: { kind: 'person', name: 'Annabel' } } }, stack: [] }, {})
     applyRulesNow(doc)
     assert.equal(notes.disabled, true)
@@ -673,11 +673,11 @@ test('toc: a click on an entry scrolls to its section (no anchor navigation) and
   assert.equal(tocActiveIndex([300, 800], 16), 0, 'nothing above the line: the first')
 })
 
-// ── campos de captura ────────────────────────────────────────────────────────────────────────
+// ── capture fields ──────────────────────────────────────────────────────────────────────────
 test('capture: firmar y Aceptar emite el PNG; sin tinta no; Quitar vacía; sólo lectura enseña un guion; un src peligroso no se carga', () => {
   const { doc, win, el, fire } = makeDom()
   defineCaptureField(win)
-  defineCaptureField(win) // una vez
+  defineCaptureField(win) // once
   const field = doc.createElement('mateu-capture-field')
   field.setAttribute('mode', 'signature')
   const values = []
@@ -891,7 +891,7 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
       setListingTones([{ _tone: 'danger' }, {}, { _tone: 'success' }])
       await sleep(30)
       assert.deepEqual(tbody.children.map((r) => r.className), ['mateu-row-tone-danger', '', 'mateu-row-tone-success'])
-      // JET repinta (orden, página): filas nuevas, mismas posiciones; un tono que cambia sustituye al viejo
+      // JET repaints (order, page): new rows, same positions; a tone that changes replaces the old one
       tbody.textContent = ''
       ;[tr(), tr(), tr()].forEach((r) => tbody.appendChild(r))
       tbody.children[0].className = 'mateu-row-tone-success'
@@ -906,7 +906,7 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
   }))
 }
 
-// ── componentes web de terceros (Element) ────────────────────────────────────────────────────
+// ── third-party web components (Element) ────────────────────────────────────────────────────
 {
   const { doc, el, fire } = makeDom()
   test('elements: el HTML con DATOS se sanea (scripts, on…, javascript:, data: que no es imagen, srcdoc)', withDocument(doc, () => {
@@ -945,7 +945,7 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
   }))
 }
 
-// ── display: cookies, menú contextual, componentes registrados, BPMN, chat ──────────────────
+// ── display: cookies, context menu, registered components, BPMN, chat ───────────────────────
 {
   const { doc, el, fire } = makeDom()
   test('display: la banda de cookies se esconde si ya se aceptó; Aceptar escribe la cookie y la esconde', withDocument(doc, () => {
@@ -976,7 +976,7 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
     const ev = f(target, 'contextmenu')
     assert.deepEqual(opened, ['contextmenu'])
     assert.ok(ev.defaultPrevented, 'no sale el menú del navegador')
-    // lejos (más de cinco niveles por encima no hay menú): el del navegador
+    // far away (more than five levels above there is no menu): the browser's
     const plain = e('p', { text: 'elsewhere' })
     let deep = plain
     for (let i = 0; i < 6; i++) deep = e('div', {}, deep)
@@ -1063,9 +1063,9 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
   })
 }
 
-// ── la acción de un fact en el header oj-sp (el lápiz junto a EMPRESA) ────────────────────────
-// oj-sp pinta cada fact de contextualInfo como <div id="<uid>_contextualInfo<i>-labelled-by"> (rótulo)
-// + <div id="<uid>_contextualInfo<i>"> (valor) dentro de un item flex; el botón va tras el valor.
+// ── the action of a fact in the oj-sp header (the pencil next to EMPRESA) ─────────────────────
+// oj-sp paints each contextualInfo fact as <div id="<uid>_contextualInfo<i>-labelled-by"> (label)
+// + <div id="<uid>_contextualInfo<i>"> (value) inside a flex item; the button goes after the value.
 const ojSpHeader = (e, facts, actions) => {
   const items = facts.map((f, i) => e('div', { class: 'oj-flex-item oj-flex' },
     e('div', { id: 'h1_contextualInfo' + i + '-labelled-by', text: f.label }),
@@ -1087,10 +1087,10 @@ test('fact action: el botón de icono va JUSTO tras el valor de SU fact, con su 
   assert.equal(buttons[0].getAttribute('aria-label'), 'Cambiar empresa')
   assert.equal(buttons[0].getAttribute('title'), 'Cambiar empresa')
   assert.equal(buttons[0].querySelector('span').getAttribute('class'), 'oj-ux-ico-edit')
-  // idempotente: otra pasada (el observer) no añade ni mueve nada
+  // idempotent: another pass (the observer) adds and moves nothing
   decorateFactActions(header, doc)
   assert.equal(header.querySelectorAll('.mateu-fact-action').length, 1)
-  // otro registro sin acción: el botón se va
+  // another record without action: the button goes away
   header.setAttribute('data-mateu-fact-actions', '')
   decorateFactActions(header, doc)
   assert.equal(header.querySelectorAll('.mateu-fact-action').length, 0)

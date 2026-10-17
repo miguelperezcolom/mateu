@@ -1,9 +1,9 @@
-// Captura increments REALES contra un backend Mateu vivo (demo/demo-vb en :9005) y los
-// vuelca a fixtures/real/*.json — el paso previo del roadmap para fijar el contrato de wire.
-// Uso: node capture.mjs [baseUrl]   (default http://localhost:9005)
+// Captures REAL increments against a live Mateu backend (demo/demo-vb on :9005) and
+// dumps them to fixtures/real/*.json — the roadmap's prior step to pin the wire contract.
+// Usage: node capture.mjs [baseUrl]   (default http://localhost:9005)
 //
-// Cada flujo imita lo que hará el bridge VB: un único shell que postea contra la baseUrl
-// raíz con la ruta objetivo en el body (loadRoute / runActionChain).
+// Each flow mimics what the VB bridge will do: a single shell posting against the root
+// baseUrl with the target route in the body (loadRoute / runActionChain).
 
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -15,7 +15,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const outDir = join(here, 'fixtures', 'real')
 mkdirSync(outDir, { recursive: true })
 
-// El transporte es la FUENTE ÚNICA compartida con el bridge AMD (transport.mjs).
+// The transport is the SINGLE SOURCE shared with the AMD bridge (transport.mjs).
 const callMateu = (body) => callMateuBase(BASE, body)
 
 const dump = (name, increment) => {
@@ -27,7 +27,7 @@ const dump = (name, increment) => {
   console.log(`  ✓ ${name}: fragments=[${frs.join(', ')}] commands=[${cmds.join(', ')}] messages=${(increment.messages || []).length}`)
 }
 
-// ── helpers de introspección sobre el increment ─────────────────────────────
+// ── introspection helpers over the increment ───────────────────────────────
 const walk = (node, visit) => {
   if (!node || typeof node !== 'object') return
   visit(node)
@@ -36,7 +36,7 @@ const walk = (node, visit) => {
     else if (v && typeof v === 'object') walk(v, visit)
   }
 }
-/** Primer componente ServerSide que cumple el predicado (por defecto, el primero). */
+/** First ServerSide component matching the predicate (by default, the first one). */
 const findServerSide = (increment, pred = () => true) => {
   let found = null
   walk(increment, (n) => {
@@ -44,7 +44,7 @@ const findServerSide = (increment, pred = () => true) => {
   })
   return found
 }
-/** Ids de acción anunciados en cualquier nivel (actions: [{id/actionId,...}]). */
+/** Action ids advertised at any level (actions: [{id/actionId,...}]). */
 const findActionIds = (increment) => {
   const ids = new Set()
   walk(increment, (n) => {
@@ -53,7 +53,7 @@ const findActionIds = (increment) => {
   })
   return [...ids].filter((x) => typeof x === 'string')
 }
-/** El estado que el increment asocia al componente (fragment.state / componentState). */
+/** The state the increment associates with the component (fragment.state / componentState). */
 const stateOf = (increment) => {
   const fr = (increment.fragments || []).find((f) => f.component || f.state || f.data)
   return increment.componentState || fr?.state || fr?.data || {}
@@ -62,8 +62,8 @@ const stateOf = (increment) => {
 // ── flujos ──────────────────────────────────────────────────────────────────
 console.log(`Capturando contra ${BASE}\n`)
 
-// 1) Shell (bootstrap): el App raíz NO se resuelve por sync — llega por el endpoint
-// genérico components/_/action (route '', __load__). Único uso de ese endpoint.
+// 1) Shell (bootstrap): the root App is NOT resolved by sync — it arrives through the
+// generic components/_/action endpoint (route '', __load__). The only use of that endpoint.
 dump('app', await bootstrapShell(BASE, 'shell'))
 
 // 2) Form: carga + save (state echo mutado) + navigate
@@ -80,15 +80,15 @@ dump('navigate', await callMateu({
   serverSideType: person?.serverSideType, initiatorComponentId: person?.id,
 }))
 
-// 3) Listado (crud mediador) — y qué acciones anuncia. El server hace ECO del
-// initiatorComponentId como targetComponentId y DERIVA los ids internos de él
-// (p.ej. 'crud1_app'): la unicidad de ids es responsabilidad del cliente (bridge).
+// 3) Listing (crud mediator) — and which actions it advertises. The server ECHOES the
+// initiatorComponentId as targetComponentId and DERIVES the inner ids from it
+// (e.g. 'crud1_app'): id uniqueness is the client's (bridge's) responsibility.
 const loadListing = await callMateu({ route: '/products', actionId: '', initiatorComponentId: 'crud1' })
 dump('load-listing', loadListing)
 console.log(`    acciones anunciadas: ${findActionIds(loadListing).join(', ')}`)
 
-// 3b) El CONTENIDO interior del mediador (el listing): consumedRoute = rootRoute del
-// mediador + serverSideType = homeServerSideType (sin ellos → mediador otra vez / error)
+// 3b) The inner CONTENT of the mediator (the listing): consumedRoute = the mediator's
+// rootRoute + serverSideType = homeServerSideType (without them → mediator again / error)
 const mediatorApp = (loadListing.fragments[0].component.children || [])[0]?.metadata || {}
 dump('load-listing-content', await callMateu({
   route: '/products', actionId: '', initiatorComponentId: 'crud1',
@@ -96,7 +96,7 @@ dump('load-listing-content', await callMateu({
   serverSideType: mediatorApp.homeServerSideType,
 }))
 
-// 4) Drawer: New sobre el crud (editInDrawer) → fragment Add; luego create → CloseModal
+// 4) Drawer: New on the crud (editInDrawer) → fragment Add; then create → CloseModal
 const listing = findServerSide(loadListing, (n) => (n.route || '').includes('/products'))
 const listingState = stateOf(loadListing)
 const openDrawer = await callMateu({
@@ -111,13 +111,13 @@ dump('save-in-drawer', await callMateu({
   serverSideType: drawerSS?.serverSideType, initiatorComponentId: drawerSS?.id,
 }))
 
-// 5) Isla: host con EditableView embebida → luego la carga/edición de la propia isla
+// 5) Island: host with an embedded EditableView → then the load/edit of the island itself
 const islandHost = await callMateu({ route: '/island-host', actionId: '', componentState: {} })
 dump('island-host', islandHost)
 const islandSS = findServerSide(islandHost, (n) => (n.route || '').includes('guest-note'))
 if (islandSS) {
   console.log(`    isla embebida: id=${islandSS.id} route=${islandSS.route}`)
-  // la isla es un mediador embebido: el bridge la carga con SU contextId como initiator
+  // the island is an embedded mediator: the bridge loads it with ITS contextId as initiator
   const islandLoad = await callMateu({ route: islandSS.route, actionId: '', initiatorComponentId: islandSS.id })
   dump('island-load', islandLoad)
   const innerApp = (islandLoad.fragments[0].component.children || [])[0]?.metadata || {}
