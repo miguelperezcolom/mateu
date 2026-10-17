@@ -3793,11 +3793,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
         // búsqueda—, es una tabla más del contenido.
         if ((m.columns || []).length) {
+          // the field's column groups flattened, the group label prefixing its columns' (leafColumnsOf)
+          const leafCols = leafColumnsOf(m.columns, interp)
           const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
           // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
           // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
           const rowEditable = isModalRowEditor(m)
-          const columns = m.columns
+          const columns = leafCols
             .map((col) => col.metadata || col)
             // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
             .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
@@ -3820,7 +3822,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             }
             return out
           }
-          const shown = labelCellRows(statusBadgeRows(rows, m.columns), m.columns).map((row, i) => (rowEditable
+          const shown = labelCellRows(statusBadgeRows(rows, leafCols), leafCols).map((row, i) => (rowEditable
             ? {
               ...dashEmpty(row),
               _rowNumber: row._rowNumber == null ? i : row._rowNumber,
@@ -4248,15 +4250,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'Grid') {
         // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
-        // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
-        const leafColumns = []
-        const walkCols = (n) => {
-          const cm = n && (n.metadata || n)
-          if (!cm) return
-          if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
-          if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
-        }
-        ;(m.content || []).forEach(walkCols)
+        // un campo de tipo lista — oj-table en modo lista; column groups are flattened (oj-table has
+        // no grouped headers): the group's label prefixes its columns' — leafColumnsOf
+        const leafColumns = leafColumnsOf(m.content, interp).filter((c) => c.type === 'GridColumn' || c.id)
         const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
         const raw = (m.page && m.page.content) || []
         // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
@@ -4944,7 +4940,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
         }
         const md = crud.metadata || {}
-        const wire = (md.columns || []).map((col) => col.metadata || col)
+        const wire = leafColumnsOf(md.columns)
           // las acciones por fila no tienen sitio en la tabla de solo consulta
           .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
         const page = (((ctx.data || {}).crud || {}).page) || {}
@@ -5789,7 +5785,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function listingBaseOf(ctx, opts = {}) {
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
-    const md = crudNode.metadata
+    // column groups flattened to their leaf columns (leafColumnsOf): from here on a listing only
+    // ever sees plain columns
+    const md = { ...crudNode.metadata, columns: leafColumnsOf(crudNode.metadata.columns) }
     const page = (((ctx.data || {}).crud || {}).page) || {}
     // FILAS DE VARIAS LÍNEAS (@Line → GridColumn.line): las columnas de la línea 1 son las de la
     // tabla (cabecera, orden, anchos); las demás se pintan DEBAJO de cada fila, a lo ancho, como
@@ -6138,6 +6136,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     width: '1px',
     minWidth: '1px',
     maxWidth: '1px',
+  }
+
+  /** What separates a column group's label from each of its columns' labels. */
+  const COLUMN_GROUP_SEPARATOR = ' · '
+
+  /**
+   * COLUMN GROUPS (GridGroupColumn: a header spanning several columns). oj-table has no grouped
+   * headers — its `columns` are flat — so a group is FLATTENED into its leaf columns and the group's
+   * label PREFIXES each of theirs ("Occupancy · Adults"): no column is lost and the grouping still
+   * reads. Takes wire nodes (ClientSide with metadata) or bare metadata and returns each leaf column's
+   * metadata in wire order. `interp` resolves the ${...} in the group label (the column's own label is
+   * resolved by whoever paints the header).
+   */
+  function leafColumnsOf(columns, interp = (s) => s) {
+    const out = []
+    const walk = (col, prefix) => {
+      const c = col && (col.metadata || col)
+      if (!c) return
+      if (c.type === 'GridGroupColumn') {
+        const label = interp(c.label || '')
+        const next = label ? (prefix ? prefix + COLUMN_GROUP_SEPARATOR + label : label) : prefix
+        ;(c.columns || []).forEach((k) => walk(k, next))
+        ;(col.children || []).forEach((k) => walk(k, next))
+        return
+      }
+      out.push(prefix ? { ...c, label: prefix + COLUMN_GROUP_SEPARATOR + (c.label || c.id || '') } : c)
+    }
+    ;(columns || []).forEach((col) => walk(col, ''))
+    return out
   }
 
   /** La línea (1-based) de una columna: su `line` si es > 1; si no, 1. */
