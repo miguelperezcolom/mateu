@@ -60,7 +60,8 @@
       :data-field-id="[[ $current.data.fieldId ]]"
       on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-number>
 </oj-bind-if>
-<!-- fichero / imagen / firma / cámara: JET no tiene componente — mateu-capture-field (poc/inputs.mjs) -->
+<!-- file / image / signature / camera: JET has no component — mateu-capture-field (poc/inputs.mjs) -->
+
 <oj-bind-if test="[[ $current.data.isCapture ]]">
   <oj-label-value label-edge="top">
     <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>

@@ -7,8 +7,9 @@
     <meta charset="UTF-8" />
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <link rel="preconnect" href="https://static.oracle.com">
-    <!-- la query con que se abre la consola (?integration=MRU01: los filtros de un listado) se
-         guarda ANTES de que arranque Visual Builder, cuyo router la borra de la URL al iniciar -->
+    <!-- the query the console opens with (?integration=MRU01: a listing's filters) is
+         saved BEFORE Visual Builder starts, whose router removes it from the URL on startup -->
+
     <script>window.__mateuInitialSearch = window.location.search || '';</script>
     <!-- the interface language is the browser's (like the Vaadin renderer), not a fixed "en": VB
          reads <html lang> for its locale (JET's own texts, the appBundle translations) and the
