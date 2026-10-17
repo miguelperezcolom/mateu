@@ -16,9 +16,10 @@ export default defineConfig({
             include: ['src/**/*.ts'],
             exclude: ['src/**/*.test.ts', 'src/test/**'],
             reporter: ['text-summary', 'json-summary'],
-            // measured 2026-10-11 (91.4% statements, 96.3% lines, 94.4% functions, 79.7% branches; was
-            // 51.4 / 52.7 / 54.0 / 52.1 before the vscode-API glue had tests)
-            thresholds: { lines: 96, statements: 91, functions: 94, branches: 79 },
+            // measured 2026-10-17 (92.4% statements, 97.2% lines, 96.7% functions, 80.5% branches; was
+            // 91.4 / 96.3 / 94.4 / 79.7 on 2026-10-11, 51.4 / 52.7 / 54.0 / 52.1 before the vscode-API
+            // glue had tests)
+            thresholds: { lines: 97, statements: 92, functions: 96, branches: 80 },
         },
     },
 })

@@ -1,0 +1,3 @@
+- name: flat
+  source:
+    url: /api/flat

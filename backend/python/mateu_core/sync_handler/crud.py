@@ -48,8 +48,29 @@ from ._common import (
 SAVE_AND_NEXT = "save-and-next"
 
 
+#: Stamped on both conflict-dialog buttons: the action they re-dispatch answers by closing the
+#: dialog too (Java's OptimisticLock.FROM_CONFLICT_DIALOG). Without it the dialog stayed open.
+FROM_CONFLICT_DIALOG = "_conflictDialog"
+
+
+def _from_conflict_dialog(rq: RunActionRq) -> bool:
+    v = (rq.parameters or {}).get(FROM_CONFLICT_DIALOG)
+    return v is True or (v is not None and str(v).lower() == "true")
+
+
 class CrudHandlerMixin(MixinBase):
     def handle_crud(self, crud_type, element, base_route, rq: RunActionRq) -> UIIncrement:
+        answer = self._handle_crud(crud_type, element, base_route, rq)
+        if _from_conflict_dialog(rq) and answer is not None:
+            # a conflict-dialog button: whatever it answers, the dialog it was pressed in closes
+            # (the topmost overlay — an edit drawer under it is closed, or not, by the answer)
+            close = UICommand.close_modal().model_copy(
+                update={"target_component_id": self.target(rq)}
+            )
+            answer = answer.model_copy(update={"commands": [close, *answer.commands]})
+        return answer
+
+    def _handle_crud(self, crud_type, element, base_route, rq: RunActionRq) -> UIIncrement:
         crud = crud_type()
         mode, id_ = self.parse_crud_route(base_route, rq.route)
         aid = rq.action_id
@@ -103,6 +124,17 @@ class CrudHandlerMixin(MixinBase):
                         crud_type, element, self.get_or_new(crud, element, row_id), "edit",
                         f"{base_route}/{row_id}/edit", rq,
                     )
+            if aid == "cancel-edit" and _from_conflict_dialog(rq) and id_ is not None:
+                # the conflict dialog's Reload: discard my changes and show THEIRS in the same
+                # drawer (the open drawer is refreshed in place); handle_crud closes the dialog
+                reloaded = self.crud_drawer(
+                    crud_type, element, self.get_or_new(crud, element, id_), "edit",
+                    f"{base_route}/{id_}/edit", rq,
+                )
+                return reloaded.model_copy(update={"commands": [
+                    *reloaded.commands,
+                    UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
+                ]})
             if aid in ("cancel-new", "cancel-edit", "cancel-view"):
                 close = UICommand.close_modal()
                 # the drawer's form tracks unsaved changes: leaving it clears them (Java parity)
@@ -349,8 +381,8 @@ class CrudHandlerMixin(MixinBase):
                 )
                 if stored_version > incoming_version:
                     return self.conflict_response(
-                        "Este registro ha cambiado mientras lo editabas. Puedes recargar para"
-                        " ver los cambios (perdiendo los tuyos) o sobrescribir con tu versión.",
+                        "This record changed while you were editing it. Reload to see the"
+                        " changes (losing yours) or overwrite them with your version.",
                         "cancel-edit",
                         rq.action_id,
                         rq,
@@ -488,8 +520,8 @@ class CrudHandlerMixin(MixinBase):
         entity = element()
         self.bind_state(entity, row)
         # Optimistic locking (Version()): an inline-edit over someone else's save is rejected
-        # with the same reload/overwrite dialog; Sobrescribir re-sends the SAME edited row (the
-        # button's parameters merge into the action request), Recargar re-runs the search
+        # with the same reload/overwrite dialog; Overwrite re-sends the SAME edited row (the
+        # button's parameters merge into the action request), Reload re-runs the search
         # (mirrors Java's FilteredAutoCrud.updateRow + UpdateRowActionHandler).
         version = version_field(element)
         if version is not None:
@@ -501,8 +533,8 @@ class CrudHandlerMixin(MixinBase):
                     setattr(entity, version.name, stored_version)
                 elif stored_version > self._version_of(entity, version):
                     return self.conflict_response(
-                        "Esta fila ha cambiado mientras la editabas. Recarga para ver los"
-                        " cambios o sobrescribe con tu versión.",
+                        "This row changed while you were editing it. Reload to see the"
+                        " changes or overwrite them with your version.",
                         "search",
                         "update-row",
                         rq,
@@ -522,7 +554,7 @@ class CrudHandlerMixin(MixinBase):
 
     @staticmethod
     def _force_overwrite(rq: RunActionRq) -> bool:
-        """The conflict dialog's explicit override: the Sobrescribir button re-dispatches the
+        """The conflict dialog's explicit override: the Overwrite button re-dispatches the
         save with ``_forceOverwrite`` (a bool, or "true" from a serialized round-trip)."""
         v = (rq.parameters or {}).get("_forceOverwrite")
         if isinstance(v, bool):
@@ -534,22 +566,29 @@ class CrudHandlerMixin(MixinBase):
         overwrite_parameters: dict | None = None,
     ) -> UIIncrement:
         """The optimistic-lock conflict dialog: reload (discard my changes and see theirs) or
-        overwrite (my version wins, explicitly — the Sobrescribir button re-dispatches the save
+        overwrite (my version wins, explicitly — the Overwrite button re-dispatches the save
         action with ``_forceOverwrite`` merged into its parameters). Emitted as an Add fragment
-        on the initiator like every overlay (mirrors Java's OptimisticLock.conflictDialog)."""
-        parameters: dict[str, Any] = {"_forceOverwrite": True}
+        on the initiator like every overlay; both buttons carry FROM_CONFLICT_DIALOG so their
+        answer closes it. English texts through the app's translator (mirrors Java's
+        OptimisticLock.conflictDialog)."""
+        T = self.mapper.T
+        reload_parameters: dict[str, Any] = {FROM_CONFLICT_DIALOG: True}
+        parameters: dict[str, Any] = {**reload_parameters, "_forceOverwrite": True}
         if overwrite_parameters:
             parameters.update(overwrite_parameters)
         buttons = ClientSideComponent(
             metadata=HorizontalLayoutMetadata(),
             children=[
                 ClientSideComponent(
-                    metadata=ButtonMetadata(label="Recargar", action_id=reload_action_id),
+                    metadata=ButtonMetadata(
+                        label=T("Reload"), action_id=reload_action_id,
+                        parameters=reload_parameters,
+                    ),
                     children=[],
                 ),
                 ClientSideComponent(
                     metadata=ButtonMetadata(
-                        label="Sobrescribir", action_id=overwrite_action_id,
+                        label=T("Overwrite"), action_id=overwrite_action_id,
                         button_style="primary", parameters=parameters,
                     ),
                     children=[],
@@ -559,12 +598,12 @@ class CrudHandlerMixin(MixinBase):
         )
         dialog = ClientSideComponent(
             metadata=DialogMetadata(
-                header_title="Modificado por otro usuario",
+                header_title=T("Modified by another user"),
                 width="30rem",
                 content=ClientSideComponent(
                     metadata=VerticalLayoutMetadata(),
                     children=[
-                        ClientSideComponent(metadata=TextMetadata(text=text), children=[]),
+                        ClientSideComponent(metadata=TextMetadata(text=T(text)), children=[]),
                         buttons,
                     ],
                 ),

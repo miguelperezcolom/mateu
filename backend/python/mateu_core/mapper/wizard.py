@@ -7,9 +7,8 @@ from typing import Any
 from mateu_dtos import (
     Action,
     ButtonMetadata,
-    CardMetadata,
     ClientSideComponent,
-    FormLayoutMetadata,
+    DivMetadata,
     HorizontalLayoutMetadata,
     ProgressBarMetadata,
     ProgressStepsMetadata,
@@ -20,6 +19,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import Draftable, Step
 
+from .. import labels_aside_inference
 from ..naming import (
     camel_case,
     humanize,
@@ -32,6 +32,7 @@ from ..validation import client_validations
 from ._base import MixinBase
 from ._common import (
     _id,
+    _field_value,
     _row_cell,
 )
 
@@ -116,7 +117,14 @@ class WizardMapperMixin(MixinBase):
         ]
 
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
-        title_text = self.client(TextMetadata(text=title), None, [])
+        # The wizard's heading, progress, step form and buttons are laid out exactly as Java's
+        # Wizard.component() (pinned by the conformance corpus, case "wizard").
+        title_text = ClientSideComponent(
+            metadata=TextMetadata(text=title, container="h2"), style="margin: 0;"
+        )
+
+        def step_title(i: int) -> str | None:
+            return instance.step_title(i) if hasattr(instance, "step_title") else None
         # wizard_progress("steps"): connected step bullets instead of the progress bar
         # (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         if getattr(cls, "__mateu_wizard_progress__", "bar") == "steps":
@@ -125,7 +133,7 @@ class WizardMapperMixin(MixinBase):
                     steps=[
                         StepRecord(
                             id=f"step-{i}",
-                            title=f"Step {i}",
+                            title=step_title(i) or f"Step {i}",
                             status="done" if i < current else "current" if i == current else "upcoming",
                         )
                         for i in range(1, total + 1)
@@ -133,15 +141,31 @@ class WizardMapperMixin(MixinBase):
                 ),
                 "fieldId",
                 [],
-            )
+            ).model_copy(update={"style": "width: 100%;"})
         else:
-            progress = self.client(ProgressBarMetadata(value=current / total), "fieldId", [])
-        card = self.client(
-            CardMetadata(content=self.client(FormLayoutMetadata(), None, self.form_rows(fields))),
-            "fieldId",
-            [],
+            # Java's ProgressBar: value = the steps already done (0 on the first one), max = every
+            # step, full on the result step; the current step's title as its text.
+            progress = ClientSideComponent(
+                metadata=ProgressBarMetadata(
+                    value=total if result_step else current - 1, max=total, text=step_title(current)
+                ),
+                style="width: 100%;",
+            )
+        # The current step's form: the regular section card of a form (Java's stepForm), under a
+        # spacer Div.
+        max_columns = 2
+        current_fields = [f for f, s in step_fields if s == current]
+        card = ClientSideComponent(
+            metadata=DivMetadata(),
+            children=[self.section_card(
+                None, fields, labels_aside=labels_aside_inference.labels_aside(
+                    current_fields, max_columns, cls),
+                max_columns=max_columns,
+            )],
+            style="width: 100%; margin-top: 1rem;",
         )
-        back = self.client(ButtonMetadata(label="Back", action_id="back", disabled=current == 1), None, [])
+        # no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
+        back = self.client(ButtonMetadata(label="Back", action_id="back"), None, []) if current > 1 else None
         if completion is not None and current == total - 1:
             name, label = completion
             nxt = self.client(
@@ -152,7 +176,8 @@ class WizardMapperMixin(MixinBase):
         else:
             nxt = self.client(
                 ButtonMetadata(
-                    label="Finish" if current == total else "Next", action_id="next", button_style="primary"
+                    label="Finish" if current == total else "Next", action_id="next",
+                    button_style="primary", color="normal",
                 ),
                 None,
                 [],
@@ -163,7 +188,8 @@ class WizardMapperMixin(MixinBase):
         extras = [] if result_step else self._wizard_extras(cls, instance, current, total)
         # the result step has no navigation at all
         bar = self.client(
-            HorizontalLayoutMetadata(), None, [] if result_step else [back, *extras, nxt]
+            HorizontalLayoutMetadata(justification="END"), None,
+            [] if result_step else [b for b in (back, *extras, nxt) if b is not None],
         )
         if getattr(cls, "__mateu_wizard_progress__", "bar") == "rail":
             # wizard_progress("rail"): the Redwood Guided Process rail — the step form on the
@@ -197,8 +223,11 @@ class WizardMapperMixin(MixinBase):
                 ),
             )
             main = ClientSideComponent(
-                metadata=VerticalLayoutMetadata(spacing=True),
-                children=[title_text, card, bar],
+                metadata=VerticalLayoutMetadata(),
+                children=[ClientSideComponent(
+                    metadata=VerticalLayoutMetadata(), children=[title_text, card, bar],
+                    style="width: 100%",
+                )],
                 style="flex: 1; min-width: 0;",
             )
             layout = ClientSideComponent(
@@ -207,7 +236,10 @@ class WizardMapperMixin(MixinBase):
                 style="align-items: flex-start; gap: 2rem; width: 100%;",
             )
         else:
-            layout = self.client(VerticalLayoutMetadata(spacing=True), None, [title_text, progress, card, bar])
+            layout = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(), children=[title_text, progress, card, bar],
+                style="width: 100%",
+            )
 
         initial: dict[str, Any] = {"__step": current}
         for f, _ in step_fields:
@@ -223,9 +255,11 @@ class WizardMapperMixin(MixinBase):
                     for item in (getattr(instance, f.name, None) or [])
                 ]
             else:
-                initial[camel_case(f.name)] = _row_cell(getattr(instance, f.name, None))
+                initial[camel_case(f.name)] = _field_value(getattr(instance, f.name, None))
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
+            # a wizard is a component tree in Java: the tree envelope's default container style
+            style="max-width:900px;margin: auto;",
             initial_data=initial,
             # the current step's field actions (a grid's row editing, lookups…): the renderer only
             # sends what the component advertises

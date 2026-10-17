@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { committedValue, displayValue, MONTHS, monthWeeks, parseIso, shiftedMonth, today, WEEKDAYS, type Ymd } from './dateCalendar';
 
 /**
  * Dependency-free date / datetime picker (like the IntelliJ and Compose renderers' own
@@ -9,36 +10,6 @@ import { buttonA11y } from '../a11y/a11y';
  * Commits 'YYYY-MM-DD' (date) or 'YYYY-MM-DDTHH:mm' (datetime) — the wire format for
  * LocalDate/LocalDateTime fields.
  */
-
-interface Ymd {
-  y: number;
-  m: number; // 1..12
-  d: number;
-}
-
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-
-const pad = (n: number): string => String(n).padStart(2, '0');
-const formatDate = ({ y, m, d }: Ymd): string => `${y}-${pad(m)}-${pad(d)}`;
-
-function parseIso(value: string): { date: Ymd | null; time: string } {
-  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}:\d{2}))?/.exec(value ?? '');
-  if (!m) return { date: null, time: '' };
-  return { date: { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) }, time: m[4] ?? '' };
-}
-
-function today(): Ymd {
-  const now = new Date();
-  return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
-}
-
-const daysInMonth = (y: number, m: number): number => new Date(y, m, 0).getDate();
-// Monday-first weekday of the month's day 1 (0=Mo .. 6=Su)
-const firstWeekday = (y: number, m: number): number => (new Date(y, m - 1, 1).getDay() + 6) % 7;
 
 interface Props {
   value: string;
@@ -59,7 +30,7 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
   const [time, setTime] = useState(parsed.time || (withTime ? '00:00' : ''));
 
   const commit = (date: Ymd, t = time) => {
-    onChange(withTime ? `${formatDate(date)}T${/^\d{2}:\d{2}$/.test(t) ? t : '00:00'}` : formatDate(date));
+    onChange(committedValue(date, withTime, t));
     setOpen(false);
   };
 
@@ -71,31 +42,12 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
     setOpen(true);
   };
 
-  const shiftMonth = (delta: number) => {
-    let { y, m } = cursor;
-    m += delta;
-    if (m < 1) { m = 12; y--; }
-    if (m > 12) { m = 1; y++; }
-    setCursor({ y, m });
-  };
+  const shiftMonth = (delta: number) => setCursor(shiftedMonth(cursor, delta));
 
   const selected = parsed.date;
   const now = today();
-  const lead = firstWeekday(cursor.y, cursor.m);
-  const total = daysInMonth(cursor.y, cursor.m);
-  const cells: (number | null)[] = [
-    ...Array.from({ length: lead }, () => null),
-    ...Array.from({ length: total }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const weeks: (number | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-
-  const display = value
-    ? withTime && parsed.date
-      ? `${formatDate(parsed.date)} ${parsed.time}`.trim()
-      : value
-    : '';
+  const weeks = monthWeeks(cursor.y, cursor.m);
+  const display = displayValue(value, withTime);
 
   return (
     <View>

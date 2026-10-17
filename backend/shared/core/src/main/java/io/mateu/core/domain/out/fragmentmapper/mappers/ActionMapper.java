@@ -150,7 +150,52 @@ public class ActionMapper {
     // and a declared one), and a repeated id only made the wire longer. The FIRST entry wins, so
     // the flags of the most specific declaration are the ones the client sees.
     var seen = new java.util.HashSet<String>();
-    return actions.stream().filter(action -> seen.add(action.id())).toList();
+    var restricted = restrictedMembers(serverSideObject, httpRequest);
+    return actions.stream()
+        .filter(action -> seen.add(action.id()))
+        .filter(action -> !restricted.contains(memberNameOf(action.id())))
+        .toList();
+  }
+
+  /**
+   * The action methods / button fields of the view (and, for a crud, of the class its behaviour
+   * comes from) that an {@code @EyesOnly} hides from this caller. Invoking one is refused anyway
+   * ({@code ActionMethods}); not advertising it keeps its id off the wire, so neither the browser
+   * nor an agent (MCP lists the advertised actions) is told it exists.
+   */
+  private static java.util.Set<String> restrictedMembers(Object view, HttpRequest httpRequest) {
+    var restricted = new HashSet<String>();
+    var classes = new java.util.LinkedHashSet<Class<?>>();
+    classes.add(view.getClass());
+    if (view instanceof io.mateu.core.infra.declarative.orchestrators.crud.Crud<?, ?, ?, ?, ?, ?> c
+        && c.behaviourSource() != null) {
+      classes.add(c.behaviourSource().getClass());
+    }
+    for (var type : classes) {
+      for (var method :
+          io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods(type)) {
+        if (!io.mateu.core.domain.Authorizer.isVisible(method, httpRequest)) {
+          restricted.add(method.getName());
+        }
+      }
+      for (var field : getAllFields(type)) {
+        if ((MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Button.class)
+                || MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Toolbar.class))
+            && !io.mateu.core.domain.Authorizer.isVisible(field, httpRequest)) {
+          restricted.add(field.getName());
+        }
+      }
+    }
+    return restricted;
+  }
+
+  /** The member an action id dispatches to: the id itself, or a crud row/view action's method. */
+  private static String memberNameOf(String actionId) {
+    if (actionId == null) return null;
+    for (var prefix : List.of("action-on-row-", "action-on-view-")) {
+      if (actionId.startsWith(prefix)) return actionId.substring(prefix.length());
+    }
+    return actionId;
   }
 
   /**

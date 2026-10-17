@@ -28,17 +28,22 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**'],
+      // allIcons is a generated icon-name table, testbench is a dev-only harness with canned messages
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**',
+        'src/mateu/ui/infra/ui/allIcons.ts', 'src/mateu/ui/infra/ui/testbench/**'],
       reporter: ['text-summary', 'json-summary'],
-      // re-measured 2026-10-11 after the frontend coverage review (dialog, smart search bar,
-      // command center, notification bell, column chooser, tree select, toasts, offline banner,
-      // skip link, access keys, focus trap, SSE streaming): 63.8% statements, 64.9% lines,
-      // 52.2% functions, 50.5% branches (was 55.0/56.1/41.0/42.2 on 2026-10-10)
+      // re-measured 2026-10-17 (coverage stream S5: DOM-level suites for mateu-component, the app
+      // shell, mateu-ui, the listing, the rich components, capture fields and the neutral renderers):
+      // 93.4% statements, 93.4% lines, 93.0% functions, 86.5% branches (was 67.9/67.9/68.5/81.3) —
+      // but that was vitest 3.2.4 left in the stream's worktree. Re-measured on the lockfile's
+      // vitest/@vitest/coverage-v8 4.1.11 (what CI installs), same sources and tests: 91.1% statements,
+      // 92.8% lines, 88.3% functions, 80.9% branches (v8 in vitest 4 counts template-literal arrows
+      // and short-circuit branches the 3.x remapper merged away).
       thresholds: {
-        lines: 64,
-        statements: 63,
-        functions: 51,
-        branches: 50,
+        lines: 92,
+        statements: 91,
+        functions: 88,
+        branches: 80,
       },
     },
   },

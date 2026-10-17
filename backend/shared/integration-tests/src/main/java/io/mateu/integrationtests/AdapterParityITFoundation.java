@@ -239,6 +239,69 @@ public class AdapterParityITFoundation {
         .statusCode(not(equalTo(200)));
   }
 
+  /**
+   * What a UI method reads off its {@code HttpRequest} is the HTTP request the adapter received —
+   * on the sync AND the streamed leg (a different code path on Helidon). The fixture is
+   * {@code @UI("/echo")} with an action {@code echo(HttpRequest)} answering the message {@link
+   * #ECHO_EXPECTED} built from: the query parameter {@code q}, the repeated parameter {@code tag},
+   * whether {@code q} is among the parameter names, the header {@code X-Echo}, the repeated header
+   * {@code X-Multi}, an absent parameter and header (null / empty list — never an exception), and
+   * whether {@code path()} ends with the route segment.
+   */
+  public void passesTheHttpRequestToTheUi() {
+    for (String leg : new String[] {"sync", "sse"}) {
+      given()
+          .contentType(ContentType.JSON)
+          .accept("sse".equals(leg) ? "text/event-stream" : "application/json")
+          .queryParam("q", "hello")
+          .queryParam("tag", "a", "b")
+          .header("X-Echo", "hola")
+          .header("X-Multi", "one")
+          .header("X-Multi", "two")
+          .body(action("echo"))
+          .when()
+          .post("/echo/mateu/v3/" + leg + "/_no_route")
+          .then()
+          .statusCode(200)
+          .body(containsString(ECHO_EXPECTED));
+    }
+  }
+
+  /**
+   * The message {@code @UI("/echo")}'s {@code echo} answers for {@link
+   * #passesTheHttpRequestToTheUi}.
+   */
+  public static final String ECHO_EXPECTED =
+      "q=hello;tags=a,b;named=true;header=hola;multi=one,two;"
+          + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true";
+
+  /**
+   * The text {@code echo(HttpRequest)} answers — kept here so the five adapters' fixtures build it
+   * the same way. A repeated value must arrive as one entry per occurrence.
+   */
+  public static String echo(io.mateu.uidl.interfaces.HttpRequest rq) {
+    return "q="
+        + rq.getParameterValue("q")
+        + ";tags="
+        + String.join(",", rq.getParameterValues("tag"))
+        + ";named="
+        + rq.getParameterNames().contains("q")
+        + ";header="
+        + rq.getHeaderValue("X-Echo")
+        + ";multi="
+        + String.join(",", rq.getHeaderValues("X-Multi"))
+        + ";absentParam="
+        + rq.getParameterValue("absent")
+        + ";absentParams="
+        + rq.getParameterValues("absent").size()
+        + ";absentHeader="
+        + rq.getHeaderValue("X-Absent")
+        + ";absentHeaders="
+        + rq.getHeaderValues("X-Absent").size()
+        + ";path="
+        + (rq.path() != null && rq.path().endsWith("_no_route"));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()
@@ -394,7 +457,8 @@ public class AdapterParityITFoundation {
   /**
    * With {@code mateu.dev=true}: the index announces the event stream ({@code <meta
    * name="mateu-dev">}), the stream opens with a {@code hello} carrying the boot id, and {@code
-   * POST /mateu/dev/reload} answers 204 and is pushed to the open stream as a {@code reload} event.
+   * POST /mateu/dev/reload} answers 204 and is pushed to the open stream as a {@code reload} event
+   * — with the {@code scope=app} it was asked with.
    */
   public void servesDevEndpointsWhenEnabled() throws Exception {
     given()
@@ -437,6 +501,14 @@ public class AdapterParityITFoundation {
         } while (event.contains("\"ping\""));
         if (!event.contains("\"reload\"")) {
           throw new AssertionError("reload was not pushed to the stream: " + event);
+        }
+        // the IDE asks for a whole-app re-render with ?scope=app
+        given().queryParam("scope", "app").when().post("/mateu/dev/reload").then().statusCode(204);
+        do {
+          event = nextData(executor, it);
+        } while (event.contains("\"ping\""));
+        if (!event.contains("\"reload\"") || !event.contains("\"scope\":\"app\"")) {
+          throw new AssertionError("an app-scoped reload was not pushed as such: " + event);
         }
       }
     } finally {
@@ -671,6 +743,89 @@ public class AdapterParityITFoundation {
         .body(equalTo("%PDF-1.4 parity"));
     given().when().get(path).then().statusCode(404);
     given().when().get("/hello/mateu/v3/documents/unknown-token-0123456789").then().statusCode(404);
+  }
+
+  /**
+   * A content-versioned path ({@code /version_<n>/…}, cached for a year when found) that does not
+   * exist is NOT answered as immutable: a cached 404 would keep the asset missing for a year after
+   * it is deployed.
+   */
+  public void neverCachesAMissingVersionedAsset() {
+    var response = given().when().get("/version_999/missing.js");
+    if (response.getStatusCode() == 200) {
+      throw new AssertionError("a missing versioned asset answered 200");
+    }
+    var cacheControl = String.valueOf(response.getHeader("Cache-Control"));
+    if (cacheControl.contains("immutable")) {
+      throw new AssertionError("a missing versioned asset was cached: " + cacheControl);
+    }
+  }
+
+  /**
+   * An unchanged fixed-name asset costs a 304 with no body when the browser revalidates it with the
+   * validator it was given (an {@code ETag}, else {@code Last-Modified}), and the 304 keeps the
+   * revalidate policy.
+   */
+  public void answersARevalidationOfAnUnchangedAssetWith304(String assetPath) {
+    var first = given().when().get(assetPath);
+    first.then().statusCode(200);
+    var etag = first.getHeader("ETag");
+    var lastModified = first.getHeader("Last-Modified");
+    var revalidation = given();
+    if (etag != null) {
+      revalidation.header("If-None-Match", etag);
+    } else if (lastModified != null) {
+      revalidation.header("If-Modified-Since", lastModified);
+    } else {
+      throw new AssertionError(assetPath + " was served with no validator to revalidate it with");
+    }
+    revalidation
+        .when()
+        .get(assetPath)
+        .then()
+        .statusCode(304)
+        .header("Cache-Control", containsString("no-cache"));
+  }
+
+  /**
+   * With {@code mateu.cors.allowed-origins=}{@value #ALLOWED_ORIGIN}: the grant covers Mateu's API
+   * ({@code /mateu/**}) only — an asset or a UI's index page fetched from that origin carries no
+   * {@code Access-Control-Allow-Origin}.
+   */
+  public void grantsNoCrossOriginAccessOutsideTheMateuApi(String assetPath) {
+    for (String path : new String[] {assetPath, "/hello"}) {
+      given()
+          .header("Origin", ALLOWED_ORIGIN)
+          .accept("text/html, */*")
+          .when()
+          .get(path)
+          .then()
+          .header("Access-Control-Allow-Origin", nullValue());
+    }
+  }
+
+  /** With {@code mateu.client-log.enabled=false} the renderer's reports are not accepted (404). */
+  public void refusesClientLogsWhenDisabled() {
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"kind\":\"timeout\",\"message\":\"slow\"}")
+        .when()
+        .post("/hello/mateu/v3/client-log")
+        .then()
+        .statusCode(404);
+  }
+
+  /**
+   * With {@code mateu.static-assets.caching=false} Mateu sets no cache policy of its own on a
+   * fixed-name asset (whatever the framework or a security filter adds is left alone).
+   */
+  public void setsNoCachePolicyWhenCachingIsOff(String assetPath) {
+    given()
+        .when()
+        .get(assetPath)
+        .then()
+        .statusCode(200)
+        .header("Cache-Control", not(equalTo("no-cache")));
   }
 
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */

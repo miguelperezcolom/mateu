@@ -1,0 +1,6 @@
+# Fixture for MountedShellContentSyncTest: a type: UI mount below the host root, with a shell.
+type: UI
+basePath: /shop
+home: dashboard
+routes:
+  - routes.yaml

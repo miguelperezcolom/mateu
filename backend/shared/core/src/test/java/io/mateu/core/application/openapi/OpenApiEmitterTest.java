@@ -53,12 +53,12 @@ class OpenApiEmitterTest {
     var paths = doc().get("paths");
     assertThat(paths.fieldNames())
         .toIterable()
-        .contains("/orders", "/countries", "/orders/_/approve", "/summary");
+        .contains("/orders", "/countries", "/orders/{id}/approve", "/summary");
   }
 
   @Test
   void theMethodComesFromTheDeclaration() {
-    assertThat(doc().get("paths").get("/orders/_/approve").has("post")).isTrue();
+    assertThat(doc().get("paths").get("/orders/{id}/approve").has("post")).isTrue();
     assertThat(doc().get("paths").get("/countries").has("get")).isTrue();
   }
 

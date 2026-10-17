@@ -1,0 +1,6 @@
+type: Routes
+routes:
+  - route: ""
+    layout: back-office-shell.yaml
+  - route: reports
+    layout: reports.yaml

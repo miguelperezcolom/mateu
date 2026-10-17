@@ -21,14 +21,12 @@ import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator
 /**
  * The bean-validation check of a crud form submitted from a DRAWER.
  *
- * <p>On the routed {@code /new} and {@code /{id}/edit} pages the form is a component of its own,
- * whose {@code create}/{@code save} action is validated in the browser before it is sent. In a
- * drawer the form is content of the listing's mediator, which declares those same actions without
- * validation — so a required field left empty was saved as it was, in every crud that edits in a
- * drawer (an {@code editInDrawer()} crud, a capability listing that is Editable but not Navigable).
- * The check runs here instead, on the constraints of the fields the drawer actually shows as inputs
- * (the same rule {@code ValidationMapper} applies for the browser), and a failure keeps the drawer
- * open with the typed values and an error banner naming the fields.
+ * <p>The drawer's form is a component of its own, like the routed {@code /new} and {@code
+ * /{id}/edit} pages (CrudDrawerBuilder), so the browser validates it before sending. This is the
+ * server's own check behind that — every bean constraint, including the ones the browser cannot
+ * evaluate ({@code @Email}…) — on the fields the drawer actually shows as inputs (the same rule
+ * {@code ValidationMapper} applies for the browser). A failure keeps the drawer open with the typed
+ * values, an error banner naming the fields, and those fields marked invalid.
  */
 final class DrawerFormValidator {
 
@@ -36,12 +34,17 @@ final class DrawerFormValidator {
 
   static void validate(boolean creation, HttpRequest httpRequest, Crud<?, ?, ?, ?, ?, ?> crud) {
     Class<?> formClass = creation ? crud.creationFormClass() : crud.editorClass();
-    if (formClass == null || httpRequest.runActionRq().componentState() == null) {
+    if (formClass == null) {
       return;
     }
     Object form;
     try {
-      form = httpRequest.getComponentState(formClass);
+      // the form's own state (it bubbles its save with it as initiatorState), not the crud's
+      form =
+          io.mateu.uidl.interfaces.MateuInstanceFactory.newInstance(
+              formClass,
+              io.mateu.core.infra.declarative.orchestrators.crud.CrudFormState.of(httpRequest),
+              httpRequest);
     } catch (RuntimeException cannotHydrate) {
       return;
     }
@@ -58,6 +61,27 @@ final class DrawerFormValidator {
     if (!violations.isEmpty()) {
       throw new ConstraintViolationException(describe(formClass, violations), violations);
     }
+  }
+
+  /**
+   * The refused fields as the form's client-side errors ({@code fieldId → messages}): the drawer
+   * re-sent with the error banner marks them invalid, exactly as the browser's own check would.
+   */
+  static java.util.Map<String, java.util.List<String>> fieldErrors(
+      Class<?> formClass, ConstraintViolationException failure) {
+    var errors = new java.util.LinkedHashMap<String, java.util.List<String>>();
+    if (formClass == null || failure.getConstraintViolations() == null) {
+      return errors;
+    }
+    for (var violation : failure.getConstraintViolations()) {
+      var field = fieldOf(formClass, violation);
+      if (field != null) {
+        errors
+            .computeIfAbsent(field.getName(), k -> new java.util.ArrayList<>())
+            .add(messageOf(violation));
+      }
+    }
+    return errors;
   }
 
   private static Field fieldOf(Class<?> formClass, ConstraintViolation<?> violation) {

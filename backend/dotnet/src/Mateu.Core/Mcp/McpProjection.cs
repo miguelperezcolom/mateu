@@ -46,11 +46,16 @@ public static class McpProjection
                 var md = node["metadata"] as JsonObject;
                 if (t == "FormField" && md is { } mf && mf["fieldId"] is not null) fieldNodes.Add(mf);
                 else if (t == "Page" && page is null) page = md;
-                else if (t == "Crudl" && crudl is null) crudl = md;
+                else if ((t == "Crud" || t == "Crudl") && crudl is null) crudl = md; // the listing is "Crud" on the wire
                 else if (t == "Button" && md is { } mb && mb["actionId"] is not null)
                 {
                     var aid = Str(mb["actionId"])!;
                     if (buttonSeen.Add(aid)) buttonsByAction.Add(new(aid, Str(mb["label"])));
+                }
+                else if (Str(node["type"]) == "Button" && Str(node["actionId"]) is { } bare)
+                {
+                    // a page toolbar / buttons entry is a bare button, not a component node
+                    if (buttonSeen.Add(bare)) buttonsByAction.Add(new(bare, Str(node["label"])));
                 }
             });
         }
@@ -168,6 +173,27 @@ public static class McpProjection
             };
         }
 
+        // The rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+        // {content, totalElements, pageNumber, pageSize}}}) — the agent asked for them.
+        if (RowsPageOf(fragments) is { } rowsPage)
+        {
+            if (outObj["listing"] is not JsonObject listing)
+            {
+                listing = new JsonObject();
+                outObj["listing"] = listing;
+            }
+            var rows = new JsonArray();
+            foreach (var row in (JsonArray)rowsPage["content"]!)
+            {
+                var copy = row?.DeepClone();
+                if (copy is JsonObject ro) ro.Remove("_rowNumber");
+                rows.Add(copy);
+            }
+            listing["rows"] = rows;
+            foreach (var key in new[] { "totalElements", "pageNumber", "pageSize" })
+                if (rowsPage[key] is { } v) listing[key] = v.DeepClone();
+        }
+
         if (messages.Count > 0)
         {
             var ms = new JsonArray();
@@ -216,6 +242,19 @@ public static class McpProjection
 
     static string? MdType(JsonObject node) =>
         node["metadata"] is JsonObject md ? Str(md["type"]) : null;
+
+    /// <summary>The first <c>{page: {content: [...]}}</c> entry of any fragment's data, or null.</summary>
+    static JsonObject? RowsPageOf(JsonArray fragments)
+    {
+        foreach (var fragEl in fragments)
+        {
+            if (fragEl is not JsonObject { } fragment || fragment["data"] is not JsonObject data) continue;
+            foreach (var kv in data)
+                if (kv.Value is JsonObject entry && entry["page"] is JsonObject page && page["content"] is JsonArray)
+                    return page;
+        }
+        return null;
+    }
 
     static void DeepVisit(JsonNode? node, Action<JsonObject> fn)
     {

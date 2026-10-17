@@ -130,14 +130,19 @@ export function sortExternalRows(
         .filter(k => k.id !== '')
     if (keys.length === 0) return rows
     const compare = (a: unknown, b: unknown): number => {
-        const aBlank = blank(a), bBlank = blank(b)
-        if (aBlank || bBlank) return aBlank === bBlank ? 0 : aBlank ? 1 : -1
         if (typeof a === 'number' && typeof b === 'number') return a - b
         return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
     }
     return [...rows].sort((x, y) => {
         for (const k of keys) {
-            const c = compare(x[k.id], y[k.id])
+            const a = x[k.id], b = y[k.id]
+            // Blanks go last in BOTH directions, so they are settled before the direction flips.
+            const aBlank = blank(a), bBlank = blank(b)
+            if (aBlank || bBlank) {
+                if (aBlank === bBlank) continue
+                return aBlank ? 1 : -1
+            }
+            const c = compare(a, b)
             if (c !== 0) return k.desc ? -c : c
         }
         return 0

@@ -21,6 +21,19 @@ function deepVisit(node, fn, seen = new Set()) {
   }
 }
 
+/** The first `{page: {content: [...]}}` entry of any fragment's data, or null. */
+function rowsPageOf(fragments) {
+  for (const fragment of fragments) {
+    const data = fragment && fragment.data;
+    if (!data || typeof data !== "object") continue;
+    for (const entry of Object.values(data)) {
+      const page = entry && entry.page;
+      if (page && typeof page === "object" && Array.isArray(page.content)) return page;
+    }
+  }
+  return null;
+}
+
 /** metadata.type of a rendered ClientSide component, or null. */
 function mdType(node) {
   return node && node.metadata && typeof node.metadata.type === "string"
@@ -83,11 +96,14 @@ export function projectIncrement(increment) {
       const t = mdType(node);
       if (t === "FormField" && node.metadata.fieldId) fieldNodes.push(node.metadata);
       else if (t === "Page" && !page) page = node.metadata;
-      else if (t === "Crudl" && !crudl) crudl = node.metadata;
+      else if ((t === "Crud" || t === "Crudl") && !crudl) crudl = node.metadata; // the listing is "Crud" on the wire
       else if (t === "Button" && node.metadata.actionId) {
         if (!buttonsByAction.has(node.metadata.actionId)) {
           buttonsByAction.set(node.metadata.actionId, node.metadata.label);
         }
+      } else if (node.type === "Button" && node.actionId && !buttonsByAction.has(node.actionId)) {
+        // a page toolbar / buttons entry is a bare button, not a component node
+        buttonsByAction.set(node.actionId, node.label);
       }
     });
   }
@@ -162,6 +178,21 @@ export function projectIncrement(increment) {
         dataType: f.dataType ?? "string",
       })),
     };
+  }
+
+  // The rows of a search: a search answer is a data-only fragment ({<listing id>: {page: {content,
+  // totalElements, pageNumber, pageSize}}}) — the agent asked for them, so they must reach it.
+  const rowsPage = rowsPageOf(fragments);
+  if (rowsPage) {
+    const listing = screen.listing ?? (screen.listing = {});
+    listing.rows = rowsPage.content.map((row) => {
+      if (!row || typeof row !== "object" || Array.isArray(row)) return row;
+      const { _rowNumber, ...rest } = row;
+      return rest;
+    });
+    for (const key of ["totalElements", "pageNumber", "pageSize"]) {
+      if (key in rowsPage) listing[key] = rowsPage[key];
+    }
   }
 
   if (messages.length) {

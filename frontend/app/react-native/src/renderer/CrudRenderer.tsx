@@ -38,7 +38,22 @@ import { cellTooltipText } from './hoverDetails';
 import { ComponentRenderer } from './ComponentRenderer';
 import { showsPreSearch } from './patternGaps';
 import { cellText } from './cellText';
-import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf } from '../core/rowOpen';
+import { rowOpenLabel, rowOpenOf, rowPressOf } from '../core/rowOpen';
+import {
+  activeFilterCount,
+  allRowsSelected,
+  applySearchToState,
+  columnDefsOf,
+  extractListing,
+  firstRowAction as firstRowActionOf,
+  nextSort,
+  normalizeCrudData,
+  pagingOf,
+  sortMark as sortMarkOf,
+  toggledSelection,
+  type SortState,
+} from './crudListing';
+import { flattenColumnGroups } from './columnGroups';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -71,41 +86,6 @@ interface Props {
   data: unknown;
 }
 
-/** Keeps the LISTING ENVELOPE ({page, aggregates?, groups?} — the value keyed by the crud id in
- *  the search response) so totals/groups survive; falls back to the raw fragment data. */
-function normalizeCrudData(data: unknown): unknown {
-  const d = data as Record<string, unknown> | null;
-  if (!d || typeof d !== 'object') return data;
-  if ('page' in d) return d; // already the envelope
-  for (const value of Object.values(d)) {
-    if (value && typeof value === 'object' && 'page' in (value as Record<string, unknown>)) return value;
-  }
-  return data;
-}
-
-/** The listing envelope (aggregates/groups source) when the live data carries one. */
-function extractListing(data: unknown): ListingData {
-  const d = data as Record<string, unknown> | null;
-  if (d && typeof d === 'object' && 'page' in d) return d as ListingData;
-  return {};
-}
-
-/** The page object (rows + paging counters), whether the data is the envelope or the bare page. */
-function extractPage(data: unknown): Record<string, unknown> | undefined {
-  const d = data as Record<string, unknown> | null;
-  if (!d || typeof d !== 'object') return undefined;
-  if ('page' in d && d['page'] && typeof d['page'] === 'object') return d['page'] as Record<string, unknown>;
-  return d;
-}
-
-function extractRows(data: unknown): Record<string, unknown>[] {
-  if (!data) return [];
-  const d = data as Record<string, unknown>;
-  const content = d['content'] ?? data;
-  if (Array.isArray(content)) return content as Record<string, unknown>[];
-  return [];
-}
-
 /**
  * A selection checkbox. RN-04: it was a plain `button` reading "☐", with no checked state, and it
  * was NESTED inside the row's own touchable — an accessible container swallows its children for
@@ -132,21 +112,14 @@ function SelectBox({ checked, label, onToggle, style }: { checked: boolean; labe
   );
 }
 
-function extractRowId(row: Record<string, unknown>): string {
-  for (const f of ['id', '_id', 'key', 'uuid']) {
-    if (row[f] != null) return String(row[f]);
-  }
-  return '';
-}
-
-
 export function CrudRenderer({ component, metadata, state, data }: Props) {
   const controller = useViewController();
 
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
   const searchable = Boolean(metadata['searchable']);
-  const columns = (metadata['columns'] as ColumnMeta[]) ?? [];
+  // a column group (GridGroupColumn) becomes its columns, headed "Group · Column" (columnGroups.ts)
+  const columns = flattenColumnGroups((metadata['columns'] as ColumnMeta[]) ?? []);
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
 
   // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the
@@ -237,41 +210,25 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowsUrl]);
 
-  const listing = extractListing(liveData);
-  const rawRows = extractRows(extractPage(liveData));
-  const d = extractPage(liveData);
-  const totalElements = Number(d?.['totalElements'] ?? rawRows.length);
-  const pageSize = Number(d?.['pageSize'] ?? rawRows.length) || rawRows.length;
-  const pageNumber = Number(d?.['pageNumber'] ?? 0);
-  const totalPages = pageSize > 0 ? Math.ceil(totalElements / pageSize) : 1;
+  const listing = extractListing<ListingData>(liveData);
+  const { rows: rawRows, totalElements, pageSize, pageNumber, totalPages, hasPrevious, hasNext } = pagingOf(liveData);
 
   const isSelected = (row: Record<string, unknown>) => selectedRows.includes(row);
-  const toggleRow = (row: Record<string, unknown>) =>
-    syncSelection(isSelected(row) ? selectedRows.filter((r) => r !== row) : [...selectedRows, row]);
-  const allSelected = rawRows.length > 0 && rawRows.every((r) => selectedRows.includes(r));
+  const toggleRow = (row: Record<string, unknown>) => syncSelection(toggledSelection(selectedRows, row));
+  const allSelected = allRowsSelected(rawRows, selectedRows);
   const toggleAll = () => syncSelection(allSelected ? [] : [...rawRows]);
 
   const [searchText, setSearchText] = useState('');
   const filters = (metadata['filters'] as FilterFieldMeta[]) ?? [];
   const [filterValues, setFilterValues] = useState<Record<string, unknown>>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const activeFilters = Object.values(filterValues).filter(
-    (v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0),
-  ).length;
+  const activeFilters = activeFilterCount(filterValues);
 
   const doSearch = (values?: Record<string, unknown>, searchTextOverride?: string) => {
     const effectiveSearchText = searchTextOverride ?? searchText;
     // @RestListing: search/filter the client-fetched rows in memory — no server round-trip.
     if (!rowsSource) controller.seedSearchState();
-    controller.currentComponentState['searchText'] = effectiveSearchText;
-    controller.currentComponentState['page'] = 0;
-    for (const [k, v] of Object.entries(values ?? filterValues)) {
-      if (v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)) {
-        delete controller.currentComponentState[k];
-      } else {
-        controller.currentComponentState[k] = v;
-      }
-    }
+    applySearchToState(controller.currentComponentState, effectiveSearchText, values ?? filterValues);
     if (rowsSource) {
       showRestPage(restRows);
       return;
@@ -297,14 +254,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   // Sorting: header tap cycles ascending → descending → none; state shape is
   // sort=[{field, direction:'ascending'|'descending'}] (Pageable.sort on the wire).
-  const [sortState, setSortState] = useState<{ field: string; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortState, setSortState] = useState<SortState>(null);
   const toggleSort = (field: string) => {
-    const next =
-      sortState?.field !== field
-        ? ({ field, direction: 'ascending' } as const)
-        : sortState.direction === 'ascending'
-          ? ({ field, direction: 'descending' } as const)
-          : null;
+    const next = nextSort(sortState, field);
     setSortState(next);
     if (!rowsSource) controller.seedSearchState();
     controller.currentComponentState['sort'] = next ? [next] : [];
@@ -312,8 +264,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (rowsSource) return showRestPage(restRows);
     void controller.runAction('search');
   };
-  const sortMark = (field: string) =>
-    sortState?.field === field ? (sortState.direction === 'ascending' ? ' ▲' : ' ▼') : '';
+  const sortMark = (field: string) => sortMarkOf(sortState, field);
 
   // Inline editing (@InlineEditing): rows with editable columns get a pencil opening a row form;
   // saving dispatches the crud's update-row with the edited row (the web's cell-commit contract).
@@ -332,19 +283,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // listing that is not navigable keeps the mobile shortcut: the row's first group action (its
   // primary — e.g. "Check-in").
   const rowOpen = rowOpenOf(metadata['rowRoute'], columns.map((c) => (c.metadata ?? {}) as Record<string, unknown>));
-  const firstRowAction = (row: Record<string, unknown>): string => {
-    for (const col of columns) {
-      const cm = (col.metadata ?? {}) as Record<string, unknown>;
-      const dataType = String(cm['dataType'] ?? '');
-      if (dataType === 'actionGroup' || dataType === 'menu' || dataType === 'action') {
-        const cell = row[String(cm['id'] ?? '')] as Record<string, unknown> | undefined;
-        const actions = (cell?.['actions'] as Record<string, unknown>[]) ?? [];
-        const method = actions[0]?.['methodNameInCrud'];
-        if (method) return `action-on-row-${method}`;
-      }
-    }
-    return '';
-  };
+  const firstRowAction = (row: Record<string, unknown>): string => firstRowActionOf(columns, row);
   const handleRowPress = (row: Record<string, unknown>) => {
     if (rowOpen) {
       const press = rowPressOf(rowOpen, row);
@@ -406,29 +345,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const { width: windowWidth } = useWindowDimensions();
   const gridLayout = effectiveListingLayout(metadata['gridLayout'] as string | undefined, windowWidth);
 
-  const allColDefs = columns
-    .map((col) => {
-      const cm = (col.metadata ?? {}) as Record<string, unknown>;
-      return {
-        fieldId: (cm['id'] as string) ?? col.id ?? col.fieldId ?? '',
-        label: (cm['label'] as string) ?? col.label ?? col.id ?? '',
-        dataType: (cm['dataType'] as string) ?? '',
-        stereotype: (cm['stereotype'] as string) ?? '',
-        aggregate: (cm['aggregate'] as string) ?? '',
-        sortable: cm['sortable'] === true,
-        sortingProperty: (cm['sortingProperty'] as string) ?? '',
-        // @Tooltip("otherField") / a fixed width: the field the cell shows on hover — on touch,
-        // on LONG-PRESS (a short press keeps opening the row).
-        tooltipPath: (cm['tooltipPath'] as string) ?? '',
-        // an enum column's labels (IN_HOUSE → "In house"); the row keeps the raw value
-        valueLabels: (cm['valueLabels'] as Record<string, string> | null | undefined) ?? null,
-        // whole-row press: a display column (own action, link, editor…) keeps its own press
-        display: !!rowOpen && isDisplayColumn(cm),
-        cellAction: cellActionOf(cm),
-        editable: cm['editable'] === true,
-      };
-    })
-    .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
+  const allColDefs = columnDefsOf(columns, rowOpen);
 
   // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
   // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
@@ -846,9 +763,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar}>
           <TouchableOpacity {...buttonA11y()}
-            style={[styles.btnDefault, pageNumber <= 0 && styles.btnDisabled]}
-            onPress={() => pageNumber > 0 && changePage(-1)}
-            disabled={pageNumber <= 0}
+            style={[styles.btnDefault, !hasPrevious && styles.btnDisabled]}
+            onPress={() => hasPrevious && changePage(-1)}
+            disabled={!hasPrevious}
           >
             <Text style={styles.btnDefaultText}>← Prev</Text>
           </TouchableOpacity>
@@ -856,9 +773,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             Page {pageNumber + 1} / {totalPages} ({totalElements} total)
           </Text>
           <TouchableOpacity {...buttonA11y()}
-            style={[styles.btnDefault, (pageNumber + 1) * pageSize >= totalElements && styles.btnDisabled]}
-            onPress={() => (pageNumber + 1) * pageSize < totalElements && changePage(1)}
-            disabled={(pageNumber + 1) * pageSize >= totalElements}
+            style={[styles.btnDefault, !hasNext && styles.btnDisabled]}
+            onPress={() => hasNext && changePage(1)}
+            disabled={!hasNext}
           >
             <Text style={styles.btnDefaultText}>Next →</Text>
           </TouchableOpacity>

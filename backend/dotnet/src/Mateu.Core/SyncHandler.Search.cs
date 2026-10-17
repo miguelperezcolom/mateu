@@ -158,7 +158,7 @@ public sealed partial class SyncHandler
     {
         var crud = new Dictionary<string, object?>
         {
-            ["page"] = new { content = rows, pageSize = size, pageNumber = page, totalElements = total },
+            ["page"] = new { content = Numbered(rows, page, size), pageSize = size, pageNumber = page, totalElements = total },
         };
         if (extras is not null)
             foreach (var (key, value) in extras) crud[key] = value;
@@ -226,6 +226,16 @@ public sealed partial class SyncHandler
         return CrudData(rows, size, page, total, extras, rq);
     }
 
+    /// <summary>Stamps each row of a listing page with <c>_rowNumber</c>, its position in the WHOLE
+    /// result (<c>page * size + i</c>): the id the web grid tells rows apart by
+    /// (<c>item-id-path="_rowNumber"</c> — selection, the active row, details). Java's DataMapper
+    /// stamps every page it serves.</summary>
+    private static List<Dictionary<string, object?>> Numbered(List<Dictionary<string, object?>> rows, int page, int size)
+    {
+        for (var i = 0; i < rows.Count; i++) rows[i]["_rowNumber"] = page * size + i;
+        return rows;
+    }
+
     /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
     /// recurses so every level of the hierarchy rides in the same payload.</summary>
     private static Dictionary<string, object?> RowDict(object item, List<PropertyInfo> props) =>
@@ -266,7 +276,7 @@ public sealed partial class SyncHandler
             var pushedRows = content.Cast<object>().Select(item => RowDict(item, props)).ToList();
             var pushedCrud = new Dictionary<string, object?>
             {
-                ["page"] = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements },
+                ["page"] = new { content = Numbered(pushedRows, pageable.Page, pageable.Size), pageSize = pageable.Size, pageNumber = pageable.Page, totalElements },
             };
             AttachSummaries(pushedCrud, summarySpec,
                 () => FilteredRows(instance, rq, props));
@@ -306,7 +316,7 @@ public sealed partial class SyncHandler
         }
         var crudData = new Dictionary<string, object?>
         {
-            ["page"] = new { content = rows, pageSize = size, pageNumber = page, totalElements = total },
+            ["page"] = new { content = Numbered(rows, page, size), pageSize = size, pageNumber = page, totalElements = total },
         };
         AttachSummaries(crudData, summarySpec, () => items);
         var data = new Dictionary<string, object?> { ["crud"] = crudData };

@@ -25,22 +25,26 @@ final class TabFormLayoutBuilder {
       int level) {
     var fields =
         tab.fields().stream()
-            .map(
+            .flatMap(
                 field ->
-                    (Component)
-                        getFormField(
-                            prefix,
-                            field,
-                            Class.class.equals(instance.getClass()) ? null : instance,
-                            baseUrl,
-                            route,
-                            consumedRoute,
-                            initiatorComponentId,
-                            httpRequest,
-                            readOnly || isReadOnly(field, instance, forCreationForm, httpRequest),
-                            forCreationForm,
-                            tab.columns(),
-                            level))
+                    FormLayoutBuilder.withSeparatorBefore(
+                        field,
+                        (Component)
+                            getFormField(
+                                prefix,
+                                field,
+                                Class.class.equals(instance.getClass()) ? null : instance,
+                                baseUrl,
+                                route,
+                                consumedRoute,
+                                initiatorComponentId,
+                                httpRequest,
+                                readOnly
+                                    || isReadOnly(field, instance, forCreationForm, httpRequest),
+                                forCreationForm,
+                                tab.columns(),
+                                level),
+                        tab.columns()))
             .toList();
     return FormLayout.builder()
         .maxColumns(tab.columns())

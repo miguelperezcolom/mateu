@@ -16,10 +16,12 @@
     <description>Runtime of the Mateu adapter for Quarkus (Quarkus REST + Vert.x routes).</description>
 
     <properties>
-        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 86.5%
-             (2026-10, batch-2 follow-ups: YamlMountRoutesTest drives the YAML-mount routes on a plain Vert.x router).
-             Ratchet it up as the suite grows. -->
-        <jacoco.min.bundle.coverage>86%</jacoco.min.bundle.coverage>
+        <!-- BUNDLE line and branch floors (jacoco:check, mvn verify), the values measured at the end
+             of the coverage stream S3 rounded down (92.4% lines / 76.5% branches, 2026-10-17,
+             design/coverage/coverage-map.md). Ratchet them up as the suite grows. The branch
+             property is read by the parent's BUNDLE BRANCH limit. -->
+        <jacoco.min.bundle.coverage>92%</jacoco.min.bundle.coverage>
+        <jacoco.min.bundle.branch.coverage>76%</jacoco.min.bundle.branch.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- The Quarkus line the adapter is built and tested against. Every Quarkus artifact below
              comes from this ONE BOM (they used to mix 3.38.0 and 3.15.7), and all of them are
@@ -76,6 +78,15 @@
             <artifactId>quarkus-test-security</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- @QuarkusTest runs the app in Quarkus' own class loader, whose transformed classes the
+             plain JaCoCo agent cannot match to target/classes (MateuBundleController reported 0%
+             although the parity suite serves it). quarkus-jacoco instruments that loader and
+             writes into the same target/jacoco.exec the agent appends to (see surefire below). -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jacoco</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mateu-integration-tests</artifactId>
@@ -128,9 +139,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <!-- Quarkus' bootstrap resolver can deadlock downloading a deployment artifact
+                         on a cold ~/.m2 (seen on JDK 26: 13 min at 0% CPU): bound the fork so a
+                         hang fails the build instead of stalling it. -->
+                    <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <quarkus.jacoco.data-file>${project.build.directory}/jacoco.exec</quarkus.jacoco.data-file>
+                        <quarkus.jacoco.reuse-data-file>true</quarkus.jacoco.reuse-data-file>
+                        <quarkus.jacoco.report>false</quarkus.jacoco.report>
                     </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <!-- quarkus-jacoco records what runs in Quarkus' class loader; the agent keeps
+                         the rest (plain unit tests), so the two never count one class twice -->
+                    <exclClassLoaders>*QuarkusClassLoader</exclClassLoaders>
                 </configuration>
             </plugin>
         </plugins>

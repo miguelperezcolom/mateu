@@ -132,6 +132,13 @@ final class FieldValueConverter {
       if (BigDecimal.class.equals(targetType)) {
         return new BigDecimal(number.toString());
       }
+      if (java.math.BigInteger.class.equals(targetType)) {
+        return new BigDecimal(number.toString()).toBigInteger();
+      }
+    }
+    // Date / java.sql.Date / ZonedDateTime travel as a local ISO date-time (LegacyDateTimes)
+    if (io.mateu.core.infra.reflection.LegacyDateTimes.handles(targetType)) {
+      return io.mateu.core.infra.reflection.LegacyDateTimes.parse(value, targetType);
     }
     if (String.class.equals(targetType)) {
       return value.toString();
@@ -175,6 +182,15 @@ final class FieldValueConverter {
       }
       if (LocalDateTime.class.equals(targetType)) {
         return LocalDateTime.parse(string, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+      }
+      if (java.math.BigInteger.class.equals(targetType)) {
+        return new java.math.BigInteger(string.trim());
+      }
+      if (BigDecimal.class.equals(targetType)) {
+        return new BigDecimal(string.trim());
+      }
+      if (java.io.File.class.equals(targetType)) {
+        return new java.io.File(string);
       }
     }
     if (List.class.equals(targetType)) {

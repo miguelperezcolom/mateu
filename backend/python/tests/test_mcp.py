@@ -59,7 +59,7 @@ class ProjectionTest(unittest.TestCase):
     def test_crudl_projects_columns_searchable_filters(self):
         inc = {"fragments": [{"component": {
             "type": "ServerSide", "route": "products", "serverSideType": "com.acme.P",
-            "children": [{"type": "ClientSide", "metadata": {"type": "Crudl", "title": "Products", "searchable": True,
+            "children": [{"type": "ClientSide", "metadata": {"type": "Crud", "title": "Products", "searchable": True,
                 "columns": [{"metadata": {"id": "name", "caption": "Name"}}, {"metadata": {"id": "price", "caption": "Price"}}],
                 "filters": [{"fieldId": "category", "label": "Category", "dataType": "string"}]}}],
         }}]}

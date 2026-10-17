@@ -11,10 +11,19 @@ import javax.annotation.processing.Filer;
 
 class IndexedUIProcessor {
 
+  /**
+   * Generates the controllers of every {@code @UI} indexed on the processor path that is not being
+   * compiled here. The index is read from the PROCESSOR's class loader: that is why the UI module
+   * has to be on {@code <annotationProcessorPaths>} as well as on the classpath.
+   */
   static void process(Set<String> compiledClassNames, Filer filer) {
+    ClassLoader cl = IndexedUIProcessor.class.getClassLoader();
+    process(compiledClassNames, filer, cl != null ? cl : ClassLoader.getSystemClassLoader());
+  }
+
+  /** Same, reading the indexes visible to {@code cl}. */
+  static void process(Set<String> compiledClassNames, Filer filer, ClassLoader cl) {
     try {
-      ClassLoader cl = IndexedUIProcessor.class.getClassLoader();
-      if (cl == null) cl = ClassLoader.getSystemClassLoader();
       Enumeration<URL> resources = cl.getResources("META-INF/mateu/ui-registrations");
       while (resources.hasMoreElements()) {
         URL url = resources.nextElement();

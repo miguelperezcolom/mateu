@@ -274,7 +274,13 @@ public interface Named extends Identifiable {
 |---|---|
 | `search(searchText, filters, parentId, pageable)` | Return a paginated list of child entities scoped to the given `parentId` |
 
-Use `CompositionCrudStore` when an embedded child grid inside a parent form must fetch its rows from the server filtered by the parent's ID. Annotate the parent field with `@Composition` to trigger this behaviour.
+`CompositionCrudStore` is the store a `@Composition` field names: an embedded child grid whose rows are fetched filtered by the parent's ID.
+
+> **Not rendered yet.** The store-backed child CRUD `@Composition` declares is not implemented: a
+> `@Composition` field renders nothing (Mateu logs a warning naming it once). To show and edit child
+> records inside the parent form today, use a plain `List<Child>` field — it renders as an editable
+> grid whose rows travel in the form's state — or embed the children's own CRUD as an embedded
+> orchestrator field.
 
 ---
 

@@ -22,7 +22,9 @@ public sealed partial class SyncHandler
         var step = StepOf(rq);
         var total = ReflectionMapper.EditableProperties(type)
             .Select(p => p.Find<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
-        var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
+        // the component's route is the one the request consumed, as for any routed view (Java's
+        // wire; SyncHandler.Contract's MapView)
+        var route = rq.ConsumedRoute ?? "_empty";
 
         // A completed run (the result step of a CompletionActionLabel wizard) is final: no way
         // back into it, no second completion — even if the wire names back/next anyway.

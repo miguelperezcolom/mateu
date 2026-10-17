@@ -30,8 +30,10 @@ export default defineConfig({
             // re-measured 2026-10-11 after the frontend coverage review (validation state on the
             // control, row selection, inline-edited cells, layouts, toasts, foldout): 35.7% lines,
             // 35.5% statements, 24.4% functions, 28.2% branches (was 13.8/13.8/6.1/8.7); after
-            // merging the web UX review (2026-10-12) branches read 27.96% — floor 27
-            thresholds: { lines: 35, statements: 35, functions: 24, branches: 27 },
+            // merging the web UX review (2026-10-12) branches read 27.96% — floor 27. 2026-10-17
+            // (coverage stream S6: every field widget, the table, cells, tree, foldout carousel and
+            // the adapter's dispatch): 86.1 / 85.2 / 80.9 / 74.9
+            thresholds: { lines: 86, statements: 85, functions: 80, branches: 74 },
         },
     },
 })

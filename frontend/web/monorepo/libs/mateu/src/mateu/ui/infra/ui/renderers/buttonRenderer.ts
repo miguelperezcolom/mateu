@@ -11,10 +11,16 @@ export const handleButtonClick = (event: Event, button: Button) => {
     const el = event.currentTarget as HTMLElement
     // A button carrying a route NAVIGATES on the client (the button form of a menu link), rather
     // than running a server action. The template was interpolated at render (data-route); an
-    // unresolved one is left off, so we never navigate to a literal "${state.id}".
+    // unresolved one is left off — and the button disabled — so we never navigate to a literal
+    // "${state.id}" nor to "/p/" with the id missing, and never fall through to a server action
+    // that has nothing behind it.
     const route = el.dataset.route
     if (route) {
         navigateToRoute(el, route)
+        return
+    }
+    if (button.route) {
+        warnUnresolvedRoute(button.route)
         return
     }
     el.dispatchEvent(new CustomEvent('action-requested', {
@@ -27,13 +33,29 @@ export const handleButtonClick = (event: Event, button: Button) => {
     }))
 }
 
+const warnedRoutes = new Set<string>()
+const warnUnresolvedRoute = (template: string) => {
+    if (warnedRoutes.has(template)) return
+    warnedRoutes.add(template)
+    console.warn(`Mateu: the button route "${template}" has a value missing in the state; the button stays disabled until it is there.`)
+}
+
 /** The button's route with `${state.x}` resolved against the page state — undefined when it has no
- * route or the template did not fully resolve (so we never navigate somewhere nobody declared). */
+ * route or the template did not fully resolve: an expression that is missing, blank or fails
+ * (`/p/${state.id}` with no id is NOT "/p/") — so we never navigate somewhere nobody declared. */
 export const resolvedRoute = (metadata: Button, state?: ComponentState, data?: ComponentData): string | undefined => {
     if (!metadata.route) return undefined
+    for (const expression of metadata.route.match(/\$\{[^}]*\}/g) ?? []) {
+        const value = interpolate(expression, state, data)
+        if (!value || !value.trim() || value.includes('${')) return undefined
+    }
     const route = interpolate(metadata.route, state, data)
     return (!route || route.includes('${')) ? undefined : route
 }
+
+/** A routed button whose route cannot be resolved yet is drawn disabled (see resolvedRoute). */
+export const routeUnresolved = (metadata: Button, state?: ComponentState, data?: ComponentData): boolean =>
+    !!metadata.route && resolvedRoute(metadata, state, data) === undefined
 
 /*
  * Design-system-neutral Button — a native <button> themed with Lumo custom-property fallbacks (no
@@ -77,6 +99,7 @@ const themeStyle = (metadata: Button): string => {
 export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
     const label = interpolate(metadata.label, state, data)
+    const disabled = metadata.disabled || routeUnresolved(metadata, state, data)
     return html`<button
             id="${component.id}"
             data-action-id="${metadata.actionId}"
@@ -84,7 +107,7 @@ export const renderButton = (component: ClientSideComponent, state?: ComponentSt
             @click="${(e:any) => handleButtonClick(e, metadata)}"
             style="${themeStyle(metadata)}${component.style}"
             class="${component.cssClasses}"
-            ?disabled="${metadata.disabled}"
+            ?disabled="${disabled}"
             data-shortcut="${metadata.shortcut ?? nothing}"
             title="${metadata.shortcut ? `${label} (${formatShortcut(metadata.shortcut)})` : nothing}"
             slot="${component.slot??nothing}"

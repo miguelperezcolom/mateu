@@ -306,7 +306,8 @@ public sealed partial class ReflectionMapper
         // confirmation/selection-required flags the frontend enforces (mirrors Java's
         // Crud.addButtonsToList + CrudActionsBuilder).
         foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null))
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
+                                 && Authorized(m.Find<EyesOnlyAttribute>())))
         {
             var bulk = m.Find<ListToolbarButtonAttribute>()!;
             var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
@@ -417,7 +418,8 @@ public sealed partial class ReflectionMapper
         if (profile.CanView) actions.Add(new ActionDto("cancel-view", ValidationRequired: false));
         // [ListToolbarButton] bulk methods declared on the listing itself (the behaviour source).
         foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null))
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null
+                                 && Authorized(m.Find<EyesOnlyAttribute>())))
         {
             var bulk = m.Find<ListToolbarButtonAttribute>()!;
             var actionId = "action-on-row-" + Naming.CamelCase(m.Name);

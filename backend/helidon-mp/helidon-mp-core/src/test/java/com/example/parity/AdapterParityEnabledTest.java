@@ -34,6 +34,11 @@ class AdapterParityEnabledTest {
   }
 
   @Test
+  void grantsNoCrossOriginAccessOutsideTheMateuApi() {
+    contract.grantsNoCrossOriginAccessOutsideTheMateuApi("/assets/fixed.js");
+  }
+
+  @Test
   void servesMcpWhenEnabled() {
     contract.servesMcpWhenEnabled();
   }

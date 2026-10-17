@@ -88,7 +88,11 @@ public sealed partial class ReflectionMapper
     // read-only view with many sections is presented as adaptable tabs.
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
-        var props = EditableProperties(type).Where(Visible).ToList();
+        // The optimistic-lock [Version] is plumbing, not an input: it rides in the state (the save
+        // compares it) but an editable form never shows it — it was an editable number, so a user
+        // could type their way past the conflict check (Java's FormFieldFilter.hiddenInEditor).
+        var props = EditableProperties(type).Where(Visible)
+            .Where(p => readOnly || p.Find<VersionAttribute>() is null).ToList();
         // A tabbed form is wrapped in an (untitled) mateu-section Card just like a plain one — the
         // TabLayout is the card's body (Java parity: Card → Div → VerticalLayout → TabLayout).
         if (props.Any(p => p.Find<TabAttribute>() != null))
@@ -223,7 +227,8 @@ public sealed partial class ReflectionMapper
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
                 tabs.Add((current, attr?.Open ?? false, new List<PropertyInfo>(), new List<ClientSideComponentDto>()));
             tabs[^1].props.Add(p);
-            tabs[^1].fields.Add(MapField(p, instance, readOnly));
+            // MapFields: a [SeparatorBefore] inside a tab paints its divider too (it was dropped)
+            tabs[^1].fields.AddRange(MapFields([p], instance, readOnly));
         }
         // Only a tab explicitly marked [Tab(Open=true)] carries active on the wire; with none opened
         // the renderer defaults to the first tab (Java parity: the corpus emits no active by default).
@@ -514,8 +519,7 @@ public sealed partial class ReflectionMapper
     {
         null => null,
         DateOnly d => d.ToString("yyyy-MM-dd"),
-        DateTime dt => dt.ToString("yyyy-MM-dd"),
-        _ => value.ToString(),
+        _ => TemporalWire.Format(value) as string ?? value.ToString(),
     };
 
     /// <summary>A form's field values as the initialData/state map (fieldId → value): a grid property
@@ -551,9 +555,8 @@ public sealed partial class ReflectionMapper
     {
         null => null,
         DateOnly d => d.ToString("yyyy-MM-dd"),
-        DateTime dt => dt.ToString("yyyy-MM-dd"),
         Enum e => e.ToString(),
-        _ => value,
+        _ => TemporalWire.Format(value),
     };
 
     /// <summary>
@@ -728,12 +731,17 @@ public sealed partial class ReflectionMapper
             return "array";
         if (t.IsEnum) return "string";
         if (t == typeof(bool)) return "bool";
-        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)) return "integer";
+        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)
+            || t == typeof(System.Numerics.BigInteger)) return "integer";
         if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
             // A money field in a plain-text context upgrades its dataType to "money" so the renderer
             // formats it as currency (Java's FieldTypeMapper money branch).
             return p?.Find<MoneyAttribute>() != null && plainText ? "money" : "number";
-        if (t == typeof(DateOnly) || t == typeof(DateTime)) return "date";
+        if (t == typeof(DateOnly)) return "date";
+        // a DateTime carries a time (Java's LocalDateTime): mapped as a date, the time was dropped
+        // on the first round trip
+        if (t == typeof(DateTime) || t == typeof(DateTimeOffset)) return "dateTime";
+        if (t == typeof(TimeOnly)) return "time";
         return "string";
     }
 

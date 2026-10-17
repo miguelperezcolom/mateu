@@ -1,7 +1,7 @@
 import {customElement, property} from "lit/decorators.js";
 import { standInForOnLoad } from "@infra/ui/onLoadTimes.ts";
 import { jsonSafe } from '@infra/http/jsonTemplate.ts'
-import { viaProxy } from '@infra/http/restSourceCatalogue.ts'
+import { UnknownRestSourceError, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -239,23 +239,21 @@ export class MateuComponent extends ComponentElement {
                     console.error('validation failed', validation, e)
                 }
             }
-            for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
-                const validation = validatons[validationIndex]
-                if (this.skipValidation(fieldsToValidate, validation)) {
-                    continue
+            // The data is replaced (and the form re-rendered) only when the errors CHANGED: per
+            // field, by their joined messages, plus any field whose errors are no longer computed
+            // (they are dropped). Written as `a?[b]?.join(','):''` this used to parse as a ternary,
+            // so the comparison never compared anything.
+            const errorsOf = (errors: Record<string, string[]> | undefined, fieldName: string) =>
+                errors?.[fieldName]?.join(',') ?? ''
+            const oldErrors = data['errors'] as Record<string, string[]> | undefined
+            const newErrors = newData['errors'] as Record<string, string[]>
+            const fieldNames = new Set([...Object.keys(oldErrors ?? {}), ...Object.keys(newErrors)])
+            for (const fieldName of fieldNames) {
+                if (errorsOf(oldErrors, fieldName) != errorsOf(newErrors, fieldName)
+                    || (oldErrors !== undefined && (fieldName in oldErrors) != (fieldName in newErrors))) {
+                    dataUpdated = true
+                    break
                 }
-
-                const fieldNames = (validation.fieldId??'_component').split(',')
-                for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
-                    const fieldName = fieldNames[fieldIndex]
-                    if (data['errors']?[fieldName]?.join(','):'' == newData['errors']?[fieldName]?.join(','):'') {
-                        dataUpdated = true
-                        break
-                    }
-                }
-            }
-            if (data['errors']?['_component']?.join(','):'' == newData['errors']?['_component']?.join(','):'') {
-                dataUpdated = true
             }
         }
         newData._valid = valid
@@ -629,7 +627,12 @@ export class MateuComponent extends ComponentElement {
         }
         const onError = (e: unknown) => {
             console.warn('mateu: rest action failed', e)
-            showToast({ text: 'Request failed', variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+            // a source nobody declared is a configuration mistake the user can name to someone,
+            // not a transient failure: say which source, and keep the toast until it is read
+            const text = e instanceof UnknownRestSourceError
+                ? chromeTextf('unknownRestSource', { name: e.sourceName })
+                : chromeTextf('requestFailed', { status: '' })
+            showToast({ text, variant: 'error', position: 'bottomEnd', duration: e instanceof UnknownRestSourceError ? 0 : 3000 }, this)
         }
         // A proxied call reports failure on appData._restfetchError ({status, message}) instead of on
         // _restfetch — the server no longer swallows an upstream 4xx/5xx into an empty body that reads
@@ -829,7 +832,8 @@ export class MateuComponent extends ComponentElement {
         callbackonly: boolean,
         initiatorComponentId: string,
         callbackToken: string,
-        background?: boolean
+        background?: boolean,
+        fromOnLoad?: boolean
     }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
@@ -901,6 +905,12 @@ export class MateuComponent extends ComponentElement {
         // A component's own request (a combo's option search…) shows its own loading: it is
         // background for the page — no veil, no pressed-control pulse (localRequests).
         const background = detail.background ?? action?.background ?? (isLocalRequest(detail.actionId) || undefined)
+        // A write the USER asked for (not one an OnLoad trigger fired): when its answer re-renders this
+        // view in place, the view loads again like on opening — a listing an action returns shows
+        // its new rows (onLoadTimes.ts). An OnLoad action answering `this` keeps its count.
+        if (!detail.fromOnLoad && !isIdempotentAction(detail.actionId, action?.idempotent)) {
+            this._userWroteSinceRender = true
+        }
         if (!background) {
             // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
             // second POST of a write means a second row; a second read means fresher data. Worse,

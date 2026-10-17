@@ -24,6 +24,19 @@ final class ReflectionTypeCoercer {
       HttpRequest httpRequest,
       Class genericType,
       ReflectionInstanceFactory factory) {
+    if (java.util.Optional.class.equals(type)) {
+      // an Optional<X> constructor parameter (a record component): X, wrapped
+      var content = data instanceof java.util.Optional<?> optional ? optional.orElse(null) : data;
+      return java.util.Optional.ofNullable(
+          content == null
+              ? null
+              : coerce(
+                  genericType != null ? genericType : String.class,
+                  content,
+                  httpRequest,
+                  null,
+                  factory));
+    }
     if (data == null) {
       if (int.class.equals(type)) return 0;
       if (long.class.equals(type)) return 0L;
@@ -39,6 +52,8 @@ final class ReflectionTypeCoercer {
       } else if (LocalDateTime.class.equals(type)) {
         if ("".equals(data)) return null;
         return LocalDateTime.parse(convert(data));
+      } else if (LegacyDateTimes.handles(type)) {
+        return LegacyDateTimes.parse(data, type);
       } else {
         if ("".equals(data) && !type.equals(String.class)) return null;
         return convert(data, type);

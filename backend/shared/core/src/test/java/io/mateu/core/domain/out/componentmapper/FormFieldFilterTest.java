@@ -182,14 +182,24 @@ class FormFieldFilterTest {
         .isFalse();
   }
 
-  // ── @Composition collections: only shown in read-only (view) mode ──────────
+  // ── @Composition: a store-backed child CRUD Mateu does not implement ───────
 
   @Test
-  void compositionCollectionOnlyVisibleInReadOnlyMode() throws Exception {
+  void aCompositionFieldIsNeverRendered() throws Exception {
+    // It used to pass in read-only (view) mode and render a literal "Pending" text; it renders
+    // nothing now, in either mode (and the log says so once).
     assertThat(FormFieldFilter.filterField(field("lines"), false, true, new SampleForm(), null))
-        .isTrue();
+        .isFalse();
     assertThat(FormFieldFilter.filterField(field("lines"), false, false, new SampleForm(), null))
         .isFalse();
+  }
+
+  @Test
+  void aCompositionFieldReachingTheMapperShowsNoPlaceholderText() throws Exception {
+    var component =
+        ReflectionFormFieldMapper.getFormField(
+            field("lines"), new SampleForm(), "", "", "", "", null, true, false, 2, 0);
+    assertThat(MAPPER.writeValueAsString(component)).doesNotContain("Pending");
   }
 
   // ── view/editor/create-specific hiding ─────────────────────────────────────

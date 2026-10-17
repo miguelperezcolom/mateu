@@ -235,6 +235,36 @@ class RunnersAndMasterDetailSyncTest {
   }
 
   @Test
+  void theSelectedPartsButtonIsMarkedOnTheWire() throws Exception {
+    // it was a style ("font-weight: 700") the button DTO has no field for, so it never arrived
+    var wire =
+        new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(
+                io.mateu.core.infra.JsonSerializer.toJson(
+                    // the content load the mediator shell sends for its home
+                    mateu.run(
+                        RunActionRqDto.builder()
+                            .route("/reserva/__md/historial")
+                            .consumedRoute("/reserva")
+                            .actionId("")
+                            .serverSideType(ReservaMd.class.getName())
+                            .initiatorComponentId("md_content")
+                            .build())));
+    var styles = new java.util.HashMap<String, String>();
+    for (var button : wire.findParents("actionId")) {
+      var id = button.path("actionId").asText("");
+      if (id.startsWith("__md_pick:")) {
+        styles.put(id, button.path("buttonStyle").asText(null));
+      }
+    }
+    assertThat(styles).containsEntry("__md_pick:historial", "primary");
+    assertThat(styles.entrySet())
+        .filteredOn(entry -> !entry.getKey().equals("__md_pick:historial"))
+        .isNotEmpty()
+        .allSatisfy(entry -> assertThat(entry.getValue()).isNotEqualTo("primary"));
+  }
+
+  @Test
   void theEncodedRouteRendersTheSelectedPart() {
     var increment = reserva("/reserva/__md/historial", "", Map.of(), Map.of());
     assertThat(increment.fragments()).isNotEmpty();

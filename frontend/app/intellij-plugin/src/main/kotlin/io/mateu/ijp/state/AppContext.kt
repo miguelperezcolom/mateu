@@ -946,6 +946,8 @@ class AppContext(val session: AppSession) {
     // ── increment application ─────────────────────────────────────────────────────────
     fun applyIncrement(increment: JsonNode?) {
         if (increment == null) return
+        // first: the components about to render may fetch from the sources they name
+        io.mateu.ijp.ui.RestFetch.addReferencedRestSources(increment.path("restSources"))
 
         val fragments = increment.path("fragments")
         if (fragments.isArray) for (fragment in fragments) applyFragment(fragment)

@@ -886,13 +886,67 @@ class WireConformanceTest {
     @io.mateu.uidl.annotations.Menu NoHomeOrders orders;
   }
 
+  /** The account step of the sign-up wizard: one required text. */
+  public static class AccountStep
+      implements io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep {
+    @jakarta.validation.constraints.NotEmpty public String email;
+  }
+
+  /** The plan step: a number with a default. */
+  public static class PlanStep
+      implements io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep {
+    public int seats = 1;
+  }
+
+  /** The read-only result step, shown after the completion action. */
+  public static class DoneStep
+      implements io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep {
+    public String reference;
+  }
+
+  /**
+   * A three-step wizard: two data steps and the result screen. The case pins the FIRST step — the
+   * progress indicator, the step form, the Next button and no Back.
+   */
+  @UI("/conformance/wizard")
+  @Title("Sign up")
+  public static class SignUpWizard
+      extends io.mateu.core.infra.declarative.orchestrators.wizard.Wizard {
+    public AccountStep account;
+    public PlanStep plan;
+    public DoneStep done;
+
+    @io.mateu.uidl.annotations.WizardCompletionAction
+    public void signUp() {}
+  }
+
+  /**
+   * Options fetched from a REST endpoint: one field declares the request inline, the other names a
+   * catalogue source by {@code ref} (the wire carries the name; the catalogue travels apart).
+   */
+  @UI("/conformance/rest-source")
+  @Title("Shipping")
+  public static class RestSourceForm {
+    @io.mateu.uidl.annotations.RestOptions(
+        url = "https://api.example.com/countries?q=${state.country}",
+        itemsPath = "items",
+        valuePath = "code",
+        labelPath = "name")
+    public String country;
+
+    @io.mateu.uidl.annotations.RestOptions(source = "currencies")
+    public String currency;
+  }
+
   /**
    * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
    * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
    * request to the case's fixture type instead of the first load. Identical in the three runners.
    */
   private static final java.util.Map<String, Class<?>> REQUESTED =
-      java.util.Map.of("app-no-home-content", NoHomeApp.class);
+      java.util.Map.of(
+          "app-no-home-content", NoHomeApp.class,
+          "crud-search", ProductsCrud.class);
 
   private static final List<String> CASES =
       List.of(
@@ -931,7 +985,10 @@ class WireConformanceTest {
           "app-no-home-content",
           "card-menu",
           "app-extras",
-          "welcome-banner");
+          "welcome-banner",
+          "crud-search",
+          "wizard",
+          "rest-source");
 
   static TestMateu mateu;
 
@@ -974,7 +1031,9 @@ class WireConformanceTest {
             NoHomeApp.class,
             CardMenuApp.class,
             ExtrasApp.class,
-            WelcomeBannerPage.class);
+            WelcomeBannerPage.class,
+            SignUpWizard.class,
+            RestSourceForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -1094,6 +1153,14 @@ class WireConformanceTest {
           "crud-grouped", SalesCrud.class,
           "listing-navigable", NavigableBooks.class);
 
+  /**
+   * Cases loaded by a plain sync whose component is a mediator all the same: the wizard advertises
+   * a {@code *} catch-all and keeps its position in its own state, while the ports list
+   * next/back/skip/the completion and keep {@code __step}. Their actions and state stay out on
+   * every side, exactly as for {@link #MEDIATED}; everything the wizard draws is pinned.
+   */
+  private static final Set<String> MEDIATOR_PROTOCOL_ONLY = Set.of("wizard");
+
   private static JsonNode actual(String route) {
     var requested = REQUESTED.get(route);
     var requestFile = corpus().resolve(route).resolve("request.json");
@@ -1133,7 +1200,7 @@ class WireConformanceTest {
                     .initiatorComponentId("c1_app")
                     .componentState(java.util.Map.of())
                     .build());
-    if (mediated != null) {
+    if (mediated != null || MEDIATOR_PROTOCOL_ONLY.contains(route)) {
       return withoutMediatorProtocol(roundTrip(increment));
     }
     return roundTrip(increment);

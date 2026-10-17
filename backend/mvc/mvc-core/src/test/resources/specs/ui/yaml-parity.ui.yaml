@@ -1,0 +1,6 @@
+# Fixture for AdapterParityITFoundation.servesAYamlMount: a mount declared as data, with no Java
+# class. YamlMountAutoConfiguration serves it next to the test app's generated @UI controllers.
+type: UI
+basePath: /yaml-parity
+routes:
+  - yaml-parity-routes.yaml

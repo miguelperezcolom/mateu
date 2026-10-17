@@ -301,7 +301,7 @@ class MoreTailsSyncTest {
     // the writer cannot assign) — the initializer survives.
     assertThat(QuirksForm.seen.labels).isEmpty();
     assertThat(QuirksForm.seen.ratio).isEqualTo(1.25f);
-    // BigInteger strings are not coerced by the field-writing path either
-    assertThat(QuirksForm.seen.huge).isNull();
+    // a BigInteger is a field like any number: its digits pour back in intact
+    assertThat(QuirksForm.seen.huge).hasToString("123456789012345678901234567890");
   }
 }

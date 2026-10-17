@@ -12,10 +12,11 @@ public sealed partial class ReflectionMapper
     /// ConstraintValidationMapper): [Required] → the field must be truthy ("Cannot be empty");
     /// [Range(min,max)] → two bounds ("Must be at least/at most N"). Emitted in field-declaration
     /// order.</summary>
-    private static List<ValidationDto> MapValidations(Type type)
+    private static List<ValidationDto> MapValidations(Type type, IReadOnlyCollection<PropertyInfo>? only = null)
     {
         var validations = new List<ValidationDto>();
-        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }))
+        foreach (var p in EditableProperties(type).Where(p => p is { CanRead: true, CanWrite: true }
+                     && (only is null || only.Contains(p))))
         {
             var fieldId = Naming.CamelCase(p.Name);
             var reference = $"state['{fieldId}']";
@@ -150,9 +151,9 @@ public sealed partial class ReflectionMapper
     }
 
     /// <summary>Floating action buttons from [Fab] methods (the method name is the action id).</summary>
-    private static List<FabDto> Fabs(Type type) =>
+    private List<FabDto> Fabs(Type type) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<FabAttribute>() != null)
+            .Where(m => m.Find<FabAttribute>() != null && Authorized(m.Find<EyesOnlyAttribute>()))
             .Select(m =>
             {
                 var a = m.Find<FabAttribute>()!;

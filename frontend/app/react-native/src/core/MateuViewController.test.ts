@@ -1,29 +1,49 @@
 // The view controller is plain TypeScript; only its two platform edges (a11y announcements and
-// document presentation) import react-native / expo, so those two modules are replaced here.
-// Needs `--experimental-test-module-mocks`.
+// document presentation) reach react-native / expo, so those PACKAGES are replaced here — the real
+// a11y.ts and documentEffects.ts run (mocking those modules themselves made node's coverage merge
+// report them as uncovered). Needs `--experimental-test-module-mocks`.
 import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { stubNativePackages } from '../../scripts/test/native-packages.mjs';
+
+stubNativePackages(['react-native', 'expo-web-browser', 'expo-file-system']);
 
 const announced: string[] = [];
 const presented: unknown[] = [];
-mock.module(import.meta.resolve('../a11y/a11y.ts'), {
+const liveQueue: (boolean | undefined)[] = [];
+mock.module('react-native', {
   namedExports: {
-    announce: (m: string) => announced.push(m),
-    announceLive: (m: string) => announced.push('live:' + m),
-  },
-});
-mock.module(import.meta.resolve('./documentEffects.ts'), {
-  namedExports: {
-    presentDocument: async (data: unknown) => {
-      presented.push(data);
-      if ((data as { fail?: boolean })?.fail) throw new Error('no app can open it');
-      return 'shared';
+    Platform: { OS: 'ios' },
+    AccessibilityInfo: {
+      announceForAccessibility: (m: string) => announced.push(m),
+      announceForAccessibilityWithOptions: (m: string, o: { queue?: boolean }) => {
+        announced.push('live:' + m);
+        liveQueue.push(o?.queue);
+      },
     },
+    // the iOS share sheet: a file it cannot hand to anything rejects
+    Share: {
+      share: async (content: { title: string }) => {
+        if (content.title === 'locked.pdf') throw new Error('no app can open it');
+        presented.push(content.title);
+      },
+    },
+    Linking: {},
   },
 });
+mock.module('expo-web-browser', { namedExports: { openBrowserAsync: async (url: string) => { presented.push(url); } } });
+class FakeFile {
+  uri: string;
+  contentUri = '';
+  constructor(_dir: string, name: string) { this.uri = `file:///cache/${name}`; }
+  create() {}
+  write() {}
+}
+mock.module('expo-file-system', { namedExports: { File: FakeFile, Paths: { cache: '/cache' } } });
 
 const { MateuViewController } = await import('./MateuViewController.ts');
 const { MateuSession } = await import('./MateuSession.ts');
+const { headerValues } = await import('./appShellExtras.ts');
 
 type Json = Record<string, any>;
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -281,10 +301,11 @@ test('CloseModal closes the top overlay and emits the close event; overlays open
 test('documents: DownloadFile is presented; a failure is told to the user; Print is announced, not dropped', async () => {
   const { c, notes } = harness();
   announced.length = 0;
-  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { name: 'a.pdf' } }, { type: 'Print' }, { type: 'Announce', data: { text: 'Done' } }] });
-  assert.deepEqual(presented.at(-1), { name: 'a.pdf' });
+  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { filename: 'a.pdf', base64Content: 'aGk=' } }, { type: 'Print' }, { type: 'Announce', data: { text: 'Done' } }] });
+  await tick();
+  assert.deepEqual(presented.at(-1), 'a.pdf');
   assert.deepEqual(announced, ['live:Printing is not available in the mobile app', 'live:Done']);
-  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { fail: true } }] });
+  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { filename: 'locked.pdf', base64Content: 'aGk=' } }] });
   await tick();
   assert.equal(notes.at(-1)!.text, 'no app can open it');
 });
@@ -453,4 +474,70 @@ test('validation falls back to the legacy matcher for syntax the parser does not
   c.putState('tags', ['a']);
   await c.runAction('save');
   assert.equal(calls.filter((x) => x.actionId === 'save').length, 1);
+});
+
+test('a LongTask (sse action) streams: every increment is applied as it arrives', async () => {
+  const { c, session, renders } = harness([fragment(ssc({ actions: [{ id: 'importAll', sse: true }] }))]);
+  await c.initialLoad('/orders');
+  const streamed: Json[] = [];
+  (session as any).api.runActionStream = async (rq: Json, onIncrement: (i: unknown) => void) => {
+    streamed.push(rq);
+    onIncrement({ fragments: [{ state: { progress: 0.5 } }] });
+    assert.equal(c.currentComponentState['progress'], 0.5, 'the first step is on screen before the stream ends');
+    onIncrement({ fragments: [{ state: { progress: 1, done: true } }] });
+  };
+  await c.runAction('importAll', { file: 'a.csv' });
+  assert.equal(streamed.length, 1);
+  assert.equal(streamed[0].actionId, 'importAll');
+  assert.deepEqual(streamed[0].parameters, { file: 'a.csv' });
+  assert.equal(renders.at(-1)!.state.done, true);
+});
+
+test('a live header value change is announced once; Announce honours assertive', () => {
+  const { c } = harness();
+  headerValues.seed([{ id: 'businessDate', label: 'Business date', value: '1 Oct' }]);
+  announced.length = 0;
+  liveQueue.length = 0;
+  c.applyIncrement({ commands: [{ type: 'UpdateHeaderValue', data: { id: 'businessDate', value: '2 Oct' } }] });
+  c.applyIncrement({ commands: [{ type: 'UpdateHeaderValue', data: { id: 'businessDate', value: '2 Oct' } }] });
+  assert.deepEqual(announced, ['live:Business date changed to 2 Oct']);
+  c.applyIncrement({ commands: [{ type: 'Announce', data: { text: 'Payment failed', assertive: true } }, { type: 'Announce', data: 'Saved' }] });
+  assert.deepEqual(announced.slice(1), ['live:Payment failed', 'live:Saved']);
+  assert.deepEqual(liveQueue.slice(1), [false, true]);
+  headerValues.reset();
+});
+
+test('crud mediator moves on a phone stack: Back to list pops to the listing; the same inner route stays put', async () => {
+  const { c, calls } = harness([fragment(ssc()), {}]);
+  await c.initialLoad('/orders');
+  // open a record in place (no opener yet): the inner route becomes "7"
+  c.applyIncrement({ fragments: [{ state: { _route: '/7', _componentRoute: '/orders' } }] });
+  await tick();
+  assert.equal(calls.at(-1)!.route, '/orders/7');
+  const stacked: Json[] = [];
+  c.detailOpener = () => assert.fail('a list is never opened as a detail');
+  c.stackNavigator = (target, replaceTop) => stacked.push({ ...target, replaceTop });
+  c.applyIncrement({ fragments: [{ state: { _route: '', _componentRoute: '/orders' } }] });
+  assert.deepEqual(stacked, [{ label: '', route: '/orders', consumedRoute: '/orders', serverSideType: 'app.Orders', replaceTop: false }]);
+  // the record answering for itself again ("7" → "7") just merges the state
+  const before = calls.length;
+  c.applyIncrement({ fragments: [{ state: { _route: '/7/', _componentRoute: '/orders', total: 3 } }] });
+  assert.equal(calls.length, before);
+  assert.equal(c.currentComponentState['total'], 3);
+  c.stackNavigator = null;
+  c.detailOpener = null;
+});
+
+test('a page with no app shell: the REST sources a response names resolve its refs', async () => {
+  const { getRestSource, clearReferencedRestSources, registerRestSources } = await import('./restFetch.ts');
+  registerRestSources([]);
+  clearReferencedRestSources();
+  const { c } = harness([{}]);
+  c.applyIncrement({ restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] });
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], 'https://late.example.com/x');
+  // the App's catalogue still wins a name clash
+  registerRestSources([{ name: 'late', source: { url: '/app' } }]);
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], '/app');
+  registerRestSources([]);
+  clearReferencedRestSources();
 });

@@ -34,7 +34,7 @@ import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
-import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS } from './core/listing.mjs'
+import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
@@ -596,6 +596,13 @@ test('folio real agrupado por código: filas de grupo con subtotales y el total 
   assert.ok(l.columns.some((c) => c.footerTemplate === 'footerTotal'))
   // la fila de grupo va ANTES de las suyas
   assert.ok(!l.rows[1]._group && l.rows[1].code === groups[0].code.replace(/ \(\d+\)$/, ''))
+})
+
+test('a group of rows with no value (the server did not list it) counts its rows, not 0', () => {
+  const md = { groupBy: 'status', columns: [{ metadata: { id: 'status' } }, { metadata: { id: 'n' } }] }
+  const rows = [{ status: 'OPEN', n: 1 }, { status: null, n: 2 }, { n: 3 }]
+  const heads = groupedRows(rows, md, { groups: [{ value: 'OPEN', count: 1, aggregates: {} }] }).filter((r) => r._group)
+  assert.deepEqual(heads.map((r) => r.status), ['OPEN (1)', ' (2)'])
 })
 
 test('tonos de fila (@RowStatus): nombre, constante de enum o Status; y la plantilla los pinta', () => {
@@ -1299,6 +1306,26 @@ test('Grid fluido: oj-table de sus columnas hoja (grupos aplanados) y sus filas'
   assert.equal(g.isEmpty, false)
 })
 
+test('Column groups: oj-table has no grouped headers, so the group label prefixes its columns (wire shape of GridColumnGroupSyncTest)', () => {
+  const col = (id, label) => ({ type: 'ClientSide', id, metadata: { type: 'GridColumn', id, label }, children: [] })
+  const group = { type: 'ClientSide', id: 'occupancy', children: [],
+    metadata: { type: 'GridGroupColumn', id: 'occupancy', label: 'Occupancy', columns: [col('adults', 'Adults'), col('children', 'Children')] } }
+  // a fluent Grid
+  const [g] = atomsOf(node({ type: 'Grid', content: [col('room', 'Room'), group],
+    page: { content: [{ room: '101', adults: 2, children: 1 }] } }))
+  assert.deepEqual(g.columns.map((c) => [c.field, c.headerText]),
+    [['room', 'Room'], ['adults', 'Occupancy · Adults'], ['children', 'Occupancy · Children']])
+  // nested groups compose their prefixes; an unlabelled group adds none
+  assert.deepEqual(leafColumnsOf([{ type: 'GridGroupColumn', label: 'A', columns: [
+    { type: 'GridGroupColumn', label: 'B', columns: [{ type: 'GridColumn', id: 'x', label: 'X' }] },
+    { type: 'GridGroupColumn', columns: [{ type: 'GridColumn', id: 'y', label: 'Y' }] },
+  ] }]).map((c) => c.label), ['A · B · X', 'A · Y'])
+  // a grid FIELD of a form
+  const [f] = atomsOf(node({ type: 'FormField', fieldId: 'rooms', columns: [col('room', 'Room'), group] }))
+  assert.deepEqual(f.columns.map((c) => c.field), ['room', 'adults', 'children'])
+  assert.equal(f.columns[1].headerText, 'Occupancy · Adults')
+})
+
 test('Item Overview y General Overview: el contenido de tarjetas y pestañas viaja como átomos', () => {
   const io = itemOverviewOf({ state: {}, data: {}, tree: node({ type: 'HorizontalLayout' }, [
     node({ type: 'Card', title: node({ type: 'Text', text: 'Chair' }), content: [node({ type: 'Markdown', markdown: '- 4D armrests' })] }),
@@ -1631,6 +1658,20 @@ test('enum cells: a column with valueLabels shows "In house", the row keeps IN_H
   assert.deepEqual(rowAsArrived(listing.rows[0]), { _rowNumber: 0, guest: 'Ada', status: 'IN_HOUSE', state: 'DEPARTED' })
   assert.equal(valueLabelOf({ valueLabels: labels }, 'DUE_OUT'), 'DUE_OUT')
   assert.equal(valueLabelOf({}, 'IN_HOUSE'), 'IN_HOUSE')
+})
+
+test('a listing with a column group: every leaf column is a table column, the group label prefixing it', () => {
+  const ctx = { tree: { metadata: { type: 'Crud', columns: [
+    { metadata: { id: 'room', label: 'Room' } },
+    { metadata: { type: 'GridGroupColumn', id: 'occ', label: 'Occupancy', columns: [
+      { metadata: { type: 'GridColumn', id: 'adults', label: 'Adults', sortable: true } },
+      { metadata: { type: 'GridColumn', id: 'children', label: 'Children' } },
+    ] } },
+  ] }, children: [] }, data: { crud: { page: { content: [{ _rowNumber: 0, room: '101', adults: 2, children: 0 }], totalElements: 1 } } } }
+  const listing = listingBaseOf(ctx)
+  assert.deepEqual(listing.columns.map((c) => [c.id, c.headerText]),
+    [['room', 'Room'], ['adults', 'Occupancy · Adults'], ['children', 'Occupancy · Children']])
+  assert.equal(listing.rows[0].adults, 2)
 })
 
 test('@Compact listing: the table takes JET display="grid" (dense rows), a plain one stays "list"', () => {

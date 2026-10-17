@@ -195,6 +195,26 @@ npm run test:ui        # Playwright interactive UI mode
 npm run report         # open the last HTML report
 ```
 
+### Journeys (`tests/journeys`, project `journeys`)
+
+End-to-end user journeys that run on **mvc-app1 only** (the shared suite covers wire parity across
+the five adapters; these cover what a user walks through: CRUD in a drawer, inline editing, the
+optimistic-lock conflict, totals/grouping, drag to a drop zone, saved views, column chooser,
+role-based access, YAML writes through the server with a secret). Their fixtures live in
+`sut/apps/mvc-app1/src/main/java/io/mateu/sample1/app/journeys` and
+`sut/apps/mvc-app1/src/main/resources/specs/ui/journeys*`. Test-only pieces of mvc-app1 they rely on:
+`POST /j-reset` (puts the fixtures' data back to its seed), `CookieRolesPrincipalResolver` (the
+caller's roles from the `mateu-e2e-roles` cookie) and `JourneySecrets`; `yaml-proxy.spec.ts` starts
+its own upstream on `:19395`.
+
+```bash
+npx playwright test --project=journeys
+MVC_APP1_URL=http://localhost:19350 npx playwright test --project=journeys   # mvc-app1 on another port
+```
+
+The web probes CI also runs against mvc-app1: `node slow-network-probe.mjs` and `node a11y-audit.mjs`
+(both exit non-zero on a failed check; `BASE=` / `ROUTES=` override the target).
+
 ---
 
 ## Mateu REST API — quick reference

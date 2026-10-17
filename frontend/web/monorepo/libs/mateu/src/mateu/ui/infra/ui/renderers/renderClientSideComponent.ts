@@ -134,23 +134,28 @@ export const updateStyle = (component: ClientSideComponent, data: ComponentData)
     return style
 }
 
+// The disabled copy of a metadata object, reused while the rule keeps disabling it, so a re-render
+// does not mint a new object every time.
+const disabledCopies = new WeakMap<object, ComponentMetadata>()
+
+/**
+ * The metadata a renderer gets: the client-side rules' `<id>.disabled` applied to a button/field.
+ * Returns the ORIGINAL object whenever nothing changes — renderers keep bookkeeping keyed by its
+ * identity (a ConfirmDialog remembers it was answered in a WeakSet of its metadata) and a copy per
+ * render made them forget it on the next re-render.
+ */
 export const updateMedata = (component: ClientSideComponent, data: ComponentData): ComponentMetadata | undefined => {
-    let metadata = { ...component.metadata} as ComponentMetadata
-    if (component.id && metadata) {
-        if (metadata.type == ComponentMetadataType.Button) {
-            const button = metadata as Button
-            if (data[component.id + '.disabled'] == true) {
-                button.disabled = true
-            }
-        }
-        if (metadata.type == ComponentMetadataType.FormField) {
-            const field = metadata as FormField
-            if (data[component.id + '.disabled'] == true) {
-                field.disabled = true
-            }
-        }
+    const metadata = component.metadata as ComponentMetadata | undefined
+    if (!component.id || !metadata) return metadata
+    const disablable = metadata.type == ComponentMetadataType.Button || metadata.type == ComponentMetadataType.FormField
+    if (!disablable || data?.[component.id + '.disabled'] != true) return metadata
+    if ((metadata as Button | FormField).disabled) return metadata
+    let copy = disabledCopies.get(metadata)
+    if (!copy) {
+        copy = { ...metadata, disabled: true } as ComponentMetadata
+        disabledCopies.set(metadata, copy)
     }
-    return metadata
+    return copy
 }
 
 // Everything a per-type renderer might need. Each renderer in the dispatch table below picks the

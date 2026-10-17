@@ -1,0 +1,5 @@
+class=io.mateu.core.application.runaction.RestSourceCatalogueChannelsTest$CatalogueView
+path=/catalogue-view
+---
+class=io.mateu.core.application.runaction.RestSourceCatalogueChannelsTest$DoesNotExist
+path=/ghost

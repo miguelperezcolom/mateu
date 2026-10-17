@@ -561,3 +561,37 @@ public class WelcomeBannerPage
 {
     public string? Name { get; set; } = "";
 }
+
+// A three-step wizard: two data steps and the read-only result screen; the case pins step 1.
+[UI("conformance/wizard"), Title("Sign up")]
+public class SignUpWizard : Wizard
+{
+    [Step(1), Required] public string? Email { get; set; }
+    [Step(2)] public int Seats { get; set; } = 1;
+    [Step(3)] public string? Reference { get; set; }
+
+    public override string? CompletionActionLabel => "Sign up";
+    public override Message Complete() => new("done");
+
+    // Java names a step after its field (account / plan / done)
+    public override string? StepTitle(int step) => step switch
+    {
+        1 => "Account",
+        2 => "Plan",
+        3 => "Done",
+        _ => null,
+    };
+}
+
+// Options from a REST endpoint: one field declares the request inline, the other names a
+// catalogue source by ref.
+[UI("conformance/rest-source"), Title("Shipping")]
+public class RestSourceForm
+{
+    [RestOptions("https://api.example.com/countries?q=${state.country}",
+        ItemsPath = "items", ValuePath = "code", LabelPath = "name")]
+    public string? Country { get; set; }
+
+    [RestOptions(Source = "currencies")]
+    public string? Currency { get; set; }
+}

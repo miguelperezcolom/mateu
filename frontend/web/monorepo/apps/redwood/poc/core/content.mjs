@@ -7,8 +7,8 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, LABEL_CELL_SUFFIX } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
+import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -183,6 +183,18 @@ export function interpolate(text, state) {
   )
 }
 
+/** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank
+ *  (the button is then drawn disabled: we never navigate to a route with a hole in it). */
+export function buttonRouteOf(template, state) {
+  const text = String(template == null ? '' : template)
+  for (const expression of text.match(/\$\{[^}]*\}/g) || []) {
+    const value = interpolate(expression, state)
+    if (!value || !value.trim() || value.includes('${')) return null
+  }
+  const route = interpolate(text, state)
+  return route && !route.includes('${') ? route : null
+}
+
 export const TEXT_CLASSES = {
   xl: 'oj-typography-heading-md',
   l: 'oj-typography-subheading-md',
@@ -261,17 +273,22 @@ export function islandContentOf(ctx, opts = {}) {
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
   })
-  const buttonOf = (m) => ({
-    actionId: m.actionId,
-    label: m.label || m.actionId,
-    disabled: !!m.disabled,
-    chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-    parameters: m.parameters || {},
+  const buttonOf = (m) => {
     // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
     // route on it): the click goes to that route instead of running actionId on the server, which
-    // has nothing behind it — a YAML hero's "Browse products" did nothing
-    ...(m.route ? { route: m.route } : {}),
-  })
+    // has nothing behind it — a YAML hero's "Browse products" did nothing. Its `${state.x}` are
+    // resolved against the state; one that is missing or blank leaves the button DISABLED
+    // (`/p/${state.id}` with no id is not "/p/"), as on the web (libs/mateu buttonRenderer).
+    const route = m.route ? buttonRouteOf(m.route, state) : null
+    return {
+      actionId: m.actionId,
+      label: m.label || m.actionId,
+      disabled: !!m.disabled || (!!m.route && route == null),
+      chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      parameters: m.parameters || {},
+      ...(route ? { route } : {}),
+    }
+  }
   const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
     .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const STATUS_TEXT = {
@@ -501,11 +518,13 @@ export function islandContentOf(ctx, opts = {}) {
       // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
       // búsqueda—, es una tabla más del contenido.
       if ((m.columns || []).length) {
+        // the field's column groups flattened, the group label prefixing its columns' (leafColumnsOf)
+        const leafCols = leafColumnsOf(m.columns, interp)
         const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
         // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
         // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
         const rowEditable = isModalRowEditor(m)
-        const columns = m.columns
+        const columns = leafCols
           .map((col) => col.metadata || col)
           // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
           .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
@@ -528,7 +547,7 @@ export function islandContentOf(ctx, opts = {}) {
           }
           return out
         }
-        const shown = labelCellRows(statusBadgeRows(rows, m.columns), m.columns).map((row, i) => (rowEditable
+        const shown = labelCellRows(statusBadgeRows(rows, leafCols), leafCols).map((row, i) => (rowEditable
           ? {
             ...dashEmpty(row),
             _rowNumber: row._rowNumber == null ? i : row._rowNumber,
@@ -576,7 +595,7 @@ export function islandContentOf(ctx, opts = {}) {
         const raw = state[fieldId] != null ? state[fieldId]
           : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
         const lookupLabel = fromData(fieldId + '-label')
-        const shown = lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw
+        const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
         atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
         return
       }
@@ -956,15 +975,9 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'Grid') {
       // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
-      // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
-      const leafColumns = []
-      const walkCols = (n) => {
-        const cm = n && (n.metadata || n)
-        if (!cm) return
-        if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
-        if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
-      }
-      ;(m.content || []).forEach(walkCols)
+      // un campo de tipo lista — oj-table en modo lista; column groups are flattened (oj-table has
+      // no grouped headers): the group's label prefixes its columns' — leafColumnsOf
+      const leafColumns = leafColumnsOf(m.content, interp).filter((c) => c.type === 'GridColumn' || c.id)
       const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
       const raw = (m.page && m.page.content) || []
       // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
@@ -1652,7 +1665,7 @@ export function withSubresources(blocks, contexts) {
         return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
       }
       const md = crud.metadata || {}
-      const wire = (md.columns || []).map((col) => col.metadata || col)
+      const wire = leafColumnsOf(md.columns)
         // las acciones por fila no tienen sitio en la tabla de solo consulta
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}

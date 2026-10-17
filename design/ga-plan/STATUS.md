@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (batch 3 integrated locally on `integration/batch-3`, pending CI — the owner decisions, the natives/listings fixes and the Redwood fixes; batch 2 on `integration/walkthrough-2` also pending CI).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 3 — coverage, eight streams — plus the bug-fix batch `fixes/groups`, `fixes/core`, `fixes/fields`, `fixes/web2` integrated locally on `integration/coverage` on top of origin/master (batch 3 = PR #813 merged), pending CI).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -38,8 +38,8 @@ continue the work from here. **Update it at the end of every block of work.** La
    Each delivers `design/walkthrough/<area>.md` (✅ / 🔧 fixed / ❌ needs owner / N/A per cell). Branches are pushed
    to origin periodically as WIP; **to resume an area, check out its branch, read its matrix file and continue the
    cells not marked yet** (same brief).
-3. **Coverage** — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md) (PR #800): 8 streams
-   S1–S8 with target floors. Launch AFTER the walkthrough is integrated (its tests change the numbers).
+3. **Coverage** ✅ written and **integrated, pending CI** (2026-10-17: `integration/coverage`, see "Coverage integration"
+   below) — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md): 8 streams S1–S8, floors raised.
 4. **Refactor/optimization** backed by those tests — **scheduled for the weekend of 17–18 Oct** (owner, 2026-10-12), with whatever token budget is left that week.
 5. **Deep independent review by Fable** (owner, 2026-10-12): at the very END, after the refactor, before GA — a different model with fresh eyes over the whole product (public API + stability, security, wire contract + Java/.NET/Python parity, core architecture, docs-vs-reality, a new developer's first hour). Runs on the separate Fable weekly quota (`model: "fable"` agents). Its report becomes the GA blocker list.
 6. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
@@ -78,6 +78,11 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 - **Batch 3 integrated, pending CI**: local branch `integration/batch-3` = origin/master + `pending/natives` + `pending/decisions`
   + `pending/redwood` (see "Batch 3 integration" below). Both batches start from origin/master (#812); push batch 2 first, then
   rebase or merge batch 3 on it — they do not overlap in code (batch 3 touches the ports' titles/banners, listings, Redwood).
+- **Batch 3 merged** (PR #813 on master).
+- **Phase 3 (coverage) + bug-fix batch integrated, pending CI** (2026-10-17): local branch `integration/coverage` =
+  `origin/master` (incl. #813) + `coverage/s1`…`coverage/s8` + `fixes/groups` + `fixes/core` + `fixes/fields` +
+  `fixes/web2` (contains `fixes/web`), bundles rebuilt once, every gate green locally (see "Coverage integration" and
+  "Bug-fix batch integration" below). Next: push, one PR, merge when green, then the phase release.
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
@@ -88,6 +93,101 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   per-session; Java manifest settings only from system properties/env; Redwood federation doesn't know static remotes
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
+
+## Coverage integration (phase 3, 2026-10-17 — `integration/coverage`, pending CI)
+Merged in order s2, s1, s3, s4, s5, s6, s7, s8 on top of `origin/integration/batch-3`. The only textual conflicts were the
+§1 rows of `design/coverage/coverage-map.md` (union, each stream's row replacing the old one); `run_tests.yml` (S2/S4/S7/S8)
+and `WireConformanceTest.java` (S1+S4) merged cleanly with both sides' steps/cases. Generated bundles rebuilt once.
+Integration fixes (one commit each):
+- **libs/mateu floors were measured on a stale vitest 3.2.4** left in S5's worktree; the lockfile (= CI) installs 4.1.11,
+  which reports 92.8 L / 91.1 S / 88.3 F / 80.9 B on the same sources and the same 2039 tests → floors 92/91/88/80.
+- **mvc-core branch floor 86 → 85**: one `YamlMountCondition` outcome is environment-dependent (85.2% here, 86.1% in S3).
+- **IntelliJ `ConformanceCorpusRenderTest`** asserted every corpus case paints something; S4's new `crud-search` case is a
+  data-only answer → only cases carrying a component must render.
+
+| area | before (coverage map, 2026-10-12) | after (measured on `integration/coverage`) | floor now |
+|---|---|---|---|
+| Java `shared/core` | 84.7 L / 70.1 B | 89.3 L / 77.7 B (2155 tests) | 89 L / 77 B |
+| Java `shared/uidl` cross-module | 84.2 / 70.6, no gate | 88.2 / 73.7 (`backend/coverage`) | 87 / 73 |
+| Java `shared/dtos` cross-module | 78.4 / 57.5, no report | 84.6 / 87.4 | 84 / 87 |
+| Java AP core / indexer | 73.5 / 53.5 · 67.8 / 65.8 | 95.1 / 82.0 · 97.8 / 94.7 | 95 / 81 · 97 / 94 |
+| Java mvc / webflux / micronaut | 70.6 · 79.1 · 85.0 L | 88.5 / 85.2 · 95.0 / 84.9 · 92.4 / 82.2 | 88/85 · 95/84 · 92/82 |
+| Java quarkus / helidon-mp | 86.5 · 83.2 L | 92.4 / 76.5 · 91.6 / 78.8 | 92/76 · 91/78 |
+| Java bundle plugin | 59.9 / 50.3 | 90.1 / 75.4 | 90 / 75 |
+| .NET (net8.0) | 94.0 / 79.5 | Uidl 98.9/90.7 · Core 96.2/84.8 · Dtos 99.9/100 · AspNetCore 98.3/84.9 (898 tests) | 98/90 · 96/84 · 99/95 · 98/84 |
+| Python | 93.8 / 83.9 | 95.4 / 88.1 (955 tests; 3.12 and 3.14) | 95 L / 87 B + combined 93 |
+| Conformance corpus | 36 cases | 39 (+ crud-search, wizard, rest-source) | exact match ×3 |
+| `libs/mateu` | 65.8 L / 51.8 B | 92.8 L / 80.9 B (2039 tests) | 92 / 91 / 88 / 80 |
+| `apps/vaadin` | 35.2 / 27.4 | 86.4 L / 75.1 B (246 tests) | 86 / 85 / 80 / 74 |
+| `apps/visual-editor` | 66.9 / 59.5 | 80.7 L / 70.2 B (484 tests) | 80 / 78 / 76 / 70 |
+| Redwood `poc/` | 95.2 / 79.3 | 98.0 L / 84.3 B / 95.3 F (+ VB chains harness, projections) | 97 / 84 / 95 |
+| React Native `.ts` | 95.5 / 85.1 | 98.6 L / 86.3 B / 95.5 F (375 tests) | 98 / 86 / 95 |
+| IntelliJ plugin | 48.6 | 66.1 (Kover, 426 tests) | 65 |
+| VS Code extension | 96.2 / 79.3 | 97.2 L / 80.5 B | 97 / 92 / 96 / 80 |
+| E2E | shared suite only | shared (494/adapter) + `journeys` (30 run, 6 fixme) + slow-network probe + axe audit in CI | green |
+
+Verified locally (JDK 21, node 24, .NET net8 only): backend `mvn verify` over the CI `-pl` list incl. `coverage`; the web
+job (licences, design tokens, lint, lib build, three `test:coverage`, vaadin tsc/build/bundle budget); tooling job (Redwood
+15 suites + make-html/nls/amd checks + parity, MCP, prompt-to-app, RN tests + parity + tsc, VS Code incl. package, Figma);
+IntelliJ `test koverVerify`; .NET tests + line/branch floors; Python pytest + `[tool.mateu.coverage]` + mypy on 3.12 and 3.14;
+e2e mvc-app1 shared + journeys + renderer-vaadin (581 passed, 5 fixme skipped), slow-network 10/10, axe 0 violations on 16
+routes; renderer-vb: vb-smoke 11/11, vb-a11y 10/10, vb-slow-network 8/8, Playwright 65 (serially, as CI runs it).
+Not run locally: the other four adapters' shared suite, federation/YAML-federation projects, `journeys/yaml-proxy.spec.ts`
+(its upstream port 19395 is outside this session's port block), the net10.0 leg, `dotnet pack`, the Python wheel and
+lowest-deps jobs.
+
+### Bug-fix batch integration (2026-10-17, on `integration/coverage`, pending CI)
+Merged in order: `origin/master`, `fixes/groups`, `fixes/core`, `fixes/fields`, `fixes/web2`. Conflicts and their
+resolution:
+- `react-native/.../CrudRenderer.tsx` (groups vs S7's `crudListing` extraction): kept S7's imports + `flattenColumnGroups`.
+- MCP search in `McpService.cs` / `mcp.py` (S4 and fixes/core fixed the same bug): one state seeding per port (.NET
+  fixes/core's, Python S4's, which its test pins: no filters → state `None`).
+- `MateuViewController.test.ts` and Redwood `core/content.mjs` (S7/S5 vs fixes/web2): union of tests and imports.
+Integration fixes (one commit each):
+- `WireDiscriminatorsTest` (S2): `GridGroupColumnDto` out of `KNOWN_UNREGISTERED` and `KNOWN_STRANGERS` dropped —
+  fixes/core unregistered `BreadcrumbDto`; the Redwood/RN coverage maps lose `Breadcrumb` (parity.md regenerated).
+- .NET `McpTests`: two `McpBooks` fixtures (S4 + fixes/core) → S4's is `McpFilteredBooks` at `mcp-filtered-books`.
+- Stability page regenerated (fixes/fields added a public type to the crud archetype package).
+- libs/mateu S5 poll test followed the fixed `scheduleOnload` contract (fires while connected on the same view).
+- **Two web regressions the S8 journeys caught** (fixed in `ComponentElement`, +3 unit tests): "Save and next" in
+  the create/edit drawer kept the PREVIOUS record's typed title (the drawer form is now its own component and
+  restored local edits over a new server seed); and a listing an action returns in place (a drop, "Add a row")
+  kept stale rows — the OnLoad counts were carried over the re-render (the shared `returned-listing-reloads.spec`
+  fixes/web2 added failed too). OnLoad counts are now carried only when no user write happened since the last render.
+- Journeys: every `test.fixme` un-fixme'd and passing; the drawer's required field is now refused in the browser
+  (aria-invalid) instead of by a server banner; `shared/optimistic-lock.spec.ts` (fixes/fields) duplicated the
+  journey's lock tests on its own fixtures (both mvc-app1 only) → its one extra case (drawer Reload) moved into
+  `journeys/crud.spec.ts`, the spec and its `LockedArticle*` fixtures removed.
+
+Floors after the batch (all met, none lowered): core 89.4 L / 77.7 B; uidl/dtos/AP/adapters/bundle plugin as in the
+table above; .NET Uidl 98.9/90.7 · Core 96.2/85.0 · Dtos 99.9/100 · AspNetCore 98.3/84.9; Python 95.4 L / 88.1 B;
+libs/mateu 92.9/91.2/88.4/81.0; apps/vaadin 86.5/85.6/80.9/75.2; visual editor 80.7/78.2/76.7/70.2; Redwood poc
+98.0 L / 84.3 B / 95.2 F; RN 98.5/86.3/95.4; IntelliJ Kover 66.2. Tests: Java 2782 (core 2208), .NET 910 (net8),
+Python 971 (3.12 and 3.14), libs/mateu 2069, apps/vaadin 252, visual editor 484, VS Code 175, RN 382, Redwood 15
+suites, IntelliJ 433, MCP 19, prompt-to-app 8. E2E: mvc-app1 shared 501, journeys 37 (0 fixme; serial — with
+several workers the files reset each other's fixtures, CI runs one), renderer-vaadin 60, slow-network 10/10, axe 0
+violations on 16 routes; renderer-vb: vb-smoke 11/11, vb-a11y 10/10, vb-slow-network 8/8, Playwright 64 + 1 skipped.
+Not run locally: the other four adapters' shared suite, federation/YAML-federation projects, the net10.0 leg, the
+Python wheel and lowest-deps jobs (`dotnet pack` was run).
+
+### Production bugs found by the coverage streams — fixed
+All of S1–S8's list, by `fixes/groups` (grid column groups everywhere), `fixes/core` (MCP: `Crud` projection,
+filtered search with rows, screens under an app shell, `@EyesOnly` actions hidden; menu/AppShell routes under a
+mount routed once; YAML shell remote deep links; OpenAPI path parameters; `Hydratable` order; `@Composition`;
+master/detail selected button; LongTask text English + translatable; `BreadcrumbDto` unregistered; dead Helidon
+provider removed), `fixes/fields` (`BigInteger`/`Date`/`java.sql.Date`/`ZonedDateTime`/`File`/`Status`/`Optional`
+fields; `@Version` never an input; the optimistic-lock dialog sends the form's state, in English and translatable;
+`@SeparatorBefore` in a `@Tab`; Vaadin drawer client validation; bare definition-only Form with a Text pinned),
+`fixes/web` + `fixes/web2` (`?.` in validations; polls on fragment-filled elements; button routes with a missing
+value; `updateMedata`; read-only password masked (Vaadin, Redwood); REST blank sorting; by-ref REST sources on
+pages with no app shell — `UIIncrementDto.restSources`, all servers and renderers) and this integration (Save and
+next; a returned listing reloads its rows).
+
+### Still open
+- Redwood create/edit drawer client validation; Bean-validation (Hibernate) message locale; window title of a
+  definition-only page — another agent is on these (`fixes/extra`, not part of this integration).
+- Redwood Gantt issue: not reproduced.
+- npm / PyPI / NuGet packaging of the renderers: owner.
 
 ## Walkthrough results (all seven branches integrated: batch 1 = PR #802 on master; batch 2 = `integration/walkthrough-2`, pending CI)
 | area | branch | matrix | ✅ | 🔧 fixed | ❌ owner | not walked |

@@ -145,9 +145,10 @@ jobs:
           --test-coverage-exclude='test*.mjs' --test-coverage-exclude='make-*.mjs'
           --test-coverage-exclude='capture*.mjs' --test-coverage-exclude='probe*.mjs'
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
-          --test-coverage-lines=94 --test-coverage-functions=91 --test-coverage-branches=78
+          --test-coverage-lines=97 --test-coverage-functions=95 --test-coverage-branches=84
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
+          test-vb-chains.mjs test-projections.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -174,8 +175,8 @@ jobs:
         run: >-
           cd frontend/app/react-native && node --test --experimental-test-module-mocks
           --experimental-test-coverage --test-coverage-include='src/**/*.ts'
-          --test-coverage-exclude='src/**/*.test.ts' --test-coverage-lines=93
-          --test-coverage-branches=84 --test-coverage-functions=93 'src/**/*.test.ts'
+          --test-coverage-exclude='src/**/*.test.ts' --test-coverage-lines=98
+          --test-coverage-branches=86 --test-coverage-functions=95 'src/**/*.test.ts'
 
       - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
         run: cd frontend/app/react-native && node scripts/parity-check.mjs
@@ -354,15 +355,31 @@ jobs:
       - name: Start the YAML-only federation
         run: timeout 300 e2e/sut/yaml-federation/run.sh --no-build
 
+      # Every listed project: the shared suite on the five adapters, federation, renderer-vaadin, the
+      # YAML federation and `journeys` (tests/journeys — end-to-end user journeys on mvc-app1 only;
+      # yaml-proxy.spec.ts starts its own upstream on :19395).
       - name: Run Playwright tests
         run: cd e2e && YAML_FEDERATION=1 npx --no -- playwright test
+
+      # The web renderer under a bad connection (skeleton, busy control, no double submit, offline
+      # banner, Retry, 503 handling), against mvc-app1. Timing-based, so ONE retry: a real regression
+      # fails both runs.
+      - name: Slow-network probe (web renderer)
+        run: cd e2e && (BASE=http://localhost:8080 OUT=slow-network-shots node slow-network-probe.mjs || (sleep 5 && BASE=http://localhost:8080 OUT=slow-network-shots node slow-network-probe.mjs))
+
+      # axe-core (WCAG 2.1 A/AA) over representative routes, journeys included; fails on any
+      # violation or on a route it could not scan (a11y-audit.mjs).
+      - name: Accessibility audit (axe)
+        run: cd e2e && BASE=http://localhost:8080 ROUTES=/,/all-types,/validation,/app,/items,/tabs,/sections,/accordion,/capability-books,/j/tasks,/j/stock,/j/sales,/j/charges,/j/fields,/j/roles,/j/proxied node a11y-audit.mjs
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report
-          path: e2e/playwright-report/
+          path: |
+            e2e/playwright-report/
+            e2e/slow-network-shots/
           retention-days: 7
 
   # The Python port (PyPI `mateu-ui`): the suite — including its wire-conformance runner, a HARD
@@ -390,6 +407,22 @@ jobs:
           cd backend/python
           python -m coverage run -m pytest -q -p no:cacheprovider tests/
           python -m coverage report
+      # coverage.py's fail_under is lines+branches COMBINED; gate each one on its own floor too
+      - name: Line and branch coverage floors (pyproject's [tool.mateu.coverage])
+        run: |
+          cd backend/python
+          python -m coverage json -q -o /tmp/python-coverage.json
+          python - <<'EOF'
+          import json, sys, tomllib
+          floors = tomllib.load(open("pyproject.toml", "rb"))["tool"]["mateu"]["coverage"]
+          totals = json.load(open("/tmp/python-coverage.json"))["totals"]
+          measured = {"lines": totals["percent_statements_covered"], "branches": totals["percent_branches_covered"]}
+          failed = False
+          for kind, floor in floors.items():
+              print(f"{kind}: {measured[kind]:.2f}% (floor {floor}%)")
+              failed |= measured[kind] < floor
+          sys.exit(1 if failed else 0)
+          EOF
       - name: Types
         run: cd backend/python && mypy
       - name: The wheel builds, installs and imports
@@ -561,6 +594,10 @@ jobs:
       # runs its own AdapterParityITFoundation suite (security, CORS, MCP, documents, error
       # boundary over real HTTP) and carries a coverage floor, as does the bundle plugin; the e2e
       # job above exercises them end to end on top.
+      #
+      # `coverage` (last) merges every module's JaCoCo data and gates mateu-uidl and mateu-dtos over
+      # ALL the suites — per module, uidl only counts its own tests and dtos has none, so neither
+      # had a meaningful gate. Its full cross-module report is uploaded below.
       - name: Build backend
         run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
@@ -576,7 +613,15 @@ jobs:
       - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
-          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core,mvc/mvc-core,micronaut/micronaut-core,quarkus/quarkus-core,helidon-mp/helidon-mp-core,mateu-bundle-maven-plugin
+          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core,mvc/mvc-core,micronaut/micronaut-core,quarkus/quarkus-core,helidon-mp/helidon-mp-core,mateu-bundle-maven-plugin,coverage
+
+      - name: Upload the cross-module coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: java-coverage
+          path: backend/coverage/target/site/
+          if-no-files-found: ignore
 
       - name: API compatibility report
         if: always()
@@ -607,9 +652,10 @@ jobs:
             8.0.x
             10.0.x
 
-      # coverlet (coverage.cobertura.xml per target framework) and a LINE floor per package. Measured
-      # when introduced: Uidl 93%, Core 93%, Dtos 99%, AspNetCore 98% — the floors sit just below
-      # so they catch a real regression, not a refactor; ratchet them up as suites grow.
+      # coverlet (coverage.cobertura.xml per target framework) and a LINE and a BRANCH floor per
+      # package — a ratchet at the measured values (2026-10-17, net8.0: lines Uidl 98.9 / Core 96.2 /
+      # Dtos 99.9 / AspNetCore 98.3; branches Uidl 90.7 / Core 84.8 / Dtos 100 / AspNetCore 84.9),
+      # rounded down. Raise them as suites grow; never lower one to make a PR pass.
       - name: .NET tests (net8.0 + net10.0) with coverage
         run: cd backend/dotnet && dotnet test --collect:"XPlat Code Coverage" --results-directory /tmp/dotnet-coverage
 
@@ -617,7 +663,8 @@ jobs:
         run: |
           python3 - <<'EOF'
           import glob, sys, xml.etree.ElementTree as ET
-          floors = {"Mateu.Uidl": 0.92, "Mateu.Core": 0.92, "Mateu.Dtos": 0.97, "Mateu.AspNetCore": 0.95}
+          floors = {"Mateu.Uidl": 0.98, "Mateu.Core": 0.96, "Mateu.Dtos": 0.99, "Mateu.AspNetCore": 0.98}
+          branch_floors = {"Mateu.Uidl": 0.90, "Mateu.Core": 0.84, "Mateu.Dtos": 0.95, "Mateu.AspNetCore": 0.84}
           reports = glob.glob("/tmp/dotnet-coverage/*/coverage.cobertura.xml")
           if not reports:
               sys.exit("no coverage report produced")
@@ -625,9 +672,13 @@ jobs:
           for report in reports:
               for package in ET.parse(report).getroot().iter("package"):
                   name, rate = package.get("name"), float(package.get("line-rate"))
-                  floor = floors.get(name)
-                  print(f"{report.split('/')[-2][:8]} {name}: {rate:.1%} (floor {floor})")
+                  branches = float(package.get("branch-rate"))
+                  floor, branch_floor = floors.get(name), branch_floors.get(name)
+                  print(f"{report.split('/')[-2][:8]} {name}: lines {rate:.1%} (floor {floor}), "
+                        f"branches {branches:.1%} (floor {branch_floor})")
                   if floor is not None and rate < floor:
+                      failed = True
+                  if branch_floor is not None and branches < branch_floor:
                       failed = True
           sys.exit(1 if failed else 0)
           EOF

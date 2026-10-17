@@ -192,11 +192,15 @@ public final class OpenApiEmitter {
 
     if (!call.params().isEmpty()) {
       var parameters = operation.putArray("parameters");
+      var inPath = pathParameters(call.url());
       for (var param : call.params()) {
         var parameter = parameters.addObject();
         parameter.put("name", param.name());
-        parameter.put("in", "query");
-        parameter.put("required", param.required());
+        // a value interpolated INTO the path is a path parameter ({id} in /orders/{id}), and
+        // OpenAPI requires those; everything else travels in the query
+        boolean path = inPath.contains(param.name());
+        parameter.put("in", path ? "path" : "query");
+        parameter.put("required", path || param.required());
         var type = SchemaTypes.parse(param.type());
         var schema = parameter.putObject("schema");
         schema.put("type", type.type());
@@ -358,15 +362,55 @@ public final class OpenApiEmitter {
     }
   }
 
-  /** The path part of a declared URL, always starting with a slash. */
+  /**
+   * The path part of a declared URL, always starting with a slash, with each value interpolated
+   * into it as an OpenAPI path template: {@code /orders/${state.id}} → {@code /orders/{id}}. (It
+   * used to come out as {@code /orders/_}, a literal segment no generated server could bind.)
+   */
   static String path(String url) {
+    var names = new ArrayList<String>();
+    var parseable = tokenized(url, names);
     try {
-      var uri = URI.create(stripPlaceholders(url));
-      var path = uri.getPath();
-      return path == null || path.isBlank() ? "/" : path;
+      var path = URI.create(parseable).getPath();
+      if (path == null || path.isBlank()) {
+        return "/";
+      }
+      for (int i = 0; i < names.size(); i++) {
+        path = path.replace(token(i), "{" + names.get(i) + "}");
+      }
+      return path;
     } catch (Exception e) {
       return "/";
     }
+  }
+
+  /** The names interpolated into the PATH of a declared URL (not its query or its host). */
+  static java.util.Set<String> pathParameters(String url) {
+    var found = new java.util.LinkedHashSet<String>();
+    var matcher = Pattern.compile("\\{([^}/]+)}").matcher(path(url));
+    while (matcher.find()) {
+      found.add(matcher.group(1));
+    }
+    return found;
+  }
+
+  /**
+   * The URL with each placeholder replaced by a parseable token; their names go to {@code names}.
+   */
+  private static String tokenized(String url, List<String> names) {
+    var matcher = PLACEHOLDER.matcher(url == null ? "" : url);
+    var out = new StringBuilder();
+    while (matcher.find()) {
+      var raw = matcher.group(1);
+      names.add(raw.contains(".") ? raw.substring(raw.lastIndexOf('.') + 1) : raw);
+      matcher.appendReplacement(out, token(names.size() - 1));
+    }
+    matcher.appendTail(out);
+    return out.toString();
+  }
+
+  private static String token(int index) {
+    return "mateuparam" + index + "x";
   }
 
   /** Placeholders make a URL unparseable; they are not part of the path anyway. */

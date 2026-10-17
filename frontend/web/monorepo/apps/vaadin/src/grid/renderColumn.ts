@@ -8,6 +8,9 @@ import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColu
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { columnBodyRenderer, columnFooterRenderer, columnHeaderRenderer } from "@vaadin/grid/lit";
+// renderGroup emits <vaadin-grid-column-group>: register it here, next to its only producer (left
+// unregistered, the grid laid out the extra header row with an EMPTY group header)
+import '@vaadin/grid/vaadin-grid-column-group.js';
 import { groupLabelColumnId, groupRowCellText, isGroupRow } from "@infra/ui/listingGroups.ts";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";

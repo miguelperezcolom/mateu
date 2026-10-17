@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cross-module coverage: the report and the gates that per-module JaCoCo cannot give.
+
+  Per-module JaCoCo only counts a module's OWN tests. That understates mateu-uidl (core's
+  TestMateu suites drive most of its public-API defaults) and gives mateu-dtos no report and no
+  gate at all (records exercised only by core and the adapters). This module, built after every
+  module whose tests run, does three things in `mvn verify`:
+
+    1. merges every module's execution data (`**/target/jacoco*.exec`) into target/jacoco.exec;
+    2. unpacks the classes of mateu-uidl and mateu-dtos into target/classes and gates them with a
+       BUNDLE floor each (lines and branches), measured over ALL the suites;
+    3. writes the full cross-module HTML/XML/CSV report (jacoco:report-aggregate) to
+       target/site/jacoco-aggregate.
+
+  Execution data from a module that did not run in the same build is simply absent; stale data from
+  an earlier build whose classes changed is ignored by JaCoCo (class ids do not match). With
+  -DskipTests nothing is merged or checked.
+
+  Internal: built and tested with the rest, never published (maven.deploy.skip + the parent's
+  central-publishing excludeArtifacts).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-parent</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+
+  <artifactId>mateu-coverage</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Mateu cross-module coverage</name>
+  <description>Aggregate JaCoCo report and the uidl/dtos coverage gates over every module's tests. Internal: not published.</description>
+
+  <properties>
+    <!-- internal: built and tested with the rest, never published to Maven Central -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+    <mateu.japicmp.skip>true</mateu.japicmp.skip>
+    <skipTests>false</skipTests>
+    <!-- Floors over ALL suites, at the value measured when last raised (2026-10): uidl 87.6% lines /
+         73.0% branches, dtos 84.5% / 87.4%. Ratchet up. -->
+    <coverage.uidl.lines>0.87</coverage.uidl.lines>
+    <coverage.uidl.branches>0.73</coverage.uidl.branches>
+    <coverage.dtos.lines>0.84</coverage.dtos.lines>
+    <coverage.dtos.branches>0.87</coverage.dtos.branches>
+  </properties>
+
+  <!-- Every module whose tests produce execution data: they order this module last in the reactor
+       and are what report-aggregate reads. No transitive dependencies: nothing is compiled here,
+       and pulling Spring, Quarkus, Micronaut and Helidon into one graph would only fight the
+       dependency-convergence rule. -->
+  <dependencies>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-uidl</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-dtos</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-core</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-annotation-processor-core</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-annotation-processor-indexer</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-mvc</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-webflux</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-micronaut</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-quarkus</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-helidon-mp</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-bundle-maven-plugin</artifactId><version>${project.version}</version>
+      <exclusions><exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.8.1</version>
+        <executions>
+          <!-- the classes the gates measure: the very bytes the suites ran (same reactor build) -->
+          <execution>
+            <id>unpack-gated-classes</id>
+            <phase>process-classes</phase>
+            <goals><goal>unpack</goal></goals>
+            <configuration>
+              <skip>${skipTests}</skip>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <includes>io/mateu/**/*.class</includes>
+              <artifactItems>
+                <artifactItem><groupId>io.mateu</groupId><artifactId>mateu-uidl</artifactId><version>${project.version}</version></artifactItem>
+                <artifactItem><groupId>io.mateu</groupId><artifactId>mateu-dtos</artifactId><version>${project.version}</version></artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <skip>${skipTests}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>merge-all-suites</id>
+            <phase>process-classes</phase>
+            <goals><goal>merge</goal></goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.basedir}/..</directory>
+                  <includes><include>**/target/jacoco*.exec</include></includes>
+                  <excludes><exclude>coverage/**</exclude></excludes>
+                </fileSet>
+              </fileSets>
+              <destFile>${project.build.directory}/jacoco.exec</destFile>
+            </configuration>
+          </execution>
+          <!-- the parent's per-module report/check, re-aimed at the unpacked uidl + dtos classes -->
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals><goal>report</goal></goals>
+            <configuration>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco-gated</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals><goal>check</goal></goals>
+            <configuration>
+              <includes><include>io/mateu/uidl/**</include></includes>
+              <rules combine.self="override">
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit><counter>LINE</counter><value>COVEREDRATIO</value><minimum>${coverage.uidl.lines}</minimum></limit>
+                    <limit><counter>BRANCH</counter><value>COVEREDRATIO</value><minimum>${coverage.uidl.branches}</minimum></limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>check-dtos</id>
+            <phase>verify</phase>
+            <goals><goal>check</goal></goals>
+            <configuration>
+              <includes><include>io/mateu/dtos/**</include></includes>
+              <rules combine.self="override">
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit><counter>LINE</counter><value>COVEREDRATIO</value><minimum>${coverage.dtos.lines}</minimum></limit>
+                    <limit><counter>BRANCH</counter><value>COVEREDRATIO</value><minimum>${coverage.dtos.branches}</minimum></limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>report-aggregate</id>
+            <phase>verify</phase>
+            <goals><goal>report-aggregate</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -125,7 +125,7 @@ test('REST listing: search over visible columns, typed filters, sort with blanks
   assert.equal(filterRestRows(rows, cols, [{ fieldId: '' }, { fieldId: 'name' }], { name: '' }).length, 3);
 
   assert.deepEqual(sortRestRows(rows, [{ fieldId: 'age', direction: 'ascending' }]).map((r) => r.name), ['Ana', 'Bob', 'Carla']);
-  assert.deepEqual(sortRestRows(rows, [{ field: 'age', direction: 'desc' }]).map((r) => r.name), ['Carla', 'Bob', 'Ana']);
+  assert.deepEqual(sortRestRows(rows, [{ field: 'age', direction: 'desc' }]).map((r) => r.name), ['Bob', 'Ana', 'Carla']);
   assert.deepEqual(sortRestRows([{ n: 'item10' }, { n: 'Item2' }], [{ fieldId: 'n' }]).map((r) => r.n), ['Item2', 'item10']);
   assert.deepEqual(sortRestRows([{ a: 1, b: 2 }, { a: 1, b: 1 }], [{ fieldId: 'a' }, { fieldId: 'b' }]).map((r) => r.b), [1, 2]);
   assert.equal(sortRestRows(rows, undefined), rows);
