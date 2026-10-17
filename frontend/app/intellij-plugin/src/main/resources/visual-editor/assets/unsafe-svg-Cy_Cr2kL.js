@@ -1139,7 +1139,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             <select style="${f}" ?disabled="${c}" @change="${Tm(n)}">
                 <option value="">—</option>
                 ${u.map(e=>l`<option value="${e.value}" ?selected="${e.value===r}">${e.label}</option>`)}
-            </select>`:o===`textarea`||o===`richText`||o===`html`?l`<textarea style="${f}" rows="3" ?disabled="${c}" @input="${Tm(n)}">${String(r??``)}</textarea>`:l`<input type="${a===`integer`||a===`number`||a===`double`||a===`money`?`number`:a===`date`?`date`:a===`datetime`?`datetime-local`:a===`time`?`time`:o===`password`?`password`:a===`email`?`email`:`text`}" style="${f}" .value="${String(r??``)}"
+            </select>`:o===`textarea`||o===`richText`||o===`html`?l`<textarea style="${f}" rows="3" .value="${String(r??``)}" ?disabled="${c}" @input="${Tm(n)}"></textarea>`:l`<input type="${a===`integer`||a===`number`||a===`double`||a===`money`?`number`:a===`date`?`date`:a===`datetime`?`datetime-local`:a===`time`?`time`:o===`password`?`password`:a===`email`?`email`:`text`}" style="${f}" .value="${String(r??``)}"
                               placeholder="${i.placeholder??p}" ?disabled="${c}" @input="${Tm(n)}">`,l`
         <div id="${e.id??p}" style="${e.style}" class="${e.cssClasses}" slot="${e.slot??p}">
             ${d}
@@ -2633,7 +2633,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                   style="${e.color?`--mateu-cal-accent: ${e.color};`:``}"
                   title="${(n?n+` `:``)+(e.title??``)}"
                   @click="${t=>this.clickEvent(e,t)}"
-                  @keydown="${G(()=>this.clickEvent(e))}">${n?l`<span class="time">${n}</span>`:p}${e.title}</span>`}dayCell(e,t,n=!0){let r=Xg(this.days,e),i=!!this.dayActionId,a=Jg(this.events,e),o=new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})+(r?.label?`, `+r.label:``)+(a.length?`, `+a.length+` event`+(a.length>1?`s`:``):``);return l`
+                  @keydown="${G(t=>this.clickEvent(e,t))}">${n?l`<span class="time">${n}</span>`:p}${e.title}</span>`}dayCell(e,t,n=!0){let r=Xg(this.days,e),i=!!this.dayActionId,a=Jg(this.events,e),o=new Date(e+`T00:00:00`).toLocaleDateString(void 0,{weekday:`long`,day:`numeric`,month:`long`})+(r?.label?`, `+r.label:``)+(a.length?`, `+a.length+` event`+(a.length>1?`s`:``):``);return l`
             <div class="cell ${e===Wg()?`today`:``} ${$g(r?.tone)} ${i?`clickable`:``}"
                  role="${i?`button`:p}" tabindex="${i?`0`:p}"
                  aria-label="${i?o:p}"
@@ -2914,7 +2914,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                 class="${e.cssClasses??p}"
                 slot="${e.slot??p}"
         ></mateu-org-chart>
-    `},o_=864e5,s_=class extends _{constructor(...e){super(...e),this.cells=[]}static{this.styles=h`
+    `},o_=e=>`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,`0`)}-${String(e.getDate()).padStart(2,`0`)}`,s_=class extends _{constructor(...e){super(...e),this.cells=[]}static{this.styles=h`
         :host {
             display: block;
             width: 100%;
@@ -2938,8 +2938,8 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
             margin-top: .15rem;
         }
         .legend .cell { width: 10px; height: 10px; }
-    `}color(e,t){if(e<=0||t<=0)return`var(--lumo-contrast-10pct, #ebedf0)`;let n=e/t;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round((n>.75?1:n>.5?.75:n>.25?.5:.3)*100)}%, transparent)`}render(){let e=this.cells.filter(e=>!!e.date);if(!e.length)return l``;let t=e.map(e=>new Date(e.date+`T00:00:00`).getTime()),n=Math.min(...t),r=Math.max(...t),i=new Date(n);i.setDate(i.getDate()-(i.getDay()+6)%7);let a={};for(let t of e)a[t.date]=t;let s=Math.max(...e.map(e=>e.value??0),1),c=[];for(let e=i.getTime();e<=r;e+=o_){let t=new Date(e),n=t.toISOString().slice(0,10),r=a[n],i=r?.value??0,o=(t.getDay()+6)%7+1,u=r?.label??`${n}: ${i}`;c.push(l`
-                <div class="cell" style="grid-row: ${o}; --cell: ${this.color(i,s)};" title="${u}"></div>
+    `}color(e,t){if(e<=0||t<=0)return`var(--lumo-contrast-10pct, #ebedf0)`;let n=e/t;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round((n>.75?1:n>.5?.75:n>.25?.5:.3)*100)}%, transparent)`}render(){let e=this.cells.filter(e=>!!e.date);if(!e.length)return l``;let t=e.map(e=>new Date(e.date+`T00:00:00`).getTime()),n=Math.min(...t),r=Math.max(...t),i=new Date(n);i.setDate(i.getDate()-(i.getDay()+6)%7);let a={};for(let t of e)a[t.date]=t;let s=Math.max(...e.map(e=>e.value??0),1),c=[];for(let e=new Date(i);e.getTime()<=r;e.setDate(e.getDate()+1)){let t=o_(e),n=a[t],r=n?.value??0,i=(e.getDay()+6)%7+1,o=n?.label??`${t}: ${r}`;c.push(l`
+                <div class="cell" style="grid-row: ${i}; --cell: ${this.color(r,s)};" title="${o}"></div>
             `)}return l`
             <div class="wrap">
                 <div class="grid">${c}</div>
@@ -3718,7 +3718,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                      style="${this.columns>1?`grid-template-columns: repeat(auto-fit, minmax(min(18rem, calc(100% / ${this.columns} - 1.5rem)), 1fr));`:``}">
                     ${this.items.map(e=>l`
                         <div role=${U(Yh(!!this.rowActionId))} tabindex=${U(Xh(!!this.rowActionId))} class="cell ${(e.lines?.length??0)>0?`with-lines`:``} ${this.rowActionId?`clickable`:``}"
-                             @click="${()=>this.rowClicked(e)}" @keydown="${G(()=>this.rowClicked(e))}">
+                             @click="${()=>this.rowClicked(e)}" @keydown="${G(t=>{t.target===t.currentTarget&&this.rowClicked(e)})}">
                             <div class="cell-title-row">
                                 ${t===`h4`?l`<h4 class="cell-title">${e.title}</h4>`:l`<h3 class="cell-title">${e.title}</h3>`}
                                 ${e.status?l`<span class="chip ${e.statusColor??``}">${e.status}</span>`:p}
@@ -4222,7 +4222,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                         ${e.label?l`<span class="group-label">${e.label}</span>`:p}
                         ${(e.items??[]).map(e=>l`
                             <div role="option" tabindex="0" aria-selected="${e.id===this.selectedId}" class="card ${e.id===this.selectedId?`selected`:``}"
-                                 @click="${()=>this.select(e.id)}" @keydown="${G(()=>this.select(e.id))}">
+                                 @click="${()=>this.select(e.id)}" @keydown="${G(t=>{t.target===t.currentTarget&&this.select(e.id)})}">
                                 <span class="title">${e.title}</span>
                                 <div class="meta">
                                     ${e.caption?l`<span class="caption">${e.caption}</span>`:p}
