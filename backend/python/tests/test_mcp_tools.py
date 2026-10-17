@@ -66,7 +66,7 @@ class DispatchTest(unittest.TestCase):
         mcp.dispatch_tool("mateu_search", {"route": "books", "searchText": "quij", "filters": {"classic": True}}, self.sync)
         mcp.dispatch_tool("mateu_search", {"route": "books"}, self.sync)
         self.assertEqual(self.calls, [
-            ("books", "search", {"classic": True}, {"searchText": "quij"}),
+            ("books", "search", {"classic": True, "searchText": "quij"}, {"searchText": "quij"}),
             ("books", "search", None, {}),
         ])
 
