@@ -16,6 +16,7 @@ export class FakeEvent {
   }
   preventDefault() { this.defaultPrevented = true }
   stopPropagation() { this.propagationStopped = true }
+  stopImmediatePropagation() { this.propagationStopped = true }
   composedPath() { return this.path || [] }
 }
 
@@ -300,6 +301,7 @@ export class FakeDocument extends Target {
     }
     return el
   }
+  createTextNode(text) { return new FakeText(String(text)) }
   createElementNS(ns, tag) { const e = this.createElement(tag); e.namespaceURI = ns; return e }
   getElementById(id) { return this.documentElement.querySelectorAll('[id]').find((e) => e.id === id) || null }
   querySelectorAll(sel) { return this.documentElement.querySelectorAll(sel).concat(this.documentElement.matches(sel) ? [this.documentElement] : []) }

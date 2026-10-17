@@ -142,7 +142,7 @@ const sent = []
 /** answer(match, response): match is (body, url) → bool; response an increment, a fn, or { status }. */
 const answer = (match, response) => routes.push({ match, response })
 const byRoute = (route, actionId = '') => (b) => b.route === route && (b.actionId || '') === actionId
-globalThis.fetch = async (url, init = {}) => {
+const fakeFetch = async (url, init = {}) => {
   const body = init.body ? JSON.parse(init.body) : {}
   sent.push({ url: String(url), body })
   const hit = routes.find((r) => r.match(body, String(url)))
@@ -154,6 +154,9 @@ globalThis.fetch = async (url, init = {}) => {
   if (res && res.status) return { ok: false, status: res.status, text: async () => 'boom', json: async () => ({}) }
   return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(res)), text: async () => JSON.stringify(res) }
 }
+// the page's fetch IS the window's (the editor preview wraps window.fetch, as in a browser)
+win.fetch = fakeFetch
+Object.defineProperty(globalThis, 'fetch', { get: () => win.fetch, set: (f) => { win.fetch = f }, configurable: true })
 const DOWN = { __network: true }
 
 // ── VB's context ──────────────────────────────────────────────────────────────────────────────
@@ -275,6 +278,46 @@ test('the shell follows the browser\'s back/forward (hash mode): the URL\'s rout
   await settle(); await settle()
   assert.equal(ctx.$application.variables.mateuSelectedRoute, '/elsewhere')
   assert.ok(!historyLog.some(([k]) => k === 'push'), 'going back does not push a new entry')
+})
+
+test('the visual editor\'s canvas: the shell boots with no backend, paints what the editor hands over, repaints each edit', async () => {
+  const posted = []
+  Object.assign(win, {
+    __mateuEditorPreview: true,
+    parent: { postMessage: (m) => posted.push(m) },
+    MutationObserver: class { observe() {} },
+    setTimeout, clearTimeout,
+  })
+  const send = (msg) => win.dispatchEvent(new FakeEvent('message', { data: msg, source: win.parent }))
+  const draft = (t) => ({ mateuPreview: 'render', fragment: { component: { type: 'ClientSide', metadata: { type: 'Text', text: t, container: 'p' }, children: [] } } })
+  try {
+    const ctx = newContext()
+    const booting = new chains.loadMateuShell().run(ctx)
+    await settle()
+    assert.ok(posted.some((m) => m.mateuPreview === 'hello'), 'the canvas says hello to the editor')
+    send(draft('Draft one')) // the route's load was waiting for it
+    await booting
+    const v = ctx.$application.variables
+    const painted = () => JSON.stringify([v.mateuHostText, v.mateuHostContent])
+    assert.match(painted(), /Draft one/)
+    assert.equal(v.mateuSelectedRoute, bridge.PREVIEW_ROUTE)
+    assert.equal(sent.length, 0, 'not one request left the page: the editor answered them')
+    assert.ok(doc.documentElement.classList.contains('mateu-editor-preview'))
+    send(draft('Draft two')) // an edit in the editor
+    for (let i = 0; i < 6; i++) await settle()
+    assert.match(painted(), /Draft two/)
+    assert.ok(calls.some((c) => c[0] === 'callChain' && c[1] === 'onMateuNavigate' && c[2].force), 'repainted by re-running the route')
+    // a click on the canvas selects instead of acting
+    const clicked = new FakeEvent('click', { bubbles: true })
+    win.dispatchEvent(clicked)
+    assert.equal(clicked.defaultPrevented, true)
+    assert.ok(posted.some((m) => m.mateuPreview === 'click'))
+  } finally {
+    win.fetch = fakeFetch
+    delete win.__mateuEditorPreview
+    bridge.setEditorNodeIds(false)
+    doc.documentElement.classList.remove('mateu-editor-preview')
+  }
 })
 
 // ═══ onMateuNavigate ══════════════════════════════════════════════════════════════════════════
