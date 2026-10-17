@@ -84,7 +84,19 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         var output = actionHandler.handleAction(actionId, httpRequest, this);
 
         if (output instanceof CrudActionResult result) {
-          return CrudActionResultAssembler.assemble(result, this, httpRequest);
+          output = CrudActionResultAssembler.assemble(result, this, httpRequest);
+        }
+        if (OptimisticLock.fromConflictDialog(httpRequest)) {
+          // a conflict-dialog button: whatever it answers, the dialog it was pressed in closes
+          // (it is the topmost overlay — an edit drawer under it is closed, or not, by the answer)
+          var closing = new java.util.ArrayList<Object>();
+          closing.add(io.mateu.uidl.data.UICommand.closeModal());
+          if (output instanceof java.util.Collection<?> many) {
+            closing.addAll(many);
+          } else if (output != null) {
+            closing.add(output);
+          }
+          return closing;
         }
 
         return output;

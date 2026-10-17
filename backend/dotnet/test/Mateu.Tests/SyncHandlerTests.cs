@@ -717,6 +717,13 @@ public class Articles : Crud<Article>
     public override void Save(Article entity) => Store[entity.Id] = entity;
 }
 
+// The same locked articles edited in the create/edit drawer.
+[UI("articles-drawer"), Title("Articles")]
+public class ArticlesInDrawer : Articles
+{
+    public override bool EditInDrawer => true;
+}
+
 // Notification inbox (mirrors the Java NotificationsSyncTest fixtures): an app implementing
 // INotificationsSupplier over a static in-memory inbox, plus one without the interface.
 [App("Inbox App")]
@@ -2945,7 +2952,7 @@ public class SyncHandlerTests
 
         var inc = Handler().Handle(ArticleSave(version: 1, name: "Final"));
 
-        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.DoesNotContain("Modified by another user", Render(inc));
         Assert.Equal("Final", Articles.Store["a1"].Name);
         Assert.Equal(2, Articles.Store["a1"].Version);
     }
@@ -2962,11 +2969,12 @@ public class SyncHandlerTests
         var frag = Assert.Single(inc.Fragments);
         Assert.Equal("Add", frag.Action);
         var json = Render(inc);
-        Assert.Contains("Modificado por otro usuario", json);
-        // Recargar discards my changes; Sobrescribir re-sends the save with _forceOverwrite.
-        Assert.Contains("\"label\":\"Recargar\",\"actionId\":\"cancel-edit\"", json);
-        Assert.Contains("\"label\":\"Sobrescribir\",\"actionId\":\"save\"", json);
-        Assert.Contains("\"parameters\":{\"_forceOverwrite\":true}", json);
+        Assert.Contains("Modified by another user", json);
+        // Reload discards my changes; Overwrite re-sends the save with _forceOverwrite; both carry
+        // the marker that makes their answer close the dialog.
+        Assert.Contains("\"label\":\"Reload\",\"actionId\":\"cancel-edit\"", json);
+        Assert.Contains("\"label\":\"Overwrite\",\"actionId\":\"save\"", json);
+        Assert.Contains("\"parameters\":{\"_conflictDialog\":true,\"_forceOverwrite\":true}", json);
         Assert.Equal("Their title", Articles.Store["a1"].Name);
         Assert.Equal(2, Articles.Store["a1"].Version);
     }
@@ -2979,7 +2987,7 @@ public class SyncHandlerTests
 
         var inc = Handler().Handle(ArticleSave(version: 1, name: "My title", forceOverwrite: true));
 
-        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.DoesNotContain("Modified by another user", Render(inc));
         Assert.Equal("My title", Articles.Store["a1"].Name);
         // adopted the stored 2, bumped to 3 — the stale 1 never resurrects
         Assert.Equal(3, Articles.Store["a1"].Version);
@@ -3003,10 +3011,10 @@ public class SyncHandlerTests
         });
 
         var json = Render(inc);
-        Assert.Contains("Modificado por otro usuario", json);
-        // Recargar re-runs the search; Sobrescribir re-sends update-row with the SAME edited row.
-        Assert.Contains("\"label\":\"Recargar\",\"actionId\":\"search\"", json);
-        Assert.Contains("\"label\":\"Sobrescribir\",\"actionId\":\"update-row\"", json);
+        Assert.Contains("Modified by another user", json);
+        // Reload re-runs the search; Overwrite re-sends update-row with the SAME edited row.
+        Assert.Contains("\"label\":\"Reload\",\"actionId\":\"search\"", json);
+        Assert.Contains("\"label\":\"Overwrite\",\"actionId\":\"update-row\"", json);
         Assert.Contains("\"_editedRow\":{\"id\":\"a1\",\"name\":\"My title\",\"version\":1}", json);
         Assert.Equal("Their title", Articles.Store["a1"].Name);
         Assert.Equal(2, Articles.Store["a1"].Version);
@@ -3028,6 +3036,71 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void A_conflict_dialog_button_closes_the_dialog_with_its_answer()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+        var overwrite = ArticleSave(version: 1, name: "My title", forceOverwrite: true) with
+        {
+            Parameters = new()
+            {
+                ["_forceOverwrite"] = JsonSerializer.SerializeToElement(true),
+                ["_conflictDialog"] = JsonSerializer.SerializeToElement(true),
+            },
+        };
+        var inc = Handler().Handle(overwrite);
+        Assert.Equal("CloseModal", inc.Commands[0].Type);
+        Assert.Equal("My title", Articles.Store["a1"].Name);
+
+        var reload = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "cancel-edit",
+            Route = "articles/a1/edit",
+            ServerSideType = typeof(Articles).FullName,
+            Parameters = new() { ["_conflictDialog"] = JsonSerializer.SerializeToElement(true) },
+        });
+        Assert.Equal("CloseModal", reload.Commands[0].Type);
+    }
+
+    private static RunActionRqDto DrawerRun(string actionId, string name, long version, params (string Key, bool Value)[] parameters) => new()
+    {
+        ActionId = actionId,
+        Route = "articles-drawer/a1/edit",
+        ServerSideType = typeof(ArticlesInDrawer).FullName,
+        ComponentState = new()
+        {
+            ["id"] = JsonSerializer.SerializeToElement("a1"),
+            ["name"] = JsonSerializer.SerializeToElement(name),
+            ["version"] = JsonSerializer.SerializeToElement(version),
+        },
+        Parameters = parameters.ToDictionary(p => p.Key, p => (object?)JsonSerializer.SerializeToElement(p.Value)),
+    };
+
+    [Fact]
+    public void In_the_drawer_overwrite_closes_the_dialog_and_the_drawer_without_adding_a_row()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+        var inc = Handler().Handle(DrawerRun("save", "My title", 1, ("_forceOverwrite", true), ("_conflictDialog", true)));
+        Assert.Equal(2, inc.Commands.Count(c => c.Type == "CloseModal"));
+        Assert.Single(Articles.Store);
+        Assert.Equal("My title", Articles.Store["a1"].Name);
+    }
+
+    [Fact]
+    public void In_the_drawer_reload_refreshes_it_with_their_version()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+        var inc = Handler().Handle(DrawerRun("cancel-edit", "My title", 1, ("_conflictDialog", true)));
+        Assert.Equal(1, inc.Commands.Count(c => c.Type == "CloseModal"));
+        var json = Render(inc);
+        Assert.Contains("Drawer", json);
+        Assert.Contains("Their title", json);
+        Assert.DoesNotContain("My title", json);
+    }
+
+    [Fact]
     public void Entities_without_a_version_property_save_as_before()
     {
         StockCrud.Store.Clear();
@@ -3041,7 +3114,7 @@ public class SyncHandlerTests
             ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Bolts XL") },
         });
 
-        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.DoesNotContain("Modified by another user", Render(inc));
         Assert.Equal("Bolts XL", StockCrud.Store["s1"].Name);
     }
 

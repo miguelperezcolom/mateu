@@ -82,11 +82,20 @@ class OptimisticLockSyncTest {
     }
   }
 
+  @UI("/locked-articles-drawer")
+  @Title("Articles")
+  public static class ArticlesInDrawerCrud extends ArticlesCrud {
+    @Override
+    public boolean editInDrawer() {
+      return true;
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ArticlesCrud.class);
+    mateu = TestMateu.withUis(ArticlesCrud.class, ArticlesInDrawerCrud.class);
   }
 
   @AfterAll
@@ -171,7 +180,7 @@ class OptimisticLockSyncTest {
     var increment = save(articleState("My change", 1), null);
     var dialog = findDialog(increment);
     assertThat(dialog).isNotNull();
-    assertThat(dialog.headerTitle()).isEqualTo("Modificado por otro usuario");
+    assertThat(dialog.headerTitle()).isEqualTo("Modified by another user");
     var stored = ARTICLES.get(0);
     assertThat(stored.name).isEqualTo("Their change");
     assertThat(stored.version).isEqualTo(2);
@@ -180,7 +189,7 @@ class OptimisticLockSyncTest {
   @Test
   void overwriteFromTheDialogWinsExplicitlyAndKeepsMovingTheVersionForward() {
     save(articleState("Their change", 1), null);
-    // the dialog's Sobrescribir button re-dispatches save with _forceOverwrite
+    // the dialog's Overwrite button re-dispatches save with _forceOverwrite
     var increment = save(articleState("My change", 1), Map.of("_forceOverwrite", true));
     assertThat(findDialog(increment)).isNull();
     var stored = ARTICLES.get(0);
@@ -227,5 +236,130 @@ class OptimisticLockSyncTest {
             .map(FormFieldDto::fieldId)
             .toList();
     assertThat(creation).contains("name").doesNotContain("version");
+  }
+
+  // ── what the BROWSER sends ──────────────────────────────────────────────────────────────────
+  // The edit form bubbles its save up to the crud component: componentState is the CRUD PAGE's
+  // state and the form travels as parameters.initiatorState. The conflict dialog is added to the
+  // crud component, so its buttons dispatch from there — with the crud's state and only the
+  // parameters the button itself carries. Before the fix the buttons carried no form state: no
+  // id, no fields (Overwrite navigated to /null, or created a duplicate row in the drawer).
+
+  private static final Map<String, Object> CRUD_PAGE_STATE =
+      Map.of(
+          "_route",
+          "/1/edit",
+          "_componentRoute",
+          "/locked-articles",
+          "crud_selected_items",
+          List.of());
+
+  private UIIncrementDto browserRun(
+      Class<?> crud, String route, String actionId, Map<String, Object> parameters) {
+    return mateu.run(
+        RunActionRqDto.builder()
+            .route(route)
+            .consumedRoute("_empty")
+            .serverSideType(crud.getName())
+            .actionId(actionId)
+            .initiatorComponentId("_ux_app")
+            .componentState(CRUD_PAGE_STATE)
+            .parameters(parameters)
+            .build());
+  }
+
+  private UIIncrementDto browserSave(Class<?> crud, String name, long version) {
+    var form = articleState(name, version);
+    return browserRun(crud, "/1/edit", "save", Map.of("initiatorState", form));
+  }
+
+  /** Presses a dialog button exactly as the browser does: its actionId + its own parameters. */
+  @SuppressWarnings("unchecked")
+  private UIIncrementDto press(Class<?> crud, DialogDto dialog, String label) {
+    var buttons = new ArrayList<io.mateu.dtos.ButtonDto>();
+    collectButtons(dialog.content(), buttons);
+    var button = buttons.stream().filter(b -> label.equals(b.label())).findFirst().orElseThrow();
+    return browserRun(
+        crud, "/1/edit", button.actionId(), (Map<String, Object>) button.parameters());
+  }
+
+  private static void collectButtons(Object node, List<io.mateu.dtos.ButtonDto> out) {
+    if (node instanceof io.mateu.dtos.ClientSideComponentDto client) {
+      if (client.metadata() instanceof io.mateu.dtos.ButtonDto button) {
+        out.add(button);
+      }
+      client.children().forEach(child -> collectButtons(child, out));
+    }
+  }
+
+  private static long closes(UIIncrementDto increment) {
+    return increment.commands().stream()
+        .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.CloseModal)
+        .count();
+  }
+
+  private DialogDto browserConflict(Class<?> crud) {
+    browserSave(crud, "Their change", 1);
+    var dialog = findDialog(browserSave(crud, "My change", 1));
+    assertThat(dialog).isNotNull();
+    return dialog;
+  }
+
+  @Test
+  void theDialogIsEnglishAndItsButtonsCarryTheEditForm() {
+    var dialog = browserConflict(ArticlesCrud.class);
+    assertThat(dialog.headerTitle()).isEqualTo("Modified by another user");
+    var buttons = new ArrayList<io.mateu.dtos.ButtonDto>();
+    collectButtons(dialog.content(), buttons);
+    assertThat(buttons)
+        .extracting(io.mateu.dtos.ButtonDto::label)
+        .containsExactly("Reload", "Overwrite");
+    assertThat(buttons)
+        .allSatisfy(
+            b ->
+                assertThat(b.parameters().toString())
+                    .contains("initiatorState")
+                    .contains("My change"));
+  }
+
+  @Test
+  void overwriteFromTheBrowserSavesMyEditAndClosesTheDialog() {
+    var dialog = browserConflict(ArticlesCrud.class);
+    var increment = press(ArticlesCrud.class, dialog, "Overwrite");
+    assertThat(findDialog(increment)).isNull();
+    assertThat(ARTICLES).hasSize(1);
+    assertThat(ARTICLES.get(0).name).isEqualTo("My change");
+    assertThat(ARTICLES.get(0).version).isEqualTo(3);
+    assertThat(closes(increment)).as("the dialog closes").isEqualTo(1);
+    assertThat(increment.toString()).doesNotContain("/null").contains("/locked-articles/1");
+  }
+
+  @Test
+  void reloadFromTheBrowserShowsTheirsAndClosesTheDialog() {
+    var dialog = browserConflict(ArticlesCrud.class);
+    var increment = press(ArticlesCrud.class, dialog, "Reload");
+    assertThat(closes(increment)).isEqualTo(1);
+    assertThat(increment.toString()).doesNotContain("/null").contains("/locked-articles/1");
+    assertThat(ARTICLES.get(0).name).isEqualTo("Their change");
+  }
+
+  @Test
+  void overwriteInTheDrawerUpdatesTheRowInsteadOfAddingOne() {
+    var dialog = browserConflict(ArticlesInDrawerCrud.class);
+    var increment = press(ArticlesInDrawerCrud.class, dialog, "Overwrite");
+    assertThat(ARTICLES).hasSize(1);
+    assertThat(ARTICLES.get(0).name).isEqualTo("My change");
+    // the dialog AND the drawer under it close (the second emits the saved event)
+    assertThat(closes(increment)).isEqualTo(2);
+  }
+
+  @Test
+  void reloadInTheDrawerRefreshesItWithTheirVersion() {
+    var dialog = browserConflict(ArticlesInDrawerCrud.class);
+    var increment = press(ArticlesInDrawerCrud.class, dialog, "Reload");
+    assertThat(closes(increment)).as("only the dialog closes").isEqualTo(1);
+    assertThat(increment.fragments())
+        .anySatisfy(f -> assertThat(f.component().toString()).contains("Drawer"));
+    assertThat(increment.toString()).contains("Their change").doesNotContain("My change");
   }
 }

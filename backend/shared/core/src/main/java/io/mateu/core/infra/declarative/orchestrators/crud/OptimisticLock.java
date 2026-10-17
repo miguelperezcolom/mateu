@@ -137,37 +137,100 @@ public final class OptimisticLock {
   }
 
   /**
-   * The conflict dialog: reload (discard my changes and see theirs) or overwrite (my version wins,
-   * explicitly — the overwrite button re-dispatches the save action with {@code _forceOverwrite}
-   * merged into its parameters). Buttons bubble to the initiator component, which advertises both
-   * actions.
+   * Stamped on both conflict-dialog buttons: the action they re-dispatch answers by closing the
+   * dialog too (see {@link Crud#handleAction}). Without it the dialog stayed open over the result.
+   */
+  public static final String FROM_CONFLICT_DIALOG = "_conflictDialog";
+
+  /** Whether this request was dispatched by a conflict-dialog button. */
+  public static boolean fromConflictDialog(HttpRequest httpRequest) {
+    var parameters = httpRequest == null ? null : httpRequest.runActionRq().parameters();
+    return parameters != null
+        && Boolean.TRUE.equals(toBoolean(parameters.get(FROM_CONFLICT_DIALOG)));
+  }
+
+  /**
+   * The edit form's state as this request carried it: the {@code initiatorState} the editor bubbles
+   * its save with (what the browser sends), else the component state.
+   */
+  @SuppressWarnings("unchecked")
+  public static java.util.Map<String, Object> editorState(HttpRequest httpRequest) {
+    var rq = httpRequest.runActionRq();
+    if (rq.parameters() != null
+        && rq.parameters().get("initiatorState") instanceof java.util.Map<?, ?> state) {
+      return (java.util.Map<String, Object>) state;
+    }
+    return rq.componentState() != null
+        ? (java.util.Map<String, Object>) rq.componentState()
+        : java.util.Map.of();
+  }
+
+  /**
+   * @see #conflictDialog(String, String, String, java.util.Map, java.util.Map, HttpRequest)
    */
   public static io.mateu.uidl.data.Dialog conflictDialog(
       String text,
       String reloadActionId,
       String overwriteActionId,
       java.util.Map<String, Object> overwriteParameters) {
-    var parameters = new java.util.LinkedHashMap<String, Object>();
+    return conflictDialog(text, reloadActionId, overwriteActionId, overwriteParameters, null, null);
+  }
+
+  /**
+   * The conflict dialog: reload (discard my changes and see theirs) or overwrite (my version wins,
+   * explicitly — the overwrite button re-dispatches the save action with {@code _forceOverwrite}
+   * merged into its parameters).
+   *
+   * <p>The dialog is added to the crud component, NOT to the form that was saved, so its buttons
+   * dispatch from the crud and send the crud's state: no id, no fields. Whatever the re-dispatched
+   * action needs from the form travels in {@code carried} — merged into BOTH buttons' parameters
+   * (the editor's {@code initiatorState}) — and {@link #FROM_CONFLICT_DIALOG} makes the answer
+   * close the dialog. Texts are English, through the app's Translator.
+   */
+  public static io.mateu.uidl.data.Dialog conflictDialog(
+      String text,
+      String reloadActionId,
+      String overwriteActionId,
+      java.util.Map<String, Object> overwriteParameters,
+      java.util.Map<String, Object> carried,
+      HttpRequest httpRequest) {
+    var reloadParameters = new java.util.LinkedHashMap<String, Object>();
+    reloadParameters.put(FROM_CONFLICT_DIALOG, true);
+    if (carried != null) {
+      reloadParameters.putAll(carried);
+    }
+    var parameters = new java.util.LinkedHashMap<String, Object>(reloadParameters);
     parameters.put("_forceOverwrite", true);
     if (overwriteParameters != null) {
       parameters.putAll(overwriteParameters);
     }
     return io.mateu.uidl.data.Dialog.builder()
-        .headerTitle("Modificado por otro usuario")
+        .headerTitle(
+            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                "Modified by another user", httpRequest))
         .content(
             io.mateu.uidl.data.VerticalLayout.builder()
                 .content(
                     java.util.List.of(
-                        io.mateu.uidl.data.Text.builder().text(text).build(),
+                        io.mateu.uidl.data.Text.builder()
+                            .text(
+                                io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                                    text, httpRequest))
+                            .build(),
                         io.mateu.uidl.data.HorizontalLayout.builder()
                             .content(
                                 java.util.List.of(
                                     io.mateu.uidl.data.Button.builder()
-                                        .label("Recargar")
+                                        .label(
+                                            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                                                "Reload", httpRequest))
                                         .actionId(reloadActionId)
+                                        .parameters(reloadParameters)
                                         .build(),
                                     io.mateu.uidl.data.Button.builder()
-                                        .label("Sobrescribir")
+                                        .label(
+                                            io.mateu.core.infra.declarative.BuiltInTexts.translate(
+                                                "Overwrite", httpRequest))
                                         .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
                                         .actionId(overwriteActionId)
                                         .parameters(parameters)

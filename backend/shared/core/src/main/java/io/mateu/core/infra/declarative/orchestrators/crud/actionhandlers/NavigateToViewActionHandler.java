@@ -15,6 +15,15 @@ public class NavigateToViewActionHandler implements CrudOrchestratorActionHandle
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     if (orchestrator.editInDrawer()) {
+      if ("cancel-edit".equals(actionId)
+          && io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.fromConflictDialog(
+              httpRequest)) {
+        // the conflict dialog's Reload: discard my changes and show THEIRS in the same drawer
+        // (the open drawer is refreshed in place) — Crud.handleAction closes the dialog
+        return List.of(
+            new EditActionHandler().handleAction("edit", httpRequest, orchestrator),
+            UICommand.markAsClean());
+      }
       if ("cancel-edit".equals(actionId)) {
         // dismissing the edit drawer: close it and clear the unsaved-changes flag the drawer's
         // form set — the listing underneath was never left, so there is nothing to navigate to

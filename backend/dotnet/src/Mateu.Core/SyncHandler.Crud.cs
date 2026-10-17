@@ -25,7 +25,38 @@ public sealed partial class SyncHandler
         return null;
     }
 
+    /// <summary>Stamped on both conflict-dialog buttons: the action they re-dispatch answers by
+    /// closing the dialog too (Java's OptimisticLock.FROM_CONFLICT_DIALOG). Without it the dialog
+    /// stayed open over the result.</summary>
+    internal const string FromConflictDialog = "_conflictDialog";
+
+    private static bool IsFromConflictDialog(RunActionRqDto rq) =>
+        string.Equals(StateString(GetState(rq.Parameters, FromConflictDialog)), "true",
+            StringComparison.OrdinalIgnoreCase);
+
     private UIIncrementDto HandleCrud(Type crudType, Type element, string baseRoute, RunActionRqDto rq)
+    {
+        var answer = HandleCrudAction(crudType, element, baseRoute, rq);
+        // a conflict-dialog button: whatever it answers, the dialog it was pressed in closes (the
+        // topmost overlay — an edit drawer under it is closed, or not, by the answer)
+        return IsFromConflictDialog(rq)
+            ? answer with
+            {
+                Commands = [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }, .. answer.Commands],
+            }
+            : answer;
+    }
+
+    /// <summary>The edit drawer re-sent with the STORED record (refreshed in place), its unsaved
+    /// changes cleared.</summary>
+    private UIIncrementDto ReloadedDrawer(Type crudType, Type element, object crud, string id, string baseRoute, RunActionRqDto rq)
+    {
+        var drawer = CrudDrawer(crudType, element, GetOrNew(crud, crudType, element, id), "edit",
+            $"{baseRoute}/{id}/edit", rq, crud);
+        return drawer with { Commands = [.. drawer.Commands, new UICommandDto(Target(rq), "MarkAsClean", null)] };
+    }
+
+    private UIIncrementDto HandleCrudAction(Type crudType, Type element, string baseRoute, RunActionRqDto rq)
     {
         ActionGuard.EnsureViewVisible(crudType);
         var crud = Activator.CreateInstance(crudType)!;
@@ -65,6 +96,10 @@ public sealed partial class SyncHandler
             "view" or "edit" when EditInDrawer(crud) && RowId(rq, element) is { } rowId =>
                 CrudDrawer(crudType, element, GetOrNew(crud, crudType, element, rowId), "edit",
                     $"{baseRoute}/{rowId}/edit", rq, crud),
+            // the conflict dialog's Reload: discard my changes and show THEIRS in the same drawer
+            // (the open drawer is refreshed in place); HandleCrud closes the dialog
+            "cancel-edit" when EditInDrawer(crud) && IsFromConflictDialog(rq) && (id ?? RowId(rq, element)) is { } reloadId =>
+                ReloadedDrawer(crudType, element, crud, reloadId, baseRoute, rq),
             "cancel-new" or "cancel-edit" or "cancel-view" when EditInDrawer(crud) =>
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "MarkAsClean", null)]),
@@ -242,8 +277,8 @@ public sealed partial class SyncHandler
         {
             if (IsStale(entity, storedVersion, rq))
                 return ConflictDialog(
-                    "Este registro ha cambiado mientras lo editabas. Puedes recargar para ver los"
-                    + " cambios (perdiendo los tuyos) o sobrescribir con tu versión.",
+                    "This record changed while you were editing it. Reload to see the changes"
+                    + " (losing yours) or overwrite them with your version.",
                     "cancel-edit", rq.ActionId!, null, rq);
             BumpVersion(entity);
         }
@@ -312,7 +347,7 @@ public sealed partial class SyncHandler
     /// <summary>Persists a single row edited in place in the listing grid (inline editing). The
     /// edited row travels in the _editedRow action parameter (mirrors Java's
     /// UpdateRowActionHandler → FilteredAutoCrud.updateRow: rebuild the entity, save).</summary>
-    private static UIIncrementDto UpdateRow(object crud, Type crudType, Type element, RunActionRqDto rq)
+    private UIIncrementDto UpdateRow(object crud, Type crudType, Type element, RunActionRqDto rq)
     {
         if (!rq.Parameters.TryGetValue("_editedRow", out var raw)
             || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
@@ -323,14 +358,14 @@ public sealed partial class SyncHandler
         var entity = New(element);
         BindState(entity, row);
 
-        // Optimistic locking ([Version] property): Sobrescribir re-sends the SAME edited row (the
-        // button's parameters merge into the action request), Recargar re-runs the search.
+        // Optimistic locking ([Version] property): Overwrite re-sends the SAME edited row (the
+        // button's parameters merge into the action request), Reload re-runs the search.
         var id = element.GetProperty("Id")?.GetValue(entity)?.ToString();
         var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
         if (IsStale(entity, StoredVersionOf(stored), rq))
             return ConflictDialog(
-                "Esta fila ha cambiado mientras la editabas. Recarga para ver los cambios o"
-                + " sobrescribe con tu versión.",
+                "This row changed while you were editing it. Reload to see the changes or"
+                + " overwrite them with your version.",
                 "search", "update-row",
                 new Dictionary<string, object?> { ["_editedRow"] = rowEl }, rq);
         BumpVersion(entity);
@@ -401,30 +436,33 @@ public sealed partial class SyncHandler
     /// <summary>The conflict dialog (mirrors Java's OptimisticLock.conflictDialog): reload
     /// (discard my changes and see theirs) or overwrite (my version wins, explicitly — the button
     /// re-dispatches the save action with _forceOverwrite merged into its parameters). Emitted
-    /// like any action-returned overlay: an Add fragment on the initiator.</summary>
-    private static UIIncrementDto ConflictDialog(
+    /// like any action-returned overlay: an Add fragment on the initiator. Both buttons carry
+    /// <see cref="FromConflictDialog"/> so their answer closes it; English texts through the
+    /// app's translator.</summary>
+    private UIIncrementDto ConflictDialog(
         string text, string reloadActionId, string overwriteActionId,
         IReadOnlyDictionary<string, object?>? overwriteParameters, RunActionRqDto rq)
     {
-        var parameters = new Dictionary<string, object?> { ["_forceOverwrite"] = true };
+        var reloadParameters = new Dictionary<string, object?> { [FromConflictDialog] = true };
+        var parameters = new Dictionary<string, object?>(reloadParameters) { ["_forceOverwrite"] = true };
         foreach (var (key, value) in overwriteParameters ?? new Dictionary<string, object?>())
             parameters[key] = value;
         return MapResult(new Dialog
         {
-            HeaderTitle = "Modificado por otro usuario",
+            HeaderTitle = _mapper.Translate("Modified by another user"),
             Width = "30rem",
             Content = new VerticalLayout
             {
                 Content =
                 [
-                    new Text(text),
+                    new Text(_mapper.Translate(text)),
                     new HorizontalLayout
                     {
                         Style = "justify-content: flex-end; gap: 0.5rem;",
                         Content =
                         [
-                            new Button("Recargar", reloadActionId),
-                            new Button("Sobrescribir", overwriteActionId)
+                            new Button(_mapper.Translate("Reload"), reloadActionId) { Parameters = reloadParameters },
+                            new Button(_mapper.Translate("Overwrite"), overwriteActionId)
                             {
                                 Primary = true,
                                 Parameters = parameters,

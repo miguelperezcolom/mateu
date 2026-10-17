@@ -28,14 +28,16 @@ public class UpdateRowActionHandler implements CrudOrchestratorActionHandler {
     } catch (
         io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.StaleEditException
             conflict) {
-      // inline-edit conflict: same reload/overwrite dialog; Sobrescribir re-sends the SAME edited
-      // row (the button's parameters merge into the action request), Recargar re-runs the search
+      // inline-edit conflict: same reload/overwrite dialog; Overwrite re-sends the SAME edited row
+      // (the button's parameters merge into the action request), Reload re-runs the search
       return io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.conflictDialog(
-          "Esta fila ha cambiado mientras la editabas. Recarga para ver los cambios o sobrescribe"
-              + " con tu versión.",
+          "This row changed while you were editing it. Reload to see the changes or overwrite"
+              + " them with your version.",
           "search",
           "update-row",
-          java.util.Map.of("_editedRow", rowMap));
+          java.util.Map.of("_editedRow", rowMap),
+          null,
+          httpRequest);
     }
   }
 }
