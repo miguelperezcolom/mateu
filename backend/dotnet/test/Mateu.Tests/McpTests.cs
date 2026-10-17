@@ -32,6 +32,16 @@ public class McpTests
         [Button] public string Greet() => "done";
     }
 
+    public record McpBook(string Id, string Title);
+
+    [UI("mcp-books"), Title("Books")]
+    public class McpBooks : IListing<McpBook>, Mateu.Uidl.ISearchable
+    {
+        public ListingData<McpBook> Search(SearchRequest request) =>
+            ListingData.From(new[] { new McpBook("b1", "El Quijote"), new McpBook("b2", "Rayuela") }
+                .Where(b => b.Title.Contains(request.SearchText ?? "")).ToList());
+    }
+
     static McpService Service() => new(new SyncHandler(new MateuRegistry(typeof(McpDemoForm).Assembly)), Json);
 
     // ---- pure projection (inline wire) ----
@@ -146,6 +156,22 @@ public class McpTests
         Assert.DoesNotContain("secret", ids); // [EyesOnly] never reaches an unauthorized agent
         var actionIds = screen["actions"]!.AsArray().Select(a => (string?)a!["id"]).ToList();
         Assert.Contains("greet", actionIds);
+    }
+
+    [Fact]
+    public void A_listing_is_projected_and_a_search_filters_and_answers_its_rows()
+    {
+        var mcp = Service();
+        var screen = mcp.DescribeScreen("mcp-books");
+        Assert.True((bool)screen["listing"]!["searchable"]!); // the wire type is "Crud"
+
+        var found = mcp.Search("mcp-books", "Ray", null);
+        var rows = found["listing"]!["rows"]!.AsArray();
+        Assert.Equal(new[] { "Rayuela" }, rows.Select(r => (string?)r!["title"]).ToArray());
+        Assert.False(rows[0]!.AsObject().ContainsKey("_rowNumber"));
+        Assert.Equal(1, (int)found["listing"]!["totalElements"]!);
+
+        Assert.Equal(2, mcp.Search("mcp-books", "", null)["listing"]!["rows"]!.AsArray().Count);
     }
 
     // ---- JSON-RPC protocol ----

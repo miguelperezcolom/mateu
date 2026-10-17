@@ -42,10 +42,12 @@ public final class McpProjection {
     java.util.List<JsonNode> fieldNodes = new java.util.ArrayList<>();
     Map<String, String> buttonsByAction = new LinkedHashMap<>();
     JsonNode[] state = {null};
+    JsonNode[] rowsPage = {null};
 
     if (fragments.isArray()) {
       for (JsonNode fragment : fragments) {
         if (state[0] == null && fragment.path("state").isObject()) state[0] = fragment.get("state");
+        if (rowsPage[0] == null) rowsPage[0] = rowsPageOf(fragment.path("data"));
         JsonNode root = fragment.has("component") ? fragment.get("component") : fragment;
         deepVisit(
             root,
@@ -190,6 +192,28 @@ public final class McpProjection {
       }
     }
 
+    // The rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+    // {content,
+    // totalElements, pageNumber, pageSize}}}) — the agent asked for them, so they must reach it.
+    if (rowsPage[0] != null) {
+      ObjectNode listing =
+          out.has("listing") ? (ObjectNode) out.get("listing") : out.putObject("listing");
+      ArrayNode rows = listing.putArray("rows");
+      for (JsonNode row : rowsPage[0].get("content")) {
+        if (row.isObject()) {
+          ObjectNode copy = ((ObjectNode) row).deepCopy();
+          copy.remove("_rowNumber");
+          rows.add(copy);
+        } else {
+          rows.add(row);
+        }
+      }
+      if (rowsPage[0].has("totalElements"))
+        listing.set("totalElements", rowsPage[0].get("totalElements"));
+      if (rowsPage[0].has("pageNumber")) listing.set("pageNumber", rowsPage[0].get("pageNumber"));
+      if (rowsPage[0].has("pageSize")) listing.set("pageSize", rowsPage[0].get("pageSize"));
+    }
+
     if (messages.isArray() && messages.size() > 0) {
       ArrayNode ms = out.putArray("messages");
       for (JsonNode m : messages) {
@@ -220,6 +244,16 @@ public final class McpProjection {
     }
 
     return out;
+  }
+
+  /** The first {@code {page: {content: [...]}}} entry of a fragment's data, or null. */
+  private static JsonNode rowsPageOf(JsonNode data) {
+    if (data == null || !data.isObject()) return null;
+    for (JsonNode entry : data) {
+      JsonNode p = entry.path("page");
+      if (p.isObject() && p.path("content").isArray()) return p;
+    }
+    return null;
   }
 
   private static String commandData(JsonNode commands, String type) {

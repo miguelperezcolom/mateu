@@ -184,17 +184,18 @@ are shared by every renderer.
 
 | Projected | Derived from |
 |---|---|
-| `title` | `SetWindowTitle` command → else `Page.pageTitle`/`title` → else `Crudl.title`. |
+| `title` | `SetWindowTitle` command → else `Page.pageTitle`/`title` → else the listing's `title`. |
 | `route`, `serverSideType`, `pageType` | the primary `ServerSide` component node. |
 | `fields[]` `{id,label,dataType,stereotype,required,readOnly,value,options?}` | every `FormField` metadata node, de-duplicated by `fieldId`, declaration order. `value` from the fragment `state` (else the `ServerSide.initialData`). |
 | `actions[]` `{id,label,shortcut?,confirmationRequired?}` | `ServerSide.actions[].id`; label enriched from a `Button` whose `actionId` matches. **RBAC is already applied server-side** — an action a token may not run never reaches the wire, so it never appears as a tool. |
-| `listing?` `{title,searchable,columns,filters}` | a `Crudl` metadata node. |
+| `listing?` `{title,searchable,columns,filters,rows?,totalElements?,pageNumber?,pageSize?}` | a `Crud` metadata node (`Crudl` is accepted too); `rows` and the paging numbers from the first fragment `data` entry carrying a `page.content` (the answer of a `search`), without the renderer's `_rowNumber`. |
 | `messages[]`, `commands[]` | `UIIncrementDto.messages`; and non-`SetWindowTitle` `commands` (e.g. `navigateTo`) surfaced so the agent sees navigation/effects. |
 
 **The request mapping** — a tool call becomes a sync request (see [The exchange](#the-exchange)):
 - `describe_screen(route)` → load: `actionId: ""`.
 - `run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
-- `search(route, searchText, filters)` → the `search` action.
+- `search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
+  `componentState`, where the listing reads them (as the search box writes them).
 
 **Two transport gotchas** (verified against a live backend, both belong to the contract):
 - `consumedRoute` **must be `null`** for a fresh load — an empty string `""` makes the server resolve

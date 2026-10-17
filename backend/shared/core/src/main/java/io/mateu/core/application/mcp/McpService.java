@@ -61,8 +61,13 @@ public class McpService {
       Map<String, Object> filters,
       String baseUrl,
       HttpRequestFactory httpRequests) {
+    // The listing reads its search text from the COMPONENT STATE (where the search box writes it),
+    // not from the parameters: sent only as a parameter, the agent's search came back unfiltered.
+    Map<String, Object> state = new java.util.LinkedHashMap<>();
+    if (filters != null) state.putAll(filters);
+    if (searchText != null && !searchText.isEmpty()) state.put("searchText", searchText);
     Map<String, Object> params = searchText == null ? Map.of() : Map.of("searchText", searchText);
-    return project(sync(rq(route, "search", filters, params), baseUrl, httpRequests));
+    return project(sync(rq(route, "search", state, params), baseUrl, httpRequests));
   }
 
   /** Navigable routes from the app menu on the root response → [{route, caption}]. */

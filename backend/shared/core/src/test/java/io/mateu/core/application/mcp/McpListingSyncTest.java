@@ -72,4 +72,20 @@ class McpListingSyncTest {
     assertThat(s.get("listing").get("searchable").asBoolean()).isTrue();
     assertThat(ids(s.get("listing").get("columns"), "id")).contains("id", "title");
   }
+
+  @Test
+  void aSearchFiltersByTheTextAndAnswersItsRows() {
+    ObjectNode s = mcp.search("mcp-books", "Ray", null, "", REQUESTS);
+    JsonNode rows = s.path("listing").path("rows");
+    assertThat(rows.isArray()).as("the rows of the search reach the agent").isTrue();
+    assertThat(ids(rows, "title")).containsExactly("Rayuela");
+    assertThat(rows.get(0).has("_rowNumber")).isFalse();
+    assertThat(s.get("listing").get("totalElements").asInt()).isEqualTo(1);
+  }
+
+  @Test
+  void aSearchWithoutTextAnswersEveryRow() {
+    ObjectNode s = mcp.search("mcp-books", "", null, "", REQUESTS);
+    assertThat(ids(s.path("listing").path("rows"), "id")).containsExactly("b1", "b2");
+  }
 }

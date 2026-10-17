@@ -160,6 +160,19 @@ def project_increment(increment):
             ],
         }
 
+    # the rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+    # {content, totalElements, pageNumber, pageSize}}}) — the agent asked for them
+    rows_page = _rows_page_of(fragments)
+    if rows_page is not None:
+        listing = screen.setdefault("listing", {})
+        listing["rows"] = [
+            {k: v for k, v in row.items() if k != "_rowNumber"} if isinstance(row, dict) else row
+            for row in rows_page["content"]
+        ]
+        for key in ("totalElements", "pageNumber", "pageSize"):
+            if key in rows_page:
+                listing[key] = rows_page[key]
+
     if messages:
         # the wire's message names its severity "variant" (error/warning/success/info): reading only
         # "type" told an agent every failure was "info"
@@ -175,6 +188,19 @@ def project_increment(increment):
     if notable:
         screen["commands"] = notable
     return screen
+
+
+def _rows_page_of(fragments):
+    """The first ``{page: {content: [...]}}`` entry of any fragment's data, or None."""
+    for fragment in fragments:
+        data = fragment.get("data") if isinstance(fragment, dict) else None
+        if not isinstance(data, dict):
+            continue
+        for entry in data.values():
+            page = entry.get("page") if isinstance(entry, dict) else None
+            if isinstance(page, dict) and isinstance(page.get("content"), list):
+                return page
+    return None
 
 
 def _command_data(commands, type_):
@@ -271,7 +297,12 @@ def dispatch_tool(name, args, sync_fn):
     if name == "mateu_search":
         text = args.get("searchText", "")
         params = {"searchText": text} if text else {}
-        return project_increment(sync_fn(normalize_route(args.get("route", "")), "search", args.get("filters"), params))
+        # the listing reads its search text from the COMPONENT STATE (where the search box writes
+        # it), not from the parameters: sent only as a parameter, the search came back unfiltered
+        state = dict(args.get("filters") or {})
+        if text:
+            state["searchText"] = text
+        return project_increment(sync_fn(normalize_route(args.get("route", "")), "search", state, params))
     raise ValueError(f"Unknown tool: {name}")
 
 

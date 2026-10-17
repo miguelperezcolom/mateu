@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { projectIncrement } from "./projection.mjs";
-import { routeToPath, normalizeRoute } from "./wire.mjs";
+import { routeToPath, normalizeRoute, MateuWire } from "./wire.mjs";
 import { handleRpc, TOOLS } from "./index.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -209,4 +209,40 @@ test("messages keep their severity (the wire's `variant`) and title", () => {
     { text: "Saved", type: "success" },
     { text: "no severity at all", type: "info" },
   ]);
+});
+
+test("search: the rows of the answer reach the agent (without the renderer's _rowNumber)", () => {
+  const s = projectIncrement({
+    fragments: [
+      {
+        component: null,
+        data: {
+          crud: {
+            page: {
+              content: [{ _rowNumber: 0, id: "b2", title: "Rayuela" }],
+              totalElements: 1,
+              pageNumber: 0,
+              pageSize: 1,
+            },
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(s.listing.rows, [{ id: "b2", title: "Rayuela" }]);
+  assert.equal(s.listing.totalElements, 1);
+});
+
+test("search: the text travels in the component state, where the listing reads it", async () => {
+  let sent = null;
+  const wire = new MateuWire({
+    baseUrl: "http://x",
+    fetchImpl: async (_url, init) => {
+      sent = JSON.parse(init.body);
+      return { ok: true, json: async () => ({ fragments: [] }) };
+    },
+  });
+  await wire.search("products", "ray", { status: "open" });
+  assert.equal(sent.actionId, "search");
+  assert.deepEqual(sent.componentState, { status: "open", searchText: "ray" });
 });

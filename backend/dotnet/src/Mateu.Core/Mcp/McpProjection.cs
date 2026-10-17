@@ -168,6 +168,27 @@ public static class McpProjection
             };
         }
 
+        // The rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+        // {content, totalElements, pageNumber, pageSize}}}) — the agent asked for them.
+        if (RowsPageOf(fragments) is { } rowsPage)
+        {
+            if (outObj["listing"] is not JsonObject listing)
+            {
+                listing = new JsonObject();
+                outObj["listing"] = listing;
+            }
+            var rows = new JsonArray();
+            foreach (var row in (JsonArray)rowsPage["content"]!)
+            {
+                var copy = row?.DeepClone();
+                if (copy is JsonObject ro) ro.Remove("_rowNumber");
+                rows.Add(copy);
+            }
+            listing["rows"] = rows;
+            foreach (var key in new[] { "totalElements", "pageNumber", "pageSize" })
+                if (rowsPage[key] is { } v) listing[key] = v.DeepClone();
+        }
+
         if (messages.Count > 0)
         {
             var ms = new JsonArray();
@@ -216,6 +237,19 @@ public static class McpProjection
 
     static string? MdType(JsonObject node) =>
         node["metadata"] is JsonObject md ? Str(md["type"]) : null;
+
+    /// <summary>The first <c>{page: {content: [...]}}</c> entry of any fragment's data, or null.</summary>
+    static JsonObject? RowsPageOf(JsonArray fragments)
+    {
+        foreach (var fragEl in fragments)
+        {
+            if (fragEl is not JsonObject { } fragment || fragment["data"] is not JsonObject data) continue;
+            foreach (var kv in data)
+                if (kv.Value is JsonObject entry && entry["page"] is JsonObject page && page["content"] is JsonArray)
+                    return page;
+        }
+        return null;
+    }
 
     static void DeepVisit(JsonNode? node, Action<JsonObject> fn)
     {

@@ -71,7 +71,9 @@ export class MateuWire {
   /** Run the standard `search` action of a listing screen. */
   async search(route, searchText = "", filters = null) {
     const state = { ...(filters || {}) };
-    if (searchText) state.__searchText = searchText;
+    // the listing reads its search text from the component state, under "searchText" (where the
+    // search box writes it) — "__searchText" was read by nobody, so the search came back unfiltered
+    if (searchText) state.searchText = searchText;
     return this.runAction(route, "search", state, { searchText });
   }
 
