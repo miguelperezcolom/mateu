@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
+import io.mateu.core.application.runaction.ErrorBoundary;
 import java.util.function.Function;
 
 /**
@@ -18,8 +19,10 @@ import java.util.function.Function;
  * write back {@link Answer#status()} and {@link Answer#body()} as {@code application/json}.
  *
  * <p>Each variant is computed once and cached: screen structure is stable within a deployment. A
- * serialization failure answers 500 with {@code {"error": "<message>"}}, a properly escaped JSON
- * body, and is not cached.
+ * failure (rendering or serializing) goes through the {@link ErrorBoundary}: it is logged at ERROR
+ * under a reference id and answers 500 with {@code {"error": "Something went wrong", "message": "An
+ * unexpected error occurred. Reference: <id>"}} — the raw exception only with {@value
+ * ErrorBoundary#DETAILED} — and is not cached.
  */
 public final class BundleEndpoint {
 
@@ -75,11 +78,11 @@ public final class BundleEndpoint {
   public Answer render(boolean includeParamRoutes) {
     var out = includeParamRoutes ? cachedWithParams : cached;
     if (out == null) {
-      var manifest = exporter.apply(includeParamRoutes);
       try {
-        out = writer.write(manifest);
+        out = writer.write(exporter.apply(includeParamRoutes));
       } catch (Exception e) {
-        return new Answer(SERVER_ERROR, errorBody(e.getMessage()));
+        var message = ErrorBoundary.toMessage(e, "bundle");
+        return new Answer(SERVER_ERROR, errorBody(message.title(), message.text()));
       }
       if (includeParamRoutes) {
         cachedWithParams = out;
@@ -90,8 +93,14 @@ public final class BundleEndpoint {
     return new Answer(OK, out);
   }
 
-  /** {@code {"error": "<message>"}}, escaped (a quote or a newline in the message stays JSON). */
-  static String errorBody(String message) {
-    return JsonNodeFactory.instance.objectNode().put("error", String.valueOf(message)).toString();
+  /**
+   * {@code {"error": "<title>", "message": "<text>"}}, escaped (a quote or a newline stays JSON).
+   */
+  static String errorBody(String title, String text) {
+    return JsonNodeFactory.instance
+        .objectNode()
+        .put("error", String.valueOf(title))
+        .put("message", String.valueOf(text))
+        .toString();
   }
 }

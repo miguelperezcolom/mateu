@@ -35,35 +35,58 @@ class BundleEndpointTest {
   }
 
   @Test
-  void aSerializationFailureAnswersAValidJsonErrorBody() throws Exception {
-    // the old body was "{\"error\":\"" + message + "\"}": a quote, a backslash or a newline in the
-    // message made it invalid JSON
+  void aFailureAnswersTheErrorBoundarysGenericTextNotTheException() throws Exception {
+    // the raw exception message used to be the body: SQL, paths, hostnames — written for
+    // developers, not for whoever fetches the bundle
+    String secret = "Bad \"value\" at C:\\path\nline 2, host db-01";
+    var endpoint =
+        endpoint(
+            manifest -> {
+              throw new IllegalStateException(secret);
+            });
+
+    var answer = endpoint.render(false);
+
+    assertThat(answer.status()).isEqualTo(500);
+    assertThat(answer.body()).doesNotContain("db-01");
+    var json = new ObjectMapper().readTree(answer.body());
+    assertThat(json.get("error").asText()).isEqualTo("Something went wrong");
+    assertThat(json.get("message").asText())
+        .matches("An unexpected error occurred\\. Reference: [0-9a-f]{12}");
+  }
+
+  @Test
+  void aFailureRenderingTheManifestIsAnsweredTheSameWay() throws Exception {
+    var endpoint =
+        new BundleEndpoint(
+            includeParamRoutes -> {
+              throw new IllegalStateException("route /x blew up");
+            },
+            manifest -> "{}");
+
+    var answer = endpoint.render(true);
+
+    assertThat(answer.status()).isEqualTo(500);
+    assertThat(new ObjectMapper().readTree(answer.body()).get("error").asText())
+        .isEqualTo("Something went wrong");
+  }
+
+  @Test
+  void detailedErrorsShowTheExceptionAsValidJson() throws Exception {
     String message = "Bad \"value\" at C:\\path\nline 2";
     var endpoint =
         endpoint(
             manifest -> {
               throw new IllegalStateException(message);
             });
-
-    var answer = endpoint.render(false);
-
-    assertThat(answer.status()).isEqualTo(500);
-    var json = new ObjectMapper().readTree(answer.body());
-    assertThat(json.size()).isEqualTo(1);
-    assertThat(json.get("error").asText()).isEqualTo(message);
-  }
-
-  @Test
-  void aFailureWithNoMessageStillAnswersJson() throws Exception {
-    var endpoint =
-        endpoint(
-            manifest -> {
-              throw new IllegalStateException();
-            });
-
-    var json = new ObjectMapper().readTree(endpoint.render(true).body());
-
-    assertThat(json.get("error").asText()).isEqualTo("null");
+    System.setProperty("mateu.errors.detailed", "true");
+    try {
+      var json = new ObjectMapper().readTree(endpoint.render(false).body());
+      assertThat(json.get("error").asText()).isEqualTo("IllegalStateException");
+      assertThat(json.get("message").asText()).startsWith(message + " (ref ");
+    } finally {
+      System.clearProperty("mateu.errors.detailed");
+    }
   }
 
   @Test
