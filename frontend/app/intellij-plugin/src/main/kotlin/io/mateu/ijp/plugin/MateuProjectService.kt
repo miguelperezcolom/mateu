@@ -1,7 +1,6 @@
 package io.mateu.ijp.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionManager
@@ -216,7 +215,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                     if (action != null) {
                         ActionManager.getInstance().tryToExecute(action, null, navigatorRoot, ActionPlaces.UNKNOWN, true)
                     }
-                    block.downloadUrl?.let(BrowserUtil::browse)
+                    block.downloadUrl?.let { io.mateu.ijp.ui.SafeHtml.browse(it) }
                 }
             })
             add(JButton("Check again").apply { addActionListener { ensureBooted() } })

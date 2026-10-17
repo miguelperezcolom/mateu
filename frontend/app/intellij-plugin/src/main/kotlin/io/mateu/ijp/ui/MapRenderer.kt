@@ -75,7 +75,7 @@ fun renderMap(ctx: AppContext, metadata: JsonNode): JComponent {
             })
         }
 
-        val open = ActionLink("Open in browser") { runCatching { BrowserUtil.browse(row.url) } }
+        val open = ActionLink("Open in browser") { SafeHtml.browse(row.url) }
             .accessibleName("Open ${row.label} in browser")
             .accessibleDescription(row.url)
         open.toolTipText = row.url

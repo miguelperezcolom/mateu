@@ -469,14 +469,14 @@ fun renderResult(ctx: AppContext, metadata: JsonNode): JComponent {
     val panel = verticalPanel()
     panel.addStacked(JBLabel(icon).apply { foreground = color; font = font.deriveFont(Font.BOLD, font.size2D * 2.5f) }, 0)
     panel.addStacked(JBLabel(metadata.text("title", type)).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, JBGap)
-    metadata.text("message").takeIf { it.isNotBlank() }?.let { panel.addStacked(JBLabel("<html>$it</html>"), JBGap) }
+    metadata.text("message").takeIf { it.isNotBlank() }?.let { panel.addStacked(JBLabel("<html>${SafeHtml.sanitize(it)}</html>"), JBGap) }
     fun destination(d: JsonNode): JComponent {
         val label = d.text("description", d.text("value"))
         val value = d.text("value")
         return ActionLink(label) {
             when (d.text("type")) {
                 "ActionId", "Action", "action" -> ctx.runAction(value.ifBlank { d.text("id") }, null)
-                else -> if (value.startsWith("/")) ctx.navigate(value, "", null, "") else com.intellij.ide.BrowserUtil.browse(value)
+                else -> if (value.startsWith("/")) ctx.navigate(value, "", null, "") else SafeHtml.browse(value)
             }
         }
     }
@@ -508,7 +508,7 @@ fun renderCookieConsent(metadata: JsonNode): JComponent {
     val text = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
     text.add(JBLabel(metadata.text("message", "This app uses cookies.")))
     metadata.text("learnMoreLink").takeIf { it.isNotBlank() }?.let { link ->
-        text.add(ActionLink(metadata.text("learnMore", "Learn more")) { com.intellij.ide.BrowserUtil.browse(link) })
+        text.add(ActionLink(metadata.text("learnMore", "Learn more")) { SafeHtml.browse(link) })
     }
     strip.add(text, BorderLayout.CENTER)
     strip.add(JButton(metadata.text("dismiss", "Got it")).apply {
@@ -525,7 +525,7 @@ fun renderCookieConsent(metadata: JsonNode): JComponent {
 fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
     val name = metadata.text("name", "div")
     val content = metadata.text("content")
-    val html = if (metadata.bool("html")) content else com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(content)
+    val html = if (metadata.bool("html")) SafeHtml.sanitize(content) else com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(content)
     val label = JBLabel(if (name in setOf("h1", "h2", "h3", "h4", "b", "strong", "em", "i", "small", "code", "pre")) {
         "<html><$name>$html</$name></html>"
     } else {

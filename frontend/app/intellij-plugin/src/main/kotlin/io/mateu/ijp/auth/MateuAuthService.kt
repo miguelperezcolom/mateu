@@ -1,6 +1,5 @@
 package io.mateu.ijp.auth
 
-import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -111,7 +110,7 @@ class MateuAuthService(private val project: Project) : TokenProvider {
                         "Confirm the code <b>${code.userCode}</b> at ${code.verificationUri}",
                         NotificationType.INFORMATION,
                     )
-                    BrowserUtil.browse(code.browseUri)
+                    io.mateu.ijp.ui.SafeHtml.browse(code.browseUri)
                     val tokens = flow.poll(endpoints, code) { indicator.isCanceled }
                     accessToken = tokens.accessToken
                     MateuCredentials.set(MateuCredentials.Kind.REFRESH_TOKEN, target, tokens.refreshToken)

@@ -469,11 +469,12 @@ fun formatMoney(value: String): String {
     return fmt.format(n)
 }
 
-/** Light markdown → HTML (headings, bold, bullets) rendered with a JEditorPane; html passes through. */
+/** Light markdown → HTML (headings, bold, bullets) rendered with a JEditorPane; html is sanitised
+ *  ([SafeHtml]: a field VALUE must not fetch images, render forms or run anything). */
 fun richTextField(value: String, kind: String): JComponent {
     val html = when (kind) {
         "markdown" -> {
-            val body = value.lines().joinToString("") { line ->
+            val body = value.lines().map(SafeHtml::escape).joinToString("") { line ->
                 val h = Regex("^(#{1,6})\\s+(.*)$").find(line)
                 when {
                     h != null -> "<h${h.groupValues[1].length}>${h.groupValues[2]}</h${h.groupValues[1].length}>"
@@ -484,7 +485,7 @@ fun richTextField(value: String, kind: String): JComponent {
             }
             body.replace(Regex("\\*\\*([^*]+)\\*\\*"), "<b>$1</b>")
         }
-        else -> value
+        else -> SafeHtml.sanitize(value)
     }
     val pane = JEditorPane("text/html", "<html><body>$html</body></html>")
     pane.isEditable = false
@@ -492,12 +493,14 @@ fun richTextField(value: String, kind: String): JComponent {
     return pane
 }
 
+/** A url field read-only: a link when the browser may open it (http(s)/mailto), plain text otherwise. */
 fun linkField(value: String): JComponent {
-    val label = JBLabel("<html><a href=''>$value</a></html>")
+    if (SafeHtml.browsableUrl(value) == null) return JBLabel(value)
+    val label = JBLabel("<html><a href=''>${SafeHtml.escape(value)}</a></html>")
     label.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
     label.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-            runCatching { com.intellij.ide.BrowserUtil.browse(value) }
+            SafeHtml.browse(value)
         }
     })
     return label

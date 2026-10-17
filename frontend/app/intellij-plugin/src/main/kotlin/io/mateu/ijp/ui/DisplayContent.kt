@@ -109,7 +109,7 @@ fun renderFaq(metadata: JsonNode): JComponent {
         val row = verticalPanel(2)
         row.border = JBUI.Borders.emptyBottom(6)
         row.addStacked(JBLabel(item.text("question")).apply { font = font.deriveFont(Font.BOLD) }, 2)
-        row.addStacked(JBLabel("<html>${item.text("answer")}</html>").apply {
+        row.addStacked(JBLabel("<html>${SafeHtml.sanitize(item.text("answer"))}</html>").apply {
             foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(row, 6)
@@ -133,7 +133,7 @@ fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     }, 2)
     val desc = metadata.text("description")
     if (desc.isNotBlank()) {
-        body.addStacked(JBLabel("<html>$desc</html>").apply {
+        body.addStacked(JBLabel("<html>${SafeHtml.sanitize(desc)}</html>").apply {
             foreground = ToneColors.secondaryText()
         }, 4)
     }
@@ -167,7 +167,7 @@ private fun commentNode(panel: JPanel, comment: JsonNode, depth: Int) {
     row.addStacked(JBLabel(author + (if (ts.isNotBlank()) "  $ts" else "")).apply {
         font = font.deriveFont(Font.BOLD)
     }, 2)
-    row.addStacked(JBLabel("<html>${comment.text("text")}</html>"), 0)
+    row.addStacked(JBLabel("<html>${SafeHtml.sanitize(comment.text("text"))}</html>"), 0)
     panel.addStacked(row, 6)
     for (reply in comment.arr("replies")) commentNode(panel, reply, depth + 1)
 }

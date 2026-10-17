@@ -240,9 +240,7 @@ class IdleWatcher(private val session: AppSession, private var config: IdleClock
     private fun signOut() {
         lastActivity = System.currentTimeMillis()
         val url = config.signOutUrl
-        if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
-            runCatching { com.intellij.ide.BrowserUtil.browse(url) }
-        }
+        if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) SafeHtml.browse(url)
         session.notifier?.invoke("Signed out", "You were signed out after a period of inactivity.", "warning", null)
         session.onSignedOut?.invoke()
     }
