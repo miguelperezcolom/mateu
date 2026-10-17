@@ -452,8 +452,23 @@ Content-Security-Policy:
 - `img-src data: blob:` covers uploaded/captured images and signatures, which travel as data URIs.
 - Add the origins of any REST source, SSE endpoint, remote menu or federated backend to
   `connect-src`, and your identity provider to `connect-src`/`frame-src` when it uses an iframe.
-- The inline theme script in the default `index.html` needs either a hash in `script-src` or
-  moving to a file; the shipped bundle's own scripts are external.
+- The Vaadin renderer's page has **no inline script**: its theme script is a file
+  (`/assets/mateu-theme.js`) and the module bundle is external, so `script-src 'self'` is enough.
+- Two pages do carry inline scripts, and then `script-src` must allow them by hash (or by nonce):
+  a `@KeycloakSecured` UI (the token bootstrap, which embeds the Keycloak url/realm/client) and a
+  page served by the Redwood renderer (Oracle Visual Builder's boot, plus Mateu's replayer of it).
+  Their hashes are stable for a given configuration; compute them from the page Mateu serves with
+  `IndexPage.inlineScriptHashes(html)` (core, `io.mateu.core.infra`) and put them in your header:
+
+  ```java
+  // e.g. once, at startup, from the page your mount serves
+  String page = IndexPage.render(MyIndexController.class, "/static/_index.html", spec);
+  String scriptSrc = "script-src 'self' " + String.join(" ", IndexPage.inlineScriptHashes(page));
+  ```
+
+  A filter that issues a per-request **nonce** works too: add `nonce="…"` to every inline
+  `<script>` of the page and `'nonce-…'` to `script-src`. Redwood additionally loads JET and the
+  Visual Builder runtime from Oracle's CDN: add that origin to `script-src`/`style-src`.
 
 **`RunJS`** — the one feature that executes arbitrary JavaScript sent by the server (a
 `RunJS` rule action or an action's `js`) — is **off by default**. Enable it explicitly, and then

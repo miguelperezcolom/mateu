@@ -5,6 +5,7 @@
     <!-- AQUIFAVICON -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AQUIELTITULODELAPAGINA</title>
+    <script src="/assets/mateu-theme.js"></script>
       <!-- AQUIKEYCLOAK -->
       <!-- AQUIJS -->
       <!-- HASTAAQUIJS -->
@@ -31,27 +32,6 @@
   </mateu-ui>
   <!-- HASTAAQUIUI -->
 
-  <script>
-    (function () {
-      // the page language: the browser's until the app shell says the server's (AppDto.locale)
-      if (!document.documentElement.lang) document.documentElement.lang = navigator.language || 'en';
-      var saved = null;
-      try { saved = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
-      if (saved) {
-        document.documentElement.setAttribute('theme', saved);
-      } else if (window.matchMedia) {
-        document.documentElement.setAttribute('theme',
-          window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-          var stored = null;
-          try { stored = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
-          if (!stored) {
-            document.documentElement.setAttribute('theme', e.matches ? 'dark' : 'light');
-          }
-        });
-      }
-    })();
-  </script>
 
   </body>
 </html>

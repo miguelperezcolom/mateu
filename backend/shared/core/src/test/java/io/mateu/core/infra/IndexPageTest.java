@@ -138,6 +138,53 @@ class IndexPageTest {
   }
 
   @Test
+  void aViteBuiltPageHasNoInlineScriptSoItRunsUnderScriptSrcSelf() throws Exception {
+    var html = IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T"));
+    assertThat(html).doesNotContain(IndexPage.DEFERRED_BOOT);
+    assertThat(IndexPage.inlineScriptHashes(html)).isEmpty();
+    // the shipped template: its theme script is a file now, not inline
+    var file =
+        java.nio.file.Path.of("../frontend/vaadin-lit/src/main/resources/static/_index.html");
+    if (java.nio.file.Files.exists(file)) {
+      var shipped =
+          IndexPage.render(java.nio.file.Files.readString(file), IndexPage.Spec.of("", "T"));
+      assertThat(IndexPage.inlineScriptHashes(shipped)).isEmpty();
+      assertThat(shipped).contains("<script src=\"/assets/mateu-theme.js\"></script>");
+    }
+  }
+
+  @Test
+  void theInlineScriptsOfASecuredOrVisualBuilderPageAreGivenAsCspHashes() throws Exception {
+    var vb = IndexPage.render(VB_PAGE, IndexPage.Spec.of("", "PMS"));
+    var expected =
+        "'sha256-"
+            + java.util.Base64.getEncoder()
+                .encodeToString(
+                    java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(
+                            IndexPage.DEFERRED_BOOT
+                                .substring(
+                                    "<script>".length(),
+                                    IndexPage.DEFERRED_BOOT.length() - "</script>".length())
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+            + "'";
+    assertThat(IndexPage.inlineScriptHashes(vb)).containsExactly(expected);
+    var secured =
+        IndexPage.render(
+            VITE_PAGE,
+            new IndexPage.Spec(
+                "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false));
+    assertThat(IndexPage.inlineScriptHashes(secured))
+        .hasSize(1)
+        .allMatch(h -> h.startsWith("'sha256-"));
+    // a script with a src is no inline script; a deferred one with data-src becomes one with a src
+    assertThat(
+            IndexPage.inlineScriptHashes(
+                "<script src=\"/a.js\"></script><script type=\"text/mateu-deferred\" data-src=\"/b.js\"></script>"))
+        .isEmpty();
+  }
+
+  @Test
   void aPageWithoutMarkersIsLeftAlone() {
     assertThat(IndexPage.mountUi("<html></html>", "<x/>")).isEqualTo("<html></html>");
   }

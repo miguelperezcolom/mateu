@@ -170,7 +170,12 @@ public final class IndexPage {
 
   /**
    * Replaces the UI marker region with {@code rootElement} (any markup) followed by the deferred
-   * boot replayer. Used by the static bundle writer, whose root carries a {@code bundleUrl}.
+   * boot replayer when the page parks scripts for it. Used by the static bundle writer, whose root
+   * carries a {@code bundleUrl}.
+   *
+   * <p>The replayer is an inline script, so it is only added to a page that needs it (a Visual
+   * Builder page, whose boot scripts are {@code text/mateu-deferred}): a Vite-built page then has
+   * no inline script at all and runs under {@code script-src 'self'}.
    */
   public static String mountUi(String html, String rootElement) {
     int from = html.indexOf("<!-- AQUIUI -->");
@@ -178,8 +183,38 @@ public final class IndexPage {
     if (from < 0 || to < from) {
       return html;
     }
-    return html.substring(0, from) + rootElement + DEFERRED_BOOT + html.substring(to);
+    String boot = html.contains("text/mateu-deferred") ? DEFERRED_BOOT : "";
+    return html.substring(0, from) + rootElement + boot + html.substring(to);
   }
+
+  /**
+   * The Content Security Policy sources ({@code 'sha256-…'}) of every inline {@code <script>} of a
+   * rendered page, in order — what {@code script-src} has to allow besides {@code 'self'} for the
+   * page to run without {@code 'unsafe-inline'}. A Vite-built page without Keycloak has none; the
+   * {@code @KeycloakSecured} bootstrap and a Visual Builder page's boot do.
+   */
+  public static List<String> inlineScriptHashes(String html) {
+    var hashes = new java.util.ArrayList<String>();
+    Matcher m = INLINE_SCRIPT.matcher(html);
+    while (m.find()) {
+      if (m.group(1).matches("(?is).*\\bsrc\\s*=.*")) {
+        continue;
+      }
+      try {
+        byte[] digest =
+            java.security.MessageDigest.getInstance("SHA-256")
+                .digest(m.group(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        hashes.add("'sha256-" + java.util.Base64.getEncoder().encodeToString(digest) + "'");
+      } catch (java.security.NoSuchAlgorithmException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    return hashes;
+  }
+
+  private static final Pattern INLINE_SCRIPT =
+      Pattern.compile(
+          "<script\\b([^>]*)>(.*?)</script>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
   /**
    * The script that boots a page which does not start itself with a single ES module — a Visual
