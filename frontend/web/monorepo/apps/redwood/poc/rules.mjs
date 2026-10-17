@@ -20,6 +20,38 @@ const METHODS = {
   toUpperCase: (t) => String(t == null ? '' : t).toUpperCase(),
   trim: (t) => String(t == null ? '' : t).trim(),
   toString: (t) => String(t),
+  // a regular-expression literal's test — what a @Pattern validation reads (`/^[A-Z]{3}$/.test(x)`)
+  test: (t, a) => (t instanceof RegExp ? t.test(String(a[0] == null ? '' : a[0])) : false),
+}
+
+/** May a `/` at this point start a regular-expression literal (no value right before it)? */
+function regexMayStart(tokens) {
+  const last = tokens[tokens.length - 1]
+  if (!last) return true
+  if (last.t === 'num' || last.t === 'str' || last.t === 'id' || last.t === 're') return false
+  return !(last.t === 'op' && (last.v === ')' || last.v === ']'))
+}
+
+/** The regular-expression literal starting at `src[i]` ('/'), or null: { re, end }. */
+function regexLiteralAt(src, i) {
+  let j = i + 1
+  let inClass = false
+  for (; j < src.length; j++) {
+    const ch = src[j]
+    if (ch === '\\') { j++; continue }
+    if (ch === '[') inClass = true
+    else if (ch === ']') inClass = false
+    else if (ch === '/' && !inClass) break
+    else if (ch === '\n') return null
+  }
+  if (j >= src.length) return null
+  let k = j + 1
+  while (k < src.length && /[dgimsuy]/.test(src[k])) k++
+  try {
+    return { re: new RegExp(src.slice(i + 1, j), src.slice(j + 1, k)), end: k }
+  } catch (e) {
+    return null
+  }
 }
 
 function tokenize(src) {
@@ -46,6 +78,10 @@ function tokenize(src) {
     const three = src.slice(i, i + 3); const two = src.slice(i, i + 2)
     if (three === '===' || three === '!==') { tokens.push({ t: 'op', v: three }); i += 3; continue }
     if (['==', '!=', '<=', '>=', '&&', '||'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
+    if (c === '/' && regexMayStart(tokens)) {
+      const literal = regexLiteralAt(src, i)
+      if (literal) { tokens.push({ t: 're', v: literal.re }); i = literal.end; continue }
+    }
     if ('+-*/%<>!?:.,()[]'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue }
     throw new Error('carácter inesperado ' + c)
   }
@@ -128,7 +164,7 @@ export function evaluateExpression(expr, scope = {}) {
   const primary = () => {
     const tok = tokens[p++]
     if (!tok) return undefined
-    if (tok.t === 'num' || tok.t === 'str') return tok.v
+    if (tok.t === 'num' || tok.t === 'str' || tok.t === 're') return tok.v
     if (tok.t === 'op' && tok.v === '(') { const v = ternary(); take(')'); return v }
     if (tok.t === 'op' && tok.v === '[') {
       const arr = []

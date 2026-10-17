@@ -309,12 +309,15 @@ export function takeLastRetry() {
 // ── campos obligatorios ───────────────────────────────────────────────────────────────────
 
 /** Los widgets de un campo del formulario de la página (no los de un diálogo o un drawer). */
-function fieldElementsOf(fieldId) {
+const OVERLAY_CONTAINERS = 'oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'
+
+/** The elements of a field: the page's, or — `inOverlay` — the open drawer's / dialog's. */
+function fieldElementsOf(fieldId, inOverlay) {
   if (typeof document === 'undefined') return []
   // comparando el atributo, sin montar un selector con el id: nada que escapar
   return [...document.querySelectorAll('[data-field-id]')]
     .filter((el) => el.getAttribute('data-field-id') === String(fieldId))
-    .filter((el) => !el.closest('oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'))
+    .filter((el) => !!el.closest(OVERLAY_CONTAINERS) === !!inOverlay)
 }
 
 /**
@@ -326,24 +329,32 @@ function fieldElementsOf(fieldId) {
  * da por inválido (su valor no ha llegado aún al widget), el mensaje va por `messagesCustom`.
  * Devuelve cuántos campos marcó.
  */
-export async function showFieldErrors(fieldIds, fallbackMessage) {
+export async function showFieldErrors(fieldIds, fallbackMessage, opts = {}) {
+  // opts.messages: fieldId → the message of the wire validation (a bound, a pattern) or of the
+  // server's refusal that failed it; opts.inOverlay: the fields are the open drawer's / dialog's
+  const messages = opts.messages || {}
   let first = null
   let marked = 0
   for (const fieldId of fieldIds || []) {
-    for (const el of fieldElementsOf(fieldId)) {
+    const own = messages[fieldId]
+    for (const el of fieldElementsOf(fieldId, opts.inOverlay)) {
       let invalid = false
-      if (typeof el.validate === 'function') {
+      // a field refused for something its own validator does not know (a pattern, the server's
+      // @Email) carries THAT message; an empty required one lets JET say «Enter a value.»
+      if (!own && typeof el.validate === 'function') {
         try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
       }
       if (!invalid) {
+        const text = own || fallbackMessage || 'Enter a value.'
         if ('messagesCustom' in el || typeof el.validate === 'function') {
           try {
-            el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
+            // Redwood draws the DETAIL under the field (a summary alone is just the icon)
+            el.messagesCustom = [{ severity: 'error', summary: text, detail: text }]
           } catch (ignored) { /* no es un componente JET */ }
         } else {
           // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
           // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
-          el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
+          el.setAttribute('data-error', text)
           el.classList.add('mateu-field-error')
         }
       }
@@ -357,6 +368,22 @@ export async function showFieldErrors(fieldIds, fallbackMessage) {
     try { (input || first).focus() } catch (ignored) { /* sin caja */ }
   }
   return marked
+}
+
+/**
+ * showFieldErrors once what the answer re-drew is on screen: VB binds asynchronously, so marks set
+ * right away land on the old elements and are lost when they are replaced. Waits a few frames,
+ * then marks; tries again while no field is found yet.
+ */
+export async function showFieldErrorsSoon(fieldIds, fallbackMessage, opts = {}) {
+  const frame = () => new Promise((resolve) => (typeof requestAnimationFrame === 'function'
+    ? requestAnimationFrame(() => resolve()) : setTimeout(resolve, 16)))
+  for (let attempt = 0; attempt < 12; attempt++) {
+    for (let i = 0; i < 4; i++) await frame()
+    const marked = await showFieldErrors(fieldIds, fallbackMessage, opts)
+    if (marked) return marked
+  }
+  return 0
 }
 
 /** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
