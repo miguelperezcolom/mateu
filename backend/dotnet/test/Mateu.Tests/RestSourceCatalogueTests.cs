@@ -151,6 +151,25 @@ public class RestSourceCatalogueTests
     }
 
     [Fact]
+    public void A_page_with_no_app_shell_carries_the_catalogue_entries_it_references()
+    {
+        // the catalogue rides the app metadata, which a shell-less page never receives: the
+        // response itself carries the entries its components name (only those), so the browser
+        // can resolve the refs (Java's RestActionSyncTest twin)
+        var response = Handler(Authored()).Handle(new RunActionRqDto { Route = "by-ref-sources" });
+        Assert.NotNull(response.RestSources);
+        Assert.Equal(["countries", "partners"], response.RestSources!.Select(e => e.Name).OrderBy(n => n, StringComparer.Ordinal));
+        Assert.Equal("https://restcountries.com/v3.1/all?fields=cca2,name",
+            response.RestSources!.Single(e => e.Name == "countries").Source.Url);
+        // nothing named → nothing on the wire
+        var bare = JsonSerializer.Serialize(Handler(RestSourceCatalog.Empty).Handle(new RunActionRqDto { Route = "by-ref-sources" }), Json);
+        Assert.DoesNotContain("\"restSources\"", bare);
+        // a response carrying the app catalogue gets no second copy
+        var app = Handler(Authored()).Handle(new RunActionRqDto { ServerSideType = typeof(Wire.ContextApp).FullName });
+        Assert.Null(app.RestSources);
+    }
+
+    [Fact]
     public void A_by_ref_surface_carries_only_the_name()
     {
         var json = JsonSerializer.Serialize(Handler(Authored()).Handle(new RunActionRqDto { Route = "by-ref-sources" }), Json);
