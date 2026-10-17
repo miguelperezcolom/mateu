@@ -508,6 +508,9 @@ export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', ima
 /** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
 export function extraWidgetOf(f, options) {
   const st = f.stereotype
+  // an editable password is typed into a masked input (oj-input-password): as plain text it
+  // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
+  if (st === 'password' && !f.readOnly) return { isPassword: true }
   if (st === 'radio' && options.length) return { isRadio: true }
   if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
   if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
@@ -587,7 +590,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
       lookupActionId: '',
       options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
       ...flags,
-      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
       ...extra,
@@ -627,7 +630,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isNumber,
     isTextArea,
     isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
-    isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+    isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
     isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
     converter: null, captureMode: '', accept: '',
   }

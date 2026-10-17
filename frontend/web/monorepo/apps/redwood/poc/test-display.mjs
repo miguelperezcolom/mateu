@@ -436,6 +436,17 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: 'hunter2' }).value, '••••••••')
   assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: '' }).value, null)
   assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password' }), { x: 'hunter2' }).value, 'hunter2')
+  // an EDITABLE password is a masked input (oj-input-password), never the plain text input
+  const secret = layoutFieldOf(md({ dataType: 'string', stereotype: 'password' }), { x: 'hunter2' })
+  assert.deepEqual([secret.isPassword, secret.isText, secret.readonly], [true, false, false])
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: 'hunter2' }).isPassword, false)
+  assert.equal(layoutFieldOf(md({ dataType: 'string' }), { x: 'a' }).isPassword, false)
+  // …and every copy of the field widgets in the page draws it (one per isText copy)
+  const page = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const count = (re) => (page.match(re) || []).length
+  assert.ok(count(/data\.isPassword \]\]/g) > 0)
+  assert.equal(count(/data\.isPassword \]\]/g), count(/data\.isText \]\]/g))
+  assert.equal(count(/<oj-input-password\b/g), count(/data\.isPassword \]\]/g))
   // the wire sends sliderMax 100 on every field: a rating is still five stars
   assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
   // a LocalTime is drawn (as text), and an Amount shows its value
