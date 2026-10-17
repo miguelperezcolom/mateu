@@ -35,14 +35,15 @@ dotnet add package Mateu.AspNetCore --prerelease
 | Package | When you reference it directly |
 |---|---|
 | `Mateu.AspNetCore` | The web app: `AddMateu()` / `MapMateu()` |
-| `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) |
+| `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) — pass its assembly to `AddMateu` (see below) |
 | `Mateu.Core` | Hosting the engine without ASP.NET Core (tests, another web stack) |
 | `Mateu.Dtos` | Reading or producing the wire model |
 
 ## Run it from the repository
 
 ```bash
-# .NET 10 SDK required (it builds both targets; the net8.0 tests also need the 8.0 runtime)
+# a .NET 8 SDK builds the net8.0 target; the .NET 10 SDK builds both (net8.0 + net10.0 —
+# the net8.0 tests then also need the 8.0 runtime)
 cd backend/dotnet
 dotnet run --project samples/Mateu.Demo   # serves on http://0.0.0.0:8593
 dotnet test                               # golden-JSON tests
@@ -84,6 +85,8 @@ The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8593`) and Andro
 Wire it up in `Program.cs`:
 
 ```csharp
+using Mateu.AspNetCore;   // AddMateu / MapMateu
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMateu();
 var app = builder.Build();
@@ -91,11 +94,18 @@ app.MapMateu();
 app.Run("http://0.0.0.0:8593");
 ```
 
+Parameterless, `AddMateu()` scans only the **entry assembly** (the web app). When your views live in a
+separate class library, name the assemblies to scan — otherwise their routes are silently not found:
+
+```csharp
+builder.Services.AddMateu(typeof(Program).Assembly, typeof(Person).Assembly);
+```
+
 ## Forms
 
 A `[UI]` class becomes a routed form. Public properties become fields (the type is inferred:
-`string`, `int`/`long` → integer, `double`/`decimal` → number, `bool` → boolean, `DateOnly`/
-`DateTime` → date, `enum` → dropdown). `[Required]` (from `System.ComponentModel.DataAnnotations`)
+`string` → string, `int`/`long` → integer, `double`/`decimal` → number, `bool` → bool,
+`DateOnly` → date, `DateTime`/`DateTimeOffset` → dateTime, `TimeOnly` → time, `enum` → dropdown). `[Required]` (from `System.ComponentModel.DataAnnotations`)
 makes a field required and is enforced server-side. A method with `[Button]` returning a `Message`
 shows a toast.
 
@@ -197,8 +207,15 @@ A bare `IListing<TRow>` is just the table (sorting + pagination free). Then:
 Capability methods take **typed objects** (the framework binds the submitted state for you —
 `Save(editor)`, `Create(form)`), the C# idiom of the port. `ListingData.From(rows)` sorts and
 pages in memory; construct it with an explicit `TotalElements` to push paging to the database.
-`Crud<T>` is the full pack — all capabilities at once, restricted with `[ReadOnly]`/`[NotCreatable]`… —
-and the virtual `CanView`/`CanEdit`/`CanCreate`/`CanDelete` hooks narrow it programmatically.
+`Crud<T>` is the full pack — all capabilities at once. Narrow it by overriding the virtual
+`CanView`/`CanEdit`/`CanCreate`/`CanDelete` hooks, and switch the built-in New / Delete / "Save and
+next" / error-banner affordances on, off or disabled with `Display` (there are no subtractive
+attributes like Java's `@NotCreatable` in this port):
+
+```csharp
+public override bool CanDelete => false;                                   // no Delete, no selection
+public override CrudDisplay Display => CrudDisplay.Defaults with { Create = Toggle.Off };  // no New
+```
 
 ## App shell & navigation
 
@@ -340,7 +357,7 @@ public class CheckIn { /* … */ }
 
 The nine dashboard/UX component types are available as **fluent records** (in `Mateu.Uidl`):
 `MetricCard` (with `MetricTrend` up/down/neutral), `Scoreboard`, `DashboardPanel`,
-`DashboardLayout`, `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`, `Skeleton`
+`ResponsiveGrid` (`DashboardLayout` is `[Obsolete]` — use `ResponsiveGrid`), `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`, `Skeleton`
 (text/card/grid/form variants) and `Gantt`/`GanttTask` — plus the generic `Text`, `Button`, `Card`,
 `HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel` building blocks. They serialize to
 the exact wire shape of the Java DTOs, so the renderers draw the C# output unchanged.
@@ -371,7 +388,7 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 ```
 
 - **`Dashboard`** — MetricCards → `Scoreboard` band; `[Panel]` components → `DashboardPanel` tiles
-  on a `DashboardLayout` grid (override `Columns` to fix the count; 0 = auto-fit).
+  on a `ResponsiveGrid` (override `Columns` to fix the count; 0 = auto-fit).
 - **`Foldout`** — the first non-`[Panel]` component property is the always-visible overview;
   `[Panel(Icon = …, Open = false)]` properties are lateral fold-out panels.
 - **`Welcome`** — `Button` properties become CTAs inside a centered `HeroSection` (override
@@ -385,7 +402,8 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 - **Events** — `[Emits("event-name")]` advertises an event a view emits; `[SubscribeTo("event",
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
 - **Security** — `[EyesOnly(Permissions = new[] { "x" })]` on a view class restricts it (403, and its
-  menu entries hidden); the `[App]` shell can carry login/logout URLs. (`[Secured("x")]` is
+  menu entries hidden). Logging in is your ASP.NET Core authentication's job — `[App]` carries no
+login/logout URLs. (`[Secured("x")]` is
   deprecated; it is enforced exactly like `[EyesOnly(Permissions = new[] { "x" })]`.) Field and action access is covered in
   [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
@@ -424,7 +442,8 @@ builder.Services.AddMateu(o =>
         ? new Identity(Roles: ctx.User.FindAll("app_roles").Select(c => c.Value).ToList())
         : null;
     // ${secret.KEY} in a PROXIED REST source (the only channel that injects secrets, so the key
-    // never reaches the browser). Without it: an ISecretsProvider service, else the env var KEY.
+    // never reaches the browser). Without it: an ISecretsProvider service, else the env var
+    // MATEU_SECRET_<KEY> (only that prefix, never an arbitrary variable).
     o.Secrets = key => builder.Configuration[$"Mateu:Secrets:{key}"];
 }, typeof(Program).Assembly);
 ```
@@ -465,6 +484,9 @@ for EVERY screen (the active hotel, the company…). An enum property contribute
 method returns the options. The picked value travels in the `appState` of every request:
 
 ```csharp
+using Mateu.Dtos;   // OptionDto
+using Mateu.Uidl;
+
 [App("Backoffice")]
 public class BackofficeApp
 {
@@ -714,7 +736,7 @@ are the component's attributes, camel-cased), plus `Form` pages, partials and `C
 **`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
 `pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
 whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
-(declare the shell in code here — `IAppSupplier`/`AppSupplier`) and a listing's `rowRoute`. An
+(declare the shell in code here — an `[App]` class or an `IAppSupplier`) and a listing's `rowRoute`. An
 unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
@@ -788,10 +810,10 @@ types + validation, `Crud<T>` (list / detail / edit / new /
 save / delete), the `[App]` shell + menu navigation, wizards, page decorations, i18n, events,
 security scaffolding, the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
 unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Scoreboard,
-DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
+DashboardPanel, ResponsiveGrid, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
 declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). Federated microfrontends
 (`[RemoteMenu]` + the `MicroFrontend` component) and the SSE/AI chat entry point (`[AI]` → the
-app's `SseUrl`) are wired through the mapper as well. Over 520 tests (run on net8.0 and net10.0) cover this port, including a
+app's `SseUrl`) are wired through the mapper as well. Over 750 tests (run on net8.0 and net10.0) cover this port, including a
 golden-JSON wire-conformance corpus (`WireConformanceTests`) that checks the emitted JSON against
 shared `expected.json` snapshots derived from the Java reference.
 
