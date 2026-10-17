@@ -21,11 +21,11 @@ Containers that arrange other components.
 |---|---|
 | [`VerticalLayout`](/java-ui-definition/components/vertical-layout/) / [`HorizontalLayout`](/java-ui-definition/components/horizontal-layout/) | stack children down or across; the everyday containers |
 | [`FormLayout`](/java-ui-definition/components/form-layout/) | responsive columns of fields (`FormRow`, `FormItem`, `FormSection`, `FormSubSection` structure it) |
-| `ContentLayout` | the content-page grammar: a `main` region, an `aside` (side, width, sticky) and a full-width `footer` |
+| `ContentLayout` | deprecated — the content-page grammar (`main` + `aside` + `footer`) is a `ResponsiveGrid` with named areas (`gridTemplateAreas` + `Slotted` children, `stickyAreas` for a pinned aside) |
 | [`Card`](/java-ui-definition/components/card/) | a framed group with a title; what a `@Section` becomes |
 | [`TabLayout`](/java-ui-definition/components/tab-layout/) / [`AccordionLayout`](/java-ui-definition/components/accordion-layout/) / [`Details`](/java-ui-definition/components/details/) | groups the user switches between, or expands |
 | [`SplitLayout`](/java-ui-definition/components/split-layout/) / [`MasterDetailLayout`](/java-ui-definition/components/master-detail-layout/) | two resizable panes; a list with its detail |
-| `DashboardLayout` + `DashboardPanel` | a responsive grid of titled tiles ([dashboard](/ux-patterns/dashboard/)) |
+| `ResponsiveGrid` + `DashboardPanel` | a responsive grid of titled tiles ([dashboard](/ux-patterns/dashboard/)); `DashboardLayout` is deprecated |
 | `FoldoutLayout` + `FoldoutPanel` | an overview with lateral fold-out panels ([foldout](/ux-patterns/foldout/)) |
 | `HeroSection` | a large title band with optional image and calls to action ([welcome page](/ux-patterns/welcome-page/)) |
 | [`BoardLayout`](/java-ui-definition/components/board-layout/), `ResponsiveGrid` | rows and columns of tiles |
