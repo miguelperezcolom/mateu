@@ -134,7 +134,13 @@ export function installCalendars(doc = typeof document !== 'undefined' ? documen
     }
     return false
   }
-  doc.addEventListener('click', (e) => { if (e.target && e.target.closest && run(e.target)) e.stopPropagation() }, true)
+  // the chips are anchors (focusable, `href="#"`): a handled click must ALSO cancel the anchor's
+  // own navigation, or the browser goes to `/#` and VB's router reboots the whole app — the action
+  // never ran and the page (its map included) was torn down (walkthrough: «the click fired a nav
+  // chain»)
+  doc.addEventListener('click', (e) => {
+    if (e.target && e.target.closest && run(e.target)) { e.preventDefault(); e.stopPropagation() }
+  }, true)
   doc.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('.mateu-cal') && run(e.target)) e.preventDefault()
   }, true)

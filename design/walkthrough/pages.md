@@ -56,6 +56,8 @@ suites, RN unit, IntelliJ `DisplayComponentsRenderTest`/`WireTypeRenderTest` gre
 24. RN: a Markdown link printed its raw `[text](url)` (`82dbc51b0`).
 25. RN: gantt tasks could not be selected; a movable planning board's blocks could not be tapped (`28ca30802`).
 26. IntelliJ: a gantt task could not be selected (`077fede37`).
+27. Redwood: a Leaflet marker that runs an action was a bare SVG path — `role=button`, a tab stop and Enter now, like `<mateu-map>`'s (branch `pending/redwood`).
+28. Redwood: a calendar event chip is an `<a href="#">`; its handled click did not cancel the anchor, the browser went to `/#` and VB's router rebooted the whole app (the action never ran, the map under it was torn down) — `preventDefault` on a handled click (branch `pending/redwood`).
 
 ## Matrix
 
@@ -74,11 +76,11 @@ Columns: **Java** (annotations/fluent, served — mvc + the 4 other adapters for
 | Notice (action + content) | ✅ | ✅ | 🔧 #2 | ✅ | 🔧 #11 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | MatrixGrid (link + edit, sections) | ✅ | ✅ | 🔧 #2 | ✅ link + edit round trip | ✅ renders; ⏳ VB edit | ✅ | ✅ | ✅ link | ✅ (`MatrixGridsTest`; keeps its height on long pages — `StackedCanvasHeightsRenderTest`) | ✅ |
 | PlanningBoard (select, drag/move) | ✅ | ✅ | ✅ | ✅ select + drag | ✅ renders; ⏳ VB drag | ✅ | ✅ | 🔧 #25 select | ✅ renders/drags (`PlanningDragTest`; height pinned — `StackedCanvasHeightsRenderTest`) | ✅ |
-| Gantt (bar click) | ✅ | ✅ | ✅ | ✅ (🔧 #4) | ✅ GanttPage drawer; ❌ console `<rect> width negative` errors from oj-gantt on /arch/interactive (not investigated) | ✅ | ✅ | 🔧 #25 | 🔧 #26 ✅ height pinned (`StackedCanvasHeightsRenderTest`) | ✅ |
+| Gantt (bar click) | ✅ | ✅ | ✅ | ✅ (🔧 #4) | ✅ GanttPage drawer; ⚠ the console `<rect> width negative` errors from oj-gantt on /arch/interactive did NOT reproduce headless (2026-10-17: 500/1024/1280/1440 wide, CPU×8 + slow CDN, the renderer-vb flows with every console message kept) — recheck headed; if seen, gate the oj-gantt on a laid-out container | ✅ | ✅ | 🔧 #25 | 🔧 #26 ✅ height pinned (`StackedCanvasHeightsRenderTest`) | ✅ |
 | Kanban, Timeline, OrgChart, StatusList, FeatureGrid, PricingTable, OfferCard, CalloutCard, TaskQueue, EmptyState CTA, ActionPanel | ✅ | ✅ | ✅ | ✅ round trips (🔧 #4) | ✅ round trips (🔧 #11) | ✅ | ✅ | ✅ round trips | ✅ (DisplayComponentsRenderTest; Kanban columns no longer frozen at header height — `StackedCanvasHeightsRenderTest`) | ✅ |
 | Stat (action) | ✅ | ✅ | ✅ | ✅ | 🔧 #13 | ✅ | ✅ | ✅ | ⏳ | ✅ |
-| Map with markers | ✅ | ✅ | ✅ | 🔧 #4 keyboard button, round trip ✅ | ❌ marker click not walked green (Leaflet marker locator timed out) | ✅ | ✅ | ✅ | ✅ list rows (MapRowsTest) | ✅ |
-| Calendar (views, days, day/event click) | ✅ | ✅ | ✅ | ✅ | ❌ an event click on VB ran nothing (chip clickable, sink installed; the click fired a nav-drawer chain — not diagnosed) | ✅ | ✅ | ✅ (web: nested `<button>` warning — day cell holds event buttons) | ⏳ | ✅ |
+| Map with markers | ✅ | ✅ | ✅ | 🔧 #4 keyboard button, round trip ✅ | ✅ marker click → `openMarker {_markerId=m1}`; 🔧 #27 the marker is a keyboard-reachable button now (the earlier timeout was the calendar click rebooting the app, #28) | ✅ | ✅ | ✅ | ✅ list rows (MapRowsTest) | ✅ |
+| Calendar (views, days, day/event click) | ✅ | ✅ | ✅ | ✅ | 🔧 #28 the chip's anchor navigated to `/#` and VB's router rebooted the app | ✅ | ✅ | ✅ (web: nested `<button>` warning — day cell holds event buttons) | ⏳ | ✅ |
 | CustomComponent | ✅ | ✅ | ✅ | ✅ placeholder + children | ✅ placeholder | ✅ | ✅ | ✅ | ⏳ | ✅ |
 | ProgressSteps | ✅ | 🔧 #1 | ✅ | ✅ | 🔧 #11 | ✅ | ✅ | ✅ | ⏳ | ✅ |
 | ComponentAdapter island, embedded mediator island | ✅ /adapter-demo save round trip; /inline-host (confirm-dirty.spec) | N/A (code) | N/A (server) | ✅ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |

@@ -64,7 +64,8 @@ define([
       const runPageAction = (actionId, parameters, atom) => {
         Actions.fireEvent(window.__mateuShellContext || context, {
           name: 'application:mateuElementEvent',
-          payload: { actionId, parameters, fromNested: !!(atom && atom.fromNested) },
+          // surfaceId: the atom belongs to a surface of its own (an inline island, a MicroFrontend)
+          payload: { actionId, parameters, fromNested: !!(atom && atom.fromNested), surfaceId: (atom && atom.surfaceId) || '' },
         });
       };
       bridge.setElementEventSink(runPageAction);
@@ -90,6 +91,8 @@ define([
       // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción
       bridge.installCalendars();
       bridge.setCalendarActionSink(runPageAction);
+      // @Toc: the sticky sections index — click / Ctrl+Alt+N jump, the section in view highlighted
+      bridge.installToc();
       bridge.setMatrixActionSink(runPageAction);
       // Map: JET no trae mapa de calles → Leaflet (cdnjs) + teselas OSM; un marcador lanza su acción
       bridge.installMaps();

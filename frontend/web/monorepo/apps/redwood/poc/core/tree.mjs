@@ -1,4 +1,4 @@
-import { islandContentOf, subresourceIslandOf, editorNodeIds } from './content.mjs'
+import { islandContentOf, subresourceIslandOf, inlineIslandOf, editorNodeIds } from './content.mjs'
 import { fieldWidgetOf, isExtraLayoutField, isListingOverlay, plainValueOf } from './rowEditor.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
@@ -60,8 +60,9 @@ export function collectIslands(tree, out = []) {
     if (!node || typeof node !== 'object') return
     if (!isRoot && node.type === 'ServerSide') {
       // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
-      // la vista (ver subresourceIslandOf)
-      if (!subresourceIslandOf(node)) out.push(node)
+      // la vista (ver subresourceIslandOf); ni una isla INLINE (un campo-componente con su propio
+      // ServerSide, árbol incluido): es otra superficie, pintada en su hueco (inlineIslandOf)
+      if (!subresourceIslandOf(node) && !inlineIslandOf(node)) out.push(node)
       return // sus hijos pertenecen a la isla, no al host
     }
     if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
@@ -342,6 +343,45 @@ export function formSectionsOf(tree, state, data, opts = {}) {
  *  ServerSide propio — confirmado en el wire). */
 export function overlayOf(reg) {
   const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+  return overlayProjectionOf(reg, id)
+}
+
+/** Is this overlay context a Dialog (the decision modal), not a Drawer? */
+export function isDialogOverlay(ctx) {
+  return !!(ctx && ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+}
+
+/**
+ * The top-most DRAWER of the stack (the first non-Dialog overlay from the top), projected — or null.
+ * A Dialog opened over a Drawer is painted by the modal, so the drawer panel must keep showing the
+ * drawer UNDER it: projecting the top overlay for the panel closed the drawer while the modal was
+ * open (its ojBeforeClose then popped the dialog off the stack) and nothing reopened it afterwards.
+ */
+export function drawerOverlayOf(reg) {
+  const stack = (reg && reg.stack) || []
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const ctx = reg.contexts[stack[i]]
+    if (ctx && !isDialogOverlay(ctx)) return overlayProjectionOf(reg, stack[i])
+  }
+  return null
+}
+
+/** The top overlay when it is a Dialog (what the modal shows), else null. */
+export function dialogOverlayOf(reg) {
+  const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+  const ctx = id && reg.contexts ? reg.contexts[id] : null
+  return isDialogOverlay(ctx) ? overlayProjectionOf(reg, id) : null
+}
+
+/** Pops a given overlay (not necessarily the top one) — the user dismissed THAT panel. */
+export function dismissOverlayById(reg, id) {
+  if (!id || !reg.contexts || !reg.contexts[id]) return reg
+  const contexts = { ...reg.contexts }
+  delete contexts[id]
+  return { ...reg, contexts, stack: (reg.stack || []).filter((k) => k !== id) }
+}
+
+function overlayProjectionOf(reg, id) {
   if (!id || !reg.contexts[id]) return null
   const ctx = reg.contexts[id]
   // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
@@ -356,7 +396,7 @@ export function overlayOf(reg) {
   // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
   // acciones del pie — el listener del modal despacha actionId + parameters, así que
   // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
-  const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+  const isDialog = isDialogOverlay(ctx)
   const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
   const keepInContent = isDialog ? () => false : conParams
   // un formulario EMBEBIDO en el overlay (EmbeddedView: un ServerSide propio dentro del Dialog

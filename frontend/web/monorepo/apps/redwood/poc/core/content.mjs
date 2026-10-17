@@ -2,7 +2,7 @@ import { calendarAtomOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl } from '../elements.mjs'
-import { collectTexts } from './tree.mjs'
+import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
@@ -297,8 +297,12 @@ export function islandContentOf(ctx, opts = {}) {
       return push(...made)
     }
   }
+  // inside a component-holder field (a CustomField whose content is a component, not fields): its
+  // atoms are marked, the generic form cannot draw them (hostContentShown)
+  let inHolder = 0
   const atom = (a, container) => {
     stampNode(a)
+    if (inHolder && a && typeof a === 'object') a.fromHolder = true
     if (container) { container.items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
@@ -401,15 +405,25 @@ export function islandContentOf(ctx, opts = {}) {
     editorNode = String(node.id)
     try { visitNode(node, container) } finally { editorNode = outer }
   }
+  // the root is the surface itself, never another surface. By POSITION, not by identity: in the VB
+  // app the registry is read through proxies and `node !== ctx.tree` was true for the root too — the
+  // page's own ServerSide was taken for an inline island, one hole and nothing else painted
+  let rootSeen = false
   const visitNode = (node, container) => {
     if (!node || typeof node !== 'object') return
+    const isRoot = !rootSeen
+    rootSeen = true
     // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
     // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
     // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
     // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
-    if (node !== ctx.tree) {
+    if (!isRoot) {
       const sub = subresourceIslandOf(node)
       if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
+      // an INLINE island (a component field holding a ServerSide of its own: a ComponentTreeSupplier,
+      // an adapted object): another surface, painted in its hole from the tree it arrived with
+      const inline = inlineIslandOf(node)
+      if (inline) { atom({ isSubresource: true, isInlineIsland: true, islandId: inline.id, subresource: inline }, container); return }
     }
     const m = node.metadata
     const t = m && m.type
@@ -631,7 +645,12 @@ export function islandContentOf(ctx, opts = {}) {
       // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
       // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
       // en children: mirando solo content esos campos desaparecían sin dejar rastro
-      for (const child of kidsOf(node)) visit(child, container)
+      // A HOLDER (no FormField inside, no island — a `Callable<Component>`'s Text, a Button…) marks
+      // what it brings: the generic form, which drew a plain form, dropped it (walk-behaviour)
+      const kids = kidsOf(node)
+      const holder = !kids.some((k) => hasFormField(k) || k.type === 'ServerSide')
+      if (holder) inHolder++
+      try { for (const child of kids) visit(child, container) } finally { if (holder) inHolder-- }
       return
     }
     if (t === 'Element') {
@@ -730,6 +749,12 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'Card') {
       const card = { isCard: true, items: [] }
+      // a @Section card says which section it is (data-mateu-section): the sections index (toc.mjs)
+      // finds the painted sections by it, in order
+      if (isSectionNode(node)) {
+        const sectionTitle = String(sectionHeadOf(node).title || '').trim()
+        if (sectionTitle) card.sectionTitle = sectionTitle
+      }
       blocks.push(card)
       plain = null
       // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
@@ -1527,7 +1552,10 @@ export function withFormActionsRowOf(blocks, previous) {
 
 export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
-  const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
+  // (fromHolder: what a component-holder field — a `Callable<Component>` — brought: the generic form
+  // has no place for it, so the content, whose FormLayout atoms carry the fields, is the body)
+  // (fromSurface: what a filled @Subresource / inline-island hole brought — withSubresources)
+  const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource || a.fromHolder || a.fromSurface))
   if (blocks.some((block) => (block.items || []).some(rich))) return true
   // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
   if (blocks.some((block) => block.fromTemplate)) return true
@@ -1568,6 +1596,31 @@ export function subresourceIslandOf(node) {
   }
 }
 
+/**
+ * An INLINE island: a ServerSide inside the page that is neither the embedded mediator the island
+ * dance loads in two steps (its first child is an App MEDIATOR — collectIslands) nor a @Subresource
+ * (subresourceIslandOf), e.g. a form's component field holding a ComponentTreeSupplier (the events
+ * lab's emitters and listener). It arrives WITH its tree, state (initialData), actions and
+ * triggers, so nothing is loaded: its context is registered from the node (transport
+ * registerInlineIsland) and it is painted in its hole like a @Subresource (withSubresources), its
+ * actions tagged with its id (runMateuSurfaceAction). Returns the surface descriptor, or null.
+ */
+export function inlineIslandOf(node) {
+  if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
+  if (subresourceIslandOf(node)) return null
+  const first = (node.children || [])[0]
+  const md = first && first.metadata
+  if (md && md.type === 'App' && md.variant === 'MEDIATOR') return null
+  return {
+    id: node.id,
+    inline: node,
+    serverSideType: node.serverSideType || undefined,
+    componentState: node.initialData && typeof node.initialData === 'object' ? { ...node.initialData } : {},
+    surface: true,
+    lazy: false,
+  }
+}
+
 /** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
 export function pendingSubresourcesOf(blocks, contexts) {
   const out = []
@@ -1592,8 +1645,10 @@ export function withSubresources(blocks, contexts) {
       const crud = findByType(ctx.tree, 'Crud')
       if (!crud) {
         const inner = islandContentOf(ctx)
-        const items = inner ? inner.flatMap((b) => b.items) : []
-        // a MicroFrontend's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+        // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
+        // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
+        const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
+        // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
         return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
       }
       const md = crud.metadata || {}

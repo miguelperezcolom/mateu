@@ -1705,3 +1705,28 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 .mateu-fact-action-button { margin-inline-start: var(--oj-core-spacing-1x, 4px); }
 /* TITLE PLACEHOLDER: shown only while the title is empty — dimmed so it never reads as a real title */
 .mateu-title-placeholder .oj-sp-header-general-overview-page-title { color: var(--oj-core-text-color-secondary); font-style: italic; }
+
+/* STICKY SECTIONS INDEX (@Toc → mateuToc, poc/toc.mjs): the content container becomes a two-column
+   grid — everything it holds in the first column, the index alone in a 13rem second one, pinned under
+   whatever is stuck at the top. One entry per titled @Section, the one in view highlighted. */
+.mateu-has-toc { display: grid; grid-template-columns: minmax(0, 1fr) 13rem; column-gap: 1.5rem; align-items: start; }
+.mateu-has-toc > :not(.mateu-toc) { grid-column: 1; min-width: 0; }
+.mateu-toc { grid-column: 2; grid-row: 1 / span 400; position: sticky; top: 1rem; align-self: start; padding: 0.5rem 0 0.5rem 0.75rem; border-left: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, .16)); }
+.mateu-toc-nav { display: flex; flex-direction: column; gap: 0.125rem; }
+.mateu-toc-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.5rem; border-radius: 4px; border-left: 2px solid transparent; margin-left: -0.75rem; padding-left: calc(0.75rem - 2px + 0.5rem);
+  color: var(--oj-core-text-color-secondary, #4f4a44); font: inherit; font-size: 0.875rem; line-height: 1.25rem; text-decoration: none; cursor: pointer; }
+.mateu-toc-item:hover { color: var(--oj-core-text-color-primary, #161513); background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .04)); }
+.mateu-toc-item:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #3b5bdb); outline-offset: 1px; }
+.mateu-toc-item.is-active { color: var(--oj-core-text-color-primary, #161513); font-weight: 600; border-left-color: var(--oj-core-brand-color-1, #3b5bdb); }
+.mateu-toc-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mateu-toc-key { flex: 0 0 auto; font-size: 0.6875rem; line-height: 1rem; min-width: 1rem; text-align: center; border-radius: 3px; padding: 0 0.25rem; color: var(--oj-core-text-color-secondary, #4f4a44); background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .06)); }
+.mateu-toc-item.is-active .mateu-toc-key { color: var(--oj-core-text-color-primary, #161513); }
+/* oj-drawer-layout wraps the content in overflow:auto boxes that never scroll themselves (the window
+   does): a sticky inside them never sticks. Same remedy as the record page's pinned header: clip
+   (no scroll container) while a page carries the index. */
+.oj-drawer-layout-main-content:has(.mateu-has-toc),
+.oj-drawer-layout-middle-section:has(.mateu-has-toc) { overflow: clip; }
+@media (max-width: 64rem) {
+  .mateu-has-toc { display: block; }
+  .mateu-toc { display: none; }
+}

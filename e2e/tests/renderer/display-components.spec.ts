@@ -36,6 +36,20 @@ test.describe('display components, on any renderer', () => {
     await said(page, 'cancelBooking {reason=test}');
   });
 
+  test('a calendar event click and a map marker click reach the server with their ids', async ({ page }) => {
+    // on VB the event chip is an <a href="#">: its click used to navigate to /# and reboot the whole
+    // app (nothing ran, the map was torn down); a marker is a keyboard-reachable button on both
+    await page.goto('/arch/interactive');
+    await page.getByText('Meeting', { exact: true }).first().click({ timeout: 20000 });
+    await said(page, 'openEvent');
+    await expect(page).toHaveURL(/\/arch\/interactive/);
+    const marker = page.getByRole('button', { name: 'Palma' }).first();
+    await expect(marker).toBeVisible({ timeout: 30000 }); // Leaflet comes from a CDN on VB
+    await marker.focus();
+    await page.keyboard.press('Enter');
+    await said(page, 'openMarker {_markerId=m1}');
+  });
+
   test('the YAML gallery paints its components and the content of its Notice', async ({ page }) => {
     await page.goto('/display-gallery');
     for (const text of ['Two complaints pending', 'Inside the notice', 'Inside the hero',

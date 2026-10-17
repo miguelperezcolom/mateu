@@ -991,7 +991,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       return false
     }
-    doc.addEventListener('click', (e) => { if (e.target && e.target.closest && run(e.target)) e.stopPropagation() }, true)
+    // the chips are anchors (focusable, `href="#"`): a handled click must ALSO cancel the anchor's
+    // own navigation, or the browser goes to `/#` and VB's router reboots the whole app — the action
+    // never ran and the page (its map included) was torn down (walkthrough: «the click fired a nav
+    // chain»)
+    doc.addEventListener('click', (e) => {
+      if (e.target && e.target.closest && run(e.target)) { e.preventDefault(); e.stopPropagation() }
+    }, true)
     doc.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('.mateu-cal') && run(e.target)) e.preventDefault()
     }, true)
@@ -1537,8 +1543,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!node || typeof node !== 'object') return
       if (!isRoot && node.type === 'ServerSide') {
         // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
-        // la vista (ver subresourceIslandOf)
-        if (!subresourceIslandOf(node)) out.push(node)
+        // la vista (ver subresourceIslandOf); ni una isla INLINE (un campo-componente con su propio
+        // ServerSide, árbol incluido): es otra superficie, pintada en su hueco (inlineIslandOf)
+        if (!subresourceIslandOf(node) && !inlineIslandOf(node)) out.push(node)
         return // sus hijos pertenecen a la isla, no al host
       }
       if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
@@ -1819,6 +1826,45 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  ServerSide propio — confirmado en el wire). */
   function overlayOf(reg) {
     const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    return overlayProjectionOf(reg, id)
+  }
+
+  /** Is this overlay context a Dialog (the decision modal), not a Drawer? */
+  function isDialogOverlay(ctx) {
+    return !!(ctx && ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+  }
+
+  /**
+   * The top-most DRAWER of the stack (the first non-Dialog overlay from the top), projected — or null.
+   * A Dialog opened over a Drawer is painted by the modal, so the drawer panel must keep showing the
+   * drawer UNDER it: projecting the top overlay for the panel closed the drawer while the modal was
+   * open (its ojBeforeClose then popped the dialog off the stack) and nothing reopened it afterwards.
+   */
+  function drawerOverlayOf(reg) {
+    const stack = (reg && reg.stack) || []
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const ctx = reg.contexts[stack[i]]
+      if (ctx && !isDialogOverlay(ctx)) return overlayProjectionOf(reg, stack[i])
+    }
+    return null
+  }
+
+  /** The top overlay when it is a Dialog (what the modal shows), else null. */
+  function dialogOverlayOf(reg) {
+    const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    const ctx = id && reg.contexts ? reg.contexts[id] : null
+    return isDialogOverlay(ctx) ? overlayProjectionOf(reg, id) : null
+  }
+
+  /** Pops a given overlay (not necessarily the top one) — the user dismissed THAT panel. */
+  function dismissOverlayById(reg, id) {
+    if (!id || !reg.contexts || !reg.contexts[id]) return reg
+    const contexts = { ...reg.contexts }
+    delete contexts[id]
+    return { ...reg, contexts, stack: (reg.stack || []).filter((k) => k !== id) }
+  }
+
+  function overlayProjectionOf(reg, id) {
     if (!id || !reg.contexts[id]) return null
     const ctx = reg.contexts[id]
     // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
@@ -1833,7 +1879,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
     // acciones del pie — el listener del modal despacha actionId + parameters, así que
     // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
-    const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
+    const isDialog = isDialogOverlay(ctx)
     const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
     const keepInContent = isDialog ? () => false : conParams
     // un formulario EMBEBIDO en el overlay (EmbeddedView: un ServerSide propio dentro del Dialog
@@ -3526,8 +3572,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return push(...made)
       }
     }
+    // inside a component-holder field (a CustomField whose content is a component, not fields): its
+    // atoms are marked, the generic form cannot draw them (hostContentShown)
+    let inHolder = 0
     const atom = (a, container) => {
       stampNode(a)
+      if (inHolder && a && typeof a === 'object') a.fromHolder = true
       if (container) { container.items.push(a); return }
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
       plain.items.push(a)
@@ -3630,15 +3680,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       editorNode = String(node.id)
       try { visitNode(node, container) } finally { editorNode = outer }
     }
+    // the root is the surface itself, never another surface. By POSITION, not by identity: in the VB
+    // app the registry is read through proxies and `node !== ctx.tree` was true for the root too — the
+    // page's own ServerSide was taken for an inline island, one hole and nothing else painted
+    let rootSeen = false
     const visitNode = (node, container) => {
       if (!node || typeof node !== 'object') return
+      const isRoot = !rootSeen
+      rootSeen = true
       // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
       // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
       // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
       // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
-      if (node !== ctx.tree) {
+      if (!isRoot) {
         const sub = subresourceIslandOf(node)
         if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
+        // an INLINE island (a component field holding a ServerSide of its own: a ComponentTreeSupplier,
+        // an adapted object): another surface, painted in its hole from the tree it arrived with
+        const inline = inlineIslandOf(node)
+        if (inline) { atom({ isSubresource: true, isInlineIsland: true, islandId: inline.id, subresource: inline }, container); return }
       }
       const m = node.metadata
       const t = m && m.type
@@ -3860,7 +3920,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
         // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
         // en children: mirando solo content esos campos desaparecían sin dejar rastro
-        for (const child of kidsOf(node)) visit(child, container)
+        // A HOLDER (no FormField inside, no island — a `Callable<Component>`'s Text, a Button…) marks
+        // what it brings: the generic form, which drew a plain form, dropped it (walk-behaviour)
+        const kids = kidsOf(node)
+        const holder = !kids.some((k) => hasFormField(k) || k.type === 'ServerSide')
+        if (holder) inHolder++
+        try { for (const child of kids) visit(child, container) } finally { if (holder) inHolder-- }
         return
       }
       if (t === 'Element') {
@@ -3959,6 +4024,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'Card') {
         const card = { isCard: true, items: [] }
+        // a @Section card says which section it is (data-mateu-section): the sections index (toc.mjs)
+        // finds the painted sections by it, in order
+        if (isSectionNode(node)) {
+          const sectionTitle = String(sectionHeadOf(node).title || '').trim()
+          if (sectionTitle) card.sectionTitle = sectionTitle
+        }
         blocks.push(card)
         plain = null
         // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
@@ -4756,7 +4827,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function hostContentShown(blocks, summary) {
     if (!blocks || !blocks.length) return false
-    const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
+    // (fromHolder: what a component-holder field — a `Callable<Component>` — brought: the generic form
+    // has no place for it, so the content, whose FormLayout atoms carry the fields, is the body)
+    // (fromSurface: what a filled @Subresource / inline-island hole brought — withSubresources)
+    const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource || a.fromHolder || a.fromSurface))
     if (blocks.some((block) => (block.items || []).some(rich))) return true
     // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
     if (blocks.some((block) => block.fromTemplate)) return true
@@ -4797,6 +4871,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * An INLINE island: a ServerSide inside the page that is neither the embedded mediator the island
+   * dance loads in two steps (its first child is an App MEDIATOR — collectIslands) nor a @Subresource
+   * (subresourceIslandOf), e.g. a form's component field holding a ComponentTreeSupplier (the events
+   * lab's emitters and listener). It arrives WITH its tree, state (initialData), actions and
+   * triggers, so nothing is loaded: its context is registered from the node (transport
+   * registerInlineIsland) and it is painted in its hole like a @Subresource (withSubresources), its
+   * actions tagged with its id (runMateuSurfaceAction). Returns the surface descriptor, or null.
+   */
+  function inlineIslandOf(node) {
+    if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
+    if (subresourceIslandOf(node)) return null
+    const first = (node.children || [])[0]
+    const md = first && first.metadata
+    if (md && md.type === 'App' && md.variant === 'MEDIATOR') return null
+    return {
+      id: node.id,
+      inline: node,
+      serverSideType: node.serverSideType || undefined,
+      componentState: node.initialData && typeof node.initialData === 'object' ? { ...node.initialData } : {},
+      surface: true,
+      lazy: false,
+    }
+  }
+
   /** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
   function pendingSubresourcesOf(blocks, contexts) {
     const out = []
@@ -4821,8 +4920,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const crud = findByType(ctx.tree, 'Crud')
         if (!crud) {
           const inner = islandContentOf(ctx)
-          const items = inner ? inner.flatMap((b) => b.items) : []
-          // a MicroFrontend's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+          // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
+          // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
+          const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
+          // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
           return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
         }
         const md = crud.metadata || {}
@@ -7145,8 +7246,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // open one's place in the stack instead of stacking a second drawer on top. It gets a new
         // context id on purpose: the chains reset the drawer's draft when the overlay id changes, and
         // the refreshed drawer carries new values (the next row, or what the server kept).
-        const sameId = fr.component && fr.component.id
-        const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId) : null
+        // …but only a REAL id says "the same overlay": the server stamps the filler `fieldId` on every
+        // record without one (a Drawer and the Dialog opened from inside it both carry it), and the
+        // overlay's kind must match too — a Dialog is never a refresh of a Drawer. Taking it for one
+        // replaced the drawer in the stack, and the drawer was gone once the dialog closed.
+        const sameId = fr.component && fr.component.id && fr.component.id !== 'fieldId' ? fr.component.id : null
+        const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId
+          && metaOf({ component: contexts[k].tree }).type === md.type) : null
         if (open) {
           contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
           delete contexts[open]
@@ -7183,10 +7289,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
 
     // ── comandos → efectos (algunos mutan el registro) ────────────────────────
+    // `source`: the surface whose answer emitted it (opts.initiator) — the @SubscribeTo scopes
+    // (COMPONENT `from`, SELF) are decided from it (transport busSubscribersOf)
+    const source = opts.initiator || null
     const emit = (data) => {
       if (!data) return
-      if (typeof data === 'string') effects.events.push({ name: data, detail: null })
-      else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.detail ?? null })
+      if (typeof data === 'string') effects.events.push({ name: data, detail: null, source })
+      else if (data.eventName) effects.events.push({ name: data.eventName, detail: data.detail ?? null, source })
     }
     for (const c of increment.commands || []) {
       const t = c.targetComponentId
@@ -13956,11 +14065,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }).addTo(map)
       if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
       const hover = [m.label, m.description].filter(Boolean).join(' · ')
-      if (hover && pin.getElement && pin.getElement()) pin.getElement().setAttribute('aria-label', hover)
-      if (spec.markerActionId) {
-        pin.on('click', () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) })
-        if (pin.getElement && pin.getElement()) pin.getElement().style.cursor = 'pointer'
+      const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) } : null
+      if (run) pin.on('click', run)
+      // the marker's SVG path exists only once the map has a view (Leaflet adds layers whenReady, and
+      // the view is set below): decorate it when the layer is ADDED — read right here, getElement()
+      // was null and neither the name nor the role ever landed
+      let decorated = false
+      const decorate = () => {
+        const pinEl = pin.getElement && pin.getElement()
+        if (!pinEl || decorated) return
+        decorated = true
+        if (hover) pinEl.setAttribute('aria-label', hover)
+        if (!run) return
+        pinEl.style.cursor = 'pointer'
+        // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
+        // Leaflet draws it as a bare SVG path with no role and no tab stop
+        pinEl.setAttribute('role', 'button')
+        pinEl.setAttribute('tabindex', '0')
+        if (pinEl.addEventListener) {
+          pinEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); run() }
+          })
+        }
       }
+      pin.on('add', decorate)
+      decorate()
       if (m.description) pin.on('mouseover', () => { el.title = hover }).on('mouseout', () => { el.title = '' })
     }
     const plan = mapViewPlanOf(spec)
@@ -14066,6 +14195,151 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
     }, { passive: true })
   }
+
+
+  // STICKY SECTIONS INDEX (@Toc): the right-hand index of a long sectioned page — one entry per titled
+  // @Section, click to scroll there, the one in view highlighted (scrollspy), Ctrl+Alt+1..9 jump to the
+  // first nine. Same rule as libs/mateu mateu-page.ts: the Page's `toc` is tri-state — true forces it,
+  // false suppresses it, absent = AUTO (more than 4 titled sections and not a @Zones form). Redwood's
+  // Vaadin renderer has had it for months; here the shell painted nothing (walkthrough forms ❌).
+  //
+  // Two halves, like the calendar's: `tocOf(host)` is the pure projection the page chains assign
+  // (mateuToc); `installToc(doc, win)` wires the DOM once per document — the entries are stamped by VB
+  // from the variable, the sections are found in the DOM by the `data-mateu-section` marker both
+  // painters set (the content's section cards, the generic form's .mateu-form-section), in order.
+
+
+  const TOC_AUTO_MIN_SECTIONS = 5
+  const TOC_EMPTY = { on: false, entries: [], cls: '' }
+  const TOC_CLASS = 'mateu-has-toc'
+
+  /** Is this the @Zones row (a HorizontalLayout of flex-basis columns)? A horizontal form has no index. */
+  function isZonedRow(n) {
+    if (!n || !n.metadata || n.metadata.type !== 'HorizontalLayout') return false
+    const kids = n.children || []
+    return kids.length >= 2 && kids.every((k) => /flex:\s*1 1 calc\(/.test(String((k && k.style) || '')))
+  }
+
+  /** The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky }], cls }. */
+  function tocOf(host) {
+    const tree = host && host.tree
+    if (!tree) return TOC_EMPTY
+    const entries = []
+    let zoned = false
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') return // another surface's sections are its own
+      if (isZonedRow(n)) zoned = true
+      if (isSectionNode(n)) {
+        const title = String(sectionHeadOf(n).title || '').trim()
+        if (title) {
+          const index = entries.length
+          entries.push({
+            index,
+            title,
+            key: index < 9 ? String(index + 1) : '',
+            hint: index < 9 ? title + ' (Ctrl+Alt+' + (index + 1) + ')' : title,
+            sticky: /(^|\s)mateu-section--sticky(\s|$)/.test(String(n.cssClasses || '')),
+          })
+        }
+      }
+      for (const [k, v] of Object.entries(n)) {
+        if (k === 'metadata') { for (const mv of Object.values(n.metadata || {})) if (mv && typeof mv === 'object') walk(mv, false) }
+        else if (v && typeof v === 'object') walk(v, false)
+      }
+    }
+    walk(tree, true)
+    const page = findByType(tree, 'Page')
+    const declared = page && page.metadata ? page.metadata.toc : null
+    const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
+    const on = (declared === true ? true : declared === false ? false : auto) && entries.length > 0
+    return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+  }
+
+  // ── DOM behaviour (once per document) ────────────────────────────────────────────────────────────
+
+  /** The painted sections, in document order: what the index's entries point at (same order). */
+  function tocSectionsOf(doc) {
+    return [...doc.querySelectorAll('[data-mateu-section]')]
+      .filter((el) => String(el.getAttribute('data-mateu-section') || '').trim() !== '')
+  }
+
+  /** Where the reading line is: just under what is pinned at the top (a sticky record header), plus air. */
+  function tocReadingLine(doc) {
+    const pinned = doc.querySelector('.mateu-sticky-header')
+    const bottom = pinned ? pinned.getBoundingClientRect().bottom : 0
+    return Math.max(0, bottom) + 16
+  }
+
+  /** The active section for a scroll position: the last one whose top is at or above the reading line. */
+  function tocActiveIndex(tops, readingLine) {
+    let active = 0
+    tops.forEach((top, i) => { if (top <= readingLine + 8) active = i })
+    return active
+  }
+
+  function installToc(doc = typeof document !== 'undefined' ? document : null, win = doc && doc.defaultView) {
+    if (!doc || doc.__mateuToc) return
+    doc.__mateuToc = true
+    let locked = -1 // the entry clicked / jumped to stays highlighted until the user scrolls by hand
+    const items = () => [...doc.querySelectorAll('.mateu-toc-item')]
+    const mark = (active) => {
+      for (const item of items()) {
+        const on = Number(item.getAttribute('data-toc-index')) === active
+        item.classList.toggle('is-active', on)
+        if (on) item.setAttribute('aria-current', 'true')
+        else item.removeAttribute('aria-current')
+      }
+    }
+    const jumpTo = (index) => {
+      const section = tocSectionsOf(doc)[index]
+      if (!section) return false
+      const delta = section.getBoundingClientRect().top - tocReadingLine(doc)
+      if (win && typeof win.scrollBy === 'function') win.scrollBy({ top: delta, behavior: 'smooth' })
+      locked = index
+      mark(index)
+      return true
+    }
+    const spy = () => {
+      if (!items().length) return
+      if (locked >= 0) { mark(locked); return }
+      const tops = tocSectionsOf(doc).map((el) => el.getBoundingClientRect().top)
+      if (tops.length) mark(tocActiveIndex(tops, tocReadingLine(doc)))
+    }
+    // a click on an entry: the anchor must not navigate (href="#" would reboot VB's router, see the calendar)
+    doc.addEventListener('click', (e) => {
+      const item = e.target && e.target.closest && e.target.closest('.mateu-toc-item')
+      if (!item) return
+      e.preventDefault()
+      e.stopPropagation()
+      jumpTo(Number(item.getAttribute('data-toc-index')))
+    }, true)
+    // Ctrl+Alt+1..9 (by physical key: Digit/Numpad, layout-independent) while an index is shown
+    doc.addEventListener('keydown', (e) => {
+      if (!e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey) return
+      const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code || '')
+      if (!m || !items().length) return
+      if (jumpTo(Number(m[1]) - 1)) e.preventDefault()
+    }, true)
+    // the user's own scroll gesture releases the lock, the spy follows the reading line again
+    const unlock = () => { locked = -1 }
+    if (win && typeof win.addEventListener === 'function') {
+      for (const type of ['wheel', 'touchstart']) win.addEventListener(type, unlock, { passive: true })
+      win.addEventListener('scroll', spy, { passive: true })
+    }
+    doc.addEventListener('keydown', (e) => { if (!(e.ctrlKey && e.altKey)) unlock() }, true)
+    // a new screen: nothing locked, the first entry active (the entries are stamped after the chain)
+    doc.addEventListener('mateu-toc-reset', () => { locked = -1; spy() })
+  }
+
+  /** A new screen: the index starts unlocked (the chains call it right after assigning mateuToc). */
+  function resetToc(doc = typeof document !== 'undefined' ? document : null) {
+    if (doc && typeof CustomEvent === 'function') doc.dispatchEvent(new CustomEvent('mateu-toc-reset'))
+  }
+
+  /** The index's accessible name (the shell binds the nls text; this is the JS side's). */
+  const tocLabel = (lang) => chromeText('sections', {}, lang)
 
 
   // The FIELD TYPE catalogue on the Redwood side — the twin of libs/mateu expander/fieldTypes.ts and
@@ -15796,6 +16070,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
    */
   async function loadSubresource(base, reg, sub, extra = {}) {
+    // an inline island arrived with its tree: nothing to load, its context comes from the node
+    if (sub.inline) return registerInlineIsland(base, reg, sub, extra)
     // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
     if (sub.baseUrl) base = sub.baseUrl
     if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
@@ -15833,7 +16109,161 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const outbound = ctx.outbound || {}
     const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
       { ...extra, parameters: parameters || {} })
-    return increment ? reduceContexts(reg, increment) : reg
+    if (!increment) return reg
+    // the increment is reduced AS the surface's (initiator): its MarkAsClean/Dirty land on it and the
+    // bus events it emits carry it as their source
+    let next = reduceContexts(reg, increment, { initiator: surfaceId })
+    const toasts = [...(next.effects.toasts || [])]
+    // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
+    // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
+    next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
+    toasts.push(...(next.effects.toasts || []))
+    // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
+    next = await ensureInlineIslands(outbound.baseUrl, next, extra)
+    return { ...next, effects: { ...next.effects, toasts } }
+  }
+
+  /**
+   * An INLINE island's context, from the node it arrived as (inlineIslandOf): its tree, its state
+   * (initialData), and the outbound an action from it needs — the host's route and consumed route
+   * (what the web client's nested mateu-component sends: its ux's) with ITS serverSideType, so the
+   * server instantiates the island's class and answers to its id (the initiator). Then its OnLoad
+   * triggers, like a loaded surface's. No request is made for the island itself.
+   */
+  async function registerInlineIsland(base, reg, sub, extra = {}) {
+    const node = sub.inline
+    const host = (reg.contexts || {})[HOST_ID] || {}
+    const hostOutbound = host.outbound || {}
+    const outbound = {
+      route: hostOutbound.route || '',
+      consumedRoute: hostOutbound.consumedRoute || '',
+      serverSideType: sub.serverSideType || node.serverSideType,
+      baseUrl: hostOutbound.baseUrl != null ? hostOutbound.baseUrl : base,
+    }
+    const previous = (reg.contexts || {})[sub.id]
+    let next = {
+      ...reg,
+      contexts: {
+        ...reg.contexts,
+        [sub.id]: {
+          id: sub.id,
+          kind: 'island',
+          tree: node,
+          // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
+          // previous incarnation held
+          state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
+          data: (previous && previous.data) || {},
+          dirty: false,
+          outbound,
+        },
+      },
+    }
+    for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
+      const ctx = next.contexts[sub.id]
+      const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route, triggerActionId, ctx.state || {}, extra)
+      if (increment) next = reduceContexts(next, increment, { initiator: sub.id })
+    }
+    return next
+  }
+
+  /** Every inline island of the host tree (inlineIslandOf), in document order. */
+  function inlineIslandsOf(tree) {
+    const out = []
+    const walk = (n, isRoot) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+      if (!isRoot && n.type === 'ServerSide') {
+        const inline = inlineIslandOf(n)
+        if (inline) out.push(inline)
+        return // another surface: its own islands are its business
+      }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+    }
+    walk(tree, true)
+    return out
+  }
+
+  /** Registers the host's inline islands that have no context yet (after a host re-render). */
+  async function ensureInlineIslands(base, reg, extra = {}) {
+    const host = (reg.contexts || {})[HOST_ID]
+    let next = reg
+    for (const inline of inlineIslandsOf(host && host.tree)) {
+      if (!next.contexts[inline.id]) next = await registerInlineIsland(base, next, inline, extra)
+    }
+    return next
+  }
+
+  // ── the event bus (@SubscribeTo) across the page's surfaces ──────────────────────────────────────
+  //
+  // Vaadin dispatches a real DOM CustomEvent and each component's trigger decides by scope; here the
+  // surfaces are registry contexts, so the bus is a walk over them. `source` is the context that
+  // emitted (the reducer stamps the initiator). The listener's trigger says what it hears:
+  //   DOCUMENT (default)  anything, whoever sent it;
+  //   COMPONENT `from`    only an emitter NAMED `from` (@Emits(name), else its serverSideType);
+  //   SELF                what bubbles up from inside it — an island of the host is inside the host;
+  //                       a surface also hears what it emits itself.
+
+  /** The emitter's name on the bus: @Emits(name), else its class (what the web stamps as __source). */
+  function busSourceNameOf(ctx) {
+    const tree = ctx && ctx.tree
+    return (tree && (tree.emitsName || tree.serverSideType)) || ''
+  }
+
+  /** Is `innerId` a surface INSIDE `outerId` (the host contains every island; a surface contains itself)? */
+  function surfaceWithin(reg, innerId, outerId) {
+    if (!innerId || !outerId) return false
+    if (innerId === outerId) return true
+    if (outerId === HOST_ID) return true // every other context of the registry lives in the host's page
+    const outer = (reg.contexts || {})[outerId]
+    return !!(outer && outer.tree && inlineIslandsOf(outer.tree).some((i) => i.id === innerId))
+  }
+
+  /** The [{ ctxId, actionId }] a bus event reaches, by each listener's @SubscribeTo scope. */
+  function busSubscribersOf(reg, event, { skipHost = false } = {}) {
+    const out = []
+    const contexts = (reg && reg.contexts) || {}
+    const sourceCtx = event.source ? contexts[event.source] : null
+    const sourceName = busSourceNameOf(sourceCtx)
+    for (const ctxId of Object.keys(contexts)) {
+      if (skipHost && ctxId === HOST_ID) continue
+      const ctx = contexts[ctxId]
+      for (const t of ((ctx && ctx.tree && ctx.tree.triggers) || [])) {
+        if (t.type !== 'OnCustomEvent' || t.eventName !== event.name || !t.actionId) continue
+        const scope = String(t.source || 'DOCUMENT').toUpperCase()
+        if (scope === 'COMPONENT' && !(t.from && sourceName && t.from === sourceName)) continue
+        if (scope === 'SELF' && !(event.source && surfaceWithin(reg, event.source, ctxId))) continue
+        out.push({ ctxId, actionId: t.actionId })
+      }
+    }
+    return out
+  }
+
+  /**
+   * Runs the subscribed actions of every surface a bus event reaches (busSubscribersOf) and reduces
+   * their answers; the event's detail travels as the action's parameters (plus `__source`, like the
+   * web's). `skipHost`: the host's own subscribers are run by the caller (runMateuAction.js does, with
+   * its listing paging) — the islands' are not. Returns the new registry; its effects are the last
+   * answer's, with every toast of the round accumulated.
+   */
+  async function deliverBusEvents(reg, events, { base, appState, skipHost = false } = {}) {
+    let next = reg
+    const toasts = []
+    for (const event of events || []) {
+      for (const { ctxId, actionId } of busSubscribersOf(next, event, { skipHost })) {
+        const ctx = next.contexts[ctxId]
+        if (!ctx) continue
+        const outbound = ctx.outbound || {}
+        const detail = event.detail && typeof event.detail === 'object' ? event.detail : {}
+        const sourceName = busSourceNameOf(next.contexts[event.source])
+        const parameters = { ...detail, ...(sourceName && detail.__source == null ? { __source: sourceName } : {}) }
+        const increment = await runMateuAction(outbound.baseUrl != null ? outbound.baseUrl : base, ctx, outbound.route || '',
+          actionId, { ...(ctx.state || {}), ...detail }, { appState, parameters })
+        if (!increment) continue
+        next = reduceContexts(next, increment, { initiator: ctxId })
+        toasts.push(...(next.effects.toasts || []))
+      }
+    }
+    return next === reg ? reg : { ...next, effects: { ...next.effects, toasts } }
   }
 
   async function loadSubresources(base, reg, blocks, extra = {}) {
@@ -17628,6 +18058,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The collection header of a listing: its toolbar's first button is the primary action, the
    *  rest its secondary actions. */
+  /** What an empty overlay variable looks like (the templates read its fields unconditionally). */
+  const EMPTY_OVERLAY = { title: '', fields: [], sections: [], actions: [], blocks: [], texts: [], state: {} }
+
+  /**
+   * The overlay variables after an increment: the DRAWER panel shows the top-most drawer of the stack
+   * and the MODAL the dialog on top of it — two variables, so a Dialog opened over a Drawer leaves the
+   * drawer where it is (it used to close, and nothing reopened it after the dialog's CloseModal).
+   * `picker` (searchPickerOf): a @Searchable selector has its own dialog, and a listing shown INSIDE
+   * the drawer (picker.inDrawer) keeps the drawer open.
+   */
+  function overlayVarsOf(reg, picker = null) {
+    const drawer = drawerOverlayOf(reg)
+    const dialog = dialogOverlayOf(reg)
+    return {
+      drawer: drawer || EMPTY_OVERLAY,
+      dialog: dialog || EMPTY_OVERLAY,
+      drawerOpen: !!drawer && !(picker && !picker.inDrawer),
+      modal: !!dialog && !picker,
+    }
+  }
+
   function listHeaderVarsOf(listingSummary) {
     const toolbar = listingSummary ? listingSummary.toolbar : []
     const primaryToolbar = toolbar.length ? toolbar[0] : null
@@ -19477,7 +19928,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls', 'installRecordMerges', 'installFactActions',
+    'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -19519,7 +19970,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function installEmbeddedContentRuntime(b, runtime) {
     const runPageAction = (actionId, parameters, atom) => runtime.fireEvent('application:mateuElementEvent', {
-      actionId, parameters, fromNested: !!(atom && atom.fromNested),
+      actionId, parameters, fromNested: !!(atom && atom.fromNested), surfaceId: (atom && atom.surfaceId) || '',
     })
     for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
     if (typeof b.setTileReorderSink === 'function') {
@@ -19873,6 +20324,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     notificationsOf,
     setUndoSink,
     setCalendarActionSink,
+    // @Toc: the sticky sections index (projection + DOM wiring)
+    tocOf,
+    installToc,
+    resetToc,
     setMatrixActionSink,
     setMapActionSink,
     actionPanelAtomOf,
@@ -19891,6 +20346,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     collectIslands,
     mediatorOf,
     buildOverlay,
+    // overlays: the drawer panel shows the top drawer, the modal the dialog over it
+    drawerOverlayOf,
+    dialogOverlayOf,
+    dismissOverlayById,
+    overlayVarsOf,
+    EMPTY_OVERLAY,
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
@@ -19907,6 +20368,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withFormActionsRowOf,
     withSubresources,
     loadSubresources,
+    // inline islands (a component field holding a ServerSide of its own) and the page's event bus
+    inlineIslandOf,
+    inlineIslandsOf,
+    registerInlineIsland,
+    ensureInlineIslands,
+    deliverBusEvents,
+    busSubscribersOf,
     appLevelOf,
     rowRouteOf,
     listingOf,

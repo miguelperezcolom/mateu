@@ -48,7 +48,7 @@ VB/Redwood projects).
 | placeholder (FormField / field type) | 🔧 0627d3afa (Vaadin never rendered it) | 🔧 same | ⏳ | N/A | ⏳ | ⏳ |
 | field types catalogue (`types.yaml`, `fieldType:`) | N/A | ✅ label/stereotype/placeholder/required applied | ⏳ | ✅ suites | ⏳ | ⏳ |
 | identity gates: @EyesOnly / @ReadOnlyUnless / @DisabledUnless | 🔧 34f69ea2e (@DisabledUnless / @Disabled / disabling rules never disabled a Vaadin field or button) ✅ hidden, read-only, tampered write ignored | ⏳ | ✅ (renderer/forms) | ✅ suites | N/A | ⏳ |
-| component-holder field (`Callable<Component>`) | ✅ drawn, survives the round trip | N/A | ❌ not drawn in a plain (non-rich) form — the generic form drops non-field components inside a section | ⏳ | | |
+| component-holder field (`Callable<Component>`) | ✅ drawn, survives the round trip | N/A | 🔧 what a holder brings is marked (`fromHolder`) and makes the content the body, fields included — the generic form, which dropped it, steps aside (branch `pending/redwood`) | ⏳ | | |
 | Double sent back as a whole number | ✅ (behaviour-walk) | | ✅ | ✅ | | |
 
 ## Validation
@@ -67,7 +67,7 @@ VB/Redwood projects).
 |---|---|---|
 | @Section, columns=1, frameless, sticky, propertyList, edit/add/viewMore affordances | ✅ (layout-walk) | 🔧 7bb044c38 (a card + tab bar anywhere was taken for an item overview: only the first section and the tabs were drawn); ✅ after |
 | @Tab open + Alt+N shortcuts, value kept in a hidden tab | ✅ | ✅ open tab (shortcuts ⏳) |
-| @Toc index (click, Ctrl+Alt+N, scrollspy) | ✅ | ❌ no index on Redwood (gap) |
+| @Toc index (click, Ctrl+Alt+N, scrollspy) | ✅ | 🔧 `poc/toc.mjs`: the same tri-state rule as mateu-page (auto at 5+ titled sections, never on a @Zones form), a sticky right column, click / Ctrl+Alt+N jump, scrollspy; `renderer/forms.spec` walks it on both renderers (branch `pending/redwood`) |
 | @Zones / @Compact / @FoldedLayout | ✅ render | ⏳ |
 | @AutoLayout fold-optionals "More options" | 🔧 7dc060632 (Vaadin opened it: the folded fields showed expanded) | ⏳ |
 | labels aside inference | ✅ | ⏳ |

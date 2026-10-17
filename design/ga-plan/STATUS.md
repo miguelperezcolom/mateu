@@ -259,10 +259,17 @@ IntelliJ gradle (no plugin code changed; its visual-editor resources were rebuil
 - ~~Open ❌ items of authoring and native-ports~~ — resolved on `pending/decisions` (batch 3 above); merge it after
   batch 2. Owner-only leftovers: publish `mateu-vaadin` to npm per release / package the renderer into PyPI and NuGet.
 - Then phase 3 (coverage) and 4 (refactor) as planned.
-- Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog
-  over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
-  nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —
-  likely a gantt laid out while hidden). All need a browser session.
+- Redwood (branch `pending/redwood`, 2026-10-17): the six walkthrough bugs that reproduced are fixed, each with poc
+  contract/DOM tests and a renderer-vb spec, verified in a browser — inline islands held by form fields (surfaces of
+  their own + the bus by `@SubscribeTo` scope), dialog over a drawer, `Callable<Component>` holders, the `@Toc`
+  index, the calendar event click (`<a href="#">` rebooted VB's router), the map marker (keyboard button). The
+  Gantt «`<rect>` width negative» console errors did NOT reproduce headless (4 viewports, CPU×8 + slow-CDN
+  throttling, the renderer-vb flows with every console message kept): left as "not reproduced — recheck in a headed
+  browser; if seen, gate the oj-gantt on a laid-out container (ResizeObserver)". Pending: push + PR of the branch.
+- IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed on long pages (needs `renderProbe`).
+- Listings: double `search` after delete/bulk and on filtered deep links (harmless); record page title is the class
+  title in Python AND .NET (decide whether the record should name it, as Java does).
+- .NET `PageBanners` (append) for full parity.
 - Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
 
 ## (Superseded) Pending owner decisions — the original list, all applied above

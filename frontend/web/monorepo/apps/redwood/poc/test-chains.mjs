@@ -10,9 +10,13 @@ import { dirname, join } from 'node:path'
 import {
   listHeaderVarsOf, wizardVarsOf, archetypeVarsOf, islandVarsOf, nestedVarOf, noGenericFormVars, hostContentPlanOf,
   generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
+  overlayVarsOf, EMPTY_OVERLAY,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer, blockClickOf } from './actionPlan.mjs'
-import { HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf } from './reduceContexts.mjs'
+import {
+  HOST_ID, hostContentOf, actionsOf, withFormActions, withFormActionsRowOf, tabOnlyActionIdsOf, pageToolbarOf,
+  reduceContexts, overlayOf, drawerOverlayOf, dialogOverlayOf, dismissOverlayById,
+} from './reduceContexts.mjs'
 import { hostContentBesideHeader, fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { applyLightTheme } from './theme.mjs'
@@ -350,6 +354,74 @@ test('leaving a wizard: no binding reads mateuWizard unguarded (the page chain s
     if (m[1] != null) tests.push(m[1])
   }
   assert.deepEqual(unguarded, [], 'reads of mateuWizard that throw once it is null')
+})
+
+// ── overlays: a Dialog over a Drawer (walkthrough: «closing the dialog leaves the drawer hidden») ──
+const fx = (name) => JSON.parse(readFileSync(join(here, 'fixtures', 'real', name + '.json'), 'utf8'))
+const emptyReg = () => ({ contexts: {}, stack: [], shell: null })
+
+test('overlays: a Dialog opened over a Drawer: the panel keeps the drawer, the modal gets the dialog', () => {
+  let reg = reduceContexts(emptyReg(), fx('load-form'))
+  reg = reduceContexts(reg, fx('open-drawer'))
+  const drawerId = reg.stack[0]
+  reg = reduceContexts(reg, fx('dialog-embedded-cancel'))
+  assert.equal(reg.stack.length, 2)
+  // the top overlay is the dialog (what the action plan posts against)…
+  assert.ok(overlayOf(reg).isDialog)
+  assert.equal(dialogOverlayOf(reg).id, reg.stack[1])
+  // …and the drawer panel still shows the drawer under it
+  assert.equal(drawerOverlayOf(reg).id, drawerId)
+  const open = overlayVarsOf(reg)
+  assert.equal(open.drawer.id, drawerId)
+  assert.equal(open.drawer.title, 'New')
+  assert.ok(open.drawerOpen, 'the drawer stays open while the modal is up')
+  assert.ok(open.modal)
+  assert.ok(open.dialog.isDialog)
+  // the dialog's CloseModal pops the dialog alone: the drawer is back as the only overlay
+  reg = reduceContexts(reg, { fragments: [], commands: [{ type: 'CloseModal' }], messages: [] })
+  const after = overlayVarsOf(reg)
+  assert.deepEqual(reg.stack, [drawerId])
+  assert.equal(after.drawer.id, drawerId)
+  assert.ok(after.drawerOpen)
+  assert.equal(after.modal, false)
+  assert.equal(after.dialog, EMPTY_OVERLAY)
+  assert.equal(dialogOverlayOf(reg), null)
+  // without any overlay both halves are empty
+  const none = overlayVarsOf(dismissOverlayById(reg, drawerId))
+  assert.deepEqual([none.drawer, none.dialog, none.drawerOpen, none.modal], [EMPTY_OVERLAY, EMPTY_OVERLAY, false, false])
+})
+
+test('overlays: the real wire — a Drawer and the Dialog opened from its form both carry the filler id `fieldId`: two overlays, not a refresh', () => {
+  // the sample1 OverlayLab (/overlay-lab): «Edit contact» → Drawer(ContactEditor); «Open nested dialog» → Dialog
+  let reg = reduceContexts(emptyReg(), fx('sut-overlay-lab'))
+  reg = reduceContexts(reg, fx('sut-overlay-open-drawer'))
+  reg = reduceContexts(reg, fx('sut-overlay-nested-dialog'))
+  assert.equal(reg.stack.length, 2, 'the dialog stacks on the drawer (it used to take its place)')
+  const vars = overlayVarsOf(reg)
+  assert.equal(vars.drawer.title, 'Edit contact')
+  assert.equal(vars.dialog.title, 'Nested dialog')
+  assert.ok(vars.drawerOpen && vars.modal)
+  reg = reduceContexts(reg, { fragments: [], commands: [{ type: 'CloseModal' }], messages: [] })
+  const after = overlayVarsOf(reg)
+  assert.equal(after.drawer.title, 'Edit contact')
+  assert.ok(after.drawerOpen && !after.modal)
+  assert.ok(after.drawer.actions.some((a) => a.actionId === 'saveContact'), 'the drawer keeps its form actions')
+})
+
+test('overlays: dismissing the drawer by id leaves a dialog on top untouched; a picker outside the drawer hides it', () => {
+  let reg = reduceContexts(emptyReg(), fx('load-form'))
+  reg = reduceContexts(reg, fx('open-drawer'))
+  reg = reduceContexts(reg, fx('dialog-embedded-cancel'))
+  const [drawerId, dialogId] = reg.stack
+  const popped = dismissOverlayById(reg, drawerId)
+  assert.deepEqual(popped.stack, [dialogId])
+  assert.ok(!popped.contexts[drawerId] && popped.contexts[dialogId])
+  assert.equal(dismissOverlayById(reg, 'nope'), reg, 'an unknown id changes nothing')
+  // a @Searchable selector (its own dialog) keeps hiding the drawer unless it is drawn inside it
+  const onlyDrawer = dismissOverlayById(reg, dialogId)
+  assert.equal(overlayVarsOf(onlyDrawer, { inDrawer: false }).drawerOpen, false)
+  assert.equal(overlayVarsOf(onlyDrawer, { inDrawer: true }).drawerOpen, true)
+  assert.equal(overlayVarsOf(onlyDrawer, { inDrawer: true }).modal, false)
 })
 
 console.log(`\n${passed} chain-logic tests OK`)
