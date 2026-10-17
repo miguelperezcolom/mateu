@@ -50,6 +50,7 @@ public class RunMethodActionRunner implements ActionRunner {
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
     var methodName = command.actionId();
+    var view = instance;
     if (command.actionId().startsWith("nested-form-action-")) {
       var fieldAndMethod = command.actionId().substring("nested-form-action-".length());
       var fieldId = fieldAndMethod.substring(0, fieldAndMethod.indexOf('-'));
@@ -69,7 +70,21 @@ public class RunMethodActionRunner implements ActionRunner {
         instance = nestedForm;
       }
     }
-    Method m = ActionMethods.resolve(instance, methodName, command.httpRequest());
+    // strict mode: an unmarked method runs only for an id its view advertised — a nested form's
+    // under the prefixed id the HOLDING view advertises, or its own id on the nested form
+    var target = instance;
+    var name = methodName;
+    Method m =
+        ActionMethods.resolve(
+            instance,
+            methodName,
+            command.httpRequest(),
+            () ->
+                io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions.advertises(
+                        view, command.httpRequest(), command.actionId())
+                    || (target != view
+                        && io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions
+                            .advertises(target, command.httpRequest(), name)));
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
       if (!command.actionId().startsWith("nested-form-action-")) {

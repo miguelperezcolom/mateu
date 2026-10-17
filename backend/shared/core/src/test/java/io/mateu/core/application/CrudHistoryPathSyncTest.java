@@ -174,13 +174,14 @@ class CrudHistoryPathSyncTest {
   }
 
   /**
-   * Cancelling pushes nothing at all — asserted rather than left unsaid, because "no url change" is
-   * a decision the next person needs to be able to tell apart from an oversight. The browser still
-   * leaves the edit form; it does so on the route load that follows, not on this response.
+   * Cancelling an edit goes back to the record, under the menu prefix too. (This used to send
+   * {@code cancel}, which is no crud action: it failed with an error and pushed nothing, which the
+   * test read as "cancelling pushes no url".)
    */
   @Test
-  void cancellingPushesNoUrlOfItsOwn() {
-    assertThat(pushedPath(runAction("cancel", "/shop/products/p1/edit"))).isNull();
+  void cancellingAnEditGoesBackToTheRecordKeepingTheMenuPrefix() {
+    assertThat(pushedPath(runAction("cancel-edit", "/shop/products/p1/edit")))
+        .isEqualTo("/shop/products/p1");
   }
 
   /**

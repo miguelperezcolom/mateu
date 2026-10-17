@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 @Property(name = "mateu.client-log.enabled", value = "false")
 @Property(name = "mateu.static-assets.caching", value = "false")
+// a MateuSettings key, read through Micronaut's Environment (M-S2)
+@Property(name = "mateu.mobile.min-app-version", value = "2.5.0")
 class AdapterParityDisabledTest {
 
   @Inject EmbeddedServer server;
@@ -27,6 +29,11 @@ class AdapterParityDisabledTest {
   @Test
   void refusesClientLogsWhenDisabled() {
     contract.refusesClientLogsWhenDisabled();
+  }
+
+  @Test
+  void readsMateuSettingsFromTheFrameworkConfiguration() {
+    contract.readsMateuSettingsFromTheFrameworkConfiguration();
   }
 
   @Test

@@ -58,6 +58,9 @@ public class MateuClientLogFilter extends OncePerRequestFilter {
       return;
     }
     Principal principal = request.getUserPrincipal();
-    response.setStatus(ClientErrorLog.handle(body, principal != null ? principal.getName() : null));
+    // rate-limited per user, else per client address: the endpoint is open to anonymous callers
+    response.setStatus(
+        ClientErrorLog.handle(
+            body, principal != null ? principal.getName() : null, request.getRemoteAddr()));
   }
 }

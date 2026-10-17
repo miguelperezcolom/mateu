@@ -120,6 +120,7 @@ class TailsSyncTest {
       };
     }
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     Object close(Ticket row, HttpRequest httpRequest) {
       closedId = row.id();
       return null;

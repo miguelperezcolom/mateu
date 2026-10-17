@@ -24,10 +24,9 @@ public class ParityApp {
   // Spring Security is on the test classpath (for the static-asset test); open everything here.
   @Bean
   SecurityFilterChain permitAll(HttpSecurity http) throws Exception {
-    // the Mateu endpoints are JSON POSTs from the same origin, authenticated (when at all) by a
-    // Bearer token, not a cookie: CSRF tokens do not apply to them — everything else keeps CSRF
-    return http.csrf(csrf -> csrf.ignoringRequestMatchers("/mateu/**", "/*/mateu/**"))
-        .addFilterBefore(new ParityRolesAuthentication(), AuthorizationFilter.class)
+    // CSRF stays at Spring Security's default: Mateu's own auto-configuration exempts its JSON
+    // calls (MateuCsrfAutoConfiguration), so the whole parity suite runs through that exemption
+    return http.addFilterBefore(new ParityRolesAuthentication(), AuthorizationFilter.class)
         .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
         .build();
   }

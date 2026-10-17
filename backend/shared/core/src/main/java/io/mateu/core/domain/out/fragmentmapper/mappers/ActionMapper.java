@@ -232,8 +232,7 @@ public class ActionMapper {
     for (var method :
         io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods(view.getClass())) {
       if (ids.contains(method.getName())
-          && io.mateu.core.application.security.ActionMethods.isInvocable(
-              method, view.getClass())) {
+          && io.mateu.core.application.security.ActionMethods.isHandler(method, view.getClass())) {
         handled.add(method.getName());
       }
     }

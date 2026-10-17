@@ -55,6 +55,15 @@ mvn package && java -jar target/mateu-starter-helidon-mp.jar   # http://localhos
   are not registered and every route 404s) and `jersey-media-json-jackson` (Mateu's wire is
   Jackson-serialised; JSON-B would drop its type discriminators).
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.
+- **Actions are declared.** An `actionId` only runs a method marked as an action (`@Action`,
+  `@Button`, `@Toolbar`…) or one the view itself names (a fluent button's `actionId`, a trigger, a
+  menu rule) — strict action mode, the default. A method only an undo toast, a test or another
+  backend dispatches needs `@Action`; a plain public helper is not reachable from the browser.
+- **Security is Helidon's.** Mateu does not authenticate: add `helidon-microprofile-jwt-auth` and Mateu reads the
+  principal it authenticated (https://mateu.io/java-user-manual/advanced/security/). Mateu's calls
+  are JSON, so no CSRF configuration is needed for them.
+- `mateu.*` settings (`mateu.actions.strict`, `mateu.errors.detailed`…) go in the `microprofile-config.properties` like any
+  other.
 - Prefer annotations and capability interfaces over custom components; check the docs before
   inventing an API.
 

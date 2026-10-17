@@ -642,7 +642,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
     {
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
         // A [Button] / [Toolbar] is advertised validationRequired: the client checks the form's constraints
         // first, and the server does not take its word for it (Java's ServerConstraintCheck).

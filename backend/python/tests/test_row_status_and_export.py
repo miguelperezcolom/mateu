@@ -141,5 +141,9 @@ def test_an_exportable_crud_offers_the_export_button_and_exports():
 
 def test_a_crud_that_is_not_exportable_offers_no_export_and_refuses_it():
     assert "export-csv" not in [b["actionId"] for b in crud_of(GuestsNoExport)["toolbar"]]
-    inc = export(GuestsNoExport, "/rs-guests-no-export")
-    assert "DownloadFile" not in [c.type for c in inc.commands]
+    import pytest
+
+    from mateu_core import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        export(GuestsNoExport, "/rs-guests-no-export")

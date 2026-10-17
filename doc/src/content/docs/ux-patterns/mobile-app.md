@@ -63,8 +63,9 @@ relative: the app resolves it against the manifest's URL.
 
 ### Where each member comes from
 
-Highest precedence first. A **setting** is, in Java, a JVM system property (`mateu.mobile.…`) or
-the matching environment variable (`MATEU_MOBILE_…`); in .NET and Python, the environment variable.
+Highest precedence first. A **setting** is, in Java, a JVM system property (`mateu.mobile.…`), a
+key in the framework's configuration (`application.properties`, MicroProfile Config…) or the
+matching environment variable (`MATEU_MOBILE_…`); in .NET and Python, the environment variable.
 Settings win because the identity provider usually changes per environment while the code does not.
 
 | Member | Setting (env var) | `@MobileApp` / `[MobileApp]` / `@mobile_app` | Fallback |

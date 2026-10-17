@@ -27,7 +27,7 @@ from __future__ import annotations
 import dataclasses
 import inspect
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
 
 from mateu_uidl import (
     AppActionsSupplier,
@@ -173,7 +173,14 @@ def ensure_class_access(mapper, type_, what: str = "request") -> None:
         )
 
 
-def deny(what: str) -> None:
+def no_such_action(type_, action_id: str | None) -> NoReturn:
+    """Refuses an action id no handler of the view claims: wire input naming nothing — a WARN and
+    a 403, never an error toast (the same answer Java and .NET give)."""
+    name = f"{type_.__module__}.{type_.__qualname__}" if isinstance(type_, type) else str(type_)
+    deny(f"action '{(action_id or '')[:120]}' on {name}: no such action")
+
+
+def deny(what: str) -> NoReturn:
     log.warning("Mateu request denied: %s — rejected with 403, the action did not run", what)
     raise MateuForbiddenException(f"Forbidden: {what}")
 

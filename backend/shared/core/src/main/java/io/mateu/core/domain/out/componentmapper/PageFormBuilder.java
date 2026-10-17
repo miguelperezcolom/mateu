@@ -171,6 +171,14 @@ public class PageFormBuilder {
             && ros.isReadOnly(field.getName(), httpRequest));
   }
 
+  /**
+   * Whether the editor (or, with {@code forCreationForm}, the creation form) renders no input for
+   * {@code field} at all — what a save must then not take from the client either.
+   */
+  public static boolean isHiddenInEditor(Field field, boolean forCreationForm) {
+    return FormFieldFilter.hiddenInEditor(field, forCreationForm);
+  }
+
   /** Read-only when a {@link ReadOnlyUnless} on the field or the view is not satisfied. */
   static boolean readOnlyByPermission(Field field, Object instance, HttpRequest httpRequest) {
     if (MetaAnnotations.isPresent(field, ReadOnlyUnless.class)

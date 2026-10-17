@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 @HelidonTest
 @AddConfig(key = "mateu.client-log.enabled", value = "false")
 @AddConfig(key = "mateu.static-assets.caching", value = "false")
+// a MateuSettings key, read through MicroProfile Config (M-S2)
+@AddConfig(key = "mateu.mobile.min-app-version", value = "2.5.0")
 class AdapterParityDisabledTest {
 
   final AdapterParityITFoundation contract = new AdapterParityITFoundation();
@@ -25,6 +27,11 @@ class AdapterParityDisabledTest {
   @Test
   void refusesClientLogsWhenDisabled() {
     contract.refusesClientLogsWhenDisabled();
+  }
+
+  @Test
+  void readsMateuSettingsFromTheFrameworkConfiguration() {
+    contract.readsMateuSettingsFromTheFrameworkConfiguration();
   }
 
   @Test

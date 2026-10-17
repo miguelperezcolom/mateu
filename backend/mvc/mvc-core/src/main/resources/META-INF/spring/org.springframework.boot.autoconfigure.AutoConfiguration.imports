@@ -2,3 +2,4 @@ io.mateu.MateuAutoConfiguration
 io.mateu.yamlmount.YamlMountAutoConfiguration
 io.mateu.mcp.MateuMcpAutoConfiguration
 io.mateu.dev.MateuDevAutoConfiguration
+io.mateu.security.MateuCsrfAutoConfiguration

@@ -35,13 +35,13 @@ class ActionHandlerMixin(MixinBase):
     def run_action(self, type_, instance, rq: RunActionRq, layout_override=None) -> UIIncrement:
         """Runs a view action. The action id comes from the wire, so it only reaches a method
         DECLARED as an action (see :mod:`mateu_core.action_guard`) and only when the caller
-        passes its access gates; anything else is "Action not found" / 403."""
+        passes its access gates; anything else answers 403."""
         fn = action_guard.resolve_action(
             type_, rq.action_id,
             lambda: action_guard.advertised_ids(self.mapper, type_, instance, layout_override),
         )
         if fn is None:
-            return self.error(f"Action not found: {rq.action_id}")
+            action_guard.no_such_action(type_, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
         if getattr(fn, "__mateu_button__", None) or getattr(fn, "__mateu_toolbar__", None):
             # a @button / @toolbar is advertised validation_required: the client checks the

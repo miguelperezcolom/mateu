@@ -155,4 +155,7 @@ def test_without_an_exporter_excel_and_pdf_are_neither_offered_nor_crash():
 
 
 def test_a_crud_that_does_not_opt_in_refuses_the_export():
-    assert "DownloadFile" not in [c.type for c in export(NoExport, "export-pdf").commands]
+    from mateu_core import MateuForbiddenException
+
+    with pytest.raises(MateuForbiddenException):
+        export(NoExport, "export-pdf")

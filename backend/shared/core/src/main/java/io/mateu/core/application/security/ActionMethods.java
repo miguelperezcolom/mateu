@@ -75,16 +75,23 @@ public final class ActionMethods {
           "PostRemove");
 
   /**
-   * The setting that turns on strict action mode: only methods carrying an action marker (or
-   * declared by a {@code ComponentAdapter}) are actions; the "public methods are actions"
-   * convention and the row-binding inference are off. Default false (the convention), see the
-   * threat model in the security guide.
+   * The setting for strict action mode — ON by default since 3.0-alpha.426. Strict: a method is an
+   * action when it carries an action marker, is declared by a {@code ComponentAdapter}, or its id
+   * is ADVERTISED by the view (named by its triggers, subscriptions, {@code @OnRowSelected}, its
+   * action list or the components it holds or supplies — see {@code AdvertisedActions}); an
+   * incidental public method nobody advertised is not reachable from the wire. {@code
+   * mateu.actions.strict=false} opts back into the convention ("every public method of the view
+   * model is an action"); see the threat model in the security guide.
    */
   public static final String STRICT = "mateu.actions.strict";
 
-  /** Whether strict action mode is on ({@value #STRICT}, or {@code MATEU_ACTIONS_STRICT}). */
+  /**
+   * Whether strict action mode is on: unless {@value #STRICT} (or {@code MATEU_ACTIONS_STRICT}) is
+   * set to something other than {@code true}.
+   */
   public static boolean isStrict() {
-    return io.mateu.core.infra.MateuSettings.isTrue(STRICT);
+    var configured = io.mateu.core.infra.MateuSettings.get(STRICT);
+    return configured == null || Boolean.parseBoolean(configured);
   }
 
   /** Carries one of the action markers, directly or composed. */
@@ -126,9 +133,62 @@ public final class ActionMethods {
     if (isStrict()) {
       // strict mode: an action is what the developer DECLARED as one, nothing inferred — an
       // incidental public method (a helper, a service-like method on the view model) is not
-      // reachable from the wire just because it is public
+      // reachable from the wire just because it is public. One the view ADVERTISES is accepted by
+      // resolve(), which has the instance to ask.
       return false;
     }
+    return isConventional(method, instanceClass);
+  }
+
+  /**
+   * Whether {@code method} may run on {@code instance} for this request: an action by itself
+   * ({@link #isInvocable(Method, Class)}), or — strict mode — a method the conventions recognise
+   * whose name the view advertises (a {@code ColumnAction("approve")} written in its code, a
+   * component naming it…). The row and view-action runners ask this.
+   */
+  public static boolean isInvocable(Method method, Object instance, HttpRequest httpRequest) {
+    if (instance == null) {
+      return isInvocable(method, (Class<?>) null);
+    }
+    var type = instance.getClass();
+    return isInvocable(method, type)
+        || (isStrict()
+            && isEligible(method)
+            && isConventional(method, type)
+            && io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions.advertises(
+                instance, httpRequest, method.getName()));
+  }
+
+  /**
+   * Whether {@code method} may HANDLE an action id the view advertises: an action by marker, or a
+   * method the conventions recognise (a public, non-plumbing method of the view model, or a row
+   * method). Whatever the strict setting — this is what a component referencing an id is matched
+   * against before the id is advertised; strict mode then accepts the call because it was.
+   */
+  public static boolean isHandler(Method method, Class<?> instanceClass) {
+    return isEligible(method) && (isMarked(method) || isConventional(method, instanceClass));
+  }
+
+  /** The structural refusals of {@link #isInvocable}, before markers and conventions. */
+  private static boolean isEligible(Method method) {
+    if (method == null) {
+      return false;
+    }
+    int modifiers = method.getModifiers();
+    if (Modifier.isPrivate(modifiers) || method.isSynthetic() || method.isBridge()) {
+      return false;
+    }
+    var declaring = method.getDeclaringClass();
+    if (declaring == Object.class || declaring == Record.class || declaring == Enum.class) {
+      return false;
+    }
+    return !hasSimpleNamedAnnotation(method, LIFECYCLE_ANNOTATIONS)
+        && !WireTypes.isDeniedPackage(declaring.getName());
+  }
+
+  private static boolean isConventional(Method method, Class<?> instanceClass) {
+    int modifiers = method.getModifiers();
+    var declaring = method.getDeclaringClass();
     // ── the conventions: methods of the view model itself that are not plumbing ──
     if (Modifier.isStatic(modifiers)) {
       return false;
@@ -177,7 +237,7 @@ public final class ActionMethods {
   public static Method findInvocable(Class<?> instanceClass, String name) {
     var method = invocableNamed(instanceClass, name);
     if (method == null && namesAMethod(instanceClass, name)) {
-      throw refused(instanceClass, name, "not an action");
+      throw notAnAction(instanceClass, name);
     }
     return method;
   }
@@ -192,6 +252,21 @@ public final class ActionMethods {
     // interface default methods and inherited public methods getAllMethods does not list
     for (var m : instanceClass.getMethods()) {
       if (m.getName().equals(name) && isInvocable(m, instanceClass)) {
+        return m;
+      }
+    }
+    return null;
+  }
+
+  /** The method named {@code name} the conventions would accept, or null. */
+  private static Method handlerNamed(Class<?> instanceClass, String name) {
+    for (var m : AllMethodsProvider.getAllMethods(instanceClass)) {
+      if (m.getName().equals(name) && isEligible(m) && isConventional(m, instanceClass)) {
+        return m;
+      }
+    }
+    for (var m : instanceClass.getMethods()) {
+      if (m.getName().equals(name) && isEligible(m) && isConventional(m, instanceClass)) {
         return m;
       }
     }
@@ -266,15 +341,41 @@ public final class ActionMethods {
 
   /** {@link #findInvocable} + {@link #checkAccess}: the method to run, or null if none is named. */
   public static Method resolve(Object instance, String name, HttpRequest httpRequest) {
+    return resolve(
+        instance,
+        name,
+        httpRequest,
+        () ->
+            io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions.advertises(
+                instance, httpRequest, name));
+  }
+
+  /**
+   * As {@link #resolve(Object, String, HttpRequest)}, with the caller saying whether the id was
+   * advertised (a nested form's action is advertised by the view holding it, under a prefixed id).
+   */
+  public static Method resolve(
+      Object instance,
+      String name,
+      HttpRequest httpRequest,
+      java.util.function.BooleanSupplier advertised) {
     // The cheap, reflective answer first: asking a ComponentAdapter means running its adapt() —
     // building the whole view — so it is consulted only when the method is NOT an action by itself
     // (a non-public or, in strict mode, unmarked method the adapter declares).
     var method = invocableNamed(instance.getClass(), name);
+    if (method == null && isStrict()) {
+      // strict: an unmarked method answers only to an id its view ADVERTISED (named it in a
+      // trigger, a component, a menu rule…) — computed only on this path
+      var handler = handlerNamed(instance.getClass(), name);
+      if (handler != null && advertised.getAsBoolean()) {
+        method = handler;
+      }
+    }
     if (method == null) {
       method = declaredByAdapter(instance, name, httpRequest);
     }
     if (method == null && namesAMethod(instance.getClass(), name)) {
-      throw refused(instance.getClass(), name, "not an action");
+      throw notAnAction(instance.getClass(), name);
     }
     if (method != null) {
       checkAccess(method, instance.getClass(), httpRequest);
@@ -314,6 +415,27 @@ public final class ActionMethods {
       }
     }
     return null;
+  }
+
+  /**
+   * The refusal of an action id no handler of the view claims: logged at WARN (the id is wire input
+   * anyone can vary, so never an ERROR with a stack trace) and answered 403.
+   */
+  public static MateuForbiddenException noSuchAction(Class<?> instanceClass, String name) {
+    return refused(instanceClass, name, "no such action");
+  }
+
+  /**
+   * The refusal of a method that exists but is not an action — logged at WARN with the strict-mode
+   * hint, since since 3.0-alpha.426 that is the usual reason a button that used to work stops.
+   */
+  public static MateuForbiddenException notAnAction(Class<?> instanceClass, String name) {
+    return refused(
+        instanceClass,
+        name,
+        isStrict()
+            ? "not an action: mark it @Action (strict action mode, mateu.actions.strict)"
+            : "not an action");
   }
 
   static MateuForbiddenException refused(Class<?> instanceClass, String name, String reason) {

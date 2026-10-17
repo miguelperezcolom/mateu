@@ -173,7 +173,7 @@ class CrudHandlerMixin(MixinBase):
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
         if aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
-        return self.error(f"Action not found: {aid}")
+        action_guard.no_such_action(crud_type, aid)
 
     def export_listing(self, crud, crud_type, element, action_id: str, rq: RunActionRq) -> UIIncrement:
         """export-csv / export-excel / export-pdf on an exportable crud: the WHOLE filtered result
@@ -223,7 +223,7 @@ class CrudHandlerMixin(MixinBase):
         # method of the crud (security: the id is wire input).
         fn = action_guard.resolve_row_action(crud_type, (rq.action_id or "")[len("action-on-row-"):])
         if fn is None:
-            return self.error(f"Action not found: {rq.action_id}")
+            action_guard.no_such_action(crud_type, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
         method = fn.__get__(crud, crud_type)
         result = method(*self._build_bulk_arguments(method, element, rq))

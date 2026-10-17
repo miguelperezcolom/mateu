@@ -8,7 +8,7 @@ from mateu_uidl import (
     ComponentTreeSupplier,
 )
 
-from .. import page_inference
+from .. import action_guard, page_inference
 from ..naming import snake_case
 from ._base import MixinBase
 from ._common import RunActionRq
@@ -48,15 +48,15 @@ class RenderHandlerMixin(MixinBase):
         """A model rendered through its ComponentAdapter: ``deserialize`` rebuilds it from the
         state (the first time from an empty one); an action id the adapted view LISTS runs the
         model's method of that name; None or the model itself re-renders. Anything else is
-        "Action not found" — the id is wire input."""
+        refused (403) — the id is wire input."""
         model = adapter.deserialize(dict(rq.component_state or {}))
         if rq.action_id:
             allowed = set(adapter.adapt(model).actions or [])
             if rq.action_id not in allowed or rq.action_id.startswith("_"):
-                return self.error(f"Action not found: {rq.action_id}")
+                action_guard.no_such_action(type_, rq.action_id)
             method = getattr(model, rq.action_id, None) or getattr(model, snake_case(rq.action_id), None)
             if method is None or not callable(method):
-                return self.error(f"Action not found: {rq.action_id}")
+                action_guard.no_such_action(type_, rq.action_id)
             result = method()
             if result is not None and result is not model:
                 return self.map_result(result, rq)

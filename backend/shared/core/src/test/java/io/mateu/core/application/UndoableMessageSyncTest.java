@@ -38,6 +38,7 @@ class UndoableMessageSyncTest {
       return Message.undoable("Documento archivado", "restore", Map.of("docId", "doc-7"));
     }
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public Message restore(HttpRequest httpRequest) {
       // the Undo button's undoParameters travel as ACTION PARAMETERS (not component state)
       var docId = String.valueOf(httpRequest.runActionRq().parameters().get("docId"));

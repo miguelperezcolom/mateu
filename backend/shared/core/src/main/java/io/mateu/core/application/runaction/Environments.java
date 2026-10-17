@@ -41,10 +41,7 @@ public final class Environments {
 
   /** The name of the active environment, or null when none is configured. */
   public static String activeName() {
-    var name = System.getProperty(PROPERTY);
-    if (name == null || name.isBlank()) {
-      name = System.getenv(ENV_VAR);
-    }
+    var name = io.mateu.core.infra.MateuSettings.get(PROPERTY);
     return name == null || name.isBlank() ? null : name.trim();
   }
 

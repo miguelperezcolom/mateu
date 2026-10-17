@@ -61,12 +61,12 @@ public sealed partial class SyncHandler
         {
             var declared = adapter.Adapt(model).Actions ?? [];
             if (!declared.Contains(rq.ActionId))
-                return Error($"Action not found: {rq.ActionId}");
+                throw ActionGuard.NoSuchAction($"{rq.ActionId}");
             var method = model.GetType()
                 .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == rq.ActionId
                                      && m.DeclaringType != typeof(object));
-            if (method is null) return Error($"Action not found: {rq.ActionId}");
+            if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
             var result = method.Invoke(model, BuildArguments(method, rq));
             if (result is not null && !ReferenceEquals(result, model)) return MapResult(result, rq);
         }

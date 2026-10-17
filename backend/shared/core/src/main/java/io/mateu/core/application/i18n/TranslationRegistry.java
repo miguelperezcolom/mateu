@@ -382,10 +382,7 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The locale used when the request's has no catalogue or lacks a key. */
   public static String fallbackLocale() {
-    var configured = System.getProperty("mateu.i18n.fallback");
-    if (configured == null || configured.isBlank()) {
-      configured = System.getenv("MATEU_I18N_FALLBACK");
-    }
+    var configured = io.mateu.core.infra.MateuSettings.get("mateu.i18n.fallback");
     return configured == null || configured.isBlank() ? "en" : configured.trim();
   }
 

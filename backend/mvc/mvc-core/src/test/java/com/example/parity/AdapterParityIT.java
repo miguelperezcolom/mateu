@@ -11,11 +11,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 /** The cross-adapter HTTP contract ({@link AdapterParityITFoundation}) on Spring MVC. */
+// the nested contexts in a fixed order: see Disabled
+@org.junit.jupiter.api.TestClassOrder(org.junit.jupiter.api.ClassOrderer.OrderAnnotation.class)
 class AdapterParityIT {
 
   final AdapterParityITFoundation contract = new AdapterParityITFoundation();
 
   @Nested
+  @org.junit.jupiter.api.Order(1)
   @SpringBootTest(webEnvironment = RANDOM_PORT, classes = ParityApp.class)
   class Defaults {
 
@@ -159,6 +162,7 @@ class AdapterParityIT {
         "mateu.mcp.enabled=true",
         "mateu.dev=true"
       })
+  @org.junit.jupiter.api.Order(2)
   class Enabled {
 
     @LocalServerPort Integer port;
@@ -198,7 +202,15 @@ class AdapterParityIT {
   @SpringBootTest(
       webEnvironment = RANDOM_PORT,
       classes = ParityApp.class,
-      properties = {"mateu.client-log.enabled=false", "mateu.static-assets.caching=false"})
+      properties = {
+        "mateu.client-log.enabled=false",
+        "mateu.static-assets.caching=false",
+        // a MateuSettings key, read through Spring's Environment (M-S2)
+        "mateu.mobile.min-app-version=2.5.0"
+      })
+  // LAST: MateuSettings asks the most recently started context, so a context started after this
+  // one is what the Defaults/Enabled tests must not run against
+  @org.junit.jupiter.api.Order(3)
   class Disabled {
 
     @LocalServerPort Integer port;
@@ -211,6 +223,11 @@ class AdapterParityIT {
     @Test
     void refusesClientLogsWhenDisabled() {
       contract.refusesClientLogsWhenDisabled();
+    }
+
+    @Test
+    void readsMateuSettingsFromTheFrameworkConfiguration() {
+      contract.readsMateuSettingsFromTheFrameworkConfiguration();
     }
 
     @Test

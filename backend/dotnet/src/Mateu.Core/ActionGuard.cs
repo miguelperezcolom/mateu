@@ -171,6 +171,16 @@ internal static class ActionGuard
         return true;
     }
 
+    /// <summary>The refusal of an action id no handler of the view claims: wire input naming
+    /// nothing — logged as a security WARN and answered 403 (the answer Java and Python give),
+    /// never an error toast.</summary>
+    internal static MateuForbiddenException NoSuchAction(string actionId)
+    {
+        var id = actionId.Length > 120 ? actionId[..120] + "…" : actionId;
+        Console.Error.WriteLine($"[mateu] security: action '{id}': no such action — the request was rejected (403)");
+        return new MateuForbiddenException($"Forbidden: action '{id}': no such action");
+    }
+
     internal static void Deny(string what)
     {
         Console.Error.WriteLine($"[mateu] security: {what} — the request was rejected (403)");

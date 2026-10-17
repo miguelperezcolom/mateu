@@ -169,11 +169,11 @@ public class IslandTests
     [Fact]
     public void An_action_the_adapted_view_does_not_declare_is_refused()
     {
-        var inc = Handler().Handle(new RunActionRqDto
+        var e = Assert.Throws<MateuForbiddenException>(() => Handler().Handle(new RunActionRqDto
         {
             Route = "pedido", ActionId = "toString", ServerSideType = typeof(Pedido).FullName,
-        });
-        Assert.Equal("Action not found: toString", Assert.Single(inc.Messages).Text);
+        }));
+        Assert.Contains("no such action", e.Message);
     }
 
     [Fact]

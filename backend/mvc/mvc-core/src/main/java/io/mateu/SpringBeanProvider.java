@@ -10,13 +10,26 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SpringBeanProvider implements BeanProvider {
+public class SpringBeanProvider
+    implements BeanProvider, org.springframework.beans.factory.DisposableBean {
 
   private final ApplicationContext applicationContext;
+
+  /** Mateu's own settings ({@code mateu.actions.strict}…) read from Spring's Environment. */
+  private final AutoCloseable settings;
 
   public SpringBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);
+    // application.properties / application.yml / profiles / command-line args: every mateu.* key
+    // core reads (MateuSettings) is honoured like any Spring property
+    var environment = applicationContext.getEnvironment();
+    this.settings = io.mateu.core.infra.MateuSettings.register(environment::getProperty);
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    settings.close();
   }
 
   /** Warns, once, when nothing will authenticate callers (no Spring Security, no resolver). */

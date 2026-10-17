@@ -95,6 +95,7 @@ class ActionPipelineSecurityTest {
   public static class ReturnedView {
     public String note;
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public void confirm() {
       RETURNED_VIEW_RAN.incrementAndGet();
     }
@@ -148,7 +149,20 @@ class ActionPipelineSecurityTest {
     }
 
     public Message hello() {
-      return new Message("hello");
+      return new Message("hi there");
+    }
+
+    // a dialog an action returns names the confirm handler: a literal of the view's own code
+    @Button
+    public io.mateu.uidl.data.ConfirmDialog archive() {
+      return io.mateu.uidl.data.ConfirmDialog.builder()
+          .header("Archive?")
+          .confirmActionId("doArchive")
+          .build();
+    }
+
+    public Message doArchive() {
+      return new Message("archived");
     }
   }
 
@@ -321,11 +335,33 @@ class ActionPipelineSecurityTest {
   void declaredActionsStillRun() {
     mateu.run(rq(SecApp.class.getName(), "ok"));
     mateu.run(rq(SecApp.class.getName(), "packagePrivateButton"));
-    var hello = mateu.run(rq(SecApp.class.getName(), "hello"));
 
     assertThat(PUBLIC_BUTTON_RAN).hasValue(1);
     assertThat(PACKAGE_BUTTON_RAN).hasValue(1);
-    assertThat(hello.messages()).extracting(m -> m.text()).contains("hello");
+  }
+
+  /**
+   * Strict action mode is the default (M-S1): a public method nobody marked or advertised — the
+   * view never offers it — is not an action; {@code mateu.actions.strict=false} brings back the old
+   * convention ("every public method is an action").
+   */
+  @Test
+  void aHandlerTheViewsOwnCodeNamesRunsInStrictMode() {
+    var archived = mateu.run(rq(SecApp.class.getName(), "doArchive"));
+    assertThat(archived.messages()).extracting(m -> m.text()).contains("archived");
+  }
+
+  @Test
+  void anUnadvertisedPublicMethodIsRefusedUnlessStrictModeIsTurnedOff() {
+    assertRefused(() -> mateu.run(rq(SecApp.class.getName(), "hello")));
+
+    System.setProperty(ActionMethods.STRICT, "false");
+    try {
+      var hello = mateu.run(rq(SecApp.class.getName(), "hello"));
+      assertThat(hello.messages()).extracting(m -> m.text()).contains("hi there");
+    } finally {
+      System.clearProperty(ActionMethods.STRICT);
+    }
   }
 
   @Test

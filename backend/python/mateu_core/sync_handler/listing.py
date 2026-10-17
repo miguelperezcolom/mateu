@@ -252,7 +252,7 @@ class ListingHandlerMixin(MixinBase):
         # Only a @list_toolbar_button method is a bulk row action (security: the id is wire input).
         fn = action_guard.resolve_row_action(cls, (rq.action_id or "")[len("action-on-row-"):])
         if fn is None:
-            return self.error(f"Action not found: {rq.action_id}")
+            action_guard.no_such_action(cls, rq.action_id)
         action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)
         method = fn.__get__(view, cls)
         result = method(*self._build_bulk_arguments(method, row_type, rq))

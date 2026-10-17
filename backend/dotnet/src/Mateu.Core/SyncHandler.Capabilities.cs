@@ -83,7 +83,7 @@ public sealed partial class SyncHandler
                     _mapper.MapCapabilityListing(profile, baseRoute), rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => CapabilityActionOnRows(profile, listing, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
+            _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
 
@@ -221,7 +221,7 @@ public sealed partial class SyncHandler
     {
         var name = rq.ActionId!["action-on-row-".Length..];
         var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
         var result = method.Invoke(listing, BuildBulkArguments(method, rq));
         return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
