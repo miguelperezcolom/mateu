@@ -129,6 +129,9 @@ class HorizontalLayoutMetadata(Wire):
     spacing: bool = True
     #: Lets the row's items wrap to the next line (responsive zone stacking).
     wrap: bool = False
+    #: Main-axis placement of the children (START/CENTER/END/BETWEEN/AROUND/EVENLY; mirrors
+    #: HorizontalLayoutDto.justification). None lets the renderer default.
+    justification: str | None = None
 
 
 class FormLayoutMetadata(Wire):

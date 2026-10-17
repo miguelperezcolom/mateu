@@ -167,6 +167,8 @@ class ButtonMetadata(Wire):
     #: A route this button navigates to on the client instead of running an action (mirrors
     #: ButtonDto.route — a Button whose actionable is a RouteLink).
     route: str | None = None
+    #: The button colour (normal/success/error/contrast; mirrors ButtonDto.color).
+    color: str | None = None
 
 
 class TabLayoutMetadata(Wire):
