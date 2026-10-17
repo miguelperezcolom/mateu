@@ -1,9 +1,13 @@
 # Core files that depend against the hexagonal layering (GA phase 4, 2026-10-17).
 # Pinned by io.mateu.core.architecture.CoreLayeringTest: a new line is a reviewed decision; a line
 # whose file no longer leaks fails the test until it is removed. Keep it sorted.
+# Beta integration (2026-10-18): settings read through MateuSettings (F2), the advertised-action
+# set shared with the strict action check (F2) and request-language validation messages
+# (fixes/extra) — reviewed, added together.
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
 application -> infra: io/mateu/core/application/i18n/TranslationRegistry.java
 application -> infra: io/mateu/core/application/mcp/McpEndpoint.java
+application -> infra: io/mateu/core/application/runaction/ActionInstanceCreator.java
 application -> infra: io/mateu/core/application/runaction/ActionRegistry.java
 application -> infra: io/mateu/core/application/runaction/AppMenuResolver.java
 application -> infra: io/mateu/core/application/runaction/ComponentRegistry.java
@@ -15,12 +19,14 @@ application -> infra: io/mateu/core/application/runaction/FieldTypeRegistry.java
 application -> infra: io/mateu/core/application/runaction/MountRegistry.java
 application -> infra: io/mateu/core/application/runaction/NotFoundPage.java
 application -> infra: io/mateu/core/application/runaction/PartialRegistry.java
+application -> infra: io/mateu/core/application/runaction/RemoteAppDescriptorCache.java
 application -> infra: io/mateu/core/application/runaction/RemoteMenuHandler.java
 application -> infra: io/mateu/core/application/runaction/RestProxyCalls.java
 application -> infra: io/mateu/core/application/runaction/RestSourceRegistry.java
 application -> infra: io/mateu/core/application/runaction/RouteInstanceCreator.java
 application -> infra: io/mateu/core/application/runaction/RouteRegistry.java
 application -> infra: io/mateu/core/application/runaction/RunActionUseCase.java
+application -> infra: io/mateu/core/application/runaction/SampleSources.java
 application -> infra: io/mateu/core/application/runaction/SpecsIndex.java
 application -> infra: io/mateu/core/application/runaction/YamlAppLoader.java
 application -> infra: io/mateu/core/application/runaction/YamlUidlLoader.java
@@ -57,8 +63,10 @@ domain -> application: io/mateu/core/domain/out/fragmentmapper/ComponentToFragme
 domain -> application: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ActionCatalogMapper.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
+domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AdvertisedActions.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AppHomeRouteResolver.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/AppMapper.java
+domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ClassLiterals.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentCatalogMapper.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> application: io/mateu/core/domain/out/fragmentmapper/mappers/CrudlMapper.java
@@ -92,6 +100,7 @@ domain -> infra: io/mateu/core/domain/out/fragmentmapper/ComponentToFragmentDtoM
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/AppMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/TreeActionHarvester.java

@@ -34,7 +34,7 @@ public final class ValidationLocale {
   public static Locale of(HttpRequest httpRequest) {
     String tag = null;
     try {
-      var translator = MateuBeanProvider.getBean(Translator.class);
+      var translator = MateuBeanProvider.getSingletonBean(Translator.class);
       tag = translator != null ? translator.locale(httpRequest) : null;
     } catch (RuntimeException noTranslator) {
       // no translator: nothing names a language

@@ -39,7 +39,7 @@ public final class TranslatorContext {
     }
     Translator translator = null;
     try {
-      translator = io.mateu.uidl.di.MateuBeanProvider.getBean(Translator.class);
+      translator = io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(Translator.class);
     } catch (RuntimeException noTranslator) {
       // untranslated, then
     }
