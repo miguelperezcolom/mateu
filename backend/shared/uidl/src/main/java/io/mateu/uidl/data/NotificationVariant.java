@@ -5,5 +5,7 @@ public enum NotificationVariant {
   warning,
   error,
   primary,
-  contrast
+  contrast,
+  /** A neutral informational toast — the same variant the .NET and Python ports send as "info". */
+  info
 }

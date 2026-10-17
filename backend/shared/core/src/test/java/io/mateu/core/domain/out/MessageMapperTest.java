@@ -27,4 +27,13 @@ class MessageMapperTest {
             Message.builder().variant(NotificationVariant.success).text("Saved").build(), "", null);
     assertThat(success.get(0).duration()).isEqualTo(3000);
   }
+
+  @Test
+  void anInfoToastTravelsAsInfoLikeThePorts() {
+    // .NET and Python send "info" for an informational toast; Java can now say the same
+    var info =
+        MessageMapper.mapToMessageDtos(
+            Message.builder().variant(NotificationVariant.info).text("FYI").build(), "", null);
+    assertThat(info.get(0).variant()).hasToString("info");
+  }
 }

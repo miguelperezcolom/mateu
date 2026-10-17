@@ -23,6 +23,12 @@ function mapPosition(position: string | undefined): NotificationPosition {
     return 'bottom-end'
 }
 
+/** The vaadin-notification theme of a toast variant: Lumo has no 'info' theme, so the
+ * informational toast every backend sends as 'info' takes the accent ('primary') theme. */
+export function themeOf(variant: string | undefined): string | undefined {
+    return variant === 'info' ? 'primary' : variant
+}
+
 /** One inline control on the toast: a client-side closure (Retry) or a server action (Undo). */
 function controlOf(message: ToastMessage, initiator: HTMLElement) {
     if (message.onAction) {
@@ -44,7 +50,8 @@ function showWithControl(message: ToastMessage, initiator: HTMLElement) {
     notification.position = mapPosition(message.position)
     const duration = toastDuration(message, 10000)
     notification.duration = duration
-    if (message.variant) notification.setAttribute('theme', message.variant)
+    const theme = themeOf(message.variant)
+    if (theme) notification.setAttribute('theme', theme)
     notification.renderer = (root: HTMLElement) => {
         if (root.firstElementChild) return
         const text = document.createElement('span')
@@ -93,7 +100,7 @@ export const vaadinNotifier: Notifier = {
         }
         Notification.show(message.text, {
             position: message.position ? mapPosition(message.position) : 'bottom-end',
-            theme: message.variant,
+            theme: themeOf(message.variant),
             duration: message.duration,
         })
     },
