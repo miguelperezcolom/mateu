@@ -220,6 +220,9 @@ public final class SpecsIndex {
 
   private static void scanJar(java.net.URL url, Set<String> out) throws Exception {
     var connection = (JarURLConnection) url.openConnection();
+    // our own JarFile, not the one the JVM caches for every jar: URL of this file — closing the
+    // shared one makes a reader in flight (a classloader, another request) fail "zip file closed"
+    connection.setUseCaches(false);
     try (JarFile jar = connection.getJarFile()) {
       var prefix = ROOT + "/";
       jar.stream()
