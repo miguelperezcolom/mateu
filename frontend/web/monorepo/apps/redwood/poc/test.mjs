@@ -41,6 +41,9 @@ import {
 } from './chat.mjs'
 import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
 import { nlsFiles } from './make-nls.mjs'
+import { trustShellBase } from './hostHeaders.mjs'
+// the transport tests talk to these bases as the shell's own backend (hostHeaders.storedTokenMayGoTo)
+trustShellBase('http://x'); trustShellBase('https://x')
 import { classifyRequestFailure as i18nClassify } from './resilience.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,

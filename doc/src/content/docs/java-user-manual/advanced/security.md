@@ -405,6 +405,27 @@ The storage key is `__mateu_auth_token`. When your backend can use them, **HttpO
 cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
 throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
 
+### Which origins receive it
+
+The token, the `X-Session-Id` and the `@AppContext` values go only to origins trusted with them:
+
+- the page's own origin, and the base url of the top-level `<mateu-ui>` (the host page wrote it);
+- the remotes **your** app names in its menu (`RemoteMenu`) — your app chose them, just as
+  `mateu.remote.allowed-hosts` does for the server's own calls;
+- the origins you list yourself:
+
+```html
+<meta name="mateu-credential-origins" content="https://forms.example.com, https://api.example.com">
+```
+
+or `configureCredentialOrigins(['https://forms.example.com'])` (from `mateu`) before the UI boots.
+
+A remote cannot hand out your credentials: the remotes **it** names, and a `MicroFrontend` island
+on an origin not listed above, are called without them (a public remote still works). List such an
+origin explicitly when it needs the user's identity. A lost-session redirect (the 302 to a login
+page) is followed only for a trusted backend and only to an `http(s)` URL. The Redwood renderer
+applies the same rule to the token it reads from storage.
+
 ---
 
 ## Content Security Policy

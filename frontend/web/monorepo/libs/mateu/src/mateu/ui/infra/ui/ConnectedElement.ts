@@ -30,6 +30,7 @@ import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
+import { trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 import { windowTitleChanged } from '@infra/ui/composedHeading.ts'
 import { literalText } from '@infra/ui/interpolation.ts'
@@ -115,6 +116,9 @@ export default abstract class ConnectedElement extends LitElement {
                 if (drawn !== app.menu || source !== app.menu) {
                     clientSideComponent.metadata = { ...app, menu: drawn, navMenu: source } as App
                 }
+                // the remotes this app names may receive the user's credentials — when this app was
+                // itself served by a trusted origin; a remote's own remotes may not (credentialScope.ts)
+                trustDeclaredRemotes(this.baseUrl, remoteMounts(source).map(option => option.baseUrl))
                 const mounts = remoteMounts(source).filter(option =>
                     option.visible !== false
                     || isActiveFor(option, here)

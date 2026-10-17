@@ -16,7 +16,7 @@
 
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
-import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials } from './hostHeaders.mjs'
+import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials, storedTokenMayGoTo } from './hostHeaders.mjs'
 
 // ── clasificación ────────────────────────────────────────────────────────────────────────
 
@@ -443,7 +443,8 @@ export async function fetchWithPolicy(url, init, options = {}) {
     // after a 401 carries whatever the host has now; it wins over the stored token
     const host = await hostHeadersFor(url)
     const credentials = hostCredentials()
-    const auth = hostAuthorizes(host) ? null : authHeaders(init)
+    // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo)
+    const auth = hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
     sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
     if (!auth && !Object.keys(host).length && !credentials) return init
     return {

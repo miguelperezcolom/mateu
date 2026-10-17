@@ -12,6 +12,7 @@ import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { noteDocumentBase } from './files.mjs'
+import { trustShellBase, trustDeclaredRemoteBases } from './hostHeaders.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -51,6 +52,8 @@ export async function callMateu(base, body, options = {}) {
  *  backend NO está (despliegue estático puro) y el bundle trae la ruta raíz, se cae a ella para que
  *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
 export async function bootstrapShell(base, initiator = 'shell') {
+  // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
+  trustShellBase(base)
   await awaitBundle()
   // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
   // its absence is the normal case, not an error band nor a sign of being offline
@@ -938,6 +941,8 @@ function spliceRemote(menu, answers, sections = false, depth = 0) {
 export async function expandRemoteMenus(menu, { sections = false } = {}) {
   const remotes = collectRemoteMenus(menu)
   if (!remotes.length) return menu
+  // the remotes the SHELL's app names may receive the token; those a remote names may not
+  trustDeclaredRemoteBases(remotes.map((option) => option.baseUrl || ''))
   const answers = new Map()
   await Promise.all(remotes.map(async (option) => {
     try {
