@@ -15,9 +15,13 @@
     <properties>
         <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
         <argLine></argLine>
-        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 84.6%
-             (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
-        <jacoco.min.bundle.coverage>84%</jacoco.min.bundle.coverage>
+        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 89.28%
+             (2026-10-17, coverage stream S1, design/coverage/coverage-map.md). Ratchet it up as the
+             suite grows. -->
+        <jacoco.min.bundle.coverage>89%</jacoco.min.bundle.coverage>
+        <!-- BUNDLE branch-coverage floor, just under the measured 77.67% (same date and ratchet;
+             the rule is appended to the jacoco plugin below). -->
+        <jacoco.min.bundle.branch.coverage>77%</jacoco.min.bundle.branch.coverage>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -271,6 +275,26 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <sourcepath>${project.build.directory}/delombok</sourcepath>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- core also gates BRANCH coverage (the shared parent only gates lines): appended
+                     to the inherited rules, floor in jacoco.min.bundle.branch.coverage above. -->
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <rules combine.children="append">
+                        <rule>
+                            <element>BUNDLE</element>
+                            <limits>
+                                <limit>
+                                    <counter>BRANCH</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>${jacoco.min.bundle.branch.coverage}</minimum>
+                                </limit>
+                            </limits>
+                        </rule>
+                    </rules>
                 </configuration>
             </plugin>
         </plugins>
