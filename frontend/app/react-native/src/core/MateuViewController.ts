@@ -1,4 +1,8 @@
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions.ts';
+import { applyClientRules } from './clientRules.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { evalCondition } from './legacyCondition.ts';
+import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
 import { addReferencedRestSources, externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
@@ -9,7 +13,7 @@ import { isTimedOnLoad, PollingScheduler } from './polling.ts';
 import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
-import { confirmationOf, type ConfirmationDialogTexts } from './actionConfirmation.ts';
+import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {
@@ -224,7 +228,7 @@ export class MateuViewController {
         this.fieldErrors = errors;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
-        const summary = Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; ');
+        const summary = errorSummary(errors);
         this.session.notify('There are validation errors', summary, 'warning');
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
         // was refused, let alone why. Speak it.
@@ -426,43 +430,23 @@ export class MateuViewController {
   // ── action bubbling / validation ────────────────────────────────────────────────────
 
   private captureComponentContext(sscNode: Json): void {
-    const actions: string[] = [];
-    const validationFlags: Record<string, boolean> = {};
-    const rowsSelectedFlags: Record<string, boolean> = {};
-    const confirmations: Record<string, ConfirmationDialogTexts> = {};
-    const sseFlags: Record<string, boolean> = {};
-    const bubbleFlags: Record<string, boolean> = {};
-    const restData: Record<string, Json> = {};
-    for (const a of asArray(sscNode['actions'])) {
-      const id = str(a['id']);
-      if (!id) continue;
-      actions.push(id);
-      validationFlags[id] = a['validationRequired'] === true;
-      rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
-      const confirmation = confirmationOf(a);
-      if (confirmation) confirmations[id] = confirmation;
-      if (a['sse'] === true) sseFlags[id] = true;
-      bubbleFlags[id] = a['bubble'] === true;
-      if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
-    }
-    this.currentComponentActions = actions;
+    const flags = actionFlagsOf(sscNode['actions']);
+    this.currentComponentActions = flags.ids;
     this.currentActionDefs = asArray(sscNode['actions']) as ShellAction[];
-    this.actionValidationRequired = validationFlags;
-    this.actionRowsSelectedRequired = rowsSelectedFlags;
-    this.actionConfirmation = confirmations;
-    this.actionSse = sseFlags;
-    this.actionBubble = bubbleFlags;
-    this.actionRestData = restData;
+    this.actionValidationRequired = flags.validationRequired;
+    this.actionRowsSelectedRequired = flags.rowsSelectedRequired;
+    this.actionConfirmation = flags.confirmation;
+    this.actionSse = flags.sse;
+    this.actionBubble = flags.bubble;
+    this.actionRestData = flags.restData;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
 
-    const initialData = (sscNode['initialData'] as Json) ?? {};
-    const componentRoute = str(initialData['componentRoute']) || str(initialData['_componentRoute']);
-    const sst = str(sscNode['serverSideType']);
-    if (componentRoute && sst) {
-      this.orchestratorServerSideType = sst;
-      this.orchestratorComponentRoute = componentRoute;
+    const orchestrator = orchestratorOf(sscNode);
+    if (orchestrator) {
+      this.orchestratorServerSideType = orchestrator.serverSideType;
+      this.orchestratorComponentRoute = orchestrator.componentRoute;
     }
 
     // A freshly-(re)loaded component starts clean; the wire flag says whether to track edits.
@@ -474,26 +458,13 @@ export class MateuViewController {
 
     // Triggers: @SubscribeTo / OnCustomEvent → the session event bus (COMPONENT scope filters by
     // the emitter's __source); @AutoSave → debounced save on every edit.
-    this.autoSave = null;
+    const plan = triggerPlanOf(sscNode['triggers']);
+    this.autoSave = plan.autoSave;
     this.session.unsubscribeAll(this);
-    for (const trigger of asArray(sscNode['triggers'])) {
-      const type = String(trigger['type']).toLowerCase();
-      if (type === 'autosave') {
-        const actionId = str(trigger['actionId']) || 'save';
-        const debounceMillis = Number(trigger['debounceMillis']) || 800;
-        this.autoSave = { actionId, debounceMillis };
-        continue;
-      }
-      if (type !== 'oncustomevent') continue;
-      const eventName = str(trigger['eventName']);
-      const actionId = str(trigger['actionId']);
-      if (!eventName || !actionId) continue;
-      const from = str(trigger['from']);
-      const scope = str(trigger['source']).toUpperCase();
-      this.session.subscribe(this, eventName, (payload) => {
-        const params = payload && typeof payload === 'object' ? (payload as Json) : {};
-        if (scope === 'COMPONENT' && from && str(params['__source']) !== from) return;
-        void this.runAction(actionId, params, true);
+    for (const sub of plan.subscriptions) {
+      this.session.subscribe(this, sub.eventName, (payload) => {
+        const params = subscriptionParameters(sub, payload);
+        if (params) void this.runAction(sub.actionId, params, true);
       });
     }
   }
@@ -511,59 +482,9 @@ export class MateuViewController {
       appData: {},
       component: this.view.component,
     };
-    let changed = false;
-    for (const rule of this.currentRules) {
-      let matches = true;
-      const filter = str(rule['filter']);
-      if (filter) {
-        try {
-          matches = Boolean(evaluateExpression(filter, ctx));
-        } catch {
-          matches = false;
-        }
-      }
-      if (!matches) continue;
-      const action = str(rule['action']);
-      const value = () => {
-        const expression = str(rule['expression']);
-        if (expression) {
-          try {
-            return evaluateExpression(expression, ctx);
-          } catch {
-            return rule['value'];
-          }
-        }
-        return rule['value'];
-      };
-      if (action === 'SetStateValue' || action === 'SetDataValue') {
-        for (const fieldName of str(rule['fieldName']).split(',')) {
-          const attr = str(rule['fieldAttribute']);
-          const key = !attr || attr === 'none' ? fieldName : `${fieldName}.${attr}`;
-          const v = value();
-          if (this.currentComponentState[key] !== v) {
-            this.currentComponentState[key] = v;
-            changed = true;
-          }
-        }
-      } else if (action === 'SetAttributeValue') {
-        for (const fieldName of str(rule['fieldName']).split(',')) {
-          const attr = str(rule['fieldAttribute']);
-          if (!attr || attr === 'none') continue;
-          const v = value();
-          const attrs = (this.fieldAttributes[fieldName] ??= {});
-          if (attrs[attr] !== v) {
-            attrs[attr] = v;
-            changed = true;
-          }
-        }
-      } else if (action === 'RunAction') {
-        const actionId = str(rule['actionId']);
-        if (actionId) void this.runAction(actionId, undefined, true);
-      }
-      // RunJS / SetCssClass / SetStyle need a DOM + eval — not applicable on this renderer.
-      if (str(rule['result']) === 'Stop') break;
-    }
-    return changed;
+    return applyClientRules(this.currentRules, ctx, this.currentComponentState, this.fieldAttributes, (actionId) => {
+      void this.runAction(actionId, undefined, true);
+    });
   }
 
   private applyRulesAndRepublish(): void {
@@ -573,41 +494,24 @@ export class MateuViewController {
   }
 
   private ownsAction(actionId: string): boolean {
-    for (const owned of this.currentComponentActions) {
-      if (owned === actionId) return true;
-      if (owned.endsWith('*') && actionId.startsWith(owned.slice(0, -1))) return true;
-    }
-    return false;
+    return ownsAction(this.currentComponentActions, actionId);
   }
 
   private resolveActionTarget(actionId: string): string {
-    const bubble = !this.ownsAction(actionId) || this.actionBubble[actionId] === true;
-    if (
-      bubble &&
-      this.orchestratorServerSideType &&
-      this.orchestratorServerSideType !== this.currentServerSideType &&
-      this.currentRoute.startsWith(this.orchestratorComponentRoute)
-    ) {
-      return this.orchestratorServerSideType;
-    }
-    // Unowned action on an inner view (e.g. "edit" on a crud detail): bubble to the sst the view
-    // was navigated with (the crud orchestrator).
-    if (bubble && this.navigationServerSideType && this.navigationServerSideType !== this.currentServerSideType) {
-      return this.navigationServerSideType;
-    }
-    return this.currentServerSideType;
+    // Unowned action on an inner view (e.g. "edit" on a crud detail): bubble to the crud
+    // orchestrator, else to the sst the view was navigated with.
+    return actionTargetOf({
+      bubbles: !this.ownsAction(actionId) || this.actionBubble[actionId] === true,
+      currentServerSideType: this.currentServerSideType,
+      currentRoute: this.currentRoute,
+      orchestratorServerSideType: this.orchestratorServerSideType,
+      orchestratorComponentRoute: this.orchestratorComponentRoute,
+      navigationServerSideType: this.navigationServerSideType,
+    });
   }
 
   private collectFieldErrors(): Record<string, string> {
-    const errors: Record<string, string> = {};
-    for (const v of this.currentValidations) {
-      const condition = str(v['condition']);
-      if (condition && !this.evalValidationCondition(condition)) {
-        const fieldId = str(v['fieldId']);
-        if (!(fieldId in errors)) errors[fieldId] = str(v['message']) || 'Invalid value';
-      }
-    }
-    return errors;
+    return fieldErrorsOf(this.currentValidations, (condition) => this.evalValidationCondition(condition));
   }
 
   private evalValidationCondition(condition: string): boolean {
@@ -633,25 +537,18 @@ export class MateuViewController {
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
 
     for (const msg of asArray(increment['messages'])) {
-      const text = str(msg['text']);
-      if (!text) continue;
-      const variant = (str(msg['variant']) || 'info') as 'info' | 'warning' | 'error';
+      const toast = toastOf(msg);
+      if (!toast) continue;
       if (this.silentErrors) {
-        devLog(`[Mateu] ${variant}: ${text}`);
+        devLog(`[Mateu] ${toast.variant}: ${toast.text}`);
         continue;
       }
       // Undoable message (Message.undoActionId): the toast's Undo button dispatches the reverse
       // action on THIS controller — the initiator whose action produced the message.
-      const undoActionId = str(msg['undoActionId']);
-      const duration = Number(msg['duration']) || 0;
-      this.session.notify(str(msg['title']) || null, text, variant, {
-        duration: duration > 0 ? duration : undefined,
-        undo: undoActionId
-          ? {
-              label: str(msg['undoLabel']) || 'Undo',
-              onPress: () => void this.runAction(undoActionId, (msg['undoParameters'] as Json) ?? {}),
-            }
-          : undefined,
+      const undo = toast.undo;
+      this.session.notify(toast.title, toast.text, toast.variant, {
+        duration: toast.duration,
+        undo: undo ? { label: undo.label, onPress: () => void this.runAction(undo.actionId, undo.parameters) } : undefined,
       });
     }
 
@@ -793,9 +690,7 @@ export class MateuViewController {
     // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
     if (meta['type'] === 'App' && meta['mockSources'] === true) setSampleMode(true);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
-      const homeRoute = str(meta['homeRoute']);
-      const homeConsumed = str(meta['homeConsumedRoute']);
-      const homeSst = str(meta['homeServerSideType']) || str(meta['serverSideType']);
+      const { route: homeRoute, consumedRoute: homeConsumed, serverSideType: homeSst } = appHomeOf(meta);
       const same = homeRoute === this.currentRoute && homeSst === this.currentServerSideType;
       if ((homeRoute || homeSst) && !same && this.appShellHops < 2) {
         this.appShellHops++;
@@ -819,9 +714,7 @@ export class MateuViewController {
         if (firstMeta['type'] === 'App' && firstMeta['mockSources'] === true) setSampleMode(true);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
-          const homeRoute = str(firstMeta['homeRoute']);
-          const homeConsumed = str(firstMeta['homeConsumedRoute']);
-          const homeSst = str(firstMeta['homeServerSideType']) || str(firstMeta['serverSideType']);
+          const { route: homeRoute, consumedRoute: homeConsumed, serverSideType: homeSst } = appHomeOf(firstMeta);
           if (homeRoute || homeSst) void this.navigate(homeRoute, homeConsumed, homeSst);
           return;
         }
@@ -901,11 +794,7 @@ export class MateuViewController {
   }
 
   seedSearchState(): void {
-    const s = this.currentComponentState;
-    if (s['page'] === undefined) s['page'] = 0;
-    if (s['size'] === undefined) s['size'] = 10;
-    if (s['sort'] === undefined) s['sort'] = [];
-    if (s['searchText'] === undefined) s['searchText'] = '';
+    seedSearchDefaults(this.currentComponentState);
   }
 
   private handleCommand(cmd: Json): void {
@@ -989,14 +878,9 @@ export class MateuViewController {
   }
 
   private dispatchNamedEvent(cmdData: Json | null | undefined): void {
-    const eventName = str(cmdData?.['eventName']);
-    if (!eventName) return;
-    let payload = cmdData?.['payload'] ?? cmdData?.['detail'] ?? null;
     // Only object payloads get the __source stamp, so legacy events keep their shape.
-    if (payload && typeof payload === 'object' && !Array.isArray(payload) && this.emitsName) {
-      payload = { ...(payload as Json), __source: this.emitsName };
-    }
-    this.session.dispatchEvent(eventName, payload);
+    const event = namedEventOf(cmdData, this.emitsName);
+    if (event) this.session.dispatchEvent(event.eventName, event.payload);
   }
 
   private publish(view: RenderedView): void {
@@ -1006,71 +890,3 @@ export class MateuViewController {
 }
 
 const DISCARD_ACTIONS = new Set(['cancel-edit', 'cancel-view', 'cancel']);
-
-// ── helpers ─────────────────────────────────────────────────────────────────────────────
-
-function asArray(value: unknown): Json[] {
-  return Array.isArray(value) ? (value as Json[]) : [];
-}
-
-function str(value: unknown): string {
-  return value === null || value === undefined ? '' : String(value);
-}
-
-/** Navigate a dot path (`profile`, `data.address`) into a JSON value; an empty path is identity. */
-function getByPath(obj: unknown, path: string): unknown {
-  if (!path) return obj;
-  return path.split('.').reduce<unknown>(
-    (acc, key) => (acc != null && typeof acc === 'object' ? (acc as Json)[key] : undefined),
-    obj,
-  );
-}
-
-function trimSlashes(s: string): string {
-  return s.replace(/^\/+|\/+$/g, '');
-}
-
-function detailLabel(routeSuffix: string): string {
-  const seg = trimSlashes(routeSuffix).split('/').pop() ?? '';
-  if (!seg) return 'Detail';
-  return seg.toLowerCase() === 'new' ? 'New' : seg;
-}
-
-function errorText(e: unknown): string {
-  return e instanceof Error ? e.message : String(e);
-}
-
-/** Client-side validation conditions: `state['x']` truthiness and simple numeric comparisons. */
-function evalCondition(condition: string, state: Json): boolean {
-  const comparison = /state\['([^']+)'\]\s*(>=|<=|==|!=|>|<)\s*(-?\d+(?:\.\d+)?)/.exec(condition.trim());
-  if (comparison) {
-    const left = toNumber(state[comparison[1]]);
-    const right = Number(comparison[3]);
-    switch (comparison[2]) {
-      case '>=': return left >= right;
-      case '<=': return left <= right;
-      case '>': return left > right;
-      case '<': return left < right;
-      case '==': return left === right;
-      case '!=': return left !== right;
-      default: return true;
-    }
-  }
-  const truthy = /state\['([^']+)'\]/.exec(condition.trim());
-  if (truthy) return isTruthy(state[truthy[1]]);
-  return true;
-}
-
-function isTruthy(v: unknown): boolean {
-  if (v === null || v === undefined) return false;
-  if (typeof v === 'string') return v.trim().length > 0;
-  if (typeof v === 'number') return v !== 0;
-  if (typeof v === 'boolean') return v;
-  if (Array.isArray(v)) return v.length > 0;
-  return true;
-}
-
-function toNumber(v: unknown): number {
-  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
-  return Number.isNaN(n) ? 0 : n;
-}
