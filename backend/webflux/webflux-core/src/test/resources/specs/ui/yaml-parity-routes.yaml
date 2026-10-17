@@ -1,0 +1,6 @@
+type: Routes
+routes:
+  - route: ""
+    layout: yaml-parity-shell.yaml
+  - route: page
+    layout: yaml-parity-page.yaml

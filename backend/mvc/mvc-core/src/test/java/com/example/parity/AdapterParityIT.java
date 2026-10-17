@@ -108,6 +108,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void servesAYamlMount() {
+      contract.servesAYamlMount();
+    }
+
+    @Test
     void acceptsClientLogs() {
       contract.acceptsClientLogs();
     }
