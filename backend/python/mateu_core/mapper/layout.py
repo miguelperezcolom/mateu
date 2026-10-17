@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 from enum import Enum
@@ -50,7 +51,7 @@ from ..reflection import (
 )
 from ..islands import EMBEDDED_MARKER
 from ._base import MixinBase
-from ._common import _row_cell
+from ._common import _field_value, _row_cell
 
 
 def _has_affordances(section: "Section | None") -> bool:
@@ -134,8 +135,10 @@ class LayoutMapperMixin(MixinBase):
                 ]
                 continue
             value = getattr(instance, f.name, None)
-            if value is None or isinstance(value, (str, int, float, bool, Decimal, date, datetime, Enum)):
-                cell = _row_cell(value)
+            if value is None or isinstance(
+                value, (str, int, float, bool, Decimal, date, datetime, time, Enum)
+            ):
+                cell = _field_value(value)
                 if isinstance(cell, Decimal):
                     cell = float(cell)
                 initial_data[camel_case(f.name)] = cell
@@ -144,7 +147,7 @@ class LayoutMapperMixin(MixinBase):
             ):
                 # a collection of plain values (tags, a bulleted list, a multi-select) rides as a
                 # JSON array, like Java's state serialisation of a List<String>
-                cells = [_row_cell(v) for v in value]
+                cells = [_field_value(v) for v in value]
                 initial_data[camel_case(f.name)] = [
                     float(c) if isinstance(c, Decimal) else c for c in cells
                 ]

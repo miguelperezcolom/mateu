@@ -11,7 +11,7 @@ import dataclasses
 
 import uuid
 from contextvars import ContextVar
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
 from typing import Any, TypeVar, get_args, get_origin, get_type_hints
@@ -431,6 +431,19 @@ def format_value(value) -> Any:
     if isinstance(value, Enum):
         return value.name
     return str(value)
+
+
+def _field_value(value) -> Any:
+    """A form field's value for the wire (initialData/state): a datetime is the LOCAL ISO
+    date-time the date-time pickers read and write (an aware one in the server's zone) and a time
+    is HH:MM[:SS] — Java's LegacyDateTimes. A datetime used to ride as its DATE (the time was lost
+    on the first round trip) and a time was not seeded at all. Anything else: ``_row_cell``."""
+    if isinstance(value, datetime):
+        local = value.astimezone().replace(tzinfo=None) if value.tzinfo else value
+        return local.replace(microsecond=0).isoformat()
+    if isinstance(value, time):
+        return value.replace(microsecond=0).isoformat(timespec="minutes" if value.second == 0 else "seconds")
+    return _row_cell(value)
 
 
 def _row_cell(value) -> Any:

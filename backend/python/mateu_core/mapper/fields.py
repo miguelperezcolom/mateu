@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import (
     date,
     datetime,
+    time,
 )
 from decimal import Decimal
 from typing import (
@@ -701,8 +702,13 @@ class FieldMapperMixin(MixinBase):
             if f is not None and f.has(Money) and plain:
                 return "money"
             return "number"
-        if t in (date, datetime):
+        if t is date:
             return "date"
+        # a datetime carries a time (Java's LocalDateTime): mapped as a date, the time was lost
+        if t is datetime:
+            return "dateTime"
+        if t is time:
+            return "time"
         return "string"
 
     def map_button(self, name: str, fn) -> Button:

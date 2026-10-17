@@ -39,6 +39,8 @@ final class ReflectionTypeCoercer {
       } else if (LocalDateTime.class.equals(type)) {
         if ("".equals(data)) return null;
         return LocalDateTime.parse(convert(data));
+      } else if (LegacyDateTimes.handles(type)) {
+        return LegacyDateTimes.parse(data, type);
       } else {
         if ("".equals(data) && !type.equals(String.class)) return null;
         return convert(data, type);

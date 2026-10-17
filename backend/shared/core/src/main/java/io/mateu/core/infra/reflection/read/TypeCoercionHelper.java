@@ -47,6 +47,11 @@ public class TypeCoercionHelper {
       if (float.class.equals(targetType) || Float.class.equals(targetType))
         return number.floatValue();
       if (BigDecimal.class.equals(targetType)) return new BigDecimal(number.toString());
+      if (java.math.BigInteger.class.equals(targetType))
+        return new BigDecimal(number.toString()).toBigInteger();
+    }
+    if (io.mateu.core.infra.reflection.LegacyDateTimes.handles(targetType)) {
+      return io.mateu.core.infra.reflection.LegacyDateTimes.parse(value, targetType);
     }
     if (int.class.equals(targetType)) return Integer.parseInt("" + value);
     if (long.class.equals(targetType)) return Long.parseLong("" + value);
@@ -58,6 +63,9 @@ public class TypeCoercionHelper {
     if (Double.class.equals(targetType)) return Double.parseDouble("" + value);
     if (Float.class.equals(targetType)) return Float.parseFloat("" + value);
     if (BigDecimal.class.equals(targetType)) return new BigDecimal("" + value);
+    if (java.math.BigInteger.class.equals(targetType))
+      return new java.math.BigInteger(("" + value).trim());
+    if (java.io.File.class.equals(targetType)) return new java.io.File("" + value);
     if (Boolean.class.equals(targetType)) return Boolean.parseBoolean("" + value);
     if (LocalDate.class.equals(targetType)) return LocalDate.parse("" + value);
     if (LocalDateTime.class.equals(targetType)) return LocalDateTime.parse("" + value);

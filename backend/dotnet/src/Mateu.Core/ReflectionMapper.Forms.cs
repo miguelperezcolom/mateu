@@ -514,8 +514,7 @@ public sealed partial class ReflectionMapper
     {
         null => null,
         DateOnly d => d.ToString("yyyy-MM-dd"),
-        DateTime dt => dt.ToString("yyyy-MM-dd"),
-        _ => value.ToString(),
+        _ => TemporalWire.Format(value) as string ?? value.ToString(),
     };
 
     /// <summary>A form's field values as the initialData/state map (fieldId → value): a grid property
@@ -551,9 +550,8 @@ public sealed partial class ReflectionMapper
     {
         null => null,
         DateOnly d => d.ToString("yyyy-MM-dd"),
-        DateTime dt => dt.ToString("yyyy-MM-dd"),
         Enum e => e.ToString(),
-        _ => value,
+        _ => TemporalWire.Format(value),
     };
 
     /// <summary>
@@ -728,12 +726,17 @@ public sealed partial class ReflectionMapper
             return "array";
         if (t.IsEnum) return "string";
         if (t == typeof(bool)) return "bool";
-        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)) return "integer";
+        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)
+            || t == typeof(System.Numerics.BigInteger)) return "integer";
         if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
             // A money field in a plain-text context upgrades its dataType to "money" so the renderer
             // formats it as currency (Java's FieldTypeMapper money branch).
             return p?.Find<MoneyAttribute>() != null && plainText ? "money" : "number";
-        if (t == typeof(DateOnly) || t == typeof(DateTime)) return "date";
+        if (t == typeof(DateOnly)) return "date";
+        // a DateTime carries a time (Java's LocalDateTime): mapped as a date, the time was dropped
+        // on the first round trip
+        if (t == typeof(DateTime) || t == typeof(DateTimeOffset)) return "dateTime";
+        if (t == typeof(TimeOnly)) return "time";
         return "string";
     }
 

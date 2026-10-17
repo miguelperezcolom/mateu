@@ -32,6 +32,7 @@ from ..validation import client_validations
 from ._base import MixinBase
 from ._common import (
     _id,
+    _field_value,
     _row_cell,
 )
 
@@ -223,7 +224,7 @@ class WizardMapperMixin(MixinBase):
                     for item in (getattr(instance, f.name, None) or [])
                 ]
             else:
-                initial[camel_case(f.name)] = _row_cell(getattr(instance, f.name, None))
+                initial[camel_case(f.name)] = _field_value(getattr(instance, f.name, None))
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
             initial_data=initial,
