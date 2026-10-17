@@ -170,9 +170,14 @@ export function interpolate(text, state) {
   // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
   // llega como ${state['_position']})
   // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
-  return String(text == null ? '' : text).replace(
-    /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-    (all, dotted, quoted) => {
+  // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
+  // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+  const source = String(text == null ? '' : text)
+  if (!source.includes('${')) return source
+  return source.replace(
+    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+    (all, escaped, dotted, quoted) => {
+      if (escaped) return escaped === '\\' ? '\\' : '${'
       if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
       let value = state
       for (const part of dotted.split('.')) {
@@ -181,6 +186,14 @@ export function interpolate(text, state) {
       return value != null && typeof value !== 'object' ? String(value) : ''
     },
   )
+}
+
+/** A template the renderer shows WITHOUT evaluating it (the window title): the server's literal
+ *  escapes resolved (`\${` → `${`, `\\` → `\`), so the tab, the trail and the header agree. */
+export function literalText(text) {
+  const source = String(text == null ? '' : text)
+  if (!source.includes('${')) return source
+  return source.replace(/\\(\\|\$\{)/g, (all, escaped) => (escaped === '\\' ? '\\' : '${'))
 }
 
 /** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank

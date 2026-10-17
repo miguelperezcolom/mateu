@@ -509,7 +509,7 @@ export function summarizeHost(reg, route) {
     // @NoBreadcrumbs en la página o en la shell
     trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
       ? []
-      : autoTrail(menu, route, { title: pageMetadata.title || crudTitleOf(host) }),
+      : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
     text: formMetadata ? '' : String(state.message == null ? '' : state.message),
     formMetadata,
     fields,

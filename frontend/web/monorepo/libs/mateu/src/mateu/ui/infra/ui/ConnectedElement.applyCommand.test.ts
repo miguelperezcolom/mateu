@@ -38,6 +38,11 @@ describe('ConnectedElement.applyCommand', () => {
         expect(document.title).toBe('Orders')
     })
 
+    it('SetWindowTitle shows a data title like the heading does: literal escapes resolved, no markup (M-S4)', () => {
+        el.applyCommand(cmd('SetWindowTitle', 'Mug <b>bold</b> \\${state.id}'))
+        expect(document.title).toBe('Mug bold ${state.id}')
+    })
+
     it('SetFavicon updates or creates the icon link', () => {
         el.applyCommand(cmd('SetFavicon', '/a.svg'))
         expect(document.querySelector('link[rel="icon"]')?.getAttribute('href')).toBe('/a.svg')

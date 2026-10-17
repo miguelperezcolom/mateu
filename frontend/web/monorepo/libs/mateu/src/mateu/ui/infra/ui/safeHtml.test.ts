@@ -47,16 +47,17 @@ describe('sanitizeHtml (HTML sinks fed with data: header texts, texts, html cell
         expect(out).toContain('<b>kept</b>')
     })
 
-    it('sanitizes a header title whose interpolated data carries markup', () => {
-        const title = possiblyHtml('<b>${state.name}</b>', { name: XSS }, {})!
+    it('a header title keeps its own markup and shows interpolated data as text (M-S4)', () => {
+        const title = possiblyHtml('<b>${state.name}</b>', { name: XSS + '<form action="https://phish"><input type=password></form>' }, {})!
         const out = sanitizeHtml(title)
         expect(out.startsWith('<b>')).toBe(true)
-        expect(out).not.toMatch(/onerror|<script/i)
+        expect(out).not.toMatch(/<img|<script|<form|<input/i)
+        expect(out).toContain('&lt;img src=x')
     })
 })
 
 describe('rendered HTML sinks', () => {
-    it('textRenderer (div container) strips <img onerror> from interpolated data, keeps <b>', () => {
+    it('textRenderer (div container) keeps the text\'s <b> and shows interpolated data as text (M-S4)', () => {
         const host = document.createElement('div')
         const component: any = {
             type: 'ClientSide', id: 't1', metadata: { type: 'Text', container: TextContainer.div,
@@ -65,9 +66,9 @@ describe('rendered HTML sinks', () => {
         render(renderText(component, { name: XSS }, {}, {}, {}), host)
         const div = host.querySelector('div')!
         expect(div.querySelector('b')?.textContent).toBe('Hi')
-        expect(div.querySelector('img')).not.toBeNull()
-        expect(div.querySelector('img')!.hasAttribute('onerror')).toBe(false)
+        expect(div.querySelector('img')).toBeNull()
         expect(div.querySelector('script')).toBeNull()
+        expect(div.textContent).toContain('<img src=x onerror=')
     })
 
     it('htmlColumnRenderer sanitizes the cell value', () => {

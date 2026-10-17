@@ -5,7 +5,7 @@ import { html, nothing } from "lit";
 import { safeHtml } from "@infra/ui/safeHtml.ts";
 import {ifDefined} from "lit/directives/if-defined.js";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import { interpolateNested } from "@infra/ui/interpolation.ts";
+import { interpolateNested, interpolateNestedHtml } from "@infra/ui/interpolation.ts";
 export const renderText = (component: ClientSideComponent, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     // The server always writes `container` (default div); a client-side expanded definition carries
     // only what was authored, so an absent container means the same default — not "Unknown".
@@ -95,11 +95,14 @@ export const renderText = (component: ClientSideComponent, state: ComponentState
             `
     }
     if (TextContainer.div == metadata.container) {
+        // the div container renders the text as HTML: its own markup is kept, substituted values
+        // are escaped (data shows as written, like in every other container)
+        const htmlContent = interpolateNestedHtml(metadata.text, state, data, appState, appData)
         return html`
                <div style="${sizeStyle}${component.style}" class="${component.cssClasses}"
                     id="${ifDefined(component.id)}"
                     data-colspan="${ifDefined(colspan)}"
-                    slot="${component.slot??nothing}">${content?safeHtml(content):nothing}</div>
+                    slot="${component.slot??nothing}">${htmlContent?safeHtml(htmlContent):nothing}</div>
             `
     }
     if (TextContainer.span == metadata.container) {

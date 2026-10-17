@@ -17,6 +17,7 @@ import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {
     isActiveFor,
     mergeRemoteMenus,
+    plainText,
     RemoteAnswer,
     RemoteApp,
     remoteMounts,
@@ -31,6 +32,7 @@ import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 import { setRemoteRestSources, trackRemoteCatalogues } from '@infra/http/restSourceCatalogue.ts'
 import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 import { windowTitleChanged } from '@infra/ui/composedHeading.ts'
+import { literalText } from '@infra/ui/interpolation.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -238,7 +240,9 @@ export default abstract class ConnectedElement extends LitElement {
     applyCommand(command: UICommand) {
 
         if ('SetWindowTitle' == command.type) {
-            document.title = command.data as string
+            // the page title as plain text: the server's literal escapes resolved (`\${` → `${`) and
+            // markup dropped — the same string the heading and the breadcrumb show
+            document.title = plainText(literalText(command.data as string))
             // a composed page (Dashboard, SmartSearchPage…) shows it as its heading (composedHeading.ts)
             windowTitleChanged(document.title)
             // A single-page app changes what is on screen without changing the page, so a screen

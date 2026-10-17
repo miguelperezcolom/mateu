@@ -113,7 +113,7 @@ const evalExpr = (expr: string, ctx: InterpolationContext): unknown => evaluate(
  * saying "null". Any other value is converted like a template literal does (`String(value)`).
  * Throws on a failing expression — callers decide the error behaviour.
  */
-const renderDisplayTemplate = (text: string, ctx: InterpolationContext): string => {
+const renderDisplayTemplate = (text: string, ctx: InterpolationContext, value: (v: string) => string = (v) => v): string => {
     let out = ''
     for (const seg of parseTemplate(text)) {
         if ('lit' in seg) {
@@ -124,9 +124,30 @@ const renderDisplayTemplate = (text: string, ctx: InterpolationContext): string 
         // the bundle store from the manifest's catalogue. One that still arrives has no catalogue
         // behind it: show the key, never a blank or the raw expression.
         const i18nKey = I18N_KEY.exec(seg.expr)
-        out += i18nKey ? i18nKey[1] : String(evalExpr(seg.expr, ctx) ?? '')
+        out += value(i18nKey ? i18nKey[1] : String(evalExpr(seg.expr, ctx) ?? ''))
     }
     return out
+}
+
+/**
+ * `s` as HTML TEXT: `& < > " '` escaped. A substituted value lands in a text that is rendered as
+ * HTML (a page title, a div text): the text around it is the UI definition's markup, the value is
+ * DATA and shows as written — `<b>` in a record name is the four characters, never bold, and a
+ * value can no longer paint a form, a link or a beacon inside the page.
+ */
+export const escapeHtml = (s: string): string =>
+    s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+
+/**
+ * The text a renderer shows for a template it does not evaluate (a window title, a breadcrumb
+ * built before any state exists): the literal escapes the server writes around data
+ * (`Templates.literal`: `\${` → `${`, `\\` → `\`) are resolved, an expression is kept as written.
+ * So the tab title, the breadcrumb and the page heading show the same string.
+ */
+export const literalText = (text: string | undefined): string | undefined => {
+    // like the evaluating renderers: only a text carrying the marker is parsed as a template
+    if (!text?.includes('${')) return text
+    return text.replace(/\\(\\|\$\{)/g, (_m, esc: string) => esc === '\\' ? '\\' : '${')
 }
 
 /** A display expression that is just an i18n key reference (`i18n.orders.title`). */
@@ -172,7 +193,8 @@ export function interpolate(
  * Like {@link interpolate} but keeps the historical error behaviour of page
  * titles/subtitles/KPI texts: on a failing expression the error message is
  * returned (so the problem is visible in the rendered page). The result is
- * meant to be rendered as HTML — callers must sanitize it (see `safeHtml`).
+ * meant to be rendered as HTML — callers must sanitize it (see `safeHtml`): the text's own
+ * markup is kept, every substituted VALUE is HTML-escaped ({@link escapeHtml}).
  */
 export const possiblyHtml = (
     text: string | undefined,
@@ -181,9 +203,9 @@ export const possiblyHtml = (
 ): string | undefined => {
     if (text && text.indexOf("${") >= 0) {
         try {
-            return renderDisplayTemplate(text, buildContext(state, data))
+            return renderDisplayTemplate(text, buildContext(state, data), escapeHtml)
         } catch (e) {
-            return (e as Error).message
+            return escapeHtml((e as Error).message)
         }
     }
     return text;
@@ -218,6 +240,28 @@ export const interpolateNested = (
         console.error(e, content, state, data, appState, appData)
     }
     return content
+}
+
+/**
+ * {@link interpolateNested} for a text rendered as HTML (a `Text` in a div container): the text's
+ * own markup is kept and every substituted value is HTML-escaped, like {@link possiblyHtml}.
+ * Callers still sanitize the result (`safeHtml`).
+ */
+export const interpolateNestedHtml = (
+    text: string | undefined,
+    state: ComponentState,
+    data: ComponentData,
+    appState: ComponentState,
+    appData: ComponentData
+): string | undefined => {
+    if (!text?.includes('${')) return text
+    const ctx = buildContext(state, data, { appState: appState ?? {}, appData: appData ?? {} })
+    try {
+        return renderDisplayTemplate(text, ctx, escapeHtml)
+    } catch (e) {
+        console.error(e, text, state, data, appState, appData)
+        return escapeHtml('when evaluating ' + text + ' :' + e)
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

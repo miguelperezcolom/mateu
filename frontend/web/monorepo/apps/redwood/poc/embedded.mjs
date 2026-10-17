@@ -165,7 +165,18 @@ export function setDocTitle(title) {
     if (isNewTitle(title)) emitEmbedded(EMBEDDED_EVENTS.title, { title: String(title) })
     return
   }
-  if (typeof document !== 'undefined') document.title = title
+  if (typeof document !== 'undefined') document.title = plainTitleOf(title)
+}
+
+// the tab shows text: a title's markup (a page title may carry <b>…</b>) is dropped, as the trail does
+function plainTitleOf(title) {
+  let s = String(title)
+  let previous
+  do {
+    previous = s
+    s = s.replace(/<[^<>]*>/g, '')
+  } while (s !== previous)
+  return s.replace(/\s+/g, ' ').trim()
 }
 
 // the initial state the host seeds the FIRST load of a screen with (initialState): consumed once

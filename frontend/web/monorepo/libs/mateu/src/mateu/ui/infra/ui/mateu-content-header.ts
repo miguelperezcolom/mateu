@@ -374,10 +374,12 @@ export class MateuContentHeader extends LitElement {
      */
     private crumbsOf(metadata: Form, level: number): Crumb[] {
         if (metadata?.breadcrumbs && metadata.breadcrumbs.length > 0) {
-            return metadata.breadcrumbs.map(b => ({ text: b.text, route: b.link || undefined }))
+            return metadata.breadcrumbs.map(b => ({ text: interpolate(b.text, this.state, this.data), route: b.link || undefined }))
         }
         if (level > 0 || metadata?.type !== ComponentMetadataType.Page || metadata.noBreadcrumbs) return []
-        return shellTrail(pathOfPage(metadata), { title: metadata.title, pageType: metadata.pageType })
+        // the title as the heading shows it (`\${` resolved, expressions evaluated), so the trail
+        // and the h2 never disagree on one string
+        return shellTrail(pathOfPage(metadata), { title: interpolate(metadata.title, this.state, this.data), pageType: metadata.pageType })
     }
 
     /** Inside the app for a path (the menu's own navigation), a full load for anything else. */

@@ -5,8 +5,30 @@ import {
     interpolate,
     interpolateAndEvaluate,
     interpolateNested,
+    interpolateNestedHtml,
+    literalText,
     possiblyHtml
 } from './interpolation'
+
+describe('HTML sinks: data is text (M-S4)', () => {
+    it('possiblyHtml keeps the template markup and escapes every substituted value', () => {
+        expect(possiblyHtml('<b>${state.n}</b>', { n: '<i>x</i> & "q" \'s\'' }, {}))
+            .toBe('<b>&lt;i&gt;x&lt;/i&gt; &amp; &quot;q&quot; &#39;s&#39;</b>')
+    })
+
+    it('interpolateNestedHtml escapes values (and the error text) for a div text', () => {
+        expect(interpolateNestedHtml('<p>${state.n}</p>', { n: '<form>' }, {}, {}, {})).toBe('<p>&lt;form&gt;</p>')
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        expect(interpolateNestedHtml('${nope(}', {}, {}, {}, {})).not.toMatch(/[<>]/)
+    })
+
+    it('the heading, the breadcrumb and the window title agree on a record title the server escaped', () => {
+        const wire = 'Mug \\${state.id} C:\\\\dir'   // Templates.literal("Mug ${state.id} C:\\dir")
+        expect(literalText(wire)).toBe('Mug ${state.id} C:\\dir')
+        expect(possiblyHtml(wire, { id: 'X' }, {})).toBe(literalText(wire))
+        expect(literalText('C:\\dir')).toBe('C:\\dir')   // no marker: not a template, untouched
+    })
+})
 
 describe('interpolate', () => {
     afterEach(() => {
