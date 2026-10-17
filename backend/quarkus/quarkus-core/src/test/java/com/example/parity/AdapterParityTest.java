@@ -92,6 +92,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void passesTheHttpRequestToTheUi() {
+    contract.passesTheHttpRequestToTheUi();
+  }
+
+  @Test
   void acceptsClientLogs() {
     contract.acceptsClientLogs();
   }
