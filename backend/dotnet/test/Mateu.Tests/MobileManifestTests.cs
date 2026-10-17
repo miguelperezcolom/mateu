@@ -35,10 +35,10 @@ public class MobileManifestTests
 {
     private const string Acme =
         "{\"name\":\"Acme CRM\",\"shortName\":\"CRM\",\"icon\":\"/images/acme.svg\",\"themeColor\":\"#1f6feb\","
-        + "\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\",\"auth\":{\"type\":\"oidc\","
+        + "\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\",\"auth\":{\"type\":\"oidc\","
         + "\"issuer\":\"https://auth.acme.com/realms/acme\",\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"]}}";
 
-    private const string Plain = "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\"}";
+    private const string Plain = "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}";
 
     [Fact]
     public void The_acme_manifest_carries_the_declared_values_and_the_oidc_provider()
@@ -63,7 +63,7 @@ public class MobileManifestTests
             Environment.SetEnvironmentVariable("MATEU_MOBILE_OIDC_CLIENT_ID", "app");
             Environment.SetEnvironmentVariable("MATEU_MOBILE_OIDC_SCOPES", "openid email");
             Assert.Equal(
-                "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3\",\"minAppVersion\":\"1.0.0\","
+                "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
                 + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\",\"clientId\":\"app\",\"scopes\":[\"openid\",\"email\"]}}",
                 MobileManifest.Json(typeof(MobilePlainApp)));
         }

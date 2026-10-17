@@ -46,7 +46,7 @@ ASP.NET Core and by FastAPI, with `Content-Type: application/json`,
   "shortName": "CRM",
   "icon": "/images/acme.svg",
   "themeColor": "#1f6feb",
-  "wireVersion": "3",
+  "wireVersion": "3.0",
   "minAppVersion": "1.0.0",
   "auth": {
     "type": "oidc",
@@ -73,7 +73,7 @@ Settings win because the identity provider usually changes per environment while
 | `shortName` | `MATEU_MOBILE_SHORT_NAME` | `shortName` / `ShortName` / `short_name` | = `name` |
 | `icon` | `MATEU_MOBILE_ICON` | `icon` | Java: the app's `@Logo`, else its `@FavIcon`; else omitted |
 | `themeColor` | `MATEU_MOBILE_THEME_COLOR` | `themeColor` / `ThemeColor` / `theme_color` | Java: `@App(accentColor)`; else omitted |
-| `wireVersion` | — | — | always `"3"` |
+| `wireVersion` | — | — | the server's wire version, the same value every response carries (`"3.0"`; servers before 3.0-alpha.426 sent `"3"` — the app compares the major only, so both are the same wire) |
 | `minAppVersion` | `MATEU_MOBILE_MIN_APP_VERSION` | `minAppVersion` / `MinAppVersion` / `min_app_version` | `"1.0.0"` |
 | `auth.issuer` | `MATEU_MOBILE_OIDC_ISSUER` | `oidcIssuer` / `OidcIssuer` / `oidc_issuer` | — |
 | `auth.clientId` | `MATEU_MOBILE_OIDC_CLIENT_ID` | `oidcClientId` / `OidcClientId` / `oidc_client_id` | — |

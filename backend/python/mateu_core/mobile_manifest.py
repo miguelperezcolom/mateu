@@ -17,12 +17,17 @@ import os
 import re
 from typing import Any
 
+from mateu_dtos import WIRE_VERSION as _ENVELOPE_WIRE_VERSION
+
 from .naming import humanize
 
 #: Where the manifest is served under a base url.
 PATH = "/mateu/v3/manifest"
 
-WIRE_VERSION = "3"
+#: The wire version this server speaks: the SAME value every response envelope carries
+#: (``mateu_dtos.WIRE_VERSION``, "3.0"). It used to be "3"; a reader compares the major only, so
+#: both spellings are the same wire to it.
+WIRE_VERSION = _ENVELOPE_WIRE_VERSION
 DEFAULT_MIN_APP_VERSION = "1.0.0"
 DEFAULT_SCOPES = ["openid", "profile"]
 

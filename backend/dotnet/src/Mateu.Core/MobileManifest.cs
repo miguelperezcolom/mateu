@@ -20,8 +20,10 @@ public static class MobileManifest
     /// <summary>The endpoint under every mount's base path.</summary>
     public const string Path = "/mateu/v3/manifest";
 
-    /// <summary>The wire version this server speaks.</summary>
-    public const string WireVersion = "3";
+    /// <summary>The wire version this server speaks: the SAME value every response envelope carries
+    /// (<see cref="Mateu.Dtos.UIIncrementDto.CurrentWireVersion"/>, "3.0"). It used to be "3"; a
+    /// reader compares the major only, so both spellings are the same wire to it.</summary>
+    public const string WireVersion = Mateu.Dtos.UIIncrementDto.CurrentWireVersion;
 
     /// <summary>The minimum app version when none is declared.</summary>
     public const string DefaultMinAppVersion = "1.0.0";

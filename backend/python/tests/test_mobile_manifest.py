@@ -15,11 +15,11 @@ from mateu_uidl import app, menu_item, mobile_app, title, ui  # noqa: E402
 
 ACME = (
     '{"name":"Acme CRM","shortName":"CRM","icon":"/images/acme.svg","themeColor":"#1f6feb",'
-    '"wireVersion":"3","minAppVersion":"1.0.0","auth":{"type":"oidc",'
+    '"wireVersion":"3.0","minAppVersion":"1.0.0","auth":{"type":"oidc",'
     '"issuer":"https://auth.acme.com/realms/acme","clientId":"mateu-mobile",'
     '"scopes":["openid","profile"]}}'
 )
-PLAIN = '{"name":"Plain","shortName":"Plain","wireVersion":"3","minAppVersion":"1.0.0"}'
+PLAIN = '{"name":"Plain","shortName":"Plain","wireVersion":"3.0","minAppVersion":"1.0.0"}'
 
 SETTINGS = (
     "MATEU_MOBILE_NAME",
