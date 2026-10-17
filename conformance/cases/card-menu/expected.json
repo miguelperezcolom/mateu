@@ -16,8 +16,8 @@
             "consumedRoute" : "/conformance/card-menu",
             "description" : "Search and modify reservations",
             "label" : "Reservations",
-            "path" : "/b/b/r",
-            "route" : "/conformance/card-menu/b/b/r",
+            "path" : "/b/r",
+            "route" : "/conformance/card-menu/b/r",
             "uriPrefix" : "/conformance/card-menu",
             "visible" : true
           } ],

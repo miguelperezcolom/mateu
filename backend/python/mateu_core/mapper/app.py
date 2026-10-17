@@ -115,7 +115,8 @@ class AppMapperMixin(MixinBase):
         # Routes are RELATIVE to the mount: prefix every menu route with the app's mount base path,
         # and stamp each option with its bare path, its consumedRoute and its uriPrefix (all the
         # mount). Mirrors Java's AppMenuDtoBuilder.buildMenu — a submenu nests under its parent's
-        # path (so an "/g/x" leaf under a "/g" parent becomes "/g/g/x").
+        # path, and an entry spelled with the mount ("/x/home") or already under its parent ("/g/x"
+        # under "/g") resolves ONCE (it used to become "/x/x/home" and "/g/g/x").
         mount_raw = normalize(getattr(cls, "__mateu_ui__", ""))
         # The mount base path (Java's appRoute): "" for a root-mounted app, "/x/y" otherwise. A
         # root app must NOT become "/" or every route below it would gain a leading double slash.
@@ -305,6 +306,23 @@ class AppMapperMixin(MixinBase):
         suffix = path[1:] if path.startswith("/") else path
         return prefix + "/" + suffix
 
+    @classmethod
+    def _relative(cls, mount: str, prefix: str, path: str) -> str:
+        """An entry's path below its group and relative to the mount (Java's
+        AppMenuDtoBuilder.relative): the mount in front is dropped, and a path already under the
+        group is kept as it is."""
+        own = path
+        if mount and mount != "/" and own.startswith(mount):
+            if len(own) == len(mount):
+                own = "/"
+            elif own[len(mount)] == "/":
+                own = own[len(mount):]
+        if not prefix or prefix == "/":
+            return cls._prepend("", own)
+        if own == prefix or own.startswith(prefix + "/"):
+            return own
+        return cls._prepend(prefix, own)
+
     def _apply_mount_routing(self, items, mount: str, app_ssn: str, prefix: str = ""):
         """Re-stamp menu options relative to the mount (mirrors Java's AppMenuDtoBuilder.buildMenu).
         Each option gets its bare ``path`` (prefix + its declared route), its absolute ``route``
@@ -334,7 +352,7 @@ class AppMapperMixin(MixinBase):
                     )
                 )
                 continue
-            path = self._prepend(prefix, item.route)
+            path = self._relative(mount, prefix, item.route)
             out.append(
                 item.model_copy(
                     update={

@@ -50,6 +50,26 @@ public class CodeAuthoredApp : IAppSupplier
     };
 }
 
+/// <summary>A code-authored shell on a NON-ROOT mount whose entries are spelled with the mount
+/// (/mountedcodeapp/home), under their group (/mountedcodeapp/reports/sales in
+/// /mountedcodeapp/reports) or mount-relative (/settings) — each must be routed once.</summary>
+[UI("mountedcodeapp"), App("Mounted code app")]
+public class MountedCodeApp : IAppSupplier
+{
+    public AppShell GetApp() => new("Mounted code app", new List<MenuItemDto>
+    {
+        new("Home", "/mountedcodeapp/home", ""),
+        new("Reports", "/mountedcodeapp/reports", "")
+        {
+            Submenus = new List<MenuItemDto> { new("Sales", "/mountedcodeapp/reports/sales", "") },
+        },
+        new("Settings", "/settings", ""),
+    })
+    {
+        HomeRoute = "/mountedcodeapp/home",
+    };
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>
@@ -114,6 +134,19 @@ public class CodeAuthoringTests
     {
         var reports = App().Menu.First(m => m.Label == "Reports");
         Assert.Contains(reports.Submenus, m => m.Label == "Sales");
+    }
+
+    [Fact]
+    public void Absolute_and_mount_relative_entries_are_routed_once_under_the_mount()
+    {
+        var menu = ((AppMetadataDto)new ReflectionMapper().MapApp(typeof(MountedCodeApp)).Metadata).Menu;
+        var home = menu.First(m => m.Label == "Home");
+        Assert.Equal("/mountedcodeapp/home", home.Route);
+        Assert.Equal("/home", home.Path);
+        var reports = menu.First(m => m.Label == "Reports");
+        Assert.Equal("/mountedcodeapp/reports", reports.Route);
+        Assert.Equal("/mountedcodeapp/reports/sales", reports.Submenus.Single().Route);
+        Assert.Equal("/mountedcodeapp/settings", menu.First(m => m.Label == "Settings").Route);
     }
 
     [Fact]
