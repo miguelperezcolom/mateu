@@ -1,7 +1,7 @@
-/* Opción de LÍNEA de una card del TaskQueue (p.ej. "Check-out" en las reservas in house):
- * despacha el actionId del ITEM con {_item} contra el HOST. Deja marca temporal para que
- * el clic de card que el mismo gesto provoca (el botón vive dentro de la oj-action-card)
- * se reconozca como eco y no dispare además el openGuest. */
+/* ROW option of a TaskQueue card (e.g. "Check-out" on the in-house bookings):
+ * dispatches the ITEM's actionId with {_item} against the HOST. Leaves a temporary mark so
+ * the card click the same gesture causes (the button lives inside the oj-action-card)
+ * is recognized as an echo and does not also fire the openGuest. */
 
 define([
   'vb/action/actionChain',

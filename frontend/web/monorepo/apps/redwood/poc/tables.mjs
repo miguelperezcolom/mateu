@@ -1,12 +1,12 @@
-// TONOS DE FILA del listado (@RowStatus) y filas de GRUPO (@GroupBy) sobre el oj-table de JET.
-// oj-table no tiene clase por fila (sólo plantillas de celda o una plantilla de fila entera que
-// obligaría a repintar todas las columnas a mano), así que una pasada mínima por el DOM: cada `tr`
-// del cuerpo de #mateuTable recibe la clase de su fila (misma posición: la página se pinta entera,
-// sin virtualizar). Un MutationObserver la repite cuando JET repinta (orden, página, refresco).
+// Listing ROW TONES (@RowStatus) and GROUP rows (@GroupBy) on JET's oj-table.
+// oj-table has no per-row class (only cell templates or a whole-row template that
+// would force repainting every column by hand), so a minimal pass over the DOM: each `tr`
+// of #mateuTable's body gets its row's class (same position: the page is painted whole,
+// without virtualisation). A MutationObserver repeats it when JET repaints (sort, page, refresh).
 
 let tones = []
 
-/** Los tonos de las filas en pantalla, en orden (de listingOf(...).rows: _tone de cada una). */
+/** The tones of the rows on screen, in order (from listingOf(...).rows: each one's _tone). */
 export function setListingTones(rows) {
   tones = (rows || []).map((r) => (r && r._tone) || '')
   applyRowTonesSoon()
@@ -34,7 +34,7 @@ function applyRowTonesSoon(frames = 10) {
   requestAnimationFrame(tick)
 }
 
-/** Vigila (una vez) los repintados del oj-table para volver a poner los tonos. */
+/** Watches (once) the oj-table's repaints to put the tones back. */
 export function installRowTones(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuRowTones || typeof MutationObserver === 'undefined') return
   doc.__mateuRowTones = true
@@ -46,9 +46,9 @@ export function installRowTones(doc = typeof document !== 'undefined' ? document
   }).observe(doc.body, { childList: true, subtree: true })
 }
 
-// ── cabecera de ficha FIJA y compacta al hacer scroll (la «business card» de OPERA) ─────────────
-/** Marca el body con mateu-scrolled en cuanto la página deja la cabecera atrás: app.css pinta la
- *  banda .mateu-sticky-header compacta (menos aire, sin tira, con sombra). */
+// ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────
+/** Marks the body with mateu-scrolled as soon as the page leaves the header behind: app.css paints the
+ *  compact .mateu-sticky-header band (less air, no strip, with shadow). */
 export function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
   if (!win || win.__mateuStickyHeader) return
   win.__mateuStickyHeader = true

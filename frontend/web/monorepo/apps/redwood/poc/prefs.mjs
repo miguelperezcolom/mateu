@@ -1,10 +1,10 @@
 import { chromeText } from './i18n.mjs'
-// PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
-// orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
-// defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
-// columnPrefsStore.ts / savedViewsStore.ts), así que un usuario que cambie de renderer conserva
-// lo suyo. El ámbito es la ruta del listado. Sin cambios de wire: el servidor sigue mandando todas
-// las columnas y aquí se filtran antes de pintar.
+// LISTING PERSONALISATION in the browser: the COLUMN CHOOSER (which ones show and in what
+// order) and SAVED VIEWS (a named combination of search + filters, with one as
+// default). Same format and same localStorage keys as the web renderer (libs/mateu
+// columnPrefsStore.ts / savedViewsStore.ts), so a user who switches renderer keeps
+// their own. The scope is the listing's route. No wire changes: the server still sends all
+// the columns and here they are filtered before painting.
 
 const COLUMNS_KEY = 'mateu-column-prefs'
 const VIEWS_KEY = 'mateu-saved-views'
@@ -18,14 +18,14 @@ const readAll = (key, storage) => {
   } catch (e) { return {} }
 }
 const writeAll = (key, value, storage) => {
-  try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* lleno o bloqueado */ }
+  try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* full or blocked */ }
 }
 
-// columnas que no se ocultan ni se reordenan: las técnicas (selección, acciones, líneas)
+// columns that are neither hidden nor reordered: the technical ones (selection, actions, lines)
 const PROTECTED = (c) => !c || !c.field || c.field === '_select' || c.template === 'cellRowActions'
   || c.field === '__rowLines' || c.id === '__rowLines'
 
-/** Las preferencias de columnas de un ámbito: { hidden: [], order: [] } o null. */
+/** The column preferences of a scope: { hidden: [], order: [] } or null. */
 export function readColumnPrefs(scope, storage) {
   const p = readAll(COLUMNS_KEY, storage)[scope]
   if (!p || typeof p !== 'object') return null
@@ -39,8 +39,8 @@ export function writeColumnPrefs(scope, prefs, storage) {
   writeAll(COLUMNS_KEY, all, storage)
 }
 
-/** Las columnas del oj-table con las preferencias aplicadas: sin las ocultas, en el orden pedido
- *  (las no mencionadas, detrás, en su orden). Las técnicas no se tocan. */
+/** The oj-table columns with the preferences applied: without the hidden ones, in the requested order
+ *  (those not mentioned, after, in their order). The technical ones are not touched. */
 export function applyColumnPrefs(columns, prefs) {
   if (!prefs) return columns
   const hidden = new Set(prefs.hidden || [])
@@ -48,13 +48,13 @@ export function applyColumnPrefs(columns, prefs) {
   const rank = (c) => { const i = order.indexOf(c.field || c.id); return i < 0 ? order.length : i }
   const movable = columns.filter((c) => !PROTECTED(c) && !hidden.has(c.field || c.id))
   const sorted = movable.map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map((x) => x.c)
-  // las técnicas conservan su sitio relativo: delante las de selección, detrás acciones/líneas
+  // the technical ones keep their relative place: selection ones in front, actions/lines behind
   const lead = columns.filter((c) => PROTECTED(c) && c.field === '_select')
   const tail = columns.filter((c) => PROTECTED(c) && c.field !== '_select')
   return lead.concat(sorted, tail)
 }
 
-/** El modelo del diálogo de columnas: [{ id, label, visible }] en el orden actual. */
+/** The column dialog's model: [{ id, label, visible }] in the current order. */
 export function columnChooserOf(columns, prefs) {
   const hidden = new Set((prefs && prefs.hidden) || [])
   const order = (prefs && prefs.order) || []
@@ -63,12 +63,12 @@ export function columnChooserOf(columns, prefs) {
   return items.sort((a, b) => (rank(a) - rank(b)) || (a.i - b.i)).map(({ id, label, visible }) => ({ id, label, visible }))
 }
 
-/** Del modelo del diálogo a preferencias. */
+/** From the dialog's model to preferences. */
 export function prefsFromChooser(items) {
   return { hidden: items.filter((x) => !x.visible).map((x) => x.id), order: items.map((x) => x.id) }
 }
 
-/** Mover un elemento del diálogo arriba (-1) o abajo (+1). */
+/** Move a dialog element up (-1) or down (+1). */
 export function moveChooserItem(items, id, delta) {
   const i = items.findIndex((x) => x.id === id)
   const j = i + delta
@@ -78,7 +78,7 @@ export function moveChooserItem(items, id, delta) {
   return out
 }
 
-// ── vistas guardadas ──────────────────────────────────────────────────────────────────────────
+// ── saved views ──────────────────────────────────────────────────────────────────────────
 
 export function listSavedViews(scope, storage) {
   const v = readAll(VIEWS_KEY, storage)[scope]
@@ -106,8 +106,8 @@ export function defaultView(scope, storage) {
   return listSavedViews(scope, storage).find((v) => v.isDefault) || null
 }
 
-/** La ruta que aplica una vista: el listado con sus filtros en la query (el camino de los
- *  filtros por URL, que ya pone los chips y relanza la búsqueda). */
+/** The route that applies a view: the listing with its filters in the query (the URL-filters
+ *  path, which already sets the chips and relaunches the search). */
 export function viewRouteOf(route, values) {
   const path = String(route || '').split('?')[0]
   const q = Object.keys(values || {})
@@ -116,31 +116,31 @@ export function viewRouteOf(route, values) {
   return q.length ? path + '?' + q.join('&') : path
 }
 
-/** Lo que se guarda de la búsqueda actual: el texto libre y los filtros aplicados. */
+/** What is saved of the current search: the free text and the applied filters. */
 export function currentViewValues(filterValues, searchText) {
   const values = { ...(filterValues || {}) }
   if (searchText) values.searchText = searchText
   return values
 }
 
-/** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
+/** The options of the views menu (oj-menu): the saved ones (★ the default one) + actions. */
 export function viewsMenuOf(scope, storage) {
   const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
   return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
     .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
 }
 
-/** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
- *  que va detrás de #). */
+/** The preferences scope: the route of the listing on screen, without query (in hash mode, what
+ *  comes after #). */
 export function listingScope(loc = typeof window !== 'undefined' ? window.location : null) {
   if (!loc) return ''
   const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
   return String(raw || '').split('?')[0]
 }
 
-// ── ORDEN DE LOS TILES de una rejilla reordenable (ResponsiveGrid.reorderable: el dashboard de
-// OPERA, cuyos tiles se arrastran). Misma clave y forma que el web (tileOrderStore.ts): {ámbito:
-// [claves]}, ámbito = ruta + '#' + id de la rejilla, clave = id del hijo (o '#índice').
+// ── TILE ORDER of a reorderable grid (ResponsiveGrid.reorderable: the OPERA
+// dashboard, whose tiles are dragged). Same key and shape as the web (tileOrderStore.ts): {scope:
+// [keys]}, scope = route + '#' + grid id, key = child id (or '#index').
 
 export const tileKeyOf = (child, index) => (child && child.id ? String(child.id) : '#' + index)
 
@@ -155,7 +155,7 @@ export function writeTileOrder(scope, keys, storage) {
   writeAll(TILES_KEY, all, storage)
 }
 
-/** Las posiciones en las que pintar: primero las guardadas en su orden, luego las nunca colocadas. */
+/** The positions to paint in: first the saved ones in their order, then the never placed ones. */
 export function orderedTileIndices(keys, saved) {
   if (!saved || !saved.length) return keys.map((_, i) => i)
   const placed = saved.map((k) => keys.indexOf(k)).filter((i) => i >= 0)
@@ -163,7 +163,7 @@ export function orderedTileIndices(keys, saved) {
   return [...placed, ...keys.map((_, i) => i).filter((i) => !seen.has(i))]
 }
 
-/** El orden tras soltar `moved` donde está `target`. */
+/** The order after dropping `moved` where `target` is. */
 export function moveTile(order, moved, target) {
   const from = order.indexOf(moved)
   const to = order.indexOf(target)
@@ -173,7 +173,7 @@ export function moveTile(order, moved, target) {
   return next
 }
 
-/** El orden tras mover `moved` un puesto atrás (-1) o adelante (+1): arrastrar con el teclado. */
+/** The order after moving `moved` one place back (-1) or forward (+1): dragging with the keyboard. */
 export function moveTileBy(order, moved, delta) {
   const from = order.indexOf(moved)
   const to = from + delta

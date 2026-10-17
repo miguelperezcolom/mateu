@@ -1,5 +1,5 @@
-/* «Add selected» del SELECTOR de un @Searchable de varios valores: las filas marcadas viajan en
- * crud_selected_items (action-on-row-select-selected); el servidor las añade a los ids del campo. */
+/* «Add selected» of a multi-valued @Searchable's SELECTOR: the checked rows travel in
+ * crud_selected_items (action-on-row-select-selected); the server adds them to the field's ids. */
 
 define([
   'vb/action/actionChain',

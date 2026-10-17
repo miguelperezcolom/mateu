@@ -1,5 +1,5 @@
-/* Plegar/desplegar un panel (AccordionPanel / Details): estado de CLIENTE (bridge.setPanelExpanded)
- * y re-proyección del contenido del host — sin ida y vuelta al servidor, como cambiar de pestaña. */
+/* Folding/unfolding a panel (AccordionPanel / Details): CLIENT state (bridge.setPanelExpanded)
+ * and re-projection of the host content — no round trip to the server, like switching tabs. */
 
 define([
   'vb/action/actionChain',
@@ -22,7 +22,7 @@ define([
      */
     async run(context, { key, expanded, updatedFrom }) {
       const { $application } = context;
-      // el eco del writeback tras re-proyectar no es un clic
+      // the writeback echo after re-projecting is not a click
       if (!key || (updatedFrom && updatedFrom !== 'internal')) return;
       if (bridge.panelExpanded(key, !expanded) === !!expanded) return;
       bridge.setPanelExpanded(key, !!expanded);

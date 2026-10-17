@@ -1,10 +1,10 @@
-/* Acción de la isla ANIDADA (App dentro de la isla, p.ej. el documento del check-in).
- * Se postea contra el contexto anidado con su estado + el SEED del host (stayId,
- * paxIndex… — el server no lo eca en sus respuestas). Las acciones anunciadas
- * Action.sse(true) (p.ej. escanear, un LongTask) van por el endpoint /sse y devuelven un
- * STREAM de increments que se reducen en orden. Los EVENTOS de bus resultantes (p.ej.
- * documento-escaneado) disparan los triggers OnCustomEvent suscritos en la propia
- * anidada, la isla madre y el host — con manejo del route-flip semántico tras cada uno. */
+/* Action of the NESTED island (an App inside the island, e.g. the check-in document).
+ * It is posted against the nested context with its state + the host's SEED (stayId,
+ * paxIndex… — the server does not echo it in its responses). Actions advertised
+ * Action.sse(true) (e.g. scanning, a LongTask) go through the /sse endpoint and return a
+ * STREAM of increments that are reduced in order. The resulting bus EVENTS (e.g.
+ * documento-escaneado) fire the OnCustomEvent triggers subscribed in the nested one
+ * itself, the parent island and the host — handling the semantic route-flip after each. */
 
 define([
   'vb/action/actionChain',
@@ -38,12 +38,12 @@ define([
       if (!nestedContext) {
         return;
       }
-      // idem que en runMateuAction: la isla anidada vive en el backend de su host
+      // same as in runMateuAction: the nested island lives in its host's backend
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);
       const appState = $application.variables.mateuAppState || {};
       let seed = {};
-      try { seed = JSON.parse($application.variables.mateuNestedSeed || '{}'); } catch (ignored) { /* sin seed */ }
+      try { seed = JSON.parse($application.variables.mateuNestedSeed || '{}'); } catch (ignored) { /* no seed */ }
 
       const allEvents = [];
       const allToasts = [];
@@ -53,8 +53,8 @@ define([
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
-      // route-flip semántico: una respuesta state-only con _route nuevo pide recargar la
-      // ruta interna del contexto (se re-consulta tras CADA tanda de increments)
+      // semantic route-flip: a state-only response with a new _route asks to reload the
+      // context's inner route (re-checked after EACH batch of increments)
       const maybeFlip = async (ctxId, previousRoute) => {
         const ctx = reg.contexts[ctxId];
         const flipped = ctx && ctx.state ? ctx.state._route : null;
@@ -87,8 +87,8 @@ define([
       }
       await maybeFlip(nestedId, previousRoute);
 
-      // eventos de bus → triggers suscritos (la anidada primero: p.ej. documento-escaneado
-      // → reloadDocumento, que responde un flip)
+      // bus events → subscribed triggers (the nested one first: e.g. documento-escaneado
+      // → reloadDocumento, which answers with a flip)
       for (const busEvent of allEvents.splice(0)) {
         for (const target of [nestedId, islandId, bridge.HOST_ID]) {
           const ctx = target ? reg.contexts[target] : null;
@@ -107,7 +107,7 @@ define([
 
       $application.variables.mateuRegistry = reg;
 
-      // re-proyección: anidada + isla madre (fusionando la anidada en su contenido)
+      // re-projection: nested + parent island (merging the nested one into its content)
       const nestedNow = reg.contexts[nestedId];
       const nestedBlocks = nestedNow ? bridge.islandContentOf(nestedNow) : null;
       $application.variables.mateuNested = nestedBlocks
@@ -121,15 +121,15 @@ define([
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;
 
-      // los Element (componentes web, HTML del servidor) del host, del paso del wizard y de la
-      // isla se vuelven a montar: tras una acción de la isla sus huecos se repintan vacíos
+      // the Elements (web components, server HTML) of the host, the wizard step and the
+      // island are mounted again: after an island action their slots are repainted empty
       bridge.mountElementsSoon([].concat(
         bridge.elementAtomsOf($application.variables.mateuHostContent),
         bridge.elementAtomsOf($application.variables.mateuWizardContent),
         bridge.elementAtomsOf(($application.variables.mateuIsland || {}).content)));
 
       for (const toast of allToasts) {
-        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        // an error or warning goes to the shell's message banner (the Redwood toast only confirms)
         const notification = bridge.bannerNotificationOf(toast);
         if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;

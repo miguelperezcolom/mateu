@@ -1,24 +1,24 @@
-// Los enlaces HTML corrientes dentro del contenido (`<a href="/journey/bookings/ZUAAKJ">Ver
-// recorrido</a>`, de un Text/Html de la app) navegan DENTRO de la shell, como en Vaadin: allí el
-// cliente de Flow (RouterLinkHandler) se queda con el clic en un enlace a una ruta de la app y
-// navega sin recargar. Aquí, sin esto, el navegador cargaba la página entera y la shell de Redwood
-// volvía a arrancar (20–40 s en blanco). Mismas reglas que Flow: sólo un clic normal (botón
-// principal, sin Ctrl/Cmd/Mayús/Alt) que nadie haya atendido ya, en un enlace del mismo origen,
-// sin target (o _self), sin download ni router-ignore; además, nada que no sea una pantalla: las
-// rutas internas (/_inbox, /_xxx), el API, el login/logout y los ficheros (algo.pdf) siguen
-// siendo del navegador, y un ancla a la misma página (#expand=…, el foldout) también.
+// Ordinary HTML links inside the content (`<a href="/journey/bookings/ZUAAKJ">Ver
+// recorrido</a>`, from an app Text/Html) navigate INSIDE the shell, as in Vaadin: there the
+// Flow client (RouterLinkHandler) takes the click on a link to an app route and
+// navigates without reloading. Here, without this, the browser loaded the whole page and the Redwood shell
+// booted again (20–40 s blank). Same rules as Flow: only a plain click (main
+// button, no Ctrl/Cmd/Shift/Alt) that nobody has handled yet, on a same-origin link,
+// without target (or _self), without download or router-ignore; also, nothing that is not a screen: the
+// internal routes (/_inbox, /_xxx), the API, login/logout and files (something.pdf) still
+// belong to the browser, and an anchor to the same page (#expand=…, the foldout) too.
 
-/** Prefijos de rutas que no son pantallas de la app: el navegador las carga como siempre. */
+/** Prefixes of routes that are not app screens: the browser loads them as always. */
 const NOT_A_SCREEN = /^\/(_|api(\/|$)|oauth2(\/|$)|login(\/|$)|logout(\/|$)|sso(\/|$)|actuator(\/|$)|webjars(\/|$)|assets(\/|$)|static(\/|$)|resources(\/|$)|version_)/i
 
-/** El último tramo con extensión de fichero (`informe.pdf`, `bundle.js`): no es una pantalla (un id
- *  con punto, `/customers/ana.ruiz`, sí). */
+/** The last segment with a file extension (`informe.pdf`, `bundle.js`): it is not a screen (an id
+ *  with a dot, `/customers/ana.ruiz`, is). */
 const LOOKS_LIKE_FILE = /\.(pdf|csv|tsv|xlsx?|docx?|pptx?|odt|ods|zip|gz|tar|json|xml|txt|md|png|jpe?g|gif|svg|ico|webp|avif|mp4|webm|mp3|wav|js|mjs|css|map|html?|woff2?|ttf|otf)$/i
 
 /**
- * La ruta de la app a la que navega un clic en un enlace (con su query), o null si el clic sigue
- * siendo del navegador. `location` es la de la página (window.location); `hashMode` es la shell
- * servida en estático, cuyas rutas viven en `#/ruta`.
+ * The app route a click on a link navigates to (with its query), or null if the click still
+ * belongs to the browser. `location` is the page's (window.location); `hashMode` is the shell
+ * served statically, whose routes live in `#/route`.
  */
 export function inAppRouteOfLink(anchor, event, location, hashMode = false, mount = '') {
   if (!anchor || !anchor.getAttribute || !location) return null
@@ -29,11 +29,11 @@ export function inAppRouteOfLink(anchor, event, location, hashMode = false, moun
   const target = (anchor.getAttribute('target') || '').trim().toLowerCase()
   if (target && target !== '_self') return null
   if (anchor.getAttribute('download') != null || anchor.getAttribute('router-ignore') != null) return null
-  // en estático (#/ruta) un `#/ruta` también es una pantalla
+  // statically (#/route) a `#/route` is a screen too
   if (hashMode && /^#\//.test(href.trim())) {
     return href.trim().slice(1)
   }
-  // `#`, `#expand=…`: anclas de esta misma página (el foldout, los href="#" de JET), del navegador
+  // `#`, `#expand=…`: anchors of this same page (the foldout, JET's href="#"), the browser's
   if (href.trim().charAt(0) === '#') return null
   let url
   try {
@@ -44,7 +44,7 @@ export function inAppRouteOfLink(anchor, event, location, hashMode = false, moun
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
   if (url.origin !== location.origin) return null
   let path = url.pathname || '/'
-  // un ancla a esta misma página (#expand=…): la hace el navegador
+  // an anchor to this same page (#expand=…): the browser handles it
   if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
   // the app mounted under a path (@UI("/console")): only links below it are screens of THIS app
   // (another path is another UI: the browser loads it), its route is the part after the mount and

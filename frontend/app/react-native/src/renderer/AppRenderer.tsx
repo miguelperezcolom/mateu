@@ -13,11 +13,10 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
-import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, registerActionCatalogue, type ShellAction } from '../core/shellFlows';
+import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, type ShellAction } from '../core/shellFlows';
 import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
-import { headerValues } from '../core/appShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 
 const Stack = createStackNavigator();
@@ -701,10 +700,10 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
   // The catalogue is app-wide: register it so every screen's controller resolves ids against it.
-  React.useEffect(() => registerActionCatalogue(appMeta.actionCatalogue), [appMeta.actionCatalogue]);
+  React.useEffect(() => session.actionCatalogue.register(appMeta.actionCatalogue), [session, appMeta.actionCatalogue]);
 
   // live header values: seeded from the shell, changed by UpdateHeaderValue / the event stream
-  React.useEffect(() => headerValues.seed(appMeta.headerValues), [appMeta.headerValues]);
+  React.useEffect(() => session.headerValues.seed(appMeta.headerValues), [session, appMeta.headerValues]);
   useLiveUpdates(appMeta);
 
   // QUICK LAUNCH: a shortcut's route goes there (mount-absolute, like a menu route); an actionId
@@ -755,7 +754,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
           }
           const ctx = { state: {}, data: {}, appState: session.appState, appData: {} };
           const resolve = (t: unknown) => interpolate(typeof t === 'string' ? t : '', ctx);
-          fetchExternalJson(source, resolve)
+          fetchExternalJson(source, resolve, undefined, session.sources)
             .then(() => {
               const message = resolve(rest['successMessage']);
               if (message) session.notify(null, message, 'info', { duration: 3000 });

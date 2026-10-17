@@ -694,18 +694,24 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
 }
 
 /**
+ * The session a MicroFrontend island runs in: the host's for the same backend; for another origin
+ * its own (WITHOUT this project's token) that keeps the host app's REST source catalogue, so what
+ * the island registers stays in the app it is part of.
+ */
+internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSession {
+    val base = metadata.text("baseUrl").trimEnd('/')
+    if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
+    @Suppress("UNCHECKED_CAST")
+    val appState = host.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
+    return AppSession(base, appState, sources = host.sources)
+}
+
+/**
  * MicroFrontend: another Mateu UI embedded as an island with its own context. Same backend → the
  * same session (and credentials); another origin → its own session WITHOUT this project's token.
  */
 fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
-    val base = metadata.text("baseUrl").trimEnd('/')
-    val sameBackend = base.isBlank() || base == ctx.session.baseUrl.trimEnd('/')
-    val session = if (sameBackend) ctx.session else {
-        @Suppress("UNCHECKED_CAST")
-        val appState = ctx.session.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
-        AppSession(base, appState)
-    }
-    val island = AppContext(session)
+    val island = AppContext(microFrontendSession(ctx.session, metadata))
     island.titleConsumer = {}
     island.silentErrors = true
     val slot = island.newSlot()

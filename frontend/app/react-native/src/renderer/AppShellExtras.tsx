@@ -5,7 +5,7 @@ import { theme } from '../theme';
 import { announce, announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { useAppContext } from '../context/AppContext';
 import {
-  headerChangesOf, headerValues, idlePhase, launchableShortcuts, parseSseChunk, quickLaunchMatch, reconnectDelay,
+  headerChangesOf, idlePhase, launchableShortcuts, parseSseChunk, quickLaunchMatch, reconnectDelay,
   signOutTarget, type AppShortcut, type HeaderValue, type IdleSession,
 } from '../core/appShellExtras';
 
@@ -25,9 +25,10 @@ export interface ShellExtrasMeta {
 /** The header values at the top of the drawer ("Business date  12 Oct 2026"), repainted from the
  *  app-wide store whenever an `UpdateHeaderValue` command or the event stream changes one. */
 export function HeaderValuesView() {
+  const { session } = useAppContext();
   const [, setVersion] = React.useState(0);
-  React.useEffect(() => headerValues.subscribe(() => setVersion((v) => v + 1)), []);
-  const values = headerValues.list();
+  React.useEffect(() => session.headerValues.subscribe(() => setVersion((v) => v + 1)), [session]);
+  const values = session.headerValues.list();
   if (values.length === 0) return null;
   return (
     <View style={styles.values}>
@@ -86,7 +87,7 @@ export function useLiveUpdates(meta: ShellExtrasMeta) {
           buffer = rest;
           for (const increment of increments) {
             for (const change of headerChangesOf(increment)) {
-              const said = headerValues.update(change.id, change.value);
+              const said = session.headerValues.update(change.id, change.value);
               if (said) announceLive(said, false);
             }
           }

@@ -1,16 +1,16 @@
-// poc/chat.mjs — núcleo de transporte del CHAT de IA, renderer-neutral (paridad Redwood/VB).
+// poc/chat.mjs — transport core of the AI CHAT, renderer-neutral (Redwood/VB parity).
 //
-// El chat compartido (libs/mateu/.../mateu-chat.ts, ~939 líneas) mezcla transporte y UI de Lit. Para
-// llevarlo a VB "apoyándonos en VB al máximo" (la UI la pone un componente de conversación de JET, no
-// dibujada a mano), lo que se comparte es SOLO la lógica de transporte: construir el body, elegir la
-// URL (agente local vs sseUrl), aplanar el menú como contexto, discriminar cada payload `data:` y
-// acumular el texto del asistente. Ese núcleo va aquí — probado en Node (poc/test.mjs) — y el bucle
-// de streaming acepta un `fetchImpl` inyectable para no tocar globals. Es la capa "lógica" del
-// roadmap; el panel VB (gate visual) la consume. Se concatena en el bundle AMD (make-amd quita el import).
+// The shared chat (libs/mateu/.../mateu-chat.ts, ~939 lines) mixes transport and Lit UI. To
+// bring it to VB "leaning on VB as much as possible" (the UI is provided by a JET conversation component, not
+// drawn by hand), what is shared is ONLY the transport logic: building the body, choosing the
+// URL (local agent vs sseUrl), flattening the menu as context, telling apart each `data:` payload and
+// accumulating the assistant's text. That core lives here — tested in Node (poc/test.mjs) — and the
+// streaming loop accepts an injectable `fetchImpl` so as not to touch globals. It is the "logic" layer of the
+// roadmap; the VB panel (visual gate) consumes it. It is concatenated into the AMD bundle (make-amd strips the import).
 
 import { chromeText } from './i18n.mjs'
 
-/** Discrimina un payload `data:` que es un objeto de uso de tokens ({inputTokens|outputTokens|totalTokens}). */
+/** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
   const trimmed = (payload || '').trim()
   if (!trimmed.startsWith('{')) return null
@@ -18,12 +18,12 @@ export function tryParseTokenUsage(payload) {
     const obj = JSON.parse(trimmed)
     if ('inputTokens' in obj || 'outputTokens' in obj || 'totalTokens' in obj) return obj
   } catch {
-    // no es JSON válido
+    // not valid JSON
   }
   return null
 }
 
-/** Discrimina un payload `data:` que es un evento personalizado del agente ({event, detail}). */
+/** Recognises a `data:` payload that is a custom agent event ({event, detail}). */
 export function tryParseCustomEvent(payload) {
   const trimmed = (payload || '').trim()
   if (!trimmed.startsWith('{')) return null
@@ -31,14 +31,14 @@ export function tryParseCustomEvent(payload) {
     const obj = JSON.parse(trimmed)
     if (typeof obj.event === 'string') return { event: obj.event, detail: obj.detail ?? {} }
   } catch {
-    // no es JSON válido
+    // not valid JSON
   }
   return null
 }
 
-/** Aplana el menú al contexto que recibe el LLM (solo en el primer mensaje). Misma forma que
- *  `MenuContextEntry` del chat compartido: breadcrumb `path` + objeto `navigation`. Salta
- *  separadores y entradas remotas aún sin resolver (su ruta apunta al loader, no a una pantalla). */
+/** Flattens the menu into the context the LLM receives (only on the first message). Same shape as
+ *  the shared chat's `MenuContextEntry`: breadcrumb `path` + `navigation` object. Skips
+ *  separators and remote entries not yet resolved (their route points at the loader, not at a screen). */
 export function buildChatMenuContext(options, parentPath = []) {
   const result = []
   for (const opt of options || []) {
@@ -60,8 +60,8 @@ export function buildChatMenuContext(options, parentPath = []) {
         },
       }
       if (opt.description) entry.description = opt.description
-      // lo que el agente necesita para ENSEÑAR filas en este listado: sus filtros por URL, el campo
-      // id de la fila y el parámetro de la selección (?ids=…). Lo publica el server en el menú.
+      // what the agent needs to SHOW rows in this listing: its URL filters, the row's id
+      // field and the selection parameter (?ids=…). The server publishes it in the menu.
       if (opt.listing) entry.listing = opt.listing
       result.push(entry)
     }
@@ -69,13 +69,13 @@ export function buildChatMenuContext(options, parentPath = []) {
   return result
 }
 
-/** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
+/** The chat POST body. `menuContext` only travels on the first message (the caller decides). */
 export function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
   return {
     message: message ?? '',
     sessionId,
-    // la ruta de la pantalla desde la que se pregunta: las reglas de enrutado del plano de control
-    // eligen el agente por ella
+    // the route of the screen the question is asked from: the control plane's routing rules
+    // choose the agent by it
     ...(currentRoute ? { currentRoute } : {}),
     ...(attachments && attachments.length ? { attachments } : {}),
     ...(context !== undefined && context !== null ? { context } : {}),
@@ -84,7 +84,7 @@ export function buildChatBody({ message, sessionId, attachments, context, mcpUrl
   }
 }
 
-/** Sube ficheros al endpoint de `@AI(upload=…)` como multipart; devuelve los `{name, path}` guardados. */
+/** Uploads files to the `@AI(upload=…)` endpoint as multipart; returns the saved `{name, path}`. */
 export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {}, fetchImpl = globalThis.fetch, FormDataImpl = globalThis.FormData }) {
   const form = new FormDataImpl()
   for (const f of files || []) form.append('files', f)
@@ -95,14 +95,14 @@ export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {
   return ((result && result.files) || []).filter((f) => f && f.path)
 }
 
-// ── El stream SSE, leído como SSE ──────────────────────────────────────────────────────────────
-// Por EVENTO, no por línea: las líneas `data:` de un evento se unen con '\n' y una línea en blanco lo
-// cierra; de `data:` sólo se quita el espacio opcional (la sangría del markdown sobrevive); los
-// comentarios (`:keep-alive`) y los demás campos se ignoran. Misma lógica que el chat compartido
-// (libs/mateu/.../chatStream.ts) — mantener las dos a la par.
+// ── The SSE stream, read as SSE ──────────────────────────────────────────────────────────────
+// By EVENT, not by line: an event's `data:` lines are joined with '\n' and a blank line
+// closes it; from `data:` only the optional space is removed (markdown indentation survives);
+// comments (`:keep-alive`) and other fields are ignored. Same logic as the shared chat
+// (libs/mateu/.../chatStream.ts) — keep both in step.
 
-/** Un lector SSE incremental: `push(texto)` devuelve los `data` de los eventos que se han cerrado;
- *  `end()` el que el stream dejó sin línea en blanco detrás. */
+/** An incremental SSE reader: `push(text)` returns the `data` of the events that have closed;
+ *  `end()` the one the stream left without a blank line after it. */
 export function createSseParser() {
   let buffer = ''
   let data = []
@@ -130,7 +130,7 @@ export function createSseParser() {
       for (;;) {
         const m = /\r\n|\r|\n/.exec(buffer)
         if (!m) break
-        // un '\r' al final puede ser la primera mitad de un '\r\n' partido entre trozos
+        // a trailing '\r' may be the first half of a '\r\n' split across chunks
         if (m[0] === '\r' && m.index === buffer.length - 1) break
         const l = buffer.slice(0, m.index)
         buffer = buffer.slice(m.index + m[0].length)
@@ -148,8 +148,8 @@ export function createSseParser() {
 }
 
 /**
- * Qué es el `data` de un evento: uso de tokens, un trozo de la respuesta (agent-delta), una fase
- * (agent-status), una herramienta (agent-tool), un error (agent-error), otro evento de UI, o texto.
+ * What an event's `data` is: token usage, a piece of the answer (agent-delta), a phase
+ * (agent-status), a tool (agent-tool), an error (agent-error), another UI event, or text.
  */
 export function classifyChatPayload(payload) {
   const usage = tryParseTokenUsage(payload)
@@ -166,7 +166,7 @@ export function classifyChatPayload(payload) {
   return { kind: 'text', text: payload ?? '' }
 }
 
-/** Un uso que no dice nada: todos sus contadores a cero (los marcadores de agentes anteriores). */
+/** A usage that says nothing: all its counters at zero (the markers of older agents). */
 export function isEmptyUsage(usage) {
   if (!usage) return true
   const values = ['inputTokens', 'outputTokens', 'totalTokens'].map((k) => usage[k]).filter((v) => typeof v === 'number' && Number.isFinite(v))
@@ -174,10 +174,10 @@ export function isEmptyUsage(usage) {
 }
 
 /**
- * Lo que el agente dice que está haciendo en esta respuesta: la fase, las herramientas (la que corre
- * y las ya hechas, con su duración o su error) y si ya está escribiendo. `line(now)` es la fila de
- * estado: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
- * null si el agente no ha informado de nada (agentes anteriores: el panel sigue con «Pensando… N s»).
+ * What the agent says it is doing in this answer: the phase, the tools (the running one
+ * and those already done, with their duration or their error) and whether it is already writing. `line(now)` is the
+ * status row: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
+ * null if the agent has not reported anything (older agents: the panel keeps «Pensando… N s»).
  */
 export function createChatProgress(now = Date.now()) {
   const p = {
@@ -230,29 +230,29 @@ export function createChatProgress(now = Date.now()) {
 }
 
 /**
- * Postea un mensaje al stream del chat y consume la respuesta SSE, por eventos (ver
- * createSseParser). Cada `data` es uso de tokens, un evento personalizado, progreso del agente, un
- * trozo de la respuesta (agent-delta: se AÑADE), o texto: tras trozos, el primero es la respuesta
- * entera y LOS SUSTITUYE (el agente la manda limpia al final); sin trozos, cada texto es una línea
- * — el contrato de siempre de los agentes que mandan la respuesta línea a línea. `agent-error` se
- * muestra como el texto del asistente. Devuelve el texto final. `fetchImpl` es inyectable para tests.
+ * Posts a message to the chat stream and consumes the SSE response, by events (see
+ * createSseParser). Each `data` is token usage, a custom event, agent progress, a
+ * piece of the answer (agent-delta: it is APPENDED), or text: after pieces, the first one is the whole
+ * answer and REPLACES THEM (the agent sends it clean at the end); without pieces, each text is a line
+ * — the usual contract of agents that send the answer line by line. `agent-error` is
+ * shown as the assistant's text. Returns the final text. `fetchImpl` is injectable for tests.
  *
- * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
- * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
- * una función: se evalúa en cada envío, y el reenvío lleva el token NUEVO, no el que acaba de ser
- * rechazado — o el que faltaba: en ec1 el chat llegó a salir sin token porque en ese instante no
- * había ninguno en localStorage, y enseñaba "Servidor respondió 401" mientras las pantallas, que sí
- * reautentican, seguían funcionando. Sin nadie que reautentique, o si el reenvío vuelve a dar 401,
- * falla como siempre.
+ * A 401 is recovered as in the rest of the traffic (fetchWithPolicy): `reauthenticate` asks the
+ * page to reauthenticate and, if it does, the message is resent ONCE. That is why `headers` can be
+ * a function: it is evaluated on every send, and the resend carries the NEW token, not the one just
+ * rejected — or the missing one: in ec1 the chat went out without a token because at that moment there
+ * was none in localStorage, and it showed "Servidor respondió 401" while the screens, which do
+ * reauthenticate, kept working. With nobody to reauthenticate, or if the resend gets 401 again,
+ * it fails as always.
  *
- * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
- * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
+ * @param headers         headers object, or () => object (read on every send)
+ * @param reauthenticate  async () => boolean — true if it must be resent (askForReauthentication)
  *
- * @param onText     (accumulatedText) => void   — en cada cambio del texto (para repintar el mensaje)
- * @param onDelta    (piece, accumulatedText) => void — en cada trozo que llega en streaming
- * @param onProgress (progress) => void          — en cada fase/herramienta (createChatProgress)
- * @param onEvent    ({event, detail}) => void   — evento personalizado del agente (≠ agent-*)
- * @param onUsage    (usage) => void             — objeto de uso de tokens (los todo-cero no llegan)
+ * @param onText     (accumulatedText) => void   — on every change of the text (to repaint the message)
+ * @param onDelta    (piece, accumulatedText) => void — on every piece that arrives while streaming
+ * @param onProgress (progress) => void          — on every phase/tool (createChatProgress)
+ * @param onEvent    ({event, detail}) => void   — custom agent event (≠ agent-*)
+ * @param onUsage    (usage) => void             — token-usage object (all-zero ones do not arrive)
  */
 export async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onDelta, onProgress, onEvent, onUsage, now = () => Date.now() }) {
   const payload = typeof body === 'string' ? body : JSON.stringify(body)
@@ -279,7 +279,7 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
   const parser = createSseParser()
   const progress = createChatProgress(now())
   let accumulated = ''
-  // hubo trozos desde el último texto entero: el siguiente texto los sustituye
+  // there were pieces since the last whole text: the next text replaces them
   let streamed = false
 
   const handlePayload = (data) => {
@@ -332,21 +332,21 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
   return accumulated
 }
 
-// ---- El estado del panel mientras el asistente trabaja, los tokens y el dictado ------------------
+// ---- The panel state while the assistant works, the tokens and dictation ------------------
 
 /**
- * El uso de UNA respuesta: el stream puede mandar más de un objeto de uso; dentro de una respuesta
- * manda el último valor de cada contador, como en el chat compartido (merge, no suma).
+ * The usage of ONE answer: the stream may send more than one usage object; within an answer
+ * the last value of each counter wins, as in the shared chat (merge, not sum).
  */
 export function mergeTurnUsage(turn, usage) {
   return { ...(turn || {}), ...(usage || {}) }
 }
 
 /**
- * El uso que enseña el panel tras una respuesta: el de ESA respuesta, que es lo que el agente manda
- * como total de la conversación (el ia-agent de ec-demo1 manda el acumulado de la sesión; sumarlo
- * contaba cada respuesta otra vez en cada respuesta siguiente). Una respuesta sin uso deja el que
- * había. Mismo criterio que el chat compartido: se sustituye, no se suma.
+ * The usage the panel shows after an answer: that of THAT answer, which is what the agent sends
+ * as the conversation total (ec-demo1's ia-agent sends the session's running total; summing it
+ * counted each answer again in every following answer). An answer without usage keeps the one
+ * there was. Same criterion as the shared chat: it is replaced, not summed.
  */
 export function latestUsage(previous, turn) {
   const keys = ['inputTokens', 'outputTokens', 'totalTokens']
@@ -358,9 +358,9 @@ export function latestUsage(previous, turn) {
 }
 
 /**
- * Los totales de la conversación: se suma el uso de cada respuesta ya terminada — para un agente que
- * manda el uso de cada respuesta suelta. El panel ya no la usa (ver latestUsage). Solo los
- * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
+ * The conversation totals: the usage of each finished answer is summed — for an agent that
+ * sends the usage of each answer separately. The panel no longer uses it (see latestUsage). Only the
+ * numeric counters; null if there is none yet (the panel does not show an empty row).
  */
 export function addUsage(total, turn) {
   const keys = ['inputTokens', 'outputTokens', 'totalTokens']
@@ -377,11 +377,11 @@ export function addUsage(total, turn) {
 }
 
 /**
- * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; lo que el agente
- * dice que hace, si lo dice (`progress`, de createChatProgress: la herramienta que llama con sus
- * segundos, la fase, «Respondiendo…»); si no — agentes que no informan —, «Pensando…» con los
- * segundos mientras no ha llegado nada (la espera larga es la que inquieta) y «Respondiendo…» en
- * cuanto llega el primer texto.
+ * What the status row under the conversation says: nothing if the assistant is not working; what the agent
+ * says it is doing, if it says so (`progress`, from createChatProgress: the tool it is calling with its
+ * seconds, the phase, «Respondiendo…»); otherwise — agents that do not report —, «Pensando…» with the
+ * seconds while nothing has arrived (the long wait is the worrying one) and «Respondiendo…» as
+ * soon as the first text arrives.
  */
 export function chatStatusText({ busy, hasText, elapsedSeconds, progress, now }) {
   if (!busy) return ''
@@ -392,12 +392,12 @@ export function chatStatusText({ busy, hasText, elapsedSeconds, progress, now })
   return s > 0 ? chromeText('chatThinkingFor', { s }) : chromeText('chatThinking')
 }
 
-/** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
+/** The browser's speech-recognition constructor, or null where it does not exist (Firefox). */
 export function speechRecognitionCtor(win = globalThis) {
   return (win && (win.SpeechRecognition || win.webkitSpeechRecognition)) || null
 }
 
-/** El texto dictado: el último resultado reconocido (mismo criterio que el chat compartido). */
+/** The dictated text: the last recognised result (same criterion as the shared chat). */
 export function transcriptOf(event) {
   const results = event && event.results
   if (!results || !results.length) return ''
@@ -406,10 +406,10 @@ export function transcriptOf(event) {
 }
 
 /**
- * El atajo del micrófono del chat: Ctrl+Shift+M en todas las plataformas (en macOS también Ctrl, no
- * Cmd — Cmd+Shift+M cambia de perfil en Chrome y Opción+M escribe «µ»). Exactamente Ctrl y Shift,
- * sin Alt ni Cmd, y no la autorrepetición de la tecla mantenida. La tecla se reconoce por su carácter
- * (AZERTY incluido) o, en un teclado cuya M no escribe una letra latina, por su posición (KeyM).
+ * The chat microphone shortcut: Ctrl+Shift+M on every platform (on macOS also Ctrl, not
+ * Cmd — Cmd+Shift+M switches profile in Chrome and Option+M types «µ»). Exactly Ctrl and Shift,
+ * without Alt or Cmd, and not the auto-repeat of a held key. The key is recognised by its character
+ * (AZERTY included) or, on a keyboard whose M does not type a Latin letter, by its position (KeyM).
  */
 export const CHAT_MIC_SHORTCUT = 'Ctrl+Shift+M'
 export const CHAT_MIC_ARIA_KEYSHORTCUTS = 'Control+Shift+M'
@@ -421,31 +421,31 @@ export function isChatMicShortcut(event) {
   return event.code === 'KeyM'
 }
 
-// ── Markdown de las respuestas ──────────────────────────────────────────────────────────────────
-// El agente contesta en markdown (negritas, listas, tablas, código). El chat compartido lo pinta con
-// marked + DOMPurify; aquí no hay npm en el bundle AMD, así que el subconjunto que usan los agentes se
-// convierte a mano, ESCAPANDO PRIMERO: todo el HTML del texto sale como texto, y las únicas etiquetas
-// del resultado son las que pone esta función (sin atributos salvo href/target/rel de los enlaces
-// http(s)). Seguro por construcción, sin sanitizador. Tolera el markdown a medias del streaming: un
-// bloque de código sin cerrar es código hasta el final, y un ** sin pareja se queda como texto.
+// ── Markdown of the answers ──────────────────────────────────────────────────────────────────
+// The agent answers in markdown (bold, lists, tables, code). The shared chat paints it with
+// marked + DOMPurify; here there is no npm in the AMD bundle, so the subset agents use is
+// converted by hand, ESCAPING FIRST: all HTML in the text comes out as text, and the only tags
+// in the result are the ones this function adds (no attributes except href/target/rel of
+// http(s) links). Safe by construction, no sanitiser. It tolerates streaming's half-written markdown: an
+// unclosed code block is code until the end, and an unpaired ** stays as text.
 
 const MD_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 const mdEscape = (s) => String(s).replace(/[&<>"']/g, (c) => MD_ESC[c])
 
-/** El markdown en línea de un texto YA escapado: código, enlaces, negrita, cursiva. */
+/** The inline markdown of an ALREADY escaped text: code, links, bold, italics. */
 function mdInline(escaped) {
   const codes = []
-  // la etiqueta de apertura de cada enlace se aparta hasta el final: su href puede llevar `_` o `*`
-  // (ids=A_B) y la negrita/cursiva de abajo lo romperían
+  // each link's opening tag is set aside until the end: its href may carry `_` or `*`
+  // (ids=A_B) and the bold/italics below would break it
   const opens = []
   const open = (tag) => { opens.push(tag); return `\u0001${opens.length - 1}\u0001` }
   let s = escaped.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000` })
-  // enlaces: solo http(s); la URL ya viene escapada (las comillas no pueden cerrar el atributo)
+  // links: only http(s); the URL comes already escaped (quotes cannot close the attribute)
   s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
     (_, text, url) => `${open(`<a href="${url}" target="_blank" rel="noopener noreferrer">`)}${text}</a>`)
-  // y las rutas de la propia app (`[4MBZS7](/booking/bookings/4MBZS7)`): un enlace que navega DENTRO
-  // de la consola (la burbuja lo engancha, chatRouteOfLink) — sin recargar ni abrir pestaña. Solo
-  // una ruta que empieza por UNA barra: `//host` sería otro sitio.
+  // and the app's own routes (`[4MBZS7](/booking/bookings/4MBZS7)`): a link that navigates INSIDE
+  // the console (the bubble hooks it, chatRouteOfLink) — without reloading or opening a tab. Only
+  // a route starting with ONE slash: `//host` would be another site.
   s = s.replace(/\[([^\]\n]+)\]\((\/(?!\/)[^\s)]*)\)/g,
     (_, text, route) => `${open(`<a href="${route}" class="mateu-chat-route" data-mateu-route="${route}">`)}${text}</a>`)
   s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
@@ -456,9 +456,9 @@ function mdInline(escaped) {
 }
 
 /**
- * La ruta a la que navega un clic en un enlace del chat, o null si el clic no es nuestro: sólo los
- * enlaces a rutas de la app (mateu-chat-route) y un clic normal — con Ctrl/Cmd/Mayús o el botón del
- * medio el navegador hace lo suyo (abrirlo en otra pestaña sigue funcionando: el href es la URL).
+ * The route a click on a chat link navigates to, or null if the click is not ours: only
+ * links to app routes (mateu-chat-route) and a plain click — with Ctrl/Cmd/Shift or the middle
+ * button the browser does its own thing (opening it in another tab keeps working: the href is the URL).
  */
 export function chatRouteOfLink(anchor, event) {
   if (!anchor || !anchor.getAttribute) return null
@@ -472,9 +472,9 @@ const MD_TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/
 const mdCells = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => mdInline(mdEscape(c.trim())))
 
 /**
- * El markdown de una respuesta del asistente como HTML seguro para su burbuja: párrafos con saltos
- * de línea, títulos, listas (con y sin número), citas, reglas, bloques y trozos de código, tablas,
- * enlaces http(s) (en otra pestaña), negrita y cursiva.
+ * The markdown of an assistant answer as safe HTML for its bubble: paragraphs with line
+ * breaks, headings, lists (numbered and not), quotes, rules, code blocks and snippets, tables,
+ * http(s) links (in another tab), bold and italics.
  */
 export function chatMarkdownToHtml(text) {
   const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
@@ -482,7 +482,7 @@ export function chatMarkdownToHtml(text) {
   let i = 0
   while (i < lines.length) {
     const line = lines[i]
-    // bloque de código (``` … ```); sin cerrar —el stream a medias— llega hasta el final
+    // code block (``` … ```); unclosed —the half-done stream— it runs to the end
     const fence = line.match(/^\s*```/)
     if (fence) {
       const body = []
@@ -495,13 +495,13 @@ export function chatMarkdownToHtml(text) {
     if (/^\s*$/.test(line)) { i++; continue }
     const heading = line.match(/^\s*(#{1,6})\s+(.*)$/)
     if (heading) {
-      const level = Math.min(6, heading[1].length + 2)   // h3…h6: dentro de una burbuja, no de una página
+      const level = Math.min(6, heading[1].length + 2)   // h3…h6: inside a bubble, not a page
       out.push(`<h${level}>${mdInline(mdEscape(heading[2].replace(/\s*#+\s*$/, '')))}</h${level}>`)
       i++
       continue
     }
     if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { out.push('<hr>'); i++; continue }
-    // tabla: cabecera | a | b | seguida de |---|---|
+    // table: header | a | b | followed by |---|---|
     if (line.includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1])) {
       const head = mdCells(line)
       i += 2
@@ -522,7 +522,7 @@ export function chatMarkdownToHtml(text) {
       out.push(mdList(lines, i, (next) => { i = next }))
       continue
     }
-    // párrafo: líneas seguidas hasta una en blanco o un bloque; cada salto, un <br>
+    // paragraph: consecutive lines up to a blank one or a block; each break, a <br>
     const para = []
     while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^\s*(```|#{1,6}\s|>|([-*+]|\d+[.)])\s)/.test(lines[i])
       && !(lines[i].includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1]))) {
@@ -534,7 +534,7 @@ export function chatMarkdownToHtml(text) {
   return out.join('')
 }
 
-/** Una lista (y sus sublistas, por sangría) desde la línea `start`; devuelve su HTML y avanza. */
+/** A list (and its sublists, by indentation) from line `start`; returns its HTML and advances. */
 function mdList(lines, start, advance) {
   const first = lines[start].match(/^(\s*)([-*+]|\d+[.)])\s+/)
   const indent = first[1].length
@@ -552,7 +552,7 @@ function mdList(lines, start, advance) {
       items[items.length - 1].sub += mdList(lines, i, (next) => { i = next })
       continue
     }
-    // continuación de un elemento: una línea sangrada que no es otro elemento
+    // continuation of an item: an indented line that is not another item
     if (!m && items.length && /^\s{2,}\S/.test(lines[i])) {
       items[items.length - 1].text += '<br>' + mdInline(mdEscape(lines[i].trim()))
       i++
@@ -592,15 +592,15 @@ export function stickChatToBottom(el, { slack = 48, isUserMessage = (node) => !!
   return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
 }
 
-// ---- Paridad con el chat web (libs/mateu mateu-chat.ts): lo que el panel VB necesitaba ----------
+// ---- Parity with the web chat (libs/mateu mateu-chat.ts): what the VB panel needed ----------
 //
-// El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
-// título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
-// autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
-// misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; titula el panel con el @App(askLabel); enseña las herramientas que usa el
-// agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
+// The shared chat sends with each message, besides the text: the screen CONTEXT (url,
+// title, appState/appData, the component state — its contextProvider), a self-describing
+// PROJECTION of the screen (screenContext.ts: fields with type/label/value + actions, the
+// same an MCP agent receives), the @AI's `mcpUrl` and the attachments; it titles the panel with @App(askLabel); it shows the tools the
+// agent uses in the current turn; and it explains an empty answer or a network cut. All pure here.
 
-/** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
+/** The panel configuration from the shell (the bootstrap App) and the backend base. */
 export function chatConfigOf(shell, base = '') {
   const s = shell || {}
   const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
@@ -608,7 +608,7 @@ export function chatConfigOf(shell, base = '') {
     sseUrl: abs(s.sseUrl),
     uploadUrl: abs(s.uploadUrl),
     mcpUrl: abs(s.mcpUrl),
-    // el título del panel: la marca del App (@App(askLabel)), si no «Assistant»
+    // the panel title: the App's brand (@App(askLabel)), otherwise «Assistant»
     title: String(s.askLabel || '').trim() || chromeText('chatTitle'),
   }
 }
@@ -616,9 +616,9 @@ export function chatConfigOf(shell, base = '') {
 const mdTypeOf = (node) => (node && node.metadata && typeof node.metadata.type === 'string' ? node.metadata.type : undefined)
 
 /**
- * La pantalla proyectada para el agente — port de screenContext.ts `projectScreen`: los FormField
- * (id, rótulo, tipo, estereotipo, obligatorio, solo lectura, valor del estado, opciones) y las
- * acciones (las declaradas por el componente, con el rótulo de su botón; y los botones sueltos).
+ * The screen projected for the agent — port of screenContext.ts `projectScreen`: the FormFields
+ * (id, label, type, stereotype, required, read-only, state value, options) and the
+ * actions (those declared by the component, with their button's label; and the loose buttons).
  */
 export function projectChatScreen(component, state) {
   if (!component || typeof component !== 'object') return { fields: [], actions: [] }
@@ -683,11 +683,11 @@ export function projectChatScreen(component, state) {
 }
 
 /**
- * El POST de un turno, con la misma forma que el del chat web: el texto, la sesión, la ruta, los
- * adjuntos, el contexto (url, título, appState/appData y el estado/datos del contexto HOST del
- * registro), la pantalla proyectada (si tiene algo), el mcpUrl y, sólo en el primer mensaje de la
- * sesión (`sendMenu`), el menú. Devuelve `{ body, shown }`: `shown` es lo que se pinta como mensaje
- * del usuario (el texto + 📎 los adjuntos).
+ * A turn's POST, with the same shape as the web chat's: the text, the session, the route, the
+ * attachments, the context (url, title, appState/appData and the state/data of the registry's HOST
+ * context), the projected screen (if it has anything), the mcpUrl and, only on the session's first
+ * message (`sendMenu`), the menu. Returns `{ body, shown }`: `shown` is what is painted as the
+ * user's message (the text + 📎 the attachments).
  */
 export function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
   const text = String(message || '').trim()
@@ -720,7 +720,7 @@ export function chatTurnOf({ message, sessionId, attachments = [], registry, app
   return { body, shown }
 }
 
-/** El texto final del turno: la respuesta, o por qué no la hay (respuesta vacía, corte de red, error). */
+/** The final text of the turn: the answer, or why there is none (empty answer, network cut, error). */
 export function chatTurnTextOf(accumulated, error) {
   if (error) {
     const message = (error && error.message) || String(error)
@@ -732,13 +732,13 @@ export function chatTurnTextOf(accumulated, error) {
   return accumulated
 }
 
-/** La duración de una herramienta como el chat web: «850 ms», «1,2 s». */
+/** A tool's duration like the web chat: «850 ms», «1,2 s». */
 export function formatToolDuration(ms) {
   if (typeof ms !== 'number' || !Number.isFinite(ms)) return ''
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1).replace('.', ',')} s`
 }
 
-/** Las herramientas del turno en curso, listas para pintar bajo la respuesta (CSP: todo precomputado). */
+/** The tools of the current turn, ready to paint under the answer (CSP: all precomputed). */
 export function chatToolStepsOf(progress) {
   return ((progress && progress.steps) || []).map((step, i) => ({
     key: i + ':' + step.name,
@@ -751,7 +751,7 @@ export function chatToolStepsOf(progress) {
   }))
 }
 
-/** Adjuntos tras una subida: los que había + los nuevos, sin repetir ruta. */
+/** Attachments after an upload: the existing ones + the new ones, without repeating a path. */
 export function withAttachments(current, added) {
   const out = (current || []).slice()
   for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })

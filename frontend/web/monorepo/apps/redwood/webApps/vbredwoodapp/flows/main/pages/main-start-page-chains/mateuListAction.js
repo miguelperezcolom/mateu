@@ -1,8 +1,8 @@
-/* Acción de una LISTA del formulario con editor modal: el "+" bajo la tabla, Editar / Quitar
- * de cada fila y los botones del diálogo (Save, Save and add another, Cancel, Prev/Next). El
- * botón lleva su acción en data-action-id y, en la tabla, la fila en data-row-key (el texto de
- * su _rowNumber: el bridge lo devuelve a su tipo real). La request —estado del contenedor, la
- * fila en initiatorState— la arma runMateuAction con bridge.listActionRequestOf. */
+/* Action of a form LIST with a modal editor: the "+" under the table, Edit / Remove
+ * on each row and the dialog's buttons (Save, Save and add another, Cancel, Prev/Next). The
+ * button carries its action in data-action-id and, in the table, the row in data-row-key (the text of
+ * its _rowNumber: the bridge turns it back into its real type). The request —the container's state, the
+ * row in initiatorState— is built by runMateuAction with bridge.listActionRequestOf. */
 
 define([
   'vb/action/actionChain',
@@ -18,7 +18,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  ojAction del oj-button
+     * @param {Object} params.event  ojAction of the oj-button
      */
     async run(context, { event }) {
       const target = event && (event.currentTarget || event.target);

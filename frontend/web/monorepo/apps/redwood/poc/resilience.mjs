@@ -1,37 +1,37 @@
-// Resiliencia del transporte — el mismo contrato que los renderers web (libs/mateu:
-// requestPolicy + retryPolicy + connectivity + pendingActions), reescrito para ESTE core,
-// que no comparte nada con aquéllos: aquí el transporte es `fetch` pelado, no axios.
+// Transport resilience — the same contract as the web renderers (libs/mateu:
+// requestPolicy + retryPolicy + connectivity + pendingActions), rewritten for THIS core,
+// which shares nothing with them: here the transport is bare `fetch`, not axios.
 //
-// Las diferencias que obliga fetch, y que son la razón de que esto no sea un copy-paste:
-//   - fetch NO tiene timeout. Sin AbortController una petición puede quedarse colgada para
-//     siempre; el usuario ve la pantalla congelada sin error ni fin.
-//   - fetch NO rechaza ante un 4xx/5xx: resuelve con `res.ok === false`. El estado hay que
-//     leerlo y adjuntarlo al error a mano, o abajo no hay forma de distinguir un 500 de un
-//     cable desenchufado.
-//   - un fallo de red es un `TypeError` genérico ("Failed to fetch"), y un abort es un
-//     `DOMException` con `name === 'AbortError'`. Ninguno trae código propio.
+// The differences fetch forces, and which are the reason this is not a copy-paste:
+//   - fetch has NO timeout. Without an AbortController a request can hang
+//     forever; the user sees the screen frozen with no error and no end.
+//   - fetch does NOT reject on a 4xx/5xx: it resolves with `res.ok === false`. The status has to be
+//     read and attached to the error by hand, or further down there is no way to tell a 500 from an
+//     unplugged cable.
+//   - a network failure is a generic `TypeError` ("Failed to fetch"), and an abort is a
+//     `DOMException` with `name === 'AbortError'`. Neither carries its own code.
 //
-// Todo lo de aquí es puro salvo `fetchWithPolicy`, para que test.mjs lo pueda ejercitar en
-// Node sin navegador ni backend.
+// Everything here is pure except `fetchWithPolicy`, so that test.mjs can exercise it in
+// Node with no browser and no backend.
 
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
 import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials } from './hostHeaders.mjs'
 
-// ── clasificación ────────────────────────────────────────────────────────────────────────
+// ── classification ────────────────────────────────────────────────────────────────────────
 
-/** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
+/** Default ceiling of a request, in ms. Overridden by `@Action(timeoutMillis = …)`. */
 export const DEFAULT_TIMEOUT_MS = 60000
 
-// los textos, en el idioma de la interfaz (i18n.mjs)
+// the texts, in the interface's language (i18n.mjs)
 const MESSAGES = {
   offline: () => chromeText('errOffline'),
   timeout: () => chromeText('errTimeout'),
   server: (s) => (s ? chromeText('errServerStatus', { status: s }) : chromeText('errServer')),
   unauthorized: () => chromeText('errUnauthorized'),
-  // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
-  // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
-  // no arregla nada.
+  // A 403 is NOT the session: the server knows who you are and says no to THIS (an action the
+  // view does not declare, a missing role). Saying "sign in again" sent the user to a login that
+  // fixes nothing.
   forbidden: () => chromeText('errForbidden'),
   notFound: () => chromeText('errNotFound'),
   client: (s) => (s ? chromeText('errClientStatus', { status: s }) : chromeText('errClient')),
@@ -39,14 +39,14 @@ const MESSAGES = {
   unknown: () => chromeText('errUnknown'),
 }
 
-/** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */
+/** Kinds worth retrying: either it did not arrive, or the server had a bad moment. */
 const RETRYABLE = new Set(['offline', 'timeout', 'server'])
 
 /**
- * Traduce un fallo de transporte a `{ kind, message, retryable, status }`.
+ * Translates a transport failure into `{ kind, message, retryable, status }`.
  *
- * `online` se inyecta para poder testearlo y porque el llamante tiene una señal mejor que
- * `navigator.onLine` (que miente en portales cautivos).
+ * `online` is injected so it can be tested and because the caller has a better signal than
+ * `navigator.onLine` (which lies on captive portals).
  */
 export function classifyRequestFailure(error, options = {}) {
   const err = error || {}
@@ -64,17 +64,17 @@ export function classifyRequestFailure(error, options = {}) {
     status,
   })
 
-  // Un abort es una decisión NUESTRA (navegación, timeout propio): nunca es noticia para el
-  // usuario… salvo cuando lo disparó el timeout, que sí lo es. Los distingue la marca.
+  // An abort is OUR decision (navigation, our own timeout): never news for the
+  // user… except when the timeout fired it, which is. The marker tells them apart.
   if (name === 'AbortError' || err.code === 'ERR_CANCELED') {
     return failure(err.__mateuTimedOut ? 'timeout' : 'cancelled')
   }
   if (err.__mateuTimedOut || /timeout/i.test(message)) return failure('timeout')
 
   if (status == null) {
-    // Sin respuesta: o sabemos que no hay red, o la petición murió antes de llegar.
+    // No response: either we know there is no network, or the request died before arriving.
     if (!online) return failure('offline')
-    // fetch resuelve un fallo de red como un TypeError sin más señas.
+    // fetch resolves a network failure as a TypeError with no further details.
     if (name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(message)) {
       return failure('offline')
     }
@@ -89,39 +89,39 @@ export function classifyRequestFailure(error, options = {}) {
   return failure('unknown')
 }
 
-// ── política de reintento ────────────────────────────────────────────────────────────────
+// ── retry policy ────────────────────────────────────────────────────────────────
 
-/** Ids de acción del framework que sólo LEEN. '' es la carga de ruta. */
+/** Framework action ids that only READ. '' is the route load. */
 const ALWAYS_SAFE = new Set(['', '__load__', 'search', '_globalsearch', '_notifications-list'])
 const SAFE_PREFIXES = ['_appcontext-search-', 'search-']
 
 /**
- * Si repetir `actionId` no puede aplicar el mismo cambio dos veces.
+ * Whether repeating `actionId` cannot apply the same change twice.
  *
- * Por defecto NO: cuando una petición expira no sabemos si el servidor la procesó, así que
- * repetir un `create` arriesga un duplicado silencioso. `declared` es el opt-in del wire
- * (`@Action(idempotent = true)`), que nunca saca a una lectura conocida de la lista.
+ * By default NO: when a request times out we do not know whether the server processed it, so
+ * repeating a `create` risks a silent duplicate. `declared` is the wire's opt-in
+ * (`@Action(idempotent = true)`), which never takes a known read off the list.
  */
 export function isIdempotentAction(actionId, declared) {
   if (declared === true) return true
-  // Un id AUSENTE es trabajo desconocido; uno VACÍO es la carga de ruta. No son lo mismo.
+  // An ABSENT id is unknown work; an EMPTY one is the route load. They are not the same.
   if (actionId === undefined || actionId === null) return false
   if (ALWAYS_SAFE.has(actionId)) return true
   return SAFE_PREFIXES.some((p) => actionId.startsWith(p))
 }
 
-/** Intentos ADEMÁS del primero. */
+/** Attempts IN ADDITION to the first. */
 export const MAX_RETRIES = 2
 
-/** Espera antes del reintento `attempt` (1-based): exponencial con ±25% de jitter. */
+/** Wait before retry `attempt` (1-based): exponential with ±25% jitter. */
 export function retryDelayMs(attempt, random = Math.random) {
   const base = 300 * Math.pow(3, Math.max(0, attempt - 1))
   return Math.round(base * (0.75 + random() * 0.5))
 }
 
 /**
- * La decisión. `offline` queda deliberadamente fuera: reenviar a los 300 ms con la red caída
- * sólo quema el presupuesto de intentos — de la reconexión se encarga `connectivity`.
+ * The decision. `offline` is deliberately left out: resending after 300 ms with the network down
+ * only burns the attempt budget — reconnection is `connectivity`'s job.
  */
 export function shouldRetry(failure, attempt, options = {}) {
   if (!options.idempotent) return false
@@ -133,11 +133,11 @@ export function shouldRetry(failure, attempt, options = {}) {
 // ── conectividad ─────────────────────────────────────────────────────────────────────────
 
 /**
- * Una respuesta honesta a "¿llegamos?".
+ * An honest answer to "do we get through?".
  *
- * `navigator.onLine` informa del enlace, no del camino: dice true en un portal cautivo y con
- * una VPN que perdió la ruta. Sirve como negativo duro; el positivo lo da nuestro propio
- * tráfico volviendo.
+ * `navigator.onLine` reports the link, not the path: it says true on a captive portal and with
+ * a VPN that lost its route. It serves as a hard negative; the positive comes from our own
+ * traffic coming back.
  */
 export const connectivity = {
   _linkUp: true,
@@ -152,7 +152,7 @@ export const connectivity = {
       ? navigator.onLine : true
     window.addEventListener('online', () => {
       this._linkUp = true
-      this._reachable = undefined   // el enlace vuelve, el camino está por demostrar
+      this._reachable = undefined   // the link is back, the path remains to be proven
       this._emit()
     })
     window.addEventListener('offline', () => { this._linkUp = false; this._emit() })
@@ -188,9 +188,9 @@ export const connectivity = {
   },
 }
 
-// ── guard de doble envío ─────────────────────────────────────────────────────────────────
+// ── double-submit guard ─────────────────────────────────────────────────────────────────
 
-/** Válvula de seguridad: pasado este tiempo una entrada se da por muerta y se libera. */
+/** Safety valve: after this time an entry is considered dead and released. */
 const STALE_MS = 120000
 
 export const pendingActions = {
@@ -198,7 +198,7 @@ export const pendingActions = {
 
   key(componentId, actionId) { return `${componentId || '_'}::${actionId}` },
 
-  /** Reclama el hueco. false = ya hay una idéntica en vuelo y ésta es un duplicado. */
+  /** Claims the slot. false = an identical one is already in flight and this is a duplicate. */
   begin(key, now = Date.now()) {
     const startedAt = this._started.get(key)
     if (startedAt !== undefined && now - startedAt < STALE_MS) return false
@@ -216,17 +216,17 @@ export const pendingActions = {
   reset() { this._started.clear() },
 }
 
-// ── ganchos de ciclo de vida ─────────────────────────────────────────────────────────────
+// ── lifecycle hooks ─────────────────────────────────────────────────────────────
 
 /**
- * Cómo la app (VB) se entera de que hay trabajo en vuelo, sin que el core sepa nada de VB.
- * `onStart` recibe {actionId}; `onSettle` recibe {actionId, failure} (failure null si fue bien).
+ * How the app (VB) learns there is work in flight, without the core knowing anything about VB.
+ * `onStart` receives {actionId}; `onSettle` receives {actionId, failure} (failure null if it went well).
  */
 /**
- * Peticiones que un componente hace PARA SÍ y que ya enseñan su propia carga: nunca encienden la
- * barra de ocupado de la página (la misma regla que el renderer web, localRequests.ts).
- * `search-<campo>`: la búsqueda de opciones de un lookup (y la vacía que llena un select);
- * `code-<campo>`: el rótulo de un código tecleado; `__restfetch__`: un @RestOptions por el servidor.
+ * Requests a component makes FOR ITSELF and that already show their own loading: they never turn on the
+ * page's busy bar (the same rule as the web renderer, localRequests.ts).
+ * `search-<field>`: a lookup's options search (and the empty one that fills a select);
+ * `code-<field>`: the label of a typed code; `__restfetch__`: a @RestOptions through the server.
  */
 export function isLocalRequest(actionId) {
   return !!actionId && (actionId.indexOf('search-') === 0 || actionId.indexOf('code-') === 0 || actionId === '__restfetch__')
@@ -242,31 +242,31 @@ export function setTransportHooks(hooks) {
 const notify = (which, payload) => {
   const fn = transportHooks[which]
   if (!fn) return
-  try { fn(payload) } catch (e) { /* la UI no puede tumbar el transporte */ }
+  try { fn(payload) } catch (e) { /* the UI cannot bring the transport down */ }
 }
 
-// ── la pantalla en curso ─────────────────────────────────────────────────────────────────
+// ── the current screen ─────────────────────────────────────────────────────────────────
 
 /**
- * Qué pantalla hay: un contador que la navegación sube al empezar a cargar otra (beginView). Una
- * petición de la pantalla (callMateu la estampa sola; no las de fondo: widgets de cabecera, menús
- * remotos, el chat) recuerda la pantalla para la que salió, y su respuesta — buena o mala — que
- * llega cuando ya hay otra muere en silencio: no se pinta, no pone banda de error ni pide
- * reautenticar; sólo libera el ocupado (onSettle sin fallo). Es la misma regla que el renderer web
- * (staleViewGuard.ts): una petición que salió con la pantalla A y vuelve con la B no es de nadie.
+ * Which screen is showing: a counter navigation bumps when it starts loading another (beginView). A
+ * request of the screen (callMateu stamps it on its own; not the background ones: header widgets, remote
+ * menus, the chat) remembers the screen it went out for, and its response — good or bad — that
+ * arrives when another one is showing dies silently: it is not painted, it raises no error band and does not ask to
+ * reauthenticate; it only releases the busy state (onSettle without failure). It is the same rule as the web renderer
+ * (staleViewGuard.ts): a request that went out with screen A and comes back with B belongs to nobody.
  */
 export const viewGuard = { generation: 0 }
 
-/** Empieza otra pantalla: lo que siga en vuelo de la anterior ya no se aplicará. */
+/** Another screen starts: whatever of the previous one is still in flight will no longer be applied. */
 export function beginView() { return ++viewGuard.generation }
 
-/** La pantalla en curso (para estampar una petición al salir). */
+/** The current screen (to stamp a request on its way out). */
 export function currentView() { return viewGuard.generation }
 
-/** ¿Ya no está en pantalla la vista para la que salió una petición? (undefined: no atada a ninguna) */
+/** Is the view a request went out for no longer on screen? (undefined: not tied to any) */
 export function isViewStale(view) { return view != null && view !== viewGuard.generation }
 
-/** El rechazo de una respuesta que llegó para una pantalla que ya no está. */
+/** The rejection of a response that arrived for a screen that is gone. */
 export function staleResponseError(actionId) {
   const error = new Error(`respuesta a '${actionId || ''}' para una pantalla que ya no está`)
   error.stale = true
@@ -277,11 +277,11 @@ export function staleResponseError(actionId) {
 
 export function isStaleResponse(error) { return !!(error && error.stale === true) }
 
-// ── fetch con política ───────────────────────────────────────────────────────────────────
+// ── fetch with policy ───────────────────────────────────────────────────────────────────
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
-/** La cabecera traceparent de una petición, si la llevaba. */
+/** A request's traceparent header, if it carried one. */
 function traceparentOf(init) {
   const h = init && init.headers
   if (!h) return undefined
@@ -290,12 +290,12 @@ function traceparentOf(init) {
 }
 
 /**
- * Un envío: aplica el timeout (fetch no trae ninguno) y convierte un 4xx/5xx en un error que
- * LLEVA el status, porque fetch resuelve esos como éxito y abajo no habría forma de saberlo.
+ * One send: applies the timeout (fetch has none) and turns a 4xx/5xx into an error that
+ * CARRIES the status, because fetch resolves those as success and further down there would be no way to know.
  */
 async function sendOnce(url, init, timeoutMillis) {
-  // Negativo = SIN ceiling, para un stream que dura lo que dure (LongTask). Distinto de 0 /
-  // ausente, que significa "usa el de por defecto".
+  // Negative = NO ceiling, for a stream that lasts as long as it lasts (LongTask). Different from 0 /
+  // absent, which means "use the default one".
   const noCeiling = timeoutMillis != null && timeoutMillis < 0
   const ms = timeoutMillis && timeoutMillis > 0 ? timeoutMillis : DEFAULT_TIMEOUT_MS
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
@@ -314,8 +314,8 @@ async function sendOnce(url, init, timeoutMillis) {
     }
     return res
   } catch (e) {
-    // Un abort disparado por NUESTRO timeout debe leerse como timeout, no como cancelación:
-    // el usuario sí tiene que enterarse.
+    // An abort fired by OUR timeout must read as a timeout, not as a cancellation:
+    // the user does need to find out.
     if (timedOut && e) e.__mateuTimedOut = true
     throw e
   } finally {
@@ -324,23 +324,23 @@ async function sendOnce(url, init, timeoutMillis) {
 }
 
 /**
- * La cabecera con el token, si el bootstrap dejó uno.
+ * The header with the token, if the bootstrap left one.
  *
- * La página de bootstrap autentica contra Keycloak y guarda el token en
- * `localStorage.__mateu_auth_token`, refrescándolo al caducar. Hasta que esto existió, NADA lo
- * leía: el bridge hacía cada llamada sin cabecera, el gateway respondía 401 y el clasificador de
- * abajo lo traducía a "Tu sesión ya no es válida" — un mensaje cierto sobre el 401 y engañoso
- * sobre la causa, porque la sesión estaba perfectamente viva y la petición sencillamente no la
- * presentaba. La consola cargaba, se quedaba sin un solo menú, y el panel de chat tampoco
- * respondía.
+ * The bootstrap page authenticates against Keycloak and stores the token in
+ * `localStorage.__mateu_auth_token`, refreshing it when it expires. Until this existed, NOTHING
+ * read it: the bridge made every call without the header, the gateway answered 401 and the classifier
+ * below translated it into "Tu sesión ya no es válida" — a message true about the 401 and misleading
+ * about the cause, because the session was perfectly alive and the request simply did not
+ * present it. The console loaded, was left without a single menu, and the chat panel did not
+ * answer either.
  *
- * Va aquí y no en los tres sitios que construyen cabeceras en transport.mjs, por lo mismo que en
- * el otro renderer es un interceptor de axios y no un parámetro de cada llamada: un punto único
- * que un cuarto sitio no puede olvidar.
+ * It goes here and not in the three places that build headers in transport.mjs, for the same reason that in
+ * the other renderer it is an axios interceptor and not a parameter of each call: a single point
+ * that a fourth place cannot forget.
  *
- * `localStorage` no existe en Node, donde corre test.mjs, así que se consulta con guarda; y un
- * `Authorization` que el llamante ya haya puesto manda sobre este, que es lo que permite probar
- * el camino sin tocar el almacenamiento.
+ * `localStorage` does not exist in Node, where test.mjs runs, so it is read behind a guard; and an
+ * `Authorization` the caller has already set wins over this one, which is what allows testing
+ * the path without touching storage.
  */
 function authHeaders(init) {
   const already = init && init.headers &&
@@ -350,21 +350,21 @@ function authHeaders(init) {
   return token ? { Authorization: 'Bearer ' + token } : null
 }
 
-/** El token que dejó el bootstrap, o null (sin localStorage, bloqueado o vacío). */
+/** The token the bootstrap left, or null (no localStorage, blocked or empty). */
 function storedToken() {
   try {
     return typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
   } catch (e) {
-    // Un navegador con el almacenamiento bloqueado. Sin token se sigue: el backend dirá que no,
-    // que es mejor que no llamar.
+    // A browser with storage blocked. Without a token it carries on: the backend will say no,
+    // which is better than not calling.
     return null
   }
 }
 
 /**
- * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
- * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
- * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+ * The header with the token for a call that does NOT go through fetchWithPolicy: the agent's chat
+ * stream (SSE, its own fetch that reads the body in chunks). Without it the agent answers
+ * 401 and the panel shows "Servidor respondió 401". {} if there is no token.
  */
 export function authHeadersOf() {
   // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
@@ -372,24 +372,24 @@ export function authHeadersOf() {
   return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
 }
 
-/** El refresco en marcha, si lo hay: los 401 que llegan mientras tanto esperan a éste. */
+/** The refresh in progress, if any: 401s arriving meanwhile wait for this one. */
 let reauthInFlight = null
 
 /**
- * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
- * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
- * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
- * de Keycloak y llama a retry, o manda al login si la sesión ya no existe. Resuelve true si hay
- * que reenviar la petición; false si nadie lo reclamó o la página desistió.
+ * Asks the page to reauthenticate after a 401, with the same contract as the Vaadin renderer
+ * (sessionGuard.ts): the cancelable 'mateu-session-expired' event on document, with
+ * {retry, giveUp} in the detail. Mateu's bootstrap handles it — it forces the Keycloak token
+ * refresh and calls retry, or sends to the login if the session no longer exists. Resolves true if
+ * the request must be resent; false if nobody claimed it or the page gave up.
  *
- * UN refresco para todos: la pestaña vuelve del fondo con el token caducado y el badge del inbox,
- * la sincronización del banner y la acción del usuario vuelven 401 a la vez. Cada una lanzando su
- * evento eran N refrescos forzados en paralelo (y N keycloak.login() si fallaba); ahora los 401
- * que llegan mientras hay uno en marcha esperan a ése y comparten su respuesta.
+ * ONE refresh for all: the tab comes back from the background with the token expired and the inbox badge,
+ * the banner sync and the user's action come back 401 at the same time. Each one firing its
+ * event meant N forced refreshes in parallel (and N keycloak.login() if it failed); now the 401s
+ * arriving while one is in progress wait for that one and share its answer.
  *
- * `sentToken` (opcional): el token con el que salió la petición rechazada. Si el que hay ahora es
- * otro, el refresco ya ocurrió mientras la petición volaba — el del visibilitychange, típicamente
- * — y basta con reenviar: forzar otro sería tirar uno recién emitido.
+ * `sentToken` (optional): the token the rejected request went out with. If the current one is
+ * different, the refresh already happened while the request was in flight — the visibilitychange one, typically
+ * — and resending is enough: forcing another would throw away a freshly issued one.
  */
 export function askForReauthentication(sentToken) {
   if (sentToken !== undefined) {
@@ -422,21 +422,21 @@ function raiseSessionExpired() {
 }
 
 /**
- * El punto único por el que pasa TODO el tráfico de este renderer.
+ * The single point ALL of this renderer's traffic goes through.
  *
- * Y por eso es donde se adjunta el token: es el cliente de Mateu de este renderer, igual que
- * AxiosMateuApiClient lo es del otro.
+ * And that is why it is where the token is attached: it is this renderer's Mateu client, just as
+ * AxiosMateuApiClient is the other's.
  *
- * Reenvía mientras el fallo sea transitorio Y la acción sea segura de repetir; cada intento
- * resuelto enseña al rastreador de conectividad si el backend responde — una respuesta
- * demuestra el camino mejor que cualquier bandera del navegador. Los N intentos son UN solo
- * resultado de cara a la UI: un estado de carga, un mensaje.
+ * It resends while the failure is transient AND the action is safe to repeat; each resolved
+ * attempt tells the connectivity tracker whether the backend answers — a response
+ * proves the path better than any browser flag. The N attempts are ONE single
+ * outcome as far as the UI is concerned: one loading state, one message.
  */
 export async function fetchWithPolicy(url, init, options = {}) {
-  // El token se lee en CADA envío, no una vez: tras un 401 el bootstrap deja uno nuevo en
-  // localStorage y el reintento tiene que llevar ese, no el caducado.
-  // El token con el que salió el ÚLTIMO envío (undefined si no llevaba el nuestro): ante un 401
-  // dice si el refresco ya llegó mientras la petición volaba.
+  // The token is read on EVERY send, not once: after a 401 the bootstrap leaves a new one in
+  // localStorage and the retry has to carry that one, not the expired one.
+  // The token the LAST send went out with (undefined if it did not carry ours): on a 401
+  // it tells whether the refresh already arrived while the request was in flight.
   let sentToken
   const withAuth = async () => {
     // embedded mode: the HOST app's identity (hostHeaders.mjs) — asked on every send, so a retry
@@ -454,20 +454,20 @@ export async function fetchWithPolicy(url, init, options = {}) {
   }
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
-  // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
-  // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario.
-  // Tampoco la de un componente que ya enseña su propia carga (isLocalRequest): el combo que busca
-  // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
+  // `quiet`: a BACKGROUND request (the refresh of a header widget every few seconds) does not
+  // notify the hooks — the busy bar and the error band are about what the user does.
+  // Neither does one from a component that already shows its own loading (isLocalRequest): the combo searching
+  // its options spins its own indicator, and the bar on top meant two waits for one keystroke
   const quiet = options.quiet || isLocalRequest(actionId)
   const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
-  // `isolated`: lo que pase con esta petición no dice nada de la conexión — el menú de un pod
-  // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
+  // `isolated`: whatever happens to this request says nothing about the connection — a federated
+  // pod's menu, often from another origin: a pod that is down is ITS section unavailable, not "offline"
   const isolated = !!options.isolated
   notifyUnlessQuiet('onStart', { actionId })
-  // `view`: la pantalla para la que sale (currentView); su respuesta muere si ya hay otra
+  // `view`: the screen it goes out for (currentView); its response dies if another one is showing
   const view = options.view
   const dropStale = () => {
-    // el ocupado se apaga (lo encendió esta petición), sin fallo que enseñar
+    // the busy state goes off (this request turned it on), with no failure to show
     notifyUnlessQuiet('onSettle', { actionId, failure: null })
     if (typeof console !== 'undefined' && console.debug) {
       console.debug('mateu: respuesta descartada — su pantalla ya no está', actionId, url)
@@ -485,12 +485,12 @@ export async function fetchWithPolicy(url, init, options = {}) {
       return res
     } catch (error) {
       if (isStaleResponse(error)) throw error
-      // su pantalla ya no está: ni reautenticar, ni reintentar, ni banda
+      // its screen is gone: no reauthenticating, no retrying, no band
       if (isViewStale(view)) dropStale()
-      // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
-      // reautentique y se reenvía UNA vez: el servidor rechazó la petición sin ejecutarla, así
-      // que repetirla es seguro también para una escritura. Sin nadie que reautentique, o si el
-      // reintento vuelve a dar 401, falla como siempre.
+      // A 401 is, almost always, the token expired between two refreshes. The page is asked to
+      // reauthenticate and it is resent ONCE: the server rejected the request without executing it, so
+      // repeating it is safe for a write too. With nobody to reauthenticate, or if the
+      // retry gets 401 again, it fails as always.
       if (error && error.status === 401 && !reauthenticated) {
         reauthenticated = true
         if (await askForReauthentication(sentToken)) continue
@@ -499,12 +499,12 @@ export async function fetchWithPolicy(url, init, options = {}) {
       if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
       attempt++
       if (!shouldRetry(failure, attempt, { idempotent })) {
-        // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
-        // fetch", y decide si ofrecer reintentar.
+        // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
+        // fetch", and decides whether to offer a retry.
         error.failure = failure
         notifyUnlessQuiet('onSettle', { actionId, failure })
-        // al log del servidor (clientLog.mjs): lo que el usuario vio y lo que hubo debajo. Un
-        // 'cancelled' no se informa, y la llamada al propio endpoint no pasa por aquí.
+        // to the server log (clientLog.mjs): what the user saw and what was underneath. A
+        // 'cancelled' is not reported, and the call to the endpoint itself does not go through here.
         clientErrors.report({
           kind: failure.kind,
           message: failure.message,

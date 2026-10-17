@@ -1,8 +1,8 @@
-/* Selección de filas del listing (Listing.rowsSelectionEnabled): guarda lo marcado como CLAVES,
- * no como filas — las filas se resuelven contra las actuales al lanzar la acción, así un
- * refresco del listado no deja mandar filas que ya no están. Un "seleccionar todo" se guarda
- * como tal (todas menos las desmarcadas). No navega ni pide nada: la selección solo viaja con
- * la siguiente acción del host (crud_selected_items, ver runMateuAction). */
+/* Listing row selection (Listing.rowsSelectionEnabled): stores what is checked as KEYS,
+ * not as rows — the rows are resolved against the current ones when the action is launched, so a
+ * listing refresh cannot send rows that are no longer there. A "select all" is stored
+ * as such (all but the unchecked ones). It neither navigates nor requests anything: the selection only travels with
+ * the host's next action (crud_selected_items, see runMateuAction). */
 
 define([
   'vb/action/actionChain',
@@ -18,7 +18,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  selectedChanged de oj-table ({detail: {value: {row: KeySet}}})
+     * @param {Object} params.event  oj-table's selectedChanged ({detail: {value: {row: KeySet}}})
      */
     async run(context, { event }) {
       const { $application } = context;

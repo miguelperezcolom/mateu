@@ -1,7 +1,7 @@
-/* Clic en una card del TaskQueue: despacha la acción de la cola (metadata.actionId,
- * p.ej. openGuest) con parameters._item = id del item — el MISMO contrato que el
- * renderer web compartido (mateu-task-queue.ts). El server responde el re-render del
- * host con la card marcada selected y el detalle en el panel derecho. */
+/* Click on a TaskQueue card: dispatches the queue's action (metadata.actionId,
+ * e.g. openGuest) with parameters._item = the item's id — the SAME contract as the
+ * shared web renderer (mateu-task-queue.ts). The server answers with the host re-render
+ * with the card marked selected and the detail in the right panel. */
 
 define([
   'vb/action/actionChain',
@@ -17,14 +17,14 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.itemId  id del item de la cola ($current de la card)
+     * @param {string} params.itemId  id of the queue item (the card's $current)
      */
     async run(context, { itemId }) {
       const { $application } = context;
 
-      // el botón de la OPCIÓN DE LÍNEA vive dentro de la card: su clic también dispara el
-      // ojAction de la oj-action-card — si acaba de correr una acción de línea, este clic
-      // de card es su eco y se ignora
+      // the ROW OPTION button lives inside the card: its click also fires the
+      // oj-action-card's ojAction — if a row action has just run, this card
+      // click is its echo and is ignored
       if (window.__mateuQueueRowActionAt && Date.now() - window.__mateuQueueRowActionAt < 800) {
         return;
       }

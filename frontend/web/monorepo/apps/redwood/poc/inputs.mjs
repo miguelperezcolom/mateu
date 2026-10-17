@@ -1,17 +1,17 @@
 import { chromeText, chromeLanguage } from './i18n.mjs'
-// Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
-// trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
-// File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
-// contrato que el renderer web). Así que un elemento PROPIO y mínimo, `<mateu-capture-field>`:
-// los botones son oj-button de verdad, el lienzo/vídeo/imagen van con los tokens de Redwood, y el
-// valor sale como `valueChanged` con { value, updatedFrom: 'internal' } — la forma del evento de
-// un componente JET, así que las chains de cambio de campo (hostInputChanged, mateuFieldEdited…)
-// lo tratan como uno más.
+// CAPTURE fields of a form (file, image, signature, camera) for which JET/Redwood has no
+// component: there is no signature pad or camera in oj-*/oj-sp-*, and oj-file-picker only delivers
+// File (Mateu's value is a data URI that travels in the state, with no upload endpoint — the same
+// contract as the web renderer). So an OWN, minimal element, `<mateu-capture-field>`:
+// the buttons are real oj-buttons, the canvas/video/image use Redwood's tokens, and the
+// value comes out as `valueChanged` with { value, updatedFrom: 'internal' } — the shape of a JET
+// component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
+// treat it as one more.
 //
 //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
 //
-// Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
-// se define una vez por documento (defineCaptureField).
+// The pure part (how a file is read, what text it shows) is exported and tested in Node; the DOM part
+// is defined once per document (defineCaptureField).
 
 /** Only what an <img> may load: a data:image URI (what capture fields store), http(s) or a relative
  *  path. Anything else (javascript:, other data: types…) shows nothing. */
@@ -25,19 +25,19 @@ export function safeImageSrc(value) {
 
 const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
-/** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
+/** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
 export function captureTexts(lang) {
   const l = chromeLanguage(lang)
   return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
 }
 
-/** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
+/** Is the value an image that can be shown? (image data URI or ordinary URL) */
 export function isImageValue(value) {
   const v = String(value || '')
   return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
 }
 
-/** Un nombre legible para un data URI de fichero (no lo lleva: se enseña el tipo y el tamaño). */
+/** A readable name for a file data URI (it does not carry one: the type and size are shown). */
 export function describeFileValue(value) {
   const v = String(value || '')
   const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
@@ -47,7 +47,7 @@ export function describeFileValue(value) {
   return (m[1] || 'file') + ' · ' + kb
 }
 
-/** Define `<mateu-capture-field>` en `win` (una vez). */
+/** Defines `<mateu-capture-field>` in `win` (once). */
 export function defineCaptureField(win = typeof window !== 'undefined' ? window : null) {
   if (!win || !win.customElements || win.customElements.get('mateu-capture-field')) return
   const doc = win.document
@@ -56,8 +56,8 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
 
   const button = (label, chroming, onAction) => {
     const b = doc.createElement('oj-button')
-    // un componente JET creado fuera de Knockout espera un «binding provider» que nunca llega y
-    // se queda oculto (visibility:hidden hasta oj-complete): `none` le dice que no lo hay
+    // a JET component created outside Knockout waits for a «binding provider» that never arrives and
+    // stays hidden (visibility:hidden until oj-complete): `none` tells it there is none
     b.setAttribute('data-oj-binding-provider', 'none')
     b.setAttribute('chroming', chroming || 'outlined')
     b.className = 'oj-button-sm oj-sm-margin-2x-end'

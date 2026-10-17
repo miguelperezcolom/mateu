@@ -1,27 +1,27 @@
 import { takeUndoToasts, showUndoToasts } from './notify.mjs'
 import { announce } from './a11y.mjs'
 import { updateHeaderValue } from './appExtras.mjs'
-// Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
-// otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
-// el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
-// llama a applyDomEffects(reg.effects) justo después: es el ÚNICO sitio donde estos efectos
-// tocan el documento.
+// DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
+// another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
+// a folio's PDF reached the browser and got lost. Each chain that reduces an increment
+// calls applyDomEffects(reg.effects) right after: it is the ONLY place where these effects
+// touch the document.
 //
-// `env` (window por defecto) se inyecta para poder probarlo en Node sin DOM.
+// `env` (window by default) is injected so it can be tested in Node without a DOM.
 
-// Documentos (Document en el servidor): el DownloadFile trae los bytes inline (base64Content) o
-// una URL de un solo uso bajo el baseUrl de la UI (`url`, documentos grandes o perezosos);
-// `disposition` inline = mostrarlo en una pestaña nueva, attachment = descargarlo; `print` = abrir
-// el diálogo de impresión (iframe oculto, sin popup). Una pestaña que el bloqueador de popups
-// rechaza se convierte en descarga: el documento nunca se pierde.
+// Documents (Document on the server): the DownloadFile carries the bytes inline (base64Content) or
+// a single-use URL under the UI's baseUrl (`url`, large or lazy documents);
+// `disposition` inline = show it in a new tab, attachment = download it; `print` = open
+// the print dialog (hidden iframe, no popup). A tab the popup blocker
+// rejects turns into a download: the document is never lost.
 
-// el origen del API: en vb-serve la app vive en :9006 y el backend en :9005, así que una ruta
-// "/mateu/v3/documents/…" se resuelve contra el baseUrl con el que se habló, no contra la página
+// the API origin: in vb-serve the app lives on :9006 and the backend on :9005, so a route
+// "/mateu/v3/documents/…" is resolved against the baseUrl that was talked to, not against the page
 let documentBase = ''
-/** transport.callMateu la llama con el base de cada request. */
+/** transport.callMateu calls it with the base of each request. */
 export function noteDocumentBase(base) { if (typeof base === 'string') documentBase = base }
 
-/** La URL que seguimos: rutas del mismo sitio y http(s); nada más (un `javascript:` se rechaza). */
+/** The URL we follow: same-site routes and http(s); nothing else (a `javascript:` is rejected). */
 export function documentUrlOf(url, base = documentBase) {
   if (!url || typeof url !== 'string') return null
   if (/^https?:\/\//i.test(url)) return url
@@ -32,7 +32,7 @@ export function documentUrlOf(url, base = documentBase) {
   return url
 }
 
-/** DownloadFile del wire → { filename, mimeType, base64Content, url, inline, print } o null. */
+/** Wire DownloadFile → { filename, mimeType, base64Content, url, inline, print } or null. */
 export function fileDownloadOf(data) {
   if (!data || typeof data !== 'object') return null
   const url = data.base64Content ? null : documentUrlOf(data.url)
@@ -84,9 +84,9 @@ function printInFrame(href, env, onFail) {
   env.document.body.appendChild(frame)
 }
 
-/** Aplica un DownloadFile: lo descarga, lo abre en otra pestaña o lo imprime. El object URL se
- *  libera DESPUÉS (revocarlo en el mismo tick cancela la descarga en Firefox; una pestaña o un
- *  iframe aún tienen que cargarlo). Devuelve 'downloaded' | 'opened' | 'printing' | false. */
+/** Applies a DownloadFile: downloads it, opens it in another tab or prints it. The object URL is
+ *  released AFTERWARDS (revoking it in the same tick cancels the download in Firefox; a tab or an
+ *  iframe still have to load it). Returns 'downloaded' | 'opened' | 'printing' | false. */
 export function triggerDownload(data, env = globalThis) {
   const file = fileDownloadOf(data)
   if (!file || !env.document) return false
@@ -98,8 +98,8 @@ export function triggerDownload(data, env = globalThis) {
   }
   const release = (ms) => { if (objectUrl) env.setTimeout(() => env.URL.revokeObjectURL(href), ms) }
   if (file.print) {
-    // una URL del servidor es de un solo uso y el iframe ya la gastó: sólo un object URL se
-    // puede volver a enseñar en una pestaña
+    // a server URL is single-use and the iframe already spent it: only an object URL can
+    // be shown again in a tab
     printInFrame(href, env, () => { if (objectUrl && env.open) env.open(href, '_blank') })
     release(OBJECT_URL_TTL_MS)
     return 'printing'
@@ -107,7 +107,7 @@ export function triggerDownload(data, env = globalThis) {
   if (file.inline && env.open) {
     const tab = env.open(href, '_blank')
     if (tab) {
-      try { tab.opener = null } catch { /* otra procedencia */ }
+      try { tab.opener = null } catch { /* another origin */ }
       release(OBJECT_URL_TTL_MS)
       return 'opened'
     }
@@ -117,10 +117,10 @@ export function triggerDownload(data, env = globalThis) {
   return 'downloaded'
 }
 
-// ── imprimir la página (UICommand.print) ────────────────────────────────────────────────────────
-// La hoja de impresión deja fuera el chrome de la app (cabecera global, navegación, botones,
-// toolbars, mensajes); vale también para el Ctrl+P del navegador. Va al documento Y a cada shadow
-// root abierto: el CSS del documento no cruza una frontera de shadow DOM.
+// ── printing the page (UICommand.print) ────────────────────────────────────────────────────────
+// The print sheet leaves out the app chrome (global header, navigation, buttons,
+// toolbars, messages); it also applies to the browser's Ctrl+P. It goes to the document AND to each open shadow
+// root: the document's CSS does not cross a shadow DOM boundary.
 export const PRINT_CSS = `
 @media print {
   oj-sp-global-header, oj-navigation-list, #mateuNavList, oj-drawer-popup, oj-c-drawer-popup,
@@ -145,7 +145,7 @@ function adoptPrintSheet(root, env) {
   container.appendChild(style)
 }
 
-/** Deja la hoja de impresión en el documento y en cada shadow root abierto. */
+/** Puts the print sheet in the document and in each open shadow root. */
 export function preparePrint(doc) {
   if (!doc) return 0
   adoptPrintSheet(doc)
@@ -158,7 +158,7 @@ export function preparePrint(doc) {
   return n
 }
 
-/** UICommand.print: la página actual, sin chrome. */
+/** UICommand.print: the current page, without chrome. */
 export function printPage(env = globalThis) {
   if (!env || !env.document || typeof env.print !== 'function') return false
   preparePrint(env.document)
@@ -167,7 +167,7 @@ export function printPage(env = globalThis) {
 }
 
 let printSupport = false
-/** El Ctrl+P del navegador imprime igual que UICommand.print (sin chrome). */
+/** The browser's Ctrl+P prints the same as UICommand.print (without chrome). */
 export function installPrintSupport(win = globalThis.window) {
   if (!win || printSupport || typeof win.addEventListener !== 'function') return false
   printSupport = true
@@ -175,12 +175,12 @@ export function installPrintSupport(win = globalThis.window) {
   return true
 }
 
-// lo que la app quiere hacer con el registro recién reducido (las reglas del cliente toman de ahí
-// su contexto: reglas + estado del host)
+// what the app wants to do with the freshly reduced registry (client rules take their
+// context from there: rules + host state)
 let afterReduce = null
 export function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
 
-/** Aplica los efectos de DOM de una reducción. Devuelve cuántas descargas ha lanzado. */
+/** Applies a reduction's DOM effects. Returns how many downloads it launched. */
 export function applyDomEffects(effects, reg, env = globalThis) {
   if (reg && reg.contexts && afterReduce) afterReduce(reg)
   if (!effects) return 0
@@ -188,7 +188,7 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   for (const d of effects.downloads || (effects.download ? [effects.download] : []))
     if (triggerDownload(d, env)) n++
   if (effects.print) printPage(env)
-  // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
+  // toasts with «Undo» go out through JET's oj-message (notify.mjs), not through the normal toast
   const undo = takeUndoToasts(effects)
   if (undo.length && env && env.document) showUndoToasts(undo, env.document)
   // the Announce command: through the live regions installAnnouncer created at boot (polite, or

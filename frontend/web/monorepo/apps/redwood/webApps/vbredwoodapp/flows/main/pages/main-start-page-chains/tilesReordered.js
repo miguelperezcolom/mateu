@@ -1,6 +1,6 @@
-/* Tiles reordenados (ResponsiveGrid.reorderable): el orden ya está guardado (installTileReorder);
- * se re-proyecta el contenido del host para pintarlo — sin ida y vuelta al servidor, como plegar
- * un panel o cambiar de pestaña. */
+/* Reordered tiles (ResponsiveGrid.reorderable): the order is already saved (installTileReorder);
+ * the host content is re-projected to paint it — no round trip to the server, like folding
+ * a panel or switching tabs. */
 
 define([
   'vb/action/actionChain',

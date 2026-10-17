@@ -1,6 +1,6 @@
-/* Cierre del EDITOR DE FILA por el usuario (✕ / Esc) = Cancel: se manda `<campo>_cancel` al
- * contenedor, que cierra el detalle sin tocar la lista. Un cierre programático (la respuesta a
- * Save/Cancel ya cerró el detalle) llega con mateuRowEditorOpen ya a false y no hace nada. */
+/* Closing of the ROW EDITOR by the user (✕ / Esc) = Cancel: `<field>_cancel` is sent to the
+ * container, which closes the detail without touching the list. A programmatic close (the response to
+ * Save/Cancel already closed the detail) arrives with mateuRowEditorOpen already false and does nothing. */
 
 define([
   'vb/action/actionChain',

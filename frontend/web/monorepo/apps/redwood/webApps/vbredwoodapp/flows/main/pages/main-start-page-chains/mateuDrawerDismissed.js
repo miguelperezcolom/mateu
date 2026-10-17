@@ -1,5 +1,5 @@
-/* Cierre del drawer SIN guardar (✕/Esc/backdrop): descarta el overlay del registro por puro
- * estado — no emite ningún evento (el camino "dismissed without saving" del contrato). */
+/* Closing the drawer WITHOUT saving (✕/Esc/backdrop): discards the overlay from the registry purely by
+ * state — it emits no event (the contract's "dismissed without saving" path). */
 
 define([
   'vb/action/actionChain',

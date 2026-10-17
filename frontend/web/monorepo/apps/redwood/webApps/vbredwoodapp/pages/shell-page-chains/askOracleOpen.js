@@ -1,5 +1,5 @@
-/* Ask Oracle (FAB del shell): abre la paleta con TODOS los destinos (navegación + las
- * vistas rápidas del listado) y el foco en el buscador. */
+/* Ask Oracle (the shell's FAB): opens the palette with ALL the destinations (navigation + the
+ * listing's quick views) and the focus on the search box. */
 
 define([
   'vb/action/actionChain',
@@ -12,14 +12,14 @@ define([
 ) => {
   'use strict';
 
-  // catálogo de destinos: TODAS las pantallas del menú + las vistas rápidas del listado
-  // que se esté viendo.
+  // destination catalogue: ALL the menu's screens + the quick views of the listing
+  // being viewed.
   //
-  // El menú se recorre ENTERO, no solo el primer nivel: un grupo no es un destino (no
-  // resuelve, y pulsarlo dejaría la paleta ofreciendo un sitio al que no se puede ir), y las
-  // pantallas que cuelgan de él —incluidas las que sirve otro pod, que en una shell federada
-  // son casi todas— es justo lo que uno viene a buscar aquí. El rastro del grupo va a la
-  // derecha de la fila: dos pods pueden tener una pantalla que se llame igual.
+  // The menu is walked WHOLE, not just the first level: a group is not a destination (it does not
+  // resolve, and picking it would leave the palette offering a place you cannot go to), and the
+  // screens hanging from it —including those served by another pod, which in a federated shell
+  // are almost all of them— are exactly what one comes here to find. The group's trail goes on the
+  // right of the row: two pods may have a screen with the same name.
   const collect = (nodes, trail, items) => {
     for (const node of nodes || []) {
       const deeper = trail ? trail + ' › ' + node.label : node.label;
@@ -40,12 +40,12 @@ define([
       items.push({ label: bridge.chromeText('home'), route: home, icon: 'oj-ux-ico-home', kind: bridge.chromeText('goTo') });
     }
     collect($application.variables.mateuMenuTree, '', items);
-    // vistas rápidas: los filtros de opciones del listado ACTUAL (antes iban tres rutas del
-    // front-office escritas a mano, que en cualquier otra app son tres destinos muertos)
+    // quick views: the option filters of the CURRENT listing (there used to be three hand-written
+    // front-office routes, which in any other app are three dead destinations)
     const listing = $application.variables.mateuListing || {};
     const route = $application.variables.mateuSelectedRoute;
-    // sólo los filtros de OPCIONES dan vistas rápidas: una vista rápida es un destino con un
-    // valor puesto, y un texto libre o un rango no tienen valores que enumerar
+    // only OPTION filters give quick views: a quick view is a destination with a value
+    // set, and a free text or a range have no values to enumerate
     for (const quick of (listing.filters || [])) {
       if (!quick.isOptions && !quick.isMulti) continue;
       for (const option of (quick.options || [])) {
@@ -59,7 +59,7 @@ define([
     const reg = $application.variables.mateuRegistry;
     const shortcutRows = bridge.appShortcutRowsOf(reg && reg.shell ? reg.shell.shortcuts : [], text);
     const busca = (text || '').trim().toLowerCase();
-    // se busca también por el rastro: "workflow" encuentra sus pantallas
+    // the trail is searched too: "workflow" finds its screens
     return busca
       ? shortcutRows.concat(items.filter((item) => (item.label + ' ' + (item.trail || '')).toLowerCase().indexOf(busca) >= 0))
       : items;
@@ -71,8 +71,8 @@ define([
       const { $application, $page } = context;
       $page.variables.mateuAskResults = buildResults($application, '');
       await Actions.callComponentMethod(context, { selector: '#mateuAskOracle', method: 'open' });
-      // Ask Oracle es sólo el buscador de destinos: el chat del agente tiene su propio FAB y
-      // su drawer (toggleMateuChat)
+      // Ask Oracle is only the destination finder: the agent chat has its own FAB and
+      // its drawer (toggleMateuChat)
       setTimeout(() => {
         const input = document.querySelector('#mateuAskInput input');
         if (input) input.focus();

@@ -1,13 +1,13 @@
-/* Envío del chat de IA. Lee el valor VIVO del input del DOM (oj-input-text commitea `value` al
- * change/blur, que va por detrás de un Enter), postea al sseUrl y va pintando la respuesta del agente
- * en el último mensaje según llega (agent-delta), sustituida al final por la respuesta entera y
- * limpia. Al terminar, limpia el input y devuelve el foco.
+/* AI chat send. Reads the LIVE value of the DOM input (oj-input-text commits `value` on
+ * change/blur, which lags behind an Enter), posts to the sseUrl and paints the agent's answer
+ * in the last message as it arrives (agent-delta), replaced at the end by the whole, clean
+ * answer. When done, it clears the input and gives the focus back.
  *
- * Mientras tanto dice qué pasa en la fila de estado del panel (mateuChatStatus): lo que el agente
- * informa — «Conectando con 2 servidores MCP…», «Llamando a booking_findBookings… 3 s»,
- * «Respondiendo…» —, o, con un agente que no informa, «Pensando… N s» hasta el primer texto. Y deja
- * en mateuChatTokens el uso que manda el agente, que ya es el de toda la conversación (se sustituye,
- * no se suma). */
+ * Meanwhile it says what is going on in the panel's status row (mateuChatStatus): what the agent
+ * reports — «Conectando con 2 servidores MCP…», «Llamando a booking_findBookings… 3 s»,
+ * «Respondiendo…» —, or, with an agent that does not report, «Pensando… N s» until the first text. And
+ * it leaves in mateuChatTokens the usage the agent sends, which is already the whole conversation's
+ * (it is replaced, not added up). */
 define([
   'vb/action/actionChain',
   'vb/action/actions',
@@ -32,7 +32,7 @@ define([
       const el = inputEl();
       const text = ((el && el.value) || vars.mateuChatInput || '').trim();
       const attachments = vars.mateuChatAttachments || [];
-      // un mensaje con sólo adjuntos (sin texto) también se envía, como en el chat web
+      // a message with only attachments (no text) is sent too, as in the web chat
       if ((!text && !attachments.length) || vars.mateuChatBusy) return;
 
       if (!vars.mateuChatSessionId) {
@@ -40,12 +40,12 @@ define([
       }
       const sessionId = vars.mateuChatSessionId;
       const registry = vars.mateuRegistry || {};
-      // el menú sólo en el PRIMER mensaje de la sesión: el agente lo guarda por sesión
+      // the menu only on the session's FIRST message: the agent keeps it per session
       const sendMenu = window.__mateuChatMenuSentFor !== sessionId;
       window.__mateuChatMenuSentFor = sessionId;
-      // el turno con la forma del chat web (poc/chat.mjs chatTurnOf): texto, sesión, ruta, adjuntos,
-      // el contexto de la pantalla (url, título, appState, estado del host), la pantalla proyectada
-      // para el agente, el mcpUrl y el menú
+      // the turn in the web chat's shape (poc/chat.mjs chatTurnOf): text, session, route, attachments,
+      // the screen context (url, title, appState, host state), the screen projected
+      // for the agent, the mcpUrl and the menu
       const turn = bridge.chatTurnOf({
         message: text,
         sessionId,
@@ -54,8 +54,8 @@ define([
         appState: vars.mateuAppState || {},
         url: window.location.pathname + window.location.search + window.location.hash,
         screenTitle: document.title,
-        // currentRoute: la pantalla desde la que se pregunta — el plano de control elige el
-        // agente por ella (en /mapping, el de mapeado)
+        // currentRoute: the screen the question is asked from — the control plane picks the
+        // agent by it (on /mapping, the mapping one)
         currentRoute: vars.mateuSelectedRoute || undefined,
         mcpUrl: vars.mateuChatMcpUrl || undefined,
         menu: window.__mateuShellMenu || (registry.shell && registry.shell.menu) || [],
@@ -91,19 +91,19 @@ define([
         if (!hasText && value) { hasText = true; showStatus(); }
       };
 
-      // El agente puede emitir un evento `render-screen` con la definición (YAML) que ha autorado.
-      // Se CAPTURA durante el stream y se dispara DESPUÉS, desde el flujo principal de la chain (no
-      // desde el callback async anidado, que no propaga el evento de aplicación de forma fiable).
+      // The agent may emit a `render-screen` event with the definition (YAML) it has authored.
+      // It is CAPTURED during the stream and fired AFTERWARDS, from the chain's main flow (not
+      // from the nested async callback, which does not propagate the application event reliably).
       let renderYaml = null;
-      // Y uno `navigation-requested` ([NAVIGATE:…] del agente): la ruta a abrir, también al final.
+      // And a `navigation-requested` one (the agent's [NAVIGATE:…]): the route to open, also at the end.
       let navigateTo = null;
       let failure = null;
       try {
         accumulated = await bridge.streamChat({
           url: vars.mateuChatSseUrl,
-          // el agente actúa como quien pregunta: el token de la sesión (el stream no pasa por
-          // fetchWithPolicy, que es quien lo pone en el resto del tráfico). Una función, leída en
-          // cada envío: tras un 401 se pide reautenticar y el reenvío lleva el token nuevo
+          // the agent acts as whoever asks: the session's token (the stream does not go through
+          // fetchWithPolicy, which is what adds it to the rest of the traffic). A function, read on
+          // every send: after a 401 re-authentication is requested and the resend carries the new token
           headers: () => bridge.authHeadersOf(),
           reauthenticate: bridge.askForReauthentication,
           body: turn.body,
@@ -120,8 +120,8 @@ define([
             } else if (ev && ev.event === 'navigation-requested' && ev.detail && typeof ev.detail.route === 'string') {
               navigateTo = ev.detail.route;
             } else if (ev && ev.event) {
-              // cualquier otro evento del agente sale al documento, como en el chat web (que lo
-              // despacha burbujeando): lo oye quien lo escuche (un componente web de la página)
+              // any other agent event goes out to the document, as in the web chat (which
+              // dispatches it bubbling): whoever listens hears it (a web component of the page)
               document.dispatchEvent(new CustomEvent(ev.event, { detail: ev.detail, bubbles: true, composed: true }));
             }
           },
@@ -130,7 +130,7 @@ define([
         failure = e || new Error('Error');
       } finally {
         clearInterval(ticking);
-        // la respuesta, o por qué no la hay: vacía, corte de red o error (mismos textos que el web)
+        // the answer, or why there is none: empty, network drop or error (same texts as the web)
         setAgent(bridge.chatTurnTextOf(accumulated, failure));
         vars.mateuChatStatus = '';
         vars.mateuChatSteps = [];
@@ -139,10 +139,10 @@ define([
         focusInput();
       }
 
-      // La pantalla generada la pinta onMateuNavigate (chain de la shell que conduce el contenido):
-      // recarga la ruta actual y, con renderYaml presente, corre renderScreen con el YAML sobre el
-      // host y proyecta el resultado. Es el mismo camino que la navegación del menú, que sí funciona
-      // desde la shell (un evento de aplicación desde aquí NO alcanza los listeners del contenido).
+      // The generated screen is painted by onMateuNavigate (the shell chain that drives the content):
+      // it reloads the current route and, with renderYaml present, runs renderScreen with the YAML on the
+      // host and projects the result. It is the same path as menu navigation, which does work
+      // from the shell (an application event from here does NOT reach the content's listeners).
       if (renderYaml) {
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',

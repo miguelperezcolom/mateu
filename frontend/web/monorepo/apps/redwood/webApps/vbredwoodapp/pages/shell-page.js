@@ -1,14 +1,14 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
 define(['resources/js/mateu-bridge'], (bridge) => {
   'use strict';
 
-  /* Ctrl+Shift+M activa/desactiva el micrófono del chat (bridge.isChatMicShortcut), con el foco en
-   * cualquier sitio — el campo del mensaje incluido —: pulsa el botón del micrófono, así que hace lo
-   * mismo que el clic (chatMic) con el mismo estado e indicador. El botón solo existe con el panel
-   * abierto y donde el navegador reconoce la voz; sin él, o deshabilitado (el asistente trabaja), el
-   * atajo no hace nada. Se engancha una vez al documento, en captura: oj-input-text no deja subir
-   * todas sus teclas. */
+  /* Ctrl+Shift+M toggles the chat microphone (bridge.isChatMicShortcut), with the focus
+   * anywhere — the message field included —: it presses the microphone button, so it does the
+   * same as the click (chatMic) with the same state and indicator. The button only exists with the
+   * panel open and where the browser recognises speech; without it, or disabled (the assistant is
+   * working), the shortcut does nothing. Hooked once on the document, in capture: oj-input-text
+   * does not let all its keys bubble up. */
   const onMicShortcut = (event) => {
     if (!bridge.isChatMicShortcut(event)) return;
     const mic = document.querySelector('#mateuChatMic');
@@ -17,8 +17,8 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     const button = mic.querySelector('button') || mic;
     button.click();
   };
-  // oj-button no pasa aria-keyshortcuts a su <button>: se le pone a cada botón del micrófono que
-  // aparece (uno por estado, se reemplazan al empezar y al acabar de escuchar)
+  // oj-button does not pass aria-keyshortcuts on to its <button>: it is set on every microphone
+  // button that appears (one per state, they are replaced when listening starts and ends)
   const markMicShortcut = () => {
     const button = document.querySelector('#mateuChatMic button:not([aria-keyshortcuts])');
     if (button) button.setAttribute('aria-keyshortcuts', bridge.CHAT_MIC_ARIA_KEYSHORTCUTS);
@@ -63,14 +63,14 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     }
 
     /**
-     * La clase de una opción de primer nivel de la subcabecera (MENU_ON_TOP): marcada si su
-     * sección es la que está en pantalla (bridge.activeSectionOf). Recibe la ruta seleccionada para
-     * que el binding se reevalúe con cada navegación.
+     * The class of a top-level subheader option (MENU_ON_TOP): marked if its section is the one
+     * on screen (bridge.activeSectionOf). It receives the selected route so the binding is
+     * re-evaluated on every navigation.
      */
     /**
-     * Las opciones de la subcabecera: el primer nivel (MENU_ON_TOP) o, con HAMBURGER_SECTIONS, el
-     * segundo nivel de la sección en pantalla —la hamburguesa lleva las secciones—. Sin sección en
-     * pantalla (la home) la banda se queda vacía.
+     * The subheader options: the top level (MENU_ON_TOP) or, with HAMBURGER_SECTIONS, the second
+     * level of the section on screen —the hamburger carries the sections—. With no section on
+     * screen (the home) the band stays empty.
      */
     subheaderItemsOf(tree, selectedRoute, sectionsMode) {
       if (!sectionsMode) return tree || [];
@@ -78,7 +78,7 @@ define(['resources/js/mateu-bridge'], (bridge) => {
       return section ? (section.children || []) : [];
     }
 
-    /** El título de la subcabecera: el de la consola, o con HAMBURGER_SECTIONS el de la sección. */
+    /** The subheader title: the console's, or with HAMBURGER_SECTIONS the section's. */
     subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
       if (!sectionsMode) return title || '';
       const section = bridge.sectionOf(tree, selectedRoute);
@@ -86,11 +86,11 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     }
 
     /**
-     * La clase de la subcabecera: plegada (mateu-subheader-empty) cuando no tiene nada que enseñar
-     * —HAMBURGER_SECTIONS en la home, sin sección en pantalla—, para que no quede una franja vacía.
+     * The subheader class: collapsed (mateu-subheader-empty) when it has nothing to show
+     * —HAMBURGER_SECTIONS on the home, no section on screen—, so no empty strip is left.
      */
     subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
-      // sin `this`: VB puede llamar a las funciones de la página sueltas
+      // no `this`: VB may call the page functions unbound
       const section = sectionsMode ? bridge.sectionOf(tree, selectedRoute) : null;
       const empty = sectionsMode
         ? !section || (!section.label && !(section.children || []).length)
@@ -98,7 +98,7 @@ define(['resources/js/mateu-bridge'], (bridge) => {
       return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader';
     }
 
-    /** HAMBURGER_SECTIONS: la entrada marcada en la lista de secciones (su id es la home). */
+    /** HAMBURGER_SECTIONS: the selected entry in the section list (its id is the home). */
     sectionListSelection(tree, selectedRoute) {
       const section = bridge.sectionOf(tree, selectedRoute);
       return section ? (section.home || section.id) : '';
@@ -110,16 +110,16 @@ define(['resources/js/mateu-bridge'], (bridge) => {
     }
 
     /**
-     * La respuesta del asistente como nodos para su burbuja (oj-bind-dom): su markdown en HTML seguro
-     * —escapado primero, ver chatMarkdownToHtml en poc/chat.mjs—. Se reevalúa con cada trozo del
-     * stream, así que el markdown se ve formado mientras llega.
+     * The assistant's answer as nodes for its bubble (oj-bind-dom): its markdown as safe HTML
+     * —escaped first, see chatMarkdownToHtml in poc/chat.mjs—. Re-evaluated with every chunk of the
+     * stream, so the markdown shows formatted while it arrives.
      */
     chatMessageDom(text) {
       const template = document.createElement('template');
       template.innerHTML = bridge.chatMarkdownToHtml(text);
-      // un enlace a una ruta de la app ([4MBZS7](/booking/bookings/4MBZS7)) navega DENTRO de la
-      // consola: el mismo navigation-requested que escucha la shell (loadMateuShell), que resuelve
-      // a qué pod va la ruta por su prefijo. Ctrl/Cmd-clic sigue abriéndolo en otra pestaña.
+      // a link to an app route ([4MBZS7](/booking/bookings/4MBZS7)) navigates INSIDE the
+      // console: the same navigation-requested the shell listens to (loadMateuShell), which resolves
+      // which pod the route goes to by its prefix. Ctrl/Cmd-click still opens it in another tab.
       template.content.querySelectorAll('a.mateu-chat-route').forEach((anchor) => {
         anchor.addEventListener('click', (event) => {
           const route = bridge.chatRouteOfLink(anchor, event);

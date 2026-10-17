@@ -1,14 +1,14 @@
-// REFRESCO PERIÓDICO (triggers con espera): el patrón del web — un OnLoad con timeoutMillis
-// arranca la primera vuelta y un OnSuccess(actionId = la misma, calledActionId = la misma,
-// timeoutMillis) cierra el bucle: cada refresco que termina bien programa el siguiente. Antes
-// la shell VB disparaba todos los OnLoad al momento, sin espera, y no conocía OnSuccess.
+// PERIODIC REFRESH (triggers with a wait): the web's pattern — an OnLoad with timeoutMillis
+// starts the first round and an OnSuccess(actionId = the same, calledActionId = the same,
+// timeoutMillis) closes the loop: each refresh that ends well schedules the next. Before,
+// the VB shell fired all OnLoads immediately, with no wait, and did not know OnSuccess.
 //
-// Una GENERACIÓN por pantalla: navegar arranca una nueva y todo lo programado para la anterior
-// se descarta al vencer (como el callbackToken del web) — un panel de pisos que se deja de ver
-// deja de preguntar.
+// One GENERATION per screen: navigating starts a new one and everything scheduled for the previous one
+// is discarded when it falls due (like the web's callbackToken) — a floor panel that is no longer seen
+// stops asking.
 
 let runner = null
-/** Quién ejecuta la acción programada (la shell: el mismo camino que los Element). */
+/** Who runs the scheduled action (the shell: the same path as the Elements). */
 export function setPollingRunner(fn) { runner = typeof fn === 'function' ? fn : null }
 
 let generation = 0
@@ -17,19 +17,19 @@ const timers = new Set()
 
 const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
 
-/** Los OnLoad CON espera (los inmediatos siguen el camino de siempre: onLoadTriggers). */
+/** The OnLoads WITH a wait (the immediate ones follow the usual path: onLoadTriggers). */
 export function timedOnLoadTriggers(ctx) {
   return triggersOf(ctx).filter((t) => t.type === 'OnLoad' && t.actionId && t.timeoutMillis > 0)
 }
 
-/** Los OnSuccess que siguen a `actionId`. */
+/** The OnSuccess ones that follow `actionId`. */
 export function onSuccessTriggers(ctx, actionId) {
   return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
 }
 
-// UNA vuelta pendiente por trigger: si el refresco repinta el host y eso relanza sus OnLoad (otro
-// 'search' que también termina bien), un segundo éxito no debe armar un segundo bucle en paralelo
-// — se reprograma el mismo (los bucles se multiplicaban: 14 búsquedas en 47 s con 15 s de espera)
+// ONE pending round per trigger: if the refresh repaints the host and that relaunches its OnLoads (another
+// 'search' that also ends well), a second success must not set up a second loop in parallel
+// — the same one is rescheduled (the loops multiplied: 14 searches in 47 s with a 15 s wait)
 const pendingByTrigger = new Map()
 const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
 
@@ -42,8 +42,8 @@ const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
   const key = triggerKey(trigger)
   const previous = pendingByTrigger.get(key)
   if (previous !== undefined) { clear(previous); timers.delete(previous) }
-  // la vuelta sólo corre si sigue siendo LA pendiente de su trigger (una reemplazada vence sin
-  // efecto aunque su temporizador no se pudiera cancelar)
+  // the round only runs if it is still THE pending one of its trigger (a replaced one falls due without
+  // effect even if its timer could not be cancelled)
   const handle = timer(() => {
     timers.delete(handle)
     if (pendingByTrigger.get(key) !== handle) return
@@ -54,7 +54,7 @@ const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
   pendingByTrigger.set(key, handle)
 }
 
-/** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
+/** New screen: discards what was scheduled and sets up its OnLoads with a wait. */
 export function startPolling(hostCtx, timer = setTimeout) {
   generation++
   for (const h of timers) clearTimeout(h)
@@ -65,18 +65,18 @@ export function startPolling(hostCtx, timer = setTimeout) {
   return generation
 }
 
-/** Una acción terminó bien (hook del transporte): sus OnSuccess, si son de la pantalla en curso. */
+/** An action ended well (transport hook): its OnSuccess ones, if they belong to the current screen. */
 export function actionSucceeded(ctx, actionId, timer = setTimeout) {
   if (!ctx || !ctx.tree) return 0
-  // sólo la pantalla en curso (misma clase servidora que la que se armó al navegar): la isla de
-  // otro ServerSide o una respuesta de la pantalla anterior no reprograman nada
+  // only the current screen (same server class as the one set up when navigating): another
+  // ServerSide's island or a response of the previous screen reschedule nothing
   if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
   const next = onSuccessTriggers(ctx, actionId)
   for (const t of next) schedule(t, generation, timer)
   return next.length
 }
 
-/** Los OnError que siguen a `actionId`. */
+/** The OnError ones that follow `actionId`. */
 export function onErrorTriggers(ctx, actionId) {
   return triggersOf(ctx).filter((t) => t.type === 'OnError' && t.actionId && t.calledActionId === actionId)
 }
@@ -85,8 +85,8 @@ export function onErrorTriggers(ctx, actionId) {
  *  boundary), not with an HTTP error — the web renderer reads it the same way. */
 export const isErrorAnswer = (inc) => !!(inc && (inc.messages || []).some((m) => m && m.variant === 'error'))
 
-/** Una acción falló: sus OnError (antes la shell VB no conocía OnError), si son de la pantalla en
- *  curso — y NO sus OnSuccess: un refresco que falla no se reprograma. */
+/** An action failed: its OnError ones (before, the VB shell did not know OnError), if they belong to the current
+ *  screen — and NOT its OnSuccess ones: a refresh that fails is not rescheduled. */
 export function actionFailed(ctx, actionId, timer = setTimeout) {
   if (!ctx || !ctx.tree) return 0
   if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0

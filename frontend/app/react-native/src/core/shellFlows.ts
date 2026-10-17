@@ -23,16 +23,35 @@ export interface ShellAction {
 // metadata when it arrives (like the REST source catalogue) so any controller can resolve an id its
 // owner does not declare.
 
-let actionCatalogue: ShellAction[] = [];
+// The catalogue belongs to ONE app: each hub session owns an `ActionCatalogue`
+// (MateuSession.actionCatalogue); the module-level functions act on the process-wide one, which the
+// single-backend app uses.
+
+export class ActionCatalogue {
+  private entries: ShellAction[] = [];
+
+  /** Registers the wire App's `actionCatalogue` (replaces the previous one). */
+  register(entries: unknown): void {
+    this.entries = Array.isArray(entries) ? (entries as ShellAction[]).filter((a) => a && typeof a.id === 'string') : [];
+  }
+
+  /** The registered catalogue. */
+  get(): ShellAction[] {
+    return this.entries;
+  }
+}
+
+/** The process-wide catalogue: the single-backend app's (hub sessions own theirs). */
+export const sharedActionCatalogue = new ActionCatalogue();
 
 /** Registers the wire App's `actionCatalogue` (replaces the previous one). */
 export function registerActionCatalogue(entries: unknown): void {
-  actionCatalogue = Array.isArray(entries) ? (entries as ShellAction[]).filter((a) => a && typeof a.id === 'string') : [];
+  sharedActionCatalogue.register(entries);
 }
 
 /** The registered catalogue. */
 export function getActionCatalogue(): ShellAction[] {
-  return actionCatalogue;
+  return sharedActionCatalogue.get();
 }
 
 /**
@@ -43,7 +62,7 @@ export function getActionCatalogue(): ShellAction[] {
 export function resolveAction(
   actionId: string,
   owner: ShellAction[] | null | undefined,
-  catalogue: ShellAction[] | null | undefined = actionCatalogue,
+  catalogue: ShellAction[] | null | undefined = sharedActionCatalogue.get(),
 ): ShellAction | undefined {
   const own = Array.isArray(owner) ? owner.find((a) => a && a.id === actionId) : undefined;
   if (own) return own;
@@ -146,7 +165,7 @@ function eventOf(data: unknown): { eventName?: string; payload?: unknown } {
 export function menuLeafEffects(
   item: FlowMenuItem,
   actions: ShellAction[] | null | undefined,
-  catalogue: ShellAction[] | null | undefined = actionCatalogue,
+  catalogue: ShellAction[] | null | undefined = sharedActionCatalogue.get(),
 ): ShellEffect[] {
   const effects: ShellEffect[] = [];
   for (const actionId of menuRuleActionIds(item)) actionEffects(actionId, actions, catalogue, effects, 0);

@@ -1,8 +1,8 @@
-/* Cambio de pestaña en el contenido de una pantalla (átomo isTabs).
+/* Tab change in a screen's content (isTabs atom).
  *
- * Es un cambio de CLIENTE: no se le pregunta nada al servidor, se vuelve a proyectar el mismo
- * contexto con otra pestaña activa. El contenido de la pestaña viaja aplanado detrás de la barra,
- * así que reproyectar es todo lo que hay que hacer. */
+ * It is a CLIENT change: nothing is asked of the server, the same context is projected again
+ * with another tab active. The tab's content travels flattened behind the bar,
+ * so re-projecting is all there is to do. */
 
 define([
   'vb/action/actionChain',
@@ -26,20 +26,20 @@ define([
       const { $application } = context;
 
       const detail = (event && (event.detail || event)) || {};
-      // el eco del writeback tras reproyectar no es un clic
+      // the writeback echo after re-projecting is not a click
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
         return;
       }
       const tabId = detail.value;
-      // la activa es POR BARRA (barras anidadas): cada clic solo toca la suya
+      // the active tab is PER BAR (nested bars): each click only touches its own
       const activeTabs = $application.variables.mateuActiveTabs || {};
       if (!tabId || tabId === activeTabs[bridge.tabStripOf(tabId)]) {
         return;
       }
       $application.variables.mateuActiveTabs = bridge.withActiveTab(activeTabs, tabId);
 
-      // @Tab(key): la pestaña es una URL — elegirla deja una entrada en el historial, así
-      // atrás/adelante recorren las pestañas y recargar abre la misma (el server la marca activa)
+      // @Tab(key): the tab is a URL — choosing it leaves a history entry, so
+      // back/forward walk the tabs and reloading opens the same one (the server marks it active)
       const bar = ($application.variables.mateuHostContent || [])
         .reduce((out, block) => out.concat(block.items || []), [])
         .find((a) => a && a.isTabs && (a.tabs || []).some((t) => t.id === tabId));
@@ -63,12 +63,12 @@ define([
       const projected = bridge.hostContentOf(host, null, {
         title: $application.variables.mateuHostTitle || '',
         activeTabs: $application.variables.mateuActiveTabs,
-        // la banda del header ya pinta el EntityHeader del host: sin esto reaparecía en el contenido
+        // the header band already paints the host's EntityHeader: without this it reappeared in the content
         dropEntityHeader: !!bridge.entityHeaderOf(host),
       }) || [];
       // the form's action row (withFormActions) does not depend on the tab: it stays
       const withRow = bridge.withFormActionsRowOf(projected, $application.variables.mateuHostContent);
-      // la pestaña ya se ve; sus @Subresource (lazy: se cargan al abrirla) llegan después
+      // the tab is already visible; its @Subresource (lazy: loaded when it opens) arrive later
       $application.variables.mateuHostContent = bridge.withSubresources(withRow, reg.contexts);
       reg = await bridge.loadSubresources(bridge.baseOf(reg) || bridge.mateuBase($application.constants.mateuBaseUrl),
         reg, projected, { appState: $application.variables.mateuAppState || {} });
@@ -76,11 +76,11 @@ define([
       const blocks = bridge.withSubresources(withRow, reg.contexts);
       $application.variables.mateuHostContent = blocks;
       bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
-      // una barra anidada aparece/cambia al cambiar de pestaña: se refrescan todas
+      // a nested bar appears/changes when the tab changes: all of them are refreshed
       for (const barId of bridge.tabBarIdsOf(blocks)) {
         try {
           await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
-        } catch (ignored) { /* aún sin montar */ }
+        } catch (ignored) { /* not mounted yet */ }
       }
     }
   }

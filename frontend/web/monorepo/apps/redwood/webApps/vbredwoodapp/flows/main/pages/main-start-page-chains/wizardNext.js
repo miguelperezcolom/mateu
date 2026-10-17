@@ -1,5 +1,5 @@
-/* Fase 8: el Continue del oj-sp-guided-process (spBeforeNext) dispara la acción de AVANCE
- * del wire del wizard (next, o confirm en el penúltimo paso — la separó la proyección). */
+/* Phase 8: the oj-sp-guided-process's Continue (spBeforeNext) fires the wizard wire's ADVANCE
+ * action (next, or confirm on the penultimate step — the projection split it out). */
 
 define([
   'vb/action/actionChain',
@@ -15,11 +15,11 @@ define([
     async run(context) {
       const { $application } = context;
 
-      // el OVERVIEW y su botón Start los gestiona el PROPIO componente (writeback
-      // interno de currentStep, sin evento) — aquí solo llega el avance de pasos
+      // the OVERVIEW and its Start button are handled by the component ITSELF (internal
+      // writeback of currentStep, no event) — only the step advance arrives here
       const forwardId = $application.variables.mateuWizardForwardId;
       if (!forwardId) {
-        return; // pantalla de resultado: no hay avance
+        return; // result screen: there is no advance
       }
       await Actions.callChain(context, {
         chain: 'runMateuAction',

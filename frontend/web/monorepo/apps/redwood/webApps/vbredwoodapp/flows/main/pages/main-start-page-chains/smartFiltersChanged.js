@@ -1,8 +1,8 @@
-/* Smart Search de vb (header de colección): el texto libre y los FILTROS del listado viven en
- * smartFilters.value — Enter añade un chip {filter:'keyword', value}; un filtro se aplica desde
- * su sugerencia bajo el buscador y se edita en el popup del componente; la ✕ lo quita. Aquí se
- * traduce a lo de Mateu (texto concatenado + valores de filtro del componentState) y se
- * relanza el search del listado. */
+/* vb's Smart Search (collection header): the free text and the listing's FILTERS live in
+ * smartFilters.value — Enter adds a chip {filter:'keyword', value}; a filter is applied from
+ * its suggestion under the search box and edited in the component's popup; the ✕ removes it. Here
+ * it is translated to Mateu's terms (concatenated text + filter values in the componentState) and
+ * the listing's search is relaunched. */
 
 define([
   'vb/action/actionChain',
@@ -26,27 +26,27 @@ define([
       const { $application } = context;
       const detail = (event && event.detail) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
-        return; // cambio programático (la config que proyecta la navegación), no del usuario
+        return; // programmatic change (the config the navigation projects), not the user's
       }
       const chips = (detail.value && detail.value.value) || [];
       const filters = (($application.variables.mateuListing || {}).filters) || [];
       const state = bridge.filterStateOfSmartFilters(filters, chips);
-      // un chip recién sacado de las sugerencias aún no tiene valor: si nada cambia, no se
-      // busca (el popup de su editor sigue abierto)
+      // a chip just taken from the suggestions has no value yet: if nothing changes, no
+      // search is run (its editor's popup is still open)
       const before = JSON.stringify($application.variables.mateuFilterValues || {});
       if (before === JSON.stringify(state.values)
         && state.searchText === ($application.variables.mateuLastSearchText || '')) {
         return;
       }
       $application.variables.mateuFilterValues = state.values;
-      // la URL dice los filtros aplicados (como en Vaadin): un chip quitado sale de la query, uno
-      // puesto entra. replaceState: filtrar no es una pantalla nueva en el historial.
+      // the URL states the applied filters (as in Vaadin): a removed chip leaves the query, an added
+      // one enters it. replaceState: filtering is not a new screen in the history.
       const full = bridge.listingUrlOf($application.variables.mateuSelectedRoute || '',
         state.values, state.searchText);
       window.__mateuLoadedFull = full;
       if (window.__mateuUrlPathMode) {
-        // sólo si la URL es la de este listado (un prefijo de contexto, un maestro con pestañas:
-        // mejor no tocarla que escribir una ruta que no es)
+        // only if the URL is this listing's (a context prefix, a master with tabs:
+        // better not to touch it than to write a route that is not it)
         if (bridge.currentRoutePathOf(window.location) === full.split('?')[0]
             && bridge.currentRouteOf(window.location) !== full) {
           window.history.replaceState(window.history.state, '', bridge.urlOfRoute(full));

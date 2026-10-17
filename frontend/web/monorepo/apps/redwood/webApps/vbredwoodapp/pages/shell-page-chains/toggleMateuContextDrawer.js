@@ -1,4 +1,4 @@
-/* Abre/cierra el drawer lateral de CONTEXTO (@AppContext) desde el icono del header. */
+/* Opens/closes the side CONTEXT drawer (@AppContext) from the header icon. */
 
 define([
   'vb/action/actionChain',

@@ -12,12 +12,11 @@ import {
   View,
 } from 'react-native';
 import { buttonActionId, effectiveListingLayout, rowCheckboxLabel } from '../core/uxRules';
-import { canMove, dropOn, moveToLabel, subscribeDropZones, zoneLabel, zonesAccepting, type MountedDropZone } from './dragDrop';
+import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from './dragDrop';
 import { useViewController } from './MateuViewHost';
-import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
-import { listSavedViews, saveView, deleteView, setDefaultView, defaultView, SavedView } from './savedViews';
+import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
-import { fetchExternalJson, mapItemsToRows, resolveRestSource, viaProxy } from '../core/restFetch';
+import { fetchExternalJson, mapItemsToRows } from '../core/restFetch';
 import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -133,9 +132,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const [dropZones, setDropZones] = useState<MountedDropZone[]>([]);
   useEffect(() => {
     if (!dragType) return;
-    const refresh = () => setDropZones(zonesAccepting(dragType));
+    const refresh = () => setDropZones(controller.session.dropZones.zonesAccepting(dragType));
     refresh();
-    return subscribeDropZones(refresh);
+    return controller.session.dropZones.subscribe(refresh);
   }, [dragType]);
   const [selectedRows, setSelectedRows] = useState<Record<string, unknown>[]>([]);
   const syncSelection = (next: Record<string, unknown>[]) => {
@@ -170,7 +169,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     | { url?: string; ref?: string; method?: string; headers?: Record<string, string>; body?: string; itemsPath?: string; proxy?: boolean }
     | undefined;
   // Resolve a catalogue `ref` so the url, itemsPath and proxy flag come from the resolved source.
-  const rowsResolved = rowsSource ? (resolveRestSource(rowsSource as Record<string, unknown>) as typeof rowsSource) : undefined;
+  const rowsResolved = rowsSource ? (controller.session.sources.resolve(rowsSource as Record<string, unknown>) as typeof rowsSource) : undefined;
   const columnIds = columns.map((c) => c.metadata?.id ?? c.id ?? c.fieldId).filter(Boolean) as string[];
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
@@ -194,9 +193,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
     // A sampled source (sample mode) is never proxied: fetchExternalJson answers it from the sample.
-    const jsonPromise = viaProxy(rowsSource as Record<string, unknown>)
+    const jsonPromise = controller.session.sources.viaProxy(rowsSource as Record<string, unknown>)
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
-      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }));
+      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }), controller.session.sources);
     jsonPromise
       .then((json) => {
         if (cancelled) return;
@@ -351,12 +350,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
   const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
   const protectedColId = allColDefs[0]?.fieldId;
-  const [hiddenCols, setHiddenCols] = useState<string[]>(() => getHiddenColumns(columnScope));
+  const [hiddenCols, setHiddenCols] = useState<string[]>(() => controller.session.columnPrefs.get(columnScope));
   const [columnsOpen, setColumnsOpen] = useState(false);
   const toggleColumn = (id: string) => {
     const next = hiddenCols.includes(id) ? hiddenCols.filter((x) => x !== id) : [...hiddenCols, id];
     setHiddenCols(next);
-    setHiddenColumns(columnScope, next);
+    controller.session.columnPrefs.set(columnScope, next);
   };
   const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
 
@@ -365,7 +364,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const [viewsVersion, setViewsVersion] = useState(0);
   const [newViewName, setNewViewName] = useState('');
   void viewsVersion; // re-reading the (external) store depends on this bumping
-  const savedViews = listSavedViews(columnScope);
+  const savedViews = controller.session.savedViews.list(columnScope);
   const applyView = (view: SavedView) => {
     const { searchText: st, ...fv } = view.values as Record<string, unknown>;
     const stStr = st != null ? String(st) : '';
@@ -377,18 +376,18 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const saveCurrentView = () => {
     const values: Record<string, unknown> = { ...filterValues };
     if (searchText.trim()) values.searchText = searchText.trim();
-    saveView(columnScope, { name: newViewName, values });
+    controller.session.savedViews.save(columnScope, { name: newViewName, values });
     setNewViewName('');
     setViewsVersion((v) => v + 1);
   };
-  const removeView = (name: string) => { deleteView(columnScope, name); setViewsVersion((v) => v + 1); };
-  const toggleDefaultView = (name: string) => { setDefaultView(columnScope, name); setViewsVersion((v) => v + 1); };
+  const removeView = (name: string) => { controller.session.savedViews.delete(columnScope, name); setViewsVersion((v) => v + 1); };
+  const toggleDefaultView = (name: string) => { controller.session.savedViews.setDefault(columnScope, name); setViewsVersion((v) => v + 1); };
   // Auto-apply the default view once, when the screen still has no active conditions.
   const defaultAppliedRef = React.useRef(false);
   useEffect(() => {
     if (defaultAppliedRef.current) return;
     defaultAppliedRef.current = true;
-    const dv = defaultView(columnScope);
+    const dv = controller.session.savedViews.defaultView(columnScope);
     if (dv && Object.keys(filterValues).length === 0 && !searchText) applyView(dv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

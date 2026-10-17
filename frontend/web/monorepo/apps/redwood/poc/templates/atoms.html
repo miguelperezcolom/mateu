@@ -44,7 +44,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPlanning ]]">
-                      <!-- tape chart (Room Diary): oj-gantt de JET; mover/redimensionar/doble clic → planningGanttEvent -->
+                      <!-- tape chart (Room Diary): JET's oj-gantt; move/resize/double click → planningGanttEvent -->
                       <oj-gantt class="mateu-planning oj-sm-margin-2x-bottom"
                         :data-planning-id="[[ $current.data.planningId ]]"
                         :data-range-action="[[ $current.data.rangeAction ]]"
@@ -68,7 +68,7 @@
                       </oj-gantt>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDropZone ]]">
-                      <!-- DropZone: destino de filas arrastradas (@DragRows); dnd.mjs acepta su tipo MIME -->
+                      <!-- DropZone: destination for dragged rows (@DragRows); dnd.mjs accepts its MIME type -->
                       <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
                         :aria-label="[[ $current.data.ariaLabel ]]"
                         :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
@@ -82,16 +82,16 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
-                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <!-- Popover: the trigger; the content comes out in the shared oj-popup (hover.mjs) -->
                       <button type="button" class="mateu-pop-trigger oj-sm-margin-2x-bottom"
                         :data-mateu-hover="[[ $current.data.hoverText ]]"
                         :data-mateu-pop-click="[[ $current.data.clickText ]]"
                         :data-mateu-pop-html="[[ $current.data.html ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></button>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
-                      <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
-                           oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
-                           la de data-cal-shown (installCalendars) -->
+                      <!-- Calendar: JET has no calendar — a grid with Redwood tokens, an oj-buttonset-one view
+                           switcher, events as links; all four views are painted and the one in
+                           data-cal-shown is shown (installCalendars) -->
                       <div class="mateu-cal oj-sm-margin-2x-bottom" :id="[[ $current.data.calId ]]"
                         :data-cal-shown="[[ $current.data.view ]]" :data-day-action="[[ $current.data.dayActionId ]]">
                         <div class="mateu-cal-head">
@@ -191,8 +191,8 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isScoreboard ]]">
-                      <!-- banda de KPIs (Scoreboard / MetricCard): valor grande, tendencia, y el botón de la
-                           acción que lo explica (p.ej. la búsqueda filtrada) -->
+                      <!-- KPI band (Scoreboard / MetricCard): big value, trend, and the button of the
+                           action that explains it (e.g. the filtered search) -->
                       <div class="oj-flex mateu-scoreboard oj-sm-margin-2x-bottom">
                         <oj-bind-for-each data="[[ $current.data.metrics ]]">
                           <template>
@@ -216,8 +216,8 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isChart ]]">
-                      <!-- Chart / TrendChart: el oj-chart de JET (barras, líneas, área, tarta/donut, polar),
-                           varias series; los items vienen precomputados -->
+                      <!-- Chart / TrendChart: JET's oj-chart (bars, lines, area, pie/donut, polar),
+                           several series; the items come precomputed -->
                       <div class="oj-sm-margin-2x-bottom">
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
@@ -238,16 +238,16 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMap ]]">
-                      <!-- Map: JET no trae mapa de calles; installMaps (poc/map.mjs) monta Leaflet con
-                           teselas de OpenStreetMap sobre este contenedor y lanza markerActionId al
-                           pulsar un marcador -->
+                      <!-- Map: JET has no street map; installMaps (poc/map.mjs) mounts Leaflet with
+                           OpenStreetMap tiles on this container and fires markerActionId when
+                           a marker is clicked -->
                       <div class="mateu-map oj-sm-margin-2x-bottom" :id="[[ $current.data.mapId ]]"
                         role="region" aria-label="Map"
                         :data-map-spec="[[ $current.data.mapSpec ]]" :style="[[ $current.data.mapStyle ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMatrix ]]">
-                      <!-- MatrixGrid: oj-data-grid de JET (secciones plegables, cabeceras de fecha, edición en
-                           celda); plegar/editar/enlazar lo atiende installMatrixGrids -->
+                      <!-- MatrixGrid: JET's oj-data-grid (collapsible sections, date headers, in-cell
+                           editing); collapsing/editing/linking is handled by installMatrixGrids -->
                       <oj-data-grid class="mateu-matrix oj-sm-margin-2x-bottom" :id="[[ $current.data.gridId ]]"
                         :style="[[ $current.data.gridStyle ]]" aria-label="Matrix"
                         :data-matrix-id="[[ $current.data.matrixId ]]"
@@ -367,8 +367,8 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
-                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
-                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <!-- categorised action panel («I want to…»): JET's oj-button + oj-dialog;
+                           open/show more/hide empty is DOM state (installActionPanels) -->
                       <div class="mateu-action-panel oj-sm-margin-2x-bottom">
                         <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
                           :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
@@ -406,8 +406,8 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
-                      <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
-                           como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
+                      <!-- header of a collapsible panel (AccordionPanel / Details): its content follows,
+                           as atoms, when it is open; collapsing re-projects (panelToggled) -->
                       <oj-collapsible class="mateu-collapsible" expanded="[[ $current.data.expanded ]]"
                         disabled="[[ $current.data.disabled ]]"
                         :data-collapsible-key="[[ $current.data.collapsibleKey ]]"
@@ -596,7 +596,7 @@
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-bind-if test="[[ $current.data.rowClickable ]]">
-                            <!-- rowActionId sin botón = la FILA entera actúa (clic → {_item}) -->
+                            <!-- rowActionId without a button = the WHOLE row acts (click → {_item}) -->
                             <oj-action-card class="oj-sm-margin-1x-bottom mateu-row-card"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.{{blockAction}} ]]">
@@ -611,8 +611,8 @@
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.gridCell ]]">
                             <div :class="[[ $current.data.cellClass ]]">
-                            <!-- celda SIN card (oj-panel): fila limpia con el badge de estado
-                                 alineado al borde derecho (el título crece y lo empuja) -->
+                            <!-- cell WITHOUT a card (oj-panel): a clean row with the status badge
+                                 aligned to the right edge (the title grows and pushes it) -->
                             <div class="oj-flex-item oj-flex oj-sm-flex-direction-column">
                               <div class="oj-flex-item oj-sm-flex-initial">
                                 <div class="oj-flex oj-sm-align-items-center mateu-item-head">
@@ -627,7 +627,7 @@
                               </div>
                               <div class="oj-flex-item oj-typography-body-xs oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ $current.data.hasActions ]]">
-                                <!-- los botones SIEMPRE en su propia línea al pie de la tarjeta -->
+                                <!-- the buttons ALWAYS on their own line at the foot of the card -->
                                 <div class="oj-flex-item oj-sm-flex-initial oj-sm-margin-2x-top">
                                   <oj-bind-for-each data="[[ $current.data.actions ]]">
                                     <template>
@@ -655,9 +655,9 @@
                           <oj-bind-if test="[[ !$current.data.rowClickable && !$current.data.gridCell && ($current.data.hasActions || $current.data.hasLines) ]]">
                             <div class="oj-sm-margin-4x-bottom mateu-list-item">
                               <div class="oj-flex oj-sm-align-items-center mateu-item-head">
-                                <!-- sin avatar: el nombre es el heading de la fila (nivel siguiente
-                                     al título de la sección, que pinta como h2); crece y empuja
-                                     el badge al borde derecho del ítem -->
+                                <!-- no avatar: the name is the row's heading (the level below
+                                     the section title, which paints as h2); it grows and pushes
+                                     the badge to the item's right edge -->
                                 <oj-bind-if test="[[ !$current.data.isH4 ]]">
                                   <h3 class="oj-flex-item oj-typography-subheading-xs oj-sm-margin-2x-end" style="margin: 0;"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
                                 </oj-bind-if>
@@ -765,13 +765,13 @@
                         <oj-c-progress-bar class="oj-sm-margin-2x-top" style="width: 100%;" value="[[ $current.data.value ]]" max="[[ $current.data.max ]]"></oj-c-progress-bar>
                       </div>
                     </oj-bind-if>
-                    <!-- PESTAÑAS de un formulario (no el arquetipo item-overview: un form que
-                         lleva un TabLayout dentro, como el detalle de un proceso). El contenido de
-                         la pestaña activa viene APLANADO detrás, como átomos normales — así lo
-                         pinta el vocabulario que ya existe sin anidar la plantilla en sí misma. -->
+                    <!-- TABS of a form (not the item-overview archetype: a form that
+                         carries a TabLayout inside, like a process's detail). The active tab's
+                         content comes FLATTENED after it, as normal atoms — so it is painted by
+                         the existing vocabulary without nesting the template inside itself. -->
                     <oj-bind-if test="[[ $current.data.isTabs ]]">
-                      <!-- edge=top EXPLÍCITO: el valor por defecto apila las pestañas en
-                           vertical (como el navigator), que aquí no es lo que se quiere -->
+                      <!-- EXPLICIT edge=top: the default stacks the tabs
+                           vertically (like the navigator), which is not what is wanted here -->
                       <oj-tab-bar :id="[[ $current.data.barId ]]" class="oj-sm-margin-4x-bottom" edge="top"
                         selection="[[ $current.data.selectedId ]]"
                         on-selection-changed="[[ $listeners.mateuContentTabChanged ]]">
@@ -784,9 +784,9 @@
                         </ul>
                       </oj-tab-bar>
                     </oj-bind-if>
-                    <!-- TABLA embebida en el contenido (una lista con columnas dentro de un
-                         formulario). El data provider lo trae ya hecho el átomo: son varias por
-                         página y una variable por tabla no se puede declarar de antemano. -->
+                    <!-- TABLE embedded in the content (a list with columns inside a
+                         form). The atom brings the data provider ready-made: there are several per
+                         page and one variable per table cannot be declared in advance. -->
                     <oj-bind-if test="[[ $current.data.isGrid ]]">
                       <div class="oj-sm-margin-4x-bottom">
                         <oj-table class="oj-sm-12" display="list"
@@ -798,8 +798,8 @@
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
                           </template>
-                          <!-- acciones de FILA de una lista con editor modal: Editar abre el diálogo con
-                               la fila, Quitar la saca de la lista (data-row-key = su _rowNumber) -->
+                          <!-- ROW actions of a list with a modal editor: Edit opens the dialog with
+                               the row, Remove takes it out of the list (data-row-key = its _rowNumber) -->
                           <template slot="cellListRowActions">
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
@@ -836,9 +836,9 @@
                         </oj-bind-if>
                       </div>
                     </oj-bind-if>
-                    <!-- COMPONENTE WEB de terceros (el grafo de un proceso): aquí solo va el
-                         hueco; el elemento lo crea e hidrata el bridge (mountElements), porque
-                         VB no sabe escribir una etiqueta cuyo nombre llega en los datos -->
+                    <!-- third-party WEB COMPONENT (a process graph): only the slot goes
+                         here; the bridge creates and hydrates the element (mountElements), because
+                         VB cannot write a tag whose name arrives in the data -->
                     <oj-bind-if test="[[ $current.data.isElement ]]">
                       <div class="mateu-element oj-sm-margin-2x-vertical" :data-element-id="[[ $current.data.elementId ]]"></div>
                     </oj-bind-if>
@@ -868,10 +868,10 @@
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
-                    <!-- un FormLayout del wire (maxColumns + FormRows): el oj-form-layout de JET reparte las
-                         columnas; readonly (la vista de detalle) pinta valores, no cajas. El colspan de un campo
-                         escalar NO se aplica: con labels dentro, oj-form-layout reparte por columnas CSS y un
-                         oj-label-value con colspan descuadra a sus hermanos — pide oj-c-form-layout (core pack). -->
+                    <!-- a FormLayout from the wire (maxColumns + FormRows): JET's oj-form-layout distributes the
+                         columns; readonly (the detail view) paints values, not boxes. The colspan of a scalar
+                         field is NOT applied: with labels inside, oj-form-layout distributes by CSS columns and an
+                         oj-label-value with colspan misaligns its siblings — it needs oj-c-form-layout (core pack). -->
                     <oj-bind-if test="[[ $current.data.isFormLayout ]]">
                       <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.columns ]]" direction="row"
                         readonly="[[ $current.data.readonly ]]">
@@ -898,8 +898,9 @@
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
                             </oj-bind-if>
-                            <!-- @Searchable: un chip por id (con ✕ si se puede quitar) y el botón que abre su selector
-                                 (codesearch-<campo>, por hostBlockAction); bridge.searchableWidgetOf -->
+                            <!-- @Searchable: one chip per id (with ✕ if it can be removed) and the button that opens its selector
+                                 (codesearch-<field>, via hostBlockAction); bridge.searchableWidgetOf -->
+
                             <oj-bind-if test="[[ $current.data.isSearchable ]]">
                               <oj-label-value label-edge="top">
                                 <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>

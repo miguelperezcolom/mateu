@@ -32,11 +32,46 @@ object RestFetch {
             }
         } ?: emptyMap()
 
+    /** Navigate a dot path (`data.items`, `name.common`) into a JSON value; blank path is identity. */
+    fun valueAtPath(node: JsonNode?, path: String?): JsonNode? {
+        if (node == null) return null
+        if (path.isNullOrBlank()) return node
+        var cur: JsonNode? = node
+        for (key in path.split('.')) cur = cur?.get(key) ?: return null
+        return cur
+    }
+
+    /** Fetch a RestDataSource node (`url`/`method`/`headers`/`body`), interpolating each against ctx.
+     *  Resolves a catalogue `ref` first, against the app's own catalogue (`AppSession.sources`). */
+    fun fetch(apiClient: MateuApiClient, declared: JsonNode, ctx: Map<String, Any?>, sources: RestSourceCatalogue): JsonNode {
+        // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
+        sources.sampledResponse(declared)?.let { return it }
+        val source = sources.resolveRestSource(declared)
+        val url = Expressions.interpolateUrl(source.text("url"), ctx)
+        val method = source.text("method").ifBlank { "GET" }.uppercase()
+        val headers = LinkedHashMap<String, String>()
+        source.path("headers").properties().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }
+        val body = source.get("body")?.asText("").orEmpty().let { if (it.isBlank()) null else Expressions.interpolate(it, ctx) }
+        // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
+        headers.putAll(authHeaders(url, method))
+        return apiClient.fetchExternal(url, method, headers, body)
+    }
+}
+
+/**
+ * One app's REST source catalogue (`AppDto.restSources`), the entries its responses named and its
+ * sample mode — the plugin analogue of the web's libs/mateu restSourceCatalogue.ts.
+ */
+class RestSourceCatalogue {
     // ── REST source catalogue (resolution by `ref`) ─────────────────────────
     // The app ships a catalogue of named endpoints (AppDto.restSources); a surface may reference an
     // entry by `ref` instead of inlining the url + mapping paths. Plugin analogue of the web's
     // libs/mateu restSourceCatalogue.ts: register the catalogue when the App metadata arrives, then
     // resolve a `ref` to the entry's `source` (the surface's own declared fields still win).
+    //
+    // It belongs to ONE app: the IDE keeps several apps open at once, so every AppSession owns its
+    // catalogue (an island over another base url shares its host's) instead of a process-wide one
+    // the apps would overwrite and resolve against each other's.
     @Volatile
     private var catalogue: Map<String, JsonNode> = emptyMap()
 
@@ -150,30 +185,5 @@ object RestFetch {
         val m = method.orEmpty().ifBlank { resolveRestSource(source!!).text("method") }.ifBlank { "GET" }.uppercase()
         if (m != "GET" && m != "HEAD") return com.fasterxml.jackson.databind.node.NullNode.instance
         return sample.deepCopy()
-    }
-
-    /** Navigate a dot path (`data.items`, `name.common`) into a JSON value; blank path is identity. */
-    fun valueAtPath(node: JsonNode?, path: String?): JsonNode? {
-        if (node == null) return null
-        if (path.isNullOrBlank()) return node
-        var cur: JsonNode? = node
-        for (key in path.split('.')) cur = cur?.get(key) ?: return null
-        return cur
-    }
-
-    /** Fetch a RestDataSource node (`url`/`method`/`headers`/`body`), interpolating each against ctx.
-     *  Resolves a catalogue `ref` first. */
-    fun fetch(apiClient: MateuApiClient, declared: JsonNode, ctx: Map<String, Any?>): JsonNode {
-        // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
-        sampledResponse(declared)?.let { return it }
-        val source = resolveRestSource(declared)
-        val url = Expressions.interpolateUrl(source.text("url"), ctx)
-        val method = source.text("method").ifBlank { "GET" }.uppercase()
-        val headers = LinkedHashMap<String, String>()
-        source.path("headers").properties().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }
-        val body = source.get("body")?.asText("").orEmpty().let { if (it.isBlank()) null else Expressions.interpolate(it, ctx) }
-        // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
-        headers.putAll(authHeaders(url, method))
-        return apiClient.fetchExternal(url, method, headers, body)
     }
 }

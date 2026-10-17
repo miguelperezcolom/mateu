@@ -1,8 +1,8 @@
-/* Lienzo RDS alrededor del contenido — MISMA receta que pinta Fusion Applications:
-   canvas neutral-30 (#F1EFED) + las texturas OFICIALES del gallery del CDN de Oracle
-   (background-shell-generic), ancladas abajo izquierda/derecha, detrás del contenido.
-   Este fichero es el punto de personalización estándar de una app VB; no estiliza
-   ningún componente — solo el fondo de página y una regla de orden flex. */
+/* RDS canvas around the content — the SAME recipe Fusion Applications paints:
+   neutral-30 canvas (#F1EFED) + the OFFICIAL textures from the Oracle CDN gallery
+   (background-shell-generic), anchored bottom left/right, behind the content.
+   This file is the standard customisation point of a VB app; it styles no
+   component — only the page background and a flex order rule. */
 
 body {
   background-color: var(--oj-core-neutral-30, #f1efed);
@@ -21,38 +21,38 @@ body::after {
   background-position: left bottom, right bottom;
 }
 
-/* El icono Home que estampa oj-sp-global-header no es configurable por API y queda a la
-   izquierda del slot end; comparte contenedor flex con él → a la derecha del todo. */
+/* The Home icon oj-sp-global-header stamps is not configurable by API and sits to the
+   left of the end slot; it shares a flex container with it → all the way to the right. */
 oj-sp-global-header a[id$='_HOa1'] {
   order: 99;
 }
 
-/* Filas actuables del listado (ojRowAction abre la reserva): afordancia de clic */
+/* Actionable listing rows (ojRowAction opens the booking): click affordance */
 #mateuTable tbody tr {
   cursor: pointer;
 }
-/* …salvo las celdas con clic propio (editores, botones, enlaces, menús: poc isDisplayColumn) */
+/* …except cells with their own click (editors, buttons, links, menus: poc isDisplayColumn) */
 #mateuTable tbody td.mateu-cell-noopen {
   cursor: auto;
 }
 
-/* El pie sticky del guided process (Continue/Back) se ancla a bottom:0 — con la barra de
-   tabs inferior (oj-applayout-fixed-bottom, 64px) quedaba tapado. Solo aplica cuando la
-   barra existe (:has), así los shells con drawer no se ven afectados. */
+/* The guided process sticky footer (Continue/Back) is anchored to bottom:0 — with the bottom
+   tab bar (oj-applayout-fixed-bottom, 64px) it was covered. Only applies when the
+   bar exists (:has), so shells with a drawer are not affected. */
 body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
   bottom: 64px;
 }
 
-/* Overview del guided process (la portada del wizard RAIL, un panel por paso): el componente
-   dimensiona cada panel contra el ANCHO DE LA VENTANA (100vw / nº de pasos, y como mínimo 1/3 de
-   la ventana por debajo de 1440px) dando por hecho que ocupa la pantalla entera, y lo que no cabe
-   se desplaza a lo ancho con la barra oculta. Dentro de la shell (drawer, márgenes, contenido de
-   1408px como máximo) el 4º panel —y el 3º en tablet— quedaba cortado sin pista de que existía.
-   Desde tablet (RDS: >= 600px) los paneles se reparten el ancho REAL del contenido: una fila de N
-   paneles iguales, y una 2ª fila sólo si no caben a 8rem cada uno. Por debajo de 600px queda la
-   columna del componente (el bridge le reescribe la consulta, ver relaxGuidedProcessOverview).
-   El relleno lateral escala con el ancho del panel (3rem en escritorio, hasta 1rem si van justos).
-   Sólo el overview: los pasos (tras Start) no usan .oj-sp-guided-process-step-container. */
+/* Guided process overview (the cover of the RAIL wizard, one panel per step): the component
+   sizes each panel against the WINDOW WIDTH (100vw / no. of steps, and at least 1/3 of
+   the window below 1440px) assuming it takes the whole screen, and whatever does not fit
+   scrolls horizontally with the bar hidden. Inside the shell (drawer, margins, content of
+   1408px at most) the 4th panel —and the 3rd on tablet— was cut off with no hint it existed.
+   From tablet up (RDS: >= 600px) the panels share the REAL content width: one row of N
+   equal panels, and a 2nd row only if they do not fit at 8rem each. Below 600px the
+   component's column stays (the bridge rewrites its query, see relaxGuidedProcessOverview).
+   The side padding scales with the panel width (3rem on desktop, down to 1rem if tight).
+   Only the overview: the steps (after Start) do not use .oj-sp-guided-process-step-container. */
 @media (min-width: 600px) {
   oj-sp-guided-process#mateuWizardEl .oj-sp-guided-process-step-container {
     display: grid;
@@ -69,11 +69,11 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
     padding-right: clamp(1rem, calc(100cqi / var(--oj-sp-guided-process-steps-count, 4) * 0.12), 3rem);
   }
 }
-/* …y donde el componente habría ido en columna (600–767px de ancho, o menos de 768px de alto) su
-   título no se superpone a los paneles (eso sólo lo hace a partir de 768×768, con los pasos
-   anclados abajo): queda encima, sobre el lienzo claro — en texto oscuro, no en el blanco pensado
-   para ir sobre los paneles. Y la columna reservaba el alto de la ventana entera para los pasos:
-   en fila basta con un panel de alto cómodo. */
+/* …and where the component would have gone into a column (600–767px wide, or under 768px tall) its
+   title does not overlap the panels (it only does that from 768×768, with the steps
+   anchored at the bottom): it stays above, over the light canvas — in dark text, not the white meant
+   to sit on the panels. And the column reserved the whole window height for the steps:
+   in a row one panel of comfortable height is enough. */
 @media (min-width: 600px) and (max-width: 767.9px), (min-width: 600px) and (max-height: 767.9px) {
   oj-sp-guided-process#mateuWizardEl .oj-sp-guided-process-main-view-container > .oj-sp-guided-process-header,
   oj-sp-guided-process#mateuWizardEl .oj-sp-guided-process-main-view-container > .oj-sp-guided-process-header * {
@@ -87,20 +87,20 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
   }
 }
 
-/* Header de colección usado SOLO como cabecera (la tabla vive en la tarjeta de abajo,
-   anatomía de banda): el componente reserva su región de contenido a alto de viewport
-   aunque el slot main esté vacío — fuera TODO lo de debajo de la franja. */
+/* Collection header used ONLY as a header (the table lives in the card below,
+   band anatomy): the component reserves its content region at viewport height
+   even when the main slot is empty — EVERYTHING below the strip goes. */
 #mateuListHeader .oj-sp-public-primary-content-container,
 #mateuListHeaderInline .oj-sp-public-primary-content-container {
   display: none;
 }
 
-/* Foldout de la Reserva 360: el motor de columnas del oj-sp-foldout-panel mide el
-   contenido AL MONTAR (con los bindings de VB aún vacíos) y deja el contenedor a 1
-   columna (394px) — el cockpit de operaciones (grid de tarjetas a lo ancho) no encaja
-   en el flujo multi-columna. El ÚLTIMO panel (el de contenido, no el overview estático)
-   pasa a ancho fluido; el overview conserva su rail nativo. Los paneles con ancho
-   EXPLÍCITO del wire (.mateu-fixed-panel) quedan fuera de este hack — su medida manda. */
+/* Booking 360 foldout: the oj-sp-foldout-panel column engine measures the
+   content ON MOUNT (with the VB bindings still empty) and leaves the container at 1
+   column (394px) — the operations cockpit (a full-width grid of cards) does not fit
+   the multi-column flow. The LAST panel (the content one, not the static overview)
+   becomes fluid width; the overview keeps its native rail. Panels with an
+   EXPLICIT width from the wire (.mateu-fixed-panel) stay out of this hack — their size rules. */
 .oj-sp-foldout-layout-last-panel:not(.mateu-fixed-panel) {
   width: calc(100% - 394px) !important;
   flex: 0 0 calc(100% - 394px) !important;
@@ -118,10 +118,10 @@ body:has(.oj-applayout-fixed-bottom) .oj-sp-guided-process-step-details-footer {
   width: 100%;
 }
 
-/* Panel con ancho explícito (FoldoutPanel.width en el wire, proyectado por el bridge):
-   el flex/min/max van inline desde el markup; aquí, como en el hack de arriba, se
-   desactiva el motor de columnas interno (midió al montar con los bindings vacíos)
-   para que el contenido fluya vertical a lo ancho del panel y no se corte. */
+/* Panel with an explicit width (FoldoutPanel.width on the wire, projected by the bridge):
+   flex/min/max come inline from the markup; here, as in the hack above, the
+   internal column engine is disabled (it measured on mount with empty bindings)
+   so the content flows vertically across the panel width and is not cut. */
 oj-sp-foldout-panel.mateu-fixed-panel {
   overflow-x: hidden;
 }
@@ -138,46 +138,46 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-sp-foldout-panel-root {
   width: 100%;
 }
 
-/* La fila de paneles reparte el sobrante EN LOS HUECOS (space-between): el primero pegado
-   al borde izquierdo, el último al derecho — sin franja muerta al final de la fila. */
+/* The panel row spreads the leftover space IN THE GAPS (space-between): the first flush
+   with the left edge, the last with the right — no dead strip at the end of the row. */
 .oj-sp-foldout-layout-children-container {
   justify-content: space-between;
 }
 
-/* Gutters internos de los paneles del foldout: 24px constantes — el padding responsive
-   nativo mete 48px por lado en viewports lg y los huecos entre secciones se doblaban
-   a ~96px, descompensados con el gutter exterior. */
+/* Inner gutters of the foldout panels: a constant 24px — the native responsive padding
+   puts 48px per side on lg viewports and the gaps between sections doubled
+   to ~96px, out of balance with the outer gutter. */
 oj-sp-foldout-panel .oj-sp-foldout-panel-header,
 oj-sp-foldout-panel .oj-sp-foldout-panel-container {
   padding-left: 24px !important;
   padding-right: 24px !important;
 }
-/* …y la SEGUNDA capa de padding responsive (el .oj-flex-item interior del container,
-   48px/lado en lg) a cero — el gutter ya lo pone el container; con las dos capas el
-   contenido perdía 96px y el grid de 2×20rem no cabía. */
+/* …and the SECOND layer of responsive padding (the container's inner .oj-flex-item,
+   48px/side on lg) to zero — the container already sets the gutter; with both layers the
+   content lost 96px and the 2×20rem grid did not fit. */
 oj-sp-foldout-panel .oj-sp-foldout-panel-container > .oj-flex-item {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
-/* El subrayado del título vive en un wrapper con padding responsive propio DENTRO del
-   container (que ya pone el gutter de 24px) — a cero, o el subrayado queda a 24+24. */
+/* The title underline lives in a wrapper with its own responsive padding INSIDE the
+   container (which already sets the 24px gutter) — to zero, or the underline ends up at 24+24. */
 oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
-/* Rejilla de ítems del cockpit: celdas de MEDIDA FIJA (22rem) que envuelven solas.
-   El aire va ENTRE tarjetas (gap de la rejilla, ambos ejes), no como padding general:
-   el margin-bottom propio de cada celda se anula dentro de la rejilla. */
+/* Cockpit item grid: FIXED-SIZE cells (22rem) that wrap by themselves.
+   The spacing goes BETWEEN cards (the grid gap, both axes), not as general padding:
+   each cell's own margin-bottom is cancelled inside the grid. */
 .mateu-grid {
-  /* 2×22rem + 40px = 744 sobre 768 de contenido (panel a 51rem): 24px de holgura —
-     una scrollbar clásica (15px) no hace saltar la segunda columna */
+  /* 2×22rem + 40px = 744 out of 768 of content (panel at 51rem): 24px of slack —
+     a classic scrollbar (15px) does not make the second column jump */
   column-gap: 40px;
   row-gap: 28px;
 }
 
-/* Filas de la lista de pasajeros: más aire que la rejilla del cockpit (respiran solas). */
+/* Rows of the passenger list: more air than the cockpit grid (they breathe on their own). */
 .mateu-list-item {
   margin-bottom: 40px !important;
 }
@@ -189,9 +189,9 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   margin-bottom: 0 !important;
 }
 
-/* Cabecera de los ítems de lista/cockpit (huéspedes, operaciones): mínimo 20rem de
-   ancho, en UNA línea (el título elipsa antes que partir la fila) y el badge de estado
-   pegado al borde derecho del ítem. */
+/* Header of the list/cockpit items (guests, operations): at least 20rem
+   wide, on ONE line (the title ellipsises before breaking the row) and the status badge
+   flush with the item's right edge. */
 .mateu-item-head {
   flex-wrap: nowrap;
   min-width: min(20rem, 100%);
@@ -208,8 +208,8 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   overflow-wrap: anywhere;
 }
 
-/* Densidad del cockpit dentro de paneles de ancho fijo: tarjetas y celdas con menos
-   aire para que el grid de operaciones quepa en el alto del panel sin scroll interno. */
+/* Cockpit density inside fixed-width panels: cards and cells with less
+   air so the operations grid fits the panel height without inner scrolling. */
 oj-sp-foldout-panel.mateu-fixed-panel .oj-panel.oj-sm-padding-4x {
   padding: 0.625rem 0.875rem !important;
 }
@@ -220,7 +220,7 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   margin-bottom: 0.5rem !important;
 }
 
-/* Drawer de página (sustituye al oj-drawer-popup): scrim + panel end fijos. */
+/* Page drawer (replaces the oj-drawer-popup): fixed scrim + end panel. */
 .mateu-drawer-scrim {
   position: fixed;
   inset: 0;
@@ -241,23 +241,23 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   box-sizing: border-box;
 }
 
-/* Headings de CONTENIDO (átomos Text con container hN → h3): sin margen propio del
-   navegador — el ritmo lo ponen las clases JET del átomo (margin-top de grupo). */
+/* CONTENT headings (Text atoms with container hN → h3): no browser margin of their
+   own — the rhythm is set by the atom's JET classes (group margin-top). */
 .mateu-atom-heading {
   margin: 0;
 }
 
-/* Bullets de contenido (átomo BulletedList): sangría CORTA — la de navegador (40px) comía
-   un tercio del carril de Perfil (14rem) y partía "Connecting rooms" en dos líneas. */
+/* Content bullets (BulletedList atom): SHORT indent — the browser's (40px) ate
+   a third of the Profile lane (14rem) and broke "Connecting rooms" onto two lines. */
 .mateu-atom-bullets {
   padding-inline-start: 1.1rem;
-  /* el tema Redwood añade 40px también al final — comía un cuarto del carril de Perfil */
+  /* the Redwood theme adds 40px at the end too — it ate a quarter of the Profile lane */
   padding-inline-end: 0;
   margin-top: 0;
 }
 
-/* Subrayado de título de fold/sección FUERA del foldout (el original está scoped a
-   oj-sp-foldout-panel): mismo trazo y mismo token de acento del tema Spectra. */
+/* Fold/section title underline OUTSIDE the foldout (the original is scoped to
+   oj-sp-foldout-panel): same stroke and same accent token of the Spectra theme. */
 .mateu-fold-title-underline {
   width: 2.25rem;
   min-height: 0.25rem;
@@ -265,42 +265,42 @@ oj-sp-foldout-panel.mateu-fixed-panel .oj-flex-item.oj-sm-margin-4x-bottom {
   background-color: var(--oj-sp-theme-accent, #f0cc71);
 }
 
-/* El foldout-layout monta un header de navegación PROPIO (oj-sp-header-navigation vacío,
-   16px con fondo blanco) que dejaba una banda entre el acento del header de página y los
-   folds — no se usa (la 360 lleva su propio header), fuera. */
+/* The foldout-layout mounts its OWN navigation header (an empty oj-sp-header-navigation,
+   16px with a white background) that left a band between the page header's accent and the
+   folds — it is not used (the 360 carries its own header), so it goes. */
 .oj-sp-foldout-layout-header-horizontal {
   display: none;
 }
 
-/* Tarjetas de fila clicable (rowActionId sin botón — p.ej. el catálogo de cargos del
-   drawer "Postear cargo" y del panel de check-out): oj-action-card es inline-block y
-   se encoge a su contenido → a FILA COMPLETA, una tarjeta por línea, con el precio
-   (status) empujado al borde derecho. */
+/* Clickable row cards (rowActionId without a button — e.g. the charge catalogue of the
+   "Postear cargo" drawer and of the check-out panel): oj-action-card is inline-block and
+   shrinks to its content → FULL ROW, one card per line, with the price
+   (status) pushed to the right edge. */
 oj-action-card.mateu-row-card {
   display: block;
   width: 100%;
 }
 
-/* Aire entre lo que precede (el input de búsqueda de cargos del check-out) y la primera
-   tarjeta de resultado — sin él la tarjeta nace pegada al borde del campo. */
+/* Air between what precedes (the check-out charge search input) and the first
+   result card — without it the card starts stuck to the field's edge. */
 oj-action-card.mateu-row-card:first-of-type {
   margin-top: 0.75rem;
 }
 
-/* Marca del cliente en vez de la de Oracle: el logo Oracle integrado del global header
-   se oculta (la marca la pone el @Logo del App — imagen del slot start) y el home
-   queda en el icono de la derecha del propio header. */
+/* The customer's brand instead of Oracle's: the global header's built-in Oracle logo
+   is hidden (the brand comes from the App's @Logo — image in the start slot) and home
+   stays on the icon at the right of the header itself. */
 .oj-sp-logo-global-header-logo-container {
   display: none !important;
 }
 
-/* ── Resiliencia del transporte ────────────────────────────────────────────────────────
-   Estilos de las tres señales que pinta la shell cuando el backend va lento o no responde
-   (las alimenta poc/resilience.mjs a través de setTransportHooks/connectivity). */
+/* ── Transport resilience ────────────────────────────────────────────────────────
+   Styles of the three signals the shell paints when the backend is slow or does not answer
+   (fed by poc/resilience.mjs through setTransportHooks/connectivity). */
 
-/* Barra de ocupado: retardada medio segundo por animación, no por temporizador — por debajo
-   de ese umbral la petición suele ganar y el usuario no ve nada, que es lo correcto para una
-   espera demasiado corta como para explicarla. */
+/* Busy bar: delayed half a second by animation, not by timer — below
+   that threshold the request usually wins and the user sees nothing, which is right for a
+   wait too short to be worth explaining. */
 .mateu-busy-bar {
   position: fixed;
   inset-block-start: 0;
@@ -319,8 +319,8 @@ oj-action-card.mateu-row-card:first-of-type {
   100% { transform: scaleX(1); opacity: .2; }
 }
 
-/* Bandas de estado: pasteles claros con tinta oscura, siempre legibles en cualquier tema —
-   la misma convención que las bandas de página de los renderers web. */
+/* Status bands: light pastels with dark ink, always legible in any theme —
+   the same convention as the page bands of the web renderers. */
 .mateu-offline-band,
 .mateu-error-band {
   display: flex;
@@ -338,15 +338,15 @@ oj-action-card.mateu-row-card:first-of-type {
   .mateu-busy-bar { animation: mateu-busy-appear .2s linear .5s forwards; transform: scaleX(1); }
 }
 
-/* ── Accesibilidad ─────────────────────────────────────────────────────────────────────
+/* ── Accessibility ─────────────────────────────────────────────────────────────────────
 
-   Contraste en la cabecera global. Los botones borderless heredan
-   --oj-core-text-color-primary (tinta casi negra), que sobre la cabecera OSCURA de Redwood
-   da un contraste de 1.33 — muy por debajo del 4.5 que exige WCAG AA, y en la práctica
-   texto ilegible. Afecta a las header actions de Mateu (@AppActionsSupplier), que son
-   etiquetas de negocio, no decoración.
+   Contrast on the global header. Borderless buttons inherit
+   --oj-core-text-color-primary (almost black ink), which on Redwood's DARK header
+   gives a contrast of 1.33 — far below the 4.5 WCAG AA requires, and in practice
+   illegible text. It affects Mateu's header actions (@AppActionsSupplier), which are
+   business labels, not decoration.
 
-   El token inverso no está definido en este tema, así que el fallback es el que manda. */
+   The inverse token is not defined in this theme, so the fallback is what applies. */
 oj-sp-global-header oj-button .oj-button-text,
 oj-sp-global-header oj-menu-button .oj-button-text,
 oj-sp-global-header .oj-button-text {
@@ -357,19 +357,19 @@ oj-sp-global-header oj-menu-button .oj-button-icon {
   color: var(--oj-core-text-color-inverse, #fff);
 }
 
-/* Los estados de esos mismos botones sobre la cabecera OSCURA. Con su menú abierto, un
-   oj-menu-button pasa a oj-selected y el tema le pone el fondo seleccionado de superficie CLARA
-   (rgb(228,241,247) con borde de marca rgb(34,126,158)) — con el texto blanco de arriba, la
-   etiqueta casi desaparecía justo cuando el usuario baja al desplegable. Sobre fondo oscuro,
-   todos los estados son un velo blanco translúcido de intensidad creciente (hover <
-   seleccionado < seleccionado+hover < pulsado), sin borde, y el texto sigue blanco. El foco de
-   teclado: el contorno punteado de JET en blanco a media opacidad, visible sin gritar.
-   Qué variable pinta cada estado en half-chrome (oj-redwood-min.css de JET 18.1): hover y
-   pulsado son una CAPA (background-image) de --oj-core-bg-color-hover/-active, seleccionado es
-   el fondo --oj-button-borderless-chrome-bg-color-selected (y con hover, la capa encima).
-   Sólo los del NAV de la cabecera (su zona start: menú superior y hamburguesa): ni las
-   acciones de la derecha, ni los botones del contenido, ni el oj-menu desplegado (JET lo saca
-   a la capa de popups, fuera de la cabecera) cambian. */
+/* The states of those same buttons on the DARK header. With its menu open, an
+   oj-menu-button becomes oj-selected and the theme gives it the selected background of a LIGHT surface
+   (rgb(228,241,247) with brand border rgb(34,126,158)) — with the white text from above, the
+   label almost vanished right when the user goes down into the dropdown. On a dark background,
+   all states are a translucent white veil of increasing intensity (hover <
+   selected < selected+hover < pressed), with no border, and the text stays white. Keyboard
+   focus: JET's dotted outline in white at half opacity, visible without shouting.
+   Which variable paints each state in half-chrome (oj-redwood-min.css of JET 18.1): hover and
+   pressed are a LAYER (background-image) of --oj-core-bg-color-hover/-active, selected is
+   the --oj-button-borderless-chrome-bg-color-selected background (and with hover, the layer on top).
+   Only the ones in the header NAV (its start zone: top menu and hamburger): neither the
+   actions on the right, nor the content buttons, nor the opened oj-menu (JET moves it
+   to the popup layer, outside the header) change. */
 oj-sp-global-header [slot="start"] oj-button,
 oj-sp-global-header [slot="start"] oj-menu-button {
   --oj-core-bg-color-hover: rgb(255 255 255 / 0.10);
@@ -385,16 +385,16 @@ oj-sp-global-header [slot="start"] oj-menu-button {
   --oj-button-borderless-chrome-text-color-active: var(--oj-core-text-color-inverse, #fff);
   --oj-core-focus-border-color: rgb(255 255 255 / 0.6);
 }
-/* el triángulo del desplegable es un icono de fuente que toma el color de esas variables (y
-   seleccionado+hover le pone al propio icono otra capa de hover: un cuadrado más claro detrás
-   del triángulo, que aquí sobra) */
+/* the dropdown triangle is a font icon that takes the colour of those variables (and
+   selected+hover gives the icon itself another hover layer: a lighter square behind
+   the triangle, which is not wanted here) */
 oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover .oj-button-icon {
   background-image: none;
 }
 
-/* Salto al contenido (WCAG 2.4.1): primer elemento tabulable del documento, invisible hasta
-   que recibe foco. Oculto con transform y NO con display:none, porque un elemento
-   display:none no puede recibir foco y el enlace sería inalcanzable. */
+/* Skip to content (WCAG 2.4.1): the document's first tabbable element, invisible until
+   it receives focus. Hidden with transform and NOT with display:none, because a
+   display:none element cannot receive focus and the link would be unreachable. */
 .mateu-skip-link {
   position: fixed;
   inset-block-start: 0;
@@ -419,10 +419,10 @@ oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover
   outline-offset: 2px;
 }
 
-/* Control ocupado: el que el usuario acaba de pulsar, mientras su acción está en vuelo.
-   Anima la OPACIDAD del propio elemento y no dibuja un spinner en ::after — sobre un shadow
-   host el pseudo-elemento no se pinta (comprobado en los renderers web con un
-   inset:0;background:red sobre un vaadin-button vivo). */
+/* Busy control: the one the user just pressed, while its action is in flight.
+   It animates the element's own OPACITY and does not draw a spinner in ::after — on a shadow
+   host the pseudo-element is not painted (verified on the web renderers with an
+   inset:0;background:red on a live vaadin-button). */
 [data-mateu-pending] {
   pointer-events: none;
   cursor: progress;
@@ -433,16 +433,16 @@ oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover
   50% { opacity: .85; }
 }
 
-/* Esqueleto de carga: al cambiar de pantalla, y ocupando el sitio de la vieja. Antes se
-   pintaba cuando la ruta no tenía título, en el flujo y ENCIMA del contenido: al salir de una
-   pantalla sin título (la home) quedaban el esqueleto arriba a la izquierda y la pantalla vieja
-   debajo, las dos a la vez. Ahora la vieja se oculta y el esqueleto se pone en su lugar, los dos
-   pasado el mismo medio segundo que la barra: una navegación rápida no ve ninguno de los dos.
-   Una acción dentro de la misma pantalla no navega y conserva su contenido bajo la barra, porque
-   ahí el contenido viejo sí es el contexto de lo que se espera.
+/* Loading skeleton: when changing screens, and taking the old one's place. It used to be
+   painted when the route had no title, in the flow and ABOVE the content: leaving a
+   screen without a title (the home) left the skeleton top left and the old screen
+   below, both at once. Now the old one is hidden and the skeleton takes its place, both
+   after the same half second as the bar: a fast navigation sees neither of them.
+   An action within the same screen does not navigate and keeps its content under the bar, because
+   there the old content is indeed the context of what is being waited for.
 
-   `visibility` y no `display`: la pantalla vieja sigue ocupando su sitio, así que nada salta al
-   ocultarla, y deja de recibir clics. Se anima para poder retrasarla sin temporizadores. */
+   `visibility` and not `display`: the old screen still takes up its space, so nothing jumps when
+   hiding it, and it stops receiving clicks. It is animated so it can be delayed without timers. */
 .mateu-content { position: relative; }
 .mateu-content.mateu-navigating > oj-vb-content {
   animation: mateu-stale-hide 0s linear .5s forwards;
@@ -479,14 +479,14 @@ oj-sp-global-header [slot="start"] oj-menu-button.oj-button.oj-selected.oj-hover
   .mateu-skeleton-bone { animation: none; }
 }
 
-/* ── el contenido llena la ventana ────────────────────────────────────────────────────
-   El shell llena la ventana y su región de contenido se queda con lo que sobra bajo la
-   cabecera. Esto es ANDAMIAJE de altura, no repintar lo que pinta Oracle: el slot se llama
-   stretchingContents y es justo lo que se espera de él.
+/* ── the content fills the window ────────────────────────────────────────────────────
+   The shell fills the window and its content region keeps what is left below the
+   header. This is height SCAFFOLDING, not repainting what Oracle paints: the slot is called
+   stretchingContents and this is exactly what is expected of it.
 
-   Antes, la utilidad `oj-web-applayout-page` pedía 100vh POR DEBAJO de una cabecera de
-   50px: la página medía 50px más que la ventana y salía una barra de scroll que no llevaba
-   a ninguna parte. */
+   Before, the `oj-web-applayout-page` utility asked for 100vh BELOW a 50px
+   header: the page was 50px taller than the window and a scrollbar appeared that led
+   nowhere. */
 oj-sp-simple-ui-shell > div:first-of-type {
   display: flex;
   flex-direction: column;
@@ -500,22 +500,22 @@ oj-sp-simple-ui-shell > div:first-of-type > div:not([class*="globalheader"]) > d
   min-height: 0;
 }
 #pageContent.oj-web-applayout-page {
-  /* la utilidad trae min-height:100vh y aquí sobra: la altura la reparte el flex de arriba */
+  /* the utility brings min-height:100vh and it is not wanted here: the flex above shares out the height */
   min-height: 0;
   flex: 1 1 auto;
 }
 
-/* Estirar además la TARJETA del listado hasta abajo (como hace la shell Vaadin de la misma
-   app) se probó y se descartó por ahora: la cadena entre el contenedor de contenido y la
-   tabla la ponen el runtime de VB y el drawer-layout de JET, y tocarla desde fuera descoloca
-   la tarjeta. Queda anotado en DESIGN-NOTES; el hueco que queda bajo el listado es lienzo,
-   no un corte. */
+/* Also stretching the listing CARD to the bottom (as the Vaadin shell of the same
+   app does) was tried and discarded for now: the chain between the content container and the
+   table is set by the VB runtime and JET's drawer-layout, and touching it from outside misplaces
+   the card. Noted in DESIGN-NOTES; the gap left below the listing is canvas,
+   not a cut. */
 
-/* Widgets de cabecera del App (WidgetSupplier) en la zona de acciones del global-header. Su HTML
-   viene del servidor escrito para cualquier renderer: los enlaces toman el color del header (claro,
-   por oj-color-invert) en vez del azul de enlace, y las variables que el header web expone para
-   pantalla ancha/estrecha (--mateu-header-wide-only / -narrow-only: el badge enseña "Inbox (n)" o
-   solo "n") y el rojo de "urgente" (--lumo-error-color) se definen aquí con valores Redwood. */
+/* App header widgets (WidgetSupplier) in the global-header actions zone. Their HTML
+   comes from the server written for any renderer: links take the header colour (light,
+   via oj-color-invert) instead of link blue, and the variables the web header exposes for
+   wide/narrow screens (--mateu-header-wide-only / -narrow-only: the badge shows "Inbox (n)" or
+   just "n") and the "urgent" red (--lumo-error-color) are defined here with Redwood values. */
 .mateu-header-widgets {
   --mateu-header-wide-only: inline;
   --mateu-header-narrow-only: none;
@@ -543,18 +543,18 @@ oj-sp-simple-ui-shell > div:first-of-type > div:not([class*="globalheader"]) > d
   outline: 1px dotted currentColor;
   outline-offset: 2px;
 }
-/* el icono traducido de <vaadin-icon>: glifo de la fuente Redwood, del tamaño del texto */
+/* the translated <vaadin-icon> icon: a Redwood font glyph, the size of the text */
 .mateu-widget-icon {
   display: inline-block;
   font-size: 1.25em;
   line-height: 1;
 }
 
-/* Con widgets en la cabecera, la navegación de primer nivel (MENU_ON_TOP) y la zona de acciones
-   compiten por el ancho: el slot start no encogía (min-width:auto = su contenido) y en una consola
-   con muchas secciones, o en pantalla estrecha, empujaba el badge, el usuario y el home FUERA de la
-   pantalla, con scroll horizontal de toda la página. Encoge la navegación (se desplaza en su sitio,
-   sin barra visible); la zona de acciones y el área de perfil no encogen nunca. */
+/* With widgets on the header, the top-level navigation (MENU_ON_TOP) and the actions zone
+   compete for width: the start slot did not shrink (min-width:auto = its content) and in a console
+   with many sections, or on a narrow screen, it pushed the badge, the user and home OFF the
+   screen, with horizontal scrolling of the whole page. The navigation shrinks (it scrolls in place,
+   with no visible bar); the actions zone and the profile area never shrink. */
 oj-sp-global-header [id$='_GHStartSlot'] {
   min-width: 0;
   overflow-x: auto;
@@ -568,13 +568,13 @@ oj-sp-global-header .oj-sp-global-header-panel-container > div:last-child {
   flex-shrink: 0;
 }
 
-/* Las SUGERENCIAS de filtro de la cabecera del buscador (smart-filters) son sólo el nombre del
-   filtro: su valor se elige en el popup. Un rango necesita llevar {gte,lte} vacíos en la
-   sugerencia (el formulario del popup saca sus campos de esas claves) y el componente, que
-   reconoce el rango, lo pinta como "desde - hasta" formateado: "Llegada -" con los dos a null.
-   Aquí la parte de valor de un chip SIN aplicar no se enseña (Mateu no usa contadores en las
-   sugerencias) y la etiqueta recupera el margen final que el componente sólo le pone cuando no
-   hay valor. Los chips aplicados no cambian. */
+/* The filter SUGGESTIONS of the search header (smart-filters) are only the filter's
+   name: its value is chosen in the popup. A range needs to carry empty {gte,lte} in the
+   suggestion (the popup form takes its fields from those keys) and the component, which
+   recognises the range, paints it as a formatted "from - to": "Llegada -" with both null.
+   Here the value part of an UNAPPLIED chip is not shown (Mateu does not use counters in the
+   suggestions) and the label gets back the end margin the component only gives it when there is
+   no value. Applied chips do not change. */
 oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-applied-value-count-focusable {
   display: none;
 }
@@ -582,12 +582,12 @@ oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-
   padding-inline-end: var(--oj-core-spacing-2x, 0.5rem);
 }
 
-/* ── FAB de "ask" del shell con la marca del App (@App(askIcon)) ──────────────────────────
-   Por defecto lleva el glifo de Ask Oracle (oj-ux-ico-oracle-o) y no necesita nada de aquí. Con
-   una inicial o una imagen, bridge.brandAskFab quita el glifo y mete la marca dentro del mismo
-   div del shell (el que dimensionan sus clases oj-sp-ux-icon-size-*): la inicial en blanco sobre
-   el fondo del FAB, como el glifo; la imagen (un logo suele ser de color sobre transparente, y
-   sobre el fondo del FAB se perdería) en un círculo blanco. */
+/* ── The shell's "ask" FAB with the App's brand (@App(askIcon)) ──────────────────────────
+   By default it carries the Ask Oracle glyph (oj-ux-ico-oracle-o) and needs nothing from here. With
+   an initial or an image, bridge.brandAskFab removes the glyph and puts the brand inside the same
+   shell div (the one sized by its oj-sp-ux-icon-size-* classes): the initial in white on
+   the FAB background, like the glyph; the image (a logo is usually colour on transparent, and
+   would get lost on the FAB background) in a white circle. */
 .oj-sp-rw-chat-icon-image.mateu-ask-fab-branded {
   display: flex;
   align-items: center;
@@ -615,11 +615,11 @@ oj-sp-smart-filter-search .oj-sp-filter-chip-non-applied .oj-sp-filter-chip-non-
   }
 }
 
-/* ── Chat del agente: botón en la cabecera + drawer izquierdo ──────────────────────────
-   El botón (oj-ux-ico-chat, sólo icono) está en las acciones de la cabecera global, antes de
-   los widgets del App. Sobre la cabecera OSCURA sus estados son el mismo velo blanco que los del
-   menú superior; mientras el panel está abierto (mateu-chat-open) lleva el velo de
-   «seleccionado» y una raya blanca abajo, que dice qué abrió el panel de la izquierda. */
+/* ── Agent chat: button on the header + left drawer ──────────────────────────
+   The button (oj-ux-ico-chat, icon only) is in the global header's actions, before
+   the App widgets. On the DARK header its states are the same white veil as those of the
+   top menu; while the panel is open (mateu-chat-open) it carries the
+   «selected» veil and a white line at the bottom, which says what opened the left panel. */
 oj-sp-global-header oj-button.mateu-chat-toggle {
   --oj-core-bg-color-hover: rgb(255 255 255 / 0.10);
   --oj-core-bg-color-active: rgb(255 255 255 / 0.22);
@@ -632,13 +632,13 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   box-shadow: inset 0 -2px 0 var(--oj-core-text-color-inverse, #fff);
 }
 
-/* El panel del drawer (start de oj-drawer-layout). Pegado arriba mientras la página hace
-   scroll (el documento es quien hace scroll y la cabecera global se va con él): así la
-   conversación y el campo de escribir están siempre a la vista. Lo pegajoso es el envoltorio
-   reflow que pone JET y no el panel: ese envoltorio tiene overflow:auto (recorta la animación
-   de abrir/cerrar) y un sticky DENTRO de él se pegaría a él, no a la página. Su alto descuenta
-   la cabecera (50px) y, si hay barra de pestañas fija, sus 64px: el campo de escribir nunca
-   queda debajo. */
+/* The drawer panel (start of oj-drawer-layout). Stuck to the top while the page
+   scrolls (the document is what scrolls and the global header goes with it): that way the
+   conversation and the input field are always in view. What is sticky is the reflow
+   wrapper JET adds and not the panel: that wrapper has overflow:auto (it clips the open/close
+   animation) and a sticky INSIDE it would stick to it, not to the page. Its height subtracts
+   the header (50px) and, if there is a fixed tab bar, its 64px: the input field never
+   ends up below. */
 #mateuChatDrawer > .oj-drawer-reflow-wrapper.oj-drawer-start {
   position: sticky;
   top: 0;
@@ -677,22 +677,22 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   overflow-wrap: anywhere;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
 }
-/* lo que escribe la persona conserva sus saltos de línea; la respuesta del asistente es markdown */
+/* what the person types keeps its line breaks; the assistant's answer is markdown */
 .mateu-chat-user-text {
   white-space: pre-wrap;
 }
-/* el markdown del asistente dentro de la burbuja: los márgenes del navegador, apretados a una
-   burbuja (sin margen antes del primer bloque ni después del último), y las tablas y el código con
-   los colores del tema */
-/* el panel hereda white-space: pre-wrap: los saltos que VB deja alrededor del HTML del markdown
-   pintaban una línea vacía encima y debajo de cada respuesta. Los saltos del texto ya son <br>. */
+/* the assistant's markdown inside the bubble: the browser margins, tightened to a
+   bubble (no margin before the first block or after the last), and tables and code with
+   the theme colours */
+/* the panel inherits white-space: pre-wrap: the line breaks VB leaves around the markdown HTML
+   painted an empty line above and below every answer. The text's line breaks are already <br>. */
 .mateu-chat-markdown { white-space: normal; }
 .mateu-chat-markdown pre { white-space: pre; }
 .mateu-chat-markdown > :first-child { margin-top: 0; }
 .mateu-chat-markdown > :last-child { margin-bottom: 0; }
 .mateu-chat-markdown :is(p, ul, ol, pre, table, blockquote, h3, h4, h5, h6) { margin-block: 0.5em; }
 .mateu-chat-markdown :is(ul, ol) { padding-inline-start: 1.4em; }
-/* una tabla ancha se desplaza dentro de la burbuja en vez de partir cada palabra letra a letra */
+/* a wide table scrolls inside the bubble instead of breaking every word letter by letter */
 .mateu-chat-markdown table { border-collapse: collapse; display: block; max-width: 100%; overflow-x: auto; }
 .mateu-chat-markdown :is(th, td) {
   border: 1px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
@@ -711,11 +711,11 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   border-inline-start: 3px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
 }
 
-/* Modo ancho del panel (el ⤢ del chat web): ~60% del viewport, la página sigue al lado (reflow). */
+/* Wide panel mode (the web chat's ⤢): ~60% of the viewport, the page stays beside it (reflow). */
 .mateu-chat-panel.mateu-chat-wide {
   width: 60vw;
 }
-/* Las herramientas del turno en curso, bajo la respuesta: compactas y en gris; la que falla, en rojo. */
+/* The tools of the turn in progress, under the answer: compact and grey; the one that fails, in red. */
 .mateu-chat-steps {
   list-style: none;
   margin: 0 0 0.75rem;
@@ -738,9 +738,9 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   max-width: 220px;
 }
 
-/* En estrecho oj-drawer-layout pasa el drawer a OVERLAY: a todo el ancho, bajo la cabecera
-   (la capa del overlay tapa también el FAB de Ask Oracle). Se cierra con el mismo botón de la
-   cabecera, con la ✕ del panel o con Escape. */
+/* When narrow, oj-drawer-layout turns the drawer into an OVERLAY: full width, below the header
+   (the overlay layer also covers the Ask Oracle FAB). It closes with the same header
+   button, with the panel's ✕ or with Escape. */
 @media (max-width: 1023px) {
   .mateu-chat-panel,
   .mateu-chat-panel.mateu-chat-wide {
@@ -748,8 +748,8 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   }
 }
 
-/* EDITOR DE FILA (oj-dialog de una lista modal): ancho de formulario de dos columnas; en
-   anchos estrechos, a pantalla completa (pauta Redwood para diálogos con formulario en móvil). */
+/* ROW EDITOR (oj-dialog of a modal list): two-column form width; on
+   narrow widths, full screen (Redwood guideline for dialogs with a form on mobile). */
 #mateuRowEditor {
   width: 46rem;
   max-width: calc(100vw - 2rem);
@@ -767,15 +767,15 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   }
 }
 
-/* SECCIONES de un formulario (@Section → bridge.formSectionsOf): cada una con su título y su
-   oj-form-layout; el aire entre ellas separa los grupos como en Vaadin. */
+/* Form SECTIONS (@Section → bridge.formSectionsOf): each with its title and its
+   oj-form-layout; the air between them separates the groups as in Vaadin. */
 .mateu-form-section + .mateu-form-section {
   margin-top: 1.5rem;
 }
 
-/* WIZARD con el tren ARRIBA (@WizardProgress STEPS → mateuWizardStep): en ancho de escritorio
-   el oj-train horizontal; en pantallas estrechas (un tren de 4-5 rótulos no cabe) los mismos
-   pasos en VERTICAL, como lista numerada — ✓ los hechos, resaltado el actual. */
+/* WIZARD with the train ON TOP (@WizardProgress STEPS → mateuWizardStep): on desktop width
+   the horizontal oj-train; on narrow screens (a train of 4-5 labels does not fit) the same
+   steps VERTICALLY, as a numbered list — ✓ the done ones, the current one highlighted. */
 .mateu-wizard-steps {
   display: none;
   list-style: none;
@@ -829,22 +829,22 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   }
 }
 
-/* ── FAB de Ask Oracle: SITIO y TAMAÑO según el formato de la página ───────────────────────────
-   oj-sp-simple-ui-shell lo ancla a SU columna de 1392px centrada (a partir de 1536px, justo fuera de
-   ella) y lo deja de 72px en escritorio y 52px hasta 1023px; en una página a sangre, un cuadrado de
-   44px pegado a la esquina. Nuestra columna fija no es la suya (pageStyleOf: 1408px anclada con
-   max(24px, (100vw - 1536px)/2 + 64px) a la derecha), así que a 1600px el FAB se montaba 8px sobre
-   el contenido y sobresalía 64px por fuera. Aquí se recoloca con el borde derecho del contenido de
-   cada formato —la clase que el propio shell pone en el contenedor del FAB según page-layout, que
-   cambia al navegar— y se escala por punto de ruptura como el `AO` del Figma de RDS: LG (72px)
-   desde 1024px, MD (52px) de 600 a 1023 y SM (44px) en un teléfono. Sólo se tocan la posición y el
-   tamaño; el color, el glifo y los estados son los del shell.
-     fixed      el borde de la columna fija: max(24px, (100vw - 1536px)/2 + 64px)
-     fullWidth  el margen del contenido, el de página de RDS: 24px, 48px desde 1440px
-     edgeToEdge el mismo margen de página (sin centrar en 1536px, sin pegarse a la esquina)
-   En un teléfono los tres se pegan a la esquina, como en el shell. Con la barra inferior de TABS
-   (oj-sp-in-app-navigation) se queda como la pone el shell, en la esquina. El `a.` sube la
-   especificidad: app.css carga ANTES que el CSS del shell y a igualdad ganaría el suyo. */
+/* ── Ask Oracle FAB: PLACE and SIZE according to the page format ───────────────────────────
+   oj-sp-simple-ui-shell anchors it to ITS centred 1392px column (from 1536px, just outside
+   it) and makes it 72px on desktop and 52px up to 1023px; on an edge-to-edge page, a 44px square
+   stuck to the corner. Our fixed column is not its own (pageStyleOf: 1408px anchored with
+   max(24px, (100vw - 1536px)/2 + 64px) on the right), so at 1600px the FAB sat 8px over
+   the content and stuck out 64px outside. Here it is repositioned to the right edge of the content of
+   each format —the class the shell itself puts on the FAB container according to page-layout, which
+   changes on navigation— and scaled per breakpoint like the `AO` in the RDS Figma: LG (72px)
+   from 1024px, MD (52px) from 600 to 1023 and SM (44px) on a phone. Only position and
+   size are touched; colour, glyph and states are the shell's.
+     fixed      the fixed column's edge: max(24px, (100vw - 1536px)/2 + 64px)
+     fullWidth  the content margin, the RDS page one: 24px, 48px from 1440px
+     edgeToEdge the same page margin (not centred at 1536px, not stuck to the corner)
+   On a phone all three stick to the corner, as in the shell. With the bottom TABS bar
+   (oj-sp-in-app-navigation) it stays where the shell puts it, in the corner. The `a.` raises the
+   specificity: app.css loads BEFORE the shell's CSS and on a tie its own would win. */
 oj-sp-simple-ui-shell a.oj-sp-rw-chat-icon-cont {
   --oj-sp-simple-uishell-button-box-size: var(--mateu-ao-size, 72px);
   left: auto;
@@ -877,9 +877,9 @@ oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-
   right: 0;
 }
 
-/* Pie de PAGINACIÓN del listado: el FAB de Ask Oracle / chat (fijo abajo a la derecha, hasta 72px
-   y alineado con el borde del contenido, ver arriba) tapaba "última página" cuando el pie quedaba
-   al fondo del viewport — se le deja su hueco (88px > 72px). */
+/* Listing PAGINATION footer: the Ask Oracle / chat FAB (fixed bottom right, up to 72px
+   and aligned with the content edge, see above) covered "last page" when the footer was
+   at the bottom of the viewport — it is left its gap (88px > 72px). */
 .mateu-listing-paging {
   padding-inline-end: 5.5rem;
   box-sizing: border-box;
@@ -888,13 +888,13 @@ oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-
   white-space: nowrap;
 }
 
-/* PIES de wizard y de página: el mismo FAB (72px, alineado con el borde derecho del contenido)
-   tapaba «Next» del wizard horizontal a 1920×1080 cuando su pie quedaba en la franja de abajo del
-   viewport — y el «Continue» del pie sticky del guided process vive SIEMPRE ahí (bottom: 0). Los
-   botones de un pie se apartan de la columna del FAB (88px > 72px, como el pie de paginación), y
-   el contenido lleva al final un margen del alto del FAB: lo último de cualquier página (un pie
-   de acciones) siempre puede quedar por encima de él al hacer scroll hasta el fondo. En un
-   teléfono el FAB es de 44px y va pegado a la esquina. */
+/* Wizard and page FOOTERS: the same FAB (72px, aligned with the content's right edge)
+   covered the horizontal wizard's «Next» at 1920×1080 when its footer was in the bottom strip of the
+   viewport — and the guided process sticky footer's «Continue» ALWAYS lives there (bottom: 0). The
+   buttons of a footer move away from the FAB column (88px > 72px, like the pagination footer), and
+   the content carries at its end a margin the height of the FAB: the last thing on any page (a footer
+   of actions) can always end up above it when scrolling to the bottom. On a
+   phone the FAB is 44px and stuck to the corner. */
 .mateu-wizard-nav,
 oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   padding-inline-end: 5.5rem;
@@ -916,10 +916,10 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   }
 }
 
-/* FILAS DE VARIAS LÍNEAS (@Line): cada celda de la fila deja debajo el hueco de N líneas
-   (mateu-lines-N) y la columna técnica __rowLines (1px) pinta en él, con position absolute
-   respecto a la FILA (tr position relative), las líneas extra a lo ancho de toda la fila.
-   Cada línea es de una sola línea de texto (elipsis): así el hueco es exacto. */
+/* MULTI-LINE ROWS (@Line): each cell of the row leaves below it the gap of N lines
+   (mateu-lines-N) and the technical column __rowLines (1px) paints in it, with position absolute
+   relative to the ROW (tr position relative), the extra lines across the whole row.
+   Each line is a single line of text (ellipsis): that way the gap is exact. */
 .mateu-multiline-table { --mateu-row-line-h: 1.375rem; }
 .mateu-multiline-table .oj-table-body-row { position: relative; }
 .mateu-multiline-table .oj-table-body-row > td { vertical-align: top; }
@@ -939,12 +939,12 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   left: 0;
   right: 0;
   bottom: 0.375rem;
-  /* alineado con el texto de la primera columna (padding de celda de oj-table) */
+  /* aligned with the text of the first column (oj-table cell padding) */
   padding: 0 1.0625rem;
   box-sizing: border-box;
 }
-/* con casillas de selección la columna del selector (sticky, 36px) va encima: las líneas
-   empiezan después, alineadas con la primera columna de datos */
+/* with selection checkboxes the selector column (sticky, 36px) goes on top: the lines
+   start after it, aligned with the first data column */
 .mateu-multiline-table.oj-table-multiple-row-selection .mateu-row-lines {
   left: 2.25rem;
 }
@@ -959,8 +959,8 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   margin-inline-end: 1.5rem;
 }
 
-/* Columna principal del listado (@PrimaryColumn): imagen redonda delante (la bandera del huésped)
-   + título y caption apilados. */
+/* Listing main column (@PrimaryColumn): round image in front (the guest's flag)
+   + title and caption stacked. */
 .mateu-primary-cell {
   display: inline-flex;
   align-items: center;
@@ -978,9 +978,9 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   flex-direction: column;
 }
 
-/* Columna de ANCHO FIJO del listado (@ColumnWidth: width + flexGrow 0 en el wire): oj-table fija
-   el ancho de la columna y el texto se corta con elipsis en una línea — entero en el title
-   (tooltipPath), como el gridRenderer de Vaadin. */
+/* Listing FIXED-WIDTH column (@ColumnWidth: width + flexGrow 0 on the wire): oj-table fixes
+   the column width and the text is cut with an ellipsis on one line — in full in the title
+   (tooltipPath), like Vaadin's gridRenderer. */
 .mateu-cell-clip {
   display: block;
   max-width: 100%;
@@ -989,9 +989,9 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   white-space: nowrap;
 }
 
-/* Un Element del servidor (HTML: p.ej. la tabla «In other systems» de una reserva) dentro de un
-   panel de detalle: los valores largos (enlaces, ids de Salesforce) parten la línea en vez de
-   ensanchar el panel o pedir scroll. */
+/* A server Element (HTML: e.g. a booking's «In other systems» table) inside a
+   detail panel: long values (links, Salesforce ids) break the line instead of
+   widening the panel or asking for scroll. */
 .mateu-element {
   overflow-wrap: anywhere;
   max-width: 100%;
@@ -1000,7 +1000,7 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   max-width: 100%;
 }
 
-/* @Searchable: los ids como chips (con ✕) y el botón que abre su selector */
+/* @Searchable: the ids as chips (with ✕) and the button that opens their selector */
 .mateu-searchable {
   display: flex;
   flex-wrap: wrap;
@@ -1023,7 +1023,7 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   --oj-button-height: 1.5rem;
   --oj-button-icon-size: 1rem;
 }
-/* el selector: ancho de listado, alto acotado (la tabla hace scroll) */
+/* the selector: listing width, bounded height (the table scrolls) */
 #mateuPicker {
   width: min(48rem, 92vw);
   max-width: 92vw;
@@ -1037,7 +1037,7 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   width: 100%;
 }
 
-/* obligatorio vacío en un campo que no es un componente JET (bridge.showFieldErrors) */
+/* required and empty on a field that is not a JET component (bridge.showFieldErrors) */
 .mateu-field-error {
   border-left: 2px solid rgb(var(--oj-palette-danger-rgb-100, 179 31 48));
   padding-left: 0.5rem;
@@ -1049,14 +1049,14 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   color: rgb(var(--oj-palette-danger-rgb-100, 179 31 48));
 }
 
-/* ── SUBCABECERA (MENU_ON_TOP) ─────────────────────────────────────────────────────────────
-   La banda 2 bajo la cabecera oscura, la del renderer web (mateu-app .mateu-app-band2): fondo de
-   contenido, texto en el color del cuerpo, el título de la consola y después el menú. Es navegación,
-   no una fila de enlaces: las opciones van en color de texto y la sección en pantalla se marca con
-   un subrayado de 2px — el indicador de una pestaña seleccionada, sin relleno.
-   Sin acento de marca: @App(accentColor) es cosa del renderer web. En Redwood la banda va con los
-   tokens neutros del tema (fondo de contenido, texto primario, separador), como cualquier banda
-   oj-sp: un título o una línea en el rojo de la marca desentonan con el resto de la página. */
+/* ── SUBHEADER (MENU_ON_TOP) ─────────────────────────────────────────────────────────────
+   Band 2 under the dark header, the web renderer's one (mateu-app .mateu-app-band2): content
+   background, text in the body colour, the console title and then the menu. It is navigation,
+   not a row of links: the options are in text colour and the section on screen is marked with
+   a 2px underline — the indicator of a selected tab, with no fill.
+   No brand accent: @App(accentColor) is the web renderer's business. In Redwood the band uses the
+   theme's neutral tokens (content background, primary text, separator), like any oj-sp
+   band: a title or a line in the brand red clashes with the rest of the page. */
 .mateu-subheader {
   display: flex;
   align-items: center;
@@ -1092,7 +1092,7 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   outline: 1px dotted currentColor;
   outline-offset: 2px;
 }
-/* las opciones encogen y se desplazan en su sitio (sin barra visible) antes que empujar la banda */
+/* the options shrink and scroll in place (no visible bar) rather than pushing the band */
 .mateu-subheader-menu {
   display: flex;
   align-items: center;
@@ -1116,14 +1116,14 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   box-shadow: inset 0 -2px 0 0 var(--oj-core-text-color-primary, #161513);
   border-radius: var(--oj-core-border-radius-md, 6px) var(--oj-core-border-radius-md, 6px) 0 0;
 }
-/* el título arranca en el mismo borde que el contenido de la página: el margen de las páginas
-   Redwood (oj-sp) es 24px, 48px desde 1440px y 16px en un teléfono */
+/* the title starts at the same edge as the page content: the margin of Redwood (oj-sp)
+   pages is 24px, 48px from 1440px and 16px on a phone */
 @media (min-width: 1440px) {
   .mateu-subheader { --mateu-subheader-gutter: 3rem; }
 }
-/* Sin contenido (HAMBURGER_SECTIONS en la home) la banda se PLIEGA: alto 0, sin borde e invisible
-   —fuera también del árbol de accesibilidad—. Aparece y desaparece con una transición corta de
-   alto y opacidad; con prefers-reduced-motion, de golpe. */
+/* With no content (HAMBURGER_SECTIONS on the home) the band COLLAPSES: height 0, no border and invisible
+   —also out of the accessibility tree—. It appears and disappears with a short transition of
+   height and opacity; with prefers-reduced-motion, at once. */
 .mateu-subheader {
   overflow: hidden;
   transition: height 200ms ease, opacity 200ms ease, border-bottom-color 200ms ease, visibility 0s linear 0s;
@@ -1142,12 +1142,12 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   }
 }
 
-/* ── HAMBURGER_SECTIONS: el menú de secciones FLOTA sobre la aplicación ──────────────────────
-   Otro nivel por encima de la subcabecera y del contenido, que no se mueven: un panel de 280px (el
-   ancho del navigation drawer de RDS) pegado a la izquierda bajo la cabecera global, con la
-   elevación de un drawer, y un velo detrás que cierra al pulsarlo. Entra deslizándose desde la
-   izquierda; con prefers-reduced-motion, aparece sin más. --mateu-sections-top lo fija
-   toggleMateuNavDrawer al borde inferior de la cabecera. */
+/* ── HAMBURGER_SECTIONS: the sections menu FLOATS over the application ──────────────────────
+   One more level above the subheader and the content, which do not move: a 280px panel (the
+   width of the RDS navigation drawer) stuck to the left under the global header, with the
+   elevation of a drawer, and a veil behind it that closes when clicked. It slides in from the
+   left; with prefers-reduced-motion, it just appears. --mateu-sections-top is set by
+   toggleMateuNavDrawer to the bottom edge of the header. */
 .mateu-sections-scrim {
   position: fixed;
   inset: var(--mateu-sections-top, 50px) 0 0 0;
@@ -1192,12 +1192,12 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
     transition: none;
   }
 }
-/* la hamburguesa, a la izquierda del todo: el borde del contenido, no el del logo */
+/* the hamburger, all the way to the left: the content's edge, not the logo's */
 .mateu-hamburger {
   margin-inline-start: calc(-1 * var(--oj-core-spacing-2x, 0.5rem));
 }
 
-/* el drawer del chat mide el alto que deja la cabecera: con la banda, también el de la banda */
+/* the chat drawer measures the height the header leaves: with the band, the band's too */
 body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   height: calc(100vh - 50px - 2.75rem);
 }
@@ -1206,9 +1206,9 @@ body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   .mateu-subheader-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 }
 
-/* Editor de fila: un campo de sólo lectura todavía vacío (la «Line» y el «Total» de una
-   habitación nueva) es su rótulo y «—», con la tipografía del rótulo y del valor de un campo
-   readonly de JET (label arriba), sin caja ni foco. */
+/* Row editor: a read-only field that is still empty (the «Line» and the «Total» of a
+   new room) is its label and «—», with the typography of the label and value of a JET
+   readonly field (label on top), with no box or focus. */
 .mateu-readonly-empty {
   display: flex;
   flex-direction: column;
@@ -1224,8 +1224,8 @@ body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   color: var(--oj-core-text-color-secondary, #6f6c6b);
 }
 
-/* ── campos de captura (fichero, imagen, firma, cámara): mateu-capture-field, poc/inputs.mjs ──
-   JET no trae componente para esto; el marco y la previsualización usan los tokens de Redwood */
+/* ── capture fields (file, image, signature, camera): mateu-capture-field, poc/inputs.mjs ──
+   JET has no component for this; the frame and the preview use the Redwood tokens */
 mateu-capture-field { display: block; }
 .mateu-capture-box {
   display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem;
@@ -1242,7 +1242,7 @@ mateu-capture-field { display: block; }
   border-radius: var(--oj-core-border-radius-md, 6px);
 }
 
-/* ── menú de tarjetas (@Menu(display = cards)): rejilla de oj-action-card en un oj-popup ── */
+/* ── card menu (@Menu(display = cards)): a grid of oj-action-card in an oj-popup ── */
 .mateu-card-popup .mateu-card-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.5rem;
   width: min(44rem, calc(100vw - 2rem)); padding: 0.75rem; box-sizing: border-box;
@@ -1261,7 +1261,7 @@ oj-gantt.mateu-planning { width: 100%; height: 34rem; }
   background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;
 }
 
-/* ── tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table: poc/tables.mjs ── */
+/* ── row tones (@RowStatus) and group rows (@GroupBy) of the oj-table: poc/tables.mjs ── */
 #mateuTable tr.mateu-row-tone-success > td { background: rgba(80, 130, 50, .09); }
 #mateuTable tr.mateu-row-tone-warning > td { background: rgba(250, 195, 70, .18); }
 #mateuTable tr.mateu-row-tone-danger > td { background: rgba(200, 60, 40, .10); }
@@ -1274,14 +1274,14 @@ oj-gantt.mateu-planning { width: 100%; height: 34rem; }
 #mateuTable tr.mateu-row-tone-group > td {
   background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .05)); font-weight: 600; cursor: default;
 }
-/* una fila de grupo es sólo presentación: sin casilla de selección */
+/* a group row is presentation only: no selection checkbox */
 #mateuTable tr.mateu-row-tone-group oj-selector, #mateuTable tr.mateu-row-tone-group .oj-selectorbox { visibility: hidden; }
 
-/* ── paneles plegables (AccordionPanel / Details → oj-collapsible): separador como el acordeón Redwood ── */
+/* ── collapsible panels (AccordionPanel / Details → oj-collapsible): separator like the Redwood accordion ── */
 oj-collapsible.mateu-collapsible { display: block; border-top: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); margin-top: .5rem; }
 oj-collapsible.mateu-collapsible h3 { margin: 0; }
 
-/* ── cabecera de FICHA fija al hacer scroll (business card): bandClass + installStickyHeader ── */
+/* ── RECORD header pinned on scroll (business card): bandClass + installStickyHeader ── */
 .mateu-sticky-header { position: sticky; top: 0; z-index: 20; transition: padding .15s ease, box-shadow .15s ease; }
 body.mateu-scrolled .mateu-sticky-header { padding-bottom: 0 !important; box-shadow: 0 2px 8px rgba(22, 21, 19, .12); }
 body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-outer-padding-vertical { padding-top: .5rem; padding-bottom: .5rem; }
@@ -1296,13 +1296,13 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
    it over the shell's bottom navigation bar.) */
 body:not(.mateu-scrolled) .mateu-sticky-header { z-index: auto; }
 body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-container { position: relative; }
-/* el oj-drawer-layout de la shell pone overflow:auto en contenedores que NO desplazan (desplaza la
-   ventana): sticky se ata a ellos y nunca se activa. clip no crea contenedor de scroll; sólo en
-   una página con cabecera fija */
+/* the shell's oj-drawer-layout sets overflow:auto on containers that do NOT scroll (the window
+   scrolls): sticky binds to them and never kicks in. clip creates no scroll container; only on
+   a page with a pinned header */
 .oj-drawer-layout-main-content:has(.mateu-sticky-header),
 .oj-drawer-layout-middle-section:has(.mateu-sticky-header) { overflow: clip; }
 
-/* ── ActionPanel («I want to…»): columnas por categoría dentro de un oj-dialog ── */
+/* ── ActionPanel («I want to…»): columns per category inside an oj-dialog ── */
 .mateu-ap-dialog { width: min(64rem, calc(100vw - 2rem)); max-width: none; }
 .mateu-ap-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.5rem 1.5rem; }
 .mateu-ap-column { display: flex; flex-direction: column; align-items: flex-start; }
@@ -1314,12 +1314,12 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 .mateu-ap-hide-unpopulated .mateu-ap-unpopulated,
 .mateu-ap-hide-unpopulated .mateu-ap-column-unpopulated { display: none; }
 
-/* ── MatrixGrid (oj-data-grid): tonos de celda/columna, filas destacadas, celdas que enlazan ── */
+/* ── MatrixGrid (oj-data-grid): cell/column tones, highlighted rows, cells that link ── */
 .mateu-matrix .mateu-matrix-info { background-color: rgba(0, 110, 200, 0.08); }
 .mateu-matrix .mateu-matrix-success { background-color: rgba(30, 140, 60, 0.10); }
 .mateu-matrix .mateu-matrix-warning { background-color: rgba(220, 140, 0, 0.16); }
 .mateu-matrix .mateu-matrix-danger { background-color: rgba(200, 40, 30, 0.10); color: #b3261e; }
-/* (las variables --oj-core-neutral-N de Redwood son grises medios: tinte explícito y suave) */
+/* (Redwood's --oj-core-neutral-N variables are mid greys: an explicit, soft tint) */
 .mateu-matrix .mateu-matrix-neutral { background-color: rgba(0, 0, 0, 0.035); }
 .mateu-matrix .mateu-matrix-emphasis { font-weight: 700; }
 .mateu-matrix .mateu-matrix-section-cell { background-color: rgba(0, 0, 0, 0.02); }
@@ -1332,7 +1332,7 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 .mateu-trend-up { color: var(--oj-core-success-3, #2e7d32); }
 .mateu-trend-down { color: var(--oj-core-danger-3, #b3261e); }
 
-/* ── Calendar (JET no trae calendario: rejilla con los tokens de Redwood) ── */
+/* ── Calendar (JET has no calendar: a grid with the Redwood tokens) ── */
 .mateu-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
 .mateu-cal .mateu-cal-title, .mateu-cal .mateu-cal-view { display: none; }
 .mateu-cal[data-cal-shown="month"] [data-for="month"], .mateu-cal[data-cal-shown="week"] [data-for="week"],
@@ -1371,19 +1371,19 @@ body:not(.mateu-scrolled) .mateu-sticky-header ~ .oj-sp-public-primary-content-c
 .mateu-cal-danger .mateu-cal-label { color: #b3261e; }
 .mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }
 
-/* ── Campana de la bandeja ── */
+/* ── Inbox bell ── */
 .mateu-bell { position: relative; display: inline-flex; }
 .mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
 .mateu-bell-panel { width: 22rem; max-width: 90vw; }
 .mateu-bell-list { max-height: 24rem; }
 .mateu-undo-button { margin-top: 0.25rem; }
 
-/* ── Teclas de acceso (@App(accessKeys)): la capa que aparece al mantener Alt ── */
+/* ── Access keys (@App(accessKeys)): the layer that appears while holding Alt ── */
 .mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
 .mateu-access-key { position: absolute; padding: 0 0.3rem; border-radius: 3px; font: 600 0.7rem/1.2rem var(--oj-typography-font-family, sans-serif);
   background: #fcd34d; color: #161513; box-shadow: 0 1px 3px rgba(0,0,0,.35); text-transform: none; }
 
-/* ── Ventana flotante (hover.mjs) y disparador de Popover ── */
+/* ── Floating window (hover.mjs) and Popover trigger ── */
 .mateu-hover-content { padding: 0.5rem 0.75rem; max-width: 22rem; font-size: 0.875rem; line-height: 1.4; }
 .mateu-pop-trigger { display: inline-block; cursor: help; border-bottom: 1px dotted currentColor; }
 /* the trigger is a real <button> (keyboard for free); it keeps the look of inline text */
@@ -1391,16 +1391,16 @@ button.mateu-pop-trigger { background: none; border-top: 0; border-left: 0; bord
 .mateu-pop-trigger[data-mateu-pop-click]:not([data-mateu-pop-click=""]) { cursor: pointer; color: var(--oj-core-link-text-color, #227e9e); }
 [data-mateu-hover]:not([data-mateu-hover=""]) { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
 
-/* ── DropZone (@DragRows → soltar aquí) ── */
+/* ── DropZone (@DragRows → drop here) ── */
 .mateu-drop-zone { border: 1px solid var(--oj-core-divider-color, #e5e1dc); transition: border-color .15s, background-color .15s; }
 .mateu-drop-zone .mateu-drop-hint { display: none; margin-top: 0.5rem; }
 .mateu-drop-zone.mateu-drop-ready { border: 2px dashed var(--oj-core-focus-border-color, #227e9e); }
 .mateu-drop-zone.mateu-drop-ready .mateu-drop-hint { display: block; }
 .mateu-drop-zone.mateu-drop-over { background-color: rgba(34, 126, 158, 0.10); }
 
-/* Image / galería (P2 #20): JET no tiene componente de imagen; el <img> nunca desborda su
-   contenedor. La galería es un oj-film-strip, que necesita items de tamaño FIJO (con un ancho en
-   % los mide a 0 y se queda sin páginas: "Invalid 'page' set: 0"); pagina tantas como quepan. */
+/* Image / gallery (P2 #20): JET has no image component; the <img> never overflows its
+   container. The gallery is an oj-film-strip, which needs FIXED-size items (with a width in
+   % it measures them at 0 and ends up with no pages: "Invalid 'page' set: 0"); it pages as many as fit. */
 .mateu-atom-image {
   display: block;
   max-width: 100%;
@@ -1417,15 +1417,15 @@ button.mateu-pop-trigger { background: none; border-top: 0; border-left: 0; bord
   border-radius: var(--oj-core-border-radius-lg, 6px);
 }
 
-/* Tiles reordenables (P2 #22, ResponsiveGrid.reorderable): se arrastran por su bloque; el destino
-   se marca mientras pasa uno por encima. */
+/* Reorderable tiles (P2 #22, ResponsiveGrid.reorderable): dragged by their block; the target
+   is marked while one passes over it. */
 [data-mateu-tile] { cursor: grab; }
 [data-mateu-tile]:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #0572ce); outline-offset: 2px; }
 .mateu-tile-dragging { opacity: .5; }
 .mateu-tile-over > * { outline: 2px dashed var(--oj-core-border-color-brand, #227e9e); outline-offset: 2px; }
 
-/* Texto enriquecido (P2 #23): el HTML saneado de un richText/html/markdown con la tipografía de
-   Redwood — márgenes contenidos, listas sangradas, código y citas con los tokens del tema. */
+/* Rich text (P2 #23): the sanitised HTML of a richText/html/markdown with Redwood's
+   typography — contained margins, indented lists, code and quotes with the theme tokens. */
 .mateu-atom-richtext > :first-child { margin-top: 0; }
 .mateu-atom-richtext > :last-child { margin-bottom: 0; }
 .mateu-atom-richtext p, .mateu-atom-richtext ul, .mateu-atom-richtext ol, .mateu-atom-richtext pre,

@@ -1,7 +1,7 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
-// Un aviso en la banda de mensajes del shell (Actions.fireNotificationEvent). Los transitorios se
-// retiran solos a los 5 segundos; el resto, cuando el usuario los cierra (closeMessageBanner).
+// A notice in the shell's message band (Actions.fireNotificationEvent). The transient ones
+// go away by themselves after 5 seconds; the rest, when the user closes them (closeMessageBanner).
 define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
@@ -19,7 +19,7 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
         add: {
           data: {
             id,
-            // la banda distingue general-success / general-error / general-warning / general-info
+            // the band distinguishes general-success / general-error / general-warning / general-info
             messageType: 'general-' + (event.type === 'confirmation' ? 'success' : event.type),
             primaryText: event.summary,
             secondaryText: event.message,

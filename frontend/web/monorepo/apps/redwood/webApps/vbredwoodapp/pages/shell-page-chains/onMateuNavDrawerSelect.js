@@ -1,6 +1,6 @@
-/* Selección en el oj-navigation-list del navigator-drawer: un GRUPO solo se expande
- * (colapsable — no navega: su ruta compuesta no resuelve); una hoja navega y cierra
- * el drawer. Guarda updatedFrom internal contra el eco del set inicial. */
+/* Selection in the navigator-drawer's oj-navigation-list: a GROUP only expands
+ * (collapsible — it does not navigate: its composed route does not resolve); a leaf navigates and closes
+ * the drawer. Guards updatedFrom internal against the echo of the initial set. */
 
 define([
   'vb/action/actionChain',
@@ -29,20 +29,20 @@ define([
       if (!route) {
         return;
       }
-      // el grupo puede estar a CUALQUIER profundidad: una shell federada trae tres niveles
-      // (grupo de la shell → grupo del pod → sus pantallas)
+      // the group may be at ANY depth: a federated shell brings three levels
+      // (shell group → pod group → its screens)
       const isGroup = (nodes) => (nodes || []).some((entry) => (
         (entry.id === route && entry.hasChildren) || isGroup(entry.children)));
       if (isGroup($application.variables.mateuMenuTree || [])) {
-        return; // el clic en el grupo solo expande/colapsa
+        return; // the click on the group only expands/collapses
       }
-      // el navigator es PERSISTENTE: navegar no lo cierra
+      // the navigator is PERSISTENT: navigating does not close it
       await Actions.callChain(context, {
         chain: 'onMateuNavigate',
         params: { event: { detail: { currentId: route } } },
       });
-      // …salvo con HAMBURGER_SECTIONS: la hamburguesa es para saltar de sección, y una vez elegida
-      // se cierra (como en Opera); dentro de la sección se navega por la subcabecera
+      // …except with HAMBURGER_SECTIONS: the hamburger is for jumping between sections, and once one is chosen
+      // it closes (as in Opera); inside the section you navigate through the subheader
       if ($application.variables.mateuMenuSections) {
         await Actions.callChain(context, { chain: 'toggleMateuNavDrawer', params: { open: false } });
       }

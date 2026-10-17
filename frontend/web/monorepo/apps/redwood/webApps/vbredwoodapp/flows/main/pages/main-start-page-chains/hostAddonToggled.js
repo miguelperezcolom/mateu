@@ -1,6 +1,6 @@
-/* AddOnPicker en contenido del HOST (p.ej. el paso Extras del wizard standalone): mismo
- * contrato que el renderer web — actionId con {_item, _added, _total} donde _total es la
- * suma cliente tras el toggle. El picker se busca en el contenido del wizard o del host. */
+/* AddOnPicker in HOST content (e.g. the Extras step of the standalone wizard): same
+ * contract as the web renderer — actionId with {_item, _added, _total} where _total is the
+ * client-side sum after the toggle. The picker is looked up in the wizard's or the host's content. */
 
 define([
   'vb/action/actionChain',
@@ -16,8 +16,8 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event   value-changed del oj-switch de la fila
-     * @param {string} params.itemId  id del extra
+     * @param {Object} params.event   value-changed of the row's oj-switch
+     * @param {string} params.itemId  id of the extra
      */
     async run(context, { event, itemId }) {
       const { $application } = context;
@@ -26,7 +26,7 @@ define([
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
         return;
       }
-      // OJO: [] es truthy — elegir por LONGITUD (en la 360 el wizardContent está vacío)
+      // CAREFUL: [] is truthy — choose by LENGTH (in the 360 the wizardContent is empty)
       const wizardBlocks = $application.variables.mateuWizardContent || [];
       const blocks = wizardBlocks.length
         ? wizardBlocks

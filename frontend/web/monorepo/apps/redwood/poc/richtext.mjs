@@ -1,15 +1,15 @@
 import { chromeText } from './i18n.mjs'
-// TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
-// Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
-// HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
-// por LISTA BLANCA (etiquetas de texto; de atributos sólo el href de un enlace con esquema
-// seguro): nada de scripts, estilos, manejadores ni iframes. JET no tiene editor de texto
-// enriquecido: editar un richText es un oj-text-area con su HTML (limitación declarada).
+// RICH TEXT (P2 #23): a read-only richText/html/markdown field and the Markdown
+// component are painted WITH formatting. VB does not stamp HTML from a binding, so the atom carries the
+// ALREADY SANITISED HTML in data-mateu-html and installRichText dumps it into its container. Sanitising is
+// by ALLOWLIST (text tags; of attributes only a link's href with a safe
+// scheme): no scripts, styles, handlers or iframes. JET has no rich text
+// editor: editing a richText is an oj-text-area with its HTML (declared limitation).
 
 const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
   'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
   'tbody', 'tr', 'th', 'td', 'sub', 'sup'])
-// su CONTENIDO también se descarta, no sólo la etiqueta
+// its CONTENT is discarded too, not just the tag
 const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math', 'textarea', 'select'])
 const VOID = new Set(['br', 'hr'])
 const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
@@ -17,7 +17,7 @@ const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
 const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-/** HTML → HTML saneado por lista blanca. */
+/** HTML → HTML sanitised by allowlist. */
 export function sanitizeHtml(html) {
   const out = []
   let skipping = null
@@ -67,8 +67,8 @@ const tableCells = (line) => {
 }
 const isTableSeparator = (line) => /\|/.test(line) && tableCells(line).every((c) => /^:?-{1,}:?$/.test(c))
 
-/** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
- *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
+/** Markdown → HTML (sanitised): headings, paragraphs, lists, quotes, code, and inline bold,
+ *  italics, code and links. Whatever it does not recognise stays as text. */
 export function markdownToHtml(md) {
   // HTML written inside the Markdown (an allowed tag: <b>, <br>, <span>…) is kept — the final
   // sanitizeHtml pass drops what is not on the list and every attribute but a safe href
@@ -387,7 +387,7 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
   win.customElements.define('mateu-rich-text-field', MateuRichTextField)
 }
 
-/** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
+/** Dumps the sanitised HTML of each [data-mateu-html] into its container (and when it changes). */
 export function installRichText(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuRichText || typeof MutationObserver === 'undefined') return
   doc.__mateuRichText = true
@@ -395,7 +395,7 @@ export function installRichText(doc = typeof document !== 'undefined' ? document
     const html = el.getAttribute('data-mateu-html') || ''
     if (el.__mateuHtml === html) return
     el.__mateuHtml = html
-    // el valor ya viene saneado del bridge; se vuelve a sanear aquí por si alguien escribe el atributo
+    // the value already comes sanitised from the bridge; it is sanitised again here in case someone writes the attribute
     el.innerHTML = sanitizeHtml(html)
   }
   const scan = (root) => {

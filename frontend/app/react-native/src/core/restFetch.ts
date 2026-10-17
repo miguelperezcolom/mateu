@@ -84,137 +84,201 @@ export function mapItemsToRows(json: unknown, itemsPath: string | undefined, col
 // entry by `ref` instead of inlining the url + mapping paths. This is the RN analogue of the web's
 // libs/mateu restSourceCatalogue.ts: register the catalogue when the App metadata arrives, then
 // resolve a `ref` to the entry's fields (the surface's own declared fields still win).
-let catalogue: Record<string, Json> = {};
-
-/** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */
-export function registerRestSources(sources: unknown): void {
-  const map: Record<string, Json> = {};
-  if (Array.isArray(sources)) {
-    for (const entry of sources) {
-      const name = (entry as Json)?.['name'];
-      if (typeof name === 'string' && name) map[name] = entry as Json;
-    }
-  }
-  catalogue = map;
-}
-
-// The entries a RESPONSE named (`UIIncrementDto.restSources`): a page served with no app shell never
-// receives the App's catalogue, so each response carries the entries its components reference.
-// Merged by name and consulted only after the App's catalogue (= libs/mateu addReferencedRestSources).
-let referenced: Record<string, Json> = {};
-
-/** Add the catalogue entries a response references (its `restSources`). */
-export function addReferencedRestSources(sources: unknown): void {
-  if (!Array.isArray(sources)) return;
-  for (const entry of sources) {
-    const name = (entry as Json)?.['name'];
-    if (typeof name === 'string' && name) referenced = { ...referenced, [name]: entry as Json };
-  }
-}
-
-/** Test hook: forget what responses named. */
-export function clearReferencedRestSources(): void {
-  referenced = {};
-}
-
-/** The catalogue entry for a name — the App's first, then what responses named — or undefined. */
-export function getRestSource(ref?: string): Json | undefined {
-  return ref ? catalogue[ref] ?? referenced[ref] : undefined;
-}
+//
+// The catalogue belongs to ONE app: the hub runs several in one process, so each hub session owns
+// a `RestSourceCatalogue` (MateuSession.sources). The module-level functions below act on the
+// process-wide one, which the single-backend app (and its sessions) use.
 
 const blank = (s: unknown): boolean => s == null || s === '';
-
-/** If `source` names a catalogue entry by `ref`, merge the entry's `source` fields under the
- *  surface's own (the surface wins where it declares a value). A source without a `ref` — or a ref
- *  the catalogue does not know — is returned untouched. Mirrors libs/mateu's `resolveRestSource`,
- *  including reading `proxy` off the RESOLVED source (a by-ref surface carries no proxy of its own). */
-export function resolveRestSource(source: Json): Json {
-  const ref = source?.['ref'];
-  if (!ref) return source;
-  const from = getRestSource(String(ref))?.['source'] as Json | undefined;
-  if (!from) {
-    console.warn(`mateu: no REST source named "${ref}" in the app's catalogue`);
-    return source;
-  }
-  const srcHeaders = source['headers'] as Json | undefined;
-  return {
-    ...source,
-    url: blank(source['url']) ? from['url'] : source['url'],
-    method: blank(source['method']) ? from['method'] : source['method'],
-    headers: srcHeaders && Object.keys(srcHeaders).length > 0 ? srcHeaders : from['headers'],
-    body: blank(source['body']) ? from['body'] : source['body'],
-    itemsPath: blank(source['itemsPath']) ? from['itemsPath'] : source['itemsPath'],
-    valuePath: blank(source['valuePath']) ? from['valuePath'] : source['valuePath'],
-    labelPath: blank(source['labelPath']) ? from['labelPath'] : source['labelPath'],
-    proxy: source['proxy'] || from['proxy'],
-    // the entry's sample (or the one its own source carries) unless the surface declares one
-    sample: source['sample'] !== undefined && source['sample'] !== null
-      ? source['sample']
-      : (getRestSource(String(ref))?.['sample'] ?? from['sample']),
-  };
-}
-
-// ── Sample mode ─────────────────────────────────────────────────────────────
-// A source may carry SAMPLE data (`sample:` / `sampleFile:` in sources.yaml, or `sample:` inline):
-// the response the endpoint would return. It is answered INSTEAD of calling the endpoint only in
-// sample mode — the same rule as libs/mateu restSourceCatalogue.ts and the server's SampleSources:
-// RN has no editor and loads no bundles, so the ONLY switch is the app metadata (`AppDto.mockSources:
-// true`, sent when the server opted in with mateu.sources.mock=true). It is only ever switched ON by
-// the app; an app without the flag leaves it as it is. Never silently in production.
-let sampleMode = false;
-
-/** Turns sample mode on (or off — only tests do that). */
-export function setSampleMode(on: boolean): void {
-  sampleMode = !!on;
-}
-
-/** Whether sources carrying sample data answer with it. */
-export function isSampleMode(): boolean {
-  return sampleMode;
-}
-
-/** The sample a source answers with in sample mode (resolving its `ref`); undefined when it is not
- *  answered from a sample (sample mode off, or the source carries none). */
-export function sampleOf(source: Json | undefined): unknown {
-  if (!sampleMode || !source) return undefined;
-  const resolved = resolveRestSource(source);
-  return resolved?.['sample'] === null ? undefined : resolved?.['sample'];
-}
-
-/** True when this source is answered from its sample — neither fetched nor proxied, and a listing
- *  over it searches, filters, sorts and pages in memory. */
-export function isSampled(source: Json | undefined): boolean {
-  return sampleOf(source) !== undefined;
-}
-
-/** Whether the fetch of this source goes through the Mateu server: the RESOLVED `proxy`, unless
- *  sample mode answers it on the device. */
-export function viaProxy(source: Json | undefined): boolean {
-  return !!source && !!resolveRestSource(source)?.['proxy'] && !isSampled(source);
-}
-
-/** The sample-mode answer for a call: a READ gets a deep copy of the sample, a WRITE succeeds with
- *  null (nothing persisted, nothing to merge). `undefined` = not sampled, do the real call. */
-export function sampledResponse(source: Json | undefined, method?: string): unknown {
-  if (!isSampled(source)) return undefined;
-  const m = String(method ?? 'GET').toUpperCase();
-  if (m !== 'GET' && m !== 'HEAD') return null;
-  return deepCopy(sampleOf(source));
-}
 
 const deepCopy = (v: unknown): unknown =>
   typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
 
+export class RestSourceCatalogue {
+  private catalogue: Record<string, Json> = {};
+  // The entries a RESPONSE named (`UIIncrementDto.restSources`): a page served with no app shell
+  // never receives the App's catalogue, so each response carries the entries its components
+  // reference. Merged by name and consulted only after the App's catalogue.
+  private referenced: Record<string, Json> = {};
+  // A source may carry SAMPLE data (`sample:` / `sampleFile:` in sources.yaml, or `sample:` inline):
+  // the response the endpoint would return. It is answered INSTEAD of calling the endpoint only in
+  // sample mode — the same rule as libs/mateu restSourceCatalogue.ts and the server's SampleSources:
+  // RN has no editor and loads no bundles, so the ONLY switch is the app metadata (`AppDto.mockSources:
+  // true`, sent when the server opted in with mateu.sources.mock=true). It is only ever switched ON by
+  // the app; an app without the flag leaves it as it is. Never silently in production.
+  private sampleMode = false;
+
+  /** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */
+  register(sources: unknown): void {
+    const map: Record<string, Json> = {};
+    if (Array.isArray(sources)) {
+      for (const entry of sources) {
+        const name = (entry as Json)?.['name'];
+        if (typeof name === 'string' && name) map[name] = entry as Json;
+      }
+    }
+    this.catalogue = map;
+  }
+
+  /** Add the catalogue entries a response references (its `restSources`). */
+  addReferenced(sources: unknown): void {
+    if (!Array.isArray(sources)) return;
+    for (const entry of sources) {
+      const name = (entry as Json)?.['name'];
+      if (typeof name === 'string' && name) this.referenced = { ...this.referenced, [name]: entry as Json };
+    }
+  }
+
+  /** Forget what responses named. */
+  clearReferenced(): void {
+    this.referenced = {};
+  }
+
+  /** The catalogue entry for a name — the App's first, then what responses named — or undefined. */
+  get(ref?: string): Json | undefined {
+    return ref ? this.catalogue[ref] ?? this.referenced[ref] : undefined;
+  }
+
+  /** If `source` names a catalogue entry by `ref`, merge the entry's `source` fields under the
+   *  surface's own (the surface wins where it declares a value). A source without a `ref` — or a ref
+   *  the catalogue does not know — is returned untouched. Mirrors libs/mateu's `resolveRestSource`,
+   *  including reading `proxy` off the RESOLVED source (a by-ref surface carries no proxy of its own). */
+  resolve(source: Json): Json {
+    const ref = source?.['ref'];
+    if (!ref) return source;
+    const from = this.get(String(ref))?.['source'] as Json | undefined;
+    if (!from) {
+      console.warn(`mateu: no REST source named "${ref}" in the app's catalogue`);
+      return source;
+    }
+    const srcHeaders = source['headers'] as Json | undefined;
+    return {
+      ...source,
+      url: blank(source['url']) ? from['url'] : source['url'],
+      method: blank(source['method']) ? from['method'] : source['method'],
+      headers: srcHeaders && Object.keys(srcHeaders).length > 0 ? srcHeaders : from['headers'],
+      body: blank(source['body']) ? from['body'] : source['body'],
+      itemsPath: blank(source['itemsPath']) ? from['itemsPath'] : source['itemsPath'],
+      valuePath: blank(source['valuePath']) ? from['valuePath'] : source['valuePath'],
+      labelPath: blank(source['labelPath']) ? from['labelPath'] : source['labelPath'],
+      proxy: source['proxy'] || from['proxy'],
+      // the entry's sample (or the one its own source carries) unless the surface declares one
+      sample: source['sample'] !== undefined && source['sample'] !== null
+        ? source['sample']
+        : (this.get(String(ref))?.['sample'] ?? from['sample']),
+    };
+  }
+
+  /** Turns sample mode on (or off — only tests do that). */
+  setSampleMode(on: boolean): void {
+    this.sampleMode = !!on;
+  }
+
+  /** Whether sources carrying sample data answer with it. */
+  isSampleMode(): boolean {
+    return this.sampleMode;
+  }
+
+  /** The sample a source answers with in sample mode (resolving its `ref`); undefined when it is
+   *  not answered from a sample (sample mode off, or the source carries none). */
+  sampleOf(source: Json | undefined): unknown {
+    if (!this.sampleMode || !source) return undefined;
+    const resolved = this.resolve(source);
+    return resolved?.['sample'] === null ? undefined : resolved?.['sample'];
+  }
+
+  /** True when this source is answered from its sample — neither fetched nor proxied, and a
+   *  listing over it searches, filters, sorts and pages in memory. */
+  isSampled(source: Json | undefined): boolean {
+    return this.sampleOf(source) !== undefined;
+  }
+
+  /** Whether the fetch of this source goes through the Mateu server: the RESOLVED `proxy`, unless
+   *  sample mode answers it on the device. */
+  viaProxy(source: Json | undefined): boolean {
+    return !!source && !!this.resolve(source)?.['proxy'] && !this.isSampled(source);
+  }
+
+  /** The sample-mode answer for a call: a READ gets a deep copy of the sample, a WRITE succeeds
+   *  with null (nothing persisted, nothing to merge). `undefined` = not sampled, do the real call. */
+  sampledResponse(source: Json | undefined, method?: string): unknown {
+    if (!this.isSampled(source)) return undefined;
+    const m = String(method ?? 'GET').toUpperCase();
+    if (m !== 'GET' && m !== 'HEAD') return null;
+    return deepCopy(this.sampleOf(source));
+  }
+}
+
+/** The process-wide catalogue: the single-backend app's (hub sessions own theirs). */
+export const sharedRestSources = new RestSourceCatalogue();
+
+/** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */
+export function registerRestSources(sources: unknown): void {
+  sharedRestSources.register(sources);
+}
+
+/** Add the catalogue entries a response references (its `restSources`). */
+export function addReferencedRestSources(sources: unknown): void {
+  sharedRestSources.addReferenced(sources);
+}
+
+/** Test hook: forget what responses named. */
+export function clearReferencedRestSources(): void {
+  sharedRestSources.clearReferenced();
+}
+
+/** The catalogue entry for a name — the App's first, then what responses named — or undefined. */
+export function getRestSource(ref?: string): Json | undefined {
+  return sharedRestSources.get(ref);
+}
+
+/** See `RestSourceCatalogue.resolve` (on the process-wide catalogue). */
+export function resolveRestSource(source: Json): Json {
+  return sharedRestSources.resolve(source);
+}
+
+/** Turns sample mode on (or off — only tests do that). */
+export function setSampleMode(on: boolean): void {
+  sharedRestSources.setSampleMode(on);
+}
+
+/** Whether sources carrying sample data answer with it. */
+export function isSampleMode(): boolean {
+  return sharedRestSources.isSampleMode();
+}
+
+/** See `RestSourceCatalogue.sampleOf`. */
+export function sampleOf(source: Json | undefined): unknown {
+  return sharedRestSources.sampleOf(source);
+}
+
+/** See `RestSourceCatalogue.isSampled`. */
+export function isSampled(source: Json | undefined): boolean {
+  return sharedRestSources.isSampled(source);
+}
+
+/** See `RestSourceCatalogue.viaProxy`. */
+export function viaProxy(source: Json | undefined): boolean {
+  return sharedRestSources.viaProxy(source);
+}
+
+/** See `RestSourceCatalogue.sampledResponse`. */
+export function sampledResponse(source: Json | undefined, method?: string): unknown {
+  return sharedRestSources.sampledResponse(source, method);
+}
+
 /** Interpolate url/headers/body of a RestDataSource and fetch it. `resolve` runs `${state.x}`
- *  interpolation. Resolves a `ref` against the catalogue first. Throws on a non-2xx response. */
+ *  interpolation. Resolves a `ref` against the catalogue first (the app's own: pass its session's
+ *  `sources`; the process-wide one by default). Throws on a non-2xx response. */
 export async function fetchExternalJson(
   declared: Json,
   resolve: (t: unknown) => string,
   resolveUrl: (t: unknown) => string = resolve,
+  sources: RestSourceCatalogue = sharedRestSources,
 ): Promise<unknown> {
-  const source = resolveRestSource(declared);
+  const source = sources.resolve(declared);
   // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
-  if (isSampled(declared)) return sampledResponse(declared, String(source['method'] ?? 'GET'));
+  if (sources.isSampled(declared)) return sources.sampledResponse(declared, String(source['method'] ?? 'GET'));
   // the url resolves with its values percent-encoded by position (interpolateUrl), like the proxy
   const url = resolveUrl(source['url']);
   const method = String(source['method'] ?? 'GET').toUpperCase();

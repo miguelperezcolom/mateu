@@ -1,5 +1,5 @@
-/* Búsqueda y paginación del SELECTOR de un @Searchable: el `search` de su listado, contra SU
- * ServerSide (el overlay), con searchText/page/size en el borrador del overlay. */
+/* Search and pagination of a @Searchable's SELECTOR: its listing's `search`, against ITS
+ * ServerSide (the overlay), with searchText/page/size in the overlay's draft. */
 
 define([
   'vb/action/actionChain',
@@ -17,8 +17,8 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.searchText  el texto buscado (undefined: el que ya había)
-     * @param {Object} params.event       el botón de página pulsado (data-page: prev | next)
+     * @param {string} params.searchText  the searched text (undefined: the one already there)
+     * @param {Object} params.event       the page button pressed (data-page: prev | next)
      */
     async run(context, { searchText, event }) {
       const { $page } = context;

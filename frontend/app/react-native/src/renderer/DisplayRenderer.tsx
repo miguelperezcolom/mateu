@@ -10,25 +10,20 @@ import { ganttSelection } from './ganttSelection';
 import { ganttLayout, todayDayNumber, todayOffset } from './timeline';
 import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels';
 import { factAction } from './factAction';
+import { calloutColors, comparisonDelta, displayIcon, meterModel, noticeLook, paletteColor, PALETTE, processDotColor, statTrend, stepLook, taskProgressBackground } from './displayTones';
+import { checklistProgress, commentAvatar, fileIcon, funnelStages, heatCells, initiallyFlagged, isImageAvatar, ledgerTotal, initialPaymentMethod, initialQueueSelection, noticeShows, offerCtaLabel, ratingStars, resourceCardWidth, skeletonCount, sparkHeights, taskProgressModel, trendBarHeights } from './displayFigures';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
 const childrenOf = (c: unknown): unknown[] => ((c as Dict)?.['children'] as unknown[]) ?? [];
 const slotOf = (c: unknown): string => ((c as Dict)?.['slot'] as string) ?? '';
 
-// Icons arrive as web icon tokens ("vaadin:chart") or emoji — only emoji/plain text render natively.
-const displayIcon = (icon?: string): string => (icon && !icon.includes(':') ? icon : '');
-
 // ── FoldoutLayout (mobile adaptation: overview card + accordion of panels) ───
 export function FoldoutRenderer({ component, state }: { component: unknown; state: Dict }) {
   const panels = (meta(component)['panels'] as FoldoutPanelInfo[]) ?? [];
   const children = childrenOf(component);
   const overview = children.find((c) => slotOf(c) === 'overview');
-  const [open, setOpen] = useState<Record<number, boolean>>(() => {
-    const o: Record<number, boolean> = {};
-    panels.forEach((p, i) => { if (p.open) o[i] = true; });
-    return o;
-  });
+  const [open, setOpen] = useState<Record<number, boolean>>(() => initiallyFlagged(panels, (p) => p.open));
   return (
     <View style={styles.foldout}>
       {!!overview && (
@@ -135,7 +130,7 @@ export function EmptyStateRenderer({ metadata }: { metadata: EmptyState }) {
 // ── Skeleton (grey rounded placeholder blocks) ────────────────────────────────
 export function SkeletonRenderer({ metadata }: { metadata: Skeleton }) {
   const variant = metadata.variant ?? 'text';
-  const count = metadata.count && metadata.count > 0 ? metadata.count : 3;
+  const count = skeletonCount(metadata.count);
   const items = Array.from({ length: count }, (_, i) => i);
   return (
     <View style={styles.skeleton}>
@@ -294,20 +289,17 @@ export function ProgressStepsRenderer({ component }: { component: unknown }) {
   return (
     <View style={styles.steps}>
       {steps.map((s, i) => {
-        const status = s.status ?? 'upcoming';
-        const done = status === 'done';
-        const current = status === 'current';
-        const dotColor = done ? theme.primary : current ? theme.white : theme.border;
+        const look = stepLook(s.status, i);
         return (
           <View key={s.id ?? i} style={styles.stepRow}>
             <View style={styles.stepRail}>
-              <View style={[styles.stepDot, { backgroundColor: dotColor, borderColor: current ? theme.primary : 'transparent' }]}>
-                <Text style={[styles.stepDotText, { color: done ? theme.white : current ? theme.primary : theme.muted }]}>{done ? '✓' : String(i + 1)}</Text>
+              <View style={[styles.stepDot, { backgroundColor: look.dotColor, borderColor: look.borderColor }]}>
+                <Text style={[styles.stepDotText, { color: look.textColor }]}>{look.glyph}</Text>
               </View>
-              {i < steps.length - 1 && <View style={[styles.stepLine, { backgroundColor: done ? theme.primary : theme.border }]} />}
+              {i < steps.length - 1 && <View style={[styles.stepLine, { backgroundColor: look.lineColor }]} />}
             </View>
             <View style={styles.stepBody}>
-              <Text style={[styles.stepTitle, status === 'upcoming' && styles.stepTitleMuted]}>{s.title ?? ''}</Text>
+              <Text style={[styles.stepTitle, look.muted && styles.stepTitleMuted]}>{s.title ?? ''}</Text>
               {!!s.description && <Text style={styles.stepDesc}>{s.description}</Text>}
             </View>
           </View>
@@ -321,12 +313,8 @@ export function ProgressStepsRenderer({ component }: { component: unknown }) {
 export function StatRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component) as unknown as Stat;
-  const trend = m.trend ?? 'up';
-  const trendColor = trend === 'down' ? theme.danger : trend === 'flat' ? theme.faint : theme.success;
-  const spark = m.spark ?? [];
-  const min = spark.length ? Math.min(...spark) : 0;
-  const max = spark.length ? Math.max(...spark) : 1;
-  const span = max - min || 1;
+  const { color: trendColor, glyph: trendGlyph } = statTrend(m.trend);
+  const spark = sparkHeights(m.spark ?? []);
   const tile = (
     <View style={styles.statTile}>
       {!!m.label && <Text style={styles.statLabel}>{m.label}</Text>}
@@ -337,12 +325,12 @@ export function StatRenderer({ component }: { component: unknown }) {
       <View style={styles.statFoot}>
         {!!m.delta && (
           <Text style={[styles.statDelta, { color: trendColor }]}>
-            {trend === 'up' ? '▲' : trend === 'down' ? '▼' : '→'} {m.delta}
+            {trendGlyph} {m.delta}
           </Text>
         )}
         <View style={styles.statSpark}>
-          {spark.map((v, i) => (
-            <View key={i} style={[styles.statBar, { height: 4 + 22 * ((v - min) / span), backgroundColor: trendColor }]} />
+          {spark.map((height, i) => (
+            <View key={i} style={[styles.statBar, { height, backgroundColor: trendColor }]} />
           ))}
         </View>
       </View>
@@ -390,7 +378,7 @@ export function PricingTableRenderer({ component }: { component: unknown }) {
 // ── OrgChart (mobile: an indented tree) ───────────────────────────────────────
 function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
   const controller = useViewController();
-  const isImg = node.avatar && (node.avatar.startsWith('http') || node.avatar.startsWith('data:'));
+  const isImg = isImageAvatar(node.avatar);
   const row = (
     <View style={[styles.orgRow, { marginLeft: depth * 18, borderLeftColor: node.color ?? theme.primary }]}>
       {!!node.avatar && !isImg && <Text style={styles.orgAvatar}>{node.avatar}</Text>}
@@ -424,18 +412,11 @@ export function OrgChartRenderer({ component }: { component: unknown }) {
 
 // ── Heatmap (mobile: a wrapped grid of intensity squares) ─────────────────────
 export function HeatmapRenderer({ component }: { component: unknown }) {
-  const cells = ((meta(component)['cells'] as HeatCell[]) ?? []).filter((c) => !!c.date);
-  const maxVal = Math.max(1, ...cells.map((c) => c.value ?? 0));
-  const intensity = (v: number) => {
-    if (v <= 0) return 'rgba(26,115,232,0.08)';
-    const t = v / maxVal;
-    const a = t > 0.75 ? 1 : t > 0.5 ? 0.75 : t > 0.25 ? 0.5 : 0.3;
-    return `rgba(26,115,232,${a})`;
-  };
+  const cells = heatCells((meta(component)['cells'] as HeatCell[]) ?? []);
   return (
     <View style={styles.heatWrap}>
-      {cells.map((c, i) => (
-        <View key={c.date ?? i} style={[styles.heatCell, { backgroundColor: intensity(c.value ?? 0) }]} />
+      {cells.map(({ cell: c, color }, i) => (
+        <View key={c.date ?? i} style={[styles.heatCell, { backgroundColor: color }]} />
       ))}
     </View>
   );
@@ -444,20 +425,16 @@ export function HeatmapRenderer({ component }: { component: unknown }) {
 // ── Funnel (centered bars, each proportional to its value) ────────────────────
 export function FunnelRenderer({ component }: { component: unknown }) {
   const stages = (meta(component)['stages'] as FunnelStage[]) ?? [];
-  const maxVal = Math.max(1, ...stages.map((s) => s.value ?? 0));
   return (
     <View style={styles.funnel}>
-      {stages.map((s, i) => {
-        const value = s.value ?? 0;
-        const prev = i > 0 ? stages[i - 1].value ?? 0 : value;
-        const conv = i === 0 ? '' : prev > 0 ? `${Math.round((value / prev) * 100)}% of previous` : '';
+      {funnelStages(stages).map(({ stage: s, value, conversion: conv, widthPct }, i) => {
         return (
           <View key={i} style={styles.funnelStage}>
             <View style={styles.funnelMeta}>
               <Text style={styles.funnelLabel}>{s.label ?? ''}</Text>
               {!!conv && <Text style={styles.funnelConv}>{conv}</Text>}
             </View>
-            <View style={[styles.funnelBar, { width: `${Math.max(8, (value / maxVal) * 100)}%`, backgroundColor: s.color ?? theme.primary }]}>
+            <View style={[styles.funnelBar, { width: `${widthPct}%`, backgroundColor: s.color ?? theme.primary }]}>
               <Text style={styles.funnelValue}>{value.toLocaleString()}</Text>
             </View>
           </View>
@@ -474,15 +451,12 @@ export function TrendChartRenderer({ component }: { component: unknown }) {
   const labels = (m['labels'] as string[]) ?? [];
   const color = (m['color'] as string) ?? theme.primary;
   const title = m['title'] as string | undefined;
-  const max = Math.max(1, ...values);
-  const min = Math.min(0, ...values);
-  const span = max - min || 1;
   return (
     <View style={styles.trend}>
       {!!title && <Text style={styles.trendTitle}>{title}</Text>}
       <View style={styles.trendBars}>
-        {values.map((v, i) => (
-          <View key={i} style={[styles.trendBar, { height: 8 + 90 * ((v - min) / span), backgroundColor: color }]} />
+        {trendBarHeights(values).map((height, i) => (
+          <View key={i} style={[styles.trendBar, { height, backgroundColor: color }]} />
         ))}
       </View>
       {labels.length > 0 && (
@@ -504,7 +478,7 @@ export function FeatureGridRenderer({ component }: { component: unknown }) {
       {features.map((f, i) => {
         const card = (
           <View style={styles.featureCard}>
-            {!!f.icon && <Text style={styles.featureIcon}>{f.icon.includes(':') ? '' : f.icon}</Text>}
+            {!!f.icon && <Text style={styles.featureIcon}>{displayIcon(f.icon)}</Text>}
             <Text style={styles.featureTitle}>{f.title ?? ''}</Text>
             {!!f.description && <Text style={styles.featureDesc}>{f.description}</Text>}
           </View>
@@ -520,12 +494,11 @@ export function FeatureGridRenderer({ component }: { component: unknown }) {
 // ── Testimonials (mobile: stacked quote cards) ────────────────────────────────
 export function TestimonialsRenderer({ component }: { component: unknown }) {
   const items = (meta(component)['items'] as Testimonial[]) ?? [];
-  const stars = (r: number) => '★'.repeat(Math.max(0, Math.min(5, r))) + '☆'.repeat(5 - Math.max(0, Math.min(5, r)));
   return (
     <View style={styles.testimonials}>
       {items.map((t, i) => (
         <View key={i} style={styles.testimonialCard}>
-          {!!t.rating && <Text style={styles.testimonialStars}>{stars(t.rating)}</Text>}
+          {!!t.rating && <Text style={styles.testimonialStars}>{ratingStars(t.rating)}</Text>}
           <Text style={styles.testimonialQuote}>“{t.quote}”</Text>
           <Text style={styles.testimonialAuthor}>
             {t.avatar && !t.avatar.includes(':') ? `${t.avatar} ` : ''}
@@ -541,11 +514,7 @@ export function TestimonialsRenderer({ component }: { component: unknown }) {
 // ── Faq (collapsible question/answer rows) ────────────────────────────────────
 export function FaqRenderer({ component }: { component: unknown }) {
   const items = (meta(component)['items'] as FaqItem[]) ?? [];
-  const [open, setOpen] = useState<Record<number, boolean>>(() => {
-    const o: Record<number, boolean> = {};
-    items.forEach((it, i) => { if (it.open) o[i] = true; });
-    return o;
-  });
+  const [open, setOpen] = useState<Record<number, boolean>>(() => initiallyFlagged(items, (it) => it.open));
   return (
     <View style={styles.faq}>
       {items.map((it, i) => (
@@ -565,9 +534,7 @@ export function FaqRenderer({ component }: { component: unknown }) {
 export function CalloutCardRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component);
-  const themeName = (m['theme'] as string) ?? 'info';
-  const accent = themeName === 'success' ? theme.success : themeName === 'warning' ? theme.warning : themeName === 'danger' ? theme.danger : theme.primary;
-  const bg = themeName === 'success' ? theme.successBg : themeName === 'warning' ? theme.warningBg : themeName === 'danger' ? theme.dangerBg : theme.infoBg;
+  const { accent, background: bg } = calloutColors(m['theme'] as string | undefined);
   const icon = m['icon'] as string | undefined;
   const actionId = m['actionId'] as string | undefined;
   return (
@@ -591,7 +558,7 @@ function CommentNode({ comment, depth }: { comment: Comment; depth: number }) {
   return (
     <View style={[styles.commentNode, depth > 0 && { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: theme.border, paddingLeft: 10 }]}>
       <View style={styles.commentRow}>
-        <Text style={styles.commentAvatar}>{comment.avatar && !comment.avatar.includes(':') ? comment.avatar : (comment.author?.[0] ?? '?')}</Text>
+        <Text style={styles.commentAvatar}>{commentAvatar(comment)}</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.commentHead}>
             <Text style={{ fontWeight: '600', color: theme.ink }}>{comment.author}</Text>
@@ -617,17 +584,13 @@ export function CommentThreadRenderer({ component }: { component: unknown }) {
 }
 
 // ── FileList (attachment rows with a type icon) ───────────────────────────────
-const FILE_ICONS: Record<string, string> = {
-  pdf: '📕', image: '🖼️', img: '🖼️', doc: '📘', docx: '📘', word: '📘',
-  xls: '📗', xlsx: '📗', excel: '📗', zip: '🗜️', archive: '🗜️', video: '🎬', audio: '🎵', csv: '📄', txt: '📄',
-};
 export function FileListRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const files = (meta(component)['files'] as FileItem[]) ?? [];
   return (
     <View style={styles.fileList}>
       {files.map((f, i) => {
-        const icon = (f.type && FILE_ICONS[f.type.toLowerCase()]) || '📄';
+        const icon = fileIcon(f.type);
         const row = (
           <View style={styles.fileRow}>
             <Text style={styles.fileIcon}>{icon}</Text>
@@ -649,14 +612,9 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const title = m['title'] as string | undefined;
   const items = (m['items'] as ChecklistItem[]) ?? [];
-  const [done, setDone] = useState<Record<number, boolean>>(() => {
-    const o: Record<number, boolean> = {};
-    items.forEach((it, i) => { if (it.done) o[i] = true; });
-    return o;
-  });
+  const [done, setDone] = useState<Record<number, boolean>>(() => initiallyFlagged(items, (it) => it.done));
   const total = items.length;
-  const doneCount = Object.values(done).filter(Boolean).length;
-  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const { doneCount, pct } = checklistProgress(done, total);
   const toggle = (it: ChecklistItem, i: number) => {
     const next = !done[i];
     setDone({ ...done, [i]: next });
@@ -682,12 +640,6 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
 }
 
 // ── Front-office UX components ────────────────────────────────────────────────
-
-// Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer.
-const PALETTE: Record<string, string> = {
-  success: theme.success, warning: theme.warning, error: theme.danger, danger: theme.danger, contrast: theme.ink, normal: theme.muted,
-};
-const paletteColor = (c?: string): string => PALETTE[c ?? 'normal'] ?? theme.muted;
 
 function ChipView({ chip }: { chip: Chip }) {
   return <Text style={[styles.uxChip, { backgroundColor: paletteColor(chip.color) }]}>{chip.label ?? ''}</Text>;
@@ -747,13 +699,7 @@ export function EntityHeaderRenderer({ component }: { component: unknown }) {
 // ── Meter (consumption vs limit with warn/danger thresholds) ──────────────────
 export function MeterRenderer({ component }: { component: unknown }) {
   const m = meta(component) as unknown as Meter;
-  const value = m.value ?? 0;
-  const max = m.max ?? 0;
-  const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
-  const fill = m.dangerAt != null && value >= m.dangerAt ? PALETTE.error
-    : m.warnAt != null && value >= m.warnAt ? PALETTE.warning
-    : m.warnAt != null || m.dangerAt != null ? PALETTE.success : theme.primary;
-  const caption = m.caption || `${Math.round(ratio * 100)}%`;
+  const { value, ratio, fill, caption } = meterModel(m);
   return (
     <View style={styles.meter}>
       {!!m.label && <Text style={styles.meterLabel}>{m.label}</Text>}
@@ -772,17 +718,17 @@ export function TaskProgressRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const total = (m['total'] as number) ?? 0;
   const done = (m['done'] as number) ?? 0;
-  const complete = total > 0 && done >= total;
+  const { complete, pills } = taskProgressModel(total, done);
   const actionId = m['actionId'] as string | undefined;
   const actionLabel = m['actionLabel'] as string | undefined;
   return (
-    <View style={[styles.taskProgress, { backgroundColor: complete ? 'rgba(18,183,106,0.1)' : 'rgba(245,158,11,0.12)' }]}>
+    <View style={[styles.taskProgress, { backgroundColor: taskProgressBackground(complete) }]}>
       <Text style={styles.taskProgressIcon}>👥</Text>
       <Text style={styles.taskProgressLabel}>{(m['label'] as string) ?? ''}</Text>
       <View style={styles.taskProgressPills}>
-        {Array.from({ length: total }, (_, i) => i + 1).map((i) => (
-          <Text key={i} style={[styles.taskProgressPill, i <= done ? styles.taskProgressPillDone : styles.taskProgressPillTodo]}>
-            {i}/{total}
+        {pills.map((pill) => (
+          <Text key={pill.n} style={[styles.taskProgressPill, pill.done ? styles.taskProgressPillDone : styles.taskProgressPillTodo]}>
+            {pill.label}
           </Text>
         ))}
       </View>
@@ -830,14 +776,6 @@ export function StatusListRenderer({ component }: { component: unknown }) {
 }
 
 // ── Notice (compact inline banner: tinted strip + severity icon + one line) ───
-const NOTICE_COLORS: Record<string, { bg: string; ink: string; badge: string }> = {
-  info: { bg: theme.infoBg, ink: theme.info, badge: theme.info },
-  success: { bg: theme.successBg, ink: theme.success, badge: theme.success },
-  warning: { bg: theme.warningBg, ink: theme.warning, badge: theme.warning },
-  danger: { bg: theme.dangerBg, ink: theme.danger, badge: theme.danger },
-};
-const NOTICE_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' };
-
 export function NoticeRenderer({ component, state, renderComponent }: {
   component: unknown;
   state?: Record<string, unknown>;
@@ -845,22 +783,21 @@ export function NoticeRenderer({ component, state, renderComponent }: {
 }) {
   const controller = useViewController();
   const m = meta(component);
-  const themeName = (['info', 'success', 'warning', 'danger'].includes(m['theme'] as string)
-    ? m['theme'] : 'info') as string;
-  const colors = NOTICE_COLORS[themeName];
+  const look = noticeLook(m['theme'], m['icon']);
+  const colors = look.colors;
   const actionLabel = m['actionLabel'] as string | undefined;
   const actionId = m['actionId'] as string | undefined;
   const status = m['status'] as string | undefined;
   const noIcon = m['noIcon'] === true;
   const slim = m['slim'] === true;
   const children = ((component as Record<string, unknown>)['children'] as unknown[]) ?? [];
-  const hasText = !!((m['text'] as string) ?? '').trim();
-  if (!hasText && children.length === 0) return null;
+  const { hasText, shows } = noticeShows(m['text'], children.length);
+  if (!shows) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
       {!noIcon && (
         <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
-          <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[themeName]}</Text>
+          <Text style={styles.noticeIconText}>{look.icon}</Text>
         </View>
       )}
       <View style={[styles.noticeBody, m['inlineContent'] === true && styles.noticeBodyInline]}>
@@ -901,11 +838,8 @@ export function BulletedListRenderer({ component }: { component: unknown }) {
 export function ComparisonCardRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const title = m['title'] as string | undefined;
-  const trend = (m['trend'] as string | undefined) ?? 'flat';
   const delta = m['delta'] as string | undefined;
-  const deltaColor = trend === 'up' ? theme.success : trend === 'down' ? theme.danger : theme.faint;
-  const deltaBg = trend === 'up' ? 'rgba(18,183,106,.12)' : trend === 'down' ? 'rgba(225,29,72,.12)' : 'rgba(0,0,0,.06)';
-  const mark = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '';
+  const { color: deltaColor, background: deltaBg, mark } = comparisonDelta(m['trend'] as string | undefined);
   return (
     <View style={styles.cmpCard}>
       {!!title && <Text style={styles.cmpTitle}>{title}</Text>}
@@ -936,7 +870,7 @@ export function TaskQueueRenderer({ component }: { component: unknown }) {
   const actionId = m['actionId'] as string | undefined;
   const groups = (m['groups'] as QueueGroup[]) ?? [];
   const [selected, setSelected] = useState<string | undefined>(
-    () => groups.flatMap((g) => g.items ?? []).find((it) => it.selected)?.id,
+    () => initialQueueSelection(groups),
   );
   return (
     <View style={styles.taskQueue}>
@@ -977,7 +911,7 @@ export function ResourceGridRenderer({ component }: { component: unknown }) {
   const recommendedLabel = (m['recommendedLabel'] as string) ?? 'Recommended';
   const items = (m['items'] as ResourceItem[]) ?? [];
   const [selected, setSelected] = useState<string | undefined>(() => items.find((it) => it.selected)?.id);
-  const cardWidth = columns > 0 ? `${100 / columns}%` as const : '33.333%' as const;
+  const cardWidth = resourceCardWidth(columns);
   return (
     <View style={styles.resourceGrid}>
       {items.map((it, i) => {
@@ -1042,7 +976,7 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
               style={[styles.offerCta, m.added === true && styles.offerCtaAdded]}
               onPress={() => m.actionId && void controller.runAction(m.actionId)}
             >
-              <Text style={styles.offerCtaText}>{m.added === true ? (m.addedLabel ?? m.actionLabel) : m.actionLabel}</Text>
+              <Text style={styles.offerCtaText}>{offerCtaLabel(m)}</Text>
               {!!m.priceLabel && <Text style={styles.offerCtaPrice}>{m.priceLabel}</Text>}
             </TouchableOpacity>
           )
@@ -1117,8 +1051,7 @@ export function LedgerRenderer({ component }: { component: unknown }) {
   const lines = (m['lines'] as LedgerLine[]) ?? [];
   const currency = (m['currency'] as string) ?? '';
   const totalLabel = (m['totalLabel'] as string) ?? 'Total';
-  const total = (m['total'] as number | undefined)
-    ?? lines.filter((l) => !l.included).reduce((sum, l) => sum + (l.amount ?? 0), 0);
+  const total = ledgerTotal(lines, m['total'] as number | undefined);
   return (
     <View style={styles.ledger}>
       {lines.map((l, i) => (
@@ -1149,7 +1082,7 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
   const methods = (m['methods'] as PaymentMethod[]) ?? [];
   const actionId = m['actionId'] as string | undefined;
   const methodActionId = m['methodActionId'] as string | undefined;
-  const [selected, setSelected] = useState<string | undefined>(() => (m['selected'] as string) || methods[0]?.id);
+  const [selected, setSelected] = useState<string | undefined>(() => initialPaymentMethod(m['selected'], methods));
   return (
     <View style={styles.paymentPicker}>
       <View style={styles.paymentMethods}>
@@ -1191,8 +1124,7 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
 export function ProcessMonitorRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const items = (meta(component)['items'] as ProcessItem[]) ?? [];
-  const dotColor = (status?: string) =>
-    status === 'error' ? PALETTE.error : status === 'warning' ? PALETTE.warning : PALETTE.success;
+  const dotColor = processDotColor;
   return (
     <View style={styles.processMonitor}>
       {items.map((it, i) => (

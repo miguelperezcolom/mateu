@@ -1,5 +1,5 @@
-/* Casillas del SELECTOR de un @Searchable de varios valores: se guardan como CLAVES y se
- * resuelven contra las filas actuales al pulsar «Add selected» (como la selección del listado). */
+/* Checkboxes of a multi-valued @Searchable's SELECTOR: stored as KEYS and
+ * resolved against the current rows when «Add selected» is pressed (like the listing's selection). */
 
 define([
   'vb/action/actionChain',
@@ -15,7 +15,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  selectedChanged de oj-table ({detail: {value: {row: KeySet}}})
+     * @param {Object} params.event  oj-table's selectedChanged ({detail: {value: {row: KeySet}}})
      */
     async run(context, { event }) {
       const { $page } = context;

@@ -1,14 +1,14 @@
-// Expande la plantilla ÚNICA de átomos (poc/templates/atoms.html) en cada superficie de
-// main-start-page.html. La página pinta los mismos átomos en 15 sitios (host, foldout, wizard,
-// overviews, diálogo, drawer, isla…) y VB no tiene parciales que se puedan anidar con su
-// $current, así que el HTML lleva 15 copias — antes mantenidas A MANO (y desfasadas: las de
-// la isla no tenían botones con icono). Ahora cada copia vive entre dos marcadores:
+// Expands the SINGLE atoms template (poc/templates/atoms.html) into every surface of
+// main-start-page.html. The page paints the same atoms in 15 places (host, foldout, wizard,
+// overviews, dialog, drawer, island…) and VB has no partials that can be nested with their
+// $current, so the HTML carries 15 copies — previously maintained BY HAND (and out of sync: the
+// island's had no buttons with icons). Now each copy lives between two markers:
 //
-//   <!-- @atoms host|island — GENERADO … -->   …contenido generado…   <!-- @end-atoms -->
+//   <!-- @atoms host|island — GENERADO … -->   …generated content…   <!-- @end-atoms -->
 //
-// y este script reescribe lo de dentro. La variante solo cambia los listeners (una isla
-// despacha contra SU contexto). Idempotente: se ejecuta dentro de `npm run bridge`.
-// Uso: node make-html.mjs [--check]   (--check falla si el HTML no está al día)
+// and this script rewrites what is inside. The variant only changes the listeners (an island
+// dispatches against ITS context). Idempotent: it runs inside `npm run bridge`.
+// Usage: node make-html.mjs [--check]   (--check fails if the HTML is not up to date)
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -17,10 +17,10 @@ import { dirname, join } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const page = join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html')
 const partial = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/\n$/, '')
-// Los widgets de campo que se añadieron después (radio, selección múltiple, importe, captura) van
-// en un SEGUNDO parcial, insertado tras el oj-select-one de CADA copia de los campos —las de los
-// átomos y las 7 de fuera (drawer, editor de fila, formulario genérico, wizard, isla)—. Lo único
-// que cambia entre copias es el listener de cambio, que lleva el marcador:
+// The field widgets added later (radio, multiple selection, amount, capture) go in a
+// SECOND partial, inserted after the oj-select-one of EACH copy of the fields —those of the
+// atoms and the 7 outside (drawer, row editor, generic form, wizard, island)—. The only thing
+// that changes between copies is the change listener, which carries the marker:
 //   <!-- @fields-extra hostInputChanged -->  …  <!-- @end-fields-extra -->
 const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'), 'utf8').replace(/\n$/, '')
 
@@ -33,7 +33,7 @@ const VARIANTS = {
 
 const reindent = (text, indent) => text.split('\n').map((l) => (l ? indent + l : l))
 
-/** Expande los marcadores @fields-extra (el parcial va sin sangrar: toma el del marcador). */
+/** Expands the @fields-extra markers (the partial is unindented: it takes the marker's indentation). */
 export const expandFields = (html) => {
   const lines = html.split('\n')
   const out = []
@@ -64,8 +64,8 @@ export const expand = (html) => {
     let j = i + 1
     while (j < lines.length && !/<!-- @end-atoms -->/.test(lines[j])) j++
     if (j === lines.length) throw new Error(`@atoms sin @end-atoms (línea ${i + 1})`)
-    // la plantilla está escrita al sangrado de una copia; se re-sangra al del marcador para que
-    // el HTML siga legible (el marcador va al sangrado del <template> que abre la plantilla)
+    // the template is written at one copy's indentation; it is re-indented to the marker's so that
+    // the HTML stays readable (the marker sits at the indentation of the <template> that opens the template)
     const shift = m[1].length - partial.match(/^(\s*)/)[1].length
     out.push(...partial
       .replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k])
@@ -75,7 +75,7 @@ export const expand = (html) => {
     i = j
     count++
   }
-  // los átomos traen sus propios marcadores de campos: se expanden después
+  // the atoms bring their own field markers: they are expanded afterwards
   return { html: expandFields(out.join('\n')), count }
 }
 

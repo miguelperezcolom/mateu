@@ -1,11 +1,11 @@
-/* Adjuntos del chat (@AI(upload)) y el modo ancho del panel — paridad con el chat web.
+/* Chat attachments (@AI(upload)) and the panel's wide mode — parity with the web chat.
  *
- *  - op 'pick': abre el selector de ficheros del navegador (un <input type=file> creado aquí: el
- *    binding declarativo de VB no es fiable sobre un input nativo oculto), sube lo elegido al
- *    uploadUrl (bridge.uploadChatFiles, con el token de la sesión) y deja los {name, path} como
- *    chips: viajan como `attachments` en el siguiente mensaje (chatSend los vacía al enviar).
- *  - op 'remove': quita un chip.
- *  - op 'expand': el modo ancho (~60% del viewport) del panel. */
+ *  - op 'pick': opens the browser's file picker (an <input type=file> created here: VB's
+ *    declarative binding is not reliable on a hidden native input), uploads what was chosen to the
+ *    uploadUrl (bridge.uploadChatFiles, with the session token) and leaves the {name, path} as
+ *    chips: they travel as `attachments` in the next message (chatSend empties them on send).
+ *  - op 'remove': removes a chip.
+ *  - op 'expand': the panel's wide mode (~60% of the viewport). */
 define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bridge) => {
   'use strict';
 
@@ -30,7 +30,7 @@ define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bri
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.op    'pick' | 'remove' | 'expand'
-     * @param {string} params.path  el adjunto a quitar (op 'remove')
+     * @param {string} params.path  the attachment to remove (op 'remove')
      */
     async run(context, { op, path }) {
       const { $application } = context;

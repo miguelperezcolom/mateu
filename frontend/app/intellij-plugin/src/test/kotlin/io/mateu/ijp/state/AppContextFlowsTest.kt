@@ -49,6 +49,17 @@ class AppContextFlowsTest : RenderTestCase() {
         assertTrue("no Mateu round trip", server.requests.isEmpty())
     }
 
+    fun testARestActionNamingItsSourceByRefFetchesTheResolvedEndpoint() {
+        val ctx = flowContext()
+        server.json["/api/profile"] = """{"data":{"name":"Grace"}}"""
+        ctx.session.sources.registerRestSources(json("""[{"name":"profile","source":{"url":"${server.baseUrl}/api/profile"}}]"""))
+        capture(ctx, """[{"id":"loadProfile","restAction":{"source":{"ref":"profile"},"resultPath":"data"}}]""")
+        ctx.runAction("loadProfile", null)
+        waitUntil("the merged state") { ctx.currentComponentState["name"] != null || notices.isNotEmpty() }
+        assertEquals("Grace", (ctx.currentComponentState["name"] as com.fasterxml.jackson.databind.JsonNode?)?.asText())
+        assertTrue("no Mateu round trip", server.requests.isEmpty())
+    }
+
     fun testAFailedRestActionSaysTheRequestFailed() {
         val ctx = flowContext()
         capture(ctx, """[{"id":"ping","restAction":{"source":{"url":"http://127.0.0.1:9/nothing","method":"post","body":"{}"}}}]""")

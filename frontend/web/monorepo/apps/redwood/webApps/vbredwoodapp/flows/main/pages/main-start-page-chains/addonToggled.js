@@ -1,6 +1,6 @@
-/* AddOnPicker: toggle de un extra — contrato del renderer web compartido
- * (mateu-addon-picker.ts): actionId con parameters {_item, _added, _total}, donde _total
- * es la suma cliente de los extras añadidos TRAS el toggle. */
+/* AddOnPicker: toggle of an extra — contract of the shared web renderer
+ * (mateu-addon-picker.ts): actionId with parameters {_item, _added, _total}, where _total
+ * is the client-side sum of the extras added AFTER the toggle. */
 
 define([
   'vb/action/actionChain',
@@ -16,15 +16,15 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event   value-changed del oj-switch de la fila
-     * @param {string} params.itemId  id del extra
+     * @param {Object} params.event   value-changed of the row's oj-switch
+     * @param {string} params.itemId  id of the extra
      */
     async run(context, { event, itemId }) {
       const { $application } = context;
 
       const detail = (event && event.detail) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
-        return; // re-stamp de la plantilla, no un toggle del usuario
+        return; // template re-stamp, not a user toggle
       }
       const island = $application.variables.mateuIsland;
       const blocks = (island && island.content) || [];

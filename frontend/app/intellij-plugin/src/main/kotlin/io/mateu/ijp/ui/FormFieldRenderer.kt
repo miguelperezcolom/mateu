@@ -723,14 +723,14 @@ private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode,
     val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
     // Resolve a catalogue `ref` (if any) so url, mapping paths and the proxy flag all come from the
     // resolved source — a by-ref surface carries none of its own.
-    val resolved = RestFetch.resolveRestSource(source)
+    val resolved = ctx.session.sources.resolveRestSource(source)
     ctx.session.executor.submit {
         val opts = try {
             // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
             // server-side); direct fetch otherwise. Both resolve to the same JSON.
             // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
-            val json = if (RestFetch.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
-                       else RestFetch.fetch(ctx.apiClient, source, exprCtx)
+            val json = if (ctx.session.sources.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
+                       else RestFetch.fetch(ctx.apiClient, source, exprCtx, ctx.session.sources)
             val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
             val valuePath = resolved.text("valuePath").ifBlank { "value" }
             val labelPath = resolved.text("labelPath").ifBlank { "label" }

@@ -1,23 +1,23 @@
 import { chromeText } from './i18n.mjs'
-// Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
+// Accessibility of the VB renderer — the part the oj-* components do NOT bring.
 //
-// Medido antes de escribir nada (axe-core sobre la app servida): la composición de oj-sp-*
-// sale prácticamente limpia, igual que pasaba con Vaadin, porque esos componentes traen su
-// propia accesibilidad. Los huecos reales son los de una SPA, que axe no puede evaluar:
-// al cambiar de ruta no cambia la página, así que un lector de pantalla no tiene NADA que
-// anunciar y el foco se queda donde estaba — normalmente en el enlace del menú que se acaba
-// de pulsar, obligando a tabular por toda la shell para llegar al contenido pedido.
+// Measured before writing anything (axe-core over the served app): the oj-sp-* composition
+// comes out practically clean, just as happened with Vaadin, because those components bring their
+// own accessibility. The real gaps are those of a SPA, which axe cannot evaluate:
+// changing route does not change the page, so a screen reader has NOTHING to
+// announce and focus stays where it was — usually on the menu link just
+// clicked, forcing a tab through the whole shell to reach the requested content.
 //
-// Vive en poc/ (fuente única) para que make-amd.mjs lo empaquete en el bridge y la app lo
-// use desde las chains, igual que el resto del core.
+// It lives in poc/ (single source) so make-amd.mjs packages it into the bridge and the app
+// uses it from the chains, like the rest of the core.
 
-// ── región viva ──────────────────────────────────────────────────────────────────────────
+// ── live region ──────────────────────────────────────────────────────────────────────────
 
 const REGION_STYLE = [
   'position:absolute', 'width:1px', 'height:1px', 'margin:-1px', 'padding:0',
   'overflow:hidden',
-  // clip, NO display:none ni visibility:hidden: esas dos sacan el nodo del árbol de
-  // accesibilidad, que es justo lo contrario de lo que hace falta aquí.
+  // clip, NOT display:none or visibility:hidden: those two take the node out of the
+  // accessibility tree, which is exactly the opposite of what is needed here.
   'clip:rect(0 0 0 0)', 'clip-path:inset(50%)', 'white-space:nowrap', 'border:0',
 ].join(';')
 
@@ -39,10 +39,10 @@ function regionFor(politeness) {
 }
 
 /**
- * Crea las regiones por adelantado.
+ * Creates the regions in advance.
  *
- * No es opcional: una región creada y rellenada en el mismo tick a menudo NO se anuncia,
- * porque la tecnología asistiva vigila mutaciones de regiones que ya conocía.
+ * It is not optional: a region created and filled in the same tick is often NOT announced,
+ * because assistive technology watches mutations of regions it already knew.
  */
 export function installAnnouncer() {
   if (typeof document === 'undefined') return
@@ -55,11 +55,11 @@ export function installAnnouncer() {
 }
 
 /**
- * Dice `message` a la tecnología asistiva. No pinta nada.
+ * Says `message` to assistive technology. Paints nothing.
  *
- * `assertive` interrumpe y es para lo que el usuario no puede perderse (un guardado que
- * falló); `polite` espera una pausa y es para lo rutinario (dónde acaba de aterrizar). Usar
- * assertive para todo hace la app inusable, así que es opt-in.
+ * `assertive` interrupts and is for what the user cannot miss (a save that
+ * failed); `polite` waits for a pause and is for routine things (where they just landed). Using
+ * assertive for everything makes the app unusable, so it is opt-in.
  */
 export function announce(message, options = {}) {
   const text = (message == null ? '' : String(message)).trim()
@@ -67,8 +67,8 @@ export function announce(message, options = {}) {
   const region = regionFor(options.politeness || 'polite')
   if (!region) return
   if (region.textContent === text) {
-    // Repetir el mismo mensaje es un caso real (dos guardados fallidos seguidos) y una
-    // región cuyo texto no cambia no anuncia nada: se limpia y se repone.
+    // Repeating the same message is a real case (two failed saves in a row) and a
+    // region whose text does not change announces nothing: it is cleared and set again.
     region.textContent = ''
     setTimeout(() => { region.textContent = text }, 60)
     return
@@ -76,23 +76,23 @@ export function announce(message, options = {}) {
   region.textContent = text
 }
 
-// ── foco tras navegar ────────────────────────────────────────────────────────────────────
+// ── focus after navigating ────────────────────────────────────────────────────────────────────
 
 /**
- * Lleva el foco al contenido recién cargado.
+ * Moves focus to the freshly loaded content.
  *
- * Se busca el primer encabezado del área de contenido; si no hay, el propio contenedor, al
- * que se le da `tabindex="-1"` para que pueda recibir foco por programa sin añadir una
- * parada de tabulación propia.
+ * It looks for the first heading of the content area; if there is none, the container itself, which
+ * is given `tabindex="-1"` so it can receive focus programmatically without adding a
+ * tab stop of its own.
  */
 export function focusContent() {
   if (typeof document === 'undefined') return false
   const root = document.querySelector('#vbRouterContent') || document.querySelector('.oj-web-applayout-content-nopad')
   if (!root) return false
 
-  // Candidatos en orden de preferencia. El encabezado tiene que llevar TEXTO: la shell pinta
-  // un <h1> vacío hasta que llega el título, y un encabezado vacío no es focusable (ni sería
-  // útil anunciarlo) — el intento fallaba en silencio y el foco se quedaba donde estaba.
+  // Candidates in order of preference. The heading has to carry TEXT: the shell paints
+  // an empty <h1> until the title arrives, and an empty heading is not focusable (nor would it be
+  // useful to announce it) — the attempt failed silently and focus stayed where it was.
   const headings = [...root.querySelectorAll('h1, h2, [role="heading"]')]
     .filter((h) => (h.textContent || '').trim().length > 0)
   const candidates = [...headings, root]
@@ -100,7 +100,7 @@ export function focusContent() {
   for (const target of candidates) {
     if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
     try { target.focus({ preventScroll: true }) } catch (e) { target.focus() }
-    // Comprobar que PRENDIÓ: focus() sobre un elemento sin caja no hace nada y no avisa.
+    // Check that it TOOK: focus() on an element without a box does nothing and does not warn.
     if (document.activeElement === target || (document.activeElement && target.contains(document.activeElement))) {
       return true
     }
@@ -111,16 +111,16 @@ export function focusContent() {
 let hasNavigated = false
 
 /**
- * Anuncia la llegada a una pantalla y deja el foco en ella.
+ * Announces arrival on a screen and leaves focus on it.
  *
- * Dos límites deliberados, y los dos importan:
+ * Two deliberate limits, and both matter:
  *
- *  - Sólo en navegaciones REALES. Un re-render no debe tocar el foco: se lo arrancaría al
- *    usuario del campo que está editando.
- *  - NUNCA en la primera carga. Ahí el documento ya empieza arriba, y llevar el foco al
- *    contenido deja el enlace de salto por DETRÁS del punto de partida: el primer tabulador
- *    del usuario ya no lo alcanza y el menú queda sólo a base de Shift+Tab. Se anuncia el
- *    título igualmente, que es lo que aporta valor en esa primera pantalla.
+ *  - Only on REAL navigations. A re-render must not touch focus: it would yank it from the
+ *    user out of the field they are editing.
+ *  - NEVER on the first load. There the document already starts at the top, and moving focus to the
+ *    content leaves the skip link BEHIND the starting point: the user's first Tab
+ *    no longer reaches it and the menu is reachable only by Shift+Tab. The
+ *    title is announced anyway, which is what adds value on that first screen.
  */
 export function announceNavigation(title) {
   announce(title)
@@ -151,12 +151,12 @@ export function overlayIsOpen(doc) {
 }
 
 /**
- * Intenta llevar el foco al contenido durante unos cuantos frames.
+ * Tries to move focus to the content over a few frames.
  *
- * VB actualiza los bindings de forma asíncrona: en el momento en que la chain de navegación
- * termina, el contenido nuevo AÚN NO está en el DOM. Enfocar ahí prende sobre el contenido
- * viejo y se pierde en cuanto se reemplaza — que es exactamente lo que pasaba. Se reintenta
- * hasta que prenda, o se abandona: mejor no mover el foco que dejarlo en un sitio raro.
+ * VB updates bindings asynchronously: at the moment the navigation chain
+ * finishes, the new content is NOT YET in the DOM. Focusing then lands on the old
+ * content and is lost as soon as it is replaced — which is exactly what was happening. It retries
+ * until it takes, or gives up: better not to move focus than to leave it somewhere odd.
  */
 export function focusContentSoon(framesLeft = 12) {
   if (typeof requestAnimationFrame === 'undefined') { focusContent(); return }
@@ -166,19 +166,19 @@ export function focusContentSoon(framesLeft = 12) {
   })
 }
 
-/** Test seam: olvida que ya se navegó. */
+/** Test seam: forgets that a navigation already happened. */
 export function resetNavigationState() { hasNavigated = false }
 
-// ── salto al contenido ───────────────────────────────────────────────────────────────────
+// ── skip to content ───────────────────────────────────────────────────────────────────
 
 /**
- * Monta el enlace "saltar al contenido" como PRIMER elemento del body (WCAG 2.4.1).
+ * Mounts the "skip to content" link as the FIRST element of the body (WCAG 2.4.1).
  *
- * Cada pantalla empieza por el mismo menú. Sin una vía para saltarlo, quien navega con
- * teclado paga ese menú entero en cada pantalla antes de llegar a lo que venía a hacer.
+ * Every screen starts with the same menu. Without a way to skip it, whoever navigates by
+ * keyboard pays for that whole menu on every screen before reaching what they came to do.
  *
- * Oculto por transform y no por display:none, porque un elemento con display:none no puede
- * recibir foco — y entonces el enlace sería inalcanzable, que es justo lo contrario.
+ * Hidden by transform and not by display:none, because an element with display:none cannot
+ * receive focus — and then the link would be unreachable, which is exactly the opposite.
  */
 export function mountSkipLink(label = chromeText('skipToContent')) {
   if (typeof document === 'undefined') return
@@ -194,19 +194,19 @@ export function mountSkipLink(label = chromeText('skipToContent')) {
   document.body.insertBefore(link, document.body.firstChild)
 }
 
-// ── estado de ocupado en el control pulsado ──────────────────────────────────────────────
+// ── busy state on the pressed control ──────────────────────────────────────────────
 
 /**
- * Marca ocupado el control que el usuario pulsó, mientras su acción está en vuelo.
+ * Marks the control the user pressed as busy while its action is in flight.
  *
- * La barra global responde a "¿está ocupada la app?", pero la pregunta que se hace quien está
- * en una conexión lenta es "¿se ha enterado de mi clic?". Sin esto pulsa Guardar, no cambia
- * nada, y vuelve a pulsar.
+ * The global bar answers "is the app busy?", but the question someone on a slow
+ * connection asks is "did it notice my click?". Without this they press Save, nothing
+ * changes, and they press again.
  *
- * Anima la OPACIDAD del propio elemento y no dibuja un spinner en ::after: sobre un shadow
- * host el pseudo-elemento no se pinta (comprobado en los renderers web con un
- * `inset:0;background:red` sobre un vaadin-button vivo), y no hay garantía de que los
- * componentes de JET no lo sean.
+ * It animates the element's own OPACITY and does not draw a spinner in ::after: on a shadow
+ * host the pseudo-element is not painted (verified in the web renderers with an
+ * `inset:0;background:red` on a live vaadin-button), and there is no guarantee that the
+ * JET components are not shadow hosts.
  */
 export function markPending(element) {
   if (!element || !element.setAttribute) return
@@ -222,11 +222,11 @@ export function clearPending(element) {
 }
 
 /**
- * El control realmente pulsado a partir del evento, o null si no lo hay.
+ * The control actually pressed, from the event, or null if there is none.
  *
- * Sólo se decora una lista CERRADA de cosas con pinta de botón: atenuar un contenedor (una
- * tabla, un formulario entero) sería peor que no mostrar nada, y una acción puede dispararse
- * desde cualquier sitio — un trigger, un atajo, el clic de una fila.
+ * Only a CLOSED list of button-like things is decorated: dimming a container (a
+ * table, a whole form) would be worse than showing nothing, and an action can be fired
+ * from anywhere — a trigger, a shortcut, a row click.
  */
 const INTERACTIVE = 'oj-button, oj-menu-button, oj-c-button, button, [role="button"], a[href]'
 
@@ -237,16 +237,16 @@ export function pressedControl(event) {
 }
 
 /**
- * Sigue el control pulsado a nivel de DOCUMENTO y lo marca mientras haya trabajo en vuelo.
+ * Tracks the pressed control at DOCUMENT level and marks it while there is work in flight.
  *
- * Enhebrar el evento por cada chain no vale: los botones de la app pasan por chains
- * distintas (toolbar, listado, wizard, isla…) y cualquiera nueva se olvidaría de hacerlo. En
- * cambio el clic siempre pasa por el documento, y el transporte siempre avisa de cuándo
- * empieza y acaba — así que emparejar las dos señales cubre todos los caminos, incluidos los
- * que aún no existen.
+ * Threading the event through each chain does not work: the app's buttons go through different
+ * chains (toolbar, listing, wizard, island…) and any new one would forget to do it. On the
+ * other hand the click always goes through the document, and the transport always reports when it
+ * starts and ends — so pairing the two signals covers every path, including those
+ * that do not exist yet.
  *
- * La ventana de gracia evita marcar un control por trabajo que no desencadenó él (un trigger
- * OnLoad, un autosave): sólo cuenta si la petición sale justo detrás del clic.
+ * The grace window avoids marking a control for work it did not trigger (an OnLoad
+ * trigger, an autosave): it only counts if the request goes out right after the click.
  */
 const PRESS_GRACE_MS = 400
 let lastPress = { control: null, at: 0 }
@@ -262,7 +262,7 @@ export function trackPressedControls() {
   }, true)
 }
 
-/** Llamar desde el hook onStart del transporte. */
+/** Call from the transport's onStart hook. */
 export function markPressedControlBusy() {
   if (!lastPress.control) return
   if (Date.now() - lastPress.at > PRESS_GRACE_MS) return
@@ -270,61 +270,61 @@ export function markPressedControlBusy() {
   markPending(markedControl)
 }
 
-/** Llamar desde el hook onSettle. */
+/** Call from the onSettle hook. */
 export function clearPressedControlBusy() {
   clearPending(markedControl)
   markedControl = null
 }
 
-// ── reintento a nivel de chain ───────────────────────────────────────────────────────────
+// ── retry at chain level ───────────────────────────────────────────────────────────
 
 /**
- * Qué hay que rehacer tras un fallo.
+ * What has to be redone after a failure.
  *
- * Se guarda un DESCRIPTOR, no un cierre. Un cierre atrapa el `context` de VB de la ejecución
- * que falló, y ese contexto ya no sirve cuando el usuario pulsa Reintentar un segundo después:
- * la llamada no hace nada y falla en silencio (me pasó). Con un descriptor, quien reintenta
- * usa SU contexto, que está vivo.
+ * A DESCRIPTOR is stored, not a closure. A closure captures the VB `context` of the execution
+ * that failed, and that context is no longer valid when the user presses Retry a second later:
+ * the call does nothing and fails silently (it happened to me). With a descriptor, whoever retries
+ * uses THEIR context, which is alive.
  *
- * Reenviar sólo la petición tampoco valdría: una respuesta que nadie procesa no cambia nada en
- * pantalla — la misma lección que en los renderers web. Por eso lo que se rehace es la acción
- * o la navegación ENTERA.
+ * Resending only the request would not work either: a response nobody processes changes nothing on
+ * screen — the same lesson as in the web renderers. That is why what is redone is the WHOLE action
+ * or navigation.
  */
 let lastRetry = null
 
-/** `{ kind: 'navigate', route }` o `{ kind: 'action', actionId, parameters }`. */
+/** `{ kind: 'navigate', route }` or `{ kind: 'action', actionId, parameters }`. */
 export function setLastRetry(descriptor) {
   lastRetry = descriptor && descriptor.kind ? descriptor : null
 }
 
 export function hasLastRetry() { return !!lastRetry }
 
-/** Devuelve el descriptor y lo olvida: un reintento se ofrece una vez. */
+/** Returns the descriptor and forgets it: a retry is offered once. */
 export function takeLastRetry() {
   const descriptor = lastRetry
   lastRetry = null
   return descriptor
 }
 
-// ── campos obligatorios ───────────────────────────────────────────────────────────────────
+// ── required fields ───────────────────────────────────────────────────────────────────
 
-/** Los widgets de un campo del formulario de la página (no los de un diálogo o un drawer). */
+/** The widgets of a field of the page's form (not those of a dialog or a drawer). */
 function fieldElementsOf(fieldId) {
   if (typeof document === 'undefined') return []
-  // comparando el atributo, sin montar un selector con el id: nada que escapar
+  // comparing the attribute, without building a selector with the id: nothing to escape
   return [...document.querySelectorAll('[data-field-id]')]
     .filter((el) => el.getAttribute('data-field-id') === String(fieldId))
     .filter((el) => !el.closest('oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'))
 }
 
 /**
- * Marca los obligatorios vacíos como lo hace un formulario Redwood y lleva el foco al primero.
+ * Marks the empty required fields as a Redwood form does and moves focus to the first one.
  *
- * El mensaje es el del propio componente: `validate()` corre su validador de obligatorio (el
- * `required` que ya pinta «Obligatorio» bajo el campo) y enseña su texto — «Introduzca un
- * valor.», en el idioma de JET —, igual que al salir de un campo vacío. Si un componente no se
- * da por inválido (su valor no ha llegado aún al widget), el mensaje va por `messagesCustom`.
- * Devuelve cuántos campos marcó.
+ * The message is the component's own: `validate()` runs its required validator (the
+ * `required` that already paints «Obligatorio» under the field) and shows its text — «Introduzca un
+ * valor.», in JET's language —, just as when leaving an empty field. If a component does not
+ * consider itself invalid (its value has not reached the widget yet), the message goes through `messagesCustom`.
+ * Returns how many fields it marked.
  */
 export async function showFieldErrors(fieldIds, fallbackMessage) {
   let first = null
@@ -339,10 +339,10 @@ export async function showFieldErrors(fieldIds, fallbackMessage) {
         if ('messagesCustom' in el || typeof el.validate === 'function') {
           try {
             el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
-          } catch (ignored) { /* no es un componente JET */ }
+          } catch (ignored) { /* not a JET component */ }
         } else {
-          // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
-          // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
+          // a field that is not a JET component (the chips of a @Searchable): its CSS paints
+          // the message (.mateu-field-error + data-error) until it is touched again
           el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
           el.classList.add('mateu-field-error')
         }
@@ -354,12 +354,12 @@ export async function showFieldErrors(fieldIds, fallbackMessage) {
   if (first) {
     try { first.scrollIntoView({ block: 'center' }) } catch (ignored) { /* jsdom */ }
     const input = first.querySelector && first.querySelector('input, textarea, [tabindex="0"]')
-    try { (input || first).focus() } catch (ignored) { /* sin caja */ }
+    try { (input || first).focus() } catch (ignored) { /* no box */ }
   }
   return marked
 }
 
-/** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
+/** Removes the error marks of fields that are not JET components (see showFieldErrors). */
 export function clearFieldErrorMarks(fieldId) {
   if (typeof document === 'undefined') return
   for (const el of document.querySelectorAll('.mateu-field-error')) {
@@ -370,7 +370,7 @@ export function clearFieldErrorMarks(fieldId) {
   }
 }
 
-/** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */
+/** When a marked field is edited, its own message goes away (the validator's is managed by JET). */
 export function clearFieldError(element) {
   if (element && Array.isArray(element.messagesCustom) && element.messagesCustom.length) {
     element.messagesCustom = []
@@ -380,12 +380,12 @@ export function clearFieldError(element) {
 let guidedProcessGuarded = false
 
 /**
- * El guided process (oj-sp-guided-process) avanza SOLO al pulsar Continue o un paso del rail,
- * antes de saber si Mateu deja salir del paso: sus eventos spBeforeNext/spBeforeStepNavigate se
- * pueden cancelar, pero sólo en el momento, y las chains de VB corren después. Aquí se cancelan
- * siempre, en captura (no burbujean: la captura los ve igual), y el paso que se enseña lo manda
- * el servidor (current-step ← el paso del wire tras cada acción): si el paso no valida, el
- * proceso no se mueve. Las chains siguen recibiendo el evento y lanzan la acción.
+ * The guided process (oj-sp-guided-process) advances ON ITS OWN when Continue or a rail step is pressed,
+ * before knowing whether Mateu lets it leave the step: its spBeforeNext/spBeforeStepNavigate events
+ * can be cancelled, but only at that moment, and VB chains run afterwards. Here they are always
+ * cancelled, in capture (they do not bubble: capture sees them anyway), and the step shown is decided by
+ * the server (current-step ← the wire's step after each action): if the step does not validate, the
+ * process does not move. The chains still receive the event and launch the action.
  */
 export function guardGuidedProcess() {
   if (guidedProcessGuarded || typeof document === 'undefined') return
@@ -400,12 +400,12 @@ export function guardGuidedProcess() {
 }
 
 /**
- * La consulta con la que oj-sp-guided-process decide si su OVERVIEW (la portada con un panel por
- * paso) va en columna: «(max-width: 767px), (max-height: 767px)». Pensada para un guided process a
- * pantalla completa, apila los paneles en cuanto la ventana es estrecha O baja — un portátil con la
- * ventana a menos de 768px de alto ya ve los pasos uno debajo de otro. Con app.css los paneles se
- * reparten el ancho del contenido (una fila; otra sólo si de verdad no caben), así que la columna
- * se reserva al teléfono (RDS: < 600px). Cualquier otra consulta pasa intacta.
+ * The query oj-sp-guided-process uses to decide whether its OVERVIEW (the cover with one panel per
+ * step) goes in a column: «(max-width: 767px), (max-height: 767px)». Designed for a full-screen guided process,
+ * it stacks the panels as soon as the window is narrow OR short — a laptop with the
+ * window under 768px tall already sees the steps one below another. With app.css the panels
+ * share the content width (one row; another only if they really do not fit), so the column
+ * is reserved for the phone (RDS: < 600px). Any other query passes through untouched.
  */
 export const GUIDED_PROCESS_VERTICAL_QUERY = '(max-width: 767px), (max-height: 767px)'
 export const GUIDED_PROCESS_PHONE_QUERY = '(max-width: 599px)'
@@ -416,10 +416,10 @@ export function guidedProcessMediaQuery(query) {
 }
 
 /**
- * La rueda del ratón sobre el overview: el componente la convierte SIEMPRE en scroll horizontal
- * (preventDefault), porque en su diseño los paneles desbordan a lo ancho. Repartidos a lo ancho ya
- * no desbordan, y robarle la rueda a la página sólo impediría bajar (p.ej. a la 2ª fila). Se le
- * deja el gesto al componente sólo si su contenedor de pasos aún desborda a lo ancho.
+ * The mouse wheel over the overview: the component ALWAYS turns it into horizontal scroll
+ * (preventDefault), because in its design the panels overflow horizontally. Spread across the width they no
+ * longer overflow, and stealing the wheel from the page would only prevent scrolling down (e.g. to the 2nd row). The
+ * gesture is left to the component only if its steps container still overflows horizontally.
  */
 export function guidedProcessWheelIsNative(stepContainer) {
   if (!stepContainer) return false
