@@ -4,15 +4,14 @@ import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, 
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
-import { addReferencedRestSources, externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch.ts';
+import { externalAuthHeaders } from './restFetch.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
-import { headerValues } from './appShellExtras.ts';
 import { presentDocument } from './documentEffects.ts';
 import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
 import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
-import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
+import { isClientRunnable, resolveAction, type ShellAction } from './shellFlows.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
@@ -254,7 +253,7 @@ export class MateuViewController {
     // A declared FLOW (the page's own `actions:` lowered to commands) or, for an id the page does
     // NOT declare, the app's ACTION catalogue — owner first. Either runs here with no round-trip; a
     // RunAction inside the flow comes back through this method and resolves the same way.
-    const resolved = resolveAction(actionId, this.currentActionDefs, getActionCatalogue());
+    const resolved = resolveAction(actionId, this.currentActionDefs, this.session.actionCatalogue.get());
     if (isClientRunnable(resolved) && this.flowDepth < 8) {
       if (resolved!.commands && resolved!.commands.length) {
         this.flowDepth++;
@@ -333,10 +332,10 @@ export class MateuViewController {
       let json: unknown;
       // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a copy of
       // the sample, a write succeeds with null (nothing persisted, nothing to merge).
-      const sampled = sampledResponse(source, str(resolveRestSource(source)['method']) || 'GET');
+      const sampled = this.session.sources.sampledResponse(source, str(this.session.sources.resolve(source)['method']) || 'GET');
       if (sampled !== undefined) {
         json = sampled;
-      } else if (viaProxy(source)) {
+      } else if (this.session.sources.viaProxy(source)) {
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via
         // the reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
         // @RestData source; any other id is a @RestAction method — hence the source kind.
@@ -533,7 +532,7 @@ export class MateuViewController {
 
   applyIncrement(increment: Json): void {
     // first: the components about to render may fetch from the sources they name
-    addReferencedRestSources(increment['restSources']);
+    this.session.sources.addReferenced(increment['restSources']);
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
 
     for (const msg of asArray(increment['messages'])) {
@@ -685,10 +684,10 @@ export class MateuViewController {
     const meta = (component['metadata'] as Json) ?? {};
     // The app shell carries the REST source catalogue (AppDto.restSources); register it so a surface
     // that references a source by `ref` can resolve it — before the home-route hop below returns.
-    if (meta['type'] === 'App' && meta['restSources'] !== undefined) registerRestSources(meta['restSources']);
-    if (meta['type'] === 'App' && meta['actionCatalogue'] !== undefined) registerActionCatalogue(meta['actionCatalogue']);
+    if (meta['type'] === 'App' && meta['restSources'] !== undefined) this.session.sources.register(meta['restSources']);
+    if (meta['type'] === 'App' && meta['actionCatalogue'] !== undefined) this.session.actionCatalogue.register(meta['actionCatalogue']);
     // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
-    if (meta['type'] === 'App' && meta['mockSources'] === true) setSampleMode(true);
+    if (meta['type'] === 'App' && meta['mockSources'] === true) this.session.sources.setSampleMode(true);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
       const { route: homeRoute, consumedRoute: homeConsumed, serverSideType: homeSst } = appHomeOf(meta);
       const same = homeRoute === this.currentRoute && homeSst === this.currentServerSideType;
@@ -709,9 +708,9 @@ export class MateuViewController {
         const first = children[0] as Json;
         const firstMeta = (first['metadata'] as Json) ?? {};
         const firstIsApp = first['type'] === 'ClientSide' && firstMeta['type'] === 'App';
-        if (firstMeta['type'] === 'App' && firstMeta['restSources'] !== undefined) registerRestSources(firstMeta['restSources']);
-        if (firstMeta['type'] === 'App' && firstMeta['actionCatalogue'] !== undefined) registerActionCatalogue(firstMeta['actionCatalogue']);
-        if (firstMeta['type'] === 'App' && firstMeta['mockSources'] === true) setSampleMode(true);
+        if (firstMeta['type'] === 'App' && firstMeta['restSources'] !== undefined) this.session.sources.register(firstMeta['restSources']);
+        if (firstMeta['type'] === 'App' && firstMeta['actionCatalogue'] !== undefined) this.session.actionCatalogue.register(firstMeta['actionCatalogue']);
+        if (firstMeta['type'] === 'App' && firstMeta['mockSources'] === true) this.session.sources.setSampleMode(true);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
           const { route: homeRoute, consumedRoute: homeConsumed, serverSideType: homeSst } = appHomeOf(firstMeta);
@@ -862,7 +861,7 @@ export class MateuViewController {
         break;
       case 'UpdateHeaderValue': {
         // a live header value (the business date…): repaint the drawer's header values and say so
-        const change = headerValues.update(str((cmdData as Json)?.['id']), str((cmdData as Json)?.['value']));
+        const change = this.session.headerValues.update(str((cmdData as Json)?.['id']), str((cmdData as Json)?.['value']));
         if (change) announceLive(change, false);
         break;
       }

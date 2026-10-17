@@ -1,6 +1,12 @@
 import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
+import { RestSourceCatalogue, sharedRestSources } from './restFetch.ts';
+import { ActionCatalogue, sharedActionCatalogue } from './shellFlows.ts';
+import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShellExtras.ts';
+import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts';
+import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
+import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -34,6 +40,22 @@ export interface OverlayOpenerContext {
 export class MateuSession {
   readonly api: MateuApiClient;
   readonly appState: Record<string, unknown>;
+
+  // What the app registers as it runs. The hub runs several apps in one process, so a session
+  // created with its OWN token provider (a hub UI session — even `null`, an unsecured backend) owns
+  // these; a session without one (the single-backend app, an island over another base url) uses
+  // the process-wide stores, as the module-level functions do — the same split as `auth`.
+  /** The app's REST source catalogue + references + sample mode. */
+  readonly sources: RestSourceCatalogue;
+  /** The app's action catalogue (AppDto.actionCatalogue). */
+  readonly actionCatalogue: ActionCatalogue;
+  /** The app shell's live header values. */
+  readonly headerValues: HeaderValuesStore;
+  /** Listing personalisation: hidden columns and saved views (session-scoped). */
+  readonly columnPrefs: ColumnPrefsStore;
+  readonly savedViews: SavedViewsStore;
+  /** The drop zones mounted on this app's screens. */
+  readonly dropZones: DropZoneRegistry;
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
   notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
@@ -73,6 +95,13 @@ export class MateuSession {
   constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}, auth?: TokenProvider | null) {
     this.api = new MateuApiClient(baseUrl, sessionId, auth);
     this.appState = appState;
+    const own = auth !== undefined;
+    this.sources = own ? new RestSourceCatalogue() : sharedRestSources;
+    this.actionCatalogue = own ? new ActionCatalogue() : sharedActionCatalogue;
+    this.headerValues = own ? new HeaderValuesStore() : sharedHeaderValues;
+    this.columnPrefs = own ? new ColumnPrefsStore() : sharedColumnPrefs;
+    this.savedViews = own ? new SavedViewsStore() : sharedSavedViews;
+    this.dropZones = own ? new DropZoneRegistry() : sharedDropZones;
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
