@@ -67,13 +67,6 @@ public class RouteInstanceCreator {
                                 .next()));
   }
 
-  /** Only the first half of {@link #findRouteResolver}: an App mounted on a prefix of the route. */
-  public Mono<?> findApp(RunActionCommand command) {
-    List<String> segments = createRoutes(command);
-    return Mono.defer(
-        () -> Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next());
-  }
-
   /**
    * Only the App half of {@link #findRouteResolver}: the enclosing app (shortest-first) that wraps
    * a route in its chrome, and nothing else. For a route the registry authors as a definition-only
