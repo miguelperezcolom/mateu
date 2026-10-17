@@ -33,7 +33,9 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     return new OrchestrationResult(
-        "list", orchestrator.list(httpRequest), createListComponent(httpRequest, orchestrator));
+        Crud.LIST_VIEW,
+        orchestrator.list(httpRequest),
+        createListComponent(httpRequest, orchestrator));
   }
 
   private static boolean notCreatable(Crud orchestrator) {

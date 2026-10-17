@@ -39,6 +39,37 @@ fun JPanel.addStackedBetween(child: JComponent, gap: Int, first: Boolean) {
 }
 
 
+/**
+ * A scroll pane that never gives up its content's HEIGHT. A page is a vertical [BoxLayout] of
+ * cards; when it is handed less height than its children prefer (a long page before its host
+ * scrolls it, a probe frame, a split pane), BoxLayout shrinks each child towards its MINIMUM — and a
+ * plain scroll pane's minimum is its two scroll bars, so a planning board, a matrix grid or a kanban
+ * collapsed to a 20px strip while the labels around them kept their size. Here the minimum (and the
+ * maximum, so a grid that EXPANDS a section after render can grow past the cap [addStacked] froze)
+ * follow the preferred height: the canvas keeps its rows and the PAGE scrolls, which is the only
+ * place a long page should scroll vertically. Horizontal overflow still scrolls inside, and the bar
+ * it needs is reserved in the preferred height once the pane knows its width — a non-Scrollable
+ * view never makes [javax.swing.ScrollPaneLayout] count it, so the bar used to eat the last row.
+ */
+internal open class ContentHeightScrollPane(view: JComponent) : com.intellij.ui.components.JBScrollPane(view) {
+    override fun getPreferredSize(): Dimension {
+        val p = super.getPreferredSize()
+        val hsb = horizontalScrollBar ?: return p
+        if (horizontalScrollBarPolicy == javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER || width <= 0) return p
+        val view = viewport?.view ?: return p
+        val viewW = view.preferredSize.width
+        // What ScrollPaneLayout already counted: a Scrollable view wider than its preferred viewport.
+        val counted = view is javax.swing.Scrollable && !view.scrollableTracksViewportWidth &&
+            viewW > viewport.preferredSize.width
+        val available = width - insets.left - insets.right - (rowHeader?.preferredSize?.width ?: 0) -
+            (verticalScrollBar?.takeIf { it.isVisible }?.width ?: 0)
+        return if (!counted && viewW > available) Dimension(p.width, p.height + hsb.preferredSize.height) else p
+    }
+
+    override fun getMinimumSize(): Dimension = Dimension(super.getMinimumSize().width, preferredSize.height)
+    override fun getMaximumSize(): Dimension = Dimension(Int.MAX_VALUE, preferredSize.height)
+}
+
 /** Lays its single child out at full height but capped width, anchored left (IDE-style) — the
  *  Swing rendering of a CSS `max-width` (e.g. the Page's `max-width:900px;margin:auto`). */
 internal class MaxWidthPanel(private val maxWidth: Int, private val content: javax.swing.JComponent) :

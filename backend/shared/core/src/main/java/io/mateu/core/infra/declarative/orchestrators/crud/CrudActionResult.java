@@ -31,6 +31,28 @@ public record CrudActionResult(
         actionId, savedId, new ArrayList<>(), null, null, null, null, new ArrayList<>());
   }
 
+  /**
+   * The answer to an action that changed the listing's rows (a delete, a row/bulk method).
+   *
+   * <p>From the listing itself the rows refresh IN PLACE: the route stays where it is and {@link
+   * Crud#LISTING_CHANGED_EVENT} makes the listing re-run its search. From anywhere else (the
+   * record's edit page) the answer is a navigation back to the list, and the fresh listing searches
+   * on load by itself. Doing both — a {@code /list} route the client did not consider the same
+   * place as the listing on screen, plus the event — made every delete cost two searches: one on
+   * the listing about to be replaced, one on its replacement.
+   */
+  public static CrudActionResult listingChanged(String actionId, Crud<?, ?, ?, ?, ?, ?> crud) {
+    var route = crud.route() == null ? "" : crud.route();
+    if (Crud.isListingRoute(route)) {
+      // the route is kept AS IT IS (not re-spelled): any change of spelling is a navigation to the
+      // client, and a navigation reloads the listing
+      return of(actionId)
+          .withRoute(route)
+          .withCommand(UICommand.dispatchEvent(Crud.LISTING_CHANGED_EVENT));
+    }
+    return of(actionId).withRoute("/list");
+  }
+
   public CrudActionResult withRoute(String route) {
     return new CrudActionResult(
         route,

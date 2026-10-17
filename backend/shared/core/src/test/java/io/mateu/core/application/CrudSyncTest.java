@@ -469,6 +469,54 @@ class CrudSyncTest {
     org.assertj.core.api.Assertions.assertThat(ITEMS.stream().map(Item::id)).doesNotContain("2");
   }
 
+  /**
+   * One delete, one search. From the listing the rows refresh IN PLACE: the mediator keeps its
+   * route (so the client does not reload the listing, whose fresh copy would search on load) and
+   * the listing re-runs its search on {@link
+   * io.mateu.core.infra.declarative.orchestrators.crud.Crud#LISTING_CHANGED_EVENT}. The response
+   * used to carry both a {@code /list} route and the event — two searches per delete.
+   */
+  @org.junit.jupiter.api.Test
+  void deleteFromTheListingRefreshesItInPlaceWithoutReloadingIt() {
+    var increment =
+        crud(
+            "/items",
+            "delete",
+            Map.of(
+                "_route",
+                "list",
+                "crud_selected_items",
+                List.of(Map.of("id", "2", "name", "Screwdriver"))),
+            null);
+    org.assertj.core.api.Assertions.assertThat(stateOf(increment)).containsEntry("_route", "list");
+    org.assertj.core.api.Assertions.assertThat(
+            increment.commands().stream()
+                .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent)
+                .count())
+        .isEqualTo(1);
+    // and the browser's url stays the listing's
+    org.assertj.core.api.Assertions.assertThat(
+            increment.commands().stream()
+                .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory)
+                .map(c -> String.valueOf(c.data())))
+        .singleElement()
+        .satisfies(path -> org.assertj.core.api.Assertions.assertThat(path).doesNotEndWith("list"));
+  }
+
+  @org.junit.jupiter.api.Test
+  void deleteFromTheRecordPageGoesBackToTheListingWithoutTheEvent() {
+    var increment =
+        crud(
+            "/items/3/edit",
+            "delete",
+            Map.of("_route", "edit", "crud_selected_items", List.of(Map.of("id", "3"))),
+            null);
+    org.assertj.core.api.Assertions.assertThat(stateOf(increment)).containsEntry("_route", "/list");
+    // the fresh listing searches on load: the event would be a second search
+    org.assertj.core.api.Assertions.assertThat(increment.commands())
+        .noneMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent);
+  }
+
   @org.junit.jupiter.api.Test
   void viewRouteRendersTheEntityReadOnly() {
     var increment = crud("/items/1", "");

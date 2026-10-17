@@ -33,6 +33,7 @@ from ..reflection import (
     view_fields,
 )
 from ..registry import type_name
+from ..titles import record_title
 from ._base import MixinBase
 from .layout import section_affordance_ids
 from ._common import (
@@ -54,7 +55,8 @@ class ViewMapperMixin(MixinBase):
         if listing_types(cls) is not None:
             return self.map_listing(cls, route)
 
-        title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
+        # the declared @title, else the record's own name, else the class name (record_title)
+        title = self.T(record_title(cls, instance))
         button_methods = [
             (n, f)
             for n, f in methods_with(cls, "__mateu_button__")

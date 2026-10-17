@@ -101,7 +101,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         if (CapabilityProfile.Of(type) is { } capability) return MapCapabilityListing(capability, route);
         if (ListingTypes(type) is { } listing) return MapListing(type, listing.Filters, listing.Row, route);
 
-        var title = T(type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
+        // the declared [Title], else the record's own name, else the class name (TitleOf)
+        var title = TitleOf(type, instance);
 
         var buttonMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m))
@@ -338,6 +339,42 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
     }
 
     private string? OptT(string? s) => s is null ? null : T(s);
+
+    /// <summary>The title of the page built from <paramref name="instance"/> — a record page is
+    /// named after the RECORD (mirrors Java's <c>PageMetadataExtractor.getTitle</c>): the declared
+    /// [Title] wins; else a <c>ToString()</c> the developer wrote ("Booking 123") names the record,
+    /// while a component, an inherited <c>object.ToString</c> and a record's compiler-generated
+    /// <c>Name { A = 1 }</c> (a field dump, not a name) fall back to the humanized class name.
+    /// A record's text is DATA, not a template: its <c>${</c> is escaped.</summary>
+    internal string TitleOf(Type type, object? instance)
+    {
+        var actual = instance?.GetType() ?? type;
+        if (actual.Find<TitleAttribute>() is { } declared) return T(declared.Value);
+        if (instance is null || instance is IComponent) return T(Naming.Humanize(actual.Name));
+        var toString = actual.GetMethod("ToString", Type.EmptyTypes);
+        if (toString is null || toString.DeclaringType == typeof(object) || toString.DeclaringType == typeof(ValueType))
+            return T(Naming.Humanize(actual.Name));
+        var text = instance.ToString();
+        if (string.IsNullOrEmpty(text) || IsGeneratedRecordToString(actual, text))
+            return T(Naming.Humanize(actual.Name));
+        return TemplateLiteral(T(text));
+    }
+
+    /// <summary>Whether <paramref name="text"/> is the ToString the compiler synthesizes for a C#
+    /// record: <c>Name { First = 1, … }</c> (<c>Name { }</c> with no members).</summary>
+    private static bool IsGeneratedRecordToString(Type type, string text)
+    {
+        if (type.GetMethod("<Clone>$", BindingFlags.Public | BindingFlags.Instance) is null) return false; // not a record
+        var prefix = type.Name + " { ";
+        if (!text.StartsWith(prefix, StringComparison.Ordinal) || !text.EndsWith('}')) return false;
+        var first = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(p => p.Name != "EqualityContract")?.Name;
+        return first is null ? text == type.Name + " { }" : text.StartsWith(prefix + first + " = ", StringComparison.Ordinal);
+    }
+
+    /// <summary>Escapes a value so a label interpolator leaves it as written (Java's Templates.literal).</summary>
+    private static string TemplateLiteral(string text) =>
+        text.Contains("${") ? text.Replace("\\", "\\\\").Replace("${", "\\${") : text;
 
     /// <summary>A wizard step: title + progress bar + the current step's fields + Back/Next. The state
     /// (__step + all field values) rides in initialData so it round-trips through componentState.</summary>

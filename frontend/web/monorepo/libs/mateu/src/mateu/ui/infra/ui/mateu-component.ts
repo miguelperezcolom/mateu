@@ -1,4 +1,5 @@
 import {customElement, property} from "lit/decorators.js";
+import { standInForOnLoad } from "@infra/ui/onLoadTimes.ts";
 import { jsonSafe } from '@infra/http/jsonTemplate.ts'
 import { viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
@@ -882,8 +883,14 @@ export class MateuComponent extends ComponentElement {
             const searchState = (detail.parameters as any)?._searchState
             if (searchState) {
                 this.state = { ...this.state, ...searchState }
+                // The listing asked for this search itself (it read its filters off the URL): it
+                // IS the search this component's OnLoad trigger was going to fire, with the same
+                // state — so the trigger counts as fired instead of repeating it (onLoadTimes.ts).
+                standInForOnLoad((this.component as ServerSideComponent)?.triggers, 'search')
             } else if (!this.state.size) {
-                this.state = { ...this.state, size: 10, page: 0, sort: [] }
+                // the page the route asked for (?page=N travels in the state) is kept: resetting it
+                // here made a deep link to page 2 answer page 1
+                this.state = { ...this.state, size: 10, page: this.state.page ?? 0, sort: [] }
             }
         }
 

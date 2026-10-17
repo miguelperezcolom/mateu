@@ -69,6 +69,7 @@ from ..validation import client_validations
 from mateu_uidl.export import ExportColumn
 
 from ..export import FORMATS
+from ..titles import record_title
 from ._base import MixinBase
 from ._common import (
     COMPACT_STYLE,
@@ -615,7 +616,10 @@ class CrudMapperMixin(MixinBase):
         ``can_create`` trim the view-mode toolbar to the declared capabilities;
         ``save_action_id`` is the action Save dispatches ("create" on the crud path, "save" on
         a capability listing's editor)."""
-        title = getattr(crud_type, "__mateu_title__", humanize(element.__name__))
+        # The page is named after the RECORD, as Java's CrudFormComponentBuilder does
+        # (getTitle(entity)): the entity's @title, else its own __str__, else its class name —
+        # never the crud's title.
+        title = self.T(record_title(element, entity))
         if mode == "view":
             toolbar = [Button(label="Back to list", action_id="cancel-view")]
             if can_edit:

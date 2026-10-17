@@ -75,7 +75,7 @@ served behind the Vaadin renderer (same-origin proxy) + port tests + conformance
 | Deep link with filters | 🔧 #5 #20 spec | ✅ | 🔧 #21 (+ static-vcn spec) | ❌ | ❌ | ✅ | ✅ | N/A | N/A | N/A |
 | Row click → record; back; forward | 🔧 #6 #7 spec | ✅ `rowRoute` | ⏳ | ✅ (back loses search) | ⏳ | ✅ browser | ✅ browser | ✅ expo web | ⏳ | N/A |
 | Deep link / reload on a record | 🔧 #7 spec | ✅ | ✅ static-vcn | ⏳ | ⏳ | ✅ browser | ✅ browser | N/A | N/A | N/A |
-| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ | ⚠ class title, not the record | 🔧 #24 (read-only stepper) ✅ | ⏳ | N/A |
+| Record title | 🔧 #11 spec | N/A | N/A | ✅ | N/A | ✅ (`RecordTitleTests`: the record names the page, as Java) | ✅ (`test_record_title.py`) | 🔧 #24 (read-only stepper) ✅ | ⏳ | N/A |
 | Editable w/o Navigable → drawer, save refreshes | ✅ spec | N/A | N/A | ✅ | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |
 | Drawer validation (required field) | 🔧 #9 spec | N/A | N/A | 🔧 #9 | N/A | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | AutoCrud editInDrawer (open/cancel/save, url) | 🔧 #14 test + probe | N/A | N/A | ✅ (`demo-vb /products`) | N/A | ✅ tests | ✅ tests | ⏳ | ⏳ | N/A |

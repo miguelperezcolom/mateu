@@ -347,7 +347,9 @@ public abstract class MultiView
   }
 
   public String pathForHistory(String route) {
-    if ("/list".equals(route)) {
+    // "/list" is the navigation back to the listing, "list" the listing's own view name (the route
+    // an action keeps when the rows refresh in place): both are the listing's url
+    if ("/list".equals(route) || "list".equals(route)) {
       return _componentRoute;
     }
     return _componentRoute + route;
