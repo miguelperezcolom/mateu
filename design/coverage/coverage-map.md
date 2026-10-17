@@ -21,7 +21,7 @@ How it was measured (reproducible):
 
 | Area | Tests | Lines | Branches | Floor (CI) | Gap to 80% lines |
 |---|---|---|---|---|---|
-| Java `shared/core` | 1735 | **84.7%** | 70.1% | 84% bundle lines | — (branches: 9.9 pts) |
+| Java `shared/core` | 2155 | **89.3%** (was 84.7) | **77.7%** (was 70.1) | 89% bundle lines + 77% bundle branches (S1, 2026-10-17) | — (branches: 2.3 pts) |
 | Java `shared/uidl` — own suite | 145 | 49.0% | 29.7% | 49% lines / 29% branches | 31.0 (gated cross-module instead) |
 | Java `shared/uidl` — all suites (cross-module) | — | **87.6%** | 73.0% | **87% / 73%** (`backend/coverage`) | — |
 | Java `shared/dtos` — all suites (cross-module) | 124 (incl. dynamic) | **84.5%** | 87.4% | **84% / 87%** (`backend/coverage`) | — |

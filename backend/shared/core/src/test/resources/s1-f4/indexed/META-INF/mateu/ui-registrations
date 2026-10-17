@@ -1,0 +1,2 @@
+class=io.mateu.core.application.export.BundleFromTheIndexTest$IndexedSecret
+path=/indexed-secret

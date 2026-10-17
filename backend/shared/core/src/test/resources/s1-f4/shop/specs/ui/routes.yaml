@@ -1,0 +1,16 @@
+type: Routes
+routes:
+  - route: ""
+    definition: shell.yaml
+  - route: dashboard
+    definition: dashboard.yaml
+  - route: orders
+    definition: orders.yaml
+  - route: orders/:status
+    definition: orders.yaml
+    fixedParams:
+      region: EU
+    defaultParams:
+      size: "20"
+    state:
+      greeting: hello

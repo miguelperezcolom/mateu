@@ -1,0 +1,27 @@
+sources:
+  - name: weather
+    provenance: existing
+    description: Forecast by city
+    sampleFile: samples/weather.json
+    source:
+      url: https://api.weather.example.com/forecast?city=${state.city}
+      headers:
+        X-Api-Key: ${secret.WEATHER}
+        Accept: application/json
+      proxy: true
+  - name: planets
+    provenance: someday   # not a provenance: inferred from the url instead
+    sample:
+      - { id: 1, name: Tatooine }
+    source:
+      url: /api/planets
+      method: POST
+      body: '{"q":"${state.q}"}'
+  - name: bare
+  - description: an entry with no name is ignored
+    source:
+      url: /api/nameless
+  - name: missingSample
+    sampleFile: /specs/ui/samples/nope.json
+    source:
+      url: /api/missing
