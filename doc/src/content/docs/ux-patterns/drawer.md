@@ -185,7 +185,15 @@ one step) so N items read as N screens without N step classes:
 public class BatchApprovalWizard extends Wizard {
     public static class ReviewStep implements WizardStep {
         @PlainText @Label("Requester") public String requester;
+        @PlainText @Label("System") public String system;
         @Label("Decision") public Decision decision = Decision.APPROVE;
+
+        public ReviewStep() {}   // the state round trip rebuilds steps with it
+
+        public ReviewStep(String requester, String system) {
+            this.requester = requester;
+            this.system = system;
+        }
     }
     public ReviewStep first  = new ReviewStep("Ada",  "VPN");
     public ReviewStep second = new ReviewStep("Bob",  "CRM");
@@ -329,7 +337,8 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | A wizard inside a drawer | `EmbeddedView` + `Wizard` — see [Guided Process Drawer](#guided-process-drawer-a-wizard-in-a-drawer-embeddedview) | ✅ |
 | `processTitle`, `steps[]`, `currentStep`, `drawerSize` | from the embedded `Wizard` and the host `Drawer` | ✅ |
 | `introductionPanel {secondaryText, indexDisplay}` | — | — |
-| `spSkip`, `spBeforeStepNavigate`, `displayErrorMessageBanner` | same gaps as the page-level wizard — see [Wizard](/ux-patterns/wizard/#redwood-parameter-and-slot-reference) | — |
+| `spSkip`, `spBeforeStepNavigate` | from the embedded `Wizard`: `stepSkippable(step)` and `beforeStepNavigate(from, to, rq)` — see [Wizard](/ux-patterns/wizard/#redwood-parameter-and-slot-reference) | ✅ |
+| `displayErrorMessageBanner` | — | — |
 
 ### `configuration-drawer-template`
 

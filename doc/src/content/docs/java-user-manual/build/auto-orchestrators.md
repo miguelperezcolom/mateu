@@ -128,7 +128,7 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 | `getCreationForm` | Instantiates a new T |
 | `deleteAllById` | Delegates to `store().deleteAllById()` |
 
-For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
+For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the public hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 

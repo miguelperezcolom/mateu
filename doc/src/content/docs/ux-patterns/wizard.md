@@ -98,7 +98,7 @@ Flux<?> run() {
 
 The result step is built once the stream is over, so whatever the work set on the wizard while it ran (here, the status of each procedure) is on the result screen. Streamed completions are Java-only: the .NET and Python ports have no `LongTask`.
 
-The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier.title()` → class name.
+The wizard **title** is derived in order: `TitleSupplier.title()` → `@Title` annotation → class name (the dynamic supplier wins over the static annotation).
 
 ![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
 

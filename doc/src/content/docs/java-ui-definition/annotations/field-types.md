@@ -46,6 +46,7 @@ public @interface Stereotype {
 | `markdown` | Markdown editor / renderer |
 | `image` | Image display (`<img>` from a URL / data-URI value) |
 | `uploadableImage` | Image preview + upload (replace) + delete actions — see [`@UploadableImage`](#uploadableimage) |
+| `fileUpload` | Generic file upload: pick-file action, chosen file name, remove action, no preview; the value holds the file as a data URI (`@FileUpload`) |
 | `signature` | Drawing canvas that stores the accepted strokes as a PNG data URI — see [`@Signature`](#signature) |
 | `camera` | Device camera with live preview; the shot lands as a JPEG data URI — see [`@PhotoCapture`](#photocapture) |
 | `treeSelect` | A select whose dropdown unfolds a TREE of options — see `@TreeSelect` |
@@ -59,6 +60,14 @@ public @interface Stereotype {
 | `slider` | Range slider |
 | `button` | Button |
 | `stars` | Star rating |
+| `searchable` | Lookup field that opens a selector dialog — what [`@Searchable`](#searchable) sets |
+| `badge` | A boolean shown as a coloured chip whose text is the field label, lit when true (`@Badge`) |
+| `plainText` | The value as plain read-only text instead of an input (`@PlainText`) |
+| `bulletedList` | A collection as a read-only bulleted list (`@BulletedList`) |
+| `dateRange` | Listing filter: a from/to pair over a temporal field (state keys `<field>_from` / `<field>_to`) |
+| `numberRange` | Listing filter: a min/max pair over a numeric field (opt-in with `@RangeFilter`) |
+| `multiSelect` | Listing filter over an enum (or an enum collection field): several values, IN semantics |
+| `primary` | A rich primary table column: title, optional caption line and leading avatar/icon (`@PrimaryColumn`) |
 
 ### Example
 
@@ -263,6 +272,13 @@ public @interface Searchable {
     boolean showCode()      default false;
 }
 ```
+
+:::caution[Two different `Searchable`s]
+This **annotation** is `io.mateu.uidl.annotations.Searchable` (a lookup field). The
+`io.mateu.uidl.interfaces.Searchable` **interface** is a listing capability (it adds the search
+box), and a selector class like the one below implements it. Import each by its full name — with
+wildcard imports of both packages the name is ambiguous. See [Java imports](/reference/java-imports/).
+:::
 
 ### Attributes
 
