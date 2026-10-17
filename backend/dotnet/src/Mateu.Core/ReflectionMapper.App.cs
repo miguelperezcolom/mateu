@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Mateu.Dtos;
 using Mateu.Uidl;
+using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core;
 
@@ -13,9 +14,23 @@ public sealed partial class ReflectionMapper
     /// explicit [App(Variant = …)] always wins; a menu with folders → TILES when a folder nests
     /// another folder, HAMBURGER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of
     /// leaf entries → TABS. The result is the WIRE value (AppVariant.ToWire).</summary>
-    private static string VariantOf(AppAttribute app, List<MenuItemDto> items)
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> WarnedVariants = new();
+
+    /// <summary>The wire value of a declared variant; the old misspelling HAMBURGUER_MENU still
+    /// renders, but warns once per app naming the replacement (as Java deprecates it and Python
+    /// warns) instead of being accepted silently.</summary>
+    private static string WireVariant(string variant, string where)
     {
-        if (app.Variant.Length > 0) return AppVariant.ToWire(app.Variant);
+        if (variant == "HAMBURGUER_MENU" && WarnedVariants.TryAdd(where, true))
+            MateuLogging.For("Mateu.App").LogWarning(
+                "{Where}: Variant = \"HAMBURGUER_MENU\" is deprecated: use AppVariant.HamburgerMenu "
+                + "(\"HAMBURGER_MENU\") instead — the old misspelling still renders the same.", where);
+        return AppVariant.ToWire(variant);
+    }
+
+    private static string VariantOf(AppAttribute app, List<MenuItemDto> items, Type? appType = null)
+    {
+        if (app.Variant.Length > 0) return WireVariant(app.Variant, appType?.FullName ?? "[App]");
         if (items.Any(i => i.Submenus.Count > 0))
         {
             if (items.Any(i => i.Submenus.Any(s => s.Submenus.Count > 0))) return "TILES";
@@ -94,8 +109,8 @@ public sealed partial class ReflectionMapper
                 }));
         }
         var variant = !string.IsNullOrWhiteSpace(shell?.Variant)
-            ? AppVariant.ToWire(shell!.Variant!)
-            : VariantOf(app, items);
+            ? WireVariant(shell!.Variant!, appType.FullName ?? "app shell")
+            : VariantOf(app, items, appType);
 
         // The mount base path — the app class's [UI] route. Java's route registry prefixes every
         // menu leaf with the mount (a leaf "/a" under mount "/conformance/app-in-code" resolves to

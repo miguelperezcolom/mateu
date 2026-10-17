@@ -22,6 +22,12 @@ public class OldHamburguerVariantApp
     [MenuItem("Home")] public FreezeHome Home() => new();
 }
 
+[App("Old hamburger, warned", Variant = "HAMBURGUER_MENU")]
+public class WarnedHamburguerVariantApp
+{
+    [MenuItem("Home")] public FreezeHome Home() => new();
+}
+
 public class FreezeHome { public string? Name { get; set; } }
 
 public class ApiFreezeTests
@@ -40,6 +46,26 @@ public class ApiFreezeTests
     public void The_old_misspelling_keeps_working()
     {
         Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(OldHamburguerVariantApp)));
+    }
+
+    [Fact]
+    public void The_old_misspelling_warns_naming_the_replacement()
+    {
+        var capture = new VariantLogCapture();
+        MateuLogging.UseLoggerFactory(capture);
+        try
+        {
+            Assert.Equal("HAMBURGER_MENU", WireVariantOf(typeof(WarnedHamburguerVariantApp)));
+            WireVariantOf(typeof(WarnedHamburguerVariantApp)); // once per app, not per request
+        }
+        finally
+        {
+            MateuLogging.UseLoggerFactory(null);
+        }
+        var warned = capture.Entries.Where(e => e.Level == Microsoft.Extensions.Logging.LogLevel.Warning
+                                               && e.Message.Contains(nameof(WarnedHamburguerVariantApp))).ToList();
+        var warning = Assert.Single(warned);
+        Assert.Contains("AppVariant.HamburgerMenu", warning.Message);
     }
 
     [Fact]
@@ -131,5 +157,22 @@ public class ApiFreezeTests
         if (!message.Contains("use ", StringComparison.OrdinalIgnoreCase)
             && !message.Contains("no replacement", StringComparison.OrdinalIgnoreCase))
             offenders.Add(name + ": [Obsolete] names no replacement — \"" + message + "\"");
+    }
+}
+
+internal sealed class VariantLogCapture : Microsoft.Extensions.Logging.ILoggerFactory
+{
+    public readonly System.Collections.Concurrent.ConcurrentQueue<(Microsoft.Extensions.Logging.LogLevel Level, string Message)> Entries = new();
+    public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName) => new Logger(this);
+    public void AddProvider(Microsoft.Extensions.Logging.ILoggerProvider provider) { }
+    public void Dispose() { }
+
+    private sealed class Logger(VariantLogCapture owner) : Microsoft.Extensions.Logging.ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, Microsoft.Extensions.Logging.EventId eventId,
+            TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            owner.Entries.Enqueue((logLevel, formatter(state, exception)));
     }
 }
