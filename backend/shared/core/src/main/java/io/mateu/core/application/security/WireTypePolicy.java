@@ -45,6 +45,15 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
 
+  /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
   private final BeanProvider beanProvider;
   private final RouteRegistry routeRegistry;
   private final YamlUidlLoader yamlUidlLoader;
@@ -148,12 +157,15 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
   Set<String> registered() {
     var loaded = registered;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = registered;
         if (loaded == null) {
           loaded = computeRegistered();
           registered = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;
@@ -163,7 +175,8 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
   Set<String> reachable() {
     var loaded = reachable;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = reachable;
         if (loaded == null) {
           var roots = new ArrayList<Class<?>>();
@@ -176,6 +189,8 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
           loaded = Set.copyOf(WireTypes.closure(roots));
           reachable = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;

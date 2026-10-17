@@ -42,6 +42,15 @@ import lombok.extern.slf4j.Slf4j;
 public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /**
+   * Guards the one-time load. A lock, not a monitor: the load reads the classpath and logs, and on
+   * JDK 21 a virtual thread blocked on a monitor pins its carrier — enough concurrent first
+   * requests pinned every carrier while the loader waited for a lock handed to an unmounted virtual
+   * thread (Micronaut runs handlers on virtual threads), and the server deadlocked.
+   */
+  private final java.util.concurrent.locks.ReentrantLock loadLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
+  /**
    * The conventional route file of the implicit root mount, used when no {@code type: UI} exists.
    */
   static final String CONVENTIONAL_ROUTES = "specs/ui/routes.yaml";
@@ -60,11 +69,16 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** Dev mode: a spec changed — the tables are read again on next use. */
   @Override
-  public synchronized void invalidateSpecs() {
-    table = null;
-    authored = null;
-    mounts = null;
-    homes = null;
+  public void invalidateSpecs() {
+    loadLock.lock();
+    try {
+      table = null;
+      authored = null;
+      mounts = null;
+      homes = null;
+    } finally {
+      loadLock.unlock();
+    }
   }
 
   /** Mount homes already warned about (descriptor#home), so a bad home is logged once per JVM. */
@@ -75,12 +89,15 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public RouteTable table() {
     var loaded = table;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = table;
         if (loaded == null) {
           loaded = load(Thread.currentThread().getContextClassLoader());
           table = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;
@@ -302,7 +319,8 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
   public RouteTable authored() {
     var loaded = authored;
     if (loaded == null) {
-      synchronized (this) {
+      loadLock.lock();
+      try {
         loaded = authored;
         if (loaded == null) {
           var cl = classLoader();
@@ -310,6 +328,8 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
           loaded = yaml.mergedOver(suppliedFrom(cl));
           authored = loaded;
         }
+      } finally {
+        loadLock.unlock();
       }
     }
     return loaded;
