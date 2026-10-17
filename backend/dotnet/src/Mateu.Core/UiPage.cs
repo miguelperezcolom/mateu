@@ -121,6 +121,26 @@ public static class UiPage
     public static string ContentTypeOf(string path) =>
         ContentTypes.TryGetValue(Path.GetExtension(path), out var type) ? type : "application/octet-stream";
 
+    /// <summary>What a BROWSER gets at the mount of a server that serves no renderer: a short
+    /// explanation instead of a bare 404 — the first thing a newcomer does with a running starter is
+    /// open its URL. Answered with status 404 (there is no page here), only to a request that
+    /// explicitly accepts HTML; identical in the Python port (<c>ui_page.api_hint_page</c>).</summary>
+    public static string ApiHintPage(string baseUrl)
+    {
+        var mount = baseUrl.TrimEnd('/').Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+        return "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+               + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+               + "<title>Mateu API</title></head>"
+               + "<body style=\"font-family:system-ui,sans-serif;max-width:42rem;margin:3rem auto;padding:0 1rem;line-height:1.5\">"
+               + "<h1>This server answers the Mateu API</h1>"
+               + "<p>It serves the sync API at <code>POST " + mount + "/mateu/v3/sync/{route}</code>, which every Mateu "
+               + "renderer (web, mobile, IDE) can render, but no web page.</p>"
+               + "<p>To open the app in this browser, set <code>" + EnvVar + "</code> to the "
+               + "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>) jar, or to its "
+               + "<code>static/</code> folder, and restart; or pass the same location as <code>ui</code> when "
+               + "registering Mateu.</p></body></html>";
+    }
+
     /// <summary>The renderer to serve: <paramref name="ui"/> when given, else <c>MATEU_UI</c>, else none (API only).</summary>
     public static RendererFiles? ConfiguredRenderer(string? ui)
     {

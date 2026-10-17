@@ -56,9 +56,33 @@ public class UiServingTests
     {
         var (web, http) = await Host("", ui: null);
         await using var _ = web;
-        Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync("/")).StatusCode);
+        var fetch = new HttpRequestMessage(HttpMethod.Get, "/");
+        fetch.Headers.Accept.Clear();
+        fetch.Headers.Accept.ParseAdd("application/json");
+        var data = await http.SendAsync(fetch);
+        Assert.Equal(HttpStatusCode.NotFound, data.StatusCode);
+        Assert.DoesNotContain("MATEU_UI", await data.Content.ReadAsStringAsync());
         var sync = await http.PostAsync("/mateu/v3/sync", new StringContent("{\"route\":\"ui-probe\"}", Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.OK, sync.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("", "/")]
+    [InlineData("/shop", "/shop")]
+    public async Task Without_a_renderer_a_browser_at_the_mount_gets_a_hint_not_a_bare_404(string mount, string path)
+    {
+        var (web, http) = await Host(mount, ui: null);
+        await using var _ = web;
+        var page = await http.GetAsync(path);
+        Assert.Equal(HttpStatusCode.NotFound, page.StatusCode); // there is still no page here
+        Assert.StartsWith("text/html", page.Content.Headers.ContentType!.ToString());
+        var html = await page.Content.ReadAsStringAsync();
+        Assert.Contains("MATEU_UI", html);
+        Assert.Contains("POST " + mount + "/mateu/v3/sync/{route}", html);
+        Assert.Equal(UiPage.ApiHintPage(mount), html);
+        // a deep link keeps its plain 404, and the app's own routes win
+        Assert.DoesNotContain("MATEU_UI", await (await http.GetAsync(mount + "/somewhere")).Content.ReadAsStringAsync());
+        Assert.Contains("mine", await (await http.GetAsync("/mine")).Content.ReadAsStringAsync());
     }
 
     [Fact]

@@ -138,6 +138,28 @@ def cache_control_for(path: str) -> str | None:
     return None
 
 
+def api_hint_page(base_url: str) -> str:
+    """What a BROWSER gets at the mount of a server that serves no renderer: a short explanation
+    instead of a bare JSON 404 — the first thing a newcomer does with a running starter is open its
+    URL. Answered with status 404 (there is no page here), only to a request that explicitly
+    accepts HTML; identical in the .NET port (``UiPage.ApiHintPage``)."""
+    mount = base_url.rstrip("/")
+    esc = mount.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        "<title>Mateu API</title></head>"
+        '<body style="font-family:system-ui,sans-serif;max-width:42rem;margin:3rem auto;padding:0 1rem;line-height:1.5">'
+        "<h1>This server answers the Mateu API</h1>"
+        f"<p>It serves the sync API at <code>POST {esc}/mateu/v3/sync/{{route}}</code>, which every Mateu "
+        "renderer (web, mobile, IDE) can render, but no web page.</p>"
+        f"<p>To open the app in this browser, set <code>{ENV_VAR}</code> to the "
+        "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>) jar, or to its "
+        "<code>static/</code> folder, and restart; or pass the same location as <code>ui</code> when "
+        "registering Mateu.</p></body></html>"
+    )
+
+
 def content_type_of(path: str) -> str:
     ext = os.path.splitext(path)[1].lower()
     if ext in _CONTENT_TYPES:

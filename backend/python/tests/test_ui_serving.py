@@ -59,8 +59,23 @@ def vaadin_static() -> Path:
 def test_without_a_renderer_the_server_answers_the_api_only(monkeypatch):
     monkeypatch.delenv(ui_page.ENV_VAR, raising=False)
     c = client(None)
-    assert c.get("/").status_code == 404
+    assert c.get("/", headers={"accept": "application/json"}).status_code == 404
     assert c.post("/mateu/v3/sync", json={"route": "ui-probe"}).status_code == 200
+
+
+def test_without_a_renderer_a_browser_at_the_mount_gets_a_hint_not_a_json_404(monkeypatch):
+    monkeypatch.delenv(ui_page.ENV_VAR, raising=False)
+    for base_url, mount in (("", "/"), ("/shop", "/shop")):
+        c = client(None, base_url=base_url)
+        page = c.get(mount)
+        assert page.status_code == 404  # there is still no page here
+        assert page.headers["content-type"].startswith("text/html")
+        assert "MATEU_UI" in page.text
+        assert f"POST {base_url}/mateu/v3/sync/{{route}}" in page.text
+        # a data fetch, a deep link and the API keep their plain 404s; the app's own routes win
+        assert c.get(mount, headers={"accept": "*/*"}).headers["content-type"].startswith("application/json")
+        assert "MATEU_UI" not in c.get(base_url + "/somewhere").text
+        assert c.get("/mine").json() == {"mine": True}
 
 
 def test_the_page_is_served_at_the_mount_and_its_deep_links_aimed_at_the_mount(vaadin_static):

@@ -396,6 +396,9 @@ def add_mateu(
             MateuUiMiddleware, renderer=renderer, base_url=prefix, title=str(title), debug=show_details
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
+    else:
+        # no renderer: a browser opening the mount gets a hint (still a 404), not a bare JSON 404
+        app.add_middleware(MateuApiHintMiddleware, base_url=prefix)
     return handler
 
 
@@ -409,6 +412,9 @@ class MateuUiMiddleware:
     untouched). What it answers: a file of the renderer at the origin root (``/assets/…``), the
     renderer's page at the mount and at any deep link under it that accepts HTML and names no
     file; nothing under ``/mateu`` (an API miss stays a 404, never the page)."""
+
+    #: the status the answer is sent with (the API hint answers a 404 with a body of its own)
+    status = 200
 
     def __init__(self, app, renderer: ui_page.RendererFiles, base_url: str, title: str, debug: bool = False):
         self.app = app
@@ -463,8 +469,28 @@ class MateuUiMiddleware:
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
         if cache_control:
             headers.append((b"cache-control", cache_control.encode("latin-1")))
-        await send({"type": "http.response.start", "status": 200, "headers": headers})
+        await send({"type": "http.response.start", "status": self.status, "headers": headers})
         await send({"type": "http.response.body", "body": b"" if scope["method"] == "HEAD" else body})
+
+
+class MateuApiHintMiddleware(MateuUiMiddleware):
+    """Without a renderer: a GET of the mount that explicitly accepts HTML (a browser navigation)
+    and that nothing else answered gets ``ui_page.api_hint_page`` — still a 404, so a JSON client
+    or a health check sees exactly what it saw before."""
+
+    status = 404
+
+    def __init__(self, app, base_url: str):
+        mount = base_url.strip("/")
+        self.app = app
+        self.base_url = "/" + mount if mount else ""
+
+    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+        if path not in (self.base_url or "/", self.base_url + "/"):
+            return None
+        if not accept or "text/html" not in accept:
+            return None
+        return "text/html; charset=utf-8", ui_page.api_hint_page(self.base_url).encode("utf-8"), None
 
 
 def _add_dev_endpoints(app: FastAPI) -> None:
