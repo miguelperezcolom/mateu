@@ -20,6 +20,7 @@ import {
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
+import * as prefs from './prefs.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 
 let passed = 0
@@ -615,6 +616,81 @@ test('rules: data attributes per field (several fields at once), the flags the t
   assert.equal(valueChangeActionOf(ctx, 'nights', { nights: 0 }), null, 'the condition does not hold')
   assert.equal(valueChangeActionOf(ctx, 'nights', { nights: 2 }), 'recalc')
   assert.equal(valueChangeActionOf(null, 'x'), null)
+})
+
+// ── listing personalisation (columns, saved views, tile order) in the browser's storage ─────────
+
+const memoryStore = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), m } }
+
+test('personalisation survives a blocked or corrupt storage: nothing is remembered, nothing breaks', () => {
+  const blocked = { getItem: () => { throw new Error('SecurityError') }, setItem: () => { throw new Error('QuotaExceeded') } }
+  assert.equal(prefs.readColumnPrefs('/r', blocked), null)
+  prefs.writeColumnPrefs('/r', { hidden: ['a'] }, blocked)
+  prefs.saveView('/r', { name: 'v' }, blocked)
+  assert.deepEqual(prefs.listSavedViews('/r', blocked), [])
+  const corrupt = { getItem: () => '{not json', setItem: () => {} }
+  assert.equal(prefs.readTileOrder('/r#g', corrupt), null)
+  const nulls = { getItem: () => 'null', setItem: () => {} }
+  assert.equal(prefs.readColumnPrefs('/r', nulls), null)
+  const odd = memoryStore()
+  odd.setItem('mateu-column-prefs', JSON.stringify({ '/r': { hidden: 'x', order: null }, '/s': 'nope' }))
+  assert.deepEqual(prefs.readColumnPrefs('/r', odd), { hidden: [], order: [] })
+  assert.equal(prefs.readColumnPrefs('/s', odd), null)
+  odd.setItem('mateu-tile-order', JSON.stringify({ '/r#g': ['a', 3, 'b'] }))
+  assert.deepEqual(prefs.readTileOrder('/r#g', odd), ['a', 'b'], 'only keys that can be keys')
+})
+
+test('columns: ordered ones first, the rest after in their order, hidden ones out, technical ones in place', () => {
+  const cols = [{ field: '_select' }, { field: 'a', headerText: 'A' }, { field: 'b' }, { field: 'c' }, { template: 'cellRowActions', field: 'act' }, { field: '__rowLines' }]
+  const shown = prefs.applyColumnPrefs(cols, { hidden: ['b'], order: ['c'] })
+  assert.deepEqual(shown.map((c) => c.field), ['_select', 'c', 'a', 'act', '__rowLines'])
+  assert.equal(prefs.applyColumnPrefs(cols, null), cols)
+  const chooser = prefs.columnChooserOf(cols, { hidden: ['b'], order: ['c'] })
+  assert.deepEqual(chooser, [{ id: 'c', label: 'c', visible: true }, { id: 'a', label: 'A', visible: true }, { id: 'b', label: 'b', visible: false }])
+  assert.equal(prefs.moveChooserItem(chooser, 'c', -1), chooser, 'the first cannot go up')
+  assert.equal(prefs.moveChooserItem(chooser, 'b', 1), chooser, 'the last cannot go down')
+  assert.equal(prefs.moveChooserItem(chooser, 'ghost', 1), chooser)
+  const store = memoryStore()
+  prefs.writeColumnPrefs('/r', prefs.prefsFromChooser(chooser), store)
+  prefs.writeColumnPrefs('/r', { hidden: [], order: [] }, store)
+  assert.equal(prefs.readColumnPrefs('/r', store), null, 'back to the defaults: the scope is forgotten')
+})
+
+test('saved views: a new default replaces the old one, saving a name again replaces it, the last one deleted forgets the scope', () => {
+  const store = memoryStore()
+  prefs.saveView('/r', { name: 'A', values: { x: 1 }, isDefault: true }, store)
+  prefs.saveView('/r', { name: 'B', isDefault: true }, store)
+  assert.deepEqual(prefs.listSavedViews('/r', store).map((v) => [v.name, v.isDefault]), [['A', false], ['B', true]])
+  assert.deepEqual(prefs.listSavedViews('/r', store)[1].values, {})
+  prefs.saveView('/r', { name: 'A', values: { x: 2 } }, store)
+  assert.deepEqual(prefs.listSavedViews('/r', store).map((v) => v.name), ['B', 'A'])
+  assert.equal(prefs.defaultView('/r', store).name, 'B')
+  assert.deepEqual(prefs.viewsMenuOf('/r', store).map((o) => o.label), ['★ B', 'A', chromeText('saveCurrentView'), chromeText('clearFilters')])
+  prefs.deleteView('/r', 'A', store)
+  prefs.deleteView('/r', 'B', store)
+  assert.ok(!('/r' in JSON.parse(store.m.get('mateu-saved-views'))))
+  assert.equal(prefs.defaultView('/r', store), null)
+  assert.deepEqual(prefs.viewsMenuOf('/r', store).map((o) => o.value), ['save'], 'nothing saved: no «clear»')
+  assert.equal(prefs.viewRouteOf('/r', { tags: ['a', 'b'], none: [], n: null }), '/r?tags=a%2Cb')
+  assert.equal(prefs.viewRouteOf('/r?x=1', {}), '/r')
+  assert.deepEqual(prefs.currentViewValues(null, ''), {})
+})
+
+test('tile order: saved keys first, new tiles after, keys gone from the grid ignored; moves by key', () => {
+  assert.deepEqual(prefs.orderedTileIndices(['a', 'b', 'c'], ['c', 'gone', 'a']), [2, 0, 1])
+  assert.deepEqual(prefs.orderedTileIndices(['a', 'b'], []), [0, 1])
+  assert.equal(prefs.tileKeyOf({ id: 7 }, 0), '7')
+  assert.equal(prefs.tileKeyOf(null, 3), '#3')
+  const order = ['a', 'b', 'c']
+  assert.equal(prefs.moveTile(order, 'a', 'a'), order)
+  assert.equal(prefs.moveTile(order, 'x', 'a'), order)
+  assert.equal(prefs.moveTileBy(order, 'a', -1), order, 'the first cannot go back')
+  assert.equal(prefs.moveTileBy(order, 'c', 1), order)
+  assert.deepEqual(prefs.moveTileBy(order, 'a', 1), ['b', 'a', 'c'])
+  assert.equal(prefs.tileScopeOf('', { pathname: '/dash' }), '/dash#grid')
+  assert.equal(prefs.tileScopeOf('g', null), '#g')
+  assert.equal(prefs.listingScope(null), '')
+  assert.equal(prefs.listingScope({ hash: '#x', pathname: '/p?q' }), '/p', 'a hash that is not a route: the path')
 })
 
 for (const { name, fn } of queue) {
