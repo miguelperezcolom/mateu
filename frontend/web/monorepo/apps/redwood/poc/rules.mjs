@@ -1,15 +1,21 @@
-// REGLAS DEL CLIENTE (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) y campos dependientes
-// en el navegador: sin ida y vuelta al servidor, un campo se oculta, se deshabilita o cambia de
-// valor según otro. Mismo contrato que el renderer web (libs/mateu mateu-component.applyRules):
-// cada regla tiene un `filter` (expresión); si se cumple, su acción escribe en el estado
-// (SetStateValue) o en data (SetDataValue: `campo.hidden`, `campo.disabled`, `campo.required`…),
-// lanza una acción (RunAction) o para (result Stop).
+// CLIENT RULES (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) and dependent fields in the
+// browser: with no round trip to the server, a field hides, disables itself or changes its value
+// depending on another. Same contract as the web renderer (libs/mateu mateu-component.applyRules):
+// each rule has a `filter` (an expression); when it holds, its action writes to the state
+// (SetStateValue) or to data (SetDataValue: `field.hidden`, `field.disabled`, `field.required`…),
+// runs an action (RunAction) or stops (result Stop).
 //
-// Por qué un evaluador propio: el web usa `new Function`, y VB alojado en Oracle corre con una CSP
-// sin 'unsafe-eval' (es la razón de que todo el bridge precalcule flags). Así que un parser de
-// expresiones de JS pequeño y SIN eval: literales, state/data/appState/appData, acceso a
-// propiedad, ! - + * / % < <= > >= == != === !== && || ?: y unos pocos métodos de string/array.
-// Lo que no entiende devuelve undefined (la regla no se cumple) en vez de romper la pantalla.
+// Why an evaluator of our own: VB hosted by Oracle runs under a CSP without 'unsafe-eval' (which
+// is also why the bridge precomputes flags), so `eval`/`new Function` are out — the web renderer
+// dropped `new Function` for the same reason and has its own sandboxed evaluator (libs/mateu
+// infra/ui/expression.ts). This one is a SMALL JS expression parser with no eval: literals,
+// state/data/appState/appData/component, property access (`.`, `[]`, `?.`, `?.[]`), regex
+// literals (`/…/flags`, for the server's @Pattern conditions), ! - + * / % < <= > >= == != ===
+// !== && || ?? ?: and a few string/array methods (plus a regex's `.test`). Anything it does not
+// understand yields undefined (the rule does not hold) instead of breaking the screen.
+//
+// The four renderers' evaluators are held to one corpus: conformance/client/expressions.json
+// (run by test-conformance.mjs here).
 
 const METHODS = {
   includes: (t, a) => (t != null && t.includes ? t.includes(a[0]) : false),
@@ -20,6 +26,31 @@ const METHODS = {
   toUpperCase: (t) => String(t == null ? '' : t).toUpperCase(),
   trim: (t) => String(t == null ? '' : t).trim(),
   toString: (t) => String(t),
+  test: (t, a) => {
+    if (!(t instanceof RegExp)) throw new TypeError('test is only a method of a regex')
+    t.lastIndex = 0
+    return t.test(String(a[0]))
+  },
+}
+
+// Properties an expression may never read: the routes from a value back to `Function` (the same
+// set as the web and React Native evaluators).
+const RULE_BLOCKED_PROPERTIES = new Set([
+  'constructor', '__proto__', 'prototype', '__defineGetter__', '__defineSetter__',
+  '__lookupGetter__', '__lookupSetter__',
+])
+
+function ruleMember(v, name) {
+  if (RULE_BLOCKED_PROPERTIES.has(String(name))) throw new TypeError('Access to ' + name + ' is not allowed')
+  return v == null ? undefined : v[name]
+}
+
+// A `/` starts a regex literal where a VALUE is expected — at the start, or after an operator
+// other than a closing bracket; after a value it is a division.
+function ruleRegexAllowed(prev) {
+  if (!prev) return true
+  if (prev.t === 'num' || prev.t === 'str' || prev.t === 'id' || prev.t === 're') return false
+  return !(prev.t === 'op' && (prev.v === ')' || prev.v === ']'))
 }
 
 function tokenize(src) {
@@ -36,7 +67,22 @@ function tokenize(src) {
     if (c === '"' || c === "'") {
       let j = i + 1; let s = ''
       while (j < src.length && src[j] !== c) { if (src[j] === '\\') { s += src[j + 1]; j += 2 } else s += src[j++] }
+      if (j >= src.length) throw new Error('unterminated string')
       tokens.push({ t: 'str', v: s }); i = j + 1; continue
+    }
+    if (c === '/' && ruleRegexAllowed(tokens[tokens.length - 1])) {
+      let j = i + 1; let inClass = false
+      while (j < src.length && (inClass || src[j] !== '/')) {
+        if (src[j] === '\\') j++
+        else if (src[j] === '[') inClass = true
+        else if (src[j] === ']') inClass = false
+        j++
+      }
+      if (j >= src.length) throw new Error('unterminated regex')
+      const body = src.slice(i + 1, j)
+      let k = j + 1
+      while (k < src.length && /[a-z]/.test(src[k])) k++
+      tokens.push({ t: 're', v: new RegExp(body, src.slice(j + 1, k)) }); i = k; continue
     }
     if (/[A-Za-z_$]/.test(c)) {
       let j = i
@@ -45,14 +91,17 @@ function tokenize(src) {
     }
     const three = src.slice(i, i + 3); const two = src.slice(i, i + 2)
     if (three === '===' || three === '!==') { tokens.push({ t: 'op', v: three }); i += 3; continue }
-    if (['==', '!=', '<=', '>=', '&&', '||'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
+    // `?.` is optional chaining unless a digit follows (`a?.5:1` is a ternary)
+    if (two === '?.' && !/[0-9]/.test(src[i + 2] || '')) { tokens.push({ t: 'op', v: '?.' }); i += 2; continue }
+    if (['==', '!=', '<=', '>=', '&&', '||', '??'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
     if ('+-*/%<>!?:.,()[]'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue }
-    throw new Error('carácter inesperado ' + c)
+    throw new Error('unexpected character ' + c)
   }
   return tokens
 }
 
-/** Evalúa una expresión de regla contra `scope` ({ state, data, appState, appData, component }). */
+/** Evaluates a rule expression against `scope` ({ state, data, appState, appData, component }).
+ *  Never throws: what it does not understand yields undefined. */
 export function evaluateExpression(expr, scope = {}) {
   if (expr == null) return undefined
   const src = String(expr).trim()
@@ -62,12 +111,18 @@ export function evaluateExpression(expr, scope = {}) {
   let p = 0
   const peek = (v) => tokens[p] && tokens[p].v === v && tokens[p].t === 'op'
   const take = (v) => { if (peek(v)) { p++; return true } return false }
+  const expect = (v) => { if (!take(v)) throw new SyntaxError('expected ' + v) }
   const ternary = () => {
     const c = or()
-    if (take('?')) { const a = ternary(); take(':'); const b = ternary(); return c ? a : b }
+    if (take('?')) { const a = ternary(); expect(':'); const b = ternary(); return c ? a : b }
     return c
   }
-  const or = () => { let l = and(); while (take('||')) { const r = and(); l = l || r } return l }
+  const or = () => {
+    let l = and()
+    for (;;) {
+      if (take('||')) { const r = and(); l = l || r } else if (take('??')) { const r = and(); l = l ?? r } else return l
+    }
+  }
   const and = () => { let l = eq(); while (take('&&')) { const r = eq(); l = l && r } return l }
   const eq = () => {
     let l = rel()
@@ -104,45 +159,70 @@ export function evaluateExpression(expr, scope = {}) {
     if (take('+')) return +unary()
     return postfix()
   }
+  const args = () => {
+    const out = []
+    while (!peek(')')) {
+      out.push(ternary())
+      if (!take(',')) break
+    }
+    expect(')')
+    return out
+  }
   const postfix = () => {
     let v = primary()
+    // once a `?.` met null/undefined the rest of the chain is skipped (parsed, not evaluated)
+    let short = false
     for (;;) {
-      if (take('.')) {
+      const optional = take('?.')
+      if (optional && v == null) short = true
+      if (take('.') || (optional && tokens[p] && tokens[p].t === 'id')) {
         const tok = tokens[p++]
-        const name = tok && tok.v
-        if (peek('(')) {
-          take('(')
-          const args = []
-          while (!peek(')') && p < tokens.length) { args.push(ternary()); take(',') }
-          take(')')
-          // sólo métodos conocidos de string/array: nada de llamar a lo que traiga el estado
-          v = Object.prototype.hasOwnProperty.call(METHODS, name) ? METHODS[name](v, args) : undefined
+        if (!tok || tok.t !== 'id') throw new SyntaxError('expected a property name')
+        const name = tok.v
+        if (take('(')) {
+          const a = args()
+          if (short) continue
+          // only known string/array methods: nothing the state carries is ever called
+          if (!Object.prototype.hasOwnProperty.call(METHODS, name)) throw new TypeError(name + ' is not callable here')
+          v = METHODS[name](v, a)
         } else {
-          v = v == null ? undefined : v[name]
+          v = short ? undefined : ruleMember(v, name)
         }
       } else if (take('[')) {
-        const k = ternary(); take(']'); v = v == null ? undefined : v[k]
-      } else return v
+        const k = ternary(); expect(']')
+        v = short ? undefined : ruleMember(v, k)
+      } else if (optional) {
+        throw new SyntaxError('unexpected ?.')
+      } else return short ? undefined : v
     }
   }
   const primary = () => {
     const tok = tokens[p++]
-    if (!tok) return undefined
-    if (tok.t === 'num' || tok.t === 'str') return tok.v
-    if (tok.t === 'op' && tok.v === '(') { const v = ternary(); take(')'); return v }
+    if (!tok) throw new SyntaxError('unexpected end')
+    if (tok.t === 'num' || tok.t === 'str' || tok.t === 're') return tok.v
+    if (tok.t === 'op' && tok.v === '(') {
+      const v = ternary()
+      // a parenthesis left open at the very END is forgiven (a rule half-typed still evaluates)
+      if (!take(')') && p < tokens.length) throw new SyntaxError('expected )')
+      return v
+    }
     if (tok.t === 'op' && tok.v === '[') {
       const arr = []
-      while (!peek(']') && p < tokens.length) { arr.push(ternary()); take(',') }
-      take(']'); return arr
+      while (!peek(']')) {
+        arr.push(ternary())
+        if (!take(',')) break
+      }
+      expect(']'); return arr
     }
     if (tok.t === 'id') {
       if (tok.v === 'true') return true
       if (tok.v === 'false') return false
       if (tok.v === 'null') return null
       if (tok.v === 'undefined') return undefined
-      return scope[tok.v]
+      // only the scope's OWN names: `constructor`, `toString`… must not reach Object.prototype
+      return Object.prototype.hasOwnProperty.call(scope, tok.v) ? scope[tok.v] : undefined
     }
-    return undefined
+    throw new SyntaxError('unexpected ' + tok.v)
   }
   try {
     const v = ternary()
@@ -152,8 +232,8 @@ export function evaluateExpression(expr, scope = {}) {
   }
 }
 
-/** Una plantilla `${…}`: si es UNA expresión entera devuelve su valor con tipo; si mezcla texto,
- *  el texto con cada `${…}` sustituido; sin `${` es una expresión. */
+/** A `${…}` template: when it is ONE whole expression its value comes back typed; when it mixes
+ *  text, the text with each `${…}` replaced; without `${` it is an expression. */
 export function evaluateTemplate(tmpl, scope = {}) {
   const s = String(tmpl == null ? '' : tmpl)
   if (s.indexOf('${') < 0) return evaluateExpression(s, scope)
@@ -163,8 +243,8 @@ export function evaluateTemplate(tmpl, scope = {}) {
 }
 
 /**
- * Ejecuta las reglas sobre `scope` → { state, data, actions }: los VALORES que cada regla deja en
- * el estado / en data (`campo` o `campo.atributo`) y las acciones a lanzar. Puro: no toca nada.
+ * Runs the rules over `scope` → { state, data, actions }: the VALUES each rule leaves in the state
+ * / in data (`field` or `field.attribute`) and the actions to run. Pure: touches nothing.
  */
 export function computeRules(rules, scope = {}) {
   const state = {}
@@ -191,7 +271,7 @@ export function computeRules(rules, scope = {}) {
   return { state, data, actions }
 }
 
-/** Los atributos de campo que la plantilla tiene que reflejar: { fieldId: { hidden, disabled… } }. */
+/** The field attributes the template has to reflect: { fieldId: { hidden, disabled… } }. */
 export function fieldFlagsOf(data) {
   const out = {}
   for (const key of Object.keys(data || {})) {
@@ -203,7 +283,7 @@ export function fieldFlagsOf(data) {
   return out
 }
 
-/** La acción que dispara cambiar `fieldId` (@Trigger OnValueChange con su condición), o null. */
+/** The action that changing `fieldId` fires (@Trigger OnValueChange with its condition), or null. */
 export function valueChangeActionOf(ctx, fieldId, state) {
   const triggers = (ctx && ctx.tree && ctx.tree.triggers) || []
   const t = triggers.find((x) => x && x.type === 'OnValueChange' && x.actionId
@@ -213,13 +293,13 @@ export function valueChangeActionOf(ctx, fieldId, state) {
   return t.actionId
 }
 
-// ── en el navegador: aplicar las reglas a los campos pintados ────────────────────────────────
+// ── in the browser: applying the rules to the painted fields ──────────────────────────────────
 //
-// Los campos se pintan desde 22 copias de plantilla (átomos, formulario genérico, drawer, isla…):
-// en vez de un flag más en cada una, las reglas actúan sobre el DOM por `data-field-id`, que
-// todas llevan. El contexto (reglas + estado) lo fija cada reducción (setRulesContext); los
-// cambios de campo (`valueChanged` de JET, interno) actualizan el estado vivo y re-evalúan; y,
-// como VB re-pinta de forma asíncrona, se re-aplica unos frames después de cada render.
+// Fields are painted from 22 template copies (atoms, generic form, drawer, island…): instead of one
+// more flag in each, the rules act on the DOM through `data-field-id`, which all of them carry. The
+// context (rules + state) is set by every reduction (setRulesContext); field changes (JET's
+// `valueChanged`, internal) update the live state and re-evaluate; and, since VB repaints
+// asynchronously, the rules are re-applied for a few frames after every render.
 
 // Rules live on every SURFACE, not only the host: an island (an embedded mediator), the open
 // drawer or dialog. Each surface's rules act on the fields painted in that surface — the DOM
@@ -229,7 +309,7 @@ export function valueChangeActionOf(ctx, fieldId, state) {
 let surfaces = [] // [{ surface: 'host'|'island'|'overlay', ctx, appState, liveState }]
 let runActionSink = null
 
-/** Quién ejecuta una RunAction de regla (la shell reusa el sumidero de los Element). */
+/** Who runs a rule's RunAction (the shell reuses the Elements' sink). */
 export function setRuleActionSink(fn) { runActionSink = typeof fn === 'function' ? fn : null }
 
 const hasRules = (ctx) => !!(ctx && ctx.tree && (ctx.tree.rules || []).length)
@@ -277,10 +357,10 @@ function setRuleSurfaces(list, appState) {
   applyRulesSoon()
 }
 
-// Lo que se oculta de un campo: el control mismo — en Redwood su etiqueta va DENTRO (label-edge
-// inside) — o, para los que la llevan fuera (captura, @Searchable), su oj-label-value. Subir hasta
-// el hijo del oj-form-layout no vale: JET envuelve los campos en sus propios contenedores y se
-// ocultaba la sección entera.
+// What hiding a field hides: the control itself — in Redwood its label goes INSIDE (label-edge
+// inside) — or, for those that carry it outside (capture, @Searchable), its oj-label-value. Going
+// up to the oj-form-layout's child does not work: JET wraps fields in containers of its own and the
+// whole section got hidden.
 function formItemOf(el) {
   return (el.closest && el.closest('oj-label-value')) || el
 }
@@ -313,9 +393,9 @@ function applySurface(doc, entry) {
       touched++
     }
   }
-  // un SetStateValue cambia el valor de otro campo: se le pone al control y se emite el mismo
-  // valueChanged INTERNO que si lo hubiese tecleado el usuario (así entra en el borrador que
-  // viaja con la siguiente acción)
+  // a SetStateValue changes another field's value: it is set on the control and the same INTERNAL
+  // valueChanged is emitted as if the user had typed it (so it joins the draft that travels with
+  // the next action)
   for (const fieldId of Object.keys(result.state)) {
     if (fieldId.indexOf('.') >= 0) continue
     const value = result.state[fieldId]
@@ -345,8 +425,8 @@ export function applyRulesSoon(frames = 12) {
   requestAnimationFrame(tick)
 }
 
-/** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo DE SU SUPERFICIE
- *  y re-evalúa. */
+/** Listens to the document's field changes (once): updates the live state OF THEIR SURFACE and
+ *  re-evaluates. */
 export function installRules(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuRulesInstalled) return
   doc.__mateuRulesInstalled = true
@@ -361,7 +441,7 @@ export function installRules(doc = typeof document !== 'undefined' ? document : 
   }, true)
 }
 
-/** Para diagnosticar desde la consola: las reglas en vigor y el estado vivo. */
+/** For diagnosing from the console: the rules in force and the live state. */
 export function rulesDebug() {
   return surfaces.map((x) => ({ surface: x.surface, rules: (x.ctx.tree.rules || []).length, state: { ...x.liveState } }))
 }

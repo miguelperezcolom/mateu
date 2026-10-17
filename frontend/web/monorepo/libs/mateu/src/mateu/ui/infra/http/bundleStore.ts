@@ -175,13 +175,25 @@ const matchRouteEntry = (
     return best
 }
 
+/** `carried` with `defaults` filling every key it has no value for — a null is no value, as in the
+ *  server's `putIfAbsent` (RouteSegmentUtils.addParameterValues). */
+const withDefaults = (defaults: Record<string, unknown>, carried: Record<string, unknown> | undefined) => {
+    const out: Record<string, unknown> = { ...defaults, ...(carried ?? {}) }
+    for (const key of Object.keys(defaults)) if (out[key] === null || out[key] === undefined) out[key] = defaults[key]
+    return out
+}
+
 /**
  * Applies the registry's parameters to a pre-rendered increment, in the same order the server uses:
  *
- *   fixed  >  path  >  what the increment already carries  >  defaults
+ *   fixed  >  path  >  what the increment already carries  >  state seeds  >  defaults
  *
- * Defaults only fill what nothing else supplied; fixed ones override everything, which is the whole
- * point of pinning them. Returns the increment untouched when no entry answers the path.
+ * Defaults only fill what nothing else supplied (a null included); fixed ones override everything,
+ * which is the whole point of pinning them. The server's order is `fixed > client state > path >
+ * query > defaults`: a statically served load has no client state yet and no query level, and its
+ * increment is what the server rendered for the route, so the two agree
+ * (conformance/client/route-params.json pins it, for this renderer and Redwood).
+ * Returns the increment untouched when no entry answers the path.
  */
 export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIncrement => {
     const match = matchRouteEntry(syncPath)
@@ -189,7 +201,7 @@ export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIn
     const { entry, pathParams } = match
     // A route's `state:` seeds sit at the defaults' level, as on the server (it was ignored here, so
     // a specsOnly page read `${state.x}` as blank where the served one showed the seed).
-    const defaults = { ...(entry.defaultParams ?? {}), ...(entry.state ?? {}) }
+    const defaults = withDefaults(entry.defaultParams ?? {}, entry.state)
     const fixed = entry.fixedParams ?? {}
     const appSeed = entry.appState ?? {}
     if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length
@@ -202,8 +214,8 @@ export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIn
         ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...(increment.appState ?? {}) } } : {}),
         fragments: (increment.fragments ?? []).map(f => ({
             ...f,
-            state: { ...defaults, ...(f.state ?? {}), ...pathParams, ...fixed },
-            data: { ...defaults, ...(f.data ?? {}), ...pathParams, ...fixed },
+            state: { ...withDefaults(defaults, f.state), ...pathParams, ...fixed },
+            data: { ...withDefaults(defaults, f.data), ...pathParams, ...fixed },
         })),
     }
 }

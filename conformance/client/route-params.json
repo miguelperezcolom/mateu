@@ -1,0 +1,149 @@
+{
+  "about": "Route parameters applied to a statically served load (no backend): the registry entry matched for a sync path, plus a pre-rendered increment, gives the state, data, appState and initialData the load must carry. Run by the web (libs/mateu bundleStore.ts) and Redwood (poc/bundle.mjs) suites. See README.md for why this order equals the server's for a pre-rendered increment.",
+  "cases": [
+    {
+      "name": "no entry answers the path: the increment comes back untouched (same reference)",
+      "routes": [{ "route": "orders" }],
+      "syncPath": "customers",
+      "increment": { "fragments": [{ "state": { "a": 1 }, "data": {} }] },
+      "expected": { "untouched": true }
+    },
+    {
+      "name": "an entry with nothing to apply leaves the increment untouched",
+      "routes": [{ "route": "orders" }],
+      "syncPath": "orders",
+      "increment": { "fragments": [{ "state": { "a": 1 }, "data": {} }] },
+      "expected": { "untouched": true }
+    },
+    {
+      "name": "a fixed parameter beats what the increment carries",
+      "routes": [{ "route": "tickets/open", "fixedParams": { "status": "open" } }],
+      "syncPath": "tickets/open",
+      "increment": { "fragments": [{ "state": { "status": "all" }, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "open" }, "data": { "status": "open" } }] }
+    },
+    {
+      "name": "a default fills what is missing and yields to what the increment carries",
+      "routes": [{ "route": "tickets", "defaultParams": { "status": "open", "page": 1 } }],
+      "syncPath": "tickets",
+      "increment": { "fragments": [{ "state": { "status": "closed" }, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "closed", "page": 1 }, "data": { "status": "open", "page": 1 } }] }
+    },
+    {
+      "name": "a null in the increment is no value: the default fills it (the server's putIfAbsent)",
+      "routes": [{ "route": "tickets", "defaultParams": { "status": "open" } }],
+      "syncPath": "tickets",
+      "increment": { "fragments": [{ "state": { "status": null, "other": null }, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "open", "other": null }, "data": { "status": "open" } }] }
+    },
+    {
+      "name": "a fixed parameter beats the path parameter of the same name",
+      "routes": [{ "route": "tickets/:status", "fixedParams": { "status": "open" } }],
+      "syncPath": "tickets/all",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "open" }, "data": { "status": "open" } }] }
+    },
+    {
+      "name": "the path beats the increment's render-time placeholder and the defaults",
+      "routes": [{ "route": "orders/:id", "defaultParams": { "id": "0", "tab": "summary" } }],
+      "syncPath": "orders/42",
+      "increment": { "fragments": [{ "state": { "id": "__mateu_param__" }, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "id": "42", "tab": "summary" }, "data": { "id": "42", "tab": "summary" } }] }
+    },
+    {
+      "name": "a state: seed fills what is missing and yields to what the increment carries",
+      "routes": [{ "route": "board", "state": { "view": "kanban", "owner": "me" } }],
+      "syncPath": "board",
+      "increment": { "fragments": [{ "state": { "owner": "ana" }, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "view": "kanban", "owner": "ana" }, "data": { "view": "kanban", "owner": "me" } }] }
+    },
+    {
+      "name": "a state: seed beats a defaultParams of the same name (the server applies state first)",
+      "routes": [{ "route": "board", "state": { "view": "kanban" }, "defaultParams": { "view": "list" } }],
+      "syncPath": "board",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "view": "kanban" }, "data": { "view": "kanban" } }] }
+    },
+    {
+      "name": "an appState: seed goes UNDER the app state the increment carries",
+      "routes": [{ "route": "home", "appState": { "hotel": "H0", "year": 2026 } }],
+      "syncPath": "home",
+      "increment": { "appState": { "hotel": "H1" }, "fragments": [{ "state": { "a": 1 }, "data": {} }] },
+      "expected": { "appState": { "hotel": "H1", "year": 2026 }, "fragments": [{ "state": { "a": 1 }, "data": {} }] }
+    },
+    {
+      "name": "an appState: seed alone becomes the app state",
+      "routes": [{ "route": "home", "appState": { "hotel": "H0" } }],
+      "syncPath": "home",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "appState": { "hotel": "H0" }, "fragments": [{ "state": {}, "data": {} }] }
+    },
+    {
+      "name": "a static route beats a parameterised sibling declared before it",
+      "routes": [
+        { "route": "orders/:id", "fixedParams": { "kind": "detail" } },
+        { "route": "orders/new", "fixedParams": { "kind": "new" } }
+      ],
+      "syncPath": "orders/new",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "kind": "new" }, "data": { "kind": "new" } }] }
+    },
+    {
+      "name": "the root sync path matches the empty route",
+      "routes": [{ "route": "", "defaultParams": { "tab": "home" } }],
+      "syncPath": "_no_route",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "tab": "home" }, "data": { "tab": "home" } }] }
+    },
+    {
+      "name": "leading and trailing slashes of an authored route do not matter",
+      "routes": [{ "route": "/tickets/", "fixedParams": { "status": "open" } }],
+      "syncPath": "tickets",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "open" }, "data": { "status": "open" } }] }
+    },
+    {
+      "name": "every fragment gets the parameters",
+      "routes": [{ "route": "tickets", "fixedParams": { "status": "open" } }],
+      "syncPath": "tickets",
+      "increment": { "fragments": [{ "state": { "a": 1 }, "data": {} }, { "data": { "b": 2 } }] },
+      "expected": { "fragments": [
+        { "state": { "a": 1, "status": "open" }, "data": { "status": "open" } },
+        { "state": { "status": "open" }, "data": { "b": 2, "status": "open" } }
+      ] }
+    },
+    {
+      "name": "a :param template: the path value replaces the placeholder in state, data and initialData, and the registry still applies",
+      "routes": [{ "route": "orders/:id", "fixedParams": { "mode": "view" } }],
+      "template": { "routePattern": "^orders/([^/]+)$", "paramNames": ["id"] },
+      "syncPath": "orders/7",
+      "increment": { "fragments": [{
+        "component": { "type": "ServerSide", "initialData": { "id": "__mateu_param__", "other": 1 } },
+        "state": { "id": "__mateu_param__" },
+        "data": {}
+      }] },
+      "expected": { "fragments": [{
+        "state": { "id": "7", "mode": "view" },
+        "data": { "id": "7", "mode": "view" },
+        "initialData": { "id": "7", "other": 1 }
+      }] }
+    },
+    {
+      "name": "a :param template whose path is not in the registry still injects the path value",
+      "routes": [],
+      "template": { "routePattern": "^items/([^/]+)/([^/]+)$", "paramNames": ["group", "id"] },
+      "syncPath": "items/g1/9",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "group": "g1", "id": "9" }, "data": { "group": "g1", "id": "9" } }] }
+    }
+  ],
+  "syncPaths": [
+    { "route": "/orders", "expected": "orders" },
+    { "route": "orders", "expected": "orders" },
+    { "route": "/orders/42", "expected": "orders/42" },
+    { "route": "", "expected": "_no_route" },
+    { "route": "/", "expected": "_no_route" },
+    { "route": "/products?status=X&page=2", "expected": "products" },
+    { "route": "/?tab=1", "expected": "_no_route" }
+  ]
+}
