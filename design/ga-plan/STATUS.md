@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (batch 3 integrated locally on `integration/batch-3`, pending CI — the owner decisions, the natives/listings fixes and the Redwood fixes; batch 2 on `integration/walkthrough-2` also pending CI).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 3 — coverage, eight streams — integrated locally on `integration/coverage` on top of batch 3, pending CI; batch 3 integrated locally on `integration/batch-3`, pending CI — the owner decisions, the natives/listings fixes and the Redwood fixes; batch 2 on `integration/walkthrough-2` also pending CI).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -38,8 +38,8 @@ continue the work from here. **Update it at the end of every block of work.** La
    Each delivers `design/walkthrough/<area>.md` (✅ / 🔧 fixed / ❌ needs owner / N/A per cell). Branches are pushed
    to origin periodically as WIP; **to resume an area, check out its branch, read its matrix file and continue the
    cells not marked yet** (same brief).
-3. **Coverage** — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md) (PR #800): 8 streams
-   S1–S8 with target floors. Launch AFTER the walkthrough is integrated (its tests change the numbers).
+3. **Coverage** ✅ written and **integrated, pending CI** (2026-10-17: `integration/coverage`, see "Coverage integration"
+   below) — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md): 8 streams S1–S8, floors raised.
 4. **Refactor/optimization** backed by those tests — **scheduled for the weekend of 17–18 Oct** (owner, 2026-10-12), with whatever token budget is left that week.
 5. **Deep independent review by Fable** (owner, 2026-10-12): at the very END, after the refactor, before GA — a different model with fresh eyes over the whole product (public API + stability, security, wire contract + Java/.NET/Python parity, core architecture, docs-vs-reality, a new developer's first hour). Runs on the separate Fable weekly quota (`model: "fable"` agents). Its report becomes the GA blocker list.
 6. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
@@ -78,6 +78,9 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 - **Batch 3 integrated, pending CI**: local branch `integration/batch-3` = origin/master + `pending/natives` + `pending/decisions`
   + `pending/redwood` (see "Batch 3 integration" below). Both batches start from origin/master (#812); push batch 2 first, then
   rebase or merge batch 3 on it — they do not overlap in code (batch 3 touches the ports' titles/banners, listings, Redwood).
+- **Phase 3 (coverage) integrated, pending CI**: local branch `integration/coverage` = `origin/integration/batch-3`
+  (PR #813, incl. its later layout-sizing fix) + `coverage/s1`…`coverage/s8`, bundles rebuilt once, every gate green
+  locally (see "Coverage integration" below). Push after batch 3 is merged (it is based on it).
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
@@ -88,6 +91,69 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   per-session; Java manifest settings only from system properties/env; Redwood federation doesn't know static remotes
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
+
+## Coverage integration (phase 3, 2026-10-17 — `integration/coverage`, pending CI)
+Merged in order s2, s1, s3, s4, s5, s6, s7, s8 on top of `origin/integration/batch-3`. The only textual conflicts were the
+§1 rows of `design/coverage/coverage-map.md` (union, each stream's row replacing the old one); `run_tests.yml` (S2/S4/S7/S8)
+and `WireConformanceTest.java` (S1+S4) merged cleanly with both sides' steps/cases. Generated bundles rebuilt once.
+Integration fixes (one commit each):
+- **libs/mateu floors were measured on a stale vitest 3.2.4** left in S5's worktree; the lockfile (= CI) installs 4.1.11,
+  which reports 92.8 L / 91.1 S / 88.3 F / 80.9 B on the same sources and the same 2039 tests → floors 92/91/88/80.
+- **mvc-core branch floor 86 → 85**: one `YamlMountCondition` outcome is environment-dependent (85.2% here, 86.1% in S3).
+- **IntelliJ `ConformanceCorpusRenderTest`** asserted every corpus case paints something; S4's new `crud-search` case is a
+  data-only answer → only cases carrying a component must render.
+
+| area | before (coverage map, 2026-10-12) | after (measured on `integration/coverage`) | floor now |
+|---|---|---|---|
+| Java `shared/core` | 84.7 L / 70.1 B | 89.3 L / 77.7 B (2155 tests) | 89 L / 77 B |
+| Java `shared/uidl` cross-module | 84.2 / 70.6, no gate | 88.2 / 73.7 (`backend/coverage`) | 87 / 73 |
+| Java `shared/dtos` cross-module | 78.4 / 57.5, no report | 84.6 / 87.4 | 84 / 87 |
+| Java AP core / indexer | 73.5 / 53.5 · 67.8 / 65.8 | 95.1 / 82.0 · 97.8 / 94.7 | 95 / 81 · 97 / 94 |
+| Java mvc / webflux / micronaut | 70.6 · 79.1 · 85.0 L | 88.5 / 85.2 · 95.0 / 84.9 · 92.4 / 82.2 | 88/85 · 95/84 · 92/82 |
+| Java quarkus / helidon-mp | 86.5 · 83.2 L | 92.4 / 76.5 · 91.6 / 78.8 | 92/76 · 91/78 |
+| Java bundle plugin | 59.9 / 50.3 | 90.1 / 75.4 | 90 / 75 |
+| .NET (net8.0) | 94.0 / 79.5 | Uidl 98.9/90.7 · Core 96.2/84.8 · Dtos 99.9/100 · AspNetCore 98.3/84.9 (898 tests) | 98/90 · 96/84 · 99/95 · 98/84 |
+| Python | 93.8 / 83.9 | 95.4 / 88.1 (955 tests; 3.12 and 3.14) | 95 L / 87 B + combined 93 |
+| Conformance corpus | 36 cases | 39 (+ crud-search, wizard, rest-source) | exact match ×3 |
+| `libs/mateu` | 65.8 L / 51.8 B | 92.8 L / 80.9 B (2039 tests) | 92 / 91 / 88 / 80 |
+| `apps/vaadin` | 35.2 / 27.4 | 86.4 L / 75.1 B (246 tests) | 86 / 85 / 80 / 74 |
+| `apps/visual-editor` | 66.9 / 59.5 | 80.7 L / 70.2 B (484 tests) | 80 / 78 / 76 / 70 |
+| Redwood `poc/` | 95.2 / 79.3 | 98.0 L / 84.3 B / 95.3 F (+ VB chains harness, projections) | 97 / 84 / 95 |
+| React Native `.ts` | 95.5 / 85.1 | 98.6 L / 86.3 B / 95.5 F (375 tests) | 98 / 86 / 95 |
+| IntelliJ plugin | 48.6 | 66.1 (Kover, 426 tests) | 65 |
+| VS Code extension | 96.2 / 79.3 | 97.2 L / 80.5 B | 97 / 92 / 96 / 80 |
+| E2E | shared suite only | shared (494/adapter) + `journeys` (30 run, 6 fixme) + slow-network probe + axe audit in CI | green |
+
+Verified locally (JDK 21, node 24, .NET net8 only): backend `mvn verify` over the CI `-pl` list incl. `coverage`; the web
+job (licences, design tokens, lint, lib build, three `test:coverage`, vaadin tsc/build/bundle budget); tooling job (Redwood
+15 suites + make-html/nls/amd checks + parity, MCP, prompt-to-app, RN tests + parity + tsc, VS Code incl. package, Figma);
+IntelliJ `test koverVerify`; .NET tests + line/branch floors; Python pytest + `[tool.mateu.coverage]` + mypy on 3.12 and 3.14;
+e2e mvc-app1 shared + journeys + renderer-vaadin (581 passed, 5 fixme skipped), slow-network 10/10, axe 0 violations on 16
+routes; renderer-vb: vb-smoke 11/11, vb-a11y 10/10, vb-slow-network 8/8, Playwright 65 (serially, as CI runs it).
+Not run locally: the other four adapters' shared suite, federation/YAML-federation projects, `journeys/yaml-proxy.spec.ts`
+(its upstream port 19395 is outside this session's port block), the net10.0 leg, `dotnet pack`, the Python wheel and
+lowest-deps jobs.
+
+### Production bugs found by the coverage streams, not yet fixed
+Pinned by tests that document the current behaviour (or `test.fixme` journeys); each needs a fix at the root.
+- **S1 (core)**: MCP projection names the listing `Crudl` where the agent contract says `Crud`; MCP search ignores the search
+  text; MCP does not resolve a screen under an app shell; MCP leaks `@EyesOnly` action ids; a method `@Menu` on a non-root app
+  doubles the mount in the route; an AppShell's absolute paths double the mount; `resolveRemoteDeepLink` is dead code;
+  OpenAPI derivation / server generator mishandle path parameters; `BigInteger`/`Date`/`java.sql.Date`/`ZonedDateTime`/`File`
+  fields fail and a `Status` field renders nothing; `Optional` fields fail (no Jdk8 Jackson module); `Hydratable` is applied
+  inverted; `@Composition` renders "Pending"; master/detail's selected button style is wrong.
+- **S2 (uidl/dtos/AP)**: `GridGroupColumnDto` is not registered as a subtype and its children are dropped; LongTask progress
+  text is hard-coded Spanish; `BreadcrumbDto` is registered as a component.
+- **S3 (adapters)**: `HelidonMPInstanceFactoryProvider` is `@Vetoed`, so it is dead.
+- **S4 (ports)**: agents (MCP) never see the rows of a search.
+- **S5 (libs/mateu)**: `checkValidations` parses optional chaining (`?.`) as a ternary; polls are dropped silently; a button
+  route with a missing value navigates to a broken route.
+- **S6 (vaadin/editor)**: `updateMedata` copies the metadata on every render; a read-only password field shows its value.
+- **S7 (natives/Redwood/VS Code)**: REST blank-value sorting is inconsistent with the docs.
+- **S8 (e2e journeys)**: the optimistic-lock conflict dialog's buttons send the CRUD page state (Overwrite goes to `/null`, or
+  duplicates the record in a drawer) and its text is hard-coded Spanish; a grid stays stale after an action that returns the
+  listing; a by-ref REST action fails without an app shell; `@SeparatorBefore` is ignored inside a `@Tab`; drawer forms skip
+  client validation; a `@Version` field is editable; a definition-only Form holding only Text renders the root page.
 
 ## Walkthrough results (all seven branches integrated: batch 1 = PR #802 on master; batch 2 = `integration/walkthrough-2`, pending CI)
 | area | branch | matrix | ✅ | 🔧 fixed | ❌ owner | not walked |
