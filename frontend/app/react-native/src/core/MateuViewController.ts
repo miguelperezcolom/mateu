@@ -327,12 +327,16 @@ export class MateuViewController {
       component: this.view.component,
     };
     const source = (rest['source'] as Json) ?? {};
+    // A surface naming its source by `ref` carries only the name: the url, method, headers and body
+    // (like `proxy`) are read off the RESOLVED source — the app's catalogue, then the entries the
+    // responses named — or a by-ref call would fetch an empty url.
+    const target = this.session.sources.resolve(source);
     const resolve = (t: unknown): string => interpolate(str(t), ctx);
     try {
       let json: unknown;
       // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a copy of
       // the sample, a write succeeds with null (nothing persisted, nothing to merge).
-      const sampled = this.session.sources.sampledResponse(source, str(this.session.sources.resolve(source)['method']) || 'GET');
+      const sampled = this.session.sources.sampledResponse(source, str(target['method']) || 'GET');
       if (sampled !== undefined) {
         json = sampled;
       } else if (this.session.sources.viaProxy(source)) {
@@ -342,14 +346,14 @@ export class MateuViewController {
         const kind = actionId === '__restdata__' ? 'data' : 'action';
         json = await this.fetchViaProxy(kind, actionId ?? '');
       } else {
-        const url = interpolateUrl(str(source['url']), ctx);
-        const method = (str(source['method']) || 'GET').toUpperCase();
+        const url = interpolateUrl(str(target['url']), ctx);
+        const method = (str(target['method']) || 'GET').toUpperCase();
         const headers: Record<string, string> = {};
-        for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
+        for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = resolve(v);
         // A registered client-side auth provider supplies dynamic headers (merged last, so it wins).
         Object.assign(headers, await externalAuthHeaders({ url, method }));
         const init: RequestInit = { method, headers };
-        if (method !== 'GET' && method !== 'HEAD' && source['body']) init.body = resolve(source['body']);
+        if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = resolve(target['body']);
         const res = await fetch(url, init);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         json = await res.json();

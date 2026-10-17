@@ -29,14 +29,17 @@ const { headerValues } = await import('./appShellExtras.ts');
 type Json = Record<string, any>;
 
 const fetched: string[] = [];
+const fetchedInit: (RequestInit | undefined)[] = [];
 const realFetch = globalThis.fetch;
-globalThis.fetch = (async (url: string) => {
+globalThis.fetch = (async (url: string, init?: RequestInit) => {
   fetched.push(String(url));
+  fetchedInit.push(init);
   return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
 }) as typeof fetch;
 
 afterEach(() => {
   fetched.length = 0;
+  fetchedInit.length = 0;
   restFetch.registerRestSources([]);
   restFetch.clearReferencedRestSources();
   restFetch.setSampleMode(false);
@@ -182,4 +185,29 @@ test('an island over another base url registers into the hub UI that hosts it', 
   // an island naming the host's own base url (or none) simply is the host session
   assert.equal(islandSession(host, ''), host);
   assert.equal(islandSession(host, 'https://a.example'), host);
+});
+
+test('a non-proxied @RestAction naming its source by ref fetches the resolved url, method, headers and body', async () => {
+  const b = hubUi('https://b.example');
+  b.session.sources.register([{
+    name: 'orders',
+    source: { url: 'https://b.example/orders/${state.id}', method: 'POST', headers: { 'X-Tenant': '${state.tenant}' }, body: '{"n":"${state.id}"}' },
+  }]);
+  showScreenB(b.c, [{ id: 'send', restAction: { source: { ref: 'orders' } } }]);
+  (b.c as any).currentComponentState.id = 'a b';
+  (b.c as any).currentComponentState.tenant = 't1';
+  await b.c.runAction('send');
+  assert.deepEqual(fetched, ['https://b.example/orders/a%20b']);
+  assert.equal(fetchedInit[0]?.method, 'POST');
+  assert.equal((fetchedInit[0]?.headers as Json)['X-Tenant'], 't1');
+  assert.equal(fetchedInit[0]?.body, '{"n":"a b"}');
+  assert.ok(!b.calls.some((rq) => rq['actionId'] === '__restfetch__'));
+});
+
+test('a by-ref @RestAction resolves against the entries a response carried', async () => {
+  const b = hubUi('https://b.example');
+  b.c.applyIncrement({ restSources: [{ name: 'ping', source: { url: 'https://b.example/ping' } }] });
+  showScreenB(b.c, [{ id: 'ping', restAction: { source: { ref: 'ping' } } }]);
+  await b.c.runAction('ping');
+  assert.deepEqual(fetched, ['https://b.example/ping']);
 });
