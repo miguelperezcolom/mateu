@@ -72,10 +72,10 @@ Columns: **Java** (annotations/fluent, served — mvc + the 4 other adapters for
 | Markdown, Image, Badge, Avatar, AvatarGroup, Chart, Bpmn, ProgressBar | ✅ (🔧 #16 ids) | ✅ | ✅ | ✅ (🔧 #5) | ✅ | 🔧 #15 | 🔧 #15 | ✅ (🔧 #24) | ✅ (🔧 #20) | ✅ |
 | Card | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ no Python fluent `Card` (its CardMetadata takes a string title, Java's a component — owner: align it?) | ✅ | ✅ | ✅ |
 | Notice (action + content) | ✅ | ✅ | 🔧 #2 | ✅ | 🔧 #11 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MatrixGrid (link + edit, sections) | ✅ | ✅ | 🔧 #2 | ✅ link + edit round trip | ✅ renders; ⏳ VB edit | ✅ | ✅ | ✅ link | ⏳ (MatrixGridsTest exists) | ✅ |
-| PlanningBoard (select, drag/move) | ✅ | ✅ | ✅ | ✅ select + drag | ✅ renders; ⏳ VB drag | ✅ | ✅ | 🔧 #25 select | ⏳ (PlanningDragTest exists) | ✅ |
-| Gantt (bar click) | ✅ | ✅ | ✅ | ✅ (🔧 #4) | ✅ GanttPage drawer; ❌ console `<rect> width negative` errors from oj-gantt on /arch/interactive (not investigated) | ✅ | ✅ | 🔧 #25 | 🔧 #26 | ✅ |
-| Kanban, Timeline, OrgChart, StatusList, FeatureGrid, PricingTable, OfferCard, CalloutCard, TaskQueue, EmptyState CTA, ActionPanel | ✅ | ✅ | ✅ | ✅ round trips (🔧 #4) | ✅ round trips (🔧 #11) | ✅ | ✅ | ✅ round trips | ✅ (DisplayComponentsRenderTest) | ✅ |
+| MatrixGrid (link + edit, sections) | ✅ | ✅ | 🔧 #2 | ✅ link + edit round trip | ✅ renders; ⏳ VB edit | ✅ | ✅ | ✅ link | ✅ (`MatrixGridsTest`; keeps its height on long pages — `StackedCanvasHeightsRenderTest`) | ✅ |
+| PlanningBoard (select, drag/move) | ✅ | ✅ | ✅ | ✅ select + drag | ✅ renders; ⏳ VB drag | ✅ | ✅ | 🔧 #25 select | ✅ renders/drags (`PlanningDragTest`; height pinned — `StackedCanvasHeightsRenderTest`) | ✅ |
+| Gantt (bar click) | ✅ | ✅ | ✅ | ✅ (🔧 #4) | ✅ GanttPage drawer; ❌ console `<rect> width negative` errors from oj-gantt on /arch/interactive (not investigated) | ✅ | ✅ | 🔧 #25 | 🔧 #26 ✅ height pinned (`StackedCanvasHeightsRenderTest`) | ✅ |
+| Kanban, Timeline, OrgChart, StatusList, FeatureGrid, PricingTable, OfferCard, CalloutCard, TaskQueue, EmptyState CTA, ActionPanel | ✅ | ✅ | ✅ | ✅ round trips (🔧 #4) | ✅ round trips (🔧 #11) | ✅ | ✅ | ✅ round trips | ✅ (DisplayComponentsRenderTest; Kanban columns no longer frozen at header height — `StackedCanvasHeightsRenderTest`) | ✅ |
 | Stat (action) | ✅ | ✅ | ✅ | ✅ | 🔧 #13 | ✅ | ✅ | ✅ | ⏳ | ✅ |
 | Map with markers | ✅ | ✅ | ✅ | 🔧 #4 keyboard button, round trip ✅ | ❌ marker click not walked green (Leaflet marker locator timed out) | ✅ | ✅ | ✅ | ✅ list rows (MapRowsTest) | ✅ |
 | Calendar (views, days, day/event click) | ✅ | ✅ | ✅ | ✅ | ❌ an event click on VB ran nothing (chip clickable, sink installed; the click fired a nav-drawer chain — not diagnosed) | ✅ | ✅ | ✅ (web: nested `<button>` warning — day cell holds event buttons) | ⏳ | ✅ |
@@ -84,9 +84,10 @@ Columns: **Java** (annotations/fluent, served — mvc + the 4 other adapters for
 | ComponentAdapter island, embedded mediator island | ✅ /adapter-demo save round trip; /inline-host (confirm-dirty.spec) | N/A (code) | N/A (server) | ✅ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | MicroFrontend | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
 
-IntelliJ ❌: rendering the gallery or `/arch/interactive` with `renderProbe` (1200×885), Gantt, Kanban,
-PlanningBoard and MatrixGrid are squeezed to a few pixels high and overlap when many components share
-one vertical page (needs a look at the vertical layout / scroll host in the tool window).
+IntelliJ ✅ (fixed): Gantt, Kanban, PlanningBoard and MatrixGrid used to squeeze to a few pixels on a long
+vertical page — the page's vertical `BoxLayout` shrank them to their near-zero MINIMUM height (an empty
+FlowLayout, a bare `JBScrollPane`), and Kanban froze each column at its header's height before it had cards.
+Now content-height canvases (`ContentHeightScrollPane`), pinned by `StackedCanvasHeightsRenderTest`.
 
 ### Page anatomy
 
@@ -95,7 +96,7 @@ one vertical page (needs a look at the vertical layout / scroll host in the tool
 | Overline, title, subtitle, badge, KPI, timestamp | ✅ page-anatomy | ✅ /yaml-page | 🔧 #22 seeds | ✅ | ✅ /arch/page renders | ⏳ | ⏳ |
 | Window title (`SetWindowTitle`) | 🔧 #7 | ✅ | ✅ | ✅ | 🔧 #17 header | 🔧 #7 | 🔧 #7 |
 | Toolbar / buttons | 🔧 #9 | ✅ flow | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
-| Banners: static, action-returned replace/append | ✅ | ✅ static | ✅ static | ✅ | ⏳ | ⏳ | ⏳ |
+| Banners: static, action-returned replace/append | ✅ | ✅ static | ✅ static | ✅ | ✅ (`PageBannersTests`) | ⏳ | ⏳ |
 | FABs | 🔧 #8 | ✅ flow | ✅ | ✅ | ⏳ | 🔧 #8 | 🔧 #8 |
 | Peer nav (+ back) | ✅ | ✅ renders | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | Record switcher | ✅ | ⏳ | ⏳ | ✅ | ⏳ | ⏳ | ⏳ |

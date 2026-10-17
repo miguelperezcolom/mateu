@@ -115,7 +115,7 @@ Each item has a test that fails without it.
    `define/yaml/app-shell.md` back to the positive claim. `YamlMountsTest` + shared e2e `yaml-mount-next-to-ui.spec.ts`
    (fixture `yaml-mixed.ui.yaml` in sample1; green on MVC + WebFlux locally; Quarkus/Micronaut/Helidon only in CI —
    watch them on the batch PR).
-5. ✅ Python `PageBanners.replace/append`. (.NET still has only the bare replace — parity row says so.)
+5. ✅ Python `PageBanners.replace/append`; .NET `PageBanners.Replace/Append` too (`PageBannersTests`).
 6. ✅ Error toasts sticky (duration 0 + ✕) in Java/.NET/Python and Vaadin (neutral + Vaadin notifiers), Redwood (undo
    toasts; banners already persisted), RN (`toastLifetime`), IntelliJ (sticky "Mateu errors" group). Same texts.
 7. ✅ `List/Set<Enum>` with no stereotype → `multiSelect` (Java, .NET, Python; no conformance golden affected).
@@ -197,10 +197,6 @@ the .NET net10.0 target (no SDK here) — CI covers them.
   over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
   nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —
   likely a gantt laid out while hidden). All need a browser session.
-- IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed on long pages (needs `renderProbe`).
-- Listings: double `search` after delete/bulk and on filtered deep links (harmless); record page title is the class
-  title in Python AND .NET (decide whether the record should name it, as Java does).
-- .NET `PageBanners` (append) for full parity.
 - Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
 
 ## (Superseded) Pending owner decisions — the original list, all applied above
@@ -214,7 +210,7 @@ the .NET net10.0 target (no SDK here) — CI covers them.
 8. **Editable markdown/html fields**: Redwood shows raw source as editable text, Vaadin shows rendered content → decide the contract (proposal: an editor with preview on both).
 9. **Vaadin page heading on composed archetypes**: Dashboard, SmartSearchPage and ItemOverview show no heading on Vaadin (Redwood now does; docs assume one) → add it on Vaadin.
 10. **Python has no fluent `Card`** (and its card title is a string, Java's a component) → add it with Java's shape.
-11. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible; calendar event click runs nothing; map marker click unconfirmed; Gantt negative-width console errors; **every Redwood shell page load returns a 400 'invalid catalog JSON'** (check before any Redwood demo). IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed to a few px on long pages. RN web: calendar nests buttons (warning).
+11. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible; calendar event click runs nothing; map marker click unconfirmed; Gantt negative-width console errors; **every Redwood shell page load returns a 400 'invalid catalog JSON'** (check before any Redwood demo). RN web: calendar nests buttons (warning).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
 - ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).
