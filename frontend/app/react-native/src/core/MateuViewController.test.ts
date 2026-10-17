@@ -454,3 +454,17 @@ test('validation falls back to the legacy matcher for syntax the parser does not
   await c.runAction('save');
   assert.equal(calls.filter((x) => x.actionId === 'save').length, 1);
 });
+
+test('a page with no app shell: the REST sources a response names resolve its refs', async () => {
+  const { getRestSource, clearReferencedRestSources, registerRestSources } = await import('./restFetch.ts');
+  registerRestSources([]);
+  clearReferencedRestSources();
+  const { c } = harness([{}]);
+  c.applyIncrement({ restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] });
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], 'https://late.example.com/x');
+  // the App's catalogue still wins a name clash
+  registerRestSources([{ name: 'late', source: { url: '/app' } }]);
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], '/app');
+  registerRestSources([]);
+  clearReferencedRestSources();
+});
