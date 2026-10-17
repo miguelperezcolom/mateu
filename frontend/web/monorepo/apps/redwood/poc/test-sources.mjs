@@ -166,6 +166,10 @@ test('in memory: search, filter, sort and page over the fetched rows', () => {
   const filters = [{ fieldId: 'status', options: [{ value: 'OPEN' }] }]
   assert.deepEqual(filterRestRows(rows, ids, filters, { status: 'OPEN' }).map((r) => r.id), [1, 3])
   assert.deepEqual(sortRestRows(rows, [{ field: 'total', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
+  // blanks go last in BOTH directions
+  const gaps = [{ id: 1, n: 30 }, { id: 2, n: null }, { id: 3, n: 45 }, { id: 4, n: '' }]
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'ascending' }]).map((r) => r.id), [1, 3, 2, 4])
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
   const md = { pageSize: 2, columns: [col('id', { identifier: true })] }
   const page1 = restListingPage(md, rows, 4, { page: 1, sort: [{ fieldId: 'total', direction: 'ascending' }] }, false)
   assert.equal(page1.totalElements, 4)

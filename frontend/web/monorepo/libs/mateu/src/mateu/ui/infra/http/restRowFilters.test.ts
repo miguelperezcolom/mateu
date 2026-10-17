@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { filterExternalRows } from './restRowFilters.ts'
+import { filterExternalRows, sortExternalRows } from './restRowFilters.ts'
 
 // A listing declares its filters as FormFields; only the handful of members the semantics turn on
 // are relevant here, so the fixtures carry those and are cast at the call.
@@ -96,5 +96,22 @@ describe('filtering rows fetched from an external endpoint', () => {
 
     it('survives a filter without a field id and a missing state', () => {
         expect(filterExternalRows(people, columns, [field({})], undefined as any)).toHaveLength(4)
+    })
+})
+
+describe('sorting rows fetched from an external endpoint', () => {
+    const rows = [{ name: 'a', age: 30 }, { name: 'b', age: null }, { name: 'c', age: 45 }, { name: 'd', age: '' }]
+
+    it('puts blanks last ascending', () => {
+        expect(names(sortExternalRows(rows, [{ fieldId: 'age', direction: 'ascending' }]))).toEqual(['a', 'c', 'b', 'd'])
+    })
+
+    it('puts blanks last descending too (the direction flips the values, not the blanks)', () => {
+        expect(names(sortExternalRows(rows, [{ field: 'age', direction: 'descending' }]))).toEqual(['c', 'a', 'b', 'd'])
+    })
+
+    it('a tie on blanks falls through to the next key', () => {
+        expect(names(sortExternalRows(rows, [{ fieldId: 'age', direction: 'desc' }, { fieldId: 'name', direction: 'desc' }])))
+            .toEqual(['c', 'a', 'd', 'b'])
     })
 })

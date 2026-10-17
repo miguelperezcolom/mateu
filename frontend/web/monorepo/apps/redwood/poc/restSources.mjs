@@ -380,15 +380,21 @@ export function sortRestRows(rows, sort) {
     .filter((k) => k.id !== '')
   if (!keys.length) return rows
   const compare = (a, b) => {
-    const ab = restFilterBlank(a)
-    const bb = restFilterBlank(b)
-    if (ab || bb) return ab === bb ? 0 : ab ? 1 : -1
     if (typeof a === 'number' && typeof b === 'number') return a - b
     return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
   }
   return rows.slice().sort((x, y) => {
     for (const k of keys) {
-      const c = compare(x[k.id], y[k.id])
+      const a = x[k.id]
+      const b = y[k.id]
+      // Blanks go last in BOTH directions, so they are settled before the direction flips.
+      const ab = restFilterBlank(a)
+      const bb = restFilterBlank(b)
+      if (ab || bb) {
+        if (ab === bb) continue
+        return ab ? 1 : -1
+      }
+      const c = compare(a, b)
       if (c !== 0) return k.desc ? -c : c
     }
     return 0
