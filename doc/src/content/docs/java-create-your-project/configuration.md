@@ -14,8 +14,29 @@ implemented once, in Mateu's core, so it is the same on every adapter.
 | `mateu.cors.allow-credentials` | `false` | Adds `Access-Control-Allow-Credentials: true` for the listed origins. Never combined with `*`. |
 | `mateu.mcp.enabled` | `false` | Serves the native [MCP endpoint](/reference/agent-operability/) at `POST /mateu/mcp`. |
 | `mateu.client-log.enabled` | `true` | Accepts the renderers' error reports at `POST <baseUrl>/mateu/v3/client-log` ([client error log](/ux-patterns/client-error-log/)). |
+| `mateu.client-log.max-reports-per-minute` | `60` | Reports one user (else one client address) may write per minute; the rest answer `429`. |
+| `mateu.security.csrf-exemption.enabled` | `true` | Spring: exempts Mateu's JSON calls from Spring Security's CSRF check ([why it is safe](/java-user-manual/advanced/security/#wiring-each-framework)). |
 | `mateu.static-assets.caching` | `true` | Caches Mateu's frontend assets: `/version_<n>/…` immutable for a year, `/assets/…` revalidated (`no-cache`). |
 | `mateu.debug` | `false` | Starts the renderer in debug mode (`<mateu-ui debug="true">`). |
+
+### Core settings
+
+These are read by Mateu's core, in this order: a JVM system property, then **the framework's
+configuration** (`application.properties`/`.yml` and profiles on Spring and Micronaut, MicroProfile
+Config on Quarkus and Helidon), then the environment variable (`mateu.self-base-url` →
+`MATEU_SELF_BASE_URL`).
+
+| Property | Default | What it does |
+|---|---|---|
+| `mateu.actions.strict` | `true` | [Strict action mode](/java-user-manual/advanced/security/#strict-action-mode-mateuactionsstrict--the-default): an `actionId` only runs a marked or advertised method. `false` restores "every public method is an action". |
+| `mateu.errors.detailed` | `false` | Shows the raw exception in the error toast instead of the generic text with a reference (development only). |
+| `mateu.remote.allowed-hosts`, `mateu.self-base-url`, `mateu.remote.timeout-seconds` | — | Federated UIs: the hosts a remote menu or island may be fetched from, this app's own base URL, the fetch timeout. |
+| `mateu.layout.inference.enabled`, `mateu.page.inference.enabled` | `false`, `true` | [Layout and page inference](/ux-patterns/layout-inference/). |
+| `mateu.mobile.*` | — | The [mobile manifest](/ux-patterns/mobile-app/) (name, icon, OIDC issuer and client…). |
+| `mateu.environment`, `mateu.sources.mock`, `mateu.i18n.fallback`, `mateu.documents.inline-max-bytes` | — | The active environment, sample-data mode, the fallback locale, the inline document limit. |
+
+Before `3.0-alpha.426` these were read only from system properties and environment variables: a key
+written in `application.properties` was silently ignored.
 
 ## Cross-origin access (CORS)
 

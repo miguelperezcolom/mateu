@@ -116,6 +116,34 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/rea
 To read Keycloak's `realm_access.roles`, Mateu also reads the authenticated token's claims, so no
 authorities converter is needed.
 
+**CSRF.** Spring Security turns CSRF protection on for every `POST`. Mateu's adapters contribute an
+exemption for **its own JSON calls** (`<baseUrl>/mateu/v3/**` and `/mateu/mcp` with
+`Content-Type: application/json`, plus the development endpoints `/mateu/dev/**`, served only with
+`mateu.dev=true`), applied to every `SecurityFilterChain` you build from the
+injected `HttpSecurity` / `ServerHttpSecurity` — nothing to configure, form login and session
+cookies included. Your own endpoints, and any form-encoded, multipart or `text/plain` request to a
+Mateu path, keep the CSRF check. It is safe because a cross-site page can only make the browser send
+those three content types without asking first: a JSON `POST` from another origin needs a CORS
+preflight, and Mateu's CORS is off unless you list the origins (`mateu.cors.allowed-origins`). Turn
+the exemption off with `mateu.security.csrf-exemption.enabled=false` — and then exempt the Mateu
+paths yourself, or every action answers 403 ("You are not allowed to do this."):
+
+```java
+@Bean
+SecurityFilterChain security(HttpSecurity http) throws Exception {
+  return http
+      .csrf(csrf -> csrf.ignoringRequestMatchers(
+          MateuCsrfAutoConfiguration.MATEU_JSON_CALLS)) // io.mateu.security
+      .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
+      .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+      .build();
+}
+```
+
+(WebFlux: `csrf.requireCsrfProtectionMatcher(MateuCsrfWebFluxAutoConfiguration.CSRF_PROTECTED)`.)
+The automatic exemption relies on Spring Security 7's top-level customizer beans; on an older
+Spring Security, add the line above.
+
 **Quarkus** — `quarkus-oidc` (or `quarkus-smallrye-jwt`):
 
 ```properties
@@ -141,6 +169,11 @@ your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
 `mp.jwt.verify.issuer` in `microprofile-config.properties`. (Mateu's streamed actions, MCP and YAML
 mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
 `PrincipalResolver` if those need roles.)
+
+**CSRF on Quarkus, Micronaut and Helidon MP.** None of them adds CSRF protection to JSON requests
+by default, so Mateu needs nothing there. If you add a CSRF filter that checks every `POST`, exempt
+`application/json` requests to `<baseUrl>/mateu/v3/**` and `/mateu/mcp` the same way
+(`io.mateu.core.infra.security.CsrfExemption.isMateuJsonCall(path, contentType)` is the rule).
 
 **Your own identity source** — a `PrincipalResolver` bean:
 
@@ -289,7 +322,7 @@ void reserve() {
 }
 ```
 
-In development, `mateu.errors.detailed=true` (system property, or `MATEU_ERRORS_DETAILED=true`)
+In development, `mateu.errors.detailed=true` (`application.properties`, a system property, or `MATEU_ERRORS_DETAILED=true`)
 puts the raw exception class and message back in the toast. The .NET (`Mateu.Uidl.UserFacingException`,
 `System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_uidl.UserFacingException`,
 pydantic `ValidationError`) backends apply the same boundary with the same texts — and an exception

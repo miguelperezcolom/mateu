@@ -55,6 +55,15 @@ mvn package                  # target/*.jar
   is generated and every route answers 404.
 - Keep the static-resources mapping in `application.properties` (it serves the renderer).
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.
+- **Actions are declared.** An `actionId` only runs a method marked as an action (`@Action`,
+  `@Button`, `@Toolbar`…) or one the view itself names (a fluent button's `actionId`, a trigger, a
+  menu rule) — strict action mode, the default. A method only an undo toast, a test or another
+  backend dispatches needs `@Action`; a plain public helper is not reachable from the browser.
+- **Security is Micronaut's.** Mateu does not authenticate: add `micronaut-security-jwt` and Mateu reads the
+  principal it authenticated (https://mateu.io/java-user-manual/advanced/security/). Mateu's calls
+  are JSON, so no CSRF configuration is needed for them.
+- `mateu.*` settings (`mateu.actions.strict`, `mateu.errors.detailed`…) go in the `application.properties` / `application.yml` like any
+  other.
 - Prefer annotations and capability interfaces over custom components; check the docs before
   inventing an API.
 
