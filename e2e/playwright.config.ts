@@ -5,6 +5,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // One worker on CI: the parallelism is ACROSS jobs instead — run_tests.yml splits the projects
+  // into e2e legs (scripts/ci-e2e-leg.sh), each with its own SUT apps, so no two tests ever share a
+  // SUT at the same time. (Measured 2026-10-17 with 4 workers on a FRESH SUT: the shared suite
+  // passes on mvc/webflux/quarkus/helidon, but micronaut-app1 hangs — virtual threads pinned in
+  // Micronaut's synchronized SingletonScope wait on logback's lock, JDK 21 — and quarkus-app1 logs
+  // MountRegistry "zip file closed". Reusing a SUT across runs also fails FullCrud, by design.)
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 
@@ -44,7 +50,7 @@ export default defineConfig({
       name: 'webflux-app1',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8081',
+        baseURL: process.env.WEBFLUX_APP1_URL || 'http://localhost:8081',
       },
       testMatch: '**/shared/**/*.spec.ts',
     },
@@ -52,7 +58,7 @@ export default defineConfig({
       name: 'quarkus-app1',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8082',
+        baseURL: process.env.QUARKUS_APP1_URL || 'http://localhost:8082',
       },
       testMatch: '**/shared/**/*.spec.ts',
     },
@@ -60,7 +66,7 @@ export default defineConfig({
       name: 'micronaut-app1',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8083',
+        baseURL: process.env.MICRONAUT_APP1_URL || 'http://localhost:8083',
       },
       testMatch: '**/shared/**/*.spec.ts',
     },
@@ -68,7 +74,7 @@ export default defineConfig({
       name: 'helidon-app1',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8086',
+        baseURL: process.env.HELIDON_APP1_URL || 'http://localhost:8086',
       },
       testMatch: '**/shared/**/*.spec.ts',
     },
@@ -99,7 +105,7 @@ export default defineConfig({
       name: 'renderer-vaadin',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:8080',
+        baseURL: process.env.MVC_APP1_URL || 'http://localhost:8080',
       },
       testMatch: '**/renderer/**/*.spec.ts',
     },
