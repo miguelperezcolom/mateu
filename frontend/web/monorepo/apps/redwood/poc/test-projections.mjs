@@ -20,6 +20,7 @@ import {
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
+import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 
 let passed = 0
 const queue = []
@@ -567,6 +568,54 @@ test('smart search config: text only without filters; ids alone carry their chip
     const full = await smartFiltersOf(FILTERS, {}, '')
     assert.ok(full.suggestions && full.filtersMetadata && full.filtersMetadata.metadataOf)
   } finally { setMetadataProviderFactory(null) }
+})
+
+// ── client rules: the expression language a @Hidden/@Disabled/@Rule is written in ──────────────
+
+test('rule expressions: every operator, with JavaScript\'s precedence and semantics', () => {
+  const scope = { state: { n: 7, s: 'Ada', zero: 0, list: ['a', 'b'], obj: { k: 'v' } }, data: { flag: true }, appState: { hotel: 'H1' } }
+  const ev = (e) => evaluateExpression(e, scope)
+  const cases = [
+    ['1 + 2 * 3', 7], ['(1 + 2) * 3', 9], ['10 - 4 - 3', 3], ['7 % 4', 3], ['9 / 2', 4.5], ['-state.n + +"2"', -5],
+    ['state.n >= 7', true], ['state.n <= 6', false], ['state.n < 8 && state.n > 6', true],
+    ['state.n === 7', true], ['state.n !== 7', false], ['state.n == "7"', true], ['state.n != "7"', false],
+    ['state.zero || "fallback"', 'fallback'], ['state.zero && "never"', 0], ['!data.flag', false],
+    ['state.n > 5 ? state.n > 6 ? "big" : "mid" : "small"', 'big'],
+    ["'it\\'s'", "it's"], ['.5 + 0.5', 1], ['false', false], ['null', null], ['undefined', undefined],
+    ['["x", state.s][1]', 'Ada'], ['state.list[0]', 'a'], ['state.obj["k"]', 'v'], ['state.missing[0]', undefined],
+    ['state.s.startsWith("A")', true], ['state.s.endsWith("x")', false], ['state.s.indexOf("d")', 1],
+    ['state.list.indexOf("b")', 1], ['state.missing.indexOf("b")', -1], ['state.s.toLowerCase()', 'ada'],
+    ['"  pad ".trim()', 'pad'], ['state.n.toString()', '7'], ['state.missing.includes("a")', false],
+    ['state.s.toUpperCase()', 'ADA'], ['state.s.unknownMethod()', undefined], ['appState.hotel', 'H1'],
+  ]
+  for (const [expr, expected] of cases) assert.deepEqual(ev(expr), expected, expr)
+  // what it does not understand is undefined (the rule does not hold), never a broken screen
+  for (const bad of ['state.n #', '', '   ', null, 'state.n )', 'state.n state.s']) assert.equal(ev(bad), undefined, String(bad))
+  assert.equal(ev('1 +'), 1 + undefined, 'a missing operand is undefined (NaN), never a throw')
+  assert.equal(ev('(1'), 1, 'an unclosed parenthesis is forgiven')
+  assert.equal(evaluateTemplate('Hi ${state.s}, ${state.missing}!', scope), 'Hi Ada, !')
+  assert.equal(evaluateTemplate('state.n * 2', scope), 14, 'without ${ it is an expression')
+  assert.equal(evaluateTemplate(null, scope), undefined)
+})
+
+test('rules: data attributes per field (several fields at once), the flags the template reflects', () => {
+  const r = computeRules([
+    null,
+    { filter: '', action: 'SetDataValue', fieldName: 'a, b', fieldAttribute: 'hidden', value: true },
+    { filter: 'state.x', action: 'SetDataValue', fieldName: 'c', fieldAttribute: 'readOnly', value: 1 },
+    { filter: 'state.y', action: 'SetDataValue', fieldName: 'd', fieldAttribute: 'disabled', value: true },
+    { filter: 'true', action: 'SetStateValue', fieldName: 'total', expression: '${state.x * 10}' },
+    { filter: 'true', action: 'RunAction' },
+  ], { state: { x: 2 } })
+  assert.deepEqual(r.data, { 'a.hidden': true, 'b.hidden': true, 'c.readOnly': 1 })
+  assert.deepEqual(r.state, { total: 20 })
+  assert.deepEqual(r.actions, [], 'a RunAction without an action id runs nothing')
+  assert.deepEqual(fieldFlagsOf({ ...r.data, 'e.required': 0, 'f.other': true, plain: 1 }),
+    { a: { hidden: true }, b: { hidden: true }, c: { readonly: true }, e: { required: false } })
+  const ctx = { tree: { triggers: [{ type: 'OnValueChange', actionId: 'recalc', propertyName: 'nights', condition: 'state.nights > 0' }] }, data: {} }
+  assert.equal(valueChangeActionOf(ctx, 'nights', { nights: 0 }), null, 'the condition does not hold')
+  assert.equal(valueChangeActionOf(ctx, 'nights', { nights: 2 }), 'recalc')
+  assert.equal(valueChangeActionOf(null, 'x'), null)
 })
 
 for (const { name, fn } of queue) {
