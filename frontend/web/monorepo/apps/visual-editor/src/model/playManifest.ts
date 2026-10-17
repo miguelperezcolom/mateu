@@ -3,6 +3,8 @@ import { parseSources, parseTypes, withSampleFiles, type FieldTypeEntry, type Pr
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { catalogueOf, environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 import { lowerCatalogue } from '@infra/ui/actionCatalogue.ts'
+import { inlineReferences } from './inlineReferences'
+import { parseComponentCatalogue } from './componentCatalogue'
 
 /**
  * The manifest play mode runs the mount from: the same "specs mode" shape a static bundle ships
@@ -38,6 +40,9 @@ export interface PlayRoute {
     viewModel?: string
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    /** Literal seeds (`state:` / `appState:`), applied by the runtime at the defaults' level. */
+    state?: Record<string, unknown>
+    appState?: Record<string, unknown>
     data?: Record<string, unknown>
 }
 
@@ -68,7 +73,11 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
         if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...withSampleFiles(parseSources(f.content), files))
         else if (obj.type === 'Types' || (!obj.type && Array.isArray(obj.types))) types.push(...parseTypes(f.content))
         else if (obj.type === 'Actions') actions.push(...((obj.actions as unknown[]) ?? []))
-        else definitions[normalizePath(f.path)] = obj
+        // the business component catalogue is inlined where it is referenced, not a screen
+        else if (parseComponentCatalogue(f.content)) continue
+        // a partial and a business-component reference are inlined from the project's files: the
+        // browser's expander knows neither (Play showed "Unknown metadata type Partial")
+        else definitions[normalizePath(f.path)] = inlineReferences(obj, files)
     }
     const lowered = lowerCatalogue(actions)
     const manifest: PlayManifest = {
@@ -90,6 +99,9 @@ function toPlayRoute(r: ReturnType<typeof flattenRoutes>[number]): PlayRoute {
     if (r.viewModel) entry.viewModel = r.viewModel
     if (r.fixedParams) entry.fixedParams = r.fixedParams
     if (r.defaultParams) entry.defaultParams = r.defaultParams
+    const extra = (r as { extra?: Record<string, unknown> }).extra ?? {}
+    if (extra.state && typeof extra.state === 'object') entry.state = extra.state as Record<string, unknown>
+    if (extra.appState && typeof extra.appState === 'object') entry.appState = extra.appState as Record<string, unknown>
     if (typeof r.data === 'string' && r.data) entry.data = { ref: r.data }
     else if (r.data && typeof r.data === 'object') entry.data = r.data
     return entry

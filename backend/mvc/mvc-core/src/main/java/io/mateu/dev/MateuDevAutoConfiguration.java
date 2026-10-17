@@ -95,6 +95,16 @@ public class MateuDevAutoConfiguration {
                         // already completed
                       }
                     }
+                  },
+                  error -> {},
+                  () -> {
+                    // the server is shutting down: end the response so the graceful shutdown does
+                    // not wait on it, and the browser reconnects to whatever comes back
+                    try {
+                      async.complete();
+                    } catch (IllegalStateException ignored) {
+                      // already completed
+                    }
                   }));
       async.addListener(
           new AsyncListener() {

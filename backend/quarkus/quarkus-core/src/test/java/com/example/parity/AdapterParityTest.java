@@ -26,6 +26,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+    contract.refusesARestrictedStreamedActionToAnAnonymousCaller();
+  }
+
+  @Test
   @io.quarkus.test.security.TestSecurity(user = "parity-user", roles = "admin")
   void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
     contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(java.util.Map.of());
@@ -64,6 +69,16 @@ class AdapterParityTest {
   @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
+  }
+
+  @Test
+  void answersDeepLinksWithEncodedSegments() {
+    contract.answersDeepLinksWithEncodedSegments();
+  }
+
+  @Test
+  void doesNotAnswerADataFetchWithTheIndex() {
+    contract.doesNotAnswerADataFetchWithTheIndex();
   }
 
   @Test

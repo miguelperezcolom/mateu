@@ -1,6 +1,5 @@
-import { parse } from 'yaml'
 import { ProjectFile } from './projectIndex'
-import { lowerCatalogue } from '@infra/ui/actionCatalogue.ts'
+import { buildPlayManifest } from './playManifest'
 
 /**
  * Export the authored mount as a **static bundle manifest** (visual-editor Phase 7 — the €0 deploy half).
@@ -24,50 +23,30 @@ export interface BundleManifest {
     sources?: { sources: unknown[] }
     /** The ACTION catalogue (every `type: Actions` file), shipped once and lowered — `BundleManifest.actions`. */
     actions?: unknown[]
-    /** Raw authored definitions keyed by file name (e.g. `about.yaml`) — what specs mode expands. */
+    /** Authored definitions keyed by their path under specs/ui (e.g. `orders/list.yaml`) — what specs mode expands. */
     definitions: Record<string, unknown>
+    types?: { types: unknown[] }
+    translations?: Record<string, Record<string, string>>
 }
 
 export function buildBundleManifest(files: ProjectFile[], generatedAt: string): BundleManifest {
-    const definitions: Record<string, unknown> = {}
-    let routes: { routes: unknown[] } | undefined
-    let sources: { sources: unknown[] } | undefined
-    const actions: unknown[] = []
-
-    for (const f of files) {
-        let obj: Record<string, unknown>
-        try {
-            const parsed = parse(f.content)
-            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue
-            obj = parsed as Record<string, unknown>
-        } catch {
-            continue
-        }
-        const type = obj.type
-        // The route registry and the REST-source catalogue travel as their own manifest sections.
-        if (type === 'Routes' || (Array.isArray(obj.routes) && !type)) { routes = { routes: (obj.routes as unknown[]) ?? [] }; continue }
-        if (type === 'Sources' || (Array.isArray(obj.sources) && !type)) { sources = { sources: (obj.sources as unknown[]) ?? [] }; continue }
-        if (type === 'Actions') { actions.push(...((obj.actions as unknown[]) ?? [])); continue }
-        // The mount descriptor, the app shell and the project descriptor are not definitions a
-        // route expands — skip them.
-        if (type === 'UI' || type === 'AppShell' || type === 'Project') continue
-        // Everything else is an authored definition (a page `layout:`, a bare component, a partial).
-        definitions[basename(f.path)] = obj
-    }
-
-    const lowered = lowerCatalogue(actions)
-    return { staticOnly: true, generatedAt, routes, sources, ...(lowered.length ? { actions: lowered } : {}), definitions }
+    // The SAME manifest Play runs on (buildPlayManifest): the route table normalised to what the
+    // runtime reads (`layout:` as the definition, children flattened, `data: name` as {ref}, state
+    // seeds), definitions keyed by their path under specs/ui, the app shell included, translations
+    // and field types shipped, partials and business components inlined. It used to ship the raw
+    // route files and key definitions by BASENAME and skip the shell — so a route authored with the
+    // canonical `layout:` (or a definition in a subfolder) found no definition in the exported
+    // bundle and the app opened on nothing. Only sample mode stays behind: that is a design-session
+    // rule, a deployed bundle calls the real endpoints.
+    const { mockSources: _mock, ...manifest } = buildPlayManifest(files, generatedAt)
+    void _mock
+    return manifest
 }
 
 /** How many routes would render with NO backend (definition-only), for the export summary. */
 export function clientRenderableRouteCount(manifest: BundleManifest): number {
     const routes = (manifest.routes?.routes ?? []) as Record<string, unknown>[]
     return routes.filter((r) => r && (r.definition != null || r.layout != null) && r.viewModel == null && (r as Record<string, unknown>).modelView == null).length
-}
-
-function basename(path: string): string {
-    const i = path.lastIndexOf('/')
-    return i >= 0 ? path.slice(i + 1) : path
 }
 
 /** One pre-rendered route load, as the server exporter writes it. */

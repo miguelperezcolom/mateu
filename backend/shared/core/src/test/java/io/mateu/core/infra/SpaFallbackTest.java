@@ -30,4 +30,14 @@ class SpaFallbackTest {
     assertThat(SpaFallback.isIndex("/admin", List.of("/admin"))).isTrue();
     assertThat(SpaFallback.isIndex("/admin/x", List.of("/admin", ""))).isFalse();
   }
+
+  @Test
+  void onlyANavigationGetsTheIndex() {
+    // a browser reload / shared link
+    assertThat(SpaFallback.acceptsHtml("text/html,application/xhtml+xml,*/*;q=0.8")).isTrue();
+    assertThat(SpaFallback.acceptsHtml(null)).isTrue();
+    // a data fetch (axios, fetch(), a REST source whose endpoint does not exist yet)
+    assertThat(SpaFallback.acceptsHtml("application/json, text/plain, */*")).isFalse();
+    assertThat(SpaFallback.acceptsHtml("*/*")).isFalse();
+  }
 }

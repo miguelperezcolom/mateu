@@ -321,6 +321,114 @@
       }
     },
     {
+      "name": "helidon-mp, code + YAML, CRUD bound in routes.yaml (booted: the routes.yaml-bound CRUD lists, edits and creates)",
+      "options": {
+        "runtime": "helidon-mp",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "both",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "io.acme",
+        "artifactId": "crm",
+        "packageName": "io.acme.crm",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/io/acme/crm/Products.java",
+        "src/main/resources/specs/ui/routes.yaml",
+        "src/main/resources/specs/ui/home.yaml"
+      ],
+      "absent": [
+        "src/main/java/io/acme/crm/Shell.java",
+        "src/main/java/io/acme/crm/Home.java"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: home\n    layout: home.yaml",
+          "  - route: products\n    viewModel: io.acme.crm.Products"
+        ],
+        "src/main/resources/specs/ui/app.ui.yaml": [
+          "home: home"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "    label: Home\n    route: home",
+          "    label: Products\n    route: products"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
+          "title: Crm",
+          "type: RouteLink\n          route: products"
+        ],
+        "pom.xml": [
+          "<artifactId>mateu-annotation-processor-helidon-mp</artifactId>",
+          "<groupId>io.acme</groupId>"
+        ]
+      },
+      "lacks": {
+        "src/main/java/io/acme/crm/Products.java": [
+          "@UI(",
+          "import io.mateu.uidl.annotations.UI;"
+        ],
+        "src/main/resources/specs/ui/routes.yaml": [
+          "__ROUTES__"
+        ]
+      }
+    },
+    {
+      "name": "micronaut, code + YAML, CRUD bound in routes.yaml (booted: the routes.yaml-bound CRUD lists, edits and creates)",
+      "options": {
+        "runtime": "micronaut",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "both",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "io.acme",
+        "artifactId": "crm",
+        "packageName": "io.acme.crm",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/io/acme/crm/Products.java",
+        "src/main/resources/specs/ui/routes.yaml",
+        "src/main/resources/specs/ui/home.yaml"
+      ],
+      "absent": [
+        "src/main/java/io/acme/crm/Shell.java",
+        "src/main/java/io/acme/crm/Home.java"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: home\n    layout: home.yaml",
+          "  - route: products\n    viewModel: io.acme.crm.Products"
+        ],
+        "src/main/resources/specs/ui/app.ui.yaml": [
+          "home: home"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "    label: Home\n    route: home",
+          "    label: Products\n    route: products"
+        ],
+        "src/main/resources/specs/ui/home.yaml": [
+          "title: Crm",
+          "type: RouteLink\n          route: products"
+        ],
+        "pom.xml": [
+          "<artifactId>mateu-annotation-processor-micronaut</artifactId>",
+          "<groupId>io.acme</groupId>"
+        ]
+      },
+      "lacks": {
+        "src/main/java/io/acme/crm/Products.java": [
+          "@UI(",
+          "import io.mateu.uidl.annotations.UI;"
+        ],
+        "src/main/resources/specs/ui/routes.yaml": [
+          "__ROUTES__"
+        ]
+      }
+    },
+    {
       "name": "helidon-mp, code, CRUD",
       "options": {
         "runtime": "helidon-mp",

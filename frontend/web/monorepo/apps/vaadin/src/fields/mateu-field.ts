@@ -14,6 +14,7 @@ import { colorInputValue, isNoOpCommit, numericCommitValue } from '@components/f
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
+import { resolveRestSource, viaProxy } from '@mateu/ui/infra/http/restSourceCatalogue'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -1042,10 +1043,16 @@ export class MateuField extends LitElement {
                     // mediating). Refetch only when the interpolated url changes (a state-dependent
                     // source), keyed by a signature so re-renders don't loop.
                     const src = this.field.optionsSource
-                    const signature = interpolate(src.url, this.state, this.data) ?? src.url
+                    // the url may live in the catalogue entry the field names by `ref`
+                    const url = (resolveRestSource(src) ?? src).url
+                    const signature = (interpolate(url, this.state, this.data) ?? url) || `ref:${src.ref ?? ''}`
                     if (this.data[this.id]?.sourceSignature !== signature) {
                         this.data[this.id] = { content: this.data[this.id]?.content ?? [], sourceSignature: signature }
-                        if (src.proxy) {
+                        // the RESOLVED source decides: a field naming a catalogue entry by `ref`
+                        // carries only the name, and the entry is where `proxy` lives — read off the
+                        // declared one, a keyed entry was fetched directly with its `${secret.X}`
+                        // placeholder as the header (401) (viaProxy also honours sample mode)
+                        if (viaProxy(src)) {
                             // Proxy mode: route the fetch through the Mateu server (no CORS, secrets
                             // injected server-side). Dispatch the reserved __restfetch__ action; the
                             // app fills route/serverSideType/componentState and the server resolves the
@@ -1056,7 +1063,8 @@ export class MateuField extends LitElement {
                                     parameters: { _sourceKind: 'options', _sourceId: this.field.fieldId },
                                     callback: (uiIncrement: UIIncrement) => {
                                         const json = uiIncrement?.appData?.['_restfetch']
-                                        const opts = mapItemsToOptions(json, src.itemsPath, src.valuePath, src.labelPath)
+                                        const resolved = resolveRestSource(src) ?? src
+                                        const opts = mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath)
                                         this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
                                         this.requestUpdate()
                                     },
@@ -1082,6 +1090,7 @@ export class MateuField extends LitElement {
                     <vaadin-select
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"
@@ -1131,6 +1140,7 @@ export class MateuField extends LitElement {
                     <vaadin-select
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"
@@ -1152,6 +1162,7 @@ export class MateuField extends LitElement {
                     <vaadin-select
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"
@@ -1205,6 +1216,7 @@ export class MateuField extends LitElement {
                     <vaadin-combo-box
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-id-path="value"
@@ -1234,6 +1246,7 @@ export class MateuField extends LitElement {
                     <vaadin-combo-box
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"
@@ -1531,6 +1544,7 @@ export class MateuField extends LitElement {
                     <vaadin-text-area
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
@@ -1548,6 +1562,7 @@ export class MateuField extends LitElement {
                     <vaadin-email-field
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
@@ -1570,6 +1585,7 @@ export class MateuField extends LitElement {
                 return html`
                             <vaadin-text-field
                                     id="${this.field.fieldId}"
+                                    placeholder="${this.field.placeholder ?? nothing}"
                                     label="${label}"
                                     required="${this.field.required || nothing}"
                                     @value-changed="${this.valueChanged}"
@@ -1595,6 +1611,7 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-combo-box
                                     id="${this.field.fieldId}"
+                                    placeholder="${this.field.placeholder ?? nothing}"
                                     label="${label}"
                                     required="${this.field.required || nothing}"
                                     @value-changed="${this.valueChanged}"
@@ -1617,6 +1634,7 @@ export class MateuField extends LitElement {
                     <vaadin-password-field
                             placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
+                            placeholder="${this.field.placeholder ?? nothing}"
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
@@ -1781,6 +1799,7 @@ export class MateuField extends LitElement {
                 <vaadin-text-field
                         placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder ?? nothing}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
@@ -1799,6 +1818,7 @@ export class MateuField extends LitElement {
             return html`<vaadin-number-field
                     placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder ?? nothing}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
@@ -1869,6 +1889,7 @@ export class MateuField extends LitElement {
                 <vaadin-integer-field
                         placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder ?? nothing}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
@@ -1950,6 +1971,7 @@ export class MateuField extends LitElement {
             return html`<vaadin-date-picker
                     placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder ?? nothing}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
@@ -1979,6 +2001,7 @@ export class MateuField extends LitElement {
             return html`<vaadin-time-picker
                     placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
+                        placeholder="${this.field.placeholder ?? nothing}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"

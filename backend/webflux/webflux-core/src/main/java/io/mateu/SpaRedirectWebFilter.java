@@ -38,7 +38,9 @@ public class SpaRedirectWebFilter implements WebFilter {
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     var request = exchange.getRequest();
     String path = request.getPath().pathWithinApplication().value();
-    if (!HttpMethod.GET.equals(request.getMethod()) || !SpaFallback.candidate(path)) {
+    if (!HttpMethod.GET.equals(request.getMethod())
+        || !SpaFallback.candidate(path)
+        || !SpaFallback.acceptsHtml(request.getHeaders().getFirst("Accept"))) {
       return chain.filter(exchange);
     }
     var baseUrls = baseUrls();

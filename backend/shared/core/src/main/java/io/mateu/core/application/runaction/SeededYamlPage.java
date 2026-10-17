@@ -103,13 +103,60 @@ record SeededYamlPage(
 
   @Override
   public List<DeclaredRestSource> declaredRestSources() {
-    return declaredActions.stream()
+    var out = new java.util.ArrayList<DeclaredRestSource>();
+    declaredActions.stream()
         .filter(action -> action.restAction() != null && action.restAction().source() != null)
         .map(
             action ->
                 new DeclaredRestSource(
                     RestSourceKind.ACTION, action.id(), resolved(action.restAction().source())))
-        .toList();
+        .forEach(out::add);
+    // The listings' rows and the fields' options too: a proxied `rowsSource` / `optionsSource`
+    // (proxy on the catalogue entry, `${secret.X}`
+    // in its headers) is fetched through __restfetch__ with the listing's id. Without declaring it
+    // the server never advertised the fetch, the browser had nobody to send it to and the listing
+    // stayed on "Search to see results." with nothing in any log.
+    collectListings(layout, out, new java.util.IdentityHashMap<>());
+    return out;
+  }
+
+  private void collectListings(
+      Object node, List<DeclaredRestSource> out, java.util.Map<Object, Boolean> seen) {
+    if (node == null || seen.put(node, Boolean.TRUE) != null) {
+      return;
+    }
+    // a select's options from a proxied entry: fetched through __restfetch__ by the field's id
+    if (node instanceof io.mateu.uidl.data.FormField field
+        && field.optionsSource() != null
+        && field.id() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.OPTIONS, field.id(), resolved(field.optionsSource())));
+    }
+    if (node instanceof io.mateu.uidl.fluent.Listing listing && listing.rowsSource() != null) {
+      out.add(
+          new DeclaredRestSource(
+              RestSourceKind.ROWS,
+              listing.id() != null ? listing.id() : "crud", // CrudlMapper's default id
+              resolved(listing.rowsSource())));
+    }
+    if (node instanceof java.util.Collection<?> collection) {
+      collection.forEach(child -> collectListings(child, out, seen));
+      return;
+    }
+    if (node.getClass().isRecord() && node.getClass().getName().startsWith("io.mateu.uidl")) {
+      for (var component : node.getClass().getRecordComponents()) {
+        var type = component.getType();
+        if (Component.class.isAssignableFrom(type)
+            || java.util.Collection.class.isAssignableFrom(type)) {
+          try {
+            collectListings(component.getAccessor().invoke(node), out, seen);
+          } catch (ReflectiveOperationException ignored) {
+            // an accessor that cannot be read holds nothing this lookup needs
+          }
+        }
+      }
+    }
   }
 
   /**

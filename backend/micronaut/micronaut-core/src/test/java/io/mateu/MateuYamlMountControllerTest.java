@@ -51,7 +51,7 @@ class MateuYamlMountControllerTest {
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = indexController.index(path);
+      var response = indexController.index(path, "text/html");
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -61,10 +61,16 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(indexController.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(indexController.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(indexController.index(null, "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        indexController.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
+        indexController.index("elsewhere", "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        indexController.index("yaml-parity/mateu/v3/x", "text/html").status(),
+        equalTo(HttpStatus.NOT_FOUND));
+    // a data fetch is never answered the index (a REST source whose endpoint does not exist yet)
+    assertThat(
+        indexController.index("yaml-parity/page", "application/json, */*").status(),
+        equalTo(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -102,11 +108,11 @@ class MateuYamlMountControllerTest {
   void theContentLoadStreamsThePage() throws Throwable {
     var rq = rq("");
     var increments =
-        controller
-            .sse(
-                "yaml-parity/mateu/v3/sse/_no_route",
-                rq,
-                HttpRequest.POST("/yaml-parity/mateu/v3/sse/_no_route", rq))
+        streamed(
+                controller.sse(
+                    "yaml-parity/mateu/v3/sse/_no_route",
+                    rq,
+                    HttpRequest.POST("/yaml-parity/mateu/v3/sse/_no_route", rq)))
             .collectList()
             .block();
     assertThat(increments, not(empty()));
@@ -124,11 +130,19 @@ class MateuYamlMountControllerTest {
             .isPresent(),
         is(false));
     assertThat(
-        controller
-            .sse("other/mateu/v3/sse/x", rq, HttpRequest.POST("/other/mateu/v3/sse/x", rq))
+        streamed(
+                controller.sse(
+                    "other/mateu/v3/sse/x", rq, HttpRequest.POST("/other/mateu/v3/sse/x", rq)))
             .collectList()
             .block(),
         empty());
+  }
+
+  /** The stream an SSE answer carries (a refusal would be a 403 with no stream). */
+  @SuppressWarnings("unchecked")
+  private static reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto> streamed(
+      reactor.core.publisher.Mono<io.micronaut.http.HttpResponse<?>> response) {
+    return (reactor.core.publisher.Flux<io.mateu.dtos.UIIncrementDto>) response.block().body();
   }
 
   private static RunActionRqDto rq(String consumedRoute) throws Exception {

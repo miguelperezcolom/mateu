@@ -56,6 +56,15 @@ describe('shipped route registry', () => {
         expect(state.notes).toBe('typed') // what the increment carries wins over a seed
     })
 
+    it('seeds a route\'s state: and appState: at the defaults\' level', () => {
+        __setBundleForTests(undefined, [], [
+            { route: 'greet', state: { greeting: 'Hola', status: 'x' }, appState: { hotel: 'H1' } },
+        ])
+        const out = applyRouteParams('greet', incrementWith({ status: 'chosen' }))
+        expect(stateOf(out)).toMatchObject({ greeting: 'Hola', status: 'chosen' })
+        expect(out.appState).toEqual({ hotel: 'H1' })
+    })
+
     it('reads path params off a parameterised route', () => {
         __setBundleForTests(undefined, [], [{ route: 'orders/:id' }])
         expect(stateOf(applyRouteParams('orders/42', incrementWith({})))).toMatchObject({ id: '42' })

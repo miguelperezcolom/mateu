@@ -1,0 +1,10 @@
+# What the visual editor writes for a page whose layout is INFERRED from its Java view model: a
+# delta anchored to field ids (order, hidden, per-field label) instead of a layout snapshot.
+# Inference lays this two-column form out as rows of two; `order:` moves note (second row) first —
+# the rows of one form layout are one run, as the editor shows them.
+layoutDelta:
+  order: [note, count]
+  hidden: [extra]
+  overrides:
+    count:
+      label: Total

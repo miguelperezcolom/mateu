@@ -48,7 +48,11 @@ dotnet run --project samples/Mateu.Demo   # serves on http://0.0.0.0:8593
 dotnet test                               # golden-JSON tests
 ```
 
-Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8593`.
+This server answers the sync API only — it does not serve a web page of its own. Point a Mateu
+renderer at it: the React Native app (`EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8593`, also as
+`npx expo start --web` in a browser), the IntelliJ plugin, or the Vaadin renderer's dev server
+(`MATEU_BACKEND=http://localhost:8593 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy
+forwards `/mateu` to the backend).
 The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8593`) and Android emulator
 (`10.0.2.2:8593`) reach it too.
 

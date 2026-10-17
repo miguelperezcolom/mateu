@@ -234,12 +234,34 @@ public class MateuHelidonRoutes {
                 YamlMounts.manifestJson(
                     routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
           });
-      if (!mount.basePath().isEmpty()) {
+      if (mount.basePath().isEmpty()) {
+        // A deep link into the ROOT mount (/products on a reload or a shared link) had no handler:
+        // only "/" was routed, so it answered Jersey's "Endpoint not found". Claim only the paths
+        // the mount's registry authors (a route or a sub-route of one), so the app's own JAX-RS
+        // resources are never shadowed.
+        routing.get(
+            "/*",
+            (req, res) -> {
+              var path = req.path().path();
+              if (io.mateu.core.infra.SpaFallback.candidate(path)
+                  && io.mateu.core.infra.SpaFallback.acceptsHtml(
+                      req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))
+                  && !path.startsWith("/mateu")
+                  && authoredHere(routeRegistry.get(), path)) {
+                index(res, mount);
+              } else {
+                res.next();
+              }
+            });
+      } else {
         routing.get(
             mount.spaPath() + "/*",
             (req, res) -> {
               var path = req.path().path();
-              if (path.contains(".") || path.contains("/mateu/")) {
+              if (path.contains(".")
+                  || path.contains("/mateu/")
+                  || !io.mateu.core.infra.SpaFallback.acceptsHtml(
+                      req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))) {
                 res.next();
               } else {
                 index(res, mount);
@@ -305,20 +327,45 @@ public class MateuHelidonRoutes {
       var increments = service.get().runAction(uiId, rq, baseUrl, httpRequest);
       writeEvents(res, increments);
     } catch (Exception e) {
-      throw e;
+      if (!refused(res, e)) {
+        throw e;
+      }
     } catch (Throwable t) {
       throw new IllegalStateException(t);
     }
   }
 
+  /**
+   * Answers a refusal ({@code access:}, a refused action) as the JAX-RS {@code
+   * MateuForbiddenExceptionMapper} does — 403 with the public message. These routes run on
+   * Helidon's own routing, which that mapper does not cover: a refusal surfaced as a 500.
+   */
+  private static boolean refused(ServerResponse res, Throwable t) {
+    for (var cause = t; cause != null; cause = cause.getCause()) {
+      if (cause instanceof io.mateu.core.application.security.MateuForbiddenException) {
+        if (!res.isSent()) {
+          res.status(Status.FORBIDDEN_403)
+              .header("Content-Type", "text/plain")
+              .send(io.mateu.core.application.security.MateuForbiddenException.publicMessage());
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Writes each increment as one {@code data:} event, flushed as soon as it is produced. */
   private static void writeEvents(ServerResponse res, Flux<UIIncrementDto> increments)
       throws IOException {
+    // the first event BEFORE anything is committed: the request is guarded lazily, and once the
+    // output stream is open a refusal can no longer be answered as a 403
+    var events = increments.toIterable().iterator();
+    events.hasNext();
     res.header("Content-Type", "text/event-stream");
     res.header("Cache-Control", "no-cache");
     try (OutputStream out = res.outputStream()) {
-      for (var increment : increments.toIterable()) {
-        out.write(WireMapper.sseEvent(increment).getBytes(StandardCharsets.UTF_8));
+      while (events.hasNext()) {
+        out.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
         out.flush();
       }
     }
@@ -326,6 +373,19 @@ public class MateuHelidonRoutes {
 
   private static String header(ServerRequest req, String name) {
     return req.headers().first(HeaderNames.create(name)).orElse(null);
+  }
+
+  /** Whether the registry authors {@code path} or a prefix of it (a crud's /new, /:id/edit). */
+  static boolean authoredHere(RouteRegistry registry, String path) {
+    var candidate = path;
+    while (!candidate.isEmpty() && !"/".equals(candidate)) {
+      if (registry.match(candidate).isPresent()) {
+        return true;
+      }
+      var slash = candidate.lastIndexOf('/');
+      candidate = slash <= 0 ? "" : candidate.substring(0, slash);
+    }
+    return false;
   }
 
   private static void index(ServerResponse res, YamlMounts.Mount mount) {
@@ -353,7 +413,9 @@ public class MateuHelidonRoutes {
             .send(WireMapper.shared().writeValueAsString(increments.blockFirst()));
       }
     } catch (Exception e) {
-      throw e;
+      if (!refused(res, e)) {
+        throw e;
+      }
     } catch (Throwable t) {
       throw new IllegalStateException(t);
     }

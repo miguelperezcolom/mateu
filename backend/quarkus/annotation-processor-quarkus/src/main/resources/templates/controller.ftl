@@ -74,8 +74,9 @@ public class ${simpleClassName}MateuController implements MateuController {
         var httpRequest = new QuarkusHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
+        // the first signal before the stream is committed: a refusal answers 403 (io.mateu.QuarkusSse)
         return Multi.createFrom().publisher(JdkFlowAdapter.publisherToFlowPublisher(
-                service.runAction(uiId, rq, baseUrl, httpRequest)));
+                io.mateu.QuarkusSse.guarded(service.runAction(uiId, rq, baseUrl, httpRequest))));
     }
 
 }

@@ -29,6 +29,17 @@ public final class SpaFallback {
   }
 
   /**
+   * Whether the request is a page NAVIGATION (a reload, a shared link), the only kind the index
+   * page answers. A browser navigation always accepts {@code text/html}; a {@code fetch()}/XHR for
+   * data (a REST source's {@code /api/products} that does not exist yet) does not — answering it
+   * the index with a 200 made a missing endpoint look like an empty one, with nothing in any log.
+   * No Accept header at all is treated as a navigation.
+   */
+  public static boolean acceptsHtml(String accept) {
+    return accept == null || accept.isBlank() || accept.contains("text/html");
+  }
+
+  /**
    * Where a deep link is answered: the longest UI base URL the path lives under, else {@code /}
    * (the root UI) — or null for a path under {@code /mateu} that no UI owns (an API call, which
    * must 404 rather than answer a page).

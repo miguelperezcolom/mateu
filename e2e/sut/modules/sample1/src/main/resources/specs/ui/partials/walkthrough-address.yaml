@@ -1,0 +1,4 @@
+# A multi-component partial: spliced into the FormLayout that names it (walkthrough/page.yaml).
+content:
+  - {type: FormField, id: street, label: Street, dataType: string}
+  - {type: FormField, id: city, label: City, dataType: string}

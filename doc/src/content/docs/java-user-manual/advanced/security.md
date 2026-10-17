@@ -153,7 +153,7 @@ public class GatewayPrincipalResolver implements PrincipalResolver {
     var roles = request.getHeaderValue("X-Authenticated-Roles");
     return user == null
         ? Optional.empty()
-        : Optional.of(CallerIdentity.withRoles(user, List.of(roles.split(","))));
+        : Optional.of(CallerIdentity.withRoles(user, roles == null ? List.of() : List.of(roles.split(","))));
   }
 }
 ```

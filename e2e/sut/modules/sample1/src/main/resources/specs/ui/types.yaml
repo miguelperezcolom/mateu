@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/specs-schema.json
-# Field types for the YAML forms walkthrough: a FormField names one by fieldType: and takes its
-# attributes as defaults, its own winning.
+# The field type catalogue: a FormField names one by `fieldType:` and takes its attributes as
+# defaults, its own winning.
 type: Types
 types:
   - id: WalkEmail
@@ -8,3 +8,7 @@ types:
     stereotype: email
     placeholder: name@example.com
     required: true
+  - id: WalkthroughCode
+    label: Code
+    dataType: string
+    placeholder: AB-123

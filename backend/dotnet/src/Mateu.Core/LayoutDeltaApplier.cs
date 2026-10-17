@@ -127,7 +127,37 @@ public static class LayoutDeltaApplier
             result = ordered;
             changed = true;
         }
+        if (ReorderAcrossRows(result, delta.Order) is { } acrossRows)
+        {
+            result = acrossRows;
+            changed = true;
+        }
         return changed ? result : null;
+    }
+
+    private static bool IsRow(ComponentDto c) => c is ClientSideComponentDto { Metadata: FormRowMetadataDto };
+
+    /// <summary>A form layout's FormRows are a presentation detail of its columns (inference lays a
+    /// two-column form out as rows of two): the fields of sibling rows are reordered as one run, each
+    /// slot keeping its row — as the editor shows it (mirrors Java's reorderAcrossRows).</summary>
+    private static List<ComponentDto>? ReorderAcrossRows(List<ComponentDto> children, IReadOnlyList<string> order)
+    {
+        if (order.Count == 0 || children.Count(IsRow) < 2) return null;
+        var flat = children.Where(IsRow).SelectMany(r => ((ClientSideComponentDto)r).Children).ToList();
+        if (ReorderFields(flat, order) is not { } reordered) return null;
+        var result = new List<ComponentDto>(children.Count);
+        var next = 0;
+        foreach (var child in children)
+        {
+            if (child is ClientSideComponentDto row && IsRow(child))
+            {
+                var size = row.Children.Count;
+                result.Add(row with { Children = reordered.GetRange(next, size) });
+                next += size;
+            }
+            else result.Add(child);
+        }
+        return result;
     }
 
     private static string? FieldId(ComponentDto c) =>

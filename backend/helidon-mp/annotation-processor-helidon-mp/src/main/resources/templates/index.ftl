@@ -32,7 +32,13 @@ public class ${simpleClassName}Controller {
     @Path("/{path: [^.]+}")
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public String getIndexAlways(@jakarta.ws.rs.PathParam("path") String path) {
+    public String getIndexAlways(@jakarta.ws.rs.PathParam("path") String path,
+            @jakarta.ws.rs.HeaderParam("Accept") String accept) {
+        // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
+        // whose endpoint does not exist yet) must not be answered a 200 of HTML.
+        if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
+            throw new jakarta.ws.rs.NotFoundException();
+        }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount
         var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
         if (yaml != null) {

@@ -51,7 +51,11 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8594`.
+This server answers the sync API only — it does not serve a web page of its own. Point a Mateu
+renderer at it: the React Native app (`EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`, also as
+`npx expo start --web` in a browser), the IntelliJ plugin, or the Vaadin renderer's dev server
+(`MATEU_BACKEND=http://localhost:8594 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy
+forwards `/mateu` to the backend).
 The server binds to `0.0.0.0`, so the iOS simulator and Android emulator reach it too.
 
 Wire it up:

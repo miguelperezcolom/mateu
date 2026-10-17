@@ -169,13 +169,14 @@ public class ActionInstanceCreator {
       return Mono.empty();
     }
     try {
-      var root = routedClassResolver.resolve("", command).orElse(null);
-      if (root == null
-          || root.resolvedClass() == null
-          || !isApp(root.resolvedClass(), command.route())) {
+      // through the pre-compiled mount resolvers too: on WebFlux/Quarkus/Helidon the root @UI is
+      // not a routed-class provider, so a Redwood shell's content load (route only) of a menu page
+      // answered "Page not found"
+      var root = routeInstanceCreator.rootClass(command);
+      if (root == null || !isApp(root, command.route())) {
         return Mono.empty();
       }
-      return instantiateWithKnownType(command.withServerSideType(root.resolvedClass().getName()));
+      return instantiateWithKnownType(command.withServerSideType(root.getName()));
     } catch (Throwable t) {
       log.debug("rootAppMenuContent {}: {}", command.route(), t.toString());
       return Mono.empty();
@@ -207,6 +208,18 @@ public class ActionInstanceCreator {
                         routeRegistry.isMountRoot(finalCommand.route())
                             ? Mono.just(app)
                             : Mono.empty()));
+  }
+
+  /** Whether the layout reads any source the catalogue (or the source itself) says is proxied. */
+  private boolean proxiesASource(io.mateu.uidl.fluent.Component layout) {
+    return new SeededYamlPage(
+            layout,
+            java.util.Map.of(),
+            java.util.List.of(),
+            java.util.List.of(),
+            restSourceRegistry.catalog(),
+            null)
+        .declaredRestSources().stream().anyMatch(d -> d.source() != null && d.source().proxy());
   }
 
   /**
@@ -300,10 +313,14 @@ public class ActionInstanceCreator {
         triggers == null ? java.util.List.<io.mateu.uidl.fluent.Trigger>of() : triggers;
     var pathOnly = stripQuery(command.route());
     var match = routeRegistry.match(pathOnly).orElse(null);
+    // A proxied source (a listing's rows, a select's options) is fetched through __restfetch__,
+    // which only a server-side page answers: a bare layout has no component to send it to, so a
+    // select fed by a keyed API stayed empty ("no component on the page handles it").
+    var proxied = proxiesASource(layout);
     if (match == null || match.entry() == null) {
       // No registry entry (e.g. a convention-only page): nothing to seed, but declared actions and
       // triggers still have to travel.
-      return declaredActions.isEmpty() && declaredTriggers.isEmpty() && pageType == null
+      return declaredActions.isEmpty() && declaredTriggers.isEmpty() && pageType == null && !proxied
           ? layout
           : new SeededYamlPage(
               layout,
@@ -327,7 +344,11 @@ public class ActionInstanceCreator {
             || hasQueryParams;
     // A declared `pageType:` has to reach the wire too, and a bare layout carries no page type —
     // so, like declared actions, it is a reason to wrap.
-    if (!seeds && declaredActions.isEmpty() && declaredTriggers.isEmpty() && pageType == null) {
+    if (!seeds
+        && declaredActions.isEmpty()
+        && declaredTriggers.isEmpty()
+        && pageType == null
+        && !proxied) {
       return layout; // a static page: keep the bare-layout shape (unchanged wire)
     }
     var resolved =

@@ -108,7 +108,7 @@ export default defineConfig({
             '/users/mateu',
             '/chat/mateu',
             '/ai',
-        ].map(path => [path, { target: 'http://localhost:8595', bypass: bypassHtml }])),
+        ].map(path => [path, { target: process.env.MATEU_BACKEND ?? 'http://localhost:8595', bypass: bypassHtml }])),
     },
     optimizeDeps: {
         // Excluimos el componente problemático para evitar que analice sus propios node_modules internos

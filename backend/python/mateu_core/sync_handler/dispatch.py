@@ -226,10 +226,14 @@ class DispatchMixin(MixinBase):
             # page; a page that declares modelView: instantiates that logic class (state + actions)
             # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
             if not yaml_spec.model_view:
+                # The route's seeds (state:, fixed/default/path params) are the page's state: a
+                # bare layout has nowhere to hold them, so a seeded page is wrapped, as Java's
+                # SeededYamlPage does (they were dropped: ${state.x} rendered blank).
+                seeded = dict(rq.component_state or {}) if route_match is not None else {}
                 return self.fragment_response(
                     rq.route or "",
                     _with_declared_page_type(
-                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq
+                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq, seeded
                     ),
                     rq,
                 )
@@ -431,11 +435,12 @@ def _is_home_content_load(rq: RunActionRq) -> bool:
     return bool(rq.server_side_type) and route in ("_no_home_route", "_page")
 
 
-def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq):
-    """A definition-only page that declares a ``pageType:``: the bare layout carries no page type,
-    so it is wrapped in a server-side page that does (Java's ``ActionInstanceCreator.seedBareLayout``
-    → ``SeededYamlPage``). Undeclared → unchanged."""
-    if not page_type:
+def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, state: dict | None = None):
+    """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
+    fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
+    page that does (Java's ``ActionInstanceCreator.seedBareLayout`` → ``SeededYamlPage``).
+    Neither → unchanged."""
+    if not page_type and not state:
         return layout
     import re
 
@@ -447,6 +452,7 @@ def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq):
         server_side_type="",
         route="/" + route,
         children=[layout],
+        initial_data=dict(state or {}),
         page_type=page_type,
     )
 

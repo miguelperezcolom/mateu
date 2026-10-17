@@ -42,6 +42,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+      contract.refusesARestrictedStreamedActionToAnAnonymousCaller();
+    }
+
+    @Test
     void anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow() {
       contract.anAuthenticatedPrincipalSeesAndRunsWhatItsRolesAllow(
           java.util.Map.of(AdapterParityITFoundation.PARITY_ROLES_HEADER, "admin"));
@@ -80,6 +85,16 @@ class AdapterParityIT {
     @Test
     void answersDeepLinksWithTheIndex() {
       contract.answersDeepLinksWithTheIndex();
+    }
+
+    @Test
+    void answersDeepLinksWithEncodedSegments() {
+      contract.answersDeepLinksWithEncodedSegments();
+    }
+
+    @Test
+    void doesNotAnswerADataFetchWithTheIndex() {
+      contract.doesNotAnswerADataFetchWithTheIndex();
     }
 
     @Test

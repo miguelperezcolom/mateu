@@ -149,4 +149,32 @@ class LayoutDeltaApplierTest {
     assertThat(applied.content().get(1)).isInstanceOf(Text.class);
     assertThat(idsOf(applied)).containsExactly("email", "name");
   }
+
+  @Test
+  void theOrderAppliesAcrossTheRowsOfATwoColumnForm() {
+    // Inference lays a two-column form out as rows of two; the editor records `order:` for the
+    // flat run of fields. Reordering only within a row did nothing on any form of 3+ fields.
+    var field =
+        (java.util.function.Function<String, Component>) id -> FormField.builder().id(id).build();
+    var tree =
+        FormLayout.builder()
+            .content(
+                List.of(
+                    new io.mateu.uidl.data.FormRow(
+                        null, List.of(field.apply("count"), field.apply("secret")), null, null),
+                    new io.mateu.uidl.data.FormRow(null, List.of(field.apply("note")), null, null)))
+            .build();
+    var delta = new LayoutDelta(List.of("note", "count"), List.of(), Map.of());
+
+    var applied = (FormLayout) LayoutDeltaApplier.apply(tree, delta);
+
+    var rows =
+        applied.content().stream()
+            .map(
+                row ->
+                    ((io.mateu.uidl.data.FormRow) row)
+                        .content().stream().map(c -> ((FormField) c).id()).toList())
+            .toList();
+    assertThat(rows).containsExactly(List.of("note", "count"), List.of("secret"));
+  }
 }

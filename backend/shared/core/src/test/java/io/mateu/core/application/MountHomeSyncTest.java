@@ -181,4 +181,13 @@ class MountHomeSyncTest {
     MateuBundleExporter.stampMountHomes(registry.mountHomes(), table, own);
     assertThat(own.get("shell.yaml").path("homeRoute").asText()).isEqualTo("x");
   }
+
+  @Test
+  void aPageWhoseSelectReadsAProxiedSourceIsServedServerSide() {
+    // __restfetch__ is answered by a server-side page only: as a bare layout the select's keyed
+    // source had nowhere to go and stayed empty ("no component on the page handles it")
+    var wire = load("proxied-options", "/pick");
+    assertThat(wire.findValuesAsText("type")).contains("ServerSide");
+    assertThat(wire.toString()).contains("__restfetch__");
+  }
 }

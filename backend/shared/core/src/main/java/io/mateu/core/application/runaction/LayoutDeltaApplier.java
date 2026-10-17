@@ -1,6 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.FormRow;
 import io.mateu.uidl.data.LayoutDelta;
 import io.mateu.uidl.fluent.Component;
 import java.util.ArrayList;
@@ -23,7 +24,9 @@ import lombok.extern.slf4j.Slf4j;
  *   <li><b>overrides</b> apply to the field wherever it sits.
  *   <li><b>order</b> reorders the fields <i>within each container that holds them</i>, leaving
  *       non-field siblings in their slots. A delta cannot move a field between containers — the
- *       same limit that keeps it a delta rather than a snapshot with extra steps.
+ *       same limit that keeps it a delta rather than a snapshot with extra steps. The rows of one
+ *       form layout are not containers in that sense (they are how its columns are drawn): their
+ *       fields are one run, as the editor shows them.
  * </ul>
  *
  * <p>The visual editor only records a delta for a flat run of fields, so for everything it writes
@@ -80,6 +83,11 @@ public final class LayoutDeltaApplier {
             rewrittenChildren = ordered;
             changed = true;
           }
+          var acrossRows = reorderAcrossRows(rewrittenChildren, delta.order());
+          if (acrossRows != null) {
+            rewrittenChildren = acrossRows;
+            changed = true;
+          }
           return changed ? List.copyOf(rewrittenChildren) : value;
         });
   }
@@ -126,6 +134,47 @@ public final class LayoutDeltaApplier {
     var result = new ArrayList<>(children);
     for (var i = 0; i < slots.size(); i++) {
       result.set(slots.get(i), rearranged.get(i));
+    }
+    return result;
+  }
+
+  /**
+   * A form layout's {@link FormRow}s are a presentation detail of the columns, not a container the
+   * author chose: inference lays a two-column form out as rows of two. Reordering only WITHIN a row
+   * meant an `order:` the visual editor recorded for a flat run of fields did nothing on any form
+   * of more than one row (found serving a delta page: `order: [note, count]` kept count first). So
+   * the fields of sibling rows are reordered as one run, each slot keeping its row.
+   */
+  private static ArrayList<Component> reorderAcrossRows(
+      List<Component> children, List<String> order) {
+    if (order.isEmpty() || children.stream().filter(c -> c instanceof FormRow).count() < 2) {
+      return null;
+    }
+    var flat = new ArrayList<Component>();
+    for (var child : children) {
+      if (child instanceof FormRow row && row.content() != null) {
+        flat.addAll(row.content());
+      }
+    }
+    var reordered = reorderFields(flat, order);
+    if (reordered == null) {
+      return null;
+    }
+    var result = new ArrayList<Component>(children.size());
+    var next = 0;
+    for (var child : children) {
+      if (child instanceof FormRow row && row.content() != null) {
+        var size = row.content().size();
+        result.add(
+            new FormRow(
+                row.id(),
+                List.copyOf(reordered.subList(next, next + size)),
+                row.style(),
+                row.cssClasses()));
+        next += size;
+      } else {
+        result.add(child);
+      }
     }
     return result;
   }

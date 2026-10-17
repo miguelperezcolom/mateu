@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import './mateu-field'
 import type { MateuField } from './mateu-field'
+import { setRestSourceCatalogue } from '@mateu/ui/infra/http/restSourceCatalogue'
 
 /**
  * mateu-field: one element, a branch per data type / stereotype. These render the branches for real
@@ -36,6 +37,36 @@ describe('mateu-field', () => {
         const input = root.querySelector('vaadin-text-field') as HTMLElement & { value?: string, label?: string }
         expect(input).not.toBeNull()
         expect(input.getAttribute('label') ?? input.label).toBe('Field')
+    })
+
+    it('passes the declared placeholder to the input (a FormField / field type `placeholder:`)', async () => {
+        // the wire always carried it (fluent FormField, types.yaml) and no Vaadin input ever showed it
+        for (const over of [{ dataType: 'string' }, { dataType: 'number' }, { dataType: 'integer' }, { stereotype: 'textarea' }, { stereotype: 'email' }]) {
+            const { root } = await mount({ ...over, placeholder: 'AB-123' }, { f: '' })
+            const input = root.querySelector('vaadin-text-field, vaadin-number-field, vaadin-integer-field, vaadin-text-area, vaadin-email-field')
+            expect(input?.getAttribute('placeholder'), JSON.stringify(over)).toBe('AB-123')
+            document.body.innerHTML = ''
+        }
+        const { root } = await mount({ dataType: 'string' }, { f: '' })
+        expect(root.querySelector('vaadin-text-field')?.hasAttribute('placeholder')).toBe(false)
+    })
+
+    it('a select whose options source names a PROXIED catalogue entry fetches through the server', async () => {
+        // the entry, not the field, says proxy (and holds the ${secret.X} header): read off the
+        // declared source, the browser fetched the third party directly with the placeholder (401)
+        setRestSourceCatalogue([{ name: 'products', source: { url: 'https://api.example.test/p', proxy: true, headers: { 'X-Api-Key': '${secret.K}' } } } as never])
+        const fetchSpy = vi.spyOn(globalThis, 'fetch')
+        const el = document.createElement('mateu-field') as MateuField
+        const requested: string[] = []
+        document.body.addEventListener('action-requested', (e) => requested.push((e as CustomEvent).detail.actionId))
+        el.field = field({ stereotype: 'select', optionsSource: { ref: 'products', valuePath: 'id', labelPath: 'name' } }) as never
+        el.state = {}
+        el.data = {}
+        document.body.appendChild(el)
+        await el.updateComplete
+        expect(requested).toContain('__restfetch__')
+        expect(fetchSpy).not.toHaveBeenCalled()
+        setRestSourceCatalogue([])
     })
 
     it('interpolates the label against the state', async () => {

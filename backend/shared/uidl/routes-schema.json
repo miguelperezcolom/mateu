@@ -127,10 +127,20 @@
           "type" : "object"
         },
         "data" : {
-          "$ref" : "#/$defs/RestDataSource"
+          "anyOf" : [ {
+            "type" : "string",
+            "description" : "The name of a sources.yaml entry."
+          }, {
+            "$ref" : "#/$defs/RestDataSource"
+          } ]
         },
         "appData" : {
-          "$ref" : "#/$defs/RestDataSource"
+          "anyOf" : [ {
+            "type" : "string",
+            "description" : "The name of a sources.yaml entry."
+          }, {
+            "$ref" : "#/$defs/RestDataSource"
+          } ]
         },
         "defaultChild" : {
           "type" : "string"
