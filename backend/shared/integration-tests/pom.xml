@@ -21,6 +21,13 @@
     </properties>
 
     <dependencies>
+        <!-- provided: only the echo fixture helper reads HttpRequest; every adapter has uidl -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-uidl</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
