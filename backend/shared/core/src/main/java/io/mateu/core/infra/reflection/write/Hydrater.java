@@ -11,7 +11,6 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.annotations.ReadOnlyUnless;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.Hydratable;
 import java.lang.reflect.Field;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -24,33 +23,34 @@ public class Hydrater {
       Map<String, Object> data,
       InstanceFactory instanceFactory,
       HttpRequest httpRequest) {
-    if (!(object instanceof Hydratable)) {
-      if (data != null) {
-        data.entrySet()
-            .forEach(
-                entry -> {
-                  try {
-                    // Callable/Supplier/Component holder fields never round-trip as data —
-                    // writing their state entry back (always null) would destroy the initializer.
-                    var field = getFieldByName(object.getClass(), entry.getKey());
-                    if (field != null && isNonDataHolder(field)) {
-                      return;
-                    }
-                    if (field != null && !isClientWritable(field, httpRequest)) {
-                      log.debug(
-                          "Dropped client state for permission-protected field '{}' of {}",
-                          entry.getKey(),
-                          object.getClass().getSimpleName());
-                      return;
-                    }
-                    Object actualValue =
-                        getActualValue(entry, object, instanceFactory, httpRequest);
-                    setValue(entry.getKey(), object, actualValue);
-                  } catch (Exception ex) {
-                    warnOnce(object.getClass(), entry.getKey(), ex);
+    // Every view gets the request state, a Hydratable one included: its hook runs AFTER this
+    // (ReflectionInstanceFactory.hydrateIfNeeded) to derive or load more from the populated fields,
+    // as its javadoc says. Skipping the state for it lost everything the user had typed on each
+    // action, and the hook only ever saw the field initializers.
+    if (data != null) {
+      data.entrySet()
+          .forEach(
+              entry -> {
+                try {
+                  // Callable/Supplier/Component holder fields never round-trip as data —
+                  // writing their state entry back (always null) would destroy the initializer.
+                  var field = getFieldByName(object.getClass(), entry.getKey());
+                  if (field != null && isNonDataHolder(field)) {
+                    return;
                   }
-                });
-      }
+                  if (field != null && !isClientWritable(field, httpRequest)) {
+                    log.debug(
+                        "Dropped client state for permission-protected field '{}' of {}",
+                        entry.getKey(),
+                        object.getClass().getSimpleName());
+                    return;
+                  }
+                  Object actualValue = getActualValue(entry, object, instanceFactory, httpRequest);
+                  setValue(entry.getKey(), object, actualValue);
+                } catch (Exception ex) {
+                  warnOnce(object.getClass(), entry.getKey(), ex);
+                }
+              });
     }
     return object;
   }
