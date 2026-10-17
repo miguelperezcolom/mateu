@@ -30,11 +30,43 @@ export function wireTypesOf(schemaJson) {
   return { produced, deprecated };
 }
 
+/**
+ * The body each `case 'X':` of ComponentRenderer's `switch (metaType)` falls into — parsed from the
+ * switch, not searched anywhere in the file, so a `case 'X':` in a comment or in another switch does
+ * not count. Labels stacked on one body (`case 'A': case 'B': return …`) share it.
+ */
+export function caseBodiesOf(source) {
+  const start = source.indexOf('switch (metaType) {');
+  if (start < 0) return new Map();
+  const end = source.indexOf('\n    default:', start);
+  const block = source.slice(start, end < 0 ? undefined : end);
+  const bodies = new Map();
+  const re = /case '([A-Za-z]+)':/g;
+  const hits = [...block.matchAll(re)];
+  let pending = [];
+  hits.forEach((m, i) => {
+    pending.push(m[1]);
+    const bodyEnd = i + 1 < hits.length ? hits[i + 1].index : block.length;
+    const body = block.slice(m.index + m[0].length, bodyEnd).trim();
+    if (body) {
+      for (const t of pending) bodies.set(t, body);
+      pending = [];
+    }
+  });
+  return bodies;
+}
+
+/** A case body that only shows the placeholder (or nothing) is not a rendering. */
+const isPlaceholder = (body) => /Unsupported component/.test(body) || /^return\s+(null|undefined|<><\/>)\s*;?\s*$/.test(body);
+
 /** Coverage problems (pure: unit-tested by parityCheck.test.ts). */
 export function coverageProblems({ wireTypes, deprecated = [], coverage, source, parity }) {
   const problems = [];
+  const bodies = caseBodiesOf(source);
   for (const t of wireTypes) {
-    if (!source.includes(`case '${t}':`)) problems.push(`wire type ${t} has no case in ComponentRenderer.tsx — it would render as "Unsupported component"`);
+    const body = bodies.get(t);
+    if (body == null) problems.push(`wire type ${t} has no case in ComponentRenderer.tsx — it would render as "Unsupported component"`);
+    else if (isPlaceholder(body)) problems.push(`wire type ${t} has a case in ComponentRenderer.tsx that only renders a placeholder`);
     if (!coverage[t]) problems.push(`wire type ${t} is not classified in scripts/coverage.mjs`);
   }
   for (const t of Object.keys(coverage)) if (!wireTypes.includes(t) && !deprecated.includes(t)) problems.push(`coverage.mjs lists ${t}, which the wire does not have`);

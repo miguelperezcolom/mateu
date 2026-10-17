@@ -50,6 +50,36 @@ class WireTypeRenderTest : BasePlatformTestCase() {
         }
     }
 
+    /**
+     * The behavioural gate behind [WireTypeParityTest]: a minimal component of EVERY produced wire type
+     * goes through the real dispatcher, and none may fall back to the "Unsupported component" label —
+     * a branch that exists but only paints the placeholder fails here. (Dialog/Drawer open windows,
+     * which a headless test cannot; they have their own probe.)
+     */
+    fun testEveryProducedWireTypeReachesARealRenderer() {
+        val ctx = AppContext(AppSession("http://127.0.0.1:9"))
+        ctx.silentErrors = true
+        ctx.contentPane = ctx.newSlot()
+        val renderer = ComponentRenderer(ctx)
+        val empty = mapper.createObjectNode()
+        val fallbacks = mutableListOf<String>()
+        for (type in WireTypeParityTest().wireTypes() - setOf("Dialog", "Drawer")) {
+            val component = mapper.createObjectNode().put("type", "ClientSide").put("id", "x")
+            component.putObject("metadata").put("type", type)
+            component.putArray("children")
+            val widget = try {
+                renderer.render(component, empty, empty)
+            } catch (e: Exception) {
+                fallbacks += "$type threw ${e.javaClass.simpleName}: ${e.message}"
+                continue
+            }
+            if (all(widget).filterIsInstance<JLabel>().any { it.text.orEmpty().contains("Unsupported component") }) {
+                fallbacks += "$type fell back to Unsupported component"
+            }
+        }
+        assertEquals(emptyList<String>(), fallbacks)
+    }
+
     fun testShapes() {
         val r = render()
         assertEquals(2, all(r.getValue("Grid")).filterIsInstance<JTable>().single().rowCount)
