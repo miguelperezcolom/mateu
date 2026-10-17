@@ -8,7 +8,7 @@ import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 import { ganttSelection } from './ganttSelection';
 import { ganttLayout, todayDayNumber, todayOffset } from './timeline';
-import { addOnTotal, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels';
+import { addOnTotal, addOnToggleA11y, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels';
 import { factAction } from './factAction';
 
 type Dict = Record<string, unknown>;
@@ -1088,7 +1088,7 @@ export function AddOnPickerRenderer({ component }: { component: unknown }) {
                   {!!it.description && <Text style={styles.addOnDesc}>{it.description}</Text>}
                 </View>
                 {!it.includedLabel && (
-                  <TouchableOpacity {...buttonA11y()}
+                  <TouchableOpacity {...buttonA11y(addOnToggleA11y(it, isAdded))}
                     style={[styles.addOnToggle, isAdded && styles.addOnToggleAdded]}
                     onPress={() => toggle(it)}
                   >

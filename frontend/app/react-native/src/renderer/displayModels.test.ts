@@ -32,3 +32,10 @@ test('toggling an add-on sends the item, its new state and the new total', () =>
   assert.ok(second.next.has('spa'), 'the previous selection is not mutated');
   assert.equal(addOnTotal(items, new Set(['free', 'unknown'])), 0);
 });
+
+test('the add-on toggle says what it adds or removes (an icon-only "+" told a screen reader nothing)', async () => {
+  const { addOnToggleA11y } = await import('./displayModels.ts');
+  assert.deepEqual(addOnToggleA11y({ title: 'Spa' }, false), { label: 'Add Spa', selected: false });
+  assert.deepEqual(addOnToggleA11y({ title: 'Spa' }, true), { label: 'Remove Spa', selected: true });
+  assert.deepEqual(addOnToggleA11y({ id: 'late' }, false), { label: 'Add late', selected: false });
+});

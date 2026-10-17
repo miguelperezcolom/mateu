@@ -39,3 +39,9 @@ export function toggleAddOn(
   else next.delete(id);
   return { next, nowAdded, parameters: { _item: id, _added: nowAdded, _total: addOnTotal(items, next) } };
 }
+
+/** The add-on toggle's accessible name and state: the glyph alone ("+" / "✓") names nothing. */
+export function addOnToggleA11y(item: { id?: string; title?: string }, isAdded: boolean): { label: string; selected: boolean } {
+  const name = item.title || item.id || '';
+  return { label: `${isAdded ? 'Remove' : 'Add'} ${name}`.trim(), selected: isAdded };
+}
