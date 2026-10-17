@@ -18,6 +18,7 @@ import {
   navTargetOf, queryFiltersOf, splitListingQuery, listingQueryOf, listingUrlOf, listingUrlPagingOf, multiValuesOf,
   smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
+  pageSwitcherOf, switcherPickOf, pageKpisOf, welcomeOf,
 } from './reduceContexts.mjs'
 import { chromeText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
@@ -691,6 +692,59 @@ test('tile order: saved keys first, new tiles after, keys gone from the grid ign
   assert.equal(prefs.tileScopeOf('g', null), '#g')
   assert.equal(prefs.listingScope(null), '')
   assert.equal(prefs.listingScope({ hash: '#x', pathname: '/p?q' }), '/p', 'a hash that is not a route: the path')
+})
+
+// ── the page header's record switcher and KPIs, the welcome's trend ───────────────────────────
+
+const formCtx = (metadata, state = {}, data = {}) => ({ tree: { type: 'ServerSide', id: 'p', children: [{ type: 'ClientSide', metadata: { type: 'Form', ...metadata }, children: [] }] }, state, data })
+
+test('record switcher: its options (declared or fetched), the current one, a pick — never an echo', () => {
+  const sw = pageSwitcherOf(formCtx({ switcher: { label: 'Booking of ${state.guest}', value: '${state.id}', searchable: true,
+    options: [{ value: 1, label: 'B-1 ${state.guest}', description: 'Room ${state.room}' }, { value: 2 }, { label: 'no value' }] } }, { id: 1, guest: 'Ada', room: 204 }))
+  assert.equal(sw.on, true)
+  assert.equal(sw.label, 'Booking of Ada')
+  assert.equal(sw.value, '1')
+  assert.deepEqual(sw.objectOptions, [{ value: '1', label: 'B-1 Ada', description: 'Room 204' }, { value: '2', label: '2', description: '' }])
+  assert.deepEqual(sw.contextOptions, [])
+  assert.equal(switcherPickOf(sw, '1'), null, 'the data switcher writes back what it was given: not a pick')
+  assert.deepEqual(switcherPickOf(sw, { value: 2 }), { actionId: sw.actionId, parameters: { _record: '2' } })
+  assert.deepEqual(switcherPickOf(sw, { key: 2 }).parameters, { _record: '2' })
+  assert.equal(switcherPickOf(sw, null), null)
+  // a context switcher, fed by a REST source (its options in data._switcher), that navigates
+  const ctxSw = pageSwitcherOf(formCtx({ switcher: { type: 'context', optionsSource: { ref: 'hotels' }, route: '/h/${state._record}/${state.tab}' } },
+    { tab: 'rooms' }, { _switcher: { content: [{ value: 'H1', label: 'One' }] } }))
+  assert.deepEqual(ctxSw.contextOptions.map((o) => o.value), ['H1'])
+  assert.equal(switcherPickOf(ctxSw, 'H1').route, '/h/H1/rooms')
+  // disabled: no picker, the current record shown as a fact
+  const locked = pageSwitcherOf(formCtx({ switcher: { disabled: true, label: 'Hotel', value: 'H1', options: [{ value: 'H1', label: 'One' }] } }))
+  assert.deepEqual([locked.objectOptions, locked.fact], [[], { label: 'Hotel', value: 'One' }])
+  assert.equal(switcherPickOf(locked, 'H2'), null)
+  assert.equal(pageSwitcherOf(formCtx({ switcher: { options: [] } })).on, false, 'no options yet: no switcher')
+  assert.equal(pageSwitcherOf(formCtx({})).on, false)
+})
+
+test('page KPIs: on a Form both title and text interpolate the state; empty ones are dropped', () => {
+  const kpis = pageKpisOf(formCtx({ kpis: [{ title: 'Nights of ${state.guest}', text: '${state.n}' }, { title: '', text: '' }, { text: 7 }] }, { guest: 'Ada', n: 3 }))
+  assert.deepEqual(kpis, [{ label: 'Nights of Ada', value: '3' }, { label: '', value: '7' }])
+  assert.deepEqual(pageKpisOf({ tree: null }), [])
+})
+
+test('welcome: the trend tile becomes a full-width chart from either chart shape; a metric tile is a KPI', () => {
+  const welcome = (chart) => welcomeOf({ state: {}, data: {}, tree: { type: 'ServerSide', id: 'w', children: [
+    { type: 'ClientSide', metadata: { type: 'HeroSection', title: 'Hi' }, children: [] },
+    { type: 'ClientSide', metadata: { type: 'DashboardLayout' }, children: [
+      { type: 'ClientSide', metadata: { type: 'DashboardPanel', title: 'Occupancy' }, children: [chart] },
+      { type: 'ClientSide', metadata: { type: 'DashboardPanel', title: '' }, children: [{ type: 'ClientSide', metadata: { type: 'Stat', label: 'Arrivals', value: null, caption: 'today' }, children: [] }] },
+    ] },
+  ] } })
+  const fromChart = welcome({ type: 'ClientSide', metadata: { type: 'Chart', chartData: { labels: ['Mon'], datasets: [{ label: 'Rooms', data: [40, 50] }] } }, children: [] })
+  assert.deepEqual(fromChart.trend, { title: 'Occupancy', items: [{ id: 0, value: 40, group: ['Mon'], series: 'Rooms' }, { id: 1, value: 50, group: ['2'], series: 'Rooms' }] })
+  const kpi = fromChart.tiles[0]
+  assert.deepEqual([kpi.isKpi, kpi.kpiTitle, kpi.kpiValue, kpi.kpiCaption], [true, 'Arrivals', '', 'today'])
+  const fromTrend = welcome({ type: 'ClientSide', metadata: { type: 'TrendChart', title: 'T', values: [1], labels: [] }, children: [] })
+  assert.equal(fromTrend.trend.items[0].series, chromeText('occupancy'), 'a TrendChart has no series name: the default')
+  const empty = welcome({ type: 'ClientSide', metadata: { type: 'Chart' }, children: [] })
+  assert.deepEqual(empty.trend.items, [])
 })
 
 for (const { name, fn } of queue) {
