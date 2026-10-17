@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
+import { useButtonPress } from './useButtonPress';
 import { MateuSession } from '../core/MateuSession';
 import { RichText } from './FieldWidgets';
 import { ChartRenderer } from './ChartRenderer';
@@ -107,6 +108,7 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
   const controller = useViewController();
+  const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
 
   const metadata = (component['metadata'] as Record<string, unknown>) ?? {};
@@ -168,7 +170,11 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
       // disabled (e.g. a wizard's Toggle.disabled affordance): shown but inert. buttonStyle picks
       // the emphasis — primary filled, tertiary a borderless text button (section Add/Edit/View more).
-      const disabled = metadata['disabled'] === true;
+      // A button with a `route` NAVIGATES (like the web): its ${…} must all resolve to a value,
+      // else the button is disabled — never a navigation to "/p/" nor a fall-through to the action.
+      const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
+      const disabled = metadata['disabled'] === true || press.disabled;
+      const onPress = press.onPress;
       const emphasis = String(metadata['buttonStyle'] ?? '').toLowerCase();
       const boxStyle = emphasis === 'primary' ? styles.btnPrimary : emphasis === 'tertiary' ? styles.btnTertiary : styles.btnDefault;
       const textStyle = emphasis === 'primary' ? styles.btnPrimaryText : emphasis === 'tertiary' ? styles.btnTertiaryText : styles.btnDefaultText;
@@ -177,7 +183,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           {...buttonA11y({ disabled })}
           disabled={disabled}
           style={[boxStyle, disabled && styles.btnDisabled]}
-          onPress={() => void controller.runAction(id, parameters)}
+          onPress={onPress}
         >
           <Text style={textStyle}>{label}</Text>
         </TouchableOpacity>

@@ -4,7 +4,7 @@ import { html, nothing } from "lit";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { formatShortcut } from "@infra/ui/shortcuts.ts";
-import { handleButtonClick, resolvedRoute } from "@infra/ui/renderers/buttonRenderer.ts";
+import { handleButtonClick, resolvedRoute, routeUnresolved } from "@infra/ui/renderers/buttonRenderer.ts";
 
 /**
  * Vaadin adapter Button → vaadin-button (Lumo theme attribute + vaadin-icon). Lives in apps/vaadin so the
@@ -31,7 +31,7 @@ export const renderButton = (component: ClientSideComponent, state?: ComponentSt
             style="${component.style}"
             class="${component.cssClasses}"
             theme="${theme}"
-            ?disabled="${metadata.disabled}"
+            ?disabled="${metadata.disabled || routeUnresolved(metadata, state, data)}"
             data-shortcut="${metadata.shortcut ?? nothing}"
             title="${metadata.shortcut ? `${label} (${formatShortcut(metadata.shortcut)})` : nothing}"
             slot="${component.slot??nothing}"

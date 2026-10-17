@@ -1,4 +1,5 @@
 import { Service } from "@application/service.ts";
+import { addReferencedRestSources } from "@infra/http/restSourceCatalogue.ts";
 import { AxiosMateuApiClient } from "../infra/http/AxiosMateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import { appData, appState, upstream } from "@domain/state.ts";
@@ -200,6 +201,8 @@ export class SSEService implements Service {
     }
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
+        // first: the components about to render may fetch from the sources they name right away
+        addReferencedRestSources(uiIncrement?.restSources)
         uiIncrement?.messages?.forEach(message => {
             // The Notifier port renders the toast (incl. the undoable variant) design-system-neutrally.
             notify({

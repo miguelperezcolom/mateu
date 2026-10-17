@@ -231,6 +231,16 @@
                     on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
                 </oj-bind-if>
                 <!-- @fields-extra mateuFieldChanged -->
+                <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                <oj-bind-if test="[[ $current.data.isPassword ]]">
+                  <oj-input-password
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-password>
+                </oj-bind-if>
                 <oj-bind-if test="[[ $current.data.isRadio ]]">
                   <oj-radioset
                       label-hint="[[ $current.data.label ]]"
@@ -590,6 +600,16 @@
               on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-select-one>
           </oj-bind-if>
           <!-- @fields-extra mateuRowFieldChanged -->
+          <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+          <oj-bind-if test="[[ $current.data.isPassword ]]">
+            <oj-input-password
+                label-hint="[[ $current.data.label ]]"
+                value="[[ $current.data.value ]]"
+                required="[[ $current.data.required ]]"
+                readonly="[[ $current.data.readonly ]]"
+                :data-field-id="[[ $current.data.fieldId ]]"
+                on-value-changed="[[ $listeners.mateuRowFieldChanged ]]"></oj-input-password>
+          </oj-bind-if>
           <oj-bind-if test="[[ $current.data.isRadio ]]">
             <oj-radioset
                 label-hint="[[ $current.data.label ]]"
@@ -1790,6 +1810,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -3499,6 +3529,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -5236,6 +5276,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -6945,6 +6995,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -8752,6 +8812,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -10469,6 +10539,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -12188,6 +12268,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -13925,6 +14015,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -15862,6 +15962,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -16673,6 +16783,16 @@
                     on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
                 </oj-bind-if>
                 <!-- @fields-extra mateuFieldChanged -->
+                <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                <oj-bind-if test="[[ $current.data.isPassword ]]">
+                  <oj-input-password
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-password>
+                </oj-bind-if>
                 <oj-bind-if test="[[ $current.data.isRadio ]]">
                   <oj-radioset
                       label-hint="[[ $current.data.label ]]"
@@ -17846,6 +17966,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -19553,6 +19683,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -20404,6 +20544,16 @@
                       on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
                   </oj-bind-if>
                   <!-- @fields-extra mateuFieldChanged -->
+                  <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                  <oj-bind-if test="[[ $current.data.isPassword ]]">
+                    <oj-input-password
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        required="[[ $current.data.required ]]"
+                        readonly="[[ $current.data.readonly ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-password>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isRadio ]]">
                     <oj-radioset
                         label-hint="[[ $current.data.label ]]"
@@ -20696,6 +20846,16 @@
                       on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
                   </oj-bind-if>
                   <!-- @fields-extra mateuFieldChanged -->
+                  <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                  <oj-bind-if test="[[ $current.data.isPassword ]]">
+                    <oj-input-password
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        required="[[ $current.data.required ]]"
+                        readonly="[[ $current.data.readonly ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-password>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isRadio ]]">
                     <oj-radioset
                         label-hint="[[ $current.data.label ]]"
@@ -21893,6 +22053,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -23600,6 +23770,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -25381,6 +25561,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -27090,6 +27280,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -28813,6 +29013,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -30522,6 +30732,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -32279,6 +32499,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -33988,6 +34218,16 @@
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
                             <!-- @fields-extra hostInputChanged -->
+                            <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                            <oj-bind-if test="[[ $current.data.isPassword ]]">
+                              <oj-input-password
+                                  label-hint="[[ $current.data.label ]]"
+                                  value="[[ $current.data.value ]]"
+                                  required="[[ $current.data.required ]]"
+                                  readonly="[[ $current.data.readonly ]]"
+                                  :data-field-id="[[ $current.data.fieldId ]]"
+                                  on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
+                            </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isRadio ]]">
                               <oj-radioset
                                   label-hint="[[ $current.data.label ]]"
@@ -34848,6 +35088,16 @@
                     on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-select-one>
                 </oj-bind-if>
                 <!-- @fields-extra mateuFieldChanged -->
+                <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                <oj-bind-if test="[[ $current.data.isPassword ]]">
+                  <oj-input-password
+                      label-hint="[[ $current.data.label ]]"
+                      value="[[ $current.data.value ]]"
+                      required="[[ $current.data.required ]]"
+                      readonly="[[ $current.data.readonly ]]"
+                      :data-field-id="[[ $current.data.fieldId ]]"
+                      on-value-changed="[[ $listeners.mateuFieldChanged ]]"></oj-input-password>
+                </oj-bind-if>
                 <oj-bind-if test="[[ $current.data.isRadio ]]">
                   <oj-radioset
                       label-hint="[[ $current.data.label ]]"
@@ -35099,6 +35349,16 @@
                       on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-select-one>
                   </oj-bind-if>
                   <!-- @fields-extra mateuIslandFieldChanged -->
+                  <!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+                  <oj-bind-if test="[[ $current.data.isPassword ]]">
+                    <oj-input-password
+                        label-hint="[[ $current.data.label ]]"
+                        value="[[ $current.data.value ]]"
+                        required="[[ $current.data.required ]]"
+                        readonly="[[ $current.data.readonly ]]"
+                        :data-field-id="[[ $current.data.fieldId ]]"
+                        on-value-changed="[[ $listeners.mateuIslandFieldChanged ]]"></oj-input-password>
+                  </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isRadio ]]">
                     <oj-radioset
                         label-hint="[[ $current.data.label ]]"

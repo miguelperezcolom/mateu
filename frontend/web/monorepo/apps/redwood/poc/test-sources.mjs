@@ -10,7 +10,7 @@ import {
   setRestSourceCatalogue, resolveRestSource, setSampleMode, isSampleMode, isSampled, viaProxy, sampleOf,
   fetchRestJson, filterRestRows, sortRestRows, restListingPage, restAnswerOf, loadRestOptions,
   adoptAppSources, adoptManifestSources, interpolateRestUrl, interpolateRest, mapItemsToOptions, restPageOf,
-  loadContextSelectorOptions,
+  loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
@@ -167,6 +167,10 @@ test('in memory: search, filter, sort and page over the fetched rows', () => {
   const filters = [{ fieldId: 'status', options: [{ value: 'OPEN' }] }]
   assert.deepEqual(filterRestRows(rows, ids, filters, { status: 'OPEN' }).map((r) => r.id), [1, 3])
   assert.deepEqual(sortRestRows(rows, [{ field: 'total', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
+  // blanks go last in BOTH directions
+  const gaps = [{ id: 1, n: 30 }, { id: 2, n: null }, { id: 3, n: 45 }, { id: 4, n: '' }]
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'ascending' }]).map((r) => r.id), [1, 3, 2, 4])
+  assert.deepEqual(sortRestRows(gaps, [{ field: 'n', direction: 'descending' }]).map((r) => r.id), [3, 1, 2, 4])
   const md = { pageSize: 2, columns: [col('id', { identifier: true })] }
   const page1 = restListingPage(md, rows, 4, { page: 1, sort: [{ fieldId: 'total', direction: 'ascending' }] }, false)
   assert.equal(page1.totalElements, 4)
@@ -248,6 +252,23 @@ test('runMateuAction routes a proxied search through the server as __restfetch__
     assert.deepEqual(bodies[0].body.parameters, { _sourceKind: 'rows', _sourceId: 'crud' })
     assert.equal(inc.fragments[0].data.crud.page.content[0].id, 1)
   } finally { globalThis.fetch = realFetch }
+})
+
+test('a page with no app shell: the sources a response names resolve its refs', async () => {
+  reset(); clearReferencedSources()
+  setRestSourceCatalogue([])
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({
+    fragments: [], restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] }) })
+  try {
+    await runMateuAction('http://mateu', listingCtx(undefined), '/orders', 'save', {}, {})
+    assert.equal(resolveRestSource({ ref: 'late' }).url, 'https://late.example.com/x')
+  } finally { globalThis.fetch = realFetch }
+  // the App's own catalogue still wins a name clash
+  setRestSourceCatalogue([{ name: 'late', source: { url: '/app' } }])
+  adoptReferencedSources({ restSources: [{ name: 'late', source: { url: '/response' } }] })
+  assert.equal(resolveRestSource({ ref: 'late' }).url, '/app')
+  clearReferencedSources()
 })
 
 test('an ordinary action still goes to the server', () => {

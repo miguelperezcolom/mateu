@@ -52,8 +52,30 @@ object RestFetch {
         catalogue = map
     }
 
-    /** The catalogue entry for a name, or null. */
-    fun restSource(ref: String?): JsonNode? = if (ref.isNullOrBlank()) null else catalogue[ref]
+    // The entries a RESPONSE named (`UIIncrementDto.restSources`): a page served with no app shell
+    // never receives the App's catalogue, so each response carries the entries its components
+    // reference. Merged by name and consulted only after the App's catalogue (= libs/mateu).
+    @Volatile
+    private var referenced: Map<String, JsonNode> = emptyMap()
+
+    /** Add the catalogue entries a response references (its `restSources`). */
+    fun addReferencedRestSources(sources: JsonNode?) {
+        if (sources == null || !sources.isArray || sources.isEmpty) return
+        val map = LinkedHashMap(referenced)
+        for (entry in sources) {
+            val name = entry.path("name").asText("")
+            if (name.isNotBlank()) map[name] = entry
+        }
+        referenced = map
+    }
+
+    /** Test hook: forget what responses named. */
+    fun clearReferencedRestSources() {
+        referenced = emptyMap()
+    }
+
+    /** The catalogue entry for a name — the App's first, then what responses named — or null. */
+    fun restSource(ref: String?): JsonNode? = if (ref.isNullOrBlank()) null else catalogue[ref] ?: referenced[ref]
 
     /**
      * If `source` names a catalogue entry by `ref`, merge the entry's `source` fields under the

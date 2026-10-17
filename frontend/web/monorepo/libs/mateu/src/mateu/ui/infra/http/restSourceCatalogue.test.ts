@@ -1,12 +1,16 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+    UnknownRestSourceError,
+    __clearRemoteRestSources,
+    addReferencedRestSources,
     getRestSource,
     pathOfField,
     resolveRestSource,
     setRestSourceCatalogue,
     totalPathOf,
 } from './restSourceCatalogue.ts'
-import { mapItemsToRows } from './externalOptions.ts'
+import { fetchExternalJson, mapItemsToRows } from './externalOptions.ts'
 
 /**
  * The catalogue's job is that a NAME resolves to one endpoint, and that resolving it never invents
@@ -101,5 +105,38 @@ describe('restSourceCatalogue', () => {
     it('exposes the total path of a server-paged source', () => {
         expect(totalPathOf({ ref: 'orders' })).toBe('meta.total')
         expect(totalPathOf({ ref: 'countries' })).toBeUndefined()
+    })
+})
+
+describe('the entries a response names (a page with no app shell)', () => {
+    beforeEach(() => {
+        setRestSourceCatalogue([])
+        __clearRemoteRestSources()
+    })
+
+    it('resolve a ref no app catalogue carries', () => {
+        addReferencedRestSources([{ name: 'invoices', source: { url: 'https://api.example.com/invoices' } } as any])
+        expect(resolveRestSource({ ref: 'invoices' } as any).url).toBe('https://api.example.com/invoices')
+    })
+
+    it('never override the app catalogue', () => {
+        setRestSourceCatalogue([{ name: 'invoices', source: { url: '/app' } } as any])
+        addReferencedRestSources([{ name: 'invoices', source: { url: '/response' } } as any])
+        expect(getRestSource('invoices')?.source?.url).toBe('/app')
+    })
+
+    it('an unresolvable ref is reported as such, nothing is fetched', async () => {
+        vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const fetchImpl = vi.fn()
+        await expect(fetchExternalJson({ ref: 'nobody' } as any, (t) => t, fetchImpl as any))
+            .rejects.toBeInstanceOf(UnknownRestSourceError)
+        expect(fetchImpl).not.toHaveBeenCalled()
+    })
+
+    it('a response carrying restSources registers them before its fragments render', async () => {
+        const { HttpService } = await import('../../application/HttpService.ts')
+        new HttpService().handleUIIncrement({ restSources: [{ name: 'late', source: { url: '/late' } }] } as any,
+            document.createElement('div'), 't')
+        expect(getRestSource('late')?.source?.url).toBe('/late')
     })
 })

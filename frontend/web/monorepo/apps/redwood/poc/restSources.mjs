@@ -41,8 +41,28 @@ export function setRestSourceCatalogue(incoming) {
   restCatalogue = Array.isArray(incoming) ? incoming.filter((e) => e && typeof e.name === 'string') : []
 }
 
-/** The entry with this name, or undefined. */
-export const getRestSource = (name) => (name ? restCatalogue.find((e) => e.name === name) : undefined)
+/** The entries a RESPONSE named (`UIIncrementDto.restSources`): every response carries the entries
+ *  its own components reference, because a page served with NO app shell never receives the App's
+ *  catalogue and its by-ref calls could not be resolved. Merged by name; consulted only after the
+ *  App's catalogue, so it only ever fills a gap (= libs/mateu addReferencedRestSources). */
+const referencedRestSources = new Map()
+
+/** Adds the entries a response references; returns the increment. */
+export function adoptReferencedSources(increment) {
+  const incoming = increment && increment.restSources
+  if (Array.isArray(incoming)) {
+    for (const e of incoming) if (e && typeof e.name === 'string') referencedRestSources.set(e.name, e)
+  }
+  return increment
+}
+
+/** Test hook: forget what responses named. */
+export function clearReferencedSources() { referencedRestSources.clear() }
+
+/** The entry with this name — the App's catalogue first, then what responses named — or undefined. */
+export const getRestSource = (name) => (name
+  ? restCatalogue.find((e) => e.name === name) || referencedRestSources.get(name)
+  : undefined)
 
 /** Everything in the catalogue — diagnostics and tests. */
 export const restSourceCatalogue = () => restCatalogue
@@ -380,15 +400,21 @@ export function sortRestRows(rows, sort) {
     .filter((k) => k.id !== '')
   if (!keys.length) return rows
   const compare = (a, b) => {
-    const ab = restFilterBlank(a)
-    const bb = restFilterBlank(b)
-    if (ab || bb) return ab === bb ? 0 : ab ? 1 : -1
     if (typeof a === 'number' && typeof b === 'number') return a - b
     return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
   }
   return rows.slice().sort((x, y) => {
     for (const k of keys) {
-      const c = compare(x[k.id], y[k.id])
+      const a = x[k.id]
+      const b = y[k.id]
+      // Blanks go last in BOTH directions, so they are settled before the direction flips.
+      const ab = restFilterBlank(a)
+      const bb = restFilterBlank(b)
+      if (ab || bb) {
+        if (ab === bb) continue
+        return ab ? 1 : -1
+      }
+      const c = compare(a, b)
       if (c !== 0) return k.desc ? -c : c
     }
     return 0

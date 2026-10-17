@@ -147,6 +147,32 @@ describe('validations', () => {
         expect(el.data._valid).toBe(true)
     })
 
+    it('re-validating with the same outcome keeps the data object (no needless re-render)', () => {
+        const el = element({ validations: [{ fieldId: 'name', condition: "state['name']", message: 'Name is required' }] }, { name: '' })
+        el.checkValidations()
+        const first = el.data
+        el.checkValidations()
+        expect(el.data).toBe(first)
+    })
+
+    it('a changed message replaces the data even when the form stays invalid', () => {
+        const el = element({ validations: [{ fieldId: 'age', condition: 'state.age >= 18', message: 'Must be ${state.min}+' }] }, { age: 1, min: 18 })
+        el.checkValidations()
+        el.state = { age: 1, min: 21 }
+        el.checkValidations()
+        expect(el.data.errors.age).toEqual(['Must be 21+'])
+    })
+
+    it('errors of fields no longer validated are dropped', () => {
+        const el = element({ validations: [
+            { fieldId: 'a', condition: 'state.a', message: 'a!' },
+            { fieldId: 'b', condition: 'state.b', message: 'b!' },
+        ] }, {})
+        el.checkValidations()
+        el.checkValidations('a')
+        expect(el.data.errors).toEqual({ a: ['a!'] })
+    })
+
     it('before any submit, typing does not start flagging errors', () => {
         const el = element({ validations: [{ fieldId: 'name', condition: "state['name']", message: 'x' }] }, { name: 'A' })
         el.valueChangedListener(new CustomEvent('value-changed', { detail: { fieldId: 'name', value: '' } }))

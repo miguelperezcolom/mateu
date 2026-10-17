@@ -1,3 +1,13 @@
+<!-- an editable password → oj-input-password (masked; a read-only one is a text value showing a fixed mask) -->
+<oj-bind-if test="[[ $current.data.isPassword ]]">
+  <oj-input-password
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-password>
+</oj-bind-if>
 <oj-bind-if test="[[ $current.data.isRadio ]]">
   <oj-radioset
       label-hint="[[ $current.data.label ]]"

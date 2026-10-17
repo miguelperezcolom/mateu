@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from .base import (
     Wire,
@@ -12,6 +12,9 @@ from .base import (
 )
 from .app import HeaderValue
 from .components import Component
+
+if TYPE_CHECKING:
+    from .fields import RestSourceEntryRecord
 
 
 # ── Top-level envelope ─────────────────────────────────────────────────────────
@@ -133,6 +136,18 @@ class UIIncrement(Wire):
     # version; a consumer may read it to guard against a mismatched producer. Defaults so every
     # response carries it (serialized as "wireVersion" by the camelCase alias generator).
     wire_version: str = WIRE_VERSION
+    # The REST source catalogue entries this response's components name by ``ref``: the whole
+    # catalogue rides the app metadata, which a page served with no app shell never receives.
+    # Omitted from the JSON when there are none (mirrors UIIncrementDto.restSources).
+    rest_sources: "list[RestSourceEntryRecord] | None" = None
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_rest_sources(self, handler):
+        data = handler(self)
+        for key in ("rest_sources", "restSources"):
+            if key in data and not data[key]:
+                del data[key]
+        return data
 
     @staticmethod
     def of(commands=None, messages=None, fragments=None, banners=None, append_banners=False) -> "UIIncrement":

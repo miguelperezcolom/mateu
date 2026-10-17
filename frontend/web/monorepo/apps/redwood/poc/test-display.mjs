@@ -19,7 +19,7 @@ import {
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
   welcomeOf, returnedConfirmDialogsOf, reduceContexts, withFormActions, hostContentOf, wizardForwardOf, itemOverviewOf,
-  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf,
+  summarizeHost, pageSubtitleOf, listingHeaderBlocksOf, buttonRouteOf,
 } from './reduceContexts.mjs'
 import { bannerNotificationOf } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
@@ -432,6 +432,21 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   // @PlainText / @Badge present a value: never an editable input
   assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'plainText' }), { x: 'R-1' }).readonly, true)
   assert.equal(layoutFieldOf(md({ dataType: 'bool', stereotype: 'badge' }), { x: true }).readonly, true)
+  // a read-only password shows a fixed mask (an editable one keeps its value to edit)
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: 'hunter2' }).value, '••••••••')
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: '' }).value, null)
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password' }), { x: 'hunter2' }).value, 'hunter2')
+  // an EDITABLE password is a masked input (oj-input-password), never the plain text input
+  const secret = layoutFieldOf(md({ dataType: 'string', stereotype: 'password' }), { x: 'hunter2' })
+  assert.deepEqual([secret.isPassword, secret.isText, secret.readonly], [true, false, false])
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: 'hunter2' }).isPassword, false)
+  assert.equal(layoutFieldOf(md({ dataType: 'string' }), { x: 'a' }).isPassword, false)
+  // …and every copy of the field widgets in the page draws it (one per isText copy)
+  const page = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html'), 'utf8')
+  const count = (re) => (page.match(re) || []).length
+  assert.ok(count(/data\.isPassword \]\]/g) > 0)
+  assert.equal(count(/data\.isPassword \]\]/g), count(/data\.isText \]\]/g))
+  assert.equal(count(/<oj-input-password\b/g), count(/data\.isPassword \]\]/g))
   // the wire sends sliderMax 100 on every field: a rating is still five stars
   assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
   // a LocalTime is drawn (as text), and an Amount shows its value
@@ -691,6 +706,20 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
+})
+
+test('a button route resolves its ${state.x}; a missing or blank value disables the button', () => {
+  assert.equal(buttonRouteOf('/p/${state.id}', { id: 7 }), '/p/7')
+  assert.equal(buttonRouteOf('/p/${state.id}', {}), null)
+  assert.equal(buttonRouteOf('/p/${state.id}', { id: '  ' }), null)
+  assert.equal(buttonRouteOf('products', {}), 'products')
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Button', label: 'Open', actionId: 'open', route: '/p/${state.id}' })])
+  const open = (state) => {
+    const ctx = { id: HOST_ID, kind: 'host', tree, state, data: {} }
+    return (islandContentOf(ctx) || []).flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons)[0]
+  }
+  assert.deepEqual([open({ id: 3 }).route, open({ id: 3 }).disabled], ['/p/3', false])
+  assert.deepEqual([open({}).route, open({}).disabled], [undefined, true])
 })
 
 // ── the actions walkthrough (design/walkthrough/actions.md): answers the shell dropped ─────────────

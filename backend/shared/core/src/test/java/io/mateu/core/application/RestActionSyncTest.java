@@ -56,11 +56,40 @@ class RestActionSyncTest {
     public void delete() {}
   }
 
+  /** A page with NO app shell whose action names a catalogue source. */
+  @SuppressWarnings("unused")
+  @UI("/restaction-by-ref")
+  @Title("By-ref rest action")
+  public static class ByRefAction {
+
+    @Button
+    @RestAction(source = "invoices", successMessage = "Sent")
+    public void send() {}
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(RestActionForm.class, ConfirmedDelete.class);
+    mateu = TestMateu.withUis(RestActionForm.class, ConfirmedDelete.class, ByRefAction.class);
+  }
+
+  @Test
+  void aPageWithNoAppShellCarriesTheCatalogueEntriesItReferences() {
+    // the catalogue rides AppDto.restSources, which a shell-less page never receives: without the
+    // entry on the response itself the browser cannot resolve the ref and the click fails
+    var increment = mateu.sync("/restaction-by-ref");
+    assertThat(increment.restSources()).isNotNull();
+    assertThat(increment.restSources())
+        .extracting(io.mateu.dtos.RestSourceEntryDto::name)
+        .containsExactly("invoices");
+    assertThat(increment.restSources().get(0).source().url())
+        .isEqualTo("https://api.example.com/invoices");
+  }
+
+  @Test
+  void aPageReferencingNoSourceCarriesNoCatalogue() {
+    assertThat(mateu.sync("/restaction").restSources()).isNull();
   }
 
   @Test

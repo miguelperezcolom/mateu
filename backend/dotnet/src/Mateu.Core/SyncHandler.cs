@@ -89,7 +89,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private static RunActionRqDto LoadActionNormalised(RunActionRqDto rq) =>
         rq.ActionId == "__load__" ? rq with { ActionId = "" } : rq;
 
-    public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
+    public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null) =>
+        WithReferencedRestSources(HandleCore(rq, requestBaseUrl));
+
+    private UIIncrementDto HandleCore(RunActionRqDto rq, string? requestBaseUrl)
     {
         rq = LoadActionNormalised(rq);
         // a Document parked by this request is fetched from this mount (DocumentCommands)

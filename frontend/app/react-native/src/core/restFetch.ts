@@ -98,9 +98,28 @@ export function registerRestSources(sources: unknown): void {
   catalogue = map;
 }
 
-/** The catalogue entry for a name, or undefined. */
+// The entries a RESPONSE named (`UIIncrementDto.restSources`): a page served with no app shell never
+// receives the App's catalogue, so each response carries the entries its components reference.
+// Merged by name and consulted only after the App's catalogue (= libs/mateu addReferencedRestSources).
+let referenced: Record<string, Json> = {};
+
+/** Add the catalogue entries a response references (its `restSources`). */
+export function addReferencedRestSources(sources: unknown): void {
+  if (!Array.isArray(sources)) return;
+  for (const entry of sources) {
+    const name = (entry as Json)?.['name'];
+    if (typeof name === 'string' && name) referenced = { ...referenced, [name]: entry as Json };
+  }
+}
+
+/** Test hook: forget what responses named. */
+export function clearReferencedRestSources(): void {
+  referenced = {};
+}
+
+/** The catalogue entry for a name — the App's first, then what responses named — or undefined. */
 export function getRestSource(ref?: string): Json | undefined {
-  return ref ? catalogue[ref] : undefined;
+  return ref ? catalogue[ref] ?? referenced[ref] : undefined;
 }
 
 const blank = (s: unknown): boolean => s == null || s === '';

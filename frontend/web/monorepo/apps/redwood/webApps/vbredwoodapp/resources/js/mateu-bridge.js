@@ -3458,6 +3458,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     )
   }
 
+  /** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank
+   *  (the button is then drawn disabled: we never navigate to a route with a hole in it). */
+  function buttonRouteOf(template, state) {
+    const text = String(template == null ? '' : template)
+    for (const expression of text.match(/\$\{[^}]*\}/g) || []) {
+      const value = interpolate(expression, state)
+      if (!value || !value.trim() || value.includes('${')) return null
+    }
+    const route = interpolate(text, state)
+    return route && !route.includes('${') ? route : null
+  }
+
   const TEXT_CLASSES = {
     xl: 'oj-typography-heading-md',
     l: 'oj-typography-subheading-md',
@@ -3536,17 +3548,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       label: b.label,
       badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
     })
-    const buttonOf = (m) => ({
-      actionId: m.actionId,
-      label: m.label || m.actionId,
-      disabled: !!m.disabled,
-      chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-      parameters: m.parameters || {},
+    const buttonOf = (m) => {
       // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
       // route on it): the click goes to that route instead of running actionId on the server, which
-      // has nothing behind it — a YAML hero's "Browse products" did nothing
-      ...(m.route ? { route: m.route } : {}),
-    })
+      // has nothing behind it — a YAML hero's "Browse products" did nothing. Its `${state.x}` are
+      // resolved against the state; one that is missing or blank leaves the button DISABLED
+      // (`/p/${state.id}` with no id is not "/p/"), as on the web (libs/mateu buttonRenderer).
+      const route = m.route ? buttonRouteOf(m.route, state) : null
+      return {
+        actionId: m.actionId,
+        label: m.label || m.actionId,
+        disabled: !!m.disabled || (!!m.route && route == null),
+        chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        parameters: m.parameters || {},
+        ...(route ? { route } : {}),
+      }
+    }
     const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
       .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     const STATUS_TEXT = {
@@ -3851,7 +3868,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const raw = state[fieldId] != null ? state[fieldId]
             : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
           const lookupLabel = fromData(fieldId + '-label')
-          const shown = lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw
+          const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
           atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
           return
         }
@@ -7569,6 +7586,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Lo que se pinta en lugar de un valor que todavía no hay (sólo lectura). */
   const EMPTY_VALUE = '—'
+
+  /** A password is never shown, not even read-only: a fixed mask (one length, so it does not tell
+   *  how long the secret is); empty stays empty. Same rule as libs/mateu passwordMask.ts. */
+  const PASSWORD_MASK = '••••••••'
+  function shownReadOnlyValueOf(md, value) {
+    if (!md || md.stereotype !== 'password') return value
+    return value == null || value === '' ? '' : PASSWORD_MASK
+  }
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }
 
@@ -7601,6 +7626,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
     else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (value != null && typeof value === 'object') value = plainValueOf(value)
+    if (widget.readonly && value != null) value = shownReadOnlyValueOf(md, value)
     return {
       ...widget,
       value,
@@ -7873,6 +7899,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
   function extraWidgetOf(f, options) {
     const st = f.stereotype
+    // an editable password is typed into a masked input (oj-input-password): as plain text it
+    // showed the secret in clear. A read-only one stays a text value — the fixed mask above.
+    if (st === 'password' && !f.readOnly) return { isPassword: true }
     if (st === 'radio' && options.length) return { isRadio: true }
     if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
     if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
@@ -7952,7 +7981,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         lookupActionId: '',
         options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
         ...flags,
-        isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+        isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
         isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
         converter: null, captureMode: '', accept: '',
         ...extra,
@@ -7992,7 +8021,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isNumber,
       isTextArea,
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
-      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false, isPassword: false,
       isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
     }
@@ -14507,8 +14536,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     restCatalogue = Array.isArray(incoming) ? incoming.filter((e) => e && typeof e.name === 'string') : []
   }
 
-  /** The entry with this name, or undefined. */
-  const getRestSource = (name) => (name ? restCatalogue.find((e) => e.name === name) : undefined)
+  /** The entries a RESPONSE named (`UIIncrementDto.restSources`): every response carries the entries
+   *  its own components reference, because a page served with NO app shell never receives the App's
+   *  catalogue and its by-ref calls could not be resolved. Merged by name; consulted only after the
+   *  App's catalogue, so it only ever fills a gap (= libs/mateu addReferencedRestSources). */
+  const referencedRestSources = new Map()
+
+  /** Adds the entries a response references; returns the increment. */
+  function adoptReferencedSources(increment) {
+    const incoming = increment && increment.restSources
+    if (Array.isArray(incoming)) {
+      for (const e of incoming) if (e && typeof e.name === 'string') referencedRestSources.set(e.name, e)
+    }
+    return increment
+  }
+
+  /** Test hook: forget what responses named. */
+  function clearReferencedSources() { referencedRestSources.clear() }
+
+  /** The entry with this name — the App's catalogue first, then what responses named — or undefined. */
+  const getRestSource = (name) => (name
+    ? restCatalogue.find((e) => e.name === name) || referencedRestSources.get(name)
+    : undefined)
 
   /** Everything in the catalogue — diagnostics and tests. */
   const restSourceCatalogue = () => restCatalogue
@@ -14846,15 +14895,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .filter((k) => k.id !== '')
     if (!keys.length) return rows
     const compare = (a, b) => {
-      const ab = restFilterBlank(a)
-      const bb = restFilterBlank(b)
-      if (ab || bb) return ab === bb ? 0 : ab ? 1 : -1
       if (typeof a === 'number' && typeof b === 'number') return a - b
       return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
     }
     return rows.slice().sort((x, y) => {
       for (const k of keys) {
-        const c = compare(x[k.id], y[k.id])
+        const a = x[k.id]
+        const b = y[k.id]
+        // Blanks go last in BOTH directions, so they are settled before the direction flips.
+        const ab = restFilterBlank(a)
+        const bb = restFilterBlank(b)
+        if (ab || bb) {
+          if (ab === bb) continue
+          return ab ? 1 : -1
+        }
+        const c = compare(a, b)
         if (c !== 0) return k.desc ? -c : c
       }
       return 0
@@ -15607,6 +15662,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
     const increment = await res.json()
     observeWireVersion(increment)
+    // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
+    adoptReferencedSources(increment)
     // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
@@ -15630,6 +15687,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       const increment = await res.json()
       observeWireVersion(increment)
+      adoptReferencedSources(increment)
       // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
       return adoptAppSources(increment)
     } catch (e) {
@@ -15895,6 +15953,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const inc = JSON.parse(line.slice(5).trim())
       observeWireVersion(inc)
+      adoptReferencedSources(inc)
       const consumed = onIncrement ? await onIncrement(inc) : false
       if (!consumed) increments.push(inc)
     }

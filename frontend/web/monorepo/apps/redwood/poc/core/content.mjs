@@ -8,7 +8,7 @@ import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
 import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOnlyValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -183,6 +183,18 @@ export function interpolate(text, state) {
   )
 }
 
+/** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank
+ *  (the button is then drawn disabled: we never navigate to a route with a hole in it). */
+export function buttonRouteOf(template, state) {
+  const text = String(template == null ? '' : template)
+  for (const expression of text.match(/\$\{[^}]*\}/g) || []) {
+    const value = interpolate(expression, state)
+    if (!value || !value.trim() || value.includes('${')) return null
+  }
+  const route = interpolate(text, state)
+  return route && !route.includes('${') ? route : null
+}
+
 export const TEXT_CLASSES = {
   xl: 'oj-typography-heading-md',
   l: 'oj-typography-subheading-md',
@@ -261,17 +273,22 @@ export function islandContentOf(ctx, opts = {}) {
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
   })
-  const buttonOf = (m) => ({
-    actionId: m.actionId,
-    label: m.label || m.actionId,
-    disabled: !!m.disabled,
-    chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
-    parameters: m.parameters || {},
+  const buttonOf = (m) => {
     // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
     // route on it): the click goes to that route instead of running actionId on the server, which
-    // has nothing behind it — a YAML hero's "Browse products" did nothing
-    ...(m.route ? { route: m.route } : {}),
-  })
+    // has nothing behind it — a YAML hero's "Browse products" did nothing. Its `${state.x}` are
+    // resolved against the state; one that is missing or blank leaves the button DISABLED
+    // (`/p/${state.id}` with no id is not "/p/"), as on the web (libs/mateu buttonRenderer).
+    const route = m.route ? buttonRouteOf(m.route, state) : null
+    return {
+      actionId: m.actionId,
+      label: m.label || m.actionId,
+      disabled: !!m.disabled || (!!m.route && route == null),
+      chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      parameters: m.parameters || {},
+      ...(route ? { route } : {}),
+    }
+  }
   const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
     .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const STATUS_TEXT = {
@@ -578,7 +595,7 @@ export function islandContentOf(ctx, opts = {}) {
         const raw = state[fieldId] != null ? state[fieldId]
           : fromData(fieldId) != null ? fromData(fieldId) : (m.value != null ? m.value : '')
         const lookupLabel = fromData(fieldId + '-label')
-        const shown = lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw
+        const shown = shownReadOnlyValueOf(m, lookupLabel != null && lookupLabel !== '' ? lookupLabel : raw)
         atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
         return
       }

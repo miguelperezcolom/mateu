@@ -527,3 +527,17 @@ test('crud mediator moves on a phone stack: Back to list pops to the listing; th
   c.stackNavigator = null;
   c.detailOpener = null;
 });
+
+test('a page with no app shell: the REST sources a response names resolve its refs', async () => {
+  const { getRestSource, clearReferencedRestSources, registerRestSources } = await import('./restFetch.ts');
+  registerRestSources([]);
+  clearReferencedRestSources();
+  const { c } = harness([{}]);
+  c.applyIncrement({ restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] });
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], 'https://late.example.com/x');
+  // the App's catalogue still wins a name clash
+  registerRestSources([{ name: 'late', source: { url: '/app' } }]);
+  assert.equal((getRestSource('late')?.['source'] as Json)?.['url'], '/app');
+  registerRestSources([]);
+  clearReferencedRestSources();
+});

@@ -79,6 +79,25 @@ describe('mateu-field', () => {
         expect(root.textContent).toContain('$12.50')
     })
 
+    it('a read-only password is masked and offers no copy', async () => {
+        const secret = 'a-long-secret-value-123'
+        const { root } = await mount({ stereotype: 'password', readOnly: true }, { f: secret })
+        const input = root.querySelector('vaadin-text-field') as HTMLElement & { value?: string }
+        expect(input).not.toBeNull()
+        expect(input.value).toBe('••••••••')
+        expect(root.innerHTML).not.toContain(secret)
+        expect(root.querySelector('vaadin-icon[icon="vaadin:copy"]')).toBeNull()
+    })
+
+    it('a password in a property row or plain text is masked too', async () => {
+        const row = await mount({ stereotype: 'password', propertyRow: true, readOnly: true }, { f: 'hunter2' })
+        expect(row.root.textContent).not.toContain('hunter2')
+        expect(row.root.textContent).toContain('••••••••')
+        document.body.innerHTML = ''
+        const plain = await mount({ stereotype: 'password', readOnly: true, inFoldout: true }, { f: 'hunter2' })
+        expect(plain.root.textContent).not.toContain('hunter2')
+    })
+
     it('a property row shows label and value, and an em dash for no value', async () => {
         const { root } = await mount({ propertyRow: true, readOnly: true, label: 'Status' }, {})
         expect(root.textContent).toContain('Status')

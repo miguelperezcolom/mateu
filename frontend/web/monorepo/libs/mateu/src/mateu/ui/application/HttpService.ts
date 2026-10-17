@@ -1,4 +1,5 @@
 import {AxiosMateuApiClient} from "@infra/http/AxiosMateuApiClient";
+import { addReferencedRestSources } from "@infra/http/restSourceCatalogue.ts";
 import {appData, appState, upstream} from "@domain/state";
 import {runActionCommandHandler} from "@domain/commands/runAction/RunActionCommandHandler";
 import {RunActionCommand} from "@domain/commands/runAction/RunActionCommand";
@@ -14,6 +15,8 @@ import {isStaleResponse} from "@infra/ui/staleViewGuard.ts";
 export class HttpService implements Service {
 
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
+        // first: the components about to render may fetch from the sources they name right away
+        addReferencedRestSources(uiIncrement?.restSources)
 
 
         uiIncrement?.fragments?.forEach(fragment => {
