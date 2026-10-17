@@ -27,7 +27,7 @@ See also: [Renderer contract](/design-systems/renderer-contract/) (what a render
   (unknown fields and types are still tolerated). A response without `wireVersion` is accepted.
 - **Freeze-and-pin is the supported migration stance:** if you build against the wire (an alternate
   renderer, or an extraction), pin the `wireVersion` you targeted; that snapshot is a stable contract.
-- The published JSON Schemas (below) are the machine-readable half; this page is the normative prose
+- The published JSON Schemas ([below](#the-machine-readable-schemas)) are the machine-readable half; this page is the normative prose
   for the parts a schema cannot express (behaviour).
 
 ## The exchange
@@ -66,20 +66,34 @@ The three "effects" a producer can return from an action reduce to this envelope
 (a command), **ui-delta** (fragments), **data** (fragment `data`/`appData`), and **commands**. A
 returned `Step`/`List<Step>` (the flow language) lowers 1:1 to `commands` — it is behaviour, not a view.
 
-## The component model (authoring surface)
+## The machine-readable schemas
 
-Components are a polymorphic family discriminated on `type`. The **normative, machine-readable**
-description is the generated JSON Schema, published at:
+Every schema is **generated from the records and pinned by a test**, and served from the repository
+(raw files on `master` — the URLs editors and the starters point at):
 
-- `https://mateu.io/uidl/uidl-schema.json` — the component catalog.
-- `https://mateu.io/uidl/routes-schema.json` — the route registry (`routes.yaml`).
-- `https://mateu.io/uidl/sources-schema.json` — the REST source catalogue (`sources.yaml`).
-- `https://mateu.io/uidl/specs-schema.json` — the unified `specs/ui/**` schema (a `oneOf` of every kind).
+**The wire** — what a server sends and a renderer reads:
 
-These are **generated from the records and pinned by a test**, so the authored YAML keys *are* the
-record components (no sugar the schema does not describe). Wire-plumbing types
-(`ServerSideComponent`, `ModelViewComponent`, `PageView`) are intentionally excluded from the authoring
-surface.
+- [`wire-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/wire-schema.json)
+  — the response envelope (`UIIncrementDto`) and everything reachable from it: every component
+  metadata type (`type`-discriminated), every trigger, command, message, fragment and option, plus
+  the request body (`RunActionRqDto`). Derived from the `mateu-dtos` records through Jackson's own
+  introspection, so it lists exactly the members that travel. It is **open** (unknown members are
+  allowed — a reader must ignore them) and requires nothing but the `type` discriminator, because a
+  member at its default may be absent (see [Normalisation](#normalisation-what-is-normative-vs-noise)).
+  Its test (`WireSchemaTest`) fails on an added member until the schema is regenerated, and fails on
+  a **removed, renamed or retyped** member *even when regenerating*: that is a breaking change and
+  needs a wire major.
+
+**The authoring surface** — what an author writes in YAML/JSON:
+
+- [`uidl-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json) — the component catalog.
+- [`routes-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json) — the route registry (`routes.yaml`).
+- [`sources-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json) — the REST source catalogue (`sources.yaml`).
+- [`specs-schema.json`](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json) — the unified `specs/ui/**` schema (a `oneOf` of every kind).
+
+The authored YAML keys *are* the record components (no sugar the schema does not describe).
+Wire-plumbing types (`ServerSideComponent`, `ModelViewComponent`, `PageView`) are intentionally
+excluded from the authoring surface — they appear in the wire schema instead.
 
 ## Normalisation (what is normative vs. noise)
 
