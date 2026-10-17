@@ -1,8 +1,10 @@
 package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 
 /** One problem found while validating a CSV data row in the {@link ImportWizard}. */
+@Internal
 public class RowIssue {
 
   @Label("Line")

@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
 import io.mateu.uidl.annotations.FileUpload;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.FieldStereotype;
@@ -14,6 +15,7 @@ import java.util.Base64;
  * read client-side — no upload endpoint) or by pasting it into the textarea. The first non-blank
  * source wins, the file first.
  */
+@Internal
 public class UploadStep implements WizardStep {
 
   @FileUpload(accept = ".csv")

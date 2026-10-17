@@ -514,6 +514,7 @@ public abstract class Wizard
     return position;
   }
 
+  @io.mateu.uidl.annotations.Internal
   public Field currentStepField() {
     return WizardStepInspector.currentStepField(this);
   }

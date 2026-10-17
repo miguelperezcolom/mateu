@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.importwizard;
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.InlineEditing;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,6 +18,7 @@ import java.util.List;
  * assignable field names — supplied via {@link OptionsSupplier}, which the grid inline-editor
  * machinery consults on the form instance.
  */
+@Internal
 public class MappingStep implements WizardStep, OptionsSupplier {
 
   @InlineEditing

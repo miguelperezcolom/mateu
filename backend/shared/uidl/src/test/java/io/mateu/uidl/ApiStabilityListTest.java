@@ -49,12 +49,16 @@ class ApiStabilityListTest {
           Pattern.MULTILINE);
   private static final Pattern EXPERIMENTAL =
       Pattern.compile("@(?:io\\.mateu\\.uidl\\.annotations\\.)?Experimental\\b(\\(\"[^\"]*\"\\))?");
+  private static final Pattern INTERNAL =
+      Pattern.compile("@(?:io\\.mateu\\.uidl\\.annotations\\.)?Internal\\b(\\(\"[^\"]*\"\\))?");
   private static final Pattern PACKAGE =
       Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE);
 
   /**
    * Public only because Java has no module-private: not part of the promise, and excluded from the
-   * japicmp check too (keep in sync with the excludes in shared/uidl/pom.xml).
+   * japicmp check too (keep in sync with the excludes in shared/uidl/pom.xml and core's pom). A
+   * type carrying {@code @Internal} is internal as well — prefer the annotation for new ones: the
+   * japicmp check excludes it without a pom entry.
    */
   static boolean internal(String pkg, String name) {
     var core = "io.mateu.core.infra.declarative.orchestrators";
@@ -81,13 +85,17 @@ class ApiStabilityListTest {
             && (name.equals("IconConverter") || name.equals("RoutedClassProvider")));
   }
 
-  record TypeInfo(String pkg, String name, boolean experimental, boolean deprecated) {
+  record TypeInfo(
+      String pkg, String name, boolean experimental, boolean deprecated, boolean marked) {
     boolean isInternal() {
-      return internal(pkg, name);
+      return marked || internal(pkg, name);
     }
   }
 
-  record Scan(List<TypeInfo> types, Map<String, TreeSet<String>> experimentalMembers) {}
+  record Scan(
+      List<TypeInfo> types,
+      Map<String, TreeSet<String>> experimentalMembers,
+      Map<String, TreeSet<String>> internalMembers) {}
 
   @Test
   void theStabilityPageListsExactlyWhatTheCodeMarks() throws IOException {
@@ -109,6 +117,50 @@ class ApiStabilityListTest {
         .isEqualTo(generated);
   }
 
+  @Test
+  void frameworkPlumbingIsNotFrozenAsStable() throws IOException {
+    var internal = new TreeSet<String>();
+    var members = new TreeMap<String, TreeSet<String>>();
+    for (var root : SURFACE.values()) {
+      var scan = scan(root);
+      scan.types().stream()
+          .filter(TypeInfo::isInternal)
+          .forEach(t -> internal.add(t.pkg() + "." + t.name()));
+      members.putAll(scan.internalMembers());
+    }
+    var core = "io.mateu.core.infra.declarative.orchestrators.";
+    assertThat(internal)
+        .contains(
+            core + "crud.CrudActionResult",
+            core + "crud.CrudFormState",
+            core + "crud.DataLayer",
+            core + "importwizard.CsvParser",
+            core + "importwizard.ColumnMapping",
+            core + "importwizard.RowIssue",
+            core + "importwizard.UploadStep",
+            core + "importwizard.MappingStep",
+            core + "importwizard.ValidationStep",
+            core + "importwizard.ImportResultStep",
+            core + "masterdetail.NoSelection",
+            "io.mateu.uidl.Humanizer",
+            "io.mateu.uidl.interfaces.FilterStateAssembler",
+            "io.mateu.uidl.interfaces.IdSetFilter",
+            "io.mateu.uidl.interfaces.SearchRequestBuilder",
+            "io.mateu.uidl.interfaces.GroupActions",
+            "io.mateu.uidl.interfaces.MateuInstanceFactory")
+        // documented contracts stay stable: the capability tokens, the RouteResolver sentinel and
+        // the StaleEditException a store throws
+        .doesNotContain(
+            "io.mateu.uidl.Capabilities",
+            "io.mateu.uidl.RouteConstants",
+            core + "crud.OptimisticLock");
+    assertThat(members.get("io.mateu.uidl.interfaces.HttpRequest"))
+        .contains("storeRunActionRqDto", "storeGetUIRqDto");
+    assertThat(members.get("io.mateu.uidl.interfaces.Listing"))
+        .contains("handleActionOnRow", "getCrudId");
+    assertThat(members.get(core + "wizard.Wizard")).contains("currentStepField");
+  }
+
   static String render() throws IOException {
     var out = new StringBuilder("\n");
     out.append(
@@ -119,6 +171,7 @@ class ApiStabilityListTest {
     long[] totals = new long[5];
     var allExperimental = new TreeMap<String, TreeSet<String>>();
     var allMembers = new TreeMap<String, TreeSet<String>>();
+    var allInternalMembers = new TreeMap<String, TreeSet<String>>();
     for (var module : new TreeSet<>(SURFACE.keySet())) {
       var scan = scan(SURFACE.get(module));
       var byPkg = new TreeMap<String, List<TypeInfo>>();
@@ -162,6 +215,8 @@ class ApiStabilityListTest {
       }
       scan.experimentalMembers()
           .forEach((k, v) -> allMembers.computeIfAbsent(k, x -> new TreeSet<>()).addAll(v));
+      scan.internalMembers()
+          .forEach((k, v) -> allInternalMembers.computeIfAbsent(k, x -> new TreeSet<>()).addAll(v));
     }
     out.append("| **Total** | | **")
         .append(totals[0])
@@ -186,12 +241,21 @@ class ApiStabilityListTest {
       out.append(String.join(", ", entry.getValue().stream().map(n -> "`" + n + "`").toList()));
       out.append("\n");
     }
+    out.append(
+        "\n**Internal members** of otherwise stable types (`@Internal`: framework plumbing,"
+            + " outside the promise — do not call or override them):\n\n");
+    for (var entry : allInternalMembers.entrySet()) {
+      out.append("- `").append(entry.getKey()).append("`: ");
+      out.append(String.join(", ", entry.getValue().stream().map(n -> "`" + n + "`").toList()));
+      out.append("\n");
+    }
     return out.append("\n").toString();
   }
 
   static Scan scan(Path root) throws IOException {
     var types = new ArrayList<TypeInfo>();
     var members = new TreeMap<String, TreeSet<String>>();
+    var internalMembers = new TreeMap<String, TreeSet<String>>();
     try (Stream<Path> files = Files.walk(root)) {
       for (Path file : files.filter(p -> p.toString().endsWith(".java")).sorted().toList()) {
         var source = Files.readString(file);
@@ -203,7 +267,11 @@ class ApiStabilityListTest {
         var typeName = decl.group(2);
         types.add(
             new TypeInfo(
-                pkg, typeName, EXPERIMENTAL.matcher(head).find(), head.contains("@Deprecated")));
+                pkg,
+                typeName,
+                EXPERIMENTAL.matcher(head).find(),
+                head.contains("@Deprecated"),
+                INTERNAL.matcher(head).find()));
         // members: every @Experimental after the type declaration
         var body = source.substring(decl.start());
         Matcher m = EXPERIMENTAL.matcher(body);
@@ -214,9 +282,17 @@ class ApiStabilityListTest {
             members.computeIfAbsent(pkg + "." + typeName, k -> new TreeSet<>()).add(member);
           }
         }
+        Matcher im = INTERNAL.matcher(body);
+        while (im.find()) {
+          if (inAComment(body, im.start())) continue;
+          var member = memberNameAfter(body, im.end());
+          if (member != null) {
+            internalMembers.computeIfAbsent(pkg + "." + typeName, k -> new TreeSet<>()).add(member);
+          }
+        }
       }
     }
-    return new Scan(types, members);
+    return new Scan(types, members, internalMembers);
   }
 
   /** The name of the member an annotation at {@code from} sits on. */

@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.State;
@@ -11,6 +12,7 @@ import java.util.List;
  * Carries the mutable state that flows through CRUD action handling: the (possibly redirected)
  * route and the id of the entity that was saved.
  */
+@Internal
 public record CrudActionResult(
     String route,
     Object savedId,

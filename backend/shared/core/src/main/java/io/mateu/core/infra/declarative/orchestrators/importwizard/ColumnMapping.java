@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ReadOnly;
 
@@ -8,6 +9,7 @@ import io.mateu.uidl.annotations.ReadOnly;
  * and the target row-class field it pours into ({@code targetField} is the only editable cell — an
  * inline select whose options are the row class's assignable field names; blank = skip the column).
  */
+@Internal
 public class ColumnMapping {
 
   @ReadOnly

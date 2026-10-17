@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.data.DateRange;
 import io.mateu.uidl.data.NumberRange;
 import java.lang.reflect.Field;
@@ -23,6 +24,7 @@ import java.util.Set;
  * NumberRange}/{@code Set} instances (which type coercion passes through untouched), so {@code
  * search(...)} receives the Filters object fully hydrated. Fields of other types are left alone.
  */
+@Internal
 public final class FilterStateAssembler {
 
   public static Map<String, Object> assemble(Class<?> filtersClass, Map<String, Object> state) {
