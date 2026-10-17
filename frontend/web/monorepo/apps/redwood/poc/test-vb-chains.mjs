@@ -79,7 +79,36 @@ const modules = {
   'vb/action/actionChain': class ActionChain {},
 }
 const amd = (file) => { new Function('define', readFileSync(file, 'utf8'))(define); return loaded }
-const bridge = amd(join(webApp, 'resources', 'js', 'mateu-bridge.js'))
+
+// Two bridges, the same API. By default the bridge is ASSEMBLED FROM poc/ — every module make-amd
+// concatenates, imported as ES modules, and make-amd's own wiring + return object evaluated over
+// them (read off make-amd.mjs, so there is one copy of it) — which is what makes the chains count
+// for the core's coverage. `--generated` runs the same tests against the committed AMD bundle the
+// VB app ships (npm test runs both).
+const GENERATED = process.argv.includes('--generated')
+async function sourceBridge() {
+  const makeAmd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
+  const list = makeAmd.slice(makeAmd.indexOf('export const MODULES = ['), makeAmd.indexOf(']', makeAmd.indexOf('export const MODULES = [')))
+  const files = ['reduceContexts.mjs', ...[...list.matchAll(/'([\w-]+\.mjs)'/g)].map((m) => m[1])]
+  const scope = {}
+  for (const f of files) Object.assign(scope, await import('./' + f))
+  // the wiring after the concatenated body and the API object, exactly as make-amd emits them
+  const lines = makeAmd.split('\n')
+  const from = lines.findIndex((l) => l.includes('${body.replace')) + 1
+  const to = lines.findIndex((l, i) => i > from && l === '});')
+  const wiring = lines.slice(from, to).join('\n')
+  Object.assign(scope, {
+    require: modules.require, ArrayDataProvider: FakeADP, NumberConverter: modules['ojs/ojconverter-number'],
+    ArrayTreeDataProvider: FakeADP, FlattenedTreeDataProviderView: modules['ojs/ojflattenedtreedataproviderview'],
+    RowDataGridProvider: modules['ojs/ojrowdatagridprovider'], KeySet: modules['ojs/ojkeyset'],
+  })
+  // sloppy-mode Function so `with` resolves the module names; the wiring itself is strict-safe
+  const api = new Function('scope', 'with (scope) { return (() => {\n' + wiring + '\n})() }')(scope)
+  const missing = Object.entries(api).filter(([, v]) => v === undefined).map(([k]) => k)
+  if (missing.length) throw new Error('bridge names with no poc/ export: ' + missing.join(', '))
+  return api
+}
+const bridge = GENERATED ? amd(join(webApp, 'resources', 'js', 'mateu-bridge.js')) : await sourceBridge()
 modules['resources/js/mateu-bridge'] = bridge
 
 /** VB's Actions, recorded. callChain runs the chains this harness loaded (the rest are recorded). */
@@ -153,6 +182,18 @@ const page = (id, sst, title, children = [], extra = {}) => ({
 })
 const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t, container: 'p' } })
 const replace = (component, state = {}, target = '') => ({ commands: [], messages: [], fragments: [{ targetComponentId: target, action: 'Replace', component, state, data: null }] })
+
+test('the bridge assembled from poc/ has exactly the API of the AMD bundle the app ships', async () => {
+  const other = GENERATED ? await sourceBridge() : amd(join(webApp, 'resources', 'js', 'mateu-bridge.js'))
+  assert.deepEqual(Object.keys(bridge).sort(), Object.keys(other).sort())
+  // and every bridge.X the four chains call is in it
+  for (const rel of ['pages/shell-page-chains/loadMateuShell.js', 'pages/shell-page-chains/onMateuNavigate.js',
+    'flows/main/pages/main-start-page-chains/runMateuAction.js', 'flows/main/pages/main-start-page-chains/runMateuIslandAction.js']) {
+    for (const [, name] of readFileSync(join(webApp, rel), 'utf8').matchAll(/bridge\.([A-Za-z_$][\w$]*)/g)) {
+      assert.ok(name in bridge, rel + ' calls bridge.' + name + ', which the bridge does not have')
+    }
+  }
+})
 
 /** A booted shell (app.json + its first leaf): the transport hooks the shell installs (busy bar,
  *  error band) write to THIS context's variables — what an error band test needs. */
