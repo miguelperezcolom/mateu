@@ -58,7 +58,7 @@ Body: {
 | `wireVersion` | Wire protocol version this payload conforms to (e.g. `"3.0"`). Always present. |
 | `commands` | Client commands to run (`SetWindowTitle`, `navigateTo`, `PushStateToHistory`, `CloseModal`, `DispatchEvent`, `MarkAsClean`/`MarkAsDirty`, …). |
 | `messages` | Toasts / alerts (may be `undoable`). |
-| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`. |
+| `fragments` | Partial UI updates (`UIFragmentDto`: `targetComponentId`, `action` = `Replace`/`Add`/`ReplaceKeepData`, `component`, `state`, `data`). Overlays (dialog/drawer) arrive as `Add`; a state-only refresh arrives as `ReplaceKeepData`, which keeps the component's existing state and data instead of wiping them. |
 | `banners` + `appendBanners` | Page banners; append vs replace. |
 | `appData` / `appState` | App-level data / merged app state. |
 
@@ -69,12 +69,14 @@ returned `Step`/`List<Step>` (the flow language) lowers 1:1 to `commands` — it
 ## The component model (authoring surface)
 
 Components are a polymorphic family discriminated on `type`. The **normative, machine-readable**
-description is the generated JSON Schema, published at:
+description is the generated JSON Schema, published as raw files on the repository's `master`
+branch (`https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/<file>`,
+the URLs the starters' `$schema:` lines use):
 
-- `https://mateu.io/uidl/uidl-schema.json` — the component catalog.
-- `https://mateu.io/uidl/routes-schema.json` — the route registry (`routes.yaml`).
-- `https://mateu.io/uidl/sources-schema.json` — the REST source catalogue (`sources.yaml`).
-- `https://mateu.io/uidl/specs-schema.json` — the unified `specs/ui/**` schema (a `oneOf` of every kind).
+- `uidl-schema.json` — the component catalog.
+- `routes-schema.json` — the route registry (`routes.yaml`).
+- `sources-schema.json` — the REST source catalogue (`sources.yaml`).
+- `specs-schema.json` — the unified `specs/ui/**` schema (a `oneOf` of every kind).
 
 These are **generated from the records and pinned by a test**, so the authored YAML keys *are* the
 record components (no sugar the schema does not describe). Wire-plumbing types
@@ -192,15 +194,15 @@ are shared by every renderer.
 | `messages[]`, `commands[]` | `UIIncrementDto.messages`; and non-`SetWindowTitle` `commands` (e.g. `navigateTo`) surfaced so the agent sees navigation/effects. |
 
 **The request mapping** — a tool call becomes a sync request (see [The exchange](#the-exchange)):
-- `describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
+- `mateu_describe_screen(route)` → load: `actionId: ""`. When the answer is an **app shell** (an `App`
   component aimed at the route), the host follows it to the content it loads — `homeRoute` /
   `homeConsumedRoute` / `homeServerSideType`, the request the shell's own content area sends — and
-  again through a CRUD mediator, so the agent is given the screen, not the shell. `run_action` and
-  `search` are sent where that screen lives (its route, consumed route and `serverSideType`).
-- `list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
+  again through a CRUD mediator, so the agent is given the screen, not the shell. `mateu_run_action` and
+  `mateu_search` are sent where that screen lives (its route, consumed route and `serverSideType`).
+- `mateu_list_routes()` → the routes of the root answer's `App` menu (each option's `route`, captioned by its
   `label`).
-- `run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
-- `search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
+- `mateu_run_action(route, actionId, componentState)` → the action; `componentState` seeds/overrides fields.
+- `mateu_search(route, searchText, filters)` → the `search` action; `filters` and the `searchText` travel in the
   `componentState`, where the listing reads them (as the search box writes them).
 
 **Two transport gotchas** (verified against a live backend, both belong to the contract):

@@ -472,7 +472,11 @@ Users users;
 ```
 
 Use it for authorization. It gates **menu entries** and, on a **form field**, hides the field
-when the current user is not authorized. Identity is read from the JWT Bearer token.
+when the current user is not authorized. Mateu does not authenticate: the identity is the one your
+host framework authenticated (Spring Security, Quarkus, Micronaut, JAX-RS), or what a
+`PrincipalResolver` bean of yours returns — never a Bearer token's payload, which Mateu does not
+decode. No identity → every restricted element is denied. See
+[How authorization works](/java-user-manual/advanced/security/#how-authorization-works).
 
 ### Supported scopes
 
