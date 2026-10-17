@@ -1,7 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import '@components/mateu-signature-pad.ts';
 import './mateu-vaadin-tree-select';
-import '@components/mateu-camera-capture.ts';
 import '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import '@components/mateu-markup-editor.ts';
@@ -32,9 +30,8 @@ import "@infra/ui/mateu-rich-text-editor"
 import "@vaadin/email-field"
 import "@vaadin/upload"
 import "@vaadin/list-box"
-import "@vaadin/markdown"
 import '@vaadin/item'
-import "@vaadin-component-factory/vcf-date-range-picker"
+import './lazyFieldElements'
 import { mateuFieldStyles } from './mateu-field.styles'
 import { renderStringField } from './string'
 import { renderReadOnlyMarkupField, renderBadgeField, renderPropertyRowField, renderBulletedListField, renderPlainTextField, renderFoldoutReadOnlyField, renderReadOnlyField } from './readOnly'

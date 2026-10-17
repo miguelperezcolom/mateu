@@ -1,12 +1,14 @@
 import { html, nothing, TemplateResult } from 'lit'
 import { safeHtml } from '@infra/ui/safeHtml.ts'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
+import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from '../mateu-field'
 
 /** Editable markdown / html: the source with a rendered preview. */
 
 export function renderMarkdownField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
+    requireElement('vaadin-markdown')
     // editable: the source with a rendered preview (the read-only field renders it)
     return html`
         <vaadin-custom-field

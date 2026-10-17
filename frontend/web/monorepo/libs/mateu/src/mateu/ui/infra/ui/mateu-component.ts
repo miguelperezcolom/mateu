@@ -17,7 +17,6 @@ import './mateu-event-interceptor'
 import './mateu-dialog'
 import './mateu-drawer'
 import './mateu-page'
-import './mateu-chat'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";
@@ -30,8 +29,6 @@ import {renderCrud} from "@infra/ui/renderers/crudRenderer.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
 import './mateu-bpmn'
-import './mateu-workflow'
-import './mateu-form-editor'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'
 import { resolveComponentState } from './common'

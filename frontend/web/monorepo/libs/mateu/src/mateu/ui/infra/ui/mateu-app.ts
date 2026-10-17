@@ -31,7 +31,7 @@ import { linkStyles } from "@infra/ui/linkStyles.ts";
 export type MenuBarItem = { text?: string; route?: string; checked?: boolean; disabled?: boolean; className?: string; component?: unknown; children?: MenuBarItem[]; [key: string]: unknown }
 type MenuBarItemSelectedEvent = CustomEvent<{ value: MenuBarItem }>
 type AppLayout = HTMLElement & { drawerOpened?: boolean }
-import {MateuChat} from "@infra/ui/mateu-chat.ts";
+import type {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import { searchGlobally } from "@infra/ui/appSources.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'

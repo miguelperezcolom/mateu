@@ -182,3 +182,11 @@ describe('every field render function draws nothing without a field', () => {
         expect(writeText).toHaveBeenCalledWith('abc')
     })
 })
+
+describe('the Vaadin field elements load on first use', () => {
+    it('vaadin-markdown and vcf-date-range-picker are registered as lazy elements', async () => {
+        await import('../lazyFieldElements')
+        const { lazyElementTags } = await import('@infra/ui/lazyElements.ts')
+        expect(lazyElementTags()).toEqual(expect.arrayContaining(['vaadin-markdown', 'vcf-date-range-picker']))
+    })
+})

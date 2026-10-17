@@ -6,6 +6,7 @@ import { Notification } from '@vaadin/notification'
 import { evalIfNecessary } from '@infra/ui/renderers/avatarRenderer.ts'
 import { displayedValue } from './fieldDisplay'
 import type { FieldLabel, FieldValue } from './fieldEvents'
+import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from './mateu-field'
 
 /** Read-only presentations: plain text, property rows, badges, bulleted lists, rendered markup, the read-only input. */
@@ -14,6 +15,7 @@ import type { MateuField } from './mateu-field'
 export function renderReadOnlyMarkupField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     const source = '' + (evalIfNecessary(value, host.state, host.data) ?? '')
+    if (host.field.stereotype == 'markdown') requireElement('vaadin-markdown')
     return html`<vaadin-custom-field
             id="${host.field.fieldId}"
             label="${label}"

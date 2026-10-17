@@ -1,12 +1,14 @@
 import { fieldAttribute } from '@components/mateu-file-upload.ts'
 import { html, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
+import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from '../mateu-field'
 
 /** Capture fields: signature pad, camera, generic file upload (values are data URIs). */
 
 export function renderSignatureField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
+    requireElement('mateu-signature-pad')
     return html`
         <vaadin-custom-field
                 id="${host.field.fieldId}"
@@ -21,6 +23,7 @@ export function renderSignatureField(host: MateuField, value: FieldValue, label:
 
 export function renderCameraField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
+    requireElement('mateu-camera-capture')
     return html`
         <vaadin-custom-field
                 id="${host.field.fieldId}"

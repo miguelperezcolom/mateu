@@ -1,11 +1,13 @@
 import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from './fieldEvents'
+import { requireElement } from '@infra/ui/lazyElements.ts'
 import type { MateuField } from './mateu-field'
 
 /** Dates and times: dateRange, date, dateTime, time. */
 
 export function renderDateRangeField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
+    requireElement('vcf-date-range-picker')
         const drValue = value?value.from + ';' + value.to:undefined;
         return html`<vcf-date-range-picker
                 id="${host.field.fieldId}"
