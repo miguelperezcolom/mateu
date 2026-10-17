@@ -17,14 +17,20 @@ import { test, expect } from '@playwright/test';
  * neither element, so on the `renderer-vb` project those checks are skipped — what the page SHOWS
  * (the content assertions) still runs.
  */
-const usesSharedWebLayout = () => test.info().project.name !== 'renderer-vb';
+// Detected in the DOM, not by the project's name: a page laid out by libs/mateu has a `mateu-ux`
+// element (the Redwood page injects a hidden `mateu-ui` and never a `mateu-ux`), so the same spec
+// holds whatever the Playwright project pointing at a VB renderer is called.
+const usesSharedWebLayout = async (page: import('@playwright/test').Page) =>
+  (await page.locator('mateu-ux').count()) > 0;
 const SHARED_LAYOUT_ONLY = 'asserts libs/mateu layout DOM (mateu-ux / .mateu-responsive-grid); VB lays out with oj-flex';
 
 test.describe('layout sizing (fill / hug)', () => {
 
   test('the content ux is a flex column — the viewport-height flex chain', async ({ page }) => {
-    test.skip(!usesSharedWebLayout(), SHARED_LAYOUT_ONLY);
     await page.goto('/full-crud');
+    // the page painted something, whatever the renderer
+    await expect(page.getByText('Task Alpha').first()).toBeVisible({ timeout: 15000 });
+    test.skip(!(await usesSharedWebLayout(page)), SHARED_LAYOUT_ONLY);
     // The listing paints (a grid with rows / the crud surface is present).
     await expect(page.locator('mateu-ux').first()).toBeAttached({ timeout: 15000 });
 
@@ -69,7 +75,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await expect(page.getByText('Revenue')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Occupancy')).toBeVisible();
     await expect(page.getByText('Notes')).toBeVisible();
-    if (!usesSharedWebLayout()) return;
+    if (!(await usesSharedWebLayout(page))) return;
     // The dashboard is now a ResponsiveGrid (display:grid), not the bespoke DashboardLayout.
     const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
       const cs = getComputedStyle(el as HTMLElement);
@@ -84,7 +90,7 @@ test.describe('layout sizing (fill / hug)', () => {
     // both zones paint, whatever the renderer
     await expect(page.getByText('Left Data')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Right Data')).toBeVisible();
-    if (!usesSharedWebLayout()) return;
+    if (!(await usesSharedWebLayout(page))) return;
     await expect(page.locator('mateu-ux').first()).toBeAttached({ timeout: 15000 });
     await page.waitForTimeout(1000);
     // The zoned row is now a ResponsiveGrid (display:grid), not a flex row.
@@ -102,7 +108,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await expect(page.getByText('Header slot')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Sidebar slot')).toBeVisible();
     await expect(page.getByText('Main slot')).toBeVisible();
-    if (!usesSharedWebLayout()) return;
+    if (!(await usesSharedWebLayout(page))) return;
     // The grid declares named areas, and each component is placed into its area by its slot.
     const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
       const cs = getComputedStyle(el as HTMLElement);
@@ -120,7 +126,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await page.goto('/collection-detail');
     await expect(page.getByText('Riu Palace')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
-    if (usesSharedWebLayout()) {
+    if (await usesSharedWebLayout(page)) {
     // The archetype's layout is now a ResponsiveGrid (display:grid) with named areas, not the
     // bespoke ContentLayout — a "list detail" template with two resolved tracks.
     const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
@@ -144,7 +150,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await page.goto('/item-overview');
     await expect(page.getByText('Aeron chair — key info summary')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
-    if (usesSharedWebLayout()) {
+    if (await usesSharedWebLayout(page)) {
     // The archetype is now a ResponsiveGrid template (display:grid) with two tracks and a sticky
     // key-info area — not the bespoke sticky HorizontalLayout/ContentLayout.
     const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
@@ -172,7 +178,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await page.waitForTimeout(1000);
     // VB lays the template out with its own oj-flex columns (the form beside its aside): the CSS-grid
     // geometry below is the web layout's; the content checks hold on both
-    if (!usesSharedWebLayout()) {
+    if (!(await usesSharedWebLayout(page))) {
       await expect(page.getByText('Call the front desk at ext. 100.')).toBeVisible();
       await expect(page.getByLabel('First Name')).toBeVisible();
       return;
@@ -199,7 +205,7 @@ test.describe('layout sizing (fill / hug)', () => {
   test('a ResponsiveGrid paints a CSS grid with the resolved column tracks (#9)', async ({ page }) => {
     await page.goto('/responsive-grid');
     await expect(page.getByText('fixed 15rem column')).toBeVisible({ timeout: 15000 });
-    if (!usesSharedWebLayout()) return;
+    if (!(await usesSharedWebLayout(page))) return;
     // The grid element paints display:grid with the tracks resolved from hug/fill/fixed intent.
     const grid = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {
       const cs = getComputedStyle(el as HTMLElement);
