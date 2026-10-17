@@ -66,6 +66,20 @@ class CrudMethodsSyncTest {
       ran = "purged";
     }
 
+    // the column the listing would show: naming the method in the view's own code advertises it
+    static final io.mateu.uidl.data.ColumnAction PAUSE =
+        new io.mateu.uidl.data.ColumnAction("pauseOne", "Pause");
+
+    public Object pauseOne(Job row, HttpRequest httpRequest) {
+      ran = "paused:" + row.id();
+      return null;
+    }
+
+    public Object unnamed(Job row, HttpRequest httpRequest) {
+      ran = "unnamed:" + row.id();
+      return null;
+    }
+
     @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     Object retry(Job row, HttpRequest httpRequest) {
       ran = "retried:" + row.id();
@@ -182,5 +196,23 @@ class CrudMethodsSyncTest {
   void rowMethodsReceiveTheClickedRow() {
     run("action-on-row-retry", Map.of("_clickedRow", Map.of("id", "j1", "name", "Backup")));
     assertThat(JobsCrud.ran).isEqualTo("retried:j1");
+  }
+
+  /** Strict mode (M-S1): a row method a ColumnAction of the view names runs; an unnamed one not. */
+  @Test
+  void aRowMethodTheViewNamesRunsAndAnUnnamedOneIsRefused() {
+    run("action-on-row-pauseOne", Map.of("_clickedRow", Map.of("id", "j1", "name", "Backup")));
+    assertThat(JobsCrud.ran).isEqualTo("paused:j1");
+    JobsCrud.ran = null;
+    org.assertj.core.api.Assertions.assertThatThrownBy(
+            () ->
+                run(
+                    "action-on-row-unnamed",
+                    Map.of("_clickedRow", Map.of("id", "j1", "name", "Backup"))))
+        .satisfies(
+            e ->
+                assertThat(io.mateu.core.application.security.MateuForbiddenException.find(e))
+                    .isNotNull());
+    assertThat(JobsCrud.ran).isNull();
   }
 }

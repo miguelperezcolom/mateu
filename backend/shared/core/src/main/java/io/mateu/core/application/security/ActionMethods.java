@@ -141,6 +141,25 @@ public final class ActionMethods {
   }
 
   /**
+   * Whether {@code method} may run on {@code instance} for this request: an action by itself
+   * ({@link #isInvocable(Method, Class)}), or — strict mode — a method the conventions recognise
+   * whose name the view advertises (a {@code ColumnAction("approve")} written in its code, a
+   * component naming it…). The row and view-action runners ask this.
+   */
+  public static boolean isInvocable(Method method, Object instance, HttpRequest httpRequest) {
+    if (instance == null) {
+      return isInvocable(method, (Class<?>) null);
+    }
+    var type = instance.getClass();
+    return isInvocable(method, type)
+        || (isStrict()
+            && isEligible(method)
+            && isConventional(method, type)
+            && io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions.advertises(
+                instance, httpRequest, method.getName()));
+  }
+
+  /**
    * Whether {@code method} may HANDLE an action id the view advertises: an action by marker, or a
    * method the conventions recognise (a public, non-plumbing method of the view model, or a row
    * method). Whatever the strict setting — this is what a component referencing an id is matched
@@ -218,7 +237,7 @@ public final class ActionMethods {
   public static Method findInvocable(Class<?> instanceClass, String name) {
     var method = invocableNamed(instanceClass, name);
     if (method == null && namesAMethod(instanceClass, name)) {
-      throw refused(instanceClass, name, "not an action");
+      throw notAnAction(instanceClass, name);
     }
     return method;
   }
@@ -356,7 +375,7 @@ public final class ActionMethods {
       method = declaredByAdapter(instance, name, httpRequest);
     }
     if (method == null && namesAMethod(instance.getClass(), name)) {
-      throw refused(instance.getClass(), name, "not an action");
+      throw notAnAction(instance.getClass(), name);
     }
     if (method != null) {
       checkAccess(method, instance.getClass(), httpRequest);
@@ -404,6 +423,19 @@ public final class ActionMethods {
    */
   public static MateuForbiddenException noSuchAction(Class<?> instanceClass, String name) {
     return refused(instanceClass, name, "no such action");
+  }
+
+  /**
+   * The refusal of a method that exists but is not an action — logged at WARN with the strict-mode
+   * hint, since since 3.0-alpha.426 that is the usual reason a button that used to work stops.
+   */
+  public static MateuForbiddenException notAnAction(Class<?> instanceClass, String name) {
+    return refused(
+        instanceClass,
+        name,
+        isStrict()
+            ? "not an action: mark it @Action (strict action mode, mateu.actions.strict)"
+            : "not an action");
   }
 
   static MateuForbiddenException refused(Class<?> instanceClass, String name, String reason) {
