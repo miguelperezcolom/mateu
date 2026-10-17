@@ -33,11 +33,11 @@ final class MenuEntryMapper {
 
   static Actionable mapToMenu(
       String appRoute, Method method, Object instance, String route, HttpRequest httpRequest) {
-    if ("/".equals(appRoute)) {
-      appRoute = "";
-    }
+    // The path is RELATIVE to the app, like a field entry's ("/" + name): the menu builder prepends
+    // the app's route to every path (AppMenuDtoBuilder.getPath), so carrying it here as well
+    // doubled the mount on a non-root app (/x/x/m) and the entry answered "Page not found".
     return new MethodLink(
-        appRoute + "/" + method.getName(), getLabel(method), instance.getClass(), method.getName());
+        "/" + method.getName(), getLabel(method), instance.getClass(), method.getName());
   }
 
   static Actionable mapToMenu(
