@@ -40,11 +40,12 @@
     <maven.deploy.skip>true</maven.deploy.skip>
     <mateu.japicmp.skip>true</mateu.japicmp.skip>
     <skipTests>false</skipTests>
-    <!-- Floors over ALL suites, just under the value measured when they were set (ratchet up). -->
-    <coverage.uidl.lines>0.84</coverage.uidl.lines>
-    <coverage.uidl.branches>0.69</coverage.uidl.branches>
-    <coverage.dtos.lines>0.78</coverage.dtos.lines>
-    <coverage.dtos.branches>0.57</coverage.dtos.branches>
+    <!-- Floors over ALL suites, at the value measured when last raised (2026-10): uidl 87.6% lines /
+         73.0% branches, dtos 84.5% / 87.4%. Ratchet up. -->
+    <coverage.uidl.lines>0.87</coverage.uidl.lines>
+    <coverage.uidl.branches>0.73</coverage.uidl.branches>
+    <coverage.dtos.lines>0.84</coverage.dtos.lines>
+    <coverage.dtos.branches>0.87</coverage.dtos.branches>
   </properties>
 
   <!-- Every module whose tests produce execution data: they order this module last in the reactor
