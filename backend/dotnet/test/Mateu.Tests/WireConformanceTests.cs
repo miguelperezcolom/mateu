@@ -114,7 +114,10 @@ public class WireConformanceTests
     /// <c>actions</c> (Java lets New/View/Delete bubble to its mediator, .NET answers them in place)
     /// and the mediator's private routing state (<c>initialData</c>/<c>state</c>). Mirrors Java's
     /// <c>MEDIATED</c> and Python's.</summary>
-    private static readonly HashSet<string> Mediated = ["crud", "crud-grouped", "listing-navigable"];
+    /// <para>The wizard is the same story: Java's is a mediator too (a <c>*</c> catch-all, its
+    /// position in its own state), .NET lists next/back/skip/the completion and keeps
+    /// <c>__step</c> — so its actions and state stay out as well.</para>
+    private static readonly HashSet<string> Mediated = ["crud", "crud-grouped", "listing-navigable", "wizard"];
 
     /// <summary>Drops the mediator protocol of a mediated case — identical in the three runners.</summary>
     private static JsonNode WithoutMediatorProtocol(JsonNode increment)
@@ -179,6 +182,9 @@ public class WireConformanceTests
         { "card-menu", typeof(CardMenuApp) },
         { "app-extras", typeof(ExtrasApp) },
         { "welcome-banner", typeof(WelcomeBannerPage) },
+        { "crud-search", typeof(ProductsCrud) },
+        { "wizard", typeof(Wire.SignUpWizard) },
+        { "rest-source", typeof(Wire.RestSourceForm) },
     };
 
     [Fact]
