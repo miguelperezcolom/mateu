@@ -194,7 +194,7 @@ def list_routes_from(increment):
             if isinstance(md, dict) and md.get("type") == "App":
                 _walk_menu(md.get("menu"), routes)
             route = node.get("route")
-            if isinstance(route, str) and route:
+            if isinstance(route, str) and route and not _is_folder(node):
                 r = normalize_route(route)
                 routes.setdefault(r, node.get("caption") or node.get("label") or (r or "Home"))
             for v in node.values():
@@ -209,6 +209,11 @@ def list_routes_from(increment):
     return [{"route": r, "caption": c} for r, c in routes.items()]
 
 
+def _is_folder(item: dict) -> bool:
+    submenus = item.get("submenus")
+    return isinstance(submenus, list) and len(submenus) > 0
+
+
 def _walk_menu(menu, out):
     if not isinstance(menu, list):
         return
@@ -216,7 +221,9 @@ def _walk_menu(menu, out):
         if not isinstance(item, dict):
             continue
         raw = item.get("route", item.get("path"))
-        if isinstance(raw, str) and raw:
+        # a folder (an entry holding submenus) is not a place to go: its "/" path would otherwise
+        # be reported as the home, under the folder's caption
+        if isinstance(raw, str) and raw and not _is_folder(item):
             r = normalize_route(raw)
             out.setdefault(r, item.get("caption") or item.get("label") or (r or "Home"))
         _walk_menu(item.get("submenus"), out)
@@ -271,7 +278,14 @@ def dispatch_tool(name, args, sync_fn):
     if name == "mateu_search":
         text = args.get("searchText", "")
         params = {"searchText": text} if text else {}
-        return project_increment(sync_fn(normalize_route(args.get("route", "")), "search", args.get("filters"), params))
+        # A listing reads its search text from the component state (where its search box binds
+        # it), like the filters; the parameter copy is what a lookup's search reads.
+        state = dict(args.get("filters") or {})
+        if text:
+            state["searchText"] = text
+        return project_increment(
+            sync_fn(normalize_route(args.get("route", "")), "search", state or None, params)
+        )
     raise ValueError(f"Unknown tool: {name}")
 
 

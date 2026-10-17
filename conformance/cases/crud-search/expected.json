@@ -1,0 +1,21 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "data" : {
+      "crud" : {
+        "page" : {
+          "content" : [ {
+            "_rowNumber" : 2,
+            "name" : "Milk frother",
+            "price" : 39.9,
+            "status" : "OutOfStock"
+          } ],
+          "pageNumber" : 1,
+          "pageSize" : 2,
+          "totalElements" : 3
+        }
+      }
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -71,6 +71,10 @@ sources:
         - {id: 1, customer: Acme, status: OPEN, total: 120.5}
         - {id: 2, customer: Globex, status: SHIPPED, total: 80}
       meta: {total: 2}
+  # the write endpoint: by ref, the METHOD is the entry's (a surface's default does not override it)
+  - name: create-order
+    source: {url: "http://127.0.0.1:1/orders", method: POST, proxy: true}
+    sample: {id: 3}
   - name: customers
     source: {url: "http://127.0.0.1:1/customers", proxy: true}
     sampleFile: fixtures/customers.json
@@ -110,7 +114,7 @@ class Sampled:
         pass
 
     @button("Create")
-    @rest_action(source="orders", method="POST", proxy=True, body='{"customer":"${state.customer}"}')
+    @rest_action(source="create-order", proxy=True, body='{"customer":"${state.customer}"}')
     def create(self):
         pass
 

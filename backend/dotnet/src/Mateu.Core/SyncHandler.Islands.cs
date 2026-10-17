@@ -84,7 +84,8 @@ public sealed partial class SyncHandler
     private static object? Unwrap(JsonElement el) => el.ValueKind switch
     {
         JsonValueKind.String => el.GetString(),
-        JsonValueKind.Number => el.TryGetInt64(out var l) ? l : el.GetDouble(),
+        // (object) on both arms: a bare ?: would widen the long to double, so 12 reached the adapter as 12.0
+        JsonValueKind.Number => el.TryGetInt64(out var l) ? (object)l : el.GetDouble(),
         JsonValueKind.True => true,
         JsonValueKind.False => false,
         JsonValueKind.Null or JsonValueKind.Undefined => null,

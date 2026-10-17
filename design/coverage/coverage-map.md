@@ -35,8 +35,9 @@ How it was measured (reproducible):
 | Java `mateu-bundle-maven-plugin` | 29 | **90.1%** | 75.4% | 90% / 75% branches | — |
 | Java 5 framework annotation processors | 0 | not measurable (run in javac) | | none | — |
 | Java `mateu-archetype` | archetype IT | n/a (Groovy post-generate) | | IT pass/fail | — |
-| .NET (net8.0) | 708 | **94.0%** | 79.5% | per package lines: Uidl 92 / Core 92 / Dtos 97 / AspNetCore 95 | — |
-| Python | 783 | **93.8%** | 83.9% | 90% *combined* lines+branches (now 92%) | — |
+| .NET (net8.0) | 898 (S4, 2026-10-17; was 801) | **97.0%** (was 94.3) | 85.3% (was 80.3) | per package lines Uidl 98 / Core 96 / Dtos 99 / AspNetCore 98 + **branches** Uidl 90 / Core 84 / Dtos 95 / AspNetCore 84 (measured Uidl 98.9/90.7, Core 96.2/84.8, Dtos 99.8/100, AspNetCore 98.2/84.9) | — |
+| Python | 955 (S4, 2026-10-17; was 866) | **95.4%** (was 94.1) | **88.1%** (was 84.8) | separate gates lines **95** / branches **87** (`[tool.mateu.coverage]`, one point under the branch measure: arcs vary across 3.11–3.13) + combined `fail_under` 93 | — |
+| Conformance corpus | 39 cases (S4: + `crud-search`, `wizard`, `rest-source`) | — | — | exact match in Java, .NET and Python, empty allow-lists | — |
 | `libs/mateu` | 1433 | 65.8% | 51.8% | 64 L / 63 S / 51 F / 50 B | 14.2 |
 | `apps/vaadin` | 81 | **35.2%** | 27.4% | 35 / 35 / 24 / 27 | **44.8** |
 | `apps/visual-editor` | 423 | 66.9% | 59.5% | 65 / 64 / 57 / 58 | 13.1 |

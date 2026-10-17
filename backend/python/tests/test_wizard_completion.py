@@ -63,7 +63,8 @@ def test_completion_runs_and_shows_the_read_only_result_step():
     assert buttons(doc) == []  # no navigation on the result step
     field = next(n for n in nodes(doc) if n.get("type") == "FormField")
     assert field["readOnly"] is True
-    assert next(n for n in nodes(doc) if n.get("type") == "ProgressBar")["value"] == 1.0
+    bar = next(n for n in nodes(doc) if n.get("type") == "ProgressBar")
+    assert bar["value"] == bar["max"] == 3  # full: every step done (Java's progress bar)
 
 
 def test_the_result_step_is_reached_only_through_the_completion():

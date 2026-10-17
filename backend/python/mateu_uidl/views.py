@@ -74,6 +74,12 @@ class Wizard:
 
         return WizardDisplay.defaults()
 
+    def step_title(self, step: int) -> str | None:
+        """The title of step ``step`` (1-based): the progress bar's text while it is the current
+        step and its bullet in the ``steps``/``rail`` progress styles (Java takes it from the step
+        field's label; .NET's ``StepTitle``). Default: None (no text; bullets read "Step n")."""
+        return None
+
     def step_skippable(self, step: int) -> bool:
         """Whether the user may SKIP step ``step`` (1-based; the Redwood ``spSkip``): a "Skip"
         button moves on without requiring the step. Default: no step is skippable."""

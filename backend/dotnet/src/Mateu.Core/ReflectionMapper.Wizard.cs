@@ -24,7 +24,9 @@ public sealed partial class ReflectionMapper
         var completion = wizard?.CompletionActionLabel;
         var onResult = completion is not null && current == total;
         var title = wizard?.WizardTitle ?? type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
-        var titleText = Client(new TextMetadataDto(title), null, []);
+        // The heading, progress, step form and buttons are laid out exactly as Java's
+        // Wizard.component() (pinned by the conformance corpus, case "wizard").
+        var titleText = Client(new TextMetadataDto(title) { Container = "h2" }, null, []) with { Style = "margin: 0;" };
         var progressStyle = type.Find<WizardProgressAttribute>()?.Style;
         StepDto Bullet(int i) => new($"step-{i}", wizard?.StepTitle(i) ?? $"Step {i}", null,
             i < current || onResult ? "done" : i == current ? "current" : "upcoming");
@@ -32,21 +34,27 @@ public sealed partial class ReflectionMapper
         // (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         var progress = progressStyle == "steps"
             ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, total).Select(Bullet).ToList()), "fieldId", [])
-            : Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
-        var columns = FormColumns(type);
-        var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto
-        {
-            MaxColumns = columns,
-            LabelsAside = LabelsAsideInference.LabelsAside(currentProps, columns, type, T),
-        }, null, FormRows(fields, columns))), "fieldId", []);
-        var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
+                with { Style = "width: 100%;" }
+            // Java's ProgressBar: value = the steps already done (0 on the first one), max = every
+            // step, full on the result step; the current step's title as its text.
+            : Client(new ProgressBarMetadataDto(onResult ? total : current - 1)
+                { Max = total, Text = wizard?.StepTitle(current) }, null, []) with { Style = "width: 100%;" };
+        // The current step's form: the regular section card of a form (Java's stepForm), under a
+        // spacer Div.
+        var card = Client(new DivMetadataDto(), null,
+            [SectionCard(null, fields, formType: type, props: currentProps)]) with
+            {
+                Style = "width: 100%; margin-top: 1rem;",
+            };
+        // no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
+        ComponentDto? back = current > 1 ? Client(new ButtonMetadataDto("Back", "back"), null, []) : null;
         var nextLabel = completion is not null && current == total - 1 ? completion
             : current == total ? "Finish" : "Next";
-        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "primary" }, null, []);
+        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "primary", Color = "normal" }, null, []);
         // The transactional affordances (Java's WizardButtonBuilder), between Back and Next:
         // Skip on a skippable step, the draft buttons of an IDraftable wizard and the early
         // completion — each switchable through WizardDisplay (Off = absent, Disabled = inert).
-        var barButtons = new List<ComponentDto> { back };
+        var barButtons = back is null ? new List<ComponentDto>() : [back];
         var extraActions = new List<ActionDto>();
         if (!onResult && wizard is not null)
         {
@@ -82,7 +90,7 @@ public sealed partial class ReflectionMapper
             }
         }
         barButtons.Add(next);
-        var bar = Client(new HorizontalLayoutMetadataDto(), null, onResult ? [] : barButtons);
+        var bar = Client(new HorizontalLayoutMetadataDto { Justification = "END" }, null, onResult ? [] : barButtons);
         ComponentDto layout;
         if (progressStyle == "rail")
         {
@@ -99,14 +107,15 @@ public sealed partial class ReflectionMapper
                     + " border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));"
                     + " padding-left: 1.5rem;",
             };
-            var main = Client(new VerticalLayoutMetadataDto { Spacing = true }, null, [titleText, card, bar]) with
+            var main = Client(new VerticalLayoutMetadataDto(), null,
+                [Client(new VerticalLayoutMetadataDto(), null, [titleText, card, bar]) with { Style = "width: 100%" }]) with
                 { Style = "flex: 1; min-width: 0;" };
             layout = Client(new HorizontalLayoutMetadataDto(), null, [main, rail]) with
                 { Style = "align-items: flex-start; gap: 2rem; width: 100%;" };
         }
         else
         {
-            layout = Client(new VerticalLayoutMetadataDto { Spacing = true }, null, [titleText, progress, card, bar]);
+            layout = Client(new VerticalLayoutMetadataDto(), null, [titleText, progress, card, bar]) with { Style = "width: 100%" };
         }
 
         var initial = new Dictionary<string, object?> { ["__step"] = current };
@@ -128,9 +137,13 @@ public sealed partial class ReflectionMapper
             [.. FieldActions(currentProps), .. extraActions,
                 .. (onResult ? Array.Empty<ActionDto>()
                     : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false)])],
-            [], null, null, null)
+            // a wizard is a component tree in Java: the tree envelope's default container style
+            [], "max-width:900px;margin: auto;", null, null)
         {
             PageType = PageTypeOf(type),
+            // only the CURRENT step's constraints: the others are not on screen (Java's
+            // WizardStepInspector)
+            Validations = onResult ? [] : MapValidations(type, currentProps),
         };
     }
 }

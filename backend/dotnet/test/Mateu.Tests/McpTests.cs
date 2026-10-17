@@ -178,4 +178,225 @@ public class McpTests
         var r = McpJsonRpc.Handle(new JsonObject { ["id"] = 9, ["method"] = "nope/nope" }, Service());
         Assert.Equal(-32601, (int)r!["error"]!["code"]!);
     }
+
+    // ---- the tools over a real app (what an agent drives) ----
+
+    public class McpOrders
+    {
+        public string Note { get; set; } = "orders";
+    }
+
+    public class McpInvoices
+    {
+        public string Note { get; set; } = "invoices";
+    }
+
+    /// <summary>An app whose menu is what mateu_list_routes reports.</summary>
+    [App("Mcp App")]
+    public class McpApp
+    {
+        [MenuItem("Orders")] public McpOrders Orders() => new();
+        [MenuItem("Invoices", Group = "Billing")] public McpInvoices Invoices() => new();
+    }
+
+    public class McpBookFilters
+    {
+        public string? Title { get; set; }
+    }
+
+    [UI("mcp-books"), Title("Books")]
+    public class McpBooks : IListing<CapBook>, Mateu.Uidl.ISearchable, IFilterable<McpBookFilters>
+    {
+        public static readonly System.Collections.Concurrent.ConcurrentQueue<(string? text, string? title)> Seen = new();
+
+        public ListingData<CapBook> Search(SearchRequest request)
+        {
+            var filters = request.Filters<McpBookFilters>() ?? new McpBookFilters();
+            Seen.Enqueue((request.SearchText, filters.Title));
+            return ListingData.From(CapBooks.All().Where(b => filters.Title is null || b.Title.Contains(filters.Title)));
+        }
+    }
+
+    [UI("mcp-failing")]
+    public class McpFailing
+    {
+        public string Name { get; set; } = "x";
+        [Button] public string Explode() => throw new InvalidOperationException("boom");
+    }
+
+    static readonly SyncHandler Shared = new(new MateuRegistry(typeof(McpDemoForm).Assembly));
+
+    // The root of the test assembly is whichever [App] the scan met last, so the root load is pinned
+    // to McpApp the way a single-app deployment resolves it.
+    static McpService AppService() => new(Shared, Json, null,
+        rq => Shared.Handle(rq.Route is null or "" ? rq with { ServerSideType = typeof(McpApp).FullName } : rq));
+
+    [Fact]
+    public void List_routes_reports_every_menu_leaf_with_its_caption_once_and_the_home()
+    {
+        var routes = AppService().ListRoutes().Select(r => ((string?)r!["route"], (string?)r["caption"])).ToList();
+        Assert.Contains(routes, r => r.Item2 == "Orders");
+        Assert.Contains(routes, r => r.Item2 == "Invoices");
+        Assert.Contains(("", "Home"), routes);
+        Assert.Equal(routes.Count, routes.Select(r => r.Item1).Distinct().Count());
+        Assert.All(routes, r => Assert.False(r.Item1!.StartsWith('/')));
+    }
+
+    [Fact]
+    public void Tools_call_list_routes_answers_the_routes_as_text_content()
+    {
+        var r = McpJsonRpc.Handle(new JsonObject
+        {
+            ["id"] = 3, ["method"] = "tools/call",
+            ["params"] = new JsonObject { ["name"] = "mateu_list_routes" },
+        }, AppService());
+        var text = (string?)r!["result"]!["content"]![0]!["text"];
+        Assert.Contains("Orders", text);
+        Assert.Null(r["result"]!["isError"]);
+    }
+
+    [Fact]
+    public void Search_sends_the_text_and_the_filters_to_the_listing()
+    {
+        var screen = McpJsonRpc.Handle(new JsonObject
+        {
+            ["id"] = 4, ["method"] = "tools/call",
+            ["params"] = new JsonObject
+            {
+                ["name"] = "mateu_search",
+                ["arguments"] = new JsonObject
+                {
+                    ["route"] = "/mcp-books", ["searchText"] = "Quijote",
+                    ["filters"] = new JsonObject { ["title"] = "Quij" },
+                },
+            },
+        }, Service());
+        Assert.Null(screen!["result"]!["isError"]);
+        Assert.Contains(McpBooks.Seen, s => s.text == "Quijote" && s.title == "Quij");
+    }
+
+    [Fact]
+    public void Search_without_text_sends_no_search_text()
+    {
+        var before = McpBooks.Seen.Count;
+        Service().Search("mcp-books", null, null);
+        Assert.Contains(McpBooks.Seen.Skip(before), s => string.IsNullOrEmpty(s.text) && s.title is null);
+    }
+
+    [Fact]
+    public void Run_action_seeds_the_component_state_before_running()
+    {
+        var screen = Service().RunAction("mcp-demo", "greet", new JsonObject { ["name"] = "Grace" });
+        Assert.NotNull(screen["fields"]);
+        var described = Service().DescribeScreen("/mcp-demo");
+        Assert.Equal("Ada", (string?)described["fields"]!.AsArray().First(f => (string?)f!["id"] == "name")!["value"]);
+    }
+
+    [Fact]
+    public void A_failing_tool_call_is_a_tool_error_not_a_protocol_error()
+    {
+        var r = McpJsonRpc.Handle(new JsonObject
+        {
+            ["id"] = 5, ["method"] = "tools/call",
+            ["params"] = new JsonObject { ["name"] = "mateu_run_action", ["arguments"] = new JsonObject { ["route"] = "mcp-failing", ["actionId"] = "explode" } },
+        }, Service());
+        Assert.True((bool)r!["result"]!["isError"]!);
+        Assert.StartsWith("Error: ", (string?)r["result"]!["content"]![0]!["text"]);
+        Assert.Null(r["error"]);
+    }
+
+    [Fact]
+    public void An_unknown_tool_is_a_tool_error()
+    {
+        var r = McpJsonRpc.Handle(new JsonObject
+        {
+            ["id"] = 6, ["method"] = "tools/call", ["params"] = new JsonObject { ["name"] = "mateu_nope" },
+        }, Service());
+        Assert.True((bool)r!["result"]!["isError"]!);
+        Assert.Contains("Unknown tool: mateu_nope", (string?)r["result"]!["content"]![0]!["text"]);
+    }
+
+    [Fact]
+    public void A_failing_notification_answers_nothing()
+    {
+        Assert.Null(McpJsonRpc.Handle(new JsonObject
+        {
+            ["method"] = "tools/call", ["params"] = new JsonObject { ["name"] = "mateu_nope" },
+        }, Service()));
+        Assert.Null(McpJsonRpc.Handle(new JsonObject { ["method"] = "nope/nope" }, Service()));
+    }
+
+    [Fact]
+    public void Ping_answers_an_empty_result_and_a_non_object_message_is_method_not_found()
+    {
+        var ping = McpJsonRpc.Handle(new JsonObject { ["id"] = "p", ["method"] = "ping" }, Service());
+        Assert.Equal("p", (string?)ping!["id"]);
+        Assert.Empty(ping["result"]!.AsObject());
+        Assert.Null(McpJsonRpc.Handle(JsonValue.Create(3), Service()));
+    }
+
+    [Fact]
+    public void The_hosts_run_delegate_is_what_a_tool_call_goes_through()
+    {
+        RunActionRqDto? seen = null;
+        var svc = new McpService(Shared, Json, "/base", rq => { seen = rq; return Shared.Handle(rq); });
+        svc.DescribeScreen("mcp-demo");
+        Assert.Equal("/mcp-demo", seen!.Route);
+        Assert.Equal("", seen.ActionId);
+        svc.DescribeScreen("");
+        Assert.Equal("", seen.Route);
+    }
+
+    // ---- projection details an agent depends on ----
+
+    [Fact]
+    public void A_button_the_component_does_not_declare_is_still_an_action_and_links_keep_their_href()
+    {
+        var s = McpProjection.Project(JsonNode.Parse("""
+        {"fragments":[{"component":{"type":"ServerSide","route":"/p","serverSideType":"P",
+          "actions":[{"id":"docs","href":"https://docs.example.com"},{"id":"docs"},{"label":"no id"}],
+          "children":[
+            {"type":"ClientSide","metadata":{"type":"Button","actionId":"export"}},
+            {"type":"ClientSide","metadata":{"type":"Button","actionId":"export","label":"Twice"}},
+            {"type":"ClientSide","metadata":{"type":"FormField","fieldId":"size","options":[{"value":3},{"value":"m","label":"Medium"}]}},
+            {"type":"ClientSide","metadata":{"type":"FormField","fieldId":"size","label":"dup"}},
+            {"type":"ClientSide","metadata":{"type":"Page","pageTitle":"Settings","subtitle":"Yours","pageType":"form"}}
+          ]},"state":{"size":"m"}}]}
+        """));
+        var byId = s["actions"]!.AsArray().ToDictionary(a => (string)a!["id"]!, a => a!.AsObject());
+        Assert.Equal(2, byId.Count);
+        Assert.Equal("https://docs.example.com", (string?)byId["docs"]["href"]);
+        Assert.Equal("export", (string?)byId["export"]["label"]); // the first button wins, its id is its label
+        var field = Assert.Single(s["fields"]!.AsArray());
+        Assert.Equal("size", (string?)field!["label"]);
+        Assert.Equal("m", (string?)field["value"]);
+        Assert.Equal("3", (string?)field["options"]![0]!["label"]);
+        Assert.Equal("Settings", (string?)s["title"]);
+        Assert.Equal("Yours", (string?)s["subtitle"]);
+        Assert.Equal("form", (string?)s["pageType"]);
+        Assert.Equal("p", (string?)s["route"]);
+    }
+
+    [Fact]
+    public void A_listing_titles_the_screen_and_its_columns_may_be_flat()
+    {
+        var s = McpProjection.Project(JsonNode.Parse("""
+        {"fragments":[{"component":{"type":"ServerSide","initialData":{"q":"x"},"children":[{"type":"ClientSide","metadata":{"type":"Crudl",
+          "title":"Orders","subtitle":"All of them",
+          "columns":[{"fieldId":"ref","label":"Reference"},{"metadata":{}},{"id":"total"}],
+          "filters":[{"fieldId":"status"},"junk"]}}]}}],
+          "commands":[{"type":"pushStateToHistory","data":"/orders"},{"data":"untyped"}]}
+        """));
+        Assert.Equal("Orders", (string?)s["title"]);
+        Assert.Equal("All of them", (string?)s["subtitle"]);
+        Assert.Equal("x", (string?)s["state"]!["q"]);
+        var columns = s["listing"]!["columns"]!.AsArray();
+        Assert.Equal(["ref", "total"], columns.Select(c => (string)c!["id"]!).ToArray());
+        Assert.Equal("Reference", (string?)columns[0]!["label"]);
+        var filter = Assert.Single(s["listing"]!["filters"]!.AsArray());
+        Assert.Equal("status", (string?)filter!["label"]);
+        Assert.Equal("string", (string?)filter["dataType"]);
+        Assert.Equal("pushStateToHistory", (string?)Assert.Single(s["commands"]!.AsArray())!["type"]);
+        Assert.Empty(McpProjection.Project(JsonValue.Create(1))["fields"]!.AsArray());
+    }
 }

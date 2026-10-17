@@ -6,7 +6,6 @@ from mateu_dtos import UICommand, UIIncrement
 from mateu_uidl import Draftable, Message, Step, Wizard
 
 from ..reflection import view_fields
-from ..registry import normalize
 from .. import action_guard
 from ..mapper.wizard import (
     completion_method,
@@ -26,7 +25,9 @@ class WizardHandlerMixin(MixinBase):
         step = self.step_of(rq)
         steps = [(f.marker(Step).step if f.has(Step) else 1) for f in view_fields(type_)]
         total = max(steps, default=1)
-        route = "/" + normalize(getattr(type_, "__mateu_ui__", ""))
+        # the component's route is the one the request consumed, as for any routed view (Java's
+        # wire; contract.map_view)
+        route = rq.consumed_route or "_empty"
 
         # A Draftable wizard opened afresh (no position in the state yet) resumes on the step the
         # user left (the Redwood guided-process resumeStepId).
