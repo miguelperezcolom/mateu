@@ -650,3 +650,90 @@ public class FailingActionPage
     [Action]
     public object Explode() => throw new InvalidOperationException("database is down at db-01");
 }
+
+// The generic fluent building blocks ported from Java (M-A5), in one component tree.
+[UI("conformance/generic-components"), Title("Components")]
+public class GenericComponentsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content =
+        [
+            new Breadcrumbs("Order 42") { Items = [new Breadcrumb("Home", "/"), new Breadcrumb("Orders", "/orders")] },
+            new Icon("vaadin:plus-circle"),
+            new Notification("The order was saved") { Title = "Saved" },
+            new Element("order-chart")
+            {
+                Attributes = new Dictionary<string, string> { ["id"] = "chart", ["kind"] = "bar" },
+                On = new Dictionary<string, string> { ["click"] = "drill" },
+                Content = "loading",
+            },
+            new Tooltip("Total including taxes") { Wrapped = new Text("1250 EUR") },
+            new Details { Summary = new Text("More"), Content = new Text("Delivery notes"), Opened = true },
+            new SplitLayout(new Text("Master"), new Text("Detail"))
+            {
+                Orientation = Orientation.Vertical, Variant = SplitLayoutVariant.Small,
+            },
+            new ConfirmDialog
+            {
+                Header = "Delete order?", Content = new Text("This cannot be undone"), CanCancel = true,
+                ConfirmText = "Delete", ConfirmActionId = "deleteOrder", CancelActionId = "keepOrder",
+            },
+        ],
+    };
+
+    public string? Style => null;
+}
+
+// Every trigger kind a view can declare (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
+// another action, OnValueChange of one field, and a [SubscribeTo] on the global bus.
+[UI("conformance/triggers"), Title("Triggers")]
+[Trigger(TriggerType.OnLoad, "refresh", TimeoutMillis = 5000, Times = 0, Background = true)]
+[Trigger(TriggerType.OnSuccess, "reload", CalledActionId = "save")]
+[Trigger(TriggerType.OnError, "notifyFailure", CalledActionId = "save")]
+[Trigger(TriggerType.OnValueChange, "recalculate", PropertyName = "quantity")]
+[SubscribeTo("order-saved", "reload")]
+public class TriggersForm
+{
+    public int Quantity { get; set; } = 1;
+
+    public void Refresh() { }
+    public void Reload() { }
+    public void Save() { }
+    public void NotifyFailure() { }
+    public void Recalculate() { }
+}
+
+// Field help text and slider bounds on a reflected form (M-A5): [Help] travels as description.
+[UI("conformance/field-help"), Title("Field help")]
+public class FieldHelpForm
+{
+    [Help("We never share it")]
+    public string Email { get; set; } = "";
+
+    [SliderMin(10), SliderMax(50)]
+    public int Volume { get; set; } = 20;
+}
+
+// The input hints of a fluent FormField (M-A5).
+[UI("conformance/field-hints"), Title("Field hints")]
+public class FieldHintsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new FormField
+    {
+        FieldId = "amount", Label = "Amount", DataType = "number", Placeholder = "0.00",
+        Description = "Including taxes", Autofocus = true, Step = 0.5, SliderMin = 10, SliderMax = 50,
+    };
+
+    public string? Style => null;
+}
+
+// A page toolbar action (M-A5): [Toolbar] → the header toolbar.
+[UI("conformance/page-toolbar"), Title("Page toolbar")]
+public class PageToolbarForm
+{
+    public string Name { get; set; } = "Ada";
+
+    [Toolbar("Publish now", ButtonStyle = "primary")]
+    public void Publish() { }
+}

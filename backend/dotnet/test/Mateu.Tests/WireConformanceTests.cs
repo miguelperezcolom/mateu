@@ -229,6 +229,11 @@ public class WireConformanceTests
         { "crud-new", typeof(ProductsCrud) },
         { "crud-edit", typeof(ProductsCrud) },
         { "crud-view", typeof(ProductsCrud) },
+        { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "triggers", typeof(Wire.TriggersForm) },
+        { "field-help", typeof(Wire.FieldHelpForm) },
+        { "field-hints", typeof(Wire.FieldHintsPage) },
+        { "page-toolbar", typeof(Wire.PageToolbarForm) },
     };
 
     [Fact]

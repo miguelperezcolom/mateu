@@ -76,6 +76,12 @@ public static class ComponentMapper
             ReadOnly = ff.ReadOnly,
             InitialValue = ff.InitialValue,
             Options = ff.Options.Select(o => new OptionDto(o.Value, o.Label)).ToList(),
+            Placeholder = ff.Placeholder,
+            Description = ff.Description,
+            Autofocus = ff.Autofocus,
+            SliderMin = ff.SliderMin,
+            SliderMax = ff.SliderMax,
+            Step = ff.Step,
         }),
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
@@ -325,6 +331,35 @@ public static class ComponentMapper
             CloseButtonOnHeader = dg.CloseButtonOnHeader,
         }),
 
+        // Generic building blocks ported from Java (M-A5) — same shapes as Java's ElementMapper,
+        // TooltipMapper, ConfirmDialogMapper, DetailsMapper, SplitLayoutMapper, BreadcrumbsMapper,
+        // IconMapper and NotificationMapper (whose ids default to "fieldId").
+        Element el => new ClientSideComponentDto(
+            new ElementMetadataDto(el.Name, el.Attributes, el.On, el.Content, el.Html),
+            ElementId(el), [], el.Style, el.CssClasses, null),
+        Tooltip tt => new ClientSideComponentDto(
+            new TooltipMetadataDto(tt.Text, tt.Wrapped is null ? null : MapContent(tt.Wrapped)),
+            FieldIdOr(tt.Id), [], tt.Style, tt.CssClasses, null),
+        ConfirmDialog cd => new ClientSideComponentDto(
+            new ConfirmDialogMetadataDto(cd.Header, cd.CanCancel, cd.CanReject, cd.RejectText,
+                cd.ConfirmText ?? "Save", cd.OpenedCondition ?? "true",
+                cd.ConfirmActionId, cd.RejectActionId, cd.CancelActionId),
+            FieldIdOr(cd.Id), cd.Content is null ? [] : [MapContent(cd.Content)], cd.Style, cd.CssClasses, null),
+        Details dt => new ClientSideComponentDto(
+            new DetailsMetadataDto(dt.Summary is null ? null : MapContent(dt.Summary),
+                dt.Content is null ? null : MapContent(dt.Content), dt.Opened),
+            FieldIdOr(dt.Id), [], dt.Style, dt.CssClasses, null),
+        SplitLayout sp => Dto(sp,
+            new SplitLayoutMetadataDto(LowerName(sp.Orientation), LowerName(sp.Variant), sp.FullWidth),
+            [Map(sp.Master), Map(sp.Detail)]),
+        Breadcrumbs bc => new ClientSideComponentDto(
+            new BreadcrumbsMetadataDto(bc.CurrentItemText,
+                bc.Items.Select(b => new BreadcrumbDto(b.Text, b.Link)).ToList()),
+            FieldIdOr(bc.Id), [], bc.Style, bc.CssClasses, null),
+        Icon ic => new ClientSideComponentDto(new IconMetadataDto(ic.Name), FieldIdOr(ic.Id), [], ic.Style, ic.CssClasses, null),
+        Notification nt => new ClientSideComponentDto(
+            new NotificationMetadataDto(nt.Title, nt.Text), FieldIdOr(nt.Id), [], nt.Style, nt.CssClasses, null),
+
         _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };
 
@@ -534,6 +569,24 @@ public static class ComponentMapper
             string.IsNullOrWhiteSpace(merge.MergeLabel) ? "Merge" : merge.MergeLabel!,
             merge.Parameters,
             merge.DifferencesOnly);
+    }
+
+    private static string FieldIdOr(string? id) => string.IsNullOrWhiteSpace(id) ? "fieldId" : id;
+
+    /// <summary>An Element's wire id: its own <c>id</c> attribute, else a stable hash of its
+    /// definition, so two elements on one page never hydrate into the same container and an
+    /// element keeps its container across re-renders (mirrors Java's ElementMapper.idOf).</summary>
+    internal static string ElementId(Element element)
+    {
+        if (element.Attributes.TryGetValue("id", out var own) && !string.IsNullOrWhiteSpace(own)) return own;
+        static string Sorted(IReadOnlyDictionary<string, string> map) =>
+            string.Join("\u0001", map.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key + "=" + kv.Value));
+        var definition = string.Join("\u0000", element.Name, Sorted(element.Attributes), Sorted(element.On), element.Content ?? "");
+        // FNV-1a (32 bit) over the UTF-8 bytes: a stable, non-cryptographic fingerprint, the same
+        // one the Python port computes, so both ports give one definition the same id
+        var h = 0x811C9DC5u;
+        foreach (var b in System.Text.Encoding.UTF8.GetBytes(definition)) h = unchecked((h ^ b) * 0x01000193u);
+        return "element-" + h.ToString("x8");
     }
 
     private static ClientSideComponentDto Dto(IComponent c, ComponentMetadataDto meta, IEnumerable<ComponentDto>? children = null) =>

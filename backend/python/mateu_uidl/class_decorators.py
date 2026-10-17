@@ -635,11 +635,93 @@ def emits(name: str) -> Callable[[type], type]:
     return deco
 
 
-def subscribe_to(event: str, action: str) -> Callable[[type], type]:
+class SubscriptionSource(Enum):
+    """Where a :func:`subscribe_to` listens: ``DOCUMENT`` = the global bus (reaches sibling and
+    unrelated components), ``COMPONENT`` = the bus filtered by the emitter's :func:`emits` name
+    (``from_``), ``SELF`` = only events bubbling up from the component's own descendants. Mirrors
+    ``io.mateu.uidl.annotations.SubscriptionSource``."""
+
+    DOCUMENT = "DOCUMENT"
+    COMPONENT = "COMPONENT"
+    SELF = "SELF"
+
+
+def subscribe_to(
+    event: str,
+    action: str,
+    *,
+    source: SubscriptionSource | str = SubscriptionSource.DOCUMENT,
+    from_: str = "",
+    condition: str = "",
+) -> Callable[[type], type]:
+    """Runs ``action`` (a method of the view) when the named custom event fires — on the global
+    bus by default; ``source``/``from_``/``condition`` as Java's ``@SubscribeTo``."""
+    src = source.value if isinstance(source, SubscriptionSource) else SubscriptionSource(str(source).upper()).value
+
     def deco(cls: type) -> type:
         subs = list(getattr(cls, "__mateu_subscriptions__", ()))
         subs.append((event, action))
         setattr(cls, "__mateu_subscriptions__", subs)
+        # kept apart from the (event, action) pairs, which other code unpacks as pairs
+        options = dict(getattr(cls, "__mateu_subscription_options__", {}))
+        options[(event, action)] = (src, from_, condition)
+        setattr(cls, "__mateu_subscription_options__", options)
+        return cls
+
+    return deco
+
+
+class TriggerType(Enum):
+    """When a :func:`trigger` fires (mirrors ``io.mateu.uidl.annotations.TriggerType``)."""
+
+    on_load = "OnLoad"
+    on_success = "OnSuccess"
+    on_error = "OnError"
+    on_value_change = "OnValueChange"
+    on_custom_event = "OnCustomEvent"
+
+
+@dataclass(frozen=True)
+class TriggerSpec:
+    """One :func:`trigger` declaration as stored on the class."""
+
+    type: TriggerType
+    action: str
+    called_action: str = ""
+    property_name: str = ""
+    event_name: str = ""
+    condition: str = ""
+    timeout_millis: int = 0
+    times: int = 1
+    background: bool = False
+
+
+def trigger(
+    when: TriggerType | str,
+    action: str,
+    *,
+    called_action: str = "",
+    property_name: str = "",
+    event_name: str = "",
+    condition: str = "",
+    timeout_millis: int = 0,
+    times: int = 1,
+    background: bool = False,
+) -> Callable[[type], type]:
+    """Runs ``action`` (a method of the view) when ``when`` happens — the Python analogue of Java's
+    ``@Trigger``: ``on_load`` (with ``timeout_millis`` and ``times`` — 0 = unbounded — a periodic
+    refresh), ``on_success`` / ``on_error`` of ``called_action`` (chained actions, polls),
+    ``on_value_change`` of ``property_name`` (any field when blank), ``on_custom_event`` of
+    ``event_name`` (listening on the component itself; :func:`subscribe_to` is the bus form).
+    Method names become camelCase action ids, as everywhere."""
+    kind = when if isinstance(when, TriggerType) else TriggerType(when)
+    spec = TriggerSpec(
+        kind, action, called_action, property_name, event_name, condition, timeout_millis, times, background
+    )
+
+    def deco(cls: type) -> type:
+        # decorators apply bottom-up: prepend, so the declared order is the wire order
+        setattr(cls, "__mateu_triggers__", [spec, *getattr(cls, "__mateu_triggers__", ())])
         return cls
 
     return deco

@@ -142,3 +142,37 @@ public record AnchorMetadataDto(string Text, string Url, string? Target = null) 
 /// <summary>A compact inline banner: theme-tinted strip with a severity icon, one line of text
 /// and an optional right-aligned action.</summary>
 public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false, bool NoIcon = false, string? Status = null, bool InlineContent = false) : ComponentMetadataDto;
+
+// ── Generic building blocks ported from Java (M-A5): 1:1 mirrors of the Java wire DTOs ──
+
+/// <summary>An arbitrary HTML element / web component (mirrors io.mateu.dtos.ElementDto).</summary>
+public record ElementMetadataDto(string? Name, IReadOnlyDictionary<string, string>? Attributes,
+    IReadOnlyDictionary<string, string>? On, string? Content, bool Html = false) : ComponentMetadataDto;
+
+/// <summary>A tooltip over a wrapped component, which travels in the metadata (mirrors TooltipDto).</summary>
+public record TooltipMetadataDto(string? Text, ComponentDto? Wrapped) : ComponentMetadataDto;
+
+/// <summary>A confirmation dialog; its content travels as the component's single child (mirrors
+/// ConfirmDialogDto).</summary>
+public record ConfirmDialogMetadataDto(string? Header, bool CanCancel, bool CanReject, string? RejectText,
+    string? ConfirmText, string? OpenedCondition, string? ConfirmActionId, string? RejectActionId,
+    string? CancelActionId) : ComponentMetadataDto;
+
+/// <summary>A disclosure; summary and content travel in the metadata (mirrors DetailsDto).</summary>
+public record DetailsMetadataDto(ComponentDto? Summary, ComponentDto? Content, bool Opened) : ComponentMetadataDto;
+
+/// <summary>Two panes with a splitter; master and detail travel as the two children (mirrors
+/// SplitLayoutDto). Orientation: horizontal | vertical; variant: small | minimal.</summary>
+public record SplitLayoutMetadataDto(string? Orientation, string? Variant, bool FullWidth) : ComponentMetadataDto;
+
+/// <summary>One breadcrumb link (mirrors BreadcrumbDto).</summary>
+public record BreadcrumbDto(string? Text, string? Link);
+
+/// <summary>A breadcrumb trail (mirrors BreadcrumbsDto).</summary>
+public record BreadcrumbsMetadataDto(string? CurrentItemText, IReadOnlyList<BreadcrumbDto> Breadcrumbs) : ComponentMetadataDto;
+
+/// <summary>An icon by name (mirrors IconDto).</summary>
+public record IconMetadataDto(string? Icon) : ComponentMetadataDto;
+
+/// <summary>An inline notification (mirrors NotificationDto).</summary>
+public record NotificationMetadataDto(string? Title, string? Text) : ComponentMetadataDto;

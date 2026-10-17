@@ -29,6 +29,7 @@ from enum import Enum  # noqa: E402
 from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
 from mateu_uidl.components import Notice, StatusItem, StatusList  # noqa: E402
+from mateu_uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
 from decimal import Decimal  # noqa: E402
 from mateu_dtos import MenuItem  # noqa: E402
 from mateu_uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
@@ -321,6 +322,108 @@ class NoticePage(ComponentTreeSupplier):
             action_id="review",
             slim=True,
         )
+
+
+@ui("/conformance/generic-components")
+@title("Components")
+class GenericComponentsPage(ComponentTreeSupplier):
+    """The generic fluent building blocks ported from Java (M-A5), in one component tree."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_uidl import components as fl
+
+        return fl.VerticalLayout(content=(
+            fl.Breadcrumbs(
+                current_item_text="Order 42",
+                breadcrumbs=(fl.Breadcrumb("Home", "/"), fl.Breadcrumb("Orders", "/orders")),
+            ),
+            fl.Icon(icon="vaadin:plus-circle"),
+            fl.Notification(title="Saved", text="The order was saved"),
+            fl.Element(
+                name="order-chart", attributes={"id": "chart", "kind": "bar"},
+                on={"click": "drill"}, content="loading",
+            ),
+            fl.Tooltip(text="Total including taxes", wrapped=fl.Text(text="1250 EUR")),
+            fl.Details(summary=fl.Text(text="More"), content=fl.Text(text="Delivery notes"), opened=True),
+            fl.SplitLayout(
+                master=fl.Text(text="Master"), detail=fl.Text(text="Detail"),
+                orientation=fl.Orientation.vertical, variant=fl.SplitLayoutVariant.small,
+            ),
+            fl.ConfirmDialog(
+                header="Delete order?", content=fl.Text(text="This cannot be undone"), can_cancel=True,
+                confirm_text="Delete", confirm_action_id="deleteOrder", cancel_action_id="keepOrder",
+            ),
+        ))
+
+
+@ui("/conformance/triggers")
+@title("Triggers")
+@trigger(TriggerType.on_load, "refresh", timeout_millis=5000, times=0, background=True)
+@trigger(TriggerType.on_success, "reload", called_action="save")
+@trigger(TriggerType.on_error, "notify_failure", called_action="save")
+@trigger(TriggerType.on_value_change, "recalculate", property_name="quantity")
+@subscribe_to("order-saved", "reload")
+class TriggersForm:
+    """Every trigger kind a view can declare (M-A5): a periodic on_load refresh, on_success /
+    on_error of another action, on_value_change of one field, and a subscription on the bus."""
+
+    quantity: int = 1
+
+    def refresh(self):
+        pass
+
+    def reload(self):
+        pass
+
+    def save(self):
+        pass
+
+    def notify_failure(self):
+        pass
+
+    def recalculate(self):
+        pass
+
+
+@ui("/conformance/field-help")
+@title("Field help")
+class FieldHelpForm:
+    """Field help text and slider bounds on a reflected form (M-A5): Help() travels as description."""
+
+    email: Annotated[str, Help("We never share it")] = ""
+    volume: Annotated[int, SliderMin(10), SliderMax(50)] = 20
+
+
+@ui("/conformance/field-hints")
+@title("Field hints")
+class FieldHintsPage(ComponentTreeSupplier):
+    """The input hints of a fluent FormField (M-A5)."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_uidl import components as fl
+
+        return fl.FormField(
+            field_id="amount", label="Amount", data_type="number", placeholder="0.00",
+            description="Including taxes", autofocus=True, step=0.5, slider_min=10, slider_max=50,
+        )
+
+
+@ui("/conformance/page-toolbar")
+@title("Page toolbar")
+class PageToolbarForm:
+    """A page toolbar action (M-A5): @toolbar → the header toolbar."""
+
+    name: str = "Ada"
+
+    @toolbar("Publish now", button_style="primary")
+    def publish(self):
+        pass
 
 
 @ui("/conformance/bulleted-list")
@@ -863,7 +966,7 @@ def expected(case: str) -> dict:
 
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("action-effects", ActionEffectsPage), ("drawer", DrawerPage), ("rejected-save", RejectedSaveForm), ("error-boundary", FailingActionPage), ("wizard-step-2", SignUpWizard), ("crud-new", ProductsCrud), ("crud-edit", ProductsCrud), ("crud-view", ProductsCrud), ("generic-components", GenericComponentsPage), ("triggers", TriggersForm), ("field-help", FieldHelpForm), ("field-hints", FieldHintsPage), ("page-toolbar", PageToolbarForm)]
 
 
 def test_every_case_of_the_corpus_is_wired():

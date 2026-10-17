@@ -83,6 +83,28 @@ public sealed class ColspanAttribute(int value) : Attribute
     public int Value { get; } = value;
 }
 
+/// <summary>The field's help text (Java's <c>@Help</c>): shown with the control and read as its
+/// accessible description. Travels as the field's <c>description</c>.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class HelpAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+/// <summary>Lower bound of a slider field (Java's <c>@SliderMin</c>; 0 by default).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SliderMinAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
+/// <summary>Upper bound of a slider field (Java's <c>@SliderMax</c>; 100 by default).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SliderMaxAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
 /// <summary>Renders a collection property (typically a list of strings) as a plain read-only
 /// bulleted list (&lt;ul&gt;). Shorthand for the "bulletedList" stereotype; the fluent counterpart
 /// is the BulletedList component.</summary>
@@ -150,6 +172,18 @@ public sealed class RowStatusAttribute : Attribute;
 public sealed class ButtonAttribute(string? label = null) : Attribute
 {
     public string? Label { get; } = label;
+}
+
+/// <summary>A method exposed as a button on the page header's TOOLBAR (Java's <c>@Toolbar</c>):
+/// labelled <see cref="Label"/>, else its [Label], else the humanized method name; styled
+/// <see cref="ButtonStyle"/> (primary | secondary | tertiary | tertiaryInline; null = the
+/// renderer's default). Advertised as an action like a [Button], with client and server
+/// validation.</summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class ToolbarAttribute(string? label = null) : Attribute
+{
+    public string? Label { get; } = label;
+    public string? ButtonStyle { get; init; }
 }
 
 /// <summary>Declares a method as a server-side ACTION without rendering a button for it: the

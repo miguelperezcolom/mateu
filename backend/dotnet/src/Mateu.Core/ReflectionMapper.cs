@@ -94,10 +94,42 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
     /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
     private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
     {
-        var triggers = type.GetCustomAttributes<SubscribeToAttribute>()
-            .Select(s => (object)new CustomTriggerDto(s.Event, s.Action)).ToList();
+        // [Trigger]s first, then [SubscribeTo]s — Java's TriggerMapper.createTriggers order
+        var triggers = type.GetCustomAttributes<TriggerAttribute>().Select(TriggerOf).ToList();
+        triggers.AddRange(type.GetCustomAttributes<SubscribeToAttribute>()
+            .Select(s => (object)new CustomTriggerDto(s.Event, s.Action)
+            {
+                Source = s.Source.ToString().ToUpperInvariant(),
+                From = string.IsNullOrWhiteSpace(s.From) ? null : s.From,
+                Condition = string.IsNullOrWhiteSpace(s.Condition) ? null : s.Condition,
+            }));
         return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
+
+    /// <summary>A [Trigger] as its wire DTO (mirrors Java's TriggerMapper.mapToTrigger: a raw
+    /// OnCustomEvent trigger listens on the component itself, SELF).</summary>
+    private static object TriggerOf(TriggerAttribute t) => t.Type switch
+    {
+        TriggerType.OnSuccess => new OnSuccessTriggerDto(t.ActionId, t.CalledActionId, t.Condition, t.TimeoutMillis, t.Background),
+        TriggerType.OnError => new OnErrorTriggerDto(t.ActionId, t.CalledActionId, t.Condition),
+        TriggerType.OnValueChange => new OnValueChangeTriggerDto(t.ActionId, t.PropertyName, t.Condition),
+        TriggerType.OnCustomEvent => new CustomTriggerDto(t.EventName, t.ActionId)
+        {
+            Source = "SELF",
+            Condition = string.IsNullOrWhiteSpace(t.Condition) ? null : t.Condition,
+        },
+        _ => new OnLoadTriggerDto(t.ActionId, t.TimeoutMillis, t.Times, t.Condition, t.Background),
+    };
+
+    /// <summary>The action ids a view's own triggers name: each trigger's action and the action an
+    /// OnSuccess/OnError trigger follows (Java's ActionMapper.triggeredActions).</summary>
+    internal static IEnumerable<string> TriggeredActionIds(Type type) =>
+        type.GetCustomAttributes<TriggerAttribute>()
+            .SelectMany(t => t.Type is TriggerType.OnSuccess or TriggerType.OnError
+                ? new[] { t.ActionId, t.CalledActionId } : new[] { t.ActionId })
+            .Concat(type.GetCustomAttributes<SubscribeToAttribute>().Select(s => s.Action))
+            .Where(a => !string.IsNullOrEmpty(a))
+            .Distinct();
 
     public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null,
         bool embedded = false, bool inline = false)
@@ -110,13 +142,17 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // the declared [Title], else the record's own name, else the class name (TitleOf)
         var title = TitleOf(type, instance);
 
-        var buttonMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            // an [EyesOnly] action the caller may not run is refused on invocation (ActionGuard)
-            // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
-            .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m)
-                        && Authorized(m.Find<EyesOnlyAttribute>()))
+        var declaredMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        // an [EyesOnly] action the caller may not run is refused on invocation (ActionGuard)
+        // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
+        bool Offered(MethodInfo m) => ForCurrentAudience(m) && Authorized(m.Find<EyesOnlyAttribute>());
+        // [Toolbar] methods: the header toolbar (Java's @Toolbar); advertised before the buttons
+        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m)).ToList();
+        var toolbar = toolbarMethods.Select(MapToolbarButton).ToList();
+        var buttonMethods = toolbarMethods
+            .Concat(declaredMethods.Where(m => m.Find<ButtonAttribute>() != null && m.Find<ToolbarAttribute>() == null && Offered(m)))
             .ToList();
-        var buttons = buttonMethods.Select(MapButton).ToList();
+        var buttons = buttonMethods.Skip(toolbarMethods.Count).Select(MapButton).ToList();
         var fabs = Fabs(type);
         // [Button] methods are server-side actions the renderer can invoke; a [RestAction] button
         // carries the client-side REST descriptor on its action.
@@ -224,7 +260,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // name emits two distinct header strings (mirrors ReflectionPageMapper).
         var pageMeta = new PageMetadataDto(
             title, T(Naming.Humanize(type.Name)),
-            OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
+            OptT(type.Find<SubtitleAttribute>()?.Value), toolbar, buttons)
         {
             // an [Inline] island nests under the host section: its title demotes to a sub-heading
             Level = inline ? 1 : 0,
@@ -320,9 +356,9 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // runs them (ActionGuard counts them as declared), but the web client only SENDS what the
         // component advertises — the subscription fired, bubbled out unclaimed and was lost
         // (Java's ActionMapper.triggeredActions; same rule).
-        foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
-            if (s.Action.Length > 0 && actions.All(a => a.Id != s.Action) && ActionGuard.HandlesTreeAction(type, s.Action))
-                actions.Add(new ActionDto(s.Action, ValidationRequired: false));
+        foreach (var id in TriggeredActionIds(type))
+            if (actions.All(a => a.Id != id) && ActionGuard.HandlesTreeAction(type, id))
+                actions.Add(new ActionDto(id, ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });

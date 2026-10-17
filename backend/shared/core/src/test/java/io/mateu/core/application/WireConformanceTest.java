@@ -498,6 +498,175 @@ class WireConformanceTest {
   }
 
   /**
+   * The generic fluent building blocks ported to .NET and Python in 3.0-alpha.426 (M-A5):
+   * Breadcrumbs, Icon, Notification, Element, Tooltip, Details, SplitLayout and ConfirmDialog in
+   * one component tree. Pins their member names and where their parts travel (Tooltip/Details wrap
+   * components IN the metadata; SplitLayout and ConfirmDialog carry theirs as children).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/generic-components")
+  @Title("Components")
+  public static class GenericComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.Breadcrumbs(
+              "Order 42",
+              List.of(
+                  new io.mateu.uidl.data.Breadcrumb("Home", "/"),
+                  new io.mateu.uidl.data.Breadcrumb("Orders", "/orders")),
+              null,
+              null),
+          new io.mateu.uidl.data.Icon(io.mateu.uidl.interfaces.IconKey.PlusCircle, null, null),
+          new io.mateu.uidl.data.Notification("Saved", "The order was saved", null, null),
+          io.mateu.uidl.data.Element.builder()
+              .name("order-chart")
+              .attributes(java.util.Map.of("id", "chart", "kind", "bar"))
+              .on(java.util.Map.of("click", "drill"))
+              .content("loading")
+              .build(),
+          new io.mateu.uidl.data.Tooltip(
+              "Total including taxes", new io.mateu.uidl.data.Text("1250 EUR"), null, null),
+          io.mateu.uidl.data.Details.builder()
+              .summary(new io.mateu.uidl.data.Text("More"))
+              .content(new io.mateu.uidl.data.Text("Delivery notes"))
+              .opened(true)
+              .build(),
+          io.mateu.uidl.data.SplitLayout.builder()
+              .master(new io.mateu.uidl.data.Text("Master"))
+              .detail(new io.mateu.uidl.data.Text("Detail"))
+              .orientation(io.mateu.uidl.data.Orientation.vertical)
+              .variant(io.mateu.uidl.data.SplitLayoutVariant.small)
+              .build(),
+          io.mateu.uidl.data.ConfirmDialog.builder()
+              .header("Delete order?")
+              .content(new io.mateu.uidl.data.Text("This cannot be undone"))
+              .canCancel(true)
+              .confirmText("Delete")
+              .confirmActionId("deleteOrder")
+              .cancelActionId("keepOrder")
+              .build());
+    }
+  }
+
+  /**
+   * Every trigger kind a view can declare, ported to .NET ({@code [Trigger]}) and Python
+   * ({@code @trigger}) in 3.0-alpha.426 (M-A5): a periodic OnLoad refresh, OnSuccess/OnError of
+   * another action (chained actions), OnValueChange of one field, and a {@code @SubscribeTo} on the
+   * global bus. The actions they name are advertised (the client only sends what the component
+   * advertises).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/triggers")
+  @Title("Triggers")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnLoad,
+      actionId = "refresh",
+      timeoutMillis = 5000,
+      times = 0,
+      background = true)
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnSuccess,
+      actionId = "reload",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnError,
+      actionId = "notifyFailure",
+      calledActionId = "save")
+  @io.mateu.uidl.annotations.Trigger(
+      type = io.mateu.uidl.annotations.TriggerType.OnValueChange,
+      actionId = "recalculate",
+      propertyName = "quantity")
+  @io.mateu.uidl.annotations.SubscribeTo(event = "order-saved", action = "reload")
+  public static class TriggersForm {
+    public int quantity = 1;
+
+    public void refresh() {}
+
+    public void reload() {}
+
+    public void save() {}
+
+    public void notifyFailure() {}
+
+    public void recalculate() {}
+  }
+
+  /**
+   * Field help text and slider bounds on a reflected form, ported to .NET ({@code [Help]}, {@code
+   * [SliderMin]}, {@code [SliderMax]}) and Python ({@code Help()}, {@code SliderMin()}, {@code
+   * SliderMax()}) in 3.0-alpha.426 (M-A5): {@code @Help} travels as the field's {@code
+   * description}.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-help")
+  @Title("Field help")
+  public static class FieldHelpForm {
+    @io.mateu.uidl.annotations.Help("We never share it")
+    public String email = "";
+
+    @io.mateu.uidl.annotations.SliderMin(10)
+    @io.mateu.uidl.annotations.SliderMax(50)
+    public int volume = 20;
+  }
+
+  /**
+   * The input hints of a fluent FormField, ported with it to .NET and Python (M-A5): placeholder,
+   * description (help text), autofocus, step and the slider bounds.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/field-hints")
+  @Title("Field hints")
+  public static class FieldHintsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.data.FormField.builder()
+          .id("amount")
+          .label("Amount")
+          .dataType(io.mateu.uidl.data.FieldDataType.number)
+          .placeholder("0.00")
+          .description("Including taxes")
+          .autofocus(true)
+          .step(0.5)
+          .sliderMin(10)
+          .sliderMax(50)
+          .colspan(1)
+          .optionsColumns(1)
+          .build();
+    }
+  }
+
+  /**
+   * A page toolbar action, ported to .NET ({@code [Toolbar]}) and Python ({@code @toolbar}) in
+   * 3.0-alpha.426 (M-A5): a {@code @Toolbar} method is a header toolbar button (its label from
+   * {@code @Label}, else the humanized method name; its style from the annotation) and an
+   * advertised action. One method only: the JVM does not promise the order of a class's declared
+   * methods, so two actions could swap places between runs.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-toolbar")
+  @Title("Page toolbar")
+  public static class PageToolbarForm {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Toolbar(buttonStyle = io.mateu.uidl.data.ButtonStyle.primary)
+    @io.mateu.uidl.annotations.Label("Publish now")
+    public void publish() {}
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -1087,7 +1256,12 @@ class WireConformanceTest {
           "wizard-step-2",
           "crud-new",
           "crud-edit",
-          "crud-view");
+          "crud-view",
+          "generic-components",
+          "triggers",
+          "field-help",
+          "field-hints",
+          "page-toolbar");
 
   static TestMateu mateu;
 
@@ -1136,7 +1310,12 @@ class WireConformanceTest {
             ActionEffectsPage.class,
             DrawerPage.class,
             RejectedSaveForm.class,
-            FailingActionPage.class);
+            FailingActionPage.class,
+            GenericComponentsPage.class,
+            TriggersForm.class,
+            FieldHelpForm.class,
+            FieldHintsPage.class,
+            PageToolbarForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

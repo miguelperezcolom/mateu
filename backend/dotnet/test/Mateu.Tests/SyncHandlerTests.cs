@@ -2553,7 +2553,7 @@ public class SyncHandlerTests
 
         Assert.Contains("\"emitsName\":\"ev-out\"", json);
         Assert.Contains("\"type\":\"OnCustomEvent\"", json);
-        Assert.Contains("\"event\":\"ev-in\"", json);
+        Assert.Contains("\"eventName\":\"ev-in\"", json);
         Assert.Contains("\"actionId\":\"act\"", json);
     }
 

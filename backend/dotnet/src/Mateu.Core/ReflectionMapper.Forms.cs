@@ -450,6 +450,10 @@ public sealed partial class ReflectionMapper
             // [Colspan(n)] wins; otherwise 1 — an intrinsically wide widget (textarea, rich text…)
             // is widened to the full row by FormRows, which knows the section's column count.
             Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
+            // [Help]: the field's help text (Java's @Help → FormFieldDto.description)
+            Description = p.Find<HelpAttribute>() is { } help ? T(help.Value) : null,
+            SliderMin = p.Find<SliderMinAttribute>()?.Value ?? 0,
+            SliderMax = p.Find<SliderMaxAttribute>()?.Value ?? 100,
             Link = LinkOf(p, instance),
             // [Lookup]: the combo box loads its options remotely through the field's
             // search-<fieldId> action (answered from the view's IOptionsSupplier).
@@ -506,6 +510,8 @@ public sealed partial class ReflectionMapper
         // a List/Set of enum constants with no stereotype: pick several (Java's ChoiceCollections;
         // owner, 2026-10-12)
         if (ElementEnum(p.PropertyType) is not null) return "multiSelect";
+        // slider bounds make it a slider (Java's FieldTypeMapper)
+        if (p.Find<SliderMinAttribute>() != null || p.Find<SliderMaxAttribute>() != null) return "slider";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
             return p.Find<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
@@ -580,6 +586,20 @@ public sealed partial class ReflectionMapper
         var options = method?.Find<ActionOptionsAttribute>();
         if (options is null) return action;
         return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
+    }
+
+    /// <summary>A [Toolbar] method as a header toolbar button (Java's @Toolbar).</summary>
+    private ButtonDto MapToolbarButton(MethodInfo m)
+    {
+        var toolbar = m.Find<ToolbarAttribute>()!;
+        var label = toolbar.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
+        return new ButtonDto(T(label), Naming.CamelCase(m.Name))
+        {
+            ButtonStyle = string.IsNullOrWhiteSpace(toolbar.ButtonStyle) || toolbar.ButtonStyle == "none"
+                ? null : toolbar.ButtonStyle,
+            Shortcut = m.Find<ShortcutAttribute>()?.Keys,
+            Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
+        };
     }
 
     private ButtonDto MapButton(MethodInfo m)

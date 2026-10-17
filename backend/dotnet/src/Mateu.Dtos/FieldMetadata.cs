@@ -22,6 +22,30 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     /// FormFieldDto.stepButtonsVisible). True for integer fields.</summary>
     public bool StepButtonsVisible { get; init; }
 
+    /// <summary>Lower bound for a slider-stereotype field (mirrors Java's FormFieldDto.sliderMin;
+    /// [SliderMin]). 0 by default.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int SliderMin { get; init; }
+
+    /// <summary>The field's help text ([Help]; mirrors Java's FormFieldDto.description, from
+    /// @Help): shown under / next to the control and as its accessible description.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Description { get; init; }
+
+    /// <summary>Hint shown inside the empty control (mirrors FormFieldDto.placeholder; a fluent
+    /// FormField's Placeholder, as in Java).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Placeholder { get; init; }
+
+    /// <summary>The control takes the focus when rendered (mirrors FormFieldDto.autofocus).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Autofocus { get; init; }
+
+    /// <summary>The increment of a number / slider control; 0 = the control's own (mirrors
+    /// FormFieldDto.step).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public double Step { get; init; }
+
     public object? InitialValue { get; init; }
     public IReadOnlyList<OptionDto> Options { get; init; } = [];
     public bool Multiline { get; init; }

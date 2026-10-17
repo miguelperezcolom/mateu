@@ -44,7 +44,7 @@ from .reflection import view_fields
 log = logging.getLogger("mateu.security")
 
 #: Decorator markers that make a method invocable as a view action.
-ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_fab__")
+ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_toolbar__", "__mateu_fab__")
 ROW_ACTION_MARKER = "__mateu_list_toolbar_button__"
 
 _FRAMEWORK_PACKAGES = {"mateu_uidl", "mateu_core", "mateu_dtos", "mateu_fastapi"}
@@ -198,9 +198,10 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
         on_row = f.marker(OnRowSelected)
         if on_row is not None and on_row.value:
             ids.add(camel_case(on_row.value))
-    for _event, act in getattr(type_, "__mateu_subscriptions__", ()) or ():
-        if act:
-            ids.add(camel_case(act))
+    # the actions the view's own @trigger()s / @subscribe_to()s name
+    from .mapper.decorations import triggered_action_ids
+
+    ids.update(triggered_action_ids(type_))
     # Section(add_action / edit_action / view_more_action) affordance buttons
     from .mapper.layout import section_affordance_ids
 

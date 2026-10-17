@@ -1,0 +1,115 @@
+{
+  "commands" : [ {
+    "data" : "Triggers",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "actions" : [ {
+        "id" : "refresh"
+      }, {
+        "id" : "reload"
+      }, {
+        "id" : "save"
+      }, {
+        "id" : "notifyFailure"
+      }, {
+        "id" : "recalculate"
+      } ],
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "integer",
+                        "fieldId" : "quantity",
+                        "label" : "Quantity",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stepButtonsVisible" : true,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Triggers form",
+          "pageType" : "form",
+          "title" : "Triggers",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "quantity" : 1
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "triggers" : [ {
+        "actionId" : "refresh",
+        "background" : true,
+        "timeoutMillis" : 5000,
+        "type" : "OnLoad"
+      }, {
+        "actionId" : "reload",
+        "calledActionId" : "save",
+        "type" : "OnSuccess"
+      }, {
+        "actionId" : "notifyFailure",
+        "calledActionId" : "save",
+        "type" : "OnError"
+      }, {
+        "actionId" : "recalculate",
+        "propertyName" : "quantity",
+        "type" : "OnValueChange"
+      }, {
+        "actionId" : "reload",
+        "eventName" : "order-saved",
+        "source" : "DOCUMENT",
+        "type" : "OnCustomEvent"
+      } ],
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "quantity" : 1
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

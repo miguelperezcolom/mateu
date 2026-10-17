@@ -76,7 +76,8 @@ internal static class ActionGuard
     private static bool IsFramework(Type? type) => type is not null && FrameworkAssemblies.Contains(type.Assembly);
 
     private static bool HasActionMarker(MethodInfo m) =>
-        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null || m.Find<FabAttribute>() != null;
+        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null
+        || m.Find<ToolbarAttribute>() != null || m.Find<FabAttribute>() != null;
 
     /// <summary>Declared by a framework base class (or overriding a framework virtual).</summary>
     private static bool IsFrameworkMethod(MethodInfo m) =>
@@ -184,8 +185,8 @@ internal static class ActionGuard
         foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             if (p.Find<OnRowSelectedAttribute>() is { } onRow && onRow.Value.Length > 0)
                 ids.Add(Naming.CamelCase(onRow.Value));
-        foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
-            if (s.Action.Length > 0) ids.Add(s.Action);
+        // the actions the view's own [Trigger]s / [SubscribeTo]s name
+        foreach (var id in ReflectionMapper.TriggeredActionIds(type)) ids.Add(id);
         // an app-wide shortcut's action runs on the app, whatever screen is below it
         foreach (var shortcut in type.GetCustomAttributes<AppShortcutAttribute>())
             if (!string.IsNullOrWhiteSpace(shortcut.ActionId)) ids.Add(shortcut.ActionId.Trim());
