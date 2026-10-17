@@ -1215,6 +1215,52 @@ public sealed record Button(string Label, string ActionId) : ComponentBase
     /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
     /// dialog's <c>_forceOverwrite</c>).</summary>
     public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
+
+    /// <summary>A route this button NAVIGATES to on the client instead of running an action — the
+    /// button form of a menu link (Java: a Button whose actionable is a RouteLink; YAML
+    /// <c>actionable: {type: RouteLink, route: products}</c>). Relative to the mount; may carry
+    /// <c>${state.x}</c> templates the browser interpolates. Null = the button runs <see cref="ActionId"/>.</summary>
+    public string? Route { get; init; }
+}
+
+/// <summary>A column of a <see cref="ListingComponent"/> (YAML <c>type: GridColumn</c>): the row
+/// field it shows, how it reads and whether its header sorts (mirrors Java's data.GridColumn as a
+/// listing column).</summary>
+public sealed record ListingColumn(string Id, string Label)
+{
+    /// <summary>string | integer | number | boolean | date | money | status…; null = string.</summary>
+    public string? DataType { get; init; }
+    public string? Stereotype { get; init; }
+    public bool Sortable { get; init; }
+    /// <summary>The column holding the row's identity (what a row route / selection keys on).</summary>
+    public bool Identifier { get; init; }
+    /// <summary>A fixed CSS width; null = size to content.</summary>
+    public string? Width { get; init; }
+    public string? Align { get; init; }
+    /// <summary>A status column's badge tone per value (success | warning | danger | info | neutral).</summary>
+    public IReadOnlyDictionary<string, string>? Tones { get; init; }
+}
+
+/// <summary>A listing authored as DATA (Java's fluent <c>Listing</c>, YAML <c>type: Listing</c>):
+/// its rows come from a REST source the renderer fetches CLIENT-SIDE (<see cref="RowsSource"/>, by
+/// catalogue <c>ref</c> or inline), shown in the declared <see cref="Columns"/>, with the smart
+/// search bar's <see cref="Filters"/>. No view model behind it — the yaml starter's products page.
+/// (Not the class-based <c>Listing&lt;TFilters, TRow&gt;</c>, which the server searches.)</summary>
+public sealed record ListingComponent : ComponentBase
+{
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    /// <summary>Show the free-text search box (Java's fluent default: off).</summary>
+    public bool Searchable { get; init; }
+    /// <summary>Rows per page; 0 = the renderer's 10.</summary>
+    public int PageSize { get; init; }
+    public IReadOnlyList<ListingColumn> Columns { get; init; } = [];
+    public IReadOnlyList<FormField> Filters { get; init; } = [];
+    public RestDataSource? RowsSource { get; init; }
+    /// <summary>auto | table | list | cards | masterDetail | tree; null = auto.</summary>
+    public string? GridLayout { get; init; }
+    public bool Compact { get; init; }
+    public string? EmptyStateMessage { get; init; }
 }
 
 /// <summary>An outlined card wrapping a component.</summary>

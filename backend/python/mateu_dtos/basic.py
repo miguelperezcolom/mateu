@@ -164,6 +164,9 @@ class ButtonMetadata(Wire):
     parameters: Any | None = None
     #: The button size (e.g. "small"); None = the renderer's default (mirrors ButtonDto.size).
     size: str | None = None
+    #: A route this button navigates to on the client instead of running an action (mirrors
+    #: ButtonDto.route — a Button whose actionable is a RouteLink).
+    route: str | None = None
 
 
 class TabLayoutMetadata(Wire):

@@ -245,7 +245,32 @@ public static class ComponentMapper
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId)
         {
             ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
+            Route = b.Route,
         }),
+        // A listing authored as data (YAML type: Listing): a client-side Crud over a REST source, the
+        // shape Java's CrudlMapper emits for a definition-only listing (ft-orders golden).
+        ListingComponent l => Dto(l, new CrudMetadataDto(l.Title,
+            l.Columns.Select(c => new GridColumnDto(new GridColumnMetaDto(c.Id, c.Label)
+            {
+                DataType = c.DataType ?? "string",
+                Stereotype = c.Stereotype ?? "regular",
+                Sortable = c.Sortable,
+                Identifier = c.Identifier,
+                Width = c.Width,
+                AutoWidth = string.IsNullOrEmpty(c.Width),
+                Align = c.Align,
+                Tones = c.Tones,
+            })).ToList(), [])
+        {
+            Subtitle = l.Subtitle,
+            Searchable = l.Searchable,
+            PageSize = l.PageSize > 0 ? l.PageSize : 10,
+            Filters = l.Filters.Select(f => Map(f).Metadata).ToList(),
+            RowsSource = l.RowsSource is null ? null : MateuCatalogs.ToDto(l.RowsSource),
+            GridLayout = l.GridLayout ?? "auto",
+            Compact = l.Compact,
+            EmptyStateMessage = l.EmptyStateMessage,
+        }) with { Id = l.Id ?? "crud", Sizing = "fill" },
         Form f => Dto(f, MapFormHeader(f), f.Content.Select(MapContent)),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),

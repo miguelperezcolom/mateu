@@ -589,11 +589,13 @@ so the field markers work on Python 3.11 through 3.14+.
 ## YAML pages: the components this server builds
 
 A `specs/ui/<route>.yaml` page (or a `routes.yaml` entry's `layout:`) is built from YAML by this
-server, which knows a SUBSET of the YAML component catalogue: `VerticalLayout`, `HorizontalLayout`,
-`FormLayout`, `FormField`, `Button`, `Text`, `Form` and `ComponentRef` (plus partials). Any other
-`type:` — `HeroSection`, `Listing`, `Card`… — renders as an "Unsupported component: <type>" text, and
-`type: AppShell` is Java-only. For those screens, declare them in code; the Java server builds the
-whole catalogue from YAML.
+server: every component of the fluent catalogue, read generically off its properties (the YAML keys
+are the component's attributes, camel-cased), plus `Form` pages, partials and `ComponentRef`, and a
+**`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
+`pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
+whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
+(declare the shell in code here — `IAppSupplier`/`AppSupplier`) and a listing's `rowRoute`. An
+unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
 
