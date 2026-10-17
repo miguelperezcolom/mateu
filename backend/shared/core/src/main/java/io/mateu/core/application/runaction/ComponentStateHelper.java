@@ -51,9 +51,10 @@ public class ComponentStateHelper {
   }
 
   /**
-   * @deprecated use {@link ComponentState#getState(Object, HttpRequest)}
+   * @deprecated use {@link ComponentState#getState(Object, HttpRequest)} (not yet for removal: the
+   *     reflection action runner still calls this one)
    */
-  @Deprecated(since = "3.0-alpha.425", forRemoval = true)
+  @Deprecated(since = "3.0-alpha.425")
   public static Object getState(Object modelView, HttpRequest httpRequest) {
     return ComponentState.getState(modelView, httpRequest);
   }
