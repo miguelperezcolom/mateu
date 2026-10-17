@@ -8463,11 +8463,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
     const out = []
     let last
+    // one key function for the group a row is in AND the rows a group counts: a row with no value is
+    // in the '' group, and String(null) is 'null' — counting with it gave that group « (0)»
+    const keyOf = (row) => String(row[groupBy] == null ? '' : row[groupBy])
     rows.forEach((row, i) => {
-      const key = String(row[groupBy] == null ? '' : row[groupBy])
+      const key = keyOf(row)
       if (i === 0 || key !== last) {
         const g = groups.find((x) => String(x.value) === key)
-          || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+          || { value: key, count: rows.filter((r) => keyOf(r) === key).length, aggregates: {} }
         const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
         for (const c of cols) {
           groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
@@ -9315,9 +9318,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (placed < nodes.length) {
       // no (or partial) DI: columns by distance from the start along the flows
       const rank = new Map()
+      // a loop back (rework: gateway → an earlier task) is not part of the left-to-right order: with
+      // it, the longest-path columns kept growing round the cycle and threw the task past the gateway
+      // that follows it (and the end event onto another row). Back edges = edges into a node still
+      // on the depth-first path from the start.
+      const sources = new Set(flows.map((f) => f.source))
+      const visiting = new Map()
+      const back = new Set()
+      const dfs = (id) => {
+        visiting.set(id, 1)
+        for (const f of flows) {
+          if (f.source !== id) continue
+          const seen = visiting.get(f.target)
+          if (seen === 1) back.add(f)
+          else if (!seen) dfs(f.target)
+        }
+        visiting.set(id, 2)
+      }
+      const allIncoming = new Set(flows.map((f) => f.target))
+      for (const n of nodes) if (!allIncoming.has(n.id) && sources.has(n.id)) dfs(n.id)
+      for (const n of nodes) if (!visiting.get(n.id)) dfs(n.id)
+      const forward = flows.filter((f) => !back.has(f))
       const outgoing = new Map()
-      for (const f of flows) { if (!outgoing.has(f.source)) outgoing.set(f.source, []); outgoing.get(f.source).push(f.target) }
-      const incoming = new Set(flows.map((f) => f.target))
+      for (const f of forward) { if (!outgoing.has(f.source)) outgoing.set(f.source, []); outgoing.get(f.source).push(f.target) }
+      const incoming = new Set(forward.map((f) => f.target))
       const roots = nodes.filter((n) => !incoming.has(n.id))
       const queue = (roots.length ? roots : nodes.slice(0, 1)).map((n) => [n.id, 0])
       while (queue.length) {

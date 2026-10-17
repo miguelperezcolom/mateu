@@ -4,6 +4,7 @@ import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata'
 import { useViewController } from './MateuViewHost';
 import { blockGesture, computePlanningMove } from './planningDrag';
 import { theme } from '../theme';
+import { DAY_MS, laneBlocks, parseDay, planningRows, planningWindow, todayDayNumber, todayOffset, type BoardRow } from './timeline';
 import { buttonA11y } from '../a11y/a11y';
 
 /**
@@ -20,35 +21,11 @@ import { buttonA11y } from '../a11y/a11y';
  * resource walk so rows stay aligned.
  */
 
-const DAY_MS = 86400000;
 const DAY_W = 34;
 const ROW_H = 34;
 const HEADER_H = 34;
 const GROUP_H = 24;
 const LABEL_W = 110;
-
-const parseDay = (s?: string): number | null => {
-  if (!s) return null;
-  const t = Date.parse(`${s}T00:00:00Z`);
-  return isNaN(t) ? null : Math.floor(t / DAY_MS);
-};
-
-type BoardRow =
-  | { kind: 'group'; label: string }
-  | { kind: 'resource'; resource: PlanningResource };
-
-/** Resources in declaration order, with a swimlane caption row wherever `group` changes. */
-const buildRows = (resources: PlanningResource[]): BoardRow[] => {
-  const rows: BoardRow[] = [];
-  let lastGroup: string | undefined;
-  for (const resource of resources) {
-    const group = resource.group ?? '';
-    if (group && group !== lastGroup) rows.push({ kind: 'group', label: group });
-    lastGroup = group;
-    rows.push({ kind: 'resource', resource });
-  }
-  return rows;
-};
 
 export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard }) {
   const controller = useViewController();
@@ -56,20 +33,16 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
   const blocks = metadata.blocks ?? [];
 
   // Day range: from/to on the wire, falling back to the blocks' min/max dates.
-  const blockDays = blocks
-    .flatMap((b) => [parseDay(b.start), parseDay(b.end)])
-    .filter((d): d is number => d != null);
-  const minDay = parseDay(metadata.from) ?? (blockDays.length > 0 ? Math.min(...blockDays) : null);
-  const maxDay = parseDay(metadata.to) ?? (blockDays.length > 0 ? Math.max(...blockDays) : null);
-  if (resources.length === 0 || minDay == null || maxDay == null || maxDay < minDay) {
+  const dayWindow = planningWindow(blocks, metadata.from, metadata.to);
+  if (resources.length === 0 || !dayWindow) {
     return <Text style={styles.empty}>No planning data.</Text>;
   }
-  const totalDays = maxDay - minDay + 1;
+  const { minDay, maxDay, totalDays } = dayWindow;
   const laneW = totalDays * DAY_W;
-  const todayDay = Math.floor(Date.now() / DAY_MS);
-  const todayX = todayDay >= minDay && todayDay <= maxDay ? (todayDay - minDay) * DAY_W : null;
+  const todayDay = todayDayNumber();
+  const todayX = todayOffset(todayDay, minDay, maxDay, DAY_W);
 
-  const rows = buildRows(resources);
+  const rows = planningRows(resources);
   const rowHeight = (row: BoardRow) => (row.kind === 'group' ? GROUP_H : ROW_H);
 
   const days = Array.from({ length: totalDays }, (_, i) => new Date((minDay + i) * DAY_MS));
@@ -105,18 +78,7 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
   };
 
   // Blocks per resource id, clamped to the visible day range (start/end inclusive).
-  const blocksFor = (resourceId?: string) =>
-    blocks
-      .map((block) => {
-        if (block.resourceId !== resourceId) return null;
-        const start = parseDay(block.start);
-        const end = parseDay(block.end);
-        if (start == null || end == null || end < minDay || start > maxDay) return null;
-        const from = Math.max(start, minDay);
-        const to = Math.min(end, maxDay);
-        return { block, left: (from - minDay) * DAY_W, width: Math.max(DAY_W, (to - from + 1) * DAY_W) };
-      })
-      .filter((b): b is { block: PlanningBlock; left: number; width: number } => b != null);
+  const blocksFor = (resourceId?: string) => laneBlocks(blocks, resourceId, minDay, maxDay, DAY_W);
 
   return (
     <View style={styles.board}>

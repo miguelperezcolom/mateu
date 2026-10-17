@@ -105,36 +105,54 @@ fun showShortcutsDialog(session: AppSession, anchor: JComponent?) {
 /**
  * The live header values ("Business date: 12 Oct") at the top of the navigator, repainted when a
  * value changes (an action's UpdateHeaderValue, the live stream) — and the change announced.
+ *
+ * It listens only while it is in a window (addNotify → removeNotify): a navigator that is re-rendered
+ * drops its old panel, and a hidden tool window takes it out of the hierarchy without disposing it —
+ * on coming back it repaints the values that changed meanwhile instead of showing stale ones.
  */
 fun headerValuesPanel(session: AppSession): JComponent {
-    val panel = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0))
-    panel.isOpaque = false
-    panel.border = JBUI.Borders.empty(4, 8)
-    fun paint() {
-        panel.removeAll()
+    val panel = HeaderValuesPanel(session)
+    panel.paintValues()
+    return panel
+}
+
+private class HeaderValuesPanel(private val session: AppSession) : JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0)) {
+    private var unsubscribe: (() -> Unit)? = null
+
+    init {
+        isOpaque = false
+        border = JBUI.Borders.empty(4, 8)
+    }
+
+    fun paintValues() {
+        removeAll()
         for (v in session.headerValues.values) {
             val label = JBLabel(HeaderValues.display(v))
             label.font = label.font.deriveFont(Font.BOLD)
             label.accessibleName(HeaderValues.display(v))
-            panel.add(label)
+            add(label)
         }
-        panel.revalidate()
-        panel.repaint()
+        revalidate()
+        repaint()
     }
-    paint()
-    var unsubscribe: (() -> Unit)? = null
-    unsubscribe = session.onHeaderValuesChanged { id ->
-        if (!panel.isDisplayable && id != null) {
-            // the navigator was re-rendered: this panel is gone, stop listening
-            unsubscribe?.invoke()
-            return@onHeaderValuesChanged
-        }
-        paint()
-        id?.let { session.headerValues[it] }?.let { v ->
-            announce(panel, "${v.label ?: v.id} changed to ${v.value}", assertive = false)
+
+    override fun addNotify() {
+        super.addNotify()
+        paintValues()
+        unsubscribe?.invoke()
+        unsubscribe = session.onHeaderValuesChanged { id ->
+            paintValues()
+            id?.let { session.headerValues[it] }?.let { v ->
+                announce(this, "${v.label ?: v.id} changed to ${v.value}", assertive = false)
+            }
         }
     }
-    return panel
+
+    override fun removeNotify() {
+        unsubscribe?.invoke()
+        unsubscribe = null
+        super.removeNotify()
+    }
 }
 
 // ── idle-session warning ─────────────────────────────────────────────────────────────────────

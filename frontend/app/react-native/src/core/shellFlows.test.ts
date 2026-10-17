@@ -100,3 +100,16 @@ test('the registered catalogue is what a page controller resolves against', () =
   registerActionCatalogue(undefined);
   assert.deepEqual(getActionCatalogue(), []);
 });
+
+test('the tab bar / global search offer the screen leaves depth-first; separators, flow leaves and dead entries are skipped', async () => {
+  const { navigableMenuLeaves } = await import('./shellFlows.ts');
+  const leaves = navigableMenuLeaves([
+    { label: 'Home', route: '/home' },
+    { separator: true, label: '—', route: '/nope' },
+    { label: 'Sales', submenus: [{ label: 'Orders', route: '/orders' }, { label: 'Remote', serverSideType: 'x.Remote' }, { label: 'Sub', submenus: [{ label: 'Deep', route: '/deep' }] }] },
+    { label: 'Run EOD', rules: [{ action: 'RunAction', actionId: 'eod' }], route: '/ignored' },
+    { label: 'Empty group', submenus: [] },
+    { label: 'Nothing' },
+  ] as any[]);
+  assert.deepEqual(leaves.map((l: any) => l.label), ['Home', 'Orders', 'Remote', 'Deep']);
+});

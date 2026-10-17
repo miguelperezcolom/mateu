@@ -64,7 +64,23 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
     val dialog = JDialog(owner, label, java.awt.Dialog.ModalityType.APPLICATION_MODAL)
     dialog.accessibleContext.accessibleName = label
     dialog.defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
+    dialog.contentPane.add(actionPanelContent(ctx, metadata, onChosen = { dialog.dispose() }, onRelayout = { dialog.pack() }))
+    dialog.rootPane.registerKeyboardAction(
+        { dialog.dispose() },
+        KeyStroke.getKeyStroke("ESCAPE"),
+        JComponent.WHEN_IN_FOCUSED_WINDOW,
+    )
+    dialog.pack()
+    dialog.setLocationRelativeTo(anchor)
+    dialog.isVisible = true
+}
 
+/**
+ * The panel's content — one column per category, "Show more", the hide-unpopulated toggle — apart
+ * from the dialog that hosts it, so it can be driven headless. Choosing an action calls [onChosen]
+ * (the dialog closes) and then dispatches it; a client-side change of the columns calls [onRelayout].
+ */
+internal fun actionPanelContent(ctx: AppContext, metadata: JsonNode, onChosen: () -> Unit, onRelayout: () -> Unit): JComponent {
     val expanded = HashSet<Int>()
     var hideUnpopulated = false
 
@@ -73,7 +89,7 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
 
     fun choose(action: ActionPanels.Action) {
         if (action.disabled || action.actionId.isBlank()) return
-        dialog.dispose()
+        onChosen()
         val parameters = ctx.jsonToParams(action.parameters)
         ctx.runAction(action.actionId, parameters.ifEmpty { null })
     }
@@ -126,7 +142,7 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
         }
         columns.revalidate()
         columns.repaint()
-        dialog.pack()
+        onRelayout()
     }
 
     val content = JPanel(BorderLayout())
@@ -144,14 +160,6 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
     val scroll = JBScrollPane(columns)
     scroll.border = null
     content.add(scroll, BorderLayout.CENTER)
-    dialog.contentPane.add(content)
-    dialog.rootPane.registerKeyboardAction(
-        { dialog.dispose() },
-        KeyStroke.getKeyStroke("ESCAPE"),
-        JComponent.WHEN_IN_FOCUSED_WINDOW,
-    )
-
     rebuild()
-    dialog.setLocationRelativeTo(anchor)
-    dialog.isVisible = true
+    return content
 }

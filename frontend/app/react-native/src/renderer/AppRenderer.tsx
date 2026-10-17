@@ -13,7 +13,7 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
-import { isRuleLeaf, menuLeafEffects, registerActionCatalogue, type ShellAction } from '../core/shellFlows';
+import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, registerActionCatalogue, type ShellAction } from '../core/shellFlows';
 import { fetchExternalJson } from '../core/restFetch';
 import { interpolate } from '../core/expressions';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
@@ -159,22 +159,6 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
       />
     </View>
   );
-}
-
-function flattenMenuItems(items: MenuItem[]): MenuItem[] {
-  const result: MenuItem[] = [];
-  for (const item of items) {
-    if (item.separator) continue;
-    if (item.submenus && item.submenus.length > 0) {
-      result.push(...flattenMenuItems(item.submenus));
-    } else if (isRuleLeaf(item)) {
-      // a leaf that RUNS a flow has no screen of its own: it is drawn in the drawer, never a tab
-      continue;
-    } else if (item.route || item.serverSideType) {
-      result.push(item);
-    }
-  }
-  return result;
 }
 
 // beyond this many options the open selector shows a search box (like the web picker)
@@ -470,7 +454,7 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
 
   const text = query.trim().toLowerCase();
   const menuMatches = text
-    ? flattenMenuItems(appMeta.menu ?? []).filter((item) => (item.label ?? '').toLowerCase().includes(text))
+    ? navigableMenuLeaves(appMeta.menu ?? []).filter((item) => (item.label ?? '').toLowerCase().includes(text))
     : [];
 
   const pick = (item: MenuItem) => {
@@ -701,7 +685,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   });
 
   const variant = appMeta.variant ?? 'NAVIGATION_LAYOUT';
-  const menuItems = flattenMenuItems(appMeta.menu ?? []);
+  const menuItems = navigableMenuLeaves(appMeta.menu ?? []);
   // bumped when an @AppContext selector changes so the current screen remounts (and thus reloads
   // with the new appState)
   const [contextVersion, setContextVersion] = useState(0);
