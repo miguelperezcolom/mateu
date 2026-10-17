@@ -32,15 +32,30 @@ export function documentUrlOf(url, base = documentBase) {
   return url
 }
 
+// Types the browser only DISPLAYS. Inline bytes become a blob: URL, which belongs to the APP's
+// origin: an HTML/SVG/XML document opened or printed from it would run inside the app with the
+// user's token in reach. Only these are shown in place; any other inline type is SAVED, typed as
+// opaque bytes. (A server-parked document comes with Content-Security-Policy: sandbox.)
+const PASSIVE_INLINE_TYPES = [
+  /^application\/pdf$/, /^image\/(png|jpe?g|gif|webp|bmp|avif|x-icon|vnd\.microsoft\.icon)$/,
+  /^text\/(plain|csv)$/, /^application\/json$/, /^audio\//, /^video\//,
+]
+
+export function isPassiveInlineType(mimeType) {
+  const base = String(mimeType == null ? '' : mimeType).split(';')[0].trim().toLowerCase()
+  return PASSIVE_INLINE_TYPES.some((re) => re.test(base))
+}
+
 /** DownloadFile del wire → { filename, mimeType, base64Content, url, inline, print } o null. */
 export function fileDownloadOf(data) {
   if (!data || typeof data !== 'object') return null
   const url = data.base64Content ? null : documentUrlOf(data.url)
   if (!data.base64Content && !url) return null
-  const inline = data.disposition === 'inline'
+  const active = !!data.base64Content && !isPassiveInlineType(data.mimeType)
+  const inline = data.disposition === 'inline' && !active
   return {
     filename: data.filename || 'export',
-    mimeType: data.mimeType || 'application/octet-stream',
+    mimeType: active ? 'application/octet-stream' : (data.mimeType || 'application/octet-stream'),
     base64Content: data.base64Content ? String(data.base64Content) : null,
     url,
     inline,

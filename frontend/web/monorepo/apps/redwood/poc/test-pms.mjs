@@ -145,7 +145,7 @@ test('Document: print lo imprime en un iframe oculto, sin popup', () => {
     open: () => { log.push(['open']); return {} },
     document: { body: { appendChild: (f) => log.push(['append', f.src]) }, createElement: () => frame },
   }
-  assert.equal(triggerDownload({ filename: 'f.pdf', base64Content: 'JVBERi0=', disposition: 'inline', print: true }, env), 'printing')
+  assert.equal(triggerDownload({ filename: 'f.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=', disposition: 'inline', print: true }, env), 'printing')
   assert.deepEqual(log.find((l) => l[0] === 'append'), ['append', 'blob:p'])
   onload()
   assert.ok(log.some((l) => l[0] === 'print'))

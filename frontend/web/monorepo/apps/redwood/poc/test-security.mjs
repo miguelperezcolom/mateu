@@ -7,6 +7,7 @@ import { interpolate, literalText, reduceContexts, HOST_ID } from './reduceConte
 import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCredentialOrigins } from './hostHeaders.mjs'
 import { fetchWithPolicy, connectivity } from './resilience.mjs'
 import { expandRemoteMenus } from './transport.mjs'
+import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
 
 let passed = 0
 const queue = []
@@ -64,6 +65,22 @@ test('M-S5: the token goes to the shell base and the remotes ITS app names, neve
     resetCredentialOrigins()
     connectivity.reset()
   }
+})
+
+// ── M-S6: inline active documents never open in the app's origin ────────────────────────────────
+
+test('M-S6: inline bytes of HTML/SVG/XML are saved as opaque bytes, never shown or printed', () => {
+  for (const mimeType of ['text/html', 'image/svg+xml', 'application/xhtml+xml', 'text/xml', undefined]) {
+    const f = fileDownloadOf({ filename: 'x', mimeType, base64Content: 'PHN2Zz4=', disposition: 'inline', print: true })
+    assert.equal(f.inline, false)
+    assert.equal(f.print, false)
+    assert.equal(f.mimeType, 'application/octet-stream')
+  }
+  assert.equal(fileDownloadOf({ filename: 'f.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=', disposition: 'inline' }).inline, true)
+  // a parked document is served sandboxed by the server: its disposition stands
+  assert.equal(fileDownloadOf({ filename: 'p.html', mimeType: 'text/html', url: '/mateu/v3/documents/t', disposition: 'inline' }).inline, true)
+  assert.equal(isPassiveInlineType('image/png'), true)
+  assert.equal(isPassiveInlineType('image/svg+xml'), false)
 })
 
 for (const { name, fn } of queue) {

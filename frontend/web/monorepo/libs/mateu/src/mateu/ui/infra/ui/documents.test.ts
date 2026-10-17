@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
     documentUrl,
     handleFileDownload,
+    isPassiveInlineType,
     preparePrint,
     printPage,
     shadowRoots,
@@ -88,7 +89,7 @@ describe('handleFileDownload', () => {
 
     it('prints an inline document through a hidden frame', () => {
         const e = env()
-        expect(handleFileDownload({ filename: 'f.pdf', base64Content: btoa('%PDF'), disposition: 'inline', print: true }, e))
+        expect(handleFileDownload({ filename: 'f.pdf', mimeType: 'application/pdf', base64Content: btoa('%PDF'), disposition: 'inline', print: true }, e))
             .toBe('printing')
         const frame = document.querySelector('iframe') as HTMLIFrameElement
         expect(frame).not.toBeNull()
@@ -102,11 +103,36 @@ describe('handleFileDownload', () => {
 
     it('opens the document in a tab when the frame cannot print it', () => {
         const e = env()
-        handleFileDownload({ filename: 'f.pdf', base64Content: btoa('%PDF'), disposition: 'inline', print: true }, e)
+        handleFileDownload({ filename: 'f.pdf', mimeType: 'application/pdf', base64Content: btoa('%PDF'), disposition: 'inline', print: true }, e)
         const frame = document.querySelector('iframe') as HTMLIFrameElement
         Object.defineProperty(frame, 'contentWindow', { value: { focus() {}, print() { throw new Error('blocked') } } })
         frame.dispatchEvent(new Event('load'))
         expect(e.open).toHaveBeenCalledWith('blob:doc', '_blank')
+    })
+
+    it('M-S6: inline bytes of an active type are saved, never opened or printed in the app origin', () => {
+        for (const mimeType of ['text/html', 'image/svg+xml', 'application/xhtml+xml', 'text/xml; charset=utf-8',
+            'application/javascript', undefined]) {
+            const blobs: Blob[] = []
+            const e = env({ URL: { createObjectURL: vi.fn((b: Blob) => { blobs.push(b); return 'blob:doc' }), revokeObjectURL: vi.fn() } })
+            expect(handleFileDownload({ filename: 'x', mimeType, base64Content: btoa('<script>1</script>'), disposition: 'inline' }, e))
+                .toBe('downloaded')
+            expect(handleFileDownload({ filename: 'x', mimeType, base64Content: btoa('<svg onload=1>'), disposition: 'inline', print: true }, e))
+                .toBe('downloaded')
+            expect(e.open).not.toHaveBeenCalled()
+            expect(document.querySelector('iframe')).toBeNull()
+            // typed as opaque bytes, so no browser renders the blob even ignoring `download`
+            expect(blobs.every(b => b.type === 'application/octet-stream')).toBe(true)
+        }
+    })
+
+    it('M-S6: passive types still open inline; a parked (sandboxed) url keeps its disposition', () => {
+        expect(isPassiveInlineType('image/png')).toBe(true)
+        expect(isPassiveInlineType('application/pdf; x=y')).toBe(true)
+        expect(isPassiveInlineType('image/svg+xml')).toBe(false)
+        const e = env()
+        expect(handleFileDownload({ filename: 'p.html', mimeType: 'text/html', url: '/mateu/v3/documents/t', disposition: 'inline' }, e))
+            .toBe('opened')
     })
 
     it('ignores what it cannot use', () => {
