@@ -21,7 +21,9 @@ let provider: ExternalAuthProvider | undefined
 
 /**
  * Register (or clear, with `undefined`) the auth-header provider consulted before every DIRECT
- * external REST fetch. Its headers are merged LAST, so they win over any statically declared
+ * external REST fetch — including the sources a federated REMOTE app declares, at urls it chooses:
+ * the provider MUST decide by `ctx.url` (the exact origin of the APIs the token is for) and answer
+ * nothing for any other. Its headers are merged LAST, so they win over any statically declared
  * header of the same name. Ignored on the proxy path (secrets are injected server-side there).
  */
 export function registerExternalAuthProvider(p: ExternalAuthProvider | undefined): void {

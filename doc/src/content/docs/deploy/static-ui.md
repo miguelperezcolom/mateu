@@ -148,8 +148,10 @@ backend at `baseUrl`. That is a legitimate deployment too.
 ## Auth, and what it can and cannot do
 
 - **Who the user is** comes from your identity provider in the browser. Register a provider with
-  `registerExternalAuthProvider` (libs/mateu) to add an `Authorization` header to every direct call;
-  the API validates the token.
+  `registerExternalAuthProvider` (libs/mateu) to add an `Authorization` header to the direct calls;
+  the API validates the token. The provider is asked for every direct call, so it must decide by
+  `url` and answer `{}` for an endpoint the token is not for (see
+  [client-side auth](/java-ui-definition/annotations/rest-options/#client-side-auth-for-the-direct-path-registerexternalauthprovider)).
 - **Authorization lives in the API.** UI gating in a static bundle is advisory — the files are
   public, and a hidden button is not a permission. `@EyesOnly` screens are refused by the static
   check on purpose (a bundle also reveals structure).

@@ -214,6 +214,14 @@ registerExternalAuthProvider(({ url }) =>
     : {})
 ```
 
+:::caution[Scope the provider by URL]
+The provider is called for **every** direct fetch, including the REST sources a federated
+**remote** app declares (its catalogue is merged into the client's, under urls the remote chooses).
+Always decide by `url` — match the exact origin (and path) of the APIs your token is for, as above,
+and answer `{}` for anything else. A provider that returns the token unconditionally hands it to
+whatever endpoint a remote screen names.
+:::
+
 The provider may be async (e.g. refresh the token first), its headers win over any statically
 declared header of the same name, and a throwing provider is swallowed (it never breaks the fetch).
 It is **ignored on the proxy path** (there, secrets are injected server-side). The native renderers
