@@ -8,6 +8,7 @@ namespace Mateu.Tests;
 /// <summary>A routes.yaml entry naming a layout file that does not exist used to answer "not found"
 /// with nothing in the log. The loader now names the route, the layout and what to do — the mirror
 /// of Java's YamlSpecProblemsTest and Python's test_yaml_definition_problems.</summary>
+[Collection(ProcessWideStateCollection.Name)]
 public class YamlDefinitionProblemsTests
 {
     [Fact]
