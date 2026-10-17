@@ -50,7 +50,9 @@ def run(action_id: str, **kw):
 
 def test_the_id_link_opens_the_record():
     inc = run("view", parameters={"id": "g1", "name": "Gear"})
-    [command] = inc.commands
+    # a server-driven navigation clears the unsaved-changes flag first
+    clean, command = inc.commands
+    assert clean.type == "MarkAsClean"
     assert command.type == "NavigateTo"
     assert command.data == "/gadgets/g1"
 

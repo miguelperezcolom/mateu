@@ -48,7 +48,7 @@ class AppContext(val session: AppSession) {
      * `_route` matches it is a stay-in-place response (e.g. a row action's "/list" + re-search) —
      * the web mediator only remounts on a route CHANGE, so neither do we.
      */
-    private var currentInnerRoute: String = ""
+    private var currentInnerRoute: String? = null
     var currentComponentId: String = "ux_main"
     var currentComponentState: MutableMap<String, Any?> = HashMap()
 
@@ -244,6 +244,9 @@ class AppContext(val session: AppSession) {
     private var currentActionValidationRequired: MutableMap<String, Boolean> = HashMap()
     private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
     private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
+    private var currentActionConfirmation: Map<String, ConfirmationTexts> = HashMap()
+    /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
+    private var currentActionSse: Set<String> = emptySet()
 
     /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
      *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -491,14 +494,30 @@ class AppContext(val session: AppSession) {
                 currentFieldErrors.putAll(fieldErrors)
                 rerenderCurrentForm()
                 val summary = fieldErrors.entries.joinToString("; ") { "${it.key}: ${it.value}" }
-                showMessage(summary, "warning", "Revisa los campos")
+                showMessage(summary, "warning", "There are validation errors")
                 // A balloon is a visual affordance; a screen-reader user gets no signal that the
                 // save was refused. Speak it, and put the focus on the first rejected field so
                 // they are taken to the problem rather than told there is one somewhere.
-                contentPane?.let { io.mateu.ijp.ui.announce(it, "Revisa los campos. $summary") }
+                contentPane?.let { io.mateu.ijp.ui.announce(it, "There are validation errors. $summary") }
                 focusFirstInvalidField(fieldErrors.keys.firstOrNull())
                 return
             }
+        }
+
+        // @Action(confirmationRequired): ask first, with the declared texts — same order as the
+        // web's mateu-component (selection guard, validation, then the question).
+        currentActionConfirmation[actionId]?.let { t ->
+            val choice = JOptionPane.showOptionDialog(
+                contentPane,
+                t.message,
+                t.header,
+                JOptionPane.YES_NO_OPTION,
+                if (t.destructive) JOptionPane.WARNING_MESSAGE else JOptionPane.QUESTION_MESSAGE,
+                null,
+                arrayOf(t.confirmationText, t.denialText),
+                t.denialText,
+            )
+            if (choice != JOptionPane.YES_OPTION) return
         }
 
         // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching
@@ -530,6 +549,24 @@ class AppContext(val session: AppSession) {
 
         val serverSideType = resolveActionTarget(actionId)
         val generation = polling.generation
+        if (actionId in currentActionSse) {
+            // a LongTask: each progress increment is applied as it arrives
+            background(
+                work = {
+                    apiClient.runActionStream(
+                        currentRoute, currentConsumedRoute, actionId, serverSideType,
+                        currentComponentId, currentComponentState, appState, parameters ?: emptyMap(),
+                    ) { increment -> SwingUtilities.invokeLater { applyIncrement(increment) } }
+                    com.fasterxml.jackson.databind.node.NullNode.instance
+                },
+                onOk = { polling.actionSucceeded(generation, actionId) },
+                onErr = {
+                    if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
+                    else showError("Action failed: ${it.message}")
+                },
+            )
+            return
+        }
         background(
             work = {
                 apiClient.runAction(
@@ -641,6 +678,8 @@ class AppContext(val session: AppSession) {
         val validationFlags = HashMap<String, Boolean>()
         val bubbleFlags = HashMap<String, Boolean>()
         val rowsSelectedFlags = HashMap<String, Boolean>()
+        val confirmations = HashMap<String, ConfirmationTexts>()
+        val sseActions = HashSet<String>()
         val restData = HashMap<String, JsonNode>()
         val actionNodes = sscNode.path("actions")
         if (actionNodes.isArray) {
@@ -651,6 +690,8 @@ class AppContext(val session: AppSession) {
                     validationFlags[id] = a.bool("validationRequired")
                     bubbleFlags[id] = a.bool("bubble")
                     rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
+                    ActionConfirmation.of(a)?.let { confirmations[id] = it }
+                    if (a.bool("sse")) sseActions.add(id)
                     val rest = a.path("restAction")
                     if (rest.isObject) restData[id] = rest
                 }
@@ -660,6 +701,8 @@ class AppContext(val session: AppSession) {
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
         currentActionRowsSelectedRequired = rowsSelectedFlags
+        currentActionConfirmation = confirmations
+        currentActionSse = sseActions
         currentActionRestData = restData
         currentActionDefs = actionNodes.takeIf { it.isArray }
         // A catalogue REST call reached from the menu runs against the latest loaded view.
@@ -969,6 +1012,15 @@ class AppContext(val session: AppSession) {
             return
         }
 
+        // A state update aimed at an open overlay (a LongTask's progress dialog) belongs to it.
+        if ((component.isNull || component.isMissingNode) && state.isObject && targetId.isNotBlank()) {
+            val update = session.overlayStateUpdaters[targetId]
+            if (update != null) {
+                SwingUtilities.invokeLater { update(state) }
+                return
+            }
+        }
+
         val target = if (targetId.isBlank()) contentPane else (registry[targetId] ?: contentPane)
 
         if (component.isNull || component.isMissingNode) {
@@ -998,7 +1050,7 @@ class AppContext(val session: AppSession) {
                 // nothing (or back to the listing).
                 val base = stateComp.ifBlank { currentConsumedRoute }
                 val routeSuffix = state.text("_route")
-                if (currentInnerRoute.isNotBlank() && routeSuffix.trim('/') == currentInnerRoute) {
+                if (MediatorRoutes.stays(currentInnerRoute, routeSuffix)) {
                     // Same inner route as what's already rendered (e.g. a row action answering
                     // "/list" to a listing): stay put — a RunAction command (e.g. "search") in the
                     // same increment refreshes the data.
@@ -1141,21 +1193,37 @@ class AppContext(val session: AppSession) {
             if (session.openOverlays[key]?.invoke(component, state, data) == true) return
         }
         val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
-        val dialog = javax.swing.JDialog(owner, meta.text("headerTitle"), java.awt.Dialog.ModalityType.MODELESS)
-        dialog.contentPane.add(overlayBody(component, state, data))
+        // the overlay's own state: its initialData, then the updates aimed at it (LongTask steps)
+        var overlayState: JsonNode = OverlayState.seed(state, meta)
+        var shown: JsonNode = component
+        val dialog = javax.swing.JDialog(owner, OverlayState.title(meta, overlayState), java.awt.Dialog.ModalityType.MODELESS)
+        dialog.contentPane.add(overlayBody(component, overlayState, data))
         val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
             if (!dialog.isDisplayable) {
                 false
             } else {
-                dialog.title = c.path("metadata").text("headerTitle")
+                shown = c
+                overlayState = OverlayState.seed(st, c.path("metadata"))
+                dialog.title = OverlayState.title(c.path("metadata"), overlayState)
                 dialog.contentPane.removeAll()
-                dialog.contentPane.add(overlayBody(c, st, d))
+                dialog.contentPane.add(overlayBody(c, overlayState, d))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
                 true
             }
         }
+        val updateState: (JsonNode) -> Unit = { st ->
+            if (dialog.isDisplayable) {
+                overlayState = OverlayState.merge(overlayState, st)
+                dialog.title = OverlayState.title(shown.path("metadata"), overlayState)
+                dialog.contentPane.removeAll()
+                dialog.contentPane.add(overlayBody(shown, overlayState, data))
+                dialog.contentPane.revalidate()
+                dialog.contentPane.repaint()
+            }
+        }
         if (key != null) session.openOverlays[key] = refresh
+        if (key != null) session.overlayStateUpdaters[key] = updateState
         val width = remToPx(meta.text("width"), 448)
         if (owner != null) {
             val h = (owner.height - 80).coerceAtLeast(300)
@@ -1172,6 +1240,7 @@ class AppContext(val session: AppSession) {
                 session.removeOverlay(close)
                 // By value: a newer window under the same id may already have taken the slot.
                 if (key != null) session.openOverlays.remove(key, refresh)
+                if (key != null) session.overlayStateUpdaters.remove(key, updateState)
                 onClosed()
             }
         })
@@ -1188,6 +1257,25 @@ class AppContext(val session: AppSession) {
         return (rem * 16).toInt()
     }
 
+    /** Opens a route the way a server NavigateTo does (also the page header's previous/next
+     *  record links). */
+    fun openRoute(href: String) {
+        if (href.isBlank()) return
+        val opener = detailOpener
+        SwingUtilities.invokeLater {
+            when {
+                // A hosted listing (bottom tool window): navigation targets open as a
+                // detail — a central editor tab — never inside the listing panel.
+                opener != null -> opener(href.trim('/'), href, "", "")
+                // Any other hosted view: open through the host (auto-placement), so the
+                // page gets its own tab instead of hijacking this one.
+                nativeToolbarHost && session.openViewHandler != null ->
+                    session.openViewHandler?.invoke(href.trim('/'), href, "", null, null)
+                else -> navigate(href, "", null, "")
+            }
+        }
+    }
+
     private fun handleCommand(cmd: JsonNode) {
         val type = cmd.text("type")
         val cmdData = cmd.path("data")
@@ -1196,24 +1284,7 @@ class AppContext(val session: AppSession) {
                 val title = if (cmdData.isTextual) cmdData.asText() else cmdData.text("title")
                 if (title.isNotBlank() && !title.startsWith("[")) setWindowTitle(title)
             }
-            "NavigateTo" -> {
-                val href = if (cmdData.isTextual) cmdData.asText() else cmdData.text("href")
-                if (href.isNotBlank()) {
-                    val opener = detailOpener
-                    SwingUtilities.invokeLater {
-                        when {
-                            // A hosted listing (bottom tool window): navigation targets open as a
-                            // detail — a central editor tab — never inside the listing panel.
-                            opener != null -> opener(href.trim('/'), href, "", "")
-                            // Any other hosted view: open through the host (auto-placement), so the
-                            // page gets its own tab instead of hijacking this one.
-                            nativeToolbarHost && session.openViewHandler != null ->
-                                session.openViewHandler?.invoke(href.trim('/'), href, "", null, null)
-                            else -> navigate(href, "", null, "")
-                        }
-                    }
-                }
-            }
+            "NavigateTo" -> openRoute(if (cmdData.isTextual) cmdData.asText() else cmdData.text("href"))
             "RunAction" -> {
                 // E.g. a row action's follow-up `search` that refreshes the listing in place.
                 val actionId = cmdData.text("actionId")

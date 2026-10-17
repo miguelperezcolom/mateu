@@ -131,7 +131,8 @@ def test_cancel_just_closes_the_drawer():
         RunActionRq(route="/drawer-contacts", actionId="cancel-new",
                     serverSideType=f"{__name__}.DrawerContacts", initiatorComponentId="ux_list")
     )
-    assert [c.type for c in inc.commands] == ["CloseModal"]
+    # Java parity (EditInDrawerSyncTest): [closeModal, markAsClean] — the drawer form tracks edits
+    assert [c.type for c in inc.commands] == ["CloseModal", "MarkAsClean"]
     assert inc.fragments == []
 
 

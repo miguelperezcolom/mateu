@@ -106,6 +106,56 @@ class MateuApiClient(
         return tree
     }
 
+    /**
+     * An `sse` action (a LongTask): POST to the stream endpoint and hand each increment to
+     * [onIncrement] AS IT ARRIVES — the progress dialog moves while the task runs, as on the web.
+     * Same body as a sync call; runs on the caller's (background) thread until the stream ends.
+     */
+    fun runActionStream(
+        route: String?,
+        consumedRoute: String?,
+        actionId: String?,
+        serverSideType: String?,
+        initiatorComponentId: String?,
+        componentState: Map<String, Any?>,
+        appState: Map<String, Any?>,
+        parameters: Map<String, Any?>,
+        onIncrement: (JsonNode) -> Unit,
+    ) {
+        val routeStripped = (route ?: "").removePrefix("/")
+        val urlSegment = if (routeStripped.isEmpty()) "_no_route" else routeStripped
+        val body = linkedMapOf<String, Any?>(
+            "route" to if (routeStripped.isEmpty()) "" else "/$routeStripped",
+            "consumedRoute" to (consumedRoute ?: ""),
+            "actionId" to (actionId ?: ""),
+            "serverSideType" to serverSideType,
+            "initiatorComponentId" to initiatorComponentId,
+            "componentState" to componentState,
+            "appState" to appState,
+            "parameters" to parameters,
+        ).filterValues { it != null }
+        val url = "$baseUrl/mateu/v3/sse/$urlSegment"
+        log("[Mateu] --> POST (stream) $url")
+        val b = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .header("Accept", "text/event-stream")
+            .header("X-Session-Id", sessionId)
+        bearer(tokenProvider.accessToken())?.let { b.header("Authorization", it) }
+        val response = http.send(b.POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body))).build(), HttpResponse.BodyHandlers.ofLines())
+        if (response.statusCode() == 401) throw UnauthorizedException(url)
+        if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")
+        response.body().use { lines ->
+            for (raw in lines.iterator()) {
+                val line = raw.trim()
+                if (!line.startsWith("data:")) continue
+                val increment = runCatching { mapper.readTree(line.removePrefix("data:").trim()) }.getOrNull() ?: continue
+                observeWireVersion(increment)
+                onIncrement(increment)
+            }
+        }
+    }
+
     /** The first response of another wire major is reported (once); rendering goes on regardless. */
     internal fun observeWireVersion(tree: JsonNode?) {
         if (wireReported || tree == null || !tree.isObject) return

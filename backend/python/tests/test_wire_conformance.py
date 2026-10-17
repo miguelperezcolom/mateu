@@ -159,6 +159,66 @@ class DashboardPage(Dashboard):
     notes: Annotated[Text, Panel("Notes", subtitle="Today")] = Text(text="All systems nominal")
 
 
+from mateu_uidl import GlobalSearchSupplier, NotificationsSupplier  # noqa: E402
+
+
+@ui("/conformance/app-extras")
+@app("Extras app", command_center=True)
+class ExtrasApp(NotificationsSupplier, GlobalSearchSupplier):
+    """The app-level shell extras as flags: command center, notification bell, global search."""
+
+    @menu_item("Home")
+    def home(self):
+        return None
+
+    def notifications(self, request):
+        return []
+
+    def mark_notifications_read(self, ids, request):
+        return None
+
+    def global_search(self, search_text):
+        return []
+
+
+from mateu_uidl import welcome_banner  # noqa: E402
+
+
+@ui("/conformance/welcome-banner")
+@title("Onboarding")
+@welcome_banner(subtitle="Three steps and you are done")
+class WelcomeBannerPage:
+    """The welcome banner: a centered HeroSection whose title falls back to the page title."""
+
+    name: str = ""
+
+
+@ui("/conformance/card-menu")
+@app("Card menu")
+class CardMenuApp(AppSupplier):
+    """A card menu authored in code: a group shown as CARDS, each entry a card with its
+    description, its own entries the card's actions."""
+
+    def get_app(self) -> AppShell:
+        return AppShell(
+            title="Card menu",
+            variant=AppVariant.HAMBURGER_MENU,
+            home_route="/plain",
+            menu=[
+                MenuItem(
+                    label="Bookings", route="/b", server_side_type="", display="cards",
+                    submenus=[
+                        MenuItem(
+                            label="Reservations", route="/b/r", server_side_type="",
+                            description="Search and modify reservations",
+                        )
+                    ],
+                ),
+                MenuItem(label="Plain", route="/plain", server_side_type=""),
+            ],
+        )
+
+
 @ui("/conformance/app-in-code")
 @app("App in code")
 class AppInCode(AppSupplier):
@@ -537,6 +597,31 @@ class SalesCrud(Crud[Sale]):
     def delete(self, id):
         pass
 
+from mateu_uidl import PeerNav, PeerNavigationSupplier  # noqa: E402
+
+
+@ui("/conformance/peer-nav")
+@title("Record 2")
+class PeerNavPage(PeerNavigationSupplier):
+    """The canonical header's previous/next record links (PageMetadata.peer_nav)."""
+
+    name: str = "Two"
+
+    def peers(self) -> PeerNav | None:
+        return PeerNav("Record 1", "/records/1", "Record 3", "/records/3")
+
+
+@ui("/conformance/app-no-home")
+@app("No home app")
+class NoHomeApp:
+    """The content slot of an app that declares only menu items (request.json: the
+    "_no_home_route" sentinel loaded against the app type)."""
+
+    @menu_item("Orders")
+    def orders(self):
+        return None
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -563,20 +648,23 @@ def _is_default(value) -> bool:
     return value is None or value == [] or value == {} or value is False or value == 0 or value == ""
 
 
-def normalise(node):
-    """Mirrors the Java normaliser: drop volatile and empty members, sort keys."""
+def normalise(node, in_actions: bool = False):
+    """Mirrors the Java normaliser: drop volatile and empty members, sort keys. An ACTION's id is
+    not volatile: it is the name the client sends, so a missing or renamed action is a contract
+    break (the corpus used to drop it with every generated id, which is how the ports' CRUD forms
+    shipped with dead Save/Edit buttons unnoticed)."""
     if isinstance(node, dict):
         out = {}
         for key in sorted(node):
-            if key in VOLATILE:
+            if key in VOLATILE and not (key == "id" and in_actions):
                 continue
-            value = normalise(node[key])
+            value = normalise(node[key], key == "actions")
             if _is_default(value):
                 continue  # absent and default mean the same thing to a renderer
             out[key] = value
         return out
     if isinstance(node, list):
-        return [normalise(v) for v in node]
+        return [normalise(v, in_actions) for v in node]
     return node
 
 
@@ -609,6 +697,17 @@ def actual(view_cls, case: str | None = None) -> dict:
     handler = SyncHandler(
         MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=None)
     )
+    # A case with a request.json is pinned on that (second) request to its fixture type, not on
+    # the first load — identical in the three runners.
+    request_file = CORPUS / case / "request.json" if case else None
+    if request_file is not None and request_file.is_file():
+        req = json.loads(request_file.read_text())
+        inc = handler.handle(RunActionRq(
+            route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
+            action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
+            server_side_type=type_name(view_cls),
+        ))
+        return normalise(inc.model_dump(by_alias=True, mode="json"))
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     out = normalise(inc.model_dump(by_alias=True, mode="json"))
     return without_mediator_protocol(out) if case in MEDIATED else out
@@ -618,7 +717,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage)]
 
 
 def test_every_case_of_the_corpus_is_wired():

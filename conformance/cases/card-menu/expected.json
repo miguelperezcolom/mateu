@@ -1,0 +1,44 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "metadata" : {
+        "homeConsumedRoute" : "/conformance/card-menu",
+        "homeRoute" : "/plain",
+        "layout" : "SINGLE_SLOT",
+        "menu" : [ {
+          "consumedRoute" : "/conformance/card-menu",
+          "display" : "cards",
+          "label" : "Bookings",
+          "path" : "/b",
+          "route" : "/conformance/card-menu/b",
+          "submenus" : [ {
+            "consumedRoute" : "/conformance/card-menu",
+            "description" : "Search and modify reservations",
+            "label" : "Reservations",
+            "path" : "/b/b/r",
+            "route" : "/conformance/card-menu/b/b/r",
+            "uriPrefix" : "/conformance/card-menu",
+            "visible" : true
+          } ],
+          "uriPrefix" : "/conformance/card-menu",
+          "visible" : true
+        }, {
+          "consumedRoute" : "/conformance/card-menu",
+          "label" : "Plain",
+          "path" : "/plain",
+          "route" : "/conformance/card-menu/plain",
+          "uriPrefix" : "/conformance/card-menu",
+          "visible" : true
+        } ],
+        "rootRoute" : "/conformance/card-menu",
+        "title" : "Card menu",
+        "totalMenuOptions" : 3,
+        "type" : "App",
+        "variant" : "HAMBURGER_MENU"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

@@ -635,20 +635,38 @@ class CrudMapperMixin(MixinBase):
                 Button(label="Cancel", action_id="cancel-new"),
                 Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
+        # A create/edit form IS a form page (Java's crud forms answer pageType "form"); the
+        # crud's own type (collection) describes its listing, not the form.
+        form_page_type = page_type_of(crud_type) if mode == "view" else "form"
         page = self.client(
             PageMetadata(title=title, page_title=title, toolbar=toolbar,
-                         page_type=page_type_of(crud_type)),
+                         page_type=form_page_type),
             None,
             self.form_cards(element, entity, read_only=mode == "view"),
         )
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
             # The entity's field values ride in initialData / fragment state (Java parity).
-            initial_data=self.form_initial_data(element, entity), actions=[], triggers=[],
+            initial_data=self.form_initial_data(element, entity),
+            # The toolbar's actions, advertised: this port answers them in place (there is no
+            # mediator above the form for them to bubble to, as in Java), and the web client only
+            # SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
+            # Saving validates the form on the client first.
+            actions=[
+                *self.field_actions(element),
+                *(
+                    Action(id=b.action_id, validation_required=b.action_id == save_action_id)
+                    for b in toolbar
+                ),
+            ],
+            triggers=[],
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),
-            page_type=page_type_of(crud_type),
+            page_type=form_page_type,
+            # a create/edit form guards its unsaved changes, like Java's CRUD forms (the dirty
+            # guard is automatic there): leaving it half-typed asked nothing
+            confirm_on_navigation_if_dirty=mode != "view",
             validations=client_validations(self, element, entity, read_only=mode == "view"),
         )
 

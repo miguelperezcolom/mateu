@@ -102,6 +102,14 @@ public sealed partial class SyncHandler
         {
             if (el.ValueKind is JsonValueKind.Null) return null;
             if (target == typeof(string)) return el.ValueKind == JsonValueKind.String ? el.GetString() : el.ToString();
+            // The web number field's value is a STRING ("77"): a text-typed number is still a
+            // number (Java's FieldValueConverter parses it). Read with GetDouble, it threw and the
+            // edited value silently never saved.
+            if (el.ValueKind == JsonValueKind.String && (target == typeof(bool) || target == typeof(int)
+                    || target == typeof(long) || target == typeof(double) || target == typeof(decimal)
+                    || target == typeof(float)))
+                return System.Convert.ChangeType(el.GetString()!.Trim(), target,
+                    System.Globalization.CultureInfo.InvariantCulture);
             if (target == typeof(bool)) return el.GetBoolean();
             if (target == typeof(int)) return el.GetInt32();
             if (target == typeof(long)) return el.GetInt64();

@@ -205,7 +205,9 @@ def test_the_fastapi_mount_serves_a_parked_document_once():
         "initiatorComponentId": "cmp-1",
     })
     url = re.search(r'"url":"([^"]+)"', response.text).group(1)
-    assert url.startswith("http://testserver/hotel/mateu/v3/documents/")
+    # relative to the page, like Java's: an origin built from the request the app saw breaks
+    # behind a reverse proxy
+    assert url.startswith("/hotel/mateu/v3/documents/")
     first = client.get(url)
     assert first.status_code == 200
     assert first.headers["content-type"] == "application/pdf"

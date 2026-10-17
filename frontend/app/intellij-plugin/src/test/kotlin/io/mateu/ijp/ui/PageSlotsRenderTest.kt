@@ -48,6 +48,30 @@ class PageSlotsRenderTest : BasePlatformTestCase() {
         assertTrue(labels(page).contains("Order 2"))
     }
 
+    fun testThePageHeaderShowsOverlineTimestampAndPeerLinks() {
+        val page = render(
+            ctx(),
+            """
+            {"type":"ClientSide","metadata":{"type":"Page","title":"Record 2","overline":"Requisitions",
+              "timestamp":"Last updated 2026-07-20",
+              "peerNav":{"prevLabel":"Record 1","prevRoute":"/records/1","nextLabel":"Record 3","nextRoute":null}},
+             "children":[]}
+            """.trimIndent(),
+        )
+        val texts = labels(page)
+        assertTrue(texts.toString(), texts.contains("REQUISITIONS"))
+        assertTrue(texts.toString(), texts.contains("Last updated 2026-07-20"))
+        val buttons = all(page).filterIsInstance<javax.swing.JButton>().associateBy { it.text }
+        assertTrue(buttons["‹ Record 1"]!!.isEnabled)
+        assertFalse(buttons["Record 3 ›"]!!.isEnabled)
+        assertEquals("Previous: Record 1", buttons["‹ Record 1"]!!.accessibleContext.accessibleName)
+    }
+
+    fun testAnUntitledPageShowsItsTitlePlaceholder() {
+        val page = render(ctx(), """{"type":"ClientSide","metadata":{"type":"Page","title":"","titlePlaceholder":"New booking…"},"children":[]}""")
+        assertTrue(labels(page).contains("New booking…"))
+    }
+
     fun testHeroToneTintsTheBand() {
         val hero = render(ctx(), """{"type":"ClientSide","metadata":{"type":"HeroSection","title":"Hi","tone":"pine"},"children":[]}""")
         assertEquals(Color(0x2d5a3d), hero.background)

@@ -1,6 +1,14 @@
 import { authHeaders, authHeadersFrom, type TokenProvider } from '../core/auth.ts';
 import { handleSessionExpired } from '../core/sessionGuard.ts';
 import { checkWireVersion } from '../core/wireVersion.ts';
+import { parseSseChunk } from '../core/appShellExtras.ts';
+
+/** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
+ *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
+let streamingFetch: typeof fetch | null = null;
+export const setStreamingFetch = (f: typeof fetch | null): void => {
+  streamingFetch = f;
+};
 
 export interface RunActionParams {
   route: string;
@@ -52,6 +60,62 @@ export class MateuApiClient {
       ...(this.auth === undefined ? await authHeaders() : await authHeadersFrom(this.auth)),
       ...extra,
     };
+  }
+
+  /**
+   * An `sse` action (a LongTask): POST to the stream endpoint and apply each increment AS IT
+   * ARRIVES — the progress dialog moves while the task runs, as on the web. Same body as a sync call.
+   */
+  async runActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void): Promise<void> {
+    const { urlSegment, payload } = this.requestOf(params);
+    const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
+    devLog('[Mateu] --> POST (stream)', url);
+    const doFetch = streamingFetch ?? fetch;
+    const response = await doFetch(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }), body: payload });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    let buffer = '';
+    const deliver = (final: boolean) => {
+      const { increments, rest } = parseSseChunk(final ? buffer + '\n\n' : buffer);
+      buffer = final ? '' : rest;
+      for (const increment of increments) {
+        this.checkWire(increment);
+        onIncrement(increment);
+      }
+    };
+    const reader = (response.body as ReadableStream<Uint8Array> | null)?.getReader?.();
+    if (!reader) {
+      buffer = await response.text();
+      deliver(true);
+      return;
+    }
+    const decoder = new TextDecoder();
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      deliver(false);
+    }
+    deliver(true);
+  }
+
+  private requestOf(params: RunActionParams): { urlSegment: string; payload: string } {
+    const routeStripped = params.route.startsWith('/') ? params.route.slice(1) : params.route;
+    const urlSegment = routeStripped === '' ? '_no_route' : routeStripped;
+    const bodyRoute = routeStripped === '' ? '' : '/' + routeStripped;
+    const body: Record<string, unknown> = {
+      route: bodyRoute,
+      consumedRoute: params.consumedRoute ?? '',
+      actionId: params.actionId ?? '',
+      serverSideType: params.serverSideType,
+      initiatorComponentId: params.initiatorComponentId,
+      componentState: params.componentState ?? {},
+      appState: params.appState ?? {},
+      parameters: params.parameters ?? {},
+    };
+    for (const key of Object.keys(body)) {
+      if (body[key] === null || body[key] === undefined) delete body[key];
+    }
+    return { urlSegment, payload: JSON.stringify(body) };
   }
 
   async runAction(params: RunActionParams): Promise<unknown> {

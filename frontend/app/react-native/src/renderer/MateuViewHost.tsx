@@ -28,6 +28,8 @@ interface Props {
   overlayOpener?: OverlayOpenerContext;
   /** Detail navigations (row → detail/new/edit) push a new screen through this. */
   onOpenDetail?: (target: NavTarget) => void;
+  /** Stack-aware navigation: back to a screen already on the stack, else push (or replace the top). */
+  onStackNavigate?: (target: NavTarget, replaceTop: boolean) => void;
   /** Errors shown as inline text instead of toasts (embedded islands). */
   silent?: boolean;
   /** Hands the live controller to the host (dirty checks on back navigation). */
@@ -39,7 +41,7 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, onStackNavigate, silent, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
@@ -47,6 +49,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     controller.onRender = (v) => setView({ ...v });
     controller.silentErrors = !!silent;
     controller.detailOpener = onOpenDetail ?? null;
+    controller.stackNavigator = onStackNavigate ?? null;
     controller.confirmDiscard = () => session.confirmDiscard();
     onController?.(controller);
     if (serverSideNode) {

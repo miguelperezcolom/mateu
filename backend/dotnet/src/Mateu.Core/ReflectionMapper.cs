@@ -53,7 +53,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
         && member.Find<KpiAttribute>() == null
         // [Aside] properties render in the ContentLayout aside slot, not the form body.
-        && member.Find<Mateu.Uidl.AsideAttribute>() == null;
+        && member.Find<Mateu.Uidl.AsideAttribute>() == null
+        // [AppContext] properties are the shell header's selectors, never form fields (Java's
+        // FormFieldFilter) — they leaked into the page an app without a home renders.
+        && member.Find<AppContextAttribute>() == null;
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
@@ -112,7 +115,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
         var actions = FieldActions(type);
         actions.AddRange(buttonMethods.Select(m =>
-                WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
+                WithActionOptions(new ActionDto(Naming.CamelCase(m.Name))
+                    { RestAction = RestActionOf(m), Shortcut = m.Find<ShortcutAttribute>()?.Keys },
                     type, Naming.CamelCase(m.Name)))
             .Where(a => actions.All(x => x.Id != a.Id)));
         // The section affordances ([Section(EditAction/AddAction/ViewMoreAction)]) dispatch the
@@ -125,6 +129,12 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
             actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
+        // A page [Fab] dispatches its method like a button, and the web client only SENDS what the
+        // component advertises: unadvertised, a click on the floating button did nothing. No client
+        // validation — a floating "Add" acts on the page, not on a filled-in form (Java's
+        // FieldActionCollector).
+        foreach (var fab in fabs.Where(f => actions.All(x => x.Id != f.ActionId)))
+            actions.Add(WithActionOptions(new ActionDto(fab.ActionId, ValidationRequired: false), type, fab.ActionId));
         if (instance is IRecordSwitcherSupplier)
             actions.Add(new ActionDto(IRecordSwitcherSupplier.ActionId, ValidationRequired: false));
 
@@ -165,7 +175,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             var catalogue = MateuCatalogs.Actions;
             bool FromCatalogue(string a) => catalogue.Get(a) is not null && !ActionGuard.HandlesTreeAction(type, a);
             var referenced = treeSupplierView
-                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a))
+                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a)
+                    || BuiltinArchetypeActions(instance).Contains(a))
                 : ComponentMapper.CollectActionIds(tree).Where(a => !FromCatalogue(a));
             actions.AddRange(referenced
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
@@ -270,6 +281,11 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
                     type = "AutoSave", actionId = refresh.RefreshActionId,
                     debounceMillis = refresh.RefreshDebounceMillis,
                 }];
+                // ...and the action it fires is the view's own: unadvertised, the client let it
+                // bubble (web: lost; native: sent to the APP type → "Action not found"), so typing
+                // in a CollectionDetail / GeneralOverview search field never filtered anything
+                if (!string.IsNullOrEmpty(refresh.RefreshActionId) && actions.All(a => a.Id != refresh.RefreshActionId))
+                    actions.Add(new ActionDto(refresh.RefreshActionId, ValidationRequired: false));
             }
         }
         else if (tree is null)
@@ -342,4 +358,21 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
 
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
+
+    /// <summary>The ids an archetype's own tree references and the sync handler answers in place
+    /// (SyncHandler's archetype branches), with no method of that name on the VIEW — the tree
+    /// harvester alone left them out and those toolbars were dead in the web client.</summary>
+    private static HashSet<string> BuiltinArchetypeActions(object? instance)
+    {
+        var ids = new HashSet<string>();
+        if (instance is IComponentTreeSupplier) ids.UnionWith(["selectCollectionItem", "filterCollection", "switchRecord"]);
+        if (instance is ITodoList) ids.Add("openTodoItem");
+        if (instance is ICalendarPage)
+            ids.UnionWith(["openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
+                "switchCalendarView", "openCalendarDay", "createCalendarEvent"]);
+        if (instance is IGanttPage) ids.Add("selectGanttTask");
+        if (instance is IDataManagement) ids.UnionWith(["switchToGrid", "switchToGantt"]);
+        if (instance is DataManagement) ids.UnionWith(["toggleEndPanel", "toggleBottomPanel"]);
+        return ids;
+    }
 }

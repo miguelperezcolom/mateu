@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { toastLifetime } from '../core/toastLifetime';
 import { useAppContext } from '../context/AppContext';
-import { loadFailureMessage } from '../core/uxRules';
+import { bootFailureOf, loadFailureMessage } from '../core/uxRules';
 import { theme } from '../theme';
 import { AppRenderer } from '../renderer/AppRenderer';
 import { MateuViewHost } from '../renderer/MateuViewHost';
-import { overlayContentWithData, overlayIdOf, upsertOverlay } from '../renderer/patternGaps';
+import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
+import { interpolate } from '../core/expressions';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -105,6 +106,18 @@ function DirtyGuardHost() {
           { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
         ]);
       });
+    // @Action(confirmationRequired): the declared question, with the declared button labels natively
+    session.confirmAction = (t) =>
+      new Promise<boolean>((resolve) => {
+        if (Platform.OS === 'web') {
+          resolve(window.confirm(`${t.header}\n\n${t.message}`));
+          return;
+        }
+        Alert.alert(t.header, t.message, [
+          { text: t.denialText, style: 'cancel', onPress: () => resolve(false) },
+          { text: t.confirmationText, style: t.destructive ? 'destructive' : 'default', onPress: () => resolve(true) },
+        ], { cancelable: true, onDismiss: () => resolve(false) });
+      });
   }, [session]);
   return null;
 }
@@ -116,14 +129,30 @@ function DirtyGuardHost() {
 function OverlayHost({ visible = true }: { visible?: boolean }) {
   const { session } = useAppContext();
   const [overlays, setOverlays] = useState<
-    { component: unknown; title: string; revision: number; opener?: import('../core/MateuSession').OverlayOpenerContext }[]
+    {
+      component: unknown;
+      title: string;
+      revision: number;
+      opener?: import('../core/MateuSession').OverlayOpenerContext;
+      /** the overlay's own state: its initialData, then the updates aimed at it (LongTask steps) */
+      state: Record<string, unknown>;
+    }[]
   >([]);
+  // the latest stack, for the synchronous "is this update for an open overlay?" answer
+  const overlaysRef = useRef(overlays);
+  overlaysRef.current = overlays;
 
   useEffect(() => {
     session.openOverlay = (component, _state, _data, opener) => {
       const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
       const title = (meta['headerTitle'] as string) ?? (meta['title'] as string) ?? '';
-      setOverlays((o) => upsertOverlay(o, { component, title, opener, revision: 0 }));
+      const state = { ...((meta['initialData'] as Record<string, unknown>) ?? {}) };
+      setOverlays((o) => upsertOverlay(o, { component, title, opener, revision: 0, state }));
+    };
+    session.updateOverlayState = (id, state) => {
+      if (!withOverlayState(overlaysRef.current, id, state)) return false;
+      setOverlays((o) => withOverlayState(o, id, state) ?? o);
+      return true;
     };
     session.closeTopOverlay = () => setOverlays((o) => o.slice(0, -1));
   }, [session]);
@@ -131,14 +160,14 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   if (overlays.length === 0 || !visible) return null;
   const top = overlays[overlays.length - 1];
   const meta = ((top.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
-  const content = overlayContentWithData(meta);
+  const content = overlayContentWithData({ ...meta, initialData: top.state });
 
   return (
     <Modal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
       <View style={styles.overlayBackdrop}>
         <View style={styles.overlaySheet}>
           <View style={styles.overlayHeader}>
-            <Text style={styles.overlayTitle}>{top.title}</Text>
+            <Text style={styles.overlayTitle}>{interpolate(top.title, { state: top.state })}</Text>
             <TouchableOpacity onPress={() => session.closeTopOverlay()}>
               <Text style={styles.overlayClose}>✕</Text>
             </TouchableOpacity>
@@ -175,6 +204,12 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
     api
       .initialLoad(initialRoute, appState)
       .then((result) => {
+        // Nothing to render: show WHY (the server's message) on the retry screen, not a blank one.
+        const failure = bootFailureOf(result);
+        if (failure) {
+          setError(failure);
+          return;
+        }
         // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
         const res = result as Record<string, unknown>;
         const fragments = (res['fragments'] as any[]) ?? [];

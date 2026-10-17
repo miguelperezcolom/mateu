@@ -160,9 +160,12 @@ def add_mateu(
     prefix = base_url.rstrip("/")
 
     def request_of(request: Request) -> MateuRequest:
-        request_base_url = str(request.base_url).rstrip("/") + (
-            f"/{base_url.strip('/')}" if base_url else ""
-        )
+        # The MOUNT path, never an absolute origin (Java's controllers pass their relative
+        # `baseUrl`): the browser resolves it against the page, so the shell keeps working behind a
+        # TLS-terminating or Host-rewriting reverse proxy — an origin built from the request the
+        # app SAW (http://internal-host:8000) made the shell load its home from an address the
+        # browser cannot reach (mixed content / CORS).
+        request_base_url = prefix
         return MateuRequest(
             headers=normalise_headers(request.headers.items()),
             base_url=request_base_url,
@@ -209,6 +212,16 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
+
+    # The documented contract (Java answers every POST v3/<operation>/**): the Redwood renderer
+    # calls POST /mateu/v3/components/_/action, and this port answered it 404 — Redwood could not
+    # render a Python backend at all. The route travels in the body, never in that path.
+    async def component_action(request: Request, rest: str = "") -> JSONResponse:
+        return await sync(request, "")
+
+    app.add_api_route(
+        f"{prefix}/mateu/v3/components/{{rest:path}}", component_action, methods=["POST"]
+    )
 
     # Streamed actions: one text/event-stream "data:" event per increment, at the same
     # /mateu/v3/sse/{route} the Java adapters serve. The app-level `_live-updates` action is the

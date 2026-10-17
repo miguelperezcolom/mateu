@@ -7,12 +7,33 @@
     "action" : "Replace",
     "component" : {
       "actions" : [ {
+        "id" : "preferences_create",
         "validationRequired" : true
       }, {
+        "id" : "preferences_create-and-stay",
         "validationRequired" : true
-      }, { }, { }, { }, { }, { }, {
+      }, {
+        "id" : "preferences_add"
+      }, {
+        "id" : "preferences_select"
+      }, {
+        "id" : "preferences_selected"
+      }, {
+        "id" : "preferences_prev"
+      }, {
+        "id" : "preferences_next"
+      }, {
+        "id" : "preferences_save",
         "validationRequired" : true
-      }, { }, { }, { }, { } ],
+      }, {
+        "id" : "preferences_remove"
+      }, {
+        "id" : "preferences_move-up"
+      }, {
+        "id" : "preferences_move-down"
+      }, {
+        "id" : "preferences_cancel"
+      } ],
       "children" : [ {
         "children" : [ {
           "cssClasses" : "mateu-section",

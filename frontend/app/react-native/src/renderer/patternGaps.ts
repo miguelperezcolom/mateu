@@ -167,3 +167,47 @@ export function upsertOverlay<T extends OverlayEntry>(stack: T[], entry: T): T[]
   }
   return [...stack, entry];
 }
+
+/**
+ * A state update aimed at an OPEN overlay (each progress step of a LongTask's dialog targets the
+ * dialog's id): merged into that overlay's state — seeded from its `initialData` — with the
+ * revision bumped so its content re-renders. Null when no open overlay carries that id.
+ */
+export function withOverlayState<T extends OverlayEntry & { state?: Record<string, unknown> }>(
+  stack: T[],
+  id: string,
+  state: Record<string, unknown>,
+): T[] | null {
+  const at = id ? stack.findIndex((o) => idOf(o.component) === id) : -1;
+  if (at < 0) return null;
+  const next = stack.slice();
+  next[at] = { ...stack[at], state: { ...(stack[at].state ?? {}), ...state }, revision: stack[at].revision + 1 };
+  return next;
+}
+
+/** The canonical page header's text elements beyond title/subtitle (PageDto.overline /
+ *  titlePlaceholder / timestamp / peerNav), as the native header shows them: the overline above the
+ *  title, the placeholder IN the title's place while there is no title yet (shown dimmed), the
+ *  "last updated" line under the subtitle and the previous/next record links (a side without a
+ *  route is disabled). The web header has drawn them since the Redwood header grammar landed. */
+export interface PageHeaderExtras {
+  overline: string;
+  placeholder: string;
+  timestamp: string;
+  peers: { prev?: { label: string; route: string | null }; next?: { label: string; route: string | null } } | null;
+}
+
+export function pageHeaderExtrasOf(metadata: Record<string, unknown> | null | undefined, title: string): PageHeaderExtras {
+  const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+  const nav = metadata?.['peerNav'] as Record<string, unknown> | null | undefined;
+  const side = (label: unknown, route: unknown) =>
+    text(label) || text(route) ? { label: text(label) || (text(route) ? 'Open' : ''), route: text(route) || null } : undefined;
+  const prev = nav ? side(nav['prevLabel'], nav['prevRoute']) : undefined;
+  const next = nav ? side(nav['nextLabel'], nav['nextRoute']) : undefined;
+  return {
+    overline: text(metadata?.['overline']),
+    placeholder: title.trim() ? '' : text(metadata?.['titlePlaceholder']),
+    timestamp: text(metadata?.['timestamp']),
+    peers: prev || next ? { prev, next } : null,
+  };
+}

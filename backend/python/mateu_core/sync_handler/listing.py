@@ -146,9 +146,24 @@ class ListingHandlerMixin(MixinBase):
                 )
             if aid in ("cancel-new", "cancel-edit", "cancel-view"):
                 close = UICommand.close_modal()
-                return UIIncrement(
-                    commands=[close.model_copy(update={"target_component_id": self.target(rq)})]
-                )
+                return UIIncrement(commands=[
+                    close.model_copy(update={"target_component_id": self.target(rq)}),
+                    UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
+                ])
+        if not drawer_editor and aid in ("new", "edit", "cancel-new", "cancel-edit", "cancel-view"):
+            # The routed forms' toolbars move between the listing's routes (Java's mediator
+            # answers them); without them New/Edit/Cancel/Back answered "Action not found".
+            _, id_ = self.parse_crud_route(base_route, rq.route)
+            base = base_route.rstrip("/")
+            if aid == "new" and creatable:
+                return self.navigate(f"{base}/new", None, rq)
+            if aid == "edit" and editable and id_ is not None:
+                return self.navigate(f"{base}/{id_}/edit", None, rq)
+            if aid in ("cancel-new", "cancel-view"):
+                return self.navigate(base_route, None, rq)
+            if aid == "cancel-edit":
+                back = f"{base}/{id_}" if navigable and id_ is not None else base_route
+                return self.navigate(back, None, rq)
         if editable and aid == "save":
             editor = editor_type()
             self.bind_state(editor, rq.component_state or {})
@@ -219,6 +234,7 @@ class ListingHandlerMixin(MixinBase):
         close = UICommand.close_modal(SAVED_IN_DRAWER_EVENT)
         return UIIncrement(
             commands=[
+                UICommand(target_component_id=self.target(rq), type="MarkAsClean", data=None),
                 close.model_copy(update={"target_component_id": self.target(rq)}),
                 UICommand(
                     target_component_id=self.target(rq),

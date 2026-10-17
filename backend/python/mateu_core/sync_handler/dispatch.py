@@ -181,7 +181,13 @@ class DispatchMixin(MixinBase):
         # (the browser's loop guard). That load renders the app as a page, as Java does.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)
-            if t0 is not None and "__mateu_app__" in t0.__dict__ and not _is_home_content_load(rq):
+            if t0 is not None and "__mateu_app__" in t0.__dict__:
+                if _is_terminal_route(rq.route):
+                    # The shell's content slot loading the home of an app that declares none
+                    # ("_no_home_route" / "_page"): Java renders the app class as a plain page
+                    # (ActionInstanceCreator.isTerminalRoute). Answering the shell again nested it
+                    # inside its own content area, which reloaded it forever.
+                    return self._handle_view(t0, rq, None)
                 return self.render_app(t0, rq, request_base_url)
 
         # 2. A Crud (by serverSideType or route prefix) — list / detail / new / edit + actions.
@@ -427,14 +433,6 @@ class DispatchMixin(MixinBase):
         return None
 
 
-def _is_home_content_load(rq: RunActionRq) -> bool:
-    """The shell's content area loading the app's home when the app names none: its own type, aimed
-    at the ``_no_home_route`` (or ``_page``) sentinel. The page the app itself draws answers it, not
-    the shell (mirrors Java's AppHomeRouteResolver: the sentinel becomes ``_page``)."""
-    route = (rq.route or "").split("?")[0].strip("/")
-    return bool(rq.server_side_type) and route in ("_no_home_route", "_page")
-
-
 def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, state: dict | None = None):
     """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
     fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
@@ -470,3 +468,10 @@ def _with_page_type_on_view(increment: UIIncrement, server_side_type: str, page_
             changed = True
         fragments.append(fragment)
     return increment.model_copy(update={"fragments": fragments}) if changed else increment
+
+
+def _is_terminal_route(route: str | None) -> bool:
+    """A content load of a sentinel route — an app with no home answers ``_no_home_route``
+    (Java's ``ActionInstanceCreator.isTerminalRoute``)."""
+    r = (route or "").split("?", 1)[0]
+    return r.endswith("_no_home_route") or r.endswith("_page")

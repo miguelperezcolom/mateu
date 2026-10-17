@@ -131,8 +131,12 @@ export const renderResponsiveGrid = (
     // Responsive: a container query stacks the grid to one column below `stackBelow`. The rule is
     // scoped to this grid by a data-grid-id so it never leaks to other grids on the page.
     const gridId = component.id ?? 'mateu-grid'
+    // An inline-size container takes NO width from its content (size containment): inside a
+    // start-aligned column (a VerticalLayout — how the ports' CollectionDetail wraps its search
+    // field and grid) it shrank to zero and the whole list/detail screen collapsed into a sliver.
+    // It has to take the width it is given.
     return html`
-        <div style="container-type: inline-size;" slot="${component.slot ?? nothing}">
+        <div class="mateu-responsive-grid-container" style="container-type: inline-size; width: 100%; min-width: 0;" slot="${component.slot ?? nothing}">
             <style>
                 @container (max-width: ${metadata.stackBelow}) {
                     .mateu-responsive-grid[data-grid-id="${gridId}"] {

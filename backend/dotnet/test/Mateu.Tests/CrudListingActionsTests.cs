@@ -47,8 +47,9 @@ public class CrudListingActionsTests
     {
         var inc = Run("view", parameters: new() { ["id"] = JsonSerializer.SerializeToElement("g1") });
 
-        var command = Assert.Single(inc.Commands);
-        Assert.Equal("NavigateTo", command.Type);
+        // a server-driven navigation clears the unsaved-changes flag first
+        Assert.Equal(["MarkAsClean", "NavigateTo"], inc.Commands.Select(c => c.Type));
+        var command = inc.Commands[1];
         Assert.Equal("/gadgets/g1", command.Data);
     }
 

@@ -123,7 +123,12 @@ public sealed partial class ReflectionMapper
             // the current step's list fields advertise their row-editing actions (Java resolves the
             // list on the step the user is on: FieldCrudActionRunner.getViewModelClass)
             Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial,
-            [.. FieldActions(currentProps), .. extraActions], [], null, null, null)
+            // Next validates the step on the client first and Back leaves it as it is (Java's
+            // Wizard.actions + its catch-all): unadvertised, neither did anything in the web client.
+            [.. FieldActions(currentProps), .. extraActions,
+                .. (onResult ? Array.Empty<ActionDto>()
+                    : [new ActionDto("next", ValidationRequired: true), new ActionDto("back", ValidationRequired: false)])],
+            [], null, null, null)
         {
             PageType = PageTypeOf(type),
         };

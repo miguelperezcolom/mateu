@@ -125,7 +125,8 @@ export function EmptyStateRenderer({ metadata }: { metadata: EmptyState }) {
   const actionId = metadata.actionId;
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyIcon}>{metadata.icon ?? '🗂'}</Text>
+      {/* a web icon token ("vaadin:list-select") is not a glyph: it printed as raw text */}
+      <Text style={styles.emptyIcon}>{displayIcon(metadata.icon) || '🗂'}</Text>
       {!!metadata.title && <Text style={styles.emptyTitle}>{metadata.title}</Text>}
       <Text style={styles.emptyDescription}>{metadata.description ?? 'Nothing here yet.'}</Text>
       {!!actionId && !!metadata.actionLabel && (

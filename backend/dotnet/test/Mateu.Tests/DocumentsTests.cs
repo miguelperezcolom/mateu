@@ -217,7 +217,8 @@ public class DocumentsEndpointTests
         });
         var json = await sync.Content.ReadAsStringAsync();
         var url = System.Text.RegularExpressions.Regex.Match(json, "\"url\":\"([^\"]+)\"").Groups[1].Value;
-        Assert.StartsWith(address.TrimEnd('/') + "/hotel/mateu/v3/documents/", url);
+        // relative to the page, like Java's: an origin built from the request breaks behind a proxy
+        Assert.StartsWith("/hotel/mateu/v3/documents/", url);
 
         using var first = await http.GetAsync(url);
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);

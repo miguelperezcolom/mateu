@@ -13,8 +13,17 @@
   </PropertyGroup>
 
   <!-- Both supported LTS runtimes: net8.0 (support ends 2026-11-10) and net10.0. -->
-  <PropertyGroup>
+  <!-- net10.0 only where the SDK can build it (MSBuild 18 = the .NET 10 SDK): with a .NET 8/9 SDK the whole solution — and
+       starters/dotnet, which references these sources — failed with NETSDK1045 instead of building
+       the net8.0 target it supports. CI and releases use the .NET 10 SDK, so they build both. -->
+  <PropertyGroup Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))">
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildVersion)', '18.0'))">
+    <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

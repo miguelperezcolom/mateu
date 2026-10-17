@@ -34,11 +34,24 @@ public sealed partial class ReflectionMapper
         // no longer ride as per-field initialValue (Java parity).
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), crudType.FullName!, route, [page],
-            InitialDataOf(element, entity), FieldActions(element), [], null, null, null)
+            InitialDataOf(element, entity),
+            // The toolbar's actions, advertised: this port answers them in place (there is no
+            // mediator above the form for them to bubble to, as in Java), and the web client only
+            // SENDS what the component advertises — unadvertised, Save/Edit/Cancel did nothing.
+            // Saving validates the form on the client first.
+            [.. FieldActions(element), .. toolbar.Select(b => new ActionDto(b.ActionId!,
+                ValidationRequired: b.ActionId == "create"))],
+            [], null, null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
-            PageType = PageTypeOf(crudType),
+            // the entity's constraints, checked on the client before Save like on any form (Python
+            // parity; without them a required field only failed on the server, with no field marked)
+            Validations = mode == "view" ? [] : MapValidations(element),
+            // A create/edit form IS a form page (Java's crud forms answer pageType "form") and
+            // guards its unsaved changes, like Java's (automatic there): leaving it half-typed asked nothing.
+            PageType = mode == "view" ? PageTypeOf(crudType) : "form",
+            ConfirmOnNavigationIfDirty = mode != "view",
         };
     }
 

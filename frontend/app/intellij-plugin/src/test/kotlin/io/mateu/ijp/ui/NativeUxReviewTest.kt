@@ -168,4 +168,11 @@ class NativeUxReviewTest : BasePlatformTestCase() {
         assertTrue(title.font.isBold)
         assertTrue(title.font.size2D > body.font.size2D)
     }
+
+    /** The LongTask dialog's bar: value from its state key, min 0 / max 0 = the 0..1 default. */
+    fun testALongTaskBarReadsItsStateKeyAndAZeroMaxMeansTheDefaultRange() {
+        val meta = json("""{"min":0,"max":0,"value":0.0,"valueKey":"progressValue"}""")
+        assertEquals(40, (renderProgressBar(meta, json("""{"progressValue":0.4}""")) as JProgressBar).value)
+        assertEquals(100, (renderProgressBar(meta, json("""{"progressValue":1.0}""")) as JProgressBar).value)
+    }
 }

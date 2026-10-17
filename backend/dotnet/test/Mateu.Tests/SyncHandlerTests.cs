@@ -946,18 +946,18 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"quickLookup\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":5000,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":5000,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"recalculateTotals\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":120000,\"idempotent\":true,\"restAction\":null}", json);
+            + "\"timeoutMillis\":120000,\"shortcut\":null,\"idempotent\":true,\"restAction\":null}", json);
         // Safe defaults when nothing is declared: the client's own timeout applies, and the action
         // is never re-sent on its own — after a timeout the client cannot know whether the server
         // already applied it.
         Assert.Contains(
             "{\"id\":\"save\",\"validationRequired\":true,\"confirmationRequired\":false,"
             + "\"rowsSelectedRequired\":false,\"bubble\":false,"
-            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
     }
 
     // ── route seeding (state / appState / data / appData) ──────────────────────────
@@ -2320,11 +2320,11 @@ public class SyncHandlerTests
         Assert.Contains(
             "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
             + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
         Assert.Contains(
             "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
             + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true,"
-            + "\"timeoutMillis\":0,\"idempotent\":false,\"restAction\":null}", json);
+            + "\"timeoutMillis\":0,\"shortcut\":null,\"idempotent\":false,\"restAction\":null}", json);
         // The BUTTON carries the selection guard too, so the renderer can disable it while nothing
         // is selected without looking the advertised action up by id (Java's
         // ButtonDto.rowsSelectedRequired); a button that is not gated omits it.
@@ -2474,8 +2474,9 @@ public class SyncHandlerTests
             ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Gamma") },
         });
 
-        var nav = Assert.Single(inc.Commands);
-        Assert.Equal("NavigateTo", nav.Type);
+        // MarkAsClean first: leaving a saved form must not ask "unsaved changes?"
+        Assert.Equal(["MarkAsClean", "NavigateTo"], inc.Commands.Select(c => c.Type));
+        var nav = inc.Commands[1];
         Assert.Equal("/things", nav.Data);
         Assert.Equal("Saved", Assert.Single(inc.Messages).Text);
     }

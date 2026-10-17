@@ -70,6 +70,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     public async Task<UIIncrementDto> HandleAsync(
         RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
     {
+        rq = LoadActionNormalised(rq);
         if (rq.ActionId == "__restfetch__")
         {
             EstablishRequestContext(rq);
@@ -82,8 +83,15 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
     /// use it; a proxied REST fetch on this path blocks — the HTTP endpoint goes through
     /// <see cref="HandleAsync"/>.</summary>
+    /// <summary>"__load__" is the documented load action (Java treats it as the route load; the
+    /// Redwood renderer boots with it): answered "Action not found" here, Redwood rendered nothing.
+    /// </summary>
+    private static RunActionRqDto LoadActionNormalised(RunActionRqDto rq) =>
+        rq.ActionId == "__load__" ? rq with { ActionId = "" } : rq;
+
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        rq = LoadActionNormalised(rq);
         // a Document parked by this request is fetched from this mount (DocumentCommands)
         RequestBaseUrl.Value = requestBaseUrl;
         EstablishRequestContext(rq);
@@ -130,12 +138,12 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
         }
 
-        // 1. App shell at the root route — unless this is the shell's own CONTENT load: an app with
-        // no home route aims its content area at the "_no_home_route" sentinel with its own type,
-        // and answering the shell again nested a second shell inside the first, which asked again
-        // (the browser's loop guard). That load renders the app as a page, as Java does.
+        // 1. App shell at the root route. NOT for the shell's content slot loading the home of an
+        // app that declares none ("_no_home_route" / "_page"): Java renders the app class as a plain
+        // page there (ActionInstanceCreator.isTerminalRoute) — answering the shell again nested it
+        // inside its own content area, which reloaded it forever.
         if (string.IsNullOrEmpty(rq.ActionId)
-            && !IsHomeContentLoad(rq)
+            && !IsTerminalRoute(rq.Route)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
         {
@@ -445,17 +453,15 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         return Find(meta.Menu);
     }
 
-    // ── Plain views ─────────────────────────────────────────────────────────────
-    /// <summary>The shell's content area loading the app's home when the app names none: its own
-    /// type, aimed at the "_no_home_route" (or "_page") sentinel. The page the app itself draws
-    /// answers it, not the shell (mirrors Java's AppHomeRouteResolver: the sentinel becomes
-    /// "_page").</summary>
-    private static bool IsHomeContentLoad(RunActionRqDto rq)
+    /// <summary>A content load of a sentinel route — an app with no home answers
+    /// <c>_no_home_route</c> (Java's <c>ActionInstanceCreator.isTerminalRoute</c>).</summary>
+    private static bool IsTerminalRoute(string? route)
     {
-        var route = (rq.Route ?? "").Split('?')[0].Trim('/');
-        return !string.IsNullOrEmpty(rq.ServerSideType) && route is "_no_home_route" or "_page";
+        var r = (route ?? "").Split('?', 2)[0];
+        return r.EndsWith("_no_home_route", StringComparison.Ordinal) || r.EndsWith("_page", StringComparison.Ordinal);
     }
 
+    // ── Plain views ─────────────────────────────────────────────────────────────
     private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl,
         string? homeRouteOverride = null, string? homeTypeOverride = null)
     {
@@ -837,7 +843,10 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
 
     private static UIIncrementDto Navigate(string route, string? successText, RunActionRqDto rq) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto(Target(rq), "NavigateTo", route)],
+            // A server-driven navigation LEAVES the form on purpose (after a save, a cancel): clear
+            // its unsaved-changes flag first, as Java's crud does — without it Save itself asked
+            // "you have unsaved changes, leave?" and a cancelled edit kept the whole app dirty.
+            commands: [new UICommandDto(Target(rq), "MarkAsClean", null), new UICommandDto(Target(rq), "NavigateTo", route)],
             messages: successText is null ? [] : [new MessageDto("success", "middle", "", successText, 3000)]);
 
     private static UIIncrementDto Error(string text) =>

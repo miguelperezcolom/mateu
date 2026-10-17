@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { FAB_MARGIN, fabInset, isCurrentDestination } from '../core/uxRules';
+import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
@@ -91,7 +91,7 @@ interface GlobalSearchHit {
  * A navigation stack of Mateu views: the base screen (menu target) plus pushed details
  * (row → detail/new/edit, NavigateTo). The top view shows a back header when stacked.
  */
-function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomInset = 0 }: { route: string; consumedRoute: string; serverSideType: string; bottomInset?: number }) {
+function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomInset = 0, onPopToRoot }: { route: string; consumedRoute: string; serverSideType: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void }) {
   const { session } = useAppContext();
   const [stack, setStack] = useState<NavTarget[]>([]);
   // live controller of the TOP view, for the dirty check on back navigation
@@ -104,11 +104,24 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
+  // Stack-aware navigation (crud answers, NavigateTo): a screen already on the stack — or the tab's
+  // own base — is gone BACK to, never stacked twice; a saved form gives its place to the record.
+  const stackNavigate = useCallback(
+    (target: NavTarget, replaceTop: boolean) => setStack((s) => stackAfterGoTo(s, routeArg, target, replaceTop)),
+    [routeArg],
+  );
   const pop = useCallback(async () => {
     const c = topController.current;
     if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
     setStack((s) => s.slice(0, -1));
   }, [session]);
+
+  // Re-pressing the ACTIVE tab goes back to the tab's own screen (the iOS / Material convention):
+  // without it a detail or a NavigateTo pushed over a tab (the starter's "Browse products" CTA)
+  // left the user stuck on it, tapping a tab that did nothing.
+  React.useEffect(() => {
+    onPopToRoot?.(() => setStack([]));
+  }, [onPopToRoot]);
 
   const base: NavTarget = { label: '', route: routeArg, consumedRoute, serverSideType };
   const top = stack.length > 0 ? stack[stack.length - 1] : base;
@@ -141,6 +154,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
         session={session}
         target={top}
         onOpenDetail={push}
+        onStackNavigate={stackNavigate}
         onController={(c) => (topController.current = c)}
       />
     </View>
@@ -697,6 +711,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   const { session } = useAppContext();
   const runAppAction = useRunAppAction(appMeta);
+  // each tab's "back to my own screen", called when the ACTIVE tab is pressed again
+  const tabRoots = React.useRef<Record<number, () => void>>({});
 
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
@@ -815,6 +831,11 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
             <Tab.Screen
               key={i}
               name={item.label ?? `Tab${i}`}
+              listeners={({ navigation }) => ({
+                tabPress: () => {
+                  if (navigation.isFocused()) tabRoots.current[i]?.();
+                },
+              })}
               children={() =>
                 withOverlays(
                   <ContentScreen
@@ -822,6 +843,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                     consumedRoute={item.consumedRoute ?? ''}
                     serverSideType={item.serverSideType ?? ''}
                     bottomInset={bottomInset}
+                    onPopToRoot={(popToRoot) => (tabRoots.current[i] = popToRoot)}
                   />,
                 )
               }

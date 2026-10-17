@@ -23,6 +23,7 @@ import {
   SliderField,
   StarsField,
   StepperField,
+  DecimalInput,
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
@@ -33,6 +34,8 @@ import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 import { fieldPlaceholder } from '../core/uxRules';
+import { richTextHtml } from '../core/richTextValue';
+import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
 
 interface Option {
   children?: Option[];
@@ -267,12 +270,14 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Rich content: rendered read-only, textarea when editable
     if (['markdown', 'html', 'richText'].includes(stereotype)) {
-      if (!editable) return <RichText value={stringValue} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
+      // a legacy (Quill Delta JSON) richText value opens as its HTML, like on the web
+      const content = stereotype === 'richText' ? richTextHtml(stringValue) : stringValue;
+      if (!editable) return <RichText value={content} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
       return (
         <TextInput
           {...a11y}
           style={[styles.input, styles.textarea]}
-          value={stringValue}
+          value={content}
           onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={6}
@@ -416,7 +421,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       if (metadata.stepButtonsVisible) {
         return (
           <StepperField
-            value={Number(rawValue) || 0}
+            value={stepperValue(rawValue)}
             step={metadata.step ?? 1}
             editable={editable}
             onChange={(v) => commit(fieldId, v)}
@@ -442,12 +447,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       if (!editable && (dataType === 'money' || ['money', 'currency'].includes(stereotype))) {
         return <Text style={styles.plainText}>{formatMoney(rawValue)}</Text>;
       }
+      const money = dataType === 'money' || ['money', 'currency'].includes(stereotype);
       return (
-        <TextInput
+        <DecimalInput
           {...a11y}
           style={styles.input}
-          value={stringValue}
-          onChangeText={(v) => commit(fieldId, v === '' ? null : parseFloat(v))}
+          text={money ? moneyInputText(rawValue) : stringValue}
+          onChangeText={(v) => commit(fieldId, money ? moneyInputCommit(rawValue, v) : v === '' ? null : parseFloat(v.replace(',', '.')))}
           keyboardType="decimal-pad"
           editable={editable}
           placeholder={placeholder}
