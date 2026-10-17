@@ -1,8 +1,11 @@
 package io.mateu.integrationtests;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -602,11 +605,15 @@ public class AdapterParityITFoundation {
    * {@code GET /mateu/v3/bundle}: the static bundle rendered live ({@code MateuBundleExporter}) —
    * the {@code manifest.json} the {@code mateu:bundle} goal writes, with an entry per served
    * {@code @UI} — with and without the parameterised routes, the same body on a second (cached)
-   * request.
+   * request. The body is parsed, not only searched: it is a JSON object whose {@code entries} list
+   * is not empty and which never carries the {@code error} member of the failure answer ({@code
+   * io.mateu.core.infra.BundleEndpoint}, shared by every adapter); with {@code ?params=true} it
+   * bundles at least every route the plain variant does.
    */
   public void servesTheRuntimeBundle() {
+    int plainEntries = -1;
     for (String params : new String[] {"false", "true"}) {
-      String first =
+      var response =
           given()
               .queryParam("params", params)
               .when()
@@ -614,10 +621,18 @@ public class AdapterParityITFoundation {
               .then()
               .statusCode(200)
               .header("Content-Type", startsWith("application/json"))
-              .body(containsString("\"entries\""))
               .body(containsString("Plain form"))
-              .extract()
-              .asString();
+              .body("error", nullValue())
+              .body("entries.size()", greaterThan(0))
+              .extract();
+      String first = response.asString();
+      int entries = response.jsonPath().getList("entries").size();
+      if (plainEntries < 0) {
+        plainEntries = entries;
+      } else {
+        assertThat(
+            "entries bundled with ?params=true", entries, greaterThanOrEqualTo(plainEntries));
+      }
       given()
           .queryParam("params", params)
           .when()
