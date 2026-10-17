@@ -39,8 +39,8 @@ How it was measured (reproducible):
 | Python | 955 (S4, 2026-10-17; was 866) | **95.4%** (was 94.1) | **88.1%** (was 84.8) | separate gates lines **95** / branches **87** (`[tool.mateu.coverage]`, one point under the branch measure: arcs vary across 3.11–3.13) + combined `fail_under` 93 | — |
 | Conformance corpus | 39 cases (S4: + `crud-search`, `wizard`, `rest-source`) | — | — | exact match in Java, .NET and Python, empty allow-lists | — |
 | `libs/mateu` | 2039 (S5, 2026-10-17; was 1433) | **93.5%** (was 65.8%) | 86.6% (was 51.8%; vitest 4 v8 counts — 81.3% before S5 on the same tool) | 93 L / 93 S / 93 F / 86 B | — |
-| `apps/vaadin` | 81 | **35.2%** | 27.4% | 35 / 35 / 24 / 27 | **44.8** |
-| `apps/visual-editor` | 423 | 66.9% | 59.5% | 65 / 64 / 57 / 58 | 13.1 |
+| `apps/vaadin` | 246 | **86.1%** (S6, was 35.2) | 74.9% (was 27.4) | 86 / 85 / 80 / 74 | — |
+| `apps/visual-editor` | 484 | **80.7%** (S6, was 66.9) | 70.2% (was 59.5) | 80 / 78 / 76 / 70 | — |
 | Redwood `poc/` (58 sources) | 13 suites | **95.2%** | 79.3% | 94 L / 91 F / 78 B | — |
 | Redwood VB chains (84 files, ~5k lines) | 0 executed | **0% (unmeasured)** | | none | e2e only |
 | React Native `.ts` (45 loaded) | 273 | **95.5%** | 85.1% | 93 / 84 / 93 | — |

@@ -18,3 +18,48 @@ if (typeof document !== 'undefined') {
         }
     }
 }
+
+/**
+ * Two more gaps of jsdom that vaadin trips over (as unhandled errors that fail the run, not as
+ * test failures): overlays (combo box, date pickers) listen on `window.visualViewport`, and the
+ * grid toggles `element.part`. Minimal stand-ins, enough for the components to connect and leave.
+ */
+if (typeof window !== 'undefined') {
+    if (!window.visualViewport) {
+        Object.defineProperty(window, 'visualViewport', {
+            configurable: true,
+            value: Object.assign(new EventTarget(), { width: 1024, height: 768, offsetLeft: 0, offsetTop: 0, scale: 1 }),
+        })
+    }
+    if (!('part' in Element.prototype)) {
+        Object.defineProperty(Element.prototype, 'part', {
+            configurable: true,
+            get(this: Element) {
+                const el = this
+                const tokens = () => (el.getAttribute('part') ?? '').split(/\s+/).filter(Boolean)
+                const write = (list: string[]) => el.setAttribute('part', list.join(' '))
+                return {
+                    get length() { return tokens().length },
+                    contains: (t: string) => tokens().includes(t),
+                    add: (...ts: string[]) => write([...new Set([...tokens(), ...ts])]),
+                    remove: (...ts: string[]) => write(tokens().filter((t) => !ts.includes(t))),
+                    toggle: (t: string, force?: boolean) => {
+                        const on = force ?? !tokens().includes(t)
+                        write(on ? [...new Set([...tokens(), t])] : tokens().filter((x) => x !== t))
+                        return on
+                    },
+                    toString: () => tokens().join(' '),
+                }
+            },
+        })
+    }
+}
+
+// The native Popover API (vaadin overlays — popover, notification — open through it).
+if (typeof HTMLElement !== 'undefined' && !('showPopover' in HTMLElement.prototype)) {
+    Object.assign(HTMLElement.prototype, {
+        showPopover() {},
+        hidePopover() {},
+        togglePopover() { return false },
+    })
+}

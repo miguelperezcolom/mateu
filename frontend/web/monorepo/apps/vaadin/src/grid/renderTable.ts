@@ -14,7 +14,7 @@ export const renderTableElement = (container: LitElement, component: ClientSideC
             .state="${state}"
             .data="${data}"
             .appState="${appState}"
-            .appDate="${appData}"
+            .appData="${appData}"
             style="${component.style}" class="${component.cssClasses}"
             slot="${component.slot ?? nothing}"
     >
