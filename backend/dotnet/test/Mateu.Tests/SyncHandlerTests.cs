@@ -15,6 +15,9 @@ public class SimpleForm
 
     [Button] public Message Greet() => new($"Hello {Name}!");
     [Button] public PageBanner Warn() => new(BannerTheme.Warning, "Heads up", "Something to note");
+    [Button] public PageBanners WarnMore() => PageBanners.Append(new PageBanner(BannerTheme.Success, "Saved"));
+    [Button] public object[] WarnMixed() => [new Message("ok"), PageBanners.Append(new PageBanner(Title: "More"))];
+    [Button] public PageBanners WarnOnly() => PageBanners.Replace(new PageBanner(Title: "Only"));
     [Button] public string GoHome() => "/things";
 }
 
@@ -2827,6 +2830,29 @@ public class SyncHandlerTests
             "\"groups\":[{\"value\":\"North\",\"count\":1,\"aggregates\":{\"amount\":100,\"invoice\":1}},"
             + "{\"value\":\"South\",\"count\":1,\"aggregates\":{\"amount\":50,\"invoice\":1}}]",
             json);
+    }
+
+    [Fact]
+    public void Page_banners_replace_and_append()
+    {
+        // Java's PageBanners: append accumulates across actions, replace (the default) swaps them —
+        // the port had no way to say "append" (Python got it on 2026-10-12; .NET now).
+        UIIncrementDto Run(string action) => Handler().Handle(new RunActionRqDto
+        {
+            ActionId = action, ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        });
+        var added = Run("warnMore");
+        Assert.True(added.AppendBanners);
+        Assert.Equal("Saved", ((BannerDto)added.Banners.Single()).Title);
+        var replaced = Run("warnOnly");
+        Assert.False(replaced.AppendBanners);
+        Assert.Equal("Only", ((BannerDto)replaced.Banners.Single()).Title);
+        var mixed = Run("warnMixed");
+        Assert.True(mixed.AppendBanners);
+        Assert.Equal("More", ((BannerDto)mixed.Banners.Single()).Title);
+        Assert.Single(mixed.Messages);
+        Assert.Contains("\"appendBanners\":true", Render(added));
     }
 
     [Fact]

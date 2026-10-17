@@ -664,6 +664,8 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // Action-returned page banner(s) → UIIncrement.banners.
         PageBanner b => UIIncrementDto.Of(banners: [BannerOf(b)]),
         IEnumerable<PageBanner> bs => UIIncrementDto.Of(banners: bs.Select(BannerOf).Cast<object>().ToList()),
+        // PageBanners.Append accumulates across actions; Replace (the default) swaps them.
+        PageBanners pbs => UIIncrementDto.Of(banners: pbs.Banners.Select(BannerOf).Cast<object>().ToList(), appendBanners: pbs.AppendToExisting),
         // An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
         // the page instead of replacing it (mirrors Java's FragmentDataSerializer.isOverlay).
         Drawer or Dialog => UIIncrementDto.Of(fragments:
@@ -697,7 +699,8 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             commands: all.SelectMany(i => i.Commands),
             messages: all.SelectMany(i => i.Messages),
             fragments: all.SelectMany(i => i.Fragments),
-            banners: all.SelectMany(i => i.Banners));
+            banners: all.SelectMany(i => i.Banners),
+            appendBanners: all.Any(i => i.AppendBanners));
     }
 
     /// <summary>Lowers a v0 flow Step to the wire command it produces (mirrors Java Step.toCommand).</summary>

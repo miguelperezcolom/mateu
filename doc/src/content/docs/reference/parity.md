@@ -25,7 +25,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
 | Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | ✅ | ✅ |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
-| Action-returned banners with an explicit mode (`PageBanners.replace`/`append`; Python `PageBanners.replace(...)`/`.append(...)`) | ✅ | ✅ (a bare `PageBanner`/list replaces) | ✅ |
+| Action-returned banners with an explicit mode (`PageBanners.replace`/`append`; .NET `PageBanners.Replace(...)`/`.Append(...)`, Python `PageBanners.replace(...)`/`.append(...)`; a bare `PageBanner`/list replaces everywhere) | ✅ | ✅ | ✅ |
 | Fluent `Card` with component slots (title, subtitle, media, header…, content, footer) | ✅ | ✅ | ✅ |
 | An app with no declared home lands on its first menu item; an app under a sub-path accepts mount-absolute routes; the chrome language follows `Accept-Language`; an error toast stays until dismissed; a `List<Enum>` with no stereotype is a multi-select | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
