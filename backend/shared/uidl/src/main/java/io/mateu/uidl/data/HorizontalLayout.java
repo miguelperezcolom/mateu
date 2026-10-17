@@ -5,6 +5,11 @@ import io.mateu.uidl.fluent.ContentSupplier;
 import java.util.List;
 import lombok.Builder;
 
+/**
+ * Lays its {@code content} out side by side, with optional spacing, alignment and wrapping ({@code
+ * wrap} lets a child drop below the others on a narrow screen; {@code flexGrows} gives each child
+ * its share of the width).
+ */
 @Builder
 public record HorizontalLayout(
     String id,

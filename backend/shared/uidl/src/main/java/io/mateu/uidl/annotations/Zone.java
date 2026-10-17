@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Target;
 
 /**
@@ -8,6 +9,7 @@ import java.lang.annotation.Target;
  * this zone.
  */
 @Target({})
+@Documented
 public @interface Zone {
 
   /** Zone name, referenced by {@link Section#zone()}. */

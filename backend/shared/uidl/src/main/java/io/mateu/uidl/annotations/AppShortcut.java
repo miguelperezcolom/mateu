@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -29,6 +30,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Repeatable(AppShortcuts.class)
+@Documented
 public @interface AppShortcut {
 
   /** The key, in the {@code @Action(shortcut)} syntax: {@code "f9"}, {@code "ctrl+alt+r"}. */

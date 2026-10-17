@@ -6,6 +6,15 @@ import io.mateu.uidl.interfaces.Actionable;
 import java.util.concurrent.Callable;
 import lombok.Builder;
 
+/**
+ * A button of a component tree (the fluent counterpart of {@code @Button}/{@code @Toolbar}): a
+ * label and/or icons, an appearance ({@link ButtonStyle}, {@link ButtonColor}, {@link ButtonSize})
+ * and what it does — an {@code actionId} the enclosing component runs (an action method of the same
+ * name), or a handler of its own ({@code runnable}/{@code callable}). {@code parameters} travel to
+ * the action. Build it with {@code Button.builder()}.
+ *
+ * <p>Not to be confused with the {@code io.mateu.uidl.annotations.Button} annotation.
+ */
 @Builder(toBuilder = true)
 public record Button(
     String id,

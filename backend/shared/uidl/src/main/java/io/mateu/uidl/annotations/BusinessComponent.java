@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,6 +20,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Documented
 public @interface BusinessComponent {
 
   /** The catalogue name this composition is referenced by; unique within the app. */

@@ -5,6 +5,13 @@ import io.mateu.uidl.fluent.CustomEvent;
 import java.util.Map;
 import lombok.Builder;
 
+/**
+ * An instruction for the browser returned by an action, next to (or instead of) new state:
+ * navigate, close the topmost dialog or drawer, run another action, dispatch an event on the bus,
+ * download a file, mark the form dirty/clean… Create them with the static factories ({@code
+ * UICommand.navigateTo(…)}, {@code UICommand.closeModal(…)}, {@code UICommand.dispatchEvent(…)},
+ * …), not the constructor.
+ */
 @Builder
 public record UICommand(UICommandType type, Object data) {
   public static UICommand navigateTo(String route) {

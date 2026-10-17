@@ -4,6 +4,10 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
+/**
+ * A card: optional media, a header (prefix, title, subtitle, suffix), the {@code content} and a
+ * footer — each slot any component. {@link CardVariant}s change its look (outlined, elevated…).
+ */
 @Builder
 public record Card(
     String id,

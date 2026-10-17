@@ -3,6 +3,7 @@ package io.mateu.uidl.annotations;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -69,6 +70,26 @@ class AnnotationDeclarationsTest {
       }
     }
     assertThat(offenders).isEmpty();
+  }
+
+  @Test
+  void everyAnnotationIsDocumented() throws IOException {
+    var undocumented =
+        annotations().stream()
+            .filter(type -> !type.isAnnotationPresent(Documented.class))
+            .map(Class::getSimpleName)
+            .toList();
+    assertThat(undocumented).isEmpty();
+  }
+
+  @Test
+  void theKeyAnnotationsExplainThemselves() throws IOException {
+    for (var name : List.of("Action", "App", "Menu", "Toolbar", "Button", "KPI", "Status")) {
+      var source = Files.readString(SOURCES.resolve(name + ".java"));
+      var head = source.substring(0, source.indexOf("public @interface"));
+      assertThat(head).as(name + " has a type Javadoc").contains("/**");
+      assertThat(head).as(name).doesNotContain("Created by");
+    }
   }
 
   @Test

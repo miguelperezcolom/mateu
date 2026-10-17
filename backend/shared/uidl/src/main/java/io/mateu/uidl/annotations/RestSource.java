@@ -1,6 +1,7 @@
 package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.data.RestSourceProvenance;
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -41,6 +42,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Repeatable(RestSources.class)
+@Documented
 public @interface RestSource {
 
   /** What surfaces reference. Must be unique within the catalogue. */
