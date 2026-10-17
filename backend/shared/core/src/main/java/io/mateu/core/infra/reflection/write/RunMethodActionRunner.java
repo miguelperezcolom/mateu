@@ -7,11 +7,11 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.application.runaction.ComponentStateHelper;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.application.security.WireTypes;
+import io.mateu.core.domain.ComponentState;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder;
 import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
@@ -92,7 +92,7 @@ public class RunMethodActionRunner implements ActionRunner {
       }
       Object result = invoke(m, instance, command);
       if (result == null) {
-        var state = ComponentStateHelper.getState(instance, command.httpRequest());
+        var state = ComponentState.getState(instance, command.httpRequest());
         return Flux.just(
             new UIFragmentDto(
                 command.initiatorComponentId(),

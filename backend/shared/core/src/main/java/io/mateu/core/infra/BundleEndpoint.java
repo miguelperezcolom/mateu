@@ -2,8 +2,8 @@ package io.mateu.core.infra;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.mateu.core.application.MateuService;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
-import io.mateu.core.application.export.MateuBundleExporter.BundleManifest;
 import java.util.function.Function;
 
 /**
