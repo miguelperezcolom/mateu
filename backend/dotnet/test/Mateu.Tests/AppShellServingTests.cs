@@ -44,7 +44,9 @@ public class AppShellServingTests
         var handler = new SyncHandler(Registry);
         var shell = handler.Handle(new RunActionRqDto { ServerSideType = typeof(ServingShopApp).FullName! });
         var app = Assert.IsType<AppMetadataDto>(Assert.IsType<ClientSideComponentDto>(shell.Fragments[0].Component).Metadata);
-        Assert.Equal("_no_home_route", app.HomeRoute);
+        // an app naming no home opens on its first menu item (the wire carries it); the sentinel below is
+        // what an older shell, or a route-only load, still asks for
+        Assert.Equal("/serving-orders", app.HomeRoute);
         // the documented load action "__load__" (how the Redwood renderer boots) is the same load
         var viaLoad = handler.Handle(new RunActionRqDto { ServerSideType = typeof(ServingShopApp).FullName!, ActionId = "__load__" });
         Assert.IsType<AppMetadataDto>(Assert.IsType<ClientSideComponentDto>(viaLoad.Fragments[0].Component).Metadata);

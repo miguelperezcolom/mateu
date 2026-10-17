@@ -10,7 +10,7 @@
         "commandCenterEnabled" : true,
         "globalSearchEnabled" : true,
         "homeConsumedRoute" : "/conformance/app-extras",
-        "homeRoute" : "_no_home_route",
+        "homeRoute" : "/conformance/app-extras/home",
         "layout" : "SINGLE_SLOT",
         "menu" : [ {
           "consumedRoute" : "/conformance/app-extras",

@@ -74,7 +74,9 @@ def test_the_documented_component_action_endpoint_answers_like_sync(mount):
 def test_the_content_slot_of_an_app_without_a_home_gets_a_page_not_the_shell_again():
     client = _client()
     shell = _app_metadata(client.post("/mateu/v3/sync", json={"route": "", "consumedRoute": "_empty"}).json())
-    assert shell["homeRoute"] == "_no_home_route"
+    # an app naming no home opens on its first menu item (the wire carries it); the sentinel below is
+    # what an older shell, or a route-only load, still asks for
+    assert shell["homeRoute"] == "/shell-orders"
     # what the shell's content slot then loads
     content = client.post(
         "/mateu/v3/sync/_no_home_route",

@@ -80,10 +80,12 @@ public class StateCoercionTests
                 .Handle(new RunActionRqDto { Route = "/coerced-products/new", ConsumedRoute = "", ServerSideType = typeof(CoercedProducts).FullName! })
                 .Fragments[0].Component);
             var conditions = component.Validations.Select(v => v.Condition).ToList();
-            Assert.Contains("state['price'] >= 0", conditions);
-            Assert.DoesNotContain(conditions, c => c.StartsWith("state['price'] <="));
-            Assert.Contains("state['units'] >= 1.5", conditions);
-            Assert.Contains("state['units'] <= 10", conditions);
+            // an absent value passes a bound (Bean Validation's reading — requiring it is [Required]'s job)
+            static string Absent(string f) => $"state['{f}'] == null || state['{f}'] === '' || ";
+            Assert.Contains(Absent("price") + "state['price'] >= 0", conditions);
+            Assert.DoesNotContain(conditions, c => c.Contains("state['price'] <="));
+            Assert.Contains(Absent("units") + "state['units'] >= 1.5", conditions);
+            Assert.Contains(Absent("units") + "state['units'] <= 10", conditions);
         }
         finally
         {
