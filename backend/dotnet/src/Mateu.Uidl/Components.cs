@@ -1508,3 +1508,89 @@ public sealed record Form : ComponentBase
     public IReadOnlyList<PageBanner> Banners { get; init; } = [];
     public IReadOnlyList<PageFab> Fabs { get; init; } = [];
 }
+
+// ── Generic building blocks ported from Java (M-A5) ─────────────────────────────
+
+/// <summary>An arbitrary HTML element or web component: its tag <see cref="Name"/>, its
+/// <see cref="Attributes"/>, DOM event → action id bindings in <see cref="On"/> and its text
+/// <see cref="Content"/> (rendered as HTML when <see cref="Html"/>). The wire id is the
+/// <c>id</c> attribute when present, else a stable hash of the definition, so two elements on one
+/// page never share a container. (C# analogue of io.mateu.uidl.data.Element.)</summary>
+public sealed record Element(string Name) : ComponentBase
+{
+    public IReadOnlyDictionary<string, string> Attributes { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> On { get; init; } = new Dictionary<string, string>();
+    public string? Content { get; init; }
+    public bool Html { get; init; }
+}
+
+/// <summary>A hover/focus tooltip <see cref="Text"/> over a <see cref="Wrapped"/> component.
+/// (C# analogue of io.mateu.uidl.data.Tooltip; the [Tooltip] attribute is the listing-cell
+/// tooltip, a different thing.)</summary>
+public sealed record Tooltip(string Text) : ComponentBase
+{
+    public IComponent? Wrapped { get; init; }
+}
+
+/// <summary>A confirmation dialog: <see cref="Header"/> over optional <see cref="Content"/>, a
+/// confirm button (<see cref="ConfirmText"/>, default "Save") running <see cref="ConfirmActionId"/>
+/// and, when enabled, reject/cancel buttons running their own actions. Shown while
+/// <see cref="OpenedCondition"/> (a client expression, default "true") holds. (C# analogue of
+/// io.mateu.uidl.data.ConfirmDialog.)</summary>
+public sealed record ConfirmDialog : ComponentBase
+{
+    public string? Header { get; init; }
+    public IComponent? Content { get; init; }
+    public bool CanCancel { get; init; }
+    public bool CanReject { get; init; }
+    public string? RejectText { get; init; }
+    public string? ConfirmText { get; init; }
+    public string? OpenedCondition { get; init; }
+    public string? ConfirmActionId { get; init; }
+    public string? RejectActionId { get; init; }
+    public string? CancelActionId { get; init; }
+}
+
+/// <summary>A disclosure: the <see cref="Summary"/> always visible, the <see cref="Content"/>
+/// shown when expanded (initially when <see cref="Opened"/>). (C# analogue of
+/// io.mateu.uidl.data.Details.)</summary>
+public sealed record Details : ComponentBase
+{
+    public IComponent? Summary { get; init; }
+    public IComponent? Content { get; init; }
+    public bool Opened { get; init; }
+}
+
+public enum Orientation { Horizontal, Vertical }
+
+public enum SplitLayoutVariant { Small, Minimal }
+
+/// <summary>Two panes with a draggable splitter: <see cref="Master"/> and <see cref="Detail"/>
+/// (travel as the component's two children). (C# analogue of io.mateu.uidl.data.SplitLayout.)</summary>
+public sealed record SplitLayout(IComponent Master, IComponent Detail) : ComponentBase
+{
+    public Orientation? Orientation { get; init; }
+    public SplitLayoutVariant? Variant { get; init; }
+    public bool FullWidth { get; init; }
+}
+
+/// <summary>One link of a <see cref="Breadcrumbs"/> trail.</summary>
+public sealed record Breadcrumb(string Text, string Link);
+
+/// <summary>A breadcrumb trail: the links, then the current item as plain text. (C# analogue of
+/// io.mateu.uidl.data.Breadcrumbs.)</summary>
+public sealed record Breadcrumbs(string CurrentItemText) : ComponentBase
+{
+    public IReadOnlyList<Breadcrumb> Items { get; init; } = [];
+}
+
+/// <summary>An icon by name (e.g. "vaadin:plus"). (C# analogue of io.mateu.uidl.data.Icon.)</summary>
+public sealed record Icon(string Name) : ComponentBase;
+
+/// <summary>An inline notification: a <see cref="Title"/> and a <see cref="Text"/>. (C# analogue
+/// of io.mateu.uidl.data.Notification — a component in the tree, not a toast; a toast is a
+/// MessageDto.)</summary>
+public sealed record Notification(string Text) : ComponentBase
+{
+    public string? Title { get; init; }
+}

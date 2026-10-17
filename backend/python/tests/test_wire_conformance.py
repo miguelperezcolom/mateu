@@ -321,6 +321,41 @@ class NoticePage(ComponentTreeSupplier):
         )
 
 
+@ui("/conformance/generic-components")
+@title("Components")
+class GenericComponentsPage(ComponentTreeSupplier):
+    """The generic fluent building blocks ported from Java (M-A5), in one component tree."""
+
+    def style(self) -> str | None:
+        return None
+
+    def component(self):
+        from mateu_uidl import components as fl
+
+        return fl.VerticalLayout(content=(
+            fl.Breadcrumbs(
+                current_item_text="Order 42",
+                breadcrumbs=(fl.Breadcrumb("Home", "/"), fl.Breadcrumb("Orders", "/orders")),
+            ),
+            fl.Icon(icon="vaadin:plus-circle"),
+            fl.Notification(title="Saved", text="The order was saved"),
+            fl.Element(
+                name="order-chart", attributes={"id": "chart", "kind": "bar"},
+                on={"click": "drill"}, content="loading",
+            ),
+            fl.Tooltip(text="Total including taxes", wrapped=fl.Text(text="1250 EUR")),
+            fl.Details(summary=fl.Text(text="More"), content=fl.Text(text="Delivery notes"), opened=True),
+            fl.SplitLayout(
+                master=fl.Text(text="Master"), detail=fl.Text(text="Detail"),
+                orientation=fl.Orientation.vertical, variant=fl.SplitLayoutVariant.small,
+            ),
+            fl.ConfirmDialog(
+                header="Delete order?", content=fl.Text(text="This cannot be undone"), can_cancel=True,
+                confirm_text="Delete", confirm_action_id="deleteOrder", cancel_action_id="keepOrder",
+            ),
+        ))
+
+
 @ui("/conformance/bulleted-list")
 @title("Bulleted list")
 class BulletedListPage:
@@ -753,7 +788,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp), ("card-menu", CardMenuApp), ("app-extras", ExtrasApp), ("welcome-banner", WelcomeBannerPage), ("crud-search", ProductsCrud), ("wizard", SignUpWizard), ("rest-source", RestSourceForm), ("generic-components", GenericComponentsPage)]
 
 
 def test_every_case_of_the_corpus_is_wired():

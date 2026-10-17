@@ -93,6 +93,15 @@ from mateu_dtos import (
     PlanningBoardMetadata,
     PlanningResourceRecord,
     PopoverMetadata,
+    ElementMetadata,
+    TooltipMetadata,
+    ConfirmDialogMetadata,
+    DetailsMetadata,
+    SplitLayoutMetadata,
+    BreadcrumbsMetadata,
+    BreadcrumbRecord,
+    IconMetadata,
+    NotificationMetadata,
     PricingPlanRecord,
     PricingTableMetadata,
     ProcessItemRecord,
@@ -1067,6 +1076,77 @@ class ComponentMapperMixin(MixinBase):
                 close_button_on_header=c.close_button_on_header,
             )
             return self._fluent_client(meta, c)
+        # Generic building blocks ported from Java (M-A5) — same shapes as Java's ElementMapper,
+        # TooltipMapper, ConfirmDialogMapper, DetailsMapper, SplitLayoutMapper, BreadcrumbsMapper,
+        # IconMapper and NotificationMapper (whose ids default to "fieldId").
+        if isinstance(c, fluent.Element):
+            return ClientSideComponent(
+                metadata=ElementMetadata(
+                    name=c.name, attributes=dict(c.attributes or {}), on=dict(c.on or {}),
+                    content=c.content, html=c.html,
+                ),
+                id=_element_id(c), style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.Tooltip):
+            return ClientSideComponent(
+                metadata=TooltipMetadata(
+                    text=self.T(c.text) if c.text else c.text,
+                    wrapped=self.map_component(c.wrapped) if c.wrapped is not None else None,
+                ),
+                id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.ConfirmDialog):
+            return ClientSideComponent(
+                metadata=ConfirmDialogMetadata(
+                    header=self.T(c.header) if c.header else c.header,
+                    can_cancel=c.can_cancel, can_reject=c.can_reject, reject_text=c.reject_text,
+                    confirm_text=c.confirm_text if c.confirm_text is not None else "Save",
+                    opened_condition=c.opened_condition if c.opened_condition is not None else "true",
+                    confirm_action_id=c.confirm_action_id, reject_action_id=c.reject_action_id,
+                    cancel_action_id=c.cancel_action_id,
+                ),
+                id=_field_id_or(c.id),
+                children=[self.map_component(c.content)] if c.content is not None else [],
+                style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.Details):
+            return ClientSideComponent(
+                metadata=DetailsMetadata(
+                    summary=self.map_component(c.summary) if c.summary is not None else None,
+                    content=self.map_component(c.content) if c.content is not None else None,
+                    opened=c.opened,
+                ),
+                id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.SplitLayout):
+            return self._fluent_client(
+                SplitLayoutMetadata(
+                    orientation=c.orientation.value if c.orientation is not None else None,
+                    variant=c.variant.value if c.variant is not None else None,
+                    full_width=c.full_width,
+                ), c, [self.map_component(x) for x in (c.master, c.detail) if x is not None])
+        if isinstance(c, fluent.Breadcrumbs):
+            return ClientSideComponent(
+                metadata=BreadcrumbsMetadata(
+                    current_item_text=self.T(c.current_item_text) if c.current_item_text else c.current_item_text,
+                    breadcrumbs=[BreadcrumbRecord(text=self.T(b.text) if b.text else b.text, link=b.link)
+                                 for b in c.breadcrumbs],
+                ),
+                id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.Icon):
+            return ClientSideComponent(
+                metadata=IconMetadata(icon=c.icon), id=_field_id_or(c.id),
+                style=c.style, css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.Notification):
+            return ClientSideComponent(
+                metadata=NotificationMetadata(
+                    title=self.T(c.title) if c.title else c.title,
+                    text=self.T(c.text) if c.text else c.text,
+                ),
+                id=_field_id_or(c.id), style=c.style, css_classes=c.css_classes,
+            )
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
 
     def map_embedded_view(self, view):
@@ -1273,6 +1353,32 @@ class ComponentMapperMixin(MixinBase):
 
         walk(c)
         return list(dict.fromkeys(out))
+
+
+def _field_id_or(component_id: str | None) -> str:
+    """The wire id of a component Java ids as "fieldId" unless it carries its own."""
+    return component_id if component_id and component_id.strip() else "fieldId"
+
+
+def _element_id(element) -> str:
+    """An Element's wire id: its own ``id`` attribute, else a stable hash of its definition, so
+    two elements on one page never hydrate into the same container and an element keeps its
+    container across re-renders (mirrors Java's ElementMapper.idOf)."""
+    attributes = dict(element.attributes or {})
+    own = attributes.get("id")
+    if own and own.strip():
+        return own
+
+    def ordered(m) -> str:
+        return "\x01".join(f"{k}={v}" for k, v in sorted((m or {}).items()))
+
+    definition = "\x00".join([element.name, ordered(attributes), ordered(element.on), element.content or ""])
+    # FNV-1a (32 bit) over the UTF-8 bytes: a stable, non-cryptographic fingerprint, the same
+    # one the .NET port computes, so both ports give one definition the same id
+    h = 0x811C9DC5
+    for byte in definition.encode("utf-8"):
+        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
+    return f"element-{h:08x}"
 
 
 def _wire_source(source) -> "RestDataSource | None":

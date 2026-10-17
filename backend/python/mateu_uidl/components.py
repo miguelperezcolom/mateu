@@ -1986,6 +1986,146 @@ class Form(Component):
             object.__setattr__(self, name, tuple(getattr(self, name) or ()))
 
 
+
+# ── Generic building blocks ported from Java (M-A5) ───────────────────────────
+
+
+@dataclass(frozen=True)
+class Element(Component):
+    """An arbitrary HTML element or web component: its tag ``name``, its ``attributes``, DOM
+    event -> action id bindings in ``on`` and its text ``content`` (rendered as HTML when
+    ``html``). The wire id is the ``id`` attribute when present, else a stable hash of the
+    definition, so two elements on one page never share a container. The Python analogue of
+    ``io.mateu.uidl.data.Element``."""
+
+    name: str = "div"
+    attributes: dict[str, str] | None = None
+    on: dict[str, str] | None = None
+    content: str | None = None
+    html: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Tooltip(Component):
+    """A hover/focus tooltip ``text`` over a ``wrapped`` component. The Python analogue of
+    ``io.mateu.uidl.data.Tooltip`` (the top-level ``mateu_uidl.Tooltip`` is the listing-cell
+    tooltip marker, a different thing)."""
+
+    text: str = ""
+    wrapped: Component | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class ConfirmDialog(Component):
+    """A confirmation dialog: ``header`` over optional ``content``, a confirm button
+    (``confirm_text``, default "Save") running ``confirm_action_id`` and, when enabled,
+    reject/cancel buttons running their own actions; shown while ``opened_condition`` (a client
+    expression, default "true") holds. The Python analogue of ``io.mateu.uidl.data.ConfirmDialog``."""
+
+    header: str | None = None
+    content: Component | None = None
+    can_cancel: bool = False
+    can_reject: bool = False
+    reject_text: str | None = None
+    confirm_text: str | None = None
+    opened_condition: str | None = None
+    confirm_action_id: str | None = None
+    reject_action_id: str | None = None
+    cancel_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Details(Component):
+    """A disclosure: the ``summary`` always visible, the ``content`` shown when expanded
+    (initially when ``opened``). The Python analogue of ``io.mateu.uidl.data.Details``."""
+
+    summary: Component | None = None
+    content: Component | None = None
+    opened: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+class Orientation(Enum):
+    horizontal = "horizontal"
+    vertical = "vertical"
+
+
+class SplitLayoutVariant(Enum):
+    small = "small"
+    minimal = "minimal"
+
+
+@dataclass(frozen=True)
+class SplitLayout(Component):
+    """Two panes with a draggable splitter: ``master`` and ``detail`` (they travel as the
+    component's two children). The Python analogue of ``io.mateu.uidl.data.SplitLayout``."""
+
+    master: Component | None = None
+    detail: Component | None = None
+    orientation: Orientation | None = None
+    variant: SplitLayoutVariant | None = None
+    full_width: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Breadcrumb:
+    """One link of a :class:`Breadcrumbs` trail."""
+
+    text: str = ""
+    link: str = ""
+
+
+@dataclass(frozen=True)
+class Breadcrumbs(Component):
+    """A breadcrumb trail: the ``breadcrumbs`` links, then ``current_item_text`` as plain text.
+    The Python analogue of ``io.mateu.uidl.data.Breadcrumbs``."""
+
+    current_item_text: str = ""
+    breadcrumbs: tuple[Breadcrumb, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "breadcrumbs", tuple(self.breadcrumbs))
+
+
+@dataclass(frozen=True)
+class Icon(Component):
+    """An icon by name (e.g. ``"vaadin:plus"``). The Python analogue of
+    ``io.mateu.uidl.data.Icon``."""
+
+    icon: str = ""
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Notification(Component):
+    """An inline notification: a ``title`` and a ``text`` — a component in the tree, not a toast
+    (a toast is a ``Message``). The Python analogue of ``io.mateu.uidl.data.Notification``."""
+
+    text: str = ""
+    title: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
 __all__ = [
     "Form",
     "PageFab",
@@ -2086,4 +2226,15 @@ __all__ = [
     "PaymentPicker",
     "ProcessItem",
     "ProcessMonitor",
+    "Element",
+    "Tooltip",
+    "ConfirmDialog",
+    "Details",
+    "Orientation",
+    "SplitLayoutVariant",
+    "SplitLayout",
+    "Breadcrumb",
+    "Breadcrumbs",
+    "Icon",
+    "Notification",
 ]

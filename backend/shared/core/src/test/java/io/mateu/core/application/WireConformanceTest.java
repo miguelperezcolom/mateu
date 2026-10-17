@@ -498,6 +498,64 @@ class WireConformanceTest {
   }
 
   /**
+   * The generic fluent building blocks ported to .NET and Python in 3.0-alpha.426 (M-A5):
+   * Breadcrumbs, Icon, Notification, Element, Tooltip, Details, SplitLayout and ConfirmDialog in
+   * one component tree. Pins their member names and where their parts travel (Tooltip/Details wrap
+   * components IN the metadata; SplitLayout and ConfirmDialog carry theirs as children).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/generic-components")
+  @Title("Components")
+  public static class GenericComponentsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.VerticalLayout(
+          new io.mateu.uidl.data.Breadcrumbs(
+              "Order 42",
+              List.of(
+                  new io.mateu.uidl.data.Breadcrumb("Home", "/"),
+                  new io.mateu.uidl.data.Breadcrumb("Orders", "/orders")),
+              null,
+              null),
+          new io.mateu.uidl.data.Icon(io.mateu.uidl.interfaces.IconKey.PlusCircle, null, null),
+          new io.mateu.uidl.data.Notification("Saved", "The order was saved", null, null),
+          io.mateu.uidl.data.Element.builder()
+              .name("order-chart")
+              .attributes(java.util.Map.of("id", "chart", "kind", "bar"))
+              .on(java.util.Map.of("click", "drill"))
+              .content("loading")
+              .build(),
+          new io.mateu.uidl.data.Tooltip(
+              "Total including taxes", new io.mateu.uidl.data.Text("1250 EUR"), null, null),
+          io.mateu.uidl.data.Details.builder()
+              .summary(new io.mateu.uidl.data.Text("More"))
+              .content(new io.mateu.uidl.data.Text("Delivery notes"))
+              .opened(true)
+              .build(),
+          io.mateu.uidl.data.SplitLayout.builder()
+              .master(new io.mateu.uidl.data.Text("Master"))
+              .detail(new io.mateu.uidl.data.Text("Detail"))
+              .orientation(io.mateu.uidl.data.Orientation.vertical)
+              .variant(io.mateu.uidl.data.SplitLayoutVariant.small)
+              .build(),
+          io.mateu.uidl.data.ConfirmDialog.builder()
+              .header("Delete order?")
+              .content(new io.mateu.uidl.data.Text("This cannot be undone"))
+              .canCancel(true)
+              .confirmText("Delete")
+              .confirmActionId("deleteOrder")
+              .cancelActionId("keepOrder")
+              .build());
+    }
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -988,7 +1046,8 @@ class WireConformanceTest {
           "welcome-banner",
           "crud-search",
           "wizard",
-          "rest-source");
+          "rest-source",
+          "generic-components");
 
   static TestMateu mateu;
 
@@ -1033,7 +1092,8 @@ class WireConformanceTest {
             ExtrasApp.class,
             WelcomeBannerPage.class,
             SignUpWizard.class,
-            RestSourceForm.class);
+            RestSourceForm.class,
+            GenericComponentsPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

@@ -185,6 +185,7 @@ public class WireConformanceTests
         { "crud-search", typeof(ProductsCrud) },
         { "wizard", typeof(Wire.SignUpWizard) },
         { "rest-source", typeof(Wire.RestSourceForm) },
+        { "generic-components", typeof(Wire.GenericComponentsPage) },
     };
 
     [Fact]

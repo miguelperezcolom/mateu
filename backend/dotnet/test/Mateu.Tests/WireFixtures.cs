@@ -595,3 +595,37 @@ public class RestSourceForm
     [RestOptions(Source = "currencies")]
     public string? Currency { get; set; }
 }
+
+// The generic fluent building blocks ported from Java (M-A5), in one component tree.
+[UI("conformance/generic-components"), Title("Components")]
+public class GenericComponentsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new VerticalLayout
+    {
+        Content =
+        [
+            new Breadcrumbs("Order 42") { Items = [new Breadcrumb("Home", "/"), new Breadcrumb("Orders", "/orders")] },
+            new Icon("vaadin:plus-circle"),
+            new Notification("The order was saved") { Title = "Saved" },
+            new Element("order-chart")
+            {
+                Attributes = new Dictionary<string, string> { ["id"] = "chart", ["kind"] = "bar" },
+                On = new Dictionary<string, string> { ["click"] = "drill" },
+                Content = "loading",
+            },
+            new Tooltip("Total including taxes") { Wrapped = new Text("1250 EUR") },
+            new Details { Summary = new Text("More"), Content = new Text("Delivery notes"), Opened = true },
+            new SplitLayout(new Text("Master"), new Text("Detail"))
+            {
+                Orientation = Orientation.Vertical, Variant = SplitLayoutVariant.Small,
+            },
+            new ConfirmDialog
+            {
+                Header = "Delete order?", Content = new Text("This cannot be undone"), CanCancel = true,
+                ConfirmText = "Delete", ConfirmActionId = "deleteOrder", CancelActionId = "keepOrder",
+            },
+        ],
+    };
+
+    public string? Style => null;
+}
