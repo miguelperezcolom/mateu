@@ -737,6 +737,19 @@ class FieldMapperMixin(MixinBase):
             disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
         )
 
+    def map_toolbar_button(self, name: str, fn) -> Button:
+        """A @toolbar method as a header toolbar button (Java's @Toolbar)."""
+        marker = getattr(fn, "__mateu_toolbar__")
+        label = marker if isinstance(marker, str) else humanize(name)
+        style = getattr(fn, "__mateu_toolbar_style__", None)
+        return Button(
+            label=self.T(label),
+            action_id=camel_case(name),
+            button_style=style if style and style != "none" else None,
+            shortcut=getattr(fn, "__mateu_shortcut__", None),
+            disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
+        )
+
     @staticmethod
     def client(meta, id, children) -> ClientSideComponent:
         return ClientSideComponent(metadata=meta, id=id, children=children)

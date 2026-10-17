@@ -140,13 +140,17 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // the declared [Title], else the record's own name, else the class name (TitleOf)
         var title = TitleOf(type, instance);
 
-        var buttonMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            // an [EyesOnly] action the caller may not run is refused on invocation (ActionGuard)
-            // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
-            .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m)
-                        && Authorized(m.Find<EyesOnlyAttribute>()))
+        var declaredMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        // an [EyesOnly] action the caller may not run is refused on invocation (ActionGuard)
+        // and not advertised either: no button, no action id (Java's Authorizer.isVisible)
+        bool Offered(MethodInfo m) => ForCurrentAudience(m) && Authorized(m.Find<EyesOnlyAttribute>());
+        // [Toolbar] methods: the header toolbar (Java's @Toolbar); advertised before the buttons
+        var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m)).ToList();
+        var toolbar = toolbarMethods.Select(MapToolbarButton).ToList();
+        var buttonMethods = toolbarMethods
+            .Concat(declaredMethods.Where(m => m.Find<ButtonAttribute>() != null && m.Find<ToolbarAttribute>() == null && Offered(m)))
             .ToList();
-        var buttons = buttonMethods.Select(MapButton).ToList();
+        var buttons = buttonMethods.Skip(toolbarMethods.Count).Select(MapButton).ToList();
         var fabs = Fabs(type);
         // [Button] methods are server-side actions the renderer can invoke; a [RestAction] button
         // carries the client-side REST descriptor on its action.
@@ -254,7 +258,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // name emits two distinct header strings (mirrors ReflectionPageMapper).
         var pageMeta = new PageMetadataDto(
             title, T(Naming.Humanize(type.Name)),
-            OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
+            OptT(type.Find<SubtitleAttribute>()?.Value), toolbar, buttons)
         {
             // an [Inline] island nests under the host section: its title demotes to a sub-heading
             Level = inline ? 1 : 0,

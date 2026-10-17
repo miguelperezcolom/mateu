@@ -612,9 +612,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
-        // A [Button] is advertised validationRequired: the client checks the form's constraints
+        // A [Button] / [Toolbar] is advertised validationRequired: the client checks the form's constraints
         // first, and the server does not take its word for it (Java's ServerConstraintCheck).
-        if (method.Find<ButtonAttribute>() != null
+        if ((method.Find<ButtonAttribute>() != null || method.Find<ToolbarAttribute>() != null)
             && _mapper.Violations(type, instance) is { Count: > 0 } broken)
             throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));

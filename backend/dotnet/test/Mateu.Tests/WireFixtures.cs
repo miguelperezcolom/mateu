@@ -672,3 +672,13 @@ public class FieldHintsPage : IComponentTreeSupplier
 
     public string? Style => null;
 }
+
+// A page toolbar action (M-A5): [Toolbar] → the header toolbar.
+[UI("conformance/page-toolbar"), Title("Page toolbar")]
+public class PageToolbarForm
+{
+    public string Name { get; set; } = "Ada";
+
+    [Toolbar("Publish now", ButtonStyle = "primary")]
+    public void Publish() { }
+}

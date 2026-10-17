@@ -81,7 +81,8 @@ internal static class ActionGuard
     private static bool IsFramework(Type? type) => type is not null && FrameworkAssemblies.Contains(type.Assembly);
 
     private static bool HasActionMarker(MethodInfo m) =>
-        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null || m.Find<FabAttribute>() != null;
+        m.Find<ActionAttribute>() != null || m.Find<ButtonAttribute>() != null
+        || m.Find<ToolbarAttribute>() != null || m.Find<FabAttribute>() != null;
 
     /// <summary>Declared by a framework base class (or overriding a framework virtual).</summary>
     private static bool IsFrameworkMethod(MethodInfo m) =>

@@ -58,13 +58,23 @@ class ViewMapperMixin(MixinBase):
 
         # the declared @title, else the record's own name, else the class name (record_title)
         title = self.T(record_title(cls, instance))
-        button_methods = [
+        def offered(f) -> bool:
+            # an @eyes_only action the caller may not run is refused on invocation and not
+            # advertised either
+            return for_current_audience(getattr(f, "__mateu_audience__", None)) and self.authorized(
+                getattr(f, "__mateu_eyes_only__", None)
+            )
+
+        # @toolbar methods: the header toolbar (Java's @Toolbar); advertised before the buttons
+        toolbar_methods = [(n, f) for n, f in methods_with(cls, "__mateu_toolbar__") if offered(f)]
+        toolbar = [self.map_toolbar_button(n, f) for n, f in toolbar_methods]
+        page_button_methods = [
             (n, f)
             for n, f in methods_with(cls, "__mateu_button__")
-            if for_current_audience(getattr(f, "__mateu_audience__", None))
-            and self.authorized(getattr(f, "__mateu_eyes_only__", None))
+            if offered(f) and not hasattr(f, "__mateu_toolbar__")
         ]
-        buttons = [self.map_button(n, f) for n, f in button_methods]
+        buttons = [self.map_button(n, f) for n, f in page_button_methods]
+        button_methods = toolbar_methods + page_button_methods
         fabs = self.fabs(cls)
         # A @rest_action button carries the client-side REST descriptor on its action.
         actions = [
@@ -73,7 +83,7 @@ class ViewMapperMixin(MixinBase):
                 cls,
                 b.action_id,
             )
-            for (n, f), b in zip(button_methods, buttons)
+            for (n, f), b in zip(button_methods, toolbar + buttons)
         ]
         # A page FAB dispatches its actionId through the page's component like any button: the
         # client only SENDS an advertised action, so an unadvertised FAB was a dead click (Java's
@@ -196,7 +206,7 @@ class ViewMapperMixin(MixinBase):
             # declared @title. They coincide when the class name humanizes to the @title (Java parity).
             page_title=humanize(cls.__name__),
             subtitle=self._opt_t(class_flag(cls, "__mateu_subtitle__", None)),
-            toolbar=[],
+            toolbar=toolbar,
             buttons=buttons,
             toc=getattr(cls, "__mateu_toc__", None),
             banners=self.banners(cls, instance),

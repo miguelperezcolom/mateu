@@ -174,6 +174,18 @@ public sealed class ButtonAttribute(string? label = null) : Attribute
     public string? Label { get; } = label;
 }
 
+/// <summary>A method exposed as a button on the page header's TOOLBAR (Java's <c>@Toolbar</c>):
+/// labelled <see cref="Label"/>, else its [Label], else the humanized method name; styled
+/// <see cref="ButtonStyle"/> (primary | secondary | tertiary | tertiaryInline; null = the
+/// renderer's default). Advertised as an action like a [Button], with client and server
+/// validation.</summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class ToolbarAttribute(string? label = null) : Attribute
+{
+    public string? Label { get; } = label;
+    public string? ButtonStyle { get; init; }
+}
+
 /// <summary>Declares a method as a server-side ACTION without rendering a button for it: the
 /// target of an undoable toast (Message.Undoable's undo action id), of a returned RunAction flow
 /// step, a drawer/dialog opener fired from client code… Only declared actions can be invoked

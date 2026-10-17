@@ -31,6 +31,24 @@ def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
 
 
+def toolbar(arg=None, *, button_style: str | None = None):
+    """A method exposed as a button on the page header's TOOLBAR (Java's ``@Toolbar``): labelled
+    by the decorator's argument, else the humanized method name; styled ``button_style``
+    (primary | secondary | tertiary | tertiaryInline; None = the renderer's default). Advertised
+    as an action like a ``@button``, with client and server validation. Supports ``@toolbar``,
+    ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``."""
+    if callable(arg) and not isinstance(arg, str):  # used bare: arg is the method
+        setattr(arg, "__mateu_toolbar__", True)
+        return arg
+
+    def deco(fn):
+        setattr(fn, "__mateu_toolbar__", arg or True)
+        setattr(fn, "__mateu_toolbar_style__", button_style)
+        return fn
+
+    return deco
+
+
 def action(arg=None):
     """Declares a method as a server-side ACTION without rendering a button for it: the target
     of an undoable toast (``Message.undoable``'s undo action id), of a returned ``RunAction``

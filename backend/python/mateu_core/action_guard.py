@@ -44,7 +44,7 @@ from .reflection import view_fields
 log = logging.getLogger("mateu.security")
 
 #: Decorator markers that make a method invocable as a view action.
-ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_fab__")
+ACTION_MARKERS = ("__mateu_action__", "__mateu_button__", "__mateu_toolbar__", "__mateu_fab__")
 ROW_ACTION_MARKER = "__mateu_list_toolbar_button__"
 
 _FRAMEWORK_PACKAGES = {"mateu_uidl", "mateu_core", "mateu_dtos", "mateu_fastapi"}

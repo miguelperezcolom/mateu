@@ -42,7 +42,7 @@ class ActionHandlerMixin(MixinBase):
         if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
-        if getattr(fn, "__mateu_button__", None):
+        if getattr(fn, "__mateu_button__", None) or getattr(fn, "__mateu_toolbar__", None):
             # a @button / @toolbar is advertised validation_required: the client checks the
             # form's constraints first, and the server does not take its word for it
             from ..validation import VALIDATION_TITLE, describe, form_violations

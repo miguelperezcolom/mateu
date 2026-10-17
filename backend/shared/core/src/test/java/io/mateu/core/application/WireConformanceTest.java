@@ -649,6 +649,24 @@ class WireConformanceTest {
   }
 
   /**
+   * A page toolbar action, ported to .NET ({@code [Toolbar]}) and Python ({@code @toolbar}) in
+   * 3.0-alpha.426 (M-A5): a {@code @Toolbar} method is a header toolbar button (its label from
+   * {@code @Label}, else the humanized method name; its style from the annotation) and an
+   * advertised action. One method only: the JVM does not promise the order of a class's declared
+   * methods, so two actions could swap places between runs.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/page-toolbar")
+  @Title("Page toolbar")
+  public static class PageToolbarForm {
+    public String name = "Ada";
+
+    @io.mateu.uidl.annotations.Toolbar(buttonStyle = io.mateu.uidl.data.ButtonStyle.primary)
+    @io.mateu.uidl.annotations.Label("Publish now")
+    public void publish() {}
+  }
+
+  /**
    * A @BulletedList collection field renders as a plain read-only &lt;ul&gt; (stereotype
    * bulletedList).
    */
@@ -1143,7 +1161,8 @@ class WireConformanceTest {
           "generic-components",
           "triggers",
           "field-help",
-          "field-hints");
+          "field-hints",
+          "page-toolbar");
 
   static TestMateu mateu;
 
@@ -1192,7 +1211,8 @@ class WireConformanceTest {
             GenericComponentsPage.class,
             TriggersForm.class,
             FieldHelpForm.class,
-            FieldHintsPage.class);
+            FieldHintsPage.class,
+            PageToolbarForm.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

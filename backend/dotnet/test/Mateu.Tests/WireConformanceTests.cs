@@ -189,6 +189,7 @@ public class WireConformanceTests
         { "triggers", typeof(Wire.TriggersForm) },
         { "field-help", typeof(Wire.FieldHelpForm) },
         { "field-hints", typeof(Wire.FieldHintsPage) },
+        { "page-toolbar", typeof(Wire.PageToolbarForm) },
     };
 
     [Fact]

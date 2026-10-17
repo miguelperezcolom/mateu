@@ -579,6 +579,20 @@ public sealed partial class ReflectionMapper
         return action with { TimeoutMillis = options.TimeoutMillis, Idempotent = options.Idempotent };
     }
 
+    /// <summary>A [Toolbar] method as a header toolbar button (Java's @Toolbar).</summary>
+    private ButtonDto MapToolbarButton(MethodInfo m)
+    {
+        var toolbar = m.Find<ToolbarAttribute>()!;
+        var label = toolbar.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name);
+        return new ButtonDto(T(label), Naming.CamelCase(m.Name))
+        {
+            ButtonStyle = string.IsNullOrWhiteSpace(toolbar.ButtonStyle) || toolbar.ButtonStyle == "none"
+                ? null : toolbar.ButtonStyle,
+            Shortcut = m.Find<ShortcutAttribute>()?.Keys,
+            Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
+        };
+    }
+
     private ButtonDto MapButton(MethodInfo m)
     {
         var label = m.Find<ButtonAttribute>()?.Label
