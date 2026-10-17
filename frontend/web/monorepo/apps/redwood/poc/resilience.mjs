@@ -39,6 +39,13 @@ const MESSAGES = {
   unknown: () => chromeText('errUnknown'),
 }
 
+function isMateuRefusalBody(body) {
+  if (body && typeof body === 'object') return Array.isArray(body.messages)
+  const text = String(body == null ? '' : body).trim()
+  if (text === 'Forbidden') return true
+  try { const parsed = JSON.parse(text); return !!parsed && Array.isArray(parsed.messages) } catch (e) { return false }
+}
+
 /** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */
 const RETRYABLE = new Set(['offline', 'timeout', 'server'])
 
@@ -81,7 +88,14 @@ export function classifyRequestFailure(error, options = {}) {
     return failure('unknown')
   }
   if (status === 401) return failure('unauthorized')
-  if (status === 403) return failure('forbidden')
+  if (status === 403) {
+    // Mateu's own refusal (the Java adapters' plain "Forbidden", the ports' increment with
+    // messages) vs a 403 the host's security layer sent before Mateu saw the request (CSRF, a
+    // framework rule, a proxy): "you're not allowed" would send everyone looking in the wrong place
+    const refused = failure('forbidden')
+    return isMateuRefusalBody(err.body !== undefined ? err.body : (err.response && err.response.data))
+      ? refused : { ...refused, message: chromeText('errSecurityRefused') }
+  }
   if (status === 404 || status === 410) return failure('notFound')
   if (status === 408 || status === 429) return failure('timeout')
   if (status >= 500) return failure('server')
@@ -310,6 +324,7 @@ async function sendOnce(url, init, timeoutMillis) {
       const text = await res.text().catch(() => '')
       const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
       error.status = res.status
+      error.body = text
       throw error
     }
     return res

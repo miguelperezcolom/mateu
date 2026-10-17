@@ -5,7 +5,8 @@ import './test-locale.mjs' // first: off English the suite reruns in English (se
 import assert from 'node:assert/strict'
 import { interpolate, literalText, reduceContexts, HOST_ID } from './reduceContexts.mjs'
 import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCredentialOrigins } from './hostHeaders.mjs'
-import { fetchWithPolicy, connectivity } from './resilience.mjs'
+import { fetchWithPolicy, connectivity, classifyRequestFailure } from './resilience.mjs'
+import { chromeText } from './i18n.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
 import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf } from './widgets.mjs'
@@ -134,6 +135,19 @@ test('MINOR 7: Element HTML with data goes through the whitelist (no style, form
     + '<template><img src=x onerror=1></template><table class="t"><tr><td style="color: red; background: url(//x)">1</td></tr></table>')
   assert.equal(out, '<table class="t"><tr><td style="color: red">1</td></tr></table>')
   assert.equal(sanitizeHtml('<b class="x">a</b>'), '<b>a</b>', 'a rich-text value keeps no attributes')
+})
+
+// ── MINOR 1: a 403 Mateu did not send ───────────────────────────────────────────────────────────
+
+test('MINOR 1: Mateu\'s own 403 says "not allowed"; a CSRF/framework/proxy 403 says the security layer refused it', () => {
+  assert.equal(classifyRequestFailure({ status: 403, body: 'Forbidden' }).message, chromeText('errForbidden'))
+  assert.equal(classifyRequestFailure({ status: 403, body: '{"messages":[{"text":"Forbidden"}]}' }).message, chromeText('errForbidden'))
+  for (const body of ['', '{"timestamp":"t","status":403,"error":"Forbidden","path":"/x"}', '<html>403</html>', undefined]) {
+    const f = classifyRequestFailure({ status: 403, body })
+    assert.equal(f.kind, 'forbidden')
+    assert.equal(f.message, chromeText('errSecurityRefused'))
+    assert.notEqual(f.message, chromeText('errForbidden'))
+  }
 })
 
 for (const { name, fn } of queue) {
