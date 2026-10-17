@@ -11,7 +11,8 @@ import { idleSignOutUrlOf } from './appExtras.mjs'
 import { routeQueryOf, currentRouteOf, setMount } from './mount.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
-import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf } from './widgets.mjs'
+import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf, routeLinksOf, headerNavigationOf } from './widgets.mjs'
+import { readFileSync } from 'node:fs'
 import { elementAttributeValue, sanitizeElementHtml } from './elements.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 
@@ -117,6 +118,60 @@ test('M-S7: a header Anchor is a safe link with its text as text', () => {
   assert.equal(items[0].html, '<a href="#">&lt;img src=x onerror=1&gt;Go</a>')
   const ok = headerWidgetsOf({ shell: { widgets: [{ metadata: { type: 'Anchor', url: 'https://docs.example/a?b=1&c="2"', text: 'Docs' } }] } })
   assert.equal(ok.items[0].html, '<a href="https://docs.example/a?b=1&amp;c=&quot;2&quot;">Docs</a>')
+})
+
+test('M-S7: a widget link that navigated through an inline onclick still navigates — as a route href', () => {
+  // the real inbox badge (EventConductor's InboxBadge): <a href="#" onclick="…navigation-requested…">
+  const badge = JSON.parse(readFileSync(new URL('./fixtures/real/widget-badge.json', import.meta.url), 'utf8'))
+  const fr = badge.fragments[0]
+  const html = remoteWidgetHtmlOf(fr.component, fr.state || fr.component.initialData)
+  const pod = { route: '/inbox/pending', consumedRoute: '', baseUrl: '/_inbox', uriPrefix: '',
+    serverSideType: 'io.mateu.ecdemo1.communication.ui.inbox.InboxHome' }
+  const linked = routeLinksOf(html, { pathMode: true, mount: '' })
+  assert.match(linked.html, /<a href="\/inbox\/pending" style=/)
+  assert.doesNotMatch(linked.html, /onclick/)
+  assert.deepEqual(linked.targets, { '/inbox/pending': pod })
+  // under a mount, and served statically (#/route)
+  assert.deepEqual(Object.keys(routeLinksOf(html, { pathMode: true, mount: '/console' }).targets), ['/console/inbox/pending'])
+  assert.deepEqual(Object.keys(routeLinksOf(html, { pathMode: false }).targets), ['#/inbox/pending'])
+  // a handler that emits anything else, or a route that is not a path of this app, stays a plain (sanitised) link
+  for (const other of [`<a href="#" onclick="steal()">x</a>`,
+    `<a onclick="this.dispatchEvent(new CustomEvent('navigation-requested', {detail: {route: '//evil.example/x'}}))">x</a>`,
+    `<a onclick="this.dispatchEvent(new CustomEvent('navigation-requested', {detail: {route: 'javascript:alert(1)'}}))">x</a>`]) {
+    assert.deepEqual(routeLinksOf(other).targets, {})
+  }
+  // a plain click emits the badge's navigation-requested (the shell registers the pod and navigates);
+  // a modified click is the browser's (opens the href)
+  assert.deepEqual(headerNavigationOf('/inbox/pending', { button: 0 }, linked.targets), pod)
+  assert.equal(headerNavigationOf('/inbox/pending', { button: 0, ctrlKey: true }, linked.targets), null)
+  assert.equal(headerNavigationOf('/other', { button: 0 }, linked.targets), null)
+
+  // mounted: the sanitised header keeps the route href, and its click dispatches the event
+  setMount('/')
+  try {
+    const listeners = []
+    const hole = { innerHTML: '', addEventListener: (type, fn) => listeners.push({ type, fn }) }
+    const before = globalThis.document
+    globalThis.document = { querySelector: () => hole }
+    try {
+      mountHeaderHtml('badge', html)
+      assert.match(hole.innerHTML, /^<a style="[^"]*" href="\/inbox\/pending">/)
+      assert.doesNotMatch(hole.innerHTML, /onclick/)
+      assert.equal(listeners.length, 1)
+      mountHeaderHtml('badge', html.replace('16', '17'))
+      assert.equal(listeners.length, 1, 'wired once per slot')
+      const dispatched = []
+      let prevented = false
+      const anchor = { tagName: 'A', getAttribute: (n) => (n === 'href' ? '/inbox/pending' : null),
+        dispatchEvent: (e) => dispatched.push(e) }
+      listeners[0].fn({ button: 0, composedPath: () => [anchor, hole], preventDefault: () => { prevented = true } })
+      assert.equal(prevented, true)
+      assert.equal(dispatched.length, 1)
+      assert.equal(dispatched[0].type, 'navigation-requested')
+      assert.equal(dispatched[0].bubbles, true)
+      assert.deepEqual(dispatched[0].detail, pod)
+    } finally { if (before === undefined) delete globalThis.document; else globalThis.document = before }
+  } finally { setMount(null) }
 })
 
 test('M-S7: a data-bound Element attribute never becomes code; srcdoc never passes', () => {

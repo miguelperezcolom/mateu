@@ -121,7 +121,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
     val sseUrl = metadata.text("sseUrl")
     if (sseUrl.isNotBlank()) {
-        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl, session.apiClient.tokenProvider) }
+        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl, session.apiClient) }
         chat.border = JBUI.Borders.empty(8)
         sidebar.addStacked(chat, 2)
     }
@@ -273,9 +273,9 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
 }
 
 /** The assistant in a modeless dialog (the navigator's "Assistant" link). */
-private fun openChatDialog(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvider) {
+private fun openChatDialog(sseUrl: String, api: io.mateu.ijp.api.MateuApiClient) {
     val dialog = javax.swing.JDialog(null as java.awt.Frame?, "Assistant", false)
-    dialog.contentPane = buildChatPanel(sseUrl, tokens)
+    dialog.contentPane = buildChatPanel(sseUrl, api)
     dialog.setSize(420, 480)
     dialog.setLocationRelativeTo(null)
     dialog.isVisible = true
@@ -284,7 +284,7 @@ private fun openChatDialog(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvide
 /** Minimal assistant speaking the mateu-chat contract: POST {message, sessionId} to the SSE
  *  endpoint and show the accumulated `data:` payloads as the agent reply. Shared by the app's
  *  assistant dialog and an inline `Chat` component. */
-internal fun buildChatPanel(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvider): JComponent {
+internal fun buildChatPanel(sseUrl: String, api: io.mateu.ijp.api.MateuApiClient): JComponent {
     val messages = javax.swing.JTextArea()
     messages.isEditable = false
     messages.lineWrap = true
@@ -307,7 +307,8 @@ internal fun buildChatPanel(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvid
                 val request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(sseUrl))
                     .header("Accept", "text/event-stream")
                     .header("Content-Type", "application/json")
-                    .apply { io.mateu.ijp.api.bearer(tokens.accessToken())?.let { header("Authorization", it) } }
+                    // the Bearer only when the chat's url is trusted with it (see CredentialScope)
+                    .apply { api.credentialHeaders(sseUrl)["Authorization"]?.let { header("Authorization", it) } }
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
                     .build()
                 val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())

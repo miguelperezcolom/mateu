@@ -35,6 +35,30 @@ INDEX = "_index.html"
 TITLE_MARKER = "AQUIELTITULODELAPAGINA"
 UI_FROM = "<!-- AQUIUI -->"
 UI_TO = "<!-- HASTAAQUIUI -->"
+FAVICON_MARKER = "<!-- AQUIFAVICON -->"
+
+#: Java's IndexPage.DEFAULT_FAVICON, byte for byte: the favicon a renderer page carries (Mateu's
+#: icon, served by the renderer next to its assets), never the build tool's ``/vite.svg``; the
+#: app's own favicon arrives with the shell (``SetFavicon``).
+DEFAULT_FAVICON = '<link rel="icon" type="image/svg+xml" href="/assets/mateu-icon.svg" />'
+
+#: Java's IndexPage.MARKERS: the template markers none of which is left in a served page.
+MARKERS = (
+    "<!-- AQUIFAVICON -->",
+    "<!-- AQUIKEYCLOAK -->",
+    "<!-- AQUIJS -->",
+    "<!-- HASTAAQUIJS -->",
+    "<!-- AQUIUI -->",
+    "<!-- HASTAAQUIUI -->",
+)
+
+
+def without_markers(html: str) -> str:
+    """Java's ``IndexPage.withoutMarkers``: ``html`` without the template's marker comments (a
+    served page showed them in view-source). Applied last."""
+    for marker in MARKERS:
+        html = html.replace(marker, "")
+    return html
 
 #: Java's IndexPage.DEFERRED_BOOT, byte for byte: boots a page that parks its scripts as
 #: ``type="text/mateu-deferred"`` (the Redwood / Visual Builder page), in order, awaiting each,
@@ -103,8 +127,11 @@ def mount_ui(html: str, base_url: str, debug: bool = False) -> str:
 
 
 def render_index(template: str, base_url: str, title: str, debug: bool = False) -> str:
-    """The renderer's page aimed at ``base_url`` (the mount, ``""`` for the root) and titled."""
-    return mount_ui(template.replace(TITLE_MARKER, title), base_url, debug)
+    """The renderer's page aimed at ``base_url`` (the mount, ``""`` for the root) and titled. Like
+    Java's ``IndexPage.render``: the favicon marker becomes ``DEFAULT_FAVICON`` and no template
+    marker is left in the page."""
+    html = template.replace(FAVICON_MARKER, DEFAULT_FAVICON).replace(TITLE_MARKER, title)
+    return without_markers(mount_ui(html, base_url, debug))
 
 
 def spa_candidate(path: str) -> bool:

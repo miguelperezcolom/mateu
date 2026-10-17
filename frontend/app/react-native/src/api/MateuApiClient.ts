@@ -2,6 +2,7 @@ import { authHeaders, authHeadersFrom, type TokenProvider } from '../core/auth.t
 import { handleSessionExpired } from '../core/sessionGuard.ts';
 import { checkWireVersion } from '../core/wireVersion.ts';
 import { parseSseChunk } from '../core/appShellExtras.ts';
+import { CredentialScope, withoutCredentials } from '../core/credentialScope.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -44,18 +45,34 @@ export class MateuApiClient {
    */
   readonly auth: TokenProvider | null | undefined;
 
-  constructor(baseUrl: string, sessionId: string, auth?: TokenProvider | null) {
+  /**
+   * Whether a request to a url may carry the user's credentials (see core/credentialScope.ts).
+   * Absent (a bare client) = only this client's own base url.
+   */
+  private readonly credentialsFor: (url: string) => boolean;
+
+  constructor(baseUrl: string, sessionId: string, auth?: TokenProvider | null, credentialsFor?: (url: string) => boolean) {
     this.baseUrl = baseUrl;
     this.sessionId = sessionId;
     this.auth = auth;
+    const own = new CredentialScope(baseUrl);
+    this.credentialsFor = credentialsFor ?? ((url) => own.mayCarryCredentials(url));
   }
 
-  /** The headers every Mateu request carries: the per-install session id and, when a token
-   *  provider is registered, the Bearer token the backend resolves identity from. */
-  async headers(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  /** True when a request to `url` (this client's base url by default) may carry credentials. */
+  carriesCredentials(url: string = this.baseUrl): boolean {
+    return this.credentialsFor(url);
+  }
+
+  /** The headers a request to `url` (this client's base url by default) carries: the per-install
+   *  session id and, when a token provider is registered, the Bearer token the backend resolves
+   *  identity from — both ONLY when `url` is trusted with them (the app's own backend, a remote it
+   *  names); an island a remote named is called anonymously. */
+  async headers(extra: Record<string, string> = {}, url: string = this.baseUrl): Promise<Record<string, string>> {
+    const base: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    if (!this.carriesCredentials(url)) return { ...base, ...withoutCredentials(extra) };
     return {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+      ...base,
       'X-Session-Id': this.sessionId,
       ...(this.auth === undefined ? await authHeaders() : await authHeadersFrom(this.auth)),
       ...extra,
@@ -151,7 +168,8 @@ export class MateuApiClient {
 
     let response = await doFetch();
     // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
-    if (response.status === 401 && (await handleSessionExpired(this.auth))) {
+    // (only against a backend trusted with the credentials: an anonymous island's 401 is not ours to fix)
+    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth))) {
       response = await doFetch();
     }
     const text = await response.text();

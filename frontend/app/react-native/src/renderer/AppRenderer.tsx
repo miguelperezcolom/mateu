@@ -170,7 +170,9 @@ const CONTEXT_SEARCHABLE_THRESHOLD = 7;
 // options a search box filters the loaded ones client-side and (debounced) asks the server for
 // matches beyond the loaded page via the standard `_appcontext-search-<field>` action.
 function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
-  const { api, appState } = useAppContext();
+  const { api, appState, session } = useAppContext();
+  // the app's @AppContext values are the user's context: an untrusted island is not given them
+  for (const selector of selectors) session.appContextKeys.add(selector.fieldName);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   // server results replacing the loaded options while a remote search is active

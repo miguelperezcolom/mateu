@@ -61,12 +61,12 @@ class LiveUpdatesStream(private val session: AppSession) {
                 "parameters" to emptyMap<String, Any?>(),
             ).filterValues { it != null },
         )
-        val builder = HttpRequest.newBuilder(URI.create("${session.baseUrl}/mateu/v3/sse/$route"))
+        val url = "${session.baseUrl}/mateu/v3/sse/$route"
+        val builder = HttpRequest.newBuilder(URI.create(url))
             .header("Content-Type", "application/json")
             .header("Accept", "text/event-stream")
-            .header("X-Session-Id", session.sessionId)
             .POST(HttpRequest.BodyPublishers.ofString(body))
-        io.mateu.ijp.api.bearer(session.apiClient.tokenProvider.accessToken())?.let { builder.header("Authorization", it) }
+        session.apiClient.credentialHeaders(url).forEach { (k, v) -> builder.header(k, v) }
         val response = http.send(builder.build(), HttpResponse.BodyHandlers.ofLines())
         if (response.statusCode() >= 400) throw IllegalStateException("live updates: HTTP ${response.statusCode()}")
         response.body().use { lines ->

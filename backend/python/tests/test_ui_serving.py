@@ -87,6 +87,8 @@ def test_the_page_is_served_at_the_mount_and_its_deep_links_aimed_at_the_mount(v
     assert '<mateu-ui baseUrl="" pathPrefix="" style="width:100%;height:100vh;"></mateu-ui>' in home.text
     assert "<title>Shop console</title>" in home.text  # the app's title, like Java's index
     assert "AQUIELTITULODELAPAGINA" not in home.text and "<!-- AQUIUI -->" not in home.text
+    assert "AQUI" not in home.text and "vite.svg" not in home.text  # the shipped template: no marker
+    assert ui_page.DEFAULT_FAVICON in home.text
     assert "text/mateu-deferred" in home.text  # the deferred-boot replayer travels with the page
     assert '<script type="module" crossorigin src="/assets/mateu-vaadin.js">' in home.text
 
@@ -103,7 +105,7 @@ def test_the_renderers_assets_are_served_at_the_origin_root(vaadin_static):
     assert js.headers["cache-control"] == "no-cache"  # no hash in the name: revalidate (Java's rule)
     css = c.get("/assets/index.css")
     assert css.status_code == 200 and css.headers["content-type"].startswith("text/css")
-    assert c.get("/vite.svg").headers["content-type"].startswith("image/svg+xml")
+    assert c.get("/assets/mateu-icon.svg").headers["content-type"].startswith("image/svg+xml")
     assert c.get("/assets/nope.js").status_code == 404
     # a path can never escape the renderer's folder (the client normalises `..`; the server must too)
     files = ui_page.RendererFiles.at(vaadin_static)
@@ -158,11 +160,25 @@ def test_a_wrong_location_fails_at_startup_not_at_the_first_request(tmp_path):
         client(tmp_path / "notarenderer")
 
 
+def test_a_served_page_carries_no_template_marker_and_mateus_favicon():
+    # the shape of the renderer templates (Vaadin: favicon marker; Redwood/VB: keycloak + js markers)
+    html = (
+        "<html><head><!-- AQUIFAVICON --><!-- AQUIKEYCLOAK --><title>AQUIELTITULODELAPAGINA</title>"
+        '<!-- AQUIJS --><script src="/x.js"></script><!-- HASTAAQUIJS --></head>'
+        "<body><!-- AQUIUI --><p>x</p><!-- HASTAAQUIUI --></body></html>"
+    )
+    page = ui_page.render_index(html, "/admin", "T")
+    assert "AQUI" not in page and "vite.svg" not in page
+    assert ui_page.DEFAULT_FAVICON in page
+    assert ui_page.DEFAULT_FAVICON == '<link rel="icon" type="image/svg+xml" href="/assets/mateu-icon.svg" />'
+    assert '<script src="/x.js"></script>' in page
+
+
 def test_mount_ui_mirrors_javas_index_page():
     html = "<html><title>AQUIELTITULODELAPAGINA</title><body><!-- AQUIUI --><p>x</p><!-- HASTAAQUIUI --></body></html>"
     out = ui_page.render_index(html, '/a"b', "T")
     assert '<mateu-ui baseUrl="/a&quot;b" pathPrefix="/a&quot;b" style="width:100%;height:100vh;"></mateu-ui>' in out
-    assert "<p>x</p>" not in out and out.endswith("<!-- HASTAAQUIUI --></body></html>")
+    assert "<p>x</p>" not in out and out.endswith("</mateu-ui>" + ui_page.DEFERRED_BOOT + "</body></html>")
     assert ui_page.mount_ui("<html>no markers</html>", "") == "<html>no markers</html>"
     assert ui_page.spa_candidate("/orders/7") and not ui_page.spa_candidate("/mateu/v3/x")
     assert not ui_page.spa_candidate("/") and not ui_page.spa_candidate("/a.js")

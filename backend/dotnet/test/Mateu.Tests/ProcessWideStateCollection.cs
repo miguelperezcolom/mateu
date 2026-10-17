@@ -19,3 +19,39 @@ public sealed class ProcessWideStateCollection
 {
     public const string Name = "ProcessWideState";
 }
+
+/// <summary>Keeps the rule above true: a test class that INSTALLS a logger factory of its own (to
+/// assert on what is logged) belongs to <see cref="ProcessWideStateCollection"/> — outside it a host
+/// booting in a parallel test swaps the factory and the assertion flakes. Resetting it
+/// (<c>UseLoggerFactory(null)</c>, what the host tests do on the way out) is not installing.</summary>
+public class ProcessWideStateCollectionTests
+{
+    private static readonly System.Text.RegularExpressions.Regex Installs =
+        new(@"MateuLogging\.UseLoggerFactory\(\s*(?!null\s*\))");
+
+    [Fact]
+    public void Every_test_class_that_captures_the_log_is_in_the_process_wide_collection()
+    {
+        var dir = Path.GetDirectoryName(SourceFile())!;
+        var offenders = new List<string>();
+        foreach (var file in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
+            var source = File.ReadAllText(file);
+            foreach (System.Text.RegularExpressions.Match use in Installs.Matches(source))
+            {
+                // the class declaring the use: the last class declaration before it
+                var head = source[..use.Index];
+                var cls = System.Text.RegularExpressions.Regex.Matches(head, @"(?m)^(\[[^\n]*\]\s*\n)*(public|internal)?\s*(sealed\s+)?class\s+(\w+)");
+                if (cls.Count == 0) continue;
+                var decl = cls[^1];
+                if (!decl.Value.Contains("Collection(ProcessWideStateCollection.Name)"))
+                    offenders.Add($"{Path.GetFileName(file)}: {decl.Groups[4].Value}");
+            }
+        }
+        Assert.True(offenders.Count == 0, "not in [Collection(ProcessWideStateCollection.Name)]: " + string.Join(", ", offenders.Distinct()));
+    }
+
+    private static string SourceFile([System.Runtime.CompilerServices.CallerFilePath] string path = "") => path;
+}

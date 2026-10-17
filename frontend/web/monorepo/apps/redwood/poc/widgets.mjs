@@ -13,15 +13,18 @@
 //  - slot `end` (actions zone): everything else, in order — a Text's HTML, a
 //    MicroFrontend's live HTML, and any other Popover as button + oj-popup.
 //
-// HTML is painted as HTML (it is HTML on the wire: an <a> with its onclick that emits
-// navigation-requested), with a single translation: <vaadin-icon> does not exist in Redwood and is replaced
-// by the equivalent oj-ux-ico font icon. The navigation it emits is listened to by the shell.
+// HTML is painted as HTML (it is HTML on the wire: an <a> with an onclick that emits
+// navigation-requested), with two translations: <vaadin-icon> does not exist in Redwood and is replaced
+// by the equivalent oj-ux-ico font icon, and — since no handler passes the sanitiser (M-S7) — such a
+// link becomes a route href (routeLinksOf) whose click the header turns back into the same
+// navigation-requested, which the shell listens to.
 
 import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { safeHref } from './core/display.mjs'
+import { isPathMode, currentMount, pathOfRoute } from './mount.mjs'
 
 const CONTAINERS = new Set([
   'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
@@ -277,6 +280,83 @@ export function stopRemoteWidgets() {
   }
 }
 
+// ── Navigation links ───────────────────────────────────────────────────────────────────────────
+// The Mateu idiom for a widget link (the inbox badge) is an <a href="#" onclick="…dispatchEvent(new
+// CustomEvent('navigation-requested', {detail: {route: '/inbox/pending', baseUrl: '/_inbox', …}}))">.
+// The sanitiser drops every handler, so the link would go nowhere: it is rewritten into a link to
+// the ROUTE (the path under the mount, `#/route` when served statically) and the detail is kept
+// beside the HTML, keyed by that href, for the header's click to emit. Only string values of the
+// known keys are read — the handler is never evaluated.
+
+const NAV_DETAIL_KEYS = new Set(['route', 'consumedRoute', 'baseUrl', 'uriPrefix', 'serverSideType'])
+
+/** The detail of the navigation-requested an inline handler emits, or null if it emits none. */
+export function navigationDetailOfHandler(handler) {
+  const js = String(handler == null ? '' : handler)
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&amp;/g, '&')
+  if (!/new\s+CustomEvent\(\s*(['"])navigation-requested\1/.test(js)) return null
+  const body = /\bdetail\s*:\s*\{([^{}]*)\}/.exec(js)
+  if (!body) return null
+  const detail = {}
+  const re = /([A-Za-z_$][\w$]*)\s*:\s*(?:'([^']*)'|"([^"]*)")/g
+  let m
+  while ((m = re.exec(body[1]))) {
+    if (NAV_DETAIL_KEYS.has(m[1])) detail[m[1]] = m[2] != null ? m[2] : m[3]
+  }
+  if (typeof detail.route !== 'string') return null
+  // a route is a path of this app: an absolute url or a scheme is never navigated to
+  if (detail.route !== '' && (detail.route.charAt(0) !== '/' || detail.route.charAt(1) === '/')) return null
+  return detail
+}
+
+/** The href of an app route: its path under the mount (path mode) or `#/route` (static serving). */
+export function routeHrefOf(route, { pathMode = true, mount = '' } = {}) {
+  const r = String(route == null ? '' : route)
+  if (pathMode) return pathOfRoute(r, mount)
+  return '#' + (r.charAt(0) === '/' ? r : '/' + r)
+}
+
+const HANDLER_ATTR = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
+const HREF_ATTR = /\s+href\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
+
+/**
+ * `html` with each link whose handler emits navigation-requested turned into a link to its route,
+ * and `targets`: href → the detail to emit when it is clicked.
+ */
+export function routeLinksOf(html, options = {}) {
+  const targets = {}
+  const out = String(html == null ? '' : html).replace(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi, (all, attrs) => {
+    const detail = navigationDetailOfHandler(attrOf(attrs, 'onclick'))
+    if (!detail) return all
+    const href = safeHref(routeHrefOf(detail.route, options))
+    if (!href) return all
+    targets[href] = detail
+    const rest = attrs.replace(HANDLER_ATTR, '').replace(HREF_ATTR, '')
+    return `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest}>`
+  })
+  return { html: out, targets }
+}
+
+/** The detail a click on a header link emits, or null when the click is the browser's (a modified
+ *  or non-primary click opens the href as any link; a link that is not a route link). */
+export function headerNavigationOf(href, event, targets) {
+  if (href == null || !targets || !Object.prototype.hasOwnProperty.call(targets, href)) return null
+  if (event && (event.defaultPrevented || event.button > 0
+    || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
+  return targets[href]
+}
+
+function onHeaderLinkClick(hole, event) {
+  const path = typeof event.composedPath === 'function' ? event.composedPath() : []
+  const anchor = path.find((node) => node && node.tagName === 'A')
+    || (event.target && typeof event.target.closest === 'function' ? event.target.closest('a') : null)
+  if (!anchor || typeof anchor.getAttribute !== 'function') return
+  const detail = headerNavigationOf(anchor.getAttribute('href'), event, hole.__mateuNavTargets)
+  if (!detail) return
+  event.preventDefault()
+  anchor.dispatchEvent(new CustomEvent('navigation-requested', { detail: { ...detail }, bubbles: true, composed: true }))
+}
+
 // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
 // VB cannot stamp raw HTML from a binding: the slot (<span class="mateu-header-widget"
 // data-widget-id>) is painted by the template and the HTML is put in by the bridge, as with third-party
@@ -295,8 +375,15 @@ export function mountHeaderHtml(id, html) {
   if (hole.__mateuHtml !== next) {
     // a widget's HTML carries DATA (a remote's state interpolated into its Text): whitelist-sanitized
     // at the one sink, keeping the icon spans' class/style (M-S7)
-    hole.innerHTML = sanitizeHtml(next, { presentation: true })
+    // (its navigation links become route hrefs first: their handler would not survive)
+    const linked = routeLinksOf(next, { pathMode: isPathMode(), mount: currentMount() })
+    hole.innerHTML = sanitizeHtml(linked.html, { presentation: true })
     hole.__mateuHtml = next
+    hole.__mateuNavTargets = linked.targets
+    if (!hole.__mateuNavWired && typeof hole.addEventListener === 'function') {
+      hole.__mateuNavWired = true
+      hole.addEventListener('click', (event) => onHeaderLinkClick(hole, event))
+    }
   }
   return true
 }

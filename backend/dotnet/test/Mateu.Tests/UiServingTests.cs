@@ -100,6 +100,9 @@ public class UiServingTests
         Assert.Contains("<mateu-ui baseUrl=\"\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>", html);
         Assert.DoesNotContain(UiPage.TitleMarker, html);
         Assert.DoesNotContain(UiPage.UiFrom, html);
+        Assert.DoesNotContain("AQUI", html); // the shipped template: no marker left
+        Assert.DoesNotContain("vite.svg", html);
+        Assert.Contains(UiPage.DefaultFavicon, html);
         Assert.Contains("text/mateu-deferred", html); // the deferred-boot replayer travels with the page
         Assert.Contains("<script type=\"module\" crossorigin src=\"/assets/mateu-vaadin.js\">", html);
 
@@ -111,7 +114,7 @@ public class UiServingTests
         Assert.Equal("text/javascript", js.Content.Headers.ContentType!.MediaType);
         Assert.Equal("no-cache", js.Headers.CacheControl!.ToString()); // no hash in the name: revalidate
         Assert.Equal("text/css", (await http.GetAsync("/assets/index.css")).Content.Headers.ContentType!.MediaType);
-        Assert.Equal("image/svg+xml", (await http.GetAsync("/vite.svg")).Content.Headers.ContentType!.MediaType);
+        Assert.Equal("image/svg+xml", (await http.GetAsync("/assets/mateu-icon.svg")).Content.Headers.ContentType!.MediaType);
         Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync("/assets/nope.js")).StatusCode);
     }
 
@@ -194,6 +197,21 @@ public class UiServingTests
     }
 
     [Fact]
+    public void A_served_page_carries_no_template_marker_and_mateus_favicon()
+    {
+        // the shape of the renderer templates (Vaadin: favicon marker; Redwood/VB: keycloak + js markers)
+        const string html = "<html><head><!-- AQUIFAVICON --><!-- AQUIKEYCLOAK --><title>AQUIELTITULODELAPAGINA</title>"
+                            + "<!-- AQUIJS --><script src=\"/x.js\"></script><!-- HASTAAQUIJS --></head>"
+                            + "<body><!-- AQUIUI --><p>x</p><!-- HASTAAQUIUI --></body></html>";
+        var page = UiPage.RenderIndex(html, "/admin", "T");
+        Assert.DoesNotContain("AQUI", page);
+        Assert.DoesNotContain("vite.svg", page);
+        Assert.Contains(UiPage.DefaultFavicon, page);
+        Assert.Equal("<link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/mateu-icon.svg\" />", UiPage.DefaultFavicon);
+        Assert.Contains("<script src=\"/x.js\"></script>", page);
+    }
+
+    [Fact]
     public void Mount_ui_mirrors_javas_index_page()
     {
         const string html = "<html><title>AQUIELTITULODELAPAGINA</title><body><!-- AQUIUI --><p>x</p><!-- HASTAAQUIUI --></body></html>";
@@ -201,7 +219,7 @@ public class UiServingTests
         Assert.Contains("<mateu-ui baseUrl=\"/a&quot;b\" pathPrefix=\"/a&quot;b\" style=\"width:100%;height:100vh;\"></mateu-ui>", out1);
         Assert.Contains("<title>T</title>", out1);
         Assert.DoesNotContain("<p>x</p>", out1);
-        Assert.EndsWith("<!-- HASTAAQUIUI --></body></html>", out1);
+        Assert.EndsWith("</mateu-ui>" + UiPage.DeferredBoot + "</body></html>", out1);
         Assert.Equal("<html>no markers</html>", UiPage.MountUi("<html>no markers</html>", ""));
         Assert.True(UiPage.SpaCandidate("/orders/7"));
         Assert.False(UiPage.SpaCandidate("/mateu/v3/x"));

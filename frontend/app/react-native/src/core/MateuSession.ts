@@ -7,6 +7,7 @@ import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShel
 import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts';
 import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
+import { CredentialScope, appStateFor } from './credentialScope.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -40,6 +41,12 @@ export interface OverlayOpenerContext {
 export class MateuSession {
   readonly api: MateuApiClient;
   readonly appState: Record<string, unknown>;
+  /** Where this app's credentials may go: its own backend + the islands it names (an island
+   *  shares its host's scope). */
+  readonly credentials: CredentialScope;
+  /** The @AppContext field names of the app (filled by its context selectors): kept from an
+   *  untrusted island's app state. */
+  readonly appContextKeys: Set<string>;
 
   // What the app registers as it runs. The hub runs several apps in one process, so a session
   // created with its OWN token provider (a hub UI session — even `null`, an unsecured backend) owns
@@ -101,7 +108,9 @@ export class MateuSession {
     auth?: TokenProvider | null,
     storesFrom?: MateuSession,
   ) {
-    this.api = new MateuApiClient(baseUrl, sessionId, auth);
+    this.credentials = storesFrom?.credentials ?? new CredentialScope(baseUrl);
+    this.appContextKeys = storesFrom?.appContextKeys ?? new Set<string>();
+    this.api = new MateuApiClient(baseUrl, sessionId, auth, (url) => this.credentials.mayCarryCredentials(url));
     this.appState = appState;
     const own = auth !== undefined;
     this.sources = storesFrom?.sources ?? (own ? new RestSourceCatalogue() : sharedRestSources);
@@ -132,11 +141,15 @@ export class MateuSession {
 
 /**
  * The session a federated island (MicroFrontend) runs in: the host's own when it names no other
- * base url; otherwise a session for that origin that keeps the HOST's stores — what the island
+ * base url; otherwise a session for that origin — carrying the user's credentials and @AppContext
+ * values only when the app's own backend named it (core/credentialScope.ts) — that keeps the HOST's stores — what the island
  * registers (catalogue, references, sample mode, drop zones…) stays in the hub UI it is part of
  * instead of reaching the process-wide stores every other UI could read.
  */
 export function islandSession(host: MateuSession, baseUrl: string): MateuSession {
   if (!baseUrl || baseUrl === host.api.baseUrl) return host;
-  return new MateuSession(baseUrl, host.api.sessionId, { ...host.appState }, undefined, host);
+  // the island's base url came in an ANSWER: trusted only when the app's own backend named it
+  host.credentials.declare(host.api.baseUrl, [baseUrl]);
+  const trusted = host.credentials.mayCarryCredentials(baseUrl);
+  return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), undefined, host);
 }
