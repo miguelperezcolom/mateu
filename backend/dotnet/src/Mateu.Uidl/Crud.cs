@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace Mateu.Uidl;
 
 /// <summary>
@@ -75,9 +73,9 @@ public abstract class Crud<T> :
         new("Not implemented",
             $"{GetType().Name} cannot store changes yet: override {member} in {GetType().Name}.");
 
-    /// <summary>The value of the entity's <c>Id</c> property as a string.</summary>
-    public static string? IdOf(T entity) =>
-        typeof(T).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)?.GetValue(entity)?.ToString();
+    /// <summary>The entity's id as a string: its <see cref="IdAttribute">[Id]</see> property, else
+    /// its <c>Id</c> property (<see cref="EntityIds"/>); throws when the entity declares neither.</summary>
+    public static string? IdOf(T entity) => EntityIds.Require(typeof(T)).GetValue(entity)?.ToString();
 
     /// <summary>When true, New and row clicks open the create/edit form in a Drawer sliding over
     /// the listing (the Redwood "Create and Edit - Drawer" template) instead of navigating to the
@@ -115,10 +113,12 @@ public abstract class Crud<T> :
     public virtual bool CanDelete => true;
 
     /// <summary>The capability-listing search: an overridden <see cref="Find"/> (database
-    /// pushdown) answers the ready page, else the whole in-memory <see cref="Fetch"/> result is
+    /// pushdown) answers the ready page — it receives the request's raw
+    /// <see cref="SearchRequest.FilterState"/>, the same filters the classic crud search hands it —
+    /// else the whole in-memory <see cref="Fetch"/> result is
     /// handed to the engine to sort + paginate.</summary>
     public virtual ListingData<T> Search(SearchRequest request) =>
-        Find(request.SearchText, new Dictionary<string, object?>(), request.Pageable) is { } page
+        Find(request.SearchText, request.FilterState, request.Pageable) is { } page
             ? new ListingData<T>(page.Content, page.TotalElements)
             : ListingData<T>.From(Fetch(request.SearchText));
 

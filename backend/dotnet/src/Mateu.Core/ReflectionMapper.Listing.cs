@@ -230,6 +230,9 @@ public sealed partial class ReflectionMapper
         // CanDelete, no clickable rows without CanView/CanEdit (mirrors Java's Crud switches).
         bool Hook(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? true;
         bool Hook0(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? false;
+        // A crud that opens, edits or deletes records must know which property identifies them:
+        // refuse at render time with the fix, instead of null ids and broken edits later.
+        if (Hook("CanView") || Hook("CanEdit") || Hook("CanDelete")) EntityIds.Require(element);
         var canView = Hook("CanView");
         var canEdit = Hook("CanEdit");
         var canCreate = Hook("CanCreate");
