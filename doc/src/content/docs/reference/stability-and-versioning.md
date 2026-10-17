@@ -277,7 +277,8 @@ Every build checks the Java public API against the **last released version** wit
 [japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `mateu-uidl` jar and the
 archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`) — and, report-only,
 the `mateu-dtos` jar ([why](#the-wire-dtos-json-not-java-binaries)) — against
-`<mateu.japicmp.baseline>` (in `backend/pom.xml`, currently `3.0-alpha.411`) and writes a report to
+`<mateu.japicmp.baseline>` (in `backend/pom.xml`; `scripts/bump-example-version.sh` moves it to each
+release once it is on Maven Central) and writes a report to
 `target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job summary.
 
 - **Until the beta** the check is **report-only** (`mateu.api.enforce=false`): the alphas
