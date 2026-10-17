@@ -9,6 +9,7 @@ import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
 import { fabBottom } from '../core/uxRules';
+import { useButtonPress } from './useButtonPress';
 
 interface ButtonDto {
   actionId?: string;
@@ -16,6 +17,7 @@ interface ButtonDto {
   label?: string;
   buttonStyle?: string;
   disabled?: boolean;
+  route?: string;
 }
 
 interface Props {
@@ -103,6 +105,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
     controller.session.openView({ label, route, consumedRoute: '', serverSideType: '' });
 
   const handleAction = (actionId: string) => runAction(actionId);
+  const pressButton = useButtonPress();
 
   return (
     <View style={styles.root}>
@@ -164,8 +167,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
               {toolbar.map((btn, i) => {
                 const id = btn.actionId ?? btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
+                const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
+                const disabled = !!btn.disabled || press.disabled;
                 return (
-                  <TouchableOpacity {...buttonA11y({ disabled: !!btn.disabled })} key={i} disabled={!!btn.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, btn.disabled && styles.btnDisabled]} onPress={() => handleAction(id)}>
+                  <TouchableOpacity {...buttonA11y({ disabled })} key={i} disabled={disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, disabled && styles.btnDisabled]} onPress={press.onPress}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                       {interpolate(btn.label ?? id, ctx)}
                     </Text>
@@ -191,8 +196,10 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           {buttons.map((btn, i) => {
             const id = btn.actionId ?? btn.id ?? '';
             const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
+            const press = pressButton(btn as Record<string, unknown>, ctx, () => handleAction(id), interpolate(btn.label ?? id, ctx));
+            const disabled = !!btn.disabled || press.disabled;
             return (
-              <TouchableOpacity {...buttonA11y({ disabled: !!btn.disabled })} key={i} disabled={!!btn.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, btn.disabled && styles.btnDisabled]} onPress={() => handleAction(id)}>
+              <TouchableOpacity {...buttonA11y({ disabled })} key={i} disabled={disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, disabled && styles.btnDisabled]} onPress={press.onPress}>
                 <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                   {interpolate(btn.label ?? id, ctx)}
                 </Text>

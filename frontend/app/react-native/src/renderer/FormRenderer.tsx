@@ -4,12 +4,14 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { useButtonPress } from './useButtonPress';
 
 interface ButtonDto {
   actionId?: string;
   id?: string;
   label?: string;
   buttonStyle?: string;
+  route?: string;
 }
 
 interface Props {
@@ -29,6 +31,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
   const children = (component['children'] as unknown[]) ?? [];
 
   const handleAction = (actionId: string) => void controller.runAction(actionId);
+  const pressButton = useButtonPress();
 
   // Children render through the shared dispatcher: nested layouts, sections, grids and fields
   // all reach FormFieldRenderer wired to the controller's live state.
@@ -47,8 +50,9 @@ export function FormRenderer({ component, metadata, state }: Props) {
                 // Only a button the server marks primary looks primary: a row of equally loud
                 // buttons has no hierarchy (Refactoring UI, "not every button is primary").
                 const isPrimary = a.buttonStyle?.toLowerCase() === 'primary';
+                const press = pressButton(a as Record<string, unknown>, { state }, () => handleAction(id), a.label ?? id);
                 return (
-                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+                  <TouchableOpacity {...buttonA11y({ disabled: press.disabled })} key={i} disabled={press.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, press.disabled && styles.btnDisabled]} onPress={press.onPress}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{a.label ?? id}</Text>
                   </TouchableOpacity>
                 );
@@ -69,8 +73,9 @@ export function FormRenderer({ component, metadata, state }: Props) {
           {buttons.map((btn, i) => {
             const id = btn.actionId ?? btn.id ?? '';
             const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
+            const press = pressButton(btn as Record<string, unknown>, { state }, () => handleAction(id), btn.label ?? id);
             return (
-              <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+              <TouchableOpacity {...buttonA11y({ disabled: press.disabled })} key={i} disabled={press.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, press.disabled && styles.btnDisabled]} onPress={press.onPress}>
                 <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{btn.label ?? id}</Text>
               </TouchableOpacity>
             );
@@ -96,6 +101,7 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'flex-end',
   },
+  btnDisabled: { opacity: 0.45 },
   btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
   btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
   btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
