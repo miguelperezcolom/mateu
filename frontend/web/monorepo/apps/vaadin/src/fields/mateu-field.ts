@@ -188,6 +188,11 @@ export class MateuField extends LitElement {
         if (this.field?.dataType == 'integer') {
             return numericCommitValue(value, true)
         }
+        // A number field's control speaks strings ("19.95"); the state holds numbers — a rule
+        // comparing `state.price > 10` or a server-side type check should never meet the string.
+        if (this.field?.dataType == 'number') {
+            return numericCommitValue(value, false)
+        }
         return value
     }
     multiComboBoxValueChanged = (e: CustomEvent) => {

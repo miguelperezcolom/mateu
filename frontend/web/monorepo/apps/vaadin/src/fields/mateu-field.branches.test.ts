@@ -114,6 +114,15 @@ describe('mateu-field branches', () => {
         expect(changes[0]).toEqual({ value: 42, fieldId: 'f' })
     })
 
+    it('a number field commits a number, never the control\'s string', async () => {
+        // the walkthrough found "19.95" (a string) in the browser state of a number field
+        const { root, changes } = await mount({ dataType: 'number' }, { f: 1 })
+        const control = root.querySelector('vaadin-number-field')!
+        control.dispatchEvent(new CustomEvent('value-changed', { detail: { value: '19.95' } }))
+        control.dispatchEvent(new CustomEvent('value-changed', { detail: { value: '' } }))
+        expect(changes).toEqual([{ value: 19.95, fieldId: 'f' }, { value: null, fieldId: 'f' }])
+    })
+
     it('a required field carries required on its control', async () => {
         const { root } = await mount({ stereotype: 'email', required: true }, {})
         expect(root.querySelector('vaadin-email-field')!.hasAttribute('required')).toBe(true)
