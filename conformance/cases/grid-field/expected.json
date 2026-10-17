@@ -82,7 +82,7 @@
                         "formPosition" : "right",
                         "itemIdPath" : "_rowNumber",
                         "label" : "Guests",
-                        "minHeightWhenDetailVisible" : "16rem;",
+                        "minHeightWhenDetailVisible" : "16rem",
                         "onItemSelectionActionId" : "onSel",
                         "optionsColumns" : 1,
                         "stereotype" : "grid",

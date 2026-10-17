@@ -110,7 +110,7 @@ class DetailForm:
     columns: int = 0
     style: str | None = None
     theme: str | None = None
-    min_height_when_detail_visible: str = "16rem;"
+    min_height_when_detail_visible: str = "16rem"
 
 
 @dataclass(frozen=True)

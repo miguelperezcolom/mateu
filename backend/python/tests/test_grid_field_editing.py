@@ -122,7 +122,7 @@ def test_an_editable_grid_carries_the_row_editor_wiring():
     select = grid["columns"][-1]["metadata"]
     assert (select["stereotype"], select["text"], select["actionId"]) == ("button", "Edit", "guests_select")
     assert grid["formPosition"] == "right" and grid["formColumns"] == 2
-    assert grid["minHeightWhenDetailVisible"] == "16rem;"
+    assert grid["minHeightWhenDetailVisible"] == "16rem"
     assert grid["onItemSelectionActionId"] == "guests_selected"
     assert grid["colspan"] == 2  # a grid spans the whole row of a two-column form
 

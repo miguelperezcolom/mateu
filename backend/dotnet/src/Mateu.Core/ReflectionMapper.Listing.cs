@@ -718,7 +718,7 @@ public sealed partial class ReflectionMapper
             Style = gridStyle,
             FormPosition = "right",
             FormColumns = FormColumns(rowType),
-            MinHeightWhenDetailVisible = "16rem;",
+            MinHeightWhenDetailVisible = "16rem",
             SliderMax = 0,
         };
         return Client(meta, fieldId, []) with { Style = gridStyle };
