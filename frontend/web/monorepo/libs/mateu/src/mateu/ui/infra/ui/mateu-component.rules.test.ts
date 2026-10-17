@@ -228,3 +228,66 @@ describe('the confirmation modal', () => {
         expect(callback).toHaveBeenCalledTimes(1)
     })
 })
+
+/**
+ * Rules are computed in willUpdate(), before the render: a keystroke on a form with rules renders
+ * ONCE. They used to run in updated(), after the render, and assign `state` — which scheduled a
+ * second render of the whole form for every change. The results must be the same either way.
+ */
+describe('rules run before the render', () => {
+    const settle = async (el: any) => { while (!(await el.updateComplete)) { /* until no update is pending */ } }
+
+    const mounted = async (rules: Record<string, unknown>[], state: Record<string, unknown>) => {
+        const el = element({ rules }, state) as any
+        document.body.appendChild(el)
+        await settle(el)
+        let renders = 0
+        const render = el.render.bind(el)
+        el.render = () => { renders++; return render() }
+        return { el, renders: () => renders }
+    }
+
+    it('a change that fires value rules renders once, with the rules applied', async () => {
+        const { el, renders } = await mounted([
+            rule({ filter: 'state.qty > 0', fieldName: 'total', expression: 'state.qty * ${state.price}' }),
+            rule({ filter: 'state.total > 10', fieldName: 'big', value: true }),
+        ], { qty: 1, price: 2 })
+        expect(el.state).toMatchObject({ total: 2 })
+        expect(el.state.big).toBeUndefined()
+
+        el.state = { ...el.state, qty: 6 }
+        await settle(el)
+
+        expect(renders()).toBe(1)
+        // a rule that depends on another rule's output still sees it (they iterate to a fixed point)
+        expect(el.state).toMatchObject({ qty: 6, total: 12, big: true })
+    })
+
+    it('the effects of a rule (actions, attributes) run once per change, against the final state', async () => {
+        const { el } = await mounted([
+            rule({ filter: 'state.qty > 0', fieldName: 'total', expression: 'state.qty * 2' }),
+            rule({ action: RuleAction.RunAction, filter: 'state.total > 10', actionId: 'recalculate' }),
+        ], { qty: 1 })
+        const seen: string[] = []
+        el.manageActionRequestedEvent = (e: CustomEvent) => seen.push(e.detail.actionId)
+
+        el.state = { ...el.state, qty: 6 }
+        await settle(el)
+
+        expect(seen).toEqual(['recalculate'])
+    })
+
+    it('rule-set state triggers the validations, as before', async () => {
+        const el = element({
+            rules: [rule({ filter: 'state.qty > 5', fieldName: 'total', value: 0 })],
+            validations: [{ fieldId: 'total', condition: 'state.total > 0', message: 'Must be positive' }],
+        }, { qty: 1 }) as any
+        el.data = { _valid: true }
+        document.body.appendChild(el)
+        await settle(el)
+        el.state = { ...el.state, qty: 6 }
+        await settle(el)
+        expect(el.state.total).toBe(0)
+        expect(el.data._valid).toBe(false)
+    })
+})

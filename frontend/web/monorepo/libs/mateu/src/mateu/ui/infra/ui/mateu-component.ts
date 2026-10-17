@@ -41,6 +41,20 @@ import { needsComposedHeading } from "@infra/ui/composedHeading.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
+import type Rule from "@mateu/shared/apiClients/dtos/componentmetadata/Rule.ts";
+
+/**
+ * Whether a state carries anything JSON would keep — what the old `JSON.stringify(state) != '{}'`
+ * guard tested, without serialising the whole state on every update.
+ */
+const hasEntries = (state: Record<string, any> | undefined): boolean => {
+    if (!state) return false
+    for (const key of Object.keys(state)) {
+        const v = state[key]
+        if (v !== undefined && typeof v !== 'function' && typeof v !== 'symbol') return true
+    }
+    return false
+}
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolate, interpolateAndEvaluate, templateResolver} from "@infra/ui/interpolation.ts";
 import {navigateToRoute} from "@infra/ui/rowRoute.ts";
@@ -87,84 +101,87 @@ export class MateuComponent extends ComponentElement {
     formerState: Record<string, any> = {}
 
 
+    /**
+     * Runs the component's client-side rules to completion, synchronously: the value rules
+     * (SetStateValue / SetDataValue) until they settle, then the effects (actions, RunJS,
+     * attributes, classes, styles) once, against the final state.
+     *
+     * The lifecycle does the same in two halves: the values in willUpdate() — before the render,
+     * so a change renders ONCE — and the effects in updated(), when the DOM they touch exists.
+     */
     applyRules = () => {
-        const rules = (this.component as ServerSideComponent).rules
-        if (rules && rules.length > 0) {
-            const state = this.state
-            const data = this.data
-            const appState = this.appState
-            const appData = this.appData
-            const component = this.component
-            // Rule expressions see state/data/appState/appData/component by name, evaluated by the
-            // sandboxed expression evaluator (no eval: CSP-safe). Both preserve the typed
-            // (non-string) result of the expression (e.g. booleans).
-            const evalExpr = (expr: string): any =>
-                evaluateExpression(expr, state, data, { appState, appData, component })
-            const evalTemplate = (tmpl: string): any =>
-                interpolateAndEvaluate(tmpl, state, data, appState, appData, { component })
+        const matched = this._settleRuleValues()
+        if (matched) this._runRuleEffects(matched)
+    }
+
+    /** Rules whose filter matched in the last settled pass, waiting for updated() (see willUpdate). */
+    private _pendingRuleEffects?: Rule[]
+
+    /** How many value passes may chain (a rule feeding another) before we stop: a guard, not a limit. */
+    private static readonly MAX_RULE_PASSES = 10
+
+    private _ruleContext() {
+        const state = this.state
+        const data = this.data
+        const appState = this.appState
+        const appData = this.appData
+        const component = this.component
+        // Rule expressions see state/data/appState/appData/component by name, evaluated by the
+        // sandboxed expression evaluator (no eval: CSP-safe). Both preserve the typed
+        // (non-string) result of the expression (e.g. booleans).
+        return {
+            evalExpr: (expr: string): any =>
+                evaluateExpression(expr, state, data, { appState, appData, component }),
+            evalTemplate: (tmpl: string): any =>
+                interpolateAndEvaluate(tmpl, state, data, appState, appData, { component }),
             // RunJS rules evaluate a statement body (not an expression): opt-in only (runJs.ts).
-            const runJsContext = { state, data, appState, appData, component }
+            runJsContext: { state, data, appState, appData, component },
+        }
+    }
+
+    /**
+     * The value rules, pass after pass, until a pass changes no state (each pass sees what the
+     * previous one wrote, as the old one-pass-per-update loop did). Returns the rules whose filter
+     * matched in the final pass — up to a Stop — or undefined when the component has no rules.
+     */
+    private _settleRuleValues(): Rule[] | undefined {
+        const rules = (this.component as ServerSideComponent)?.rules
+        if (!rules || rules.length === 0) return undefined
+        let matched: Rule[] = []
+        for (let pass = 0; pass < MateuComponent.MAX_RULE_PASSES; pass++) {
+            const { evalExpr, evalTemplate } = this._ruleContext()
             const newState = {...this.state}
             const newData = {...this.data}
-            let stateUpdated = false;
-            let dataUpdated = false;
+            let stateUpdated = false
+            let dataUpdated = false
+            matched = []
             for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
                 const rule = rules[ruleIndex]
                 try {
-                    if (evalExpr(rule.filter)) {
-                        if (RuleAction.SetStateValue == rule.action || RuleAction.SetDataValue == rule.action) {
-                            const target = RuleAction.SetStateValue == rule.action?newState:newData
-                            const fieldNames = rule.fieldName.split(',')
-                            for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
-                                const fieldName = fieldNames[fieldIndex]
-                                if (!target[fieldName] || target[fieldName] != rule.value) {
-                                    const value = rule.expression?evalTemplate(rule.expression):rule.value
-                                    const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
-                                    if (value != target[propertyName]) {
-                                        target[propertyName] = value
-                                        if (RuleAction.SetStateValue == rule.action) {
-                                            stateUpdated = true
-                                        }
-                                        if (RuleAction.SetDataValue == rule.action) {
-                                            dataUpdated = true
-                                        }
+                    if (!evalExpr(rule.filter)) continue
+                    matched.push(rule)
+                    if (RuleAction.SetStateValue == rule.action || RuleAction.SetDataValue == rule.action) {
+                        const target = RuleAction.SetStateValue == rule.action?newState:newData
+                        const fieldNames = rule.fieldName.split(',')
+                        for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
+                            const fieldName = fieldNames[fieldIndex]
+                            if (!target[fieldName] || target[fieldName] != rule.value) {
+                                const value = rule.expression?evalTemplate(rule.expression):rule.value
+                                const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
+                                if (value != target[propertyName]) {
+                                    target[propertyName] = value
+                                    if (RuleAction.SetStateValue == rule.action) {
+                                        stateUpdated = true
+                                    }
+                                    if (RuleAction.SetDataValue == rule.action) {
+                                        dataUpdated = true
                                     }
                                 }
                             }
                         }
-                        if (RuleAction.RunAction == rule.action) {
-                            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                                detail: {
-                                    actionId: rule.actionId
-                                },
-                                bubbles: true,
-                                composed: true
-                            }))
-                        }
-                        if (RuleAction.RunJS == rule.action) {
-                            runJs(rule.value as string, runJsContext)
-                        }
-                        if (RuleAction.SetAttributeValue == rule.action) {
-                            const value = rule.expression?evalExpr(rule.expression):rule.value
-                            if ('disabled' == rule.fieldAttribute) {
-                                if (value) {
-                                    this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, 'disabled')
-                                } else {
-                                    this.shadowRoot?.getElementById(rule.fieldName)?.removeAttribute(rule.fieldAttribute)
-                                }
-                                continue
-                            }
-                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, value)
-                        }
-                        if (RuleAction.SetCssClass == rule.action) {
-                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute('class', rule.value as string)
-                        }
-                        if (RuleAction.SetStyle == rule.action) {
-                            this.shadowRoot?.getElementById(rule.fieldName)?.style.setProperty(rule.expression as string, rule.value as string)
-                        }
-                        if (RuleResult.Stop == rule.result) {
-                            break
-                        }
+                    }
+                    if (RuleResult.Stop == rule.result) {
+                        break
                     }
                 } catch (e) {
                     console.error('rule failed', rule, e)
@@ -176,8 +193,49 @@ export class MateuComponent extends ComponentElement {
             if (dataUpdated) {
                 this.data = newData
             }
-            if (stateUpdated) {
-                this.checkValidations()
+            if (!stateUpdated) break
+            this.checkValidations()
+        }
+        return matched
+    }
+
+    /** The rules that act on something other than the values, for the rules that matched. */
+    private _runRuleEffects(matched: Rule[]) {
+        const { evalExpr, runJsContext } = this._ruleContext()
+        for (const rule of matched) {
+            try {
+                if (RuleAction.RunAction == rule.action) {
+                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: rule.actionId
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+                if (RuleAction.RunJS == rule.action) {
+                    runJs(rule.value as string, runJsContext)
+                }
+                if (RuleAction.SetAttributeValue == rule.action) {
+                    const value = rule.expression?evalExpr(rule.expression):rule.value
+                    if ('disabled' == rule.fieldAttribute) {
+                        if (value) {
+                            this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, 'disabled')
+                        } else {
+                            this.shadowRoot?.getElementById(rule.fieldName)?.removeAttribute(rule.fieldAttribute)
+                        }
+                        continue
+                    }
+                    this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, value)
+                }
+                if (RuleAction.SetCssClass == rule.action) {
+                    this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute('class', rule.value as string)
+                }
+                if (RuleAction.SetStyle == rule.action) {
+                    this.shadowRoot?.getElementById(rule.fieldName)?.style.setProperty(rule.expression as string, rule.value as string)
+                }
+            } catch (e) {
+                console.error('rule failed', rule, e)
             }
         }
     }
@@ -272,11 +330,21 @@ export class MateuComponent extends ComponentElement {
     }
 
 
+    protected willUpdate(changed: PropertyValues) {
+        super.willUpdate(changed)
+        // The value rules settle BEFORE the render: whatever they write to state/data joins this
+        // same update instead of scheduling another one (it used to be done in updated()).
+        if (changed.has('state') && hasEntries(this.state)) {
+            this._pendingRuleEffects = this._settleRuleValues()
+        }
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.has('state') && this.state && JSON.stringify(this.state) != JSON.stringify({})) {
-            this.onChange()
-        }
+        // ...and the effects after it, when the elements they touch are in the DOM.
+        const effects = this._pendingRuleEffects
+        this._pendingRuleEffects = undefined
+        if (effects) this._runRuleEffects(effects)
         if (_changedProperties.has('component')) {
             // Apply the component's sizing intent (coherence-plan #8) to this host element.
             applySizing(this as unknown as SizableHost, (this.component as { sizing?: string })?.sizing)
