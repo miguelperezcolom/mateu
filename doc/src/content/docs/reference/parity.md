@@ -432,7 +432,6 @@ renderers, and its children still render.
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |
-| `Breadcrumb` | ↳ | of Breadcrumbs |
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
 | `GridGroupColumn` | ↳ | of Grid / Crud: oj-table has no grouped headers, so the group label prefixes its columns ("Occupancy · Adults") |
@@ -450,7 +449,7 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 89 rendered, 11 layout containers, 7 parts of another component,
+native renderer — 89 rendered, 11 layout containers, 6 parts of another component,
 10 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
@@ -568,7 +567,6 @@ native renderer — 89 rendered, 11 layout containers, 7 parts of another compon
 | `AccordionPanel` | ✅ part | of AccordionLayout |
 | `BoardLayoutItem` | ✅ part | of BoardLayout |
 | `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
-| `Breadcrumb` | ✅ part | of Breadcrumbs |
 | `GridColumn` | ✅ part | of Grid / Crud |
 | `GridGroupColumn` | ✅ part | of Grid / Crud: its columns, headed "Group · Column" |
 | `Tab` | ✅ part | of TabLayout |

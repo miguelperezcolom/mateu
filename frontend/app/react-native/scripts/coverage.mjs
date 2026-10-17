@@ -64,7 +64,6 @@ export const RN_COVERAGE = {
   CookieConsent: { status: 'full', note: 'dismissible banner, dismissal persisted on the device' },
   // ── navigation ──
   Breadcrumbs: { status: 'full' },
-  Breadcrumb: { status: 'part', note: 'of Breadcrumbs' },
   MenuBar: { status: 'full', note: 'horizontal strip; submenus as an action sheet' },
   Directory: { status: 'full' },
   // ── display ──
