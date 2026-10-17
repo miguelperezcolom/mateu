@@ -22,17 +22,17 @@ How it was measured (reproducible):
 | Area | Tests | Lines | Branches | Floor (CI) | Gap to 80% lines |
 |---|---|---|---|---|---|
 | Java `shared/core` | 1735 | **84.7%** | 70.1% | 84% bundle lines | — (branches: 9.9 pts) |
-| Java `shared/uidl` — own suite | 107 | 40.8% | 22.0% | 38% | 39.2 |
-| Java `shared/uidl` — all suites (cross-module) | — | **84.2%** | 70.6% | none | — |
-| Java `shared/dtos` — no own suite | 0 | (78.4% cross-module) | (57.5%) | **none, no report** | 1.6 |
-| Java `annotation-processor-core` | 27 | 73.5% | 53.5% | 72% bundle + 70% per package | 6.5 |
-| Java `annotation-processor-indexer` | 10 | 67.8% | 65.8% | 65% | 12.2 |
+| Java `shared/uidl` — own suite | 145 | 49.0% | 29.7% | 49% lines / 29% branches | 31.0 (gated cross-module instead) |
+| Java `shared/uidl` — all suites (cross-module) | — | **87.6%** | 73.0% | **87% / 73%** (`backend/coverage`) | — |
+| Java `shared/dtos` — all suites (cross-module) | 124 (incl. dynamic) | **84.5%** | 87.4% | **84% / 87%** (`backend/coverage`) | — |
+| Java `annotation-processor-core` | 46 | **95.1%** | 81.9% | 95% bundle + 95% per package / 81% branches | — |
+| Java `annotation-processor-indexer` | 16 | **97.7%** | 94.7% | 97% / 94% branches | — |
 | Java `mvc-core` | — | 70.6% | 73.5% | 63% | 9.4 |
 | Java `webflux-core` | — | 79.1% | 73.4% | 76% | 0.9 |
 | Java `micronaut-core` | 28 | 85.0% | 85.1% | 84% | — |
 | Java `quarkus-core` | 21 | 86.5% (**91.9%** real, see §5.1) | 64.5% | 86% | — |
 | Java `helidon-mp-core` | 21 | 83.2% | 63.2% | 83% | — |
-| Java `mateu-bundle-maven-plugin` | 11 | 59.9% | 50.3% | 58% | 20.1 |
+| Java `mateu-bundle-maven-plugin` | 29 | **90.1%** | 75.4% | 90% / 75% branches | — |
 | Java 5 framework annotation processors | 0 | not measurable (run in javac) | | none | — |
 | Java `mateu-archetype` | archetype IT | n/a (Groovy post-generate) | | IT pass/fail | — |
 | .NET (net8.0) | 708 | **94.0%** | 79.5% | per package lines: Uidl 92 / Core 92 / Dtos 97 / AspNetCore 95 | — |
@@ -46,6 +46,11 @@ How it was measured (reproducible):
 | React Native `.tsx` (37 files, 11.4k lines) | 0 | **unmeasured** | | none | — |
 | IntelliJ plugin | 327 | **48.6%** | 39.2% | Kover minBound 47 | 31.4 |
 | VS Code extension | 160 | **96.2%** | 79.3% | 96 / 91 / 94 / 79 | — |
+
+S2 rows (uidl, dtos, the two APs, the bundle plugin) re-measured 2026-10-17 on `coverage/s2`; the
+cross-module uidl/dtos figures now come from the `backend/coverage` module (merged exec of every
+suite, gated in CI). Every Java module can also gate BRANCH coverage
+(`jacoco.min.bundle.branch.coverage`, parent pom).
 
 All suites pass and all gates are met on master (Quarkus only after the tooling problem in §5.2).
 
