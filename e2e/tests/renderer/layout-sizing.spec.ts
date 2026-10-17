@@ -30,7 +30,7 @@ test.describe('layout sizing (fill / hug)', () => {
     await page.goto('/full-crud');
     // the listing painted, whatever the renderer (not a row's text: on CI this project shares the
     // server with the shared suite, which edits and deletes the fixture's tasks)
-    await expect(page.locator('vaadin-grid, oj-table, table').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('vaadin-grid, oj-table').filter({ visible: true }).first()).toBeVisible({ timeout: 15000 });
     test.skip(!(await usesSharedWebLayout(page)), SHARED_LAYOUT_ONLY);
     // The listing paints (a grid with rows / the crud surface is present).
     await expect(page.locator('mateu-ux').first()).toBeAttached({ timeout: 15000 });
@@ -49,7 +49,7 @@ test.describe('layout sizing (fill / hug)', () => {
   test('a listing fills the viewport rather than overflowing the page', async ({ page }) => {
     await page.goto('/full-crud');
     // the listing painted, whatever the renderer (not a row's text — see above)
-    await expect(page.locator('vaadin-grid, oj-table, table').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('vaadin-grid, oj-table').filter({ visible: true }).first()).toBeVisible({ timeout: 15000 });
     // Give the listing a moment to size itself (fill / measure).
     await page.waitForTimeout(1500);
 
