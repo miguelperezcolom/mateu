@@ -128,14 +128,13 @@ public class RowStatusAndExportTests
         var toolbar = Crud(typeof(RsGuestsNoExport)).GetProperty("toolbar").EnumerateArray()
             .Select(b => b.GetProperty("actionId").GetString()).ToList();
         Assert.DoesNotContain("export-csv", toolbar);
-        var inc = Handler().Handle(new RunActionRqDto
+        Assert.Throws<MateuForbiddenException>(() => Handler().Handle(new RunActionRqDto
         {
             Route = "rs-guests-no-export",
             ActionId = "export-csv",
             ServerSideType = typeof(RsGuestsNoExport).FullName,
             InitiatorComponentId = "c1",
-        });
-        Assert.DoesNotContain(inc.Commands, c => c.Type == "DownloadFile");
+        }));
     }
 
     private static IEnumerable<JsonElement> Objects(JsonElement el)

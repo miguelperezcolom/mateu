@@ -121,8 +121,8 @@ public class ExportTests
     [Fact]
     public void A_format_the_crud_does_not_offer_is_refused()
     {
-        var inc = Run(Handler(new DigestExporter(ExportFormat.Pdf)), typeof(ExCsvOnly), "export-pdf");
-        Assert.DoesNotContain(inc.Commands, c => c.Type == "DownloadFile");
+        Assert.Throws<MateuForbiddenException>(
+            () => Run(Handler(new DigestExporter(ExportFormat.Pdf)), typeof(ExCsvOnly), "export-pdf"));
     }
 
     [Fact]
@@ -194,11 +194,19 @@ public class ExportTests
             // header + every match (Guest 1, 10-19, 100-120 = 32), not just the first page of 10
             Assert.Equal(33, lines.Length);
             // a format the listing did not opt into is refused
-            var pdf = handler.Handle(new RunActionRqDto
+            // (a crud refuses it with 403; a listing answers without a download)
+            UIIncrementDto? pdf = null;
+            try
             {
-                Route = route, ActionId = "export-pdf", ServerSideType = type.FullName, InitiatorComponentId = "c1",
-            });
-            Assert.DoesNotContain(pdf.Commands, c => c.Type == "DownloadFile");
+                pdf = handler.Handle(new RunActionRqDto
+                {
+                    Route = route, ActionId = "export-pdf", ServerSideType = type.FullName, InitiatorComponentId = "c1",
+                });
+            }
+            catch (MateuForbiddenException)
+            {
+            }
+            Assert.DoesNotContain(pdf?.Commands ?? [], c => c.Type == "DownloadFile");
         }
     }
 }

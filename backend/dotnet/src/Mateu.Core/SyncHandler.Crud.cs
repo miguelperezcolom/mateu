@@ -120,7 +120,7 @@ public sealed partial class SyncHandler
                 _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
             { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
+            _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
     }
 
@@ -135,7 +135,7 @@ public sealed partial class SyncHandler
         // Only a [ListToolbarButton] method is a bulk row action — never Save/Delete/any public
         // method of the crud (security: the actionId comes from the wire).
         var method = ActionGuard.ResolveRowAction(crudType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        if (method is null) throw ActionGuard.NoSuchAction($"{rq.ActionId}");
         ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
         var result = method.Invoke(crud, BuildBulkArguments(method, rq));
         return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);

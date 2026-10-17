@@ -178,6 +178,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   an action or its id is advertised by the view (a component, a trigger, a menu rule, `@OnRowSelected`…);
   an unadvertised public method answers 403, as in the .NET and Python backends.
   `mateu.actions.strict=false` restores the old convention.
+- An **unknown `actionId`** is a refused request on every backend — HTTP 403 and one WARN line, the
+  same answer for a CRUD as for any other view (Java used to log an ERROR with a stack trace for a
+  CRUD; .NET and Python answered an "Action not found" toast).
 - An **error boundary** on every backend: `UserFacingException` messages are shown as written;
   anything else shows a generic message with a reference id, logged at ERROR under it.
 - Proxied REST URLs are percent-encoded by position on every server and renderer.

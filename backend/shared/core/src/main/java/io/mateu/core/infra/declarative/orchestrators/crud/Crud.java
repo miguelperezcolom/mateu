@@ -102,8 +102,9 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         return output;
       }
     }
-    throw new UnsupportedOperationException(
-        actionId + " not supported by " + getClass().getSimpleName());
+    // an id no handler claims is wire input naming nothing: refused (403, one WARN line) like an
+    // unknown action anywhere else — not an application error with a stack trace and a reference
+    throw io.mateu.core.application.security.ActionMethods.noSuchAction(getClass(), actionId);
   }
 
   public Object list(HttpRequest httpRequest) {

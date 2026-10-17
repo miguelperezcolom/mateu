@@ -174,12 +174,12 @@ public class ActionSecurityTests
         Parameters = parameters ?? new(),
     };
 
-    /// <summary>Not an action at all → answered like an unknown action (error message), never run.</summary>
+    /// <summary>Not an action at all → refused like an unknown action (403), never run — the
+    /// answer Java and Python give too.</summary>
     private static void AssertNotFound(SyncHandler handler, RunActionRqDto rq)
     {
-        var json = JsonSerializer.Serialize(handler.Handle(rq), Json);
-        Assert.Contains("\"variant\":\"error\"", json);
-        Assert.Contains("Action not found", json);
+        var e = Assert.Throws<MateuForbiddenException>(() => handler.Handle(rq));
+        Assert.Contains("no such action", e.Message);
     }
 
     /// <summary>An action the caller may not run → MateuForbiddenException (HTTP 403 at the edge).</summary>

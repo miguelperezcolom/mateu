@@ -398,6 +398,14 @@ public final class ActionMethods {
     return null;
   }
 
+  /**
+   * The refusal of an action id no handler of the view claims: logged at WARN (the id is wire input
+   * anyone can vary, so never an ERROR with a stack trace) and answered 403.
+   */
+  public static MateuForbiddenException noSuchAction(Class<?> instanceClass, String name) {
+    return refused(instanceClass, name, "no such action");
+  }
+
   static MateuForbiddenException refused(Class<?> instanceClass, String name, String reason) {
     var type = instanceClass != null ? instanceClass.getName() : "?";
     log.warn("Refused action '{}' on {}: {}", abbreviate(name), type, reason);
