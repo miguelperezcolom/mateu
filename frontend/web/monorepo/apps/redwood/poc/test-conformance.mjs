@@ -8,6 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { evaluateExpression } from './rules.mjs'
+import { __setBundleForTests, applyRouteParams, matchBundledTemplate, toSyncPath } from './bundle.mjs'
 
 const corpusFile = (name) => fileURLToPath(new URL('../../../../../../conformance/client/' + name, import.meta.url))
 const isMarker = (v, key) => !!v && typeof v === 'object' && v[key] === true
@@ -27,9 +28,49 @@ for (const c of expressions.cases) {
     failures.push(`${c.name} — ${c.expr}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`)
   }
 }
+
+// ── route params of a statically served load (conformance/client/route-params.json) ──────────
+const routeParams = JSON.parse(readFileSync(corpusFile('route-params.json'), 'utf8'))
+for (const c of routeParams.cases) {
+  const increment = structuredClone(c.increment)
+  const templates = c.template
+    ? [{ regex: new RegExp(c.template.routePattern), paramNames: c.template.paramNames, increment }]
+    : []
+  __setBundleForTests(undefined, templates, c.routes)
+  try {
+    const out = c.template ? matchBundledTemplate(c.syncPath) : applyRouteParams(c.syncPath, increment)
+    if (c.expected.untouched) {
+      assert.equal(out, increment, 'the same reference')
+    } else {
+      assert.deepEqual(out.appState, 'appState' in c.expected ? c.expected.appState : c.increment.appState, 'appState')
+      assert.equal(out.fragments.length, c.expected.fragments.length, 'fragments')
+      c.expected.fragments.forEach((f, i) => {
+        const actual = out.fragments[i]
+        assert.deepEqual(actual.state, f.state, 'state of fragment ' + i)
+        assert.deepEqual(actual.data, f.data, 'data of fragment ' + i)
+        if (f.initialData) assert.deepEqual(actual.component && actual.component.initialData, f.initialData, 'initialData of fragment ' + i)
+      })
+    }
+    passed++
+  } catch (e) {
+    failures.push(`route params: ${c.name}: ${e.message}`)
+  } finally {
+    __setBundleForTests(undefined)
+  }
+}
+for (const s of routeParams.syncPaths) {
+  try {
+    assert.equal(toSyncPath(s.route), s.expected)
+    passed++
+  } catch (e) {
+    failures.push(`sync path of '${s.route}': ${e.message}`)
+  }
+}
+
+const total = expressions.cases.length + routeParams.cases.length + routeParams.syncPaths.length
 if (failures.length) {
   console.error(failures.map((f) => '  ✗ ' + f).join('\n'))
-  console.error(`${failures.length} of ${expressions.cases.length} expression conformance cases FAILED`)
+  console.error(`${failures.length} of ${total} client conformance cases FAILED`)
   process.exit(1)
 }
-console.log(`${passed} expression conformance cases OK`)
+console.log(`${passed} client conformance cases OK (expressions, route params)`)

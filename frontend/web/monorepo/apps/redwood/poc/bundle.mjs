@@ -58,28 +58,42 @@ function matchRouteEntry(path) {
   return best
 }
 
+/** `carried` with `defaults` filling every key it has no value for — a null is no value, as in the
+ *  server's `putIfAbsent` (RouteSegmentUtils.addParameterValues). */
+function bundleWithDefaults(defaults, carried) {
+  const out = { ...defaults, ...(carried || {}) }
+  for (const key of Object.keys(defaults)) if (out[key] === null || out[key] === undefined) out[key] = defaults[key]
+  return out
+}
+
 /** Applies the registry's parameters to a pre-rendered increment, in the SAME order the server and
  *  the web renderers use — otherwise one route would behave differently depending on which renderer
  *  and whether a backend happens to be present:
  *
- *    fixed  >  path  >  what the increment already carries  >  defaults
+ *    fixed  >  path  >  what the increment already carries  >  state seeds  >  defaults
  *
+ *  A route's `state:` seeds sit at the defaults' level (above defaultParams), and its `appState:`
+ *  seeds go UNDER the app state the increment carries — both were ignored here, so a statically
+ *  served Redwood page lost them. Pinned, with the web's, by conformance/client/route-params.json.
  *  Untouched (same reference) when no entry answers the path. */
 export function applyRouteParams(syncPath, increment) {
   const match = matchRouteEntry(syncPath)
   if (!match) return increment
-  const defaults = match.entry.defaultParams || {}
-  const fixed = match.entry.fixedParams || {}
-  const pathParams = match.pathParams
-  if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length) {
+  const { entry, pathParams } = match
+  const defaults = bundleWithDefaults(entry.defaultParams || {}, entry.state)
+  const fixed = entry.fixedParams || {}
+  const appSeed = entry.appState || {}
+  if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length
+    && !Object.keys(appSeed).length) {
     return increment
   }
   return {
     ...increment,
+    ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...(increment.appState || {}) } } : {}),
     fragments: (increment.fragments || []).map((f) => ({
       ...f,
-      state: { ...defaults, ...(f.state || {}), ...pathParams, ...fixed },
-      data: { ...defaults, ...(f.data || {}), ...pathParams, ...fixed },
+      state: { ...bundleWithDefaults(defaults, f.state), ...pathParams, ...fixed },
+      data: { ...bundleWithDefaults(defaults, f.data), ...pathParams, ...fixed },
     })),
   }
 }
@@ -93,7 +107,9 @@ export const getRouteEntry = (syncPath) => {
 /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors transport.callMateu and the web:
  *  leading slash stripped, blank/root → `_no_route`. */
 export function toSyncPath(route) {
-  const r = route && route.startsWith('/') ? route.substring(1) : (route || '')
+  // the query string is a listing's filters, page and sort — never part of the screen
+  const path = route && route.includes('?') ? route.substring(0, route.indexOf('?')) : route
+  const r = path && path.startsWith('/') ? path.substring(1) : (path || '')
   return r === '' ? '_no_route' : r
 }
 
@@ -170,6 +186,7 @@ export function matchBundledTemplate(syncPath) {
       // params LAST so the real value wins over the render-time placeholder
       fragments: (t.increment.fragments || []).map((f) => ({
         ...f,
+        component: bundleWithInitialData(f.component, params),
         state: { ...(f.state || {}), ...params },
         data: { ...(f.data || {}), ...params },
       })),
@@ -178,6 +195,14 @@ export function matchBundledTemplate(syncPath) {
     return applyRouteParams(syncPath, withPathParams)
   }
   return undefined
+}
+
+/** A server-side component carries the path params it was rendered with in `initialData` too — at
+ *  export time, the PLACEHOLDER. Overwrite them with the real ones, or a page that seeds its state
+ *  from initialData would ask the API for `__mateu_param__` (as the web's bundleStore does). */
+function bundleWithInitialData(component, params) {
+  if (!component || !component.initialData || typeof component.initialData !== 'object') return component
+  return { ...component, initialData: { ...component.initialData, ...params } }
 }
 
 /** The bundled increment for a route (exact match then :param template), re-targeted so its
