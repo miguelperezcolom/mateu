@@ -31,6 +31,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private final ComponentFragmentMapper componentFragmentMapper;
   private final ReflectionObjectToComponentMapper reflectionFragmentMapper;
+  private final io.mateu.uidl.interfaces.Translator translator;
 
   @Override
   public boolean supports(Object instance) {
@@ -61,6 +62,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
           object -> map(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
     instance = textAsMessage(instance, httpRequest);
+    translateLongTaskOpening(instance, httpRequest);
     // A domain object with a registered ComponentAdapter is bridged into the supplier interfaces so
     // the adapter's components + state + data flow through the rest of the pipeline unchanged.
     var adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(instance.getClass());
@@ -170,6 +172,29 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
    * <p>} holding the text: the form vanished behind its own confirmation. Only for an action — a
    * route is not loaded by returning text, and the rest of that path is left as it was.
    */
+  /**
+   * A {@code LongTask}'s progress dialog opens with {@link
+   * io.mateu.uidl.data.LongTask#STARTING_TEXT} — English, built in uidl where there is no request —
+   * translated here like the rest of the framework's texts (it was a hard-coded Spanish
+   * "Iniciando...").
+   */
+  private void translateLongTaskOpening(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof io.mateu.uidl.data.Dialog dialog
+        && dialog.initialData() instanceof java.util.Map<?, ?> data
+        && io.mateu.uidl.data.LongTask.STARTING_TEXT.equals(
+            data.get(io.mateu.uidl.data.LongTask.PROGRESS_TEXT_KEY))) {
+      try {
+        @SuppressWarnings("unchecked")
+        var mutable = (java.util.Map<String, Object>) data;
+        mutable.put(
+            io.mateu.uidl.data.LongTask.PROGRESS_TEXT_KEY,
+            translator.translate(io.mateu.uidl.data.LongTask.STARTING_TEXT, httpRequest));
+      } catch (UnsupportedOperationException ignored) {
+        // an immutable initialData is not a LongTask's: leave it as it is
+      }
+    }
+  }
+
   private static Object textAsMessage(Object instance, HttpRequest httpRequest) {
     if (!isAction(httpRequest)) {
       return instance;
