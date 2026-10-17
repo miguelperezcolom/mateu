@@ -432,6 +432,10 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   // @PlainText / @Badge present a value: never an editable input
   assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'plainText' }), { x: 'R-1' }).readonly, true)
   assert.equal(layoutFieldOf(md({ dataType: 'bool', stereotype: 'badge' }), { x: true }).readonly, true)
+  // a read-only password shows a fixed mask (an editable one keeps its value to edit)
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: 'hunter2' }).value, '••••••••')
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password', readOnly: true }), { x: '' }).value, null)
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'password' }), { x: 'hunter2' }).value, 'hunter2')
   // the wire sends sliderMax 100 on every field: a rating is still five stars
   assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
   // a LocalTime is drawn (as text), and an Amount shows its value

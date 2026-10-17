@@ -195,6 +195,14 @@ export function rowFieldsOf(ctx, values, errors) {
 
 /** Lo que se pinta en lugar de un valor que todavía no hay (sólo lectura). */
 export const EMPTY_VALUE = '—'
+
+/** A password is never shown, not even read-only: a fixed mask (one length, so it does not tell
+ *  how long the secret is); empty stays empty. Same rule as libs/mateu passwordMask.ts. */
+export const PASSWORD_MASK = '••••••••'
+export function shownReadOnlyValueOf(md, value) {
+  if (!md || md.stereotype !== 'password') return value
+  return value == null || value === '' ? '' : PASSWORD_MASK
+}
 export const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
   isSelect: false, isLookup: false, lookupActionId: '', options: [] }
 
@@ -227,6 +235,7 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
   else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
   else if (value != null && typeof value === 'object') value = plainValueOf(value)
+  if (widget.readonly && value != null) value = shownReadOnlyValueOf(md, value)
   return {
     ...widget,
     value,

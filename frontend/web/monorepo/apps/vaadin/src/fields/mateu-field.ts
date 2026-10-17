@@ -13,6 +13,7 @@ import { interpolate, templateResolver } from '@components/interpolation'
 import { colorInputValue, isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
+import { isPasswordField, shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
 import { resolveRestSource, viaProxy } from '@mateu/ui/infra/http/restSourceCatalogue'
 import '@vaadin/horizontal-layout'
@@ -762,6 +763,7 @@ export class MateuField extends LitElement {
             if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
             const lookupLabel = fromData(this.field.fieldId + '-label')
             if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
+            v = shownReadOnlyValue(this.field, v)
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const valueBody = isBool
                 ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
@@ -790,7 +792,7 @@ export class MateuField extends LitElement {
 
     private renderPlainTextField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
-            let v = evalIfNecessary(value, this.state, this.data)
+            const v = shownReadOnlyValue(this.field, evalIfNecessary(value, this.state, this.data))
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const body = isBool
                 ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
@@ -821,6 +823,7 @@ export class MateuField extends LitElement {
         // a select/radio/choice: its option's label, not the code
         const option = (this.field as any).options?.find?.((o: any) => o && o.value == v)
         if (option && option.label != null && (lookupLabel === undefined || lookupLabel === '')) v = option.label
+        v = shownReadOnlyValue(this.field, v)
         const display = v !== null && v !== undefined && v !== '' ? String(v) : '—'
         return html`<vaadin-custom-field
                 id="${this.field.fieldId}"
@@ -867,6 +870,19 @@ export class MateuField extends LitElement {
                         data-colspan="${this.field.colspan}"
                 ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" role="img" aria-label="${chromeText(valueToDisplay ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-m, 1.5rem);"></vaadin-icon>
                 </vaadin-custom-field>`
+            }
+            if (isPasswordField(this.field)) {
+                // a password is never shown, not even read-only: a fixed mask and nothing to copy
+                return html`
+                <vaadin-text-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        .value="${shownReadOnlyValue(this.field, valueToDisplay) as string}"
+                        readonly
+                        style="${this.field.style}"
+                        .helperText="${this.helperText()}"
+                        data-colspan="${this.field.colspan}"
+                ></vaadin-text-field>`
             }
             const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
             // The copy icon is always rendered and only hidden, never added or removed: a Lit
