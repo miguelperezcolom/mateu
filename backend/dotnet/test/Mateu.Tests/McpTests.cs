@@ -346,4 +346,57 @@ public class McpTests
         svc.DescribeScreen("");
         Assert.Equal("", seen.Route);
     }
+
+    // ---- projection details an agent depends on ----
+
+    [Fact]
+    public void A_button_the_component_does_not_declare_is_still_an_action_and_links_keep_their_href()
+    {
+        var s = McpProjection.Project(JsonNode.Parse("""
+        {"fragments":[{"component":{"type":"ServerSide","route":"/p","serverSideType":"P",
+          "actions":[{"id":"docs","href":"https://docs.example.com"},{"id":"docs"},{"label":"no id"}],
+          "children":[
+            {"type":"ClientSide","metadata":{"type":"Button","actionId":"export"}},
+            {"type":"ClientSide","metadata":{"type":"Button","actionId":"export","label":"Twice"}},
+            {"type":"ClientSide","metadata":{"type":"FormField","fieldId":"size","options":[{"value":3},{"value":"m","label":"Medium"}]}},
+            {"type":"ClientSide","metadata":{"type":"FormField","fieldId":"size","label":"dup"}},
+            {"type":"ClientSide","metadata":{"type":"Page","pageTitle":"Settings","subtitle":"Yours","pageType":"form"}}
+          ]},"state":{"size":"m"}}]}
+        """));
+        var byId = s["actions"]!.AsArray().ToDictionary(a => (string)a!["id"]!, a => a!.AsObject());
+        Assert.Equal(2, byId.Count);
+        Assert.Equal("https://docs.example.com", (string?)byId["docs"]["href"]);
+        Assert.Equal("export", (string?)byId["export"]["label"]); // the first button wins, its id is its label
+        var field = Assert.Single(s["fields"]!.AsArray());
+        Assert.Equal("size", (string?)field!["label"]);
+        Assert.Equal("m", (string?)field["value"]);
+        Assert.Equal("3", (string?)field["options"]![0]!["label"]);
+        Assert.Equal("Settings", (string?)s["title"]);
+        Assert.Equal("Yours", (string?)s["subtitle"]);
+        Assert.Equal("form", (string?)s["pageType"]);
+        Assert.Equal("p", (string?)s["route"]);
+    }
+
+    [Fact]
+    public void A_listing_titles_the_screen_and_its_columns_may_be_flat()
+    {
+        var s = McpProjection.Project(JsonNode.Parse("""
+        {"fragments":[{"component":{"type":"ServerSide","initialData":{"q":"x"},"children":[{"type":"ClientSide","metadata":{"type":"Crudl",
+          "title":"Orders","subtitle":"All of them",
+          "columns":[{"fieldId":"ref","label":"Reference"},{"metadata":{}},{"id":"total"}],
+          "filters":[{"fieldId":"status"},"junk"]}}]}}],
+          "commands":[{"type":"pushStateToHistory","data":"/orders"},{"data":"untyped"}]}
+        """));
+        Assert.Equal("Orders", (string?)s["title"]);
+        Assert.Equal("All of them", (string?)s["subtitle"]);
+        Assert.Equal("x", (string?)s["state"]!["q"]);
+        var columns = s["listing"]!["columns"]!.AsArray();
+        Assert.Equal(["ref", "total"], columns.Select(c => (string)c!["id"]!).ToArray());
+        Assert.Equal("Reference", (string?)columns[0]!["label"]);
+        var filter = Assert.Single(s["listing"]!["filters"]!.AsArray());
+        Assert.Equal("status", (string?)filter!["label"]);
+        Assert.Equal("string", (string?)filter["dataType"]);
+        Assert.Equal("pushStateToHistory", (string?)Assert.Single(s["commands"]!.AsArray())!["type"]);
+        Assert.Empty(McpProjection.Project(JsonValue.Create(1))["fields"]!.AsArray());
+    }
 }
