@@ -1,16 +1,16 @@
 import { chromeText } from './i18n.mjs'
-// Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
-// teselas), así que el átomo `isMap` es un contenedor que esto llena, una vez por documento como el
-// texto enriquecido o el MatrixGrid:
-//   - Leaflet (1.9.4) y su CSS se cargan del CDN de cdnjs al pintarse el primer mapa — nada se
-//     vendoriza; con requirejs presente (VB) se pide por require, porque un <script> UMD con
-//     requirejs cargado choca con su define anónimo;
-//   - teselas de OpenStreetMap, como el <mateu-map> del web — o las del proveedor que el Map
-//     declara en el wire (tileUrl, plantilla de Leaflet, + attribution): tileLayerOf;
-//   - un marcador = un círculo de su color con la etiqueta al lado (y la descripción al pasar);
-//     pulsarlo lanza markerActionId con { _markerId };
-//   - con marcadores y sin posición, la vista los encuadra (mapViewPlanOf, la misma regla que
-//     planMapView en libs/mateu).
+// Map on Leaflet: JET has no street map (oj-thematic-map paints GeoJSON geography, not
+// tiles), so the `isMap` atom is a container this fills, once per document like the
+// rich text or the MatrixGrid:
+//   - Leaflet (1.9.4) and its CSS are loaded from the cdnjs CDN when the first map is painted — nothing is
+//     vendored; with requirejs present (VB) it is requested through require, because a UMD <script> with
+//     requirejs loaded clashes with its anonymous define;
+//   - OpenStreetMap tiles, like the web's <mateu-map> — or those of the provider the Map
+//     declares on the wire (tileUrl, Leaflet template, + attribution): tileLayerOf;
+//   - a marker = a circle of its colour with the label beside it (and the description on hover);
+//     clicking it launches markerActionId with { _markerId };
+//   - with markers and no position, the view frames them (mapViewPlanOf, the same rule as
+//     planMapView in libs/mateu).
 
 export const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
 export const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
@@ -21,8 +21,8 @@ export const SINGLE_MARKER_ZOOM = 15
 
 export const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
-/** La capa de teselas de un mapa: la del wire (tileUrl + attribution) o, sin tileUrl, OSM. La
- *  plantilla del wire ya es la de Leaflet ({s}, {z}, {x}, {y}), así que pasa tal cual. */
+/** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
+ *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is. */
 export function tileLayerOf(spec) {
   const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
   if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
@@ -31,10 +31,10 @@ export function tileLayerOf(spec) {
 }
 
 let mapSink = null
-/** Quién ejecuta la acción de un marcador (la shell reutiliza el sumidero de los Element). */
+/** Who runs a marker's action (the shell reuses the Elements' sink). */
 export function setMapActionSink(fn) { mapSink = typeof fn === 'function' ? fn : null }
 
-/** "lat, lon" → { lat, lon }, o null si no son dos números. */
+/** "lat, lon" → { lat, lon }, or null if they are not two numbers. */
 export function parseMapPosition(position) {
   if (!position) return null
   const parts = String(position).split(',').map((p) => p.trim())
@@ -50,8 +50,8 @@ export function parseMapZoom(zoom) {
   return Number.isFinite(z) ? z : DEFAULT_ZOOM
 }
 
-/** Qué enseña el mapa al abrirse: la posición explícita manda; si no, los marcadores (uno se
- *  centra, varios se encuadran); si no, el mundo. Misma regla que planMapView (libs/mateu). */
+/** What the map shows on opening: the explicit position wins; otherwise, the markers (one is
+ *  centred, several are framed); otherwise, the world. Same rule as planMapView (libs/mateu). */
 export function mapViewPlanOf(spec) {
   const center = parseMapPosition(spec.position)
   if (center) return { kind: 'center', center, zoom: parseMapZoom(spec.zoom) }
@@ -71,7 +71,7 @@ export function mapViewPlanOf(spec) {
   return { kind: 'center', center: { lat: 0, lon: 0 }, zoom: parseMapZoom(spec.zoom) }
 }
 
-/** Los parámetros de la acción de un marcador. */
+/** The parameters of a marker's action. */
 export const mapMarkerParams = (markerId) => ({ _markerId: markerId })
 
 let leafletPromise = null
@@ -148,7 +148,7 @@ function drawMap(L, el, spec) {
     map.setView([plan.center.lat, plan.center.lon], plan.zoom)
   }
   el.__mateuMap = map
-  // el contenedor puede haber cambiado de tamaño al asentarse la página (VB pinta por pasos)
+  // the container may have changed size as the page settled (VB paints in steps)
   setTimeout(() => map.invalidateSize(), 300)
 }
 
@@ -162,7 +162,7 @@ export function installMaps(doc = typeof document !== 'undefined' ? document : n
     let spec
     try { spec = JSON.parse(raw) } catch (e) { return }
     loadLeaflet(doc).then((L) => {
-      // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
+      // the specification may have changed (or the container disappeared) while loading
       if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
     }).catch(() => {
       el.textContent = chromeText('mapUnavailable')

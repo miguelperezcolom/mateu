@@ -1,32 +1,32 @@
-// Montaje de COMPONENTES WEB de terceros (átomo isElement): el wire trae la etiqueta, sus
-// atributos y la URL del módulo que la define. Vive fuera del reducer porque toca el DOM.
+// Mounting of third-party WEB COMPONENTS (isElement atom): the wire carries the tag, its
+// attributes and the URL of the module that defines it. It lives outside the reducer because it touches the DOM.
 //
-// Por qué no se puede pintar en la plantilla: VB no sabe escribir `<{name}>`. Y por qué no se
-// recrea en cada render: un componente web guarda estado que el servidor no conoce —el zoom y la
-// selección de un grafo, un layout ya calculado—, así que se crea UNA vez por hueco y en los
-// renders siguientes solo se le reescriben los atributos. Mismo criterio que el renderer web
-// compartido (libs/mateu elementRenderer).
+// Why it cannot be painted in the template: VB cannot write `<{name}>`. And why it is not
+// recreated on every render: a web component keeps state the server does not know —the zoom and
+// selection of a graph, an already computed layout—, so it is created ONCE per slot and on
+// subsequent renders only its attributes are rewritten. Same criterion as the shared web
+// renderer (libs/mateu elementRenderer).
 
 const loaded = {}
 
-// ── eventos del componente → acción en el servidor ─────────────────────────────────────────────
-// `Element.on` = { nombreDeEvento: actionId }. Es la vía de escape oficial (un grafo, un editor,
-// un plano de planta de terceros), así que su ida y vuelta tiene que funcionar entera: el evento
-// viaja como parámetro `event` de la acción, igual que en el renderer web compartido —el
-// `detail` de un CustomEvent, o las propiedades primitivas de cualquier otro evento—. La app
-// registra un sumidero (setElementEventSink) que sabe en qué superficie se ejecuta la acción;
-// sin sumidero (Node, tests) los eventos se ignoran.
+// ── component events → server action ─────────────────────────────────────────────
+// `Element.on` = { eventName: actionId }. It is the official escape hatch (a graph, an editor,
+// a third-party floor plan), so its round trip has to work fully: the event
+// travels as the action's `event` parameter, just as in the shared web renderer —the
+// `detail` of a CustomEvent, or the primitive properties of any other event—. The app
+// registers a sink (setElementEventSink) that knows on which surface the action runs;
+// without a sink (Node, tests) events are ignored.
 
 let sink = null
 let moduleBase = ''
 
-/** Base del backend Mateu (la constante mateuBaseUrl): un `import` RELATIVO lo sirve el backend,
- *  no la app VB — en VB alojado en Oracle o en vb-serve son orígenes distintos. '' = mismo origen. */
+/** Base of the Mateu backend (the mateuBaseUrl constant): a RELATIVE `import` is served by the backend,
+ *  not the VB app — in VB hosted on Oracle or in vb-serve they are different origins. '' = same origin. */
 export function setElementModuleBase(base) {
   moduleBase = String(base || '').replace(/\/$/, '')
 }
 
-/** La URL de la que se carga el módulo de un Element. */
+/** The URL an Element's module is loaded from. */
 export function elementModuleUrl(importUrl, base = moduleBase) {
   if (!importUrl) return ''
   if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
@@ -34,12 +34,12 @@ export function elementModuleUrl(importUrl, base = moduleBase) {
   return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
 }
 
-/** La app VB registra aquí quién ejecuta la acción de un evento: (actionId, parameters, atom). */
+/** The VB app registers here who runs an event's action: (actionId, parameters, atom). */
 export function setElementEventSink(fn) {
   sink = typeof fn === 'function' ? fn : null
 }
 
-/** El evento tal como viaja al servidor (mismo criterio que libs/mateu elementRenderer). */
+/** The event as it travels to the server (same criterion as libs/mateu elementRenderer). */
 export function serializeElementEvent(e) {
   if (e == null) return null
   if (typeof CustomEvent !== 'undefined' && e instanceof CustomEvent) return e.detail
@@ -52,8 +52,8 @@ export function serializeElementEvent(e) {
   return out
 }
 
-/** Engancha UNA vez cada evento declarado; la acción se lee al dispararse (la del último render),
- *  así un re-render que cambia `on` no duplica listeners ni deja el actionId viejo. */
+/** Hooks each declared event ONCE; the action is read when it fires (that of the last render),
+ *  so a re-render that changes `on` neither duplicates listeners nor keeps the old actionId. */
 export function wireElementEvents(element, atom) {
   element.__mateuAtom = atom
   const wired = element.__mateuWired || (element.__mateuWired = {})
@@ -69,11 +69,11 @@ export function wireElementEvents(element, atom) {
   }
 }
 
-// ── HTML con DATOS: saneado ────────────────────────────────────────────────────────────────────
-// El contenido escrito en la definición se confía tal cual; en cuanto `${…}` ha metido datos en
-// él se sanea (sin scripts, sin manejadores on…, sin URLs javascript:) — XSS almacenado. El
-// renderer web lo hace con DOMPurify; aquí no hay dependencias, así que un saneado por DOM con
-// las mismas reglas.
+// ── HTML with DATA: sanitised ────────────────────────────────────────────────────────────────────
+// Content written in the definition is trusted as is; as soon as `${…}` has put data into
+// it, it is sanitised (no scripts, no on… handlers, no javascript: URLs) — stored XSS. The
+// web renderer does it with DOMPurify; here there are no dependencies, so a DOM-based sanitiser with
+// the same rules.
 const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
 const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
 
@@ -99,13 +99,13 @@ export function sanitizeElementHtml(html, doc = typeof document !== 'undefined' 
 }
 
 /**
- * Carga el módulo que define la etiqueta, una sola vez. El elemento se puede crear antes: los
- * componentes web se "actualizan" solos en cuanto su definición llega.
+ * Loads the module that defines the tag, only once. The element can be created before: web
+ * components "upgrade" themselves as soon as their definition arrives.
  *
- * Se inyecta un `<script type="module">` en vez de usar `import(url)` porque el build de VB
- * transpila el import dinámico a un `require()` de AMD, y requirejs se pone a resolver la URL
- * como si fuera un id de módulo suyo: la petición no llega a salir y el hueco se queda vacío
- * sin un solo error. Un script de módulo no lo puede reescribir nadie.
+ * A `<script type="module">` is injected instead of using `import(url)` because the VB build
+ * transpiles dynamic import into an AMD `require()`, and requirejs starts resolving the URL
+ * as if it were one of its module ids: the request never goes out and the slot stays empty
+ * without a single error. Nobody can rewrite a module script.
  */
 function ensureDefined(name, importUrl) {
   if (!importUrl || !name || name.indexOf('-') < 0) return
@@ -116,16 +116,16 @@ function ensureDefined(name, importUrl) {
   const script = document.createElement('script')
   script.type = 'module'
   script.src = importUrl
-  // que un componente de terceros no cargue no puede tumbar la pantalla: el hueco se queda
-  // vacío y el resto del contenido sigue ahí
+  // a third-party component failing to load must not bring the screen down: the slot stays
+  // empty and the rest of the content is still there
   script.addEventListener('error', () => { loaded[importUrl] = false })
   document.head.appendChild(script)
 }
 
 function hydrate(element, atom) {
   for (const key of Object.keys(atom.attributes || {})) {
-    // setAttribute sobre el que YA está, nunca sobre uno nuevo: el componente lo convierte en
-    // cambio de propiedad y se repinta conservando lo suyo
+    // setAttribute on the one ALREADY there, never on a new one: the component turns it into a
+    // property change and repaints keeping its own state
     element.setAttribute(key, atom.attributes[key])
   }
   if (atom.style) element.setAttribute('style', atom.style)
@@ -137,8 +137,8 @@ function hydrate(element, atom) {
   wireElementEvents(element, atom)
 }
 
-/** Hidrata los huecos `.mateu-element` que haya en el documento. Devuelve cuántos quedaron
- *  montados, para que quien reintenta sepa si ya está. */
+/** Hydrates the `.mateu-element` slots in the document. Returns how many ended up
+ *  mounted, so whoever retries knows whether it is done. */
 export function mountElements(atoms) {
   const byId = {}
   for (const atom of atoms || []) byId[atom.elementId] = atom
@@ -161,9 +161,9 @@ export function mountElements(atoms) {
   return mounted
 }
 
-/** Igual, pero esperando a que VB pinte: sus bindings se actualizan de forma ASÍNCRONA, así que
- *  al terminar la chain el hueco todavía no está en el DOM (la misma trampa que costó el foco
- *  del contenido en la accesibilidad). */
+/** The same, but waiting for VB to paint: its bindings update ASYNCHRONOUSLY, so
+ *  when the chain finishes the slot is not in the DOM yet (the same trap that cost the content
+ *  focus in accessibility). */
 export function mountElementsSoon(atoms, frames = 12) {
   const pending = (atoms || []).filter((a) => a && a.isElement)
   if (!pending.length || typeof requestAnimationFrame === 'undefined') return
@@ -176,7 +176,7 @@ export function mountElementsSoon(atoms, frames = 12) {
   requestAnimationFrame(tick)
 }
 
-/** Los átomos isElement de una proyección de bloques (los que hay que montar). */
+/** The isElement atoms of a block projection (the ones to mount). */
 export function elementAtomsOf(blocks) {
   const out = []
   for (const block of blocks || []) {
@@ -185,9 +185,9 @@ export function elementAtomsOf(blocks) {
   return out
 }
 
-/** Los átomos isElement del CONTENIDO de un foldout (overview + cada panel): un Element en un
- *  panel (p.ej. la tabla «In other systems» de una reserva, HTML del servidor) se quedaba sin
- *  montar — el panel salía en blanco — porque sólo se montaban los del contenido del host. */
+/** The isElement atoms of a foldout's CONTENT (overview + each panel): an Element in a
+ *  panel (e.g. a booking's «In other systems» table, server HTML) was left
+ *  unmounted — the panel came out blank — because only those of the host's content were mounted. */
 export function foldoutElementAtomsOf(content) {
   if (!content) return []
   const out = elementAtomsOf((content.overview || {}).blocks)

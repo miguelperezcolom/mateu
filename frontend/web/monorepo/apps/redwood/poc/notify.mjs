@@ -1,20 +1,20 @@
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
 import { markReadVars, runShellSource, shellSourcesOf, sourcedNotificationsOf } from './globalSearch.mjs'
-// BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
+// NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
 //
-// Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
-// abre un oj-popup con un oj-list-view; activar una entrada la marca leída y navega a su ruta, y
-// «Mark all read» las marca todas. Habla con las acciones app-level de siempre
-// (_notifications-list / _notifications-read, route '' + serverSideType del App).
+// Inbox (the App's NotificationsSupplier): the header bell with the unread count
+// opens an oj-popup with an oj-list-view; activating an entry marks it read and navigates to its route, and
+// «Mark all read» marks them all. It talks to the usual app-level actions
+// (_notifications-list / _notifications-read, route '' + the App's serverSideType).
 //
-// Deshacer (Message.undoable → MessageDto.undo*): oj-sp-messages-toast no admite acciones, así que
-// esos mensajes salen por el oj-messages de JET (display="notification") con un oj-message cuyo
-// slot «detail» — el que JET reserva para enlaces y botones — lleva el oj-button «Undo». Se monta
-// desde applyDomEffects (fuera de Knockout: data-oj-binding-provider="none") y se quita de la
-// lista de toasts normales, así que ninguna chain lo pinta dos veces.
+// Undo (Message.undoable → MessageDto.undo*): oj-sp-messages-toast does not support actions, so
+// those messages go out through JET's oj-messages (display="notification") with an oj-message whose
+// «detail» slot — the one JET reserves for links and buttons — carries the «Undo» oj-button. It is mounted
+// from applyDomEffects (outside Knockout: data-oj-binding-provider="none") and removed from the
+// list of normal toasts, so no chain paints it twice.
 
-/** La lista _notifications de la respuesta (Data del servidor), o null. */
+/** The response's _notifications list (the server's Data), or null. */
 export function notificationListOf(increment) {
   for (const fr of (increment && increment.fragments) || []) {
     if (fr && fr.data && Array.isArray(fr.data._notifications)) return fr.data._notifications
@@ -25,7 +25,7 @@ export function notificationListOf(increment) {
 let notificationsProviderFactory = null
 export function setNotificationsProviderFactory(f) { notificationsProviderFactory = f }
 
-/** El modelo de la campana: no leídas (y su insignia), y las entradas listas para la lista. */
+/** The bell's model: unread ones (and their badge), and the entries ready for the list. */
 export function notificationsOf(list) {
   const items = (list || []).map((n, i) => ({
     _rowNumber: i,
@@ -54,7 +54,7 @@ export function notificationsOf(list) {
 // no markRead call, and the list a source answers is not re-asked for every click)
 let sourcedInbox = []
 
-/** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista).
+/** Requests the list (or marks `ids` read — a list, or 'all' — and requests the list).
  *  A data-authored shell's `notifications.source` answers instead of the app-level actions
  *  (globalSearch.mjs shellSources): listed from the source, marked read LOCALLY at once and then
  *  through `markRead` when the shell declares it (re-listing after it; a failed call keeps the
@@ -96,11 +96,11 @@ export async function fetchNotifications(base, serverSideType, appState, ids, op
   return notificationsOf(notificationListOf(increment) || [])
 }
 
-// ── toasts con «Undo» ─────────────────────────────────────────────────────────────────────────
+// ── toasts with «Undo» ─────────────────────────────────────────────────────────────────────────
 let undoSink = null
 export function setUndoSink(fn) { undoSink = typeof fn === 'function' ? fn : null }
 
-/** Separa de los toasts los que se pueden deshacer (in situ: las chains leen la misma lista). */
+/** Separates from the toasts those that can be undone (in place: the chains read the same list). */
 export function takeUndoToasts(effects) {
   if (!effects || !Array.isArray(effects.toasts)) return []
   const undo = effects.toasts.filter((t) => t && t.undoActionId)
@@ -111,10 +111,10 @@ export function takeUndoToasts(effects) {
   return undo
 }
 
-/** Un Message de error o aviso NO es un toast en Redwood: oj-sp-messages-toast sólo admite
- *  type="acknowledgement" (confirmaciones). Va al oj-sp-messages-banner de la shell como
- *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
- *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
+/** An error or warning Message is NOT a toast in Redwood: oj-sp-messages-toast only supports
+ *  type="acknowledgement" (confirmations). It goes to the shell's oj-sp-messages-banner as a
+ *  VB notification (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
+ *  persistent until closed. null for the rest, which remain toasts. */
 export function bannerNotificationOf(toast) {
   // a PageBanner an action returned (the reducer turns it into a toast marked `banner`): always
   // the shell's message band, with its title AND description, until the user closes it
@@ -125,7 +125,7 @@ export function bannerNotificationOf(toast) {
   return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
 }
 
-/** El objeto message de oj-message para un toast con deshacer. */
+/** The oj-message message object for a toast with undo. */
 export function undoMessageOf(toast) {
   return {
     severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
@@ -164,7 +164,7 @@ export function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? d
     })
     detail.appendChild(button)
     msg.appendChild(detail)
-    // cerrado (por el usuario o por tiempo), fuera del DOM
+    // closed (by the user or by time), out of the DOM
     msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
     host.appendChild(msg)
   }

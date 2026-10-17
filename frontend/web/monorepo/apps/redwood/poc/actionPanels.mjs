@@ -1,8 +1,8 @@
-// PANEL DE ACCIONES por categorías («I want to…», ActionPanel): el disparador es un oj-button y la
-// capa un oj-dialog de JET; el estado de la capa (abierta, «mostrar más» de una columna, ocultar
-// las acciones sin datos) vive en el DOM — clases sobre el diálogo y sus columnas —, así que nada
-// pregunta al servidor ni re-proyecta. Elegir una acción cierra el diálogo y la acción sale por el
-// canal normal de los botones (blockAction). Un listener por documento, instalado una vez.
+// Categorised ACTION PANEL («I want to…», ActionPanel): the trigger is an oj-button and the
+// layer a JET oj-dialog; the layer's state (open, a column's «show more», hiding
+// actions without data) lives in the DOM — classes on the dialog and its columns —, so nothing
+// asks the server or re-projects. Choosing an action closes the dialog and the action goes out through the
+// buttons' normal channel (blockAction). One listener per document, installed once.
 
 /** «ctrl+shift+i» → { ctrl, alt, shift, meta, key } */
 export function parseShortcut(shortcut) {
@@ -20,8 +20,8 @@ export function parseShortcut(shortcut) {
   return key ? { ...mods, key } : null
 }
 
-/** ¿La tecla pulsada es el atajo? Por e.key o por e.code (KeyI / Digit1 / Numpad1), como los
- *  atajos del renderer web: independiente de la distribución del teclado. */
+/** Is the pressed key the shortcut? By e.key or by e.code (KeyI / Digit1 / Numpad1), like the
+ *  web renderer's shortcuts: independent of the keyboard layout. */
 export function shortcutMatches(shortcut, e) {
   const s = typeof shortcut === 'string' ? parseShortcut(shortcut) : shortcut
   if (!s || !e) return false
@@ -34,7 +34,7 @@ export function shortcutMatches(shortcut, e) {
 
 const visible = (el) => !!(el && (el.offsetParent || (el.getClientRects && el.getClientRects().length)))
 
-/** Instala (una vez) el comportamiento de los paneles de acciones del documento. */
+/** Installs (once) the behaviour of the document's action panels. */
 export function installActionPanels(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuActionPanels) return
   doc.__mateuActionPanels = true
@@ -55,13 +55,13 @@ export function installActionPanels(doc = typeof document !== 'undefined' ? docu
       return
     }
   }, true)
-  // elegir una acción cierra la capa; el oj-button sigue y su blockAction lanza la acción
+  // choosing an action closes the layer; the oj-button carries on and its blockAction launches the action
   doc.addEventListener('ojAction', (e) => {
     const item = e.target && e.target.closest && e.target.closest('.mateu-ap-item')
     const dialog = item && item.closest('oj-dialog')
     if (dialog && typeof dialog.close === 'function') dialog.close()
   }, true)
-  // ocultar las vacías: el oj-switch NO burbujea valueChanged, pero la fase de captura sí lo ve
+  // hiding the empty ones: the oj-switch does NOT bubble valueChanged, but the capture phase does see it
   doc.addEventListener('valueChanged', (e) => {
     const sw = e.target
     if (!sw || !sw.hasAttribute || !sw.hasAttribute('data-ap-hide')) return

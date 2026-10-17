@@ -343,7 +343,7 @@ export const CHROME_TEXTS = {
     chatRestore: 'Ancho normal',
     selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
     searchResults: 'Resultados',
-    // ── abrir en el móvil (@App(mobileQr), qr.mjs) ──
+    // ── open on mobile (@App(mobileQr), qr.mjs) ──
     mobileQrAction: 'Abrir en el móvil',
     mobileQrTitle: 'Ábrelo en tu móvil',
     mobileQrHint: 'Escanéalo con la cámara del móvil o con la app Mateu. El código solo dice dónde está esta aplicación: inicias sesión en el móvil.',
@@ -354,7 +354,7 @@ export const CHROME_TEXTS = {
     mobileQrLink: 'Enlace',
     mobileQrCopy: 'Copiar enlace',
     mobileQrCopied: 'Enlace copiado',
-    // ── componentes display (core/display.mjs) ──
+    // ── display components (core/display.mjs) ──
     recommended: 'Recomendado',
     choose: 'Elegir',
     learnMore: 'Más información',

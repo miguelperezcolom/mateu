@@ -1,21 +1,21 @@
-// MatrixGrid sobre oj-data-grid: el comportamiento que JET deja a la aplicación, instalado una
-// vez por documento (como el rango del tape chart o los paneles de acciones):
-//   - plegar/desplegar una sección: el grid pide (ojExpandRequest/ojCollapseRequest) y aquí se
-//     cambia el KeySet del FlattenedTreeDataProviderView; el estado se guarda en el almacén de
-//     paneles para que sobreviva a una re-proyección;
-//   - editar: qué celdas se editan lo dice cell.editable (matrixAtomOf); al terminar
-//     (ojBeforeEditEnd) el valor nuevo, si cambió, sale por editActionId;
-//   - una celda que enlaza: clic → cellActionId. Ambas con { _rowId, _columnId, _value }.
+// MatrixGrid on oj-data-grid: the behaviour JET leaves to the application, installed once
+// per document (like the tape chart's range or the action panels):
+//   - collapsing/expanding a section: the grid requests it (ojExpandRequest/ojCollapseRequest) and here the
+//     KeySet of the FlattenedTreeDataProviderView is changed; the state is saved in the
+//     panels store so it survives a re-projection;
+//   - editing: which cells are edited is said by cell.editable (matrixAtomOf); when it ends
+//     (ojBeforeEditEnd) the new value, if it changed, goes out through editActionId;
+//   - a linking cell: click → cellActionId. Both with { _rowId, _columnId, _value }.
 import { panelExpanded, setPanelExpanded, matrixSectionKey } from './reduceContexts.mjs'
 
 let matrixSink = null
-/** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+/** Who runs the action (the shell reuses the Elements' sink). */
 export function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
 
-/** Los parámetros de la acción de una celda. */
+/** The parameters of a cell's action. */
 export const matrixCellParams = (rowId, columnId, value) => ({ _rowId: rowId, _columnId: columnId, _value: value })
 
-/** ¿Hay que lanzar la edición? Sólo si cambió (un Enter sin tocar nada no es una edición). */
+/** Should the edit be launched? Only if it changed (an Enter without touching anything is not an edit). */
 export const matrixEditChanged = (before, after) => String(before ?? '') !== String(after ?? '')
 
 const gridOf = (el) => (el && el.closest ? el.closest('oj-data-grid.mateu-matrix') : null)

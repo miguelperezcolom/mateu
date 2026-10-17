@@ -1,35 +1,35 @@
-// Errores del cliente → log del servidor: lo que este renderer enseña o sufre (un fallo de
-// transporte clasificado, un error de JS sin capturar, una promesa rechazada sin catch) viaja a
-// POST <base>/mateu/v3/client-log, que escribe UNA línea `client-error {...}` por informe en el
-// logger "mateu.client". Mismo contrato que el renderer de Vaadin (libs/mateu clientErrorReporter.ts).
+// Client errors → server log: what this renderer shows or suffers (a classified transport
+// failure, an uncaught JS error, a rejected promise without catch) travels to
+// POST <base>/mateu/v3/client-log, which writes ONE `client-error {...}` line per report in the
+// "mateu.client" logger. Same contract as the Vaadin renderer (libs/mateu clientErrorReporter.ts).
 //
-// Por qué: un «Tu sesión ya no es válida» que vio el usuario no dejaba rastro en el servidor — el
-// ingress no mostraba ningún 401/403 para él. Ahora queda una línea que buscar en Loki.
+// Why: a «Tu sesión ya no es válida» the user saw left no trace on the server — the
+// ingress showed no 401/403 for it. Now there is a line to search for in Loki.
 //
-// Reglas:
-//   - nunca informa de sus propios fallos (la llamada al endpoint no pasa por fetchWithPolicy, sus
-//     errores se tragan, y un error cuyo url es el endpoint se descarta): sin bucles;
-//   - 'cancelled' no es un error;
-//   - el mismo error repetido dentro de la ventana es UNA línea con `count` + firstAt/lastAt: la
-//     primera aparición sale enseguida y las repeticiones van en una línea resumen al cerrar la
-//     ventana (o al salir de la página);
-//   - como mucho `maxPerMinute` líneas por minuto y página; las que no caben se cuentan en `dropped`
-//     de la siguiente;
-//   - una respuesta que dice que no hay endpoint (404/405, o un backend sin él que se lo traga como
-//     acción) lo apaga para la página — ver endpointIsMissing.
+// Rules:
+//   - it never reports its own failures (the call to the endpoint does not go through fetchWithPolicy, its
+//     errors are swallowed, and an error whose url is the endpoint is discarded): no loops;
+//   - 'cancelled' is not an error;
+//   - the same error repeated within the window is ONE line with `count` + firstAt/lastAt: the
+//     first occurrence goes out right away and the repetitions go in a summary line when the
+//     window closes (or when leaving the page);
+//   - at most `maxPerMinute` lines per minute and page; those that do not fit are counted in `dropped`
+//     of the next one;
+//   - a response saying there is no endpoint (404/405, or a backend without it that swallows it as an
+//     action) turns it off for the page — see endpointIsMissing.
 //
-// El envío principal es fetch keepalive CON el Authorization (el gateway exige el Bearer en
-// /mateu/v3); sendBeacon no puede llevar cabeceras, así que sólo se usa al ocultar la página y sin
-// token.
+// The main send is fetch keepalive WITH the Authorization (the gateway requires the Bearer on
+// /mateu/v3); sendBeacon cannot carry headers, so it is only used when hiding the page and without
+// a token.
 //
-// Puro salvo installClientErrorReporting (que toca window): test.mjs lo ejercita con reloj,
-// temporizador y envío inyectados.
+// Pure except installClientErrorReporting (which touches window): test.mjs exercises it with injected
+// clock, timer and send.
 
 export const CLIENT_LOG_PATH = '/mateu/v3/client-log'
 
 const MAX = { message: 1000, detail: 1000, stack: 4000, url: 1000, pageUrl: 1000, source: 500, route: 500, actionId: 200, userAgent: 300 }
 const MAX_BATCH_CHARS = 14000
-// Valores de query que nunca deben acabar en un log: el código/estado del login de Keycloak, tokens.
+// Query values that must never end up in a log: Keycloak's login code/state, tokens.
 const SECRET_PARAMS = /^(code|state|session_state|token|access_token|id_token|refresh_token|auth|password)$/i
 
 const clipText = (s, max) => {
@@ -38,7 +38,7 @@ const clipText = (s, max) => {
   return text.length > max ? text.slice(0, max) + '…' : text
 }
 
-/** La URL sin fragmento y con los parámetros sensibles enmascarados. */
+/** The URL without fragment and with the sensitive parameters masked. */
 export function redactUrl(url) {
   if (!url) return url
   const text = String(url)
@@ -57,7 +57,7 @@ function decodeURIComponentSafe(s) {
   try { return decodeURIComponent(s) } catch (e) { return s }
 }
 
-/** La ruta Mateu de una URL de transporte (/mateu/v3/sync/<ruta>), o undefined. */
+/** The Mateu route of a transport URL (/mateu/v3/sync/<route>), or undefined. */
 export function routeOfRequestUrl(url) {
   if (!url) return undefined
   const m = /\/mateu\/v3\/(?:sync|sse)\/([^?#]*)/.exec(String(url))
@@ -66,10 +66,10 @@ export function routeOfRequestUrl(url) {
 }
 
 /**
- * Si la respuesta dice que aquí no hay endpoint: un 404/405 (backend antiguo o
- * mateu.client-log.enabled=false), o un backend cuyo controlador genérico /mateu/v3/** se tragó el
- * informe como si fuera una acción (un 2xx que no es 204, un 400, un 500). Lo pasajero — sin
- * respuesta, 401/403 de un token caducado, 413, 429, 502-504 del gateway — no lo apaga.
+ * Whether the response says there is no endpoint here: a 404/405 (old backend or
+ * mateu.client-log.enabled=false), or a backend whose generic /mateu/v3/** controller swallowed the
+ * report as if it were an action (a 2xx that is not 204, a 400, a 500). Transient things — no
+ * response, 401/403 from an expired token, 413, 429, 502-504 from the gateway — do not turn it off.
  */
 export function endpointIsMissing(status) {
   if (status === undefined || status === null || status === 0 || status === 204) return false
@@ -77,16 +77,16 @@ export function endpointIsMissing(status) {
   return true
 }
 
-/** Ruido conocido que no es un error de la aplicación. */
+/** Known noise that is not an application error. */
 function isNoise(entry) {
   const msg = entry.message || ''
   return /ResizeObserver loop/i.test(msg)
 }
 
 /**
- * Un informador. `deps`: { renderer, endpoint() → url o null, send(url, body, {final}) → Promise
- * de un status (o undefined), now() → ms, schedule(fn, ms) → handle, cancel(handle), userAgent,
- * pageUrl() }. Todo opcional salvo `send` para los tests.
+ * A reporter. `deps`: { renderer, endpoint() → url or null, send(url, body, {final}) → Promise
+ * of a status (or undefined), now() → ms, schedule(fn, ms) → handle, cancel(handle), userAgent,
+ * pageUrl() }. All optional except `send` for the tests.
  */
 export function createClientErrorReporter(deps = {}) {
   const renderer = deps.renderer || 'redwood'
@@ -98,8 +98,8 @@ export function createClientErrorReporter(deps = {}) {
   const maxPerMinute = deps.maxPerMinute || 20
   const endpoint = deps.endpoint || (() => CLIENT_LOG_PATH)
 
-  const entries = new Map()   // clave → { report, windowStart, pending, pendingFirstAt, lastAt }
-  let sentAt = []             // instantes de las líneas enviadas en el último minuto
+  const entries = new Map()   // key → { report, windowStart, pending, pendingFirstAt, lastAt }
+  let sentAt = []             // instants of the lines sent in the last minute
   let dropped = 0
   let disabled = false
   let timer = null
@@ -112,7 +112,7 @@ export function createClientErrorReporter(deps = {}) {
       if (disabled || !input) return
       if (input.kind === 'cancelled') return
       const url = input.url ? String(input.url) : undefined
-      if (url && url.indexOf(CLIENT_LOG_PATH) >= 0) return   // nunca informar del propio informe
+      if (url && url.indexOf(CLIENT_LOG_PATH) >= 0) return   // never report the report itself
       if (isNoise(input)) return
       const t = now()
       const r = {
@@ -134,13 +134,13 @@ export function createClientErrorReporter(deps = {}) {
         if (existing.pending === 0) existing.pendingFirstAt = t
         existing.pending++
         existing.lastAt = t
-        // las repeticiones esperan al cierre de la ventana: una línea resumen, no una por vez
+        // repetitions wait for the window to close: one summary line, not one each time
         plan(existing.windowStart + windowMs - t)
         return
       }
       entries.set(key, { report: r, windowStart: t, pending: 1, pendingFirstAt: t, lastAt: t, sent: false })
       plan(batchDelayMs)
-    } catch (e) { /* informar nunca puede romper la página */ }
+    } catch (e) { /* reporting can never break the page */ }
   }
 
   function plan(ms) {
@@ -151,7 +151,7 @@ export function createClientErrorReporter(deps = {}) {
     timer = schedule(() => { timer = null; dueAt = Infinity; flush(false) }, Math.max(0, ms))
   }
 
-  /** Las líneas que tocan ya; `final` = la página se va, sale todo lo pendiente. */
+  /** The lines that are due now; `final` = the page is going away, everything pending goes out. */
   function takeDue(final) {
     const t = now()
     const lines = []
@@ -175,7 +175,7 @@ export function createClientErrorReporter(deps = {}) {
   function admit(lines) {
     const t = now()
     sentAt = sentAt.filter((s) => t - s < 60000)
-    // `dropped` en una línea = las que se perdieron ANTES de ella, en envíos anteriores
+    // `dropped` on a line = the ones lost BEFORE it, in earlier sends
     const before = dropped
     const out = []
     for (const line of lines) {
@@ -214,9 +214,9 @@ export function createClientErrorReporter(deps = {}) {
         try { sent = deps.send(url, JSON.stringify(batch), { final }) } catch (e) { sent = null }
         Promise.resolve(sent).then((status) => {
           if (endpointIsMissing(status)) disabled = true
-        }, () => { /* un informe perdido no se informa */ })
+        }, () => { /* a lost report is not reported */ })
       }
-      // quedan repeticiones esperando el cierre de su ventana
+      // repetitions remain waiting for their window to close
       let next = Infinity
       for (const e of entries.values()) {
         if (e.pending > 0) next = Math.min(next, e.windowStart + windowMs)
@@ -234,8 +234,8 @@ export function createClientErrorReporter(deps = {}) {
 }
 
 /**
- * El envío real: fetch keepalive con el token (el gateway lo exige); al ocultar la página y sin
- * token, sendBeacon como último recurso. Resuelve con el status, o undefined.
+ * The real send: fetch keepalive with the token (the gateway requires it); when hiding the page and without
+ * a token, sendBeacon as a last resort. Resolves with the status, or undefined.
  */
 export function clientLogSender(headers = () => ({})) {
   return (url, body, { final } = {}) => {
@@ -245,7 +245,7 @@ export function clientLogSender(headers = () => ({})) {
       try {
         navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
         return Promise.resolve(undefined)
-      } catch (e) { /* sigue por fetch */ }
+      } catch (e) { /* carry on with fetch */ }
     }
     if (typeof fetch === 'undefined') return Promise.resolve(undefined)
     return fetch(url, {
@@ -258,13 +258,13 @@ export function clientLogSender(headers = () => ({})) {
   }
 }
 
-/** El informador de la página (null hasta installClientErrorReporting). */
+/** The page's reporter (null until installClientErrorReporting). */
 export const clientErrors = {
   _reporter: null,
   report(entry) { if (this._reporter) this._reporter.report(entry) },
 }
 
-/** El endpoint para una base: sólo mismo origen (otro origen no lleva nuestro token ni CORS). */
+/** The endpoint for a base: same origin only (another origin carries neither our token nor CORS). */
 export function clientLogEndpointOf(base, origin) {
   const b = base || ''
   if (/^https?:\/\//i.test(b)) {
@@ -274,8 +274,8 @@ export function clientLogEndpointOf(base, origin) {
 }
 
 /**
- * Lo engancha a la página: los errores sin capturar y las promesas rechazadas sin catch, y el
- * vaciado al ocultarla. Idempotente.
+ * Hooks it into the page: uncaught errors and rejected promises without catch, and the
+ * flush when hiding it. Idempotent.
  */
 export function installClientErrorReporting(base, options = {}) {
   if (clientErrors._reporter || typeof window === 'undefined') return clientErrors._reporter
@@ -289,7 +289,7 @@ export function installClientErrorReporting(base, options = {}) {
   })
   clientErrors._reporter = reporter
   window.addEventListener('error', (event) => {
-    // un recurso que no carga (img/script) llega aquí sin `error`; no es un error de JS
+    // a resource that does not load (img/script) arrives here without `error`; it is not a JS error
     if (!event || (!event.error && !event.message)) return
     const err = event.error
     reporter.report({
@@ -301,7 +301,7 @@ export function installClientErrorReporting(base, options = {}) {
   })
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event && event.reason
-    // un fallo de transporte ya clasificado (y ya informado por fetchWithPolicy) no se duplica
+    // an already classified transport failure (and already reported by fetchWithPolicy) is not duplicated
     if (reason && reason.failure) return
     if (reason && (reason.name === 'AbortError')) return
     reporter.report({

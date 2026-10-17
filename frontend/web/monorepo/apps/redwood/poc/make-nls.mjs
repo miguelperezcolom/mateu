@@ -3,7 +3,7 @@
 // (`$application.translations.appBundle.<key>`). VB resolves the language itself from its locale
 // (vbInitParams.locale = <html lang>), with the root bundle (English) filling the gaps of a partial
 // language, exactly as chromeText does.
-// Uso: node make-nls.mjs [--check]   (--check falla si el bundle no está al día)
+// Usage: node make-nls.mjs [--check]   (--check fails if the bundle is not up to date)
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

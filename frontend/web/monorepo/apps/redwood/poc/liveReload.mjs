@@ -1,13 +1,13 @@
-// LIVE RELOAD (modo desarrollo del backend, mateu.dev=true): el mismo contrato que
-// libs/mateu/src/mateu/ui/infra/dev/liveReloadPolicy.ts — aquí no se hereda nada del core web.
+// LIVE RELOAD (backend development mode, mateu.dev=true): the same contract as
+// libs/mateu/src/mateu/ui/infra/dev/liveReloadPolicy.ts — nothing is inherited from the web core here.
 //
-// El backend en modo dev estampa <meta name="mateu-dev" content="/mateu/dev/events"> en el índice
-// y sirve ese stream SSE: `hello` (con bootId: si cambia, el servidor se reinició → repintar),
-// `specs-changed` (scope page|app), `reload` (el IDE tras un HotSwap) y `ping`. Una ráfaga de
-// eventos se colapsa en UNA recarga. `page` repinta la ruta en pantalla CONSERVANDO lo tecleado
-// (la shell lo pasa a onMateuNavigate como liveState); `app` vuelve a montar la app en la misma URL.
+// The backend in dev mode stamps <meta name="mateu-dev" content="/mateu/dev/events"> in the index
+// and serves that SSE stream: `hello` (with bootId: if it changes, the server restarted → repaint),
+// `specs-changed` (scope page|app), `reload` (the IDE after a HotSwap) and `ping`. A burst of
+// events collapses into ONE reload. `page` repaints the route on screen KEEPING what was typed
+// (the shell passes it to onMateuNavigate as liveState); `app` remounts the app at the same URL.
 
-/** Qué significa un mensaje del stream: { action: 'none'|'page'|'app', bootId, reason }. */
+/** What a stream message means: { action: 'none'|'page'|'app', bootId, reason }. */
 export function liveReloadDecision(message, knownBootId) {
   if (!message || typeof message !== 'object') return { action: 'none', bootId: knownBootId }
   if (message.type === 'hello') {
@@ -30,13 +30,13 @@ export function liveReloadDecision(message, knownBootId) {
   return { action: 'none', bootId: knownBootId }
 }
 
-/** La más fuerte de dos recargas pendientes (app absorbe page). */
+/** The stronger of two pending reloads (app absorbs page). */
 export function strongerReload(a, b) {
   const rank = { none: 0, page: 1, app: 2 }
   return (rank[a] || 0) >= (rank[b] || 0) ? a : b
 }
 
-/** Dónde está el stream, si el índice lo anuncia (o la app lo fija en window.__MATEU_DEV_EVENTS__). */
+/** Where the stream is, if the index announces it (or the app sets it in window.__MATEU_DEV_EVENTS__). */
 export function devEventsUrlOf(doc, win) {
   if (win && win.__MATEU_DEV_EVENTS__) return win.__MATEU_DEV_EVENTS__
   const meta = doc && doc.querySelector ? doc.querySelector('meta[name="mateu-dev"]') : null
@@ -45,18 +45,18 @@ export function devEventsUrlOf(doc, win) {
 
 let liveReloadSource = null
 
-// Lo tecleado en el form del host vive en el borrador de la página de contenido ($page.mateuDraft),
-// que la shell no ve: la chain que lo acumula lo apunta aquí, con la ruta en que se tecleó.
+// What was typed in the host's form lives in the content page's draft ($page.mateuDraft),
+// which the shell does not see: the chain that accumulates it notes it here, with the route it was typed on.
 let liveDraft = { route: null, draft: null }
 export function noteLiveDraft(route, draft) { liveDraft = { route: route == null ? null : route, draft } }
-/** El borrador tecleado en `route` (nada si era de otra pantalla). */
+/** The draft typed on `route` (nothing if it was from another screen). */
 export function liveDraftFor(route) {
   return liveDraft.draft && liveDraft.route === (route == null ? null : route) ? liveDraft.draft : null
 }
 
 /**
- * Se suscribe al stream (una vez) y llama a onReload(action, reason) tras cada ráfaga. Sin
- * <meta name="mateu-dev"> no hace nada. `EventSourceImpl` y `timer` se inyectan en los tests.
+ * Subscribes to the stream (once) and calls onReload(action, reason) after each burst. Without
+ * <meta name="mateu-dev"> it does nothing. `EventSourceImpl` and `timer` are injected in the tests.
  */
 export function installDevLiveReload(doc, win, onReload, EventSourceImpl, timer = setTimeout) {
   const ES = EventSourceImpl || (win && win.EventSource)
@@ -95,7 +95,7 @@ export function resetDevLiveReload() {
   liveReloadSource = null
 }
 
-/** Una píldora discreta abajo a la izquierda que se desvanece sola. */
+/** A discreet pill at the bottom left that fades out on its own. */
 export function showReloadedPill(doc, reason) {
   if (!doc || !doc.body || !doc.createElement) return
   let pill = doc.getElementById('mateu-live-reload-indicator')
