@@ -561,6 +561,9 @@ const FORBIDDEN_FUNCTIONS = new Set<unknown>([
     Object.defineProperty, Object.defineProperties, Object.setPrototypeOf, Object.assign,
     Object.freeze, Object.seal, Object.preventExtensions, Reflect?.set, Reflect?.defineProperty,
     Reflect?.setPrototypeOf, Reflect?.deleteProperty,
+    // a property DESCRIPTOR hands back what a blocked property holds as a plain `.value`:
+    // Object.getOwnPropertyDescriptor(Object.getPrototypeOf(parseInt), 'constructor').value is Function
+    Object.getOwnPropertyDescriptor, Object.getOwnPropertyDescriptors, Reflect?.getOwnPropertyDescriptor,
 ].filter(Boolean))
 
 type Scope = { vars: Record<string, unknown>; parent?: Scope }
@@ -613,6 +616,10 @@ const evalArgs = (args: (Node | { k: 'spread'; arg: Node })[], scope: Scope): un
 const invoke = (fn: unknown, self: unknown, args: unknown[], node: Node): unknown => {
     if (typeof fn !== 'function') throw new TypeError(`${describe(node)} is not a function`)
     if (FORBIDDEN_FUNCTIONS.has(fn)) throw new TypeError(`${describe(node)} is not allowed in expressions`)
+    // nor handed to another function as a callback (`['1+1'].map(F)` would call it for us)
+    if (args.some(a => FORBIDDEN_FUNCTIONS.has(a))) {
+        throw new TypeError(`${describe(node)}: a forbidden function cannot be passed as an argument`)
+    }
     return Reflect.apply(fn as (...a: unknown[]) => unknown, self, args)
 }
 
