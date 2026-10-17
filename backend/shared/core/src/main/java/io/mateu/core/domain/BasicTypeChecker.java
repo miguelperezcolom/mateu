@@ -31,6 +31,8 @@ public class BasicTypeChecker {
           java.sql.Date.class,
           ZonedDateTime.class,
           File.class,
+          // an Optional<X> field is a field of type X (OptionalFields), never a nested form
+          java.util.Optional.class,
           int.class,
           long.class,
           float.class,

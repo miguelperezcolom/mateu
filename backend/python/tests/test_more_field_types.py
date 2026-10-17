@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime, time
+from typing import Optional
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name
 from mateu_uidl import Message, button, ui
@@ -68,3 +69,32 @@ def test_their_values_round_trip_through_an_action():
         )
     )
     assert inc.messages[0].text == "98765432109876543210|Grace|2026-01-02T03:04:05|18:45:00"
+
+
+@ui("/optional-fields")
+@dataclass
+class OptionalFieldsForm:
+    nickname: Optional[str] = "Ace"
+    age: Optional[int] = None
+
+    @button
+    def echo(self) -> Message:
+        return Message(text=f"{self.nickname}|{self.age}")
+
+
+def test_an_optional_field_is_a_field_of_its_type_and_round_trips():
+    """Java's OptionalFieldsSyncTest: an Optional[X] is a field of type X."""
+    handler = SyncHandler(MateuRegistry(OptionalFieldsForm))
+    inc = handler.handle(RunActionRq(route="/optional-fields", consumedRoute="/optional-fields"))
+    fields = _fields(json.loads(inc.model_dump_json(by_alias=True)), {})
+    assert fields["nickname"]["dataType"] == "string"
+    assert fields["age"]["dataType"] == "integer"
+    echo = handler.handle(
+        RunActionRq(
+            route="/optional-fields",
+            actionId="echo",
+            serverSideType=type_name(OptionalFieldsForm),
+            componentState={"nickname": "Bee", "age": 42},
+        )
+    )
+    assert echo.messages[0].text == "Bee|42"
