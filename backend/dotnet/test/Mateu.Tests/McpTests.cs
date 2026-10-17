@@ -271,8 +271,8 @@ public class McpTests
         public string? Title { get; set; }
     }
 
-    [UI("mcp-books"), Title("Books")]
-    public class McpBooks : IListing<CapBook>, Mateu.Uidl.ISearchable, IFilterable<McpBookFilters>
+    [UI("mcp-filtered-books"), Title("Books")]
+    public class McpFilteredBooks : IListing<CapBook>, Mateu.Uidl.ISearchable, IFilterable<McpBookFilters>
     {
         public static readonly System.Collections.Concurrent.ConcurrentQueue<(string? text, string? title)> Seen = new();
 
@@ -333,21 +333,21 @@ public class McpTests
                 ["name"] = "mateu_search",
                 ["arguments"] = new JsonObject
                 {
-                    ["route"] = "/mcp-books", ["searchText"] = "Quijote",
+                    ["route"] = "/mcp-filtered-books", ["searchText"] = "Quijote",
                     ["filters"] = new JsonObject { ["title"] = "Quij" },
                 },
             },
         }, Service());
         Assert.Null(screen!["result"]!["isError"]);
-        Assert.Contains(McpBooks.Seen, s => s.text == "Quijote" && s.title == "Quij");
+        Assert.Contains(McpFilteredBooks.Seen, s => s.text == "Quijote" && s.title == "Quij");
     }
 
     [Fact]
     public void Search_without_text_sends_no_search_text()
     {
-        var before = McpBooks.Seen.Count;
-        Service().Search("mcp-books", null, null);
-        Assert.Contains(McpBooks.Seen.Skip(before), s => string.IsNullOrEmpty(s.text) && s.title is null);
+        var before = McpFilteredBooks.Seen.Count;
+        Service().Search("mcp-filtered-books", null, null);
+        Assert.Contains(McpFilteredBooks.Seen.Skip(before), s => string.IsNullOrEmpty(s.text) && s.title is null);
     }
 
     [Fact]
