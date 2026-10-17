@@ -7,6 +7,7 @@ import { interpolate, literalText, reduceContexts, HOST_ID } from './reduceConte
 import { storedTokenMayGoTo, trustShellBase, trustDeclaredRemoteBases, resetCredentialOrigins } from './hostHeaders.mjs'
 import { fetchWithPolicy, connectivity, classifyRequestFailure } from './resilience.mjs'
 import { chromeText } from './i18n.mjs'
+import { idleSignOutUrlOf } from './appExtras.mjs'
 import { expandRemoteMenus } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
 import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf } from './widgets.mjs'
@@ -148,6 +149,16 @@ test('MINOR 1: Mateu\'s own 403 says "not allowed"; a CSRF/framework/proxy 403 s
     assert.equal(f.message, chromeText('errSecurityRefused'))
     assert.notEqual(f.message, chromeText('errForbidden'))
   }
+})
+
+// ── MINOR 4: the idle sign-out url ──────────────────────────────────────────────────────────────
+
+test('MINOR 4: the idle sign-out never follows a javascript: url', () => {
+  assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: 'javascript:alert(1)' } }), '/')
+  assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: ' data:text/html,x' } }), '/')
+  assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: '/logout' } }), '/logout')
+  assert.equal(idleSignOutUrlOf({ idleSession: { signOutUrl: 'https://idp.example/logout' } }), 'https://idp.example/logout')
+  assert.equal(idleSignOutUrlOf(null), '/')
 })
 
 for (const { name, fn } of queue) {

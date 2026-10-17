@@ -3,6 +3,7 @@ import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
 import { keyHint, isFunctionKeyShortcut, currentShortcutActions } from './keys.mjs'
 import { shortcutMatches } from './actionPanels.mjs'
+import { safeHref } from './core/display.mjs'
 
 // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
 // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
@@ -370,13 +371,19 @@ function idleStay(doc) {
   if (id && extrasSinks.keepAlive) extrasSinks.keepAlive(id)
 }
 
+/** Where the idle sign-out goes: the shell's url — never a javascript:/data: one (safeHref);
+ *  an unsafe or missing one signs out to '/'. */
+export function idleSignOutUrlOf(shell) {
+  return safeHref((shell && shell.idleSession && shell.idleSession.signOutUrl) || '/') || '/'
+}
+
 function idleSignOut(doc, propagate) {
   if (idleState.signingOut) return
   idleState.signingOut = true
   if (propagate) storeSet(IDLE_SIGN_OUT_KEY, String(Date.now()))
   const message = doc.getElementById('mateuIdleMessage')
   if (message) message.textContent = chromeText('idleSigningOut')
-  const url = (extrasShell && extrasShell.idleSession && extrasShell.idleSession.signOutUrl) || '/'
+  const url = idleSignOutUrlOf(extrasShell)
   const event = new CustomEvent('mateu-idle-sign-out', { detail: { url }, cancelable: true })
   if (!doc.dispatchEvent(event)) return
   doc.defaultView.location.assign(url)

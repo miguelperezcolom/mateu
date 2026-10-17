@@ -6,6 +6,7 @@ import { announce } from '@infra/a11y/announcer.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
+import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import {
     ACTIVITY_EVENTS, ACTIVITY_KEY, idlePhase, latestActivity, recordActivity, SIGN_OUT_KEY,
 } from '@infra/ui/idleSession.ts'
@@ -106,7 +107,10 @@ export class MateuIdleWarning extends LitElement {
         if (this.signingOut) return
         this.signingOut = true
         if (propagate) safeLocalStorage.set(SIGN_OUT_KEY, String(Date.now()))
-        const url = this.app?.idleSession?.signOutUrl || '/'
+        // only an http(s) or relative url is followed (never javascript:), in THIS tab even when it
+        // is another origin's (an identity provider's logout); anything else signs out to '/'
+        const declared = this.app?.idleSession?.signOutUrl || '/'
+        const url = resolveSafeUrl(declared) ? declared : '/'
         const event = new CustomEvent('mateu-idle-sign-out', { detail: { url }, cancelable: true })
         if (!document.dispatchEvent(event)) return
         window.location.assign(url)
