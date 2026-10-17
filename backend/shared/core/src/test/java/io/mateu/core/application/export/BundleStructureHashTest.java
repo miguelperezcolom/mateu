@@ -2,8 +2,6 @@ package io.mateu.core.application.export;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.mateu.core.application.export.MateuBundleExporter.BundleEntry;
-import io.mateu.core.application.export.MateuBundleExporter.BundleManifest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

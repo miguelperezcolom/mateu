@@ -9,7 +9,7 @@ import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.mateu.core.application.export.MateuBundleExporter.BundleManifest;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.runaction.ActionRegistry;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionCatalogMapper;
 import io.mateu.core.testutil.TestMateu;

@@ -1,15 +1,8 @@
 package io.mateu.core.application.runaction;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import java.io.File;
-import java.io.InputStream;
-import java.net.JarURLConnection;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,16 +66,15 @@ public final class MountRegistry {
     }
   }
 
-  private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
-
   /** All mounts declared as {@code type: UI} files on the classpath, in discovery order. */
   public List<Mount> mounts(ClassLoader classLoader) {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var mounts = new ArrayList<Mount>();
-    for (var resourcePath : scanYamlResourcePaths(cl)) {
-      var mount = readMount(cl, resourcePath);
+    var index = SpecsIndex.of(cl);
+    for (var resourcePath : index.paths()) {
+      var mount = readMount(index, resourcePath);
       if (mount != null) {
         mounts.add(mount);
       }
@@ -106,12 +98,10 @@ public final class MountRegistry {
         io.mateu.core.infra.dev.DevSpecs.classLoader(
             classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<RouteFileMount>();
-    for (var resourcePath : scanYamlResourcePaths(cl)) {
-      try (InputStream is = cl.getResourceAsStream(resourcePath)) {
-        if (is == null) {
-          continue;
-        }
-        var root = yaml.readTree(is);
+    var index = SpecsIndex.of(cl);
+    for (var resourcePath : index.paths()) {
+      try {
+        var root = index.tree(resourcePath);
         if (root == null || !root.isObject() || !"Routes".equals(text(root, "type"))) {
           continue;
         }
@@ -131,12 +121,10 @@ public final class MountRegistry {
   public List<String> projectDescriptors(ClassLoader classLoader) {
     var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
     var found = new ArrayList<String>();
-    for (var resourcePath : scanYamlResourcePaths(cl)) {
-      try (InputStream is = cl.getResourceAsStream(resourcePath)) {
-        if (is == null) {
-          continue;
-        }
-        var root = yaml.readTree(is);
+    var index = SpecsIndex.of(cl);
+    for (var resourcePath : index.paths()) {
+      try {
+        var root = index.tree(resourcePath);
         if (root != null
             && root.isObject()
             && io.mateu.uidl.data.ProjectSettings.TYPE.equals(text(root, "type"))) {
@@ -150,12 +138,9 @@ public final class MountRegistry {
   }
 
   /** Reads one resource; returns a Mount only when it carries {@code type: UI}. */
-  private Mount readMount(ClassLoader cl, String resourcePath) {
-    try (InputStream is = cl.getResourceAsStream(resourcePath)) {
-      if (is == null) {
-        return null;
-      }
-      var root = yaml.readTree(is);
+  private Mount readMount(SpecsIndex index, String resourcePath) {
+    try {
+      var root = index.tree(resourcePath);
       if (root == null || !root.isObject() || !"UI".equals(text(root, "type"))) {
         return null;
       }
@@ -183,53 +168,12 @@ public final class MountRegistry {
     return scanYamlResourcePaths(cl);
   }
 
-  /** Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive). */
+  /**
+   * Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive), from the
+   * {@link SpecsIndex} (one walk per classloader).
+   */
   static Set<String> scanYamlResourcePaths(ClassLoader cl) {
-    var paths = new LinkedHashSet<String>();
-    try {
-      var urls = cl.getResources(ROOT);
-      while (urls.hasMoreElements()) {
-        var url = urls.nextElement();
-        switch (url.getProtocol()) {
-          case "file" -> scanDir(new File(url.toURI()), ROOT, paths);
-          case "jar" -> scanJar(url, paths);
-          default -> {}
-        }
-      }
-    } catch (Exception e) {
-      log.warn("Failed to scan {} for mounts: {}", ROOT, e.getMessage());
-    }
-    return paths;
-  }
-
-  private static void scanDir(File dir, String resourcePrefix, Set<String> out) {
-    var children = dir.listFiles();
-    if (children == null) {
-      return;
-    }
-    for (var child : children) {
-      var childPath = resourcePrefix + "/" + child.getName();
-      if (child.isDirectory()) {
-        scanDir(child, childPath, out);
-      } else if (isYaml(child.getName())) {
-        out.add(childPath);
-      }
-    }
-  }
-
-  private static void scanJar(java.net.URL url, Set<String> out) throws Exception {
-    var connection = (JarURLConnection) url.openConnection();
-    try (JarFile jar = connection.getJarFile()) {
-      var prefix = ROOT + "/";
-      jar.stream()
-          .map(java.util.jar.JarEntry::getName)
-          .filter(name -> name.startsWith(prefix) && isYaml(name))
-          .forEach(out::add);
-    }
-  }
-
-  private static boolean isYaml(String name) {
-    return name.endsWith(".yaml") || name.endsWith(".yml");
+    return SpecsIndex.of(cl).paths();
   }
 
   private static String text(com.fasterxml.jackson.databind.JsonNode node, String field) {

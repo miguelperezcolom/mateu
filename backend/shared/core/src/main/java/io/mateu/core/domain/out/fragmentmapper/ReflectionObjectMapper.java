@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
-import io.mateu.core.application.runaction.ComponentStateHelper;
 import io.mateu.core.domain.BasicTypeChecker;
+import io.mateu.core.domain.ComponentState;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentActionDto;
@@ -16,7 +16,7 @@ public final class ReflectionObjectMapper {
   public static UIFragmentDto mapObjectToFragment(
       Object object, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     if (!BasicTypeChecker.isBasic(object)) {
-      var state = ComponentStateHelper.getState(object, httpRequest);
+      var state = ComponentState.getState(object, httpRequest);
       return new UIFragmentDto(
           initiatorComponentId, null, state, null, UIFragmentActionDto.Replace, null);
     }

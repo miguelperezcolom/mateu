@@ -1,7 +1,7 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.ComponentStateHelper.invoke;
-import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
+import static io.mateu.core.domain.ComponentState.setResolvedRoute;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;

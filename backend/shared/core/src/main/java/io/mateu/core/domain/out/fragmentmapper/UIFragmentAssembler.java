@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.getState;
+import static io.mateu.core.domain.ComponentState.getState;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper.mapDataToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StateMapper.mapStateToDto;
