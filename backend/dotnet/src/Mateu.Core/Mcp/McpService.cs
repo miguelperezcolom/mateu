@@ -48,14 +48,15 @@ public sealed class McpService
     /// <summary>Run the standard <c>search</c> action of a listing.</summary>
     public JsonObject Search(string route, string? searchText, JsonObject? filters)
     {
+        // The listing reads its search text from the COMPONENT STATE (where the search box writes
+        // it), not from the parameters: sent only as a parameter, the agent's search came back
+        // unfiltered.
+        var state = filters?.DeepClone() as JsonObject ?? new JsonObject();
         JsonObject? parameters = null;
-        // A listing reads its search text from the component state (where the search box binds
-        // it), like the filters; the parameter copy is what a lookup's search reads.
-        var state = filters?.DeepClone().AsObject() ?? new JsonObject();
         if (!string.IsNullOrEmpty(searchText))
         {
-            parameters = new JsonObject { ["searchText"] = searchText };
             state["searchText"] = searchText;
+            parameters = new JsonObject { ["searchText"] = searchText };
         }
         return McpProjection.Project(Sync(Rq(route, "search", state, parameters)));
     }

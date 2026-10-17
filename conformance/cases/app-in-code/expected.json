@@ -21,8 +21,8 @@
           "submenus" : [ {
             "consumedRoute" : "/conformance/app-in-code",
             "label" : "X",
-            "path" : "/g/g/x",
-            "route" : "/conformance/app-in-code/g/g/x",
+            "path" : "/g/x",
+            "route" : "/conformance/app-in-code/g/x",
             "uriPrefix" : "/conformance/app-in-code",
             "visible" : true
           } ],

@@ -30,6 +30,18 @@ public class Authorizer {
         httpRequest);
   }
 
+  /**
+   * Whether an element (an action method, a button field) is visible to the caller: no {@link
+   * EyesOnly} on it (directly or composed), or one the request satisfies. A restricted action is
+   * refused on invocation ({@code ActionMethods}); this keeps it — its button, its id, its label —
+   * off the wire for a caller who may not run it, so it is not advertised to a user or an agent.
+   */
+  public static boolean isVisible(java.lang.reflect.AnnotatedElement element, HttpRequest rq) {
+    return element == null
+        || isAuthorized(
+            io.mateu.core.infra.reflection.MetaAnnotations.find(element, EyesOnly.class), rq);
+  }
+
   /** Whether the request satisfies a {@link ReadOnlyUnless} restriction (else the field is RO). */
   public static boolean isAuthorized(ReadOnlyUnless readOnlyUnless, HttpRequest httpRequest) {
     if (readOnlyUnless == null) return true;

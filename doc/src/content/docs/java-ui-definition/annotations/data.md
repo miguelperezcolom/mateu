@@ -46,7 +46,13 @@ String customerId;
 
 **Target:** `FIELD`
 
-Embeds a child CRUD collection inside a parent form. Mateu renders the field as an inline, editable list of child records linked to the parent through a foreign key.
+Declares a child CRUD collection inside a parent form: child records linked to the parent through a foreign key and managed by a `CompositionCrudStore`.
+
+> **Not rendered yet.** The store-backed child CRUD `@Composition` declares is not implemented: a
+> `@Composition` field renders nothing (Mateu logs a warning naming it once). To show and edit child
+> records inside the parent form today, use a plain `List<Child>` field — it renders as an editable
+> grid whose rows travel in the form's state — or embed the children's own CRUD as an embedded
+> orchestrator field.
 
 ```java
 @Target(ElementType.FIELD)

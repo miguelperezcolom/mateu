@@ -105,8 +105,17 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * one button needs a way to fix it.
    */
   public void addButtonsToList(List<UserTrigger> toolbar) {
+    addButtonsToList(toolbar, null);
+  }
+
+  /**
+   * The bulk buttons of the listing toolbar for this request: a method restricted by an {@code
+   * EyesOnly} the caller does not satisfy is left out (it is refused on invocation anyway).
+   */
+  public void addButtonsToList(List<UserTrigger> toolbar, HttpRequest httpRequest) {
     getAllMethods(behaviourSource().getClass()).stream()
         .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
+        .filter(method -> io.mateu.core.domain.Authorizer.isVisible(method, httpRequest))
         .sorted(
             java.util.Comparator.comparingInt(
                 method -> ToolbarButtons.orderOf(MetaAnnotations.find(method, Toolbar.class))))

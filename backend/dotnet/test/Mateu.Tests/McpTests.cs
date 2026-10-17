@@ -32,6 +32,37 @@ public class McpTests
         [Button] public string Greet() => "done";
     }
 
+    public record McpBook(string Id, string Title);
+
+    [UI("mcp-books"), Title("Books")]
+    public class McpBooks : IListing<McpBook>, Mateu.Uidl.ISearchable
+    {
+        public ListingData<McpBook> Search(SearchRequest request) =>
+            ListingData.From(new[] { new McpBook("b1", "El Quijote"), new McpBook("b2", "Rayuela") }
+                .Where(b => b.Title.Contains(request.SearchText ?? "")).ToList());
+    }
+
+    [UI("mcp-restricted"), Title("Restricted")]
+    public class McpRestrictedForm
+    {
+        public string Name { get; set; } = "Ada";
+        [Button] public string Greet() => "done";
+        [Button("Purge everything"), EyesOnly(Roles = ["admin"])] public string Purge() => "purged";
+        [Fab("vaadin:bomb"), EyesOnly(Roles = ["admin"])] public string Detonate() => "boom";
+    }
+
+    [UI("mcp-restricted-books"), Title("Restricted books")]
+    public class McpRestrictedBooks : IListing<McpBook>, IDeletable<string>
+    {
+        public ListingData<McpBook> Search(SearchRequest request) =>
+            ListingData.From(new List<McpBook> { new("b1", "El Quijote") });
+
+        public void DeleteAllById(IReadOnlyList<string> selectedIds) { }
+
+        [ListToolbarButton, Label("Archive selected"), EyesOnly(Roles = ["admin"])]
+        public void Archive(List<McpBook> selection) { }
+    }
+
     static McpService Service() => new(new SyncHandler(new MateuRegistry(typeof(McpDemoForm).Assembly)), Json);
 
     // ---- pure projection (inline wire) ----
@@ -83,7 +114,7 @@ public class McpTests
     {
         var inc = JsonNode.Parse("""
         {"fragments":[{"component":{"type":"ServerSide","route":"products","serverSideType":"com.acme.P",
-          "children":[{"type":"ClientSide","metadata":{"type":"Crudl","title":"Products","searchable":true,
+          "children":[{"type":"ClientSide","metadata":{"type":"Crud","title":"Products","searchable":true,
             "columns":[{"metadata":{"id":"name","caption":"Name"}},{"metadata":{"id":"price","caption":"Price"}}],
             "filters":[{"fieldId":"category","label":"Category","dataType":"string"}]}}]}}]}
         """);
@@ -146,6 +177,42 @@ public class McpTests
         Assert.DoesNotContain("secret", ids); // [EyesOnly] never reaches an unauthorized agent
         var actionIds = screen["actions"]!.AsArray().Select(a => (string?)a!["id"]).ToList();
         Assert.Contains("greet", actionIds);
+    }
+
+    [Fact]
+    public void A_listing_is_projected_and_a_search_filters_and_answers_its_rows()
+    {
+        var mcp = Service();
+        var screen = mcp.DescribeScreen("mcp-books");
+        Assert.True((bool)screen["listing"]!["searchable"]!); // the wire type is "Crud"
+
+        var found = mcp.Search("mcp-books", "Ray", null);
+        var rows = found["listing"]!["rows"]!.AsArray();
+        Assert.Equal(new[] { "Rayuela" }, rows.Select(r => (string?)r!["title"]).ToArray());
+        Assert.False(rows[0]!.AsObject().ContainsKey("_rowNumber"));
+        Assert.Equal(1, (int)found["listing"]!["totalElements"]!);
+
+        Assert.Equal(2, mcp.Search("mcp-books", "", null)["listing"]!["rows"]!.AsArray().Count);
+    }
+
+    static McpService ServiceAs(Identity? identity) =>
+        new(new SyncHandler(new MateuRegistry(typeof(McpDemoForm).Assembly), null, () => identity), Json);
+
+    [Fact]
+    public void An_eyesonly_action_is_not_advertised_to_a_caller_who_may_not_run_it()
+    {
+        var anonymous = ServiceAs(null).DescribeScreen("mcp-restricted").ToJsonString();
+        Assert.Contains("greet", anonymous);
+        Assert.DoesNotContain("purge", anonymous);
+        Assert.DoesNotContain("Purge everything", anonymous);
+        Assert.DoesNotContain("detonate", anonymous);
+        var listing = ServiceAs(null).DescribeScreen("mcp-restricted-books").ToJsonString();
+        Assert.DoesNotContain("archive", listing);
+        Assert.DoesNotContain("Archive selected", listing);
+
+        var admin = ServiceAs(new Identity(Roles: ["admin"]));
+        Assert.Contains("Purge everything", admin.DescribeScreen("mcp-restricted").ToJsonString());
+        Assert.Contains("Archive selected", admin.DescribeScreen("mcp-restricted-books").ToJsonString());
     }
 
     // ---- JSON-RPC protocol ----

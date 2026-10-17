@@ -20,11 +20,10 @@ final class FormTabArranger {
     var filteredFields =
         io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields(type)
             .stream()
+            // @Composition is not rendered (see FormFieldFilter)
             .filter(
                 field ->
-                    readOnly
-                        || !MetaAnnotations.isPresent(
-                            field, io.mateu.uidl.annotations.Composition.class))
+                    !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Composition.class))
             .filter(field -> !io.mateu.uidl.data.Status.class.equals(field.getType()))
             .filter(field -> !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.KPI.class))
             .filter(

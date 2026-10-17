@@ -388,8 +388,10 @@ public class BackOffice implements AppSupplier {
 ```
 
 Routes are **relative**: a top-level entry to the mount (`/home` → `/back-office/home`) and an
-entry inside a `Menu` to its group (`/sales` → `/back-office/reports/sales`). Writing the full path
-again (`/back-office/reports/sales` inside `/back-office/reports`) repeats it in the URL.
+entry inside a `Menu` to its group (`/sales` → `/back-office/reports/sales`). The full path is
+understood too: an entry that already starts with the mount (`/back-office/home`) or with its
+group's path (`/back-office/reports/sales` inside `/back-office/reports`) is routed once, not
+repeated in the URL — the same in Java, .NET and Python.
 
 The menu is a `List<Actionable>`, so both leaf kinds compose — a `RouteLink`/`ContentLink` that
 navigates and a `RuleLink` that runs client-side rules (the [route-or-rule leaf](#a-leaf-is-a-route-or-a-rule)) —

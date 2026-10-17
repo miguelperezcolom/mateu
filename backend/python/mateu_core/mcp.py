@@ -59,10 +59,13 @@ def project_increment(increment):
             field_nodes.append(md)
         elif t == "Page" and ctx["page"] is None:
             ctx["page"] = md
-        elif t == "Crudl" and ctx["crudl"] is None:
+        elif t in ("Crud", "Crudl") and ctx["crudl"] is None:  # the listing is "Crud" on the wire
             ctx["crudl"] = md
         elif t == "Button" and md.get("actionId"):
             buttons_by_action.setdefault(md["actionId"], md.get("label"))
+        elif node.get("type") == "Button" and node.get("actionId"):
+            # a page toolbar / buttons entry is a bare button, not a component node
+            buttons_by_action.setdefault(node["actionId"], node.get("label"))
 
     for fragment in fragments:
         if ctx["state"] is None and isinstance(fragment.get("state"), dict):
@@ -160,6 +163,19 @@ def project_increment(increment):
             ],
         }
 
+    # the rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+    # {content, totalElements, pageNumber, pageSize}}}) — the agent asked for them
+    rows_page = _rows_page_of(fragments)
+    if rows_page is not None:
+        listing = screen.setdefault("listing", {})
+        listing["rows"] = [
+            {k: v for k, v in row.items() if k != "_rowNumber"} if isinstance(row, dict) else row
+            for row in rows_page["content"]
+        ]
+        for key in ("totalElements", "pageNumber", "pageSize"):
+            if key in rows_page:
+                listing[key] = rows_page[key]
+
     if messages:
         # the wire's message names its severity "variant" (error/warning/success/info): reading only
         # "type" told an agent every failure was "info"
@@ -175,6 +191,19 @@ def project_increment(increment):
     if notable:
         screen["commands"] = notable
     return screen
+
+
+def _rows_page_of(fragments):
+    """The first ``{page: {content: [...]}}`` entry of any fragment's data, or None."""
+    for fragment in fragments:
+        data = fragment.get("data") if isinstance(fragment, dict) else None
+        if not isinstance(data, dict):
+            continue
+        for entry in data.values():
+            page = entry.get("page") if isinstance(entry, dict) else None
+            if isinstance(page, dict) and isinstance(page.get("content"), list):
+                return page
+    return None
 
 
 def _command_data(commands, type_):

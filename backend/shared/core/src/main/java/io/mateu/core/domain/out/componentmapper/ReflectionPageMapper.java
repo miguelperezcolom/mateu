@@ -71,7 +71,7 @@ public class ReflectionPageMapper {
                     || instance instanceof io.mateu.uidl.interfaces.ReactiveListing<?>
                 ? java.util.stream.Stream.concat(
                         getToolbar(instance, httpRequest).stream(),
-                        PageListingBuilder.getToolbarButtons(instance).stream())
+                        PageListingBuilder.getToolbarButtons(instance, httpRequest).stream())
                     .map(trigger -> (io.mateu.uidl.fluent.UserTrigger) trigger)
                     .toList()
                 : getToolbar(instance, httpRequest))

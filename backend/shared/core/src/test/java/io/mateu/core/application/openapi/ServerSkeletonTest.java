@@ -174,6 +174,32 @@ class ServerSkeletonTest {
   }
 
   @Test
+  void aPathParameterIsBoundFromThePath() {
+    var document =
+        OpenApiEmitter.emit(
+            "Orders API",
+            OpenApiEmitter.Declarations.ofViews(List.of())
+                .withCatalogue(
+                    new RestSourceCatalog(
+                        List.of(
+                            new RestSourceEntry(
+                                "order",
+                                RestDataSource.builder()
+                                    .url("/api/orders/${state.id}")
+                                    .build())))));
+    var controller =
+        ServerSkeleton.generate(document, OPTIONS).stream()
+            .filter(file -> file.path().endsWith("OrdersController.java"))
+            .map(ServerSkeleton.GeneratedFile::content)
+            .findFirst()
+            .orElseThrow();
+    assertThat(controller).contains("@GetMapping(\"/api/orders/{id}\")");
+    // as a @RequestParam the endpoint answered 400: the id is in the path, never in the query
+    assertThat(controller).contains("@PathVariable(name = \"id\", required = true)");
+    assertThat(controller).doesNotContain("@RequestParam(name = \"id\"");
+  }
+
+  @Test
   void theGeneratedModelCompiles() {
     // A generator emitting source that does not compile costs more than writing the code by hand.
     // The

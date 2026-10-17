@@ -42,10 +42,12 @@ public final class McpProjection {
     java.util.List<JsonNode> fieldNodes = new java.util.ArrayList<>();
     Map<String, String> buttonsByAction = new LinkedHashMap<>();
     JsonNode[] state = {null};
+    JsonNode[] rowsPage = {null};
 
     if (fragments.isArray()) {
       for (JsonNode fragment : fragments) {
         if (state[0] == null && fragment.path("state").isObject()) state[0] = fragment.get("state");
+        if (rowsPage[0] == null) rowsPage[0] = rowsPageOf(fragment.path("data"));
         JsonNode root = fragment.has("component") ? fragment.get("component") : fragment;
         deepVisit(
             root,
@@ -58,12 +60,19 @@ public final class McpProjection {
                 fieldNodes.add(node.get("metadata"));
               } else if ("Page".equals(t) && page[0] == null) {
                 page[0] = node.get("metadata");
-              } else if ("Crudl".equals(t) && crudl[0] == null) {
+              } else if (("Crud".equals(t) || "Crudl".equals(t)) && crudl[0] == null) {
+                // the listing travels as "Crud" (ComponentMetadataDto); "Crudl" is the older
+                // PageMainContentDto spelling — reading only "Crudl" never projected a listing
                 crudl[0] = node.get("metadata");
               } else if ("Button".equals(t) && node.path("metadata").hasNonNull("actionId")) {
                 String actionId = node.get("metadata").get("actionId").asText();
                 buttonsByAction.putIfAbsent(
                     actionId, node.get("metadata").path("label").asText(null));
+              } else if ("Button".equals(node.path("type").asText(null))
+                  && node.hasNonNull("actionId")) {
+                // a page toolbar / buttons entry is a bare ButtonDto, not a component node
+                buttonsByAction.putIfAbsent(
+                    node.get("actionId").asText(), node.path("label").asText(null));
               }
             });
       }
@@ -188,6 +197,28 @@ public final class McpProjection {
       }
     }
 
+    // The rows of a search: a search answer is a data-only fragment ({<listing id>: {page:
+    // {content,
+    // totalElements, pageNumber, pageSize}}}) — the agent asked for them, so they must reach it.
+    if (rowsPage[0] != null) {
+      ObjectNode listing =
+          out.has("listing") ? (ObjectNode) out.get("listing") : out.putObject("listing");
+      ArrayNode rows = listing.putArray("rows");
+      for (JsonNode row : rowsPage[0].get("content")) {
+        if (row.isObject()) {
+          ObjectNode copy = ((ObjectNode) row).deepCopy();
+          copy.remove("_rowNumber");
+          rows.add(copy);
+        } else {
+          rows.add(row);
+        }
+      }
+      if (rowsPage[0].has("totalElements"))
+        listing.set("totalElements", rowsPage[0].get("totalElements"));
+      if (rowsPage[0].has("pageNumber")) listing.set("pageNumber", rowsPage[0].get("pageNumber"));
+      if (rowsPage[0].has("pageSize")) listing.set("pageSize", rowsPage[0].get("pageSize"));
+    }
+
     if (messages.isArray() && messages.size() > 0) {
       ArrayNode ms = out.putArray("messages");
       for (JsonNode m : messages) {
@@ -218,6 +249,16 @@ public final class McpProjection {
     }
 
     return out;
+  }
+
+  /** The first {@code {page: {content: [...]}}} entry of a fragment's data, or null. */
+  private static JsonNode rowsPageOf(JsonNode data) {
+    if (data == null || !data.isObject()) return null;
+    for (JsonNode entry : data) {
+      JsonNode p = entry.path("page");
+      if (p.isObject() && p.path("content").isArray()) return p;
+    }
+    return null;
   }
 
   private static String commandData(JsonNode commands, String type) {

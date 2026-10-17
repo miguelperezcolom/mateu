@@ -182,6 +182,8 @@ class CrudMapperMixin(MixinBase):
         # Crud.addButtonsToList + CrudActionsBuilder).
         bulk_actions = []
         for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
+            if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+                continue  # refused on invocation, and not advertised to this caller either
             marker = getattr(fn, "__mateu_list_toolbar_button__")
             action_id = "action-on-row-" + camel_case(name)
             toolbar.append(Button(
@@ -464,6 +466,8 @@ class CrudMapperMixin(MixinBase):
         # (mirrors Java's behaviourSource — the bridged listing's methods become toolbar
         # buttons).
         for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
+            if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+                continue  # refused on invocation, and not advertised to this caller either
             marker = getattr(fn, "__mateu_list_toolbar_button__")
             action_id = "action-on-row-" + camel_case(name)
             toolbar.append(Button(

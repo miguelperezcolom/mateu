@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { projectIncrement } from "./projection.mjs";
-import { routeToPath, normalizeRoute } from "./wire.mjs";
+import { routeToPath, normalizeRoute, MateuWire } from "./wire.mjs";
 import { handleRpc, TOOLS } from "./index.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -79,7 +79,7 @@ test("actions: ids from the ServerSide node, labels enriched from buttons", () =
   assert.equal(byId.cancel.label, "cancel"); // no button -> falls back to id
 });
 
-test("listing: Crudl projects columns, searchable and filters", () => {
+test("listing: Crud (the wire type) projects columns, searchable and filters", () => {
   const inc = {
     wireVersion: "3.0",
     fragments: [
@@ -92,7 +92,7 @@ test("listing: Crudl projects columns, searchable and filters", () => {
             {
               type: "ClientSide",
               metadata: {
-                type: "Crudl",
+                type: "Crud",
                 title: "Products",
                 searchable: true,
                 columns: [
@@ -209,4 +209,104 @@ test("messages keep their severity (the wire's `variant`) and title", () => {
     { text: "Saved", type: "success" },
     { text: "no severity at all", type: "info" },
   ]);
+});
+
+test("search: the rows of the answer reach the agent (without the renderer's _rowNumber)", () => {
+  const s = projectIncrement({
+    fragments: [
+      {
+        component: null,
+        data: {
+          crud: {
+            page: {
+              content: [{ _rowNumber: 0, id: "b2", title: "Rayuela" }],
+              totalElements: 1,
+              pageNumber: 0,
+              pageSize: 1,
+            },
+          },
+        },
+      },
+    ],
+  });
+  assert.deepEqual(s.listing.rows, [{ id: "b2", title: "Rayuela" }]);
+  assert.equal(s.listing.totalElements, 1);
+});
+
+test("search: the text travels in the component state, where the listing reads it", async () => {
+  let sent = null;
+  const wire = new MateuWire({
+    baseUrl: "http://x",
+    fetchImpl: async (_url, init) => {
+      sent = JSON.parse(init.body);
+      return { ok: true, json: async () => ({ fragments: [] }) };
+    },
+  });
+  await wire.search("products", "ray", { status: "open" });
+  assert.equal(sent.actionId, "search");
+  assert.deepEqual(sent.componentState, { status: "open", searchText: "ray" });
+});
+
+test("under an app shell, a route is described by the content the shell loads", async () => {
+  const sent = [];
+  const shell = {
+    fragments: [
+      {
+        component: {
+          type: "ClientSide",
+          metadata: {
+            type: "App",
+            serverSideType: "com.acme.Shell",
+            homeRoute: "/books",
+            homeConsumedRoute: "",
+            homeBaseUrl: "",
+            homeServerSideType: "com.acme.Shell",
+          },
+        },
+      },
+    ],
+  };
+  const books = {
+    fragments: [{ component: { type: "ServerSide", serverSideType: "com.acme.Books", route: "_empty" } }],
+  };
+  const wire = new MateuWire({
+    baseUrl: "http://x",
+    fetchImpl: async (_url, init) => {
+      const body = JSON.parse(init.body);
+      sent.push(body);
+      return { ok: true, json: async () => (body.consumedRoute === null ? shell : books) };
+    },
+  });
+  const s = await wire.describeScreen("books");
+  assert.equal(s.serverSideType, "com.acme.Books");
+  assert.equal(sent[1].route, "books");
+  assert.equal(sent[1].consumedRoute, "");
+  assert.equal(sent[1].serverSideType, "com.acme.Shell");
+
+  sent.length = 0;
+  await wire.runAction("books", "search", { searchText: "x" });
+  const action = sent.at(-1);
+  assert.equal(action.actionId, "search");
+  assert.equal(action.serverSideType, "com.acme.Books");
+  assert.equal(action.consumedRoute, "");
+});
+
+test("actions: a page toolbar button (a bare button, not a component node) labels its action", () => {
+  const s = projectIncrement({
+    fragments: [
+      {
+        component: {
+          type: "ServerSide",
+          actions: [{ id: "greet" }],
+          children: [
+            {
+              type: "ClientSide",
+              metadata: { type: "Page", toolbar: [{ type: "Button", label: "Say hello", actionId: "greet" }] },
+            },
+          ],
+        },
+      },
+    ],
+  });
+  assert.deepEqual(s.actions, [{ id: "greet", label: "Say hello" }]);
 });

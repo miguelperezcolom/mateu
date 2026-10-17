@@ -32,16 +32,24 @@ export class MateuWire {
   }
 
   /** POST a sync request and return the raw UIIncrementDto. */
-  async sync({ route = "", actionId = "", componentState = null, appState = null, parameters = null } = {}) {
+  async sync({
+    route = "",
+    actionId = "",
+    componentState = null,
+    appState = null,
+    parameters = null,
+    consumedRoute = null,
+    serverSideType = null,
+  } = {}) {
     const url = this.baseUrl + "/mateu/v3/sync" + routeToPath(route);
     const body = {
-      serverSideType: null,
+      serverSideType: serverSideType ?? null,
       appState: appState ?? {},
       componentState: componentState ?? {},
       parameters: parameters ?? {},
       // NOTE: consumedRoute MUST be null (not "") for a fresh load — an empty string makes the
       // server resolve to nothing (verified against a live backend). null = "nothing consumed yet".
-      consumedRoute: null,
+      consumedRoute: consumedRoute ?? null,
       route: normalizeRoute(route),
       actionId: actionId ?? "",
     };
@@ -55,23 +63,61 @@ export class MateuWire {
     return res.json();
   }
 
+  /**
+   * Load a route and follow any app shell it answers to the content that shell loads (its
+   * homeRoute / homeConsumedRoute / homeServerSideType — the request the shell's inner mateu-ux
+   * sends). Without it, a route under a root `@UI("")` app described the shell itself, and actions
+   * ran against the shell. Returns the request that answered the screen, its serverSideType and
+   * the increment.
+   */
+  async content(route = "") {
+    let request = { route, actionId: "" };
+    let increment = await this.sync(request);
+    const visited = new Set();
+    for (let hop = 0; hop < MAX_SHELL_HOPS; hop++) {
+      const app = appOf(increment);
+      if (!app || app.homeRoute == null) break;
+      if (app.homeBaseUrl && app.homeBaseUrl !== "") break; // a remote app: not this backend
+      const next = {
+        route: app.homeRoute,
+        consumedRoute: app.homeConsumedRoute ?? "",
+        serverSideType: app.homeServerSideType ?? app.serverSideType ?? null,
+        actionId: "",
+      };
+      const key = `${next.route}|${next.consumedRoute}|${next.serverSideType}`;
+      if (visited.has(key)) break;
+      visited.add(key);
+      request = next;
+      increment = await this.sync(request);
+    }
+    return { request, serverSideType: serverSideTypeOf(increment), increment };
+  }
+
   /** Load a screen (route) and return the flat projection. */
   async describeScreen(route = "") {
-    const increment = await this.sync({ route, actionId: "" });
-    return projectIncrement(increment);
+    return projectIncrement((await this.content(route)).increment);
   }
 
   /** Run an action on a screen, return the resulting projection. */
   async runAction(route, actionId, componentState = null, parameters = null) {
     if (!actionId) throw new Error("actionId is required");
-    const increment = await this.sync({ route, actionId, componentState, parameters });
+    const { request, serverSideType } = await this.content(route);
+    const increment = await this.sync({
+      ...request,
+      serverSideType: serverSideType ?? request.serverSideType ?? null,
+      actionId,
+      componentState,
+      parameters,
+    });
     return projectIncrement(increment);
   }
 
   /** Run the standard `search` action of a listing screen. */
   async search(route, searchText = "", filters = null) {
     const state = { ...(filters || {}) };
-    if (searchText) state.__searchText = searchText;
+    // the listing reads its search text from the component state, under "searchText" (where the
+    // search box writes it) — "__searchText" was read by nobody, so the search came back unfiltered
+    if (searchText) state.searchText = searchText;
     return this.runAction(route, "search", state, { searchText });
   }
 
@@ -103,6 +149,37 @@ export class MateuWire {
     if (!routes.has("")) routes.set("", "Home");
     return [...routes.entries()].map(([route, caption]) => ({ route, caption }));
   }
+}
+
+/** Bounds the shell → content (→ crud mediator → listing) chain; the browser nests no deeper. */
+const MAX_SHELL_HOPS = 4;
+
+function visitObjects(node, fn) {
+  if (node == null || typeof node !== "object") return;
+  if (!Array.isArray(node)) fn(node);
+  for (const v of Array.isArray(node) ? node : Object.values(node)) visitObjects(v, fn);
+}
+
+/** The metadata of an App (shell) component in the answer, or null. */
+function appOf(increment) {
+  let found = null;
+  for (const fragment of increment?.fragments || []) {
+    visitObjects(fragment?.component, (node) => {
+      if (!found && node.metadata && node.metadata.type === "App") found = node.metadata;
+    });
+  }
+  return found;
+}
+
+/** The serverSideType of the screen the answer renders (its first ServerSide node), or null. */
+function serverSideTypeOf(increment) {
+  let found = null;
+  for (const fragment of increment?.fragments || []) {
+    visitObjects(fragment?.component, (node) => {
+      if (!found && node.type === "ServerSide" && node.serverSideType) found = node.serverSideType;
+    });
+  }
+  return found;
 }
 
 function walkMenu(menu, out) {

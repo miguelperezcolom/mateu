@@ -3,7 +3,7 @@ title: Entity Picker
 description: Select relationships and manage child collections without leaving the form.
 ---
 
-**Status:** ✅ Implemented — `@Lookup`, `@Searchable`, `@Composition`
+**Status:** ✅ Implemented — `@Lookup`, `@Searchable` (`@Composition`: declared, not rendered yet — see below)
 
 ## Intent
 
@@ -99,7 +99,13 @@ public class HotelSelector implements Listing<Row>, Searchable,
 
 ### Inline child collection — `@Composition`
 
-Use `@Composition` when a field contains a collection of owned child records that can be created and deleted within the parent form.
+`@Composition` declares a field holding a collection of owned child records, created and deleted within the parent form.
+
+> **Not rendered yet.** The store-backed child CRUD `@Composition` declares is not implemented: a
+> `@Composition` field renders nothing (Mateu logs a warning naming it once). To show and edit child
+> records inside the parent form today, use a plain `List<Child>` field — it renders as an editable
+> grid whose rows travel in the form's state — or embed the children's own CRUD as an embedded
+> orchestrator field.
 
 ```java
 public class Order {

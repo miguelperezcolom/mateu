@@ -29,7 +29,7 @@ final class AppMenuDtoBuilder {
     return menu.stream()
         .map(
             option -> {
-              var path = getPath(prefix, option);
+              var path = getPath(appRoute, prefix, option);
               var remote = option instanceof RemoteMenu remoteMenu ? remoteMenu : null;
               return MenuOptionDto.builder()
                   .label(remote != null ? remoteLabel(remote, path) : option.label())
@@ -61,7 +61,9 @@ final class AppMenuDtoBuilder {
                               // a group authored as data (YAML `type: Menu`) has no path of
                               // its own: its entries' routes are mount-relative as written —
                               // concatenating the null made them "null/check-in"
-                              asMenu.path() != null ? prefix + asMenu.path() : prefix)
+                              asMenu.path() != null
+                                  ? relative(appRoute, prefix, asMenu.path())
+                                  : prefix)
                           : List.of())
                   .separator(option instanceof MenuSeparator)
                   .remote(option instanceof RemoteMenu)
@@ -168,7 +170,7 @@ final class AppMenuDtoBuilder {
     return null;
   }
 
-  private static String getPath(String appRoute, Actionable option) {
+  private static String getPath(String appRoute, String prefix, Actionable option) {
     if (option.path() == null) {
       // A RouteLink authored with a `route:` and no `path:` (the YAML menu shape) goes WHERE IT
       // SAYS. Deriving the path from the label only coincided with the route while label and route
@@ -177,30 +179,61 @@ final class AppMenuDtoBuilder {
       if (option instanceof RouteLink routeLink
           && routeLink.route() != null
           && !routeLink.route().isBlank()) {
-        return prepend(appRoute, routeLink.route());
+        return relative(appRoute, prefix, routeLink.route());
       }
-      return prepend(appRoute, toCamelCase(option.label()));
+      return prepend(prefix, toCamelCase(option.label()));
     }
-    if (option instanceof RouteLink routeLink) {
-      option = routeLink.withPath(prepend(appRoute, routeLink.path()));
-    }
-    if (option instanceof ContentLink contentLink) {
-      option = contentLink.withPath(prepend(appRoute, contentLink.path()));
-    }
-    if (option instanceof FieldLink fieldLink) {
-      option = fieldLink.withPath(prepend(appRoute, fieldLink.path()));
-    }
-    if (option instanceof MethodLink methodLink) {
-      option = methodLink.withPath(prepend(appRoute, methodLink.path()));
+    if (option instanceof RouteLink
+        || option instanceof ContentLink
+        || option instanceof FieldLink
+        || option instanceof MethodLink) {
+      return relative(appRoute, prefix, option.path());
     }
     if (option instanceof RemoteMenu remoteMenu) {
-      option =
-          remoteMenu.withPath(
-              remoteMenu.path().startsWith(appRoute)
-                  ? remoteMenu.path()
-                  : prepend(appRoute, remoteMenu.path()));
+      return remoteMenu.path().startsWith(prefix)
+          ? remoteMenu.path()
+          : prepend(prefix, remoteMenu.path());
     }
-    return option.path();
+    if (option instanceof Menu) {
+      // a group's own path, below the group it sits in — the same rule as its entries
+      return relative(appRoute, prefix, option.path());
+    }
+    return withinMount(appRoute, option.path());
+  }
+
+  /**
+   * An entry's path below its group ({@code prefix}) and relative to the app — the one spelling the
+   * wire carries ({@code route} = the app's route + this path). An entry may be authored
+   * mount-relative ({@code /home}), absolute with the app's own route ({@code /codeapp/home}, the
+   * natural spelling in a code-authored {@code AppShell}) or already under its group ({@code
+   * /reports/sales} in a {@code /reports} group): each resolves ONCE, as {@code
+   * MountPrefixedRoutes} does for a request route. Prepending blindly made {@code
+   * /codeapp/codeapp/home}.
+   */
+  static String relative(String appRoute, String prefix, String path) {
+    var own = withinMount(appRoute, path);
+    if (prefix == null || prefix.isEmpty() || "/".equals(prefix)) {
+      return prepend("", own);
+    }
+    if (own.equals(prefix) || own.startsWith(prefix + "/")) {
+      return own;
+    }
+    return prepend(prefix, own);
+  }
+
+  /** The path without the app's own route in front, when it carries it. */
+  private static String withinMount(String appRoute, String path) {
+    if (path == null
+        || appRoute == null
+        || appRoute.isEmpty()
+        || "/".equals(appRoute)
+        || !path.startsWith(appRoute)) {
+      return path;
+    }
+    if (path.length() == appRoute.length()) {
+      return "/";
+    }
+    return path.charAt(appRoute.length()) == '/' ? path.substring(appRoute.length()) : path;
   }
 
   public static String prepend(String appRoute, String path) {

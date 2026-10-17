@@ -9,7 +9,6 @@ import io.mateu.uidl.data.Status;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.lang.reflect.Field;
-import java.util.Collection;
 
 final class FormFieldFilter {
 
@@ -67,11 +66,28 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, Searchable.class)) {
       return true;
     }
-    if (Collection.class.isAssignableFrom(field.getType())
-        && MetaAnnotations.isPresent(field, Composition.class)) {
-      return readOnly;
+    if (MetaAnnotations.isPresent(field, Composition.class)) {
+      // The store-backed child CRUD @Composition declares is not implemented: render nothing
+      // rather than a placeholder (it showed a literal "Pending" in read-only views), and say so.
+      warnCompositionOnce(field);
+      return false;
     }
     return true;
+  }
+
+  private static final java.util.Set<String> WARNED_COMPOSITIONS =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+  private static void warnCompositionOnce(Field field) {
+    var key = field.getDeclaringClass().getName() + "." + field.getName();
+    if (WARNED_COMPOSITIONS.add(key)) {
+      org.slf4j.LoggerFactory.getLogger(FormFieldFilter.class)
+          .warn(
+              "@Composition on {} is not rendered: the store-backed child list it declares is not"
+                  + " implemented. Show the children with a List field (an editable grid) or an"
+                  + " embedded orchestrator instead.",
+              key);
+    }
   }
 
   static boolean hiddenInView(Field field) {

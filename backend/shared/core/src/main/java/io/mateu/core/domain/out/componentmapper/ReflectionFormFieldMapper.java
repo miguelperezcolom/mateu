@@ -146,12 +146,8 @@ public class ReflectionFormFieldMapper {
           .style(component.style())
           .build();
     }
-    if (List.class.isAssignableFrom(fieldType)
-        && MetaAnnotations.isPresent(field, Composition.class)) {
-      return createCrudForCompositionField(field, httpRequest, instance);
-    }
     if (MetaAnnotations.isPresent(field, Composition.class)) {
-      return createEditorForCompositionField(field, httpRequest, instance);
+      return compositionField();
     }
     if (List.class.isAssignableFrom(fieldType)
         && !MetaAnnotations.isPresent(field, Lookup.class)
@@ -248,14 +244,13 @@ public class ReflectionFormFieldMapper {
             && ros.isReadOnly(field.getName(), httpRequest));
   }
 
-  private static Component createEditorForCompositionField(
-      Field field, HttpRequest httpRequest, Object instance) {
-    return new io.mateu.uidl.data.Text(field.getName(), "Pending");
-  }
-
-  private static Component createCrudForCompositionField(
-      Field field, HttpRequest httpRequest, Object instance) {
-    return new io.mateu.uidl.data.Text(field.getName(), "Pending");
+  /**
+   * Nothing: {@code @Composition}'s store-backed child CRUD is not implemented, and FormFieldFilter
+   * keeps such a field out of every form (warning once). A caller that maps it anyway gets an empty
+   * element, never a placeholder text (it used to be a literal "Pending").
+   */
+  private static Component compositionField() {
+    return io.mateu.uidl.data.Div.builder().build();
   }
 
   private static Component buildNestedFormField(

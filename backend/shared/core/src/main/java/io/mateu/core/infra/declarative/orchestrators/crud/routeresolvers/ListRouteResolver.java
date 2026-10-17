@@ -89,7 +89,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
 
   private Component createListComponent(HttpRequest httpRequest, Crud orchestrator) {
     var toolbar = new ArrayList<UserTrigger>();
-    orchestrator.addButtonsToList(toolbar);
+    orchestrator.addButtonsToList(toolbar, httpRequest);
     if (orchestrator.behaviourSource() instanceof UploadEnabled) {
       toolbar.add(new Button(orchestrator.importLabel(), "import"));
     }

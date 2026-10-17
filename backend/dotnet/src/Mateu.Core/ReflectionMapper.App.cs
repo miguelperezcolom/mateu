@@ -175,9 +175,10 @@ public sealed partial class ReflectionMapper
     }
 
     /// <summary>Prefixes a menu tree with the mount base path, matching Java's
-    /// AppMenuDtoBuilder.buildMenu: each leaf's <c>Path</c> is the accumulated mount-relative route
-    /// (a submenu child re-prepends the parent's raw path, so an "X" under "/g" declared "/g/x"
-    /// becomes "/g/g/x"), and <c>Route</c> is the mount-prefixed absolute route. Every leaf carries
+    /// AppMenuDtoBuilder.buildMenu: each leaf's <c>Path</c> is its mount-relative route below its
+    /// group — an entry spelled with the mount (<c>/codeapp/home</c>) or already under its group
+    /// (<c>/g/x</c> under <c>/g</c>) resolves ONCE (it used to become <c>/codeapp/codeapp/home</c>
+    /// and <c>/g/g/x</c>) — and <c>Route</c> is the mount-prefixed absolute route. Every leaf carries
     /// <c>ConsumedRoute</c>/<c>UriPrefix</c> = the mount so the client can strip the prefix back off.
     /// A [RemoteMenu] entry keeps its own federated route/consumedRoute/serverSideType.</summary>
     private static List<MenuItemDto> PrefixMenu(IEnumerable<MenuItemDto> items, string appRoute, string prefix) =>
@@ -188,14 +189,14 @@ public sealed partial class ReflectionMapper
             // route — leave it alone so it stays route-less after prefixing.
             if (item.Rules.Count > 0) return item;
             var raw = item.Route ?? "";
-            var path = Prepend(prefix, raw);
+            var path = raw.Length == 0 ? Prepend(prefix, raw) : Relative(appRoute, prefix, raw);
             return item with
             {
                 Path = path,
                 Route = appRoute + path,
                 ConsumedRoute = appRoute,
                 UriPrefix = appRoute,
-                Submenus = PrefixMenu(item.Submenus, appRoute, prefix + raw),
+                Submenus = PrefixMenu(item.Submenus, appRoute, raw.Length == 0 ? prefix : path),
             };
         }).ToList();
 
@@ -228,6 +229,22 @@ public sealed partial class ReflectionMapper
             return item;
         }
         return null;
+    }
+
+    /// <summary>An entry's path below its group and relative to the mount (Java's
+    /// AppMenuDtoBuilder.relative): the mount in front is dropped, and a path already under the group
+    /// is kept as it is.</summary>
+    internal static string Relative(string appRoute, string prefix, string path)
+    {
+        var own = path;
+        if (appRoute.Length > 0 && appRoute != "/" && own.StartsWith(appRoute, StringComparison.Ordinal))
+        {
+            if (own.Length == appRoute.Length) own = "/";
+            else if (own[appRoute.Length] == '/') own = own[appRoute.Length..];
+        }
+        if (prefix.Length == 0 || prefix == "/") return Prepend("", own);
+        if (own == prefix || own.StartsWith(prefix + "/", StringComparison.Ordinal)) return own;
+        return Prepend(prefix, own);
     }
 
     private static string Prepend(string prefix, string path)

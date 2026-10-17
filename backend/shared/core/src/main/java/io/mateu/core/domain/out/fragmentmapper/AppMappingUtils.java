@@ -73,7 +73,17 @@ public class AppMappingUtils {
       // The entry's path is relative to the app; a route that carries the app's own route (an
       // app reached at /e2-demo by a route /e2-demo/page) is compared below it, or no entry of a
       // non-root app is ever selected.
-      return matchesPath(actionable.path(), route)
+      // …and an entry authored WITH the app's route (/e2-demo/page, a code-authored AppShell's
+      // natural spelling) is the same entry as its mount-relative spelling
+      var path = actionable.path();
+      if (appRoute != null
+          && !appRoute.isEmpty()
+          && !"/".equals(appRoute)
+          && path.startsWith(appRoute + "/")
+          && matchesPath(path.substring(appRoute.length()), route)) {
+        return true;
+      }
+      return matchesPath(path, route)
           || (appRoute != null
               && !appRoute.isEmpty()
               && !"/".equals(appRoute)
