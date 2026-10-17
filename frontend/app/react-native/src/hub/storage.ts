@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { platformStore } from '../core/secureStore';
-import type { KeyValueStore } from '../core/sessionId';
-import { UiStore } from './uiStore';
+import { platformStore } from '../core/secureStore.ts';
+import type { KeyValueStore } from '../core/sessionId.ts';
+import { UiStore } from './uiStore.ts';
 
 /** The list of UIs (metadata): AsyncStorage (localStorage on web). Never tokens — see uiStore.ts. */
 export const metaStore: KeyValueStore = {

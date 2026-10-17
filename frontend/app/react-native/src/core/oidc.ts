@@ -1,8 +1,8 @@
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import type { TokenProvider } from './auth';
-import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig';
-import type { KeyValueStore } from './sessionId';
+import type { TokenProvider } from './auth.ts';
+import { isExpiring, parseStoredTokens, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
+import type { KeyValueStore } from './sessionId.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
 // to the opener. A no-op on iOS/Android.
@@ -30,12 +30,18 @@ export class OidcTokenProvider implements TokenProvider {
   private loaded = false;
   private discovery: AuthSession.DiscoveryDocument | null = null;
 
-  constructor(
-    readonly config: OidcConfig,
-    private readonly store: KeyValueStore,
-    /** Where the tokens live — a hub UI passes its own key (uiSecretKeys), so UIs never share them. */
-    private readonly tokensKey: string = TOKENS_KEY,
-  ) {}
+  readonly config: OidcConfig;
+  private readonly store: KeyValueStore;
+  /** Where the tokens live — a hub UI passes its own key (uiSecretKeys), so UIs never share them. */
+  private readonly tokensKey: string;
+
+  // Plain fields, not constructor parameter properties: those are not erasable TypeScript, so
+  // node's type stripping (the unit-test runner) could not load this module.
+  constructor(config: OidcConfig, store: KeyValueStore, tokensKey: string = TOKENS_KEY) {
+    this.config = config;
+    this.store = store;
+    this.tokensKey = tokensKey;
+  }
 
   private async load(): Promise<void> {
     if (this.loaded) return;

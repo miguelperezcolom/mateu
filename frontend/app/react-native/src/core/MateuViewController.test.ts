@@ -1,26 +1,41 @@
 // The view controller is plain TypeScript; only its two platform edges (a11y announcements and
-// document presentation) import react-native / expo, so those two modules are replaced here.
-// Needs `--experimental-test-module-mocks`.
+// document presentation) reach react-native / expo, so those PACKAGES are replaced here — the real
+// a11y.ts and documentEffects.ts run (mocking those modules themselves made node's coverage merge
+// report them as uncovered). Needs `--experimental-test-module-mocks`.
 import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { stubNativePackages } from '../../scripts/test/native-packages.mjs';
+
+stubNativePackages(['react-native', 'expo-web-browser', 'expo-file-system']);
 
 const announced: string[] = [];
 const presented: unknown[] = [];
-mock.module(import.meta.resolve('../a11y/a11y.ts'), {
+mock.module('react-native', {
   namedExports: {
-    announce: (m: string) => announced.push(m),
-    announceLive: (m: string) => announced.push('live:' + m),
-  },
-});
-mock.module(import.meta.resolve('./documentEffects.ts'), {
-  namedExports: {
-    presentDocument: async (data: unknown) => {
-      presented.push(data);
-      if ((data as { fail?: boolean })?.fail) throw new Error('no app can open it');
-      return 'shared';
+    Platform: { OS: 'ios' },
+    AccessibilityInfo: {
+      announceForAccessibility: (m: string) => announced.push(m),
+      announceForAccessibilityWithOptions: (m: string) => announced.push('live:' + m),
     },
+    // the iOS share sheet: a file it cannot hand to anything rejects
+    Share: {
+      share: async (content: { title: string }) => {
+        if (content.title === 'locked.pdf') throw new Error('no app can open it');
+        presented.push(content.title);
+      },
+    },
+    Linking: {},
   },
 });
+mock.module('expo-web-browser', { namedExports: { openBrowserAsync: async (url: string) => { presented.push(url); } } });
+class FakeFile {
+  uri: string;
+  contentUri = '';
+  constructor(_dir: string, name: string) { this.uri = `file:///cache/${name}`; }
+  create() {}
+  write() {}
+}
+mock.module('expo-file-system', { namedExports: { File: FakeFile, Paths: { cache: '/cache' } } });
 
 const { MateuViewController } = await import('./MateuViewController.ts');
 const { MateuSession } = await import('./MateuSession.ts');
@@ -281,10 +296,11 @@ test('CloseModal closes the top overlay and emits the close event; overlays open
 test('documents: DownloadFile is presented; a failure is told to the user; Print is announced, not dropped', async () => {
   const { c, notes } = harness();
   announced.length = 0;
-  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { name: 'a.pdf' } }, { type: 'Print' }, { type: 'Announce', data: { text: 'Done' } }] });
-  assert.deepEqual(presented.at(-1), { name: 'a.pdf' });
+  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { filename: 'a.pdf', base64Content: 'aGk=' } }, { type: 'Print' }, { type: 'Announce', data: { text: 'Done' } }] });
+  await tick();
+  assert.deepEqual(presented.at(-1), 'a.pdf');
   assert.deepEqual(announced, ['live:Printing is not available in the mobile app', 'live:Done']);
-  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { fail: true } }] });
+  c.applyIncrement({ commands: [{ type: 'DownloadFile', data: { filename: 'locked.pdf', base64Content: 'aGk=' } }] });
   await tick();
   assert.equal(notes.at(-1)!.text, 'no app can open it');
 });
