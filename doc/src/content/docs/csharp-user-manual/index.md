@@ -54,15 +54,15 @@ renderer is — `app.MapMateu(ui: "<path>")` or the `MATEU_UI` environment varia
 `static/` folder. The jar is on Maven Central; the NuGet packages do not include it:
 
 ```bash
-V=3.0-alpha.422
+V=3.0-alpha.425
 curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
 MATEU_UI=mateu-vaadin-$V.jar dotnet run --project samples/Mateu.Demo   # http://localhost:8593
 ```
 
 The page answers the mount and every deep link under it, the renderer's assets are served at the
 origin root, your own endpoints keep winning, and nothing under `/mateu` is ever answered with the
-page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only,
-for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
+page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only (a browser opening the mount
+gets a short hint page, status 404, that says so), for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
 EXPO_PUBLIC_MATEU_BACKEND_PORT=8593 npx expo start --web` — or
 `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8593`; the server must list that origin in its CORS
 settings), the IntelliJ plugin, or the Vaadin renderer's dev server (`MATEU_BACKEND=http://localhost:8593

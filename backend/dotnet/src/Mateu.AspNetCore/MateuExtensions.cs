@@ -192,6 +192,27 @@ public static class MateuExtensions
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
 
         if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, renderer);
+        else ServeApiHint(app, prefix);
+    }
+
+    /// <summary>No renderer: a GET of the mount that explicitly accepts HTML (a browser navigation)
+    /// and that nothing else answered gets <see cref="UiPage.ApiHintPage"/> — still a 404, so a JSON
+    /// client or a health check sees exactly what it saw before.</summary>
+    private static void ServeApiHint(WebApplication app, string prefix)
+    {
+        app.Use(async (ctx, next) =>
+        {
+            await next(ctx);
+            if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
+            if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
+            var path = ctx.Request.Path.Value ?? "/";
+            if (path != (prefix.Length == 0 ? "/" : prefix) && path != prefix + "/") return;
+            if (!ctx.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.Ordinal)) return;
+            var body = System.Text.Encoding.UTF8.GetBytes(UiPage.ApiHintPage(prefix));
+            ctx.Response.ContentType = "text/html; charset=utf-8";
+            ctx.Response.ContentLength = body.Length;
+            if (!HttpMethods.IsHead(ctx.Request.Method)) await ctx.Response.Body.WriteAsync(body, ctx.RequestAborted);
+        });
     }
 
     /// <summary>Serves a web renderer's page and assets for whatever the app itself did not answer —

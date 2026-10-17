@@ -57,15 +57,15 @@ at the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar of the version you targe
 extracted `static/` folder. The jar is on Maven Central; `mateu-ui` does not package it:
 
 ```bash
-V=3.0-alpha.422
+V=3.0-alpha.425
 curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
 MATEU_UI=mateu-vaadin-$V.jar uvicorn samples.demo.main:app --port 8594   # http://localhost:8594
 ```
 
 The page answers the mount and every deep link under it, the renderer's assets are served at the
 origin root, your own routes keep winning, and nothing under `/mateu` is ever answered with the
-page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only,
-for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
+page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only (a browser opening the mount
+gets a short hint page, status 404, that says so), for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
 EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web` — or
 `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that origin in its CORS
 settings), the IntelliJ plugin, or the Vaadin renderer's dev server (`MATEU_BACKEND=http://localhost:8594

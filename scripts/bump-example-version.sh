@@ -10,11 +10,20 @@
 # a starter pinned to a version Central does not have yet fails for everyone who copies it.
 set -euo pipefail
 new=${1:?usage: $0 <version, e.g. 3.0-alpha.407>}
+[[ $new =~ ^[0-9]+\.[0-9]+-[a-z]+\.[0-9]+$ ]] || { echo "not a release version: $new (e.g. 3.0-alpha.407)" >&2; exit 2; }
 cd "$(dirname "$0")/.."
 files=$(grep -rlE '<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>' --include=pom.xml starters demo || true)
 files="$files $(grep -lE '<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>' doc/public/*.md || true)"
 for f in $files; do
   sed -E -i.bak "s#<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>#<mateu.version>$new</mateu.version>#" "$f"
+  rm -f "$f.bak"
+  echo "$f → $new"
+done
+# The .NET and Python guides download the web renderer of a release to serve it (MATEU_UI=…).
+for f in doc/src/content/docs/csharp-user-manual/index.md doc/src/content/docs/python-user-manual/index.md \
+         backend/dotnet/README.md backend/python/README.md; do
+  sed -E -i.bak -e "s#^V=[0-9]+\.[0-9]+-[a-z]+\.[0-9]+\$#V=$new#" \
+                -e "s#mateu-vaadin-[0-9]+\.[0-9]+-[a-z]+\.[0-9]+\.jar#mateu-vaadin-$new.jar#g" "$f"
   rm -f "$f.bak"
   echo "$f → $new"
 done
