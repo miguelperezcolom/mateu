@@ -32,7 +32,7 @@ import { chromeText } from './i18n.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
-import { defineMarkupField } from './richtext.mjs'
+import { defineMarkupField, defineRichTextField, installRichText } from './richtext.mjs'
 
 // en el bridge todo comparte un scope: keys.mjs usa el shortcutMatches de actionPanels.mjs sin
 // importarlo. En Node, módulos separados — se le da por el global, como lo vería el bridge.
@@ -782,6 +782,88 @@ test('markup field: an editable markdown/html edits its source and previews it r
   assert.equal(widget.markupKind, 'markdown')
   assert.equal(widget.isTextArea, false)
   assert.ok(!fieldWidgetOf({ fieldId: 'notes', stereotype: 'html', readOnly: true }, {}, { value: '' }).isMarkupEditor)
+})
+
+test('rich text field: opens a legacy Delta as HTML, commits on blur only when it changed, empty is null', () => {
+  const { doc, win, fire } = makeDom()
+  defineRichTextField(win)
+  defineRichTextField(win) // twice: defined once
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('aria-label', 'Notes')
+  f.setAttribute('value', JSON.stringify({ ops: [{ insert: 'Hi', attributes: { bold: true } }, { insert: '\n' }] }))
+  const values = []
+  f.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(f)
+  const area = f.querySelector('.mateu-rte-area')
+  assert.equal(area.getAttribute('role'), 'textbox')
+  assert.equal(area.getAttribute('aria-label'), 'Notes')
+  assert.match(area.innerHTML, /<strong>Hi<\/strong>/, 'the Delta opened as HTML')
+  assert.equal(f.querySelector('.mateu-rte-toolbar').querySelectorAll('oj-button').length, 7)
+  fire(area, 'blur')
+  assert.deepEqual(values, [], 'nothing changed: nothing committed')
+  area.innerHTML = '<p>New <script>x</script>text</p>'
+  fire(area, 'blur')
+  assert.deepEqual(values, ['<p>New text</p>'], 'committed sanitised')
+  assert.equal(f.value, '<p>New text</p>')
+  assert.ok(f.querySelector('.mateu-rte-area'), 'committing does not repaint under the caret')
+  area.innerHTML = '<p><br></p>'
+  fire(area, 'blur')
+  assert.deepEqual(values, ['<p>New text</p>', null], 'an editor left empty is null')
+  assert.equal(f.hasAttribute('value'), false)
+  // read only: the rendered HTML, no editor
+  f.setAttribute('readonly', '')
+  assert.equal(f.querySelector('.mateu-rte-area'), null)
+  assert.ok(f.querySelector('.mateu-atom-richtext'))
+  f.setAttribute('readonly', 'false')
+  assert.ok(f.querySelector('.mateu-rte-area'), 'readonly="false" is editable')
+})
+
+test('rich text field: the toolbar and Ctrl+B format; a link must be safe', () => {
+  const { doc, win, fire } = makeDom()
+  defineRichTextField(win)
+  const commands = []
+  doc.execCommand = (cmd, _ui, arg) => { commands.push([cmd, arg]) }
+  let answer = 'javascript:alert(1)'
+  win.prompt = () => answer
+  const f = doc.createElement('mateu-rich-text-field')
+  f.setAttribute('value', '<p>x</p>')
+  doc.body.appendChild(f)
+  const buttons = f.querySelectorAll('oj-button')
+  const press = (i) => buttons[i].dispatchEvent(new FakeEvent('ojAction', { bubbles: true }))
+  const down = new FakeEvent('mousedown', { bubbles: true })
+  buttons[0].dispatchEvent(down)
+  assert.equal(down.defaultPrevented, true, 'the button keeps the selection in the editor')
+  press(0)
+  press(5) // createLink with an unsafe url: refused
+  answer = 'https://example.com'
+  press(5)
+  answer = null
+  press(5) // cancelled
+  fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'B', ctrlKey: true })
+  fire(f.querySelector('.mateu-rte-area'), 'keydown', { key: 'q', ctrlKey: true })
+  assert.deepEqual(commands, [['bold', null], ['createLink', 'https://example.com'], ['bold', null]])
+})
+
+test('rich text in content: [data-mateu-html] gets its sanitised HTML now and whenever it changes', () => {
+  const { doc, el } = makeDom()
+  let observer = null
+  const realMO = globalThis.MutationObserver
+  globalThis.MutationObserver = class { constructor(cb) { observer = cb } observe() {} }
+  try {
+    const box = el('div', { 'data-mateu-html': '<b>bold</b><img src=x onerror="alert(1)">' })
+    doc.body.appendChild(box)
+    installRichText(doc)
+    installRichText(doc) // once per document
+    assert.match(box.innerHTML, /<b>bold<\/b>/)
+    assert.ok(!/onerror/.test(box.innerHTML), 'sanitised again on the way in')
+    box.setAttribute('data-mateu-html', '<i>changed</i>')
+    observer([{ type: 'attributes', target: box }])
+    assert.equal(box.innerHTML, '<i>changed</i>')
+    const later = el('section', {}, el('p', { 'data-mateu-html': '<u>late</u>' }))
+    doc.body.appendChild(later)
+    observer([{ type: 'childList', addedNodes: [later, doc.createTextNode('text')] }])
+    assert.equal(later.querySelector('p').innerHTML, '<u>late</u>')
+  } finally { globalThis.MutationObserver = realMO }
 })
 
 // ── tabla ────────────────────────────────────────────────────────────────────────────────────
