@@ -23,13 +23,13 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     val title = metadata.text("title")
     if (title.isNotBlank()) {
-        val l = JBLabel(title)
+        val l = JBLabel(plain(title))
         l.font = l.font.deriveFont(Font.BOLD, 16f)
         panel.addStacked(l, 4)
     }
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(subtitle)
+        val l = JBLabel(plain(subtitle))
         l.foreground = ToneColors.secondaryText()
         panel.addStacked(l, 8)
     }

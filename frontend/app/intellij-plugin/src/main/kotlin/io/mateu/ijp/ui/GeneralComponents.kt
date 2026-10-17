@@ -53,7 +53,7 @@ private fun kids(component: JsonNode): List<JsonNode> = component.path("children
 private fun renderAll(r: ComponentRenderer, nodes: List<JsonNode>, state: JsonNode, data: JsonNode): JPanel =
     verticalPanel().also { p -> nodes.forEach { p.addStacked(r.render(it, state, data), JBGap) } }
 
-private fun muted(text: String, smaller: Boolean = true) = JBLabel(text).apply {
+private fun muted(text: String, smaller: Boolean = true) = JBLabel(plain(text)).apply {
     foreground = UIUtil.getContextHelpForeground()
     if (smaller) font = font.deriveFont(font.size2D * 0.9f)
 }
@@ -187,7 +187,7 @@ fun renderFormItem(r: ComponentRenderer, component: JsonNode, state: JsonNode, d
 /** A Tab / AccordionPanel met outside its container: a titled group of its children. */
 fun renderTitledChildren(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent =
     renderAll(r, kids(component), state, data).apply {
-        border = IdeBorderFactory.createTitledBorder(metadata.text("label"), false)
+        border = IdeBorderFactory.createTitledBorder(plain(metadata.text("label")), false)
     }
 
 // ── navigation ─────────────────────────────────────────────────────────────────────────────
@@ -199,12 +199,12 @@ fun renderBreadcrumbs(ctx: AppContext, metadata: JsonNode): JComponent {
     crumbs.forEachIndexed { i, b ->
         if (i > 0) row.add(muted("›", smaller = false))
         val link = b.text("link")
-        row.add(if (link.isNotBlank()) ActionLink(b.text("text")) { ctx.navigate(link, "", null, "") } else JBLabel(b.text("text")))
+        row.add(if (link.isNotBlank()) ActionLink(plain(b.text("text"))) { ctx.navigate(link, "", null, "") } else JBLabel(plain(b.text("text"))))
     }
     val current = metadata.text("currentItemText")
     if (current.isNotBlank()) {
         if (crumbs.isNotEmpty()) row.add(muted("›", smaller = false))
-        row.add(JBLabel(current).apply { font = font.deriveFont(Font.BOLD) })
+        row.add(JBLabel(plain(current)).apply { font = font.deriveFont(Font.BOLD) })
     }
     return row.accessibleName("Breadcrumbs")
 }
@@ -217,11 +217,11 @@ private fun menuItemsOf(ctx: AppContext, options: List<JsonNode>, add: (JCompone
         }
         val subs = o.path("submenus").items()
         if (subs.isNotEmpty()) {
-            val menu = JMenu(o.text("label"))
+            val menu = JMenu(plain(o.text("label")))
             menuItemsOf(ctx, subs) { menu.add(it) }
             add(menu)
         } else {
-            add(JMenuItem(o.text("label")).apply {
+            add(JMenuItem(plain(o.text("label"))).apply {
                 isEnabled = !o.bool("disabled")
                 addActionListener { openMenuOption(ctx, o) }
             })
@@ -239,7 +239,7 @@ fun renderMenuBar(ctx: AppContext, metadata: JsonNode): JComponent {
     for (o in metadata.path("options").items()) {
         if (o.bool("separator")) continue
         val subs = o.path("submenus").items()
-        val button = JButton(if (subs.isEmpty()) o.text("label") else o.text("label") + " ▾")
+        val button = JButton(plain(if (subs.isEmpty()) o.text("label") else o.text("label") + " ▾"))
         button.isEnabled = !o.bool("disabled")
         button.accessibleName(o.text("label"))
         if (subs.isEmpty()) {
@@ -279,13 +279,13 @@ fun renderDirectory(ctx: AppContext, metadata: JsonNode): JComponent {
             if (o.bool("separator")) continue
             val subs = o.path("submenus").items()
             if (subs.isNotEmpty()) {
-                panel.addStacked(JBLabel(o.text("label")).apply {
+                panel.addStacked(JBLabel(plain(o.text("label"))).apply {
                     font = font.deriveFont(Font.BOLD)
                     border = JBUI.Borders.emptyLeft(depth * 12)
                 }, 6)
                 addAll(subs, depth + 1)
             } else {
-                panel.addStacked(ActionLink(o.text("label")) { openMenuOption(ctx, o) }.apply {
+                panel.addStacked(ActionLink(plain(o.text("label"))) { openMenuOption(ctx, o) }.apply {
                     border = JBUI.Borders.emptyLeft(depth * 12)
                 }, 2)
                 o.text("description").takeIf { it.isNotBlank() }?.let {
@@ -331,7 +331,7 @@ fun renderGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         override fun isCellEditable(row: Int, column: Int) = false
     }
     rows.forEach { row -> model.addRow(ids.map { cellText(row.path(it)) }.toTypedArray()) }
-    val table = JBTable(model).apply {
+    val table = JBTable(model).plainCells().apply {
         setShowGrid(metadata.bool("columnBorders"))
         emptyText.text = "No data."
         accessibleName(component.text("id").ifBlank { "Grid" })
@@ -349,7 +349,7 @@ fun renderVirtualList(component: JsonNode, metadata: JsonNode, state: JsonNode, 
             else -> row.properties().asSequence().take(3).map { cellText(it.value) }.filter { it.isNotBlank() }.joinToString(" · ")
         }
     }
-    val list = JBList(rows).apply { emptyText.text = "No items."; accessibleName("List") }
+    val list = JBList(rows).apply { cellRenderer = plainItems(cellRenderer); emptyText.text = "No items."; accessibleName("List") }
     return JBScrollPane(list).fixedHeight(JBUI.scale(24) * rows.size.coerceIn(3, 15))
 }
 
@@ -360,7 +360,7 @@ fun renderAvatar(metadata: JsonNode): JComponent {
         name.split(Regex("\\s+")).filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }
     }.ifBlank { "?" }
     return AvatarLabel(initials, avatarColor(name.ifBlank { initials })).apply {
-        toolTipText = name.ifBlank { null }
+        toolTipText = plainTip(name.ifBlank { null })
         accessibleName(name.ifBlank { initials })
     }
 }
@@ -375,7 +375,7 @@ fun renderAvatarGroup(metadata: JsonNode): JComponent {
     return row.accessibleName(avatars.joinToString(", ") { it.text("name") }.ifBlank { "Avatars" })
 }
 
-private class AvatarLabel(text: String, private val fill: Color) : JBLabel(text, SwingConstants.CENTER) {
+private class AvatarLabel(text: String, private val fill: Color) : JBLabel(plain(text), SwingConstants.CENTER) {
     init {
         foreground = Color.WHITE
         font = font.deriveFont(Font.BOLD, font.size2D * 0.85f)
@@ -437,7 +437,7 @@ fun renderDetails(r: ComponentRenderer, metadata: JsonNode, state: JsonNode, dat
 /** Tooltip: the wrapped component with the tooltip text. */
 fun renderTooltip(r: ComponentRenderer, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent =
     r.render(metadata.path("wrapped"), state, data).apply {
-        toolTipText = metadata.text("text")
+        toolTipText = plainTip(metadata.text("text"))
         accessibleDescription(metadata.text("text"))
     }
 
@@ -445,8 +445,8 @@ fun renderTooltip(r: ComponentRenderer, metadata: JsonNode, state: JsonNode, dat
 fun renderNotification(metadata: JsonNode): JComponent = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), JBUI.scale(6))).apply {
     background = JBUI.CurrentTheme.NotificationInfo.backgroundColor()
     border = BorderFactory.createLineBorder(JBUI.CurrentTheme.NotificationInfo.borderColor())
-    metadata.text("title").takeIf { it.isNotBlank() }?.let { add(JBLabel(it).apply { font = font.deriveFont(Font.BOLD) }) }
-    metadata.text("text").takeIf { it.isNotBlank() }?.let { add(JBLabel(it)) }
+    metadata.text("title").takeIf { it.isNotBlank() }?.let { add(JBLabel(plain(it)).apply { font = font.deriveFont(Font.BOLD) }) }
+    metadata.text("text").takeIf { it.isNotBlank() }?.let { add(JBLabel(plain(it))) }
     accessibleName(listOf(metadata.text("title"), metadata.text("text")).filter { it.isNotBlank() }.joinToString(": "))
 }
 
@@ -467,13 +467,13 @@ fun renderResult(ctx: AppContext, metadata: JsonNode): JComponent {
         else -> JBUI.CurrentTheme.Banner.INFO_BORDER_COLOR
     }
     val panel = verticalPanel()
-    panel.addStacked(JBLabel(icon).apply { foreground = color; font = font.deriveFont(Font.BOLD, font.size2D * 2.5f) }, 0)
-    panel.addStacked(JBLabel(metadata.text("title", type)).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, JBGap)
+    panel.addStacked(JBLabel(plain(icon)).apply { foreground = color; font = font.deriveFont(Font.BOLD, font.size2D * 2.5f) }, 0)
+    panel.addStacked(JBLabel(plain(metadata.text("title", type))).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, JBGap)
     metadata.text("message").takeIf { it.isNotBlank() }?.let { panel.addStacked(JBLabel("<html>${SafeHtml.sanitize(it)}</html>"), JBGap) }
     fun destination(d: JsonNode): JComponent {
         val label = d.text("description", d.text("value"))
         val value = d.text("value")
-        return ActionLink(label) {
+        return ActionLink(plain(label)) {
             when (d.text("type")) {
                 "ActionId", "Action", "action" -> ctx.runAction(value.ifBlank { d.text("id") }, null)
                 else -> if (value.startsWith("/")) ctx.navigate(value, "", null, "") else SafeHtml.browse(value)
@@ -488,10 +488,10 @@ fun renderResult(ctx: AppContext, metadata: JsonNode): JComponent {
 /** NotFound: title, message and a way back. */
 fun renderNotFound(ctx: AppContext, metadata: JsonNode): JComponent {
     val panel = verticalPanel()
-    panel.addStacked(JBLabel(metadata.text("title", "Not found")).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, 0)
+    panel.addStacked(JBLabel(plain(metadata.text("title", "Not found"))).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.4f) }, 0)
     panel.addStacked(muted(metadata.text("message", "The page you are looking for does not exist."), smaller = false), JBGap)
     val back = metadata.text("backRoute")
-    if (back.isNotBlank()) panel.addStacked(ActionLink(metadata.text("backLabel", "Go back")) { ctx.navigate(back, "", null, "") }, JBGap)
+    if (back.isNotBlank()) panel.addStacked(ActionLink(plain(metadata.text("backLabel", "Go back"))) { ctx.navigate(back, "", null, "") }, JBGap)
     return panel
 }
 
@@ -506,12 +506,12 @@ fun renderCookieConsent(metadata: JsonNode): JComponent {
         background = JBUI.CurrentTheme.NotificationInfo.backgroundColor()
     }
     val text = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
-    text.add(JBLabel(metadata.text("message", "This app uses cookies.")))
+    text.add(JBLabel(plain(metadata.text("message", "This app uses cookies."))))
     metadata.text("learnMoreLink").takeIf { it.isNotBlank() }?.let { link ->
-        text.add(ActionLink(metadata.text("learnMore", "Learn more")) { SafeHtml.browse(link) })
+        text.add(ActionLink(plain(metadata.text("learnMore", "Learn more"))) { SafeHtml.browse(link) })
     }
     strip.add(text, BorderLayout.CENTER)
-    strip.add(JButton(metadata.text("dismiss", "Got it")).apply {
+    strip.add(JButton(plain(metadata.text("dismiss", "Got it"))).apply {
         addActionListener {
             dismissedConsents += key
             strip.isVisible = false
@@ -526,6 +526,7 @@ fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
     val name = metadata.text("name", "div")
     val content = metadata.text("content")
     val html = if (metadata.bool("html")) SafeHtml.sanitize(content) else com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(content)
+    // trusted markup the plugin builds: the content inside it is sanitised or escaped above
     val label = JBLabel(if (name in setOf("h1", "h2", "h3", "h4", "b", "strong", "em", "i", "small", "code", "pre")) {
         "<html><$name>$html</$name></html>"
     } else {
@@ -555,7 +556,7 @@ fun renderBpmn(metadata: JsonNode): JComponent {
             kind.contains("Gateway") -> "◇"
             else -> "▭"
         }
-        panel.addStacked(JBLabel("${if (i > 0) "↓ " else ""}$glyph $label"), 2)
+        panel.addStacked(JBLabel(plain("${if (i > 0) "↓ " else ""}$glyph $label")), 2)
     }
     return panel.accessibleName("BPMN process: " + nodes.joinToString(", ") { it.second })
 }
@@ -602,7 +603,7 @@ fun renderSourceView(title: String, value: String): JComponent {
         rows = value.lines().size.coerceIn(3, 20)
         accessibleName(title)
     }
-    return JBScrollPane(area).apply { border = IdeBorderFactory.createTitledBorder(title, false) }
+    return JBScrollPane(area).apply { border = IdeBorderFactory.createTitledBorder(plain(title), false) }
         .let { it.fixedHeight(it.preferredSize.height) }
 }
 

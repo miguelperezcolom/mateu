@@ -84,7 +84,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
             val row = javax.swing.JPanel(java.awt.BorderLayout(JBUI.scale(6), 0))
             row.isOpaque = false
             row.border = JBUI.Borders.empty(4, 8)
-            val caption = JBLabel(selector.text("label", fieldName))
+            val caption = JBLabel(plain(selector.text("label", fieldName)))
             row.add(caption, java.awt.BorderLayout.WEST)
             val combo = com.intellij.openapi.ui.ComboBox<Pair<String, String>>()
             // The caption beside the combo was only visual: a screen reader announced an unnamed
@@ -94,7 +94,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
                 javax.swing.ListCellRenderer<Any> { list, value, index, isSelected, cellHasFocus ->
                     @Suppress("UNCHECKED_CAST")
                     val pair = value as? Pair<String, String>
-                    base.getListCellRendererComponent(list, pair?.second ?: "—", index, isSelected, cellHasFocus)
+                    base.getListCellRendererComponent(list, plain(pair?.second ?: "—"), index, isSelected, cellHasFocus)
                 }
             }
             combo.addItem("" to "—")
@@ -147,13 +147,13 @@ private fun addMenuItems(session: AppSession, panel: javax.swing.JPanel, menu: J
         if (MenuCards.isCardsGroup(item)) {
             addMenuCards(session, panel, item, depth)
         } else if (submenus.isArray && !submenus.isEmpty) {
-            val header = JBLabel(if (depth == 0) label.uppercase() else label)
+            val header = JBLabel(plain(if (depth == 0) label.uppercase() else label))
             header.font = header.font.deriveFont(Font.BOLD)
             header.border = JBUI.Borders.empty(6, depth * 12, 2, 0)
             panel.addStacked(header, 2)
             addMenuItems(session, panel, submenus, depth + 1)
         } else {
-            val link = ActionLink(label) { openMenuEntry(session, item) }
+            val link = ActionLink(plain(label)) { openMenuEntry(session, item) }
             link.border = JBUI.Borders.emptyLeft(depth * 12)
             panel.addStacked(link, 2)
         }
@@ -174,7 +174,7 @@ private const val CARD_ICON_SIZE = 32
 private fun addMenuCards(session: AppSession, panel: javax.swing.JPanel, group: JsonNode, depth: Int) {
     val groupLabel = group.text("label")
     if (groupLabel.isNotBlank()) {
-        val header = JBLabel(if (depth == 0) groupLabel.uppercase() else groupLabel)
+        val header = JBLabel(plain(if (depth == 0) groupLabel.uppercase() else groupLabel))
         header.font = header.font.deriveFont(Font.BOLD)
         header.border = JBUI.Borders.empty(6, depth * 12, 2, 0)
         panel.addStacked(header, 2)
@@ -196,15 +196,15 @@ private fun menuCard(session: AppSession, card: MenuCards.Card, depth: Int): JCo
 
     val text = verticalPanel(0)
     val title: JComponent = if (card.target != null) {
-        ActionLink(card.title) { openMenuEntry(session, card.target) }
+        ActionLink(plain(card.title)) { openMenuEntry(session, card.target) }
     } else {
-        JBLabel(card.title)
+        JBLabel(plain(card.title))
     }
     title.font = title.font.deriveFont(Font.BOLD)
     title.accessibleName(card.title).accessibleDescription(card.description)
     text.addStacked(title, 2)
     card.description?.let { description ->
-        val secondary = JBLabel(description)
+        val secondary = JBLabel(plain(description))
         secondary.foreground = com.intellij.util.ui.UIUtil.getContextHelpForeground()
         secondary.font = JBUI.Fonts.smallFont()
         text.addStacked(secondary, 2)
@@ -214,7 +214,7 @@ private fun menuCard(session: AppSession, card: MenuCards.Card, depth: Int): JCo
         actions.isOpaque = false
         for (action in card.actions) {
             val actionLabel = action.text("label")
-            val link = ActionLink(actionLabel) { openMenuEntry(session, action) }
+            val link = ActionLink(plain(actionLabel)) { openMenuEntry(session, action) }
             link.font = JBUI.Fonts.smallFont()
             // the action label alone ("New", "List") is ambiguous out of the card's visual context
             link.accessibleName("${card.title}: $actionLabel")
@@ -264,7 +264,7 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
     return when {
         ideIcon != null -> JBLabel(ideIcon).apply { verticalAlignment = javax.swing.SwingConstants.TOP }
         // a glyph (emoji) is shown as text; an unmapped design-system name (`vaadin:…`) is dropped
-        !name.contains(':') -> JBLabel(name).apply {
+        !name.contains(':') -> JBLabel(plain(name)).apply {
             font = font.deriveFont(font.size2D * 1.5f)
             verticalAlignment = javax.swing.SwingConstants.TOP
         }

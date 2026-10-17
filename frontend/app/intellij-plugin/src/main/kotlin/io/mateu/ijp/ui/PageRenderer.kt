@@ -30,7 +30,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // The canonical header's quiet line above the title (PageDto.overline).
     val overline = metadata.text("overline")
     if (overline.isNotBlank()) {
-        header.addStacked(JBLabel(overline.uppercase()).apply {
+        header.addStacked(JBLabel(plain(overline.uppercase())).apply {
             foreground = ToneColors.secondaryText()
             font = font.deriveFont(font.size2D * 0.85f)
         }, 2)
@@ -38,7 +38,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // While there is no title yet, the placeholder stands in its place, dimmed (PageDto.titlePlaceholder).
     val placeholder = metadata.text("titlePlaceholder")
     if (title.isBlank() && placeholder.isNotBlank()) {
-        header.addStacked(JBLabel(placeholder).apply {
+        header.addStacked(JBLabel(plain(placeholder)).apply {
             font = font.deriveFont(Font.BOLD, 20f)
             foreground = ToneColors.secondaryText()
         }, 4)
@@ -47,7 +47,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0))
         titleRow.isOpaque = false
         if (title.isNotBlank()) {
-            val l = JBLabel(title)
+            val l = JBLabel(plain(title))
             l.font = l.font.deriveFont(Font.BOLD, 20f)
             titleRow.add(l)
         }
@@ -56,14 +56,14 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     }
     val subtitle = io.mateu.ijp.state.Expressions.interpolate(metadata.text("subtitle"), exprCtx)
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(subtitle)
+        val l = JBLabel(plain(subtitle))
         l.foreground = ToneColors.secondaryText()
         header.addStacked(l, 8)
     }
     // "Last updated …" under the subtitle (PageDto.timestamp).
     val timestamp = metadata.text("timestamp")
     if (timestamp.isNotBlank()) {
-        header.addStacked(JBLabel(timestamp).apply { foreground = ToneColors.secondaryText() }, 6)
+        header.addStacked(JBLabel(plain(timestamp)).apply { foreground = ToneColors.secondaryText() }, 6)
     }
     // Previous / next record (PageDto.peerNav): a side without a route is disabled.
     val peerNav = metadata.path("peerNav")
@@ -75,7 +75,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val route = peerNav.text(routeKey)
             if (label.isBlank() && route.isBlank()) continue
             val text = if (arrow == "‹") "‹ $label" else "$label ›"
-            val button = javax.swing.JButton(text)
+            val button = javax.swing.JButton(plain(text))
             button.isEnabled = route.isNotBlank()
             button.accessibleContext.accessibleName = (if (arrow == "‹") "Previous: " else "Next: ") + label
             button.addActionListener { r.ctx.openRoute(route) }
@@ -99,10 +99,10 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         row.isOpaque = false
         for (k in kpis) {
             val cell = verticalPanel(0)
-            val value = JBLabel(io.mateu.ijp.state.Expressions.interpolate(k.text("text"), exprCtx))
+            val value = JBLabel(plain(io.mateu.ijp.state.Expressions.interpolate(k.text("text"), exprCtx)))
             value.font = value.font.deriveFont(Font.BOLD, 18f)
             cell.addStacked(value, 0)
-            cell.addStacked(JBLabel(io.mateu.ijp.state.Expressions.interpolate(k.text("title"), exprCtx)).apply {
+            cell.addStacked(JBLabel(plain(io.mateu.ijp.state.Expressions.interpolate(k.text("title"), exprCtx))).apply {
                 foreground = ToneColors.secondaryText()
             }, 0)
             row.add(cell)
@@ -165,7 +165,7 @@ private fun renderBanner(banner: JsonNode): JComponent {
     )
     val bTitle = banner.text("title")
     if (bTitle.isNotBlank()) {
-        val l = JBLabel(bTitle)
+        val l = JBLabel(plain(bTitle))
         l.foreground = fg
         l.font = l.font.deriveFont(Font.BOLD)
         l.alignmentX = Component.LEFT_ALIGNMENT
@@ -173,7 +173,7 @@ private fun renderBanner(banner: JsonNode): JComponent {
     }
     val desc = banner.text("description")
     if (desc.isNotBlank()) {
-        val l = JBLabel(desc)
+        val l = JBLabel(plain(desc))
         l.foreground = fg
         l.alignmentX = Component.LEFT_ALIGNMENT
         panel.add(l)
@@ -194,7 +194,7 @@ internal fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponen
         "warning" -> ToneColors.Tone.WARNING
         else -> ToneColors.Tone.NEUTRAL
     }
-    return JBLabel(io.mateu.ijp.state.Expressions.interpolate(badge.text("text"), exprCtx)).apply {
+    return JBLabel(plain(io.mateu.ijp.state.Expressions.interpolate(badge.text("text"), exprCtx))).apply {
         isOpaque = true
         background = ToneColors.background(tone)
         foreground = ToneColors.foreground()
@@ -211,7 +211,7 @@ internal fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponen
 internal fun renderRecordSwitcher(r: ComponentRenderer, switcher: PageSlots.Switcher): JComponent {
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0))
     row.isOpaque = false
-    val hint = JBLabel(switcher.label)
+    val hint = JBLabel(plain(switcher.label))
     hint.foreground = ToneColors.secondaryText()
     row.add(hint)
 

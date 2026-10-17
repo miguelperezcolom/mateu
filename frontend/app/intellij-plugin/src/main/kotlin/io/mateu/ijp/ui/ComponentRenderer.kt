@@ -21,7 +21,7 @@ class ComponentRenderer(val ctx: AppContext) {
         val widget = when (component.text("type", "ClientSide")) {
             "ClientSide" -> renderClientSide(component, state, data)
             "ServerSide" -> ctx.loadServerSideComponent(component)
-            else -> JBLabel("Unknown component type: ${component.text("type")}")
+            else -> JBLabel(plain("Unknown component type: ${component.text("type")}"))
         }
         // Tag the widget with the wire component it rendered, so the visual-builder preview can map a
         // drop back to its YAML source (see DropTargeting). Unused/harmless outside the builder.
@@ -48,7 +48,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "RecordMerge" -> renderRecordMerge(ctx, metadata)
             "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
             "Map" -> renderMap(ctx, metadata)
-            "Text" -> JBLabel(metadata.text("text")).also { label ->
+            "Text" -> JBLabel(plain(metadata.text("text"))).also { label ->
                 // IJ-11: a Text in an h1–h6 container is a HEADING (a wizard's title arrives as an
                 // h2) — it rendered as body text. Bold and sized on the platform's title scale.
                 headingScale(metadata.text("container"))?.let { scale ->
@@ -139,9 +139,9 @@ class ComponentRenderer(val ctx: AppContext) {
             // ── display ──
             "Grid" -> renderGrid(this, component, metadata, state, data)
             // A GridColumn outside its Grid: just its header text.
-            "GridColumn" -> JBLabel(metadata.text("label", metadata.text("id")))
+            "GridColumn" -> JBLabel(plain(metadata.text("label", metadata.text("id"))))
             // A column group outside its Grid/Crud: its header text (inside one it is flattened).
-            "GridGroupColumn" -> JBLabel(metadata.text("label", metadata.text("id")))
+            "GridGroupColumn" -> JBLabel(plain(metadata.text("label", metadata.text("id"))))
             "VirtualList" -> renderVirtualList(component, metadata, state, data)
             "Avatar" -> renderAvatar(metadata)
             "AvatarGroup" -> renderAvatarGroup(metadata)
@@ -171,13 +171,13 @@ class ComponentRenderer(val ctx: AppContext) {
                 val kids = renderChildren(component, state, data)
                 CustomComponentRegistry.resolve(name)?.invoke(metadata, kids)
                     ?: JPanel(VerticalLayout(JBGap)).also { panel ->
-                        panel.add(JBLabel("Custom component \"$name\" is not registered on this renderer"))
+                        panel.add(JBLabel(plain("Custom component \"$name\" is not registered on this renderer")))
                         panel.add(kids)
                     }
             }
             else -> {
                 val t = metadata.text("type")
-                if (t.isNotBlank()) JBLabel("Unsupported component: $t")
+                if (t.isNotBlank()) JBLabel(plain("Unsupported component: $t"))
                 else renderChildren(component, state, data)
             }
         }

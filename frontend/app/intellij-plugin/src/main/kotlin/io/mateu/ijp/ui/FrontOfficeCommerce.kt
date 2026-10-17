@@ -38,20 +38,20 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         isOpaque = false
         add(uxChip(tag, "contrast"))
     }, 4)
-    panel.addStacked(JBLabel(metadata.text("title")).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
+    panel.addStacked(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
     val subtitle = metadata.text("subtitle")
-    if (subtitle.isNotBlank()) panel.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 4)
+    if (subtitle.isNotBlank()) panel.addStacked(JBLabel(plain(subtitle)).apply { foreground = uxMuted() }, 4)
     val features = metadata.arr("features")
     if (features.isNotEmpty()) {
         val row = JPanel(FlowLayout(FlowLayout.LEFT, 6, 2)).apply { isOpaque = false }
-        for (feature in features) row.add(JBLabel(feature.asText()).apply {
+        for (feature in features) row.add(JBLabel(plain(feature.asText())).apply {
             border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(1, 6))
         })
         panel.addStacked(row, 6)
     }
     if (current) {
         val currentLabel = metadata.text("currentLabel")
-        if (currentLabel.isNotBlank()) panel.addStacked(JBLabel(currentLabel).apply { foreground = uxMuted() }, 0)
+        if (currentLabel.isNotBlank()) panel.addStacked(JBLabel(plain(currentLabel)).apply { foreground = uxMuted() }, 0)
     } else {
         val actionLabel = metadata.text("actionLabel")
         val actionId = metadata.text("actionId")
@@ -62,7 +62,7 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
             val label = if (added && addedLabel.isNotBlank()) addedLabel else actionLabel
             val priceLabel = metadata.text("priceLabel")
             val text = label + (if (priceLabel.isNotBlank()) "   $priceLabel" else "")
-            panel.addStacked(JButton(text).apply {
+            panel.addStacked(JButton(plain(text)).apply {
                 if (added) foreground = JBColor(0x3E8635, 0x4CAF50)
                 if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
             }, 0)
@@ -84,8 +84,8 @@ fun renderAddOnPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         foreground = uxAccent()
     }
     fun updateTotal() {
-        totalLabel.text = (if (totalLabelText.isNotBlank()) "$totalLabelText: " else "") +
-            (if (currency.isNotBlank()) "$currency " else "") + uxFormatAmount(total())
+        totalLabel.text = plain((if (totalLabelText.isNotBlank()) "$totalLabelText: " else "") +
+            (if (currency.isNotBlank()) "$currency " else "") + uxFormatAmount(total()))
     }
     updateTotal()
     val panel = verticalPanel(6)
@@ -100,24 +100,24 @@ fun renderAddOnPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         card.isOpaque = false
         card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(10))
         val icon = item.text("icon")
-        if (icon.isNotBlank()) card.add(JBLabel(icon).apply { font = font.deriveFont(16f) }, BorderLayout.WEST)
+        if (icon.isNotBlank()) card.add(JBLabel(plain(icon)).apply { font = font.deriveFont(16f) }, BorderLayout.WEST)
         val body = verticalPanel(1)
-        body.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        body.addStacked(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val desc = item.text("description")
-        if (desc.isNotBlank()) body.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 1)
+        if (desc.isNotBlank()) body.addStacked(JBLabel(plain(desc)).apply { foreground = uxMuted() }, 1)
         if (includedLabel.isNotBlank()) {
-            body.addStacked(JBLabel(includedLabel).apply { foreground = uxMuted() }, 0)
+            body.addStacked(JBLabel(plain(includedLabel)).apply { foreground = uxMuted() }, 0)
         } else {
             val unit = item.text("unit")
-            body.addStacked(JBLabel((if (currency.isNotBlank()) "$currency " else "") +
-                uxFormatAmount(item.dbl("price")) + (if (unit.isNotBlank()) " / $unit" else "")).apply {
+            body.addStacked(JBLabel(plain((if (currency.isNotBlank()) "$currency " else "") +
+                uxFormatAmount(item.dbl("price")) + (if (unit.isNotBlank()) " / $unit" else ""))).apply {
                 font = uxMono(font)
                 foreground = uxAccent()
             }, 0)
         }
         card.add(body, BorderLayout.CENTER)
         if (includedLabel.isBlank()) {
-            val toggle = JButton(if (added.contains(id)) "✓" else "+")
+            val toggle = JButton(plain(if (added.contains(id)) "✓" else "+"))
             toggle.addActionListener {
                 val nowAdded = !added.contains(id)
                 if (nowAdded) added.add(id) else added.remove(id)
@@ -145,12 +145,12 @@ fun renderLedger(metadata: JsonNode): JComponent {
     val panel = verticalPanel(4)
     for (line in lines) {
         val row = JPanel(BorderLayout(12, 0)).apply { isOpaque = false }
-        row.add(JBLabel("● " + line.text("concept")), BorderLayout.CENTER)
+        row.add(JBLabel(plain("● " + line.text("concept"))), BorderLayout.CENTER)
         if (line.bool("included")) {
-            row.add(JBLabel(line.text("includedLabel", "Included")).apply { foreground = uxMuted() }, BorderLayout.EAST)
+            row.add(JBLabel(plain(line.text("includedLabel", "Included"))).apply { foreground = uxMuted() }, BorderLayout.EAST)
         } else {
             val amount = line.dbl("amount")
-            row.add(JBLabel(uxLedgerAmount(amount, currency)).apply {
+            row.add(JBLabel(plain(uxLedgerAmount(amount, currency))).apply {
                 font = uxMono(font)
                 if (amount < 0) foreground = uxPaletteColor("error")
             }, BorderLayout.EAST)
@@ -163,8 +163,8 @@ fun renderLedger(metadata: JsonNode): JComponent {
         if (totalNode.isNumber) totalNode.asDouble()
         else lines.filter { !it.bool("included") }.sumOf { it.dbl("amount") }
     val totalRow = JPanel(BorderLayout(12, 0)).apply { isOpaque = false }
-    totalRow.add(JBLabel(metadata.text("totalLabel", "Total")).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
-    totalRow.add(JBLabel(uxLedgerAmount(total, currency)).apply { font = uxMono(font, Font.BOLD, font.size + 3) }, BorderLayout.EAST)
+    totalRow.add(JBLabel(plain(metadata.text("totalLabel", "Total"))).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+    totalRow.add(JBLabel(plain(uxLedgerAmount(total, currency))).apply { font = uxMono(font, Font.BOLD, font.size + 3) }, BorderLayout.EAST)
     panel.addStacked(totalRow, 0)
     return panel
 }
@@ -179,7 +179,7 @@ fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
     for (method in metadata.arr("methods")) {
         val id = method.text("id")
         if (selected.isBlank()) selected = id
-        val btn = javax.swing.JToggleButton(method.text("label", id))
+        val btn = javax.swing.JToggleButton(plain(method.text("label", id)))
         btn.isSelected = id == selected
         btn.addActionListener {
             selected = id
@@ -195,18 +195,18 @@ fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         ctxBox.background = uxTint(uxChipBg("success"))
         ctxBox.border = JBUI.Borders.empty(4, 8)
         val contextLabel = metadata.text("contextLabel")
-        if (contextLabel.isNotBlank()) ctxBox.addStacked(JBLabel(contextLabel).apply {
+        if (contextLabel.isNotBlank()) ctxBox.addStacked(JBLabel(plain(contextLabel)).apply {
             font = font.deriveFont(Font.BOLD, 9f)
             foreground = uxPaletteColor("success")
         }, 1)
-        ctxBox.addStacked(JBLabel(contextValue).apply { font = uxMono(font) }, 0)
+        ctxBox.addStacked(JBLabel(plain(contextValue)).apply { font = uxMono(font) }, 0)
         row.add(ctxBox)
     }
     val panel = JPanel(BorderLayout(8, 0)).apply { isOpaque = false }
     panel.add(row, BorderLayout.WEST)
     val confirmLabel = metadata.text("confirmLabel")
     if (confirmLabel.isNotBlank()) {
-        panel.add(JButton(confirmLabel).apply {
+        panel.add(JButton(plain(confirmLabel)).apply {
             if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, mapOf("_method" to selected)) }
         }, BorderLayout.EAST)
     }

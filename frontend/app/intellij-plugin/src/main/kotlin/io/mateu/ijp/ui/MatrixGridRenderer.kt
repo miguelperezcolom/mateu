@@ -102,8 +102,8 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
         }
     }
 
-    val cells = JBTable(cellsModel)
-    val labels = JBTable(labelsModel)
+    val cells = JBTable(cellsModel).plainCells()
+    val labels = JBTable(labelsModel).plainCells()
     val sectionBg = JBColor(0xF4F4F5, 0x2B2D30)
 
     cells.autoResizeMode = JTable.AUTO_RESIZE_OFF
@@ -127,7 +127,7 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
         override fun getTableCellRendererComponent(
             table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
         ): Component {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            super.getTableCellRendererComponent(table, plain(value?.toString()), isSelected, hasFocus, row, column)
             horizontalAlignment = SwingConstants.RIGHT
             font = table.font
             val line = lines.getOrNull(row)
@@ -152,7 +152,7 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
                     else -> table.foreground
                 }
             }
-            text = if (link) "<html><u>${escapeHtml(v)}</u></html>" else v
+            text = if (link) "<html><u>${escapeHtml(v)}</u></html>" else plain(v)
             accessibleContext.accessibleName = MatrixGrids.cellA11yName(r, col, v)
             accessibleContext.accessibleDescription = when {
                 link && r.editable -> "Link. Press Space to open, F2 to edit"
@@ -168,7 +168,7 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
         override fun getTableCellRendererComponent(
             table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
         ): Component {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+            super.getTableCellRendererComponent(table, plain(value?.toString()), isSelected, hasFocus, row, column)
             font = table.font
             when (val l = lines.getOrNull(row)) {
                 is MatrixGrids.Line.SectionLine -> {
@@ -263,7 +263,7 @@ fun renderMatrixGrid(ctx: AppContext, metadata: JsonNode): JComponent {
         val groupRow = JPanel()
         groupRow.layout = BoxLayout(groupRow, BoxLayout.X_AXIS)
         for (g in groups) {
-            val label = JBLabel(g.label, SwingConstants.CENTER).apply {
+            val label = JBLabel(plain(g.label), SwingConstants.CENTER).apply {
                 font = font.deriveFont(Font.BOLD)
                 border = BorderFactory.createMatteBorder(0, 0, 1, 1, divider)
                 val d = Dimension(g.span * CELL_W, groupH)

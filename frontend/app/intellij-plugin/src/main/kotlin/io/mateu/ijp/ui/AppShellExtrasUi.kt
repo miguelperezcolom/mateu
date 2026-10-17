@@ -47,7 +47,7 @@ fun quickLaunchField(session: AppSession): JComponent {
     field.addActionListener {
         val hit = AppShortcuts.quickLaunch(session.appShortcuts, field.text)
         if (hit == null) {
-            status.text = if (field.text.isBlank()) " " else "No shortcut has the code \"${field.text.trim()}\""
+            status.text = plain(if (field.text.isBlank()) " " else "No shortcut has the code \"${field.text.trim()}\"")
             announce(field, status.text, assertive = false)
         } else {
             status.text = " "
@@ -81,11 +81,11 @@ fun showShortcutsDialog(session: AppSession, anchor: JComponent?) {
     for (s in session.appShortcuts) {
         val row = JPanel(BorderLayout(JBUI.scale(12), 0))
         row.isOpaque = false
-        val run = ActionLink(s.label) { dialog.dispose(); runAppShortcut(session, s) }
+        val run = ActionLink(plain(s.label)) { dialog.dispose(); runAppShortcut(session, s) }
         val keys = listOfNotNull(s.code, s.key?.let { AppShortcuts.keyLabel(it) }).joinToString("  ·  ")
         run.accessibleName(if (keys.isBlank()) s.label else "${s.label}, $keys")
         row.add(run, BorderLayout.WEST)
-        row.add(JBLabel(keys), BorderLayout.EAST)
+        row.add(JBLabel(plain(keys)), BorderLayout.EAST)
         list.addStacked(row, 2)
         if (first == null) first = run
     }
@@ -127,7 +127,7 @@ private class HeaderValuesPanel(private val session: AppSession) : JPanel(FlowLa
     fun paintValues() {
         removeAll()
         for (v in session.headerValues.values) {
-            val label = JBLabel(HeaderValues.display(v))
+            val label = JBLabel(plain(HeaderValues.display(v)))
             label.font = label.font.deriveFont(Font.BOLD)
             label.accessibleName(HeaderValues.display(v))
             add(label)

@@ -101,12 +101,12 @@ fun metricAccessibleName(metadata: JsonNode): String {
 
 fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val card = tilePanel()
-    val title = JBLabel(metadata.text("title"))
+    val title = JBLabel(plain(metadata.text("title")))
     title.foreground = ToneColors.secondaryText()
     title.alignmentX = Component.LEFT_ALIGNMENT
     card.add(title)
 
-    val value = JBLabel((metadata.text("value") + " " + metadata.text("unit")).trim())
+    val value = JBLabel(plain((metadata.text("value") + " " + metadata.text("unit")).trim()))
     value.font = value.font.deriveFont(Font.BOLD, 26f)
     value.alignmentX = Component.LEFT_ALIGNMENT
     card.add(value)
@@ -114,7 +114,7 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     // the period the number covers ("Last 7 days"): small and muted, right under the value
     val timeframe = metadata.text("timeframe").trim()
     if (timeframe.isNotEmpty()) {
-        val tf = JBLabel(timeframe)
+        val tf = JBLabel(plain(timeframe))
         tf.foreground = ToneColors.secondaryText()
         tf.font = JBUI.Fonts.smallFont()
         tf.alignmentX = Component.LEFT_ALIGNMENT
@@ -124,7 +124,7 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
 
     val trendLabel = metadata.text("trendLabel")
     if (trendLabel.isNotBlank()) {
-        val trend = JBLabel(trendLabel)
+        val trend = JBLabel(plain(trendLabel))
         trend.foreground = when (metadata.text("trend").lowercase()) {
             "up" -> JBColor(0x3E8635, 0x4CAF50)
             "down" -> JBColor(0xC9190B, 0xE57373)
@@ -145,14 +145,14 @@ fun renderDashboardPanel(r: ComponentRenderer, component: JsonNode, metadata: Js
     val tile = tilePanel()
     val title = metadata.text("title")
     if (title.isNotBlank()) {
-        val l = JBLabel(title)
+        val l = JBLabel(plain(title))
         l.font = l.font.deriveFont(Font.BOLD)
         l.alignmentX = Component.LEFT_ALIGNMENT
         tile.add(l)
     }
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(subtitle)
+        val l = JBLabel(plain(subtitle))
         l.foreground = ToneColors.secondaryText()
         l.alignmentX = Component.LEFT_ALIGNMENT
         tile.add(l)

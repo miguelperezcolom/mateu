@@ -60,7 +60,7 @@ import javax.swing.tree.TreeSelectionModel
  */
 fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean): JComponent {
     val action = metadata.path("remoteCoordinates").text("action").ifBlank { "search-$fieldId" }
-    val button = JButton(if (value.isBlank()) "Select…" else value)
+    val button = JButton(plain(if (value.isBlank()) "Select…" else value))
     button.isEnabled = enabled
     button.horizontalAlignment = javax.swing.SwingConstants.LEFT
 
@@ -74,7 +74,7 @@ fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: Str
         val model = DefaultListModel<Pair<String, String>>()
         val list = JBList(model)
         list.setCellRenderer { _, entry, _, isSelected, _ ->
-            JBLabel(entry.second).apply {
+            JBLabel(plain(entry.second)).apply {
                 border = JBUI.Borders.empty(4, 6)
                 isOpaque = isSelected
                 if (isSelected) background = Color(0xD0, 0xE2, 0xF5)
@@ -107,7 +107,7 @@ fun lookupField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: Str
             override fun mouseClicked(e: MouseEvent) {
                 val picked = list.selectedValue ?: return
                 ctx.putState(fieldId, picked.first)
-                button.text = picked.second
+                button.text = plain(picked.second)
                 popup.isVisible = false
                 ctx.unregisterFieldDataHandler(fieldId)
             }
@@ -133,7 +133,7 @@ fun radioField(ctx: AppContext, fieldId: String, options: List<JsonNode>, value:
     val group = ButtonGroup()
     for (opt in options) {
         val v = opt.text("value")
-        val rb = JBRadioButton(opt.text("label", v), v == value)
+        val rb = JBRadioButton(plain(opt.text("label", v)), v == value)
         rb.isEnabled = enabled
         rb.addActionListener { ctx.putState(fieldId, v) }
         group.add(rb)
@@ -150,7 +150,7 @@ fun multiSelectField(ctx: AppContext, fieldId: String, options: List<JsonNode>, 
     panel.isOpaque = false
     for (opt in options) {
         val v = opt.text("value")
-        val cb = JBCheckBox(opt.text("label", v), current.contains(v))
+        val cb = JBCheckBox(plain(opt.text("label", v)), current.contains(v))
         cb.isEnabled = enabled
         cb.addActionListener {
             if (cb.isSelected) current.add(v) else current.remove(v)
@@ -246,7 +246,7 @@ fun colorField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean
     swatch.preferredSize = Dimension(24, 24)
     swatch.background = runCatching { Color.decode(value) }.getOrElse { Color.WHITE }
     swatch.border = BorderFactory.createLineBorder(Color.GRAY)
-    val pick = JButton(if (value.isBlank()) "Pick…" else value)
+    val pick = JButton(plain(if (value.isBlank()) "Pick…" else value))
     pick.isEnabled = enabled
     pick.addActionListener {
         val chosen = JColorChooser.showDialog(panel, "Pick a color", swatch.background) ?: return@addActionListener
@@ -273,7 +273,7 @@ private fun imageLabel(value: String): JBLabel {
         val scale = minOf(1.0, 280.0 / img.width)
         JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
     } else {
-        JBLabel(if (value.isBlank()) "—" else value)
+        JBLabel(plain(if (value.isBlank()) "—" else value))
     }
 }
 
@@ -298,7 +298,7 @@ fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enable
         val buttons = JPanel(FlowLayout(FlowLayout.LEFT, 6, 4))
         buttons.isOpaque = false
         buttons.alignmentX = Component.LEFT_ALIGNMENT
-        val upload = JButton(if (value.isBlank()) "Upload" else "Replace")
+        val upload = JButton(plain(if (value.isBlank()) "Upload" else "Replace"))
         val delete = JButton("Delete")
         fun nameButtons(hasImage: Boolean) {
             upload.accessibleContext.accessibleName = "${if (hasImage) "Replace" else "Upload"} $what"
@@ -419,7 +419,7 @@ fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boo
 
 fun treeSelectField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean): JComponent {
     val leavesOnly = metadata.path("treeLeavesOnly").asBoolean(false)
-    val button = JButton(if (value.isBlank()) "Select…" else value)
+    val button = JButton(plain(if (value.isBlank()) "Select…" else value))
     button.isEnabled = enabled
     button.addActionListener {
         val root = DefaultMutableTreeNode("root")
@@ -437,7 +437,7 @@ fun treeSelectField(ctx: AppContext, fieldId: String, metadata: JsonNode, value:
         tree.setCellRenderer { _, nodeValue, _, _, _, _, _ ->
             @Suppress("UNCHECKED_CAST")
             val pair = (nodeValue as? DefaultMutableTreeNode)?.userObject as? Pair<String, String>
-            JBLabel(pair?.second ?: "").apply { border = JBUI.Borders.empty(2, 4) }
+            JBLabel(plain(pair?.second ?: "")).apply { border = JBUI.Borders.empty(2, 4) }
         }
         val popup = JPopupMenu()
         val scroll = JBScrollPane(tree)
@@ -450,7 +450,7 @@ fun treeSelectField(ctx: AppContext, fieldId: String, metadata: JsonNode, value:
                 @Suppress("UNCHECKED_CAST")
                 val pair = node.userObject as? Pair<String, String> ?: return
                 ctx.putState(fieldId, pair.first)
-                button.text = pair.second
+                button.text = plain(pair.second)
                 popup.isVisible = false
             }
         })
@@ -495,7 +495,7 @@ fun richTextField(value: String, kind: String): JComponent {
 
 /** A url field read-only: a link when the browser may open it (http(s)/mailto), plain text otherwise. */
 fun linkField(value: String): JComponent {
-    if (SafeHtml.browsableUrl(value) == null) return JBLabel(value)
+    if (SafeHtml.browsableUrl(value) == null) return JBLabel(plain(value))
     val label = JBLabel("<html><a href=''>${SafeHtml.escape(value)}</a></html>")
     label.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
     label.addMouseListener(object : MouseAdapter() {
@@ -507,7 +507,7 @@ fun linkField(value: String): JComponent {
 }
 
 fun badgeChip(label: String, on: Boolean): JComponent {
-    val chip = JBLabel(label)
+    val chip = JBLabel(plain(label))
     chip.isOpaque = true
     chip.background = if (on) Color(0xE6, 0xF4, 0xEA) else Color(0xEE, 0xEE, 0xEE)
     chip.foreground = if (on) Color(0x1A, 0x7F, 0x37) else Color.GRAY

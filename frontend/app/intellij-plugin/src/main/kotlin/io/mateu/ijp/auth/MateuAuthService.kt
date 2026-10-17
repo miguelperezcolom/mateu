@@ -107,7 +107,7 @@ class MateuAuthService(private val project: Project) : TokenProvider {
                     indicator.text = "Confirm code ${code.userCode} in your browser"
                     notify(
                         "Mateu sign-in",
-                        "Confirm the code <b>${code.userCode}</b> at ${code.verificationUri}",
+                        "Confirm the code <b>${io.mateu.ijp.ui.SafeHtml.escape(code.userCode)}</b> at ${io.mateu.ijp.ui.SafeHtml.escape(code.verificationUri)}",
                         NotificationType.INFORMATION,
                     )
                     io.mateu.ijp.ui.SafeHtml.browse(code.browseUri)

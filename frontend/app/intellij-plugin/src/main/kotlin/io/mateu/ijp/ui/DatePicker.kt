@@ -56,14 +56,14 @@ private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) :
         header.text = "${ym.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${ym.year}"
         grid.removeAll()
         for (d in listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")) {
-            grid.add(JBLabel(d, SwingConstants.CENTER).apply { foreground = ToneColors.secondaryText() })
+            grid.add(JBLabel(plain(d), SwingConstants.CENTER).apply { foreground = ToneColors.secondaryText() })
         }
         val lead = ym.atDay(1).dayOfWeek.value - 1 // Monday = 1 → 0 leading blanks
         repeat(lead) { grid.add(JLabel("")) }
         for (day in 1..ym.lengthOfMonth()) {
             val date = ym.atDay(day)
             grid.add(
-                JButton(day.toString()).apply {
+                JButton(plain(day.toString())).apply {
                     margin = JBUI.insets(2)
                     isFocusPainted = false
                     if (date == selected) {

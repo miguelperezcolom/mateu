@@ -30,13 +30,13 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     val tone = PageSlots.heroToneColor(metadata.text("tone"))
     panel.background = tone ?: Color(0x2B, 0x3A, 0x55)
     panel.isOpaque = true
-    val title = JBLabel(metadata.text("title"), SwingConstants.CENTER)
+    val title = JBLabel(plain(metadata.text("title")), SwingConstants.CENTER)
     title.font = title.font.deriveFont(Font.BOLD, 24f)
     title.foreground = Color.WHITE
     panel.addStacked(title, 6)
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
-        val l = JBLabel(subtitle, SwingConstants.CENTER)
+        val l = JBLabel(plain(subtitle), SwingConstants.CENTER)
         l.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         panel.addStacked(l, 10)
     }
@@ -50,12 +50,12 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     // An emoji glyph shows; a web icon token ("vaadin:list-select") is not a glyph — it printed as
     // raw text above the title.
     val icon = metadata.text("icon").takeUnless { it.contains(':') }.orEmpty()
-    if (icon.isNotBlank()) panel.addStacked(JBLabel(icon, SwingConstants.CENTER).apply { font = font.deriveFont(28f) }, 4)
+    if (icon.isNotBlank()) panel.addStacked(JBLabel(plain(icon), SwingConstants.CENTER).apply { font = font.deriveFont(28f) }, 4)
     val title = metadata.text("title")
-    if (title.isNotBlank()) panel.addStacked(JBLabel(title, SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
+    if (title.isNotBlank()) panel.addStacked(JBLabel(plain(title), SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
     val description = metadata.text("description")
     if (description.isNotBlank()) {
-        panel.addStacked(JBLabel(description, SwingConstants.CENTER).apply {
+        panel.addStacked(JBLabel(plain(description), SwingConstants.CENTER).apply {
             foreground = ToneColors.secondaryText()
         }, 6)
     }
@@ -63,7 +63,7 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     if (actionId.isNotBlank()) {
         val row = JPanel(FlowLayout(FlowLayout.CENTER, 0, 0))
         row.isOpaque = false
-        row.add(JButton(metadata.text("actionLabel", actionId)).apply {
+        row.add(JButton(plain(metadata.text("actionLabel", actionId))).apply {
             addActionListener { r.ctx.runAction(actionId, null) }
         })
         panel.addStacked(row, 0)
@@ -107,10 +107,10 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
         if (title.isNotBlank() || subtitle.isNotBlank() || summary != null) {
             val heading = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
             if (title.isNotBlank()) {
-                heading.add(JBLabel(title).apply { font = font.deriveFont(Font.BOLD, font.size2D + 3f) })
+                heading.add(JBLabel(plain(title)).apply { font = font.deriveFont(Font.BOLD, font.size2D + 3f) })
             }
             if (subtitle.isNotBlank()) {
-                heading.add(JBLabel("· $subtitle").apply { foreground = uxMuted() })
+                heading.add(JBLabel(plain("· $subtitle")).apply { foreground = uxMuted() })
             }
             if (summary == null) {
                 col.add(heading, BorderLayout.NORTH)
@@ -223,7 +223,7 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
         }
         panel.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
         panel.isFocusable = true
-        panel.toolTipText = tasks.getOrNull(0)?.text("title")
+        panel.toolTipText = plainTip(tasks.getOrNull(0)?.text("title"))
         panel.accessibleContext.accessibleName = "Gantt — " + tasks.joinToString(", ") { it.text("title") }
         panel.addMouseListener(object : java.awt.event.MouseAdapter() {
             override fun mouseClicked(e: java.awt.event.MouseEvent) {
@@ -240,7 +240,7 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
                     java.awt.event.KeyEvent.VK_ENTER, java.awt.event.KeyEvent.VK_SPACE -> { e.consume(); select(focused) }
                     else -> return
                 }
-                panel.toolTipText = tasks.getOrNull(focused)?.text("title")
+                panel.toolTipText = plainTip(tasks.getOrNull(focused)?.text("title"))
                 panel.accessibleContext.accessibleDescription = tasks.getOrNull(focused)?.text("title")
             }
         })
@@ -267,8 +267,8 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
         // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be
         // the src itself — a data URI dumped as a wall of base64 across the page.
         val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
-        JBLabel("🖼 $shown").apply {
-            toolTipText = shown
+        JBLabel(plain("🖼 $shown")).apply {
+            toolTipText = plainTip(shown)
             accessibleContext.accessibleName = "Image"
         }
     }

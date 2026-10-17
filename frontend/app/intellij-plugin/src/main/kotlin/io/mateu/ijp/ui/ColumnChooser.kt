@@ -96,7 +96,7 @@ object ColumnChooser {
                     if (id in protectedIds) continue
                     val visible = columnById(id) != null
                     val label = byId[id]?.headerValue?.toString() ?: id
-                    val item = JCheckBoxMenuItem(label, visible)
+                    val item = JCheckBoxMenuItem(plain(label), visible)
                     item.addActionListener {
                         if (visible) {
                             hidden.add(id)

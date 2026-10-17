@@ -32,28 +32,28 @@ fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
     panel.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
     val left = verticalPanel(2)
     val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
-    titleRow.add(JBLabel(metadata.text("title")).apply { font = font.deriveFont(Font.BOLD, 16f) })
+    titleRow.add(JBLabel(plain(metadata.text("title"))).apply { font = font.deriveFont(Font.BOLD, 16f) })
     for (badge in metadata.arr("badges")) titleRow.add(uxChip(badge.text("label"), badge.text("color")))
     left.addStacked(titleRow, 2)
     val subtitle = metadata.text("subtitle")
-    if (subtitle.isNotBlank()) left.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 6)
+    if (subtitle.isNotBlank()) left.addStacked(JBLabel(plain(subtitle)).apply { foreground = uxMuted() }, 6)
     val facts = metadata.arr("facts")
     if (facts.isNotEmpty()) {
         val factsRow = JPanel(FlowLayout(FlowLayout.LEFT, 18, 0)).apply { isOpaque = false }
         for (fact in facts) {
             val cell = verticalPanel(1)
-            cell.addStacked(JBLabel(fact.text("label")).apply {
+            cell.addStacked(JBLabel(plain(fact.text("label"))).apply {
                 font = font.deriveFont(Font.BOLD, 9f)
                 foreground = uxMuted()
             }, 1)
             val actionId = fact.text("actionId")
             if (actionId.isNotBlank()) {
                 val valueRow = JPanel(FlowLayout(FlowLayout.LEFT, 4, 0)).apply { isOpaque = false }
-                valueRow.add(JBLabel(fact.text("value")))
+                valueRow.add(JBLabel(plain(fact.text("value"))))
                 valueRow.add(factActionButton(r, fact, actionId))
                 cell.addStacked(valueRow, 0)
             } else {
-                cell.addStacked(JBLabel(fact.text("value")), 0)
+                cell.addStacked(JBLabel(plain(fact.text("value"))), 0)
             }
             factsRow.add(cell)
         }
@@ -64,16 +64,16 @@ fun renderEntityHeader(r: ComponentRenderer, metadata: JsonNode): JComponent {
     if (metricValue.isNotBlank()) {
         val metric = verticalPanel(1)
         val metricLabel = metadata.text("metricLabel")
-        if (metricLabel.isNotBlank()) metric.addStacked(JBLabel(metricLabel).apply {
+        if (metricLabel.isNotBlank()) metric.addStacked(JBLabel(plain(metricLabel)).apply {
             font = font.deriveFont(Font.BOLD, 9f)
             foreground = uxMuted()
         }, 1)
-        metric.addStacked(JBLabel(metricValue).apply {
+        metric.addStacked(JBLabel(plain(metricValue)).apply {
             font = font.deriveFont(Font.BOLD, 22f)
             foreground = uxAccent()
         }, 1)
         val caption = metadata.text("metricCaption")
-        if (caption.isNotBlank()) metric.addStacked(JBLabel(caption).apply { foreground = uxMuted() }, 0)
+        if (caption.isNotBlank()) metric.addStacked(JBLabel(plain(caption)).apply { foreground = uxMuted() }, 0)
         panel.add(metric, BorderLayout.EAST)
     }
     return panel
@@ -94,12 +94,12 @@ fun renderMeter(metadata: JsonNode): JComponent {
     }
     val panel = verticalPanel(3)
     val label = metadata.text("label")
-    if (label.isNotBlank()) panel.addStacked(JBLabel(label).apply {
+    if (label.isNotBlank()) panel.addStacked(JBLabel(plain(label)).apply {
         font = font.deriveFont(Font.BOLD, 10f)
         foreground = uxMuted()
     }, 2)
     val unit = metadata.text("unit")
-    panel.addStacked(JBLabel(uxFormatAmount(value) + (if (unit.isNotBlank()) " $unit" else "")).apply {
+    panel.addStacked(JBLabel(plain(uxFormatAmount(value) + (if (unit.isNotBlank()) " $unit" else ""))).apply {
         font = font.deriveFont(Font.BOLD, 22f)
     }, 4)
     val track = object : JPanel() {
@@ -116,7 +116,7 @@ fun renderMeter(metadata: JsonNode): JComponent {
     track.preferredSize = Dimension(280, 8)
     panel.addStacked(track, 4)
     val caption = metadata.text("caption").ifBlank { "${Math.round(ratio * 100)}%" }
-    panel.addStacked(JBLabel(caption).apply { foreground = uxMuted() }, 0)
+    panel.addStacked(JBLabel(plain(caption)).apply { foreground = uxMuted() }, 0)
     return panel
 }
 
@@ -130,7 +130,7 @@ private fun factActionButton(r: ComponentRenderer, fact: JsonNode, actionId: Str
         isContentAreaFilled = false
         isFocusPainted = true
         margin = JBUI.emptyInsets()
-        toolTipText = label
+        toolTipText = plainTip(label)
         accessibleName(label)
         addActionListener { r.ctx.runAction(actionId, parameters.ifEmpty { null }) }
     }
@@ -145,11 +145,11 @@ fun renderTaskProgress(r: ComponentRenderer, metadata: JsonNode): JComponent {
     panel.isOpaque = true
     panel.background = uxTint(uxChipBg(if (complete) "success" else "warning"))
     panel.border = JBUI.Borders.empty(10, 12)
-    panel.add(JBLabel("👥  " + metadata.text("label")), BorderLayout.WEST)
+    panel.add(JBLabel(plain("👥  " + metadata.text("label"))), BorderLayout.WEST)
     val pills = JPanel(FlowLayout(FlowLayout.LEFT, 4, 0)).apply { isOpaque = false }
     for (i in 1..total) {
         if (i <= done) pills.add(uxChip("$i/$total", "success"))
-        else pills.add(JBLabel("$i/$total").apply {
+        else pills.add(JBLabel(plain("$i/$total")).apply {
             foreground = uxMuted()
             font = font.deriveFont(Font.BOLD, 10f)
             border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(0, 5))
@@ -159,7 +159,7 @@ fun renderTaskProgress(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val actionId = metadata.text("actionId")
     val actionLabel = metadata.text("actionLabel")
     if (!complete && actionId.isNotBlank() && actionLabel.isNotBlank()) {
-        panel.add(JButton("$actionLabel →").apply {
+        panel.add(JButton(plain("$actionLabel →")).apply {
             addActionListener { r.ctx.runAction(actionId, null) }
         }, BorderLayout.EAST)
     }
@@ -189,10 +189,10 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     row.isOpaque = true
     row.border = if (metadata.bool("slim")) JBUI.Borders.empty(3, 6) else JBUI.Borders.empty(8, 10)
     if (!metadata.bool("noIcon")) {
-        row.add(JBLabel(glyph).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+        row.add(JBLabel(plain(glyph)).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
     }
     val label = if (metadata.text("text").isNotBlank()) {
-        JBLabel(metadata.text("text")).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }
+        JBLabel(plain(metadata.text("text"))).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }
     } else null
     val children = component.path("children")
     if (metadata.bool("inlineContent")) {
@@ -216,10 +216,10 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     val actionLabel = metadata.text("actionLabel")
     val status = metadata.text("status")
     if ((actionId.isBlank() || actionLabel.isBlank()) && status.isNotBlank()) {
-        row.add(JBLabel(status).apply { foreground = ink; font = font.deriveFont(Font.BOLD, 11f) }, BorderLayout.EAST)
+        row.add(JBLabel(plain(status)).apply { foreground = ink; font = font.deriveFont(Font.BOLD, 11f) }, BorderLayout.EAST)
     }
     if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
-        row.add(JButton(actionLabel).apply {
+        row.add(JButton(plain(actionLabel)).apply {
             addActionListener { r.ctx.runAction(actionId, emptyMap()) }
         }, BorderLayout.EAST)
     }
@@ -230,7 +230,7 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
 fun renderBulletedList(metadata: JsonNode): JComponent {
     val panel = verticalPanel(2)
     for (item in metadata.arr("items")) {
-        panel.addStacked(JBLabel("• ${item.asText("")}"), 0)
+        panel.addStacked(JBLabel(plain("• ${item.asText("")}")), 0)
     }
     return panel
 }
@@ -245,15 +245,15 @@ private fun uxStatusCard(r: ComponentRenderer, item: JsonNode, rowActionId: Stri
     )
     val head = JPanel(BorderLayout(JBUI.scale(8), 0)).apply { isOpaque = false }
     val avatar = item.text("avatar")
-    if (avatar.isNotBlank()) head.add(JBLabel(avatar).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
-    head.add(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.CENTER)
+    if (avatar.isNotBlank()) head.add(JBLabel(plain(avatar)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+    head.add(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.CENTER)
     val status = item.text("status")
     if (status.isNotBlank()) head.add(uxChip(status, item.text("statusColor")), BorderLayout.EAST)
     card.addStacked(head, 2)
     val desc = item.text("description")
-    if (desc.isNotBlank()) card.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 1)
+    if (desc.isNotBlank()) card.addStacked(JBLabel(plain(desc)).apply { foreground = uxMuted() }, 1)
     for (line in item.arr("lines")) {
-        card.addStacked(JBLabel(line.asText("")).apply {
+        card.addStacked(JBLabel(plain(line.asText(""))).apply {
             foreground = uxMuted()
             font = font.deriveFont(font.size2D - 1f)
         }, 0)
@@ -306,11 +306,11 @@ fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val icon = item.text("icon")
         if (avatar.isNotBlank()) {
             row.add(uxAvatar(avatar, if (compact) 22 else 28), BorderLayout.WEST)
-        } else if (icon.isNotBlank()) row.add(JBLabel(icon).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+        } else if (icon.isNotBlank()) row.add(JBLabel(plain(icon)).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
         val body = verticalPanel(1)
-        body.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        body.addStacked(JBLabel(plain(item.text("title"))).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val desc = item.text("description")
-        if (desc.isNotBlank()) body.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 0)
+        if (desc.isNotBlank()) body.addStacked(JBLabel(plain(desc)).apply { foreground = uxMuted() }, 0)
         row.add(body, BorderLayout.CENTER)
         val right = JPanel(FlowLayout(FlowLayout.RIGHT, 6, 0)).apply { isOpaque = false }
         val status = item.text("status")
@@ -328,19 +328,19 @@ fun renderComparisonCard(metadata: JsonNode): JComponent {
     val delta = metadata.text("delta")
     val panel = verticalPanel(6)
     if (title.isNotBlank()) {
-        panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 6)
+        panel.addStacked(JBLabel(plain(title)).apply { font = font.deriveFont(Font.BOLD) }, 6)
     }
     val row = JPanel(BorderLayout(JBUI.scale(12), 0)).apply { isOpaque = false }
 
     fun side(label: String, value: String): JComponent {
         val p = verticalPanel(1)
         if (label.isNotBlank()) {
-            p.addStacked(JBLabel(label.uppercase()).apply {
+            p.addStacked(JBLabel(plain(label.uppercase())).apply {
                 foreground = ToneColors.secondaryText()
                 font = font.deriveFont(font.size2D - 2f)
             }, 1)
         }
-        p.addStacked(JBLabel(value).apply { font = font.deriveFont(Font.BOLD, font.size2D + 8f) }, 1)
+        p.addStacked(JBLabel(plain(value)).apply { font = font.deriveFont(Font.BOLD, font.size2D + 8f) }, 1)
         return p
     }
 
@@ -353,7 +353,7 @@ fun renderComparisonCard(metadata: JsonNode): JComponent {
             "down" -> Color(0xE1, 0x1D, 0x48)
             else -> ToneColors.secondaryText()
         }
-        row.add(JBLabel("$mark $delta").apply { foreground = color; horizontalAlignment = javax.swing.SwingConstants.CENTER }, BorderLayout.CENTER)
+        row.add(JBLabel(plain("$mark $delta")).apply { foreground = color; horizontalAlignment = javax.swing.SwingConstants.CENTER }, BorderLayout.CENTER)
     }
     panel.addStacked(row, 3)
     return panel
@@ -369,25 +369,25 @@ fun renderProcessMonitor(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.border = JBUI.Borders.empty(8, 10)
         row.add(JBLabel("●").apply { foreground = uxPaletteColor(item.text("status", "ok")) }, BorderLayout.WEST)
         val body = verticalPanel(1)
-        body.addStacked(JBLabel(item.text("name")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        body.addStacked(JBLabel(plain(item.text("name"))).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val systems = item.arr("systems").joinToString(" · ") { it.asText() }
-        if (systems.isNotBlank()) body.addStacked(JBLabel(systems).apply {
+        if (systems.isNotBlank()) body.addStacked(JBLabel(plain(systems)).apply {
             foreground = uxMuted()
             font = font.deriveFont(11f)
         }, 0)
         row.add(body, BorderLayout.CENTER)
         val right = JPanel(FlowLayout(FlowLayout.RIGHT, 8, 0)).apply { isOpaque = false }
-        right.add(JBLabel("✓ ${item.int("ok")} OK").apply { foreground = uxPaletteColor("success") })
-        if (item.int("warnings") > 0) right.add(JBLabel("⚠ ${item.int("warnings")} warnings").apply {
+        right.add(JBLabel(plain("✓ ${item.int("ok")} OK")).apply { foreground = uxPaletteColor("success") })
+        if (item.int("warnings") > 0) right.add(JBLabel(plain("⚠ ${item.int("warnings")} warnings")).apply {
             foreground = uxPaletteColor("warning")
         })
-        if (item.int("errors") > 0) right.add(JBLabel("⛔ ${item.int("errors")} errors").apply {
+        if (item.int("errors") > 0) right.add(JBLabel(plain("⛔ ${item.int("errors")} errors")).apply {
             foreground = uxPaletteColor("error")
         })
         val actionId = item.text("actionId")
         val actionLabel = item.text("actionLabel")
         if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
-            right.add(JButton(actionLabel).apply {
+            right.add(JButton(plain(actionLabel)).apply {
                 foreground = uxPaletteColor("warning")
                 addActionListener { r.ctx.runAction(actionId, null) }
             })

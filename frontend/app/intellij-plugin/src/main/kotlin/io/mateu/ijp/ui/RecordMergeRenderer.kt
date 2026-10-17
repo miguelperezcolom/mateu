@@ -48,7 +48,7 @@ fun renderRecordMerge(ctx: AppContext, metadata: JsonNode): JComponent {
     summary.foreground = com.intellij.util.ui.UIUtil.getContextHelpForeground()
 
     fun refreshSummary() {
-        summary.text = RecordMerges.summary(fields, picks)
+        summary.text = plain(RecordMerges.summary(fields, picks))
     }
 
     fun cell(c: JComponent, x: Int, y: Int, differs: Boolean, weight: Double = 1.0) {
@@ -69,21 +69,21 @@ fun renderRecordMerge(ctx: AppContext, metadata: JsonNode): JComponent {
         cell(JBLabel("Field").apply { font = font.deriveFont(Font.BOLD) }, 0, 0, false, 0.0)
         records.forEachIndexed { i, r ->
             val h = verticalPanel(0)
-            h.addStacked(JBLabel(r.label).apply { font = font.deriveFont(Font.BOLD) }, 0)
-            r.caption?.let { h.addStacked(JBLabel(it).apply { font = JBUI.Fonts.smallFont() }, 0) }
+            h.addStacked(JBLabel(plain(r.label)).apply { font = font.deriveFont(Font.BOLD) }, 0)
+            r.caption?.let { h.addStacked(JBLabel(plain(it)).apply { font = JBUI.Fonts.smallFont() }, 0) }
             cell(h, i + 1, 0, false)
         }
         if (anyEditable) cell(JBLabel("Custom").apply { font = font.deriveFont(Font.BOLD) }, records.size + 1, 0, false)
 
         RecordMerges.visibleFields(fields, differencesOnly).forEachIndexed { row, field ->
             val y = row + 1
-            val label = JBLabel(if (field.differs) "${field.label}  · differs" else field.label)
+            val label = JBLabel(plain(if (field.differs) "${field.label}  · differs" else field.label))
             label.font = label.font.deriveFont(Font.BOLD)
             cell(label, 0, y, field.differs, 0.0)
             val group = ButtonGroup()
             records.forEachIndexed { i, r ->
                 val text = RecordMerges.valueText(field.values.getOrNull(i))
-                val radio = JRadioButton(text.ifBlank { "(empty)" })
+                val radio = JRadioButton(plain(text.ifBlank { "(empty)" }))
                 radio.isOpaque = false
                 radio.isSelected = picks[field.fieldId] == r.id
                 radio.accessibleName(RecordMerges.pickName(r.label, field.label))
@@ -129,7 +129,7 @@ fun renderRecordMerge(ctx: AppContext, metadata: JsonNode): JComponent {
     val top = JPanel(BorderLayout())
     top.isOpaque = false
     metadata.text("title").takeIf { it.isNotBlank() }?.let {
-        top.add(JBLabel(it).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.15f) }, BorderLayout.WEST)
+        top.add(JBLabel(plain(it)).apply { font = font.deriveFont(Font.BOLD, font.size2D * 1.15f) }, BorderLayout.WEST)
     }
     val onlyDiffs = JBCheckBox("Show only differences", differencesOnly)
     onlyDiffs.isOpaque = false
@@ -141,7 +141,7 @@ fun renderRecordMerge(ctx: AppContext, metadata: JsonNode): JComponent {
     footer.add(summary, BorderLayout.CENTER)
     val actionId = metadata.text("mergeActionId")
     if (actionId.isNotBlank()) {
-        val merge = JButton(metadata.text("mergeLabel").ifBlank { "Merge" })
+        val merge = JButton(plain(metadata.text("mergeLabel").ifBlank { "Merge" }))
         merge.addActionListener {
             val parameters = RecordMerges.mergeParameters(metadata, records, fields, picks, custom) {
                 ctx.mapper.convertValue(it, Any::class.java)

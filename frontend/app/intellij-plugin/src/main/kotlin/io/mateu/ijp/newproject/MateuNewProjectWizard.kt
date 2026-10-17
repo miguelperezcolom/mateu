@@ -26,6 +26,8 @@ import io.mateu.ijp.newfile.MateuNewFiles
 import io.mateu.ijp.newproject.MateuProjectGenerator.Choice
 import java.io.File
 import javax.swing.Icon
+import io.mateu.ijp.ui.plain
+import io.mateu.ijp.ui.plainTip
 
 /**
  * File | New | Project… › Mateu: the IntelliJ front door of the shared project generator
@@ -70,7 +72,7 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
     private val isJava = propertyGraph.property(true)
     private val groupId = propertyGraph.property("com.example")
     private val packageName = propertyGraph.property("")
-    private val pageBoxes = pageTemplates.associate { it.id to JBCheckBox(it.label).apply { toolTipText = it.description } }
+    private val pageBoxes = pageTemplates.associate { it.id to JBCheckBox(plain(it.label)).apply { toolTipText = plainTip(it.description) } }
     private var packageEdited = false
 
     private fun authoringId() = (authoringModel.selected ?: authorings.first()).id

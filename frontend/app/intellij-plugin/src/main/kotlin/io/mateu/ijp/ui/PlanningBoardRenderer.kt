@@ -173,11 +173,11 @@ private class PlanningBoardCanvas(
             override fun mouseMoved(e: MouseEvent) {
                 val over = blockBounds.any { it.first.contains(e.point) }
                 cursor = Cursor.getPredefinedCursor(if (over) Cursor.HAND_CURSOR else Cursor.DEFAULT_CURSOR)
-                toolTipText = blockBounds.lastOrNull { it.first.contains(e.point) }?.let { hit ->
+                toolTipText = plainTip(blockBounds.lastOrNull { it.first.contains(e.point) }?.let { hit ->
                     blocks.firstOrNull { it.id == hit.second }?.let { b ->
                         "${b.label.ifBlank { b.id }} (${b.start ?: ""} – ${b.end ?: ""})"
                     }
-                }
+                })
             }
         })
     }

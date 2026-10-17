@@ -77,7 +77,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         row.border = javax.swing.BorderFactory.createCompoundBorder(
             JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(6, 0))
         if (label.isNotBlank()) row.add(
-            JBLabel(label).apply { foreground = ToneColors.secondaryText() },
+            JBLabel(plain(label)).apply { foreground = ToneColors.secondaryText() },
             BorderLayout.WEST)
         val display = when {
             dataType in BOOL_TYPES -> if (rawValue.asBoolean(false)) "✓" else "—"
@@ -86,7 +86,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
             value.isNotBlank() -> value
             else -> "—"
         }
-        row.add(JBLabel(display).apply {
+        row.add(JBLabel(plain(display)).apply {
             font = font.deriveFont(Font.BOLD)
             horizontalAlignment = javax.swing.SwingConstants.RIGHT
         }, BorderLayout.CENTER)
@@ -95,10 +95,10 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     // Plain bulleted list (@BulletedList on a collection field): read-only <ul>.
     if (stereotype == "bulletedList") {
-        if (label.isNotBlank()) container.add(JBLabel(label).apply { alignmentX = Component.LEFT_ALIGNMENT })
+        if (label.isNotBlank()) container.add(JBLabel(plain(label)).apply { alignmentX = Component.LEFT_ALIGNMENT })
         val items = if (rawValue.isArray) rawValue.map { it.asText("") } else if (value.isNotBlank()) listOf(value) else emptyList()
         for (item in items) {
-            container.add(JBLabel("• $item").apply { alignmentX = Component.LEFT_ALIGNMENT })
+            container.add(JBLabel(plain("• $item")).apply { alignmentX = Component.LEFT_ALIGNMENT })
         }
         return container
     }
@@ -109,7 +109,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // that the form's save round-trips.
     if (stereotype == "grid" || (dataType == "array" && stereotype != "multiSelect" && stereotype != "bulletedList")) {
         if (label.isNotBlank()) {
-            val caption = JBLabel(label)
+            val caption = JBLabel(plain(label))
             caption.alignmentX = Component.LEFT_ALIGNMENT
             container.add(caption)
         }
@@ -134,7 +134,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     // Boolean → inline checkbox carrying its own label, no separate caption.
     if (dataType in BOOL_TYPES) {
-        val cb = JBCheckBox(label, rawValue.asBoolean(false))
+        val cb = JBCheckBox(plain(label), rawValue.asBoolean(false))
         cb.accessibleName(label).accessibleDescription(metadata.text("description"))
         cb.isEnabled = enabled
         cb.addActionListener { ctx.putState(fieldId, cb.isSelected) }
@@ -143,15 +143,15 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         return container
     }
 
-    val caption = JBLabel(if (required) "$label *" else label)
+    val caption = JBLabel(plain(if (required) "$label *" else label))
     caption.alignmentX = Component.LEFT_ALIGNMENT
     container.add(caption)
 
     val options = metadata.arr("options")
     val input: JComponent = when {
         stereotype == "badge" -> badgeChip(label, io.mateu.ijp.state.Expressions.truthy(value))
-        stereotype == "plainText" -> JBLabel(
-            if (MoneyValues.isAmount(rawValue)) MoneyValues.text(rawValue) else if (dataType == "money") formatMoney(value) else value,
+        stereotype == "plainText" -> JBLabel(plain(
+            if (MoneyValues.isAmount(rawValue)) MoneyValues.text(rawValue) else if (dataType == "money") formatMoney(value) else value),
         )
         stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
             lookupField(ctx, fieldId, metadata, value, enabled)
@@ -177,10 +177,10 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         dataType in DATE_TYPES || dataType == "datetime" -> dateField(ctx, fieldId, value, enabled)
         dataType in INT_TYPES && metadata.bool("stepButtonsVisible") -> stepperField(ctx, fieldId, metadata, value, enabled)
         dataType in INT_TYPES -> numberField(ctx, fieldId, value, enabled, integer = true)
-        MoneyValues.isAmount(rawValue) && !enabled -> JBLabel(MoneyValues.text(rawValue))
+        MoneyValues.isAmount(rawValue) && !enabled -> JBLabel(plain(MoneyValues.text(rawValue)))
         MoneyValues.isAmount(rawValue) -> amountField(ctx, fieldId, rawValue, enabled)
         (dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES) && !enabled ->
-            JBLabel(formatMoney(value))
+            JBLabel(plain(formatMoney(value)))
         dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES ->
             numberField(ctx, fieldId, value, enabled, integer = false)
         else -> plainField(ctx, fieldId, value, enabled)
@@ -206,7 +206,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     val error = ctx.currentFieldErrors[fieldId]
     if (error != null) {
-        val err = JBLabel(error)
+        val err = JBLabel(plain(error))
         err.foreground = Color(0xC9, 0x19, 0x0B)
         err.alignmentX = Component.LEFT_ALIGNMENT
         container.add(err)
@@ -269,7 +269,7 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
             ctx.markUserEdit()
         }
     }
-    val table = JBTable(model)
+    val table = JBTable(model).plainCells()
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(28)
     table.putClientProperty("terminateEditOnFocusLost", true)
@@ -382,13 +382,13 @@ private fun showRowFormDialog(
         }
         val current = existing?.get(id)
         if (colType in BOOL_TYPES) {
-            val cb = JBCheckBox(label, (current as? Boolean) ?: false)
+            val cb = JBCheckBox(plain(label), (current as? Boolean) ?: false)
             form.add(JBLabel(""), gbcLabel)
             form.add(cb, gbcField)
             editors[id] = cb
         } else {
             val tf = JBTextField(current?.toString() ?: "", 18)
-            form.add(JBLabel(label), gbcLabel)
+            form.add(JBLabel(plain(label)), gbcLabel)
             form.add(tf, gbcField)
             editors[id] = tf
         }
@@ -396,7 +396,7 @@ private fun showRowFormDialog(
     }
 
     var accepted = false
-    val ok = javax.swing.JButton(if (existing == null) "Add" else "OK")
+    val ok = javax.swing.JButton(plain(if (existing == null) "Add" else "OK"))
     ok.addActionListener { accepted = true; dialog.dispose() }
     val cancel = javax.swing.JButton("Cancel")
     cancel.addActionListener { dialog.dispose() }
@@ -474,13 +474,13 @@ private fun showRowFormNavigator(
             insets = JBUI.insets(0, 0, 6, 0)
         }
         if (colType in BOOL_TYPES) {
-            val cb = JBCheckBox(label)
+            val cb = JBCheckBox(plain(label))
             form.add(JBLabel(""), gbcLabel)
             form.add(cb, gbcField)
             editors[id] = cb
         } else {
             val tf = JBTextField(18)
-            form.add(JBLabel(label), gbcLabel)
+            form.add(JBLabel(plain(label)), gbcLabel)
             form.add(tf, gbcField)
             editors[id] = tf
         }
@@ -544,8 +544,8 @@ private fun showRowFormNavigator(
 /** A compact icon button for the grid toolbar; falls back to [fallbackText] without the platform icon. */
 private fun gridToolButton(icon: () -> javax.swing.Icon, fallbackText: String, tooltip: String, onClick: () -> Unit): javax.swing.JButton {
     val b = javax.swing.JButton()
-    runCatching { b.icon = icon() }.onFailure { b.text = fallbackText }
-    b.toolTipText = tooltip
+    runCatching { b.icon = icon() }.onFailure { b.text = plain(fallbackText) }
+    b.toolTipText = plainTip(tooltip)
     b.preferredSize = Dimension(JBUI.scale(28), JBUI.scale(24))
     b.addActionListener { onClick() }
     return b
@@ -597,7 +597,7 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
             return if (cols[columnIndex].third in BOOL_TYPES) cell.asBoolean(false) else cell.displayString()
         }
     }
-    val table = JBTable(model)
+    val table = JBTable(model).plainCells()
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(28)
     // Speed search: type over the grid to jump to matching rows (guarded for the render probe).
@@ -705,6 +705,7 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
     val labels = options.map { it.text("label", it.text("value")) }
     val values = options.map { it.text("value") }
     val combo = ComboBox(DefaultComboBoxModel(labels.toTypedArray()))
+    combo.renderer = plainItems(combo.renderer)
     combo.isEnabled = enabled
     val selectedIdx = values.indexOf(value)
     if (selectedIdx >= 0) combo.selectedIndex = selectedIdx
@@ -719,6 +720,7 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
  *  the background executor; the model + selection are set on the EDT once the fetch resolves. */
 private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode, value: String, enabled: Boolean): JComponent {
     val combo = ComboBox(DefaultComboBoxModel(arrayOf<String>()))
+    combo.renderer = plainItems(combo.renderer)
     combo.isEnabled = enabled
     val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
     // Resolve a catalogue `ref` (if any) so url, mapping paths and the proxy flag all come from the
@@ -770,6 +772,7 @@ private fun referenceCombo(ctx: AppContext, fieldId: String, data: JsonNode, ena
     val options = if (content.isArray) content.toList() else emptyList()
     val labels = options.map { it.text("label", it.text("name", it.text("value"))) }
     val combo = ComboBox(DefaultComboBoxModel(labels.toTypedArray()))
+    combo.renderer = plainItems(combo.renderer)
     combo.isEnabled = enabled
     combo.selectedIndex = -1
     combo.addActionListener {

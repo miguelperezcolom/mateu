@@ -11,6 +11,7 @@ import javax.swing.JLabel
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
+import io.mateu.ijp.ui.plain
 
 /**
  * Per-view session/navigation state and the UIIncrement applier — the Swing port of the JavaFX
@@ -1196,7 +1197,7 @@ class AppContext(val session: AppSession) {
                 currentConsumedRoute = prevConsumedRoute
                 currentServerSideType = prevSst
                 currentComponentId = prevId
-                fill(container, JLabel("Load failed: ${it.message}"), add = false)
+                fill(container, JLabel(plain("Load failed: ${it.message}")), add = false)
             },
         )
         return container

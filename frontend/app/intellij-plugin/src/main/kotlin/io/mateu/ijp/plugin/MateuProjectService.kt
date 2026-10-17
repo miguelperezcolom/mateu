@@ -24,6 +24,7 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
+import io.mateu.ijp.ui.plain
 
 /**
  * Boots the Mateu app for the project at STARTUP (see MateuFocusedModeActivity), not when the
@@ -132,7 +133,8 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
             }
             val notification = NotificationGroupManager.getInstance()
                 .getNotificationGroup(MessageGroups.groupFor(variant))
-                .createNotification(title ?: "Mateu", text, type)
+                // notification content is HTML: a backend message is sanitised, its title escaped
+                .createNotification(io.mateu.ijp.ui.SafeHtml.escape(title ?: "Mateu"), io.mateu.ijp.ui.SafeHtml.sanitize(text), type)
             if (undo != null) {
                 notification.addAction(
                     com.intellij.notification.NotificationAction.createSimpleExpiring(undo.first) { undo.second() },
@@ -199,7 +201,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
 
     private fun showStatus(text: String) {
         navigatorRoot.removeAll()
-        navigatorRoot.add(JBLabel(text, SwingConstants.CENTER), BorderLayout.CENTER)
+        navigatorRoot.add(JBLabel(plain(text), SwingConstants.CENTER), BorderLayout.CENTER)
         navigatorRoot.revalidate()
         navigatorRoot.repaint()
     }
@@ -231,7 +233,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         }
         NotificationGroupManager.getInstance()
             .getNotificationGroup("Mateu")
-            .createNotification(title, message, type)
+            .createNotification(io.mateu.ijp.ui.SafeHtml.escape(title), io.mateu.ijp.ui.SafeHtml.escape(message), type)
             .notify(project)
     }
 
@@ -241,9 +243,9 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             border = JBUI.Borders.empty(24)
         }
-        panel.add(JBLabel("<html><b>$title</b></html>").apply { alignmentX = 0.5f })
+        panel.add(JBLabel("<html><b>${io.mateu.ijp.ui.SafeHtml.escape(title)}</b></html>").apply { alignmentX = 0.5f })
         panel.add(Box.createVerticalStrut(8))
-        panel.add(JBLabel("<html><div style='text-align:center'>$message</div></html>").apply { alignmentX = 0.5f })
+        panel.add(JBLabel("<html><div style='text-align:center'>${io.mateu.ijp.ui.SafeHtml.escape(message)}</div></html>").apply { alignmentX = 0.5f })
         panel.add(Box.createVerticalStrut(12))
         panel.add(JPanel(FlowLayout(FlowLayout.CENTER, 8, 0)).apply(buttons).apply { alignmentX = 0.5f })
         navigatorRoot.add(panel, BorderLayout.NORTH)

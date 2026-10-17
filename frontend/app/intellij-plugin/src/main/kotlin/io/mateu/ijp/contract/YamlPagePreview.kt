@@ -35,6 +35,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
+import io.mateu.ijp.ui.plain
 
 /**
  * A split editor for a Mateu visual-builder page (a YAML file under `specs/ui/`): the standard YAML
@@ -201,7 +202,7 @@ private class YamlPagePreviewEditor(
     }
 
   private fun hint(text: String): JComponent =
-    JLabel(text, SwingConstants.CENTER).apply { isEnabled = false }
+    JLabel(plain(text), SwingConstants.CENTER).apply { isEnabled = false }
 
   override fun getComponent(): JComponent = root
   override fun getPreferredFocusedComponent(): JComponent = root

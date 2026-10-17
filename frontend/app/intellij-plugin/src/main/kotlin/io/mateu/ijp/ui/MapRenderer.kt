@@ -64,12 +64,12 @@ fun renderMap(ctx: AppContext, metadata: JsonNode): JComponent {
             isOpaque = false
         }
         val title: JComponent =
-            if (row.actionable) ActionLink(row.label) { run() }.accessibleName(name)
-            else JBLabel(row.label).apply { font = font.deriveFont(java.awt.Font.BOLD) }
+            if (row.actionable) ActionLink(plain(row.label)) { run() }.accessibleName(name)
+            else JBLabel(plain(row.label)).apply { font = font.deriveFont(java.awt.Font.BOLD) }
         title.alignmentX = 0f
         texts.add(title)
         if (row.description.isNotBlank()) {
-            texts.add(JBLabel(row.description).apply {
+            texts.add(JBLabel(plain(row.description)).apply {
                 foreground = UIUtil.getContextHelpForeground()
                 alignmentX = 0f
             })
@@ -78,7 +78,7 @@ fun renderMap(ctx: AppContext, metadata: JsonNode): JComponent {
         val open = ActionLink("Open in browser") { SafeHtml.browse(row.url) }
             .accessibleName("Open ${row.label} in browser")
             .accessibleDescription(row.url)
-        open.toolTipText = row.url
+        open.toolTipText = plainTip(row.url)
 
         val line = JPanel(BorderLayout(JBUI.scale(8), 0)).apply {
             isOpaque = false

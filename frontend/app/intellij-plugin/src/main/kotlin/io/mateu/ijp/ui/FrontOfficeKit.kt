@@ -39,7 +39,7 @@ internal fun uxChipBg(color: String): Color = when (color.lowercase()) {
     else -> Color(0x6A, 0x6E, 0x73)
 }
 
-internal fun uxChip(text: String, color: String): JBLabel = JBLabel(text).apply {
+internal fun uxChip(text: String, color: String): JBLabel = JBLabel(plain(text)).apply {
     foreground = Color.WHITE
     isOpaque = true
     background = uxChipBg(color)
@@ -111,12 +111,12 @@ internal fun uxItemActions(r: ComponentRenderer, item: JsonNode): JComponent? {
         val icon = uxActionIcon(item.text("actionIcon$suffix"))
         val button = if (icon != null) {
             JButton(icon).apply {
-                toolTipText = label
+                toolTipText = plainTip(label)
                 putClientProperty("JButton.buttonType", "toolbar")
                 preferredSize = Dimension(JBUI.scale(28), JBUI.scale(26))
             }
         } else {
-            JButton(label)
+            JButton(plain(label))
         }
         button.addActionListener { r.ctx.runAction(actionId, mapOf("_item" to id)) }
         row.add(button)

@@ -38,10 +38,10 @@ fun renderActionPanel(ctx: AppContext, metadata: JsonNode): JComponent {
     val shortcut = metadata.text("shortcut")
     val keyStroke = ActionPanels.keyStrokeSpec(shortcut)?.let { KeyStroke.getKeyStroke(it) }
 
-    val trigger = JButton(label)
+    val trigger = JButton(plain(label))
     trigger.accessibleName(label)
     if (keyStroke != null) {
-        trigger.toolTipText = "$label ($shortcut)"
+        trigger.toolTipText = plainTip("$label ($shortcut)")
         trigger.accessibleDescription("Shortcut: $shortcut")
     }
     trigger.addActionListener { openActionPanelDialog(ctx, metadata, trigger, label) }
@@ -95,7 +95,7 @@ internal fun actionPanelContent(ctx: AppContext, metadata: JsonNode, onChosen: (
     }
 
     fun linkButton(text: String, bold: Boolean, enabled: Boolean, onClick: () -> Unit): JButton =
-        JButton(text).apply {
+        JButton(plain(text)).apply {
             isBorderPainted = false
             isContentAreaFilled = false
             isFocusPainted = true
@@ -118,7 +118,7 @@ internal fun actionPanelContent(ctx: AppContext, metadata: JsonNode, onChosen: (
             val column = verticalPanel(0)
             if (category.title.isNotBlank()) {
                 column.addStacked(
-                    JBLabel(category.title).apply {
+                    JBLabel(plain(category.title)).apply {
                         font = font.deriveFont(Font.BOLD)
                         foreground = ToneColors.secondaryText()
                         border = JBUI.Borders.emptyBottom(4)

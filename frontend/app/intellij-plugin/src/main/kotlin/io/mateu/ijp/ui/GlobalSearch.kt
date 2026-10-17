@@ -83,7 +83,7 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
         val matches = menuHits.filter { it.label.contains(query, ignoreCase = true) }
         for (hit in matches) {
             results.addStacked(
-                ActionLink(hit.label) {
+                ActionLink(plain(hit.label)) {
                     session.openViewHandler?.invoke(hit.label, hit.route, hit.consumedRoute, hit.serverSideType, hit.actionId)
                 },
                 2,
@@ -95,7 +95,7 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
             if (category.isNotBlank() && category != lastCategory) {
                 lastCategory = category
                 results.addStacked(
-                    JBLabel(category.uppercase()).apply {
+                    JBLabel(plain(category.uppercase())).apply {
                         font = font.deriveFont(Font.BOLD, font.size2D * 0.85f)
                         foreground = ToneColors.secondaryText()
                     },
@@ -105,7 +105,7 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
             val label = hit.text("label")
             val description = hit.text("description")
             results.addStacked(
-                ActionLink(if (description.isBlank()) label else "$label — $description") {
+                ActionLink(plain(if (description.isBlank()) label else "$label — $description")) {
                     val route = hit.text("route")
                     if (route.isNotBlank()) session.openViewHandler?.invoke(label.ifBlank { route }, route, "", null, null)
                 },
