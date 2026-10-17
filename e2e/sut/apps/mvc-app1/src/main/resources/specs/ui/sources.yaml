@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/sources-schema.json
+# The REST source catalogue of mvc-app1 (e2e journeys). The upstream is the node server
+# tests/journeys/yaml-proxy.spec.ts starts on :19395; it answers 401 unless X-Api-Key is the secret.
+sources:
+  - name: j-notes-create
+    description: Create a note on the journeys upstream
+    source:
+      url: http://127.0.0.1:19395/notes
+      method: POST
+      proxy: true
+      headers:
+        Content-Type: application/json
+        X-Api-Key: ${secret.J_UPSTREAM_KEY}
+      body: '{"zip":"${state.zip}","note":"${state.note}"}'
