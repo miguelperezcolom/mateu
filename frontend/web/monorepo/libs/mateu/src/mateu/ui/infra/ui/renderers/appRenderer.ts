@@ -8,6 +8,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
 import "@infra/ui/mateu-header-values.ts";
+import { requireElement } from "@infra/ui/lazyElements.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import AppHeaderAction from "@mateu/shared/apiClients/dtos/componentmetadata/AppHeaderAction.ts";
 import { shellActionFor } from "@infra/ui/shellFlows.ts";
@@ -243,7 +244,7 @@ const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
  * it covers the content area — never the header.
  */
 const renderChat = (metadata: App, container: MateuApp, appState: ComponentState, appData: ComponentData) =>
-    metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .label="${(metadata as { askLabel?: string }).askLabel}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing
+    metadata.sseUrl ? (requireElement('mateu-chat'), html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .label="${(metadata as { askLabel?: string }).askLabel}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>`) : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {

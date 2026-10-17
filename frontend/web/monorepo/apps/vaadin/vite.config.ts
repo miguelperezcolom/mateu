@@ -28,6 +28,13 @@ const sourcesHash = () => {
     return hash.digest('hex').slice(0, 16)
 }
 
+// Packages reached ONLY through a dynamic import() (libs/mateu lazyElements.ts, the field
+// elements in src/fields/lazyFieldElements.ts). vendorChunks would put them in a vendor chunk —
+// and vendor / vendor-vaadin are loaded eagerly, which defeats the lazy import — so they are left
+// to the bundler, which puts each one in its lazy importer's chunk.
+const LAZY_ONLY_PACKAGES = ['sortablejs', 'marked', '@vaadin/markdown', '@vaadin-component-factory/vcf-date-range-picker']
+const isLazyOnly = (id: string) => LAZY_ONLY_PACKAGES.some(pkg => id.includes(`/node_modules/${pkg}/`))
+
 // Return Vite's own index.html for browser navigation requests so the SPA
 // router handles them, instead of letting the backend serve its static HTML.
 const bypassHtml = (req: IncomingMessage) =>
@@ -139,7 +146,7 @@ export default defineConfig({
                 // Code-splitting: keep heavy vendors in their own chunks so the
                 // entry (assets/mateu-vaadin.js) stays small. Shared with the
                 // other renderer apps — see ../../vite.vendorChunks.ts.
-                manualChunks: vendorChunks
+                manualChunks: (id: string) => (isLazyOnly(id) ? undefined : vendorChunks(id))
             }
         },
     },

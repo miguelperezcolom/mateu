@@ -1,10 +1,11 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import PlanningBoard from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningBoard";
 import { html, nothing } from "lit";
-import "@infra/ui/mateu-planning-board.ts";
+import { requireElement } from "@infra/ui/lazyElements.ts";
 
 export const renderPlanningBoard = (component: ClientSideComponent) => {
     const metadata = component.metadata as PlanningBoard
+    requireElement('mateu-planning-board')
     return html`
         <mateu-planning-board
                 .resources="${metadata.resources ?? []}"
