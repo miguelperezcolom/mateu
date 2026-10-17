@@ -109,6 +109,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errServerStatus: 'The server could not complete the request (error {status}). Try again.',
       errUnauthorized: 'Your session is no longer valid. Sign in again.',
       errForbidden: "You're not allowed to do this.",
+      errSecurityRefused: "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
       errNotFound: 'This is no longer available. It may have been moved or deleted.',
       errClient: 'The request was rejected.',
       errClientStatus: 'The request was rejected (error {status}).',
@@ -310,6 +311,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
       errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
       errForbidden: 'No tienes permiso para hacer esto.',
+      errSecurityRefused: 'La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.',
       errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
       errClient: 'La petición ha sido rechazada.',
       errClientStatus: 'La petición ha sido rechazada (error {status}).',
@@ -348,7 +350,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
       searchResults: 'Resultados',
-      // ── abrir en el móvil (@App(mobileQr), qr.mjs) ──
+      // ── open on mobile (@App(mobileQr), qr.mjs) ──
       mobileQrAction: 'Abrir en el móvil',
       mobileQrTitle: 'Ábrelo en tu móvil',
       mobileQrHint: 'Escanéalo con la cámara del móvil o con la app Mateu. El código solo dice dónde está esta aplicación: inicias sesión en el móvil.',
@@ -359,7 +361,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mobileQrLink: 'Enlace',
       mobileQrCopy: 'Copiar enlace',
       mobileQrCopied: 'Enlace copiado',
-      // ── componentes display (core/display.mjs) ──
+      // ── display components (core/display.mjs) ──
       recommended: 'Recomendado',
       choose: 'Elegir',
       learnMore: 'Más información',
@@ -464,12 +466,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
-  // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
-  // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
-  // columnPrefsStore.ts / savedViewsStore.ts), así que un usuario que cambie de renderer conserva
-  // lo suyo. El ámbito es la ruta del listado. Sin cambios de wire: el servidor sigue mandando todas
-  // las columnas y aquí se filtran antes de pintar.
+  // LISTING PERSONALISATION in the browser: the COLUMN CHOOSER (which ones show and in what
+  // order) and SAVED VIEWS (a named combination of search + filters, with one as
+  // default). Same format and same localStorage keys as the web renderer (libs/mateu
+  // columnPrefsStore.ts / savedViewsStore.ts), so a user who switches renderer keeps
+  // their own. The scope is the listing's route. No wire changes: the server still sends all
+  // the columns and here they are filtered before painting.
 
   const COLUMNS_KEY = 'mateu-column-prefs'
   const VIEWS_KEY = 'mateu-saved-views'
@@ -483,14 +485,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     } catch (e) { return {} }
   }
   const writeAll = (key, value, storage) => {
-    try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* lleno o bloqueado */ }
+    try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* full or blocked */ }
   }
 
-  // columnas que no se ocultan ni se reordenan: las técnicas (selección, acciones, líneas)
+  // columns that are neither hidden nor reordered: the technical ones (selection, actions, lines)
   const PROTECTED = (c) => !c || !c.field || c.field === '_select' || c.template === 'cellRowActions'
     || c.field === '__rowLines' || c.id === '__rowLines'
 
-  /** Las preferencias de columnas de un ámbito: { hidden: [], order: [] } o null. */
+  /** The column preferences of a scope: { hidden: [], order: [] } or null. */
   function readColumnPrefs(scope, storage) {
     const p = readAll(COLUMNS_KEY, storage)[scope]
     if (!p || typeof p !== 'object') return null
@@ -504,8 +506,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     writeAll(COLUMNS_KEY, all, storage)
   }
 
-  /** Las columnas del oj-table con las preferencias aplicadas: sin las ocultas, en el orden pedido
-   *  (las no mencionadas, detrás, en su orden). Las técnicas no se tocan. */
+  /** The oj-table columns with the preferences applied: without the hidden ones, in the requested order
+   *  (those not mentioned, after, in their order). The technical ones are not touched. */
   function applyColumnPrefs(columns, prefs) {
     if (!prefs) return columns
     const hidden = new Set(prefs.hidden || [])
@@ -513,13 +515,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rank = (c) => { const i = order.indexOf(c.field || c.id); return i < 0 ? order.length : i }
     const movable = columns.filter((c) => !PROTECTED(c) && !hidden.has(c.field || c.id))
     const sorted = movable.map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map((x) => x.c)
-    // las técnicas conservan su sitio relativo: delante las de selección, detrás acciones/líneas
+    // the technical ones keep their relative place: selection ones in front, actions/lines behind
     const lead = columns.filter((c) => PROTECTED(c) && c.field === '_select')
     const tail = columns.filter((c) => PROTECTED(c) && c.field !== '_select')
     return lead.concat(sorted, tail)
   }
 
-  /** El modelo del diálogo de columnas: [{ id, label, visible }] en el orden actual. */
+  /** The column dialog's model: [{ id, label, visible }] in the current order. */
   function columnChooserOf(columns, prefs) {
     const hidden = new Set((prefs && prefs.hidden) || [])
     const order = (prefs && prefs.order) || []
@@ -528,12 +530,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return items.sort((a, b) => (rank(a) - rank(b)) || (a.i - b.i)).map(({ id, label, visible }) => ({ id, label, visible }))
   }
 
-  /** Del modelo del diálogo a preferencias. */
+  /** From the dialog's model to preferences. */
   function prefsFromChooser(items) {
     return { hidden: items.filter((x) => !x.visible).map((x) => x.id), order: items.map((x) => x.id) }
   }
 
-  /** Mover un elemento del diálogo arriba (-1) o abajo (+1). */
+  /** Move a dialog element up (-1) or down (+1). */
   function moveChooserItem(items, id, delta) {
     const i = items.findIndex((x) => x.id === id)
     const j = i + delta
@@ -543,7 +545,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  // ── vistas guardadas ──────────────────────────────────────────────────────────────────────────
+  // ── saved views ──────────────────────────────────────────────────────────────────────────
 
   function listSavedViews(scope, storage) {
     const v = readAll(VIEWS_KEY, storage)[scope]
@@ -571,8 +573,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return listSavedViews(scope, storage).find((v) => v.isDefault) || null
   }
 
-  /** La ruta que aplica una vista: el listado con sus filtros en la query (el camino de los
-   *  filtros por URL, que ya pone los chips y relanza la búsqueda). */
+  /** The route that applies a view: the listing with its filters in the query (the URL-filters
+   *  path, which already sets the chips and relaunches the search). */
   function viewRouteOf(route, values) {
     const path = String(route || '').split('?')[0]
     const q = Object.keys(values || {})
@@ -581,31 +583,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return q.length ? path + '?' + q.join('&') : path
   }
 
-  /** Lo que se guarda de la búsqueda actual: el texto libre y los filtros aplicados. */
+  /** What is saved of the current search: the free text and the applied filters. */
   function currentViewValues(filterValues, searchText) {
     const values = { ...(filterValues || {}) }
     if (searchText) values.searchText = searchText
     return values
   }
 
-  /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
+  /** The options of the views menu (oj-menu): the saved ones (★ the default one) + actions. */
   function viewsMenuOf(scope, storage) {
     const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
     return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
       .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
   }
 
-  /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
-   *  que va detrás de #). */
+  /** The preferences scope: the route of the listing on screen, without query (in hash mode, what
+   *  comes after #). */
   function listingScope(loc = typeof window !== 'undefined' ? window.location : null) {
     if (!loc) return ''
     const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
     return String(raw || '').split('?')[0]
   }
 
-  // ── ORDEN DE LOS TILES de una rejilla reordenable (ResponsiveGrid.reorderable: el dashboard de
-  // OPERA, cuyos tiles se arrastran). Misma clave y forma que el web (tileOrderStore.ts): {ámbito:
-  // [claves]}, ámbito = ruta + '#' + id de la rejilla, clave = id del hijo (o '#índice').
+  // ── TILE ORDER of a reorderable grid (ResponsiveGrid.reorderable: the OPERA
+  // dashboard, whose tiles are dragged). Same key and shape as the web (tileOrderStore.ts): {scope:
+  // [keys]}, scope = route + '#' + grid id, key = child id (or '#index').
 
   const tileKeyOf = (child, index) => (child && child.id ? String(child.id) : '#' + index)
 
@@ -620,7 +622,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     writeAll(TILES_KEY, all, storage)
   }
 
-  /** Las posiciones en las que pintar: primero las guardadas en su orden, luego las nunca colocadas. */
+  /** The positions to paint in: first the saved ones in their order, then the never placed ones. */
   function orderedTileIndices(keys, saved) {
     if (!saved || !saved.length) return keys.map((_, i) => i)
     const placed = saved.map((k) => keys.indexOf(k)).filter((i) => i >= 0)
@@ -628,7 +630,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return [...placed, ...keys.map((_, i) => i).filter((i) => !seen.has(i))]
   }
 
-  /** El orden tras soltar `moved` donde está `target`. */
+  /** The order after dropping `moved` where `target` is. */
   function moveTile(order, moved, target) {
     const from = order.indexOf(moved)
     const to = order.indexOf(target)
@@ -638,7 +640,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return next
   }
 
-  /** El orden tras mover `moved` un puesto atrás (-1) o adelante (+1): arrastrar con el teclado. */
+  /** The order after moving `moved` one place back (-1) or forward (+1): dragging with the keyboard. */
   function moveTileBy(order, moved, delta) {
     const from = order.indexOf(moved)
     const to = from + delta
@@ -651,13 +653,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
-  // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
-  // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
+  // The navigation tree: the rules of libs/mateu/.../navTree.ts this renderer needs,
+  // PORTED (not shared): the bridge is built by concatenating these .mjs (make-amd.mjs) and cannot
+  // import TypeScript. Same rules, same cases in test.mjs; if one changes, both change.
   //
-  // Una sección remota llega como marcador (`remote: true`, sin hijos) hasta que su pod contesta. Lo
-  // que la shell sabe de ella antes —su rótulo y el prefijo bajo el que viven sus pantallas— basta
-  // para la sección activa y la primera miga.
+  // A remote section arrives as a placeholder (`remote: true`, no children) until its pod answers. What
+  // the shell knows about it beforehand —its label and the prefix its screens live under— is enough
+  // for the active section and the first breadcrumb.
 
   const navRoute = (r) => {
     let s = String(r == null ? '' : r).trim()
@@ -668,22 +670,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s
   }
 
-  /** `path` es `route` o cuelga de ella. La raíz no casa por prefijo. */
+  /** `path` is `route` or hangs from it. The root does not match by prefix. */
   function routeCovers(route, path) {
     return !!route && route !== '/' && (path === route || path.indexOf(route + '/') === 0)
   }
 
-  /** Una sección remota que aún no ha contestado (o que no contestó). */
+  /** A remote section that has not answered yet (or that did not answer). */
   function isMount(option) {
     return !!(option && option.remote)
   }
 
-  /** El prefijo de una sección remota: el que manda el servidor (`routePrefix`) o, si no, su path (o su ruta). */
+  /** The prefix of a remote section: the one the server sends (`routePrefix`) or, otherwise, its path (or its route). */
   function mountPrefix(option) {
     return isMount(option) ? navRoute(option.routePrefix || option.path || option.route) : ''
   }
 
-  /** Por qué una sección está deshabilitada, en el idioma de la UI. */
+  /** Why a section is disabled, in the UI's language. */
   function unavailableHint(label, lang) {
     const language = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
@@ -699,9 +701,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Lo que contestó el pod, con el rótulo de la shell si lo DECLARÓ (`shellLabel`) y el pod contesta
-   * con UNA entrada —lo normal: un grupo con el nombre del servicio—: manda la palabra de la shell, y
-   * la barra no cambia bajo el lector. Varias entradas se pegan tal cual: no hay un nodo que nombrar.
+   * What the pod answered, with the shell's label if it DECLARED one (`shellLabel`) and the pod answers
+   * with ONE entry —the usual: a group named after the service—: the shell's word wins, and
+   * the bar does not change under the reader. Several entries are spliced in as they are: there is no node to name.
    */
   function labelledByShell(entries, option) {
     if (option.shellLabel && option.label && entries.length === 1) {
@@ -711,10 +713,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * HAMBURGER_SECTIONS: lo que contesta un pod montado en el primer nivel es UNA sección. Un grupo
-   * ya lo es; varias entradas, o una sola pantalla, pasan a ser las entradas de una sección con el
-   * rótulo (y el path) que la shell dio al montaje —pegarlas haría de cada pantalla del pod una
-   * sección, y la subcabecera no tendría nada que enseñar—. Port de mergeRemoteMenus de navTree.ts.
+   * HAMBURGER_SECTIONS: what a pod mounted at the first level answers is ONE section. A group
+   * already is one; several entries, or a single screen, become the entries of a section with the
+   * label (and the path) the shell gave the mount —splicing them would make each of the pod's screens a
+   * section, and the subheader would have nothing to show—. Port of mergeRemoteMenus from navTree.ts.
    */
   function asSection(entries, option) {
     const list = entries || []
@@ -723,7 +725,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return [{ label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: list }]
   }
 
-  /** Las entradas de una sección oculta: no se pintan a ninguna profundidad, pero siguen en el árbol. */
+  /** The entries of a hidden section: they are not painted at any depth, but stay in the tree. */
   function markHidden(entries) {
     return entries.map((option) => {
       const children = option.submenus || option.submenu || []
@@ -731,15 +733,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** La sección de un pod que no contestó: sigue ahí, deshabilitada y diciendo por qué. */
+  /** The section of a pod that did not answer: it stays there, disabled and saying why. */
   function unavailableMount(option, lang) {
     return Object.assign({}, option, { unavailable: true, disabled: true, description: unavailableHint(option.label, lang) })
   }
 
   /**
-   * Las rutas de una sección de primer nivel: las de sus entradas a cualquier profundidad (ocultas
-   * incluidas: una pantalla bajo una sigue siendo de esa sección), el prefijo de una sección remota
-   * que aún no contestó y los ids con que navega el menú ya proyectado (`node`, de shellNavOf).
+   * The routes of a first-level section: those of its entries at any depth (hidden ones
+   * included: a screen under one still belongs to that section), the prefix of a remote section
+   * that has not answered yet and the ids the already projected menu navigates with (`node`, from shellNavOf).
    */
   function sectionRoutes(option, node) {
     const out = new Set()
@@ -764,10 +766,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La sección de primer nivel que está en pantalla (la misma regla que activeSection.ts del
-   * renderer web: la entrada que es la ruta, o el grupo que la contiene a cualquier profundidad):
-   * su id, o null si la ruta no cuelga de ninguna — la home, p. ej. Gana la ruta más larga: una
-   * sección no se queda con las pantallas de otra porque su prefijo sea más corto.
+   * The first-level section on screen (the same rule as the web renderer's activeSection.ts:
+   * the entry that is the route, or the group containing it at any depth):
+   * its id, or null if the route hangs from none — the home, e.g. The longest route wins: a
+   * section does not take another's screens because its prefix is shorter.
    */
   function nodeRoutes(node, out = []) {
     if (!node) return out
@@ -783,8 +785,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let best = null
     let length = 0
     for (const section of sections || []) {
-      // una sección de primer nivel trae sus rutas (sectionRoutes); un ítem del segundo nivel
-      // (HAMBURGER_SECTIONS) no: valen los ids de lo que cuelga de él
+      // a first-level section carries its routes (sectionRoutes); a second-level item
+      // (HAMBURGER_SECTIONS) does not: the ids of whatever hangs from it count
       for (const route of section.routes || nodeRoutes(section)) {
         if (routeCovers(route, path) && route.length > length) {
           best = section.id
@@ -797,16 +799,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
   /*
-   * HAMBURGER_SECTIONS (al estilo de Opera Cloud): el primer nivel del menú son las SECCIONES, en la
-   * hamburguesa; la subcabecera lleva el segundo nivel de la sección en pantalla (un grupo, en
-   * desplegable: el tercer nivel). Port de activeSection/sectionHome de navTree.ts, sobre los nodos ya
-   * proyectados por shellNavOf (id, children, disabled; lo oculto ya no está).
+   * HAMBURGER_SECTIONS (Opera Cloud style): the first level of the menu are the SECTIONS, in the
+   * hamburger; the subheader carries the second level of the section on screen (a group, as a
+   * dropdown: the third level). Port of activeSection/sectionHome from navTree.ts, over the nodes already
+   * projected by shellNavOf (id, children, disabled; hidden ones are already gone).
    */
 
   /**
-   * Adónde lleva elegir una sección: la propia sección si es una pantalla, si no su primera entrada
-   * que se pueda abrir, en profundidad —la home de la sección, como en Opera—. null si no hay nada
-   * que abrir (una sección remota que no contestó).
+   * Where choosing a section leads: the section itself if it is a screen, otherwise its first entry
+   * that can be opened, depth-first —the section's home, as in Opera—. null if there is nothing
+   * to open (a remote section that did not answer).
    */
   function sectionHomeOf(node) {
     if (!node || node.disabled) return null
@@ -819,24 +821,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  /** El nodo de la sección en pantalla (activeSectionOf), o null —la home, p. ej.—. */
+  /** The node of the section on screen (activeSectionOf), or null —the home, e.g.—. */
   function sectionOf(sections, current) {
     const id = activeSectionOf(sections, current)
     return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
   }
 
-  /** Las rutas centinela del servidor que significan «no hay home declarada»: la shell abre entonces
-   *  la primera pantalla del menú (en profundidad), como la home de una sección. */
+  /** The server's sentinel routes meaning «no home declared»: the shell then opens
+   *  the first screen of the menu (depth-first), like a section's home. */
   function isSentinelHome(route) {
     const r = String(route || '')
     return !r || /(^|\/)_no_home_route$/.test(r) || /(^|\/)_page$/.test(r)
   }
 
   /**
-   * La opción LOCAL del menú (no remota) que cubre una ruta —la de prefijo más largo, por tramos—,
-   * o null. Una ruta de menú (`/inventory/floorPlan`) es del APP: el servidor sólo la resuelve si la
-   * petición lleva el serverSideType del app que declara ese menú; sin él contesta «Not found.»
-   * (en demo-vb no se notaba porque cada @Menu se llamaba como la ruta @UI de su clase).
+   * The LOCAL (not remote) menu option covering a route —the one with the longest prefix, by segments—,
+   * or null. A menu route (`/inventory/floorPlan`) belongs to the APP: the server only resolves it if the
+   * request carries the serverSideType of the app declaring that menu; without it it answers «Not found.»
+   * (in demo-vb it went unnoticed because each @Menu was named like its class's @UI route).
    */
   function localMenuOptionOf(menu, route) {
     const path = String(route || '').split('?')[0]
@@ -855,17 +857,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // CALENDARIO (Calendar → átomo isCalendar). JET no trae un calendario: la rejilla se dibuja con los
-  // tokens de Redwood; el selector de vista es el oj-buttonset-one de JET y los eventos, enlaces.
-  // TODAS las vistas (mes, semana, día, lista) van precomputadas en el átomo — el CSP de VB no
-  // calcula fechas — y cambiar de vista es estado del DOM (installCalendars): sin re-proyectar ni
-  // preguntar al servidor. Mismas reglas que libs/mateu calendarModel.ts (fechas ISO en UTC, para
-  // que ningún huso mueva un día; el evento de varios días en todos sus días; por hora de inicio).
+  // CALENDAR (Calendar → isCalendar atom). JET has no calendar: the grid is drawn with
+  // Redwood's tokens; the view selector is JET's oj-buttonset-one and the events, links.
+  // ALL views (month, week, day, list) come precomputed in the atom — VB's CSP does not
+  // compute dates — and switching view is DOM state (installCalendars): without re-projecting or
+  // asking the server. Same rules as libs/mateu calendarModel.ts (ISO dates in UTC, so
+  // that no time zone moves a day; the multi-day event on all its days; by start time).
 
   const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
   const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
   const calAddDays = (iso, n) => fromUtc(toUtc(iso) + n * 86400000)
-  /** 0 = lunes … 6 = domingo */
+  /** 0 = Monday … 6 = Sunday */
   const calWeekday = (iso) => (new Date(toUtc(iso)).getUTCDay() + 6) % 7
   const firstOfMonth = (iso) => iso.slice(0, 8) + '01'
   const lastOfMonth = (iso) => { const [y, m] = iso.split('-').map(Number); return fromUtc(Date.UTC(y, m, 0)) }
@@ -891,7 +893,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const monthName = (iso) => MONTHS[Number(iso.slice(5, 7)) - 1]
   const longDate = (iso) => DOWS_LONG[calWeekday(iso)] + ', ' + monthName(iso) + ' ' + dayNum(iso)
 
-  /** El átomo del calendario, con las cuatro vistas precomputadas. */
+  /** The calendar atom, with the four views precomputed. */
   function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10)) {
     const anchor = m.month || today
     const events = m.events || []
@@ -905,7 +907,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         text: (time ? time + ' ' : '') + (e.title || ''),
         actionId: e.actionId || '',
         clickable: e.actionId ? 'true' : 'false',
-        // un OBJETO: el :style de JET no aplica una cadena CSS
+        // an OBJECT: JET's :style does not apply a CSS string
         style: e.color ? { borderLeftColor: e.color } : {},
       }
     }
@@ -921,7 +923,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         events: evs.map((e) => chipOf(e, withTime)),
       }
     }
-    // mes: celdas de lunes a domingo, en blanco fuera del mes
+    // month: cells from Monday to Sunday, blank outside the month
     const month = calPeriod('month', anchor)
     const monthCells = Array.from({ length: calWeekday(month.from) }, () => ({ blank: true, cls: 'mateu-cal-cell mateu-cal-blank', events: [], label: '', num: '', date: '' }))
     monthCells.push(...datesBetween(month.from, month.to).map((d) => cellOf(d, false)))
@@ -958,14 +960,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // ── comportamiento del DOM (una vez por documento) ────────────────────────────────────────────
+  // ── DOM behaviour (once per document) ────────────────────────────────────────────
   let calendarSink = null
   function setCalendarActionSink(fn) { calendarSink = typeof fn === 'function' ? fn : null }
 
   function installCalendars(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuCalendars) return
     doc.__mateuCalendars = true
-    // cambiar de vista: el oj-buttonset-one NO burbujea valueChanged; la captura sí lo ve
+    // switching view: the oj-buttonset-one does NOT bubble valueChanged; capture does see it
     doc.addEventListener('valueChanged', (e) => {
       const set = e.target
       if (!set || !set.hasAttribute || !set.hasAttribute('data-cal-switch')) return
@@ -1005,17 +1007,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
-  // Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
-  // HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
-  // por LISTA BLANCA (etiquetas de texto; de atributos sólo el href de un enlace con esquema
-  // seguro): nada de scripts, estilos, manejadores ni iframes. JET no tiene editor de texto
-  // enriquecido: editar un richText es un oj-text-area con su HTML (limitación declarada).
+  // RICH TEXT (P2 #23): a read-only richText/html/markdown field and the Markdown
+  // component are painted WITH formatting. VB does not stamp HTML from a binding, so the atom carries the
+  // ALREADY SANITISED HTML in data-mateu-html and installRichText dumps it into its container. Sanitising is
+  // by ALLOWLIST (text tags; of attributes only a link's href with a safe
+  // scheme): no scripts, styles, handlers or iframes. JET has no rich text
+  // editor: editing a richText is an oj-text-area with its HTML (declared limitation).
 
   const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
     'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
     'tbody', 'tr', 'th', 'td', 'sub', 'sup'])
-  // su CONTENIDO también se descarta, no sólo la etiqueta
+  // its CONTENT is discarded too, not just the tag
   const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math', 'textarea', 'select'])
   const VOID = new Set(['br', 'hr'])
   const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
@@ -1023,8 +1025,57 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-  /** HTML → HTML saneado por lista blanca. */
-  function sanitizeHtml(html) {
+  // `presentation` (the HTML of an Element / a header widget, not a rich-text value): also keeps
+  // `class`, `title`, `aria-hidden` and a FILTERED `style` on the allowed tags, and an <img> whose
+  // src is http(s), relative or a raster data: image. Still nothing that runs: no handler, no
+  // script, no url() in a style, no form.
+  const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse)$/i
+  const STYLE_VALUE = /^[#\w\s.,%()+-]*$/
+  const SAFE_IMG_SRC = /^(https?:|\/|\.{0,2}\/|data:image\/(png|jpe?g|gif|webp|bmp|avif);)|^[^:]*$/i
+
+  const attrOfToken = (attrs, name) => {
+    const m = new RegExp('(?:^|\\s)' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i').exec(attrs || '')
+    return m ? (m[1] ?? m[2] ?? m[3] ?? '') : null
+  }
+
+  function safeStyle(style) {
+    const kept = []
+    for (const decl of String(style).split(';')) {
+      const i = decl.indexOf(':')
+      if (i < 0) continue
+      const prop = decl.slice(0, i).trim()
+      const value = decl.slice(i + 1).trim()
+      if (STYLE_PROPS.test(prop) && STYLE_VALUE.test(value) && !/url|expression|image-set/i.test(value)) kept.push(prop + ': ' + value)
+    }
+    return kept.join('; ')
+  }
+
+  function presentationAttrs(tag, attrs) {
+    let out = ''
+    const cls = attrOfToken(attrs, 'class')
+    if (cls && /^[\w\s-]+$/.test(cls)) out += ' class="' + escapeAttr(cls.trim()) + '"'
+    const title = attrOfToken(attrs, 'title')
+    if (title) out += ' title="' + escapeAttr(title) + '"'
+    if (attrOfToken(attrs, 'aria-hidden') === 'true') out += ' aria-hidden="true"'
+    const style = attrOfToken(attrs, 'style')
+    const clean = style ? safeStyle(style) : ''
+    if (clean) out += ' style="' + escapeAttr(clean) + '"'
+    if (tag === 'img') {
+      const src = (attrOfToken(attrs, 'src') || '').replace(/[\t\n\r]/g, '').trim()
+      if (src && SAFE_IMG_SRC.test(src)) out += ' src="' + escapeAttr(src) + '"'
+      const alt = attrOfToken(attrs, 'alt')
+      if (alt != null) out += ' alt="' + escapeAttr(alt) + '"'
+      for (const dim of ['width', 'height']) {
+        const v = attrOfToken(attrs, dim)
+        if (v && /^\d+%?$/.test(v)) out += ' ' + dim + '="' + v + '"'
+      }
+    }
+    return out
+  }
+
+  /** HTML → HTML sanitised by allowlist (`{ presentation: true }`: see presentationAttrs). */
+  function sanitizeHtml(html, options = {}) {
+    const presentation = !!options.presentation
     const out = []
     let skipping = null
     let depth = 0
@@ -1046,21 +1097,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!closing && !/\/\s*$/.test(m[2] || '')) { skipping = tag; depth = 1 }
         continue
       }
-      if (!ALLOWED.has(tag)) continue
-      if (closing) { if (!VOID.has(tag)) out.push('</' + tag + '>'); continue }
-      let attrs = ''
+      const isImg = presentation && tag === 'img'
+      if (!ALLOWED.has(tag) && !isImg) continue
+      if (closing) { if (!VOID.has(tag) && !isImg) out.push('</' + tag + '>'); continue }
+      let attrs = presentation ? presentationAttrs(tag, m[2] || '') : ''
       if (tag === 'a') {
         const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[2] || '')
         const value = href ? (href[1] ?? href[2] ?? href[3] ?? '').trim().replace(/&amp;/g, '&') : ''
         if (value && SAFE_HREF.test(value)) {
-          attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
+          attrs += ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
         }
       }
       if (tag === 'th' || tag === 'td') {
         const align = /\balign\s*=\s*["']?(left|right|center)\b/i.exec(m[2] || '')
         // emitted from constants only: nothing of the input reaches the attribute
         const ALIGNS = { left: ' align="left"', right: ' align="right"', center: ' align="center"' }
-        if (align) attrs = ALIGNS[align[1].toLowerCase()] || ''
+        if (align) attrs += ALIGNS[align[1].toLowerCase()] || ''
       }
       out.push('<' + tag + attrs + '>')
     }
@@ -1073,8 +1125,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   const isTableSeparator = (line) => /\|/.test(line) && tableCells(line).every((c) => /^:?-{1,}:?$/.test(c))
 
-  /** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
-   *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
+  /** Markdown → HTML (sanitised): headings, paragraphs, lists, quotes, code, and inline bold,
+   *  italics, code and links. Whatever it does not recognise stays as text. */
   function markdownToHtml(md) {
     // HTML written inside the Markdown (an allowed tag: <b>, <br>, <span>…) is kept — the final
     // sanitizeHtml pass drops what is not on the list and every attribute but a safe href
@@ -1393,7 +1445,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     win.customElements.define('mateu-rich-text-field', MateuRichTextField)
   }
 
-  /** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
+  /** Dumps the sanitised HTML of each [data-mateu-html] into its container (and when it changes). */
   function installRichText(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuRichText || typeof MutationObserver === 'undefined') return
     doc.__mateuRichText = true
@@ -1401,7 +1453,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const html = el.getAttribute('data-mateu-html') || ''
       if (el.__mateuHtml === html) return
       el.__mateuHtml = html
-      // el valor ya viene saneado del bridge; se vuelve a sanear aquí por si alguien escribe el atributo
+      // the value already comes sanitised from the bridge; it is sanitised again here in case someone writes the attribute
       el.innerHTML = sanitizeHtml(html)
     }
     const scan = (root) => {
@@ -1419,27 +1471,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // Los enlaces HTML corrientes dentro del contenido (`<a href="/journey/bookings/ZUAAKJ">Ver
-  // recorrido</a>`, de un Text/Html de la app) navegan DENTRO de la shell, como en Vaadin: allí el
-  // cliente de Flow (RouterLinkHandler) se queda con el clic en un enlace a una ruta de la app y
-  // navega sin recargar. Aquí, sin esto, el navegador cargaba la página entera y la shell de Redwood
-  // volvía a arrancar (20–40 s en blanco). Mismas reglas que Flow: sólo un clic normal (botón
-  // principal, sin Ctrl/Cmd/Mayús/Alt) que nadie haya atendido ya, en un enlace del mismo origen,
-  // sin target (o _self), sin download ni router-ignore; además, nada que no sea una pantalla: las
-  // rutas internas (/_inbox, /_xxx), el API, el login/logout y los ficheros (algo.pdf) siguen
-  // siendo del navegador, y un ancla a la misma página (#expand=…, el foldout) también.
+  // Ordinary HTML links inside the content (`<a href="/journey/bookings/ZUAAKJ">Ver
+  // recorrido</a>`, from an app Text/Html) navigate INSIDE the shell, as in Vaadin: there the
+  // Flow client (RouterLinkHandler) takes the click on a link to an app route and
+  // navigates without reloading. Here, without this, the browser loaded the whole page and the Redwood shell
+  // booted again (20–40 s blank). Same rules as Flow: only a plain click (main
+  // button, no Ctrl/Cmd/Shift/Alt) that nobody has handled yet, on a same-origin link,
+  // without target (or _self), without download or router-ignore; also, nothing that is not a screen: the
+  // internal routes (/_inbox, /_xxx), the API, login/logout and files (something.pdf) still
+  // belong to the browser, and an anchor to the same page (#expand=…, the foldout) too.
 
-  /** Prefijos de rutas que no son pantallas de la app: el navegador las carga como siempre. */
+  /** Prefixes of routes that are not app screens: the browser loads them as always. */
   const NOT_A_SCREEN = /^\/(_|api(\/|$)|oauth2(\/|$)|login(\/|$)|logout(\/|$)|sso(\/|$)|actuator(\/|$)|webjars(\/|$)|assets(\/|$)|static(\/|$)|resources(\/|$)|version_)/i
 
-  /** El último tramo con extensión de fichero (`informe.pdf`, `bundle.js`): no es una pantalla (un id
-   *  con punto, `/customers/ana.ruiz`, sí). */
+  /** The last segment with a file extension (`informe.pdf`, `bundle.js`): it is not a screen (an id
+   *  with a dot, `/customers/ana.ruiz`, is). */
   const LOOKS_LIKE_FILE = /\.(pdf|csv|tsv|xlsx?|docx?|pptx?|odt|ods|zip|gz|tar|json|xml|txt|md|png|jpe?g|gif|svg|ico|webp|avif|mp4|webm|mp3|wav|js|mjs|css|map|html?|woff2?|ttf|otf)$/i
 
   /**
-   * La ruta de la app a la que navega un clic en un enlace (con su query), o null si el clic sigue
-   * siendo del navegador. `location` es la de la página (window.location); `hashMode` es la shell
-   * servida en estático, cuyas rutas viven en `#/ruta`.
+   * The app route a click on a link navigates to (with its query), or null if the click still
+   * belongs to the browser. `location` is the page's (window.location); `hashMode` is the shell
+   * served statically, whose routes live in `#/route`.
    */
   function inAppRouteOfLink(anchor, event, location, hashMode = false, mount = '') {
     if (!anchor || !anchor.getAttribute || !location) return null
@@ -1450,11 +1502,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const target = (anchor.getAttribute('target') || '').trim().toLowerCase()
     if (target && target !== '_self') return null
     if (anchor.getAttribute('download') != null || anchor.getAttribute('router-ignore') != null) return null
-    // en estático (#/ruta) un `#/ruta` también es una pantalla
+    // statically (#/route) a `#/route` is a screen too
     if (hashMode && /^#\//.test(href.trim())) {
       return href.trim().slice(1)
     }
-    // `#`, `#expand=…`: anclas de esta misma página (el foldout, los href="#" de JET), del navegador
+    // `#`, `#expand=…`: anchors of this same page (the foldout, JET's href="#"), the browser's
     if (href.trim().charAt(0) === '#') return null
     let url
     try {
@@ -1465,7 +1517,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
     if (url.origin !== location.origin) return null
     let path = url.pathname || '/'
-    // un ancla a esta misma página (#expand=…): la hace el navegador
+    // an anchor to this same page (#expand=…): the browser handles it
     if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
     // the app mounted under a path (@UI("/console")): only links below it are screens of THIS app
     // (another path is another UI: the browser loads it), its route is the part after the mount and
@@ -1487,12 +1539,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const HOST_ID = '__root__'
 
-  /** Recorrido que NO cruza fronteras de isla: un ServerSide INTERIOR es otra superficie
-   *  (sus campos/acciones pertenecen a su propio contexto, no al host). */
+  /** A walk that does NOT cross island boundaries: an INNER ServerSide is another surface
+   *  (its fields/actions belong to its own context, not to the host). */
   function walkWithinSurface(node, visit) {
     const walk = (n, isRoot) => {
       if (!n || typeof n !== 'object') return
-      if (!isRoot && n.type === 'ServerSide') return // frontera de isla: parar
+      if (!isRoot && n.type === 'ServerSide') return // island boundary: stop
       visit(n)
       for (const [k, v] of Object.entries(n)) {
         // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
@@ -1520,33 +1572,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ids
   }
 
-  /** Helper de RENDER: recolecta los FormFields de la superficie (sin cruzar islas). */
+  /** RENDER helper: collects the surface's FormFields (without crossing islands). */
   function collectFields(node, out = []) {
     walkWithinSurface(node, (n) => { if (n.fieldId) out.push(n) })
     return out
   }
 
-  /** Helper de RENDER: recolecta botones/acciones de la superficie (sin cruzar islas). */
+  /** RENDER helper: collects the surface's buttons/actions (without crossing islands). */
   function collectActions(node, out = []) {
     walkWithinSurface(node, (n) => { if (n.actionId && n.label && !n.fieldId) out.push(n) })
     return out
   }
 
-  /** Fronteras de isla embebida — DOS sabores confirmados en wire real:
-   *  (a) nodos ServerSide INTERIORES (id propio, p.ej. '_guestNote');
-   *  (b) nodos ClientSide App variant=MEDIATOR con id estable (p.ej.
-   *      'island_checkin_st_maria') cuya PROPIA metadata trae homeRoute
+  /** Embedded island boundaries — TWO flavours confirmed on the real wire:
+   *  (a) INNER ServerSide nodes (own id, e.g. '_guestNote');
+   *  (b) ClientSide App variant=MEDIATOR nodes with a stable id (e.g.
+   *      'island_checkin_st_maria') whose OWN metadata carries homeRoute
    *      (?_embeddedMediator=1) + homeConsumedRoute + homeServerSideType —
-   *      el detalle del TaskQueue del front-office llega así. */
+   *      the front-office TaskQueue detail arrives like this. */
   function collectIslands(tree, out = []) {
     const walk = (node, isRoot) => {
       if (!node || typeof node !== 'object') return
       if (!isRoot && node.type === 'ServerSide') {
-        // un @Subresource no es la isla de la pantalla: lo carga loadSubresources cuando queda a
-        // la vista (ver subresourceIslandOf); ni una isla INLINE (un campo-componente con su propio
-        // ServerSide, árbol incluido): es otra superficie, pintada en su hueco (inlineIslandOf)
+        // a @Subresource is not the screen's island: loadSubresources loads it when it comes into
+        // view (see subresourceIslandOf); nor is an INLINE island (a component field with its own
+        // ServerSide, tree included): it is another surface, painted in its slot (inlineIslandOf)
         if (!subresourceIslandOf(node) && !inlineIslandOf(node)) out.push(node)
-        return // sus hijos pertenecen a la isla, no al host
+        return // its children belong to the island, not the host
       }
       if (!isRoot && node.type === 'ClientSide' && node.id && node.metadata
           && node.metadata.type === 'App' && node.metadata.variant === 'MEDIATOR') {
@@ -1555,8 +1607,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           route: node.metadata.homeRoute,
           consumedRoute: node.metadata.homeConsumedRoute || node.metadata.homeRoute,
           serverSideType: node.metadata.homeServerSideType,
-          // el CONTEXTO sembrado por el host (stayId, paxIndex…): debe viajar como
-          // componentState en la carga inicial de la isla (mateu-ux.initialState)
+          // the CONTEXT seeded by the host (stayId, paxIndex…): it must travel as
+          // componentState in the island's initial load (mateu-ux.initialState)
           initialData: node.initialData || null,
         })
         return
@@ -1570,16 +1622,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Helper de RENDER: FormField[] del árbol → metadata de oj-dyn-form (mapa campo → meta).
-   *  null si el árbol no tiene campos (página sin formulario). */
+  /** RENDER helper: FormField[] of the tree → oj-dyn-form metadata (field → meta map).
+   *  null if the tree has no fields (page without a form). */
   function dynFormMetadataOf(tree) {
     const NUMERIC = ['integer', 'int', 'long', 'number', 'double', 'float', 'money']
     const metadata = {}
     for (const f of collectFields(tree)) {
-      if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
-      // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
-      // (un @Searchable de varios ids sí es un campo: sus chips)
-      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      if (!f.dataType || metadata[f.fieldId]) continue // duplicates = FormRow references
+      // a LIST (form grid) is not a text field: the content paints it as a table
+      // (a multi-id @Searchable IS a field: its chips)
+      // a list is a table (not a field) except @Searchable and multiple-choice ones
       if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
       metadata[f.fieldId] = {
         type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
@@ -1593,9 +1645,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Object.keys(metadata).length ? metadata : null
   }
 
-  /** Helper de RENDER: botones únicos del árbol. chroming viene PRECOMPUTADO (los bindings
-   *  VB deben quedar como paths simples: un ternario en un atributo rompe la evaluación CSP
-   *  de TODAS las propiedades del elemento). */
+  /** RENDER helper: the tree's unique buttons. chroming comes PRECOMPUTED (VB bindings
+   *  must stay simple paths: a ternary in an attribute breaks the CSP evaluation
+   *  of ALL the element's properties). */
   function actionsOf(tree) {
     const seen = {}
     const out = []
@@ -1619,13 +1671,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Helper de RENDER: lista de campos para el switch widgetFor (isText/isNumber/isBoolean/
-   *  isSelect/isDate/isDateTime PRECOMPUTADOS — los bindings VB deben ser paths simples), con el
-   *  valor sacado del state. Es la MISMA resolución de widget que el editor de fila
-   *  (fieldWidgetOf): un select con opciones (options/OptionsSupplier/enum) se pinta como
-   *  oj-select-one y una fecha como oj-input-date también en el formulario de página, el drawer
-   *  y la isla, no sólo en el diálogo de la fila. Un lookup REMOTO sin opciones todavía se queda
-   *  en texto: aquí nadie lanza su búsqueda (sólo el editor de fila lo hace). */
+  /** RENDER helper: list of fields for the widgetFor switch (isText/isNumber/isBoolean/
+   *  isSelect/isDate/isDateTime PRECOMPUTED — VB bindings must be simple paths), with the
+   *  value taken from the state. It is the SAME widget resolution as the row editor
+   *  (fieldWidgetOf): a select with options (options/OptionsSupplier/enum) is painted as
+   *  oj-select-one and a date as oj-input-date also in the page form, the drawer
+   *  and the island, not only in the row dialog. A REMOTE lookup with no options yet stays
+   *  as text: nobody launches its search here (only the row editor does). */
   function fieldListOf(tree, state, data) {
     if (!dynFormMetadataOf(tree)) return []
     const s = state || {}
@@ -1635,12 +1687,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
-      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      // a list is a table (not a field) except @Searchable and multiple-choice ones
       if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
-      // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
+      // the detail view of a @Searchable arrives as `<campo>-label`: its text travels in data
       const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
-      // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
-      // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
+      // a REMOTE lookup is a dropdown here too: the chain loads its options
+      // (bridge.loadLookups) when the screen opens, like the row editor's
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
       let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
       if (widget.isMultiSelect || widget.isCheckboxSet)
@@ -1651,14 +1703,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** ¿Es este nodo una SECCIÓN del formulario (@Section)? El wire la manda como una Card con la
-   *  clase mateu-section, su título en un Text de cabecera (h3) y sus campos en un FormLayout. */
+  /** Is this node a form SECTION (@Section)? The wire sends it as a Card with the
+   *  mateu-section class, its title in a header Text (h3) and its fields in a FormLayout. */
   function isSectionNode(n) {
     return !!(n && n.metadata && n.metadata.type === 'Card' && /(^|\s)mateu-section(\s|$)/.test(n.cssClasses || ''))
   }
 
-  /** El título y las columnas de una sección: el primer Text de cabecera y el primer FormLayout
-   *  de SU contenido (sin bajar a una sección anidada ni a otra isla). */
+  /** A section's title and columns: the first header Text and the first FormLayout
+   *  of ITS content (without descending into a nested section or another island). */
   function sectionHeadOf(card) {
     let title = ''
     let columns = 0
@@ -1720,10 +1772,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Las columnas de un grupo de campos en un formulario a TODO EL ANCHO (página, wizard): las
-   * declaradas (FormLayout maxColumns, @Section(columns)) o, sin declarar, dos — el reparto por
-   * defecto del FormLayout de Vaadin en escritorio. oj-form-layout las baja solo cuando no caben
-   * (cada columna pide 18rem como mínimo), así que en un teléfono vuelve a ser una.
+   * The columns of a field group in a FULL-WIDTH form (page, wizard): the declared ones
+   * (FormLayout maxColumns, @Section(columns)) or, when undeclared, two — the default split
+   * of Vaadin's FormLayout on desktop. oj-form-layout lowers them by itself only when they don't fit
+   * (each column asks for at least 18rem), so on a phone it is one again.
    */
   function wideColumnsOf(section) {
     return section.declaredColumns ? section.columns : 2
@@ -1752,10 +1804,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Helper de RENDER: los campos del formulario AGRUPADOS por sus secciones (@Section), en el
-   * orden del wire → [{ key, title, hasTitle, columns, fields }]. Los campos fuera de toda
-   * sección van a un grupo sin título; un formulario sin secciones es UN grupo sin título, así
-   * que el template pinta siempre secciones → campos. [] si el árbol no tiene formulario.
+   * RENDER helper: the form fields GROUPED by their sections (@Section), in
+   * wire order → [{ key, title, hasTitle, columns, fields }]. Fields outside any
+   * section go to an untitled group; a form without sections is ONE untitled group, so
+   * the template always paints sections → fields. [] if the tree has no form.
    */
   function formSectionsOf(tree, state, data, opts = {}) {
     const fields = fieldListOf(tree, state, data)
@@ -1773,7 +1825,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       && (n.metadata.type === 'FormLayout' || n.metadata.type === 'HorizontalLayout'))
     const walk = (n, isRoot, section, layout) => {
       if (!n || typeof n !== 'object') return
-      if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
+      if (!isRoot && n.type === 'ServerSide') return // island boundary: its fields are not ours
       let here = section
       if (isSectionNode(n)) {
         here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
@@ -1806,24 +1858,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     walk(tree, true, null, null)
-    // un formulario sin FormLayout propio (los campos sueltos de un ServerSide) toma sus columnas
-    // del FormLayout raíz, si lo hay
+    // a form without its own FormLayout (the loose fields of a ServerSide) takes its columns
+    // from the root FormLayout, if there is one
     const rootColumns = sectionHeadOf(tree)
     return sections
       .filter((sec) => sec.fields.length)
       .map((sec) => {
         const head = !sec.declaredColumns && rootColumns.declaredColumns ? { ...sec, columns: rootColumns.columns, declaredColumns: true } : sec
-        // (el @Colspan de un campo no se aplica: de los hijos del oj-form-layout clásico sólo
-        // oj-label-value tiene colspan, y envolver el control en uno descuadra la rejilla)
+        // (a field's @Colspan is not applied: of the classic oj-form-layout's children only
+        // oj-label-value has colspan, and wrapping the control in one misaligns the grid)
         return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head),
           hasTitleButtons: !!(sec.titleButtons && sec.titleButtons.length),
           hasFooterButtons: !!(sec.footerButtons && sec.footerButtons.length) }
       })
   }
 
-  /** Proyección del OVERLAY superior del stack (drawer del crud): título + campos + acciones.
-   *  null si no hay overlays. Sus acciones se postean contra el HOST (el drawer no lleva
-   *  ServerSide propio — confirmado en el wire). */
+  /** Projection of the TOP OVERLAY of the stack (the crud's drawer): title + fields + actions.
+   *  null if there are no overlays. Its actions are posted against the HOST (the drawer carries
+   *  no ServerSide of its own — confirmed on the wire). */
   function overlayOf(reg) {
     const id = reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
     return overlayProjectionOf(reg, id)
@@ -1867,25 +1919,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function overlayProjectionOf(reg, id) {
     if (!id || !reg.contexts[id]) return null
     const ctx = reg.contexts[id]
-    // bloques display del contenido del drawer (ResourceGrid/OfferCard/StatusList…):
-    // el panel VB los pinta con el MISMO template de átomos que el host — un drawer no
-    // es solo campos y botones (p.ej. el picker de habitaciones)
-    // los FormFields del drawer ya los pinta su gramática de CAMPOS (oj-form-layout):
-    // fuera los átomos isInput de los bloques o saldrían DUPLICADOS (y el usuario
-    // escribiría en el par equivocado)
-    // pauta del drawer Redwood: las ACCIONES van en la barra del pie. Un Button del
-    // contenido SIN parámetros se mueve al pie (p.ej. Enviar); los que llevan parameters
-    // (listas de opciones: métodos de cobro, habitaciones…) se quedan en su sitio y NO se
-    // repiten en el pie. En un DIALOG (modal de decisión puntual) TODOS los botones son
-    // acciones del pie — el listener del modal despacha actionId + parameters, así que
-    // "Check-in de <nombre>" (con su _item) viaja igual que "Volver al listado"
+    // display blocks of the drawer content (ResourceGrid/OfferCard/StatusList…):
+    // the VB panel paints them with the SAME atoms template as the host — a drawer is not
+    // just fields and buttons (e.g. the room picker)
+    // the drawer's FormFields are already painted by its FIELDS grammar (oj-form-layout):
+    // drop the blocks' isInput atoms or they would come out DUPLICATED (and the user
+    // would type into the wrong one of the pair)
+    // Redwood drawer guideline: ACTIONS go in the footer bar. A content Button
+    // WITHOUT parameters moves to the footer (e.g. Send); those carrying parameters
+    // (option lists: payment methods, rooms…) stay in place and are NOT
+    // repeated in the footer. In a DIALOG (one-off decision modal) ALL buttons are
+    // footer actions — the modal's listener dispatches actionId + parameters, so
+    // "Check-in de <nombre>" (with its _item) travels just like "Volver al listado"
     const isDialog = isDialogOverlay(ctx)
     const conParams = (btn) => !!(btn.parameters && Object.keys(btn.parameters).length)
     const keepInContent = isDialog ? () => false : conParams
-    // un formulario EMBEBIDO en el overlay (EmbeddedView: un ServerSide propio dentro del Dialog
-    // o del Drawer) es la superficie: sus campos, sus botones y sus textos. Recorrer el árbol
-    // del overlay no los encontraba — el recorrido no cruza a otro ServerSide — y el diálogo
-    // salía vacío.
+    // a form EMBEDDED in the overlay (EmbeddedView: its own ServerSide inside the Dialog
+    // or the Drawer) is the surface: its fields, its buttons and its texts. Walking the
+    // overlay's tree did not find them — the walk does not cross into another ServerSide — and the dialog
+    // came out empty.
     const surface = ctx.surface || ctx.tree
     const surfaceCtx = surface === ctx.tree ? ctx : { ...ctx, tree: surface }
     // the overlay's header already shows its title (an EmbeddedView form's TitleSupplier title is
@@ -1926,7 +1978,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       id,
       title: ctx.title || '',
-      // el subtítulo del Drawer (General Drawer: «Room 102 · 12 oct → 14 oct») bajo el título
+      // the Drawer subtitle (General Drawer: «Room 102 · 12 oct → 14 oct») under the title
       subtitle: ctx.subtitle || '',
       position: ctx.position || 'end',
       width: ctx.width,
@@ -1938,8 +1990,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actions: actionsOf(surface).filter((a) => !contentActionIds.has(a.actionId)),
       content: content,
       hasContent: !!content.length,
-      // un overlay Dialog se pinta como MODAL (oj-dialog: decisión puntual), no como
-      // drawer (tarea con formulario); texts = sus líneas de mensaje
+      // a Dialog overlay is painted as a MODAL (oj-dialog: one-off decision), not as a
+      // drawer (task with a form); texts = its message lines
       isDialog,
       texts: withoutFirst(collectTexts(surface), overlayTitle),
     }
@@ -1951,11 +2003,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return i < 0 ? list : list.slice(0, i).concat(list.slice(i + 1))
   }
 
-  /** Vigía del diálogo de progreso de un LongTask sobre el stream SSE: consume el Add del
-   *  Dialog-con-ProgressBar y los state-only dirigidos a su id; devuelve eventos
-   *  {kind: open|progress, title?, text?, value?, rest} para que el chain pinte el
-   *  oj-dialog — `rest` lleva los commands/messages del increment (el último los trae:
-   *  dispatchEvent del refresco) SIN el fragment del diálogo, listos para reducir. */
+  /** Watcher of a LongTask's progress dialog over the SSE stream: consumes the Add of the
+   *  Dialog-with-ProgressBar and the state-only fragments targeted at its id; returns events
+   *  {kind: open|progress, title?, text?, value?, rest} so the chain paints the
+   *  oj-dialog — `rest` carries the increment's commands/messages (the last one brings them:
+   *  the refresh dispatchEvent) WITHOUT the dialog fragment, ready to reduce. */
   function longTaskWatcher() {
     const hasProgressBar = (node) => {
       if (!node || typeof node !== 'object') return false
@@ -2000,7 +2052,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return w
   }
 
-  /** Helper de RENDER: recolecta los textos (metadata.type Text) de un subárbol. */
+  /** RENDER helper: collects the texts (metadata.type Text) of a subtree. */
   function collectTexts(node, out = []) {
     if (!node || typeof node !== 'object') return out
     if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
@@ -2025,14 +2077,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
-  /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
-   *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
-   *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
-   *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
-   *  como forma legada para tests/fixtures. */
+  /** FOLDOUT projection (Phase 7): overview + panels with their headers (metadata.panels)
+   *  and their slotted content (overview / panel-N). null if the context is not a foldout.
+   *  Each slot also projects its RICH blocks (same pipeline as the host: StatusList
+   *  cards, buttons, inputs, notices…) — the markup paints blocks and keeps texts only
+   *  as the legacy form for tests/fixtures. */
   function foldoutOf(ctx) {
-    // el foldout de PÁGINA: uno metido en una pestaña (o en un panel de consola) es contenido de esa
-    // pestaña — visit() lo pinta allí, con sus paneles plegables — y no se adueña de la pantalla
+    // the PAGE foldout: one placed in a tab (or in a console panel) is content of that
+    // tab — visit() paints it there, with its collapsible panels — and does not take over the screen
     const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
     if (!node) return null
     const md = node.metadata
@@ -2043,16 +2095,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const blocks = slotNode
         ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
         : null
-      // mismo contrato visual que hostContentOf: bloques-columna con su colClass,
-      // el resto a fila completa
+      // same visual contract as hostContentOf: column blocks with their colClass,
+      // the rest full-row
       return (blocks || []).map((block) => ({
         ...block,
         blockClass: block.colClass || 'oj-flex-item oj-sm-12',
       }))
     }
-    // Las insignias de la PÁGINA (el @Status de la cabecera: «Confirmed») encabezan el overview:
-    // el web las pinta junto al título, y la cabecera de VB no tiene sitio para ellas. Mismas
-    // clases badge de JET que las celdas @Status; una plantilla sin resolver no se pinta.
+    // The PAGE badges (the header @Status: «Confirmed») head the overview:
+    // the web paints them next to the title, and the VB header has no room for them. Same
+    // JET badge classes as the @Status cells; an unresolved template is not painted.
     const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     const state = (ctx && ctx.state) || {}
     const pageBadges = ((page && page.metadata && page.metadata.badges) || [])
@@ -2072,8 +2124,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       badges: pageBadges,
       overview: {
         texts: collectTexts(bySlot['overview']),
-        // un bloque PLANO que las lleva como átomos: el template del overview solo pinta bloques
-        // isCard/isPlain e isBadge es un átomo de sus items — un bloque isBadge suelto no se veía
+        // a PLAIN block that carries them as atoms: the overview template only paints isCard/isPlain
+        // blocks and isBadge is an atom of their items — a standalone isBadge block was not shown
         blocks: (pageBadges.length
           ? [{ isPlain: true, isCard: false, blockClass: 'oj-flex-item oj-sm-12', items: pageBadges }]
           : []).concat(blocksOf(bySlot['overview'])),
@@ -2081,13 +2133,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       panels: (md.panels || []).map((panel, i) => ({
         title: panel.title || '',
         subtitle: panel.subtitle || '',
-        // título compuesto del panel: "Operaciones · 1 de 7" — el contador vive en la
-        // CABECERA (leído del contenido vivo por índice, refresca sin re-stampar)
+        // composed panel title: "Operaciones · 1 de 7" — the counter lives in the
+        // HEADER (read from the live content by index, refreshes without re-stamping)
         headerLabel: (panel.title || '') + (panel.subtitle ? ' · ' + panel.subtitle : ''),
         open: panel.open !== false,
-        // width EXPLÍCITO del wire (FoldoutPanel.width): el markup fija el panel a esa
-        // medida — sin él, el motor responsive del foldout reparte a su aire y las
-        // tarjetas del cockpit se solapan
+        // EXPLICIT width from the wire (FoldoutPanel.width): the markup pins the panel to that
+        // size — without it, the foldout's responsive engine distributes as it likes and the
+        // cockpit cards overlap
         width: panel.width || '',
         texts: collectTexts(bySlot['panel-' + i]),
         blocks: blocksOf(bySlot['panel-' + i]),
@@ -2117,22 +2169,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { hasSummary: !!text, summary: text }
   }
 
-  /** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → pasos ({id,label} + currentStep
-   *  por id). null si la página no es un wizard. En la pantalla de resultado todos los pasos van
-   *  'done' → currentStep = el último.
+  /** WIZARD projection (Phase 8): the wire's ProgressSteps → steps ({id,label} + currentStep
+   *  by id). null if the page is not a wizard. On the result screen every step is
+   *  'done' → currentStep = the last one.
    *
-   *  ORIENTACIÓN: la decide el propio wizard con @WizardProgress — RAIL manda un ProgressSteps
-   *  VERTICAL (el rail lateral: el oj-sp-guided-process auténtico, con su columna de pasos a la
-   *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
-   *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
-   *  tren de 4-5 rótulos no cabe en un móvil). */
+   *  ORIENTATION: decided by the wizard itself with @WizardProgress — RAIL sends a VERTICAL
+   *  ProgressSteps (the side rail: the genuine oj-sp-guided-process, with its column of steps on
+   *  the right); STEPS sends a HORIZONTAL one, and that is a train of steps ON TOP (horizontal:
+   *  true → oj-train above the content, and on narrow screens the step list vertical, since a
+   *  train of 4-5 labels does not fit on a phone). */
   /** Whether some component of the tree advertises (or a button runs) the wizard's `next`. */
   function advertisesNext(tree) {
     return !!findFirst(tree, (n) => (Array.isArray(n.actions) && n.actions.some((a) => a && a.id === 'next'))
       || (n.metadata && n.metadata.type === 'Button' && n.metadata.actionId === 'next'))
   }
 
-  /** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
+  /** Id of the virtual step the guided process shows once the wizard has finished. */
   const WIZARD_DONE_STEP = '_completed'
 
   function wizardOf(ctx) {
@@ -2148,9 +2200,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const currentId = current ? current.id : (wire.length ? wire[wire.length - 1].id : null)
     const currentIndex = Math.max(0, wire.findIndex((s) => s.id === currentId))
     const statusOf = (s, i) => s.status || (i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'upcoming')
-    // display:'on' OBLIGATORIO: el rail marca oj-disabled todo paso sin display='on'. El
-    // status es el del TEMPLATE (success | error | none), no el de Mateu: un paso hecho es
-    // 'success' — el overview pinta «Completado» al pie de su columna y el rail su marca
+    // display:'on' MANDATORY: the rail marks every step without display='on' as oj-disabled. The
+    // status is the TEMPLATE's (success | error | none), not Mateu's: a done step is
+    // 'success' — the overview paints «Completado» at the foot of its column and the rail its mark
     const steps = wire.map((s, i) => ({
       id: s.id,
       label: s.title || s.id,
@@ -2158,17 +2210,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       display: 'on',
       status: statusOf(s, i) === 'done' ? 'success' : 'none',
     }))
-    // RESULTADO: con todos los pasos hechos (el wire no trae el paso de resultado, que no es un
-    // paso del proceso) el guided process se quedaba en el último paso — su título y su pie
-    // Cancel/Done. Se añade un paso final «Completed», hecho y actual: el título dice que terminó y
-    // el pie se oculta (completed → clase mateu-wizard-completed en la página)
+    // RESULT: with every step done (the wire does not bring the result step, which is not a
+    // step of the process) the guided process stayed on the last step — its title and its
+    // Cancel/Done footer. A final «Completed» step is added, done and current: the title says it
+    // finished and the footer is hidden (completed → class mateu-wizard-completed on the page)
     const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
     if (completed) {
       steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
     }
     const currentStep = completed ? WIZARD_DONE_STEP : currentId
-    // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
-    // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
+    // the process title (the wizard's h2) and its subtitle (@Subtitle): the guided process
+    // overview paints them top-left, above the step columns
     const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
       && n.metadata.container === 'h2' && !!n.metadata.text) : null
     const subtitleNode = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
@@ -2176,7 +2228,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       title: heading ? String(heading.metadata.text) : '',
       subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
-      // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
+      // Overview Start: the first step; with the wizard already started, «Reanudar» on its own
       resumeStepId: !completed && currentIndex > 0 && currentId ? currentId : '',
       steps,
       currentStep,
@@ -2185,8 +2237,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       currentIndex: completed ? steps.length - 1 : currentIndex,
       currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
       total: steps.length,
-      // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
-      // se avanza con el botón del paso, que valida
+      // the train (oj-train): done steps can be VISITED (go back), the remaining ones cannot —
+      // you advance with the step's button, which validates
       trainSteps: wire.map((s, i) => {
         const status = statusOf(s, i)
         return {
@@ -2196,7 +2248,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           disabled: status === 'upcoming',
         }
       }),
-      // la misma lista, para la variante vertical (pantallas estrechas): número o ✓ + rótulo
+      // the same list, for the vertical variant (narrow screens): number or ✓ + label
       listSteps: wire.map((s, i) => {
         const status = statusOf(s, i)
         return {
@@ -2218,17 +2270,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
   // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
-  // La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
-  // el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
-  // secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
-  // la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+  // The matrix (rows × dates, collapsible sections, linking cells and editable rows) is painted by
+  // JET's oj-data-grid over a RowDataGridProvider of a FlattenedTreeDataProviderView: the
+  // sections are tree nodes (JET paints the disclosure), the columns c0..cN. Here the PURE
+  // specification is built (tested in Node); the provider is created by the bridge's factory.
   let matrixProviderFactory = null
   function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
 
   const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
   const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
 
-  /** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+  /** Key of a section's collapsed state (the same store as the collapsible panels). */
   const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
 
   function matrixSpecOf(m, id) {
@@ -2262,7 +2314,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         data.push(...rows)
       }
     }
-    // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+    // headers: if there are groups (the month), two levels — the group spans its consecutive columns
     const hasGroups = columns.some((c) => c.group)
     const columnHeaders = []
     if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
@@ -2278,15 +2330,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rowHeaderLabel: m.rowHeaderLabel || '' }
   }
 
-  /** La altura que el wire pide para el mapa (su `style`), o 25rem como el <mateu-map> del web. */
+  /** The height the wire asks for the map (its `style`), or 25rem like the web's <mateu-map>. */
   function mapHeightOf(style) {
     const m = /(?:^|;)\s*height\s*:\s*([^;]+)/i.exec(style || '')
     return m ? m[1].trim() : '25rem'
   }
 
-  /** Map: JET no tiene mapa de calles (oj-thematic-map pide geografía GeoJSON), así que el átomo
-   *  es un contenedor que installMaps (poc/map.mjs) llena con Leaflet y teselas de OpenStreetMap.
-   *  La especificación viaja serializada en un data-attribute, como el HTML del texto enriquecido. */
+  /** Map: JET has no street map (oj-thematic-map needs GeoJSON geography), so the atom
+   *  is a container that installMaps (poc/map.mjs) fills with Leaflet and OpenStreetMap tiles.
+   *  The specification travels serialized in a data-attribute, like the rich text's HTML. */
   function mapAtomOf(m, id, style) {
     const markers = (m.markers || []).map((k) => ({
       id: k.id, latitude: k.latitude, longitude: k.longitude,
@@ -2297,7 +2349,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mapId: 'mateuMap-' + (id || 'map'),
       mapSpec: JSON.stringify({
         position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '',
-        // el proveedor de teselas del wire ('' = OSM, ver tileLayerOf en map.mjs)
+        // the wire's tile provider ('' = OSM, see tileLayerOf in map.mjs)
         tileUrl: m.tileUrl || '', attribution: m.attribution || '',
       }),
       mapStyle: { width: '100%', height: mapHeightOf(style) },
@@ -2313,17 +2365,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       matrixId: spec.gridId,
       cellActionId: m.cellActionId || '',
       editActionId: m.editActionId || '',
-      // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
-      // (un OBJETO: el :style de JET no acepta la cadena CSS)
+      // height to fit (header(s) + visible rows), with a ceiling: the grid scrolls inside
+      // (an OBJECT: JET's :style does not accept the CSS string)
       gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
       provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
-      // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+      // the tone goes on the grid CELL (not on the text): JET asks for the class per context
       cellClassName: (ctx) => {
-        // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+        // in the class callback the value comes in ctx.data.data (in the template, in cell.item)
         const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
         return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
       },
-      // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+      // which cells are edited is decided by JET (cell.editable): the rest stay natively read-only
       cellEditable: (ctx) => {
         const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
         return d && d.editable ? 'enable' : 'disable'
@@ -2336,17 +2388,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
+  /** «ctrl+i» → «Ctrl+I», for the trigger's label. */
   function shortcutHintOf(shortcut) {
     if (!shortcut) return ''
     return String(shortcut).split('+').map((k) => k.trim()).filter(Boolean)
       .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
   }
 
-  /** PANEL DE ACCIONES por categorías («I want to…»): columnas por categoría, las acciones CON
-   *  datos primero (y en negrita), hasta maxPerCategory visibles y el resto tras «Show more».
-   *  Mostrar más / ocultar las vacías / abrir y cerrar es estado del DOM (installActionPanels):
-   *  sin ida y vuelta al servidor y sin re-proyectar. */
+  /** ACTION PANEL by categories («I want to…»): columns per category, the actions WITH
+   *  data first (and in bold), up to maxPerCategory visible and the rest behind «Show more».
+   *  Show more / hide empty ones / open and close is DOM state (installActionPanels):
+   *  no round trip to the server and no re-projection. */
   function actionPanelAtomOf(m, id, interp = (x) => x) {
     const max = m.maxPerCategory > 0 ? m.maxPerCategory : 10
     const panelId = 'mateuActionPanel-' + String(id || m.label || 'actions').replace(/[^A-Za-z0-9_-]/g, '_')
@@ -2362,9 +2414,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           itemClass: 'mateu-ap-item' + (a.populated ? ' mateu-ap-populated' : ' mateu-ap-unpopulated') + (i >= max ? ' mateu-ap-extra' : ''),
         }))
       const extra = Math.max(0, actions.length - max)
-      // con «ocultar vacías» una columna sin acciones con datos sobra entera, y el «mostrar más»
-      // también cuando lo que esconde son sólo vacías (los poblados van primero: si alguno queda
-      // fuera del corte, todo lo que hay antes también es poblado)
+      // with «hide empty» a column with no populated actions is entirely superfluous, and so is «show more»
+      // when what it hides is only empty ones (the populated ones go first: if any is left
+      // past the cut, everything before it is populated too)
       const populated = (c.actions || []).filter((a) => a.populated).length
       return {
         key: panelId + ':' + ci, title: interp(c.title || ''), actions, hasMore: extra > 0,
@@ -2384,13 +2436,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Las pistas de un grid-template-columns como PESOS: repeat(N, x) se expande, «Nfr», «N%» y
-   *  minmax(…, Nfr) pesan N, lo demás (px, rem, auto, min-content…) pesa 1 — una aproximación: el
-   *  flex de JET reparte en doceavos, no en pistas. */
+  /** The tracks of a grid-template-columns as WEIGHTS: repeat(N, x) is expanded, «Nfr», «N%» and
+   *  minmax(…, Nfr) weigh N, the rest (px, rem, auto, min-content…) weighs 1 — an approximation:
+   *  JET's flex distributes in twelfths, not in tracks. */
   function gridTrackWeights(template) {
     const src = String(template || '').trim()
     if (!src) return []
-    // trocea por espacios de primer nivel (no dentro de paréntesis)
+    // split on top-level spaces (not inside parentheses)
     const tokens = []
     let depth = 0, cur = ''
     for (const ch of src) {
@@ -2409,14 +2461,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (rep) {
         const inner = gridTrackWeights(rep[2])
         for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
-      } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: lo decide el ancho, no se sabe aquí
+      } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: decided by the width, unknown here
       else out.push(weightOf(tok))
     }
     return out
   }
 
-  /** Clase oj-flex de cada hijo de una rejilla (auto-colocación CSS: en orden, saltando de fila
-   *  cuando el span no cabe). null si la rejilla es de una pista (o no se sabe): se apila. */
+  /** oj-flex class of each child of a grid (CSS auto-placement: in order, wrapping to a new row
+   *  when the span does not fit). null if the grid has a single track (or it is unknown): it stacks. */
   function gridColClasses(template, colSpans, count) {
     const weights = gridTrackWeights(template)
     if (weights.length < 2) return null
@@ -2434,25 +2486,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return classes
   }
 
-  /** El tipo MIME de un tipo de arrastre: así el destino sabe, mientras se arrastra (cuando aún no
-   *  puede leer los datos), si lo que viene es suyo. */
+  /** The MIME type of a drag type: this way the target knows, while dragging (when it still
+   *  cannot read the data), whether what is coming is its own. */
   const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
 
-  /** Un Avatar del wire → lo que pinta oj-avatar: iniciales (las dadas o las del nombre) e imagen. */
+  /** A wire Avatar → what oj-avatar paints: initials (the given ones or the name's) and image. */
   function avatarOf(m) {
     const name = String((m && m.name) || '')
     const initials = (m && m.abbreviation) || name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
     return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
   }
 
-  /** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+  /** Rich text (richText/html/markdown) of a field or component → its sanitized HTML. */
   const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
   function richHtmlOf(kind, value) {
     const text = value == null ? '' : String(value)
     return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
   }
 
-  /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
+  /** «colSpan of N columns» → the block's oj-flex class (twelfths, never more than 12). */
   function panelColClass(colSpan, columns) {
     const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
     const twelfths = Math.max(1, Math.min(12, Math.round((12 * span) / columns)))
@@ -2460,21 +2512,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
-  /** El texto accesible de un KPI, en orden de lectura: "Revenue, 12.4k €, Last 7 days, +8%, …"
-   *  (igual que el de la web: el periodo viaja con el número al que califica). */
+  /** A KPI's accessible text, in reading order: "Revenue, 12.4k €, Last 7 days, +8%, …"
+   *  (same as the web's: the period travels with the number it qualifies). */
   function metricAriaLabel({ title, value, unit, timeframe, trendLabel, description }) {
     const present = (s) => s != null && String(s).trim() !== ''
     const v = [value, unit].filter(present).map((s) => String(s).trim()).join(' ')
     return [title, v, timeframe, trendLabel, description].filter(present).map((s) => String(s).trim()).join(', ')
   }
-  /** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
-   *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
+  /** A MetricCard (KPI) ready for the template: big value, colored trend, and if it carries
+   *  an actionId, a button that launches the action (e.g. the filtered search that explains it). */
   function metricOf(m, interp = (x) => x) {
     const trend = m.trend || ''
     const title = interp(m.title || '')
     const value = String(m.value == null ? '' : m.value)
     const unit = m.unit || ''
-    // el periodo que cubre el número ("Last 7 days"): bajo el valor, y en el texto accesible
+    // the period the number covers ("Last 7 days"): under the value, and in the accessible text
     const timeframe = String(interp(m.timeframe || '') || '').trim()
     const trendLabel = m.trendLabel ? interp(m.trendLabel) : ''
     const description = interp(m.description || '')
@@ -2492,14 +2544,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // Chart.js (el vocabulario del wire) → oj-chart de JET
+  // Chart.js (the wire's vocabulary) → JET's oj-chart
   const CHART_TYPES = {
     bar: { type: 'bar' }, line: { type: 'line' }, pie: { type: 'pie' }, doughnut: { type: 'pie', innerRadius: 0.55 },
     radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
     scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
   }
-  /** Un Chart (series × etiquetas) o un TrendChart (una serie) → átomo de oj-chart: los ITEMS
-   *  precomputados ({series, group, value}); en una tarta cada etiqueta es una serie (una porción). */
+  /** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
+   *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
   function chartAtomOf(m, t, interp = (x) => x) {
     const trend = t === 'TrendChart'
     const labels = (trend ? m.labels : m.chartData && m.chartData.labels) || []
@@ -2534,13 +2586,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
-   *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+  /** Is it a RICH atom (a real display, not a loose field)? When a screen's content
+   *  brings them, the generic form is superfluous: its fields are already seen in them. */
   const RICH_ATOM_FLAGS = [
     'isEntityHeader', 'isTaskProgress', 'isMeter', 'isStatusList', 'isLedger', 'isPayment',
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
-    // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
-    // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
+    // PMS challenge: any NEW atom has to be here — otherwise, on a page that also
+    // carries fields the generic form wins (it only paints fields) and the atom disappears
     'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isRecordMerge', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
     // the display components of core/display.mjs
     'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
@@ -2553,23 +2605,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
   }
 
-  /** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
+  /** Is this button block the wizard's FOOTER (Back / Next / the completion action)? */
   function isWizardNavAtom(a) {
     return !!(a && a.isButtons && (a.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next'))
   }
 
   /**
-   * El PASO actual de un wizard, listo para pintar: { title, content, sections, nav }.
+   * A wizard's current STEP, ready to paint: { title, content, sections, nav }.
    *
-   * - content: los bloques display del paso (hostContentOf en modo wizard, con la isla fusionada).
-   * - sections: los campos del paso agrupados por @Section (formSectionsOf), o [] si el contenido
-   *   es RICO (la misma regla que el host: el header/las property rows ya muestran esos datos).
-   * - Cada campo UNA vez: los FormFields que el formulario pinta (con su widget de verdad: select,
-   *   fecha…) salen del contenido, donde sólo serían un oj-input-text de texto — antes salían dos
-   *   veces, arriba como texto y abajo con su desplegable. Los de una isla fusionada (fromNested)
-   *   son de otro contexto y se quedan.
-   * - En HORIZONTAL (tren arriba) el pie Back/Next del wire sale del contenido a `nav` (la barra
-   *   del pie), y el título del wizard (su h2) sale a `title` si la página no trae otro.
+   * - content: the step's display blocks (hostContentOf in wizard mode, with the island merged).
+   * - sections: the step's fields grouped by @Section (formSectionsOf), or [] if the content
+   *   is RICH (the same rule as the host: the header/property rows already show that data).
+   * - Each field ONCE: the FormFields the form paints (with their real widget: select,
+   *   date…) are removed from the content, where they would only be a text oj-input-text — before they
+   *   appeared twice, above as text and below with their dropdown. Those of a merged island (fromNested)
+   *   belong to another context and stay.
+   * - In HORIZONTAL (train on top) the wire's Back/Next footer moves from the content to `nav` (the
+   *   footer bar), and the wizard's title (its h2) moves to `title` if the page brings no other.
    */
   function wizardStepViewOf(ctx, islandBlocks, opts = {}) {
     const wizard = wizardOf(ctx)
@@ -2593,8 +2645,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }).filter((a) => {
         if (a.isFormLayout && !a.fields.length) return false
         if (a.isInput && !a.fromNested && onForm.has(a.fieldId)) { movedToForm++; return false }
-        // el título del wizard (su h2) va a la cabecera — el h1 sobre el tren, o el título del
-        // proceso del guided process —, y su subtítulo con él: ninguno se repite en el paso
+        // the wizard's title (its h2) goes to the header — the h1 above the train, or the guided
+        // process's process title —, and its subtitle with it: neither is repeated in the step
         if (a.isText && a.isH2 && (!title || a.text === title || a.text === wizard.title)) {
           if (!title) title = a.text
           return false
@@ -2606,19 +2658,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (wizard.horizontal && isWizardNavAtom(a)) { nav = a.buttons; return false }
         return true
       })
-      // una tarjeta de @Section cuyos campos se fueron al form se queda en su título: el form
-      // ya pinta esa sección con su encabezado — fuera la tarjeta vacía
+      // a @Section card whose fields went to the form keeps only its title: the form
+      // already paints that section with its heading — drop the empty card
       const onlyHeadings = items.every((a) => a.isText && a.isHeading)
       return { ...block, items: movedToForm && onlyHeadings ? [] : items }
     }).filter((block) => block.items.length)
-    // el rótulo del paso ya lo pinta la cabecera del paso (el h2 bajo el tren, o el título del
-    // paso del guided process): una @Section que se llama igual que su paso no lo repite
+    // the step's label is already painted by the step header (the h2 under the train, or the
+    // guided process's step title): a @Section named like its step does not repeat it
     const stepLabel = wizard.currentLabel
     sections = sections.map((section) => (
       stepLabel && section.title && section.title.trim() === stepLabel.trim()
         ? { ...section, title: '', hasTitle: false }
         : section))
-    // la acción de AVANCE (Next, o la de completar) es la llamada a la acción del pie
+    // the ADVANCE action (Next, or the completion one) is the footer's call to action
     nav = nav.map((b) => ({
       ...b,
       chroming: b.actionId === 'back' ? 'outlined' : 'callToAction',
@@ -2635,7 +2687,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
-  /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
+  /** RENDER helper: every node of a type (without crossing island boundaries). */
   function findAllByType(tree, type) {
     const out = []
     const walk = (n, isRoot) => {
@@ -2664,37 +2716,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Card → {title, texts} (el título del Card es un componente Text anidado). */
+  /** Card → {title, texts} (the Card's title is a nested Text component). */
   function cardOf(node) {
     const md = (node && node.metadata) || {}
     return { title: collectTexts(md.title)[0] || '', texts: collectTexts(md.content) }
   }
 
-  /** Arquetipo WELCOME: hero (título/subtítulo + CTAs) + tiles del DashboardLayout. */
-  /** Los pares color + ilustración del hero de la welcome: las 5 parejas bg+fg de la galería OFICIAL
-   *  (fnd/gallery illust-welcome-banner-*-01..05), cada una con su tono de la paleta oscura RDS. */
+  /** WELCOME archetype: hero (title/subtitle + CTAs) + DashboardLayout tiles. */
+  /** The color + illustration pairs of the welcome hero: the 5 bg+fg pairs from the OFFICIAL gallery
+   *  (fnd/gallery illust-welcome-banner-*-01..05), each with its tone from the dark RDS palette. */
   const WELCOME_LOOKS = [
     ['dark-ocean', '01'], ['dark-pine', '02'], ['dark-plum', '03'],
     ['dark-sienna', '04'], ['dark-teal', '05'],
   ]
   const WELCOME_GALLERY = 'https://static.oracle.com/cdn/fnd/gallery/2307.0.2/images/'
 
-  /** Qué welcome es la que se pinta: su clase de servidor (o, sin ella, el id del árbol). */
+  /** Which welcome is being painted: its server class (or, without one, the tree id). */
   function welcomeKeyOf(ctx) {
     const tree = ctx && ctx.tree
     return tree ? (tree.serverSideType || tree.id || '') : ''
   }
 
   /**
-   * El aspecto del hero: uno al azar al ENTRAR en una welcome, y el mismo mientras se siga en ella.
+   * The hero's look: a random one on ENTERING a welcome, and the same one while staying on it.
    *
-   * Rotaba en cada proyección, y una welcome se reproyecta con la respuesta de cada acción que se
-   * lanza desde ella — también la de un CTA que devuelve una ruta ("Ir a Reservas"): el hero cambiaba
-   * de color justo antes de navegar, durante todo lo que tardara en llegar la página siguiente.
-   * Ahora sólo rota en una visita nueva: no había welcome pintada (`previous` nulo) o era otra.
+   * It rotated on every projection, and a welcome is reprojected with the response of every action
+   * launched from it — including that of a CTA returning a route ("Ir a Reservas"): the hero changed
+   * color right before navigating, for as long as the next page took to arrive.
+   * Now it only rotates on a new visit: no welcome was painted (`previous` null) or it was another one.
    *
-   * @param key       welcomeKeyOf del contexto que se proyecta
-   * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
+   * @param key       welcomeKeyOf of the context being projected
+   * @param previous  the painted look ({key, theme, illuBg, illu}) if there was already a welcome, or null
    */
   /** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
    *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
@@ -2751,15 +2803,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const md = hero.metadata
     const ctas = actionsOf(hero)
     const panels = findAllByType(ctx.tree, 'DashboardPanel')
-    // un TrendChart en un tile → CHART a todo el ancho bajo los KPIs (oj-chart en VB);
-    // items PRECOMPUTADOS (id/value/group/series) — el CSP de VB no construye arrays
+    // a TrendChart in a tile → full-width CHART under the KPIs (oj-chart in VB);
+    // PRECOMPUTED items (id/value/group/series) — VB's CSP does not build arrays
     const trendPanel = panels.find(
       (panel) => findByType(panel, 'TrendChart') || findByType(panel, 'Chart'))
     const chartNode = trendPanel
       ? findByType(trendPanel, 'TrendChart') || findByType(trendPanel, 'Chart') : null
     const tm = chartNode ? chartNode.metadata : null
-    // valores/labels de las dos formas del wire: TrendChart (values/labels planos) o
-    // Chart (chartData.labels + datasets[0].data — se toma la primera serie)
+    // values/labels from the two wire shapes: TrendChart (flat values/labels) or
+    // Chart (chartData.labels + datasets[0].data — the first series is taken)
     const dataset = tm && tm.chartData && tm.chartData.datasets && tm.chartData.datasets.length
       ? tm.chartData.datasets[0] : null
     const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
@@ -2777,7 +2829,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       : null
     const tiles = panels.filter((panel) => panel !== trendPanel).map((panel) => {
-      // un MetricCard dentro del tile → KPI (valor grande + etiqueta + caption)
+      // a MetricCard inside the tile → KPI (big value + label + caption)
       const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
       const mm = metric ? metric.metadata : null
       return {
@@ -2853,14 +2905,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Arquetipo GENERAL OVERVIEW: switcher de registro + EntityHeader + cards. */
+  /** GENERAL OVERVIEW archetype: record switcher + EntityHeader + cards. */
   function generalOverviewOf(ctx) {
     const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
     if (!header) return null
     const md = header.metadata
     const switcher = collectFields(ctx.tree).find((f) => f.options && f.options.length)
-    // el arquetipo REQUIERE el switcher de registro: un EntityHeader suelto (p.ej. el 360
-    // de en casa o el folio de check-out como página) NO es un General Overview
+    // the archetype REQUIRES the record switcher: a standalone EntityHeader (e.g. the in-house
+    // 360 or the check-out folio as a page) is NOT a General Overview
     if (!switcher) return null
     const state = ctx.state || {}
     const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
@@ -2875,14 +2927,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .filter((node) => !infoNode || node !== infoNode.node)
       .map((node) => {
         const card = cardOf(node)
-        // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
-        // se pintaban vacías porque sólo se recogía el texto
+        // the card content as ATOMS (not just its texts): a StatusList, a table…
+        // were painted empty because only the text was collected
         const content = (node.metadata && node.metadata.content) || []
         const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
           children: Array.isArray(content) ? content : [content] } }) || []
         return { ...card, items: blocks.flatMap((b) => b.items || []) }
       })
-      .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
+      .filter((card) => card.title) // Cards without a title are section/structure wrappers
     if (infoCard) {
       // a side column next to other cards; alone, as wide as a card
       if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
@@ -2903,31 +2955,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Clave de una barra de pestañas del contenido: '' para la primera de primer nivel (la de
-   *  siempre, así una página con una sola barra no cambia); dentro de una pestaña, el id de esa
-   *  pestaña; las hermanas siguientes llevan '/tabs-N'. */
+  /** Key of a content tab bar: '' for the first top-level one (the usual one, so a page with a
+   *  single bar does not change); inside a tab, that tab's id; the following sibling bars
+   *  carry '/tabs-N'. */
   function tabStripKeyOf(scope, ordinal) {
     return [scope || '', ordinal ? 'tabs-' + ordinal : ''].filter(Boolean).join('/')
   }
 
-  /** Id de la pestaña i de una barra: 'tab-i' en la de primer nivel, '<clave>/tab-i' en el resto. */
+  /** Id of tab i of a bar: 'tab-i' in the top-level one, '<key>/tab-i' in the rest. */
   function tabIdOf(stripKey, index) {
     return (stripKey ? stripKey + '/' : '') + 'tab-' + index
   }
 
-  /** La barra a la que pertenece una pestaña (inversa de tabIdOf). */
+  /** The bar a tab belongs to (inverse of tabIdOf). */
   function tabStripOf(tabId) {
     const s = String(tabId || '')
     const cut = s.lastIndexOf('/')
     return cut < 0 ? '' : s.slice(0, cut)
   }
 
-  /** Anota la pestaña elegida en el mapa de activas (una por barra), sin tocar las demás barras. */
+  /** Records the chosen tab in the active map (one per bar), without touching the other bars. */
   function withActiveTab(activeTabs, tabId) {
     return { ...(activeTabs || {}), [tabStripOf(tabId)]: tabId }
   }
 
-  /** Ids de las barras de pestañas (átomos isTabs) de unos bloques: las chains las refrescan. */
+  /** Ids of the tab bars (isTabs atoms) of some blocks: the chains refresh them. */
   function tabBarIdsOf(blocks) {
     const ids = []
     const walk = (items) => (items || []).forEach((a) => {
@@ -2949,7 +3001,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
+  /** ITEM OVERVIEW archetype: key-data panel + tabs. */
   function itemOverviewOf(ctx) {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
     if (!tabLayout) return null
@@ -2960,14 +3012,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const parent = parentOfNode(ctx.tree, tabLayout)
     const keyCard = ((parent && parent.children) || [])
       .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
-    // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
-    // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
-    // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
-    // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
+    // The archetype is key-data panel + tabs: without a panel this is not an item overview,
+    // it is a FORM that happens to carry tabs inside. Claiming it anyway left the page
+    // without its fields (there is no key card to paint) and the tabs reduced to their labels
+    // (only loose texts are taken from their content). It happened to a process detail.
     if (!keyCard) return null
-    // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
-    // pestaña (sus textos van en los de ella), no hermanas de la lista
-    // el contenido como ÁTOMOS (un Markdown, un Chart, una StatusList…): antes solo sus textos sueltos
+    // only the tabs of the OUTER bar: those of a nested bar are content of their
+    // tab (their texts go in its texts), not siblings in the list
+    // the content as ATOMS (a Markdown, a Chart, a StatusList…): before, only its loose texts
     const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
       metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
     const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
@@ -2987,13 +3039,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Puerta 1.3: banners de página (Page.metadata.banners) → items del
-   *  oj-sp-messages-banner del starter (MessagesBannerType). */
+  /** Gate 1.3: page banners (Page.metadata.banners) → items of the
+   *  starter's oj-sp-messages-banner (MessagesBannerType). */
   function bannersOf(ctx) {
     // a YAML page authors them on its `type: Form` (same wire field): its ${state.x} resolved here
     const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     const interp = (t) => (page && page.fromForm ? interpolate(t || '', (ctx && ctx.state) || {}) : (t || ''))
-    // los messageType del oj-sp-messages-banner van con prefijo general-* (patrón del starter)
+    // the oj-sp-messages-banner messageTypes carry a general-* prefix (starter pattern)
     const THEMES = { INFO: 'general-info', SUCCESS: 'general-success', WARNING: 'general-warning', DANGER: 'general-error' }
     return (((page || {}).metadata || {}).banners || []).map((banner, i) => ({
       id: 'mateu-banner-' + i,
@@ -3003,16 +3055,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
   }
 
-  /** Puerta 1.6: anatomía RDS del ancho de página (medición Toolkit 24C) — el wrapper del
-   *  contenido aplica contexts[host].pageWidth: fixed = tope 1408px con gutters 24px;
-   *  fullWidth = fluido con gutters 24px; edgeToEdge = 0 márgenes. En FIXED el borde
-   *  DERECHO se ancla a la MISMA fórmula con la que oj-sp-simple-ui-shell coloca su
-   *  chrome flotante (chat FAB: right = (100vw - 1536px)/2, medido) — el shell calcula
-   *  su caja sobre el viewport COMPLETO e ignora el navigator drawer, así que centrar
-   *  el contenido en el área restante lo desalineaba del FAB en viewports anchos;
-   *  izquierda auto (absorbe el drawer), tope 1408 — y nunca menos de 24px a la izquierda: el tope
-   *  descuenta ambos gutters, o un área estrecha quedaba pegada a la izquierda con hueco sólo a la
-   *  derecha. */
+  /** Gate 1.6: RDS anatomy of the page width (Toolkit 24C measurement) — the content
+   *  wrapper applies contexts[host].pageWidth: fixed = 1408px cap with 24px gutters;
+   *  fullWidth = fluid with 24px gutters; edgeToEdge = 0 margins. In FIXED the RIGHT
+   *  edge is anchored to the SAME formula oj-sp-simple-ui-shell uses to place its
+   *  floating chrome (chat FAB: right = (100vw - 1536px)/2, measured) — the shell computes
+   *  its box over the FULL viewport and ignores the navigator drawer, so centering
+   *  the content in the remaining area misaligned it from the FAB on wide viewports;
+   *  left auto (absorbs the drawer), cap 1408 — and never less than 24px on the left: the cap
+   *  subtracts both gutters, or a narrow area ended up stuck to the left with a gap only on the
+   *  right. */
   function pageStyleOf(ctx) {
     const width = (ctx && ctx.pageWidth) || 'fixed'
     if (width === 'edgeToEdge') return { maxWidth: 'none', margin: '0', padding: '0' }
@@ -3034,15 +3086,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
 
-  /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
-   *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
-   *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
-   *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
-   *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
-  // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
-  // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
-  // font Redwood (oj-ux-ico-*, clases del gallery bundle). Un valor que ya venga como
-  // clase oj-ux pasa tal cual; sin traducción conocida → sin icono.
+  /** Shell NAVIGATION projection: top-level items + groups with their children.
+   *  A group's children navigate by their COMPOSED route (/gestion/person) with the app's
+   *  serverSideType (like Vaadin); a RouteLink inside a group does not resolve that way and is loaded
+   *  by its TERMINAL route (loadMenuRouteInto, in transport.mjs).
+   *  Context selectors and header actions come out ready for simple bindings. */
+  // Menu icons: the wire brings NEUTRAL names (Mateu convention: Vaadin's set,
+  // e.g. "vaadin:calendar-user") — each renderer translates them to its set; here, to the Redwood
+  // icon font (oj-ux-ico-*, gallery bundle classes). A value that already comes as an
+  // oj-ux class passes as is; with no known translation → no icon.
   const OJ_ICONS = {
     'vaadin:calendar-user': 'oj-ux-ico-calendar-contact',
     'vaadin:calendar': 'oj-ux-ico-calendar',
@@ -3070,7 +3122,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'vaadin:cart': 'oj-ux-ico-cart',
     'vaadin:check': 'oj-ux-ico-check',
     'vaadin:clock': 'oj-ux-ico-clock',
-    // la campana del badge de la bandeja (widget de cabecera)
+    // the tray badge's bell (header widget)
     'vaadin:bell': 'oj-ux-ico-notification',
     'vaadin:bell-o': 'oj-ux-ico-notification',
     'vaadin:envelope': 'oj-ux-ico-email',
@@ -3089,14 +3141,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return OJ_ICONS[icon] || undefined
   }
 
-  /** El icono genérico para un icono DECLARADO que no tiene traducción a Redwood. */
+  /** The generic icon for a DECLARED icon that has no Redwood translation. */
   const GENERIC_ICON = 'oj-ux-ico-arrow-circle-right'
 
   /**
-   * Como ojIconOf, pero un icono declarado sin traducción cae en uno genérico: una entrada de menú
-   * o un botón de sólo icono nunca se queda en blanco («Llegadas» con vaadin:sign-in salía sin
-   * icono junto a sus hermanas). ojIconOf sigue estricto: el HTML de los widgets quita los que no
-   * conoce y el FAB de Ask cae en su propio glifo.
+   * Like ojIconOf, but a declared icon with no translation falls back to a generic one: a menu entry
+   * or an icon-only button is never left blank («Llegadas» with vaadin:sign-in came out with no
+   * icon next to its siblings). ojIconOf stays strict: the widgets' HTML drops the ones it does not
+   * know and the Ask FAB falls back to its own glyph.
    */
   function ojIconOrGenericOf(icon) {
     if (!icon) return undefined
@@ -3104,16 +3156,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Una opción de menú → nodo del árbol que pintan la barra y el navigator.
+   * A menu option → node of the tree the bar and the navigator paint.
    *
-   * RECURSIVO porque el menú lo es: una shell federada llega con tres niveles sin pedir permiso
-   * (grupo de la shell → grupo del pod → sus pantallas), y aplanarlo no deja el tercer nivel feo,
-   * lo deja INALCANZABLE — el grupo del pod se navega como si fuese pantalla y contesta vacío.
+   * RECURSIVE because the menu is: a federated shell arrives with three levels without asking
+   * (shell group → pod group → its screens), and flattening it does not make the third level ugly,
+   * it makes it UNREACHABLE — the pod group is navigated as if it were a screen and answers empty.
    *
-   * `id` es la ruta con la que se navega: la TERMINAL para una hoja local (la compuesta,
-   * /gestion/person, es un camino de menú y no una ruta que el backend resuelva) y la COMPUESTA
-   * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
-   * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
+   * `id` is the route it navigates with: the TERMINAL one for a local leaf (the composed one,
+   * /gestion/person, is a menu path and not a route the backend resolves) and the COMPOSED one
+   * for one brought from another pod (the mark is the baseUrl expandRemoteMenus left on it): there it
+   * is exactly the other way round — it is the one that pod serves, and trimming it leaves it ownerless.
    */
   /** The id prefix of a menu leaf that runs rules instead of navigating (RuleLink). */
   const MENU_RULE_PREFIX = '__menuRule:'
@@ -3126,31 +3178,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function navNodeOf(option, parentRoute) {
     const raw = option.route || option.path || ''
-    // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
-    // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
-    // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
-    // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+    // the COMPOSED route (/gestion/person), as in Vaadin: it is a menu path the backend
+    // resolves with the app's serverSideType (onMateuNavigate adds it via localMenuOptionOf).
+    // Trimming it to the terminal (/person) only worked if the @Menu field was named like its
+    // class's @UI route; with `@Menu FloorPlan floorPlan` + @UI("/floor-plan") it was left ownerless.
     void parentRoute
     // a leaf that RUNS rules (RuleLink — e.g. a RunAction naming one of the shell's flows) does not
     // navigate: its id is marked so onMateuNavigate runs its rules instead (shellFlows.mjs)
     const id = menuNodeIdOf(option, raw)
-    // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
-    // sigue resolviendo (la registra el transporte), pero el menú no la enseña
+    // a HIDDEN entry (@Menu @Hidden, visible:false) is not drawn at any depth: its route
+    // still resolves (the transport registers it), but the menu does not show it
     const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
     return {
       id,
       label: option.caption || option.label || id,
       icon: ojIconOrGenericOf(option.icon),
-      // una sección remota cuyo pod no contestó: está, pero no se abre, y dice por qué
+      // a remote section whose pod did not answer: it is there, but it does not open, and says why
       disabled: !!option.unavailable,
       hint: option.unavailable ? (option.description || '') : '',
       hasChildren: children.length > 0,
-      // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
+      // a grandchild's parent is the child's RAW route, not its already trimmed id
       children: children.map((child) => navNodeOf(child, raw)),
-      // MENÚ DE TARJETAS (@Menu(display = cards) en un grupo): en vez de un oj-menu, un oj-popup
-      // con una rejilla de oj-action-card — título, descripción, icono/imagen y, si la entrada tiene
-      // hijos, esos hijos como acciones de la tarjeta. Los ids del popup y de su lanzador van
-      // precalculados (el CSP de VB no concatena en las plantillas).
+      // CARD MENU (@Menu(display = cards) on a group): instead of an oj-menu, an oj-popup
+      // with a grid of oj-action-card — title, description, icon/image and, if the entry has
+      // children, those children as the card's actions. The ids of the popup and its launcher are
+      // precomputed (VB's CSP does not concatenate in templates).
       ...cardsOf(option, children, raw),
     }
   }
@@ -3169,7 +3221,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           id: node.id,
           label: node.label,
           description: child.description || '',
-          // un icono declarado sin equivalente Redwood toma el genérico: las tarjetas quedan alineadas
+          // a declared icon with no Redwood equivalent takes the generic one: the cards stay aligned
           iconClass: child.icon ? ojIconOrGenericOf(child.icon) : '',
           image: child.image || '',
           hasImage: !!child.image,
@@ -3187,30 +3239,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const menuTree = []
     let hasGroups = false
     for (const option of shell.menu || []) {
-      // una opción que viaja sin pintarse (remota oculta): expandRemoteMenus ya la quita, pero un
-      // menú que no pase por ahí tampoco debe dibujarla
+      // an option that travels without being painted (hidden remote): expandRemoteMenus already removes it, but a
+      // menu that does not go through there must not draw it either
       if (option.visible === false) continue
       const node = navNodeOf(option, '')
       items.push(node.disabled
         ? { id: node.id, label: node.label, icon: node.icon, disabled: true }
         : { id: node.id, label: node.label, icon: node.icon })
       if (node.hasChildren) hasGroups = true
-      // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
+      // the routes the section covers: with them the one on screen is marked (activeSectionOf)
       node.routes = sectionRoutes(option, node)
-      // HAMBURGER_SECTIONS: adónde lleva elegir la sección en la hamburguesa (su primera pantalla)
+      // HAMBURGER_SECTIONS: where choosing the section in the hamburger leads (its first screen)
       node.home = sectionHomeOf(node)
       menuTree.push(node)
     }
-    // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
-    // hamburguesa que abre un DRAWER izquierdo con oj-navigation-list (como el navigator
-    // FA); MENU_ON_TOP → SUBCABECERA: una banda clara bajo la cabecera oscura con el título de la
-    // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
-    // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
-    // dentro de la cabecera oscura (topbar)
-    // HAMBURGER_SECTIONS (Opera Cloud) → SECCIONES: la hamburguesa abre un drawer con el primer
-    // nivel (sólo las secciones) y la subcabecera lleva el segundo nivel de la sección en pantalla.
-    // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU: los servidores la mandan desde
-    // 3.0-alpha.412; la vieja se sigue aceptando (un servidor anterior, un bundle estático).
+    // the wire's VARIANT rules: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
+    // hamburger that opens a left DRAWER with oj-navigation-list (like the FA
+    // navigator); MENU_ON_TOP → SUBHEADER: a light band under the dark header with the
+    // console title and the top-level options (oj-menu dropdown for the groups), like band 2
+    // of the web renderer; TABS with groups (they do not fit in the bottom bar) → those same options
+    // inside the dark header (topbar)
+    // HAMBURGER_SECTIONS (Opera Cloud) → SECTIONS: the hamburger opens a drawer with the first
+    // level (only the sections) and the subheader carries the second level of the section on screen.
+    // HAMBURGER_MENU is the correct spelling of HAMBURGUER_MENU: servers send it since
+    // 3.0-alpha.412; the old one is still accepted (an older server, a static bundle).
     let mode = 'tabs'
     if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
     else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
@@ -3221,8 +3273,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       title: shell.title || '',
       items,
       menuTree,
-      // la lista de la hamburguesa en modo secciones: cada sección, sin lo que cuelga de ella; su id
-      // es su home (lo que navega al elegirla) y `section` el de la sección (lo que se marca)
+      // the hamburger list in sections mode: each section, without what hangs from it; its id
+      // is its home (what navigates when chosen) and `section` the section's (what gets marked)
       sections: menuTree.map((node) => ({
         id: node.home || node.id,
         section: node.id,
@@ -3248,9 +3300,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label, route: c.route || '' })),
       })),
       serverSideType: shell.serverSideType,
-      // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
-      // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
-      // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+      // no declared home (server sentinel) → the menu's first screen IN DEPTH:
+      // with sections (HAMBURGER_SECTIONS) the first level is groups and the section's home is its
+      // first entry; the sentinel used to be loaded as is and the app started on «Not found.»
       homeRoute: isSentinelHome(shell.homeRoute)
         ? ((menuTree.find((node) => node.home) || {}).home || '')
         : shell.homeRoute,
@@ -3290,7 +3342,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
-  /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
+  /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
   const BADGE_CLASSES = {
     error: 'oj-badge oj-badge-danger oj-badge-subtle',
     danger: 'oj-badge oj-badge-danger oj-badge-subtle',
@@ -3302,20 +3354,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     info: 'oj-badge oj-badge-info oj-badge-subtle',
   }
 
-  /** Proyección del TaskQueue (cola de trabajo del front-office): grupos de cards con
-   *  badges; el clic despacha metadata.actionId con parameters._item = id del item
-   *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
-   *  INLINE en la metadata — no hay eje data ni triggers. */
+  /** Projection of the TaskQueue (front-office work queue): groups of cards with
+   *  badges; the click dispatches metadata.actionId with parameters._item = the item's id
+   *  (contract of the shared web renderer: mateu-task-queue.ts). The data travels
+   *  INLINE in the metadata — there is no data axis and no triggers. */
   function taskQueueOf(tree) {
-    // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
-    // dispatcher), no el modo «cola de trabajo + isla» de página completa
+    // a queue INSIDE a console panel is that console's list (the dispatcher's isQueue
+    // atom), not the full-page «work queue + island» mode
     const node = findOutsidePanes(tree, 'TaskQueue')
-    // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
-    // es contenido, y el detalle que llega al elegir se pinta a su lado
+    // …nor the list of a template with slots (CollectionDetail: TaskQueue@list next to its @detail):
+    // it is content, and the detail that arrives on picking is painted beside it
     if (!node || node.slot) return null
-    // …ni una cola que es UNA pieza más de una página con otro contenido: el modo cola pinta la
-    // cola + el detalle y NADA más, así que una página con una TaskQueue entre gráficos, tableros,
-    // calendarios… perdía todo lo demás (sólo quedaban la cola y un «Nothing here»)
+    // …nor a queue that is ONE more piece of a page with other content: queue mode paints the
+    // queue + the detail and NOTHING else, so a page with a TaskQueue among charts, boards,
+    // calendars… lost everything else (only the queue and a «Nothing here» remained)
     if (holdsOtherContent(tree, true)) return null
     return queueProjectionOf(node.metadata)
   }
@@ -3338,7 +3390,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'FormLayout', 'FormRow', 'FormItem', 'FormField', 'FormSection', 'FormSubSection', 'CustomField', 'Card',
     'Text', 'Button', 'Div', 'Container', 'Scroller', 'FullWidth', 'Separator', 'Badge'])
 
-  /** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
+  /** The card groups of a TaskQueue, ready to paint (page mode and the isQueue atom). */
   function queueProjectionOf(md) {
     return {
       actionId: md.actionId,
@@ -3354,8 +3406,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             label: badge.label,
             badgeClass: BADGE_CLASSES[badge.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           })),
-          // opción de LÍNEA (p.ej. "Check-out" solo en reservas in house): botón en la card
-          // que despacha su propio actionId con {_item} — mismo contrato que el renderer web
+          // LINE option (e.g. "Check-out" only on in-house bookings): a button on the card
+          // that dispatches its own actionId with {_item} — same contract as the web renderer
           hasAction: !!(item.actionLabel && item.actionId),
           actionLabel: item.actionLabel || '',
           actionId: item.actionId || '',
@@ -3365,8 +3417,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
-   *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+  /** Projection of the standalone EmptyState (placeholder of the detail panel, or welcome
+   *  page). Once an item is selected the server replaces it with the island → null. */
   /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
    *  one — the @detail placeholder of a CollectionDetail — is content). */
   const pageEmptyStateNode = (tree) => {
@@ -3401,13 +3453,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     en: { title: 'Not found', message: 'It may have been deleted, or the link is wrong.', back: 'Go back' },
   }
 
-  /** Proyección de la página NOT FOUND: lo que contesta el server cuando la ruta nombra un registro
-   *  o una pantalla que no existe (una reserva borrada, un enlace mal copiado) — en lugar de un
-   *  toast de error sobre una página vacía. Se pinta con el idioma de Redwood para esto, el
-   *  oj-sp-empty-state a página completa (su ilustración de fondo + texto primario/secundario + la
-   *  navigationAction como vuelta atrás), dentro de la shell. Los textos los manda el server (el
-   *  mensaje de la excepción como titular); si faltan, los genéricos en el idioma de la página.
-   *  null si el host no es un not-found. */
+  /** Projection of the NOT FOUND page: what the server answers when the route names a record
+   *  or a screen that does not exist (a deleted booking, a badly copied link) — instead of an
+   *  error toast over an empty page. It is painted with Redwood's idiom for this, the
+   *  full-page oj-sp-empty-state (its background illustration + primary/secondary text + the
+   *  navigationAction as the way back), inside the shell. The texts come from the server (the
+   *  exception message as the headline); if missing, the generic ones in the page's language.
+   *  null if the host is not a not-found. */
   function notFoundOf(tree, lang) {
     const node = findByType(tree, 'NotFound')
     if (!node) return null
@@ -3418,13 +3470,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       title: md.title || texts.title,
       message: md.message || texts.message,
       backRoute,
-      // la vuelta atrás es la navigationAction del empty-state (un enlace); sin ruta, ninguna
+      // the way back is the empty-state's navigationAction (a link); without a route, none
       navigationAction: backRoute ? { label: md.backLabel || texts.back, display: 'on' } : null,
     }
   }
 
-  /** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
-  /** La ruta que abre una fila (`/customers/${row.id}`), o '' si la plantilla no se resuelve entera. */
+  /** Wire interpolation (labels with templates): ${state.clave} → value from the state. */
+  /** The route a row opens (`/customers/${row.id}`), or '' if the template does not fully resolve. */
   function rowRouteOf(template, row) {
     if (!template) return ''
     let unresolved = false
@@ -3437,17 +3489,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function interpolate(text, state) {
-    // `${i18n.clave}` lo resuelve el servidor (o el bundle) antes de llegar aquí; si aún llega, no hay
-    // catálogo detrás: se muestra la CLAVE, nunca la expresión cruda.
+    // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
+    // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
     if (text != null && String(text).includes('i18n.')) {
       text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
     }
-    // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
-    // llega como ${state['_position']})
-    // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
-    return String(text == null ? '' : text).replace(
-      /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-      (all, dotted, quoted) => {
+    // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
+    // arrives as ${state['_position']})
+    // and nested paths: `${state.status.message}` (the badge of a header @Status)
+    // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
+    // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+    const source = String(text == null ? '' : text)
+    if (!source.includes('${')) return source
+    return source.replace(
+      /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+      (all, escaped, dotted, quoted) => {
+        if (escaped) return escaped === '\\' ? '\\' : '${'
         if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
         let value = state
         for (const part of dotted.split('.')) {
@@ -3456,6 +3513,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return value != null && typeof value !== 'object' ? String(value) : ''
       },
     )
+  }
+
+  /** A template the renderer shows WITHOUT evaluating it (the window title): the server's literal
+   *  escapes resolved (`\${` → `${`, `\\` → `\`), so the tab, the trail and the header agree. */
+  function literalText(text) {
+    const source = String(text == null ? '' : text)
+    if (!source.includes('${')) return source
+    return source.replace(/\\(\\|\$\{)/g, (all, escaped) => (escaped === '\\' ? '\\' : '${'))
   }
 
   /** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank
@@ -3483,26 +3548,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     info: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-info-30',
   }
 
-  /** Proyección GENÉRICA del contenido display de una isla (p.ej. el CheckInWizard
-   *  embebido del front-office): BLOQUES (plain | card) de átomos precomputados para el
-   *  CSP de VB (flags is*, clases, textos interpolados contra el state). Las islas
-   *  ANIDADAS (App mediador dentro de la isla, p.ej. el documento) se saltan — fase
-   *  posterior. null si el árbol no aporta nada display (isla de formulario puro). */
-  /** Fábrica de data providers de JET, inyectada por la app (en Node no hay ninguna: el atom
-   *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
+  /** GENERIC projection of an island's display content (e.g. the front-office's embedded
+   *  CheckInWizard): BLOCKS (plain | card) of atoms precomputed for VB's
+   *  CSP (is* flags, classes, texts interpolated against the state). NESTED islands
+   *  (a mediator App inside the island, e.g. the document) are skipped — later
+   *  phase. null if the tree contributes nothing display (a pure form island). */
+  /** Factory of JET data providers, injected by the app (in Node there is none: the atom
+   *  travels with the rows and without a provider, which is what the tests check). */
   let dataProviderFactory = null
   function setDataProviderFactory(factory) { dataProviderFactory = factory }
 
-  /** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
-   *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
-   *  especificación, que es lo que los tests comprueban. */
-  /** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
-   *  ruta). En Node, nadie: las columnas salen tal cual. */
+  /** Factory of JET converters (the oj-input-number of an amount): JET 18 no longer accepts the
+   *  converter as JSON, it wants an IntlNumberConverter instance. In Node the
+   *  specification stays, which is what the tests check. */
+  /** Who reads the column preferences of the listing on screen (the app: localStorage per
+   *  route). In Node, nobody: the columns come out as they are. */
   let columnPrefsReader = null
   function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
 
-  /** Paneles plegables abiertos/cerrados por el usuario (clave → bool); lo no tocado, como manda
-   *  el wire (AccordionPanel.active, Details.opened). Estado de cliente, como la pestaña activa. */
+  /** Collapsible panels opened/closed by the user (key → bool); anything untouched follows
+   *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
   const panelState = {}
   function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
   function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
@@ -3534,11 +3599,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
-    // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
-    // opts.activeTab (un único id) sigue valiendo para la barra de primer nivel.
+    // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
+    // opts.activeTab (a single id) still works for the top-level strip.
     const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
-    // Barras ANIDADAS (un TabLayout dentro de una pestaña): cada barra tiene su clave, derivada de
-    // la pestaña que la contiene (tabScope) y de su ordinal entre hermanas — ver tabStripKeyOf.
+    // NESTED strips (a TabLayout inside a tab): each strip has its key, derived from
+    // the tab that contains it (tabScope) and its ordinal among siblings — see tabStripKeyOf.
     let tabScope = ''
     const stripsPerScope = {}
     let tabBars = 0
@@ -3599,7 +3664,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
       plain.items.push(a)
     }
-    // los hijos de un nodo viajan en children Y/O en metadata.content (CustomField, Notice…)
+    // a node's children travel in children AND/OR in metadata.content (CustomField, Notice…)
     const kidsOf = (node) => {
       const out = [...(node.children || [])]
       const inner = node.metadata && node.metadata.content
@@ -3618,14 +3683,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const child of kidsOf(node)) collectButtons(child, out)
       return out
     }
-    // Proyecta hijos como BLOQUES-COLUMNA de la rejilla oj-flex (colClass oj-md-(NN→doceavos)): las
-    // zonas de @Zones y los dos paneles de un maestro-detalle. Si una columna genera varios bloques
-    // se FUSIONAN en uno (un flex no puede apilar dos items en la misma celda de fila).
+    // Projects children as COLUMN-BLOCKS of the oj-flex grid (colClass oj-md-(NN→twelfths)): the
+    // zones of @Zones and the two panels of a master-detail. If a column generates several blocks
+    // they are MERGED into one (a flex cannot stack two items in the same row cell).
     const projectColumns = (children, percents, extraClass) => {
       children.forEach((child, i) => {
         const col = Math.min(11, Math.max(1, Math.round(percents[i] * 12 / 100)))
-        // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
-        // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
+        // the wire cssClasses of the COLUMN travel to the block (e.g. the neutral
+        // band of the general overview's secondary info: oj-panel + oj-bg-*)
         const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
           + (extraClass ? ' ' + extraClass : '')
           + (child.cssClasses ? ' ' + child.cssClasses : '')
@@ -3642,10 +3707,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       })
     }
-    // hijos con su clase de columna YA calculada (rejillas: ResponsiveGrid, DashboardLayout)
-    // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
-    // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
-    // especial sin átomos — entonces el llamante apila los hijos como antes.
+    // children with their column class ALREADY computed (grids: ResponsiveGrid, DashboardLayout)
+    // Returns false (and leaves nothing) if some column generates blocks that cannot be merged into
+    // one cell: a nested island (hoisting turns its whole block into the island) or a special
+    // block without atoms — then the caller stacks the children as before.
     const projectSized = (children, colClasses, tags = null) => {
       const start = blocks.length
       const out = []
@@ -3670,7 +3735,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       blocks.push(...out)
       return true
     }
-    // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
+    // a DashboardPanel = a card-block (title + subtitle + its content) with its width
     const visitDashboardPanel = (panel, colClass) => {
       // editor mode: the card (and its title atoms) is the PANEL's node, not the layout's
       if (editorNodeIds && panel && panel.id) {
@@ -3705,10 +3770,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!node || typeof node !== 'object') return
       const isRoot = !rootSeen
       rootSeen = true
-      // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
-      // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
-      // tomaba por la isla anidada del check-in (isNested), y la fusión vaciaba el bloque entero:
-      // con la pestaña Orders o Billing activa no quedaba ni la barra de pestañas
+      // @Subresource: the embedded listing is ANOTHER surface (its ServerSide). Leaves a slot that
+      // withSubresources fills with its table once loaded — descending into its mediator App
+      // took it for the check-in's nested island (isNested), and the merge emptied the whole block:
+      // with the Orders or Billing tab active not even the tab strip remained
       if (!isRoot) {
         const sub = subresourceIslandOf(node)
         if (sub) { atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container); return }
@@ -3719,10 +3784,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const m = node.metadata
       const t = m && m.type
-      // FILA ZONADA (@Zones): HorizontalLayout cuyos hijos son columnas con
-      // flex: 1 1 calc(NN% …) — cada zona se proyecta como bloque-columna (colClass
-      // oj-md-(NN→doceavos)); si una zona genera varios bloques se FUSIONAN en uno
-      // (un flex no puede apilar dos items en la misma celda de fila)
+      // ZONED ROW (@Zones): HorizontalLayout whose children are columns with
+      // flex: 1 1 calc(NN% …) — each zone is projected as a column-block (colClass
+      // oj-md-(NN→twelfths)); if a zone generates several blocks they are MERGED into one
+      // (a flex cannot stack two items in the same row cell)
       if (t === 'HorizontalLayout' && !container) {
         const zoneMatches = (node.children || []).map(
           (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
@@ -3731,11 +3796,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           return
         }
       }
-      // CONSOLA / MAESTRO-DETALLE (MasterDetailLayout, SplitLayout): children = [maestro, detalle].
-      // Misma proyección que las zonas: dos bloques-columna de la rejilla oj-flex (lista a la
-      // izquierda, detalle a la derecha, 5/12 + 7/12), que bajo md se apilan — como la vista
-      // Console de OPERA. Vertical (SplitLayout orientation vertical) → uno debajo del otro. Dentro
-      // de otro bloque no hay columnas que repartir: se proyecta en su sitio, en orden.
+      // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
+      // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
+      // left, detail on the right, 5/12 + 7/12), which stack below md — like OPERA's
+      // Console view. Vertical (SplitLayout orientation vertical) → one below the other. Inside
+      // another block there are no columns to share out: it is projected in place, in order.
       if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
         const kids = (node.children || []).filter(Boolean)
         if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
@@ -3746,19 +3811,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'App') {
-        // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
-        // contenido vive en su propio contexto y lo pinta mateuNested en ese hueco
+        // NESTED island (e.g. the check-in's document): a placeholder — the
+        // content lives in its own context and mateuNested paints it in that slot
         atom({ isNested: true, islandId: node.id }, container)
         return
       }
-      // FORMULARIO (FormLayout: sus FormRow de FormFields, con maxColumns y el colspan de cada
-      // campo) → UN atom isFormLayout que la plantilla pinta con el oj-form-layout de JET
-      // (max-columns / direction=row / colspan en cada hijo): el reparto en columnas es el de
-      // JET, no una rejilla propia. Cada campo lleva su widget de verdad (texto, número, fecha,
-      // booleano, select) y su readonly — la vista de detalle de un crud manda todos sus campos
-      // readOnly y se tienen que ver como tales, no como inputs editables. Lo que no es un
-      // campo escalar (un grid, una property row, otro componente) corta el grupo y se proyecta
-      // como siempre, en su sitio.
+      // FORM (FormLayout: its FormRows of FormFields, with maxColumns and each field's
+      // colspan) → ONE isFormLayout atom that the template paints with JET's oj-form-layout
+      // (max-columns / direction=row / colspan on each child): the column layout is JET's,
+      // not a grid of our own. Each field carries its real widget (text, number, date,
+      // boolean, select) and its readonly — a crud's detail view sends all its fields
+      // readOnly and they have to look like that, not like editable inputs. Whatever is not a
+      // scalar field (a grid, a property row, another component) cuts the group and is projected
+      // as always, in its place.
       if (t === 'FormLayout') {
         const columns = Math.min(4, Math.max(1, m.maxColumns || m.columns || 1))
         const layouts = []
@@ -3782,39 +3847,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           visit(n, container)
         }
         kidsOf(node).forEach(walkLayout)
-        // todo de sólo lectura (la vista de detalle): el propio form layout va readonly y JET
-        // pinta cada campo como valor, sin caja de input
+        // all read-only (the detail view): the form layout itself goes readonly and JET
+        // paints each field as a value, without an input box
         for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
         return
       }
       if (t === 'FormField') {
         const fieldId = m.fieldId || m.id
-        // GRID embebido en un formulario (una lista con columnas: los Steps/Messages de un
-        // proceso). No es el listado de un crud —ése tiene su propia rama y su cabecera de
-        // búsqueda—, es una tabla más del contenido.
+        // GRID embedded in a form (a list with columns: the Steps/Messages of a
+        // process). It is not a crud's listing —that one has its own branch and its search
+        // header—, it is one more table of the content.
         if ((m.columns || []).length) {
           // the field's column groups flattened, the group label prefixing its columns' (leafColumnsOf)
           const leafCols = leafColumnsOf(m.columns, interp)
           const rows = Array.isArray(state[fieldId]) ? state[fieldId] : []
-          // lista EDITABLE con el editor de fila en un diálogo (@DetailFormCustomisation
-          // position = modal): "+" debajo y, por fila, Editar / Quitar en su última columna
+          // EDITABLE list with the row editor in a dialog (@DetailFormCustomisation
+          // position = modal): "+" below and, per row, Edit / Remove in its last column
           const rowEditable = isModalRowEditor(m)
           const columns = leafCols
             .map((col) => col.metadata || col)
-            // la columna-botón `_select` ("Edit") del wire la sustituye la de acciones de fila
+            // the wire's `_select` button column ("Edit") is replaced by the row-actions one
             .filter((c) => !(c.id === '_select' && c.stereotype === 'button'))
             .map((c) => {
               const def = { headerText: c.label || c.id, field: c.id }
               if (c.dataType === 'status') def.template = 'cellStatusBadge'
-              // un enum se lee por su etiqueta («In house»): la celda lee <id>__labelCell
+              // an enum is read by its label («In house»): the cell reads <id>__labelCell
               if (!def.template && labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
               return def
             })
           if (rowEditable) {
             columns.push({ headerText: '', field: '__rowActions', template: 'cellListRowActions', sortable: 'disabled' })
           }
-          // en una lista editable, una celda que aún no tiene valor (la línea y el total de una
-          // habitación recién añadida: los pone el servidor al crear) dice «—», no un hueco
+          // in an editable list, a cell that has no value yet (the line and the total of a
+          // just-added room: the server sets them on create) says «—», not a gap
           const dashEmpty = (row) => {
             const out = { ...row }
             for (const col of columns) {
@@ -3837,7 +3902,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             label: m.label || '',
             columns,
             rows: shown,
-            // el data provider lo construye la app (JET); en Node no hay, y el atom viaja igual
+            // the data provider is built by the app (JET); in Node there is none, and the atom travels anyway
             adp: dataProviderFactory ? dataProviderFactory(shown) : null,
             isEmpty: rows.length === 0,
             rowEditable,
@@ -3847,15 +3912,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           return
         }
         if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
-          // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
-          // en el form layout — JET no trae editor de texto enriquecido)
+          // READ-ONLY richText / html / markdown: with its formatting (editable: an oj-text-area
+          // in the form layout — JET ships no rich text editor)
           const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
           atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
           return
         }
         if (m.stereotype === 'bulletedList') {
-          // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
-          // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+          // @BulletedList on a List<String>: its label and its values as the usual bulleted
+          // list (the BulletedList component was already an atom; the field fell into the void)
           const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
           const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
           if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
@@ -3863,8 +3928,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           return
         }
         if (m.propertyRow) {
-          // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
-          // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
+          // a read-only lookup travels as the field '<campo>-label', with its LABEL in
+          // data['<campo>-label'] (not in the state); a normal field may bring its label the same way
           const data = ctx.data || {}
           const fromData = (key) => (data[key] != null && typeof data[key] !== 'object' ? data[key] : null)
           const raw = state[fieldId] != null ? state[fieldId]
@@ -3874,8 +3939,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(String(shown)) }, container)
           return
         }
-        // FormField FLUIDO editable (p.ej. el buscador de cargos del modo check-out):
-        // input ligado por fieldId al estado del contexto (draft + auto-save)
+        // editable FLUENT FormField (e.g. the charge search box of the check-out mode):
+        // input bound by fieldId to the context state (draft + auto-save)
         if (m.dataType === 'string' || m.dataType === 'integer' || m.dataType === 'number') {
           atom({
             isInput: true,
@@ -3887,21 +3952,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'TabLayout') {
-        // Las pestañas se APLANAN: el atom de la barra + el contenido de la pestaña activa
-        // como átomos normales del mismo contenedor. Anidar átomos dentro de átomos obligaría a
-        // duplicar toda la plantilla dentro de la pestaña y a pelearse con el $current anidado
-        // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
+        // Tabs are FLATTENED: the strip's atom + the active tab's content
+        // as normal atoms of the same container. Nesting atoms inside atoms would force
+        // duplicating the whole template inside the tab and fighting VB's nested $current;
+        // this way the existing vocabulary paints the content without noticing.
         const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
         if (!tabs.length) return
-        // una sola pestaña visible no es una elección: su contenido sin barra (conserva su clave de
-        // ruta, así nada se mueve cuando un flag vuelve a mostrar las otras)
+        // a single visible tab is not a choice: its content without a strip (it keeps its route
+        // key, so nothing moves when a flag shows the others again)
         if (tabs.length === 1) {
           for (const child of tabs[0].children || []) visit(child, container)
           return
         }
-        // cada barra con SU clave y SUS ids (la de primer nivel conserva 'tab-N'): con ids y
-        // pestaña activa compartidos, pulsar la pestaña 2 de una barra interior cambiaba también
-        // la exterior
+        // each strip with ITS key and ITS ids (the top-level one keeps 'tab-N'): with shared ids
+        // and active tab, clicking tab 2 of an inner strip also changed
+        // the outer one
         const ordinal = stripsPerScope[tabScope] || 0
         stripsPerScope[tabScope] = ordinal + 1
         const stripKey = tabStripKeyOf(tabScope, ordinal)
@@ -3911,18 +3976,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const current = selected >= 0 ? selected : 0
         atom({
           isTabs: true,
-          // la primera barra conserva el id de siempre (las chains la refrescan por selector)
+          // the first strip keeps the usual id (the chains refresh it by selector)
           barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
           stripKey,
           selectedId: ids[current],
           tabs: tabs.map((tab, i) => ({
             id: ids[i],
-            // el contador de sus @Subresource EAGER viaja con la pestaña («Subnets (12)»)
+            // the count of its EAGER @Subresource travels with the tab («Subnets (12)»)
             label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1))
               + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
-            // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
+            // @Tab(key): selecting it pushes its URL (see contentTabSelected)
             routeKey: tab.metadata.routeKey || '',
-            // @Tab(shortcut): la selecciona por teclado (keys.mjs)
+            // @Tab(shortcut): selects it by keyboard (keys.mjs)
             shortcut: String(tab.metadata.shortcut || '').toLowerCase(),
           })),
         }, container)
@@ -3936,9 +4001,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'CustomField') {
-        // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
-        // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
-        // en children: mirando solo content esos campos desaparecían sin dejar rastro
+        // wrapper: what matters is what it carries inside — in metadata.content or, for a
+        // field holding a component (an Anchor, a Chart… declared as a form field),
+        // in children: looking only at content those fields vanished without a trace
         // A HOLDER (no FormField inside, no island — a `Callable<Component>`'s Text, a Button…) marks
         // what it brings: the generic form, which drew a plain form, dropped it (walk-behaviour)
         const kids = kidsOf(node)
@@ -3948,18 +4013,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Element') {
-        // Componente WEB de terceros (el grafo de un proceso). Los atributos son su único canal
-        // de datos y viajan en la METADATA, que un State no reenvía: escritos como `${state.x}`
-        // son VALORES y se reevalúan en cada render — mismo idioma que cualquier rótulo. El
-        // módulo del atributo `import` lo carga la app la primera vez que se usa la etiqueta.
+        // Third-party WEB component (a process's graph). The attributes are its only data
+        // channel and travel in the METADATA, which a State does not resend: written as `${state.x}`
+        // they are VALUES and are re-evaluated on every render — same idiom as any label. The
+        // module of the `import` attribute is loaded by the app the first time the tag is used.
         const attributes = {}
-        for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
+        for (const key of Object.keys(m.attributes || {})) {
+          // a data-bound attribute never becomes code: no srcdoc, no handler, only safe urls (M-S7)
+          const value = elementAttributeValue(m.name, key, m.attributes[key], interp(m.attributes[key]))
+          if (value !== undefined) attributes[key] = value
+        }
         atom({
           isElement: true,
-          // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
-          // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
-          // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
-          // de la pantalla no cambie
+          // the server sends a filler id ("fieldId") to ALL Elements (a record without an id):
+          // two on the same screen (one floor plan per floor, two tables in a foldout) shared
+          // a slot and clobbered each other. Without an id of its own, name + ordinal: stable as long
+          // as the screen's structure does not change
           elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
           name: m.name,
           importUrl: (m.attributes || {}).import || '',
@@ -3968,19 +4037,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           cssClasses: node.cssClasses || '',
           content: interp(m.content || ''),
           asHtml: !!m.html,
-          // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+          // the content carried `${…}` → DATA has entered the markup: it is sanitized when mounting
           dataInContent: String(m.content || '').indexOf('${') >= 0,
           on: m.on || null,
         }, container)
         return
       }
-      // ── DASHBOARD en cualquier página: rejilla de paneles (cada DashboardPanel, una tarjeta con su
-      // ancho en columnas), banda de KPIs (Scoreboard/MetricCard) y gráficos (oj-chart) ──
-      // ResponsiveGrid (la rejilla general): sus pistas (grid-template-columns) y los colSpans de
-      // cada hijo → bloques-columna oj-flex de su ancho. Dentro de una tarjeta, apilado.
+      // ── DASHBOARD on any page: grid of panels (each DashboardPanel, a card with its
+      // width in columns), KPI band (Scoreboard/MetricCard) and charts (oj-chart) ──
+      // ResponsiveGrid (the general grid): its tracks (grid-template-columns) and each child's
+      // colSpans → oj-flex column-blocks of their width. Inside a card, stacked.
       if (t === 'ResponsiveGrid' && !container) {
-        // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
-        // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
+        // each child's span: the wire's (colSpans) or the one the child carries itself — a
+        // DashboardPanel its colSpan, the KPI band (Scoreboard) the whole row
         // a slot TEMPLATE places its children by NAME (slot `main` → area `main`), not by list order:
         // the GeneralOverview's promoted info slot travels FIRST in the list (so a stacking web grid
         // puts it on top) and must still take the `info` column on a wide page
@@ -3988,8 +4057,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
           || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
             : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
-        // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
-        // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+        // REORDERABLE (ResponsiveGrid.reorderable): the tiles in the user's saved order, each
+        // block marked with its key and its scope — installTileReorder drags and re-projects them
         let order = serverKids.map((_, i) => i)
         let tags = null
         if (m.reorderable) {
@@ -4030,7 +4099,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'MetricCard') {
-        // consecutivos se juntan en la misma banda (como los botones)
+        // consecutive ones join in the same band (like the buttons)
         const target = container || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
         if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
@@ -4051,7 +4120,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         blocks.push(card)
         plain = null
-        // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
+        // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
         const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
         if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
         for (const child of node.children || []) visit(child, card)
@@ -4062,7 +4131,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Page') {
-        // título de la isla + su TOOLBAR (los @Toolbar del server viajan en metadata.toolbar)
+        // the island's title + its TOOLBAR (the server's @Toolbar travel in metadata.toolbar)
         const pageTitle = interp(m.title || '')
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
         const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
@@ -4077,8 +4146,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'CustomComponent') {
-        // Escape hatch (#14): VB no trae un renderer para el tipo → placeholder visible + los hijos
-        // slotted igualmente (paridad con el <mateu-unsupported> del web).
+        // Escape hatch (#14): VB has no renderer for the type → visible placeholder + the slotted
+        // children anyway (parity with the web's <mateu-unsupported>).
         atom({
           isNotice: true,
           text: 'Custom component "' + (m.name || '') + '" — no VB renderer',
@@ -4091,8 +4160,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Text') {
         const text = interp(m.text)
         if (text) {
-          // container h1..h6 → HEADING de contenido: h3 real (el escalón siguiente al h2
-          // de la sección), con ritmo de grupo (margin-top) cuando no abre el bloque
+          // container h1..h6 → content HEADING: a real h3 (the next step after the section's
+          // h2), with group rhythm (margin-top) when it does not open the block
           const heading = /^h[1-6]$/.test(m.container || '')
           if (heading) {
             const target = container || plain
@@ -4100,8 +4169,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             atom({
               isText: true,
               isHeading: true,
-              // un h2 al frente de una zona es el TITULO del fold (el gop lo asciende a
-              // cabecera de slot con el subrayado del foldout)
+              // an h2 at the head of a zone is the fold's TITLE (the gop promotes it to
+              // a slot header with the foldout's underline)
               isH2: m.container === 'h2',
               text,
               cls: 'oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''),
@@ -4112,9 +4181,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         return
       }
-      // ENLACE (Anchor): un <a> de verdad — el tema Redwood lo pinta como enlace, el manejador
-      // global de links.mjs navega DENTRO de la shell si es una ruta de la app, y target=_blank
-      // (una URL externa, un PDF) abre otra pestaña sin pasar por el servidor
+      // LINK (Anchor): a real <a> — the Redwood theme paints it as a link, the global
+      // handler in links.mjs navigates INSIDE the shell if it is an app route, and target=_blank
+      // (an external URL, a PDF) opens another tab without going through the server
       if (t === 'Anchor') {
         const href = interp(m.url)
         if (href) {
@@ -4129,9 +4198,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         return
       }
-      // FOLDOUT DENTRO DE UNA PESTAÑA (el de página lo pinta oj-sp-foldout-layout, foldoutOf): el
-      // overview en su sitio y cada panel como un panel plegable — su título y, abierto, su
-      // contenido; los paneles abiertos por defecto (open) se respetan
+      // FOLDOUT INSIDE A TAB (the page one is painted by oj-sp-foldout-layout, foldoutOf): the
+      // overview in its place and each panel as a collapsible panel — its title and, when open, its
+      // content; the panels open by default (open) are respected
       if (t === 'FoldoutLayout' && tabScope) {
         const bySlot = {}
         for (const child of node.children || []) bySlot[child.slot || ''] = child
@@ -4153,10 +4222,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         for (const child of kidsOf(node)) if (!/^summary-/.test(child && child.slot ? child.slot : '')) visit(child, container)
         return
       }
-      // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
-      // APLANAN — la cabecera es un átomo isCollapsible (un oj-collapsible de JET) y el contenido
-      // del panel va detrás, como átomos normales, sólo si está abierto. Abierto/cerrado es estado
-      // del CLIENTE (panelExpanded, por clave): plegar re-proyecta sin preguntar al servidor.
+      // COLLAPSIBLE PANELS (AccordionLayout of AccordionPanel, Details): like the tabs, they are
+      // FLATTENED — the header is an isCollapsible atom (a JET oj-collapsible) and the panel's
+      // content goes after it, as normal atoms, only if it is open. Open/closed is CLIENT
+      // state (panelExpanded, by key): collapsing re-projects without asking the server.
       if (t === 'AccordionLayout') {
         kidsOf(node).forEach((panel, i) => {
           const pm = panel.metadata || {}
@@ -4175,17 +4244,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (expanded && m.content) visit(m.content, container)
         return
       }
-      // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
-      // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
-      // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+      // TAPE CHART (PlanningBoard → JET's oj-gantt): rows = resources (with their attribute
+      // columns in the label), tasks = blocks. Projection in planningAtomOf (pure, tested);
+      // JET's events (ojMove, ojResize, double click, range) are translated by planningActionOf.
       if (t === 'PlanningBoard') {
         atom(planningAtomOf(m, node.id), container)
         return
       }
-      // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
-      // oj-action-card del modo cola; cada una lleva su acción (la de la cola, con {_item}) para
-      // que el despachador genérico de bloques la ejecute, y la opción de línea va DEBAJO de la
-      // tarjeta (dentro, su clic sería también el de la tarjeta)
+      // QUEUE as a piece of content (the list of a master-detail console): the same
+      // oj-action-card cards as queue mode; each carries its action (the queue's, with {_item}) so
+      // the generic block dispatcher runs it, and the line option goes BELOW the
+      // card (inside, its click would also be the card's)
       if (t === 'TaskQueue') {
         const q = queueProjectionOf(m)
         atom({
@@ -4222,8 +4291,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Notice') {
-        // Como en el web: un aviso sin texto (un @Notice cuyo campo vale null o blanco) y sin
-        // contenido no se pinta — el valor del campo es su propio interruptor de visibilidad.
+        // As on the web: a notice without text (a @Notice whose field is null or blank) and without
+        // content is not painted — the field's value is its own visibility switch.
         const noticeText = interp(m.text)
         const kids = kidsOf(node)
         if (!noticeText.trim() && !kids.length) return
@@ -4242,15 +4311,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Markdown') {
-        // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
-        // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+        // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
+        // that installRichText dumps into its container (VB does not stamp HTML from a binding)
         const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
         if (html) atom({ isRichText: true, label: '', html }, container)
         return
       }
       if (t === 'Grid') {
-        // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
-        // un campo de tipo lista — oj-table en modo lista; column groups are flattened (oj-table has
+        // a fluent Grid (columns in content, rows in page.content): the same embedded table as
+        // a list-typed field — oj-table in list mode; column groups are flattened (oj-table has
         // no grouped headers): the group's label prefixes its columns' — leafColumnsOf
         const leafColumns = leafColumnsOf(m.content, interp).filter((c) => c.type === 'GridColumn' || c.id)
         const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
@@ -4298,8 +4367,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'DropZone') {
-        // un destino donde soltar filas arrastradas (@DragRows): título, subtítulo y su contenido como
-        // líneas de texto; dnd.mjs lo resalta mientras se arrastra su tipo y lanza su acción al soltar
+        // a destination to drop dragged rows on (@DragRows): title, subtitle and its content as
+        // text lines; dnd.mjs highlights it while its type is dragged and fires its action on drop
         const lines = kidsOf(node).flatMap((k) => collectTexts(k)).map(interp).filter(Boolean)
         atom({
           isDropZone: true,
@@ -4314,8 +4383,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Popover') {
-        // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
-        // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
+        // the wrapped part is painted as a trigger with its text; the content, as lines in the
+        // shared floating window (hover.mjs) — on hover/focus (hover) or on press (click)
         const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
         const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
         const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
@@ -4357,8 +4426,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Image') {
-        // JET no tiene componente de imagen: un <img> con el ancho de su contenedor como tope
-        // una ruta RELATIVA la sirve el backend (como el módulo de un Element), no la app VB
+        // JET has no image component: an <img> capped at its container's width
+        // a RELATIVE path is served by the backend (like an Element's module), not by the VB app
         if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
         return
       }
@@ -4367,15 +4436,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'AvatarGroup') {
-        // oj-avatar por persona hasta maxItemsVisible, y «+N» con las que no caben
+        // an oj-avatar per person up to maxItemsVisible, and «+N» for the ones that do not fit
         const all = (m.avatars || []).map(avatarOf)
         const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
         atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
         return
       }
       if (t === 'CarouselLayout') {
-        // una GALERÍA (todas las diapositivas son imágenes) → oj-film-strip de JET, con sus flechas
-        // y su paginación; un carrusel de contenido arbitrario sigue apilando sus diapositivas
+        // a GALLERY (all the slides are images) → JET's oj-film-strip, with its arrows
+        // and its pagination; a carousel of arbitrary content still stacks its slides
         const slides = kidsOf(node)
         const images = slides.map((n) => (n && n.metadata && n.metadata.type === 'Image' && n.metadata.src ? n.metadata : null))
         if (slides.length && images.every(Boolean)) {
@@ -4454,20 +4523,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'StatusList') {
-        // columns > 1 → grid responsive de N columnas: el wrapper pasa a oj-flex (wrap) y
-        // cada ítem se pinta como TARJETA (oj-panel: borde propio, badge de estado dentro)
-        // — celdas sin borde dejaban ambiguo a qué tarea pertenece cada chip y el conjunto
-        // no se leía como listado de tareas. La celda exterior es a su vez oj-flex para que
-        // el panel interior estire a la altura de la fila (align-items stretch).
-        // Todo precomputado por ítem — el CSP de VB no divide ni compara.
+        // columns > 1 → responsive grid of N columns: the wrapper becomes oj-flex (wrap) and
+        // each item is painted as a CARD (oj-panel: its own border, status badge inside)
+        // — borderless cells left it ambiguous which task each chip belonged to and the whole
+        // did not read as a task listing. The outer cell is itself oj-flex so that
+        // the inner panel stretches to the row's height (align-items stretch).
+        // All precomputed per item — VB's CSP does not divide or compare.
         const cols = m.columns && m.columns > 1 && m.columns <= 12 ? m.columns : 0
         const rowClass = 'oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom'
-        // SOLO columns>1 fuerza tarjetas: una lista de una columna con acciones (los
-        // huéspedes) se pinta con la rama APILADA del markup — nombre como h3 (nivel
-        // siguiente al h2 de la sección), sin avatar, ritmo .mateu-list-item
+        // ONLY columns>1 forces cards: a one-column list with actions (the
+        // guests) is painted with the STACKED branch of the markup — name as h3 (the level
+        // after the section's h2), without avatar, .mateu-list-item rhythm
         const asCards = cols > 0
-        // la rejilla del cockpit: celdas de MEDIDA FIJA (.mateu-grid-cell, 22rem) con el
-        // aire entre tarjetas como gap de la rejilla (.mateu-grid) — ver app.css
+        // the cockpit grid: FIXED-SIZE cells (.mateu-grid-cell, 22rem) with the
+        // space between cards as the grid's gap (.mateu-grid) — see app.css
         const cellClass = cols
           ? 'oj-flex-item mateu-grid-cell oj-flex oj-sm-margin-4x-bottom'
           : (asCards ? 'oj-flex-item oj-sm-12 oj-flex oj-sm-margin-4x-bottom' : '')
@@ -4475,11 +4544,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           isStatusList: true,
           wrapClass: cols > 0 ? 'oj-flex mateu-grid' : (asCards ? 'oj-flex' : ''),
           items: (m.items || []).map((it) => {
-            // hasta DOS acciones por fila (p.ej. Escanear / A mano por pax) — array
-            // precomputado; una fila CON acciones se pinta APILADA (título+chip /
-            // descripción / botones) para no descolocarse en carriles estrechos
-            // hasta TRES acciones por fila; con actionIcon* el botón se pinta SOLO-ICONO
-            // (label como tooltip/aria) — iconClass precomputado vía ojIconOf
+            // up to TWO actions per row (e.g. Scan / By hand per pax) — precomputed
+            // array; a row WITH actions is painted STACKED (title+chip /
+            // description / buttons) so it does not break up in narrow lanes
+            // up to THREE actions per row; with actionIcon* the button is painted ICON-ONLY
+            // (label as tooltip/aria) — iconClass precomputed via ojIconOf
             const rowActions = []
             if (it.actionLabel && it.actionId) {
               rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
@@ -4506,16 +4575,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               statusClass: STATUS_TEXT[it.statusColor] || 'oj-text-color-secondary',
               actions: rowActions,
               hasActions: rowActions.length > 0,
-              // nivel del heading del titulo apilado: h4 bajo un grupo con h3 propio
+              // heading level of the stacked title: h4 under a group with its own h3
               isH4: m.itemHeadingLevel === 4,
-              // cronologia bajo el titulo (p.ej. las entradas de una incidencia)
+              // timeline under the title (e.g. the entries of an incident)
               lines: (it.lines || []).map(interp),
               hasLines: !!(it.lines && it.lines.length),
               actionLabel: it.actionLabel || '',
               actionId: it.actionId || m.rowActionId || '',
               parameters: { _item: it.id },
-              // rowActionId SIN botón propio = la FILA ENTERA es actuable (contrato del
-              // renderer web: clic de fila → rowActionId con {_item})
+              // rowActionId WITHOUT its own button = the WHOLE ROW is actionable (contract of the
+              // web renderer: row click → rowActionId with {_item})
               rowClickable: !!(m.rowActionId && !it.actionLabel),
             }
           }),
@@ -4564,8 +4633,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'TaskProgress') {
-        // banner de subtareas N-de-M (checklist de operaciones): completo → panel success y
-        // sin botón (contrato del componente); todo precomputado (el CSP de VB no compara)
+        // N-of-M subtasks banner (operations checklist): complete → success panel and
+        // no button (the component's contract); all precomputed (VB's CSP does not compare)
         const total = m.total || 0
         const done = m.done || 0
         const complete = total > 0 && done >= total
@@ -4743,9 +4812,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const child of kidsOf(node)) visit(child, container)
     }
     visit(ctx.tree, null)
-    // HOISTING de la isla anidada: un bloque cuyo contenido es la isla (card "Documento")
-    // se convierte en bloque isNestedBlock — el markup la pinta a nivel de BLOQUE porque
-    // a más profundidad el evaluador CSP de VB deja de resolver los bindings del template
+    // HOISTING of the nested island: a block whose content is the island (card "Documento")
+    // becomes an isNestedBlock block — the markup paints it at BLOCK level because
+    // at greater depth VB's CSP evaluator stops resolving the template's bindings
     const hoisted = blocks.map((block) => (
       block.items.some((a) => a.isNested)
         ? { ...block, isNestedBlock: true, items: block.items.filter((a) => !a.isNested) }
@@ -4770,12 +4839,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return false
   }
 
-  /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
+  /** Does the screen's content serve as the page body? (if not, the generic form paints it)
    *
-   *  Sí cuando trae algo RICO (isRichAtom, una barra de pestañas, una tabla, un componente web, un
-   *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
-   *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
-   *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+   *  Yes when it brings something RICH (isRichAtom, a tab strip, a table, a web component, a
+   *  @Subresource listing): its fields are already visible there. And yes when the generic form has NOTHING
+   *  to paint: a read-only page arrives as loose texts — its @ReadOnly fields are
+   *  Text on the wire, not FormFields — and without this rule it came out empty (CustomerHistory). */
   /**
    * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
    * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
@@ -4851,15 +4920,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
   }
 
-  // ── @Subresource: listados embebidos en el contenido (P1) ─────────────────────────────────────
+  // ── @Subresource: listings embedded in the content (P1) ───────────────────────────────────────
   //
-  // Un campo @Subresource llega como un ServerSide INTERIOR (su isla) con un App de mediador cuya
-  // homeRoute lleva `_hideTitle=1` (y `_scope`, y `_lazy` si es ON_OPEN): el servidor solo marca
-  // así a los sub-recursos. Se carga al quedar a la vista — la pestaña activa —, con el estado que
-  // el padre le siembra (initialData: el id del maestro) y su búsqueda OnLoad, y se pinta como una
-  // tabla en su sitio del contenido.
+  // A @Subresource field arrives as an INNER ServerSide (its island) with a mediator App whose
+  // homeRoute carries `_hideTitle=1` (and `_scope`, and `_lazy` if ON_OPEN): the server marks only
+  // sub-resources that way. It is loaded when it comes into view — the active tab —, with the state
+  // the parent seeds into it (initialData: the master's id) and its OnLoad search, and is painted as a
+  // table in its place in the content.
 
-  /** Si el nodo es la frontera de un @Subresource, cómo cargarlo; si no, null. */
+  /** If the node is the boundary of a @Subresource, how to load it; otherwise null. */
   function subresourceIslandOf(node) {
     if (!node || typeof node !== 'object' || node.type !== 'ServerSide' || !node.id) return null
     const app = (node.children || [])[0]
@@ -4878,7 +4947,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       route: md.homeRoute,
       consumedRoute: md.homeConsumedRoute || path,
       serverSideType: md.homeServerSideType || node.serverSideType,
-      // la marca de la ruta viaja también en el estado (_scope: lo que el padre fija), como en Vaadin
+      // the route's mark also travels in the state (_scope: what the parent pins), as in Vaadin
       componentState: { ...params, ...(node.initialData || {}) },
       lazy: params._lazy === '1',
     }
@@ -4909,7 +4978,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Los huecos @Subresource del contenido que aún no tienen su superficie cargada. */
+  /** The @Subresource slots of the content that do not have their surface loaded yet. */
   function pendingSubresourcesOf(blocks, contexts) {
     const out = []
     for (const block of blocks || []) {
@@ -4920,8 +4989,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** El contenido con cada hueco @Subresource cargado convertido en su tabla (o, si no es un
-   *  listado, en su contenido). Los que aún no están cargados se quedan como hueco (no pintan). */
+  /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
+   *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
   function withSubresources(blocks, contexts) {
     if (!blocks) return blocks
     return blocks.map((block) => ({
@@ -4941,7 +5010,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         const md = crud.metadata || {}
         const wire = leafColumnsOf(md.columns)
-          // las acciones por fila no tienen sitio en la tabla de solo consulta
+          // the per-row actions have no place in the query-only table
           .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
         const page = (((ctx.data || {}).crud || {}).page) || {}
         const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
@@ -4965,12 +5034,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
   }
 
-  /** Fusiona el contenido de la isla ANIDADA dentro de los bloques de la isla madre:
-   *  el bloque isNestedBlock (la card que solo contenía la isla) pasa a ser una card
-   *  normal cuyos items son los átomos de la anidada, MARCADOS fromNested (también sus
-   *  botones) para que el dispatcher enrute sus acciones al contexto anidado. Motivo:
-   *  leer $application.variables DENTRO de un template anidado no re-liga los contextos
-   *  internos en el evaluador CSP de VB — los datos deben fluir por $current. */
+  /** Merges the content of the NESTED island into the blocks of the parent island:
+   *  the isNestedBlock block (the card that only contained the island) becomes a normal
+   *  card whose items are the nested one's atoms, MARKED fromNested (its buttons
+   *  too) so the dispatcher routes their actions to the nested context. Reason:
+   *  reading $application.variables INSIDE a nested template does not re-bind the inner
+   *  contexts in VB's CSP evaluator — the data must flow through $current. */
   function mergeNestedContent(islandBlocks, nestedBlocks) {
     if (!islandBlocks) return islandBlocks
     const nestedAtoms = (nestedBlocks || []).reduce((out, block) => out.concat(block.items), [])
@@ -4989,13 +5058,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ))
   }
 
-  /** Contenido display del HOST (páginas de detalle standalone: /encasa/:id, /checkout/:id,
-   *  y los pasos del wizard /checkin/:id): los mismos bloques que una isla, con la PRIMERA
-   *  isla del host (p.ej. el documento) fusionada en su hueco (atomos fromNested → despachan
-   *  al contexto de la isla). En modo wizard se filtran el título de página, el ProgressSteps
-   *  y los botones back/next: el guided process ya aporta rail, título y Continue. */
-  /** ¿El card llevaba título? visit() lo mete como primer átomo de texto con la clase del
-   *  subencabezado — que es justo lo que distingue una tarjeta de verdad del marco de la página. */
+  /** Display content of the HOST (standalone detail pages: /encasa/:id, /checkout/:id,
+   *  and the wizard steps /checkin/:id): the same blocks as an island, with the FIRST
+   *  island of the host (e.g. the document) merged into its slot (fromNested atoms → dispatch
+   *  to the island's context). In wizard mode the page title, the ProgressSteps
+   *  and the back/next buttons are filtered out: the guided process already provides rail, title and Continue. */
+  /** Did the card carry a title? visit() puts it as the first text atom with the
+   *  subheading class — which is exactly what tells a real card apart from the page frame. */
   function cardHasTitle(block) {
     const first = (block.items || [])[0]
     return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
@@ -5033,31 +5102,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map((block) => ({
         ...block,
         items: block.items.map(withoutWizardNav).filter((atom) => {
-          // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
+          // the Page title is redundant: the header band (or the guided process) already paints it
           if (!titleDropped && atom.isText && title && atom.text === title) {
             titleDropped = true
             return false
           }
-          // el TOOLBAR de Page tampoco va al contenido: se proyecta a las acciones del
-          // header (pageToolbarOf → primary/secondary de la banda) — SALVO el de la ISLA
-          // fusionada (fromNested, p.ej. Cancel/Save del editor del documento): ese
-          // pertenece a la isla y se pinta en su bloque
+          // the Page TOOLBAR does not go into the content either: it is projected to the header's
+          // actions (pageToolbarOf → primary/secondary of the band) — EXCEPT the one of the merged
+          // ISLAND (fromNested, e.g. Cancel/Save of the document editor): that one
+          // belongs to the island and is painted in its block
           if (atom.fromPageToolbar && !atom.fromNested) return false
-          // y el EntityHeader tampoco cuando el header de pantalla lo muestra (título/
-          // subtítulo/facts del huésped en la banda, en vez del título genérico)
+          // and neither the EntityHeader when the screen header shows it (guest's title/
+          // subtitle/facts in the band, instead of the generic title)
           if (opts.dropEntityHeader && atom.isEntityHeader && !entityDropped) {
             entityDropped = true
             return false
           }
           if (opts.forWizard) {
             if (atom.isProgress) return false
-            // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
-            // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+            // the RAIL's «2 | 3» counter (@WizardProgress(RAIL)): the guided process's oj-sp
+            // already paints its own in its rail, one more in the content is a duplicate
             if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
             if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
-            // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
-            // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+            // the footer of the LAST step: Back + the completion action (@WizardCompletionAction) — the
+            // guided process's footer already paints them (wizardForwardOf), here they came out duplicated
             if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
                 && atom.buttons.some((b) => b.actionId === 'back')
                 && !atom.buttons.some((b) => b.actionId === 'next')) return false
@@ -5066,23 +5135,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }),
       }))
       .filter((block) => block.items.length)
-      // el loop del host pinta los bloques dentro de un oj-flex: los bloques-columna de una
-      // fila zonada llevan su colClass; el resto ocupa la fila entera (oj-sm-12)
+      // the host loop paints the blocks inside an oj-flex: the column-blocks of a
+      // zoned row carry their colClass; the rest take the whole row (oj-sm-12)
       .map((block) => ({ ...block, blockClass: block.colClass || 'oj-flex-item oj-sm-12' }))
-    // Un ÚNICO card SIN TÍTULO que envuelve todo el contenido no es una tarjeta: es el marco de
-    // la página, y ése ya lo pinta el contenedor de contenido. Pintarlo además como oj-panel deja
-    // una caja dentro de otra, que es como se veía cualquier pantalla con pestañas o con una
-    // tabla dentro — mientras que una ficha normal (la rama de formulario) no la tiene. Con
-    // título sí es una tarjeta de verdad y se respeta, igual que cuando hay varias.
+    // A SINGLE UNTITLED card wrapping all the content is not a card: it is the page's
+    // frame, and that one is already painted by the content container. Painting it also as an oj-panel leaves
+    // a box inside another, which is how any screen with tabs or with a
+    // table inside looked — whereas a normal record (the form branch) has none. With a
+    // title it is a real card and is respected, same as when there are several.
     if (merged.length === 1 && merged[0].isCard && !cardHasTitle(merged[0])) {
       merged = [{ ...merged[0], isCard: false, isPlain: true }]
     }
     return merged.length ? merged : null
   }
 
-  /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
-   *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
-   *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+  /** Wizard FORWARD action (Continue/Complete): derived from the real FOOTER of the tree — the
+   *  button block that goes with 'back' (rich wizards also have page
+   *  actions like selectPax that are NOT the forward; picking "first non-back action" failed). */
   const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
 
   function wizardForwardOf(ctx) {
@@ -5114,23 +5183,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
-  /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
-   *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
-   *  contextualInfo del oj-sp-header-general-overview. */
-  // Paneles cuyo contenido es de UN elemento de una colección (el detalle de una consola): un
-  // EntityHeader ahí dentro es la ficha del elegido, no la entidad de la PÁGINA — subirlo a la
-  // cabecera vaciaba el panel de detalle y ponía el nombre del huésped como título de la pantalla.
+  /** The host's EntityHeader (e.g. the guest of the Reservation 360) projected onto the screen
+   *  HEADER: title = the name, subtitle = subtitle + badges, facts (+metric) →
+   *  contextualInfo of the oj-sp-header-general-overview. */
+  // Panels whose content belongs to ONE element of a collection (the detail of a console): an
+  // EntityHeader in there is the chosen one's record, not the PAGE entity — lifting it to the
+  // header emptied the detail panel and put the guest's name as the screen title.
   const PANE_TYPES = { MasterDetailLayout: true, SplitLayout: true }
   function pageEntityHeaderNode(tree) {
     return findOutsidePanes(tree, 'EntityHeader')
   }
-  /** findByType, pero sin entrar en los paneles de una consola (MasterDetailLayout/SplitLayout): lo
-   *  que hay dentro es contenido de un panel, no una pieza de la PÁGINA (su cabecera, su cola). */
+  /** findByType, but without entering a console's panels (MasterDetailLayout/SplitLayout): what
+   *  is inside is a panel's content, not a piece of the PAGE (its header, its tail). */
   function findOutsidePanes(tree, type) {
     return findOutside(tree, type, PANE_TYPES)
   }
 
-  /** findByType sin bajar a los tipos de `stops`. */
+  /** findByType without descending into the `stops` types. */
   function findOutside(tree, type, stops) {
     let found = null
     const walk = (n) => {
@@ -5196,12 +5265,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const badgeText = (m.badges || []).map((b) => b.label).join(' · ')
     const facts = (m.facts || []).map((f) => factProjectionOf(f, interpolate(f.value, state)))
     if (m.metricLabel) facts.push({ label: m.metricLabel, value: interpolate(m.metricValue || '', state) })
-    // los colores de Chip de Mateu → status del badge oj-sp
+    // Mateu's Chip colors → oj-sp badge status
     const BADGE_STATUS = { success: 'success', error: 'danger', warning: 'warning', contrast: 'neutral', normal: 'info' }
     return {
       title: interpolate(m.title, state),
       subtitle: interpolate(m.subtitle || '', state) + (badgeText ? ' · ' + badgeText : ''),
-      // el subtítulo SIN los badges concatenados (para templates que pintan el badge aparte)
+      // the subtitle WITHOUT the concatenated badges (for templates that paint the badge separately)
       subtitlePlain: interpolate(m.subtitle || '', state),
       badges: (m.badges || []).map((b) => ({ label: b.label, status: BADGE_STATUS[b.color] || 'neutral' })),
       facts,
@@ -5223,9 +5292,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return form ? Object.assign({}, form, { fromForm: true }) : null
   }
 
-  /** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
-   *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
-   *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
+  /** The Page KPIs (@KPI: Page.metadata.kpis = [{title, text}]) → screen header facts
+   *  ({label, value}), like the EntityHeader's: a reservation's totals at the top, next to
+   *  the title, and not lost inside a panel. `text` may carry ${state.x}. */
   function pageKpisOf(ctx) {
     const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     if (!page) return []
@@ -5315,8 +5384,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
-   *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
+  /** The Page subtitle (SubtitleSupplier/@Subtitle: e.g. a reservation's amounts) for
+   *  the screen header when there is no EntityHeader. Interpolated like the title. */
   function pageSubtitleOf(ctx) {
     const page = ctx && ctx.tree ? pageHeaderNodeOf(ctx.tree) : null
     let subtitle = page && page.metadata ? page.metadata.subtitle : ''
@@ -5336,19 +5405,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ''
   }
 
-  /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
-   *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
-   *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
-   *  overview (main ancho primero + info estrecha después). El EntityHeader del host se
-   *  convierte en el oj-sp-item-overview del slot overview (itemTitle/subtitle/badge +
-   *  facts como filas clave en el body); un botón "Volver…" del toolbar pasa a la flecha
-   *  goToParent del header de navegación del template y el resto a secondaryActions. */
+  /** Native ITEM OVERVIEW (oj-sp-item-overview-page): entity page with two
+   *  column blocks whose FIRST zone is the NARROW one — the template's RDS anatomy
+   *  (key-data panel on the left + wide main on the right), as opposed to the general
+   *  overview (wide main first + narrow info after). The host's EntityHeader becomes
+   *  the oj-sp-item-overview of the overview slot (itemTitle/subtitle/badge +
+   *  facts as key rows in the body); a "Volver…" toolbar button becomes the template's
+   *  navigation header goToParent arrow and the rest go to secondaryActions. */
   function itemOverviewPageOf(entity, blocks, toolbar) {
     if (!entity) return null
     const zoned = (blocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
     if ((blocks || []).length !== 2 || zoned.length !== 2) return null
     const col = (b) => parseInt((b.blockClass.match(/oj-md-(\d+)/) || [])[1] || '0', 10)
-    if (col(zoned[0]) >= col(zoned[1])) return null // la ancha primero → general overview
+    if (col(zoned[0]) >= col(zoned[1])) return null // the wide one first → general overview
     const full = (b) => Object.assign({}, b, { blockClass: 'oj-flex-item oj-sm-12' })
     const back = (toolbar || []).find((b) => /^volver\b/i.test(b.label || ''))
     const badge = (entity.badges || [])[0] || null
@@ -5434,8 +5503,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return pick
   }
 
-  /** El TOOLBAR de la Page del host (para las acciones del header de banda):
-   *  [{actionId, label, chroming}]. El de estilo primary va al primaryAction del header. */
+  /** The host Page's TOOLBAR (for the band header's actions):
+   *  [{actionId, label, chroming}]. The primary-styled one goes to the header's primaryAction. */
   function pageToolbarOf(ctx) {
     if (!ctx || !ctx.tree) return []
     // a fluent/YAML `Form` carries its toolbar exactly like a reflected Page does
@@ -5455,28 +5524,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Cuál de los botones del toolbar ocupa el hueco de acción PRIMARIA de la cabecera.
+   * Which of the toolbar buttons takes the header's PRIMARY action slot.
    *
-   * `oj-sp-header-general-overview` da UN hueco visible para la primaria y pinta la primera
-   * secundaria como botón; el resto va al desbordamiento `···`. Con lo que manda el wire hoy —
-   * ningún botón marcado `primary` en la vista de un crud — todo caía en secundarias y la acción
-   * de verdad (Edit) quedaba escondida detrás de los puntos suspensivos.
+   * `oj-sp-header-general-overview` gives ONE visible slot for the primary and paints the first
+   * secondary as a button; the rest goes to the `···` overflow. With what the wire sends today —
+   * no button marked `primary` in a crud's view — everything fell into secondaries and the real
+   * action (Edit) ended up hidden behind the ellipsis.
    *
-   * Manda el wire cuando dice algo (`buttonStyle: primary`). Si no dice nada, se toma la ÚLTIMA
-   * que no sea de vuelta: en los toolbars de Mateu el orden es "salir, …, avanzar" — Cancel→Save,
-   * Back to list→Add another→Edit —, así que la última no-vuelta es la que uno vino a hacer.
-   * Heurística explícita, a sustituir el día que el wire traiga el rol del botón.
+   * The wire rules when it says something (`buttonStyle: primary`). If it says nothing, the LAST
+   * one that is not a back action is taken: in Mateu toolbars the order is "leave, …, advance" — Cancel→Save,
+   * Back to list→Add another→Edit —, so the last non-back is the one you came to do.
+   * Explicit heuristic, to be replaced the day the wire brings the button's role.
    */
   const BACK_ACTIONS = { back: true, 'back-to-list': true, close: true, cancel: true }
-  // `cancel` y los `cancel-<modo>` del crud (cancel-view, cancel-edit, cancel-new) son la vuelta;
-  // una acción del dominio que EMPIEZA por cancel no lo es: el «Cancel booking» de una reserva
-  // (`cancelBooking`) acababa convertido en el enlace de vuelta de la cabecera.
+  // `cancel` and the crud's `cancel-<mode>` (cancel-view, cancel-edit, cancel-new) are the way back;
+  // a domain action that STARTS with cancel is not: a reservation's «Cancel booking»
+  // (`cancelBooking`) ended up turned into the header's back link.
   const isBackButton = (button) => !!button && (
     BACK_ACTIONS[button.actionId] || /^cancel-/.test(String(button.actionId || '')))
 
-  /** El botón de VOLVER del toolbar, si lo hay: en RDS eso no es una acción más, es la
-   *  afordancia `goToParent` de la cabecera — meterlo entre las secundarias lo esconde en el
-   *  desbordamiento justo cuando es lo que más se pulsa. */
+  /** The toolbar's BACK button, if any: in RDS that is not one more action, it is the
+   *  header's `goToParent` affordance — putting it among the secondaries hides it in the
+   *  overflow precisely when it is the most pressed. */
   function backToolbarButton(toolbar) {
     return (toolbar || []).find(isBackButton) || null
   }
@@ -5492,11 +5561,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El botón del toolbar que eligió una ACCIÓN SECUNDARIA de un header oj-sp (spSecondaryAction),
-   * o null. Los items que les pasamos son { id: actionId, value: actionId, label }, y el header
-   * devuelve el item por su id (p.ej. 'walkIn') — o, según la variante, el objeto entero o su
-   * label —, así que se resuelve PRIMERO por actionId y sólo después por el rótulo. Buscarlo
-   * sólo por label dejaba muertas las secundarias de un listado: el id nunca es el rótulo.
+   * The toolbar button chosen by a SECONDARY ACTION of an oj-sp header (spSecondaryAction),
+   * or null. The items we pass are { id: actionId, value: actionId, label }, and the header
+   * returns the item by its id (e.g. 'walkIn') — or, depending on the variant, the whole object or its
+   * label —, so it is resolved FIRST by actionId and only then by the label. Looking it up
+   * only by label left a listing's secondaries dead: the id is never the label.
    */
   function secondaryActionOf(detail, toolbar) {
     const d = detail || {}
@@ -5522,7 +5591,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  /** Descartar el overlay superior SIN guardar (✕/Esc/backdrop — no emite evento alguno). */
+  /** Dismiss the top overlay WITHOUT saving (✕/Esc/backdrop — emits no event at all). */
   function dismissOverlay(reg) {
     if (!reg.stack || !reg.stack.length) return reg
     const id = reg.stack[reg.stack.length - 1]
@@ -5531,17 +5600,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...reg, contexts, stack: reg.stack.slice(0, -1) }
   }
 
-  /** Acciones suscritas a un evento del bus (@SubscribeTo): p.ej. el listing refresca con
-   *  'search' cuando el CloseModal del drawer emite mateu-crud:saved-in-drawer. */
+  /** Actions subscribed to a bus event (@SubscribeTo): e.g. the listing refreshes with
+   *  'search' when the drawer's CloseModal emits mateu-crud:saved-in-drawer. */
   function eventTriggersOf(ctx, eventName) {
     return ((ctx && ctx.tree && ctx.tree.triggers) || [])
       .filter((t) => t.type === 'OnCustomEvent' && t.eventName === eventName && t.actionId)
       .map((t) => t.actionId)
   }
 
-  /** Trigger @AutoSave/AutoSaveTrigger del host (buscar-al-teclear, autoguardado):
-   *  {actionId, debounceMillis} o null. El renderer lo honra re-lanzando la acción
-   *  debounced en cada pulsación (raw-value de los inputs del host). */
+  /** The host's @AutoSave/AutoSaveTrigger trigger (search-as-you-type, autosave):
+   *  {actionId, debounceMillis} or null. The renderer honors it by re-launching the action
+   *  debounced on every keystroke (raw-value of the host's inputs). */
   function autoSaveOf(ctx) {
     const trigger = ((ctx && ctx.tree && ctx.tree.triggers) || [])
       .find((t) => t.type === 'AutoSave' && t.actionId)
@@ -5550,8 +5619,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       : null
   }
 
-  /** Proyección del HOST para la superficie de contenido (título, texto, form, acciones). */
-  /** La opción de menú de una ruta, a cualquier profundidad. */
+  /** HOST projection for the content surface (title, text, form, actions). */
+  /** The menu option of a route, at any depth. */
   function menuOptionAt(options, route) {
     for (const option of options || []) {
       if ((option.route || option.path) === route) return option
@@ -5561,7 +5630,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  /** El título que declara el Crud del host, si lo hay. */
+  /** The title the host's Crud declares, if any. */
   function crudTitleOf(host) {
     const crud = host && host.tree ? findByType(host.tree, 'Crud') : null
     return crud && crud.metadata ? crud.metadata.title : ''
@@ -5592,10 +5661,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
     const menu = (reg.shell && reg.shell.menu) || []
-    // a CUALQUIER profundidad: en una shell federada la pantalla que se está viendo cuelga del
-    // grupo del pod, dos niveles por debajo, y buscar solo en el primero dejaba el título vacío
+    // at ANY depth: in a federated shell the screen being viewed hangs from the
+    // pod's group, two levels below, and searching only the first left the title empty
     const option = menuOptionAt(menu, route)
-    // un listado (pageType collection) también lleva FormFields (columnas) — NO es un form
+    // a listing (pageType collection) also carries FormFields (columns) — it is NOT a form
     const isFormPage = host.pageType !== 'collection' && host.pageType !== 'landing'
     const formMetadata = host.tree && isFormPage ? dynFormMetadataOf(host.tree) : null
     const state = host.state || {}
@@ -5607,17 +5676,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const declaredTitle = pageMetadata.title ? interpolate(String(pageMetadata.title), state).trim() : ''
     const placeholder = !declaredTitle && pageHeaderExtrasOf(host).titlePlaceholder
     return {
-      // la Page de un listado no lleva título: viaja en la metadata del Crud, y si tampoco
-      // está, en el rótulo del menú
+      // a listing's Page carries no title: it travels in the Crud metadata, and if it is not
+      // there either, in the menu label
       // …and a COMPOSED page (a Dashboard, a SmartSearchPage…: no Page, no Crud title) names itself
       // only through its window title: without it the header read «…»
       title: placeholder ? '' : (declaredTitle || crudTitleOf(host) || (option && (option.caption || option.label))
         || (reg.effects && typeof reg.effects.docTitle === 'string' ? reg.effects.docTitle : '') || ''),
-      // el rastro automático (breadcrumbs.mjs): la cabecera saca de él su «ir al padre». Apagado con
-      // @NoBreadcrumbs en la página o en la shell
+      // the automatic trail (breadcrumbs.mjs): the header takes its «go to parent» from it. Turned off with
+      // @NoBreadcrumbs on the page or on the shell
       trail: pageMetadata.noBreadcrumbs || (reg.shell && reg.shell.noBreadcrumbs)
         ? []
-        : autoTrail(menu, route, { title: pageMetadata.title || crudTitleOf(host) }),
+        : autoTrail(menu, route, { title: declaredTitle || crudTitleOf(host) }),
       text: formMetadata ? '' : String(state.message == null ? '' : state.message),
       formMetadata,
       fields,
@@ -5638,7 +5707,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
-  /** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
+  /** RENDER helper: first node of the tree with the given metadata.type. */
   function findByType(tree, type) {
     let found = null
     const walk = (node) => {
@@ -5653,20 +5722,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return found
   }
 
-  /** Primer nodo de la SUPERFICIE (sin cruzar islas) que cumple `test`; null si ninguno. */
+  /** First node of the SURFACE (without crossing islands) that satisfies `test`; null if none. */
   function findFirst(tree, test) {
     let found = null
     walkWithinSurface(tree, (n) => { if (!found && test(n)) found = n })
     return found
   }
 
-  /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
-   *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
-   *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+  /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
+   *  null if the context contains no Crud. Rows arrive through the 'search' action
+   *  (OnLoad trigger) as a data-only fragment: data.crud.page.content. */
   /**
-   * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
-   * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
-   * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+   * The host's listing ready to paint. `allColumns` are all those on the wire (the columns
+   * dialog starts from them) and `columns` the ones painted, with the user's preferences applied
+   * (prefs.mjs: hidden ones out, in their order) — read by columnPrefsReader (localStorage per route).
    */
   function listingOf(ctx, opts = {}) {
     const listing = listingBaseOf(ctx, opts)
@@ -5749,8 +5818,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out.length ? out : null
   }
 
-  /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
-   *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+  /** The HEADER components of the listing page (HeaderSupplier → Page.metadata.header)
+   *  as atom blocks: the listing has no content of its own to put them in. */
   /** The siblings that precede the first node of `type` in its parent (none when it is the root or
    *  inside a Page — a Page's own header is metadata.header). */
   function siblingsBefore(tree, type) {
@@ -5789,18 +5858,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // ever sees plain columns
     const md = { ...crudNode.metadata, columns: leafColumnsOf(crudNode.metadata.columns) }
     const page = (((ctx.data || {}).crud || {}).page) || {}
-    // FILAS DE VARIAS LÍNEAS (@Line → GridColumn.line): las columnas de la línea 1 son las de la
-    // tabla (cabecera, orden, anchos); las demás se pintan DEBAJO de cada fila, a lo ancho, como
-    // pares «Etiqueta: valor» secundarios — ver rowLinesOf / la plantilla cellLines
+    // MULTI-LINE ROWS (@Line → GridColumn.line): the line-1 columns are the table's
+    // (header, sort, widths); the rest are painted BELOW each row, full width, as secondary
+    // «Label: value» pairs — see rowLinesOf / the cellLines template
     const lines = rowLinesSplit(md.columns || [])
     const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
     return {
-      // PAGINACIÓN: la página que mandó el server (Page: pageNumber/pageSize/totalElements) →
-      // pie de la tabla con el rango y los controles; precomputado (CSP de VB)
+      // PAGINATION: the page the server sent (Page: pageNumber/pageSize/totalElements) →
+      // table footer with the range and the controls; precomputed (VB CSP)
       paging: listingPagingOf(page, md.pageSize || 20, opts.lang),
       title: md.title || '',
       subtitle: md.subtitle || '',
-      // @RowRoute / Listing.rowRoute: una fila ABRE una ruta (el maestro de un registro) — ver rowRouteOf
+      // @RowRoute / Listing.rowRoute: a row OPENS a route (a record's master) — see rowRouteOf
       rowRoute: md.rowRoute || '',
       searchable: !!md.searchable,
       pageSize: md.pageSize || 20,
@@ -5808,48 +5877,48 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       columns: tableColumns.map((col) => {
         const c = col.metadata || col
         const def = { headerText: c.label || c.id, field: c.id }
-        // celda editable → plantilla de editor por tipo (siempre visible, commit por celda:
-        // el contrato es update-row + parameters._editedRow; fixtures/real/update-row.json)
+        // editable cell → editor template per type (always visible, commit per cell:
+        // the contract is update-row + parameters._editedRow; fixtures/real/update-row.json)
         if (c.editable && c.editorType) {
           def.template = c.editorType === 'boolean' ? 'cellEditBoolean'
             : (c.editorType === 'integer' || c.editorType === 'number') ? 'cellEditNumber'
               : 'cellEditText'
         }
-        // ACCIONES por fila (ColumnActionGroup): botones que despachan
-        // action-on-row-<método> con el id de la fila (Listing.handleActionOnRow)
+        // per-row ACTIONS (ColumnActionGroup): buttons that dispatch
+        // action-on-row-<method> with the row's id (Listing.handleActionOnRow)
         if (c.dataType === 'actionGroup') {
           def.template = 'cellRowActions'
           def.headerText = ''
           def.sortable = 'disabled'
         }
-        // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
-        // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
+        // the column key = the wire id: ojSort returns it and it is what the server
+        // sorts by (the cell may read another field, e.g. the abbreviated UUID)
         def.id = c.id
-        // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+        // totals footer (@Aggregate): the footerTotal template reads totals[columnKey]
         if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
-        // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
-        // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
+        // STATUS as a badge (@Status): the cell value is {type, message} — the badge's JET
+        // class is precomputed on the rows (statusBadgeRows, CSP without ternaries)
         if (c.dataType === 'status') {
           def.template = 'cellStatusBadge'
         }
-        // COLUMNA PRINCIPAL (@PrimaryColumn: stereotype 'primary'): imagen delante del título
-        // (leadingPath, p.ej. la bandera del huésped) y línea de caption debajo (captionPath) —
-        // campos de la fila que no son columnas. Precomputado por fila en primaryCellRows (CSP).
+        // PRIMARY COLUMN (@PrimaryColumn: stereotype 'primary'): image before the title
+        // (leadingPath, e.g. the guest's flag) and a caption line below (captionPath) —
+        // row fields that are not columns. Precomputed per row in primaryCellRows (CSP).
         if (!def.template && c.stereotype === 'primary') {
           def.field = c.id + PRIMARY_CELL_SUFFIX
           def.template = 'cellPrimary'
         }
-        // UUID abreviado: una columna de texto cuyos valores son UUID se pinta "…-<último bloque>"
-        // con el UUID entero en el tooltip. La fila NO cambia: la celda lee un campo aparte,
-        // precomputado en uuidCellRows (CSP de VB: la plantilla no puede recortar el texto).
+        // Abbreviated UUID: a text column whose values are UUIDs is painted "…-<last block>"
+        // with the whole UUID in the tooltip. The row does NOT change: the cell reads a separate field,
+        // precomputed in uuidCellRows (VB CSP: the template cannot trim the text).
         if (!def.template && uuidColumnIds(page.content || [], md.columns || []).indexOf(c.id) >= 0) {
           def.field = c.id + UUID_CELL_SUFFIX
           def.template = 'cellUuid'
         }
-        // ANCHO de la columna (@ColumnWidth: width + flexGrow "0" + tooltipPath en el wire, el
-        // mismo contrato que aplica el gridRenderer de Vaadin): oj-table fija ese ancho; con
-        // flexGrow 0 la columna no crece (min = max = width) y su texto se corta con elipsis,
-        // entero en el tooltip (tooltipPath). Las demás columnas siguen a su contenido.
+        // column WIDTH (@ColumnWidth: width + flexGrow "0" + tooltipPath on the wire, the
+        // same contract Vaadin's gridRenderer applies): oj-table fixes that width; with
+        // flexGrow 0 the column does not grow (min = max = width) and its text is clipped with an ellipsis,
+        // whole in the tooltip (tooltipPath). The other columns follow their content.
         Object.assign(def, columnWidthOf(c))
         const align = alignOf(c)
         if (align && !def.template) {
@@ -5861,59 +5930,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           def.field = c.id + CLIP_CELL_SUFFIX
           def.template = 'cellClip'
         }
-        // un enum se lee por su etiqueta («In house», no IN_HOUSE): la celda lee <id>__labelCell
+        // an enum is read by its label («In house», not IN_HOUSE): the cell reads <id>__labelCell
         if (!def.template && labelColumn(c)) {
           def.field = c.id + LABEL_CELL_SUFFIX
         }
-        // CLIC DE FILA ENTERA: una celda con clic propio (editor, botones, enlace, menú, componente,
-        // columna con su propia acción) lleva la clase que mateuRowClicked respeta — ver isDisplayColumn
+        // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
+        // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
         if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
         return def
       }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
-      // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio
-      // (PRECOMPUTADA: CSP de VB)
+      // number of extra lines (0 = normal listing) and the table class that makes room for them
+      // (PRECOMPUTED: VB CSP)
       extraLines: lines.extra.length,
       tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
-      // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
-      // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
-      // como editable en el wire); un listado de consulta queda en 'list' (aireado).
-      // PRECOMPUTADO (CSP de VB).
-      // Y un listado @Compact (CrudlDto.compact) pide la misma densidad de trabajo: filas de
-      // 'grid' en vez de las aireadas de 'list'.
+      // Redwood table density: the compact 'grid' is for WORK tables —
+      // it switches on when the crud is inline-editable (@InlineEditing marks the columns
+      // as editable on the wire); a lookup listing stays at 'list' (airy).
+      // PRECOMPUTED (VB CSP).
+      // And a @Compact listing (CrudlDto.compact) asks for the same work density: 'grid'
+      // rows instead of the airy 'list' ones.
       display: md.compact === true || (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
-      // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
+      // WORK table: a row click does NOT navigate (cells are edited in place)
       editable: (md.columns || []).some((col) => (col.metadata || col).editable),
       // the accessible NAME of an in-cell editor = its column header (the cellEdit* templates read it)
       editorLabels: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .filter((c) => c.editable).map((c) => [c.id, c.label || c.id])),
-      // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
-      // fila. Una fila NAVEGABLE (primera columna con actionId 'view') sigue abriendo el registro:
-      // el detalle es para los listados de consulta, donde el clic no tenía otro destino.
+      // row DETAIL (@Details on the row): the field that is not a column and opens when the
+      // row is clicked. A NAVIGABLE row (first column with actionId 'view') still opens the record:
+      // the detail is for lookup listings, where the click had no other destination.
       detailPath: md.detailPath || null,
       navigable: (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view'),
-      // SELECCIÓN de filas (Listing.rowsSelectionEnabled): casillas en la tabla, y las acciones de la
-      // toolbar reciben las filas marcadas en crud_selected_items — el mismo contrato que Vaadin
-      // (HttpRequest.getSelectedRows lo lee del componentState). El modo va PRECOMPUTADO (CSP de VB).
+      // row SELECTION (Listing.rowsSelectionEnabled): checkboxes in the table, and the toolbar
+      // actions receive the checked rows in crud_selected_items — the same contract as Vaadin
+      // (HttpRequest.getSelectedRows reads it from the componentState). The mode is PRECOMPUTED (VB CSP).
       rowsSelectionEnabled: !!md.rowsSelectionEnabled,
       selectionMode: { row: md.rowsSelectionEnabled ? 'multiple' : 'none' },
-      // las acciones que no tienen sentido sin selección (Action.rowsSelectedRequired: Delete…)
-      // (las acciones declaradas del ServerSide host, no los botones)
-      // + los botones de la toolbar que traen la guarda ELLOS MISMOS (Button.rowsSelectedRequired, todo
-      // @ListToolbarButton): el id que dispara el botón y el de la acción anunciada no siempre coinciden
+      // the actions that make no sense without a selection (Action.rowsSelectedRequired: Delete…)
+      // (the declared actions of the ServerSide host, not the buttons)
+      // + the toolbar buttons that carry the guard THEMSELVES (Button.rowsSelectedRequired, every
+      // @ListToolbarButton): the id the button fires and that of the advertised action do not always match
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id)
         .concat((md.toolbar || []).filter((b) => b && b.rowsSelectedRequired).map((b) => b.actionId)),
-      // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
-      // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+      // @RowStatus: each row carries its tone (_tone) — tables.mjs paints it on the oj-table's tr;
+      // @GroupBy: interleaved group rows (value (n) + subtotals), presentation only
       rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
-      // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+      // @Aggregate: the totals of the filtered set, per column (oj-table footer)
       totals: aggregateFootersOf(md, (ctx.data || {}).crud),
       hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
       rowStatusField: md.rowStatusField || '',
-      // @DragRows: las filas se arrastran (JET oj-table dnd) con este tipo MIME — dnd.mjs
+      // @DragRows: rows are dragged (JET oj-table dnd) with this MIME type — dnd.mjs
       dragType: md.dragType || '',
       dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
-      // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
+      // the property the server sorts each column by (GridColumn.sortingProperty or its id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
       total: page.totalElements == null ? null : page.totalElements,
@@ -5924,15 +5993,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
         disabled: !!b.disabled,
       })),
-      // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
-      // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
-      // los filtros viajan como FormField select en la metadata (a veces en el mediator,
-      // no en el nodo Crud — se busca en todo el árbol)
+      // QUICK selector of the listing: option filters (e.g. an enum in Filters, like
+      // the View of the bookings listing) → oj-sp-filter-chip chips next to the smart search;
+      // the filters travel as select FormFields in the metadata (sometimes in the mediator,
+      // not in the Crud node — the whole tree is searched)
       filters: filtersOf(ctx),
     }
   }
 
-  // los textos del pie, del catálogo de la interfaz (i18n.mjs)
+  // the footer texts, from the interface catalogue (i18n.mjs)
   function pagingLangOf(lang) {
     const l = chromeLanguage(lang)
     const t = (key) => chromeText(key, null, l)
@@ -5940,10 +6009,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La PAGINACIÓN del listado, de la Page que manda el server (pageNumber/pageSize/totalElements) →
-   * lo que pinta el pie de la tabla: "11–20 de 57", "Página 2 de 6" y qué botones están activos.
-   * Sin total conocido (un Listing que no cuenta) hay "siguiente" mientras la página venga llena.
-   * `visible` = hay más de una página (un listado corto no lleva pie).
+   * The listing's PAGINATION, from the Page the server sends (pageNumber/pageSize/totalElements) →
+   * what the table footer paints: "11–20 of 57", "Page 2 of 6" and which buttons are active.
+   * With no known total (a Listing that does not count) there is a "next" while the page comes full.
+   * `visible` = there is more than one page (a short listing has no footer).
    */
   function listingPagingOf(page, fallbackSize, lang) {
     const p = page || {}
@@ -5966,7 +6035,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       hasPrev,
       hasNext,
       hasLast: hasNext && pageCount != null,
-      // los disabled ya negados (CSP de VB: la plantilla no evalúa "!")
+      // the disabled flags already negated (VB CSP: the template does not evaluate "!")
       prevDisabled: !hasPrev,
       nextDisabled: !hasNext,
       lastDisabled: !(hasNext && pageCount != null),
@@ -5978,8 +6047,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La página a la que lleva un botón del pie: 'first' | 'prev' | 'next' | 'last' sobre el paging
-   * actual → número de página, o null si el botón no lleva a ningún sitio.
+   * The page a footer button leads to: 'first' | 'prev' | 'next' | 'last' over the current
+   * paging → page number, or null if the button leads nowhere.
    */
   function targetPageOf(paging, which) {
     if (!paging) return null
@@ -5992,10 +6061,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El componentState de una búsqueda del listado: el estado del host + el texto, la página, el
-   * tamaño, el orden y los filtros aplicados (los chips; un rango ocupa dos claves) — lo que
-   * SearchActionHandler lee. Paginar o reordenar conserva texto y filtros; el orden viaja como
-   * lista [{field, direction}] y sólo si lo hay.
+   * The componentState of a listing search: the host state + the text, the page, the
+   * size, the sort and the applied filters (the chips; a range takes two keys) — what
+   * SearchActionHandler reads. Paging or re-sorting keeps text and filters; the sort travels as a
+   * [{field, direction}] list and only if there is one.
    */
   function listingSearchStateOf(hostState, opts = {}) {
     const state = Object.assign({}, hostState || {}, {
@@ -6011,10 +6080,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El orden pedido por la cabecera de oj-table (ojSort: detail.header = clave de la columna,
-   * detail.direction 'ascending'|'descending') → [{field, direction}] en el vocabulario del
-   * server (io.mateu.uidl.data.Sort). La clave es el id del wire (listingOf la fija); si llega el
-   * campo de la celda (p.ej. el UUID abreviado), se le quita el sufijo.
+   * The sort requested by the oj-table header (ojSort: detail.header = the column key,
+   * detail.direction 'ascending'|'descending') → [{field, direction}] in the server's
+   * vocabulary (io.mateu.uidl.data.Sort). The key is the wire id (listingOf sets it); if the
+   * cell's field arrives (e.g. the abbreviated UUID), the suffix is stripped.
    */
   function listingSortOf(detail, sortFields) {
     if (!detail || !detail.header) return []
@@ -6025,9 +6094,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La selección de la tabla, en una forma que sobrevive a un refresco: el KeySet de oj-table
-   * (`detail.value.row` de ojSelectedChanged) → { all, keys, except }. Un "seleccionar todo" es
-   * un KeySet de tipo addAll: todas menos las desmarcadas, no una lista de claves.
+   * The table selection, in a form that survives a refresh: oj-table's KeySet
+   * (`detail.value.row` of ojSelectedChanged) → { all, keys, except }. A "select all" is
+   * an addAll KeySet: all except the unchecked ones, not a list of keys.
    */
   function selectionOfKeySet(keySet) {
     if (!keySet) return { all: false, keys: [], except: [] }
@@ -6039,8 +6108,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { all: false, keys: values, except: [] }
   }
 
-  /** Las filas marcadas, resueltas contra las filas ACTUALES por su clave (_rowNumber). Lo que se
-   *  manda es la fila tal como llegó: el badge precomputado de las columnas @Status no viaja. */
+  /** The checked rows, resolved against the CURRENT rows by their key (_rowNumber). What is
+   *  sent is the row as it arrived: the precomputed badge of the @Status columns does not travel. */
   function selectedRowsOf(rows, selection) {
     if (!selection) return []
     const picked = selection.all
@@ -6070,15 +6139,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** El componentState de una acción del host de un listado con selección: lleva las filas
-   *  marcadas en crud_selected_items, como Vaadin. Sin listado o sin selección, intacto. */
+  /** The componentState of a host action of a listing with selection: it carries the checked
+   *  rows in crud_selected_items, like Vaadin. Without a listing or without a selection, untouched. */
   function withListingSelection(componentState, listing, rows, selection) {
     if (!listing || !listing.rowsSelectionEnabled) return componentState
     return Object.assign({}, componentState, { crud_selected_items: selectedRowsOf(rows, selection) })
   }
 
-  // filas con columnas @Status: al valor {type, message} se le estampa la clase badge de
-  // JET (Redwood, sistema) — el template de celda no puede mapear (CSP sin ternarios)
+  // rows with @Status columns: the {type, message} value gets stamped with the JET badge
+  // class (Redwood, system) — the cell template cannot map (CSP without ternaries)
   const STATUS_BADGE = {
     SUCCESS: 'oj-badge oj-badge-success oj-badge-subtle',
     WARNING: 'oj-badge oj-badge-warning oj-badge-subtle',
@@ -6089,14 +6158,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   const UUID_CELL_SUFFIX = '__uuidCell'
 
-  /** "…-<último bloque>" de un UUID canónico; cualquier otro valor, tal cual. */
+  /** "…-<last block>" of a canonical UUID; any other value, as is. */
   function abbreviateUuid(value) {
     return typeof value === 'string' && UUID.test(value)
       ? '…-' + value.substring(value.lastIndexOf('-') + 1)
       : value
   }
 
-  // las columnas de TEXTO (sin plantilla propia, ni editables) con algún valor que es un UUID entero
+  // the TEXT columns (no template of their own, not editable) with some value that is a whole UUID
   function uuidColumnIds(rows, columns) {
     return columns
       .map((col) => col.metadata || col)
@@ -6105,8 +6174,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .map((c) => c.id)
   }
 
-  // filas con columnas de UUID: a cada una se le añade <id>__uuidCell = {text, full}, que es lo que
-  // pinta la celda; el valor original de la fila queda intacto (navegación, acciones, selección)
+  // rows with UUID columns: each one gets <id>__uuidCell = {text, full}, which is what
+  // the cell paints; the row's original value stays intact (navigation, actions, selection)
   function uuidCellRows(rows, columns) {
     const ids = uuidColumnIds(rows, columns)
     if (!ids.length) return rows
@@ -6122,7 +6191,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const PRIMARY_CELL_SUFFIX = '__primary'
 
-  /** La celda (de la columna técnica ROW_LINES_COLUMN) que pinta las líneas extra de cada fila. */
+  /** The cell (of the technical ROW_LINES_COLUMN column) that paints each row's extra lines. */
   const ROW_LINES_FIELD = '__rowLines'
 
   const ROW_LINES_COLUMN = {
@@ -6167,14 +6236,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** La línea (1-based) de una columna: su `line` si es > 1; si no, 1. */
+  /** The (1-based) line of a column: its `line` if > 1; otherwise 1. */
   function lineOfColumn(c) {
     const line = c && typeof c.line === 'number' ? c.line : 0
     return line > 1 ? Math.floor(line) : 1
   }
 
-  /** Reparte las columnas del wire por línea: {first: las de la línea 1, extra: [[línea 2], [línea 3]…]}
-   *  en el orden del wire (las líneas vacías no cuentan). Sin @Line, extra = [] y nada cambia. */
+  /** Splits the wire columns by line: {first: those of line 1, extra: [[line 2], [line 3]…]}
+   *  in wire order (empty lines do not count). Without @Line, extra = [] and nothing changes. */
   function rowLinesSplit(columns) {
     const first = []
     const byLine = new Map()
@@ -6190,7 +6259,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { first, extra: [...byLine.keys()].sort((a, b) => a - b).map((k) => byLine.get(k)) }
   }
 
-  /** El texto de un valor en una línea extra: un estado por su mensaje, dinero «importe moneda». */
+  /** The text of a value in an extra line: a status by its message, money as «amount currency». */
   function lineValueText(v) {
     if (v == null) return ''
     if (Array.isArray(v)) return v.map(lineValueText).filter(Boolean).join(', ')
@@ -6203,8 +6272,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return String(v)
   }
 
-  /** A cada fila, <ROW_LINES_FIELD> = {lines: [{key, pairs: [{key, label, text, cls}]}]}: lo que pinta
-   *  la plantilla cellLines (CSP de VB: precomputado). Un estado lleva su badge (cls). */
+  /** On each row, <ROW_LINES_FIELD> = {lines: [{key, pairs: [{key, label, text, cls}]}]}: what the
+   *  cellLines template paints (VB CSP: precomputed). A status carries its badge (cls). */
   function rowLinesRows(rows, extra) {
     if (!extra || !extra.length) return rows
     const lines = extra.map((line) => line.map((col) => col.metadata || col))
@@ -6259,8 +6328,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
-  /** A cada columna con etiquetas se le añade <id>__labelCell = el texto que pinta la celda (CSP de
-   *  VB: la plantilla no puede buscar en un mapa). La fila queda intacta. */
+  /** Each column with labels gets <id>__labelCell = the text the cell paints (VB
+   *  CSP: the template cannot look up a map). The row stays intact. */
   function labelCellRows(rows, columns) {
     const cols = (columns || []).map((c) => c.metadata || c).filter(labelColumn)
     if (!cols.length) return rows
@@ -6274,8 +6343,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
-   *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
+  /** The width the wire asks for a column (GridColumn.width / flexGrow), in oj-table's
+   *  keys: width (and, if it does not grow — flexGrow "0" —, minWidth = maxWidth = width). Without width, {}. */
   function columnWidthOf(c) {
     const width = c && typeof c.width === 'string' ? c.width.trim() : (c && typeof c.width === 'number' ? c.width + 'px' : '')
     if (!width || width === 'auto') return {}
@@ -6284,15 +6353,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       : { width, minWidth: width }
   }
 
-  // una columna de TEXTO con ancho fijo (flexGrow 0) o con tooltip: su celda se corta con elipsis
-  // y el texto entero (o el del campo tooltipPath) va al title
+  // a TEXT column with a fixed width (flexGrow 0) or with a tooltip: its cell is clipped with an ellipsis
+  // and the whole text (or that of the tooltipPath field) goes to the title
   function clipColumn(c) {
     return !c.editable && c.dataType !== 'actionGroup' && c.dataType !== 'status' && c.stereotype !== 'primary'
       && (!!c.tooltipPath || (!!columnWidthOf(c).maxWidth))
   }
 
-  /** A cada columna recortable se le añade <id>__clipCell = {text, title, cls}: lo que pinta la celda
-   *  (CSP de VB: la plantilla no puede leer un campo variable de la fila). La fila queda intacta. */
+  /** Each clippable column gets <id>__clipCell = {text, title, cls}: what the cell paints
+   *  (VB CSP: the template cannot read a variable field of the row). The row stays intact. */
   function clipCellRows(rows, columns) {
     const cols = (columns || []).map((c) => c.metadata || c).filter(clipColumn)
     if (!cols.length) return rows
@@ -6301,19 +6370,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const out = { ...row }
       for (const c of cols) {
         const shown = text(valueLabelOf(c, row[c.id]))
-        // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
-        // fijo que corta): el texto entero en el title de siempre
+        // tooltipPath to ANOTHER field (@Tooltip): a detail → the floating window; to itself (a fixed
+        // width that clips): the whole text in the usual title
         const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
-        // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
-        // con @Tooltip(otro campo) el detalle sale en la ventana flotante (hover.mjs), no en el title
-        // del navegador: varias líneas y estilo Redwood; sin él, el title enseña lo que se corta
+        // only the fixed-width column is clipped; with tooltipPath and no width, the text stays whole
+        // with @Tooltip(another field) the detail shows in the floating window (hover.mjs), not in the
+        // browser's title: several lines and Redwood style; without it, the title shows what is clipped
         out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip ? '' : shown, hover: tip, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
       }
       return out
     })
   }
 
-  /** La celda de cada columna principal: {title, caption, leading} (vacíos si no hay). */
+  /** The cell of each primary column: {title, caption, leading} (empty if none). */
   function primaryCellRows(rows, columns) {
     const cols = (columns || []).map((c) => c.metadata || c).filter((c) => c.stereotype === 'primary')
     if (!cols.length) return rows
@@ -6404,25 +6473,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * TODOS los filtros que declara el listado, cada uno ya resuelto al widget que le toca.
+   * ALL the filters the listing declares, each one already resolved to the widget it gets.
    *
-   * Antes sólo salían los de opciones, y sólo el primero: un listado con un booleano, un
-   * lookup, un enum y dos fechas mostraba una tira de chips sueltos con los valores del enum
-   * —sin decir siquiera de qué campo eran— y los otros cuatro filtros no existían para el
-   * usuario. En el renderer Vaadin salen los cinco.
+   * Before, only the option ones came out, and only the first: a listing with a boolean, a
+   * lookup, an enum and two dates showed a strip of loose chips with the enum's values
+   * —without even saying which field they were— and the other four filters did not exist for the
+   * user. In the Vaadin renderer all five come out.
    *
-   * El `kind` se PRECOMPUTA aquí porque las plantillas de VB corren bajo CSP y no pueden
-   * evaluar expresiones; el orden de resolución es el mismo que el de la barra compartida
-   * (rango → multi → opciones → booleano → texto), para que un mismo listado ofrezca lo
-   * mismo en los dos renderers.
+   * The `kind` is PRECOMPUTED here because VB templates run under CSP and cannot
+   * evaluate expressions; the resolution order is the same as the shared bar's
+   * (range → multi → options → boolean → text), so that the same listing offers the
+   * same in both renderers.
    */
   function filtersOf(ctx) {
     const found = []
     const walk = (node) => {
       if (!node || typeof node !== 'object') return
       for (const f of ((node.metadata || {}).filters) || []) {
-        // un filtro readOnly es el ÁMBITO del listado (el :id del maestro que lo contiene, el
-        // contexto de un @Subresource): lo fija la ruta, no es una condición que el usuario quite
+        // a readOnly filter is the listing's SCOPE (the :id of the master that contains it, the
+        // context of a @Subresource): the route sets it, it is not a condition the user removes
         if (f.readOnly) continue
         found.push(filterDescriptorOf(f, ctx && ctx.data))
       }
@@ -6433,10 +6502,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function filterDescriptorOf(f, data) {
-    // un filtro @Lookup trae sus opciones por su búsqueda (search-<campo>, bridge.loadLookups):
-    // llegan a data[campo] como las de un campo del formulario
+    // a @Lookup filter gets its options through its search (search-<field>, bridge.loadLookups):
+    // they arrive at data[field] like those of a form field
     const options = optionsOf(f, data).map((o) => ({ value: o.value, label: o.label || o.value }))
-    // 'bool' lo emite el server Java y 'boolean' el .NET
+    // 'bool' is emitted by the Java server and 'boolean' by .NET
     const isBool = f.dataType === 'bool' || f.dataType === 'boolean'
       || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
     const isNumeric = ['integer', 'decimal', 'number', 'money'].indexOf(f.dataType) >= 0
@@ -6451,7 +6520,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       label: f.label || f.fieldId,
       kind,
       options,
-      // el tipo del <input> de los kinds 'range' y 'text' (una fecha se teclea fatal como texto)
+      // the <input> type of the 'range' and 'text' kinds (a date is awful to type as text)
       inputType: f.stereotype === 'dateRange'
         ? (f.dataType === 'dateTime' ? 'datetime-local' : 'date')
         : (f.stereotype === 'numberRange' || isNumeric) ? 'number' : 'text',
@@ -6466,15 +6535,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los filtros como CHIPS: uno por filtro, aplicado o no.
+   * The filters as CHIPS: one per filter, applied or not.
    *
-   * Uno por FILTRO y no uno por valor posible, que es lo que se pintaba antes: los ocho
-   * estados de un enum salían como ocho chips sueltos, sin decir de qué campo eran, y ocupando
-   * la fila entera que debían compartir los otros cuatro filtros. Un chip sin aplicar abre su
-   * editor; uno aplicado enseña el valor y se quita por la ✕.
+   * One per FILTER and not one per possible value, which is what was painted before: the eight
+   * states of an enum came out as eight loose chips, without saying which field they were, and taking
+   * the whole row the other four filters were meant to share. An unapplied chip opens its
+   * editor; an applied one shows the value and is removed with the ✕.
    *
-   * `keys` son las claves de estado que hay que borrar para quitarlo — un rango ocupa dos, y
-   * quitarlo a medias deja el listado filtrado por algo que ya no se ve.
+   * `keys` are the state keys that must be cleared to remove it — a range takes two, and
+   * removing it halfway leaves the listing filtered by something no longer visible.
    */
   function filterChipsOf(filters, values) {
     const v = values || {}
@@ -6506,7 +6575,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       return { fieldId: f.fieldId, label: f.label, text, applied, keys: [f.fieldId] }
     })
-    // la selección por ids (?ids=…): sólo cuando está aplicada — no es un filtro que se ofrezca
+    // the selection by ids (?ids=…): only when applied — it is not a filter that is offered
     if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
       chips.unshift({ fieldId: IDS_PARAM, label: 'Ids', text: idsChipLabelOf(v[IDS_PARAM]), applied: true, keys: [IDS_PARAM] })
     }
@@ -6514,16 +6583,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los filtros que trae la query de una ruta (`integration=MRU01&status=PROPOSED,APPROVED`) →
-   * { campo: valor }. Todos los parámetros, decodificados (`+` es un espacio, como en un
-   * formulario); los vacíos no filtran, ni la página ni el orden. Un multi-select toma la lista separada por comas
-   * (multiValuesOf), igual que la escribe Vaadin en la URL.
+   * The filters a route's query carries (`integration=MRU01&status=PROPOSED,APPROVED`) →
+   * { field: value }. All the parameters, decoded (`+` is a space, as in a
+   * form); empty ones do not filter, nor do the page and the sort. A multi-select takes the comma-separated list
+   * (multiValuesOf), just as Vaadin writes it in the URL.
    */
   /**
-   * Una navegación pedida (ruta con o sin ?query) frente a la que hay en pantalla. `full` (ruta +
-   * query) es lo que la identifica — el id de la entrada del menú, la URL —; `filters` son
-   * EXACTAMENTE los de su query: ninguno si no trae (ir a /reservas desde /reservas?vista=… quita el
-   * filtro). `same` = es la que ya hay (el eco del writeback de la selección del menú): no recargar.
+   * A requested navigation (route with or without ?query) versus the one on screen. `full` (route +
+   * query) is what identifies it — the menu entry's id, the URL —; `filters` are
+   * EXACTLY those of its query: none if it has none (going to /reservas from /reservas?vista=… removes the
+   * filter). `same` = it is the one already there (the echo of the menu selection writeback): do not reload.
    */
   function navTargetOf(requested, currentFull) {
     const raw = String(requested || '')
@@ -6551,17 +6620,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  // la página y el orden también viajan en la URL de un listado de Vaadin, pero no son filtros
+  // the page and the sort also travel in a Vaadin listing's URL, but they are not filters
   const PAGING_PARAMS = { page: true, size: true, sort: true }
 
-  // ── Filtros por URL: los declarados, el texto libre y la selección por ids ─────────────────────
-  // Cualquier filtro declarado de un listado se pone desde la URL con su nombre de campo (un rango,
-  // con <campo>_from / <campo>_to; un multi-select, separado por comas). Además, dos que no declara
-  // nadie: el texto libre (`searchText`, o `q` como alias al leer) y `ids`, la SELECCIÓN — un
-  // conjunto concreto de filas por su id (`?ids=4MBZS7,JXD3G6`), que el framework aplica en el
-  // server a cualquier listado. Todos salen como chips que se quitan, y la URL los refleja.
+  // ── Filters by URL: the declared ones, the free text and the selection by ids ─────────────────────
+  // Any declared filter of a listing is set from the URL with its field name (a range,
+  // with <field>_from / <field>_to; a multi-select, comma-separated). Plus two that nobody
+  // declares: the free text (`searchText`, or `q` as an alias when reading) and `ids`, the SELECTION — a
+  // concrete set of rows by their id (`?ids=4MBZS7,JXD3G6`), which the framework applies on the
+  // server to any listing. All of them come out as removable chips, and the URL reflects them.
 
-  /** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
+  /** The reserved filter of the selection by ids (the server applies it, no listing declares it). */
   const IDS_PARAM = 'ids'
 
   function idsTextsOf(lang) {
@@ -6569,7 +6638,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { few: chromeText('idsFew', null, l), many: (n) => chromeText('idsMany', { n }, l) }
   }
 
-  /** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
+  /** The selection chip's caption: the ids if there are few (≤3), otherwise how many. */
   function idsChipLabelOf(ids, lang) {
     const list = multiValuesOf(ids)
     const texts = idsTextsOf(lang)
@@ -6577,8 +6646,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los filtros de una query (queryFiltersOf) separados en el texto libre y el resto: `searchText`
-   * (o su alias `q`, si no viene searchText) es lo que se busca, no un filtro — va al chip keyword.
+   * A query's filters (queryFiltersOf) split into the free text and the rest: `searchText`
+   * (or its alias `q`, if searchText is absent) is what is searched, not a filter — it goes to the keyword chip.
    */
   function splitListingQuery(filters) {
     const values = Object.assign({}, filters || {})
@@ -6591,9 +6660,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La query que refleja los filtros aplicados de un listado (sin '?'): cada valor con su clave, las
-   * listas separadas por comas (como las escribe Vaadin), el texto libre como `searchText`. Las comas
-   * se dejan legibles; el resto, codificado.
+   * The query reflecting a listing's applied filters (without '?'): each value with its key, the
+   * lists comma-separated (as Vaadin writes them), the free text as `searchText`. Commas
+   * are left readable; the rest, encoded.
    */
   function listingQueryOf(values, searchText) {
     const enc = (s) => encodeURIComponent(String(s)).replace(/%2C/gi, ',')
@@ -6609,10 +6678,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parts.join('&')
   }
 
-  /** La ruta COMPLETA (con su query) de un listado con esos filtros: lo que va a la URL. Con
-   *  `paging` ({page, sort}) también la página (si no es la primera) y el orden, con el contrato de
-   *  Vaadin y del bundle estático: `page=N`, `sort=campo:ascending,otro:descending` — así volver de
-   *  una ficha, recargar o compartir el enlace conserva la página y el orden, no sólo los filtros. */
+  /** The FULL route (with its query) of a listing with those filters: what goes to the URL. With
+   *  `paging` ({page, sort}) also the page (if not the first) and the sort, with the contract of
+   *  Vaadin and the static bundle: `page=N`, `sort=field:ascending,other:descending` — so coming back from
+   *  a record, reloading or sharing the link keeps the page and the sort, not just the filters. */
   function listingUrlOf(route, values, searchText, paging) {
     const bare = String(route || '').split('?')[0]
     const parts = []
@@ -6627,8 +6696,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return parts.length ? bare + '?' + parts.join('&') : bare
   }
 
-  /** La página y el orden que trae la query de un listado (`page=2&sort=name:descending`) →
-   *  { page, sort: [{field, direction}] }; la primera página y ningún orden si no vienen. */
+  /** The page and sort a listing's query carries (`page=2&sort=name:descending`) →
+   *  { page, sort: [{field, direction}] }; the first page and no sort if absent. */
   function listingUrlPagingOf(query) {
     const out = { page: 0, sort: [] }
     for (const part of String(query || '').replace(/^\?/, '').split('&')) {
@@ -6652,7 +6721,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const declaresIds = (filters) => (filters || []).some((f) => f && f.fieldId === IDS_PARAM)
 
-  /** Los valores de un multi-select, que llegan como lista o como cadena separada por comas. */
+  /** The values of a multi-select, which arrive as a list or as a comma-separated string. */
   function multiValuesOf(value) {
     if (value == null) return []
     if (Array.isArray(value)) return value.map(String)
@@ -6660,30 +6729,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return text === '' ? [] : text.split(',').map((s) => s.trim()).filter((s) => s)
   }
 
-  // ── Filtros DENTRO de la cabecera del buscador ────────────────────────────────────────────
-  // Los filtros viajan por la API `smartFilters` de oj-sp-smart-filter-search, no en una fila
-  // propia debajo: el componente pinta su cabecera (título + buscador + filtros) y, al pie, la
-  // franja de color de Redwood. Una fila de filtros FUERA del componente quedaba al otro lado de
-  // la franja, que así parecía una ilustración suelta en mitad de la página.
+  // ── Filters INSIDE the search header ────────────────────────────────────────────
+  // The filters travel through the `smartFilters` API of oj-sp-smart-filter-search, not in a row
+  // of their own below: the component paints its header (title + search box + filters) and, at the bottom, the
+  // Redwood colour strip. A filter row OUTSIDE the component ended up on the other side of
+  // the strip, which then looked like a loose illustration in the middle of the page.
   //
-  // La API cubre todos los kinds de Mateu, cada uno con el editor que el propio componente abre
-  // en su popup (un oj-dynamic-form alimentado por `filtersMetadata`):
-  //   - `suggestionFilters`: los filtros SIN aplicar — un chip por filtro declarado bajo el
-  //     buscador; el componente quita de ahí los que ya están aplicados.
-  //   - `value`: los aplicados — chips DENTRO del campo de búsqueda, con su ✕; el texto libre
-  //     viaja ahí mismo como chips `keyword`.
-  //   - `filtersMetadata`: un JsonMetadataProvider de oj-dynamic, polimórfico por `filter` (el
-  //     fieldId): el editor del valor de cada filtro.
+  // The API covers all of Mateu's kinds, each one with the editor the component itself opens
+  // in its popup (an oj-dynamic-form fed by `filtersMetadata`):
+  //   - `suggestionFilters`: the UNAPPLIED filters — one chip per declared filter under the
+  //     search box; the component removes from there those already applied.
+  //   - `value`: the applied ones — chips INSIDE the search field, with their ✕; the free text
+  //     travels right there as `keyword` chips.
+  //   - `filtersMetadata`: an oj-dynamic JsonMetadataProvider, polymorphic by `filter` (the
+  //     fieldId): the editor of each filter's value.
 
   const KEYWORD_FILTER = 'keyword'
   const BOOL_CHOICES = [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
 
-  /** El editor del valor de un filtro, en el vocabulario de oj-dynamic (lo que abre el popup). */
+  /** The editor of a filter's value, in oj-dynamic's vocabulary (what the popup opens). */
   function smartFilterValueMetadataOf(f) {
     const labelHint = f.label
     if (f.isRange) {
-      // gte/lte oj-input-date (string) u oj-input-number (number): con esa forma exacta el
-      // componente reconoce el rango y pinta el chip como "desde - hasta" formateado
+      // gte/lte oj-input-date (string) or oj-input-number (number): with that exact shape the
+      // component recognises the range and paints the chip as a formatted "from - to"
       const numeric = f.inputType === 'number'
       const componentType = numeric ? 'oj-input-number'
         : f.inputType === 'datetime-local' ? 'oj-input-date-time' : 'oj-input-date'
@@ -6708,15 +6777,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * `filtersMetadata` en crudo (JSON de oj-dynamic): polimórfico por `filter`, un tipo por filtro
-   * declarado. El componente lo consulta con getMetadataByDiscriminator('filter', fieldId).
+   * Raw `filtersMetadata` (oj-dynamic JSON): polymorphic by `filter`, one type per declared
+   * filter. The component queries it with getMetadataByDiscriminator('filter', fieldId).
    */
   function smartFiltersMetadataOf(filters) {
     const polymorphicTypes = {}
     for (const f of filters || []) {
       polymorphicTypes[f.fieldId] = { type: 'object', properties: { value: smartFilterValueMetadataOf(f) } }
     }
-    // el chip de la selección por ids también puede abrir su editor: un texto (ids separados por comas)
+    // the selection-by-ids chip can also open its editor: a text (comma-separated ids)
     if (!declaresIds(filters)) {
       polymorphicTypes[IDS_PARAM] = { type: 'object',
         properties: { value: { type: 'string', componentType: 'oj-input-text', labelHint: 'Ids' } } }
@@ -6729,31 +6798,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // Los de opciones llevan `filterLabel` (el nombre del campo): el componente pone en `label` la
-  // etiqueta de la opción elegida y el chip se lee "Vista Llegadas hoy". Un texto o un rango NO:
-  // con filterLabel el componente enseña la etiqueta en vez del valor tecleado.
+  // Option filters carry `filterLabel` (the field name): the component puts the chosen option's
+  // label in `label` and the chip reads "Vista Llegadas hoy". A text or a range does NOT:
+  // with filterLabel the component shows the label instead of the typed value.
   const usesFilterLabel = (f) => f.isOptions || f.isMulti || f.isBool
 
-  /** Los chips de `suggestionFilters`: uno por filtro declarado, sin valor. */
+  /** The `suggestionFilters` chips: one per declared filter, without a value. */
   function smartFilterSuggestionsOf(filters) {
     return (filters || []).map((f) => {
       const chip = { filter: f.fieldId, label: f.label }
       if (usesFilterLabel(f)) chip.filterLabel = f.label
-      // el formulario del popup saca sus campos de las claves del valor: sin ellas, un rango
-      // abre un popup vacío
+      // the popup form takes its fields from the value's keys: without them, a range
+      // opens an empty popup
       if (f.isRange) chip.value = { gte: null, lte: null }
       return chip
     })
   }
 
-  /** El `value` del componente (los chips aplicados) a partir del estado de Mateu. */
+  /** The component's `value` (the applied chips) from Mateu's state. */
   function smartFilterValueOf(filters, values, searchText) {
     const v = values || {}
     const out = []
     const text = searchText == null ? '' : String(searchText).trim()
     if (text) out.push({ filter: KEYWORD_FILTER, label: text, value: text })
-    // la selección por ids: un chip más, que se quita como cualquiera (sin filterLabel: el rótulo
-    // ya dice qué es)
+    // the selection by ids: one more chip, removed like any other (no filterLabel: the caption
+    // already says what it is)
     if (!declaresIds(filters) && !isBlank(v[IDS_PARAM])) {
       const ids = multiValuesOf(v[IDS_PARAM])
       if (ids.length) out.push({ filter: IDS_PARAM, label: idsChipLabelOf(ids), value: ids.join(',') })
@@ -6786,9 +6855,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Lo inverso: los chips aplicados del componente → el texto buscado (los keywords, en orden) y
-   * los valores de filtro que viajan en el componentState. Un chip recién sacado de las
-   * sugerencias todavía no tiene valor: no filtra hasta que se elige uno en su popup.
+   * The reverse: the component's applied chips → the searched text (the keywords, in order) and
+   * the filter values that travel in the componentState. A chip just taken from the
+   * suggestions has no value yet: it does not filter until one is chosen in its popup.
    */
   function filterStateOfSmartFilters(filters, chips) {
     const byId = {}
@@ -6823,10 +6892,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Las sugerencias que tocan para un fetch del componente: fuera las de los filtros ya
-   * aplicados (el criterio trae `{op:'$ne', value:{filters}}`) y, si hay texto, las que no lo
-   * contienen. Es el contrato del SuggestionFiltersDataProvider de oj-sp, que es REST; aquí las
-   * sugerencias son locales.
+   * The suggestions that apply to a component fetch: out go those of already
+   * applied filters (the criterion carries `{op:'$ne', value:{filters}}`) and, if there is text, those that do not
+   * contain it. It is the contract of oj-sp's SuggestionFiltersDataProvider, which is REST; here the
+   * suggestions are local.
    */
   function suggestionRowsFor(rows, criterion) {
     const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
@@ -6842,7 +6911,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .filter((r) => !text || String(r.filterLabel || r.label).toLowerCase().indexOf(text) >= 0)
   }
 
-  /** Un DataProvider (la parte que usa oj-sp-smart-filters) sobre las sugerencias locales. */
+  /** A DataProvider (the part oj-sp-smart-filters uses) over the local suggestions. */
   function suggestionFiltersProviderOf(rows) {
     const all = rows || []
     const block = (data, params) => ({
@@ -6879,17 +6948,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Las filas del DESPLEGABLE del buscador (la propiedad `suggestions` de oj-sp-smart-filters, un
-   * SmartSuggestionChipsDataProvider): una por filtro declarado, cada una con su chip. Al entrar en
-   * el campo el componente las abre en su popup bajo la caja; elegir una aplica ese filtro y, como
-   * es un chip complejo, abre su editor (oj-dynamic, filtersMetadata) — el mismo editor que los chips.
-   * `category: 'suggestion'` es el icono de caja del componente (los otros son historial y texto).
+   * The rows of the search box's DROPDOWN (the `suggestions` property of oj-sp-smart-filters, a
+   * SmartSuggestionChipsDataProvider): one per declared filter, each with its chip. On entering
+   * the field the component opens them in its popup under the box; choosing one applies that filter and, since
+   * it is a complex chip, opens its editor (oj-dynamic, filtersMetadata) — the same editor as the chips.
+   * `category: 'suggestion'` is the component's box icon (the others are history and text).
    */
   function smartFilterDropdownRowsOf(filters) {
     return smartFilterSuggestionsOf(filters).map((chip) => ({ id: chip.filter, category: 'suggestion', chips: [chip] }))
   }
 
-  /** Las filas del desplegable que tocan: fuera los filtros ya aplicados y, si hay texto, las que no lo contienen. */
+  /** The dropdown rows that apply: out go the already applied filters and, if there is text, those that do not contain it. */
   function dropdownRowsFor(rows, criterion) {
     const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
     let applied = []
@@ -6904,13 +6973,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .filter((r) => !text || r.chips.some((chip) => String(chip.filterLabel || chip.label).toLowerCase().indexOf(text) >= 0))
   }
 
-  /** Un DataProvider (lo que usa el popup del buscador) sobre las filas locales del desplegable. */
+  /** A DataProvider (what the search box's popup uses) over the dropdown's local rows. */
   function suggestionsProviderOf(rows) {
     const all = rows || []
     return {
-      // como un ArrayDataProvider de JET: un bloque con las filas (done: false) y después el final
-      // vacío (done: true). Un único bloque ya «done» lo pinta bien el primer fetch, pero al
-      // refiltrar el oj-list-view del popup conservaba las filas de antes con el dato nuevo
+      // like a JET ArrayDataProvider: one block with the rows (done: false) and then the empty
+      // end (done: true). A single block already «done» paints fine on the first fetch, but on
+      // refiltering the popup's oj-list-view kept the previous rows with the new data
       fetchFirst(params) {
         const data = dropdownRowsFor(all, params && params.filterCriterion)
         return {
@@ -6953,11 +7022,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           results: slice.map((r) => ({ data: r, metadata: { key: r.id } })),
         })
       },
-      // el filtrado lo hace el propio provider (texto + aplicados): el ListDataProviderView del
-      // componente se lo pasa tal cual
+      // the filtering is done by the provider itself (text + applied): the component's
+      // ListDataProviderView passes it through as is
       getCapability(name) { return name === 'filter' ? { operators: ['$and', '$ne'], textFilter: {} } : null },
-      // el total depende del filtro: «desconocido» (-1). Con el de todas las filas, el oj-list-view
-      // del popup pintaba seis veces «Business key» al teclear «busi»
+      // the total depends on the filter: «unknown» (-1). With that of all the rows, the popup's
+      // oj-list-view painted «Business key» six times when typing «busi»
       getTotalSize() { return Promise.resolve(-1) },
       isEmpty() { return all.length ? 'no' : 'yes' },
       addEventListener() {},
@@ -6966,23 +7035,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // el JsonMetadataProvider de oj-dynamic: lo pone el módulo AMD (el core no depende de JET)
+  // oj-dynamic's JsonMetadataProvider: the AMD module sets it (the core does not depend on JET)
   let metadataProviderFactory = null
   function setMetadataProviderFactory(factory) { metadataProviderFactory = factory }
 
   /**
-   * La configuración ENTERA de `smart-filters` para un listado: el desplegable de filtros, los
-   * aplicados y el editor de cada filtro. Sin filtros declarados, sólo el buscador de texto.
+   * The WHOLE `smart-filters` configuration for a listing: the filters dropdown, the
+   * applied ones and each filter's editor. Without declared filters, only the text search box.
    *
-   * Los filtros sin aplicar se ofrecen en el DESPLEGABLE que abre el buscador al entrar en él
-   * (`suggestions`), no como una fila de botones bajo la caja (`suggestionFilters`, lo que hubo
-   * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
+   * Unapplied filters are offered in the DROPDOWN the search box opens on entering it
+   * (`suggestions`), not as a row of buttons under the box (`suggestionFilters`, what there was
+   * since 8af850e63): the listing's search box is once again a box with its filters menu.
    */
   async function smartFiltersOf(filters, values, searchText) {
     const config = { askHint: chromeText('search'), value: smartFilterValueOf(filters, values, searchText) }
     const hasIds = !isBlank((values || {})[IDS_PARAM])
     if ((!filters || !filters.length) && !hasIds) return config
-    // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
+    // without declared filters but with selection by ids: the chip needs its metadata, not suggestions
     if (filters && filters.length) {
       config.suggestions = suggestionsProviderOf(smartFilterDropdownRowsOf(filters))
     }
@@ -7007,12 +7076,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
-  /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
+  /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
   function onLoadTriggers(ctx) {
     const ids = ((ctx && ctx.tree && ctx.tree.triggers) || [])
-      // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+      // the ones with a delay (periodic refresh) are scheduled by polling.mjs, not launched now
       .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
       .map((t) => t.actionId)
     // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
@@ -7025,8 +7095,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La URL de una pestaña con clave de ruta (@Tab(key)): la ruta de la página con la clave de la
-   * pestaña de su barra que ya nombre (si la hay) sustituida — /vcns/7/subnets → /vcns/7/gateways.
+   * The URL of a tab with a route key (@Tab(key)): the page route with the key of the
+   * tab of its bar that it already names (if any) replaced — /vcns/7/subnets → /vcns/7/gateways.
    */
   function tabRoutePath(pathname, keys, key) {
     const trimmed = String(pathname || '').replace(/\/+$/, '')
@@ -7036,30 +7106,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return base + '/' + key
   }
 
-  // ── APPS ANIDADAS: el maestro de un registro con pestañas que son páginas (P1) ──────────────────
+  // ── NESTED APPS: the master of a record with tabs that are pages (P1) ─────────────────────────
   //
-  // Una ruta con HIJOS en routes.yaml (`customers/:customerId` → orders, addresses…) la pinta un
-  // @App(TABS) cuyo contenido es la pestaña. En el wire llega como un ClientSide App de PRIMER nivel
-  // — igual que el App del bootstrap —, y tratarlo como la shell la machacaba y dejaba el contenido
-  // en blanco. Un App anidado es CONTENIDO: un NIVEL (título, pestañas, «← padre») sobre la
-  // pantalla que ocupa su hueco. Hay una barra de pestañas por nivel.
+  // A route with CHILDREN in routes.yaml (`customers/:customerId` → orders, addresses…) is painted by
+  // an @App(TABS) whose content is the tab. On the wire it arrives as a TOP-level ClientSide App
+  // — just like the bootstrap App —, and treating it as the shell clobbered it and left the content
+  // blank. A nested App is CONTENT: a LEVEL (title, tabs, «← parent») over the
+  // screen that fills its slot. There is one tab bar per level.
 
-  /** Si el fragmento es un App ANIDADO (no la shell, no un mediador), su nivel; si no, null. */
+  /** If the fragment is a NESTED App (not the shell, not a mediator), its level; otherwise, null. */
   function appLevelOf(fragment, shellServerSideType, requestedRoute = '') {
     const c = fragment && fragment.component
     const md = c && c.metadata
     if (!c || c.type !== 'ClientSide' || !md || md.type !== 'App') return null
     if (md.variant === 'MEDIATOR') return null
     if (shellServerSideType && md.serverSideType === shellServerSideType) return null
-    // un App sin hueco que rellenar (su home es él mismo) es una shell, no un nivel
+    // an App with no slot to fill (its home is itself) is a shell, not a level
     if (!md.homeServerSideType || md.homeServerSideType === md.serverSideType) return null
     const path = (r) => String(r || '').split('?')[0].replace(/\/+$/, '')
     const requested = path(requestedRoute || md.homeRoute)
     const tabs = (md.menu || [])
       .filter((o) => o && !o.separator && (o.route || o.path))
       .map((o) => ({ id: o.route || o.path, label: o.label || '', route: o.route || o.path }))
-    // la pestaña activa: la de ruta más larga que sea prefijo de lo que se pidió (un registro
-    // dentro del crud de la pestaña sigue en esa pestaña)
+    // the active tab: the one with the longest route that is a prefix of what was requested (a record
+    // inside the tab's crud stays on that tab)
     const pick = (target) => {
       let found = ''
       for (const tab of tabs) {
@@ -7068,7 +7138,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       return found
     }
-    // …o, con el maestro pedido a secas (/customers/3), la de su home: la pestaña por defecto
+    // …or, with the master requested on its own (/customers/3), its home's: the default tab
     const selected = pick(requested) || pick(path(md.homeRoute))
     return {
       id: 'mateuAppTabs-' + path(md.route).replace(/[^a-zA-Z0-9]/g, '_'),
@@ -7076,7 +7146,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       route: md.route || '',
       serverSideType: md.serverSideType,
       tabs,
-      // una sola pestaña visible no es una elección: sin barra (la ruta se conserva)
+      // a single visible tab is not a choice: no bar (the route is kept)
       showTabs: tabs.length > 1,
       selected,
       backRoute: md.backRoute || '',
@@ -7087,8 +7157,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Separa del incremento los Apps ANIDADOS: devuelve el incremento sin ellos (para que el reducer
-   * no los tome por la shell) y sus niveles, en orden.
+   * Splits the NESTED Apps off the increment: returns the increment without them (so the reducer
+   * does not take them for the shell) and their levels, in order.
    */
   function splitNestedApps(increment, shellServerSideType, requestedRoute) {
     const levels = []
@@ -7104,7 +7174,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** A mediator App of a crud mounted at the ROOT: what it consumes is "" by both accounts. */
   const atMountRoot = (md) => md.homeConsumedRoute === '' && md.rootRoute === ''
 
-  /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
+  /** If the context is a MEDIATOR (ServerSide → child App), the info to load its content. */
   function mediatorOf(ctx) {
     const tree = ctx?.tree
     if (tree?.type !== 'ServerSide') return null
@@ -7112,13 +7182,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const md = child?.metadata
     if (md?.type !== 'App') return null
     return {
-      // homeConsumedRoute ANTES que rootRoute: en un deep-link a una sub-ruta (el detalle de un
-      // proceso) `rootRoute` es la ruta ENTERA que se pidió, mientras que lo consumido por el
-      // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
-      // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
-      // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
-      // …y cuando los dos dicen "" (un crud montado en la RAÍZ, @UI("")), lo consumido es la raíz:
-      // no el _route del estado, que en un deep-link es el registro (/P-001)
+      // homeConsumedRoute BEFORE rootRoute: in a deep-link to a sub-route (a process's
+      // detail) `rootRoute` is the WHOLE route that was requested, whereas what the mediator
+      // consumed is its own route (`/workflow/processes`). Sending the whole one as consumedRoute
+      // makes the server serve the crud's default view: you came in through a process's link
+      // and the listing appeared. On a menu option (the crud's root) both are the same.
+      // …and when both say "" (a crud mounted at the ROOT, @UI("")), what is consumed is the root:
+      // not the state's _route, which in a deep-link is the record (/P-001)
       rootRoute: md.homeConsumedRoute || md.rootRoute || (atMountRoot(md) ? '' : ctx.state?._route) || '',
       rootKnown: !!(md.homeConsumedRoute || md.rootRoute) || atMountRoot(md),
       homeRoute: md.homeRoute ?? '',
@@ -7129,9 +7199,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const metaOf = (fr) => fr.component?.metadata || {}
 
-  /** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
-   *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
-   *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+  /** A surface's state with the INITIAL VALUES of its fields (FormField.initialValue) that
+   *  have no value yet: the web renderer falls back to that value when the state lacks the key, and here
+   *  it is seeded into the state so it is painted AND travels in the next action. */
   function withInitialValues(tree, state) {
     const out = { ...(state || {}) }
     if (!tree) return out
@@ -7142,20 +7212,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   let overlaySeq = 0
-  /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
+  /** Builds an overlay context (drawer/dialog) from an Add fragment. */
   function buildOverlay(fr, opener) {
     const md = metaOf(fr)
     const id = 'overlay-' + ++overlaySeq
-    // Un formulario EMBEBIDO (EmbeddedView: el «Cancel booking» de una reserva) llega como un
-    // ServerSide propio en md.content, con SU estado (initialData), SU título (el de su Page) y
-    // SUS acciones: es la superficie del overlay.
+    // An EMBEDDED form (EmbeddedView: a reservation's «Cancel booking») arrives as its own
+    // ServerSide in md.content, with ITS state (initialData), ITS title (its Page's) and
+    // ITS actions: it is the overlay's surface.
     const surface = md.content && md.content.type === 'ServerSide' ? md.content : null
     const filled = (o) => (o && typeof o === 'object' && Object.keys(o).length ? o : null)
     const surfacePage = surface ? findByType(surface, 'Page') : null
     return {
       id,
       kind: 'drawer',
-      tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
+      tree: fr.component, // the whole tree — md.content carries the content (Card pattern)
       surface,
       state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
       title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
@@ -7164,26 +7234,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       width: md.width,
       size: md.size,
       dirty: false,
-      // quien lo abrió: a él van los value-changed/data-changed del overlay (applyOverlayEvent)
+      // whoever opened it: the overlay's value-changed/data-changed go to it (applyOverlayEvent)
       opener: opener || HOST_ID,
     }
   }
 
-  /** Resuelve a qué clave del registro va un target: eco del initiator; ''/null → host. */
+  /** Resolves which registry key a target goes to: echo of the initiator; ''/null → host. */
   const resolveTarget = (contexts, t) => {
     if (t == null || t === '') return HOST_ID
     if (contexts[t]) return t
-    // eco de un id de componente ya registrado (p.ej. SSE que responde al uuid del árbol, o el
-    // formulario embebido de un overlay, que contesta a SU id)
+    // echo of an already registered component id (e.g. SSE answering to the tree's uuid, or an
+    // overlay's embedded form, which answers to ITS id)
     const byTreeId = Object.keys(contexts).find((k) => contexts[k].tree?.id === t || contexts[k].surface?.id === t)
     return byTreeId || t
   }
 
   /**
-   * EL REDUCER. reg = { contexts, stack, shell }; devuelve el NUEVO reg + los efectos que VB
-   * aplica. Puro e inmutable con structural sharing: solo las entradas tocadas cambian de ref.
-   * opts.initiator = contextId de la superficie que lanzó la request (para comandos sin target,
-   * como el MarkAsClean del save-in-drawer).
+   * THE REDUCER. reg = { contexts, stack, shell }; returns the NEW reg + the effects VB
+   * applies. Pure and immutable with structural sharing: only the touched entries change ref.
+   * opts.initiator = contextId of the surface that launched the request (for commands without a target,
+   * like the save-in-drawer's MarkAsClean).
    */
   function reduceContexts(reg, increment, opts = {}) {
     const contexts = { ...reg.contexts }
@@ -7195,8 +7265,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       navigate: null,
       urlPush: null,
       download: null,
-      downloads: [], // todos los DownloadFile del increment (download = el último, compat)
-      print: false, // UICommand.print: imprimir la página actual (files.printPage)
+      downloads: [], // every DownloadFile of the increment (download = the last one, compat)
+      print: false, // UICommand.print: print the current page (files.printPage)
       runActions: [],
       docTitle: null,
       // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
@@ -7209,7 +7279,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const m of increment.messages || [])
       effects.toasts.push({
         text: m.text || m.title, variant: m.variant || 'info',
-        // Message.undoable: el toast lleva su «Undo» (notify.mjs lo pinta con oj-message)
+        // Message.undoable: the toast carries its «Undo» (notify.mjs paints it with oj-message)
         ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
       })
 
@@ -7224,14 +7294,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const fr of increment.fragments || []) {
       const md = metaOf(fr)
 
-      // El App del BOOTSTRAP (root ClientSide type App) configura el chrome. Un App de
-      // mediador NO pasa por aquí: llega envuelto en un ServerSide (child0) y es contenido.
+      // The BOOTSTRAP App (root ClientSide type App) configures the chrome. A mediator
+      // App does NOT go through here: it arrives wrapped in a ServerSide (child0) and is content.
       if (fr.component?.type === 'ClientSide' && md.type === 'App') {
         shell = {
           title: md.title,
           menu: md.menu || [],
           variant: md.variant,
-          serverSideType: md.serverSideType, // para las acciones de cabecera (app-level)
+          serverSideType: md.serverSideType, // for the header actions (app-level)
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           // the shell's FLOWS (AppShell.actions): a menu RuleLink whose RunAction names one runs
@@ -7241,7 +7311,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // declare runs the catalogue's lowered flow client-side, owner first (shellFlows.mjs)
           actionCatalogue: md.actionCatalogue || [],
           themeToggle: md.themeToggle,
-          // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
+          // @App(accessKeys): holding Alt shows the access keys (keys.mjs)
           accessKeys: !!md.accessKeys,
           // E2 patterns (appExtras.mjs): app shortcuts / quick launch, live header values, idle warning
           shortcuts: md.shortcuts || [],
@@ -7250,32 +7320,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           idleSession: md.idleSession || null,
           // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
           mobileQr: !!md.mobileQr,
-          // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
+          // The App's NotificationsSupplier → the header bell (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
-          // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
+          // The App's GlobalSearchSupplier → the Ask palette also searches entities (globalSearch.mjs)
           globalSearchEnabled: !!md.globalSearchEnabled,
           // a data-authored shell's inbox and palette search from REST sources (type: AppShell
           // notifications.source/markRead, globalSearch.source) instead of the app-level actions
           notificationsSource: md.notificationsSource || null,
           notificationsReadSource: md.notificationsReadSource || null,
           globalSearchSource: md.globalSearchSource || null,
-          // @Fab del App: botones flotantes globales (fabs.mjs)
+          // The App's @Fab: global floating buttons (fabs.mjs)
           fabs: md.fabs || [],
-          // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
+          // the @App logo (@Logo, e.g. /images/riu.svg — relative to the backend)
           logo: md.logo || '',
-          // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
-          // primera opción del menú
+          // the app's HOME (@HomeRoute) — the shell boot prefers it over the
+          // first menu option
           homeRoute: md.homeRoute || '',
-          // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
+          // AI chat (@AI → App.sseUrl): if present, the shell paints the agent chat button in the header
           sseUrl: md.sseUrl || '',
-          // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+          // @AI(upload) → the chat's attach button; @AI(mcp) → the mcpUrl the agent uses to operate the app
           uploadUrl: md.uploadUrl || '',
           mcpUrl: md.mcpUrl || '',
-          // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
+          // the shell's "ask" FAB (@App(askLabel, askIcon)): empty = the neutral FAB (Search)
           askLabel: md.askLabel || '',
           askIcon: md.askIcon || '',
-          // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
-          // slot "widgets"; los proyecta headerWidgetsOf (widgets.mjs)
+          // the HEADER widgets (WidgetSupplier / @Widget): they travel as children of the App with
+          // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
           widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
         }
         continue
@@ -7308,23 +7378,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         continue
       }
 
-      // Replace / ReplaceKeepData / State-only: MISMO camino para form, mediador, isla…
+      // Replace / ReplaceKeepData / State-only: SAME path for form, mediator, island…
       const id = resolveTarget(contexts, fr.targetComponentId)
       const prev = contexts[id] || { id, kind: id === HOST_ID ? 'host' : 'island', state: {}, data: {} }
       const ss = fr.component?.type === 'ServerSide' ? fr.component : null
       contexts[id] = {
         ...prev,
         kind: prev.kind,
-        tree: fr.component || prev.tree, // sin component => State-only: conserva el árbol
+        tree: fr.component || prev.tree, // no component => State-only: keeps the tree
         pageType: ss?.pageType ?? (fr.component ? undefined : prev.pageType),
         pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
         state: !fr.component
-          ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
+          ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (do not erase the island)
           : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
             ? { ...prev.state, ...(fr.state || md.initialData || {}) }
             : (fr.state ?? md.initialData ?? prev.state)),
-        // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
-        // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
+        // data = axis of DATA computed by the server (e.g. the listing rows, keyed
+        // by component id: {crud: {page: …}}); a data-only fragment MERGES
         data: !fr.component
           ? { ...prev.data, ...(fr.data || {}) }
           : (fr.data ?? {}),
@@ -7332,7 +7402,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
 
-    // ── comandos → efectos (algunos mutan el registro) ────────────────────────
+    // ── commands → effects (some mutate the registry) ─────────────────────────
     // `source`: the surface whose answer emitted it (opts.initiator) — the @SubscribeTo scopes
     // (COMPONENT `from`, SELF) are decided from it (transport busSubscribersOf)
     const source = opts.initiator || null
@@ -7345,7 +7415,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const t = c.targetComponentId
       switch (c.type) {
         case 'SetWindowTitle':
-          effects.docTitle = c.data
+          // as the header shows it: the server's literal escapes around data resolved (`\${` → `${`)
+          effects.docTitle = typeof c.data === 'string' ? literalText(c.data) : c.data
           break
         case 'NavigateTo': {
           const d = String(c.data || '')
@@ -7362,12 +7433,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             const i = stack.indexOf(id)
             if (i >= 0) stack.splice(i, 1)
           }
-          emit(c.data) // eventName del cierre → bus (p.ej. refresco del listado del crud)
+          emit(c.data) // the close's eventName → bus (e.g. refresh of the crud's listing)
           break
         }
         case 'DispatchEvent':
-          // lo que un componente del overlay devuelve a quien lo abrió (el selector de un
-          // @Searchable: el valor elegido, su rótulo, y cerrarse)
+          // what an overlay component returns to whoever opened it (the selector of a
+          // @Searchable: the chosen value, its label, and closing itself)
           if (applyOverlayEvent(contexts, stack, c.data)) break
           emit(c.data)
           break
@@ -7407,8 +7478,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
 
-    // los niveles de app (P1) son de la PANTALLA, no de un incremento: una acción sobre la pestaña
-    // (la búsqueda OnLoad del listado) no los borra
+    // the app levels (P1) belong to the SCREEN, not to an increment: an action on the tab
+    // (the listing's OnLoad search) does not erase them
     const kept = {}
     if (reg.appLevels) kept.appLevels = reg.appLevels
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
@@ -7421,43 +7492,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
-  // ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
+  // ── ROW EDITOR of a form list (@DetailFormCustomisation position = modal) ──
   //
-  // Contrato del wire (fixtures/real/rowedit-*.json, capturados contra el booking de ec-demo1):
-  //  - `<campo>_add` / `<campo>_select` (con parameters._rowNumber) contestan DOS fragmentos: el
-  //    State del contenedor (con `_show_detail[campo] = true`) y un ServerSide con el formulario
-  //    de la fila dirigido a `<campo>-container` (title "New room"/"Edit room", `buttons` al pie:
-  //    Save —primary—, "Save and add another" al crear, Cancel —tertiary—; Prev/Next en
-  //    `toolbar` al editar, y la posición "1/3" como Text de `header`).
-  //  - Save/Create/Cancel/Prev/Next viajan con el estado del CONTENEDOR (el formulario o el
-  //    wizard) y la fila en parameters.initiatorState — como Vaadin desde 367
-  //    (libs/mateu … common.ts resolveComponentState/isOwnListAction). Mandar la fila como
-  //    componentState reconstruía el contenedor desde una habitación: el wizard volvía vacío a
-  //    su primer paso.
-  //  - El contenedor contesta un State con la lista nueva y `_show_detail[campo] = false`
-  //    (cierra); `_create-and-stay` contesta además una fila nueva en `<campo>-container`.
-  //  - Prev/Next contestan un State-only a `<campo>-container` (la fila vecina).
-  //  - Los lookups de la fila (`search-<campo>`) los resuelve el ServerSide de la FILA con el
-  //    estado de la fila: su respuesta es un fragmento data-only a su id.
+  // Wire contract (fixtures/real/rowedit-*.json, captured against the ec-demo1 booking):
+  //  - `<campo>_add` / `<campo>_select` (with parameters._rowNumber) answer TWO fragments: the
+  //    container's State (with `_show_detail[campo] = true`) and a ServerSide with the row's form
+  //    targeted at `<campo>-container` (title "New room"/"Edit room", `buttons` in the footer:
+  //    Save —primary—, "Save and add another" when creating, Cancel —tertiary—; Prev/Next in
+  //    `toolbar` when editing, and the position "1/3" as a `header` Text).
+  //  - Save/Create/Cancel/Prev/Next travel with the CONTAINER's state (the form or the
+  //    wizard) and the row in parameters.initiatorState — like Vaadin since 367
+  //    (libs/mateu … common.ts resolveComponentState/isOwnListAction). Sending the row as
+  //    componentState rebuilt the container from a room: the wizard went back empty to
+  //    its first step.
+  //  - The container answers a State with the new list and `_show_detail[campo] = false`
+  //    (closes); `_create-and-stay` also answers a new row in `<campo>-container`.
+  //  - Prev/Next answer a State-only to `<campo>-container` (the neighbouring row).
+  //  - The row's lookups (`search-<campo>`) are resolved by the ROW's ServerSide with the
+  //    row's state: its response is a data-only fragment to its id.
 
-  /** Las acciones que el editor de una fila manda al contenedor de la lista: `rooms_create`… */
+  /** The actions a row editor sends to the list's container: `rooms_create`… */
   const LIST_ACTION = /^(.+)_(create-and-stay|create|save|cancel|remove|add|select|selected|prev|next|move-up|move-down)$/
 
-  /** Verbos que llevan la fila del diálogo en parameters.initiatorState. */
+  /** Verbs that carry the dialog's row in parameters.initiatorState. */
   const ROW_EDITOR_VERBS = { create: true, 'create-and-stay': true, save: true, cancel: true, prev: true, next: true }
 
-  /** Verbos que validan la fila antes de salir (los obligatorios vacíos). */
+  /** Verbs that validate the row before leaving (the empty required fields). */
   const ROW_VALIDATING_VERBS = { create: true, 'create-and-stay': true, save: true }
 
-  /** ¿El FormField es una lista cuyo editor de fila se abre en un diálogo? */
+  /** Is the FormField a list whose row editor opens in a dialog? */
   function isModalRowEditor(field) {
     return !!(field && !field.readOnly && !field.inlineEditing
       && (field.columns || []).length && /^modal/.test(field.formPosition || ''))
   }
 
-  /** Las listas con editor modal de un árbol (sin cruzar islas): fieldId → FormField. */
+  /** The lists of a tree with a modal editor (without crossing islands): fieldId → FormField. */
   function modalListsOf(tree) {
     const out = {}
     for (const f of collectFields(tree)) if (isModalRowEditor(f)) out[f.fieldId] = f
@@ -7465,9 +7537,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * ¿`actionId` es una acción de una lista del contenedor? → { fieldId, verb } o null. La lista
-   * se reconoce como en Vaadin (el `<campo>_rowClass` que su estado lleva por cada lista) o, si
-   * el estado no lo trae, por un FormField lista con ese id en el árbol del contenedor.
+   * Is `actionId` an action of one of the container's lists? → { fieldId, verb } or null. The list
+   * is recognised as in Vaadin (the `<campo>_rowClass` its state carries for each list) or, if
+   * the state doesn't bring it, by a list FormField with that id in the container's tree.
    */
   function listActionOf(state, actionId, tree) {
     const match = actionId ? LIST_ACTION.exec(actionId) : null
@@ -7478,9 +7550,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return known ? { fieldId, verb: match[2] } : null
   }
 
-  /** El contexto de transporte del contenedor: las acciones de sus listas van a SU ServerSide
-   *  (el formulario, el wizard), no al mediador por el que se cargó la pantalla — el crud
-   *  orquestador no sabe qué es `rooms_add` ("component() … DtoSupplier"). */
+  /** The container's transport context: its lists' actions go to ITS ServerSide
+   *  (the form, the wizard), not to the mediator the screen was loaded through — the crud
+   *  orchestrator doesn't know what `rooms_add` is ("component() … DtoSupplier"). */
   function holderTransportOf(holder) {
     const outbound = holder.outbound || {}
     const tree = holder.tree || {}
@@ -7493,17 +7565,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** El _rowNumber REAL (número o uuid) de la fila cuyo texto es `key` — el DOM sólo da texto,
-   *  y el servidor compara con equals: "0" no es 0. */
+  /** The REAL _rowNumber (number or uuid) of the row whose text is `key` — the DOM only gives text,
+   *  and the server compares with equals: "0" is not 0. */
   function rowOf(rows, key) {
     return (rows || []).find((row) => row && String(row._rowNumber) === String(key)) || null
   }
 
   /**
-   * La request de una acción de lista: componentState = el estado del CONTENEDOR (+ su borrador),
-   * y la fila del diálogo (+ su borrador) en parameters.initiatorState para los verbos del
-   * editor. `_select` lleva el _rowNumber real; `_remove` de una fila, la fila en
-   * `<campo>_selected_items` (el servidor quita las filas iguales). null si no es de una lista.
+   * The request of a list action: componentState = the CONTAINER's state (+ its draft),
+   * and the dialog's row (+ its draft) in parameters.initiatorState for the editor's
+   * verbs. `_select` carries the real _rowNumber; a row's `_remove`, the row in
+   * `<campo>_selected_items` (the server removes the equal rows). null if it is not a list's.
    */
   function listActionRequestOf(reg, actionId, opts = {}) {
     const holderId = opts.holderId || HOST_ID
@@ -7540,7 +7612,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Opciones de un select/lookup: las estáticas del campo o las que trajo su búsqueda. */
+  /** Options of a select/lookup: the field's static ones or those its search brought. */
   function optionsOf(field, data) {
     const found = data && data[field.fieldId] && data[field.fieldId].content
     const raw = (field.options && field.options.length) ? field.options : (found || [])
@@ -7564,7 +7636,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
+  /** A field's value as its widget edits it: a lookup may arrive as {value,label}. */
   function plainValueOf(value) {
     if (value && typeof value === 'object' && !Array.isArray(value) && 'value' in value) return value.value
     return value
@@ -7573,10 +7645,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const NUMERIC_TYPES = { integer: true, int: true, long: true, number: true, double: true, float: true, money: true }
 
   /**
-   * Los campos del formulario de la fila, cada uno resuelto al widget que le toca (flags
-   * PRECOMPUTADOS: el CSP de VB no evalúa expresiones) con su valor, sus opciones y sus
-   * errores (messagesCustom de JET). Las listas anidadas (p.ej. las edades de los niños) no
-   * se editan aquí.
+   * The fields of the row's form, each resolved to the widget it gets (flags
+   * PRECOMPUTED: VB's CSP does not evaluate expressions) with its value, its options and its
+   * errors (JET messagesCustom). Nested lists (e.g. the children's ages) are not
+   * edited here.
    */
   function rowFieldsOf(ctx, values, errors) {
     if (!ctx || !ctx.tree) return []
@@ -7590,10 +7662,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const raw = plainValueOf(state[f.fieldId])
       const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
-      // un campo de SÓLO LECTURA todavía vacío (la «Line» y el «Total» de una habitación nueva, que
-      // pone el servidor) se pinta como su rótulo y «—», texto que no se enfoca: un oj-input-number
-      // readonly sin valor es una cajita punteada de 20px que parece un control roto (y, el primero
-      // del diálogo, se quedaba con el foco)
+      // a READ-ONLY field that is still empty (the «Line» and «Total» of a new room, which
+      // the server sets) is painted as its label and «—», text that does not take focus: a readonly
+      // oj-input-number with no value is a 20px dotted box that looks like a broken control (and, as the first
+      // in the dialog, it kept the focus)
       if (widget.readonly && !widget.isBoolean && (raw == null || raw === '')) {
         out.push({
           ...widget, ...EMPTY_READONLY_WIDGET,
@@ -7611,7 +7683,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Lo que se pinta en lugar de un valor que todavía no hay (sólo lectura). */
+  /** What is painted instead of a value that doesn't exist yet (read-only). */
   const EMPTY_VALUE = '—'
 
   /** A password is never shown, not even read-only: a fixed mask (one length, so it does not tell
@@ -7624,17 +7696,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }
 
-  /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
+  /** Field types the form layout knows how to paint with a JET widget. */
   const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
     float: true, date: true, dateTime: true, bool: true, boolean: true,
     // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
     time: true }
 
   /**
-   * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
-   * su valor y su colspan. El valor sale del state o, si no está, de data — ahí manda el server
-   * la etiqueta de un lookup de sólo lectura (hotelCode-label), que antes salía vacía. null si
-   * no es un campo que el layout pinte (un grid, una property row, un tipo sin widget).
+   * A SCALAR field of a FormLayout, ready for the oj-form-layout: its widget (fieldWidgetOf),
+   * its value and its colspan. The value comes from the state or, if absent, from data — that's where the server sends
+   * the label of a read-only lookup (hotelCode-label), which used to come out empty. null if
+   * it is not a field the layout paints (a grid, a property row, a type without a widget).
    */
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
@@ -7657,31 +7729,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       ...widget,
       value,
-      // el del wire, acotado a las columnas del layout. La plantilla (oj-form-layout clásico, con
-      // los labels dentro) aún no lo aplica: eso pide oj-c-form-layout y sus column-span
+      // the wire's, clamped to the layout's columns. The template (classic oj-form-layout, with
+      // the labels inside) doesn't apply it yet: that needs oj-c-form-layout and its column-span
       colspan: Math.max(1, Math.min(Math.floor(Number(md.colspan) || 1), columns)),
       messagesCustom: [],
     }
   }
 
-  // ── @Searchable: el selector en un diálogo ─────────────────────────────────────────────────
+  // ── @Searchable: the selector in a dialog ─────────────────────────────────────────────────
   //
-  // Un @Searchable (un id, o una List/Set/array de ids) se pinta como chips — uno por id, con su
-  // rótulo de data `<campo>-labels` ({id → rótulo}; en uno simple, `<campo>-label`) — y un botón
-  // que abre su selector (`codesearch-<campo>`): un listado en un Dialog. Elegir una fila
-  // (`action-on-row-select`) o «Add selected» (`action-on-row-select-selected`, con las filas
-  // marcadas en crud_selected_items) contesta value-changed / data-changed / close-modal-requested,
-  // que aquí se aplican al contexto que abrió el diálogo. El servidor fusiona: un campo de varios
-  // valores AÑADE a los que tenía. Quitar un chip es sólo del cliente. Vaadin hace lo mismo
+  // A @Searchable (one id, or a List/Set/array of ids) is painted as chips — one per id, with its
+  // label from data `<campo>-labels` ({id → label}; in a single one, `<campo>-label`) — and a button
+  // that opens its selector (`codesearch-<campo>`): a listing in a Dialog. Picking a row
+  // (`action-on-row-select`) or «Add selected» (`action-on-row-select-selected`, with the
+  // checked rows in crud_selected_items) answers value-changed / data-changed / close-modal-requested,
+  // which here are applied to the context that opened the dialog. The server merges: a multi-valued
+  // field ADDS to the ones it had. Removing a chip is client-only. Vaadin does the same
   // (libs/mateu searchableMulti.ts).
 
-  /** ¿Es un @Searchable editable como tal? (la vista de detalle lo manda como `<campo>-label`:
-   *  su texto, que se pinta como cualquier valor de sólo lectura) */
+  /** Is it a @Searchable editable as such? (the detail view sends it as `<campo>-label`:
+   *  its text, painted like any read-only value) */
   function isSearchableField(f) {
     return !!f && f.stereotype === 'searchable' && !/-label$/.test(String(f.fieldId || ''))
   }
 
-  /** Los ids de un campo, lleguen como lleguen (lista, un id suelto, nada). */
+  /** A field's ids, however they arrive (list, a single id, nothing). */
   function searchableIdsOf(value) {
     if (value == null || value === '') return []
     const list = Array.isArray(value) ? value : [value]
@@ -7689,8 +7761,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los chips de un @Searchable: uno por id, rotulado (o el propio id si no hay rótulo). Cada chip
-   * lleva lo que queda al quitarlo (`remaining`: en uno simple, null) — precomputado (CSP de VB).
+   * The chips of a @Searchable: one per id, labelled (or the id itself if there is no label). Each chip
+   * carries what remains when removing it (`remaining`: in a single one, null) — precomputed (VB's CSP).
    */
   function searchableChipsOf(fieldId, ids, labels, opts = {}) {
     const map = labels && typeof labels === 'object' ? labels : {}
@@ -7708,7 +7780,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** El widget de un @Searchable: sus chips y el botón que abre el selector. */
+  /** The widget of a @Searchable: its chips and the button that opens the selector. */
   function searchableWidgetOf(f, data, value) {
     const fieldId = f.fieldId
     const multi = f.dataType === 'array'
@@ -7728,7 +7800,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isSearchableMulti: multi,
       chips,
       hasChips: chips.length > 0,
-      // el botón despacha como cualquier bloque del host (hostBlockAction: actionId + parameters)
+      // the button dispatches like any host block (hostBlockAction: actionId + parameters)
       actionId: 'codesearch-' + fieldId,
       parameters: {},
       addLabel: multi ? 'Add' : 'Search',
@@ -7745,7 +7817,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** ¿Es el overlay el diálogo de un selector (un listado cuyo ServerSide atiende la elección)? */
+  /** Is the overlay a selector's dialog (a listing whose ServerSide handles the pick)? */
   function isPickerOverlay(ctx) {
     const surface = ctx && ctx.surface
     if (!surface || !findByType(surface, 'Crud')) return false
@@ -7756,9 +7828,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const SEARCHABLE_ADD_ACTION = 'action-on-row-select-selected'
 
   /**
-   * ¿Es el overlay un LISTADO (un Listing incrustado — EmbeddedView — en un Drawer o un Dialog: su
-   * superficie es un Crud), sin ser el selector de un @Searchable? Se pinta como un listado de
-   * verdad — búsqueda, columnas, páginas, clic en la fila —, no como el formulario genérico.
+   * Is the overlay a LISTING (a Listing embedded — EmbeddedView — in a Drawer or a Dialog: its
+   * surface is a Crud), without being a @Searchable's selector? It is painted as a real
+   * listing — search, columns, pages, row click —, not as the generic form.
    */
   function isListingOverlay(ctx) {
     const surface = ctx && ctx.surface
@@ -7766,14 +7838,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El SELECTOR de un @Searchable abierto (el overlay superior, si lo es), listo para el oj-dialog
-   * del selector: título, columnas (sin la columna-botón «Select»: elegir es pulsar la fila),
-   * filas, búsqueda, paginación y — en un campo de varios valores — la selección múltiple y el
-   * botón «Add selected». También un LISTADO en un overlay (isListingOverlay), con la misma
-   * maquinaria: en un Drawer se pinta DENTRO del drawer (`inDrawer`), en un Dialog en el diálogo
-   * del selector; su clic de fila es el `view` del listado con la fila, como en una página
-   * (`pickWithRow`), y `loaded` dice si su primera búsqueda ya contestó. null si el overlay
-   * superior no es ninguna de las dos cosas.
+   * The SELECTOR of an open @Searchable (the top overlay, if it is one), ready for the selector's
+   * oj-dialog: title, columns (without the «Select» button column: picking is clicking the row),
+   * rows, search, paging and — in a multi-valued field — multiple selection and the
+   * «Add selected» button. Also a LISTING in an overlay (isListingOverlay), with the same
+   * machinery: in a Drawer it is painted INSIDE the drawer (`inDrawer`), in a Dialog in the selector's
+   * dialog; its row click is the listing's `view` with the row, as on a page
+   * (`pickWithRow`), and `loaded` says whether its first search has answered. null if the top
+   * overlay is neither of the two.
    */
   function searchPickerOf(reg) {
     const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
@@ -7785,7 +7857,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const multi = state._searchableMulti === true || state._searchableMulti === 'true'
       || !!listing.rowsSelectionEnabled
     const addButton = (listing.toolbar || []).find((b) => b.actionId === SEARCHABLE_ADD_ACTION)
-    // sin título propio, el del campo que lo abrió (su rótulo)
+    // without its own title, that of the field that opened it (its label)
     const opener = reg.contexts[ctx.opener || HOST_ID]
     const field = opener && opener.tree && state._searchableField
       ? collectFields(opener.tree).find((f) => f.fieldId === state._searchableField) : null
@@ -7808,7 +7880,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Un listado incrustado en un overlay, con la forma del selector (searchPickerOf). */
+  /** A listing embedded in an overlay, with the selector's shape (searchPickerOf). */
   function listingOverlayOf(id, ctx) {
     const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
     const isDialog = !!(ctx.tree && ctx.tree.metadata && ctx.tree.metadata.type === 'Dialog')
@@ -7835,7 +7907,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** El estado de la búsqueda del selector: lo que su `search` lleva en componentState. */
+  /** The selector's search state: what its `search` carries in componentState. */
   function pickerSearchStateOf(picker, opts = {}) {
     const size = (picker && picker.pageSize) || 20
     return {
@@ -7846,11 +7918,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Aplica al contexto que abrió el overlay superior los eventos con los que un componente del
-   * overlay le devuelve un valor — value-changed {fieldId, value}, data-changed {key, value} — y
-   * close-modal-requested (cierra el overlay). Es lo que en Vaadin hace el mateu-event-interceptor
-   * del diálogo al reenviarlos a su dueño. true si el evento se aplicó; sin overlay, false (el
-   * evento sigue al bus, como siempre).
+   * Applies to the context that opened the top overlay the events with which an overlay component
+   * returns a value to it — value-changed {fieldId, value}, data-changed {key, value} — and
+   * close-modal-requested (closes the overlay). It is what, in Vaadin, the dialog's mateu-event-interceptor
+   * does when forwarding them to its owner. true if the event was applied; without an overlay, false (the
+   * event goes on to the bus, as always).
    */
   function applyOverlayEvent(contexts, stack, data) {
     const name = data && data.eventName
@@ -7878,8 +7950,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return false
   }
 
-  /** El registro con `values` fundidos en el estado del contexto `id` (p.ej. el borrador del
-   *  formulario al abrir un selector: lo escrito no se pierde cuando el diálogo se cierra). */
+  /** The registry with `values` merged into the state of context `id` (e.g. the form's draft
+   *  when opening a selector: what was typed is not lost when the dialog closes). */
   function withContextState(reg, id, values) {
     const ctx = reg && reg.contexts && reg.contexts[id]
     if (!ctx || !values || !Object.keys(values).length) return reg
@@ -7887,9 +7959,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Una proyección (secciones del formulario, bloques del host…) con los chips del @Searchable
-   * `fieldId` rehechos para `ids` — al quitar un chip, sin volver al servidor. Los rótulos salen
-   * de los chips que ya había.
+   * A projection (form sections, host blocks…) with the chips of @Searchable
+   * `fieldId` rebuilt for `ids` — when removing a chip, without going back to the server. The labels come
+   * from the chips that were already there.
    */
   function withSearchableIds(projection, fieldId, ids) {
     const visit = (node) => {
@@ -7911,19 +7983,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El WIDGET que le toca a un FormField (flags PRECOMPUTADOS: el CSP de VB no evalúa
-   * expresiones), compartido por el editor de fila y los formularios de página/drawer/isla:
-   * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
-   * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
+   * The WIDGET a FormField gets (flags PRECOMPUTED: VB's CSP does not evaluate
+   * expressions), shared by the row editor and the page/drawer/island forms:
+   * select if it brings options (static, or those its search brought) — or, with lookups, if it is a
+   * remote lookup —, date, date-time, number, boolean, text area or text.
    */
-  // Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
-  // PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
-  // plantilla (ver poc/templates/fields-extra.html).
+  // Field stereotypes with their own widget beyond text/number/date/boolean/select (PMS
+  // challenge): radio, multiple selection, amount and the capture ones. Each family is an is* flag of the
+  // template (see poc/templates/fields-extra.html).
   const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
   const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
   const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
 
-  /** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+  /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
   function extraWidgetOf(f, options) {
     const st = f.stereotype
     // an editable password is typed into a masked input (oj-input-password): as plain text it
@@ -7937,7 +8009,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
       return {
         isMoney: true,
-        // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+        // JET converter (oj-input-number): number with 2 decimals and its currency symbol
         converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
       }
     }
@@ -7977,7 +8049,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return value
   }
 
-  /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+  /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
     return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
       || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
@@ -8016,17 +8088,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
     let options = optionsOf(f, data)
-    // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
-    // del valor) lo lleva como opción propia, con su etiqueta si el server la mandó: un
-    // oj-select-one con un valor que no está en sus opciones se pinta VACÍO.
+    // A lookup with a value that is not yet among its options (they haven't arrived, or only the
+    // value's one arrived) carries it as an option of its own, with its label if the server sent it: an
+    // oj-select-one with a value that is not among its options is painted EMPTY.
     const current = plainValueOf(value)
     if (lookups && lookupActionId && current != null && current !== ''
         && !options.some((o) => String(o.value) === String(current))) {
       const label = (value && typeof value === 'object' && value.label) || (data && data[f.fieldId + '-label'])
       options = [{ value: current, label: label != null && label !== '' ? String(label) : String(current) }].concat(options)
     }
-    // en una página, un lookup cuya búsqueda no trajo nada se queda en texto: un desplegable
-    // vacío no deja ni escribir el código (el editor de fila sí lo pinta siempre como select)
+    // on a page, a lookup whose search brought nothing stays as text: an empty
+    // dropdown doesn't even let you type the code (the row editor always paints it as a select)
     const isSelect = (lookups && !!lookupActionId && !(textWhenEmpty && !options.length)) || options.length > 0
     const isBoolean = !isSelect && (f.dataType === 'bool' || f.dataType === 'boolean')
     const isDate = !isSelect && f.dataType === 'date'
@@ -8054,7 +8126,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Los obligatorios vacíos de la fila → { fieldId: mensaje }; {} si está bien. */
+  /** The row's empty required fields → { fieldId: message }; {} if it is fine. */
   function validateRow(ctx, values) {
     const errors = {}
     for (const f of rowFieldsOf(ctx, values)) {
@@ -8064,9 +8136,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La acción `actionId` tal como la DECLARA el ServerSide del contexto (`tree.actions`), o null.
-   * La exacta gana a un comodín ('*', 'prefijo*'), como en Vaadin: un flag de la declarada
-   * (confirmación, validación) no puede quedar tapado por un catch-all listado antes.
+   * The action `actionId` as the context's ServerSide DECLARES it (`tree.actions`), or null.
+   * The exact one beats a wildcard ('*', 'prefix*'), as in Vaadin: a flag of the declared one
+   * (confirmation, validation) cannot be hidden by a catch-all listed earlier.
    */
   function declaredActionOf(ctx, actionId) {
     const actions = (ctx && ctx.tree && ctx.tree.actions) || []
@@ -8078,16 +8150,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El contexto de TRANSPORTE de una acción del host: a qué ServerSide va.
+   * The TRANSPORT context of a host action: which ServerSide it goes to.
    *
-   * Una pantalla cargada a través de un mediador (el crud orquestador, el home de un pod remoto)
-   * guarda en `outbound.serverSideType` el del mediador, y el árbol del host es el componente que
-   * pintó — la vista de la reserva, `BookingViewModel`. Las acciones que ese componente DECLARA
-   * (sus `@Toolbar`: «Ver recorrido», «Cancel booking», «Activate») son suyas: el mediador no las
-   * conoce y contestaba «verRecorrido not supported by BookingCrudOrchestrator». Las que no
-   * declara (edit, new, cancel-view: las del crud) y las marcadas `bubble` siguen subiendo al
-   * mediador. Es la regla de Vaadin (mateu-component: la acción la atiende el ServerSide que la
-   * anuncia; si no, burbujea).
+   * A screen loaded through a mediator (the crud orchestrator, the home of a remote pod)
+   * keeps the mediator's in `outbound.serverSideType`, and the host tree is the component it
+   * painted — the booking view, `BookingViewModel`. The actions that component DECLARES
+   * (its `@Toolbar`s: «Ver recorrido», «Cancel booking», «Activate») are its own: the mediator doesn't
+   * know them and answered «verRecorrido not supported by BookingCrudOrchestrator». Those it doesn't
+   * declare (edit, new, cancel-view: the crud's) and those marked `bubble` keep going up to the
+   * mediator. It is Vaadin's rule (mateu-component: the action is handled by the ServerSide that
+   * advertises it; otherwise it bubbles).
    */
   function actionTransportOf(ctx, actionId) {
     const tree = ctx && ctx.tree
@@ -8100,11 +8172,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El transporte de una acción del OVERLAY superior cuando la declara su formulario embebido
-   * (EmbeddedView: un ServerSide propio dentro del Dialog/Drawer): va a ESE componente — su
-   * serverSideType, su id como initiator, su estado — sin ruta, como en Vaadin. null si no hay
-   * overlay o su formulario no declara la acción (entonces va al host, como siempre: el drawer
-   * del crud no lleva ServerSide propio).
+   * The transport of a TOP-overlay action when its embedded form declares it
+   * (EmbeddedView: its own ServerSide inside the Dialog/Drawer): it goes to THAT component — its
+   * serverSideType, its id as initiator, its state — with no route, as in Vaadin. null if there is no
+   * overlay or its form doesn't declare the action (then it goes to the host, as always: the crud's
+   * drawer carries no ServerSide of its own).
    */
   function overlayTransportOf(reg, actionId) {
     const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
@@ -8122,9 +8194,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
-  // documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
-  // pregunta «Yes / No».
+  // The generic texts of the confirmation dialog, in the interface language (the document's
+  // lang, which copy.mjs sets to the browser's — like pagingLangOf): a console in Spanish doesn't
+  // ask «Yes / No».
   function confirmationDefaultsOf(lang) {
     const l = chromeLanguage(lang)
     return { title: chromeText('confirmTitle', null, l), message: chromeText('confirmMessage', null, l),
@@ -8132,9 +8204,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El diálogo de confirmación que pide la acción antes de salir (`confirmationRequired`), o null
-   * si no pide ninguno. Cada texto cae por su cuenta al genérico — como en Vaadin
-   * (confirmationTexts.ts): una acción que sólo declara el mensaje los trae vacíos al resto.
+   * The confirmation dialog the action asks for before leaving (`confirmationRequired`), or null
+   * if it asks for none. Each text falls back to the generic one on its own — as in Vaadin
+   * (confirmationTexts.ts): an action that only declares the message brings the rest empty.
    */
   function confirmationOf(ctx, actionId, lang) {
     const action = declaredActionOf(ctx, actionId)
@@ -8150,18 +8222,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // La respuesta pendiente del diálogo de confirmación: la chain que lanza la acción espera la
-  // promesa; los botones del diálogo (y su ✕ / Esc) la resuelven. Una sola a la vez: abrir otra
-  // antes de contestar la primera la da por denegada.
+  // The pending answer of the confirmation dialog: the chain that launches the action awaits the
+  // promise; the dialog's buttons (and its ✕ / Esc) resolve it. Only one at a time: opening another
+  // before answering the first counts it as denied.
   let pendingConfirmation = null
 
-  /** Espera la respuesta del diálogo de confirmación (true = confirmar). */
+  /** Waits for the confirmation dialog's answer (true = confirm). */
   function awaitConfirmation() {
     if (pendingConfirmation) pendingConfirmation(false)
     return new Promise((resolve) => { pendingConfirmation = resolve })
   }
 
-  /** Contesta el diálogo de confirmación abierto; sin ninguno esperando, no hace nada. */
+  /** Answers the open confirmation dialog; with none waiting, it does nothing. */
   function answerConfirmation(confirmed) {
     const resolve = pendingConfirmation
     pendingConfirmation = null
@@ -8169,11 +8241,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * ¿Pide la acción `actionId` del contexto validar el formulario antes de salir? Es el
-   * validationRequired de las acciones del ServerSide (p.ej. el `next` de un wizard, el `save`
-   * de un formulario): lo que Vaadin comprueba en el navegador antes de llamar al servidor.
-   * → { fields } (los fieldsToValidate de la acción; [] = todos) o null si no pide validar.
-   * La acción EXACTA gana a un comodín ('*', 'prefijo*'), como en Vaadin.
+   * Does the context's action `actionId` ask to validate the form before leaving? It is the
+   * validationRequired of the ServerSide's actions (e.g. a wizard's `next`, a form's
+   * `save`): what Vaadin checks in the browser before calling the server.
+   * → { fields } (the action's fieldsToValidate; [] = all) or null if it doesn't ask to validate.
+   * The EXACT action beats a wildcard ('*', 'prefix*'), as in Vaadin.
    */
   function validationOf(ctx, actionId) {
     const action = declaredActionOf(ctx, actionId)
@@ -8182,9 +8254,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los obligatorios vacíos del formulario de la página (sus secciones, tal como se pintan) con
-   * lo que el usuario ha escrito (el borrador gana al estado) → [fieldId] en el orden del
-   * formulario: el primero es el que recibe el foco. `only` restringe a esos campos.
+   * The empty required fields of the page's form (its sections, as they are painted) with
+   * what the user has typed (the draft beats the state) → [fieldId] in form
+   * order: the first is the one that receives focus. `only` restricts to those fields.
    */
   function formErrorsOf(sections, draft, only) {
     const restrict = Array.isArray(only) && only.length ? new Set(only) : null
@@ -8202,21 +8274,82 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
-   * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
-   * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
+   * The WIRE validations a form's ServerSide carries (`tree.validations`: the @NotEmpty / @Min /
+   * @Max / @Pattern / @Size of its fields, each a `condition` that holds when the value is valid),
+   * evaluated against `state` the way the web client's checkValidations does: a condition that does
+   * not hold fails its field with its message. A condition the CSP-safe evaluator cannot read
+   * (undefined) is left to the server, which checks again. `only` restricts to those fields (the
+   * action's fieldsToValidate). → { fieldId: message }, first failure per field.
+   */
+  function validationErrorsOf(validations, state, only) {
+    const restrict = Array.isArray(only) && only.length ? new Set(only) : null
+    const scope = { state: state || {}, data: {} }
+    const out = {}
+    for (const v of validations || []) {
+      if (!v || !v.condition) continue
+      const fieldIds = String(v.fieldId || '_component').split(',').map((id) => id.trim())
+      if (restrict && !fieldIds.some((id) => restrict.has(id))) continue
+      const holds = String(v.condition).includes('${')
+        ? evaluateTemplate(v.condition, scope)
+        : evaluateExpression(v.condition, scope)
+      if (holds === undefined || holds) continue
+      let message = v.message || ''
+      if (message.includes('${')) {
+        const evaluated = evaluateTemplate(message, scope)
+        if (evaluated != null) message = String(evaluated)
+      }
+      for (const id of fieldIds) {
+        if (!(id in out)) out[id] = message
+      }
+    }
+    return out
+  }
+
+  /**
+   * What a validationRequired action may not leave with, on ONE form: its required fields left
+   * empty (formErrorsOf, the JET-drawn «Enter a value») plus its wire validations that fail
+   * (validationErrorsOf — a bound, a pattern, a size). → { missing: [fieldId] in form order,
+   * messages: { fieldId: message } for the ones a wire validation refused }.
+   */
+  function formRefusalOf(sections, state, draft, validations, only) {
+    const missing = formErrorsOf(sections, draft, only)
+    const merged = Object.assign({}, state || {}, plainDraftOf(draft))
+    const messages = validationErrorsOf(validations, merged, only)
+    // an empty required field is marked by its own JET validator; a class-level check (_component)
+    // names no field to mark, so it is the server's to refuse
+    for (const id of missing) delete messages[id]
+    delete messages._component
+    const order = []
+    for (const section of sections || []) for (const f of section.fields || []) order.push(f.fieldId)
+    const ids = [...missing]
+    for (const id of Object.keys(messages)) if (ids.indexOf(id) < 0) ids.push(id)
+    const at = (id) => { const i = order.indexOf(id); return i < 0 ? order.length : i }
+    ids.sort((a, b) => at(a) - at(b))
+    return { missing: ids, messages }
+  }
+
+  const plainDraftOf = (draft) => {
+    const out = {}
+    for (const k of Object.keys(draft || {})) out[k] = plainValueOf(draft[k])
+    return out
+  }
+
+  /**
+   * The dropdowns' placeholder in language `lang` (the browser's; English if it is not
+   * known). One is needed: an oj-select-one WITHOUT a placeholder picks the first option on its
+   * own, and an empty required field passed validation with a value nobody had chosen.
    */
   function selectPlaceholder(lang) {
     return chromeText('selectValue', null, String(lang || '').split(/[-_]/)[0] || 'en')
   }
 
   /**
-   * Los lookups REMOTOS de un contexto cuyas opciones no se han cargado todavía → [{ fieldId,
-   * actionId }]: los campos editables del formulario (una página, un paso de wizard, un
-   * formulario nuevo) y los filtros del listado. Un lookup de una página se pintaba como texto
-   * sin opciones — vacío en un alta — porque sólo el editor de fila lanzaba su búsqueda. La
-   * opción suelta que el server manda con el valor (su etiqueta) no cuenta como cargadas: con
-   * ella sola no se puede elegir otra. Los de sólo lectura no la necesitan.
+   * The REMOTE lookups of a context whose options have not been loaded yet → [{ fieldId,
+   * actionId }]: the form's editable fields (a page, a wizard step, a
+   * new form) and the listing's filters. A page lookup was painted as text
+   * without options — empty on a create — because only the row editor launched its search. The
+   * single option the server sends with the value (its label) doesn't count as loaded: with
+   * it alone you cannot pick another. Read-only ones don't need it.
    */
   function formLookupsOf(ctx) {
     if (!ctx || !ctx.tree) return []
@@ -8233,10 +8366,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Marca de las opciones de un lookup ya buscadas (en ctx.data[campo]): no se repite la búsqueda. */
+  /** Mark of a lookup's options already searched (in ctx.data[campo]): the search is not repeated. */
   const LOOKUP_LOADED = '_mateuLoaded'
 
-  /** El registro con las opciones de esos lookups del contexto marcadas como cargadas. */
+  /** The registry with the options of those lookups of the context marked as loaded. */
   function markLookupsLoaded(reg, ctxId, fieldIds) {
     const ctx = reg && reg.contexts && reg.contexts[ctxId]
     if (!ctx) return reg
@@ -8248,7 +8381,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...ctx, data } } }
   }
 
-  /** Los lookups de la fila que aún no tienen opciones → [{ fieldId, actionId }]. */
+  /** The row's lookups that don't have options yet → [{ fieldId, actionId }]. */
   function pendingLookupsOf(ctx) {
     if (!ctx || !ctx.tree) return []
     return rowFieldsOf(ctx)
@@ -8257,9 +8390,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La request de la búsqueda de un lookup de la fila: la resuelve el ServerSide de la FILA
-   * (su serverSideType, su id como initiator) con el estado de la fila; la ruta y el backend
-   * son los del contenedor.
+   * The request for a row lookup's search: the ROW's ServerSide resolves it
+   * (its serverSideType, its id as initiator) with the row's state; the route and the backend
+   * are the container's.
    */
   function lookupRequestOf(reg, rowCtxId, fieldId, opts = {}) {
     const row = reg && reg.contexts && reg.contexts[rowCtxId]
@@ -8282,9 +8415,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Proyección del EDITOR DE FILA abierto (el oj-dialog): null si ninguna lista modal del
-   * contenedor tiene su detalle abierto (`_show_detail[campo]`) con el formulario ya recibido
-   * en `<campo>-container`.
+   * Projection of the open ROW EDITOR (the oj-dialog): null if no modal list of the
+   * container has its detail open (`_show_detail[campo]`) with the form already received
+   * in `<campo>-container`.
    */
   function rowEditorOf(reg, opts = {}) {
     const holder = reg && reg.contexts && reg.contexts[opts.holderId || HOST_ID]
@@ -8311,7 +8444,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         title: interpolate(md.title || lists[fieldId].label || '', rowState),
         subtitle: header.join(' · '),
         toolbar: (md.toolbar || []).filter((b) => b && b.actionId).map(rowButtonOf),
-        // pie Redwood: la primaria a la DERECHA del todo — el wire la manda primera
+        // Redwood footer: the primary at the far RIGHT — the wire sends it first
         buttons: buttons.slice().reverse(),
         fields: rowFieldsOf(ctx, opts.rowDraft, opts.errors),
       }
@@ -8324,12 +8457,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
-  // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+  // ── PlanningBoard (Room Diary) on oj-gantt ────────────────────────────────────────────────────
   //
-  // oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
-  // redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
-  // el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
-  // pinta como el día siguiente y se devuelve restando uno.
+  // oj-gantt is JET's tape chart: rows with tasks, drag to move (dnd.move) and edges to resize
+  // (task-defaults.resizable), its own tooltip (shortDesc). Mateu sends the blocks with an
+  // INCLUSIVE end (the last night); the gantt paints [start, end) in time, so the end is painted
+  // as the following day and returned by subtracting one.
 
   const DAY_MS = 86400000
   const isoDay = (d) => {
@@ -8348,7 +8481,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return {
         _rowNumber: i,
         id: r.id,
-        // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+        // the row label carries the attributes: oj-gantt's row axis only paints text
         label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
         group: r.group || '',
         iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
@@ -8359,8 +8492,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: (b.icon ? '★ ' : '') + (b.label || ''),
           shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
           svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
-          // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
-          // completo sigue en el tooltip)
+          // inside the bar or nothing: outside, white text on the background is unreadable (and the full
+          // summary is still in the tooltip)
           labelPosition: ['innerCenter', 'innerStart', 'none'],
           labelStyle: { fill: '#ffffff' },
         })),
@@ -8381,7 +8514,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       openActionId: m.openActionId || '',
       selectActionId: m.selectActionId || '',
       rangeSelectActionId: m.rangeSelectActionId || '',
-      // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+      // for range selection (poc/planning.mjs reads these data-* off the oj-gantt)
       rangeAction: m.rangeSelectActionId || '',
       startDay: from,
       endDay: plusDays(to, 1),
@@ -8392,9 +8525,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Un GANTT de tareas (Gantt: título, inicio, fin, avance, color) sobre el mismo oj-gantt que el
-   *  tape chart: una fila por tarea con su barra, el avance como el relleno de progreso de JET, y la
-   *  tarea pulsada → onTaskSelectionActionId con _clickedTaskId (el contrato del renderer web). */
+  /** A task GANTT (Gantt: title, start, end, progress, color) on the same oj-gantt as the tape
+   *  chart: one row per task with its bar, progress as JET's progress fill, and the clicked task
+   *  → onTaskSelectionActionId with _clickedTaskId (the web renderer's contract). */
   function ganttAtomOf(m, id) {
     const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
     const atom = planningAtomOf({
@@ -8413,20 +8546,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ...atom,
       isGantt: true,
       selectParam: '_clickedTaskId',
-      // escala a la medida del plan: un proyecto de meses se lee por meses/semanas
+      // scale to fit the plan: a months-long project reads by months/weeks
       majorScale: days > 60 ? 'months' : 'weeks',
       minorScale: days > 60 ? 'weeks' : 'days',
     }
   }
 
   /**
-   * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
-   * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+   * An oj-gantt event → Mateu { actionId, parameters }, or null if there is no action. Dates to
+   * days (inclusive end). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
    */
   function planningActionOf(atom, kind, detail) {
     if (!atom) return null
-    // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
-    // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+    // the gantt returns instants (the exact point where it was dropped, in UTC): they are rounded to
+    // the nearest LOCAL day — a stay starts and ends on days, not at 09:38
     const day = (v) => {
       if (!v) return null
       const text = String(v)
@@ -8441,7 +8574,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
         : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
       return { actionId: atom.moveActionId, parameters: {
-        // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+        // start/end: the bar's new bounds (value is the instant under the pointer)
         _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
     }
     if (kind === 'resize' && atom.resizeActionId && taskId) {
@@ -8451,7 +8584,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
     }
     if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
-    // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
+    // the Gantt (Gantt.onTaskSelectionActionId) receives the task as _clickedTaskId; the tape chart, _blockId
     if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
     if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
       const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
@@ -8461,10 +8594,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
-  // Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
-  // groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
-  // conjunto filtrado) y `groups` (por grupo, en orden).
+  // ── listings: row tones (@RowStatus) and groups/totals (@GroupBy/@Aggregate) ──────────────────
+  // Same contract as libs/mateu listingGroups.ts / rowTone.ts (the web renderer): the crud brings
+  // groupBy and rowStatusField; the columns, `aggregate`; the search (data.crud), `aggregates` (of
+  // the filtered set) and `groups` (per group, in order).
 
   const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
 
@@ -8495,7 +8628,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
   }
 
-  /** Los totales por columna (texto) o null si no hay nada que totalizar. */
+  /** The per-column totals (text) or null if there is nothing to total. */
   function aggregateFootersOf(md, listing) {
     const aggregates = listing && listing.aggregates
     const cols = aggregatableColumns(md)
@@ -8510,7 +8643,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+  /** GROUP rows interleaved where the groupBy value changes (rows arrive sorted). */
   function groupedRows(rows, md, listing) {
     const groupBy = md.groupBy
     const groups = (listing && listing.groups) || []
@@ -9681,14 +9814,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // El rastro automático de una pantalla — la MISMA regla que el renderer web
-  // (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
-  // la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
-  // (con el título de su propia página) y «Editar» / «Nuevo».
+  // The automatic trail of a screen — the SAME rule as the web renderer
+  // (libs/mateu/.../breadcrumbTrail.ts): the path of menus up to the route (groups and the entry that
+  // shows it, a pod's sections included) and, past the entry, the CRUD level — the record
+  // (with the title of its own page) and «Editar» / «Nuevo».
   //
-  // Redwood no tiene migas: Spectra no trae componente de breadcrumbs y su cabecera ofrece, en su
-  // lugar, la afordancia «ir al padre» (displayOptions.goToParent). De este rastro sale ese padre:
-  // la última miga con ruta antes de la actual.
+  // Redwood has no breadcrumbs: Spectra has no breadcrumbs component and its header offers, in their
+  // place, the «go to parent» affordance (displayOptions.goToParent). That parent comes from this trail:
+  // the last breadcrumb with a route before the current one.
 
   const crumbRoute = (r) => {
     let s = String(r == null ? '' : r).trim()
@@ -9699,8 +9832,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s
   }
 
-  // el título como texto: fuera el marcado (repetidamente, para que nada se recomponga con los
-  // trozos) y después cualquier corchete que quede
+  // the title as text: markup out (repeatedly, so nothing recomposes from the
+  // pieces) and then any remaining bracket
   const crumbText = (text) => {
     let s = String(text == null ? '' : text)
     let previous
@@ -9711,7 +9844,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
   }
 
-  // las rutas que abren las ENTRADAS del menú (no los grupos): a donde una miga puede llevar
+  // the routes the menu ENTRIES open (not the groups): where a breadcrumb can lead
   function crumbLeafRoutes(menu) {
     const out = new Set()
     const walk = (options) => {
@@ -9727,18 +9860,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  // Las entradas OCULTAS cuentan: no se pintan, pero una página bajo una sigue estando en algún sitio
-  // (la bandeja a la que se llega desde un widget sigue siendo Bandeja › Tareas). Una sección remota
-  // que no ha contestado cuenta por su prefijo (navTree.mjs), como la sección sola — `pending`, porque
-  // lo que hay debajo aún no se sabe.
+  // HIDDEN entries count: they are not painted, but a page under one is still somewhere
+  // (the inbox reached from a widget is still Bandeja › Tareas). A remote section
+  // that has not answered counts by its prefix (navTree.mjs), like the section alone — `pending`, because
+  // what is below is not known yet.
   function menuTrail(menu, path) {
     const current = crumbRoute(path)
     let best = null
-    // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
-    // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
+    // a group is a heading, not a page: its route (the prefix of a federated section,
+    // "/admin") usually leads nowhere. Its breadcrumb only navigates if an ENTRY has that route.
     const pages = crumbLeafRoutes(menu)
     const consider = (route, crumbs, pending) => {
-      // una entrada de verdad gana a un prefijo de sección de la misma longitud: dice más
+      // a real entry beats a section prefix of the same length: it says more
       if (!best || route.length > best.route.length || (route.length === best.route.length && best.pending && !pending)) {
         best = { crumbs, route, pending }
       }
@@ -9773,8 +9906,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!matched) return []
     const trail = [...crumbs]
     if (pending) {
-      // una sección remota que no ha contestado: la sección se sabe (la nombró la shell) y lo de
-      // debajo no. La sección, y después el título de la propia página.
+      // a remote section that has not answered: the section is known (the shell named it) and what is
+      // below is not. The section, and then the title of the page itself.
       const title = crumbText(page.title)
       if (title && title !== trail[trail.length - 1].text) trail.push({ text: title })
       return trail.length < 2 ? [] : trail
@@ -9808,38 +9941,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // Errores del cliente → log del servidor: lo que este renderer enseña o sufre (un fallo de
-  // transporte clasificado, un error de JS sin capturar, una promesa rechazada sin catch) viaja a
-  // POST <base>/mateu/v3/client-log, que escribe UNA línea `client-error {...}` por informe en el
-  // logger "mateu.client". Mismo contrato que el renderer de Vaadin (libs/mateu clientErrorReporter.ts).
+  // Client errors → server log: what this renderer shows or suffers (a classified transport
+  // failure, an uncaught JS error, a rejected promise without catch) travels to
+  // POST <base>/mateu/v3/client-log, which writes ONE `client-error {...}` line per report in the
+  // "mateu.client" logger. Same contract as the Vaadin renderer (libs/mateu clientErrorReporter.ts).
   //
-  // Por qué: un «Tu sesión ya no es válida» que vio el usuario no dejaba rastro en el servidor — el
-  // ingress no mostraba ningún 401/403 para él. Ahora queda una línea que buscar en Loki.
+  // Why: a «Tu sesión ya no es válida» the user saw left no trace on the server — the
+  // ingress showed no 401/403 for it. Now there is a line to search for in Loki.
   //
-  // Reglas:
-  //   - nunca informa de sus propios fallos (la llamada al endpoint no pasa por fetchWithPolicy, sus
-  //     errores se tragan, y un error cuyo url es el endpoint se descarta): sin bucles;
-  //   - 'cancelled' no es un error;
-  //   - el mismo error repetido dentro de la ventana es UNA línea con `count` + firstAt/lastAt: la
-  //     primera aparición sale enseguida y las repeticiones van en una línea resumen al cerrar la
-  //     ventana (o al salir de la página);
-  //   - como mucho `maxPerMinute` líneas por minuto y página; las que no caben se cuentan en `dropped`
-  //     de la siguiente;
-  //   - una respuesta que dice que no hay endpoint (404/405, o un backend sin él que se lo traga como
-  //     acción) lo apaga para la página — ver endpointIsMissing.
+  // Rules:
+  //   - it never reports its own failures (the call to the endpoint does not go through fetchWithPolicy, its
+  //     errors are swallowed, and an error whose url is the endpoint is discarded): no loops;
+  //   - 'cancelled' is not an error;
+  //   - the same error repeated within the window is ONE line with `count` + firstAt/lastAt: the
+  //     first occurrence goes out right away and the repetitions go in a summary line when the
+  //     window closes (or when leaving the page);
+  //   - at most `maxPerMinute` lines per minute and page; those that do not fit are counted in `dropped`
+  //     of the next one;
+  //   - a response saying there is no endpoint (404/405, or a backend without it that swallows it as an
+  //     action) turns it off for the page — see endpointIsMissing.
   //
-  // El envío principal es fetch keepalive CON el Authorization (el gateway exige el Bearer en
-  // /mateu/v3); sendBeacon no puede llevar cabeceras, así que sólo se usa al ocultar la página y sin
-  // token.
+  // The main send is fetch keepalive WITH the Authorization (the gateway requires the Bearer on
+  // /mateu/v3); sendBeacon cannot carry headers, so it is only used when hiding the page and without
+  // a token.
   //
-  // Puro salvo installClientErrorReporting (que toca window): test.mjs lo ejercita con reloj,
-  // temporizador y envío inyectados.
+  // Pure except installClientErrorReporting (which touches window): test.mjs exercises it with injected
+  // clock, timer and send.
 
   const CLIENT_LOG_PATH = '/mateu/v3/client-log'
 
   const MAX = { message: 1000, detail: 1000, stack: 4000, url: 1000, pageUrl: 1000, source: 500, route: 500, actionId: 200, userAgent: 300 }
   const MAX_BATCH_CHARS = 14000
-  // Valores de query que nunca deben acabar en un log: el código/estado del login de Keycloak, tokens.
+  // Query values that must never end up in a log: Keycloak's login code/state, tokens.
   const SECRET_PARAMS = /^(code|state|session_state|token|access_token|id_token|refresh_token|auth|password)$/i
 
   const clipText = (s, max) => {
@@ -9848,7 +9981,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return text.length > max ? text.slice(0, max) + '…' : text
   }
 
-  /** La URL sin fragmento y con los parámetros sensibles enmascarados. */
+  /** The URL without fragment and with the sensitive parameters masked. */
   function redactUrl(url) {
     if (!url) return url
     const text = String(url)
@@ -9867,7 +10000,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     try { return decodeURIComponent(s) } catch (e) { return s }
   }
 
-  /** La ruta Mateu de una URL de transporte (/mateu/v3/sync/<ruta>), o undefined. */
+  /** The Mateu route of a transport URL (/mateu/v3/sync/<route>), or undefined. */
   function routeOfRequestUrl(url) {
     if (!url) return undefined
     const m = /\/mateu\/v3\/(?:sync|sse)\/([^?#]*)/.exec(String(url))
@@ -9876,10 +10009,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Si la respuesta dice que aquí no hay endpoint: un 404/405 (backend antiguo o
-   * mateu.client-log.enabled=false), o un backend cuyo controlador genérico /mateu/v3/** se tragó el
-   * informe como si fuera una acción (un 2xx que no es 204, un 400, un 500). Lo pasajero — sin
-   * respuesta, 401/403 de un token caducado, 413, 429, 502-504 del gateway — no lo apaga.
+   * Whether the response says there is no endpoint here: a 404/405 (old backend or
+   * mateu.client-log.enabled=false), or a backend whose generic /mateu/v3/** controller swallowed the
+   * report as if it were an action (a 2xx that is not 204, a 400, a 500). Transient things — no
+   * response, 401/403 from an expired token, 413, 429, 502-504 from the gateway — do not turn it off.
    */
   function endpointIsMissing(status) {
     if (status === undefined || status === null || status === 0 || status === 204) return false
@@ -9887,16 +10020,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
-  /** Ruido conocido que no es un error de la aplicación. */
+  /** Known noise that is not an application error. */
   function isNoise(entry) {
     const msg = entry.message || ''
     return /ResizeObserver loop/i.test(msg)
   }
 
   /**
-   * Un informador. `deps`: { renderer, endpoint() → url o null, send(url, body, {final}) → Promise
-   * de un status (o undefined), now() → ms, schedule(fn, ms) → handle, cancel(handle), userAgent,
-   * pageUrl() }. Todo opcional salvo `send` para los tests.
+   * A reporter. `deps`: { renderer, endpoint() → url or null, send(url, body, {final}) → Promise
+   * of a status (or undefined), now() → ms, schedule(fn, ms) → handle, cancel(handle), userAgent,
+   * pageUrl() }. All optional except `send` for the tests.
    */
   function createClientErrorReporter(deps = {}) {
     const renderer = deps.renderer || 'redwood'
@@ -9908,8 +10041,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const maxPerMinute = deps.maxPerMinute || 20
     const endpoint = deps.endpoint || (() => CLIENT_LOG_PATH)
 
-    const entries = new Map()   // clave → { report, windowStart, pending, pendingFirstAt, lastAt }
-    let sentAt = []             // instantes de las líneas enviadas en el último minuto
+    const entries = new Map()   // key → { report, windowStart, pending, pendingFirstAt, lastAt }
+    let sentAt = []             // instants of the lines sent in the last minute
     let dropped = 0
     let disabled = false
     let timer = null
@@ -9922,7 +10055,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (disabled || !input) return
         if (input.kind === 'cancelled') return
         const url = input.url ? String(input.url) : undefined
-        if (url && url.indexOf(CLIENT_LOG_PATH) >= 0) return   // nunca informar del propio informe
+        if (url && url.indexOf(CLIENT_LOG_PATH) >= 0) return   // never report the report itself
         if (isNoise(input)) return
         const t = now()
         const r = {
@@ -9944,13 +10077,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (existing.pending === 0) existing.pendingFirstAt = t
           existing.pending++
           existing.lastAt = t
-          // las repeticiones esperan al cierre de la ventana: una línea resumen, no una por vez
+          // repetitions wait for the window to close: one summary line, not one each time
           plan(existing.windowStart + windowMs - t)
           return
         }
         entries.set(key, { report: r, windowStart: t, pending: 1, pendingFirstAt: t, lastAt: t, sent: false })
         plan(batchDelayMs)
-      } catch (e) { /* informar nunca puede romper la página */ }
+      } catch (e) { /* reporting can never break the page */ }
     }
 
     function plan(ms) {
@@ -9961,7 +10094,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       timer = schedule(() => { timer = null; dueAt = Infinity; flush(false) }, Math.max(0, ms))
     }
 
-    /** Las líneas que tocan ya; `final` = la página se va, sale todo lo pendiente. */
+    /** The lines that are due now; `final` = the page is going away, everything pending goes out. */
     function takeDue(final) {
       const t = now()
       const lines = []
@@ -9985,7 +10118,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     function admit(lines) {
       const t = now()
       sentAt = sentAt.filter((s) => t - s < 60000)
-      // `dropped` en una línea = las que se perdieron ANTES de ella, en envíos anteriores
+      // `dropped` on a line = the ones lost BEFORE it, in earlier sends
       const before = dropped
       const out = []
       for (const line of lines) {
@@ -10024,9 +10157,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           try { sent = deps.send(url, JSON.stringify(batch), { final }) } catch (e) { sent = null }
           Promise.resolve(sent).then((status) => {
             if (endpointIsMissing(status)) disabled = true
-          }, () => { /* un informe perdido no se informa */ })
+          }, () => { /* a lost report is not reported */ })
         }
-        // quedan repeticiones esperando el cierre de su ventana
+        // repetitions remain waiting for their window to close
         let next = Infinity
         for (const e of entries.values()) {
           if (e.pending > 0) next = Math.min(next, e.windowStart + windowMs)
@@ -10044,8 +10177,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El envío real: fetch keepalive con el token (el gateway lo exige); al ocultar la página y sin
-   * token, sendBeacon como último recurso. Resuelve con el status, o undefined.
+   * The real send: fetch keepalive with the token (the gateway requires it); when hiding the page and without
+   * a token, sendBeacon as a last resort. Resolves with the status, or undefined.
    */
   function clientLogSender(headers = () => ({})) {
     return (url, body, { final } = {}) => {
@@ -10055,7 +10188,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         try {
           navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
           return Promise.resolve(undefined)
-        } catch (e) { /* sigue por fetch */ }
+        } catch (e) { /* carry on with fetch */ }
       }
       if (typeof fetch === 'undefined') return Promise.resolve(undefined)
       return fetch(url, {
@@ -10068,13 +10201,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** El informador de la página (null hasta installClientErrorReporting). */
+  /** The page's reporter (null until installClientErrorReporting). */
   const clientErrors = {
     _reporter: null,
     report(entry) { if (this._reporter) this._reporter.report(entry) },
   }
 
-  /** El endpoint para una base: sólo mismo origen (otro origen no lleva nuestro token ni CORS). */
+  /** The endpoint for a base: same origin only (another origin carries neither our token nor CORS). */
   function clientLogEndpointOf(base, origin) {
     const b = base || ''
     if (/^https?:\/\//i.test(b)) {
@@ -10084,8 +10217,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Lo engancha a la página: los errores sin capturar y las promesas rechazadas sin catch, y el
-   * vaciado al ocultarla. Idempotente.
+   * Hooks it into the page: uncaught errors and rejected promises without catch, and the
+   * flush when hiding it. Idempotent.
    */
   function installClientErrorReporting(base, options = {}) {
     if (clientErrors._reporter || typeof window === 'undefined') return clientErrors._reporter
@@ -10099,7 +10232,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     clientErrors._reporter = reporter
     window.addEventListener('error', (event) => {
-      // un recurso que no carga (img/script) llega aquí sin `error`; no es un error de JS
+      // a resource that does not load (img/script) arrives here without `error`; it is not a JS error
       if (!event || (!event.error && !event.message)) return
       const err = event.error
       reporter.report({
@@ -10111,7 +10244,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     window.addEventListener('unhandledrejection', (event) => {
       const reason = event && event.reason
-      // un fallo de transporte ya clasificado (y ya informado por fetchWithPolicy) no se duplica
+      // an already classified transport failure (and already reported by fetchWithPolicy) is not duplicated
       if (reason && reason.failure) return
       if (reason && (reason.name === 'AbortError')) return
       reporter.report({
@@ -10129,17 +10262,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // REFRESCO PERIÓDICO (triggers con espera): el patrón del web — un OnLoad con timeoutMillis
-  // arranca la primera vuelta y un OnSuccess(actionId = la misma, calledActionId = la misma,
-  // timeoutMillis) cierra el bucle: cada refresco que termina bien programa el siguiente. Antes
-  // la shell VB disparaba todos los OnLoad al momento, sin espera, y no conocía OnSuccess.
+  // PERIODIC REFRESH (triggers with a wait): the web's pattern — an OnLoad with timeoutMillis
+  // starts the first round and an OnSuccess(actionId = the same, calledActionId = the same,
+  // timeoutMillis) closes the loop: each refresh that ends well schedules the next. Before,
+  // the VB shell fired all OnLoads immediately, with no wait, and did not know OnSuccess.
   //
-  // Una GENERACIÓN por pantalla: navegar arranca una nueva y todo lo programado para la anterior
-  // se descarta al vencer (como el callbackToken del web) — un panel de pisos que se deja de ver
-  // deja de preguntar.
+  // One GENERATION per screen: navigating starts a new one and everything scheduled for the previous one
+  // is discarded when it falls due (like the web's callbackToken) — a floor panel that is no longer seen
+  // stops asking.
 
   let runner = null
-  /** Quién ejecuta la acción programada (la shell: el mismo camino que los Element). */
+  /** Who runs the scheduled action (the shell: the same path as the Elements). */
   function setPollingRunner(fn) { runner = typeof fn === 'function' ? fn : null }
 
   let generation = 0
@@ -10148,19 +10281,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
 
-  /** Los OnLoad CON espera (los inmediatos siguen el camino de siempre: onLoadTriggers). */
+  /** The OnLoads WITH a wait (the immediate ones follow the usual path: onLoadTriggers). */
   function timedOnLoadTriggers(ctx) {
     return triggersOf(ctx).filter((t) => t.type === 'OnLoad' && t.actionId && t.timeoutMillis > 0)
   }
 
-  /** Los OnSuccess que siguen a `actionId`. */
+  /** The OnSuccess ones that follow `actionId`. */
   function onSuccessTriggers(ctx, actionId) {
     return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
   }
 
-  // UNA vuelta pendiente por trigger: si el refresco repinta el host y eso relanza sus OnLoad (otro
-  // 'search' que también termina bien), un segundo éxito no debe armar un segundo bucle en paralelo
-  // — se reprograma el mismo (los bucles se multiplicaban: 14 búsquedas en 47 s con 15 s de espera)
+  // ONE pending round per trigger: if the refresh repaints the host and that relaunches its OnLoads (another
+  // 'search' that also ends well), a second success must not set up a second loop in parallel
+  // — the same one is rescheduled (the loops multiplied: 14 searches in 47 s with a 15 s wait)
   const pendingByTrigger = new Map()
   const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
 
@@ -10173,8 +10306,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const key = triggerKey(trigger)
     const previous = pendingByTrigger.get(key)
     if (previous !== undefined) { clear(previous); timers.delete(previous) }
-    // la vuelta sólo corre si sigue siendo LA pendiente de su trigger (una reemplazada vence sin
-    // efecto aunque su temporizador no se pudiera cancelar)
+    // the round only runs if it is still THE pending one of its trigger (a replaced one falls due without
+    // effect even if its timer could not be cancelled)
     const handle = timer(() => {
       timers.delete(handle)
       if (pendingByTrigger.get(key) !== handle) return
@@ -10185,7 +10318,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pendingByTrigger.set(key, handle)
   }
 
-  /** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
+  /** New screen: discards what was scheduled and sets up its OnLoads with a wait. */
   function startPolling(hostCtx, timer = setTimeout) {
     generation++
     for (const h of timers) clearTimeout(h)
@@ -10196,18 +10329,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return generation
   }
 
-  /** Una acción terminó bien (hook del transporte): sus OnSuccess, si son de la pantalla en curso. */
+  /** An action ended well (transport hook): its OnSuccess ones, if they belong to the current screen. */
   function actionSucceeded(ctx, actionId, timer = setTimeout) {
     if (!ctx || !ctx.tree) return 0
-    // sólo la pantalla en curso (misma clase servidora que la que se armó al navegar): la isla de
-    // otro ServerSide o una respuesta de la pantalla anterior no reprograman nada
+    // only the current screen (same server class as the one set up when navigating): another
+    // ServerSide's island or a response of the previous screen reschedule nothing
     if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
     const next = onSuccessTriggers(ctx, actionId)
     for (const t of next) schedule(t, generation, timer)
     return next.length
   }
 
-  /** Los OnError que siguen a `actionId`. */
+  /** The OnError ones that follow `actionId`. */
   function onErrorTriggers(ctx, actionId) {
     return triggersOf(ctx).filter((t) => t.type === 'OnError' && t.actionId && t.calledActionId === actionId)
   }
@@ -10216,8 +10349,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  boundary), not with an HTTP error — the web renderer reads it the same way. */
   const isErrorAnswer = (inc) => !!(inc && (inc.messages || []).some((m) => m && m.variant === 'error'))
 
-  /** Una acción falló: sus OnError (antes la shell VB no conocía OnError), si son de la pantalla en
-   *  curso — y NO sus OnSuccess: un refresco que falla no se reprograma. */
+  /** An action failed: its OnError ones (before, the VB shell did not know OnError), if they belong to the current
+   *  screen — and NOT its OnSuccess ones: a refresh that fails is not rescheduled. */
   function actionFailed(ctx, actionId, timer = setTimeout) {
     if (!ctx || !ctx.tree) return 0
     if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
@@ -10303,40 +10436,94 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return !!headers && Object.keys(headers).some((h) => h.toLowerCase() === 'authorization')
   }
 
+  // ── where OUR stored token may go (M-S5) ─────────────────────────────────────────────────────────
+  // The stored Bearer used to ride on every Mateu request whatever its origin: a federated remote got
+  // it, and so did any remote a remote named. It now goes to the page's own origin, the base the
+  // shell booted against, and the remotes THAT app names in its menu — never to the remotes a remote
+  // names. (A host's own provider — embedded mode — is asked with the url and decides for itself.)
 
-  // Resiliencia del transporte — el mismo contrato que los renderers web (libs/mateu:
-  // requestPolicy + retryPolicy + connectivity + pendingActions), reescrito para ESTE core,
-  // que no comparte nada con aquéllos: aquí el transporte es `fetch` pelado, no axios.
+  const rootCredentialOrigins = new Set()
+  const declaredCredentialOrigins = new Set()
+
+  function credentialOriginOf(url) {
+    try {
+      const page = typeof location !== 'undefined' && location.href ? location.href : undefined
+      const parsed = page ? new URL(String(url ?? ''), page) : new URL(String(url ?? ''))
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.origin : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  function isRootCredentialOrigin(origin) {
+    const page = typeof location !== 'undefined' && location.href ? credentialOriginOf(location.href) : null
+    return origin === page || rootCredentialOrigins.has(origin)
+  }
+
+  /** The base the shell boots against: the page (or its configuration) chose it. */
+  function trustShellBase(base) {
+    const origin = credentialOriginOf(base || '/')
+    if (origin) rootCredentialOrigins.add(origin)
+  }
+
+  /** The remotes the SHELL's app names (expandRemoteMenus): trusted like the app that names them. */
+  function trustDeclaredRemoteBases(bases) {
+    for (const base of bases || []) {
+      const origin = credentialOriginOf(base)
+      if (origin) declaredCredentialOrigins.add(origin)
+    }
+  }
+
+  /** True when a request to `url` may carry the stored token. */
+  function storedTokenMayGoTo(url) {
+    const text = String(url ?? '').trim()
+    // a relative url (no scheme, not protocol-relative) is the page's own origin
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(text) && !text.startsWith('//')) return true
+    const origin = credentialOriginOf(text)
+    if (!origin) return false
+    return isRootCredentialOrigin(origin) || declaredCredentialOrigins.has(origin)
+  }
+
+  /** Tests only. */
+  function resetCredentialOrigins() {
+    rootCredentialOrigins.clear()
+    declaredCredentialOrigins.clear()
+  }
+
+
+  // Transport resilience — the same contract as the web renderers (libs/mateu:
+  // requestPolicy + retryPolicy + connectivity + pendingActions), rewritten for THIS core,
+  // which shares nothing with them: here the transport is bare `fetch`, not axios.
   //
-  // Las diferencias que obliga fetch, y que son la razón de que esto no sea un copy-paste:
-  //   - fetch NO tiene timeout. Sin AbortController una petición puede quedarse colgada para
-  //     siempre; el usuario ve la pantalla congelada sin error ni fin.
-  //   - fetch NO rechaza ante un 4xx/5xx: resuelve con `res.ok === false`. El estado hay que
-  //     leerlo y adjuntarlo al error a mano, o abajo no hay forma de distinguir un 500 de un
-  //     cable desenchufado.
-  //   - un fallo de red es un `TypeError` genérico ("Failed to fetch"), y un abort es un
-  //     `DOMException` con `name === 'AbortError'`. Ninguno trae código propio.
+  // The differences fetch forces, and which are the reason this is not a copy-paste:
+  //   - fetch has NO timeout. Without an AbortController a request can hang
+  //     forever; the user sees the screen frozen with no error and no end.
+  //   - fetch does NOT reject on a 4xx/5xx: it resolves with `res.ok === false`. The status has to be
+  //     read and attached to the error by hand, or further down there is no way to tell a 500 from an
+  //     unplugged cable.
+  //   - a network failure is a generic `TypeError` ("Failed to fetch"), and an abort is a
+  //     `DOMException` with `name === 'AbortError'`. Neither carries its own code.
   //
-  // Todo lo de aquí es puro salvo `fetchWithPolicy`, para que test.mjs lo pueda ejercitar en
-  // Node sin navegador ni backend.
+  // Everything here is pure except `fetchWithPolicy`, so that test.mjs can exercise it in
+  // Node with no browser and no backend.
 
 
 
 
-  // ── clasificación ────────────────────────────────────────────────────────────────────────
+  // ── classification ────────────────────────────────────────────────────────────────────────
 
-  /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
+  /** Default ceiling of a request, in ms. Overridden by `@Action(timeoutMillis = …)`. */
   const DEFAULT_TIMEOUT_MS = 60000
 
-  // los textos, en el idioma de la interfaz (i18n.mjs)
+  // the texts, in the interface's language (i18n.mjs)
   const MESSAGES = {
     offline: () => chromeText('errOffline'),
     timeout: () => chromeText('errTimeout'),
     server: (s) => (s ? chromeText('errServerStatus', { status: s }) : chromeText('errServer')),
     unauthorized: () => chromeText('errUnauthorized'),
-    // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
-    // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
-    // no arregla nada.
+    // A 403 is NOT the session: the server knows who you are and says no to THIS (an action the
+    // view does not declare, a missing role). Saying "sign in again" sent the user to a login that
+    // fixes nothing.
     forbidden: () => chromeText('errForbidden'),
     notFound: () => chromeText('errNotFound'),
     client: (s) => (s ? chromeText('errClientStatus', { status: s }) : chromeText('errClient')),
@@ -10344,14 +10531,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     unknown: () => chromeText('errUnknown'),
   }
 
-  /** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */
+  function isMateuRefusalBody(body) {
+    if (body && typeof body === 'object') return Array.isArray(body.messages)
+    const text = String(body == null ? '' : body).trim()
+    if (text === 'Forbidden') return true
+    try { const parsed = JSON.parse(text); return !!parsed && Array.isArray(parsed.messages) } catch (e) { return false }
+  }
+
+  /** Kinds worth retrying: either it did not arrive, or the server had a bad moment. */
   const RETRYABLE = new Set(['offline', 'timeout', 'server'])
 
   /**
-   * Traduce un fallo de transporte a `{ kind, message, retryable, status }`.
+   * Translates a transport failure into `{ kind, message, retryable, status }`.
    *
-   * `online` se inyecta para poder testearlo y porque el llamante tiene una señal mejor que
-   * `navigator.onLine` (que miente en portales cautivos).
+   * `online` is injected so it can be tested and because the caller has a better signal than
+   * `navigator.onLine` (which lies on captive portals).
    */
   function classifyRequestFailure(error, options = {}) {
     const err = error || {}
@@ -10369,24 +10563,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       status,
     })
 
-    // Un abort es una decisión NUESTRA (navegación, timeout propio): nunca es noticia para el
-    // usuario… salvo cuando lo disparó el timeout, que sí lo es. Los distingue la marca.
+    // An abort is OUR decision (navigation, our own timeout): never news for the
+    // user… except when the timeout fired it, which is. The marker tells them apart.
     if (name === 'AbortError' || err.code === 'ERR_CANCELED') {
       return failure(err.__mateuTimedOut ? 'timeout' : 'cancelled')
     }
     if (err.__mateuTimedOut || /timeout/i.test(message)) return failure('timeout')
 
     if (status == null) {
-      // Sin respuesta: o sabemos que no hay red, o la petición murió antes de llegar.
+      // No response: either we know there is no network, or the request died before arriving.
       if (!online) return failure('offline')
-      // fetch resuelve un fallo de red como un TypeError sin más señas.
+      // fetch resolves a network failure as a TypeError with no further details.
       if (name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(message)) {
         return failure('offline')
       }
       return failure('unknown')
     }
     if (status === 401) return failure('unauthorized')
-    if (status === 403) return failure('forbidden')
+    if (status === 403) {
+      // Mateu's own refusal (the Java adapters' plain "Forbidden", the ports' increment with
+      // messages) vs a 403 the host's security layer sent before Mateu saw the request (CSRF, a
+      // framework rule, a proxy): "you're not allowed" would send everyone looking in the wrong place
+      const refused = failure('forbidden')
+      return isMateuRefusalBody(err.body !== undefined ? err.body : (err.response && err.response.data))
+        ? refused : { ...refused, message: chromeText('errSecurityRefused') }
+    }
     if (status === 404 || status === 410) return failure('notFound')
     if (status === 408 || status === 429) return failure('timeout')
     if (status >= 500) return failure('server')
@@ -10394,39 +10595,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return failure('unknown')
   }
 
-  // ── política de reintento ────────────────────────────────────────────────────────────────
+  // ── retry policy ────────────────────────────────────────────────────────────────
 
-  /** Ids de acción del framework que sólo LEEN. '' es la carga de ruta. */
+  /** Framework action ids that only READ. '' is the route load. */
   const ALWAYS_SAFE = new Set(['', '__load__', 'search', '_globalsearch', '_notifications-list'])
   const SAFE_PREFIXES = ['_appcontext-search-', 'search-']
 
   /**
-   * Si repetir `actionId` no puede aplicar el mismo cambio dos veces.
+   * Whether repeating `actionId` cannot apply the same change twice.
    *
-   * Por defecto NO: cuando una petición expira no sabemos si el servidor la procesó, así que
-   * repetir un `create` arriesga un duplicado silencioso. `declared` es el opt-in del wire
-   * (`@Action(idempotent = true)`), que nunca saca a una lectura conocida de la lista.
+   * By default NO: when a request times out we do not know whether the server processed it, so
+   * repeating a `create` risks a silent duplicate. `declared` is the wire's opt-in
+   * (`@Action(idempotent = true)`), which never takes a known read off the list.
    */
   function isIdempotentAction(actionId, declared) {
     if (declared === true) return true
-    // Un id AUSENTE es trabajo desconocido; uno VACÍO es la carga de ruta. No son lo mismo.
+    // An ABSENT id is unknown work; an EMPTY one is the route load. They are not the same.
     if (actionId === undefined || actionId === null) return false
     if (ALWAYS_SAFE.has(actionId)) return true
     return SAFE_PREFIXES.some((p) => actionId.startsWith(p))
   }
 
-  /** Intentos ADEMÁS del primero. */
+  /** Attempts IN ADDITION to the first. */
   const MAX_RETRIES = 2
 
-  /** Espera antes del reintento `attempt` (1-based): exponencial con ±25% de jitter. */
+  /** Wait before retry `attempt` (1-based): exponential with ±25% jitter. */
   function retryDelayMs(attempt, random = Math.random) {
     const base = 300 * Math.pow(3, Math.max(0, attempt - 1))
     return Math.round(base * (0.75 + random() * 0.5))
   }
 
   /**
-   * La decisión. `offline` queda deliberadamente fuera: reenviar a los 300 ms con la red caída
-   * sólo quema el presupuesto de intentos — de la reconexión se encarga `connectivity`.
+   * The decision. `offline` is deliberately left out: resending after 300 ms with the network down
+   * only burns the attempt budget — reconnection is `connectivity`'s job.
    */
   function shouldRetry(failure, attempt, options = {}) {
     if (!options.idempotent) return false
@@ -10438,11 +10639,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // ── conectividad ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Una respuesta honesta a "¿llegamos?".
+   * An honest answer to "do we get through?".
    *
-   * `navigator.onLine` informa del enlace, no del camino: dice true en un portal cautivo y con
-   * una VPN que perdió la ruta. Sirve como negativo duro; el positivo lo da nuestro propio
-   * tráfico volviendo.
+   * `navigator.onLine` reports the link, not the path: it says true on a captive portal and with
+   * a VPN that lost its route. It serves as a hard negative; the positive comes from our own
+   * traffic coming back.
    */
   const connectivity = {
     _linkUp: true,
@@ -10457,7 +10658,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ? navigator.onLine : true
       window.addEventListener('online', () => {
         this._linkUp = true
-        this._reachable = undefined   // el enlace vuelve, el camino está por demostrar
+        this._reachable = undefined   // the link is back, the path remains to be proven
         this._emit()
       })
       window.addEventListener('offline', () => { this._linkUp = false; this._emit() })
@@ -10493,9 +10694,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     },
   }
 
-  // ── guard de doble envío ─────────────────────────────────────────────────────────────────
+  // ── double-submit guard ─────────────────────────────────────────────────────────────────
 
-  /** Válvula de seguridad: pasado este tiempo una entrada se da por muerta y se libera. */
+  /** Safety valve: after this time an entry is considered dead and released. */
   const STALE_MS = 120000
 
   const pendingActions = {
@@ -10503,7 +10704,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     key(componentId, actionId) { return `${componentId || '_'}::${actionId}` },
 
-    /** Reclama el hueco. false = ya hay una idéntica en vuelo y ésta es un duplicado. */
+    /** Claims the slot. false = an identical one is already in flight and this is a duplicate. */
     begin(key, now = Date.now()) {
       const startedAt = this._started.get(key)
       if (startedAt !== undefined && now - startedAt < STALE_MS) return false
@@ -10521,17 +10722,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     reset() { this._started.clear() },
   }
 
-  // ── ganchos de ciclo de vida ─────────────────────────────────────────────────────────────
+  // ── lifecycle hooks ─────────────────────────────────────────────────────────────
 
   /**
-   * Cómo la app (VB) se entera de que hay trabajo en vuelo, sin que el core sepa nada de VB.
-   * `onStart` recibe {actionId}; `onSettle` recibe {actionId, failure} (failure null si fue bien).
+   * How the app (VB) learns there is work in flight, without the core knowing anything about VB.
+   * `onStart` receives {actionId}; `onSettle` receives {actionId, failure} (failure null if it went well).
    */
   /**
-   * Peticiones que un componente hace PARA SÍ y que ya enseñan su propia carga: nunca encienden la
-   * barra de ocupado de la página (la misma regla que el renderer web, localRequests.ts).
-   * `search-<campo>`: la búsqueda de opciones de un lookup (y la vacía que llena un select);
-   * `code-<campo>`: el rótulo de un código tecleado; `__restfetch__`: un @RestOptions por el servidor.
+   * Requests a component makes FOR ITSELF and that already show their own loading: they never turn on the
+   * page's busy bar (the same rule as the web renderer, localRequests.ts).
+   * `search-<field>`: a lookup's options search (and the empty one that fills a select);
+   * `code-<field>`: the label of a typed code; `__restfetch__`: a @RestOptions through the server.
    */
   function isLocalRequest(actionId) {
     return !!actionId && (actionId.indexOf('search-') === 0 || actionId.indexOf('code-') === 0 || actionId === '__restfetch__')
@@ -10547,31 +10748,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const notify = (which, payload) => {
     const fn = transportHooks[which]
     if (!fn) return
-    try { fn(payload) } catch (e) { /* la UI no puede tumbar el transporte */ }
+    try { fn(payload) } catch (e) { /* the UI cannot bring the transport down */ }
   }
 
-  // ── la pantalla en curso ─────────────────────────────────────────────────────────────────
+  // ── the current screen ─────────────────────────────────────────────────────────────────
 
   /**
-   * Qué pantalla hay: un contador que la navegación sube al empezar a cargar otra (beginView). Una
-   * petición de la pantalla (callMateu la estampa sola; no las de fondo: widgets de cabecera, menús
-   * remotos, el chat) recuerda la pantalla para la que salió, y su respuesta — buena o mala — que
-   * llega cuando ya hay otra muere en silencio: no se pinta, no pone banda de error ni pide
-   * reautenticar; sólo libera el ocupado (onSettle sin fallo). Es la misma regla que el renderer web
-   * (staleViewGuard.ts): una petición que salió con la pantalla A y vuelve con la B no es de nadie.
+   * Which screen is showing: a counter navigation bumps when it starts loading another (beginView). A
+   * request of the screen (callMateu stamps it on its own; not the background ones: header widgets, remote
+   * menus, the chat) remembers the screen it went out for, and its response — good or bad — that
+   * arrives when another one is showing dies silently: it is not painted, it raises no error band and does not ask to
+   * reauthenticate; it only releases the busy state (onSettle without failure). It is the same rule as the web renderer
+   * (staleViewGuard.ts): a request that went out with screen A and comes back with B belongs to nobody.
    */
   const viewGuard = { generation: 0 }
 
-  /** Empieza otra pantalla: lo que siga en vuelo de la anterior ya no se aplicará. */
+  /** Another screen starts: whatever of the previous one is still in flight will no longer be applied. */
   function beginView() { return ++viewGuard.generation }
 
-  /** La pantalla en curso (para estampar una petición al salir). */
+  /** The current screen (to stamp a request on its way out). */
   function currentView() { return viewGuard.generation }
 
-  /** ¿Ya no está en pantalla la vista para la que salió una petición? (undefined: no atada a ninguna) */
+  /** Is the view a request went out for no longer on screen? (undefined: not tied to any) */
   function isViewStale(view) { return view != null && view !== viewGuard.generation }
 
-  /** El rechazo de una respuesta que llegó para una pantalla que ya no está. */
+  /** The rejection of a response that arrived for a screen that is gone. */
   function staleResponseError(actionId) {
     const error = new Error(`respuesta a '${actionId || ''}' para una pantalla que ya no está`)
     error.stale = true
@@ -10582,11 +10783,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function isStaleResponse(error) { return !!(error && error.stale === true) }
 
-  // ── fetch con política ───────────────────────────────────────────────────────────────────
+  // ── fetch with policy ───────────────────────────────────────────────────────────────────
 
   const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
-  /** La cabecera traceparent de una petición, si la llevaba. */
+  /** A request's traceparent header, if it carried one. */
   function traceparentOf(init) {
     const h = init && init.headers
     if (!h) return undefined
@@ -10595,12 +10796,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Un envío: aplica el timeout (fetch no trae ninguno) y convierte un 4xx/5xx en un error que
-   * LLEVA el status, porque fetch resuelve esos como éxito y abajo no habría forma de saberlo.
+   * One send: applies the timeout (fetch has none) and turns a 4xx/5xx into an error that
+   * CARRIES the status, because fetch resolves those as success and further down there would be no way to know.
    */
   async function sendOnce(url, init, timeoutMillis) {
-    // Negativo = SIN ceiling, para un stream que dura lo que dure (LongTask). Distinto de 0 /
-    // ausente, que significa "usa el de por defecto".
+    // Negative = NO ceiling, for a stream that lasts as long as it lasts (LongTask). Different from 0 /
+    // absent, which means "use the default one".
     const noCeiling = timeoutMillis != null && timeoutMillis < 0
     const ms = timeoutMillis && timeoutMillis > 0 ? timeoutMillis : DEFAULT_TIMEOUT_MS
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
@@ -10615,12 +10816,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const text = await res.text().catch(() => '')
         const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
         error.status = res.status
+        error.body = text
         throw error
       }
       return res
     } catch (e) {
-      // Un abort disparado por NUESTRO timeout debe leerse como timeout, no como cancelación:
-      // el usuario sí tiene que enterarse.
+      // An abort fired by OUR timeout must read as a timeout, not as a cancellation:
+      // the user does need to find out.
       if (timedOut && e) e.__mateuTimedOut = true
       throw e
     } finally {
@@ -10629,23 +10831,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La cabecera con el token, si el bootstrap dejó uno.
+   * The header with the token, if the bootstrap left one.
    *
-   * La página de bootstrap autentica contra Keycloak y guarda el token en
-   * `localStorage.__mateu_auth_token`, refrescándolo al caducar. Hasta que esto existió, NADA lo
-   * leía: el bridge hacía cada llamada sin cabecera, el gateway respondía 401 y el clasificador de
-   * abajo lo traducía a "Tu sesión ya no es válida" — un mensaje cierto sobre el 401 y engañoso
-   * sobre la causa, porque la sesión estaba perfectamente viva y la petición sencillamente no la
-   * presentaba. La consola cargaba, se quedaba sin un solo menú, y el panel de chat tampoco
-   * respondía.
+   * The bootstrap page authenticates against Keycloak and stores the token in
+   * `localStorage.__mateu_auth_token`, refreshing it when it expires. Until this existed, NOTHING
+   * read it: the bridge made every call without the header, the gateway answered 401 and the classifier
+   * below translated it into "Tu sesión ya no es válida" — a message true about the 401 and misleading
+   * about the cause, because the session was perfectly alive and the request simply did not
+   * present it. The console loaded, was left without a single menu, and the chat panel did not
+   * answer either.
    *
-   * Va aquí y no en los tres sitios que construyen cabeceras en transport.mjs, por lo mismo que en
-   * el otro renderer es un interceptor de axios y no un parámetro de cada llamada: un punto único
-   * que un cuarto sitio no puede olvidar.
+   * It goes here and not in the three places that build headers in transport.mjs, for the same reason that in
+   * the other renderer it is an axios interceptor and not a parameter of each call: a single point
+   * that a fourth place cannot forget.
    *
-   * `localStorage` no existe en Node, donde corre test.mjs, así que se consulta con guarda; y un
-   * `Authorization` que el llamante ya haya puesto manda sobre este, que es lo que permite probar
-   * el camino sin tocar el almacenamiento.
+   * `localStorage` does not exist in Node, where test.mjs runs, so it is read behind a guard; and an
+   * `Authorization` the caller has already set wins over this one, which is what allows testing
+   * the path without touching storage.
    */
   function authHeaders(init) {
     const already = init && init.headers &&
@@ -10655,21 +10857,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return token ? { Authorization: 'Bearer ' + token } : null
   }
 
-  /** El token que dejó el bootstrap, o null (sin localStorage, bloqueado o vacío). */
+  /** The token the bootstrap left, or null (no localStorage, blocked or empty). */
   function storedToken() {
     try {
       return typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
     } catch (e) {
-      // Un navegador con el almacenamiento bloqueado. Sin token se sigue: el backend dirá que no,
-      // que es mejor que no llamar.
+      // A browser with storage blocked. Without a token it carries on: the backend will say no,
+      // which is better than not calling.
       return null
     }
   }
 
   /**
-   * La cabecera con el token para una llamada que NO pasa por fetchWithPolicy: el stream del chat
-   * del agente (SSE, un fetch propio que lee el cuerpo por trozos). Sin ella el agente contesta
-   * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
+   * The header with the token for a call that does NOT go through fetchWithPolicy: the agent's chat
+   * stream (SSE, its own fetch that reads the body in chunks). Without it the agent answers
+   * 401 and the panel shows "Servidor respondió 401". {} if there is no token.
    */
   function authHeadersOf() {
     // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
@@ -10677,24 +10879,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
   }
 
-  /** El refresco en marcha, si lo hay: los 401 que llegan mientras tanto esperan a éste. */
+  /** The refresh in progress, if any: 401s arriving meanwhile wait for this one. */
   let reauthInFlight = null
 
   /**
-   * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
-   * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
-   * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
-   * de Keycloak y llama a retry, o manda al login si la sesión ya no existe. Resuelve true si hay
-   * que reenviar la petición; false si nadie lo reclamó o la página desistió.
+   * Asks the page to reauthenticate after a 401, with the same contract as the Vaadin renderer
+   * (sessionGuard.ts): the cancelable 'mateu-session-expired' event on document, with
+   * {retry, giveUp} in the detail. Mateu's bootstrap handles it — it forces the Keycloak token
+   * refresh and calls retry, or sends to the login if the session no longer exists. Resolves true if
+   * the request must be resent; false if nobody claimed it or the page gave up.
    *
-   * UN refresco para todos: la pestaña vuelve del fondo con el token caducado y el badge del inbox,
-   * la sincronización del banner y la acción del usuario vuelven 401 a la vez. Cada una lanzando su
-   * evento eran N refrescos forzados en paralelo (y N keycloak.login() si fallaba); ahora los 401
-   * que llegan mientras hay uno en marcha esperan a ése y comparten su respuesta.
+   * ONE refresh for all: the tab comes back from the background with the token expired and the inbox badge,
+   * the banner sync and the user's action come back 401 at the same time. Each one firing its
+   * event meant N forced refreshes in parallel (and N keycloak.login() if it failed); now the 401s
+   * arriving while one is in progress wait for that one and share its answer.
    *
-   * `sentToken` (opcional): el token con el que salió la petición rechazada. Si el que hay ahora es
-   * otro, el refresco ya ocurrió mientras la petición volaba — el del visibilitychange, típicamente
-   * — y basta con reenviar: forzar otro sería tirar uno recién emitido.
+   * `sentToken` (optional): the token the rejected request went out with. If the current one is
+   * different, the refresh already happened while the request was in flight — the visibilitychange one, typically
+   * — and resending is enough: forcing another would throw away a freshly issued one.
    */
   function askForReauthentication(sentToken) {
     if (sentToken !== undefined) {
@@ -10727,28 +10929,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El punto único por el que pasa TODO el tráfico de este renderer.
+   * The single point ALL of this renderer's traffic goes through.
    *
-   * Y por eso es donde se adjunta el token: es el cliente de Mateu de este renderer, igual que
-   * AxiosMateuApiClient lo es del otro.
+   * And that is why it is where the token is attached: it is this renderer's Mateu client, just as
+   * AxiosMateuApiClient is the other's.
    *
-   * Reenvía mientras el fallo sea transitorio Y la acción sea segura de repetir; cada intento
-   * resuelto enseña al rastreador de conectividad si el backend responde — una respuesta
-   * demuestra el camino mejor que cualquier bandera del navegador. Los N intentos son UN solo
-   * resultado de cara a la UI: un estado de carga, un mensaje.
+   * It resends while the failure is transient AND the action is safe to repeat; each resolved
+   * attempt tells the connectivity tracker whether the backend answers — a response
+   * proves the path better than any browser flag. The N attempts are ONE single
+   * outcome as far as the UI is concerned: one loading state, one message.
    */
   async function fetchWithPolicy(url, init, options = {}) {
-    // El token se lee en CADA envío, no una vez: tras un 401 el bootstrap deja uno nuevo en
-    // localStorage y el reintento tiene que llevar ese, no el caducado.
-    // El token con el que salió el ÚLTIMO envío (undefined si no llevaba el nuestro): ante un 401
-    // dice si el refresco ya llegó mientras la petición volaba.
+    // The token is read on EVERY send, not once: after a 401 the bootstrap leaves a new one in
+    // localStorage and the retry has to carry that one, not the expired one.
+    // The token the LAST send went out with (undefined if it did not carry ours): on a 401
+    // it tells whether the refresh already arrived while the request was in flight.
     let sentToken
     const withAuth = async () => {
       // embedded mode: the HOST app's identity (hostHeaders.mjs) — asked on every send, so a retry
       // after a 401 carries whatever the host has now; it wins over the stored token
       const host = await hostHeadersFor(url)
       const credentials = hostCredentials()
-      const auth = hostAuthorizes(host) ? null : authHeaders(init)
+      // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo)
+      const auth = hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
       sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
       if (!auth && !Object.keys(host).length && !credentials) return init
       return {
@@ -10759,20 +10962,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const actionId = options.actionId
     const idempotent = isIdempotentAction(actionId, options.idempotent)
-    // `quiet`: una petición de FONDO (el refresco de un widget de cabecera cada pocos segundos) no
-    // avisa a los ganchos — la barra de ocupado y la banda de error hablan de lo que hace el usuario.
-    // Tampoco la de un componente que ya enseña su propia carga (isLocalRequest): el combo que busca
-    // sus opciones gira su propio indicador, y la barra encima eran dos esperas para una tecla
+    // `quiet`: a BACKGROUND request (the refresh of a header widget every few seconds) does not
+    // notify the hooks — the busy bar and the error band are about what the user does.
+    // Neither does one from a component that already shows its own loading (isLocalRequest): the combo searching
+    // its options spins its own indicator, and the bar on top meant two waits for one keystroke
     const quiet = options.quiet || isLocalRequest(actionId)
     const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
-    // `isolated`: lo que pase con esta petición no dice nada de la conexión — el menú de un pod
-    // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
+    // `isolated`: whatever happens to this request says nothing about the connection — a federated
+    // pod's menu, often from another origin: a pod that is down is ITS section unavailable, not "offline"
     const isolated = !!options.isolated
     notifyUnlessQuiet('onStart', { actionId })
-    // `view`: la pantalla para la que sale (currentView); su respuesta muere si ya hay otra
+    // `view`: the screen it goes out for (currentView); its response dies if another one is showing
     const view = options.view
     const dropStale = () => {
-      // el ocupado se apaga (lo encendió esta petición), sin fallo que enseñar
+      // the busy state goes off (this request turned it on), with no failure to show
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
       if (typeof console !== 'undefined' && console.debug) {
         console.debug('mateu: respuesta descartada — su pantalla ya no está', actionId, url)
@@ -10790,12 +10993,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return res
       } catch (error) {
         if (isStaleResponse(error)) throw error
-        // su pantalla ya no está: ni reautenticar, ni reintentar, ni banda
+        // its screen is gone: no reauthenticating, no retrying, no band
         if (isViewStale(view)) dropStale()
-        // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
-        // reautentique y se reenvía UNA vez: el servidor rechazó la petición sin ejecutarla, así
-        // que repetirla es seguro también para una escritura. Sin nadie que reautentique, o si el
-        // reintento vuelve a dar 401, falla como siempre.
+        // A 401 is, almost always, the token expired between two refreshes. The page is asked to
+        // reauthenticate and it is resent ONCE: the server rejected the request without executing it, so
+        // repeating it is safe for a write too. With nobody to reauthenticate, or if the
+        // retry gets 401 again, it fails as always.
         if (error && error.status === 401 && !reauthenticated) {
           reauthenticated = true
           if (await askForReauthentication(sentToken)) continue
@@ -10804,12 +11007,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()
         attempt++
         if (!shouldRetry(failure, attempt, { idempotent })) {
-          // El error viaja CLASIFICADO: la UI enseña `failure.message` en vez de "Failed to
-          // fetch", y decide si ofrecer reintentar.
+          // The error travels CLASSIFIED: the UI shows `failure.message` instead of "Failed to
+          // fetch", and decides whether to offer a retry.
           error.failure = failure
           notifyUnlessQuiet('onSettle', { actionId, failure })
-          // al log del servidor (clientLog.mjs): lo que el usuario vio y lo que hubo debajo. Un
-          // 'cancelled' no se informa, y la llamada al propio endpoint no pasa por aquí.
+          // to the server log (clientLog.mjs): what the user saw and what was underneath. A
+          // 'cancelled' is not reported, and the call to the endpoint itself does not go through here.
           clientErrors.report({
             kind: failure.kind,
             message: failure.message,
@@ -10885,25 +11088,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
+  // Accessibility of the VB renderer — the part the oj-* components do NOT bring.
   //
-  // Medido antes de escribir nada (axe-core sobre la app servida): la composición de oj-sp-*
-  // sale prácticamente limpia, igual que pasaba con Vaadin, porque esos componentes traen su
-  // propia accesibilidad. Los huecos reales son los de una SPA, que axe no puede evaluar:
-  // al cambiar de ruta no cambia la página, así que un lector de pantalla no tiene NADA que
-  // anunciar y el foco se queda donde estaba — normalmente en el enlace del menú que se acaba
-  // de pulsar, obligando a tabular por toda la shell para llegar al contenido pedido.
+  // Measured before writing anything (axe-core over the served app): the oj-sp-* composition
+  // comes out practically clean, just as happened with Vaadin, because those components bring their
+  // own accessibility. The real gaps are those of a SPA, which axe cannot evaluate:
+  // changing route does not change the page, so a screen reader has NOTHING to
+  // announce and focus stays where it was — usually on the menu link just
+  // clicked, forcing a tab through the whole shell to reach the requested content.
   //
-  // Vive en poc/ (fuente única) para que make-amd.mjs lo empaquete en el bridge y la app lo
-  // use desde las chains, igual que el resto del core.
+  // It lives in poc/ (single source) so make-amd.mjs packages it into the bridge and the app
+  // uses it from the chains, like the rest of the core.
 
-  // ── región viva ──────────────────────────────────────────────────────────────────────────
+  // ── live region ──────────────────────────────────────────────────────────────────────────
 
   const REGION_STYLE = [
     'position:absolute', 'width:1px', 'height:1px', 'margin:-1px', 'padding:0',
     'overflow:hidden',
-    // clip, NO display:none ni visibility:hidden: esas dos sacan el nodo del árbol de
-    // accesibilidad, que es justo lo contrario de lo que hace falta aquí.
+    // clip, NOT display:none or visibility:hidden: those two take the node out of the
+    // accessibility tree, which is exactly the opposite of what is needed here.
     'clip:rect(0 0 0 0)', 'clip-path:inset(50%)', 'white-space:nowrap', 'border:0',
   ].join(';')
 
@@ -10925,10 +11128,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Crea las regiones por adelantado.
+   * Creates the regions in advance.
    *
-   * No es opcional: una región creada y rellenada en el mismo tick a menudo NO se anuncia,
-   * porque la tecnología asistiva vigila mutaciones de regiones que ya conocía.
+   * It is not optional: a region created and filled in the same tick is often NOT announced,
+   * because assistive technology watches mutations of regions it already knew.
    */
   function installAnnouncer() {
     if (typeof document === 'undefined') return
@@ -10941,11 +11144,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Dice `message` a la tecnología asistiva. No pinta nada.
+   * Says `message` to assistive technology. Paints nothing.
    *
-   * `assertive` interrumpe y es para lo que el usuario no puede perderse (un guardado que
-   * falló); `polite` espera una pausa y es para lo rutinario (dónde acaba de aterrizar). Usar
-   * assertive para todo hace la app inusable, así que es opt-in.
+   * `assertive` interrupts and is for what the user cannot miss (a save that
+   * failed); `polite` waits for a pause and is for routine things (where they just landed). Using
+   * assertive for everything makes the app unusable, so it is opt-in.
    */
   function announce(message, options = {}) {
     const text = (message == null ? '' : String(message)).trim()
@@ -10953,8 +11156,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const region = regionFor(options.politeness || 'polite')
     if (!region) return
     if (region.textContent === text) {
-      // Repetir el mismo mensaje es un caso real (dos guardados fallidos seguidos) y una
-      // región cuyo texto no cambia no anuncia nada: se limpia y se repone.
+      // Repeating the same message is a real case (two failed saves in a row) and a
+      // region whose text does not change announces nothing: it is cleared and set again.
       region.textContent = ''
       setTimeout(() => { region.textContent = text }, 60)
       return
@@ -10962,23 +11165,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     region.textContent = text
   }
 
-  // ── foco tras navegar ────────────────────────────────────────────────────────────────────
+  // ── focus after navigating ────────────────────────────────────────────────────────────────────
 
   /**
-   * Lleva el foco al contenido recién cargado.
+   * Moves focus to the freshly loaded content.
    *
-   * Se busca el primer encabezado del área de contenido; si no hay, el propio contenedor, al
-   * que se le da `tabindex="-1"` para que pueda recibir foco por programa sin añadir una
-   * parada de tabulación propia.
+   * It looks for the first heading of the content area; if there is none, the container itself, which
+   * is given `tabindex="-1"` so it can receive focus programmatically without adding a
+   * tab stop of its own.
    */
   function focusContent() {
     if (typeof document === 'undefined') return false
     const root = document.querySelector('#vbRouterContent') || document.querySelector('.oj-web-applayout-content-nopad')
     if (!root) return false
 
-    // Candidatos en orden de preferencia. El encabezado tiene que llevar TEXTO: la shell pinta
-    // un <h1> vacío hasta que llega el título, y un encabezado vacío no es focusable (ni sería
-    // útil anunciarlo) — el intento fallaba en silencio y el foco se quedaba donde estaba.
+    // Candidates in order of preference. The heading has to carry TEXT: the shell paints
+    // an empty <h1> until the title arrives, and an empty heading is not focusable (nor would it be
+    // useful to announce it) — the attempt failed silently and focus stayed where it was.
     const headings = [...root.querySelectorAll('h1, h2, [role="heading"]')]
       .filter((h) => (h.textContent || '').trim().length > 0)
     const candidates = [...headings, root]
@@ -10986,7 +11189,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const target of candidates) {
       if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
       try { target.focus({ preventScroll: true }) } catch (e) { target.focus() }
-      // Comprobar que PRENDIÓ: focus() sobre un elemento sin caja no hace nada y no avisa.
+      // Check that it TOOK: focus() on an element without a box does nothing and does not warn.
       if (document.activeElement === target || (document.activeElement && target.contains(document.activeElement))) {
         return true
       }
@@ -10997,16 +11200,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let hasNavigated = false
 
   /**
-   * Anuncia la llegada a una pantalla y deja el foco en ella.
+   * Announces arrival on a screen and leaves focus on it.
    *
-   * Dos límites deliberados, y los dos importan:
+   * Two deliberate limits, and both matter:
    *
-   *  - Sólo en navegaciones REALES. Un re-render no debe tocar el foco: se lo arrancaría al
-   *    usuario del campo que está editando.
-   *  - NUNCA en la primera carga. Ahí el documento ya empieza arriba, y llevar el foco al
-   *    contenido deja el enlace de salto por DETRÁS del punto de partida: el primer tabulador
-   *    del usuario ya no lo alcanza y el menú queda sólo a base de Shift+Tab. Se anuncia el
-   *    título igualmente, que es lo que aporta valor en esa primera pantalla.
+   *  - Only on REAL navigations. A re-render must not touch focus: it would yank it from the
+   *    user out of the field they are editing.
+   *  - NEVER on the first load. There the document already starts at the top, and moving focus to the
+   *    content leaves the skip link BEHIND the starting point: the user's first Tab
+   *    no longer reaches it and the menu is reachable only by Shift+Tab. The
+   *    title is announced anyway, which is what adds value on that first screen.
    */
   function announceNavigation(title) {
     announce(title)
@@ -11037,12 +11240,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Intenta llevar el foco al contenido durante unos cuantos frames.
+   * Tries to move focus to the content over a few frames.
    *
-   * VB actualiza los bindings de forma asíncrona: en el momento en que la chain de navegación
-   * termina, el contenido nuevo AÚN NO está en el DOM. Enfocar ahí prende sobre el contenido
-   * viejo y se pierde en cuanto se reemplaza — que es exactamente lo que pasaba. Se reintenta
-   * hasta que prenda, o se abandona: mejor no mover el foco que dejarlo en un sitio raro.
+   * VB updates bindings asynchronously: at the moment the navigation chain
+   * finishes, the new content is NOT YET in the DOM. Focusing then lands on the old
+   * content and is lost as soon as it is replaced — which is exactly what was happening. It retries
+   * until it takes, or gives up: better not to move focus than to leave it somewhere odd.
    */
   function focusContentSoon(framesLeft = 12) {
     if (typeof requestAnimationFrame === 'undefined') { focusContent(); return }
@@ -11052,19 +11255,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** Test seam: olvida que ya se navegó. */
+  /** Test seam: forgets that a navigation already happened. */
   function resetNavigationState() { hasNavigated = false }
 
-  // ── salto al contenido ───────────────────────────────────────────────────────────────────
+  // ── skip to content ───────────────────────────────────────────────────────────────────
 
   /**
-   * Monta el enlace "saltar al contenido" como PRIMER elemento del body (WCAG 2.4.1).
+   * Mounts the "skip to content" link as the FIRST element of the body (WCAG 2.4.1).
    *
-   * Cada pantalla empieza por el mismo menú. Sin una vía para saltarlo, quien navega con
-   * teclado paga ese menú entero en cada pantalla antes de llegar a lo que venía a hacer.
+   * Every screen starts with the same menu. Without a way to skip it, whoever navigates by
+   * keyboard pays for that whole menu on every screen before reaching what they came to do.
    *
-   * Oculto por transform y no por display:none, porque un elemento con display:none no puede
-   * recibir foco — y entonces el enlace sería inalcanzable, que es justo lo contrario.
+   * Hidden by transform and not by display:none, because an element with display:none cannot
+   * receive focus — and then the link would be unreachable, which is exactly the opposite.
    */
   function mountSkipLink(label = chromeText('skipToContent')) {
     if (typeof document === 'undefined') return
@@ -11080,19 +11283,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     document.body.insertBefore(link, document.body.firstChild)
   }
 
-  // ── estado de ocupado en el control pulsado ──────────────────────────────────────────────
+  // ── busy state on the pressed control ──────────────────────────────────────────────
 
   /**
-   * Marca ocupado el control que el usuario pulsó, mientras su acción está en vuelo.
+   * Marks the control the user pressed as busy while its action is in flight.
    *
-   * La barra global responde a "¿está ocupada la app?", pero la pregunta que se hace quien está
-   * en una conexión lenta es "¿se ha enterado de mi clic?". Sin esto pulsa Guardar, no cambia
-   * nada, y vuelve a pulsar.
+   * The global bar answers "is the app busy?", but the question someone on a slow
+   * connection asks is "did it notice my click?". Without this they press Save, nothing
+   * changes, and they press again.
    *
-   * Anima la OPACIDAD del propio elemento y no dibuja un spinner en ::after: sobre un shadow
-   * host el pseudo-elemento no se pinta (comprobado en los renderers web con un
-   * `inset:0;background:red` sobre un vaadin-button vivo), y no hay garantía de que los
-   * componentes de JET no lo sean.
+   * It animates the element's own OPACITY and does not draw a spinner in ::after: on a shadow
+   * host the pseudo-element is not painted (verified in the web renderers with an
+   * `inset:0;background:red` on a live vaadin-button), and there is no guarantee that the
+   * JET components are not shadow hosts.
    */
   function markPending(element) {
     if (!element || !element.setAttribute) return
@@ -11108,11 +11311,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El control realmente pulsado a partir del evento, o null si no lo hay.
+   * The control actually pressed, from the event, or null if there is none.
    *
-   * Sólo se decora una lista CERRADA de cosas con pinta de botón: atenuar un contenedor (una
-   * tabla, un formulario entero) sería peor que no mostrar nada, y una acción puede dispararse
-   * desde cualquier sitio — un trigger, un atajo, el clic de una fila.
+   * Only a CLOSED list of button-like things is decorated: dimming a container (a
+   * table, a whole form) would be worse than showing nothing, and an action can be fired
+   * from anywhere — a trigger, a shortcut, a row click.
    */
   const INTERACTIVE = 'oj-button, oj-menu-button, oj-c-button, button, [role="button"], a[href]'
 
@@ -11123,16 +11326,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Sigue el control pulsado a nivel de DOCUMENTO y lo marca mientras haya trabajo en vuelo.
+   * Tracks the pressed control at DOCUMENT level and marks it while there is work in flight.
    *
-   * Enhebrar el evento por cada chain no vale: los botones de la app pasan por chains
-   * distintas (toolbar, listado, wizard, isla…) y cualquiera nueva se olvidaría de hacerlo. En
-   * cambio el clic siempre pasa por el documento, y el transporte siempre avisa de cuándo
-   * empieza y acaba — así que emparejar las dos señales cubre todos los caminos, incluidos los
-   * que aún no existen.
+   * Threading the event through each chain does not work: the app's buttons go through different
+   * chains (toolbar, listing, wizard, island…) and any new one would forget to do it. On the
+   * other hand the click always goes through the document, and the transport always reports when it
+   * starts and ends — so pairing the two signals covers every path, including those
+   * that do not exist yet.
    *
-   * La ventana de gracia evita marcar un control por trabajo que no desencadenó él (un trigger
-   * OnLoad, un autosave): sólo cuenta si la petición sale justo detrás del clic.
+   * The grace window avoids marking a control for work it did not trigger (an OnLoad
+   * trigger, an autosave): it only counts if the request goes out right after the click.
    */
   const PRESS_GRACE_MS = 400
   let lastPress = { control: null, at: 0 }
@@ -11148,7 +11351,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, true)
   }
 
-  /** Llamar desde el hook onStart del transporte. */
+  /** Call from the transport's onStart hook. */
   function markPressedControlBusy() {
     if (!lastPress.control) return
     if (Date.now() - lastPress.at > PRESS_GRACE_MS) return
@@ -11156,80 +11359,90 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     markPending(markedControl)
   }
 
-  /** Llamar desde el hook onSettle. */
+  /** Call from the onSettle hook. */
   function clearPressedControlBusy() {
     clearPending(markedControl)
     markedControl = null
   }
 
-  // ── reintento a nivel de chain ───────────────────────────────────────────────────────────
+  // ── retry at chain level ───────────────────────────────────────────────────────────
 
   /**
-   * Qué hay que rehacer tras un fallo.
+   * What has to be redone after a failure.
    *
-   * Se guarda un DESCRIPTOR, no un cierre. Un cierre atrapa el `context` de VB de la ejecución
-   * que falló, y ese contexto ya no sirve cuando el usuario pulsa Reintentar un segundo después:
-   * la llamada no hace nada y falla en silencio (me pasó). Con un descriptor, quien reintenta
-   * usa SU contexto, que está vivo.
+   * A DESCRIPTOR is stored, not a closure. A closure captures the VB `context` of the execution
+   * that failed, and that context is no longer valid when the user presses Retry a second later:
+   * the call does nothing and fails silently (it happened to me). With a descriptor, whoever retries
+   * uses THEIR context, which is alive.
    *
-   * Reenviar sólo la petición tampoco valdría: una respuesta que nadie procesa no cambia nada en
-   * pantalla — la misma lección que en los renderers web. Por eso lo que se rehace es la acción
-   * o la navegación ENTERA.
+   * Resending only the request would not work either: a response nobody processes changes nothing on
+   * screen — the same lesson as in the web renderers. That is why what is redone is the WHOLE action
+   * or navigation.
    */
   let lastRetry = null
 
-  /** `{ kind: 'navigate', route }` o `{ kind: 'action', actionId, parameters }`. */
+  /** `{ kind: 'navigate', route }` or `{ kind: 'action', actionId, parameters }`. */
   function setLastRetry(descriptor) {
     lastRetry = descriptor && descriptor.kind ? descriptor : null
   }
 
   function hasLastRetry() { return !!lastRetry }
 
-  /** Devuelve el descriptor y lo olvida: un reintento se ofrece una vez. */
+  /** Returns the descriptor and forgets it: a retry is offered once. */
   function takeLastRetry() {
     const descriptor = lastRetry
     lastRetry = null
     return descriptor
   }
 
-  // ── campos obligatorios ───────────────────────────────────────────────────────────────────
+  // ── required fields ───────────────────────────────────────────────────────────────────
 
-  /** Los widgets de un campo del formulario de la página (no los de un diálogo o un drawer). */
-  function fieldElementsOf(fieldId) {
+  const OVERLAY_CONTAINERS = 'oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'
+
+  /** The elements of a field: the page's, or — `inOverlay` — the open drawer's / dialog's. */
+  function fieldElementsOf(fieldId, inOverlay) {
     if (typeof document === 'undefined') return []
-    // comparando el atributo, sin montar un selector con el id: nada que escapar
+    // comparing the attribute, without building a selector with the id: nothing to escape
     return [...document.querySelectorAll('[data-field-id]')]
       .filter((el) => el.getAttribute('data-field-id') === String(fieldId))
-      .filter((el) => !el.closest('oj-dialog, oj-drawer-popup, oj-sp-general-drawer-template, oj-sp-create-edit-drawer-template'))
+      .filter((el) => !!el.closest(OVERLAY_CONTAINERS) === !!inOverlay)
   }
 
   /**
-   * Marca los obligatorios vacíos como lo hace un formulario Redwood y lleva el foco al primero.
+   * Marks the empty required fields as a Redwood form does and moves focus to the first one.
    *
-   * El mensaje es el del propio componente: `validate()` corre su validador de obligatorio (el
-   * `required` que ya pinta «Obligatorio» bajo el campo) y enseña su texto — «Introduzca un
-   * valor.», en el idioma de JET —, igual que al salir de un campo vacío. Si un componente no se
-   * da por inválido (su valor no ha llegado aún al widget), el mensaje va por `messagesCustom`.
-   * Devuelve cuántos campos marcó.
+   * The message is the component's own: `validate()` runs its required validator (the
+   * `required` that already paints «Obligatorio» under the field) and shows its text — «Introduzca un
+   * valor.», in JET's language —, just as when leaving an empty field. If a component does not
+   * consider itself invalid (its value has not reached the widget yet), the message goes through `messagesCustom`.
+   * Returns how many fields it marked.
    */
-  async function showFieldErrors(fieldIds, fallbackMessage) {
+  async function showFieldErrors(fieldIds, fallbackMessage, opts = {}) {
+    // opts.messages: fieldId → the message of the wire validation (a bound, a pattern) or of the
+    // server's refusal that failed it; opts.inOverlay: the fields are the open drawer's / dialog's
+    const messages = opts.messages || {}
     let first = null
     let marked = 0
     for (const fieldId of fieldIds || []) {
-      for (const el of fieldElementsOf(fieldId)) {
+      const own = messages[fieldId]
+      for (const el of fieldElementsOf(fieldId, opts.inOverlay)) {
         let invalid = false
-        if (typeof el.validate === 'function') {
+        // a field refused for something its own validator does not know (a pattern, the server's
+        // @Email) carries THAT message; an empty required one lets JET say «Enter a value.»
+        if (!own && typeof el.validate === 'function') {
           try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
         }
         if (!invalid) {
+          const text = own || fallbackMessage || 'Enter a value.'
           if ('messagesCustom' in el || typeof el.validate === 'function') {
             try {
-              el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
-            } catch (ignored) { /* no es un componente JET */ }
+              // Redwood draws the DETAIL under the field (a summary alone is just the icon)
+              el.messagesCustom = [{ severity: 'error', summary: text, detail: text }]
+            } catch (ignored) { /* not a JET component */ }
           } else {
-            // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
-            // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
-            el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
+            // a field that is not a JET component (the chips of a @Searchable): its CSS paints
+            // the message (.mateu-field-error + data-error) until it is touched again
+            el.setAttribute('data-error', text)
             el.classList.add('mateu-field-error')
           }
         }
@@ -11240,12 +11453,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (first) {
       try { first.scrollIntoView({ block: 'center' }) } catch (ignored) { /* jsdom */ }
       const input = first.querySelector && first.querySelector('input, textarea, [tabindex="0"]')
-      try { (input || first).focus() } catch (ignored) { /* sin caja */ }
+      try { (input || first).focus() } catch (ignored) { /* no box */ }
     }
     return marked
   }
 
-  /** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
+  /**
+   * showFieldErrors once what the answer re-drew is on screen: VB binds asynchronously, so marks set
+   * right away land on the old elements and are lost when they are replaced. Waits a few frames,
+   * then marks; tries again while no field is found yet.
+   */
+  async function showFieldErrorsSoon(fieldIds, fallbackMessage, opts = {}) {
+    const frame = () => new Promise((resolve) => (typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame(() => resolve()) : setTimeout(resolve, 16)))
+    for (let attempt = 0; attempt < 12; attempt++) {
+      for (let i = 0; i < 4; i++) await frame()
+      const marked = await showFieldErrors(fieldIds, fallbackMessage, opts)
+      if (marked) return marked
+    }
+    return 0
+  }
+
+  /** Removes the error marks of fields that are not JET components (see showFieldErrors). */
   function clearFieldErrorMarks(fieldId) {
     if (typeof document === 'undefined') return
     for (const el of document.querySelectorAll('.mateu-field-error')) {
@@ -11256,7 +11485,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */
+  /** When a marked field is edited, its own message goes away (the validator's is managed by JET). */
   function clearFieldError(element) {
     if (element && Array.isArray(element.messagesCustom) && element.messagesCustom.length) {
       element.messagesCustom = []
@@ -11266,12 +11495,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let guidedProcessGuarded = false
 
   /**
-   * El guided process (oj-sp-guided-process) avanza SOLO al pulsar Continue o un paso del rail,
-   * antes de saber si Mateu deja salir del paso: sus eventos spBeforeNext/spBeforeStepNavigate se
-   * pueden cancelar, pero sólo en el momento, y las chains de VB corren después. Aquí se cancelan
-   * siempre, en captura (no burbujean: la captura los ve igual), y el paso que se enseña lo manda
-   * el servidor (current-step ← el paso del wire tras cada acción): si el paso no valida, el
-   * proceso no se mueve. Las chains siguen recibiendo el evento y lanzan la acción.
+   * The guided process (oj-sp-guided-process) advances ON ITS OWN when Continue or a rail step is pressed,
+   * before knowing whether Mateu lets it leave the step: its spBeforeNext/spBeforeStepNavigate events
+   * can be cancelled, but only at that moment, and VB chains run afterwards. Here they are always
+   * cancelled, in capture (they do not bubble: capture sees them anyway), and the step shown is decided by
+   * the server (current-step ← the wire's step after each action): if the step does not validate, the
+   * process does not move. The chains still receive the event and launch the action.
    */
   function guardGuidedProcess() {
     if (guidedProcessGuarded || typeof document === 'undefined') return
@@ -11286,12 +11515,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La consulta con la que oj-sp-guided-process decide si su OVERVIEW (la portada con un panel por
-   * paso) va en columna: «(max-width: 767px), (max-height: 767px)». Pensada para un guided process a
-   * pantalla completa, apila los paneles en cuanto la ventana es estrecha O baja — un portátil con la
-   * ventana a menos de 768px de alto ya ve los pasos uno debajo de otro. Con app.css los paneles se
-   * reparten el ancho del contenido (una fila; otra sólo si de verdad no caben), así que la columna
-   * se reserva al teléfono (RDS: < 600px). Cualquier otra consulta pasa intacta.
+   * The query oj-sp-guided-process uses to decide whether its OVERVIEW (the cover with one panel per
+   * step) goes in a column: «(max-width: 767px), (max-height: 767px)». Designed for a full-screen guided process,
+   * it stacks the panels as soon as the window is narrow OR short — a laptop with the
+   * window under 768px tall already sees the steps one below another. With app.css the panels
+   * share the content width (one row; another only if they really do not fit), so the column
+   * is reserved for the phone (RDS: < 600px). Any other query passes through untouched.
    */
   const GUIDED_PROCESS_VERTICAL_QUERY = '(max-width: 767px), (max-height: 767px)'
   const GUIDED_PROCESS_PHONE_QUERY = '(max-width: 599px)'
@@ -11302,10 +11531,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La rueda del ratón sobre el overview: el componente la convierte SIEMPRE en scroll horizontal
-   * (preventDefault), porque en su diseño los paneles desbordan a lo ancho. Repartidos a lo ancho ya
-   * no desbordan, y robarle la rueda a la página sólo impediría bajar (p.ej. a la 2ª fila). Se le
-   * deja el gesto al componente sólo si su contenedor de pasos aún desborda a lo ancho.
+   * The mouse wheel over the overview: the component ALWAYS turns it into horizontal scroll
+   * (preventDefault), because in its design the panels overflow horizontally. Spread across the width they no
+   * longer overflow, and stealing the wheel from the page would only prevent scrolling down (e.g. to the 2nd row). The
+   * gesture is left to the component only if its steps container still overflows horizontally.
    */
   function guidedProcessWheelIsNative(stepContainer) {
     if (!stepContainer) return false
@@ -11331,35 +11560,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // Montaje de COMPONENTES WEB de terceros (átomo isElement): el wire trae la etiqueta, sus
-  // atributos y la URL del módulo que la define. Vive fuera del reducer porque toca el DOM.
+  // Mounting of third-party WEB COMPONENTS (isElement atom): the wire carries the tag, its
+  // attributes and the URL of the module that defines it. It lives outside the reducer because it touches the DOM.
   //
-  // Por qué no se puede pintar en la plantilla: VB no sabe escribir `<{name}>`. Y por qué no se
-  // recrea en cada render: un componente web guarda estado que el servidor no conoce —el zoom y la
-  // selección de un grafo, un layout ya calculado—, así que se crea UNA vez por hueco y en los
-  // renders siguientes solo se le reescriben los atributos. Mismo criterio que el renderer web
-  // compartido (libs/mateu elementRenderer).
+  // Why it cannot be painted in the template: VB cannot write `<{name}>`. And why it is not
+  // recreated on every render: a web component keeps state the server does not know —the zoom and
+  // selection of a graph, an already computed layout—, so it is created ONCE per slot and on
+  // subsequent renders only its attributes are rewritten. Same criterion as the shared web
+  // renderer (libs/mateu elementRenderer).
+
+
 
   const loaded = {}
 
-  // ── eventos del componente → acción en el servidor ─────────────────────────────────────────────
-  // `Element.on` = { nombreDeEvento: actionId }. Es la vía de escape oficial (un grafo, un editor,
-  // un plano de planta de terceros), así que su ida y vuelta tiene que funcionar entera: el evento
-  // viaja como parámetro `event` de la acción, igual que en el renderer web compartido —el
-  // `detail` de un CustomEvent, o las propiedades primitivas de cualquier otro evento—. La app
-  // registra un sumidero (setElementEventSink) que sabe en qué superficie se ejecuta la acción;
-  // sin sumidero (Node, tests) los eventos se ignoran.
+  // ── component events → server action ─────────────────────────────────────────────
+  // `Element.on` = { eventName: actionId }. It is the official escape hatch (a graph, an editor,
+  // a third-party floor plan), so its round trip has to work fully: the event
+  // travels as the action's `event` parameter, just as in the shared web renderer —the
+  // `detail` of a CustomEvent, or the primitive properties of any other event—. The app
+  // registers a sink (setElementEventSink) that knows on which surface the action runs;
+  // without a sink (Node, tests) events are ignored.
 
   let sink = null
   let moduleBase = ''
 
-  /** Base del backend Mateu (la constante mateuBaseUrl): un `import` RELATIVO lo sirve el backend,
-   *  no la app VB — en VB alojado en Oracle o en vb-serve son orígenes distintos. '' = mismo origen. */
+  /** Base of the Mateu backend (the mateuBaseUrl constant): a RELATIVE `import` is served by the backend,
+   *  not the VB app — in VB hosted on Oracle or in vb-serve they are different origins. '' = same origin. */
   function setElementModuleBase(base) {
     moduleBase = String(base || '').replace(/\/$/, '')
   }
 
-  /** La URL de la que se carga el módulo de un Element. */
+  /** The URL an Element's module is loaded from. */
   function elementModuleUrl(importUrl, base = moduleBase) {
     if (!importUrl) return ''
     if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
@@ -11367,12 +11598,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
   }
 
-  /** La app VB registra aquí quién ejecuta la acción de un evento: (actionId, parameters, atom). */
+  /** The VB app registers here who runs an event's action: (actionId, parameters, atom). */
   function setElementEventSink(fn) {
     sink = typeof fn === 'function' ? fn : null
   }
 
-  /** El evento tal como viaja al servidor (mismo criterio que libs/mateu elementRenderer). */
+  /** The event as it travels to the server (same criterion as libs/mateu elementRenderer). */
   function serializeElementEvent(e) {
     if (e == null) return null
     if (typeof CustomEvent !== 'undefined' && e instanceof CustomEvent) return e.detail
@@ -11385,8 +11616,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Engancha UNA vez cada evento declarado; la acción se lee al dispararse (la del último render),
-   *  así un re-render que cambia `on` no duplica listeners ni deja el actionId viejo. */
+  /** Hooks each declared event ONCE; the action is read when it fires (that of the last render),
+   *  so a re-render that changes `on` neither duplicates listeners nor keeps the old actionId. */
   function wireElementEvents(element, atom) {
     element.__mateuAtom = atom
     const wired = element.__mateuWired || (element.__mateuWired = {})
@@ -11402,43 +11633,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  // ── HTML con DATOS: saneado ────────────────────────────────────────────────────────────────────
-  // El contenido escrito en la definición se confía tal cual; en cuanto `${…}` ha metido datos en
-  // él se sanea (sin scripts, sin manejadores on…, sin URLs javascript:) — XSS almacenado. El
-  // renderer web lo hace con DOMPurify; aquí no hay dependencias, así que un saneado por DOM con
-  // las mismas reglas.
-  const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
-  const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
+  // ── HTML with DATA: sanitised ───────────────────────────────────────────────────────────────────
+  // Content written in the definition is trusted as is; as soon as `${…}` has put data into it,
+  // it is sanitised. It used to be a hand-rolled DENY-list (it kept <style>, <form>, SVG <set>/<animate>,
+  // <math>, and never looked inside a <template>); it is now the bridge's ONE whitelist sanitizer
+  // (richtext.mjs sanitizeHtml) in its presentation mode: text markup, tables, images with a safe
+  // src, class/title and a filtered style — nothing that runs.
+  function sanitizeElementHtml(html) {
+    return html == null ? '' : sanitizeHtml(String(html), { presentation: true })
+  }
 
-  function sanitizeElementHtml(html, doc = typeof document !== 'undefined' ? document : null) {
-    if (!doc || html == null) return html == null ? '' : String(html)
-    const tpl = doc.createElement('template')
-    tpl.innerHTML = String(html)
-    const walk = (root) => {
-      for (const el of [...root.querySelectorAll('*')]) {
-        if (DROP_TAGS.test(el.tagName)) { el.remove(); continue }
-        for (const attr of [...el.attributes]) {
-          const name = attr.name
-          const value = String(attr.value || '').replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
-          if (/^on/i.test(name)
-            || (URL_ATTRS.test(name) && (value.startsWith('javascript:') || value.startsWith('vbscript:')
-              || (value.startsWith('data:') && !value.startsWith('data:image/'))))
-            || (name === 'srcdoc')) el.removeAttribute(name)
-        }
-      }
+  // ── attributes with DATA (M-S7) ────────────────────────────────────────────────────────────────
+  // An attribute written literally is the author's and passes as is (except srcdoc: a whole document
+  // in the app's origin). One whose declared value carries `${…}` brings DATA: never an on… handler,
+  // and a URL only as a safe link (safeHref) — and not even that on an element that loads CODE from its
+  // URL (script, object, embed, base, link, meta). Same rule as libs/mateu elementAttributes.ts.
+  const ELEMENT_URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'background', 'poster',
+    'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
+  const CODE_LOADING_ELEMENTS = new Set(['script', 'object', 'embed', 'base', 'link', 'meta', 'applet', 'frame'])
+
+  /** The value to set for an Element attribute, or undefined to leave it out. */
+  function elementAttributeValue(elementName, attribute, declared, resolved) {
+    const name = String(attribute).toLowerCase()
+    if (name === 'srcdoc') return undefined
+    if (!String(declared == null ? '' : declared).includes('${')) return resolved
+    if (name.startsWith('on')) return undefined
+    if (ELEMENT_URL_ATTRIBUTES.has(name)) {
+      if (CODE_LOADING_ELEMENTS.has(String(elementName).toLowerCase())) return undefined
+      const cleaned = String(resolved == null ? '' : resolved).replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
+      return safeHref(cleaned) || undefined
     }
-    walk(tpl.content)
-    return tpl.innerHTML
+    return resolved
   }
 
   /**
-   * Carga el módulo que define la etiqueta, una sola vez. El elemento se puede crear antes: los
-   * componentes web se "actualizan" solos en cuanto su definición llega.
+   * Loads the module that defines the tag, only once. The element can be created before: web
+   * components "upgrade" themselves as soon as their definition arrives.
    *
-   * Se inyecta un `<script type="module">` en vez de usar `import(url)` porque el build de VB
-   * transpila el import dinámico a un `require()` de AMD, y requirejs se pone a resolver la URL
-   * como si fuera un id de módulo suyo: la petición no llega a salir y el hueco se queda vacío
-   * sin un solo error. Un script de módulo no lo puede reescribir nadie.
+   * A `<script type="module">` is injected instead of using `import(url)` because the VB build
+   * transpiles dynamic import into an AMD `require()`, and requirejs starts resolving the URL
+   * as if it were one of its module ids: the request never goes out and the slot stays empty
+   * without a single error. Nobody can rewrite a module script.
    */
   function ensureDefined(name, importUrl) {
     if (!importUrl || !name || name.indexOf('-') < 0) return
@@ -11449,16 +11684,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const script = document.createElement('script')
     script.type = 'module'
     script.src = importUrl
-    // que un componente de terceros no cargue no puede tumbar la pantalla: el hueco se queda
-    // vacío y el resto del contenido sigue ahí
+    // a third-party component failing to load must not bring the screen down: the slot stays
+    // empty and the rest of the content is still there
     script.addEventListener('error', () => { loaded[importUrl] = false })
     document.head.appendChild(script)
   }
 
   function hydrate(element, atom) {
     for (const key of Object.keys(atom.attributes || {})) {
-      // setAttribute sobre el que YA está, nunca sobre uno nuevo: el componente lo convierte en
-      // cambio de propiedad y se repinta conservando lo suyo
+      // setAttribute on the one ALREADY there, never on a new one: the component turns it into a
+      // property change and repaints keeping its own state
       element.setAttribute(key, atom.attributes[key])
     }
     if (atom.style) element.setAttribute('style', atom.style)
@@ -11470,8 +11705,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     wireElementEvents(element, atom)
   }
 
-  /** Hidrata los huecos `.mateu-element` que haya en el documento. Devuelve cuántos quedaron
-   *  montados, para que quien reintenta sepa si ya está. */
+  /** Hydrates the `.mateu-element` slots in the document. Returns how many ended up
+   *  mounted, so whoever retries knows whether it is done. */
   function mountElements(atoms) {
     const byId = {}
     for (const atom of atoms || []) byId[atom.elementId] = atom
@@ -11494,9 +11729,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return mounted
   }
 
-  /** Igual, pero esperando a que VB pinte: sus bindings se actualizan de forma ASÍNCRONA, así que
-   *  al terminar la chain el hueco todavía no está en el DOM (la misma trampa que costó el foco
-   *  del contenido en la accesibilidad). */
+  /** The same, but waiting for VB to paint: its bindings update ASYNCHRONOUSLY, so
+   *  when the chain finishes the slot is not in the DOM yet (the same trap that cost the content
+   *  focus in accessibility). */
   function mountElementsSoon(atoms, frames = 12) {
     const pending = (atoms || []).filter((a) => a && a.isElement)
     if (!pending.length || typeof requestAnimationFrame === 'undefined') return
@@ -11509,7 +11744,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  /** Los átomos isElement de una proyección de bloques (los que hay que montar). */
+  /** The isElement atoms of a block projection (the ones to mount). */
   function elementAtomsOf(blocks) {
     const out = []
     for (const block of blocks || []) {
@@ -11518,9 +11753,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Los átomos isElement del CONTENIDO de un foldout (overview + cada panel): un Element en un
-   *  panel (p.ej. la tabla «In other systems» de una reserva, HTML del servidor) se quedaba sin
-   *  montar — el panel salía en blanco — porque sólo se montaban los del contenido del host. */
+  /** The isElement atoms of a foldout's CONTENT (overview + each panel): an Element in a
+   *  panel (e.g. a booking's «In other systems» table, server HTML) was left
+   *  unmounted — the panel came out blank — because only those of the host's content were mounted. */
   function foldoutElementAtomsOf(content) {
     if (!content) return []
     const out = elementAtomsOf((content.overview || {}).blocks)
@@ -11532,20 +11767,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
+  // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
   //
-  // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
-  // abre un oj-popup con un oj-list-view; activar una entrada la marca leída y navega a su ruta, y
-  // «Mark all read» las marca todas. Habla con las acciones app-level de siempre
-  // (_notifications-list / _notifications-read, route '' + serverSideType del App).
+  // Inbox (the App's NotificationsSupplier): the header bell with the unread count
+  // opens an oj-popup with an oj-list-view; activating an entry marks it read and navigates to its route, and
+  // «Mark all read» marks them all. It talks to the usual app-level actions
+  // (_notifications-list / _notifications-read, route '' + the App's serverSideType).
   //
-  // Deshacer (Message.undoable → MessageDto.undo*): oj-sp-messages-toast no admite acciones, así que
-  // esos mensajes salen por el oj-messages de JET (display="notification") con un oj-message cuyo
-  // slot «detail» — el que JET reserva para enlaces y botones — lleva el oj-button «Undo». Se monta
-  // desde applyDomEffects (fuera de Knockout: data-oj-binding-provider="none") y se quita de la
-  // lista de toasts normales, así que ninguna chain lo pinta dos veces.
+  // Undo (Message.undoable → MessageDto.undo*): oj-sp-messages-toast does not support actions, so
+  // those messages go out through JET's oj-messages (display="notification") with an oj-message whose
+  // «detail» slot — the one JET reserves for links and buttons — carries the «Undo» oj-button. It is mounted
+  // from applyDomEffects (outside Knockout: data-oj-binding-provider="none") and removed from the
+  // list of normal toasts, so no chain paints it twice.
 
-  /** La lista _notifications de la respuesta (Data del servidor), o null. */
+  /** The response's _notifications list (the server's Data), or null. */
   function notificationListOf(increment) {
     for (const fr of (increment && increment.fragments) || []) {
       if (fr && fr.data && Array.isArray(fr.data._notifications)) return fr.data._notifications
@@ -11556,7 +11791,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let notificationsProviderFactory = null
   function setNotificationsProviderFactory(f) { notificationsProviderFactory = f }
 
-  /** El modelo de la campana: no leídas (y su insignia), y las entradas listas para la lista. */
+  /** The bell's model: unread ones (and their badge), and the entries ready for the list. */
   function notificationsOf(list) {
     const items = (list || []).map((n, i) => ({
       _rowNumber: i,
@@ -11585,7 +11820,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // no markRead call, and the list a source answers is not re-asked for every click)
   let sourcedInbox = []
 
-  /** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista).
+  /** Requests the list (or marks `ids` read — a list, or 'all' — and requests the list).
    *  A data-authored shell's `notifications.source` answers instead of the app-level actions
    *  (globalSearch.mjs shellSources): listed from the source, marked read LOCALLY at once and then
    *  through `markRead` when the shell declares it (re-listing after it; a failed call keeps the
@@ -11627,11 +11862,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return notificationsOf(notificationListOf(increment) || [])
   }
 
-  // ── toasts con «Undo» ─────────────────────────────────────────────────────────────────────────
+  // ── toasts with «Undo» ─────────────────────────────────────────────────────────────────────────
   let undoSink = null
   function setUndoSink(fn) { undoSink = typeof fn === 'function' ? fn : null }
 
-  /** Separa de los toasts los que se pueden deshacer (in situ: las chains leen la misma lista). */
+  /** Separates from the toasts those that can be undone (in place: the chains read the same list). */
   function takeUndoToasts(effects) {
     if (!effects || !Array.isArray(effects.toasts)) return []
     const undo = effects.toasts.filter((t) => t && t.undoActionId)
@@ -11642,10 +11877,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return undo
   }
 
-  /** Un Message de error o aviso NO es un toast en Redwood: oj-sp-messages-toast sólo admite
-   *  type="acknowledgement" (confirmaciones). Va al oj-sp-messages-banner de la shell como
-   *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
-   *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
+  /** An error or warning Message is NOT a toast in Redwood: oj-sp-messages-toast only supports
+   *  type="acknowledgement" (confirmations). It goes to the shell's oj-sp-messages-banner as a
+   *  VB notification (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
+   *  persistent until closed. null for the rest, which remain toasts. */
   function bannerNotificationOf(toast) {
     // a PageBanner an action returned (the reducer turns it into a toast marked `banner`): always
     // the shell's message band, with its title AND description, until the user closes it
@@ -11656,7 +11891,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
-  /** El objeto message de oj-message para un toast con deshacer. */
+  /** The oj-message message object for a toast with undo. */
   function undoMessageOf(toast) {
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
@@ -11695,7 +11930,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       })
       detail.appendChild(button)
       msg.appendChild(detail)
-      // cerrado (por el usuario o por tiempo), fuera del DOM
+      // closed (by the user or by time), out of the DOM
       msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
@@ -11705,27 +11940,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
-  // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
-  // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
-  // llama a applyDomEffects(reg.effects) justo después: es el ÚNICO sitio donde estos efectos
-  // tocan el documento.
+  // DOM effects the (pure) reducer only DESCRIBES: downloading a file and opening a URL in
+  // another tab. Before, `effects.download` was computed and nobody read it — a listing's CSV or
+  // a folio's PDF reached the browser and got lost. Each chain that reduces an increment
+  // calls applyDomEffects(reg.effects) right after: it is the ONLY place where these effects
+  // touch the document.
   //
-  // `env` (window por defecto) se inyecta para poder probarlo en Node sin DOM.
+  // `env` (window by default) is injected so it can be tested in Node without a DOM.
 
-  // Documentos (Document en el servidor): el DownloadFile trae los bytes inline (base64Content) o
-  // una URL de un solo uso bajo el baseUrl de la UI (`url`, documentos grandes o perezosos);
-  // `disposition` inline = mostrarlo en una pestaña nueva, attachment = descargarlo; `print` = abrir
-  // el diálogo de impresión (iframe oculto, sin popup). Una pestaña que el bloqueador de popups
-  // rechaza se convierte en descarga: el documento nunca se pierde.
+  // Documents (Document on the server): the DownloadFile carries the bytes inline (base64Content) or
+  // a single-use URL under the UI's baseUrl (`url`, large or lazy documents);
+  // `disposition` inline = show it in a new tab, attachment = download it; `print` = open
+  // the print dialog (hidden iframe, no popup). A tab the popup blocker
+  // rejects turns into a download: the document is never lost.
 
-  // el origen del API: en vb-serve la app vive en :9006 y el backend en :9005, así que una ruta
-  // "/mateu/v3/documents/…" se resuelve contra el baseUrl con el que se habló, no contra la página
+  // the API origin: in vb-serve the app lives on :9006 and the backend on :9005, so a route
+  // "/mateu/v3/documents/…" is resolved against the baseUrl that was talked to, not against the page
   let documentBase = ''
-  /** transport.callMateu la llama con el base de cada request. */
+  /** transport.callMateu calls it with the base of each request. */
   function noteDocumentBase(base) { if (typeof base === 'string') documentBase = base }
 
-  /** La URL que seguimos: rutas del mismo sitio y http(s); nada más (un `javascript:` se rechaza). */
+  /** The URL we follow: same-site routes and http(s); nothing else (a `javascript:` is rejected). */
   function documentUrlOf(url, base = documentBase) {
     if (!url || typeof url !== 'string') return null
     if (/^https?:\/\//i.test(url)) return url
@@ -11736,15 +11971,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return url
   }
 
-  /** DownloadFile del wire → { filename, mimeType, base64Content, url, inline, print } o null. */
+  // Types the browser only DISPLAYS. Inline bytes become a blob: URL, which belongs to the APP's
+  // origin: an HTML/SVG/XML document opened or printed from it would run inside the app with the
+  // user's token in reach. Only these are shown in place; any other inline type is SAVED, typed as
+  // opaque bytes. (A server-parked document comes with Content-Security-Policy: sandbox.)
+  const PASSIVE_INLINE_TYPES = [
+    /^application\/pdf$/, /^image\/(png|jpe?g|gif|webp|bmp|avif|x-icon|vnd\.microsoft\.icon)$/,
+    /^text\/(plain|csv)$/, /^application\/json$/, /^audio\//, /^video\//,
+  ]
+
+  function isPassiveInlineType(mimeType) {
+    const base = String(mimeType == null ? '' : mimeType).split(';')[0].trim().toLowerCase()
+    return PASSIVE_INLINE_TYPES.some((re) => re.test(base))
+  }
+
+  /** Wire DownloadFile → { filename, mimeType, base64Content, url, inline, print } or null. */
   function fileDownloadOf(data) {
     if (!data || typeof data !== 'object') return null
     const url = data.base64Content ? null : documentUrlOf(data.url)
     if (!data.base64Content && !url) return null
-    const inline = data.disposition === 'inline'
+    const active = !!data.base64Content && !isPassiveInlineType(data.mimeType)
+    const inline = data.disposition === 'inline' && !active
     return {
       filename: data.filename || 'export',
-      mimeType: data.mimeType || 'application/octet-stream',
+      mimeType: active ? 'application/octet-stream' : (data.mimeType || 'application/octet-stream'),
       base64Content: data.base64Content ? String(data.base64Content) : null,
       url,
       inline,
@@ -11788,9 +12038,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     env.document.body.appendChild(frame)
   }
 
-  /** Aplica un DownloadFile: lo descarga, lo abre en otra pestaña o lo imprime. El object URL se
-   *  libera DESPUÉS (revocarlo en el mismo tick cancela la descarga en Firefox; una pestaña o un
-   *  iframe aún tienen que cargarlo). Devuelve 'downloaded' | 'opened' | 'printing' | false. */
+  /** Applies a DownloadFile: downloads it, opens it in another tab or prints it. The object URL is
+   *  released AFTERWARDS (revoking it in the same tick cancels the download in Firefox; a tab or an
+   *  iframe still have to load it). Returns 'downloaded' | 'opened' | 'printing' | false. */
   function triggerDownload(data, env = globalThis) {
     const file = fileDownloadOf(data)
     if (!file || !env.document) return false
@@ -11802,8 +12052,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const release = (ms) => { if (objectUrl) env.setTimeout(() => env.URL.revokeObjectURL(href), ms) }
     if (file.print) {
-      // una URL del servidor es de un solo uso y el iframe ya la gastó: sólo un object URL se
-      // puede volver a enseñar en una pestaña
+      // a server URL is single-use and the iframe already spent it: only an object URL can
+      // be shown again in a tab
       printInFrame(href, env, () => { if (objectUrl && env.open) env.open(href, '_blank') })
       release(OBJECT_URL_TTL_MS)
       return 'printing'
@@ -11811,7 +12061,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (file.inline && env.open) {
       const tab = env.open(href, '_blank')
       if (tab) {
-        try { tab.opener = null } catch { /* otra procedencia */ }
+        try { tab.opener = null } catch { /* another origin */ }
         release(OBJECT_URL_TTL_MS)
         return 'opened'
       }
@@ -11821,10 +12071,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return 'downloaded'
   }
 
-  // ── imprimir la página (UICommand.print) ────────────────────────────────────────────────────────
-  // La hoja de impresión deja fuera el chrome de la app (cabecera global, navegación, botones,
-  // toolbars, mensajes); vale también para el Ctrl+P del navegador. Va al documento Y a cada shadow
-  // root abierto: el CSS del documento no cruza una frontera de shadow DOM.
+  // ── printing the page (UICommand.print) ────────────────────────────────────────────────────────
+  // The print sheet leaves out the app chrome (global header, navigation, buttons,
+  // toolbars, messages); it also applies to the browser's Ctrl+P. It goes to the document AND to each open shadow
+  // root: the document's CSS does not cross a shadow DOM boundary.
   const PRINT_CSS = `
   @media print {
     oj-sp-global-header, oj-navigation-list, #mateuNavList, oj-drawer-popup, oj-c-drawer-popup,
@@ -11849,7 +12099,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     container.appendChild(style)
   }
 
-  /** Deja la hoja de impresión en el documento y en cada shadow root abierto. */
+  /** Puts the print sheet in the document and in each open shadow root. */
   function preparePrint(doc) {
     if (!doc) return 0
     adoptPrintSheet(doc)
@@ -11862,7 +12112,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return n
   }
 
-  /** UICommand.print: la página actual, sin chrome. */
+  /** UICommand.print: the current page, without chrome. */
   function printPage(env = globalThis) {
     if (!env || !env.document || typeof env.print !== 'function') return false
     preparePrint(env.document)
@@ -11871,7 +12121,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   let printSupport = false
-  /** El Ctrl+P del navegador imprime igual que UICommand.print (sin chrome). */
+  /** The browser's Ctrl+P prints the same as UICommand.print (without chrome). */
   function installPrintSupport(win = globalThis.window) {
     if (!win || printSupport || typeof win.addEventListener !== 'function') return false
     printSupport = true
@@ -11879,12 +12129,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return true
   }
 
-  // lo que la app quiere hacer con el registro recién reducido (las reglas del cliente toman de ahí
-  // su contexto: reglas + estado del host)
+  // what the app wants to do with the freshly reduced registry (client rules take their
+  // context from there: rules + host state)
   let afterReduce = null
   function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
 
-  /** Aplica los efectos de DOM de una reducción. Devuelve cuántas descargas ha lanzado. */
+  /** Applies a reduction's DOM effects. Returns how many downloads it launched. */
   function applyDomEffects(effects, reg, env = globalThis) {
     if (reg && reg.contexts && afterReduce) afterReduce(reg)
     if (!effects) return 0
@@ -11892,7 +12142,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const d of effects.downloads || (effects.download ? [effects.download] : []))
       if (triggerDownload(d, env)) n++
     if (effects.print) printPage(env)
-    // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
+    // toasts with «Undo» go out through JET's oj-message (notify.mjs), not through the normal toast
     const undo = takeUndoToasts(effects)
     if (undo.length && env && env.document) showUndoToasts(undo, env.document)
     // the Announce command: through the live regions installAnnouncer created at boot (polite, or
@@ -11906,19 +12156,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
-  // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
-  // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
-  // contrato que el renderer web). Así que un elemento PROPIO y mínimo, `<mateu-capture-field>`:
-  // los botones son oj-button de verdad, el lienzo/vídeo/imagen van con los tokens de Redwood, y el
-  // valor sale como `valueChanged` con { value, updatedFrom: 'internal' } — la forma del evento de
-  // un componente JET, así que las chains de cambio de campo (hostInputChanged, mateuFieldEdited…)
-  // lo tratan como uno más.
+  // CAPTURE fields of a form (file, image, signature, camera) for which JET/Redwood has no
+  // component: there is no signature pad or camera in oj-*/oj-sp-*, and oj-file-picker only delivers
+  // File (Mateu's value is a data URI that travels in the state, with no upload endpoint — the same
+  // contract as the web renderer). So an OWN, minimal element, `<mateu-capture-field>`:
+  // the buttons are real oj-buttons, the canvas/video/image use Redwood's tokens, and the
+  // value comes out as `valueChanged` with { value, updatedFrom: 'internal' } — the shape of a JET
+  // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
+  // treat it as one more.
   //
   //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
   //
-  // Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
-  // se define una vez por documento (defineCaptureField).
+  // The pure part (how a file is read, what text it shows) is exported and tested in Node; the DOM part
+  // is defined once per document (defineCaptureField).
 
   /** Only what an <img> may load: a data:image URI (what capture fields store), http(s) or a relative
    *  path. Anything else (javascript:, other data: types…) shows nothing. */
@@ -11932,19 +12182,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
-  /** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
+  /** The capture fields' texts in `lang` (the interface catalogue, i18n.mjs). */
   function captureTexts(lang) {
     const l = chromeLanguage(lang)
     return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
   }
 
-  /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
+  /** Is the value an image that can be shown? (image data URI or ordinary URL) */
   function isImageValue(value) {
     const v = String(value || '')
     return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
   }
 
-  /** Un nombre legible para un data URI de fichero (no lo lleva: se enseña el tipo y el tamaño). */
+  /** A readable name for a file data URI (it does not carry one: the type and size are shown). */
   function describeFileValue(value) {
     const v = String(value || '')
     const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
@@ -11954,7 +12204,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (m[1] || 'file') + ' · ' + kb
   }
 
-  /** Define `<mateu-capture-field>` en `win` (una vez). */
+  /** Defines `<mateu-capture-field>` in `win` (once). */
   function defineCaptureField(win = typeof window !== 'undefined' ? window : null) {
     if (!win || !win.customElements || win.customElements.get('mateu-capture-field')) return
     const doc = win.document
@@ -11963,8 +12213,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     const button = (label, chroming, onAction) => {
       const b = doc.createElement('oj-button')
-      // un componente JET creado fuera de Knockout espera un «binding provider» que nunca llega y
-      // se queda oculto (visibility:hidden hasta oj-complete): `none` le dice que no lo hay
+      // a JET component created outside Knockout waits for a «binding provider» that never arrives and
+      // stays hidden (visibility:hidden until oj-complete): `none` tells it there is none
       b.setAttribute('data-oj-binding-provider', 'none')
       b.setAttribute('chroming', chroming || 'outlined')
       b.className = 'oj-button-sm oj-sm-margin-2x-end'
@@ -12194,18 +12444,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // REGLAS DEL CLIENTE (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) y campos dependientes
-  // en el navegador: sin ida y vuelta al servidor, un campo se oculta, se deshabilita o cambia de
-  // valor según otro. Mismo contrato que el renderer web (libs/mateu mateu-component.applyRules):
-  // cada regla tiene un `filter` (expresión); si se cumple, su acción escribe en el estado
-  // (SetStateValue) o en data (SetDataValue: `campo.hidden`, `campo.disabled`, `campo.required`…),
-  // lanza una acción (RunAction) o para (result Stop).
+  // CLIENT RULES (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) and dependent fields in the
+  // browser: with no round trip to the server, a field hides, disables itself or changes its value
+  // depending on another. Same contract as the web renderer (libs/mateu mateu-component.applyRules):
+  // each rule has a `filter` (an expression); when it holds, its action writes to the state
+  // (SetStateValue) or to data (SetDataValue: `field.hidden`, `field.disabled`, `field.required`…),
+  // runs an action (RunAction) or stops (result Stop).
   //
-  // Por qué un evaluador propio: el web usa `new Function`, y VB alojado en Oracle corre con una CSP
-  // sin 'unsafe-eval' (es la razón de que todo el bridge precalcule flags). Así que un parser de
-  // expresiones de JS pequeño y SIN eval: literales, state/data/appState/appData, acceso a
-  // propiedad, ! - + * / % < <= > >= == != === !== && || ?: y unos pocos métodos de string/array.
-  // Lo que no entiende devuelve undefined (la regla no se cumple) en vez de romper la pantalla.
+  // Why an evaluator of our own: VB hosted by Oracle runs under a CSP without 'unsafe-eval' (which
+  // is also why the bridge precomputes flags), so `eval`/`new Function` are out — the web renderer
+  // dropped `new Function` for the same reason and has its own sandboxed evaluator (libs/mateu
+  // infra/ui/expression.ts). This one is a SMALL JS expression parser with no eval: literals,
+  // state/data/appState/appData/component, property access (`.`, `[]`, `?.`, `?.[]`), regex
+  // literals (`/…/flags`, for the server's @Pattern conditions), ! - + * / % < <= > >= == != ===
+  // !== && || ?? ?: and a few string/array methods (plus a regex's `.test`). Anything it does not
+  // understand yields undefined (the rule does not hold) instead of breaking the screen.
+  //
+  // The four renderers' evaluators are held to one corpus: conformance/client/expressions.json
+  // (run by test-conformance.mjs here).
 
   const METHODS = {
     includes: (t, a) => (t != null && t.includes ? t.includes(a[0]) : false),
@@ -12216,6 +12472,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     toUpperCase: (t) => String(t == null ? '' : t).toUpperCase(),
     trim: (t) => String(t == null ? '' : t).trim(),
     toString: (t) => String(t),
+    test: (t, a) => {
+      if (!(t instanceof RegExp)) throw new TypeError('test is only a method of a regex')
+      t.lastIndex = 0
+      return t.test(String(a[0]))
+    },
+  }
+
+  // Properties an expression may never read: the routes from a value back to `Function` (the same
+  // set as the web and React Native evaluators).
+  const RULE_BLOCKED_PROPERTIES = new Set([
+    'constructor', '__proto__', 'prototype', '__defineGetter__', '__defineSetter__',
+    '__lookupGetter__', '__lookupSetter__',
+  ])
+
+  function ruleMember(v, name) {
+    if (RULE_BLOCKED_PROPERTIES.has(String(name))) throw new TypeError('Access to ' + name + ' is not allowed')
+    return v == null ? undefined : v[name]
+  }
+
+  // A `/` starts a regex literal where a VALUE is expected — at the start, or after an operator
+  // other than a closing bracket; after a value it is a division.
+  function ruleRegexAllowed(prev) {
+    if (!prev) return true
+    if (prev.t === 'num' || prev.t === 'str' || prev.t === 'id' || prev.t === 're') return false
+    return !(prev.t === 'op' && (prev.v === ')' || prev.v === ']'))
   }
 
   function tokenize(src) {
@@ -12232,7 +12513,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (c === '"' || c === "'") {
         let j = i + 1; let s = ''
         while (j < src.length && src[j] !== c) { if (src[j] === '\\') { s += src[j + 1]; j += 2 } else s += src[j++] }
+        if (j >= src.length) throw new Error('unterminated string')
         tokens.push({ t: 'str', v: s }); i = j + 1; continue
+      }
+      if (c === '/' && ruleRegexAllowed(tokens[tokens.length - 1])) {
+        let j = i + 1; let inClass = false
+        while (j < src.length && (inClass || src[j] !== '/')) {
+          if (src[j] === '\\') j++
+          else if (src[j] === '[') inClass = true
+          else if (src[j] === ']') inClass = false
+          j++
+        }
+        if (j >= src.length) throw new Error('unterminated regex')
+        const body = src.slice(i + 1, j)
+        let k = j + 1
+        while (k < src.length && /[a-z]/.test(src[k])) k++
+        tokens.push({ t: 're', v: new RegExp(body, src.slice(j + 1, k)) }); i = k; continue
       }
       if (/[A-Za-z_$]/.test(c)) {
         let j = i
@@ -12241,14 +12537,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       const three = src.slice(i, i + 3); const two = src.slice(i, i + 2)
       if (three === '===' || three === '!==') { tokens.push({ t: 'op', v: three }); i += 3; continue }
-      if (['==', '!=', '<=', '>=', '&&', '||'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
+      // `?.` is optional chaining unless a digit follows (`a?.5:1` is a ternary)
+      if (two === '?.' && !/[0-9]/.test(src[i + 2] || '')) { tokens.push({ t: 'op', v: '?.' }); i += 2; continue }
+      if (['==', '!=', '<=', '>=', '&&', '||', '??'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
       if ('+-*/%<>!?:.,()[]'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue }
-      throw new Error('carácter inesperado ' + c)
+      throw new Error('unexpected character ' + c)
     }
     return tokens
   }
 
-  /** Evalúa una expresión de regla contra `scope` ({ state, data, appState, appData, component }). */
+  /** Evaluates a rule expression against `scope` ({ state, data, appState, appData, component }).
+   *  Never throws: what it does not understand yields undefined. */
   function evaluateExpression(expr, scope = {}) {
     if (expr == null) return undefined
     const src = String(expr).trim()
@@ -12258,12 +12557,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let p = 0
     const peek = (v) => tokens[p] && tokens[p].v === v && tokens[p].t === 'op'
     const take = (v) => { if (peek(v)) { p++; return true } return false }
+    const expect = (v) => { if (!take(v)) throw new SyntaxError('expected ' + v) }
     const ternary = () => {
       const c = or()
-      if (take('?')) { const a = ternary(); take(':'); const b = ternary(); return c ? a : b }
+      if (take('?')) { const a = ternary(); expect(':'); const b = ternary(); return c ? a : b }
       return c
     }
-    const or = () => { let l = and(); while (take('||')) { const r = and(); l = l || r } return l }
+    const or = () => {
+      let l = and()
+      for (;;) {
+        if (take('||')) { const r = and(); l = l || r } else if (take('??')) { const r = and(); l = l ?? r } else return l
+      }
+    }
     const and = () => { let l = eq(); while (take('&&')) { const r = eq(); l = l && r } return l }
     const eq = () => {
       let l = rel()
@@ -12300,45 +12605,70 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (take('+')) return +unary()
       return postfix()
     }
+    const args = () => {
+      const out = []
+      while (!peek(')')) {
+        out.push(ternary())
+        if (!take(',')) break
+      }
+      expect(')')
+      return out
+    }
     const postfix = () => {
       let v = primary()
+      // once a `?.` met null/undefined the rest of the chain is skipped (parsed, not evaluated)
+      let short = false
       for (;;) {
-        if (take('.')) {
+        const optional = take('?.')
+        if (optional && v == null) short = true
+        if (take('.') || (optional && tokens[p] && tokens[p].t === 'id')) {
           const tok = tokens[p++]
-          const name = tok && tok.v
-          if (peek('(')) {
-            take('(')
-            const args = []
-            while (!peek(')') && p < tokens.length) { args.push(ternary()); take(',') }
-            take(')')
-            // sólo métodos conocidos de string/array: nada de llamar a lo que traiga el estado
-            v = Object.prototype.hasOwnProperty.call(METHODS, name) ? METHODS[name](v, args) : undefined
+          if (!tok || tok.t !== 'id') throw new SyntaxError('expected a property name')
+          const name = tok.v
+          if (take('(')) {
+            const a = args()
+            if (short) continue
+            // only known string/array methods: nothing the state carries is ever called
+            if (!Object.prototype.hasOwnProperty.call(METHODS, name)) throw new TypeError(name + ' is not callable here')
+            v = METHODS[name](v, a)
           } else {
-            v = v == null ? undefined : v[name]
+            v = short ? undefined : ruleMember(v, name)
           }
         } else if (take('[')) {
-          const k = ternary(); take(']'); v = v == null ? undefined : v[k]
-        } else return v
+          const k = ternary(); expect(']')
+          v = short ? undefined : ruleMember(v, k)
+        } else if (optional) {
+          throw new SyntaxError('unexpected ?.')
+        } else return short ? undefined : v
       }
     }
     const primary = () => {
       const tok = tokens[p++]
-      if (!tok) return undefined
-      if (tok.t === 'num' || tok.t === 'str') return tok.v
-      if (tok.t === 'op' && tok.v === '(') { const v = ternary(); take(')'); return v }
+      if (!tok) throw new SyntaxError('unexpected end')
+      if (tok.t === 'num' || tok.t === 'str' || tok.t === 're') return tok.v
+      if (tok.t === 'op' && tok.v === '(') {
+        const v = ternary()
+        // a parenthesis left open at the very END is forgiven (a rule half-typed still evaluates)
+        if (!take(')') && p < tokens.length) throw new SyntaxError('expected )')
+        return v
+      }
       if (tok.t === 'op' && tok.v === '[') {
         const arr = []
-        while (!peek(']') && p < tokens.length) { arr.push(ternary()); take(',') }
-        take(']'); return arr
+        while (!peek(']')) {
+          arr.push(ternary())
+          if (!take(',')) break
+        }
+        expect(']'); return arr
       }
       if (tok.t === 'id') {
         if (tok.v === 'true') return true
         if (tok.v === 'false') return false
         if (tok.v === 'null') return null
         if (tok.v === 'undefined') return undefined
-        return scope[tok.v]
+        // only the scope's OWN names: `constructor`, `toString`… must not reach Object.prototype
+        return Object.prototype.hasOwnProperty.call(scope, tok.v) ? scope[tok.v] : undefined
       }
-      return undefined
+      throw new SyntaxError('unexpected ' + tok.v)
     }
     try {
       const v = ternary()
@@ -12348,8 +12678,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Una plantilla `${…}`: si es UNA expresión entera devuelve su valor con tipo; si mezcla texto,
-   *  el texto con cada `${…}` sustituido; sin `${` es una expresión. */
+  /** A `${…}` template: when it is ONE whole expression its value comes back typed; when it mixes
+   *  text, the text with each `${…}` replaced; without `${` it is an expression. */
   function evaluateTemplate(tmpl, scope = {}) {
     const s = String(tmpl == null ? '' : tmpl)
     if (s.indexOf('${') < 0) return evaluateExpression(s, scope)
@@ -12359,8 +12689,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Ejecuta las reglas sobre `scope` → { state, data, actions }: los VALORES que cada regla deja en
-   * el estado / en data (`campo` o `campo.atributo`) y las acciones a lanzar. Puro: no toca nada.
+   * Runs the rules over `scope` → { state, data, actions }: the VALUES each rule leaves in the state
+   * / in data (`field` or `field.attribute`) and the actions to run. Pure: touches nothing.
    */
   function computeRules(rules, scope = {}) {
     const state = {}
@@ -12387,7 +12717,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { state, data, actions }
   }
 
-  /** Los atributos de campo que la plantilla tiene que reflejar: { fieldId: { hidden, disabled… } }. */
+  /** The field attributes the template has to reflect: { fieldId: { hidden, disabled… } }. */
   function fieldFlagsOf(data) {
     const out = {}
     for (const key of Object.keys(data || {})) {
@@ -12399,7 +12729,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** La acción que dispara cambiar `fieldId` (@Trigger OnValueChange con su condición), o null. */
+  /** The action that changing `fieldId` fires (@Trigger OnValueChange with its condition), or null. */
   function valueChangeActionOf(ctx, fieldId, state) {
     const triggers = (ctx && ctx.tree && ctx.tree.triggers) || []
     const t = triggers.find((x) => x && x.type === 'OnValueChange' && x.actionId
@@ -12409,13 +12739,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return t.actionId
   }
 
-  // ── en el navegador: aplicar las reglas a los campos pintados ────────────────────────────────
+  // ── in the browser: applying the rules to the painted fields ──────────────────────────────────
   //
-  // Los campos se pintan desde 22 copias de plantilla (átomos, formulario genérico, drawer, isla…):
-  // en vez de un flag más en cada una, las reglas actúan sobre el DOM por `data-field-id`, que
-  // todas llevan. El contexto (reglas + estado) lo fija cada reducción (setRulesContext); los
-  // cambios de campo (`valueChanged` de JET, interno) actualizan el estado vivo y re-evalúan; y,
-  // como VB re-pinta de forma asíncrona, se re-aplica unos frames después de cada render.
+  // Fields are painted from 22 template copies (atoms, generic form, drawer, island…): instead of one
+  // more flag in each, the rules act on the DOM through `data-field-id`, which all of them carry. The
+  // context (rules + state) is set by every reduction (setRulesContext); field changes (JET's
+  // `valueChanged`, internal) update the live state and re-evaluate; and, since VB repaints
+  // asynchronously, the rules are re-applied for a few frames after every render.
 
   // Rules live on every SURFACE, not only the host: an island (an embedded mediator), the open
   // drawer or dialog. Each surface's rules act on the fields painted in that surface — the DOM
@@ -12425,7 +12755,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let surfaces = [] // [{ surface: 'host'|'island'|'overlay', ctx, appState, liveState }]
   let runActionSink = null
 
-  /** Quién ejecuta una RunAction de regla (la shell reusa el sumidero de los Element). */
+  /** Who runs a rule's RunAction (the shell reuses the Elements' sink). */
   function setRuleActionSink(fn) { runActionSink = typeof fn === 'function' ? fn : null }
 
   const hasRules = (ctx) => !!(ctx && ctx.tree && (ctx.tree.rules || []).length)
@@ -12473,10 +12803,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     applyRulesSoon()
   }
 
-  // Lo que se oculta de un campo: el control mismo — en Redwood su etiqueta va DENTRO (label-edge
-  // inside) — o, para los que la llevan fuera (captura, @Searchable), su oj-label-value. Subir hasta
-  // el hijo del oj-form-layout no vale: JET envuelve los campos en sus propios contenedores y se
-  // ocultaba la sección entera.
+  // What hiding a field hides: the control itself — in Redwood its label goes INSIDE (label-edge
+  // inside) — or, for those that carry it outside (capture, @Searchable), its oj-label-value. Going
+  // up to the oj-form-layout's child does not work: JET wraps fields in containers of its own and the
+  // whole section got hidden.
   function formItemOf(el) {
     return (el.closest && el.closest('oj-label-value')) || el
   }
@@ -12509,9 +12839,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         touched++
       }
     }
-    // un SetStateValue cambia el valor de otro campo: se le pone al control y se emite el mismo
-    // valueChanged INTERNO que si lo hubiese tecleado el usuario (así entra en el borrador que
-    // viaja con la siguiente acción)
+    // a SetStateValue changes another field's value: it is set on the control and the same INTERNAL
+    // valueChanged is emitted as if the user had typed it (so it joins the draft that travels with
+    // the next action)
     for (const fieldId of Object.keys(result.state)) {
       if (fieldId.indexOf('.') >= 0) continue
       const value = result.state[fieldId]
@@ -12541,8 +12871,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo DE SU SUPERFICIE
-   *  y re-evalúa. */
+  /** Listens to the document's field changes (once): updates the live state OF THEIR SURFACE and
+   *  re-evaluates. */
   function installRules(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuRulesInstalled) return
     doc.__mateuRulesInstalled = true
@@ -12557,7 +12887,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, true)
   }
 
-  /** Para diagnosticar desde la consola: las reglas en vigor y el estado vivo. */
+  /** For diagnosing from the console: the rules in force and the live state. */
   function rulesDebug() {
     return surfaces.map((x) => ({ surface: x.surface, rules: (x.ctx.tree.rules || []).length, state: { ...x.liveState } }))
   }
@@ -12670,24 +13000,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // Selección de RANGO en el tape chart (PlanningBoard → oj-gantt): arrastrar por celdas VACÍAS de
-  // una fila lanza rangeSelectActionId con { _resourceId, _start, _end } (el «clic en la celda de
-  // inicio y en la de fin» del Room Diary de OPERA → I Want To: reserva, walk-in, fuera de servicio).
-  // oj-gantt no lo trae: mueve y redimensiona tareas, pero no selecciona tiempo vacío. Así que una
-  // capa fina por encima, sin sustituir al componente:
-  //   - la fila, del propio gantt (getContextByNode → rowIndex);
-  //   - el día, de las posiciones REALES de las etiquetas del eje de días (respeta zoom y scroll);
-  //   - mientras se arrastra, una banda translúcida; al soltar, la acción por el canal de la página.
-  // Lo puro (x → día) está exportado y probado en Node.
+  // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
+  // a row launches rangeSelectActionId with { _resourceId, _start, _end } (the «click on the start
+  // cell and on the end cell» of OPERA's Room Diary → I Want To: booking, walk-in, out of service).
+  // oj-gantt does not have it: it moves and resizes tasks, but does not select empty time. So a
+  // thin layer on top, without replacing the component:
+  //   - the row, from the gantt itself (getContextByNode → rowIndex);
+  //   - the day, from the REAL positions of the day axis labels (respects zoom and scroll);
+  //   - while dragging, a translucent band; on release, the action through the page's channel.
+  // The pure part (x → day) is exported and tested in Node.
 
-  /** Día (índice) bajo `x` a partir de los centros de las etiquetas del eje de días. */
+  /** Day (index) under `x` from the centres of the day axis labels. */
   function dayIndexAtX(x, centers) {
     if (!centers || !centers.length) return null
     if (centers.length === 1) return centers[0].index
     const sorted = [...centers].sort((a, b) => a.x - b.x)
     const width = (sorted[sorted.length - 1].x - sorted[0].x) / (sorted[sorted.length - 1].index - sorted[0].index)
     if (!(width > 0)) return sorted[0].index
-    // el día i ocupa [centro_i - w/2, centro_i + w/2)
+    // day i occupies [centre_i - w/2, centre_i + w/2)
     return Math.round((x - sorted[0].x) / width) + sorted[0].index
   }
 
@@ -12695,15 +13025,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const isoUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
 
   let rangeSink = null
-  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  /** Who runs the action (the shell reuses the Elements' sink). */
   function setPlanningRangeSink(fn) { rangeSink = typeof fn === "function" ? fn : null }
 
-  /** Los centros (x en pantalla) de las etiquetas de días del eje menor de un gantt. */
+  /** The centres (on-screen x) of the day labels of a gantt's minor axis. */
   function dayCenters(gantt, startIso, days) {
     const labels = [...gantt.querySelectorAll('text')]
     const out = []
-    // las etiquetas del eje menor tienen el formato del locale ("10/14", "14/10"…): se casan por
-    // orden con los días de la ventana, quedándose con la fila de etiquetas más baja del eje
+    // the minor axis labels have the locale's format ("10/14", "14/10"…): they are matched in
+    // order with the window's days, keeping the lowest row of labels of the axis
     const rows = {}
     for (const t of labels) {
       const r = t.getBoundingClientRect()
@@ -12712,7 +13042,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ;(rows[key] = rows[key] || []).push({ t, r })
     }
     const axisRows = Object.keys(rows).map(Number).sort((a, b) => a - b)
-    // el eje menor: la fila con más etiquetas entre las primeras (la cabecera), no las barras
+    // the minor axis: the row with the most labels among the first ones (the header), not the bars
     const minor = axisRows.slice(0, 3).map((k) => rows[k]).sort((a, b) => b.length - a.length)[0] || []
     minor.sort((a, b) => a.r.left - b.r.left).forEach((e, i) => {
       if (i < days) out.push({ x: e.r.left + e.r.width / 2, index: i })
@@ -12720,7 +13050,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  /** Instala (una vez) el arrastre de rango sobre cualquier oj-gantt.mateu-planning del documento. */
+  /** Installs (once) the range drag on any oj-gantt.mateu-planning in the document. */
   function installPlanningRange(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuPlanningRange) return
     doc.__mateuPlanningRange = true
@@ -12738,9 +13068,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.addEventListener('pointerdown', (e) => {
       const gantt = e.target && e.target.closest && e.target.closest('oj-gantt.mateu-planning')
       if (!gantt || !gantt.dataset.rangeAction || e.button > 0) return
-      // sólo tiempo VACÍO de una fila (el fondo de la fila, rect.oj-gantt-row): una tarea se mueve y
-      // redimensiona como siempre. getContextByNode no da contexto para ese fondo, así que la fila
-      // sale de la etiqueta del eje de filas más cercana en vertical (vale también con scroll)
+      // only EMPTY time of a row (the row's background, rect.oj-gantt-row): a task moves and
+      // resizes as always. getContextByNode gives no context for that background, so the row
+      // comes from the vertically closest row-axis label (also works with scroll)
       const cls = (e.target.getAttribute && e.target.getAttribute('class')) || ''
       if (!/(^|\s)oj-gantt-row(\s|$)/.test(cls)) return
       const labels = (gantt.dataset.rowLabels || '').split('\u001f')
@@ -12790,11 +13120,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // PANEL DE ACCIONES por categorías («I want to…», ActionPanel): el disparador es un oj-button y la
-  // capa un oj-dialog de JET; el estado de la capa (abierta, «mostrar más» de una columna, ocultar
-  // las acciones sin datos) vive en el DOM — clases sobre el diálogo y sus columnas —, así que nada
-  // pregunta al servidor ni re-proyecta. Elegir una acción cierra el diálogo y la acción sale por el
-  // canal normal de los botones (blockAction). Un listener por documento, instalado una vez.
+  // Categorised ACTION PANEL («I want to…», ActionPanel): the trigger is an oj-button and the
+  // layer a JET oj-dialog; the layer's state (open, a column's «show more», hiding
+  // actions without data) lives in the DOM — classes on the dialog and its columns —, so nothing
+  // asks the server or re-projects. Choosing an action closes the dialog and the action goes out through the
+  // buttons' normal channel (blockAction). One listener per document, installed once.
 
   /** «ctrl+shift+i» → { ctrl, alt, shift, meta, key } */
   function parseShortcut(shortcut) {
@@ -12812,8 +13142,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return key ? { ...mods, key } : null
   }
 
-  /** ¿La tecla pulsada es el atajo? Por e.key o por e.code (KeyI / Digit1 / Numpad1), como los
-   *  atajos del renderer web: independiente de la distribución del teclado. */
+  /** Is the pressed key the shortcut? By e.key or by e.code (KeyI / Digit1 / Numpad1), like the
+   *  web renderer's shortcuts: independent of the keyboard layout. */
   function shortcutMatches(shortcut, e) {
     const s = typeof shortcut === 'string' ? parseShortcut(shortcut) : shortcut
     if (!s || !e) return false
@@ -12826,7 +13156,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const visible = (el) => !!(el && (el.offsetParent || (el.getClientRects && el.getClientRects().length)))
 
-  /** Instala (una vez) el comportamiento de los paneles de acciones del documento. */
+  /** Installs (once) the behaviour of the document's action panels. */
   function installActionPanels(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuActionPanels) return
     doc.__mateuActionPanels = true
@@ -12847,13 +13177,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
     }, true)
-    // elegir una acción cierra la capa; el oj-button sigue y su blockAction lanza la acción
+    // choosing an action closes the layer; the oj-button carries on and its blockAction launches the action
     doc.addEventListener('ojAction', (e) => {
       const item = e.target && e.target.closest && e.target.closest('.mateu-ap-item')
       const dialog = item && item.closest('oj-dialog')
       if (dialog && typeof dialog.close === 'function') dialog.close()
     }, true)
-    // ocultar las vacías: el oj-switch NO burbujea valueChanged, pero la fase de captura sí lo ve
+    // hiding the empty ones: the oj-switch does NOT bubble valueChanged, but the capture phase does see it
     doc.addEventListener('valueChanged', (e) => {
       const sw = e.target
       if (!sw || !sw.hasAttribute || !sw.hasAttribute('data-ap-hide')) return
@@ -13077,6 +13407,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
 
@@ -13450,13 +13781,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (id && extrasSinks.keepAlive) extrasSinks.keepAlive(id)
   }
 
+  /** Where the idle sign-out goes: the shell's url — never a javascript:/data: one (safeHref);
+   *  an unsafe or missing one signs out to '/'. */
+  function idleSignOutUrlOf(shell) {
+    return safeHref((shell && shell.idleSession && shell.idleSession.signOutUrl) || '/') || '/'
+  }
+
   function idleSignOut(doc, propagate) {
     if (idleState.signingOut) return
     idleState.signingOut = true
     if (propagate) storeSet(IDLE_SIGN_OUT_KEY, String(Date.now()))
     const message = doc.getElementById('mateuIdleMessage')
     if (message) message.textContent = chromeText('idleSigningOut')
-    const url = (extrasShell && extrasShell.idleSession && extrasShell.idleSession.signOutUrl) || '/'
+    const url = idleSignOutUrlOf(extrasShell)
     const event = new CustomEvent('mateu-idle-sign-out', { detail: { url }, cancelable: true })
     if (!doc.dispatchEvent(event)) return
     doc.defaultView.location.assign(url)
@@ -13540,18 +13877,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // TECLADO de la shell VB: los atajos declarados y las TECLAS DE ACCESO.
-  //  - @Action(shortcut) de la pantalla en curso: el atajo lanza la acción (por el canal de los
-  //    Element), como en el renderer web; sólo combinaciones con Ctrl/Alt/Meta — una tecla suelta
-  //    es del campo donde se escribe — o una TECLA DE FUNCIÓN (F1–F12, sola o combinada): no
-  //    escribe nada en un campo, y las aplicaciones de back-office las usan (F2, F9…).
-  //  - @Tab(shortcut): selecciona la pestaña (el li del oj-tab-bar lleva data-shortcut).
-  //  - @App(accessKeys): mantener Alt enseña una tecla junto a cada botón y pestaña visibles — su
-  //    atajo si lo declara, si no una letra de su etiqueta asignada sin repetir — y Alt+letra lo
-  //    pulsa. Lo de OPERA con su tecla de acceso. Lo puro (qué letra toca a quién) se prueba en Node.
+  // KEYBOARD of the VB shell: the declared shortcuts and the ACCESS KEYS.
+  //  - @Action(shortcut) of the current screen: the shortcut launches the action (through the Element
+  //    channel), as in the web renderer; only combinations with Ctrl/Alt/Meta — a bare key
+  //    belongs to the field being typed in — or a FUNCTION KEY (F1–F12, alone or combined): it does not
+  //    type anything into a field, and back-office applications use them (F2, F9…).
+  //  - @Tab(shortcut): selects the tab (the oj-tab-bar li carries data-shortcut).
+  //  - @App(accessKeys): holding Alt shows a key next to each visible button and tab — its
+  //    shortcut if it declares one, otherwise a letter of its label assigned without repeats — and Alt+letter
+  //    presses it. OPERA's thing with its access key. The pure part (which letter goes to whom) is tested in Node.
 
-  /** Las letras de acceso para unas etiquetas: primero las iniciales de sus palabras, luego cualquier
-   *  letra de la etiqueta, luego cifras; sin repetir y saltando las reservadas. '' si no queda. */
+  /** The access letters for some labels: first the initials of their words, then any
+   *  letter of the label, then digits; without repeats and skipping the reserved ones. '' if none is left. */
   function assignAccessKeys(labels, reserved = []) {
     const used = new Set(reserved.map((k) => String(k).toLowerCase()))
     return labels.map((label) => {
@@ -13565,17 +13902,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
-  /** Etiqueta legible de un atajo: «ctrl+shift+s» → «Ctrl+Shift+S». */
+  /** Readable label of a shortcut: «ctrl+shift+s» → «Ctrl+Shift+S». */
   const keyHint = (shortcut) => String(shortcut || '').split('+').filter(Boolean)
     .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
 
-  // ── atajos de acción de la pantalla en curso ──────────────────────────────────────────────────
+  // ── action shortcuts of the current screen ──────────────────────────────────────────────────
   let shortcutActions = []
-  /** Una tecla de función (F1–F12): la de un atajo («f2», «shift+f9») o la de un evento (e.key). */
+  /** A function key (F1–F12): that of a shortcut («f2», «shift+f9») or that of an event (e.key). */
   const FUNCTION_KEY = /^f([1-9]|1[0-2])$/i
   const isFunctionKeyShortcut = (shortcut) =>
     FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
-  /** La pantalla en curso (afterReduce): sus acciones con atajo con modificador o tecla de función. */
+  /** The current screen (afterReduce): its actions with a modifier or function-key shortcut. */
   function setShortcutContext(hostCtx) {
     const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
     shortcutActions = actions
@@ -13599,7 +13936,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
 
-  /** Lo que se puede pulsar con una tecla de acceso: botones (no deshabilitados) y pestañas. */
+  /** What can be pressed with an access key: buttons (not disabled) and tabs. */
   function accessCandidates(doc) {
     const out = []
     for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
@@ -13658,26 +13995,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.__mateuKeys = true
     let holdTimer = null
     doc.addEventListener('keydown', (e) => {
-      // mantener Alt (sola): aparecen las teclas
+      // holding Alt (alone): the keys appear
       if (e.key === 'Alt' && accessKeysOn && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         if (!holdTimer) holdTimer = setTimeout(() => showAccessKeys(doc), 250)
         return
       }
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
       if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
-      // 1. una acción de la pantalla
+      // 1. an action of the screen
       const action = shortcutActions.find((a) => matches(a.shortcut, e))
       if (action && keysSink) {
         e.preventDefault(); e.stopPropagation()
         keysSink(action.id, {}, {})
         return
       }
-      // 2. una pestaña
+      // 2. a tab
       for (const li of doc.querySelectorAll('oj-tab-bar li[data-shortcut]')) {
         const sc = li.getAttribute('data-shortcut')
         if (sc && keyTargetVisible(li) && matches(sc, e)) { e.preventDefault(); e.stopPropagation(); activate(li); return }
       }
-      // 3. una tecla de acceso (Alt+letra, por el código físico: en Mac Alt cambia e.key)
+      // 3. an access key (Alt+letter, by physical code: on Mac Alt changes e.key)
       if (accessKeysOn && e.altKey && !e.ctrlKey && !e.metaKey) {
         const m = /^(Key([A-Z])|Digit([0-9]))$/.exec(e.code || '')
         const letter = m ? (m[2] || m[3]).toLowerCase() : ''
@@ -13699,13 +14036,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
-  // detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
-  // le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
-  // al pasar o enfocar y la cierra al salir; uno con data-mateu-pop-click, al pulsar. Las celdas
-  // de un listado con @Tooltip(otro campo) y los Popover (trigger hover/click) pasan por aquí.
+  // FLOATING WINDOWS on mouse hover (and on keyboard focus): a rate's summary, a
+  // cell's detail. ONE shared JET oj-popup, created outside Knockout, whose
+  // content is swapped: any element with data-mateu-hover (text, lines with \n) opens it
+  // on hover or focus and closes it on leave; one with data-mateu-pop-click, on click. The cells
+  // of a listing with @Tooltip(another field) and Popovers (hover/click trigger) go through here.
 
-  /** Las líneas del contenido (puro). */
+  /** The content's lines (pure). */
   const hoverLinesOf = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean)
 
   function installHover(doc = typeof document !== 'undefined' ? document : null) {
@@ -13753,8 +14090,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!el.id) el.id = 'mateuHover-' + (++hoverAnchorSeq)
       anchor = el
       el.setAttribute('aria-describedby', 'mateuHoverPopup')
-      // un oj-popup recién creado tarda en «actualizarse» (JET lo hace de forma asíncrona): hasta
-      // entonces sus métodos lanzan — se reintenta unos frames
+      // a freshly created oj-popup takes a while to «upgrade» (JET does it asynchronously): until
+      // then its methods throw — it retries for a few frames
       const tryOpen = (left) => {
         if (anchor !== el) return
         try {
@@ -13770,7 +14107,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (openTimer) { clearTimeout(openTimer); openTimer = null }
       if (anchor) anchor.removeAttribute('aria-describedby')
       anchor = null
-      try { if (popup && popup.isOpen()) popup.close() } catch (err) { /* aún sin actualizar */ }
+      try { if (popup && popup.isOpen()) popup.close() } catch (err) { /* not upgraded yet */ }
     }
     const scheduleClose = () => {
       if (closeTimer) clearTimeout(closeTimer)
@@ -13786,7 +14123,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (openTimer) clearTimeout(openTimer)
       openTimer = setTimeout(() => { openTimer = null; open(el, el.getAttribute('data-mateu-hover')) }, 300)
     }
-    // se crea ya: cuando llegue el primer hover JET habrá tenido tiempo de actualizarlo
+    // it is created right away: when the first hover arrives JET will have had time to upgrade it
     if (doc.body) ensure()
     doc.addEventListener('mouseover', (e) => { const el = hoverTarget(e.target); if (el) show(el) }, true)
     doc.addEventListener('mouseout', (e) => {
@@ -13815,12 +14152,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
-  // del propio oj-table de JET (dnd.drag.rows.data-types = el tipo MIME del tipo); un DropZone
-  // (atom isDropZone) acepta ese tipo MIME — se resalta mientras pasa por encima algo suyo — y al
-  // soltar lanza su acción con sus parámetros más _draggedIds y _dragType: origen y destino.
+  // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
+  // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
+  // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
+  // drop it launches its action with its parameters plus _draggedIds and _dragType: source and destination.
 
-  /** Los ids de lo que trae el arrastre: el JSON que JET pone por tipo (filas, o {data,key}). */
+  /** The ids of what the drag carries: the JSON JET puts per type (rows, or {data,key}). */
   function draggedIdsOf(json) {
     let rows
     try { rows = JSON.parse(json) } catch (e) { return [] }
@@ -13834,21 +14171,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }).filter((id) => id != null)
   }
 
-  /** El tipo «charge» de un MIME «application/x-mateu-charge». */
+  /** The «charge» type of a MIME «application/x-mateu-charge». */
   const dragTypeOfMime = (mime) => String(mime || '').replace(/^application\/x-mateu-/, '')
 
   let dropSink = null
   function setDropSink(fn) { dropSink = typeof fn === 'function' ? fn : null }
 
-  // ── TILES REORDENABLES (ResponsiveGrid.reorderable): el bloque de cada tile lleva data-mateu-tile
-  // (su clave) y data-mateu-tile-scope; arrastrar uno sobre otro lo coloca ahí, y Alt+←/→ con el
-  // tile enfocado lo mueve un puesto. El orden se guarda (prefs: el mismo almacén que el web) y la
-  // página re-proyecta el host sin ir al servidor (tileSink).
+  // ── REORDERABLE TILES (ResponsiveGrid.reorderable): each tile's block carries data-mateu-tile
+  // (its key) and data-mateu-tile-scope; dragging one over another places it there, and Alt+←/→ with the
+  // tile focused moves it one place. The order is saved (prefs: the same store as the web) and the
+  // page re-projects the host without going to the server (tileSink).
   const TILE_MIME = 'application/x-mateu-tile'
   let tileSink = null
   function setTileReorderSink(fn) { tileSink = typeof fn === 'function' ? fn : null }
 
-  /** Las claves de los tiles de un ámbito, en el orden en que están pintados. */
+  /** The keys of a scope's tiles, in the order they are painted. */
   function paintedTileOrder(doc, scope) {
     return Array.from(doc.querySelectorAll('[data-mateu-tile]'))
       .filter((el) => el.getAttribute('data-mateu-tile-scope') === scope)
@@ -13863,7 +14200,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       writeTileOrder(scope, next)
       if (tileSink) tileSink(scope)
       if (focusKey) {
-        // tras re-proyectar, el foco vuelve al tile movido (VB repinta de forma asíncrona)
+        // after re-projecting, focus returns to the moved tile (VB repaints asynchronously)
         let tries = 0
         const refocus = () => {
           const el = Array.from(doc.querySelectorAll('[data-mateu-tile]'))
@@ -13875,7 +14212,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         setTimeout(refocus, 0)
       }
     }
-    // el atributo draggable se pone al empezar el gesto (el bloque lo pinta la plantilla sin él)
+    // the draggable attribute is set when the gesture starts (the template paints the block without it)
     doc.addEventListener('mousedown', (e) => { const tile = tileOf(e.target); if (tile) tile.draggable = true }, true)
     doc.addEventListener('dragstart', (e) => {
       const tile = tileOf(e.target)
@@ -13943,7 +14280,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const zone = e.target && e.target.closest ? e.target.closest('.mateu-drop-zone') : null
       if (zone && !(e.relatedTarget && zone.contains(e.relatedTarget))) zone.classList.remove('mateu-drop-over')
     }, true)
-    // mientras se arrastra algo con tipo, los destinos que lo aceptan se ofrecen (borde punteado)
+    // while something with a type is being dragged, the destinations that accept it offer themselves (dotted border)
     doc.addEventListener('dragstart', (e) => {
       const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
       setTimeout(() => {
@@ -13972,23 +14309,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // MatrixGrid sobre oj-data-grid: el comportamiento que JET deja a la aplicación, instalado una
-  // vez por documento (como el rango del tape chart o los paneles de acciones):
-  //   - plegar/desplegar una sección: el grid pide (ojExpandRequest/ojCollapseRequest) y aquí se
-  //     cambia el KeySet del FlattenedTreeDataProviderView; el estado se guarda en el almacén de
-  //     paneles para que sobreviva a una re-proyección;
-  //   - editar: qué celdas se editan lo dice cell.editable (matrixAtomOf); al terminar
-  //     (ojBeforeEditEnd) el valor nuevo, si cambió, sale por editActionId;
-  //   - una celda que enlaza: clic → cellActionId. Ambas con { _rowId, _columnId, _value }.
+  // MatrixGrid on oj-data-grid: the behaviour JET leaves to the application, installed once
+  // per document (like the tape chart's range or the action panels):
+  //   - collapsing/expanding a section: the grid requests it (ojExpandRequest/ojCollapseRequest) and here the
+  //     KeySet of the FlattenedTreeDataProviderView is changed; the state is saved in the
+  //     panels store so it survives a re-projection;
+  //   - editing: which cells are edited is said by cell.editable (matrixAtomOf); when it ends
+  //     (ojBeforeEditEnd) the new value, if it changed, goes out through editActionId;
+  //   - a linking cell: click → cellActionId. Both with { _rowId, _columnId, _value }.
 
   let matrixSink = null
-  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  /** Who runs the action (the shell reuses the Elements' sink). */
   function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
 
-  /** Los parámetros de la acción de una celda. */
+  /** The parameters of a cell's action. */
   const matrixCellParams = (rowId, columnId, value) => ({ _rowId: rowId, _columnId: columnId, _value: value })
 
-  /** ¿Hay que lanzar la edición? Sólo si cambió (un Enter sin tocar nada no es una edición). */
+  /** Should the edit be launched? Only if it changed (an Enter without touching anything is not an edit). */
   const matrixEditChanged = (before, after) => String(before ?? '') !== String(after ?? '')
 
   const gridOf = (el) => (el && el.closest ? el.closest('oj-data-grid.mateu-matrix') : null)
@@ -14031,18 +14368,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
-  // teselas), así que el átomo `isMap` es un contenedor que esto llena, una vez por documento como el
-  // texto enriquecido o el MatrixGrid:
-  //   - Leaflet (1.9.4) y su CSS se cargan del CDN de cdnjs al pintarse el primer mapa — nada se
-  //     vendoriza; con requirejs presente (VB) se pide por require, porque un <script> UMD con
-  //     requirejs cargado choca con su define anónimo;
-  //   - teselas de OpenStreetMap, como el <mateu-map> del web — o las del proveedor que el Map
-  //     declara en el wire (tileUrl, plantilla de Leaflet, + attribution): tileLayerOf;
-  //   - un marcador = un círculo de su color con la etiqueta al lado (y la descripción al pasar);
-  //     pulsarlo lanza markerActionId con { _markerId };
-  //   - con marcadores y sin posición, la vista los encuadra (mapViewPlanOf, la misma regla que
-  //     planMapView en libs/mateu).
+  // Map on Leaflet: JET has no street map (oj-thematic-map paints GeoJSON geography, not
+  // tiles), so the `isMap` atom is a container this fills, once per document like the
+  // rich text or the MatrixGrid:
+  //   - Leaflet (1.9.4) and its CSS are loaded from the cdnjs CDN when the first map is painted — nothing is
+  //     vendored; with requirejs present (VB) it is requested through require, because a UMD <script> with
+  //     requirejs loaded clashes with its anonymous define;
+  //   - OpenStreetMap tiles, like the web's <mateu-map> — or those of the provider the Map
+  //     declares on the wire (tileUrl, Leaflet template, + attribution): tileLayerOf;
+  //   - a marker = a circle of its colour with the label beside it (and the description on hover);
+  //     clicking it launches markerActionId with { _markerId };
+  //   - with markers and no position, the view frames them (mapViewPlanOf, the same rule as
+  //     planMapView in libs/mateu).
 
   const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
   const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
@@ -14053,8 +14390,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
-  /** La capa de teselas de un mapa: la del wire (tileUrl + attribution) o, sin tileUrl, OSM. La
-   *  plantilla del wire ya es la de Leaflet ({s}, {z}, {x}, {y}), así que pasa tal cual. */
+  /** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
+   *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is. */
   function tileLayerOf(spec) {
     const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
     if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
@@ -14063,10 +14400,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   let mapSink = null
-  /** Quién ejecuta la acción de un marcador (la shell reutiliza el sumidero de los Element). */
+  /** Who runs a marker's action (the shell reuses the Elements' sink). */
   function setMapActionSink(fn) { mapSink = typeof fn === 'function' ? fn : null }
 
-  /** "lat, lon" → { lat, lon }, o null si no son dos números. */
+  /** "lat, lon" → { lat, lon }, or null if they are not two numbers. */
   function parseMapPosition(position) {
     if (!position) return null
     const parts = String(position).split(',').map((p) => p.trim())
@@ -14082,8 +14419,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return Number.isFinite(z) ? z : DEFAULT_ZOOM
   }
 
-  /** Qué enseña el mapa al abrirse: la posición explícita manda; si no, los marcadores (uno se
-   *  centra, varios se encuadran); si no, el mundo. Misma regla que planMapView (libs/mateu). */
+  /** What the map shows on opening: the explicit position wins; otherwise, the markers (one is
+   *  centred, several are framed); otherwise, the world. Same rule as planMapView (libs/mateu). */
   function mapViewPlanOf(spec) {
     const center = parseMapPosition(spec.position)
     if (center) return { kind: 'center', center, zoom: parseMapZoom(spec.zoom) }
@@ -14103,7 +14440,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { kind: 'center', center: { lat: 0, lon: 0 }, zoom: parseMapZoom(spec.zoom) }
   }
 
-  /** Los parámetros de la acción de un marcador. */
+  /** The parameters of a marker's action. */
   const mapMarkerParams = (markerId) => ({ _markerId: markerId })
 
   let leafletPromise = null
@@ -14180,7 +14517,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       map.setView([plan.center.lat, plan.center.lon], plan.zoom)
     }
     el.__mateuMap = map
-    // el contenedor puede haber cambiado de tamaño al asentarse la página (VB pinta por pasos)
+    // the container may have changed size as the page settled (VB paints in steps)
     setTimeout(() => map.invalidateSize(), 300)
   }
 
@@ -14194,7 +14531,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       let spec
       try { spec = JSON.parse(raw) } catch (e) { return }
       loadLeaflet(doc).then((L) => {
-        // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
+        // the specification may have changed (or the container disappeared) while loading
         if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
       }).catch(() => {
         el.textContent = chromeText('mapUnavailable')
@@ -14215,15 +14552,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // TONOS DE FILA del listado (@RowStatus) y filas de GRUPO (@GroupBy) sobre el oj-table de JET.
-  // oj-table no tiene clase por fila (sólo plantillas de celda o una plantilla de fila entera que
-  // obligaría a repintar todas las columnas a mano), así que una pasada mínima por el DOM: cada `tr`
-  // del cuerpo de #mateuTable recibe la clase de su fila (misma posición: la página se pinta entera,
-  // sin virtualizar). Un MutationObserver la repite cuando JET repinta (orden, página, refresco).
+  // Listing ROW TONES (@RowStatus) and GROUP rows (@GroupBy) on JET's oj-table.
+  // oj-table has no per-row class (only cell templates or a whole-row template that
+  // would force repainting every column by hand), so a minimal pass over the DOM: each `tr`
+  // of #mateuTable's body gets its row's class (same position: the page is painted whole,
+  // without virtualisation). A MutationObserver repeats it when JET repaints (sort, page, refresh).
 
   let tones = []
 
-  /** Los tonos de las filas en pantalla, en orden (de listingOf(...).rows: _tone de cada una). */
+  /** The tones of the rows on screen, in order (from listingOf(...).rows: each one's _tone). */
   function setListingTones(rows) {
     tones = (rows || []).map((r) => (r && r._tone) || '')
     applyRowTonesSoon()
@@ -14251,7 +14588,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  /** Vigila (una vez) los repintados del oj-table para volver a poner los tonos. */
+  /** Watches (once) the oj-table's repaints to put the tones back. */
   function installRowTones(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuRowTones || typeof MutationObserver === 'undefined') return
     doc.__mateuRowTones = true
@@ -14263,9 +14600,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }).observe(doc.body, { childList: true, subtree: true })
   }
 
-  // ── cabecera de ficha FIJA y compacta al hacer scroll (la «business card» de OPERA) ─────────────
-  /** Marca el body con mateu-scrolled en cuanto la página deja la cabecera atrás: app.css pinta la
-   *  banda .mateu-sticky-header compacta (menos aire, sin tira, con sombra). */
+  // ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────
+  /** Marks the body with mateu-scrolled as soon as the page leaves the header behind: app.css paints the
+   *  compact .mateu-sticky-header band (less air, no strip, with shadow). */
   function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
     if (!win || win.__mateuStickyHeader) return
     win.__mateuStickyHeader = true
@@ -15289,28 +15626,42 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return best
   }
 
+  /** `carried` with `defaults` filling every key it has no value for — a null is no value, as in the
+   *  server's `putIfAbsent` (RouteSegmentUtils.addParameterValues). */
+  function bundleWithDefaults(defaults, carried) {
+    const out = { ...defaults, ...(carried || {}) }
+    for (const key of Object.keys(defaults)) if (out[key] === null || out[key] === undefined) out[key] = defaults[key]
+    return out
+  }
+
   /** Applies the registry's parameters to a pre-rendered increment, in the SAME order the server and
    *  the web renderers use — otherwise one route would behave differently depending on which renderer
    *  and whether a backend happens to be present:
    *
-   *    fixed  >  path  >  what the increment already carries  >  defaults
+   *    fixed  >  path  >  what the increment already carries  >  state seeds  >  defaults
    *
+   *  A route's `state:` seeds sit at the defaults' level (above defaultParams), and its `appState:`
+   *  seeds go UNDER the app state the increment carries — both were ignored here, so a statically
+   *  served Redwood page lost them. Pinned, with the web's, by conformance/client/route-params.json.
    *  Untouched (same reference) when no entry answers the path. */
   function applyRouteParams(syncPath, increment) {
     const match = matchRouteEntry(syncPath)
     if (!match) return increment
-    const defaults = match.entry.defaultParams || {}
-    const fixed = match.entry.fixedParams || {}
-    const pathParams = match.pathParams
-    if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length) {
+    const { entry, pathParams } = match
+    const defaults = bundleWithDefaults(entry.defaultParams || {}, entry.state)
+    const fixed = entry.fixedParams || {}
+    const appSeed = entry.appState || {}
+    if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length
+      && !Object.keys(appSeed).length) {
       return increment
     }
     return {
       ...increment,
+      ...(Object.keys(appSeed).length ? { appState: { ...appSeed, ...(increment.appState || {}) } } : {}),
       fragments: (increment.fragments || []).map((f) => ({
         ...f,
-        state: { ...defaults, ...(f.state || {}), ...pathParams, ...fixed },
-        data: { ...defaults, ...(f.data || {}), ...pathParams, ...fixed },
+        state: { ...bundleWithDefaults(defaults, f.state), ...pathParams, ...fixed },
+        data: { ...bundleWithDefaults(defaults, f.data), ...pathParams, ...fixed },
       })),
     }
   }
@@ -15324,7 +15675,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The `/mateu/v3/sync/<seg>` path segment for a route — mirrors transport.callMateu and the web:
    *  leading slash stripped, blank/root → `_no_route`. */
   function toSyncPath(route) {
-    const r = route && route.startsWith('/') ? route.substring(1) : (route || '')
+    // the query string is a listing's filters, page and sort — never part of the screen
+    const path = route && route.includes('?') ? route.substring(0, route.indexOf('?')) : route
+    const r = path && path.startsWith('/') ? path.substring(1) : (path || '')
     return r === '' ? '_no_route' : r
   }
 
@@ -15401,6 +15754,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // params LAST so the real value wins over the render-time placeholder
         fragments: (t.increment.fragments || []).map((f) => ({
           ...f,
+          component: bundleWithInitialData(f.component, params),
           state: { ...(f.state || {}), ...params },
           data: { ...(f.data || {}), ...params },
         })),
@@ -15409,6 +15763,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return applyRouteParams(syncPath, withPathParams)
     }
     return undefined
+  }
+
+  /** A server-side component carries the path params it was rendered with in `initialData` too — at
+   *  export time, the PLACEHOLDER. Overwrite them with the real ones, or a page that seeds its state
+   *  from initialData would ask the API for `__mateu_param__` (as the web's bundleStore does). */
+  function bundleWithInitialData(component, params) {
+    if (!component || !component.initialData || typeof component.initialData !== 'object') return component
+    return { ...component, initialData: { ...component.initialData, ...params } }
   }
 
   /** The bundled increment for a route (exact match then :param template), re-targeted so its
@@ -15613,11 +15975,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return mountPath != null ? pathOfRoute(route, mountPath) : '#' + (route || '')
   }
 
+  // query keys the host's login flow adds and no screen reads (Spring Security's ?continue after a
+  // form login): never a route parameter — same list as libs/mateu routeQuery.ts
+  const LOGIN_FLOW_QUERY_KEYS = ['continue']
+
+  /** The browser query as the route's: the login flow's artefacts dropped, the rest as written. */
+  function routeQueryOf(search) {
+    const raw = String(search || '').replace(/^\?/, '')
+    if (!raw) return ''
+    const kept = raw.split('&').filter((pair) => {
+      if (!pair) return false
+      let key = pair.split('=')[0]
+      try { key = decodeURIComponent(key.replace(/\+/g, ' ')) } catch (e) { /* kept as written */ }
+      return !LOGIN_FLOW_QUERY_KEYS.includes(key)
+    })
+    return kept.length ? '?' + kept.join('&') : ''
+  }
+
   /** The route (with its ?query) the browser URL names. */
   function currentRouteOf(location) {
     if (!location) return ''
     if (mountPath == null) return (location.hash || '').replace(/^#/, '')
-    return routeOfPath(location.pathname, mountPath) + (location.search || '')
+    return routeOfPath(location.pathname, mountPath) + routeQueryOf(location.search)
   }
 
   /** A route the server names in full (an App's homeRoute '/console/home') as a route under the mount
@@ -15650,10 +16029,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
-  // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
-  // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
-  // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
+  // Bridge transport — contract CONFIRMED against demo/demo-vb (see DESIGN-NOTES
+  // "Transport"): shell bootstrap through components/_/action; everything else through
+  // sync/{route|_no_route} with actionId '' on loads. SINGLE source: this file is
+  // tested in Node (capture.mjs) and packaged as AMD for VB (make-amd.mjs).
 
 
 
@@ -15664,15 +16043,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
-  /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
-   *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
-   *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
-   *  son de ninguna pantalla; `options.view` la fija a mano (null: de ninguna). */
+
+  /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
+   *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
+   *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
+   *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
   async function callMateu(base, body, options = {}) {
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
-    noteDocumentBase(base) // un Document aparcado se pide a ESTE backend
+    noteDocumentBase(base) // a parked Document is requested from THIS backend
     const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -15691,17 +16071,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     observeWireVersion(increment)
     // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
     adoptReferencedSources(increment)
-    // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
+    // the body takes time too: whatever arrives after the screen changed is not applied either
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
   }
 
-  /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
-   *  Static-bundle: la shell NO se exporta (el bundle guarda cargas de ruta, no el __load__ del App),
-   *  así que en modo híbrido (bundle + backend) el menú sale del backend como siempre; pero si el
-   *  backend NO está (despliegue estático puro) y el bundle trae la ruta raíz, se cae a ella para que
-   *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
+  /** Shell bootstrap: the root App only resolves through the generic endpoint.
+   *  Static-bundle: the shell is NOT exported (the bundle stores route loads, not the App's __load__),
+   *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
+   *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
+   *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
   async function bootstrapShell(base, initiator = 'shell') {
+    // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
+    trustShellBase(base)
     await awaitBundle()
     // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
     // its absence is the normal case, not an error band nor a sign of being offline
@@ -15723,8 +16105,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Ruta INTERNA de un mediador/isla tras un flip de state._route: base del outbound +
-   *  flip + marcadores query (los ?_embeddedMediator=1&_inline=1 deben seguir viajando). */
+  /** INTERNAL route of a mediator/island after a state._route flip: outbound base +
+   *  flip + query markers (the ?_embeddedMediator=1&_inline=1 must keep travelling). */
   function composeInnerRoute(outboundRoute, flip) {
     if (!flip || flip === '/' ) return outboundRoute
     const queryIndex = outboundRoute.indexOf('?')
@@ -15734,12 +16116,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La base de un crud de PÁGINA a la que se pegan sus rutas internas (`/QN29HB`, `/QN29HB/edit`,
-   * `/new`): su `consumedRoute`, no la ruta con la que se cargó. Entrando desde el listado las dos
-   * coinciden (`/booking/bookings`), pero un detalle abierto por enlace directo se carga con
-   * `/booking/bookings/QN29HB` y lo consumido es `/booking/bookings`: pegar ahí el `/QN29HB/edit`
-   * del Edit daba `/booking/bookings/QN29HB/QN29HB/edit`. Solo cuando lo consumido es un prefijo de
-   * la ruta; un mediador embebido (sin consumedRoute) conserva su ruta y sus marcadores de query.
+   * The base of a PAGE crud to which its internal routes are appended (`/QN29HB`, `/QN29HB/edit`,
+   * `/new`): its `consumedRoute`, not the route it was loaded with. Coming from the listing both
+   * match (`/booking/bookings`), but a detail opened by direct link is loaded with
+   * `/booking/bookings/QN29HB` and what is consumed is `/booking/bookings`: appending the Edit's
+   * `/QN29HB/edit` there gave `/booking/bookings/QN29HB/QN29HB/edit`. Only when what is consumed is
+   * a prefix of the route; an embedded mediator (no consumedRoute) keeps its route and its query markers.
    */
   function mediatorBaseOf(outbound, fallbackRoute = '') {
     const o = outbound || {}
@@ -15761,16 +16143,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * ¿La respuesta a una acción pide recargar la ruta interna del mediador? Devuelve esa ruta, o
-   * null si no hay flip.
+   * Does the response to an action ask to reload the mediator's internal route? Returns that route,
+   * or null if there is no flip.
    *
-   * Un crud de PÁGINA no contesta el detalle: contesta un fragmento SOLO-ESTADO cuyo `_route`
-   * apunta a él (clic de fila → `/2CSXZN`, New → `/new`), que significa "recarga mi ruta interna
-   * con este estado". Quien no sigue el flip se queda mirando el listado: la petición sale, el
-   * servidor contesta 200, y no pasa nada — el fallo más difícil de ver de todos.
+   * A PAGE crud does not answer with the detail: it answers a STATE-ONLY fragment whose `_route`
+   * points at it (row click → `/2CSXZN`, New → `/new`), meaning "reload my internal route
+   * with this state". Whoever does not follow the flip is left looking at the listing: the request
+   * goes out, the server answers 200, and nothing happens — the hardest failure of all to spot.
    *
-   * El criterio es SEMÁNTICO (comparar el valor de `_route` antes y después), no por identidad:
-   * los objetos de VB son proxies y las referencias no dicen nada.
+   * The criterion is SEMANTIC (compare the `_route` value before and after), not by identity:
+   * VB objects are proxies and references say nothing.
    */
   function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '') {
     const stateOnly = increment && (increment.fragments || []).length > 0
@@ -15816,10 +16198,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   function setMountWithoutApp(value) { mountWithoutApp = !!value }
 
-  /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
-   *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
-   *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
-   *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
+  /** Load of a route (actionId '': the real __load__; extra = consumedRoute/serverSideType…).
+   *  Static-bundle: if a manifest is loaded, the load is answered FROM the bundle (no backend);
+   *  it waits for the in-flight manifest fetch (the first load may get ahead of it) and, if the route
+   *  is not in the bundle, falls back to the backend — so a hybrid deployment (bundle + backend) keeps working. */
   const loadRoute = async (base, route, initiator = '', extra = {}) => {
     // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
     if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
@@ -15845,9 +16227,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
   }
 
-  /** Acción saliente: arma la request desde el CONTEXTO — "manda el estado que ya tienes".
-   *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
-   *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
+  /** Outgoing action: builds the request from the CONTEXT — "send the state you already have".
+   *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
+   *  context (a mediator needs consumedRoute + serverSideType on actions too). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
     // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
     // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
@@ -15860,26 +16242,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         { ...extra, parameters, idempotent: !!idempotent }),
     })
     if (restAnswer) return restAnswer
-    // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
+    // the OnSuccess ones (periodic refresh) are read from the context that LAUNCHES the action
     const source = ctx
-    // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
-    // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
+    // the action goes to the ServerSide that DECLARES it (the view, not the mediator that loaded it): also
+    // the triggers — the «refresh» OnLoad of a view loaded by a crud —, not only the buttons
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
-    // Una superficie cargada de otro pod sigue hablando con ESE pod. La base viaja en el
-    // outbound por la misma razón que los 4 campos de ruta: quien dispara una acción (el
-    // trigger `search` de un listado, un botón del toolbar) sabe de qué contexto sale, pero
-    // no de qué backend vino — y mandarla a la shell la contesta vacía, sin error.
+    // A surface loaded from another pod keeps talking to THAT pod. The base travels in the
+    // outbound for the same reason as the 4 route fields: whoever fires an action (a listing's
+    // `search` trigger, a toolbar button) knows which context it comes from, but
+    // not which backend it came from — and sending it to the shell answers it empty, with no error.
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
-    // Guard de doble envío. Una lectura queda EXENTA de la exclusividad: el guard existe porque
-    // un segundo POST de una escritura significa una segunda fila, mientras que una segunda
-    // lectura sólo significa datos más frescos — y bloquearlas rompería el type-ahead, donde la
-    // búsqueda de "mad" se descartaría por estar en vuelo la de "ma".
+    // Double-submit guard. A read is EXEMPT from exclusivity: the guard exists because
+    // a second POST of a write means a second row, whereas a second
+    // read only means fresher data — and blocking them would break type-ahead, where the
+    // search for "mad" would be dropped because the one for "ma" is in flight.
     const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
     const key = pendingActions.key(initiator, actionId)
     if (exclusive && !pendingActions.begin(key)) {
-      // Duplicado: se descarta ANTES de construir la petición.
+      // Duplicate: dropped BEFORE building the request.
       return Promise.resolve(null)
     }
     const release = () => { if (exclusive) pendingActions.end(key) }
@@ -15900,12 +16282,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Carga las opciones de los lookups REMOTOS de un contexto que aún no las tienen (los campos
-   * editables de su formulario y los filtros de su listado; formLookupsOf): una búsqueda vacía
-   * por lookup (`search-<campo>`, hasta 200), en paralelo, contra el ServerSide que la declara
-   * — o el mediador, que la resuelve con la clase de sus filtros —, con el estado del contexto.
-   * Cada respuesta deja sus opciones en ctx.data[campo]; se marcan como cargadas también las que
-   * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
+   * Loads the options of a context's REMOTE lookups that do not have them yet (the editable
+   * fields of its form and the filters of its listing; formLookupsOf): one empty search
+   * per lookup (`search-<field>`, up to 200), in parallel, against the ServerSide that declares it
+   * — or the mediator, which resolves it with its filters class —, with the context's state.
+   * Each response leaves its options in ctx.data[field]; the failing ones are marked as loaded too,
+   * so they are not repeated on every action. Returns the new registry.
    */
   async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
     // the options of the fields backed by a REST source (optionsSource) — direct, or proxied
@@ -15930,21 +16312,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }).catch(() => null)))
     let out = reg
     for (const inc of found) {
-      // sólo los DATOS: un lookup que falla no debe pintar su error encima de la pantalla
+      // only the DATA: a failing lookup must not paint its error over the screen
       if (inc) out = reduceContexts(out, { fragments: (inc.fragments || []).filter((f) => !f.component) })
     }
     return markLookupsLoaded(out, ctxId, pending.map((lookup) => lookup.fieldId))
   }
 
-  /** Acción SSE (Action.sse(true), p.ej. LongTask): POST {base}/mateu/v3/sse/{route} con
-   *  Accept text/event-stream — la respuesta es un STREAM de UIIncrements (data: …\n\n).
-   *  Los increments se ENTREGAN EN VIVO vía `extra.onIncrement(inc)` (async; el diálogo de
-   *  progreso del LongTask se pinta mientras el stream avanza); si el callback devuelve
-   *  true, el increment se considera CONSUMIDO y se excluye de la lista devuelta. Sin
-   *  callback, comportamiento clásico: lista completa al acabar. */
+  /** SSE action (Action.sse(true), e.g. LongTask): POST {base}/mateu/v3/sse/{route} with
+   *  Accept text/event-stream — the response is a STREAM of UIIncrements (data: …\n\n).
+   *  Increments are DELIVERED LIVE via `extra.onIncrement(inc)` (async; the LongTask's progress
+   *  dialog is painted while the stream advances); if the callback returns
+   *  true, the increment is considered CONSUMED and excluded from the returned list. Without a
+   *  callback, classic behaviour: full list at the end. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
-    // atada a la pantalla en curso, como callMateu: cada increment se comprueba al llegar
+    // tied to the current screen, like callMateu: each increment is checked as it arrives
     const view = currentView()
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
@@ -15952,8 +16334,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
     noteDocumentBase(base)
-    // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
-    // mataría a mitad. Pasa igualmente por la política para que el fallo llegue clasificado.
+    // No timeout: a LongTask keeps the stream open by design, so a ceiling would
+    // kill it halfway. It still goes through the policy so the failure arrives classified.
     const res = await fetchWithPolicy(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -16006,15 +16388,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Un mediador cuyo WRAPPER llega como App de chrome (ClientSide type App) en vez de envuelto en un
-   * ServerSide. Es la forma que hoy manda el backend al abrir una opción de menú: el mismo App que en
-   * el bootstrap, pero pedido para una SUB-ruta (route por debajo de rootRoute). reduceContexts lo
-   * absorbe como shell y el contexto queda vacío, así que mediatorOf(host) no lo detecta y la 2ª carga
-   * —la del contenido real: search form + listado del crud— nunca se dispara. Se lee entonces del
-   * incremento: si trae un App cuyo rootRoute es prefijo de la ruta pedida, hay contenido que buscar.
+   * A mediator whose WRAPPER arrives as a chrome App (ClientSide type App) instead of wrapped in a
+   * ServerSide. It is the shape the backend sends today when opening a menu option: the same App as in
+   * the bootstrap, but requested for a SUB-route (route below rootRoute). reduceContexts absorbs
+   * it as the shell and the context stays empty, so mediatorOf(host) does not detect it and the 2nd load
+   * —the one with the real content: the crud's search form + listing— never fires. So it is read from the
+   * increment: if it carries an App whose rootRoute is a prefix of the requested route, there is content to fetch.
    *
-   * La raíz del app (route === rootRoute) es la shell/home y NO pasa por aquí: la resuelve el
-   * bootstrap. Sólo una navegación por debajo de la raíz necesita el segundo salto.
+   * The app root (route === rootRoute) is the shell/home and does NOT go through here: the
+   * bootstrap resolves it. Only a navigation below the root needs the second hop.
    */
   function mediatorFromShellApp(increment, route) {
     for (const fr of increment?.fragments || []) {
@@ -16032,15 +16414,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
-  /** ¿La carga contestó el «Not found.» del servidor (un Text suelto, sin ServerSide)? */
+  /** Did the load answer the server's «Not found.» (a lone Text, no ServerSide)? */
   function isServerNotFound(ctx) {
     const t = ctx && ctx.tree
     return !!(t && t.type === 'ClientSide' && t.metadata && t.metadata.type === 'Text'
       && /^not found\.?$/i.test(String(t.metadata.text || '').trim()))
   }
 
-  /** La ruta TERMINAL de una entrada de menú dentro de un grupo (/gestion/island-host → /island-host),
-   *  o null si no cuelga de ningún grupo. */
+  /** The TERMINAL route of a menu entry inside a group (/gestion/island-host → /island-host),
+   *  or null if it hangs from no group. */
   function terminalMenuRouteOf(menu, route) {
     const path = String(route || '').split('?')[0]
     const query = String(route || '').slice(path.length)
@@ -16058,10 +16440,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Carga una ruta del MENÚ LOCAL: la compuesta con el serverSideType del app que la declara (lo
-   * que hace Vaadin al elegir la opción); si el servidor no la reconoce —un RouteLink metido en un
-   * grupo apunta a una ruta absoluta que no es camino de menú— se reintenta por la terminal.
-   * Una ruta que no es del menú se carga tal cual.
+   * Loads a LOCAL MENU route: the composed one with the serverSideType of the app that declares it (what
+   * Vaadin does when the option is chosen); if the server does not recognise it —a RouteLink placed in a
+   * group points at an absolute route that is not a menu path— it retries through the terminal one.
+   * A route that is not from the menu is loaded as is.
    */
   async function loadMenuRouteInto(base, reg, route, targetId = '', extra = {}) {
     const shell = (reg && reg.shell) || {}
@@ -16076,31 +16458,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Carga una ruta EN el registro y sigue el mediador si lo hay (crud/isla: la 1ª carga
-   * devuelve el App chromeless; el contenido llega con consumedRoute + serverSideType).
-   * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
+   * Loads a route INTO the registry and follows the mediator if there is one (crud/island: the 1st load
+   * returns the chromeless App; the content arrives with consumedRoute + serverSideType).
+   * Returns the new registry. targetId = key of the target context (initiator).
    */
   async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
-    // live reload (liveReload.mjs): lo tecleado viaja con la carga — un view model se hidrata con
-    // ello — y se vuelve a poner sobre la respuesta, para que una página sólo-definición lo conserve
+    // live reload (liveReload.mjs): what was typed travels with the load — a view model is hydrated with
+    // it — and is put back over the response, so a definition-only page keeps it
     const liveState = extra && extra.liveState
     if (extra && 'liveState' in extra) {
       const { liveState: _omit, ...rest } = extra
       extra = liveState ? { ...rest, componentState: liveState } : rest
     }
-    // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
-    // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
-    // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
+    // the raw INCREMENT is kept: the 1st load of a menu option arrives as a mediator App
+    // (ClientSide type App), which reduceContexts routes to the CHROME (shell) and not to the context —
+    // mediatorOf(host) does not see it, so the mediator has to be taken from the increment itself.
     let firstIncrement = await loadRoute(base, route, targetId, extra)
     const ctxId = targetId === '' ? HOST_ID : targetId
     let outbound = { route, consumedRoute: '', serverSideType: undefined, baseUrl: base }
-    // La CADENA de rutas (P1): un registro con pestañas que son páginas llega como uno o varios Apps
-    // ANIDADOS (el maestro) antes de la pantalla de su hueco. Cada uno es un NIVEL (título +
-    // pestañas), no la shell; se sigue su home hasta llegar al contenido.
+    // The route CHAIN (P1): a record whose tabs are pages arrives as one or more NESTED Apps
+    // (the master) before the screen of its slot. Each one is a LEVEL (title +
+    // tabs), not the shell; its home is followed until the content is reached.
     const shellType = reg && reg.shell ? reg.shell.serverSideType : undefined
     const appLevels = []
-    // la ruta que de verdad se carga: un maestro alcanzado solo (/customers/7) abre su pestaña
-    // por defecto (/customers/7/orders)
+    // the route that is really loaded: a master reached on its own (/customers/7) opens its default
+    // tab (/customers/7/orders)
     let effectiveRoute = route
     for (let hop = 0; hop < 4; hop++) {
       const split = splitNestedApps(firstIncrement, shellType, route)
@@ -16116,8 +16498,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       })
     }
     let next = reduceContexts(reg, firstIncrement)
-    // las ACTIONS del componente (con su flag sse) viajan en el WRAPPER del mediador —
-    // la carga de contenido las pierde, así que se conservan aquí
+    // the component's ACTIONS (with their sse flag) travel in the mediator's WRAPPER —
+    // the content load loses them, so they are kept here
     const wrapperTree = next.contexts[ctxId] && next.contexts[ctxId].tree
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
@@ -16143,9 +16525,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }),
       )
     }
-    // el contexto RECUERDA cómo se cargó: las acciones salientes reconstruyen los campos
-    // de ruta desde aquí (structural sharing: solo cambia la ref de esta entrada).
-    // sseActionIds: acciones anunciadas Action.sse(true) — van por el endpoint /sse
+    // the context REMEMBERS how it was loaded: outgoing actions rebuild the route fields
+    // from here (structural sharing: only this entry's ref changes).
+    // sseActionIds: actions announced Action.sse(true) — they go through the /sse endpoint
     next = {
       ...next,
       contexts: {
@@ -16169,15 +16551,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         },
       }
     }
-    // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
+    // the app levels (masters) of the HOST screen: one tab bar per level
     if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }
     return next
   }
 
   /**
-   * Carga un @Subresource (subresourceIslandOf) en SU contexto: la carga por su tipo — sin el baile
-   * del mediador: el App que lo envuelve ya dice qué clase es — con el estado que le siembra el padre,
-   * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
+   * Loads a @Subresource (subresourceIslandOf) into ITS context: loads it by its type — without the
+   * mediator dance: the App wrapping it already says which class it is — with the state the parent seeds,
+   * and its OnLoad search (the rows). Returns the new registry.
    */
   async function loadSubresource(base, reg, sub, extra = {}) {
     // an inline island arrived with its tree: nothing to load, its context comes from the node
@@ -16204,9 +16586,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Carga los @Subresource que el contenido deja a la vista y aún no están cargados (los de la
-   * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
-   * hueco: no tumba la pantalla.
+   * Loads the @Subresources the content leaves in view and that are not loaded yet (those of the
+   * active tab: what is in another tab waits until it is opened). One that fails stays as a
+   * gap: it does not bring the screen down.
    */
   /**
    * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
@@ -16381,47 +16763,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
       try {
         next = await loadSubresource(base, next, sub, extra)
-      } catch (ignored) { /* la banda de error ya lo cuenta (onSettle) */ }
+      } catch (ignored) { /* the error band already reports it (onSettle) */ }
     }
     return next
   }
 
   /**
-   * De qué backend se cargó una superficie, o undefined si aún no se sabe.
+   * Which backend a surface was loaded from, or undefined if not known yet.
    *
-   * Una isla se carga con `loadRouteInto`, que recibe la base como argumento: la cadena que la
-   * dispara conoce el id del contexto, no el pod. Preguntándoselo al HOST (el valor por defecto)
-   * la isla se carga de donde vino la pantalla que la contiene, que es lo que siempre quiere.
+   * An island is loaded with `loadRouteInto`, which receives the base as an argument: the chain that
+   * fires it knows the context id, not the pod. By asking the HOST (the default value)
+   * the island is loaded from wherever the screen containing it came from, which is always what it wants.
    */
   function baseOf(reg, ctxId = HOST_ID) {
     const ctx = reg && reg.contexts && reg.contexts[ctxId]
     return ctx && ctx.outbound ? ctx.outbound.baseUrl : undefined
   }
 
-  // ── menús federados ────────────────────────────────────────────────────────────────────────
+  // ── federated menus ────────────────────────────────────────────────────────────────────────
   //
-  // Una shell declara secciones que sirve OTRO pod: `RemoteMenu("/_workflow")`. El árbol que llega
-  // en el bootstrap trae esas opciones marcadas `remote` y SIN hijos — los hijos son del pod, y hay
-  // que ir a buscarlos. Hasta ahora este renderer no lo hacía: pintaba el rótulo que la shell había
-  // escrito y nada debajo, que se lee como "ese servicio no tiene pantallas" en vez de como "nadie
-  // se lo ha preguntado".
+  // A shell declares sections served by ANOTHER pod: `RemoteMenu("/_workflow")`. The tree arriving
+  // in the bootstrap carries those options marked `remote` and WITHOUT children — the children belong
+  // to the pod, and they have to be fetched. Until now this renderer did not do it: it painted the
+  // label the shell had written and nothing below, which reads as "that service has no screens"
+  // instead of "nobody has asked it".
   //
-  // Lo que sigue es la mitad fácil. La otra está en la navegación: una entrada traída de otro pod
-  // solo se puede cargar llamando a ESE pod, y este bridge llamaba siempre al base de la shell. Por
-  // eso cada opción adoptada queda registrada en `remoteRoutes`, y la cadena de navegación consulta
-  // ahí a dónde tiene que ir. Sin esa segunda mitad, expandir el menú es peor que no expandirlo:
-  // aparecen entradas que al pulsarlas no llevan a ninguna parte.
+  // What follows is the easy half. The other is in navigation: an entry brought from another pod
+  // can only be loaded by calling THAT pod, and this bridge always called the shell's base. That is
+  // why each adopted option is recorded in `remoteRoutes`, and the navigation chain looks up
+  // there where it has to go. Without that second half, expanding the menu is worse than not expanding it:
+  // entries appear that lead nowhere when clicked.
 
-  /** Ruta de menú → dónde vive de verdad. La llena expandRemoteMenus; la lee la navegación. */
+  /** Menu route → where it really lives. Filled by expandRemoteMenus; read by navigation. */
   const remoteRoutes = new Map()
 
   /**
-   * Dónde vive una ruta, o undefined si la sirve la propia shell.
+   * Where a route lives, or undefined if the shell itself serves it.
    *
-   * Casa también por PREFIJO, con el registro más largo que encaje: al registro solo llegan las
-   * rutas del MENÚ (`/workflow/processes`), y todo lo que cuelga de ellas —el detalle de un
-   * proceso, `/new`, `/{id}/edit`— vive en el mismo pod. Sin esto, un deep-link a
-   * `/workflow/processes/<id>` salía al backend de la shell, que contesta "Not found.".
+   * It also matches by PREFIX, with the longest registered entry that fits: only MENU routes reach the
+   * registry (`/workflow/processes`), and everything hanging from them —a process's
+   * detail, `/new`, `/{id}/edit`— lives in the same pod. Without this, a deep-link to
+   * `/workflow/processes/<id>` went to the shell's backend, which answers "Not found.".
    */
   function remoteRouteOf(route) {
     if (route == null) return undefined
@@ -16442,9 +16824,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Registra a qué pod va una ruta que NO vino del menú: la navegación que pide un widget remoto
-   * (el enlace del badge de la bandeja emite navigation-requested con su baseUrl y su
-   * serverSideType). Una ruta que el menú ya registró se queda como está — el menú manda.
+   * Records which pod a route that did NOT come from the menu goes to: the navigation requested by a
+   * remote widget (the inbox badge's link emits navigation-requested with its baseUrl and its
+   * serverSideType). A route the menu already registered stays as it is — the menu rules.
    */
   function registerRemoteRoute(route, descriptor) {
     if (!route || !descriptor || !descriptor.baseUrl || remoteRouteOf(route)) return false
@@ -16461,8 +16843,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const childrenOf = (option) => option.submenus || option.submenu || []
 
-  /** Las opciones remotas del árbol, a cualquier profundidad.
-   *  No se baja DENTRO de una remota: lo que cuelgue de ella es del pod, y aún no ha contestado. */
+  /** The remote options of the tree, at any depth.
+   *  It does not descend INTO a remote one: whatever hangs from it belongs to the pod, which has not answered yet. */
   function collectRemoteMenus(menu, found = []) {
     for (const option of menu || []) {
       if (option.remote) found.push(option)
@@ -16471,7 +16853,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return found
   }
 
-  /** El menú del App que contesta un pod, o null si no contestó con uno. */
+  /** The menu of the App a pod answers with, or null if it did not answer with one. */
   function appMenuOf(increment) {
     for (const fragment of (increment && increment.fragments) || []) {
       const md = (fragment.component && fragment.component.metadata) || {}
@@ -16483,10 +16865,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Marca las hojas traídas de un pod con dónde vive ese pod.
+   * Marks the leaves brought from a pod with where that pod lives.
    *
-   * Solo las que no traen `baseUrl` propio: un pod puede a su vez federar, y su respuesta ya viene
-   * resuelta. Un grupo no se marca, se recorre — lo que navega es la hoja.
+   * Only those without their own `baseUrl`: a pod can federate in turn, and its response already comes
+   * resolved. A group is not marked, it is walked — what navigates is the leaf.
    */
   function adoptRemote(menu, option, app) {
     const serverSideType = option.serverSideType ? option.serverSideType : app.serverSideType
@@ -16494,13 +16876,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (child.baseUrl) continue
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
-        // El grupo también es del pod: lo que cuelga de su ruta y no es ninguna de sus hojas —la
-        // página de UNA tarea, /forms/task/<id>, bajo el grupo /forms cuyas hojas son /forms/tasks
-        // y /forms/executions— vive en el mismo pod. Es lo que reclama el servidor de la shell
-        // (RemoteMenuHandler.claimLength cuenta todas las rutas del menú, grupos incluidos); sin
-        // esto ese deep-link salía al backend de la shell, que contesta "Not found.". Solo como
-        // prefijo de respaldo: remoteRouteOf se queda con el registro más largo, así que una hoja
-        // sigue ganándole al grupo que la contiene. El grupo no se marca: lo que navega es la hoja.
+        // The group belongs to the pod too: whatever hangs from its route and is none of its leaves —the
+        // page of ONE task, /forms/task/<id>, under the group /forms whose leaves are /forms/tasks
+        // and /forms/executions— lives in the same pod. It is what the shell's server claims
+        // (RemoteMenuHandler.claimLength counts every menu route, groups included); without
+        // this that deep-link went to the shell's backend, which answers "Not found.". Only as a
+        // fallback prefix: remoteRouteOf keeps the longest registered entry, so a leaf
+        // still beats the group containing it. The group is not marked: what navigates is the leaf.
         registerGroupRoute(child.route || child.path || '', option, app, serverSideType)
         continue
       }
@@ -16514,16 +16896,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         serverSideType,
         uriPrefix: option.route,
       }
-      // Por la ruta tal cual, y por la que verá la navegación cuando shellNavOf le quite el
-      // prefijo del padre. Dos claves para la misma entrada es más barato que reconstruir
-      // aquí el cálculo que hace el nav, y que se desincronicen luego.
+      // By the route as is, and by the one navigation will see when shellNavOf strips the
+      // parent's prefix. Two keys for the same entry is cheaper than rebuilding
+      // here the calculation the nav does, and having them drift apart later.
       const route = child.route || child.path || ''
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
     }
   }
 
-  /** La ruta de un grupo de un pod, registrada como prefijo; la de una hoja ya registrada no se pisa. */
+  /** The route of a pod's group, registered as a prefix; that of an already registered leaf is not overwritten. */
   function registerGroupRoute(route, option, app, serverSideType) {
     const bare = String(route || '').replace(/^\//, '')
     if (!bare || remoteRoutes.has(bare)) return
@@ -16542,13 +16924,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const option of menu || []) {
       if (option.remote) {
         const app = answers.get(option)
-        // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
-        // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— pero no
-        // aporta nada al menú, ni siquiera el rótulo si el pod no contestó.
-        // Remota OCULTA (`@Menu @Hidden RemoteMenu`, visible:false en el wire): sus rutas se
-        // registran igual —un deep-link o una recarga bajo ellas tiene que ir a su pod— y sus
-        // entradas se quedan en el árbol, ocultas: no se pintan (shellNavOf), pero una página bajo
-        // ellas tiene sus migas. Si el pod no contestó, se queda el marcador, también oculto.
+        // HIDDEN remote (`@Menu @Hidden RemoteMenu`, visible:false on the wire): its routes are
+        // registered all the same —a deep-link or a reload under them has to go to its pod— but it
+        // contributes nothing to the menu, not even the label if the pod did not answer.
+        // HIDDEN remote (`@Menu @Hidden RemoteMenu`, visible:false on the wire): its routes are
+        // registered all the same —a deep-link or a reload under them has to go to its pod— and its
+        // entries stay in the tree, hidden: they are not painted (shellNavOf), but a page under
+        // them has its breadcrumbs. If the pod did not answer, the placeholder stays, hidden too.
         if (option.visible === false) {
           if (app) {
             adoptRemote(app.menu, option, app)
@@ -16560,14 +16942,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         if (app) {
           adoptRemote(app.menu, option, app)
-          // HAMBURGER_SECTIONS: un pod montado en el primer nivel es UNA sección conteste lo que
-          // conteste (asSection, navTree.mjs); si no, el rótulo que la shell declaró manda sobre el
-          // del pod
+          // HAMBURGER_SECTIONS: a pod mounted at the first level is ONE section whatever it
+          // answers (asSection, navTree.mjs); otherwise, the label the shell declared wins over
+          // the pod's
           const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
           out.push(...labelledByShell(entries, option))
         } else {
-          // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
-          // vacía se entiende, una que desaparece parece que nunca existió.
+          // The pod did not answer. The section stays, disabled and saying why: an empty section
+          // is understandable, one that disappears looks like it never existed.
           out.push(unavailableMount(option))
         }
       } else if (childrenOf(option).length) {
@@ -16580,15 +16962,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Pide a cada pod su menú y lo pone donde estaba su opción.
+   * Asks each pod for its menu and puts it where its option was.
    *
-   * En paralelo, y un pod que falle no tumba al resto: su sección se queda como estaba en vez de
-   * llevarse por delante las que sí contestaron. Con `sections` (HAMBURGER_SECTIONS) cada pod
-   * montado en el primer nivel queda como una sola sección (asSection).
+   * In parallel, and one failing pod does not bring down the rest: its section stays as it was instead of
+   * taking down the ones that did answer. With `sections` (HAMBURGER_SECTIONS) each pod
+   * mounted at the first level stays as a single section (asSection).
    */
   async function expandRemoteMenus(menu, { sections = false } = {}) {
     const remotes = collectRemoteMenus(menu)
     if (!remotes.length) return menu
+    // the remotes the SHELL's app names may receive the token; those a remote names may not
+    trustDeclaredRemoteBases(remotes.map((option) => option.baseUrl || ''))
     const answers = new Map()
     await Promise.all(remotes.map(async (option) => {
       try {
@@ -16598,36 +16982,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           consumedRoute: '_empty',
           initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
           parameters: option.params || {},
-          // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+          // its failure is ITS section's: no error band or "offline" for the whole app
         }, { quiet: true, isolated: true, timeoutMillis: 20000 })
         const app = appMenuOf(increment)
         if (app) answers.set(option, app)
       } catch (e) {
-        // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
+        // Silent on purpose (quiet/isolated): the section stays unavailable (spliceRemote).
       }
     }))
     return spliceRemote(menu, answers, sections)
   }
 
 
-  // Widgets de CABECERA del App (WidgetSupplier.widgets / @Widget): llegan como hijos del App con
-  // slot "widgets" — un layout con, típicamente, un MicroFrontend (el badge de la bandeja, otro pod
-  // que se refresca solo) y un Popover sobre un Text (el saludo al usuario, que abre su email y el
-  // Logout). El renderer Vaadin los pinta tal cual en su barra; aquí se reparten entre las DOS zonas
-  // que declara oj-sp-global-header:
+  // App HEADER widgets (WidgetSupplier.widgets / @Widget): they arrive as children of the App with
+  // slot "widgets" — a layout with, typically, a MicroFrontend (the inbox badge, another pod
+  // that refreshes itself) and a Popover over a Text (the user greeting, which opens their email and
+  // Logout). The Vaadin renderer paints them as they are in its bar; here they are split between the TWO zones
+  // oj-sp-global-header declares:
   //
-  //  - slot `usermenu`: el área de perfil de la cabecera global de Redwood (FA pone ahí el avatar del
-  //    usuario, y al pulsarlo su menú). Un Popover cuyo disparador es un TEXT es el idioma Mateu de
-  //    "quién soy + un menú": un texto no es un control, así que lo único que puede estar diciendo es
-  //    un rótulo — y en la cabecera, el del usuario. El PRIMERO de esos va al área de perfil como
-  //    avatar con iniciales + nombre, y su contenido a un oj-popup anclado. Es un reconocimiento de
-  //    FORMA, no de valores: no se mira qué dice el texto.
-  //  - slot `end` (zona de acciones): todo lo demás, en orden — HTML de un Text, el HTML vivo de un
-  //    MicroFrontend, y cualquier otro Popover como botón + oj-popup.
+  //  - slot `usermenu`: the profile area of Redwood's global header (FA puts the user's avatar
+  //    there, and their menu on click). A Popover whose trigger is a TEXT is the Mateu idiom for
+  //    "who I am + a menu": a text is not a control, so the only thing it can be saying is
+  //    a label — and in the header, the user's. The FIRST of those goes to the profile area as an
+  //    avatar with initials + name, and its content to an anchored oj-popup. It is a recognition of
+  //    SHAPE, not of values: what the text says is not looked at.
+  //  - slot `end` (actions zone): everything else, in order — a Text's HTML, a
+  //    MicroFrontend's live HTML, and any other Popover as button + oj-popup.
   //
-  // El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
-  // navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
-  // por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+  // HTML is painted as HTML (it is HTML on the wire: an <a> with an onclick that emits
+  // navigation-requested), with two translations: <vaadin-icon> does not exist in Redwood and is replaced
+  // by the equivalent oj-ux-ico font icon, and — since no handler passes the sanitiser (M-S7) — such a
+  // link becomes a route href (routeLinksOf) whose click the header turns back into the same
+  // navigation-requested, which the shell listens to.
+
+
+
 
 
 
@@ -16639,7 +17028,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
 
-  /** El texto visible de un fragmento HTML: sin etiquetas, entidades resueltas, blancos plegados. */
+  /** The visible text of an HTML fragment: no tags, entities resolved, whitespace collapsed. */
   function plainTextOf(html) {
     return String(html == null ? '' : html)
       .replace(/<[^>]*>/g, ' ')
@@ -16648,7 +17037,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .trim()
   }
 
-  /** Iniciales para el avatar: del nombre que sigue al saludo ("Hola, Demo User" → "DU"). */
+  /** Initials for the avatar: from the name following the greeting ("Hola, Demo User" → "DU"). */
   function initialsOf(label) {
     const text = plainTextOf(label)
     const who = text.indexOf(',') >= 0 ? text.slice(text.lastIndexOf(',') + 1) : text
@@ -16665,10 +17054,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El HTML de un widget, apto para Redwood: cada <vaadin-icon icon="vaadin:x"> pasa a un
-   * <span class="oj-ux-ico-…"> (fuente de iconos de Redwood) conservando su style — su tamaño, su
-   * alineación y su color (p.ej. el rojo del badge cuando hay algo urgente). Un icono sin
-   * equivalente se quita: un elemento desconocido no pinta nada y ocupa su sitio igual.
+   * A widget's HTML, fit for Redwood: each <vaadin-icon icon="vaadin:x"> becomes a
+   * <span class="oj-ux-ico-…"> (Redwood's icon font) keeping its style — its size, its
+   * alignment and its colour (e.g. the badge's red when something is urgent). An icon without an
+   * equivalent is removed: an unknown element paints nothing and takes up its space all the same.
    */
   function redwoodHtmlOf(html) {
     const swap = (all, attrs) => {
@@ -16682,7 +17071,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       .replace(/<vaadin-icon\b([^>]*)>\s*<\/vaadin-icon>/gi, swap)
   }
 
-  /** El contenido de un Popover → filas del popup (texto, enlace), en orden. */
+  /** A Popover's content → popup rows (text, link), in order. */
   function popoverContentOf(node) {
     const out = []
     const visit = (n) => {
@@ -16695,12 +17084,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (md.type === 'Anchor') {
-        out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: md.url || '#', target: md.target || '' })
+        out.push({ id: 'r' + out.length, isLink: true, label: md.text || md.url || '', href: safeHref(md.url) || '#', target: md.target || '' })
         return
       }
       if (md.type === 'Button') {
-        // un botón en el popup de un widget solo puede navegar o ejecutar JS del cliente: sin
-        // contexto propio no tiene a quién mandar una acción de servidor
+        // a button in a widget's popup can only navigate or run client JS: without
+        // its own context it has nobody to send a server action to
         const label = md.label || md.text || ''
         if (label) out.push({ id: 'r' + out.length, isText: true, text: label })
         return
@@ -16713,9 +17102,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La proyección de los widgets de cabecera del registro: `user` (el área de perfil) o null, e
-   * `items` (la zona de acciones), cada uno con un id estable por POSICIÓN — el mismo en cada
-   * bootstrap, que es lo que deja al DOM y al refresco reencontrar su hueco.
+   * The projection of the registry's header widgets: `user` (the profile area) or null, and
+   * `items` (the actions zone), each with an id stable by POSITION — the same on every
+   * bootstrap, which is what lets the DOM and the refresh find their slot again.
    */
   function headerWidgetsOf(reg) {
     const nodes = (reg && reg.shell && reg.shell.widgets) || []
@@ -16760,19 +17149,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (md.type === 'Anchor') {
-        items.push({ id, isHtml: true, html: `<a href="${String(md.url || '#').replace(/"/g, '&quot;')}"${md.target ? ` target="${md.target}"` : ''}>${md.text || ''}</a>` })
+        // the url only as a safe link, the text as TEXT (M-S7); mountHeaderHtml sanitizes the result
+        const href = safeHref(md.url) || '#'
+        const text = String(md.text == null ? '' : md.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        items.push({ id, isHtml: true, html: `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${text}</a>` })
       }
     }
     nodes.forEach((node, i) => visit(node, String(i)))
     return { user, items }
   }
 
-  /** El HTML de un widget remoto ya cargado: sus Text, interpolados contra su state. */
+  /** The HTML of an already loaded remote widget: its Texts, interpolated against its state. */
   function remoteWidgetHtmlOf(tree, state) {
     const parts = []
     const visit = (n) => {
       if (!n) return
       const md = n.metadata || {}
+      // the remote's state may carry markup (a badge's link and icon): it reaches the page only
+      // through mountHeaderHtml's whitelist (M-S7)
       if (md.type === 'Text') parts.push(redwoodHtmlOf(interpolate(md.text, state)))
       for (const child of n.children || []) visit(child)
     }
@@ -16783,15 +17177,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const widgetRuntimes = new Map()
 
   /**
-   * Carga un MicroFrontend de cabecera y lo mantiene vivo con SUS triggers: OnLoad al cargar y
-   * OnSuccess tras cada acción que los nombre (el badge: `refresh` cada 10 s, encadenado). Es el
-   * mismo contrato que el renderer web — si un refresco falla, no se reprograma (OnSuccess).
+   * Loads a header MicroFrontend and keeps it alive with ITS triggers: OnLoad on load and
+   * OnSuccess after each action that names them (the badge: `refresh` every 10 s, chained). It is the
+   * same contract as the web renderer — if a refresh fails, it is not rescheduled (OnSuccess).
    *
-   * Las peticiones van en modo `quiet`: un refresco de fondo cada pocos segundos no debe encender la
-   * barra de ocupado ni la banda de error de la pantalla, que hablan de lo que el usuario hace.
+   * Requests go in `quiet` mode: a background refresh every few seconds must not turn on the
+   * screen's busy bar or error band, which are about what the user does.
    *
-   * `deps` existe para los tests (call/schedule/cancel); `onHtml(html)` recibe cada repintado.
-   * Arrancar de nuevo el mismo id para el anterior: un rebootstrap no deja dos bucles.
+   * `deps` exists for the tests (call/schedule/cancel); `onHtml(html)` receives each repaint.
+   * Starting the same id again stops the previous one: a rebootstrap does not leave two loops.
    */
   function startRemoteWidget(item, onHtml, deps = {}) {
     const call = deps.call || callMateu
@@ -16844,7 +17238,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const load = (async () => {
       try {
         apply(await request(''))
-        // un remoto que conteste con un mediador (App chromeless) trae el contenido en un 2º salto
+        // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
         const info = rt.ctx && mediatorOf(rt.ctx)
         if (info) {
           rt.outbound = { consumedRoute: info.rootRoute || item.route || '', serverSideType: info.serverSideType }
@@ -16859,7 +17253,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       loaded: load,
       stop: () => stopRemoteWidget(item.id, cancel),
-      // para los tests: cuántos refrescos hay programados
+      // for the tests: how many refreshes are scheduled
       pending: () => rt.timers.size,
     }
   }
@@ -16881,12 +17275,89 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // ── Navigation links ───────────────────────────────────────────────────────────────────────────
+  // The Mateu idiom for a widget link (the inbox badge) is an <a href="#" onclick="…dispatchEvent(new
+  // CustomEvent('navigation-requested', {detail: {route: '/inbox/pending', baseUrl: '/_inbox', …}}))">.
+  // The sanitiser drops every handler, so the link would go nowhere: it is rewritten into a link to
+  // the ROUTE (the path under the mount, `#/route` when served statically) and the detail is kept
+  // beside the HTML, keyed by that href, for the header's click to emit. Only string values of the
+  // known keys are read — the handler is never evaluated.
+
+  const NAV_DETAIL_KEYS = new Set(['route', 'consumedRoute', 'baseUrl', 'uriPrefix', 'serverSideType'])
+
+  /** The detail of the navigation-requested an inline handler emits, or null if it emits none. */
+  function navigationDetailOfHandler(handler) {
+    const js = String(handler == null ? '' : handler)
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'").replace(/&amp;/g, '&')
+    if (!/new\s+CustomEvent\(\s*(['"])navigation-requested\1/.test(js)) return null
+    const body = /\bdetail\s*:\s*\{([^{}]*)\}/.exec(js)
+    if (!body) return null
+    const detail = {}
+    const re = /([A-Za-z_$][\w$]*)\s*:\s*(?:'([^']*)'|"([^"]*)")/g
+    let m
+    while ((m = re.exec(body[1]))) {
+      if (NAV_DETAIL_KEYS.has(m[1])) detail[m[1]] = m[2] != null ? m[2] : m[3]
+    }
+    if (typeof detail.route !== 'string') return null
+    // a route is a path of this app: an absolute url or a scheme is never navigated to
+    if (detail.route !== '' && (detail.route.charAt(0) !== '/' || detail.route.charAt(1) === '/')) return null
+    return detail
+  }
+
+  /** The href of an app route: its path under the mount (path mode) or `#/route` (static serving). */
+  function routeHrefOf(route, { pathMode = true, mount = '' } = {}) {
+    const r = String(route == null ? '' : route)
+    if (pathMode) return pathOfRoute(r, mount)
+    return '#' + (r.charAt(0) === '/' ? r : '/' + r)
+  }
+
+  const HANDLER_ATTR = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
+  const HREF_ATTR = /\s+href\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
+
+  /**
+   * `html` with each link whose handler emits navigation-requested turned into a link to its route,
+   * and `targets`: href → the detail to emit when it is clicked.
+   */
+  function routeLinksOf(html, options = {}) {
+    const targets = {}
+    const out = String(html == null ? '' : html).replace(/<a\b((?:[^>"']|"[^"]*"|'[^']*')*)>/gi, (all, attrs) => {
+      const detail = navigationDetailOfHandler(attrOf(attrs, 'onclick'))
+      if (!detail) return all
+      const href = safeHref(routeHrefOf(detail.route, options))
+      if (!href) return all
+      targets[href] = detail
+      const rest = attrs.replace(HANDLER_ATTR, '').replace(HREF_ATTR, '')
+      return `<a href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"${rest}>`
+    })
+    return { html: out, targets }
+  }
+
+  /** The detail a click on a header link emits, or null when the click is the browser's (a modified
+   *  or non-primary click opens the href as any link; a link that is not a route link). */
+  function headerNavigationOf(href, event, targets) {
+    if (href == null || !targets || !Object.prototype.hasOwnProperty.call(targets, href)) return null
+    if (event && (event.defaultPrevented || event.button > 0
+      || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
+    return targets[href]
+  }
+
+  function onHeaderLinkClick(hole, event) {
+    const path = typeof event.composedPath === 'function' ? event.composedPath() : []
+    const anchor = path.find((node) => node && node.tagName === 'A')
+      || (event.target && typeof event.target.closest === 'function' ? event.target.closest('a') : null)
+    if (!anchor || typeof anchor.getAttribute !== 'function') return
+    const detail = headerNavigationOf(anchor.getAttribute('href'), event, hole.__mateuNavTargets)
+    if (!detail) return
+    event.preventDefault()
+    anchor.dispatchEvent(new CustomEvent('navigation-requested', { detail: { ...detail }, bubbles: true, composed: true }))
+  }
+
   // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
-  // VB no sabe estampar HTML crudo desde un binding: el hueco (<span class="mateu-header-widget"
-  // data-widget-id>) lo pinta la plantilla y el HTML lo pone el bridge, como con los componentes web
-  // de terceros (elements.mjs). Se recuerda el último HTML de cada hueco: si VB lo re-estampa, el
-  // siguiente montaje lo rellena otra vez; si no cambió, no se toca (un clic en curso sobre el
-  // enlace no pierde su elemento cada 10 s).
+  // VB cannot stamp raw HTML from a binding: the slot (<span class="mateu-header-widget"
+  // data-widget-id>) is painted by the template and the HTML is put in by the bridge, as with third-party
+  // web components (elements.mjs). The last HTML of each slot is remembered: if VB re-stamps it, the
+  // next mount fills it again; if it did not change, it is not touched (a click in progress on the
+  // link does not lose its element every 10 s).
 
   const lastHtml = {}
 
@@ -16897,13 +17368,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!hole) return false
     const next = lastHtml[id] || ''
     if (hole.__mateuHtml !== next) {
-      hole.innerHTML = next
+      // a widget's HTML carries DATA (a remote's state interpolated into its Text): whitelist-sanitized
+      // at the one sink, keeping the icon spans' class/style (M-S7)
+      // (its navigation links become route hrefs first: their handler would not survive)
+      const linked = routeLinksOf(next, { pathMode: isPathMode(), mount: currentMount() })
+      hole.innerHTML = sanitizeHtml(linked.html, { presentation: true })
       hole.__mateuHtml = next
+      hole.__mateuNavTargets = linked.targets
+      if (!hole.__mateuNavWired && typeof hole.addEventListener === 'function') {
+        hole.__mateuNavWired = true
+        hole.addEventListener('click', (event) => onHeaderLinkClick(hole, event))
+      }
     }
     return true
   }
 
-  /** Igual, esperando a que VB pinte el hueco (sus bindings son asíncronos). */
+  /** The same, waiting for VB to paint the slot (its bindings are asynchronous). */
   function mountHeaderHtmlSoon(id, html, frames = 30) {
     if (html != null) lastHtml[id] = html
     if (typeof requestAnimationFrame === 'undefined') return
@@ -16916,30 +17396,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  // ── FAB de "ask" del shell ──────────────────────────────────────────────────────────────────
-  // oj-sp-simple-ui-shell estampa su propio FAB (evento ojSpChatAction) con `oj-ux-ico-oracle-chat`:
-  // el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre el buscador de
-  // destinos, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos bocadillos para dos
-  // cosas distintas. Por defecto es NEUTRO — «Search» con la lupa —: una app Mateu no es un producto
-  // de Oracle y no debe parecerlo (riesgo de marca). Quien quiera el aspecto de Ask Oracle, o su
-  // propia marca, lo pone con @App(askLabel, askIcon): una inicial, una imagen (su logo) o un icono
-  // (`oj-ux-ico-oracle-o` es la "O" de Ask Oracle).
+  // ── The shell's "ask" FAB ──────────────────────────────────────────────────────────────────
+  // oj-sp-simple-ui-shell stamps its own FAB (ojSpChatAction event) with `oj-ux-ico-oracle-chat`:
+  // the speech bubble of Oracle's DIGITAL assistant. Here that FAB opens the destination
+  // finder, and the agent chat has its own FAB with `oj-ux-ico-chat`: two bubbles for two
+  // different things. By default it is NEUTRAL — «Search» with the magnifier —: a Mateu app is not an Oracle
+  // product and must not look like one (brand risk). Whoever wants the Ask Oracle look, or their
+  // own brand, sets it with @App(askLabel, askIcon): an initial, an image (their logo) or an icon
+  // (`oj-ux-ico-oracle-o` is the "O" of Ask Oracle).
 
   const ASK_FAB_LABEL = 'Search'
   const ASK_FAB_GLYPH = 'oj-ux-ico-search'
-  /** El glifo con el que lo estampa el shell (el que se quita). */
+  /** The glyph the shell stamps it with (the one that is removed). */
   const SHELL_CHAT_GLYPH = 'oj-ux-ico-oracle-chat'
 
   const isImageRef = (value) => /^(data:|https?:|\/\/)/i.test(value) || /[/.]/.test(value)
 
   /**
-   * Qué lleva el FAB de "ask" del shell: `{ label, kind, glyph?, text?, src? }`.
-   *  - sin @App(askIcon): la lupa (kind 'glyph'), neutra;
-   *  - una o dos letras ("R"): la inicial (kind 'initial');
-   *  - una ruta o url ("/images/riu.svg"): la imagen (kind 'image'), relativa al backend como el logo;
-   *  - `oj-ux-ico-…` o un nombre Mateu (`vaadin:…`) con equivalente: ese icono (kind 'glyph').
-   * Un askIcon que no es nada de eso (un icono sin equivalente, una palabra) no deja el FAB vacío:
-   * vuelve a la lupa.
+   * What the shell's "ask" FAB carries: `{ label, kind, glyph?, text?, src? }`.
+   *  - without @App(askIcon): the magnifier (kind 'glyph'), neutral;
+   *  - one or two letters ("R"): the initial (kind 'initial');
+   *  - a path or url ("/images/riu.svg"): the image (kind 'image'), relative to the backend like the logo;
+   *  - `oj-ux-ico-…` or a Mateu name (`vaadin:…`) with an equivalent: that icon (kind 'glyph').
+   * An askIcon that is none of those (an icon without an equivalent, a word) does not leave the FAB empty:
+   * it falls back to the magnifier.
    */
   function askFabOf(shell, base = '') {
     const label = String((shell && shell.askLabel) || '').trim() || chromeText('askSearch')
@@ -16960,9 +17440,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const BRANDED_CLASS = 'mateu-ask-fab-branded'
 
   /**
-   * Pone la marca y el nombre al FAB del shell (`fab`, el `<a>`; dentro, el `div role=img` del
-   * glifo). Idempotente: se puede volver a aplicar con otra marca. Además le da lo que el shell no le
-   * da: sin href ni rol, no se alcanzaba con el tabulador y sólo decía "Ask".
+   * Puts the brand and the name on the shell's FAB (`fab`, the `<a>`; inside, the glyph's `div role=img`).
+   * Idempotent: it can be applied again with another brand. It also gives it what the shell does not:
+   * without href or role, it was not reachable with Tab and only said "Ask".
    */
   function brandAskFab(fab, spec) {
     if (!fab || !spec) return false
@@ -17007,18 +17487,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // poc/chat.mjs — núcleo de transporte del CHAT de IA, renderer-neutral (paridad Redwood/VB).
+  // poc/chat.mjs — transport core of the AI CHAT, renderer-neutral (Redwood/VB parity).
   //
-  // El chat compartido (libs/mateu/.../mateu-chat.ts, ~939 líneas) mezcla transporte y UI de Lit. Para
-  // llevarlo a VB "apoyándonos en VB al máximo" (la UI la pone un componente de conversación de JET, no
-  // dibujada a mano), lo que se comparte es SOLO la lógica de transporte: construir el body, elegir la
-  // URL (agente local vs sseUrl), aplanar el menú como contexto, discriminar cada payload `data:` y
-  // acumular el texto del asistente. Ese núcleo va aquí — probado en Node (poc/test.mjs) — y el bucle
-  // de streaming acepta un `fetchImpl` inyectable para no tocar globals. Es la capa "lógica" del
-  // roadmap; el panel VB (gate visual) la consume. Se concatena en el bundle AMD (make-amd quita el import).
+  // The shared chat (libs/mateu/.../mateu-chat.ts, ~939 lines) mixes transport and Lit UI. To
+  // bring it to VB "leaning on VB as much as possible" (the UI is provided by a JET conversation component, not
+  // drawn by hand), what is shared is ONLY the transport logic: building the body, choosing the
+  // URL (local agent vs sseUrl), flattening the menu as context, telling apart each `data:` payload and
+  // accumulating the assistant's text. That core lives here — tested in Node (poc/test.mjs) — and the
+  // streaming loop accepts an injectable `fetchImpl` so as not to touch globals. It is the "logic" layer of the
+  // roadmap; the VB panel (visual gate) consumes it. It is concatenated into the AMD bundle (make-amd strips the import).
 
 
-  /** Discrimina un payload `data:` que es un objeto de uso de tokens ({inputTokens|outputTokens|totalTokens}). */
+  /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
   function tryParseTokenUsage(payload) {
     const trimmed = (payload || '').trim()
     if (!trimmed.startsWith('{')) return null
@@ -17026,12 +17506,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const obj = JSON.parse(trimmed)
       if ('inputTokens' in obj || 'outputTokens' in obj || 'totalTokens' in obj) return obj
     } catch {
-      // no es JSON válido
+      // not valid JSON
     }
     return null
   }
 
-  /** Discrimina un payload `data:` que es un evento personalizado del agente ({event, detail}). */
+  /** Recognises a `data:` payload that is a custom agent event ({event, detail}). */
   function tryParseCustomEvent(payload) {
     const trimmed = (payload || '').trim()
     if (!trimmed.startsWith('{')) return null
@@ -17039,14 +17519,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const obj = JSON.parse(trimmed)
       if (typeof obj.event === 'string') return { event: obj.event, detail: obj.detail ?? {} }
     } catch {
-      // no es JSON válido
+      // not valid JSON
     }
     return null
   }
 
-  /** Aplana el menú al contexto que recibe el LLM (solo en el primer mensaje). Misma forma que
-   *  `MenuContextEntry` del chat compartido: breadcrumb `path` + objeto `navigation`. Salta
-   *  separadores y entradas remotas aún sin resolver (su ruta apunta al loader, no a una pantalla). */
+  /** Flattens the menu into the context the LLM receives (only on the first message). Same shape as
+   *  the shared chat's `MenuContextEntry`: breadcrumb `path` + `navigation` object. Skips
+   *  separators and remote entries not yet resolved (their route points at the loader, not at a screen). */
   function buildChatMenuContext(options, parentPath = []) {
     const result = []
     for (const opt of options || []) {
@@ -17068,8 +17548,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           },
         }
         if (opt.description) entry.description = opt.description
-        // lo que el agente necesita para ENSEÑAR filas en este listado: sus filtros por URL, el campo
-        // id de la fila y el parámetro de la selección (?ids=…). Lo publica el server en el menú.
+        // what the agent needs to SHOW rows in this listing: its URL filters, the row's id
+        // field and the selection parameter (?ids=…). The server publishes it in the menu.
         if (opt.listing) entry.listing = opt.listing
         result.push(entry)
       }
@@ -17077,13 +17557,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return result
   }
 
-  /** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
+  /** The chat POST body. `menuContext` only travels on the first message (the caller decides). */
   function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
     return {
       message: message ?? '',
       sessionId,
-      // la ruta de la pantalla desde la que se pregunta: las reglas de enrutado del plano de control
-      // eligen el agente por ella
+      // the route of the screen the question is asked from: the control plane's routing rules
+      // choose the agent by it
       ...(currentRoute ? { currentRoute } : {}),
       ...(attachments && attachments.length ? { attachments } : {}),
       ...(context !== undefined && context !== null ? { context } : {}),
@@ -17092,7 +17572,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Sube ficheros al endpoint de `@AI(upload=…)` como multipart; devuelve los `{name, path}` guardados. */
+  /** Uploads files to the `@AI(upload=…)` endpoint as multipart; returns the saved `{name, path}`. */
   async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {}, fetchImpl = globalThis.fetch, FormDataImpl = globalThis.FormData }) {
     const form = new FormDataImpl()
     for (const f of files || []) form.append('files', f)
@@ -17103,14 +17583,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ((result && result.files) || []).filter((f) => f && f.path)
   }
 
-  // ── El stream SSE, leído como SSE ──────────────────────────────────────────────────────────────
-  // Por EVENTO, no por línea: las líneas `data:` de un evento se unen con '\n' y una línea en blanco lo
-  // cierra; de `data:` sólo se quita el espacio opcional (la sangría del markdown sobrevive); los
-  // comentarios (`:keep-alive`) y los demás campos se ignoran. Misma lógica que el chat compartido
-  // (libs/mateu/.../chatStream.ts) — mantener las dos a la par.
+  // ── The SSE stream, read as SSE ──────────────────────────────────────────────────────────────
+  // By EVENT, not by line: an event's `data:` lines are joined with '\n' and a blank line
+  // closes it; from `data:` only the optional space is removed (markdown indentation survives);
+  // comments (`:keep-alive`) and other fields are ignored. Same logic as the shared chat
+  // (libs/mateu/.../chatStream.ts) — keep both in step.
 
-  /** Un lector SSE incremental: `push(texto)` devuelve los `data` de los eventos que se han cerrado;
-   *  `end()` el que el stream dejó sin línea en blanco detrás. */
+  /** An incremental SSE reader: `push(text)` returns the `data` of the events that have closed;
+   *  `end()` the one the stream left without a blank line after it. */
   function createSseParser() {
     let buffer = ''
     let data = []
@@ -17138,7 +17618,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         for (;;) {
           const m = /\r\n|\r|\n/.exec(buffer)
           if (!m) break
-          // un '\r' al final puede ser la primera mitad de un '\r\n' partido entre trozos
+          // a trailing '\r' may be the first half of a '\r\n' split across chunks
           if (m[0] === '\r' && m.index === buffer.length - 1) break
           const l = buffer.slice(0, m.index)
           buffer = buffer.slice(m.index + m[0].length)
@@ -17156,8 +17636,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Qué es el `data` de un evento: uso de tokens, un trozo de la respuesta (agent-delta), una fase
-   * (agent-status), una herramienta (agent-tool), un error (agent-error), otro evento de UI, o texto.
+   * What an event's `data` is: token usage, a piece of the answer (agent-delta), a phase
+   * (agent-status), a tool (agent-tool), an error (agent-error), another UI event, or text.
    */
   function classifyChatPayload(payload) {
     const usage = tryParseTokenUsage(payload)
@@ -17174,7 +17654,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { kind: 'text', text: payload ?? '' }
   }
 
-  /** Un uso que no dice nada: todos sus contadores a cero (los marcadores de agentes anteriores). */
+  /** A usage that says nothing: all its counters at zero (the markers of older agents). */
   function isEmptyUsage(usage) {
     if (!usage) return true
     const values = ['inputTokens', 'outputTokens', 'totalTokens'].map((k) => usage[k]).filter((v) => typeof v === 'number' && Number.isFinite(v))
@@ -17182,10 +17662,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Lo que el agente dice que está haciendo en esta respuesta: la fase, las herramientas (la que corre
-   * y las ya hechas, con su duración o su error) y si ya está escribiendo. `line(now)` es la fila de
-   * estado: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
-   * null si el agente no ha informado de nada (agentes anteriores: el panel sigue con «Pensando… N s»).
+   * What the agent says it is doing in this answer: the phase, the tools (the running one
+   * and those already done, with their duration or their error) and whether it is already writing. `line(now)` is the
+   * status row: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
+   * null if the agent has not reported anything (older agents: the panel keeps «Pensando… N s»).
    */
   function createChatProgress(now = Date.now()) {
     const p = {
@@ -17238,29 +17718,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Postea un mensaje al stream del chat y consume la respuesta SSE, por eventos (ver
-   * createSseParser). Cada `data` es uso de tokens, un evento personalizado, progreso del agente, un
-   * trozo de la respuesta (agent-delta: se AÑADE), o texto: tras trozos, el primero es la respuesta
-   * entera y LOS SUSTITUYE (el agente la manda limpia al final); sin trozos, cada texto es una línea
-   * — el contrato de siempre de los agentes que mandan la respuesta línea a línea. `agent-error` se
-   * muestra como el texto del asistente. Devuelve el texto final. `fetchImpl` es inyectable para tests.
+   * Posts a message to the chat stream and consumes the SSE response, by events (see
+   * createSseParser). Each `data` is token usage, a custom event, agent progress, a
+   * piece of the answer (agent-delta: it is APPENDED), or text: after pieces, the first one is the whole
+   * answer and REPLACES THEM (the agent sends it clean at the end); without pieces, each text is a line
+   * — the usual contract of agents that send the answer line by line. `agent-error` is
+   * shown as the assistant's text. Returns the final text. `fetchImpl` is injectable for tests.
    *
-   * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
-   * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
-   * una función: se evalúa en cada envío, y el reenvío lleva el token NUEVO, no el que acaba de ser
-   * rechazado — o el que faltaba: en ec1 el chat llegó a salir sin token porque en ese instante no
-   * había ninguno en localStorage, y enseñaba "Servidor respondió 401" mientras las pantallas, que sí
-   * reautentican, seguían funcionando. Sin nadie que reautentique, o si el reenvío vuelve a dar 401,
-   * falla como siempre.
+   * A 401 is recovered as in the rest of the traffic (fetchWithPolicy): `reauthenticate` asks the
+   * page to reauthenticate and, if it does, the message is resent ONCE. That is why `headers` can be
+   * a function: it is evaluated on every send, and the resend carries the NEW token, not the one just
+   * rejected — or the missing one: in ec1 the chat went out without a token because at that moment there
+   * was none in localStorage, and it showed "Servidor respondió 401" while the screens, which do
+   * reauthenticate, kept working. With nobody to reauthenticate, or if the resend gets 401 again,
+   * it fails as always.
    *
-   * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
-   * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
+   * @param headers         headers object, or () => object (read on every send)
+   * @param reauthenticate  async () => boolean — true if it must be resent (askForReauthentication)
    *
-   * @param onText     (accumulatedText) => void   — en cada cambio del texto (para repintar el mensaje)
-   * @param onDelta    (piece, accumulatedText) => void — en cada trozo que llega en streaming
-   * @param onProgress (progress) => void          — en cada fase/herramienta (createChatProgress)
-   * @param onEvent    ({event, detail}) => void   — evento personalizado del agente (≠ agent-*)
-   * @param onUsage    (usage) => void             — objeto de uso de tokens (los todo-cero no llegan)
+   * @param onText     (accumulatedText) => void   — on every change of the text (to repaint the message)
+   * @param onDelta    (piece, accumulatedText) => void — on every piece that arrives while streaming
+   * @param onProgress (progress) => void          — on every phase/tool (createChatProgress)
+   * @param onEvent    ({event, detail}) => void   — custom agent event (≠ agent-*)
+   * @param onUsage    (usage) => void             — token-usage object (all-zero ones do not arrive)
    */
   async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onDelta, onProgress, onEvent, onUsage, now = () => Date.now() }) {
     const payload = typeof body === 'string' ? body : JSON.stringify(body)
@@ -17287,7 +17767,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const parser = createSseParser()
     const progress = createChatProgress(now())
     let accumulated = ''
-    // hubo trozos desde el último texto entero: el siguiente texto los sustituye
+    // there were pieces since the last whole text: the next text replaces them
     let streamed = false
 
     const handlePayload = (data) => {
@@ -17340,21 +17820,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return accumulated
   }
 
-  // ---- El estado del panel mientras el asistente trabaja, los tokens y el dictado ------------------
+  // ---- The panel state while the assistant works, the tokens and dictation ------------------
 
   /**
-   * El uso de UNA respuesta: el stream puede mandar más de un objeto de uso; dentro de una respuesta
-   * manda el último valor de cada contador, como en el chat compartido (merge, no suma).
+   * The usage of ONE answer: the stream may send more than one usage object; within an answer
+   * the last value of each counter wins, as in the shared chat (merge, not sum).
    */
   function mergeTurnUsage(turn, usage) {
     return { ...(turn || {}), ...(usage || {}) }
   }
 
   /**
-   * El uso que enseña el panel tras una respuesta: el de ESA respuesta, que es lo que el agente manda
-   * como total de la conversación (el ia-agent de ec-demo1 manda el acumulado de la sesión; sumarlo
-   * contaba cada respuesta otra vez en cada respuesta siguiente). Una respuesta sin uso deja el que
-   * había. Mismo criterio que el chat compartido: se sustituye, no se suma.
+   * The usage the panel shows after an answer: that of THAT answer, which is what the agent sends
+   * as the conversation total (ec-demo1's ia-agent sends the session's running total; summing it
+   * counted each answer again in every following answer). An answer without usage keeps the one
+   * there was. Same criterion as the shared chat: it is replaced, not summed.
    */
   function latestUsage(previous, turn) {
     const keys = ['inputTokens', 'outputTokens', 'totalTokens']
@@ -17366,9 +17846,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada — para un agente que
-   * manda el uso de cada respuesta suelta. El panel ya no la usa (ver latestUsage). Solo los
-   * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
+   * The conversation totals: the usage of each finished answer is summed — for an agent that
+   * sends the usage of each answer separately. The panel no longer uses it (see latestUsage). Only the
+   * numeric counters; null if there is none yet (the panel does not show an empty row).
    */
   function addUsage(total, turn) {
     const keys = ['inputTokens', 'outputTokens', 'totalTokens']
@@ -17385,11 +17865,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; lo que el agente
-   * dice que hace, si lo dice (`progress`, de createChatProgress: la herramienta que llama con sus
-   * segundos, la fase, «Respondiendo…»); si no — agentes que no informan —, «Pensando…» con los
-   * segundos mientras no ha llegado nada (la espera larga es la que inquieta) y «Respondiendo…» en
-   * cuanto llega el primer texto.
+   * What the status row under the conversation says: nothing if the assistant is not working; what the agent
+   * says it is doing, if it says so (`progress`, from createChatProgress: the tool it is calling with its
+   * seconds, the phase, «Respondiendo…»); otherwise — agents that do not report —, «Pensando…» with the
+   * seconds while nothing has arrived (the long wait is the worrying one) and «Respondiendo…» as
+   * soon as the first text arrives.
    */
   function chatStatusText({ busy, hasText, elapsedSeconds, progress, now }) {
     if (!busy) return ''
@@ -17400,12 +17880,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s > 0 ? chromeText('chatThinkingFor', { s }) : chromeText('chatThinking')
   }
 
-  /** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
+  /** The browser's speech-recognition constructor, or null where it does not exist (Firefox). */
   function speechRecognitionCtor(win = globalThis) {
     return (win && (win.SpeechRecognition || win.webkitSpeechRecognition)) || null
   }
 
-  /** El texto dictado: el último resultado reconocido (mismo criterio que el chat compartido). */
+  /** The dictated text: the last recognised result (same criterion as the shared chat). */
   function transcriptOf(event) {
     const results = event && event.results
     if (!results || !results.length) return ''
@@ -17414,10 +17894,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El atajo del micrófono del chat: Ctrl+Shift+M en todas las plataformas (en macOS también Ctrl, no
-   * Cmd — Cmd+Shift+M cambia de perfil en Chrome y Opción+M escribe «µ»). Exactamente Ctrl y Shift,
-   * sin Alt ni Cmd, y no la autorrepetición de la tecla mantenida. La tecla se reconoce por su carácter
-   * (AZERTY incluido) o, en un teclado cuya M no escribe una letra latina, por su posición (KeyM).
+   * The chat microphone shortcut: Ctrl+Shift+M on every platform (on macOS also Ctrl, not
+   * Cmd — Cmd+Shift+M switches profile in Chrome and Option+M types «µ»). Exactly Ctrl and Shift,
+   * without Alt or Cmd, and not the auto-repeat of a held key. The key is recognised by its character
+   * (AZERTY included) or, on a keyboard whose M does not type a Latin letter, by its position (KeyM).
    */
   const CHAT_MIC_SHORTCUT = 'Ctrl+Shift+M'
   const CHAT_MIC_ARIA_KEYSHORTCUTS = 'Control+Shift+M'
@@ -17429,31 +17909,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return event.code === 'KeyM'
   }
 
-  // ── Markdown de las respuestas ──────────────────────────────────────────────────────────────────
-  // El agente contesta en markdown (negritas, listas, tablas, código). El chat compartido lo pinta con
-  // marked + DOMPurify; aquí no hay npm en el bundle AMD, así que el subconjunto que usan los agentes se
-  // convierte a mano, ESCAPANDO PRIMERO: todo el HTML del texto sale como texto, y las únicas etiquetas
-  // del resultado son las que pone esta función (sin atributos salvo href/target/rel de los enlaces
-  // http(s)). Seguro por construcción, sin sanitizador. Tolera el markdown a medias del streaming: un
-  // bloque de código sin cerrar es código hasta el final, y un ** sin pareja se queda como texto.
+  // ── Markdown of the answers ──────────────────────────────────────────────────────────────────
+  // The agent answers in markdown (bold, lists, tables, code). The shared chat paints it with
+  // marked + DOMPurify; here there is no npm in the AMD bundle, so the subset agents use is
+  // converted by hand, ESCAPING FIRST: all HTML in the text comes out as text, and the only tags
+  // in the result are the ones this function adds (no attributes except href/target/rel of
+  // http(s) links). Safe by construction, no sanitiser. It tolerates streaming's half-written markdown: an
+  // unclosed code block is code until the end, and an unpaired ** stays as text.
 
   const MD_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
   const mdEscape = (s) => String(s).replace(/[&<>"']/g, (c) => MD_ESC[c])
 
-  /** El markdown en línea de un texto YA escapado: código, enlaces, negrita, cursiva. */
+  /** The inline markdown of an ALREADY escaped text: code, links, bold, italics. */
   function mdInline(escaped) {
     const codes = []
-    // la etiqueta de apertura de cada enlace se aparta hasta el final: su href puede llevar `_` o `*`
-    // (ids=A_B) y la negrita/cursiva de abajo lo romperían
+    // each link's opening tag is set aside until the end: its href may carry `_` or `*`
+    // (ids=A_B) and the bold/italics below would break it
     const opens = []
     const open = (tag) => { opens.push(tag); return `\u0001${opens.length - 1}\u0001` }
     let s = escaped.replace(/`([^`\n]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000` })
-    // enlaces: solo http(s); la URL ya viene escapada (las comillas no pueden cerrar el atributo)
+    // links: only http(s); the URL comes already escaped (quotes cannot close the attribute)
     s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,
       (_, text, url) => `${open(`<a href="${url}" target="_blank" rel="noopener noreferrer">`)}${text}</a>`)
-    // y las rutas de la propia app (`[4MBZS7](/booking/bookings/4MBZS7)`): un enlace que navega DENTRO
-    // de la consola (la burbuja lo engancha, chatRouteOfLink) — sin recargar ni abrir pestaña. Solo
-    // una ruta que empieza por UNA barra: `//host` sería otro sitio.
+    // and the app's own routes (`[4MBZS7](/booking/bookings/4MBZS7)`): a link that navigates INSIDE
+    // the console (the bubble hooks it, chatRouteOfLink) — without reloading or opening a tab. Only
+    // a route starting with ONE slash: `//host` would be another site.
     s = s.replace(/\[([^\]\n]+)\]\((\/(?!\/)[^\s)]*)\)/g,
       (_, text, route) => `${open(`<a href="${route}" class="mateu-chat-route" data-mateu-route="${route}">`)}${text}</a>`)
     s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_\n]+?)__/g, '<strong>$1</strong>')
@@ -17464,9 +17944,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * La ruta a la que navega un clic en un enlace del chat, o null si el clic no es nuestro: sólo los
-   * enlaces a rutas de la app (mateu-chat-route) y un clic normal — con Ctrl/Cmd/Mayús o el botón del
-   * medio el navegador hace lo suyo (abrirlo en otra pestaña sigue funcionando: el href es la URL).
+   * The route a click on a chat link navigates to, or null if the click is not ours: only
+   * links to app routes (mateu-chat-route) and a plain click — with Ctrl/Cmd/Shift or the middle
+   * button the browser does its own thing (opening it in another tab keeps working: the href is the URL).
    */
   function chatRouteOfLink(anchor, event) {
     if (!anchor || !anchor.getAttribute) return null
@@ -17480,9 +17960,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const mdCells = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => mdInline(mdEscape(c.trim())))
 
   /**
-   * El markdown de una respuesta del asistente como HTML seguro para su burbuja: párrafos con saltos
-   * de línea, títulos, listas (con y sin número), citas, reglas, bloques y trozos de código, tablas,
-   * enlaces http(s) (en otra pestaña), negrita y cursiva.
+   * The markdown of an assistant answer as safe HTML for its bubble: paragraphs with line
+   * breaks, headings, lists (numbered and not), quotes, rules, code blocks and snippets, tables,
+   * http(s) links (in another tab), bold and italics.
    */
   function chatMarkdownToHtml(text) {
     const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
@@ -17490,7 +17970,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let i = 0
     while (i < lines.length) {
       const line = lines[i]
-      // bloque de código (``` … ```); sin cerrar —el stream a medias— llega hasta el final
+      // code block (``` … ```); unclosed —the half-done stream— it runs to the end
       const fence = line.match(/^\s*```/)
       if (fence) {
         const body = []
@@ -17503,13 +17983,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (/^\s*$/.test(line)) { i++; continue }
       const heading = line.match(/^\s*(#{1,6})\s+(.*)$/)
       if (heading) {
-        const level = Math.min(6, heading[1].length + 2)   // h3…h6: dentro de una burbuja, no de una página
+        const level = Math.min(6, heading[1].length + 2)   // h3…h6: inside a bubble, not a page
         out.push(`<h${level}>${mdInline(mdEscape(heading[2].replace(/\s*#+\s*$/, '')))}</h${level}>`)
         i++
         continue
       }
       if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { out.push('<hr>'); i++; continue }
-      // tabla: cabecera | a | b | seguida de |---|---|
+      // table: header | a | b | followed by |---|---|
       if (line.includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1])) {
         const head = mdCells(line)
         i += 2
@@ -17530,7 +18010,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         out.push(mdList(lines, i, (next) => { i = next }))
         continue
       }
-      // párrafo: líneas seguidas hasta una en blanco o un bloque; cada salto, un <br>
+      // paragraph: consecutive lines up to a blank one or a block; each break, a <br>
       const para = []
       while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^\s*(```|#{1,6}\s|>|([-*+]|\d+[.)])\s)/.test(lines[i])
         && !(lines[i].includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1]))) {
@@ -17542,7 +18022,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out.join('')
   }
 
-  /** Una lista (y sus sublistas, por sangría) desde la línea `start`; devuelve su HTML y avanza. */
+  /** A list (and its sublists, by indentation) from line `start`; returns its HTML and advances. */
   function mdList(lines, start, advance) {
     const first = lines[start].match(/^(\s*)([-*+]|\d+[.)])\s+/)
     const indent = first[1].length
@@ -17560,7 +18040,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         items[items.length - 1].sub += mdList(lines, i, (next) => { i = next })
         continue
       }
-      // continuación de un elemento: una línea sangrada que no es otro elemento
+      // continuation of an item: an indented line that is not another item
       if (!m && items.length && /^\s{2,}\S/.test(lines[i])) {
         items[items.length - 1].text += '<br>' + mdInline(mdEscape(lines[i].trim()))
         i++
@@ -17600,15 +18080,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
-  // ---- Paridad con el chat web (libs/mateu mateu-chat.ts): lo que el panel VB necesitaba ----------
+  // ---- Parity with the web chat (libs/mateu mateu-chat.ts): what the VB panel needed ----------
   //
-  // El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
-  // título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
-  // autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
-  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; titula el panel con el @App(askLabel); enseña las herramientas que usa el
-  // agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
+  // The shared chat sends with each message, besides the text: the screen CONTEXT (url,
+  // title, appState/appData, the component state — its contextProvider), a self-describing
+  // PROJECTION of the screen (screenContext.ts: fields with type/label/value + actions, the
+  // same an MCP agent receives), the @AI's `mcpUrl` and the attachments; it titles the panel with @App(askLabel); it shows the tools the
+  // agent uses in the current turn; and it explains an empty answer or a network cut. All pure here.
 
-  /** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
+  /** The panel configuration from the shell (the bootstrap App) and the backend base. */
   function chatConfigOf(shell, base = '') {
     const s = shell || {}
     const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
@@ -17616,7 +18096,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       sseUrl: abs(s.sseUrl),
       uploadUrl: abs(s.uploadUrl),
       mcpUrl: abs(s.mcpUrl),
-      // el título del panel: la marca del App (@App(askLabel)), si no «Assistant»
+      // the panel title: the App's brand (@App(askLabel)), otherwise «Assistant»
       title: String(s.askLabel || '').trim() || chromeText('chatTitle'),
     }
   }
@@ -17624,9 +18104,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const mdTypeOf = (node) => (node && node.metadata && typeof node.metadata.type === 'string' ? node.metadata.type : undefined)
 
   /**
-   * La pantalla proyectada para el agente — port de screenContext.ts `projectScreen`: los FormField
-   * (id, rótulo, tipo, estereotipo, obligatorio, solo lectura, valor del estado, opciones) y las
-   * acciones (las declaradas por el componente, con el rótulo de su botón; y los botones sueltos).
+   * The screen projected for the agent — port of screenContext.ts `projectScreen`: the FormFields
+   * (id, label, type, stereotype, required, read-only, state value, options) and the
+   * actions (those declared by the component, with their button's label; and the loose buttons).
    */
   function projectChatScreen(component, state) {
     if (!component || typeof component !== 'object') return { fields: [], actions: [] }
@@ -17691,11 +18171,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
-   * El POST de un turno, con la misma forma que el del chat web: el texto, la sesión, la ruta, los
-   * adjuntos, el contexto (url, título, appState/appData y el estado/datos del contexto HOST del
-   * registro), la pantalla proyectada (si tiene algo), el mcpUrl y, sólo en el primer mensaje de la
-   * sesión (`sendMenu`), el menú. Devuelve `{ body, shown }`: `shown` es lo que se pinta como mensaje
-   * del usuario (el texto + 📎 los adjuntos).
+   * A turn's POST, with the same shape as the web chat's: the text, the session, the route, the
+   * attachments, the context (url, title, appState/appData and the state/data of the registry's HOST
+   * context), the projected screen (if it has anything), the mcpUrl and, only on the session's first
+   * message (`sendMenu`), the menu. Returns `{ body, shown }`: `shown` is what is painted as the
+   * user's message (the text + 📎 the attachments).
    */
   function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
     const text = String(message || '').trim()
@@ -17728,7 +18208,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { body, shown }
   }
 
-  /** El texto final del turno: la respuesta, o por qué no la hay (respuesta vacía, corte de red, error). */
+  /** The final text of the turn: the answer, or why there is none (empty answer, network cut, error). */
   function chatTurnTextOf(accumulated, error) {
     if (error) {
       const message = (error && error.message) || String(error)
@@ -17740,13 +18220,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return accumulated
   }
 
-  /** La duración de una herramienta como el chat web: «850 ms», «1,2 s». */
+  /** A tool's duration like the web chat: «850 ms», «1,2 s». */
   function formatToolDuration(ms) {
     if (typeof ms !== 'number' || !Number.isFinite(ms)) return ''
     return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1).replace('.', ',')} s`
   }
 
-  /** Las herramientas del turno en curso, listas para pintar bajo la respuesta (CSP: todo precomputado). */
+  /** The tools of the current turn, ready to paint under the answer (CSP: all precomputed). */
   function chatToolStepsOf(progress) {
     return ((progress && progress.steps) || []).map((step, i) => ({
       key: i + ':' + step.name,
@@ -17759,7 +18239,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
   }
 
-  /** Adjuntos tras una subida: los que había + los nuevos, sin repetir ruta. */
+  /** Attachments after an upload: the existing ones + the new ones, without repeating a path. */
   function withAttachments(current, added) {
     const out = (current || []).slice()
     for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })
@@ -18532,12 +19012,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return { stop: 'selectionRequired' }
       }
     }
-    // validationRequired (a wizard's next, a form's save): empty required fields are marked on their
-    // field and the action does not leave — what Vaadin does in the browser; the server checks again
+    // validationRequired (a wizard's next, a form's save): empty required fields and the wire
+    // validations that fail (a bound, a pattern) are marked on their field and the action does not
+    // leave — what Vaadin does in the browser; the server checks again
     const validation = !overlay && validationOf(host, id)
     if (validation) {
-      const missing = formErrorsOf(formSections, draft, validation.fields)
-      if (missing.length) return { stop: 'fieldErrors', missing }
+      const refusal = formRefusalOf(formSections, host && host.state, draft,
+        host && host.tree && host.tree.validations, validation.fields)
+      if (refusal.missing.length) return fieldErrorsStop(refusal, false)
+    }
+    // ...and the same for a form that is a component of its own INSIDE the overlay (the crud's
+    // create/edit drawer, an EmbeddedView): its create/save is declared validated by ITS ServerSide.
+    // Its draft was sent unchecked — an empty required field reached the server, which refused it.
+    const surface = overlay && overlaySurfaceOf(reg)
+    const overlayValidation = surface && validationOf({ tree: surface }, id)
+    if (overlayValidation) {
+      const refusal = formRefusalOf(overlay.sections, overlay.state, drawerDraft, surface.validations,
+        overlayValidation.fields)
+      if (refusal.missing.length) return fieldErrorsStop(refusal, true)
     }
     // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to
     // the CONTAINER's ServerSide with ITS state, the dialog's row in parameters.initiatorState
@@ -18567,6 +19059,49 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       transportCtx = actionTransportOf(host, id)
     }
     return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
+  }
+
+  /** The stop of an action refused in the browser: the fields to mark, the messages the wire
+   *  validations gave (the required ones take their JET text), and whether they are in the overlay. */
+  function fieldErrorsStop(refusal, inOverlay) {
+    const stop = { stop: 'fieldErrors', missing: refusal.missing }
+    if (Object.keys(refusal.messages).length) stop.messages = refusal.messages
+    if (inOverlay) stop.inOverlay = true
+    return stop
+  }
+
+  /** The ServerSide form of the top overlay (its `surface`), or null when it has none. */
+  function overlaySurfaceOf(reg) {
+    const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    const top = id && reg.contexts ? reg.contexts[id] : null
+    return (top && top.surface) || null
+  }
+
+  /**
+   * The fields the SERVER refused in the answer to an action (a data fragment carrying `errors`:
+   * fieldId → messages — what a crud drawer's refused save sends for its form): → { missing,
+   * messages, inOverlay } to mark exactly as a browser-side refusal, or null.
+   */
+  function refusedFieldsOf(increment, reg) {
+    for (const fr of (increment && increment.fragments) || []) {
+      const errors = fr && fr.data && fr.data.errors
+      if (!errors || typeof errors !== 'object') continue
+      const messages = {}
+      for (const fieldId of Object.keys(errors)) {
+        const list = Array.isArray(errors[fieldId]) ? errors[fieldId] : [errors[fieldId]]
+        const text = list.filter((m) => m != null && String(m).trim()).map(String).join(' ')
+        if (text && fieldId !== '_component') messages[fieldId] = text
+      }
+      if (!Object.keys(messages).length) continue
+      const target = fr.targetComponentId
+      const contexts = (reg && reg.contexts) || {}
+      const inOverlay = ((reg && reg.stack) || []).some((ctxId) => {
+        const ctx = contexts[ctxId]
+        return ctx && (ctxId === target || (ctx.surface && ctx.surface.id === target) || (ctx.tree && ctx.tree.id === target))
+      })
+      return { missing: Object.keys(messages), messages, inOverlay }
+    }
+    return null
   }
 
   /**
@@ -19698,7 +20233,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (isNewTitle(title)) emitEmbedded(EMBEDDED_EVENTS.title, { title: String(title) })
       return
     }
-    if (typeof document !== 'undefined') document.title = title
+    if (typeof document !== 'undefined') document.title = plainTitleOf(title)
+  }
+
+  // the tab shows text: a title's markup (a page title may carry <b>…</b>) is dropped, as the trail does
+  function plainTitleOf(title) {
+    let s = String(title)
+    let previous
+    do {
+      previous = s
+      s = s.replace(/<[^<>]*>/g, '')
+    } while (s !== previous)
+    return s.replace(/\s+/g, ' ').trim()
   }
 
   // the initial state the host seeds the FIRST load of a screen with (initialState): consumed once
@@ -20184,16 +20730,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // LIVE RELOAD (modo desarrollo del backend, mateu.dev=true): el mismo contrato que
-  // libs/mateu/src/mateu/ui/infra/dev/liveReloadPolicy.ts — aquí no se hereda nada del core web.
+  // LIVE RELOAD (backend development mode, mateu.dev=true): the same contract as
+  // libs/mateu/src/mateu/ui/infra/dev/liveReloadPolicy.ts — nothing is inherited from the web core here.
   //
-  // El backend en modo dev estampa <meta name="mateu-dev" content="/mateu/dev/events"> en el índice
-  // y sirve ese stream SSE: `hello` (con bootId: si cambia, el servidor se reinició → repintar),
-  // `specs-changed` (scope page|app), `reload` (el IDE tras un HotSwap) y `ping`. Una ráfaga de
-  // eventos se colapsa en UNA recarga. `page` repinta la ruta en pantalla CONSERVANDO lo tecleado
-  // (la shell lo pasa a onMateuNavigate como liveState); `app` vuelve a montar la app en la misma URL.
+  // The backend in dev mode stamps <meta name="mateu-dev" content="/mateu/dev/events"> in the index
+  // and serves that SSE stream: `hello` (with bootId: if it changes, the server restarted → repaint),
+  // `specs-changed` (scope page|app), `reload` (the IDE after a HotSwap) and `ping`. A burst of
+  // events collapses into ONE reload. `page` repaints the route on screen KEEPING what was typed
+  // (the shell passes it to onMateuNavigate as liveState); `app` remounts the app at the same URL.
 
-  /** Qué significa un mensaje del stream: { action: 'none'|'page'|'app', bootId, reason }. */
+  /** What a stream message means: { action: 'none'|'page'|'app', bootId, reason }. */
   function liveReloadDecision(message, knownBootId) {
     if (!message || typeof message !== 'object') return { action: 'none', bootId: knownBootId }
     if (message.type === 'hello') {
@@ -20216,13 +20762,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { action: 'none', bootId: knownBootId }
   }
 
-  /** La más fuerte de dos recargas pendientes (app absorbe page). */
+  /** The stronger of two pending reloads (app absorbs page). */
   function strongerReload(a, b) {
     const rank = { none: 0, page: 1, app: 2 }
     return (rank[a] || 0) >= (rank[b] || 0) ? a : b
   }
 
-  /** Dónde está el stream, si el índice lo anuncia (o la app lo fija en window.__MATEU_DEV_EVENTS__). */
+  /** Where the stream is, if the index announces it (or the app sets it in window.__MATEU_DEV_EVENTS__). */
   function devEventsUrlOf(doc, win) {
     if (win && win.__MATEU_DEV_EVENTS__) return win.__MATEU_DEV_EVENTS__
     const meta = doc && doc.querySelector ? doc.querySelector('meta[name="mateu-dev"]') : null
@@ -20231,18 +20777,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   let liveReloadSource = null
 
-  // Lo tecleado en el form del host vive en el borrador de la página de contenido ($page.mateuDraft),
-  // que la shell no ve: la chain que lo acumula lo apunta aquí, con la ruta en que se tecleó.
+  // What was typed in the host's form lives in the content page's draft ($page.mateuDraft),
+  // which the shell does not see: the chain that accumulates it notes it here, with the route it was typed on.
   let liveDraft = { route: null, draft: null }
   function noteLiveDraft(route, draft) { liveDraft = { route: route == null ? null : route, draft } }
-  /** El borrador tecleado en `route` (nada si era de otra pantalla). */
+  /** The draft typed on `route` (nothing if it was from another screen). */
   function liveDraftFor(route) {
     return liveDraft.draft && liveDraft.route === (route == null ? null : route) ? liveDraft.draft : null
   }
 
   /**
-   * Se suscribe al stream (una vez) y llama a onReload(action, reason) tras cada ráfaga. Sin
-   * <meta name="mateu-dev"> no hace nada. `EventSourceImpl` y `timer` se inyectan en los tests.
+   * Subscribes to the stream (once) and calls onReload(action, reason) after each burst. Without
+   * <meta name="mateu-dev"> it does nothing. `EventSourceImpl` and `timer` are injected in the tests.
    */
   function installDevLiveReload(doc, win, onReload, EventSourceImpl, timer = setTimeout) {
     const ES = EventSourceImpl || (win && win.EventSource)
@@ -20281,7 +20827,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     liveReloadSource = null
   }
 
-  /** Una píldora discreta abajo a la izquierda que se desvanece sola. */
+  /** A discreet pill at the bottom left that fades out on its own. */
   function showReloadedPill(doc, reason) {
     if (!doc || !doc.body || !doc.createElement) return
     let pill = doc.getElementById('mateu-live-reload-indicator')
@@ -20697,6 +21243,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     takeLastRetry,
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
+    // ...once what the answer re-drew is on screen (the fields a refused drawer save names)
+    showFieldErrorsSoon,
     clearFieldError,
     clearFieldErrorMarks,
     guardGuidedProcess,
@@ -20765,6 +21313,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    // the fields the server refused in an answer (a data fragment with errors), to mark them
+    refusedFieldsOf,
     blockClickOf,
     hostReRendered,
     touchesHost,
