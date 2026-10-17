@@ -1,5 +1,5 @@
-/* General Overview: cambio de registro en el switcher del header → la acción switchRecord
- * del arquetipo con el nuevo valor (viaja en componentState vía el borrador). */
+/* General Overview: record change in the header's switcher → the archetype's switchRecord action
+ * with the new value (it travels in componentState via the draft). */
 
 define([
   'vb/action/actionChain',

@@ -1,6 +1,6 @@
-/* VISTAS GUARDADAS del listado (prefs.mjs): el menú (las de esta ruta, ★ la de por defecto,
- * «Save current view…»), aplicar una (se navega a la misma ruta con sus filtros en la query: el
- * camino de los filtros por URL, que pone los chips y relanza la búsqueda), guardar la actual. */
+/* SAVED VIEWS of the listing (prefs.mjs): the menu (this route's views, ★ the default one,
+ * «Save current view…»), applying one (navigates to the same route with its filters in the query: the
+ * filters-by-URL path, which sets the chips and relaunches the search), saving the current one. */
 
 define([
   'vb/action/actionChain',
@@ -27,8 +27,8 @@ define([
       const go = (route) => Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route, force: true } });
       if (op === 'menu') {
         $page.variables.mateuViewsMenu = bridge.viewsMenuOf(scope);
-        // oj-menu lee sus opciones al inicializarse: las que estampa el for-each después no
-        // despachan ojMenuAction hasta un refresh() (la misma trampa que el navigation-list)
+        // oj-menu reads its options when it initializes: the ones the for-each stamps later do not
+        // dispatch ojMenuAction until a refresh() (the same trap as the navigation-list)
         await new Promise((r) => requestAnimationFrame(() => r()));
         const menu = document.getElementById('mateuViewsMenu');
         if (menu && menu.refresh) menu.refresh();

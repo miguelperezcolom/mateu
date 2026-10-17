@@ -1,6 +1,6 @@
-/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
+/* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
-// El usuario cierra un aviso de la banda de mensajes del shell.
+// The user closes a notice of the shell's message band.
 define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 

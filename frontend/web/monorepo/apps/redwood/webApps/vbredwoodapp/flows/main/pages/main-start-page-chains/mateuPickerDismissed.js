@@ -1,6 +1,6 @@
-/* Cierre del SELECTOR de un @Searchable (✕ / Esc / Cancel, o el close programático tras elegir):
- * si el overlay superior sigue siendo el selector, se descarta sin elegir nada; tras una elección
- * ya no está y no se toca nada. */
+/* Closing of a @Searchable's SELECTOR (✕ / Esc / Cancel, or the programmatic close after choosing):
+ * if the top overlay is still the selector, it is discarded without choosing anything; after a choice
+ * it is no longer there and nothing is touched. */
 
 define([
   'vb/action/actionChain',
@@ -18,7 +18,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.cancel  el botón Cancel (cierra el diálogo, que vuelve aquí)
+     * @param {boolean} params.cancel  the Cancel button (closes the dialog, which comes back here)
      */
     async run(context, { cancel }) {
       const { $application, $page } = context;

@@ -1,9 +1,9 @@
-/* Edición inline (@InlineEditing): commit POR CELDA — al confirmar un valor (blur/Enter)
- * se envía la fila entera editada vía la acción update-row del crud con
- * parameters._editedRow (contrato: fixtures/real/update-row.json — responde SOLO un toast
- * success, sin fragments: el valor editado ya está en el cliente). Guardas: solo ediciones
- * del usuario (updatedFrom 'internal') y solo cambios reales (los oj-* re-emiten
- * value-changed al re-stampar la plantilla tras un refresco del listado). */
+/* Inline editing (@InlineEditing): commit PER CELL — when a value is confirmed (blur/Enter)
+ * the whole edited row is sent via the crud's update-row action with
+ * parameters._editedRow (contract: fixtures/real/update-row.json — it answers ONLY a success
+ * toast, no fragments: the edited value is already on the client). Guards: only user
+ * edits (updatedFrom 'internal') and only real changes (the oj-* re-emit
+ * value-changed when re-stamping the template after a listing refresh). */
 
 define([
   'vb/action/actionChain',
@@ -19,9 +19,9 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event        value-changed del editor de la celda
-     * @param {Object} params.row          $current.row (fila del template de oj-table)
-     * @param {Object} params.item         $current.item (variante item.data)
+     * @param {Object} params.event        value-changed of the cell editor
+     * @param {Object} params.row          $current.row (row of the oj-table template)
+     * @param {Object} params.item         $current.item (item.data variant)
      * @param {number} params.columnIndex  $current.columnIndex
      */
     async run(context, { event, row, item, columnIndex }) {
@@ -29,7 +29,7 @@ define([
 
       const detail = (event && event.detail) || {};
       if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
-        return; // cambio programático (binding/re-stamp), no una edición del usuario
+        return; // programmatic change (binding/re-stamp), not a user edit
       }
       const listing = $application.variables.mateuListing;
       if (!listing || !listing.editable || columnIndex == null) {
@@ -37,7 +37,7 @@ define([
       }
       const col = listing.columns[columnIndex];
       if (!col || !col.template) {
-        return; // columna sin editor (p.ej. @ReadOnly)
+        return; // column without an editor (e.g. @ReadOnly)
       }
       const rowData = (row && row.data !== undefined) ? row.data
         : ((item && item.data) || row);
@@ -46,7 +46,7 @@ define([
       }
       const value = detail.value;
       if (rowData[col.field] === value) {
-        return; // no-op: mismo valor
+        return; // no-op: same value
       }
       const edited = Object.assign({}, rowData);
       edited[col.field] = value;

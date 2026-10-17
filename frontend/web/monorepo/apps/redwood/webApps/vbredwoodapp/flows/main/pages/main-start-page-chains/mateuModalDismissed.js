@@ -1,6 +1,6 @@
-/* Cierre del MODAL (✕ / programático): si el overlay superior sigue siendo el Dialog, se
- * descarta del registro (camino "dismissed"); un close tras navegación/CloseModal ya no
- * encuentra Dialog arriba y no toca nada. */
+/* Closing the MODAL (✕ / programmatic): if the top overlay is still the Dialog, it is
+ * discarded from the registry ("dismissed" path); a close after navigation/CloseModal no longer
+ * finds a Dialog on top and touches nothing. */
 
 define([
   'vb/action/actionChain',

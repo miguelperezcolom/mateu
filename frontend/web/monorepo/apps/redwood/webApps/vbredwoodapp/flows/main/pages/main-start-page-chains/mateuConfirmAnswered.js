@@ -1,6 +1,6 @@
-/* Respuesta del diálogo de CONFIRMACIÓN de una acción (confirmationRequired): el botón que
- * confirma, el que la deja estar, o el ✕ / Esc (ojBeforeClose). Resuelve la espera de la
- * chain que lanzó la acción (bridge.awaitConfirmation) y cierra el diálogo. */
+/* Answer to an action's CONFIRMATION dialog (confirmationRequired): the button that
+ * confirms, the one that lets it be, or the ✕ / Esc (ojBeforeClose). Resolves the wait of the
+ * chain that launched the action (bridge.awaitConfirmation) and closes the dialog. */
 
 define([
   'vb/action/actionChain',
@@ -18,13 +18,13 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.confirmed  true = confirmar la acción
-     * @param {boolean} params.closing    el diálogo ya se está cerrando (✕ / Esc)
+     * @param {boolean} params.confirmed  true = confirm the action
+     * @param {boolean} params.closing    the dialog is already closing (✕ / Esc)
      */
     async run(context, { confirmed, closing }) {
       bridge.answerConfirmation(!!confirmed);
       if (!closing) {
-        // el close dispara ojBeforeClose, que llega aquí como un «no»: ya contestado, no hace nada
+        // the close fires ojBeforeClose, which arrives here as a «no»: already answered, it does nothing
         await Actions.callComponentMethod(context, { selector: '#mateuConfirm', method: 'close' });
       }
     }

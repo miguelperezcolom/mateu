@@ -1,5 +1,5 @@
-/* Abre/cierra el menú de la hamburguesa: el navigator-drawer izquierdo (HAMBURGUER_MENU) o el panel
- * flotante de las secciones (HAMBURGER_SECTIONS). */
+/* Opens/closes the hamburger menu: the left navigator-drawer (HAMBURGUER_MENU) or the floating
+ * sections panel (HAMBURGER_SECTIONS). */
 
 define([
   'vb/action/actionChain',
@@ -10,8 +10,8 @@ define([
 ) => {
   'use strict';
 
-  // HAMBURGER_SECTIONS: el panel flota sobre la aplicación, así que se cierra también con Esc —
-  // escuchado en el documento mientras está abierto, porque el foco puede no estar dentro.
+  // HAMBURGER_SECTIONS: the panel floats over the application, so it also closes with Esc —
+  // listened to on the document while it is open, because the focus may not be inside.
   const ESC_KEY = '__mateuSectionsEsc';
 
   const focusHamburger = () => {
@@ -24,7 +24,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {boolean} params.open  sin valor = alternar (la hamburguesa pliega/despliega)
+     * @param {boolean} params.open  no value = toggle (the hamburger folds/unfolds)
      */
     async run(context, { open }) {
       const { $application } = context;
@@ -39,7 +39,7 @@ define([
           window[ESC_KEY] = null;
         }
         if (next) {
-          // el panel arranca bajo la cabecera global (la ✕ queda a la vista)
+          // the panel starts under the global header (the ✕ stays in view)
           const header = document.getElementById('globalHeader');
           const bottom = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
           if (bottom > 0) document.documentElement.style.setProperty('--mateu-sections-top', bottom + 'px');
@@ -59,19 +59,19 @@ define([
       }
 
       if (next) {
-        // el navigation-list parsea su <ul> en el init; los li estampados por
-        // oj-bind-for-each llegan después → refresh para que los decore
+        // the navigation-list parses its <ul> on init; the li stamped by
+        // oj-bind-for-each arrive later → refresh so it decorates them
         try {
           await Actions.callComponentMethod(context, {
             selector: sections ? '#mateuSectionList' : '#mateuNavList',
             method: 'refresh',
           });
         } catch (ignored) {
-          // el primer open puede llegar antes de que el elemento exista — el
-          // segundo refresh (tras el stamping) es el que decora
+          // the first open may arrive before the element exists — the
+          // second refresh (after the stamping) is the one that decorates
         }
         if (sections) {
-          // el foco entra en el panel: la sección marcada, o la primera
+          // the focus enters the panel: the marked section, or the first one
           const list = document.getElementById('mateuSectionList');
           const target = list && (list.querySelector('li.oj-selected a, li[aria-selected="true"] a')
             || list.querySelector('li:not(.oj-disabled) a'));

@@ -1,7 +1,7 @@
-/* Clic en una fila del SELECTOR de un @Searchable: la elige (action-on-row-select, la fila en
- * _clickedRow) — en un campo de varios valores, la añade. La respuesta (value-changed /
- * data-changed / close-modal-requested) la aplica runMateuAction al formulario y cierra.
- * En un LISTADO incrustado en un overlay (pickWithRow) es el `view` del listado con la fila. */
+/* Click on a row of a @Searchable's SELECTOR: chooses it (action-on-row-select, the row in
+ * _clickedRow) — in a multi-valued field, adds it. The response (value-changed /
+ * data-changed / close-modal-requested) is applied to the form by runMateuAction, which closes it.
+ * In a LISTING embedded in an overlay (pickWithRow) it is the listing's `view` with the row. */
 
 define([
   'vb/action/actionChain',
@@ -24,7 +24,7 @@ define([
     async run(context, { event }) {
       const { $page } = context;
       const detail = (event && event.detail) || {};
-      // la casilla de selección no elige: marca
+      // the selection checkbox does not choose: it checks
       const origin = detail.originalEvent && detail.originalEvent.target;
       if (origin && origin.closest && origin.closest('.oj-table-checkbox-cell, oj-selector, input[type="checkbox"]')) {
         return;

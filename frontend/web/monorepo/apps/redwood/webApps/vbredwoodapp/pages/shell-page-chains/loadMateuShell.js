@@ -1,5 +1,5 @@
-/* Bootstrap de la shell (Fases 2/6): el App de Mateu configura menú (con grupos),
- * selectores @AppContext y acciones de cabecera; se navega a la primera opción no-grupo. */
+/* Shell bootstrap (Phases 2/6): the Mateu App configures the menu (with groups),
+ * @AppContext selectors and header actions; it navigates to the first non-group option. */
 
 define([
   'vb/action/actionChain',
@@ -13,12 +13,12 @@ define([
   'use strict';
 
   /**
-   * Pone nombre a los iconos de expandir/colapsar de los grupos del menú.
-   *
-   * Los genera oj-navigation-list por dentro como `<a role="button">` VACÍOS: un lector de
-   * pantalla los anuncia como "botón", sin decir de qué. No es marcado nuestro y no podemos
-   * cambiar cómo los emite JET, pero sí nombrarlos después, tomando el texto del grupo al
-   * que pertenecen — que es lo que el usuario necesita oír.
+    * Names the expand/collapse icons of the menu groups.
+    *
+    * oj-navigation-list generates them internally as EMPTY `<a role="button">`: a screen
+    * reader announces them as "button", without saying of what. It is not our markup and we cannot
+    * change how JET emits them, but we can name them afterwards, taking the text of the group they
+    * belong to — which is what the user needs to hear.
    */
   const nameCollapseIcons = () => {
     const list = document.querySelector('#mateuNavList');
@@ -31,13 +31,13 @@ define([
   };
 
   /**
-   * Marca y nombre del FAB de "ask" del shell (Ask Oracle, o la marca del @App).
-   *
-   * Lo estampa oj-sp-simple-ui-shell con el bocadillo de su asistente digital
-   * (oj-ux-ico-oracle-chat), sin href ni rol: no se alcanza con el tabulador y sólo dice "Ask".
-   * Aquí abre el buscador de Ask Oracle y el chat del agente tiene su propio FAB con otro
-   * bocadillo, así que cada uno tiene que decir cuál es. No es marcado nuestro: se marca después,
-   * cuando el shell lo ha pintado (bridge.brandAskFab).
+    * Brand and name of the shell's "ask" FAB (Ask Oracle, or the @App's brand).
+    *
+    * oj-sp-simple-ui-shell stamps it with its digital assistant's speech bubble
+    * (oj-ux-ico-oracle-chat), with no href or role: it cannot be reached with Tab and only says "Ask".
+    * Here it opens the Ask Oracle search, and the agent's chat has its own FAB with another
+    * bubble, so each one has to say which it is. It is not our markup: it is branded afterwards,
+    * once the shell has painted it (bridge.brandAskFab).
    */
   const brandAskFabSoon = (spec, attempt = 0) => {
     const fab = document.querySelector('oj-sp-simple-ui-shell .oj-sp-rw-chat-icon-cont');
@@ -50,15 +50,15 @@ define([
     async run(context) {
       const { $application } = context;
 
-      // el montaje del @UI (<mateu-ui baseUrl>) antes de nada: de él cuelga la API
+      // the @UI's mount (<mateu-ui baseUrl>) before anything else: the API hangs off it
       bridge.initMount(document);
       const base = bridge.mateuBase($application.constants.mateuBaseUrl);
-      // Element (componentes web): su módulo `import` relativo lo sirve el BACKEND (otro origen en
-      // vb-serve / VB alojado), y sus eventos (Element.on) ejecutan acciones de la página de
-      // contenido, así que viajan como evento de aplicación (el camino del Reintentar). Antes de
-      // la primera navegación: el contenido inicial ya puede traer Elements.
-      // imágenes, logo, módulos de componentes web y el sseUrl: de la RAÍZ del backend (no del
-      // montaje del @UI), como en el renderer Vaadin
+      // Element (web components): its relative `import` module is served by the BACKEND (another origin in
+      // vb-serve / hosted VB), and its events (Element.on) run actions of the content
+      // page, so they travel as an application event (the Retry path). Before
+      // the first navigation: the initial content may already carry Elements.
+      // images, logo, web-component modules and the sseUrl: from the backend's ROOT (not from the
+      // @UI's mount), as in the Vaadin renderer
       const assetBase = bridge.mateuAssetBase($application.constants.mateuBaseUrl);
       bridge.setElementModuleBase(assetBase);
       const runPageAction = (actionId, parameters, atom) => {
@@ -69,46 +69,46 @@ define([
         });
       };
       bridge.setElementEventSink(runPageAction);
-      // reglas del cliente (@Hidden/@Disabled con expresión, RuleSupplier): escuchan los cambios de
-      // campo de todo el documento; una RunAction de regla sale por el mismo camino
+      // client rules (@Hidden/@Disabled with an expression, RuleSupplier): they listen to field changes
+      // across the whole document; a rule's RunAction goes out the same way
       bridge.installRules();
       bridge.setRuleActionSink(runPageAction);
-      // tape chart: arrastrar por celdas vacías → rangeSelectActionId (oj-gantt no lo trae)
+      // tape chart: dragging across empty cells → rangeSelectActionId (oj-gantt does not provide it)
       bridge.installPlanningRange();
-      // «I want to…» (ActionPanel): abrir con su atajo, mostrar más, ocultar vacías, cerrar al elegir
+      // «I want to…» (ActionPanel): open with its shortcut, show more, hide empty ones, close on pick
       bridge.installActionPanels();
-      // dashboard con tiles reordenables (ResponsiveGrid.reorderable): arrastrar o Alt+←/→; el
-      // orden se guarda y la página de contenido re-proyecta el host
+      // dashboard with reorderable tiles (ResponsiveGrid.reorderable): drag or Alt+←/→; the
+      // order is saved and the content page re-projects the host
       bridge.setTileReorderSink((scope) => Actions.fireEvent(window.__mateuShellContext || context, {
         name: 'application:mateuTilesReordered', payload: { scope: scope || '' },
       }));
       bridge.installTileReorder();
-      // texto enriquecido (Markdown, campos richText/html/markdown de sólo lectura): el HTML ya
-      // saneado de cada [data-mateu-html] se vuelca en su contenedor
+      // rich text (Markdown, read-only richText/html/markdown fields): the already
+      // sanitized HTML of each [data-mateu-html] is poured into its container
       bridge.installRichText();
-      // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
+      // MatrixGrid (oj-data-grid): fold sections, edit editable rows, cells that link
       bridge.installMatrixGrids();
-      // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción
+      // Calendar: switch views in the DOM, events and dates that launch their action
       bridge.installCalendars();
       bridge.setCalendarActionSink(runPageAction);
       // @Toc: the sticky sections index — click / Ctrl+Alt+N jump, the section in view highlighted
       bridge.installToc();
       bridge.setMatrixActionSink(runPageAction);
-      // Map: JET no trae mapa de calles → Leaflet (cdnjs) + teselas OSM; un marcador lanza su acción
+      // Map: JET has no street map → Leaflet (cdnjs) + OSM tiles; a marker launches its action
       bridge.installMaps();
       bridge.setMapActionSink(runPageAction);
-      // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
+      // row tones (@RowStatus) and group rows (@GroupBy) of the listing's oj-table
       bridge.installRowTones();
-      // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll
+      // a record's page: its header stays pinned and compacts on scroll
       bridge.installStickyHeader();
       bridge.setPlanningRangeSink(runPageAction);
-      // toasts con «Undo» (Message.undoable): la acción vuelve a la página de contenido
+      // toasts with «Undo» (Message.undoable): the action goes back to the content page
       bridge.setUndoSink(runPageAction);
-      // refresco periódico (OnLoad con espera + OnSuccess): las vueltas salen por el mismo camino
+      // periodic refresh (OnLoad with a delay + OnSuccess): the rounds go out the same way
       bridge.setPollingRunner(runPageAction);
-      // atajos de teclado (@Action/@Tab shortcut) y teclas de acceso (@App(accessKeys))
+      // keyboard shortcuts (@Action/@Tab shortcut) and access keys (@App(accessKeys))
       bridge.installKeys();
-      // ventanas flotantes al pasar el ratón (celdas con @Tooltip, Popover)
+      // floating windows on hover (cells with @Tooltip, Popover)
       bridge.installHover();
       // display components whose view needs the DOM: the BPMN diagram (SVG from its BPMN-DI), the
       // cookie consent band, a ContextMenu's right click, and the Chat component's conversation
@@ -121,7 +121,7 @@ define([
       // no room for it): its icon button after the value, run like a Button's
       bridge.installFactActions();
       bridge.setFactActionSink(runPageAction);
-      // arrastrar filas (@DragRows) a un DropZone: su acción con origen y destino
+      // dragging rows (@DragRows) onto a DropZone: its action with origin and destination
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);
       bridge.setKeysActionSink(runPageAction);
@@ -147,47 +147,47 @@ define([
         });
       }
 
-      // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
-      // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
-      // (awaitBundle) y responden desde el bundle cuando la ruta está — así las cargas van sin
-      // backend y, si el backend no está, hasta la shell cae a la ruta raíz bundleada.
+      // Static bundle (no-backend mode): if a mateuBundleUrl is configured, loading the manifest
+      // starts HERE, before the bootstrap. bootstrapShell/loadRoute wait for the in-flight fetch
+      // (awaitBundle) and answer from the bundle when the route is there — so loads go without
+      // a backend and, if the backend is not there, even the shell falls back to the bundled root route.
       // the bundle's index.html names it on <mateu-ui bundleUrl> (a static Redwood bundle); the
       // app constant stays for a hand-configured VB deployment
       const bundleUrl = bridge.bundleUrlOf(document) || $application.constants.mateuBundleUrl;
       if (bundleUrl) bridge.loadBundleManifest(bundleUrl);
 
-      // Resiliencia del transporte (mismo contrato que los renderers web, ver poc/resilience.mjs).
-      // Se cablea ANTES del primer bootstrapShell para que hasta la carga inicial cuente: si el
-      // backend está caído al arrancar, el usuario ve un mensaje en vez de una pantalla muerta.
+      // Transport resilience (same contract as the web renderers, see poc/resilience.mjs).
+      // It is wired BEFORE the first bootstrapShell so that even the initial load counts: if the
+      // backend is down at startup, the user sees a message instead of a dead screen.
       bridge.connectivity.start();
-      // Los errores que el usuario ve (y los de JS sin capturar) quedan en el log del servidor:
-      // POST <base>/mateu/v3/client-log con el mismo token que el resto (ver poc/clientLog.mjs).
+      // The errors the user sees (and uncaught JS ones) end up in the server log:
+      // POST <base>/mateu/v3/client-log with the same token as the rest (see poc/clientLog.mjs).
       bridge.installClientErrorReporting(base, { headers: bridge.authHeadersOf });
-      // Las regiones vivas tienen que EXISTIR antes de que nada escriba en ellas: una creada
-      // y rellenada en el mismo tick a menudo no se anuncia.
+      // The live regions have to EXIST before anything writes to them: one created
+      // and filled in the same tick is often not announced.
       bridge.installAnnouncer();
       bridge.mountSkipLink();
-      // Ctrl+P deja fuera el chrome, como UICommand.print
+      // Ctrl+P leaves the chrome out, like UICommand.print
       bridge.installPrintSupport();
-      // El control pulsado se sigue a nivel de documento: los botones de la app pasan por
-      // chains distintas y enhebrar el evento por todas ellas se olvidaría en la siguiente.
+      // The pressed control is tracked at document level: the app's buttons go through
+      // different chains and threading the event through all of them would be forgotten in the next one.
       bridge.trackPressedControls();
       bridge.setTransportHooks({
         onStart: () => { $application.variables.mateuBusy = true; bridge.markPressedControlBusy(); },
         onSettle: ({ failure }) => {
           $application.variables.mateuBusy = false;
           bridge.clearPressedControlBusy();
-          // 'cancelled' es una decisión nuestra (navegación, abort): nunca es noticia.
+          // 'cancelled' is our own decision (navigation, abort): it is never news.
           if (failure && failure.kind !== 'cancelled') {
             $application.variables.mateuLastError = failure.message;
-            // La banda es una señal visual; quien usa lector de pantalla no se enteraría.
+            // The band is a visual signal; a screen-reader user would not notice it.
             bridge.announce(failure.message, { politeness: 'assertive' });
           }
         },
       });
-      // Perder la conexión es un ESTADO, no un evento: mientras dura se sostiene una banda,
-      // en vez de un aviso por clic que el usuario ve pasar cinco segundos cada vez.
-      // Otro MAJOR del wire: un aviso claro (una vez) en la banda de error, no una pantalla rota.
+      // Losing the connection is a STATE, not an event: while it lasts a band is held,
+      // instead of a per-click notice the user sees go by for five seconds each time.
+      // Another wire MAJOR: a clear notice (once) in the error band, not a broken screen.
       bridge.setWireMismatchListener((message) => {
         $application.variables.mateuLastError = message;
         bridge.announce(message, { politeness: 'assertive' });
@@ -196,22 +196,22 @@ define([
         $application.variables.mateuOffline = !online;
       });
       const boot = await bridge.bootstrapShell(base);
-      // un @UI que NO es un App (una página, un crud): sin menú ni ruta propia — su home es la
-      // carga «fresca» del montaje (bridge.bootstrapHasApp / setMountWithoutApp)
+      // a @UI that is NOT an App (a page, a crud): no menu or route of its own — its home is the
+      // mount's «fresh» load (bridge.bootstrapHasApp / setMountWithoutApp)
       const withoutApp = !bridge.bootstrapHasApp(boot);
       bridge.setMountWithoutApp(withoutApp);
       const reg = bridge.reduceContexts({ contexts: {}, stack: [], shell: null }, boot);
       $application.variables.mateuRegistry = reg;
 
-      // Las secciones que sirve otro pod llegan marcadas y sin hijos: hay que ir a
-      // buscarlos antes de construir el nav, o la barra sale con rótulos y nada debajo.
-      // Un pod que no conteste deja su rótulo y no impide arrancar.
+      // The sections served by another pod arrive marked and without children: they have to be
+      // fetched before building the nav, or the bar comes out with labels and nothing below.
+      // A pod that does not answer leaves its label and does not prevent startup.
       if (reg.shell && reg.shell.menu) {
-        // HAMBURGER_SECTIONS: cada pod montado en el primer nivel es una sección (asSection)
+        // HAMBURGER_SECTIONS: each pod mounted at the first level is a section (asSection)
         reg.shell.menu = await bridge.expandRemoteMenus(reg.shell.menu, { sections: reg.shell.variant === 'HAMBURGER_SECTIONS' });
-        // El chat necesita el menú YA expandido (las pantallas de cada pod, con su descriptor de
-        // listado) para el menuContext del agente. mateuRegistry se asignó antes de expandir y VB
-        // guarda una copia, así que el menú expandido no llega a la variable: se deja aquí.
+        // The chat needs the menu ALREADY expanded (each pod's screens, with their listing
+        // descriptor) for the agent's menuContext. mateuRegistry was assigned before expanding and VB
+        // keeps a copy, so the expanded menu does not reach the variable: it is left here.
         window.__mateuShellMenu = reg.shell.menu;
       }
 
@@ -231,23 +231,23 @@ define([
       $application.variables.mateuNavItems = nav.items;
       $application.variables.mateuMenuTabs = nav.mode === 'tabs';
       $application.variables.mateuMenuTopbar = nav.mode === 'topbar';
-      // MENU_ON_TOP: la banda 2 bajo la cabecera — el título de la consola y su menú
-      // HAMBURGER_SECTIONS: la misma banda, con el segundo nivel de la sección en pantalla
+      // MENU_ON_TOP: band 2 under the header — the console's title and its menu
+      // HAMBURGER_SECTIONS: the same band, with the second level of the section on screen
       $application.variables.mateuMenuSubheader = nav.mode === 'subheader' || nav.mode === 'sections';
       $application.variables.mateuMenuSections = nav.mode === 'sections';
       $application.variables.mateuSectionList = nav.sections;
       $application.variables.mateuShellTitle = nav.title;
       $application.variables.mateuMenuDrawerMode = nav.mode === 'drawer';
-      $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // abierto de inicio
+      $application.variables.mateuNavDrawerOpen = nav.mode === 'drawer'; // open from the start
       $application.variables.mateuMenuTree = nav.menuTree;
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
       $application.variables.mateuHeaderActions = nav.headerActions;
 
-      // Widgets de cabecera del App (WidgetSupplier): el de usuario al área de perfil, el resto a
-      // la zona de acciones. El HTML lo pone el bridge en el hueco que estampa la plantilla; un
-      // MicroFrontend se carga de SU pod y sigue vivo con sus triggers (el badge: cada 10 s).
+      // The App's header widgets (WidgetSupplier): the user one to the profile area, the rest to
+      // the actions zone. The bridge puts the HTML into the hole the template stamps; a
+      // MicroFrontend loads from ITS pod and stays alive with its triggers (the badge: every 10 s).
       const widgets = bridge.headerWidgetsOf(reg);
       $application.variables.mateuUserWidget = widgets.user;
       $application.variables.mateuHeaderWidgets = widgets.items;
@@ -276,7 +276,7 @@ define([
         keepAlive: (actionId) => bridge.runAppLevelAction(base, $application.variables.mateuShellSST,
           $application.variables.mateuAppState || {}, actionId).catch(() => undefined),
       });
-      // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
+      // the bell (the App's NotificationsSupplier): the list is requested at startup and when opening it
       // GlobalSearchSupplier: the Ask palette also searches the app's entities (askOracleTyped)
       $application.variables.mateuGlobalSearch = !!(reg.shell && (reg.shell.globalSearchEnabled || reg.shell.globalSearchSource));
       // a data-authored shell (type: AppShell) feeds the bell and the palette from REST sources:
@@ -290,21 +290,21 @@ define([
       if (reg.shell && (reg.shell.notificationsEnabled || reg.shell.notificationsSource)) {
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
           .then((model) => { $application.variables.mateuNotifications = model; })
-          .catch(() => { /* sin bandeja: la cabecera sigue sin campana */ });
+          .catch(() => { /* no inbox: the header stays without a bell */ });
       }
-      // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
+      // the @App's logo (URL relative to the Mateu backend) → brand image in the header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? assetBase + reg.shell.logo : '';
-      // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
-      // Con esto puesto sale el botón del chat en la cabecera (su drawer a la izquierda).
-      // Y, como el chat web: el título del panel (la marca del @App(askLabel)), los adjuntos
-      // (@AI(upload)) y el mcpUrl (@AI(mcp)) — bridge.chatConfigOf
+      // AI chat (@AI → App.sseUrl): the agent's endpoint, same-origin as the Mateu backend.
+      // With this set, the chat button shows in the header (its drawer on the left).
+      // And, like the web chat: the panel title (the @App(askLabel) brand), attachments
+      // (@AI(upload)) and the mcpUrl (@AI(mcp)) — bridge.chatConfigOf
       const chat = bridge.chatConfigOf(reg.shell, assetBase);
       $application.variables.mateuChatSseUrl = chat.sseUrl;
       $application.variables.mateuChatTitle = chat.title;
       $application.variables.mateuChatUploadUrl = chat.uploadUrl;
       $application.variables.mateuChatMcpUrl = chat.mcpUrl;
-      // el FAB de "ask": Ask Oracle con su glifo, o el rótulo/icono del @App(askLabel, askIcon)
+      // the "ask" FAB: Ask Oracle with its glyph, or the @App(askLabel, askIcon) label/icon
       const askFab = bridge.askFabOf(reg.shell, assetBase);
       $application.variables.mateuAskLabel = askFab.label;
       brandAskFabSoon(askFab);
@@ -313,36 +313,36 @@ define([
       }
 
       if (nav.mode === 'drawer') {
-        // el navigation-list parsea su <ul> en el init; los li estampados llegan después
+        // the navigation-list parses its <ul> on init; the stamped li arrive later
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuNavList', method: 'refresh' });
           nameCollapseIcons();
-        } catch (ignored) { /* aún no montado: el refresh del toggle lo cubrirá */ }
+        } catch (ignored) { /* not mounted yet: the toggle's refresh will cover it */ }
       }
 
       const firstLeaf = nav.menuTree.find((entry) => !entry.hasChildren);
       const firstGroup = nav.menuTree.find((entry) => entry.hasChildren);
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
-      // la HOME del app (@HomeRoute, p.ej. la welcome page) manda sobre la primera
-      // opción del menú
-      // (el homeRoute de un App montado llega entero, '/appdemo/screen': la ruta es relativa al montaje)
+      // the app's HOME (@HomeRoute, e.g. the welcome page) wins over the first
+      // menu option
+      // (the homeRoute of a mounted App arrives whole, '/appdemo/screen': the route is relative to the mount)
       const homeRoute = bridge.routeUnderMount(nav.homeRoute) || (first ? first.id : '') || (withoutApp ? '/' : '');
       $application.variables.mateuHomeRoute = homeRoute;
 
-      // 1.5: URL de la shell — modo PATH (/ruta) cuando la app la sirve el backend Mateu
-      // (jar de renderer: el controller generado inyecta un <mateu-ui> oculto, la señal),
-      // modo HASH (#/ruta) en serving estático (vb-serve local / VB hosteado en Oracle,
-      // donde el server no puede reescribir paths arbitrarios al index)
-      // El <mateu-ui> lleva además el MONTAJE del @UI (baseUrl="/console"): la API cuelga de él
-      // y las rutas son relativas a él (bridge.initMount; '' en la raíz).
+      // 1.5: the shell's URL — PATH mode (/route) when the app is served by the Mateu backend
+      // (renderer jar: the generated controller injects a hidden <mateu-ui>, the signal),
+      // HASH mode (#/route) in static serving (local vb-serve / VB hosted on Oracle,
+      // where the server cannot rewrite arbitrary paths to the index)
+      // The <mateu-ui> also carries the @UI's MOUNT (baseUrl="/console"): the API hangs off it
+      // and routes are relative to it (bridge.initMount; '' at the root).
       const pathMode = bridge.initMount(document) != null;
       window.__mateuUrlPathMode = pathMode;
-      // con su query: `?integration=MRU01` son los filtros con que se abre un listado (Vaadin
-      // los aplica; aquí se perdían al arrancar y el listado salía sin filtrar)
+      // with its query: `?integration=MRU01` are the filters a listing opens with (Vaadin
+      // applies them; here they were lost at startup and the listing came out unfiltered)
       const urlRoute = () => bridge.currentRouteOf(window.location);
 
-      // deep-link — si la URL trae ruta, bootear ESA ruta. Con la query con que se abrió la
-      // página (index.html la guarda al cargar: el router de VB la quita de la URL al arrancar)
+      // deep link — if the URL carries a route, boot THAT route. With the query the
+      // page was opened with (index.html saves it on load: VB's router strips it from the URL at startup)
       const initialSearch = window.__mateuInitialSearch || '';
       window.__mateuInitialSearch = '';
       let deepLink = urlRoute();
@@ -361,13 +361,13 @@ define([
         editorPreview.booted();
       }
 
-      // navigation-requested: lo emite el HTML de un widget (el enlace del badge de la bandeja) y
-      // burbujea hasta el documento — el mismo evento que escucha el renderer web. Trae su pod
-      // (baseUrl + serverSideType): si el menú no conoce la ruta, se registra antes de navegar.
-      // Los listeners de abajo se cablean UNA vez, pero el context de la chain caduca: si VB
-      // vuelve a entrar en la página (su router reacciona a ciertos cambios de URL), el context
-      // capturado queda «disposed» y un atrás/adelante posterior no hacía nada (VB lo descarta con
-      // un WARN): la pantalla se quedaba en blanco con la pestaña anterior marcada. Siempre el último.
+      // navigation-requested: emitted by a widget's HTML (the link of the inbox badge) and
+      // bubbles up to the document — the same event the web renderer listens to. It carries its pod
+      // (baseUrl + serverSideType): if the menu does not know the route, it is registered before navigating.
+      // The listeners below are wired ONCE, but the chain's context expires: if VB
+      // re-enters the page (its router reacts to certain URL changes), the captured context
+      // ends up «disposed» and a later back/forward did nothing (VB discards it with
+      // a WARN): the screen was left blank with the previous tab marked. Always the latest one.
       window.__mateuShellContext = context;
       const liveContext = () => window.__mateuShellContext || context;
       if (!window.__mateuNavRequestWired) {
@@ -384,15 +384,15 @@ define([
         });
       }
 
-      // Un enlace HTML corriente del contenido (`<a href="/journey/bookings/ZUAAKJ">`, el de un
-      // Text/Html de la app) navega DENTRO de la shell, como en Vaadin (el RouterLinkHandler de
-      // Flow): sin esto el navegador cargaba la página entera y la shell volvía a arrancar, 20–40 s
-      // en blanco. Las reglas (clic normal, mismo origen, sin target/download, nada de /_xxx, API
-      // ni ficheros) están en bridge.inAppRouteOfLink. Sólo el contenido de la página (#pageContent):
-      // la cabecera (menú de usuario, enlaces a otras consolas) sigue como siempre. Se escucha en
-      // burbuja: quien ya atendió el clic (el chat, el badge de un widget) lo marcó con
-      // preventDefault y no se toca. Enter sobre un enlace también llega como click. La URL se
-      // empuja al historial en onMateuNavigate (atrás vuelve a la pantalla del enlace).
+      // An ordinary HTML link in the content (`<a href="/journey/bookings/ZUAAKJ">`, one from an
+      // app's Text/Html) navigates INSIDE the shell, as in Vaadin (Flow's RouterLinkHandler):
+      // without this the browser loaded the whole page and the shell booted again, 20–40 s
+      // blank. The rules (plain click, same origin, no target/download, nothing under /_xxx, API
+      // or files) are in bridge.inAppRouteOfLink. Only the page's content (#pageContent):
+      // the header (user menu, links to other consoles) works as always. It listens in the
+      // bubble phase: whoever already handled the click (the chat, a widget's badge) marked it with
+      // preventDefault and it is not touched. Enter on a link also arrives as a click. The URL is
+      // pushed to the history in onMateuNavigate (back returns to the link's screen).
       if (!window.__mateuInAppLinksWired) {
         window.__mateuInAppLinksWired = true;
         document.addEventListener('click', (event) => {
@@ -413,9 +413,9 @@ define([
         });
       }
 
-      // LIVE RELOAD (sólo si el índice trae <meta name="mateu-dev">: un backend con mateu.dev=true).
-      // Un cambio de página repinta la ruta en pantalla conservando lo tecleado (liveState); uno de
-      // app (rutas, montajes, la shell) vuelve a montar la app en la misma URL.
+      // LIVE RELOAD (only if the index carries <meta name="mateu-dev">: a backend with mateu.dev=true).
+      // A page change repaints the on-screen route keeping what was typed (liveState); an
+      // app change (routes, mounts, the shell) re-mounts the app at the same URL.
       if (!window.__mateuLiveReloadWired) {
         window.__mateuLiveReloadWired = true;
         bridge.installDevLiveReload(document, window, (action) => {
@@ -443,25 +443,25 @@ define([
         });
       }
 
-      // En modo path el historial es SOLO de Mateu, y el router de VB no puede verlo. Toma por
-      // «application URL» la ruta con que arrancó la página (/customers → /customers/) y lee
-      // cualquier URL por debajo de ella como una página suya (/customers/5 → la página «5»): en
-      // un atrás sale de la shell (vbExit), deja «disposed» el context de las chains y no vuelve a
-      // entrar, así que la pantalla no se repintaba. Pasaba al entrar al maestro desde una fila
-      // del listado; con un enlace directo no, porque las pestañas no quedan POR DEBAJO de la ruta
-      // de arranque (/customers/3/orders → /customers/3/addresses). VB escucha con
-      // window.onpopstate, que corre antes que cualquier listener añadido después (también en
-      // captura), así que se le quita: es una sola página de VB, no tiene navegación propia.
+      // In path mode the history is Mateu's ONLY, and VB's router cannot see it. It takes as
+      // «application URL» the route the page started with (/customers → /customers/) and reads
+      // any URL below it as one of its pages (/customers/5 → the page «5»): on
+      // a back it leaves the shell (vbExit), leaves the chains' context «disposed» and does not
+      // re-enter, so the screen was not repainted. It happened when entering the master from a listing
+      // row; not with a direct link, because the tabs are not BELOW the startup route
+      // (/customers/3/orders → /customers/3/addresses). VB listens with
+      // window.onpopstate, which runs before any listener added later (also in
+      // capture), so it is removed: it is a single VB page, it has no navigation of its own.
       if (pathMode) {
         window.onpopstate = null;
       }
 
-      // 1.5: back/forward — el listener reutiliza el context del chain (los scopes de VB
-      // siguen vivos tras el vbEnter); popstate en modo path, hashchange en modo hash
+      // 1.5: back/forward — the listener reuses the chain's context (VB's scopes
+      // are still alive after vbEnter); popstate in path mode, hashchange in hash mode
       if (!window.__mateuHashWired) {
         window.__mateuHashWired = true;
         window.addEventListener(pathMode ? 'popstate' : 'hashchange', () => {
-          // en modo path, volver a '/' es volver a la home
+          // in path mode, going back to '/' is going back to the home
           const route = urlRoute() || (pathMode ? ($application.variables.mateuHomeRoute || '') : '');
           if (route) {
             Actions.callChain(liveContext(), {

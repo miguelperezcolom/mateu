@@ -1,6 +1,6 @@
-/* Fase 4: búsqueda del listing — el texto viaja en componentState.searchText (así lo lee
- * SearchActionHandler); la respuesta es un fragmento data-only que mergea las filas en
- * ctx.data.crud.page y aquí se re-proyecta la tabla. */
+/* Phase 4: listing search — the text travels in componentState.searchText (that is how
+ * SearchActionHandler reads it); the response is a data-only fragment that merges the rows into
+ * ctx.data.crud.page, and the table is re-projected here. */
 
 define([
   'vb/action/actionChain',
@@ -19,12 +19,12 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.searchText
-     * @param {number} [params.page]  la página pedida (el pie de la tabla); sin ella, la primera
+     * @param {number} [params.page]  the requested page (the table footer); without it, the first one
      */
     async run(context, { searchText, page }) {
       const { $application } = context;
 
-      // idem que en runMateuAction: el listado se busca en el backend del que se cargó
+      // same as in runMateuAction: the listing is searched on the backend it was loaded from
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);
       const before = $application.variables.mateuRegistry;
@@ -34,9 +34,9 @@ define([
         return;
       }
 
-      // filtros aplicados (los chips del smart search) y el orden de la cabecera → viajan en el
-      // componentState, que es donde SearchActionHandler los lee; un rango ocupa dos claves.
-      // Paginar conserva texto, filtros y orden; buscar o filtrar vuelve a la primera página.
+      // applied filters (the smart search chips) and the header's sort → travel in the
+      // componentState, which is where SearchActionHandler reads them; a range takes two keys.
+      // Paging keeps text, filters and sort; searching or filtering goes back to the first page.
       const componentState = bridge.listingSearchStateOf(host.state, {
         searchText,
         page: page || 0,
@@ -51,9 +51,9 @@ define([
       bridge.applyDomEffects(reg.effects, reg);
       $application.variables.mateuRegistry = reg;
 
-      // la URL dice el estado del listado — filtros, texto, PÁGINA y ORDEN — como en Vaadin y en
-      // el bundle estático: volver de una ficha, recargar o compartir el enlace lo conserva.
-      // replaceState: paginar u ordenar no es una pantalla nueva en el historial
+      // the URL states the listing's state — filters, text, PAGE and SORT — as in Vaadin and in
+      // the static bundle: coming back from a record, reloading or sharing the link keeps it.
+      // replaceState: paging or sorting is not a new screen in the history
       const full = bridge.listingUrlOf(route || '', $application.variables.mateuFilterValues || {},
         $application.variables.mateuLastSearchText || '',
         { page: page || 0, sort: $application.variables.mateuListingSort || [] });
@@ -70,12 +70,12 @@ define([
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];
-      // otra página, otras filas: la selección (claves _rowNumber de la página) no se hereda
+      // another page, other rows: the selection (the page's _rowNumber keys) is not inherited
       if (page) {
         $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
       }
-      // los chips de filtro NO se re-proyectan aquí: los lleva el propio smart-filters, que es
-      // quien ha lanzado esta búsqueda (reasignarle la config le cerraría el popup abierto)
+      // the filter chips are NOT re-projected here: smart-filters itself carries them, being
+      // the one that launched this search (reassigning its config would close the open popup)
     }
   }
 

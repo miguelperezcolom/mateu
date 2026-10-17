@@ -1,6 +1,6 @@
-/* P1 · Maestro con pestañas que son páginas: elegir una pestaña de un NIVEL de app (el maestro de
- * un registro, @App(TABS) con hijos en routes.yaml) es NAVEGAR a su ruta — cada pestaña es una
- * página con URL propia —, y el «← Padre» (@App(backLink = PARENT)) también. */
+/* P1 · Master with tabs that are pages: choosing a tab of an app LEVEL (the master of
+ * a record, @App(TABS) with children in routes.yaml) is NAVIGATING to its route — each tab is a
+ * page with its own URL —, and so is the «← Parent» (@App(backLink = PARENT)). */
 
 define([
   'vb/action/actionChain',
@@ -16,9 +16,9 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  selection-changed de la barra ({detail: {value: ruta, updatedFrom}})
-     *     o el ojAction del «← Padre» (el botón lleva la ruta en data-route)
-     * @param {boolean} params.back  el clic viene del «← Padre»
+     * @param {Object} params.event  selection-changed of the bar ({detail: {value: route, updatedFrom}})
+     *     or the ojAction of the «← Parent» (the button carries the route in data-route)
+     * @param {boolean} params.back  the click comes from the «← Parent»
      */
     async run(context, { event, back }) {
       let route;
@@ -28,7 +28,7 @@ define([
         route = holder && holder.getAttribute ? holder.getAttribute('data-route') : null;
       } else {
         const detail = (event && (event.detail || event)) || {};
-        // el eco del writeback tras pintar la barra no es un clic
+        // the writeback echo after painting the bar is not a click
         if (detail.updatedFrom && detail.updatedFrom !== 'internal') {
           return;
         }

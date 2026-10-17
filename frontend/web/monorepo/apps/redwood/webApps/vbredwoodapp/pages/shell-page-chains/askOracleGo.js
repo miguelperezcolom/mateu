@@ -1,6 +1,6 @@
-/* Fila del Ask Oracle: cierra la paleta y navega; una "vista rápida" deja además el
- * filtro del listado PENDIENTE — onMateuNavigate lo aplica en la búsqueda OnLoad en
- * lugar de resetearlo (el chip aparece aplicado al aterrizar). */
+/* Ask Oracle row: closes the palette and navigates; a "quick view" additionally leaves the
+ * listing's filter PENDING — onMateuNavigate applies it in the OnLoad search instead
+ * of resetting it (the chip appears applied on landing). */
 
 define([
   'vb/action/actionChain',
@@ -16,7 +16,7 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.item  destino ({route, quickField?, quickValue?})
+     * @param {Object} params.item  destination ({route, quickField?, quickValue?})
      */
     async run(context, { item }) {
       const { $application } = context;

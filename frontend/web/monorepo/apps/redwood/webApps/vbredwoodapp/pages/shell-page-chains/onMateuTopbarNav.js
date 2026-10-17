@@ -1,5 +1,5 @@
-/* Clic en una opción de primer nivel del topbar (variante MENU_ON_TOP): la ruta viaja en
- * el data-route del botón. */
+/* Click on a top-level option of the topbar (MENU_ON_TOP variant): the route travels in
+ * the button's data-route. */
 
 define([
   'vb/action/actionChain',
@@ -15,14 +15,14 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {Object} params.event  ojAction del oj-button
+     * @param {Object} params.event  ojAction of the oj-button
      */
     async run(context, { event }) {
       const route = event && event.target && event.target.dataset && event.target.dataset.route;
       if (!route) {
         return;
       }
-      // una tarjeta de un menú de tarjetas: su popup se cierra al navegar
+      // a card of a card menu: its popup closes on navigating
       for (const popup of document.querySelectorAll('oj-popup.mateu-card-popup')) {
         if (popup.isOpen && popup.isOpen()) popup.close();
       }

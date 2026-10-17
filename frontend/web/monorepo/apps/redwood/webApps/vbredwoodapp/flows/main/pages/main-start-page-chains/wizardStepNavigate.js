@@ -1,8 +1,8 @@
-/* Fase 8: clic en un paso del RAIL del guided-process (spBeforeStepNavigate,
- * triggeredFrom 'step') — hacia ATRÁS ejecuta los 'back' necesarios contra Mateu (que
- * valida por pasos); hacia delante no navega (se avanza con Continue) y se restaura el
- * paso mostrado (el evento es cancelable pero el chain corre async: preventDefault llega
- * tarde — el componente ya movió su currentStep localmente). */
+/* Phase 8: click on a step of the guided-process RAIL (spBeforeStepNavigate,
+ * triggeredFrom 'step') — BACKWARDS it runs the needed 'back's against Mateu (which
+ * validates step by step); forwards it does not navigate (you advance with Continue) and the
+ * shown step is restored (the event is cancelable but the chain runs async: preventDefault arrives
+ * late — the component already moved its currentStep locally). */
 
 define([
   'vb/action/actionChain',
@@ -25,7 +25,7 @@ define([
 
       const detail = (event && event.detail) || {};
       if (detail.triggeredFrom !== 'step') {
-        return; // el camino del Continue lo lleva spBeforeNext
+        return; // the Continue path is handled by spBeforeNext
       }
       const wizard = $application.variables.mateuWizard;
       if (!wizard) {
@@ -35,7 +35,7 @@ define([
       const fromIndex = ids.indexOf(wizard.currentStep);
       const toIndex = ids.indexOf(detail.nextStep);
       if (fromIndex < 0 || toIndex < 0 || toIndex >= fromIndex) {
-        // adelante por el rail no navega — restaurar el paso mostrado
+        // forwards along the rail does not navigate — restore the shown step
         const el = document.getElementById('mateuWizardEl');
         if (el) {
           el.currentStep = $application.variables.mateuWizardShownStep;

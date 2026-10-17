@@ -1,6 +1,6 @@
-/* La campana de la bandeja (NotificationsSupplier del App): abrir el popup (refrescando la lista),
- * abrir una entrada (la marca leída y navega a su ruta) y marcar todas leídas. Las tres hablan con
- * las acciones app-level _notifications-list / _notifications-read (notify.mjs). */
+/* The inbox bell (the App's NotificationsSupplier): opening the popup (refreshing the list),
+ * opening an entry (marks it read and navigates to its route) and marking all read. All three talk to
+ * the app-level actions _notifications-list / _notifications-read (notify.mjs). */
 
 define([
   'vb/action/actionChain',
@@ -19,7 +19,7 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.op   toggle | open | readAll
-     * @param {Object} params.item la entrada activada (op = open)
+     * @param {Object} params.item the activated entry (op = open)
      */
     async run(context, { op, item }) {
       const { $application } = context;
@@ -30,7 +30,7 @@ define([
 
       if (op === 'toggle') {
         if (!popup || typeof popup.open !== 'function') return;
-        // auto-dismiss=focusLoss cierra el popup en el mismo clic que llega al botón
+        // auto-dismiss=focusLoss closes the popup on the same click that reaches the button
         if (!popup.__mateuCloseWired) {
           popup.__mateuCloseWired = true;
           popup.addEventListener('ojClose', () => { popup.__mateuClosedAt = Date.now(); });

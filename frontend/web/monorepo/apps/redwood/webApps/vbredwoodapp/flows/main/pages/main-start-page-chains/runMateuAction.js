@@ -1,9 +1,9 @@
-/* Acción saliente (Fases 3–5). Manda el estado que ya tienes: si hay un drawer abierto, su
- * estado + su borrador (las acciones del drawer del crud van contra el HOST — el drawer no
- * lleva ServerSide propio); si no, el estado del host + el borrador del form. El increment
- * de vuelta se reduce y sus efectos se aplican: Add → proyectar el drawer; CloseModal →
- * cerrarlo y disparar los triggers OnCustomEvent suscritos al evento emitido (el refresco
- * del listing viaja EN el wire); toasts; NavigateTo → evento de aplicación mateuNavigate. */
+/* Outbound action (Phases 3–5). Sends the state you already have: if a drawer is open, its
+ * state + its draft (the crud drawer's actions go against the HOST — the drawer has no
+ * ServerSide of its own); otherwise, the host's state + the form draft. The increment that
+ * comes back is reduced and its effects applied: Add → project the drawer; CloseModal →
+ * close it and fire the OnCustomEvent triggers subscribed to the emitted event (the listing
+ * refresh travels ON the wire); toasts; NavigateTo → application event mateuNavigate. */
 
 define([
   'vb/action/actionChain',
@@ -21,22 +21,22 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.actionId    id de la acción Mateu (del $current del botón)
-     * @param {Object} params.parameters  parámetros extra (p.ej. la fila en el clic view)
-     * @param {Object} params.event       evento ojAction (fallback: data-action-id)
+     * @param {string} params.actionId    id of the Mateu action (from the button's $current)
+     * @param {Object} params.parameters  extra parameters (e.g. the row on the view click)
+     * @param {Object} params.event       ojAction event (fallback: data-action-id)
      */
     async run(context, { actionId, parameters, event }) {
       const { $application, $page } = context;
 
-      // El marcado del control pulsado lo hacen los hooks del transporte a nivel de documento
-      // (bridge.trackPressedControls): así cubre TODAS las chains, no sólo ésta.
+      // Marking the pressed control is done by the transport hooks at document level
+      // (bridge.trackPressedControls): that way it covers ALL the chains, not just this one.
       try {
         return await this.dispatch(context, { actionId, parameters, event });
       } catch (e) {
-        // su pantalla ya no está (se navegó mientras volaba): muere en silencio
+        // its screen is gone (navigated away while in flight): die silently
         if (bridge.isStaleResponse(e)) return undefined;
-        // "Reintentar" tiene que re-ejecutar la ACCIÓN entera, no sólo la petición: una
-        // respuesta que nadie procesa no cambia nada en pantalla.
+        // "Retry" has to re-run the whole ACTION, not just the request: a response nobody
+        // processes changes nothing on screen.
         bridge.setLastRetry({ kind: 'action', actionId: actionId || (event && event.target && event.target.dataset && event.target.dataset.actionId), parameters });
         throw e;
       }
@@ -52,10 +52,10 @@ define([
       if (!id) {
         return;
       }
-      // «ir al padre» sin botón de vuelta: lo puso el rastro automático, y es una navegación —
-      // la misma que el menú (navigation-requested, que escucha la shell)
-      // la vuelta atrás de la página NOT FOUND (navigationAction del oj-sp-empty-state): navegar a
-      // la ruta que manda el server (el padre del registro que no existe, o la home)
+      // «go to parent» without a back button: the automatic trail put it there, and it is a
+      // navigation — the same as the menu's (navigation-requested, which the shell listens to)
+      // the way back from the NOT FOUND page (navigationAction of the oj-sp-empty-state): navigate
+      // to the route the server sends (the parent of the record that does not exist, or home)
       if (id === '__notFoundBack') {
         const backRoute = ($application.variables.mateuNotFound || {}).backRoute;
         if (backRoute) {
@@ -87,8 +87,8 @@ define([
         return;
       }
 
-      // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
-      // hablando con ESE backend, no con el de la shell.
+      // The screen may come from another pod (federated menu): its loads and actions keep
+      // talking to THAT backend, not to the shell's.
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);
       const before = $application.variables.mateuRegistry;
@@ -131,9 +131,9 @@ define([
       const transportExtra = plan.transportExtra;
       parameters = plan.parameters;
 
-      // confirmationRequired: el diálogo de confirmación ANTES de salir (con los textos de la
-      // acción); «No», ✕ o Esc la dejan sin enviar. Vaadin lo hace en el navegador; aquí se
-      // saltaba y la acción salía sin preguntar.
+      // confirmationRequired: the confirmation dialog BEFORE it leaves (with the action's
+      // texts); «No», ✕ or Esc leave it unsent. Vaadin does it in the browser; here it was
+      // skipped and the action went out without asking.
       const confirmation = bridge.confirmationOf(transportCtx, id);
       if (confirmation) {
         $page.variables.mateuConfirm = confirmation;
@@ -145,16 +145,16 @@ define([
       }
 
       const appState = $application.variables.mateuAppState || {};
-      // acciones anunciadas Action.sse(true) del HOST (p.ej. opFirma → tablet) van por el
-      // endpoint /sse: se aplican TODOS los increments del stream y se ACUMULAN los
-      // eventos/toasts de cada uno (cada reduce reemplaza effects)
+      // the HOST's actions advertised Action.sse(true) (e.g. opFirma → tablet) go through the
+      // /sse endpoint: ALL the stream's increments are applied and the events/toasts of each
+      // one are ACCUMULATED (each reduce replaces effects)
       const isSse = ((host && host.sseActionIds) || []).indexOf(id) >= 0;
       let reg = before;
       const allEvents = [];
       const allToasts = [];
-      // ¿algún incremento REPINTÓ el host? (cualquier fragmento no-Add: Replace/State/data;
-      // los Add son overlays — abrir un drawer no toca el host). Señal para el remontaje
-      // del foldout: comparar referencias/uuids no vale (proxies de VB, uuids estables).
+      // did any increment REPAINT the host? (any non-Add fragment: Replace/State/data;
+      // Adds are overlays — opening a drawer does not touch the host). Signal for the foldout
+      // remount: comparing references/uuids does not work (VB proxies, stable uuids).
       let hostRepainted = false;
       const touchesHost = bridge.touchesHost;
       let lastIncrement = null; const returnedConfirms = []; // ConfirmDialogs RETURNED: asked below
@@ -174,10 +174,10 @@ define([
       if (clientFlow) {
         applyInc({ commands: clientFlow, fragments: [], messages: [] });
       } else if (isSse) {
-        // LongTask: el diálogo de progreso se pinta EN VIVO según llega el stream; sus
-        // increments (Add del Dialog + state-only del progreso) se CONSUMEN aquí y no se
-        // reducen — los commands/messages del último (p.ej. el dispatchEvent del
-        // refresco) sí, vía rest
+        // LongTask: the progress dialog is painted LIVE as the stream arrives; its
+        // increments (the Dialog's Add + the progress state-only ones) are CONSUMED here and
+        // not reduced — the commands/messages of the last one (e.g. the refresh's
+        // dispatchEvent) are, via rest
         const progressWatcher = bridge.longTaskWatcher();
         let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
@@ -215,11 +215,11 @@ define([
           base, transportCtx, route, id, componentState,
           { ...transportExtra, parameters: parameters || {}, appState }));
       }
-      // RE-RENDER del host por la acción (devolvió la página: un componente nuevo, con otro id):
-      // como en el web (applyFragment → triggerOnLoad), lo que acaba de llegar pide su carga
-      // OnLoad — sin esto un listado que se repinta (p.ej. tras soltar filas en un DropZone)
-      // volvía VACÍO, con sus columnas y sin una fila. Se reduce aparte: lastIncrement es el de la
-      // acción, que el route-flip de abajo lee.
+      // RE-RENDER of the host by the action (it returned the page: a new component, with another
+      // id): as on the web (applyFragment → triggerOnLoad), what just arrived asks for its OnLoad
+      // load — without this a listing that repaints (e.g. after dropping rows on a DropZone)
+      // came back EMPTY, with its columns and not a single row. Reduced separately: lastIncrement
+      // is the action's, which the route-flip below reads.
       {
         const hostNow = reg.contexts[bridge.HOST_ID];
         const reRendered = bridge.hostReRendered(lastIncrement, host, hostNow);
@@ -235,25 +235,26 @@ define([
           }
         }
       }
-      // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
-      // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
-      // /new, volver → /list). Sin seguirlo no pasa NADA al pulsar: la petición sale, el
-      // servidor contesta 200 y el listado se queda igual. La isla ya lo seguía; el host no.
+      // ROUTE-FLIP of the HOST's mediator: a PAGE crud does not answer the detail, it answers
+      // a state-only fragment whose `_route` points at it (row click → /2CSXZN, New →
+      // /new, back → /list). Without following it NOTHING happens on click: the request goes
+      // out, the server answers 200 and the listing stays the same. The island already followed
+      // it; the host did not.
       //
-      // El wire separa DOS cosas que se parecen y no son la misma: `_route` es la ruta
-      // INTERNA que hay que recargar (`/list`) y el `PushStateToHistory` es la URL, relativa
-      // al mediador (`''` para el listado). Usar la primera como URL deja direcciones que no
-      // existen — /booking/bookings/list en vez de /booking/bookings.
+      // The wire separates TWO things that look alike and are not the same: `_route` is the
+      // INTERNAL route to reload (`/list`) and the `PushStateToHistory` is the URL, relative
+      // to the mediator (`''` for the listing). Using the first as the URL leaves addresses that
+      // do not exist — /booking/bookings/list instead of /booking/bookings.
       const urlPush = reg.effects ? reg.effects.urlPush : undefined;
       const flipRoute = bridge.routeFlipOf(
         host && host.state, reg.contexts[bridge.HOST_ID], lastIncrement, route);
       if (flipRoute) {
         const flipOutbound = (reg.contexts[bridge.HOST_ID] || {}).outbound || {};
         const mediatorRoute = bridge.mediatorBaseOf(flipOutbound, route);
-        // la URL acompaña al contenido: el detalle es direccionable y el botón atrás devuelve al
-        // listado (el popstate de la shell recarga la ruta anterior). Se empuja ANTES de cargar
-        // el detalle, como un enlace: empujada al final, un "atrás" pulsado durante la carga no
-        // encontraba esta entrada y se saltaba la del listado.
+        // the URL goes with the content: the detail is addressable and the back button returns to
+        // the listing (the shell's popstate reloads the previous route). It is pushed BEFORE
+        // loading the detail, like a link: pushed at the end, a "back" pressed during the load did
+        // not find this entry and skipped the listing's.
         if (urlPush != null) {
           const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
           $application.variables.mateuSelectedRoute = urlRoute;
@@ -261,7 +262,7 @@ define([
           try {
             window.history.pushState(
               null, '', bridge.urlOfRoute(urlRoute));
-          } catch (ignored) { /* sin history en algunos contextos */ }
+          } catch (ignored) { /* no history in some contexts */ }
         }
         applyInc(await bridge.loadRoute(base, flipRoute, '', {
           consumedRoute: flipOutbound.consumedRoute || mediatorRoute,
@@ -269,8 +270,8 @@ define([
           appState,
           componentState: reg.contexts[bridge.HOST_ID].state,
         }));
-        // lo que acaba de llegar puede pedir su carga OnLoad (el listado pide `search`; sin
-        // esto se vuelve del detalle a una tabla vacía, con sus columnas y sin una fila)
+        // what just arrived may ask for its OnLoad load (the listing asks for `search`; without
+        // this you come back from the detail to an empty table, with its columns and no rows)
         const reloaded = reg.contexts[bridge.HOST_ID];
         for (const triggerActionId of bridge.onLoadTriggers(reloaded)) {
           const reloadedListing = bridge.listingOf(reloaded);
@@ -284,7 +285,7 @@ define([
 
       const effects = reg.effects;
 
-      // eventos del bus (CloseModal/DispatchEvent) → triggers OnCustomEvent suscritos
+      // bus events (CloseModal/DispatchEvent) → subscribed OnCustomEvent triggers
       for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
         for (const triggerActionId of bridge.eventTriggersOf(hostNow, busEvent.name)) {
@@ -313,13 +314,13 @@ define([
         }
       }
 
-      // lookups remotos de lo que acaba de llegar (el formulario de un paso nuevo, un alta)
+      // remote lookups of what just arrived (the form of a new step, a creation)
       try {
         reg = await bridge.loadLookups(base, reg, bridge.HOST_ID, { appState, route, draft: $page.variables.mateuDraft });
-      } catch (ignored) { /* sin opciones se quedan como estaban */ }
+      } catch (ignored) { /* without options they stay as they were */ }
 
-      // El SELECTOR de un @Searchable que se acaba de abrir: lo escrito en el formulario se funde
-      // en su estado — el borrador se vacía al cerrarse el diálogo, y lo elegido vuelve al estado
+      // The SELECTOR of a @Searchable that has just opened: what was typed in the form is merged
+      // into its state — the draft is emptied when the dialog closes, and the pick returns to the state
       const pickerOpened = !!bridge.searchPickerOf(reg) && !bridge.searchPickerOf(before);
       if (pickerOpened) {
         reg = bridge.withContextState(reg, bridge.HOST_ID, $page.variables.mateuDraft);
@@ -336,15 +337,15 @@ define([
         return;
       }
 
-      // Una respuesta que SÓLO trae mensajes (p.ej. el «falta la tarifa» con el que un wizard
-      // no deja salir del paso) no cambia la pantalla: re-proyectarla volvía a pintar el
-      // formulario con el estado del servidor y se llevaba lo que el usuario había escrito.
+      // A response that ONLY brings messages (e.g. the «rate missing» with which a wizard
+      // will not let you leave the step) does not change the screen: re-projecting it repainted
+      // the form with the server's state and took away what the user had typed.
       const onlyMessages = bridge.onlyMessagesAnswer({
         hostRepainted, flipRoute, events: allEvents, overlayBefore, overlayNow: bridge.overlayOf(reg), lastIncrement,
       });
       if (onlyMessages) {
         for (const toast of allToasts) {
-          // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+          // an error or warning goes to the shell's message banner (the Redwood toast only confirms)
           const notification = bridge.bannerNotificationOf(toast);
           if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
           $page.variables.mateuToastText = toast.text;
@@ -353,11 +354,11 @@ define([
         return;
       }
 
-      // proyecciones: drawer, listing, form
+      // projections: drawer, listing, form
       const overlayNow = bridge.overlayOf(reg);
-      // un overlay Dialog va al MODAL (oj-dialog, decisión puntual); el resto al drawer — salvo
-      // el selector de un @Searchable, que tiene su propio diálogo (#mateuPicker). Dos variables
-      // (bridge.overlayVarsOf): un Dialog abierto SOBRE un Drawer deja el drawer donde está
+      // a Dialog overlay goes to the MODAL (oj-dialog, a one-off decision); the rest to the drawer —
+      // except a @Searchable's selector, which has its own dialog (#mateuPicker). Two variables
+      // (bridge.overlayVarsOf): a Dialog opened OVER a Drawer leaves the drawer where it is
       const pickerNow = bridge.searchPickerOf(reg);
       const overlayVars = bridge.overlayVarsOf(reg, pickerNow);
       $application.variables.mateuDrawer = overlayVars.drawer;
@@ -379,8 +380,8 @@ define([
         $page.variables.mateuPicker = pickerNow;
         $page.variables.mateuPickerRows = pickerNow.rows;
       } else if ($page.variables.mateuPickerOpen) {
-        // elegido (o cerrado por el servidor): la marca baja ANTES del close — su ojBeforeClose
-        // no es un descarte del usuario
+        // picked (or closed by the server): the flag drops BEFORE the close — its ojBeforeClose
+        // is not a user dismissal
         $page.variables.mateuPickerOpen = false;
         await Actions.callComponentMethod(context, { selector: '#mateuPicker', method: 'close' });
       }
@@ -390,14 +391,14 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
 
-      // REMONTAJE del foldout: los bindings dentro de oj-sp-foldout-panel no re-ligan
-      // las application variables (gotcha del evaluador CSP) — null → tick → proyección
-      // nueva hace que el oj-bind-if recree el subárbol con los bloques frescos.
-      // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
-      // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
-      // Lo que esta chain asigna se lee de las constantes, no de vuelta de la variable: una
-      // variable `any` de VB que tenía un objeto y se pone a null se lee DENTRO de la misma chain
-      // como un proxy truthy (los bindings sí ven el null) — ver onMateuNavigate.
+      // foldout REMOUNT: the bindings inside oj-sp-foldout-panel do not re-bind
+      // the application variables (CSP evaluator gotcha) — null → tick → new projection
+      // makes the oj-bind-if recreate the subtree with the fresh blocks.
+      // ONLY if some increment REPAINTED the host (hostRepainted) — opening a drawer (Add)
+      // does not touch it, and remounting here reset the foldout's folding/animation.
+      // What this chain assigns is read from the constants, not back from the variable: a VB
+      // `any` variable that held an object and is set to null reads INSIDE the same chain
+      // as a truthy proxy (the bindings do see the null) — see onMateuNavigate.
       let foldoutNow = $application.variables.mateuFoldout;
       if (hostRepainted) {
         const foldoutProjection = bridge.foldoutOf(hostAfter);
@@ -409,18 +410,18 @@ define([
         const mismaEstructura = foldoutBefore && foldoutProjection
           && (foldoutBefore.panels || []).length === (foldoutProjection.panels || []).length;
         if (mismaEstructura) {
-          // actualización IN SITU: los paneles están estampados UNA vez (su for-each
-          // pierde los anclajes si se re-stampa — cirugía DOM del foldout); el contenido
-          // vive en mateuFoldoutContent, cuyos bindings SÍ re-evalúan dentro del panel
+          // IN-PLACE update: the panels are stamped ONCE (their for-each loses its
+          // anchors if re-stamped — the foldout's DOM surgery); the content lives in
+          // mateuFoldoutContent, whose bindings DO re-evaluate inside the panel
           $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
         } else {
-          // estructura distinta (nº de paneles) o entra/sale del modo foldout:
-          // remontaje completo null→tick
+          // different structure (number of panels) or entering/leaving foldout mode:
+          // full null→tick remount
           if (foldoutBefore && foldoutProjection) {
             $application.variables.mateuFoldout = null;
             await new Promise((resolve) => setTimeout(resolve, 0));
           }
-          // contenido ANTES que estructura (los paneles lo leen al estamparse)
+          // content BEFORE structure (the panels read it when stamped)
           $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
           $application.variables.mateuFoldout = foldoutProjection;
         }
@@ -433,14 +434,14 @@ define([
       vars.mateuWizard = wizardProjection;
       if (wizardProjection) bridge.guardGuidedProcess();
 
-      // header de colección: toolbar del crud → primaryAction/secondaryActions
+      // collection header: the crud's toolbar → primaryAction/secondaryActions
       assign(bridge.listHeaderVarsOf(listingSummary));
       // the floating action buttons (@Fab) of the page and of the app
       vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
       // the sticky sections index (@Toc) follows the host (a section can appear with an action)
       vars.mateuToc = bridge.tocOf(hostAfter);
-      // dentro de un maestro (P1) la cabecera lleva el título del MAESTRO (el registro) y el
-      // rótulo propio de la pestaña pasa al subtítulo (withinAppLevels)
+      // inside a master (P1) the header carries the MASTER's title (the record) and the
+      // tab's own label moves to the subtitle (withinAppLevels)
       const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);
       vars.mateuHostTitle = summary.title;
       vars.mateuHostText = summary.text;
@@ -449,21 +450,21 @@ define([
       vars.mateuFormSections = summary.sections;
       vars.mateuFormValue = summary.formValue;
       vars.mateuFormActions = summary.actions;
-      // el wizard: el botón adelante, su rótulo y el paso en pantalla (una acción lo conserva)
+      // the wizard: the forward button, its label and the on-screen step (an action keeps it)
       assign(bridge.wizardVarsOf(hostAfter, wizardProjection, summary.actions, { keepStep: true }));
 
       if (!overlayNow) {
         $page.variables.mateuDraft = {};
       }
-      // isla aparecida con la acción (p.ej. el detalle del TaskQueue tras openGuest):
-      // se carga su contenido si su contexto aún no existe y se (re)proyecta
+      // island that appeared with the action (e.g. the TaskQueue detail after openGuest):
+      // its content is loaded if its context does not exist yet, and it is (re)projected
       const islandsAfter = bridge.collectIslands(hostAfter.tree);
       const islandAfter = islandsAfter.length ? islandsAfter[0] : null;
       const islandSeed = islandAfter ? JSON.stringify(islandAfter.initialData || {}) : '';
       if (islandAfter && (!reg.contexts[islandAfter.id]
           || vars.mateuIslandSeed !== islandSeed)) {
-        // SIN atajo: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse).
-        // RECARGA también si el SEED cambió (p.ej. seleccionarPax re-siembra paxIndex)
+        // NO shortcut: the 2-step dance captures the wrapper's ACTIONS (sse flag).
+        // Also RELOADS if the SEED changed (e.g. seleccionarPax re-seeds paxIndex)
         reg = await bridge.loadRouteInto(base, reg, islandAfter.route, islandAfter.id, {
           appState,
           componentState: islandAfter.initialData || {},
@@ -473,15 +474,15 @@ define([
       vars.mateuIslandId = islandAfter ? islandAfter.id : '';
       vars.mateuIslandSeed = islandSeed;
       const islandCtxAfter = islandAfter ? reg.contexts[islandAfter.id] : null;
-      // isla ANIDADA dentro de la isla (App con initialData sembrado, p.ej. el documento):
-      // cargar con el initialData como componentState; RECARGAR si el seed cambió (selectPax)
+      // island NESTED inside the island (App with seeded initialData, e.g. the document):
+      // load with the initialData as componentState; RELOAD if the seed changed (selectPax)
       const nestedList = islandCtxAfter ? bridge.collectIslands(islandCtxAfter.tree) : [];
       const nestedInfo = nestedList.length ? nestedList[0] : null;
       const nestedSeed = nestedInfo ? JSON.stringify(nestedInfo.initialData || {}) : '';
       if (nestedInfo && (!reg.contexts[nestedInfo.id]
           || vars.mateuNestedSeed !== nestedSeed)) {
-        // SIN atajo consumedRoute/serverSideType: el baile de 2 pasos del mediador
-        // captura las ACTIONS del wrapper (el flag sse solo viaja ahí → sseActionIds)
+        // NO consumedRoute/serverSideType shortcut: the mediator's 2-step dance
+        // captures the wrapper's ACTIONS (the sse flag only travels there → sseActionIds)
         reg = await bridge.loadRouteInto(base, reg, nestedInfo.route, nestedInfo.id, {
           appState,
           componentState: nestedInfo.initialData || {},
@@ -493,18 +494,18 @@ define([
       const nestedCtx = nestedInfo ? reg.contexts[nestedInfo.id] : null;
       const nestedBlocks = nestedCtx ? bridge.islandContentOf(nestedCtx) : null;
       vars.mateuNested = bridge.nestedVarOf(nestedBlocks);
-      // los átomos de la anidada se FUSIONAN en el contenido de la isla
+      // the nested island's atoms are MERGED into the island's content
       vars.mateuIsland = bridge.islandVarsOf(islandCtxAfter, nestedBlocks);
 
-      // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
+      // front-office work queue (TaskQueue) + detail placeholder
       const queueNow = bridge.taskQueueOf(hostAfter.tree);
       vars.mateuQueue = queueNow;
       vars.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
-      // la constante, no la variable: un `any` puesto a null se lee como proxy truthy en la chain
+      // the constant, not the variable: an `any` set to null reads as a truthy proxy in the chain
       const notFoundAfter = bridge.notFoundOf(hostAfter.tree, document.documentElement.lang || navigator.language);
       vars.mateuNotFound = notFoundAfter;
-      // arquetipos compuestos (welcome / general overview / item overview); el aspecto del hero
-      // rota al ENTRAR en una welcome y se conserva mientras se siga en ella
+      // composed archetypes (welcome / general overview / item overview); the hero's look
+      // rotates on ENTERING a welcome and is kept while you stay on it
       const archetypes = bridge.archetypeVarsOf(hostAfter, vars.mateuWelcome ? {
         key: vars.mateuWelcomeKey,
         theme: vars.mateuWelcomeTheme,
@@ -516,14 +517,14 @@ define([
       const overviewProjection = archetypes.overview;
       const itemProjection = archetypes.item;
       if (welcome || overviewProjection || itemProjection) {
-        // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
-        // la vista @FoldoutDetail de un crud), no el form genérico
+        // their fields/buttons are painted by the archetype's branches (or the foldout's panels:
+        // a crud's @FoldoutDetail view), not by the generic form
         assign(bridge.noGenericFormVars());
       }
-      // contenido display del HOST / de los pasos del wizard (detalle standalone)
+      // display content of the HOST / of the wizard steps (standalone detail)
       const islandRawBlocks2 = islandCtxAfter ? bridge.islandContentOf(islandCtxAfter) : null;
       const esWizard2 = !!wizardProjection;
-      // foldout con EntityHeader (la 360): el header de pantalla se conserva
+      // foldout with EntityHeader (the 360): the screen header is kept
       const contentPlan = bridge.hostContentPlanOf(hostAfter, {
         islandRawBlocks: islandRawBlocks2, title: summary.title, activeTabs: vars.mateuActiveTabs,
         wizard: esWizard2, listing: listingSummary, welcome, overview: overviewProjection, item: itemProjection,
@@ -531,43 +532,43 @@ define([
       });
       const hostEntity2 = contentPlan.hostEntity;
       let hostBlocks2 = contentPlan.hostBlocks;
-      // los @Subresource a la vista: los ya cargados conservan su tabla, los nuevos se cargan
+      // the @Subresources in view: the already loaded ones keep their table, the new ones are loaded
       if (hostBlocks2) {
         reg = await bridge.loadSubresources(base, reg, hostBlocks2, { appState });
         vars.mateuRegistry = reg;
         hostBlocks2 = bridge.withSubresources(hostBlocks2, reg.contexts);
       }
-      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger, pestañas, tablas…): el
-      // form genérico y el texto plano se suprimen — misma regla que los arquetipos. También
-      // cuando el form no tiene nada que pintar (una página de solo lectura son textos)
+      // the blocks WIN when they are rich (EntityHeader/Meter/Ledger, tabs, tables…): the
+      // generic form and the plain text are suppressed — same rule as the archetypes. Also
+      // when the form has nothing to paint (a read-only page is just texts)
       const hostBlocksRicos2 = bridge.hostContentShown(hostBlocks2, summary);
-      // las acciones del toolbar de la Page (se calculan antes del header por si algún
-      // template de página de entidad las recoloca)
+      // the Page's toolbar actions (computed before the header in case some entity page
+      // template relocates them)
       const hostToolbarA = bridge.pageToolbarOf(hostAfter);
-      // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna → el
-      // template oj-sp-general-overview-page (slots main/info, header integrado)
+      // native GENERAL OVERVIEW: entity page with TWO column blocks → the
+      // oj-sp-general-overview-page template (main/info slots, integrated header)
       const gop2 = bridge.generalOverviewPageOf(hostEntity2, hostBlocks2);
       vars.mateuGop = gop2;
       const gopOn2 = gop2.on;
-      // el form genérico se suprime: sus botones (@Button del form) van con los bloques
+      // the generic form is suppressed: its buttons (the form's @Button) go with the blocks
       // kept here too: the header's pass below works on the projection, not on the variable's proxies
       let hostContent2 = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions, { tree: hostAfter.tree }) : null) || [];
       vars.mateuHostContent = hostContent2;
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
-      // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
-      // después: sin refresh se queda con la lista sin estilar (misma trampa que el
-      // oj-navigation-list del navigator)
+      // the oj-tab-bar parses its <ul> on initialization and the for-each's <li>s arrive
+      // later: without a refresh it keeps the unstyled list (same trap as the
+      // navigator's oj-navigation-list)
       for (const barId of bridge.tabBarIdsOf(vars.mateuHostContent)) {
         try {
           await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
-        } catch (ignored) { /* aún sin montar */ }
+        } catch (ignored) { /* not mounted yet */ }
       }
       if (hostBlocksRicos2) {
         assign(bridge.noGenericFormVars());
         vars.mateuHostText = '';
       }
-      // el PASO del wizard (mismo reparto que onMateuNavigate): cada campo UNA vez, el pie
-      // Back/Next a la barra del pie con el tren arriba, contenido RICO → sin form genérico
+      // the wizard STEP (same split as onMateuNavigate): each field ONCE, the Back/Next
+      // footer to the footer bar with the train on top, RICH content → no generic form
       const wizardStep2 = esWizard2 ? bridge.wizardStepViewOf(hostAfter, islandRawBlocks2,
         { title: summary.title, sections: vars.mateuFormSections }) : null;
       const wizardH2 = !!(wizardStep2 && wizardStep2.wizard.horizontal);
@@ -585,23 +586,23 @@ define([
         bridge.mountElementsSoon(bridge.elementAtomsOf(wizardStep2.content));
       }
 
-      // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
-      // templates que ya integran el suyo (guided process / general overview / welcome /
-      // smart-filter-search del listado) lo suprimen
+      // general rule: the page header is ALWAYS painted by a vb header; only the
+      // templates that already integrate their own (guided process / general overview / welcome /
+      // the listing's smart-filter-search) suppress it
       const integratedHeader = !!(wizardProjection || welcome
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
       const showHeaderA = !integratedHeader && !notFoundAfter;
       const pwAfter = bridge.pageWidthOf({ host: hostAfter, drawerNav: vars.mateuMenuDrawerMode });
-      // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda); volver
-      // NO es una acción más: es la afordancia goToParent de la cabecera RDS
+      // the Page's toolbar actions go to the HEADER (the band's primary/secondary); going back
+      // is NOT just another action: it is the RDS header's goToParent affordance
       const pageHeader = bridge.pageHeaderOf({
         host: hostAfter, hostEntity: hostEntity2, summary, hostToolbar: hostToolbarA,
         showHeader: showHeaderA, pageWidth: pwAfter, gopOn: gopOn2, listing: listingSummary,
       });
       vars.mateuPageHeader = pageHeader.header;
       vars.mateuPageHeaderTranslations = pageHeader.translations;
-      // El toolbar de la Page se pinta UNA sola vez: manda la cabecera cuando se pinta
+      // The Page's toolbar is painted ONLY once: the header wins when it is painted
       vars.mateuFormActions = bridge.formActionsBesideHeader(vars.mateuFormActions, pageHeader.header, hostToolbarA);
       // …nor in the form's action row under rich content (withFormActions)
       const contentBesideHeader = bridge.hostContentBesideHeader(hostContent2, pageHeader.header, hostToolbarA);
@@ -610,10 +611,10 @@ define([
         // the repaint empties the element holes: mount their web components again
         bridge.mountElementsSoon(bridge.elementAtomsOf(contentBesideHeader));
       }
-      // los márgenes del contenido se RECALCULAN también tras una acción (una acción
-      // puede cambiar la rama/el formato de página: p.ej. en-casa → check-out) — misma
-      // lógica que onMateuNavigate (sin recalcular, el -40px de solape de banda del
-      // estado anterior se arrastraba a la pantalla siguiente)
+      // the content margins are RECOMPUTED after an action too (an action
+      // can change the page branch/format: e.g. en-casa → check-out) — same
+      // logic as onMateuNavigate (without recomputing, the previous state's -40px band
+      // overlap was carried over to the next screen)
       assign(bridge.pageLayoutOf({
         host: hostAfter, drawerNav: vars.mateuMenuDrawerMode,
         bleedingHeader: !!(welcome || overviewProjection || wizardProjection || listingSummary || vars.mateuPageHeader),
@@ -621,10 +622,10 @@ define([
       }).vars);
       vars.mateuDirty = false;
 
-      // EDITOR DE FILA (oj-dialog): abierto mientras el contenedor tenga `_show_detail[campo]`
-      // y el formulario de la fila haya llegado a `<campo>-container`. Sus lookups se cargan al
-      // abrirse (y con cada fila nueva: "Save and add another" trae otro ServerSide) contra el
-      // ServerSide de la FILA, con el estado de la fila.
+      // ROW EDITOR (oj-dialog): open while the container has `_show_detail[campo]`
+      // and the row's form has arrived at `<campo>-container`. Its lookups are loaded when it
+      // opens (and with each new row: "Save and add another" brings another ServerSide) against
+      // the ROW's ServerSide, with the row's state.
       reg = $application.variables.mateuRegistry;
       if (listReq) {
         $page.variables.mateuRowDraft = {};
@@ -653,9 +654,9 @@ define([
         || { id: '', fieldId: '', title: '', subtitle: '', toolbar: [], buttons: [], fields: [] };
       if (rowEditorNow && !$page.variables.mateuRowEditorOpen) {
         $page.variables.mateuRowEditorOpen = true;
-        // el foco, al primer campo EDITABLE: oj-dialog lo deja, al terminar de abrirse
-        // (ojOpen), en el primero que se pueda enfocar, y uno de sólo lectura («Line», que pone
-        // el servidor) se quedaba con el anillo de foco alrededor de un valor vacío
+        // focus goes to the first EDITABLE field: oj-dialog leaves it, once it finishes opening
+        // (ojOpen), on the first focusable one, and a read-only one («Line», set by
+        // the server) kept the focus ring around an empty value
         const dialog = document.getElementById('mateuRowEditor');
         const focusFirstEditable = () => {
           const form = document.getElementById('mateuRowEditorForm');
@@ -668,14 +669,14 @@ define([
         await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'open' });
         setTimeout(focusFirstEditable, 600);
       } else if (!rowEditorNow && $page.variables.mateuRowEditorOpen) {
-        // la marca baja ANTES del close: el ojBeforeClose que dispara no es un descarte del usuario
+        // the flag drops BEFORE the close: the ojBeforeClose it fires is not a user dismissal
         $page.variables.mateuRowEditorOpen = false;
         await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'close' });
       }
 
-      // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
+      // toast with the starter's pattern: variable + open() of the local oj-sp-messages-toast
       for (const toast of allToasts) {
-        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        // an error or warning goes to the shell's message banner (the Redwood toast only confirms)
         const notification = bridge.bannerNotificationOf(toast);
         if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;
@@ -688,8 +689,8 @@ define([
         // the host page owns its title when embedded (bridge.setDocTitle → the mateuTitle event)
         bridge.setDocTitle(effects.docTitle);
       }
-      // el selector recién abierto: el diálogo y la primera página de su listado (su `search`,
-      // contra SU ServerSide — lo que en Vaadin hace el listado al montarse)
+      // the just-opened selector: the dialog and the first page of its listing (its `search`,
+      // against ITS ServerSide — what the listing does on mount in Vaadin)
       // a listing in a drawer: its first page when the drawer opens (only then — a failed search is
       // not asked again and again)
       if (pickerNow && pickerNow.inDrawer) {
@@ -710,13 +711,13 @@ define([
           await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
         }
         if (effects.navigate.url) {
-          // una URL absoluta (la de otra consola) se abre en su propia pestaña, como en Vaadin
+          // an absolute URL (another console's) opens in its own tab, as in Vaadin
           window.open(effects.navigate.url, '_blank', 'noopener');
         } else {
-          // `force`: la acción manda ir a una ruta, aunque sea la que ya se ve — «+ 10 reservas
-          // demo» vuelve al listado para enseñar las nuevas, «Cancel booking» a la reserva
-          // para enseñarla cancelada. Sin forzar, la shell tomaba la ruta por el eco de su
-          // propia URL y no recargaba nada.
+          // `force`: the action says go to a route, even the one already shown — «+ 10 reservas
+          // demo» goes back to the listing to show the new ones, «Cancel booking» to the booking
+          // to show it cancelled. Without forcing, the shell took the route for the echo of its
+          // own URL and reloaded nothing.
           await Actions.fireEvent(context, {
             name: 'application:mateuNavigate',
             payload: { route: effects.navigate.route, force: true },

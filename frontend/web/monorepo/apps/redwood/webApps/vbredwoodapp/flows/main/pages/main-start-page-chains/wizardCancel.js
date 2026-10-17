@@ -1,5 +1,5 @@
-/* Fase 8: Cancel del guided-process (spCancel) = abandonar el proceso — navega a la
- * home de la app; al reentrar, el wizard arranca de cero (instancia fresca por request). */
+/* Phase 8: the guided-process's Cancel (spCancel) = abandon the process — navigates to the
+ * app's home; on re-entering, the wizard starts from scratch (fresh instance per request). */
 
 define([
   'vb/action/actionChain',

@@ -1,7 +1,7 @@
-/* Acción SECUNDARIA del header genérico de banda: el detail trae el item por su id (los
- * actionId que estampamos) o, en variantes viejas, por label — se resuelve contra el toolbar
- * de Page proyectado (bridge.secondaryActionOf: actionId primero, rótulo después) y se
- * despacha contra el HOST. */
+/* SECONDARY action of the generic band header: the detail brings the item by its id (the
+ * actionIds we stamp) or, in old variants, by label — it is resolved against the projected Page
+ * toolbar (bridge.secondaryActionOf: actionId first, caption after) and
+ * dispatched against the HOST. */
 
 define([
   'vb/action/actionChain',

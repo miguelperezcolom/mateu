@@ -1,9 +1,9 @@
-/* Dictar al chat: el botón del micrófono (solo donde el navegador tiene reconocimiento de voz — ver
- * toggleMateuChat, que lo decide al abrir el panel). Pulsarlo escucha una frase; lo reconocido va al
- * campo del mensaje y se envía, como en el chat compartido. Pulsarlo mientras escucha lo para.
+/* Dictating to the chat: the microphone button (only where the browser has speech recognition — see
+ * toggleMateuChat, which decides it when opening the panel). Pressing it listens for one sentence; what is
+ * recognized goes to the message field and is sent, as in the shared chat. Pressing it while listening stops it.
  *
- * El envío se hace pulsando el botón Enviar del panel, el mismo camino que el Enter: el resultado
- * llega en un callback del navegador, fuera de la chain, y desde ahí un callChain no es fiable. */
+ * Sending is done by pressing the panel's Send button, the same path as Enter: the result
+ * arrives in a browser callback, outside the chain, and from there a callChain is not reliable. */
 define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bridge) => {
   'use strict';
 
@@ -29,7 +29,7 @@ define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bri
       const send = document.querySelector('#mateuChatSend');
       if (send) send.click();
     };
-    // una frase y se acaba; un error (permiso denegado, sin micrófono, silencio) también la acaba
+    // one sentence and it ends; an error (permission denied, no microphone, silence) also ends it
     recognition.onend = () => { $application.variables.mateuChatListening = false; };
     recognition.onerror = () => { $application.variables.mateuChatListening = false; };
     return recognition;
@@ -49,7 +49,7 @@ define(['vb/action/actionChain', 'resources/js/mateu-bridge'], (ActionChain, bri
         rec.start();
         $application.variables.mateuChatListening = true;
       } catch (e) {
-        // start() sobre uno que ya escucha lanza InvalidStateError: se queda como está
+        // start() on one already listening throws InvalidStateError: it stays as it is
       }
     }
   }

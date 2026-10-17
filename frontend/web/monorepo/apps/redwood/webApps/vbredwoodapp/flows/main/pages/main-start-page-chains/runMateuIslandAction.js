@@ -1,9 +1,9 @@
-/* Fase 9: acción de la ISLA (Edit/Save/toolbar del mediador embebido) — se postea contra
- * el contexto de la isla (outbound estampado al cargarla) y en general SOLO la isla se
- * re-proyecta. Si la respuesta trae EVENTOS de bus (p.ej. el "Check-out" del toolbar del
- * 360 emite checkout-solicitado), se disparan los triggers OnCustomEvent suscritos en el
- * HOST y se re-proyecta todo — incluida la posible SUSTITUCIÓN de la isla (el host decide
- * mostrar otra pantalla de detalle). */
+/* Phase 9: ISLAND action (Edit/Save/toolbar of the embedded mediator) — it is posted against
+ * the island's context (outbound stamped when it was loaded) and in general ONLY the island is
+ * re-projected. If the response brings bus EVENTS (e.g. the "Check-out" of the 360
+ * toolbar emits checkout-solicitado), the OnCustomEvent triggers subscribed in the
+ * HOST are fired and everything is re-projected — including the possible REPLACEMENT of the
+ * island (the host decides to show another detail screen). */
 
 define([
   'vb/action/actionChain',
@@ -36,13 +36,13 @@ define([
       if (!islandContext) {
         return;
       }
-      // idem que en runMateuAction: la isla vive en el backend de su host
+      // same as in runMateuAction: the island lives in its host's backend
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);
       const appState = $application.variables.mateuAppState || {};
-      // el SEED de la isla (initialData del wrapper: stayId/paxIndex…) debe viajar en CADA
-      // acción — el server no lo eca y el estado del modelo cargado no lo lleva (mismo
-      // gotcha que la isla anidada); un null del estado NO pisa el seed
+      // the island's SEED (the wrapper's initialData: stayId/paxIndex…) must travel on EVERY
+      // action — the server does not echo it and the loaded model's state does not carry it (same
+      // gotcha as the nested island); a null in the state does NOT overwrite the seed
       let islandSeed = {};
       try { islandSeed = JSON.parse($application.variables.mateuIslandSeed || '{}'); } catch (e) { islandSeed = {}; }
       const componentState = Object.assign(
@@ -64,11 +64,11 @@ define([
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
 
-      // acciones anunciadas Action.sse(true) (LongTask, p.ej. escanear) → endpoint /sse
+      // actions advertised Action.sse(true) (LongTask, e.g. scanning) → /sse endpoint
       const isSse = (islandContext.sseActionIds || []).indexOf(actionId) >= 0;
       let lastIncrement = null;
       if (isSse) {
-        // LongTask: diálogo de progreso en vivo (mismo tratamiento que runMateuAction)
+        // LongTask: live progress dialog (same treatment as runMateuAction)
         const progressWatcher = bridge.longTaskWatcher();
         let progressOpen = false;
         const increments = await bridge.runMateuActionSse(
@@ -108,9 +108,9 @@ define([
         apply(lastIncrement);
       }
 
-      // ROUTE-FLIP del mediador embebido: una respuesta state-only con _route nuevo
-      // significa "recarga mi ruta interna" (p.ej. edit → /edit, save → /view).
-      // OJO: nada de comparar por IDENTIDAD (proxies de VB) — criterio semántico.
+      // ROUTE-FLIP of the embedded mediator: a state-only response with a new _route
+      // means "reload my inner route" (e.g. edit → /edit, save → /view).
+      // CAREFUL: no comparing by IDENTITY (VB proxies) — semantic criterion.
       let after = reg.contexts[islandId];
       const flippedRoute = after && after.state ? after.state._route : null;
       const previousRoute = islandContext.state ? islandContext.state._route : null;
@@ -118,7 +118,7 @@ define([
         && (lastIncrement.fragments || []).every((f) => !f.component);
       if (after && stateOnly && flippedRoute != null && flippedRoute !== previousRoute) {
         const innerRoute = bridge.composeInnerRoute(outbound.route || '', flippedRoute);
-        // el reload del flip también lleva el seed (el nuevo estado se hidrata de él)
+        // the flip's reload also carries the seed (the new state is hydrated from it)
         const flipState = Object.assign({}, islandSeed, after.state);
         for (const seedKey of Object.keys(islandSeed)) {
           if (flipState[seedKey] == null) {
@@ -133,8 +133,8 @@ define([
         }));
       }
 
-      // eventos de bus → triggers suscritos en el HOST (p.ej. checkout-solicitado →
-      // checkoutGuest en ReservasQueue); el host se re-renderiza
+      // bus events → triggers subscribed in the HOST (e.g. checkout-solicitado →
+      // checkoutGuest in ReservasQueue); the host re-renders
       let hostChanged = false;
       for (const busEvent of allEvents.splice(0)) {
         const hostNow = reg.contexts[bridge.HOST_ID];
@@ -148,7 +148,7 @@ define([
         }
       }
 
-      // qué isla toca proyectar: si el host cambió, puede haber SUSTITUIDO la isla
+      // which island to project: if the host changed, it may have REPLACED the island
       let effectiveIslandId = islandId;
       if (hostChanged) {
         const hostAfter = reg.contexts[bridge.HOST_ID];
@@ -170,9 +170,9 @@ define([
 
       const islandNow = effectiveIslandId ? reg.contexts[effectiveIslandId] : null;
 
-      // isla ANIDADA dentro de la isla (App con initialData sembrado): cargar con el
-      // seed como componentState; RECARGAR si el seed cambió. SIN atajo consumedRoute/
-      // serverSideType: el baile de 2 pasos captura las ACTIONS del wrapper (flag sse)
+      // NESTED island inside the island (App with seeded initialData): load with the
+      // seed as componentState; RELOAD if the seed changed. NO consumedRoute/
+      // serverSideType shortcut: the 2-step dance captures the wrapper's ACTIONS (sse flag)
       const nestedList = islandNow ? bridge.collectIslands(islandNow.tree) : [];
       const nestedInfo = nestedList.length ? nestedList[0] : null;
       const nestedSeed = nestedInfo ? JSON.stringify(nestedInfo.initialData || {}) : '';
@@ -192,8 +192,8 @@ define([
         : null;
 
       $application.variables.mateuRegistry = reg;
-      // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
-      // $current — leer $application.variables en templates profundos no re-liga)
+      // the nested one's atoms are MERGED into the island's content (they flow through
+      // $current — reading $application.variables in deep templates does not re-bind)
       $application.variables.mateuIsland = islandNow
         ? { fields: bridge.fieldListOf(islandNow.tree, islandNow.state, islandNow.data),
             sections: bridge.formSectionsOf(islandNow.tree, islandNow.state, islandNow.data),
@@ -201,7 +201,7 @@ define([
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;
 
-      // contenido display del HOST / del wizard standalone: re-fusionar con la isla
+      // display content of the HOST / of the standalone wizard: re-merge with the island
       const hostFinal = reg.contexts[bridge.HOST_ID];
       const islandRawBlocksNow = islandNow ? bridge.islandContentOf(islandNow) : null;
       if ($application.variables.mateuWizard) {
@@ -211,21 +211,21 @@ define([
         const stepNow = bridge.wizardStepViewOf(hostFinal, islandRawBlocksNow,
           { title: $application.variables.mateuHostTitle, sections: $application.variables.mateuFormSections });
         if (stepNow && stepNow.wizard.horizontal) {
-          // tren arriba: el contenido del paso vive en la rama del contenido del host
+          // train on top: the step's content lives in the host content's branch
           $application.variables.mateuHostContent = stepNow.content;
         } else {
           $application.variables.mateuWizardContent = (stepNow && stepNow.content) || [];
         }
       } else if (($application.variables.mateuHostContent || []).length) {
-        // mismas opts que runMateuAction: sin ellas el título de página y el EntityHeader
-        // reaparecían DUPLICADOS en el contenido tras una acción de la isla
+        // same opts as runMateuAction: without them the page title and the EntityHeader
+        // reappeared DUPLICATED in the content after an island action
         const hostEntityNow = bridge.entityHeaderOf(hostFinal);
         $application.variables.mateuHostContent = bridge.hostContentOf(hostFinal, islandRawBlocksNow,
           { title: $application.variables.mateuHostTitle, dropEntityHeader: !!hostEntityNow }) || [];
       }
 
-      // los Element (componentes web, HTML del servidor) del host, del paso del wizard y de la
-      // isla se vuelven a montar: tras una acción de la isla sus huecos se repintan vacíos
+      // the Elements (web components, server HTML) of the host, the wizard step and the
+      // island are mounted again: after an island action their slots are repainted empty
       bridge.mountElementsSoon([].concat(
         bridge.elementAtomsOf($application.variables.mateuHostContent),
         bridge.elementAtomsOf($application.variables.mateuWizardContent),
@@ -235,7 +235,7 @@ define([
       $application.variables.mateuDirty = false;
 
       for (const toast of allToasts) {
-        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        // an error or warning goes to the shell's message banner (the Redwood toast only confirms)
         const notification = bridge.bannerNotificationOf(toast);
         if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;

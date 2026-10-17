@@ -1,6 +1,6 @@
-/* Acción de cabecera (Fase 6): con `route` (YAML) navega en la app; si no, se despacha APP-LEVEL — route '' + serverSideType del App
- * (así lo exime Mateu de la resolución de menú) con el appState del contexto; los toasts
- * salen por el oj-sp-messages-toast de la propia shell. */
+/* Header action (Phase 6): with `route` (YAML) it navigates in the app; otherwise it is dispatched APP-LEVEL — route '' + the App's serverSideType
+ * (that is how Mateu exempts it from menu resolution) with the context's appState; the toasts
+ * come out through the shell's own oj-sp-messages-toast. */
 
 define([
   'vb/action/actionChain',

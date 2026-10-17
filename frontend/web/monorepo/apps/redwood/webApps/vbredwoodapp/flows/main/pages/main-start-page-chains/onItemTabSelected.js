@@ -1,5 +1,5 @@
-/* Item Overview: selección de tab (oj-tab-bar) → mostrar el contenido de ese tab
- * (client-side: los tabs viajan enteros en el árbol). */
+/* Item Overview: tab selection (oj-tab-bar) → show that tab's content
+ * (client-side: the tabs travel whole in the tree). */
 
 define([
   'vb/action/actionChain',
@@ -30,7 +30,7 @@ define([
       }
       const selected = item.tabs.find((tab) => tab.id === detail.value);
       if (selected) {
-        $application.variables.mateuItemTabTexts = selected.items; // átomos de la pestaña
+        $application.variables.mateuItemTabTexts = selected.items; // the tab's atoms
       }
     }
   }
