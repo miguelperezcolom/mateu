@@ -85,7 +85,7 @@ public final class IndexPage {
     }
     // replace, never replaceAll: the title is authored text and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — an IllegalArgumentException, i.e. a 500 on every page load.
-    html = html.replace("<!-- AQUIFAVICON -->", spec.favicon());
+    html = html.replace("<!-- AQUIFAVICON -->", faviconOf(spec.favicon()));
     html = html.replace("AQUIELTITULODELAPAGINA", spec.title());
     if (spec.keycloak() != null) {
       html = secured(html, spec);
@@ -95,7 +95,42 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return devHead(html);
+    return devHead(withoutMarkers(html));
+  }
+
+  /**
+   * The favicon a renderer page carries when the app names none (the browser tab shows Mateu's, not
+   * a build tool's); the app's own favicon then arrives with the shell ({@code SetFavicon}). Served
+   * by the renderer jar next to its assets, so it resolves on every adapter.
+   */
+  public static final String DEFAULT_FAVICON =
+      "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/mateu-icon.svg\" />";
+
+  /** The markup for the favicon marker: the given one, or {@link #DEFAULT_FAVICON}. */
+  public static String faviconOf(String favicon) {
+    return favicon == null || favicon.isBlank() ? DEFAULT_FAVICON : favicon;
+  }
+
+  /** The template markers this class fills in — none of them is left in a served page. */
+  static final List<String> MARKERS =
+      List.of(
+          "<!-- AQUIFAVICON -->",
+          "<!-- AQUIKEYCLOAK -->",
+          "<!-- AQUIJS -->",
+          "<!-- HASTAAQUIJS -->",
+          "<!-- AQUIUI -->",
+          "<!-- HASTAAQUIUI -->");
+
+  /**
+   * {@code html} without the template's marker comments: they only mean something to this class,
+   * and a served page showed them (in Spanish) in every app's view-source. Call it last — the
+   * markers are where the page's parts go.
+   */
+  public static String withoutMarkers(String html) {
+    for (String marker : MARKERS) {
+      html = html.replace(marker, "");
+    }
+    return html;
   }
 
   /** The meta tag a dev-mode page carries: where the live-reload events are. */

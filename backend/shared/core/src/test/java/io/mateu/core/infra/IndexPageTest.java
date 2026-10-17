@@ -108,6 +108,36 @@ class IndexPageTest {
   }
 
   @Test
+  void aServedPageCarriesNoTemplateMarkerAndMateusFaviconByDefault() {
+    for (var spec :
+        List.of(
+            IndexPage.Spec.of("/admin", "T"),
+            new IndexPage.Spec(
+                "", "T", "", List.of(), new IndexPage.Keycloak("u", "r", "c", "j"), "", false))) {
+      for (var page : List.of(VITE_PAGE, VB_PAGE)) {
+        var html = IndexPage.render(page, spec);
+        assertThat(html).doesNotContain("AQUI").doesNotContain("vite.svg");
+      }
+    }
+    assertThat(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T")))
+        .contains(IndexPage.DEFAULT_FAVICON)
+        .contains("/assets/mateu-icon.svg");
+    assertThat(IndexPage.faviconOf("<link rel=icon href=/x.png>"))
+        .isEqualTo("<link rel=icon href=/x.png>");
+  }
+
+  @Test
+  void theShippedVaadinTemplateServesNoMarkerAndNoViteIcon() throws Exception {
+    // the renderer's own template, as the vaadin-lit jar ships it (read from the source tree)
+    var file =
+        java.nio.file.Path.of("../frontend/vaadin-lit/src/main/resources/static/_index.html");
+    org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(file));
+    var html =
+        IndexPage.render(java.nio.file.Files.readString(file), IndexPage.Spec.of("", "Products"));
+    assertThat(html).doesNotContain("AQUI").doesNotContain("vite.svg");
+  }
+
+  @Test
   void aPageWithoutMarkersIsLeftAlone() {
     assertThat(IndexPage.mountUi("<html></html>", "<x/>")).isEqualTo("<html></html>");
   }
