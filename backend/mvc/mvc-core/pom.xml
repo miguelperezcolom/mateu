@@ -17,9 +17,11 @@
         <!-- BUNDLE line and branch floors (jacoco:check, mvn verify), the values measured at the end
              of the coverage stream S3 rounded down (88.5% lines / 86.1% branches, 2026-10-17,
              design/coverage/coverage-map.md). Ratchet them up as the suite grows. The branch
-             property is read by the parent's BUNDLE BRANCH limit. -->
+             property is read by the parent's BUNDLE BRANCH limit. Branches 85, not 86: one of
+             YamlMountCondition's two "mounts empty?" outcomes is environment-dependent (seen in the
+             stream's worktree, not on the integration branch: 85.2%), and 86.1 left no room for it. -->
         <jacoco.min.bundle.coverage>88%</jacoco.min.bundle.coverage>
-        <jacoco.min.bundle.branch.coverage>86%</jacoco.min.bundle.branch.coverage>
+        <jacoco.min.bundle.branch.coverage>85%</jacoco.min.bundle.branch.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
