@@ -383,7 +383,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 if ((!trigger.condition || this._evalExpr(trigger.condition)) && claimOnLoadFiring(trigger as OnLoadTrigger)) {
                     const onloadTrigger = trigger as OnLoadTrigger
                     if (onloadTrigger.timeoutMillis > 0) {
-                        this.scheduleOnload(onloadTrigger, onloadTrigger.times - 1, this.id);
+                        this.scheduleOnload(onloadTrigger)
                     } else {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
@@ -399,12 +399,21 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
     }
 
-    scheduleOnload = (onloadTrigger: OnLoadTrigger, _times: number, componentId: string) => {
-        if (componentId != this.component?.id) {
-            return
-        }
+    /**
+     * Fires a timed OnLoad trigger (`timeoutMillis > 0`, the polling idiom) after its delay — as
+     * long as this element is still on the page showing the same view. It used to bail out up
+     * front when the element's DOM id differed from `component.id`, which is the normal case for
+     * an element filled by a fragment (its id is the fragment's TARGET, the component carries the
+     * server's fresh uuid), so those polls never ran and nothing said so.
+     */
+    scheduleOnload = (onloadTrigger: OnLoadTrigger) => {
         const callbackToken = this.callbackToken
+        const scheduledFor = (this.component as ServerSideComponent | undefined)?.serverSideType
         setTimeout(() => {
+            if (!this.isConnected
+                || (this.component as ServerSideComponent | undefined)?.serverSideType !== scheduledFor) {
+                return
+            }
             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: onloadTrigger.actionId,
