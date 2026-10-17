@@ -39,9 +39,13 @@ public class McpService {
     this.objectMapper = objectMapper;
   }
 
-  /** Load a screen (route) → flat projection. The load is dispatched as actionId "". */
+  /**
+   * Load a screen (route) → flat projection. The load is dispatched as actionId "". Under an app
+   * shell the route's first answer is the SHELL (aimed at the route); the screen is the content the
+   * shell then loads — followed here exactly like the browser does.
+   */
   public ObjectNode describeScreen(String route, String baseUrl, HttpRequestFactory httpRequests) {
-    return project(sync(rq(route, "", null, null), baseUrl, httpRequests));
+    return project(content(route, baseUrl, httpRequests).increment());
   }
 
   /** Run an action on a screen → resulting projection. */
@@ -51,7 +55,11 @@ public class McpService {
       Map<String, Object> componentState,
       String baseUrl,
       HttpRequestFactory httpRequests) {
-    return project(sync(rq(route, actionId, componentState, null), baseUrl, httpRequests));
+    return project(
+        sync(
+            content(route, baseUrl, httpRequests).action(actionId, componentState, null),
+            baseUrl,
+            httpRequests));
   }
 
   /** Run the standard {@code search} action of a listing. */
@@ -67,7 +75,11 @@ public class McpService {
     if (filters != null) state.putAll(filters);
     if (searchText != null && !searchText.isEmpty()) state.put("searchText", searchText);
     Map<String, Object> params = searchText == null ? Map.of() : Map.of("searchText", searchText);
-    return project(sync(rq(route, "search", state, params), baseUrl, httpRequests));
+    return project(
+        sync(
+            content(route, baseUrl, httpRequests).action("search", state, params),
+            baseUrl,
+            httpRequests));
   }
 
   /** Navigable routes from the app menu on the root response → [{route, caption}]. */
@@ -86,6 +98,108 @@ public class McpService {
     return out;
   }
 
+  /**
+   * Where a screen lives and what its load answered. {@code request} is the load that answered the
+   * screen itself — the route's own load, or (under an app shell) the content load the shell points
+   * at — so an action on the screen is sent where the browser's content component sends it.
+   */
+  record Content(RunActionRqDto request, String serverSideType, JsonNode increment) {
+
+    RunActionRqDto action(
+        String actionId, Map<String, Object> componentState, Map<String, Object> parameters) {
+      return RunActionRqDto.builder()
+          .route(request.route())
+          .consumedRoute(request.consumedRoute())
+          .appState(Map.of())
+          .actionId(actionId == null ? "" : actionId)
+          .serverSideType(serverSideType != null ? serverSideType : request.serverSideType())
+          .componentState(componentState == null ? Map.of() : componentState)
+          .parameters(parameters == null ? Map.of() : parameters)
+          .build();
+    }
+  }
+
+  /** Bounds the shell → content (→ crud mediator → listing) chain; the browser nests no deeper. */
+  private static final int MAX_SHELL_HOPS = 4;
+
+  /**
+   * Loads a route and follows any app shell it answers to the content that shell loads: its {@code
+   * homeRoute} / {@code homeConsumedRoute} / {@code homeServerSideType}, the same request the
+   * shell's inner {@code mateu-ux} sends. Without it an agent asking for {@code orders} under a
+   * root {@code @UI("")} app was described — and its actions run against — the shell itself.
+   */
+  private Content content(String route, String baseUrl, HttpRequestFactory httpRequests) {
+    RunActionRqDto request = rq(route, "", null, null);
+    JsonNode increment = sync(request, baseUrl, httpRequests);
+    var visited = new java.util.HashSet<String>();
+    for (int hop = 0; hop < MAX_SHELL_HOPS; hop++) {
+      JsonNode app = appOf(increment);
+      if (app == null) break;
+      String homeRoute = app.path("homeRoute").asText(null);
+      String homeBaseUrl = app.path("homeBaseUrl").asText("");
+      if (homeRoute == null || (!homeBaseUrl.isBlank() && !homeBaseUrl.equals(baseUrl))) break;
+      RunActionRqDto next =
+          RunActionRqDto.builder()
+              .route(homeRoute)
+              .consumedRoute(app.path("homeConsumedRoute").asText(""))
+              .serverSideType(
+                  app.hasNonNull("homeServerSideType")
+                      ? app.get("homeServerSideType").asText()
+                      : app.path("serverSideType").asText(null))
+              .actionId("")
+              .componentState(Map.of())
+              .appState(Map.of())
+              .parameters(Map.of())
+              .build();
+      if (!visited.add(next.route() + "|" + next.consumedRoute() + "|" + next.serverSideType()))
+        break;
+      request = next;
+      increment = sync(request, baseUrl, httpRequests);
+    }
+    return new Content(request, serverSideTypeOf(increment), increment);
+  }
+
+  /** The metadata of an App (shell) component in the answer, or null. */
+  private static JsonNode appOf(JsonNode increment) {
+    JsonNode[] found = {null};
+    for (JsonNode fragment : increment.path("fragments")) {
+      visit(
+          fragment.path("component"),
+          node -> {
+            JsonNode md = node.path("metadata");
+            if (found[0] == null && md.isObject() && "App".equals(md.path("type").asText(null)))
+              found[0] = md;
+          });
+    }
+    return found[0];
+  }
+
+  /** The serverSideType of the screen the answer renders (its first ServerSide node), or null. */
+  private static String serverSideTypeOf(JsonNode increment) {
+    String[] found = {null};
+    for (JsonNode fragment : increment.path("fragments")) {
+      visit(
+          fragment.path("component"),
+          node -> {
+            if (found[0] == null
+                && "ServerSide".equals(node.path("type").asText(null))
+                && node.hasNonNull("serverSideType"))
+              found[0] = node.get("serverSideType").asText();
+          });
+    }
+    return found[0];
+  }
+
+  private static void visit(JsonNode node, java.util.function.Consumer<JsonNode> fn) {
+    if (node == null || node.isNull()) return;
+    if (node.isObject()) {
+      fn.accept(node);
+      for (JsonNode child : node) visit(child, fn);
+    } else if (node.isArray()) {
+      for (JsonNode child : node) visit(child, fn);
+    }
+  }
+
   private void collectRoutes(JsonNode node, Map<String, String> out) {
     if (node == null) return;
     if (node.isObject()) {
@@ -94,9 +208,7 @@ public class McpService {
         walkMenu(md.path("menu"), out);
       if (node.hasNonNull("route") && !node.get("route").asText().isEmpty()) {
         String r = McpProjection.normalizeRoute(node.get("route").asText());
-        out.putIfAbsent(
-            r,
-            node.hasNonNull("caption") ? node.get("caption").asText() : (r.isEmpty() ? "Home" : r));
+        out.putIfAbsent(r, captionOf(node, r));
       }
       for (JsonNode child : node) collectRoutes(child, out);
     } else if (node.isArray()) {
@@ -110,13 +222,19 @@ public class McpService {
       JsonNode routeNode = item.hasNonNull("route") ? item.get("route") : item.path("path");
       if (routeNode != null && routeNode.isTextual() && !routeNode.asText().isEmpty()) {
         String r = McpProjection.normalizeRoute(routeNode.asText());
-        out.putIfAbsent(
-            r,
-            item.hasNonNull("caption") ? item.get("caption").asText() : (r.isEmpty() ? "Home" : r));
+        out.putIfAbsent(r, captionOf(item, r));
       }
       walkMenu(item.path("submenus"), out);
       walkMenu(item.path("menu"), out);
     }
+  }
+
+  /** A menu option names its caption {@code label} on the wire ({@code caption} kept as well). */
+  private static String captionOf(JsonNode item, String route) {
+    if (item.hasNonNull("caption")) return item.get("caption").asText();
+    if (item.hasNonNull("label") && !item.get("label").asText().isBlank())
+      return item.get("label").asText();
+    return route.isEmpty() ? "Home" : route;
   }
 
   private RunActionRqDto rq(

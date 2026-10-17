@@ -246,3 +246,47 @@ test("search: the text travels in the component state, where the listing reads i
   assert.equal(sent.actionId, "search");
   assert.deepEqual(sent.componentState, { status: "open", searchText: "ray" });
 });
+
+test("under an app shell, a route is described by the content the shell loads", async () => {
+  const sent = [];
+  const shell = {
+    fragments: [
+      {
+        component: {
+          type: "ClientSide",
+          metadata: {
+            type: "App",
+            serverSideType: "com.acme.Shell",
+            homeRoute: "/books",
+            homeConsumedRoute: "",
+            homeBaseUrl: "",
+            homeServerSideType: "com.acme.Shell",
+          },
+        },
+      },
+    ],
+  };
+  const books = {
+    fragments: [{ component: { type: "ServerSide", serverSideType: "com.acme.Books", route: "_empty" } }],
+  };
+  const wire = new MateuWire({
+    baseUrl: "http://x",
+    fetchImpl: async (_url, init) => {
+      const body = JSON.parse(init.body);
+      sent.push(body);
+      return { ok: true, json: async () => (body.consumedRoute === null ? shell : books) };
+    },
+  });
+  const s = await wire.describeScreen("books");
+  assert.equal(s.serverSideType, "com.acme.Books");
+  assert.equal(sent[1].route, "books");
+  assert.equal(sent[1].consumedRoute, "");
+  assert.equal(sent[1].serverSideType, "com.acme.Shell");
+
+  sent.length = 0;
+  await wire.runAction("books", "search", { searchText: "x" });
+  const action = sent.at(-1);
+  assert.equal(action.actionId, "search");
+  assert.equal(action.serverSideType, "com.acme.Books");
+  assert.equal(action.consumedRoute, "");
+});
