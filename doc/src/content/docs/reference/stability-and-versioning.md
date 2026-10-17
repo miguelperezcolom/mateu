@@ -175,7 +175,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.calendar` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.collectiondetail` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud` | 12 | 4 | 0 | 0 | 8 |
-| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 11 | 0 | 0 | 0 | 11 |
+| `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers` | 12 | 0 | 0 | 0 | 12 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers` | 7 | 0 | 0 | 0 | 7 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.dashboard` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.datamanagement` | 1 | 1 | 0 | 0 | 0 |
@@ -192,8 +192,8 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-dtos` | `io.mateu.dtos` | 276 | 246 | 0 | 30 | 0 |
-| `mateu-uidl` | `io.mateu.uidl` | 7 | 6 | 1 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 7 | 3 | 0 |
+| `mateu-uidl` | `io.mateu.uidl` | 7 | 5 | 1 | 0 | 1 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 173 | 162 | 7 | 4 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.data` | 315 | 263 | 46 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
@@ -201,7 +201,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **984** | **843** | **62** | **44** | **35** |
+| **Total** | | **986** | **826** | **62** | **45** | **53** |
 
 **Experimental types** (the whole type and its members):
 
