@@ -1,0 +1,137 @@
+{
+  "commands" : [ {
+    "data" : "Product",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "id",
+                        "label" : "Id",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "name",
+                        "label" : "Name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  }, {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "number",
+                        "fieldId" : "price",
+                        "label" : "Price",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    }, {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "status",
+                        "label" : "Status",
+                        "options" : [ {
+                          "label" : "Available",
+                          "value" : "Available"
+                        }, {
+                          "label" : "Out of stock",
+                          "value" : "OutOfStock"
+                        }, {
+                          "label" : "Discontinued",
+                          "value" : "Discontinued"
+                        } ],
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "select",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 2,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "title" : "Product",
+          "toolbar" : [ {
+            "actionId" : "cancel-new",
+            "buttonStyle" : "tertiary",
+            "label" : "Cancel",
+            "type" : "Button"
+          }, {
+            "actionId" : "create",
+            "buttonStyle" : "primary",
+            "label" : "Save",
+            "type" : "Button"
+          } ],
+          "type" : "Page"
+        },
+        "style" : "max-width:900px;margin: auto;",
+        "type" : "ClientSide"
+      } ],
+      "confirmOnNavigationIfDirty" : true,
+      "pageType" : "form",
+      "style" : "width: 100%;",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

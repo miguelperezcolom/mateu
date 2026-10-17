@@ -571,6 +571,8 @@ public class SignUpWizard : Wizard
     [Step(3)] public string? Reference { get; set; }
 
     public override string? CompletionActionLabel => "Sign up";
+    // Java's completion is the @WizardCompletionAction method signUp
+    public override string CompletionActionId => "signUp";
     public override Message Complete() => new("done");
 
     // Java names a step after its field (account / plan / done)
@@ -594,4 +596,57 @@ public class RestSourceForm
 
     [RestOptions(Source = "currencies")]
     public string? Currency { get; set; }
+}
+
+// ── Second requests: what an ACTION answers, not what a first load draws ──────────────────────
+
+/// <summary>Two messages (a success toast with an explicit duration, an error — sticky, duration
+/// 0) and a navigation command.</summary>
+[UI("conformance/action-effects"), Title("Action effects")]
+public class ActionEffectsPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object Confirm() => new List<object>
+    {
+        new Message("Saved", MessageVariant.Success, "Done") { Duration = 4000 },
+        new Message("Could not notify the warehouse", MessageVariant.Error, "Warehouse") { Duration = 4000 },
+        "/conformance/simple-form",
+    };
+}
+
+/// <summary>An action that opens a drawer: an ADD fragment carrying the Drawer and its content.</summary>
+[UI("conformance/drawer"), Title("Drawer")]
+public class DrawerPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object OpenDetails() => new Drawer
+    {
+        HeaderTitle = "Details",
+        Subtitle = "Read only",
+        Content = new Text("Nothing to edit here"),
+        Position = DrawerPosition.End,
+    };
+}
+
+/// <summary>A save the server refuses: a validationRequired button, the required field empty.</summary>
+[UI("conformance/rejected-save"), Title("Rejected save")]
+public class RejectedSaveForm
+{
+    [Required] public string? Name { get; set; }
+
+    [Button] public object Save() => new Message("Saved");
+}
+
+/// <summary>An action that fails unexpectedly: the error boundary's generic answer.</summary>
+[UI("conformance/error-boundary"), Title("Error boundary")]
+public class FailingActionPage
+{
+    public string? Name { get; set; } = "Ada";
+
+    [Action]
+    public object Explode() => throw new InvalidOperationException("database is down at db-01");
 }

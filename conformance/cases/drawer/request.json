@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/drawer",
+  "actionId": "openDetails",
+  "componentState": {
+    "name": "Ada"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/action-effects",
+  "actionId": "confirm",
+  "componentState": {
+    "name": "Ada"
+  }
+}

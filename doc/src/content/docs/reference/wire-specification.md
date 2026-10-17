@@ -97,17 +97,45 @@ excluded from the authoring surface — they appear in the wire schema instead.
 
 ## Normalisation (what is normative vs. noise)
 
-The wire carries values that legitimately differ between servers and runs. The
-[conformance corpus](/design-systems/renderer-contract/) defines the canonical normalisation both
+### Absent == default
+
+A member at its type's **zero value** — `null`, `[]`, `{}`, `false`, `0`, `""` — **may be omitted**,
+and a reader MUST treat an absent member exactly like that zero value. Producers legitimately
+differ here (the Java backend sends every member; the .NET and Python ones omit most defaults), and
+both are conformant. The wire schema therefore requires nothing but the `type` discriminator.
+
+**Exception — members whose zero is meaningful.** For these the absent value is a NON-zero
+default, so a producer MUST send `false`/`0` explicitly, and a reader MUST NOT read an absent one
+as zero:
+
+| Member | Absent means | Zero means |
+|---|---|---|
+| `MessageDto.duration` (also `CarouselLayoutDto.duration`) | the renderer's default timeout | a sticky toast (every error message is sent with `0`) |
+| `MenuOptionDto.visible` | visible | hidden |
+| `DetailsDto.opened`, `FaqItemDto.open`, `FoldoutPanelInfoDto.open` | open | closed |
+| `CrudlDto.searchable`, `RecordSwitcherDto.searchable` | a search box | no search box |
+| `HeroSectionDto.centered`, `ContentLayoutDto.asideSticky` | `true` | `false` |
+| `AutoSaveTriggerDto.debounceMillis` | 800 ms | no debounce |
+
+A new member whose zero is meaningful must be added to this table and to the conformance runners'
+`MEANINGFUL_ZERO` set in the same change.
+
+### What the conformance corpus compares
+
+The [conformance corpus](/design-systems/renderer-contract/) defines the canonical normalisation both
 producers and the reference apply before comparing:
 
-- **Drop** server-invented `id`s and empty/null members.
+- **Drop** server-invented `id`s (not an action's `id` — that is the name the client sends) and
+  members at their default, **keeping** the members of the table above at `false`/`0`.
+- **Mask** the error boundary's per-request reference (`Reference: <ref>`).
 - **Sort** object keys.
 - **Keep** everything that says *what the screen is*: types, field ids, labels, data types, actions,
   layout structure — and scalar envelope fields such as `wireVersion`.
 
 If two producers normalise to the same tree for the same fixture, they are wire-equivalent. This corpus
-(`conformance/cases/*`) is the **executable half** of this spec.
+(`conformance/cases/*`) is the **executable half** of this spec: first loads and second requests
+(an action's messages and commands, an overlay, a rejected save, an error-boundary answer, a wizard's
+second step, a CRUD's new/edit/view forms, a search).
 
 ## Derivation semantics (behaviour a schema cannot express)
 

@@ -1,0 +1,23 @@
+{
+  "fragments" : [ {
+    "action" : "Add",
+    "component" : {
+      "metadata" : {
+        "content" : {
+          "metadata" : {
+            "container" : "div",
+            "text" : "Nothing to edit here",
+            "type" : "Text"
+          },
+          "type" : "ClientSide"
+        },
+        "headerTitle" : "Details",
+        "position" : "end",
+        "subtitle" : "Read only",
+        "type" : "Drawer"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

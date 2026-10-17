@@ -165,11 +165,18 @@ class WizardMapperMixin(MixinBase):
             style="width: 100%; margin-top: 1rem;",
         )
         # no Back on the first step: there is nowhere to go back to (Java's WizardButtonBuilder)
-        back = self.client(ButtonMetadata(label="Back", action_id="back"), None, []) if current > 1 else None
+        # every wizard button is colour "normal" on the wire, like Java's (ButtonMapper's default)
+        back = (
+            self.client(ButtonMetadata(label="Back", action_id="back", color="normal"), None, [])
+            if current > 1 else None
+        )
         if completion is not None and current == total - 1:
             name, label = completion
             nxt = self.client(
-                ButtonMetadata(label=self.T(label), action_id=camel_case(name), button_style="primary"),
+                ButtonMetadata(
+                    label=self.T(label), action_id=camel_case(name), button_style="primary",
+                    color="normal",
+                ),
                 None,
                 [],
             )

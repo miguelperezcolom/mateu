@@ -1,0 +1,7 @@
+{
+  "route": "/conformance/error-boundary",
+  "actionId": "explode",
+  "componentState": {
+    "name": "Ada"
+  }
+}

@@ -41,7 +41,13 @@ public sealed partial class SyncHandler
         var completionTarget = resultStep ? total : total + 1;
         // the last step from which a plain forward move (Next/Skip) is not the completion
         var lastPlain = resultStep ? total - 2 : total - 1;
-        switch (rq.ActionId)
+        // the completion button names the wizard's CompletionActionId: on the completion step it
+        // moves forward exactly like "next" (which stays accepted there)
+        var actionId = resultStep && w.CompletionActionId != "next" && rq.ActionId == w.CompletionActionId
+                       && step == total - 1
+            ? "next"
+            : rq.ActionId;
+        switch (actionId)
         {
             case "back" or "next" or "goToStep" or "skip" or "complete" or "saveDraft" or "saveAndClose" when completed: break;
             case "back" when step > 1:
