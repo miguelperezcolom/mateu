@@ -191,7 +191,7 @@ class ListingHandlerMixin(MixinBase):
             if mode == "new" and creatable:
                 form = self._invoke(view.creation_form, rq)
                 return self.fragment_response(
-                    self.title(cls),
+                    self.record_title(form_type or type(form), form),
                     self.mapper.map_entity_form(
                         cls, form_type or type(form), form, "new", f"{base_route}/new",
                         can_edit=editable, can_create=creatable,
@@ -201,7 +201,7 @@ class ListingHandlerMixin(MixinBase):
             if mode == "view" and navigable and id_ is not None:
                 detail = self._invoke(view.view, id_, rq)
                 return self.fragment_response(
-                    self.title(cls),
+                    self.record_title(type(detail), detail),
                     self.mapper.map_entity_form(
                         cls, type(detail), detail, "view", f"{base_route}/{id_}",
                         can_edit=editable, can_create=creatable,
@@ -211,7 +211,7 @@ class ListingHandlerMixin(MixinBase):
             if mode == "edit" and editable and id_ is not None:
                 editor = self._invoke(view.edit, id_, rq)
                 return self.fragment_response(
-                    self.title(cls),
+                    self.record_title(editor_type or type(editor), editor),
                     self.mapper.map_entity_form(
                         cls, editor_type or type(editor), editor, "edit",
                         f"{base_route}/{id_}/edit", can_edit=editable, can_create=creatable,

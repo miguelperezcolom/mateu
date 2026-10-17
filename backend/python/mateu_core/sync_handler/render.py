@@ -26,7 +26,7 @@ class RenderHandlerMixin(MixinBase):
             isinstance(instance, ComponentTreeSupplier) or page_inference.composes(type_)
         )
         return self.fragment_response(
-            self.title(type_),
+            self.record_title(type_, instance),
             self.mapper.map_view(type_, instance, route, layout_override),
             rq,
             self.lookup_labels(type_, instance, instance),
