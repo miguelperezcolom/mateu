@@ -160,8 +160,14 @@ public class MateuQuarkusRoutes {
               }
               var body = rc.body().buffer();
               var user = rc.user() != null ? rc.user().subject() : null;
+              // rate-limited per user, else per client address (the endpoint is open)
+              var client =
+                  java.util.Optional.ofNullable(rc.request().remoteAddress())
+                      .map(io.vertx.core.net.SocketAddress::host)
+                      .orElse(null);
               rc.response()
-                  .setStatusCode(ClientErrorLog.handle(body == null ? null : body.getBytes(), user))
+                  .setStatusCode(
+                      ClientErrorLog.handle(body == null ? null : body.getBytes(), user, client))
                   .end();
             });
   }

@@ -54,6 +54,29 @@ public final class ClientErrorLog {
   public static final int BAD_REQUEST = 400;
   public static final int NOT_FOUND = 404;
   public static final int PAYLOAD_TOO_LARGE = 413;
+  public static final int TOO_MANY_REQUESTS = 429;
+
+  /**
+   * The setting capping how many reports one client (the authenticated user, else the client
+   * address) may write per minute; beyond it the reports are dropped and the endpoint answers 429.
+   */
+  public static final String MAX_REPORTS_PER_MINUTE_PROPERTY =
+      "mateu.client-log.max-reports-per-minute";
+
+  /** The default cap: a page in trouble reports a handful of errors, not hundreds a minute. */
+  public static final int DEFAULT_MAX_REPORTS_PER_MINUTE = 60;
+
+  /** Clients tracked at once; beyond it the window starts over (the map stays bounded). */
+  static final int MAX_TRACKED_CLIENTS = 10_000;
+
+  /** The fixed one-minute windows: client key → reports written in the current one. */
+  private static final java.util.concurrent.ConcurrentHashMap<String, int[]> WINDOW =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  private static volatile long windowStartedAt = 0;
+
+  /** The clock the windows run on (a test moves it). */
+  static java.util.function.LongSupplier clock = System::currentTimeMillis;
 
   private static final Logger log = LoggerFactory.getLogger(LOGGER_NAME);
   private static final ObjectMapper mapper = new ObjectMapper();
@@ -100,6 +123,18 @@ public final class ClientErrorLog {
    * is the authenticated principal's name, or null.
    */
   public static int handle(byte[] body, String user) {
+    return handle(body, user, null);
+  }
+
+  /**
+   * As {@link #handle(byte[], String)}, rate-limited per client: {@code client} is the request's
+   * remote address (used when there is no authenticated {@code user}). The endpoint is open to
+   * anonymous callers — it has to be, a session that expired is one of the things it reports — so
+   * without a cap anyone could fill the server log at will; over {@value
+   * #DEFAULT_MAX_REPORTS_PER_MINUTE} reports a minute ({@value #MAX_REPORTS_PER_MINUTE_PROPERTY})
+   * the rest are dropped with 429.
+   */
+  public static int handle(byte[] body, String user, String client) {
     if (body == null || body.length == 0) {
       return BAD_REQUEST;
     }
@@ -115,8 +150,54 @@ public final class ClientErrorLog {
     if (lines == null) {
       return BAD_REQUEST;
     }
-    lines.forEach(log::warn);
-    return NO_CONTENT;
+    int allowed = admit(clientKey(user, client), lines.size());
+    lines.stream().limit(allowed).forEach(log::warn);
+    return allowed < lines.size() ? TOO_MANY_REQUESTS : NO_CONTENT;
+  }
+
+  private static String clientKey(String user, String client) {
+    if (user != null && !user.isBlank()) {
+      return "user:" + user;
+    }
+    return client != null && !client.isBlank() ? "addr:" + client : "anonymous";
+  }
+
+  /** How many of {@code wanted} reports {@code key} may still write in the current minute. */
+  static int admit(String key, int wanted) {
+    long now = clock.getAsLong();
+    if (now - windowStartedAt >= 60_000 || WINDOW.size() > MAX_TRACKED_CLIENTS) {
+      synchronized (WINDOW) {
+        if (now - windowStartedAt >= 60_000 || WINDOW.size() > MAX_TRACKED_CLIENTS) {
+          WINDOW.clear();
+          windowStartedAt = now;
+        }
+      }
+    }
+    int cap = maxReportsPerMinute();
+    var used = WINDOW.computeIfAbsent(key, k -> new int[1]);
+    synchronized (used) {
+      int granted = Math.max(0, Math.min(wanted, cap - used[0]));
+      used[0] += granted;
+      return granted;
+    }
+  }
+
+  static int maxReportsPerMinute() {
+    var configured = MateuSettings.get(MAX_REPORTS_PER_MINUTE_PROPERTY);
+    if (configured != null) {
+      try {
+        return Math.max(0, Integer.parseInt(configured));
+      } catch (NumberFormatException ignored) {
+        // the default below
+      }
+    }
+    return DEFAULT_MAX_REPORTS_PER_MINUTE;
+  }
+
+  /** Forgets every window (tests). */
+  static void resetRateLimit() {
+    WINDOW.clear();
+    windowStartedAt = 0;
   }
 
   /** The log lines for a body, or null when it is not a report or a batch of them. */

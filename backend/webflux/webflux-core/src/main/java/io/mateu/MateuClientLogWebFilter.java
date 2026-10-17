@@ -31,6 +31,11 @@ public class MateuClientLogWebFilter implements WebFilter {
     this.enabled = enabled;
   }
 
+  private static String clientAddress(ServerWebExchange exchange) {
+    var remote = exchange.getRequest().getRemoteAddress();
+    return remote == null ? null : remote.getHostString();
+  }
+
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     var request = exchange.getRequest();
@@ -74,7 +79,8 @@ public class MateuClientLogWebFilter implements WebFilter {
             .map(Optional::of)
             .defaultIfEmpty(Optional.empty());
     return Mono.zip(body, user)
-        .map(t -> ClientErrorLog.handle(t.getT1(), t.getT2().orElse(null)))
+        // rate-limited per user, else per client address: the endpoint is open to anonymous callers
+        .map(t -> ClientErrorLog.handle(t.getT1(), t.getT2().orElse(null), clientAddress(exchange)))
         .onErrorReturn(ClientErrorLog.BAD_REQUEST)
         .flatMap(
             status -> {

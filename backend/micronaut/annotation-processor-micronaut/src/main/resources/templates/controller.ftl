@@ -92,8 +92,11 @@ public class ${simpleClassName}MateuController implements MateuController {
             return HttpResponse.status(io.micronaut.http.HttpStatus.NOT_FOUND);
         }
         String user = request.getUserPrincipal().map(java.security.Principal::getName).orElse(null);
+        // rate-limited per user, else per client address: the endpoint is open to anonymous callers
+        var remote = request.getRemoteAddress();
         return HttpResponse.status(
-                io.micronaut.http.HttpStatus.valueOf(ClientErrorLog.handle(body, user)));
+                io.micronaut.http.HttpStatus.valueOf(ClientErrorLog.handle(
+                        body, user, remote == null ? null : remote.getHostString())));
     }
 
 }
