@@ -28,7 +28,7 @@ import io.mateu.uidl.fluent.AppVariant;
  */
 @UI("")
 @Title("Redwood Showcase")
-@App(value = AppVariant.HAMBURGUER_MENU, themeToggle = true)
+@App(value = AppVariant.HAMBURGER_MENU, themeToggle = true)
 public class ShowcaseApp {
 
   @Menu WelcomeDemo welcome;
