@@ -13,8 +13,7 @@ import globals from 'globals'
 
 export default tseslint.config(
     {
-        ignores: ['**/node_modules/**', '**/dist/**', '**/*.d.ts', 'apps/redwood/**', 'apps/visual-editor/**',
-            'libs/mateu/src/mateu/ui/infra/compiler/**'],
+        ignores: ['**/node_modules/**', '**/dist/**', '**/*.d.ts', 'apps/redwood/**', 'apps/visual-editor/**'],
     },
     {
         files: ['libs/mateu/src/**/*.ts', 'apps/vaadin/src/**/*.ts'],

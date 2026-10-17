@@ -15,7 +15,7 @@ const sourcesHash = () => {
         for (const name of readdirSync(dir).sort()) {
             const path = resolve(dir, name)
             if (statSync(path).isDirectory()) {
-                if (!path.endsWith('/ui/infra/compiler')) walk(path)
+                walk(path)
             } else if (!/\.(test|spec)\.ts$/.test(name)) {
                 files.push(path)
             }
