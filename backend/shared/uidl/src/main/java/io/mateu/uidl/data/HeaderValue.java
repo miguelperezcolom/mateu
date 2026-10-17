@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
+import lombok.Builder;
 
 /**
  * A LIVE value on the app header — "Business date: 12 Oct", "Shift: Night" — that the server can
@@ -13,4 +14,5 @@ import io.mateu.uidl.annotations.Experimental;
  * @param label the caption before the value; blank = the value alone
  */
 @Experimental("live header values (3.0-alpha, E2 patterns)")
+@Builder
 public record HeaderValue(String id, String label, String value) {}

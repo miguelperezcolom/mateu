@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
+import io.mateu.uidl.annotations.Internal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  * {@code \r}. Both {@code ,} and {@code ;} separate fields — the separator is detected by counting
  * the candidates (outside quotes) on the first line.
  */
+@Internal
 public final class CsvParser {
 
   /** Parses the whole content into rows of cells; fully-blank lines are dropped. */

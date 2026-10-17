@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * One responsive grid — THE general layout foundation (coherence-plan #9). Children are placed on a
@@ -16,6 +17,7 @@ import java.util.List;
  * band or a wide dashboard tile needs, so the scattered column mechanisms can converge here).
  * Responsive breakpoints and named areas are follow-ups.
  */
+@Builder
 public record ResponsiveGrid(
     String id,
     List<GridTrack> columns,

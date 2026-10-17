@@ -1,10 +1,13 @@
 package io.mateu.uidl.data;
 
+import lombok.Builder;
+
 /**
  * One hit of the app-wide entity search (the command palette's data results): a label, an optional
  * secondary line, the route to navigate to, and an optional category caption used to group the
  * palette's results ("Clientes", "Reservas"…).
  */
+@Builder
 public record GlobalSearchResult(String label, String description, String route, String category) {
 
   public GlobalSearchResult(String label, String route) {

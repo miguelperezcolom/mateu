@@ -2,11 +2,39 @@ package io.mateu.uidl.annotations;
 
 import io.mateu.uidl.fluent.AppLayout;
 import io.mateu.uidl.fluent.AppVariant;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
+/**
+ * Makes a {@code @UI} class an APPLICATION: the shell (header, menu, navigation chrome) around the
+ * screens its {@link Menu} fields reach, instead of a single page.
+ *
+ * <pre>{@code
+ * @UI("")
+ * @App(themeToggle = true)
+ * public class BackOffice {
+ *   @Menu Customers customers;
+ *   @Menu Orders orders;
+ * }
+ * }</pre>
+ *
+ * <p>{@link #value()} picks the navigation chrome; {@link AppVariant#AUTO} (the default) chooses it
+ * from the menu's shape (tabs, menu on top, hamburger or tiles). Everything else is opt-in.
+ *
+ * @see Menu
+ */
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Documented
 public @interface App {
+  /**
+   * The navigation chrome. {@link AppVariant#AUTO} (the default): a deep menu shows tiles, more
+   * than 7 top-level entries a hamburger menu, fewer a menu on top, and no menu entries at all
+   * tabs.
+   */
   AppVariant value() default AppVariant.AUTO;
 
   /**
@@ -18,8 +46,13 @@ public @interface App {
    */
   String route() default "";
 
+  /**
+   * How the content area is arranged: one slot (the default) or {@link AppLayout#SPLIT} panes.
+   * Independent of the navigation chrome ({@link #value()}).
+   */
   AppLayout layout() default AppLayout.SINGLE_SLOT;
 
+  /** Shows a light/dark theme toggle in the app header. Ignored by the light-only Redwood shell. */
   boolean themeToggle() default false;
 
   /**

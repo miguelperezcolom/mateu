@@ -143,6 +143,7 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
     return actions;
   }
 
+  @io.mateu.uidl.annotations.Internal
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
     if ("select".equals(methodName) && this instanceof Selector<?> selector) {
       // a multi-valued field ADDS the clicked row to the ids it holds (SearchableSelection)
@@ -160,6 +161,7 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
     return null;
   }
 
+  @io.mateu.uidl.annotations.Internal
   default String getCrudId(HttpRequest httpRequest) {
     if (httpRequest.runActionRq().parameters() != null
         && httpRequest.runActionRq().parameters().get("crudId") != null) {

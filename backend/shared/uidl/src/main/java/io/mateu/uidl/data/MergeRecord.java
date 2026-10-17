@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
+import lombok.Builder;
 
 /**
  * A column of a {@link RecordMerge}: one of the records being compared. {@code label} names it in
@@ -8,6 +9,7 @@ import io.mateu.uidl.annotations.Experimental;
  * caption} is a quieter second line (e.g. "Created 3 Mar 2024 · 12 stays").
  */
 @Experimental("record merge (3.0-alpha, E2 patterns)")
+@Builder
 public record MergeRecord(String id, String label, String caption) {
 
   public MergeRecord(String id, String label) {

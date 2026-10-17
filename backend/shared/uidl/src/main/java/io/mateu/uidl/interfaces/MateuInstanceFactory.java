@@ -1,7 +1,9 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Internal;
 import java.util.Map;
 
+@Internal
 public class MateuInstanceFactory {
 
   // volatile: set by the container thread at startup, read by request threads

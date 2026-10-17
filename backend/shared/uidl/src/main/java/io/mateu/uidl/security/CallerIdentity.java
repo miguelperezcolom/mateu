@@ -1,6 +1,7 @@
 package io.mateu.uidl.security;
 
 import java.util.List;
+import lombok.Builder;
 
 /**
  * Who is calling, as far as Mateu's access control is concerned: the dimensions {@code @EyesOnly},
@@ -17,6 +18,7 @@ import java.util.List;
  * @param scopes OAuth scopes
  * @param permissions fine-grained permissions
  */
+@Builder
 public record CallerIdentity(
     String name,
     List<String> roles,

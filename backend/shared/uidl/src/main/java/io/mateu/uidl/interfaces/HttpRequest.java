@@ -52,11 +52,13 @@ public interface HttpRequest {
     return (GetUIRqDto) value;
   }
 
+  @io.mateu.uidl.annotations.Internal
   default HttpRequest storeRunActionRqDto(RunActionRqDto runActionRqDto) {
     setAttribute("payload_run_action_rq", runActionRqDto);
     return this;
   }
 
+  @io.mateu.uidl.annotations.Internal
   default HttpRequest storeGetUIRqDto(GetUIRqDto getUIRqDto) {
     setAttribute("payload_get_ui_rq", getUIRqDto);
     return this;

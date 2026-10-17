@@ -55,12 +55,18 @@ public final class LiveHeaderValues {
    * Listens to every publish until the returned handle is closed. Used by the framework's event
    * stream; an app does not normally need it.
    */
+  @io.mateu.uidl.annotations.Internal("the framework's live-updates event stream")
   public static AutoCloseable subscribe(Consumer<HeaderValue> listener) {
     LISTENERS.add(listener);
     return () -> LISTENERS.remove(listener);
   }
 
-  /** Forgets every published value (tests). */
+  /**
+   * Forgets every published value. A <em>test</em> hook — it isolates the framework's own tests,
+   * which share this process-wide state — and not API: an app that calls it wipes the values every
+   * other session is catching up from. Outside the stability promise; it may move or disappear.
+   */
+  @io.mateu.uidl.annotations.Internal("test hook")
   public static void reset() {
     CURRENT.clear();
   }

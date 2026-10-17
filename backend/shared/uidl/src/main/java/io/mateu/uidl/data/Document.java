@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 import java.util.Objects;
 import java.util.function.Supplier;
+import lombok.Builder;
 
 /**
  * A document produced by an action — an invoice, a registration card, a report. Return it from any
@@ -31,6 +32,7 @@ import java.util.function.Supplier;
  * @param print open the browser's print dialog for it as soon as it is shown (inline only)
  */
 @Experimental("documents API, 2026-10")
+@Builder
 public record Document(
     String filename,
     String mediaType,

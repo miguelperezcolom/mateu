@@ -1,6 +1,7 @@
 package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.annotations.GroupAction;
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.data.GroupSummary;
 import io.mateu.uidl.data.ListingData;
 import java.lang.reflect.Method;
@@ -11,6 +12,7 @@ import java.util.Arrays;
  * {@code @GroupAction} method and records the hidden ones on each {@link GroupSummary}, so the
  * group header rows only render the applicable actions.
  */
+@Internal
 public final class GroupActions {
 
   public static <Row> ListingData<Row> applyVisibility(

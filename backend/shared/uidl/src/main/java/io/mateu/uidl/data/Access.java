@@ -2,6 +2,7 @@ package io.mateu.uidl.data;
 
 import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
+import lombok.Builder;
 
 /**
  * An identity restriction authored as DATA — the YAML twin of {@code @EyesOnly}, {@code
@@ -29,6 +30,7 @@ import java.util.List;
  * as an extra property that then fails to deserialise.
  */
 @Experimental("access keys in YAML")
+@Builder
 public record Access(
     List<String> roles, List<String> groups, List<String> scopes, List<String> permissions) {
 

@@ -5,6 +5,12 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 
+/**
+ * A piece of text: a block ({@code div}) by default, or a paragraph, a span or a heading ({@link
+ * TextContainer} {@code h1}…{@code h6}), with an optional {@link TextSize} and variants. {@code
+ * text} may carry {@code ${…}} templates over the component's state and data. {@code noMargins}
+ * drops the container's block margins (for tight captions).
+ */
 @Builder
 public record Text(
     String id,

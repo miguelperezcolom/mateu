@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.Builder;
 
+/**
+ * Stacks its {@code content} vertically, with optional spacing, padding and alignment ({@code
+ * flexGrows} gives each child its share of the height). The basic layout of a component tree.
+ */
 @Builder(toBuilder = true)
 public record VerticalLayout(
     String id,

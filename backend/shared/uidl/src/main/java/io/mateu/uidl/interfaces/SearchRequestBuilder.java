@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Internal;
 import io.mateu.uidl.data.Direction;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.SearchRequest;
@@ -13,6 +14,7 @@ import java.util.List;
  * the declarative listing grid) and the {@code field} key (sent by the CRUD grid). Criteria are not
  * extracted here — the CRUD engine adds them on its path.
  */
+@Internal
 public final class SearchRequestBuilder {
 
   public static SearchRequest build(Object listing, HttpRequest httpRequest) {

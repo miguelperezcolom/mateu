@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import java.util.List;
+import lombok.Builder;
 
 /**
  * What Mateu hands a {@link io.mateu.uidl.interfaces.ListingExporter}: everything the Export button
@@ -15,6 +16,7 @@ import java.util.List;
  * @param search the search those rows answer (search text, filters, criteria) — e.g. to print the
  *     applied filters in a report header
  */
+@Builder
 public record ListingExport(
     ExportFormat format,
     String title,

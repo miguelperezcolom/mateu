@@ -1,6 +1,7 @@
 package io.mateu.uidl.data;
 
 import java.util.List;
+import lombok.Builder;
 
 /**
  * Everything a listing search receives, in one object: the free-text {@code searchText} (populated
@@ -21,6 +22,7 @@ import java.util.List;
  * <p>Adding a new search input in the future means adding a component here — the {@code
  * search(SearchRequest, HttpRequest)} signature never changes.
  */
+@Builder
 public record SearchRequest(
     String searchText,
     Object filters,
