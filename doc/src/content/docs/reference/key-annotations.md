@@ -10,6 +10,13 @@ This page is intentionally selective: it focuses on the annotations that shape r
 
 ## `@UI`
 
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
+
 Defines a UI root.
 
 ```java
@@ -335,7 +342,9 @@ Use it when you want to change the default form layout.
 
 ### Key fields
 
-- `columns()`
+- `columns()` — default 2
+- `labelsAside()` — `LabelsAsideMode.AUTO` (default: infer), `ASIDE` (labels left of the fields)
+  or `TOP` (labels above) — see [labels on top vs labels aside](/java-ui-definition/forms/#labels-on-top-vs-labels-aside)
 - `theme()`
 - `style()`
 

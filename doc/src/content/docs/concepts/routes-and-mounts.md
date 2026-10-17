@@ -93,7 +93,7 @@ type: Routes
 routes:
   # The root route binds the app shell (a type: AppShell definition).
   - route: ""
-    definition: app.yaml
+    layout: app.yaml
 
   # Two routes over ONE screen, told apart by a pinned parameter.
   - route: orders/pending
@@ -115,16 +115,16 @@ routes:
 
   # One definition, two view models. The definition declares NO modelView (see below).
   - route: catalog/books
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Books
   - route: catalog/films
-    definition: shared-list.yaml
+    layout: shared-list.yaml
     viewModel: com.acme.Films
 
   # No view model: a definition plus client-side data. Valid and complete — this is the
   # statically served case, not a degraded one.
   - route: about
-    definition: about.yaml
+    layout: about.yaml
 ```
 
 | Field | Meaning |
@@ -252,6 +252,13 @@ routes:
         viewModel: com.acme.CustomerAudit
         show: audit                    # a tab behind a feature flag
 ```
+
+:::note[Imports]
+The samples leave out their `import` lines and compile with single-type imports. Some names exist
+in two Mateu packages (the `@Menu` annotation and the `Menu` record, `@Button` and `Button`…), so
+wildcard imports of both packages fail with "reference is ambiguous" — see
+[Java imports](/reference/java-imports/).
+:::
 
 **2. The master** — an `@App(TABS)` with **no menu of its own**: its tabs are its children,
 labelled with each child's `@Title`. `backLink = PARENT` draws «← Customers» (the title of the
