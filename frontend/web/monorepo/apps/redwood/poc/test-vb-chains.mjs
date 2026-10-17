@@ -773,6 +773,80 @@ test('runMateuIslandAction: without an island (or an action) it does nothing', a
   assert.equal(sent.length, 0)
 })
 
+// ═══ the <mateu-ui> component: the same chains under the embedded VB runtime ═══════════════
+// (test-embedded.mjs pins the boot against the generated component bundle; here the chains run
+// over the poc/ bridge, through the runtime's own Actions, and what is pinned is the contract with
+// the HOST page: the navigation policy, the events it hears, the error it is told.)
+test('embedded: boots the route the host names, tells it ready/title, and the policy decides the screen\'s navigations', async () => {
+  const readJson = (...p) => JSON.parse(readFileSync(join(webApp, ...p), 'utf8'))
+  modules['vb/action/actions'] = bridge.embeddedActions
+  const embeddedChains = {
+    onMateuNavigate: chain('pages/shell-page-chains/onMateuNavigate.js'),
+    runMateuAction: chain('flows/main/pages/main-start-page-chains/runMateuAction.js'),
+  }
+  modules['vb/action/actions'] = Actions
+  const observable = (initial) => { let value = initial; return (...a) => (a.length ? void (value = a[0]) : value) }
+  const adpFactory = (rows) => { const adp = { provider: { rows: (rows || []).slice() } }; adp.setData = (r) => { adp.provider.rows = r }; adp.add = () => {}; adp.remove = () => {}; adp.refresh = () => {}; return adp }
+  const opened = []
+  const root = { querySelector: (sel) => ({ open: () => opened.push([sel, 'open']), close: () => opened.push([sel, 'close']), refresh: () => {} }) }
+  const emitted = []
+  let policy = 'internal'
+  let allow = true
+  const emit = (name, detail) => { emitted.push([name, detail]); return name === bridge.EMBEDDED_EVENTS.navigate ? allow : true }
+  const rt = bridge.createVbRuntime({
+    app: readJson('app-flow.json'),
+    pages: [readJson('flows', 'main', 'pages', 'main-start-page.json'), readJson('pages', 'shell-page.json')],
+    chains: embeddedChains, observable, adpFactory, root, emit, policy: () => policy,
+    constants: { mateuBaseUrl: '' }, translations: { appBundle: bridge.chromeTextsOf('en') },
+  })
+  bridge.setEmbeddedHost({ emit })
+  bridge.installEmbeddedContentRuntime(bridge, rt)
+  answer((b, url) => url.endsWith('/components/_/action'), fx('app'))
+  answer(byRoute('/person/7'), fx('load-form'))
+  answer(byRoute('/other'), replace(page('po', 'x.O', 'Other')))
+  answer((b) => b.actionId === 'save', { status: 500 })
+  const urlBefore = location.href
+  try {
+    const config = bridge.embeddedConfigOf({ baseUrl: 'http://erp', route: 'person/:id', params: { id: 7 }, token: 't0k' })
+    await bridge.bootEmbedded(bridge, rt, config)
+    const v = rt.$application.variables
+    assert.equal(v.mateuHostTitle, 'Person')
+    assert.ok(emitted.some(([n, d]) => n === bridge.EMBEDDED_EVENTS.ready && d.route === '/person/7'))
+    assert.ok(emitted.some(([n, d]) => n === bridge.EMBEDDED_EVENTS.title && d.title === 'Person'))
+    assert.equal(location.href, urlBefore, 'the host page\'s URL is never touched')
+    // the screen asks to go elsewhere: 'host' policy → the host is told and nothing loads here
+    policy = 'host'
+    const loadsBefore = sent.length
+    await rt.callChain('onMateuNavigate', { event: { detail: { route: '/other' } } })
+    assert.equal(sent.length, loadsBefore)
+    assert.ok(emitted.some(([n, d]) => n === bridge.EMBEDDED_EVENTS.navigate && d.route === '/other'))
+    // 'internal', but the host cancels the event: nothing either
+    policy = 'internal'; allow = false
+    await rt.callChain('onMateuNavigate', { event: { detail: { route: '/other' } } })
+    assert.equal(sent.length, loadsBefore)
+    // 'internal' and not cancelled: it navigates inside the component
+    allow = true
+    await rt.callChain('onMateuNavigate', { event: { detail: { route: '/other' } } })
+    assert.equal(v.mateuHostTitle, 'Other')
+    // an action: the host hears it, and a failure reaches it as mateuError (and the frame's band)
+    await rt.callChain('onMateuNavigate', { event: { detail: { route: '/person/7' } } })
+    await assert.rejects(rt.callChain('runMateuAction', { actionId: 'save' }))
+    assert.ok(emitted.some(([n, d]) => n === bridge.EMBEDDED_EVENTS.action && d.actionId === 'save'))
+    const error = emitted.find(([n]) => n === bridge.EMBEDDED_EVENTS.error)
+    assert.ok(error && error[1].status === 500, 'the host is told what failed')
+    assert.equal(v.mateuLastError, error[1].message)
+    assert.ok(sent.length && sent.every((s) => s.url.startsWith('http://erp/mateu/v3/')), 'every call to the backend the host named')
+    // a chain the runtime does not have is a warning, not a crash
+    const warn = console.warn
+    console.warn = () => {}
+    try { assert.equal(await rt.callChain('noSuchChain', {}), undefined) } finally { console.warn = warn }
+  } finally {
+    bridge.setEmbeddedHost(null)
+    bridge.setHostHeaderProvider(null)
+    bridge.setTransportHooks(null)
+  }
+})
+
 const failed = []
 for (const { name, fn } of queue) {
   reset()
