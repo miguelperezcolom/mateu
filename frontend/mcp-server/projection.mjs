@@ -83,7 +83,7 @@ export function projectIncrement(increment) {
       const t = mdType(node);
       if (t === "FormField" && node.metadata.fieldId) fieldNodes.push(node.metadata);
       else if (t === "Page" && !page) page = node.metadata;
-      else if (t === "Crudl" && !crudl) crudl = node.metadata;
+      else if ((t === "Crud" || t === "Crudl") && !crudl) crudl = node.metadata; // the listing is "Crud" on the wire
       else if (t === "Button" && node.metadata.actionId) {
         if (!buttonsByAction.has(node.metadata.actionId)) {
           buttonsByAction.set(node.metadata.actionId, node.metadata.label);

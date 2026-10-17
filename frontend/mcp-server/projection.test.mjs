@@ -79,7 +79,7 @@ test("actions: ids from the ServerSide node, labels enriched from buttons", () =
   assert.equal(byId.cancel.label, "cancel"); // no button -> falls back to id
 });
 
-test("listing: Crudl projects columns, searchable and filters", () => {
+test("listing: Crud (the wire type) projects columns, searchable and filters", () => {
   const inc = {
     wireVersion: "3.0",
     fragments: [
@@ -92,7 +92,7 @@ test("listing: Crudl projects columns, searchable and filters", () => {
             {
               type: "ClientSide",
               metadata: {
-                type: "Crudl",
+                type: "Crud",
                 title: "Products",
                 searchable: true,
                 columns: [

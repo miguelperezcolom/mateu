@@ -58,7 +58,9 @@ public final class McpProjection {
                 fieldNodes.add(node.get("metadata"));
               } else if ("Page".equals(t) && page[0] == null) {
                 page[0] = node.get("metadata");
-              } else if ("Crudl".equals(t) && crudl[0] == null) {
+              } else if (("Crud".equals(t) || "Crudl".equals(t)) && crudl[0] == null) {
+                // the listing travels as "Crud" (ComponentMetadataDto); "Crudl" is the older
+                // PageMainContentDto spelling — reading only "Crudl" never projected a listing
                 crudl[0] = node.get("metadata");
               } else if ("Button".equals(t) && node.path("metadata").hasNonNull("actionId")) {
                 String actionId = node.get("metadata").get("actionId").asText();

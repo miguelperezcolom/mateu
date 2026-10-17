@@ -46,7 +46,7 @@ public static class McpProjection
                 var md = node["metadata"] as JsonObject;
                 if (t == "FormField" && md is { } mf && mf["fieldId"] is not null) fieldNodes.Add(mf);
                 else if (t == "Page" && page is null) page = md;
-                else if (t == "Crudl" && crudl is null) crudl = md;
+                else if ((t == "Crud" || t == "Crudl") && crudl is null) crudl = md; // the listing is "Crud" on the wire
                 else if (t == "Button" && md is { } mb && mb["actionId"] is not null)
                 {
                     var aid = Str(mb["actionId"])!;

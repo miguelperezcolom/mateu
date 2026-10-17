@@ -59,7 +59,7 @@ def project_increment(increment):
             field_nodes.append(md)
         elif t == "Page" and ctx["page"] is None:
             ctx["page"] = md
-        elif t == "Crudl" and ctx["crudl"] is None:
+        elif t in ("Crud", "Crudl") and ctx["crudl"] is None:  # the listing is "Crud" on the wire
             ctx["crudl"] = md
         elif t == "Button" and md.get("actionId"):
             buttons_by_action.setdefault(md["actionId"], md.get("label"))
