@@ -1,0 +1,10 @@
+# Definition-only routes whose definition is a bare `type: Form` (no `layout:` envelope) holding only
+# a Text, at one and at two segments under the @UI("") root — e2e/tests/shared/bare-form-definition.spec.ts.
+type: Routes
+routes:
+  - route: bare-form-note
+    layout: bare-form-note.yaml
+  - route: bare/form-note
+    layout: bare-form-note.yaml
+  - route: bare/untitled
+    layout: bare-form-untitled.yaml

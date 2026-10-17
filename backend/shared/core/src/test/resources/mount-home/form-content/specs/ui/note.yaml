@@ -1,0 +1,5 @@
+type: Form
+title: A note
+content:
+  - type: Text
+    text: "Only a text in this form"

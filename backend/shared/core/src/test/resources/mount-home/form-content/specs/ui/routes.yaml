@@ -1,0 +1,6 @@
+type: Routes
+routes:
+  - route: dashboard
+    definition: dashboard.yaml
+  - route: note
+    definition: note.yaml

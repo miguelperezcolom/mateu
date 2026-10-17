@@ -1,0 +1,6 @@
+type: Form
+title: A bare form
+content:
+  - type: Text
+    id: bare-form-text
+    text: Only a text in this form
