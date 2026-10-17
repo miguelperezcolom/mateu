@@ -756,4 +756,26 @@ test('display gallery: every display component projects to its atom, nothing lef
   assert.ok(atoms.some((a) => a.isText && a.text === 'Inside the notice'))
 })
 
+test('a BPMN without diagram interchange is laid out left to right along its flows — a rework loop included', () => {
+  const d = bpmnDiagramOf(`<bpmn:definitions><bpmn:process>
+    <bpmn:startEvent id="s" name="Start"/>
+    <bpmn:userTask id="t" name='Check &amp; approve'/>
+    <bpmn:exclusiveGateway id="g"/>
+    <bpmn:endEvent id="e"/>
+    <bpmn:textAnnotation id="n"><bpmn:text> A note </bpmn:text></bpmn:textAnnotation>
+    <bpmn:sequenceFlow id="f1" sourceRef="s" targetRef="t"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="t" targetRef="g"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="g" targetRef="e" name="yes"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="g" targetRef="t"/>
+  </bpmn:process></bpmn:definitions>`)
+  const at = Object.fromEntries(d.nodes.map((n) => [n.id, n]))
+  assert.equal(at.t.label, 'Check & approve')
+  assert.equal(at.n.label, 'A note', 'an annotation\'s text comes from its child')
+  assert.ok(at.s.x < at.t.x && at.t.x < at.g.x && at.g.x < at.e.x, 'columns follow the flow (the loop back does not move the task)')
+  assert.equal(d.flows.length, 4, 'every flow is drawn from its source to its target')
+  assert.ok(d.flows.every((f) => f.points.length === 2))
+  assert.equal(bpmnDiagramOf('').nodes.length, 0)
+  assert.deepEqual([bpmnDiagramOf('').width, bpmnDiagramOf('').height], [100, 80], 'an empty diagram keeps a minimal box')
+})
+
 console.log(`\n${passed} display tests OK`)
