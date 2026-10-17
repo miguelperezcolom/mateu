@@ -38,8 +38,8 @@ How it was measured (reproducible):
 | .NET (net8.0) | 708 | **94.0%** | 79.5% | per package lines: Uidl 92 / Core 92 / Dtos 97 / AspNetCore 95 | — |
 | Python | 783 | **93.8%** | 83.9% | 90% *combined* lines+branches (now 92%) | — |
 | `libs/mateu` | 1433 | 65.8% | 51.8% | 64 L / 63 S / 51 F / 50 B | 14.2 |
-| `apps/vaadin` | 81 | **35.2%** | 27.4% | 35 / 35 / 24 / 27 | **44.8** |
-| `apps/visual-editor` | 423 | 66.9% | 59.5% | 65 / 64 / 57 / 58 | 13.1 |
+| `apps/vaadin` | 246 | **86.1%** (S6, was 35.2) | 74.9% (was 27.4) | 86 / 85 / 80 / 74 | — |
+| `apps/visual-editor` | 484 | **80.7%** (S6, was 66.9) | 70.2% (was 59.5) | 80 / 78 / 76 / 70 | — |
 | Redwood `poc/` (58 sources) | 13 suites | **95.2%** | 79.3% | 94 L / 91 F / 78 B | — |
 | Redwood VB chains (84 files, ~5k lines) | 0 executed | **0% (unmeasured)** | | none | e2e only |
 | React Native `.ts` (45 loaded) | 273 | **95.5%** | 85.1% | 93 / 84 / 93 | — |
