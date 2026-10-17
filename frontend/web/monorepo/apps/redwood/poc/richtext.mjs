@@ -17,8 +17,57 @@ const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
 const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-/** HTML → HTML sanitised by allowlist. */
-export function sanitizeHtml(html) {
+// `presentation` (the HTML of an Element / a header widget, not a rich-text value): also keeps
+// `class`, `title`, `aria-hidden` and a FILTERED `style` on the allowed tags, and an <img> whose
+// src is http(s), relative or a raster data: image. Still nothing that runs: no handler, no
+// script, no url() in a style, no form.
+const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse)$/i
+const STYLE_VALUE = /^[#\w\s.,%()+-]*$/
+const SAFE_IMG_SRC = /^(https?:|\/|\.{0,2}\/|data:image\/(png|jpe?g|gif|webp|bmp|avif);)|^[^:]*$/i
+
+const attrOfToken = (attrs, name) => {
+  const m = new RegExp('(?:^|\\s)' + name + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i').exec(attrs || '')
+  return m ? (m[1] ?? m[2] ?? m[3] ?? '') : null
+}
+
+function safeStyle(style) {
+  const kept = []
+  for (const decl of String(style).split(';')) {
+    const i = decl.indexOf(':')
+    if (i < 0) continue
+    const prop = decl.slice(0, i).trim()
+    const value = decl.slice(i + 1).trim()
+    if (STYLE_PROPS.test(prop) && STYLE_VALUE.test(value) && !/url|expression|image-set/i.test(value)) kept.push(prop + ': ' + value)
+  }
+  return kept.join('; ')
+}
+
+function presentationAttrs(tag, attrs) {
+  let out = ''
+  const cls = attrOfToken(attrs, 'class')
+  if (cls && /^[\w\s-]+$/.test(cls)) out += ' class="' + escapeAttr(cls.trim()) + '"'
+  const title = attrOfToken(attrs, 'title')
+  if (title) out += ' title="' + escapeAttr(title) + '"'
+  if (attrOfToken(attrs, 'aria-hidden') === 'true') out += ' aria-hidden="true"'
+  const style = attrOfToken(attrs, 'style')
+  const clean = style ? safeStyle(style) : ''
+  if (clean) out += ' style="' + escapeAttr(clean) + '"'
+  if (tag === 'img') {
+    const src = (attrOfToken(attrs, 'src') || '').replace(/[\t\n\r]/g, '').trim()
+    if (src && SAFE_IMG_SRC.test(src)) out += ' src="' + escapeAttr(src) + '"'
+    const alt = attrOfToken(attrs, 'alt')
+    if (alt != null) out += ' alt="' + escapeAttr(alt) + '"'
+    for (const dim of ['width', 'height']) {
+      const v = attrOfToken(attrs, dim)
+      if (v && /^\d+%?$/.test(v)) out += ' ' + dim + '="' + v + '"'
+    }
+  }
+  return out
+}
+
+/** HTML → HTML sanitised by allowlist (`{ presentation: true }`: see presentationAttrs). */
+export function sanitizeHtml(html, options = {}) {
+  const presentation = !!options.presentation
   const out = []
   let skipping = null
   let depth = 0
@@ -40,21 +89,22 @@ export function sanitizeHtml(html) {
       if (!closing && !/\/\s*$/.test(m[2] || '')) { skipping = tag; depth = 1 }
       continue
     }
-    if (!ALLOWED.has(tag)) continue
-    if (closing) { if (!VOID.has(tag)) out.push('</' + tag + '>'); continue }
-    let attrs = ''
+    const isImg = presentation && tag === 'img'
+    if (!ALLOWED.has(tag) && !isImg) continue
+    if (closing) { if (!VOID.has(tag) && !isImg) out.push('</' + tag + '>'); continue }
+    let attrs = presentation ? presentationAttrs(tag, m[2] || '') : ''
     if (tag === 'a') {
       const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[2] || '')
       const value = href ? (href[1] ?? href[2] ?? href[3] ?? '').trim().replace(/&amp;/g, '&') : ''
       if (value && SAFE_HREF.test(value)) {
-        attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
+        attrs += ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
       }
     }
     if (tag === 'th' || tag === 'td') {
       const align = /\balign\s*=\s*["']?(left|right|center)\b/i.exec(m[2] || '')
       // emitted from constants only: nothing of the input reaches the attribute
       const ALIGNS = { left: ' align="left"', right: ' align="right"', center: ' align="center"' }
-      if (align) attrs = ALIGNS[align[1].toLowerCase()] || ''
+      if (align) attrs += ALIGNS[align[1].toLowerCase()] || ''
     }
     out.push('<' + tag + attrs + '>')
   }

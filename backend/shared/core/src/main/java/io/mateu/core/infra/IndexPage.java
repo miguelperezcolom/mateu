@@ -85,7 +85,7 @@ public final class IndexPage {
     }
     // replace, never replaceAll: the title is authored text and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — an IllegalArgumentException, i.e. a 500 on every page load.
-    html = html.replace("<!-- AQUIFAVICON -->", spec.favicon());
+    html = html.replace("<!-- AQUIFAVICON -->", faviconOf(spec.favicon()));
     html = html.replace("AQUIELTITULODELAPAGINA", spec.title());
     if (spec.keycloak() != null) {
       html = secured(html, spec);
@@ -95,7 +95,42 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return devHead(html);
+    return devHead(withoutMarkers(html));
+  }
+
+  /**
+   * The favicon a renderer page carries when the app names none (the browser tab shows Mateu's, not
+   * a build tool's); the app's own favicon then arrives with the shell ({@code SetFavicon}). Served
+   * by the renderer jar next to its assets, so it resolves on every adapter.
+   */
+  public static final String DEFAULT_FAVICON =
+      "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/mateu-icon.svg\" />";
+
+  /** The markup for the favicon marker: the given one, or {@link #DEFAULT_FAVICON}. */
+  public static String faviconOf(String favicon) {
+    return favicon == null || favicon.isBlank() ? DEFAULT_FAVICON : favicon;
+  }
+
+  /** The template markers this class fills in — none of them is left in a served page. */
+  static final List<String> MARKERS =
+      List.of(
+          "<!-- AQUIFAVICON -->",
+          "<!-- AQUIKEYCLOAK -->",
+          "<!-- AQUIJS -->",
+          "<!-- HASTAAQUIJS -->",
+          "<!-- AQUIUI -->",
+          "<!-- HASTAAQUIUI -->");
+
+  /**
+   * {@code html} without the template's marker comments: they only mean something to this class,
+   * and a served page showed them (in Spanish) in every app's view-source. Call it last — the
+   * markers are where the page's parts go.
+   */
+  public static String withoutMarkers(String html) {
+    for (String marker : MARKERS) {
+      html = html.replace(marker, "");
+    }
+    return html;
   }
 
   /** The meta tag a dev-mode page carries: where the live-reload events are. */
@@ -135,7 +170,12 @@ public final class IndexPage {
 
   /**
    * Replaces the UI marker region with {@code rootElement} (any markup) followed by the deferred
-   * boot replayer. Used by the static bundle writer, whose root carries a {@code bundleUrl}.
+   * boot replayer when the page parks scripts for it. Used by the static bundle writer, whose root
+   * carries a {@code bundleUrl}.
+   *
+   * <p>The replayer is an inline script, so it is only added to a page that needs it (a Visual
+   * Builder page, whose boot scripts are {@code text/mateu-deferred}): a Vite-built page then has
+   * no inline script at all and runs under {@code script-src 'self'}.
    */
   public static String mountUi(String html, String rootElement) {
     int from = html.indexOf("<!-- AQUIUI -->");
@@ -143,8 +183,38 @@ public final class IndexPage {
     if (from < 0 || to < from) {
       return html;
     }
-    return html.substring(0, from) + rootElement + DEFERRED_BOOT + html.substring(to);
+    String boot = html.contains("text/mateu-deferred") ? DEFERRED_BOOT : "";
+    return html.substring(0, from) + rootElement + boot + html.substring(to);
   }
+
+  /**
+   * The Content Security Policy sources ({@code 'sha256-…'}) of every inline {@code <script>} of a
+   * rendered page, in order — what {@code script-src} has to allow besides {@code 'self'} for the
+   * page to run without {@code 'unsafe-inline'}. A Vite-built page without Keycloak has none; the
+   * {@code @KeycloakSecured} bootstrap and a Visual Builder page's boot do.
+   */
+  public static List<String> inlineScriptHashes(String html) {
+    var hashes = new java.util.ArrayList<String>();
+    Matcher m = INLINE_SCRIPT.matcher(html);
+    while (m.find()) {
+      if (m.group(1).matches("(?is).*\\bsrc\\s*=.*")) {
+        continue;
+      }
+      try {
+        byte[] digest =
+            java.security.MessageDigest.getInstance("SHA-256")
+                .digest(m.group(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        hashes.add("'sha256-" + java.util.Base64.getEncoder().encodeToString(digest) + "'");
+      } catch (java.security.NoSuchAlgorithmException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    return hashes;
+  }
+
+  private static final Pattern INLINE_SCRIPT =
+      Pattern.compile(
+          "<script\\b([^>]*)>(.*?)</script>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
   /**
    * The script that boots a page which does not start itself with a single ES module — a Visual

@@ -15,7 +15,7 @@ import type { MateuField } from './mateu-field'
 export function renderReadOnlyMarkupField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     const source = '' + (evalIfNecessary(value, host.state, host.data) ?? '')
-    if (host.field.stereotype == 'markdown') requireElement('vaadin-markdown')
+    if (host.field.stereotype == 'markdown') requireElement('mateu-markdown')
     return html`<vaadin-custom-field
             id="${host.field.fieldId}"
             label="${label}"
@@ -23,7 +23,7 @@ export function renderReadOnlyMarkupField(host: MateuField, value: FieldValue, l
             data-colspan="${host.field.colspan}"
             style="${host.field.style ?? ''}"
     >${host.field.stereotype == 'markdown'
-        ? html`<vaadin-markdown .content="${source}"></vaadin-markdown>`
+        ? html`<mateu-markdown .content="${source}"></mateu-markdown>`
         : html`<div>${safeHtml(source)}</div>`}</vaadin-custom-field>`
 }
 

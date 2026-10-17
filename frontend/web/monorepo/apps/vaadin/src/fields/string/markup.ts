@@ -8,7 +8,7 @@ import type { MateuField } from '../mateu-field'
 
 export function renderMarkdownField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
-    requireElement('vaadin-markdown')
+    requireElement('mateu-markdown')
     // editable: the source with a rendered preview (the read-only field renders it)
     return html`
         <vaadin-custom-field
@@ -20,7 +20,7 @@ export function renderMarkdownField(host: MateuField, value: FieldValue, label: 
         ><mateu-markup-editor
                 .value="${value ?? ''}" .label="${typeof label === "string" ? label : ""}" ?required="${host.field.required}"
                 @value-changed="${host.markupChanged}"
-        ><vaadin-markdown slot="preview" .content="${value ?? ''}"></vaadin-markdown></mateu-markup-editor>
+        ><mateu-markdown slot="preview" .content="${value ?? ''}"></mateu-markdown></mateu-markup-editor>
         </vaadin-custom-field>
     `
 }

@@ -7,6 +7,9 @@
 // subsequent renders only its attributes are rewritten. Same criterion as the shared web
 // renderer (libs/mateu elementRenderer).
 
+import { sanitizeHtml } from './richtext.mjs'
+import { safeHref } from './core/display.mjs'
+
 const loaded = {}
 
 // ── component events → server action ─────────────────────────────────────────────
@@ -69,33 +72,37 @@ export function wireElementEvents(element, atom) {
   }
 }
 
-// ── HTML with DATA: sanitised ────────────────────────────────────────────────────────────────────
-// Content written in the definition is trusted as is; as soon as `${…}` has put data into
-// it, it is sanitised (no scripts, no on… handlers, no javascript: URLs) — stored XSS. The
-// web renderer does it with DOMPurify; here there are no dependencies, so a DOM-based sanitiser with
-// the same rules.
-const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
-const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
+// ── HTML with DATA: sanitised ───────────────────────────────────────────────────────────────────
+// Content written in the definition is trusted as is; as soon as `${…}` has put data into it,
+// it is sanitised. It used to be a hand-rolled DENY-list (it kept <style>, <form>, SVG <set>/<animate>,
+// <math>, and never looked inside a <template>); it is now the bridge's ONE whitelist sanitizer
+// (richtext.mjs sanitizeHtml) in its presentation mode: text markup, tables, images with a safe
+// src, class/title and a filtered style — nothing that runs.
+export function sanitizeElementHtml(html) {
+  return html == null ? '' : sanitizeHtml(String(html), { presentation: true })
+}
 
-export function sanitizeElementHtml(html, doc = typeof document !== 'undefined' ? document : null) {
-  if (!doc || html == null) return html == null ? '' : String(html)
-  const tpl = doc.createElement('template')
-  tpl.innerHTML = String(html)
-  const walk = (root) => {
-    for (const el of [...root.querySelectorAll('*')]) {
-      if (DROP_TAGS.test(el.tagName)) { el.remove(); continue }
-      for (const attr of [...el.attributes]) {
-        const name = attr.name
-        const value = String(attr.value || '').replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
-        if (/^on/i.test(name)
-          || (URL_ATTRS.test(name) && (value.startsWith('javascript:') || value.startsWith('vbscript:')
-            || (value.startsWith('data:') && !value.startsWith('data:image/'))))
-          || (name === 'srcdoc')) el.removeAttribute(name)
-      }
-    }
+// ── attributes with DATA (M-S7) ────────────────────────────────────────────────────────────────
+// An attribute written literally is the author's and passes as is (except srcdoc: a whole document
+// in the app's origin). One whose declared value carries `${…}` brings DATA: never an on… handler,
+// and a URL only as a safe link (safeHref) — and not even that on an element that loads CODE from its
+// URL (script, object, embed, base, link, meta). Same rule as libs/mateu elementAttributes.ts.
+const ELEMENT_URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'background', 'poster',
+  'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
+const CODE_LOADING_ELEMENTS = new Set(['script', 'object', 'embed', 'base', 'link', 'meta', 'applet', 'frame'])
+
+/** The value to set for an Element attribute, or undefined to leave it out. */
+export function elementAttributeValue(elementName, attribute, declared, resolved) {
+  const name = String(attribute).toLowerCase()
+  if (name === 'srcdoc') return undefined
+  if (!String(declared == null ? '' : declared).includes('${')) return resolved
+  if (name.startsWith('on')) return undefined
+  if (ELEMENT_URL_ATTRIBUTES.has(name)) {
+    if (CODE_LOADING_ELEMENTS.has(String(elementName).toLowerCase())) return undefined
+    const cleaned = String(resolved == null ? '' : resolved).replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
+    return safeHref(cleaned) || undefined
   }
-  walk(tpl.content)
-  return tpl.innerHTML
+  return resolved
 }
 
 /**

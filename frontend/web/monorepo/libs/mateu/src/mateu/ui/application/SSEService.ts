@@ -8,7 +8,7 @@ import { LitElement } from "lit";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
-import { authHeaders, sessionId } from '@infra/http/authToken.ts'
+import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 
 export class SSEService implements Service {
@@ -60,9 +60,8 @@ export class SSEService implements Service {
             'Accept': 'text/event-stream',
             'Content-Type': 'application/json'
         }
-        Object.assign(headers, authHeaders())
-        const sid = sessionId(false)
-        if (sid) headers['X-Session-Id'] = sid
+        // …and only to an origin trusted with them (credentialScope.ts)
+        Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + route))
 
         fetch(baseUrl + '/mateu/v3/sse/' +
             route, {

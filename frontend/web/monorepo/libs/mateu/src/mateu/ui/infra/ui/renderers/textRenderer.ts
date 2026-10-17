@@ -95,6 +95,9 @@ export const renderText = (component: ClientSideComponent, state: ComponentState
             `
     }
     if (TextContainer.div == metadata.container) {
+        // the div container renders the text as HTML, substituted values included: a remote widget
+        // carries its markup in its state (`${state.content}`). Sanitized with the data policy —
+        // no form, no handler, no custom element but vaadin-icon (sanitizePolicy.ts)
         return html`
                <div style="${sizeStyle}${component.style}" class="${component.cssClasses}"
                     id="${ifDefined(component.id)}"

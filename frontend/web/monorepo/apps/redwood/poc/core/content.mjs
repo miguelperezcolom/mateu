@@ -1,7 +1,7 @@
 import { calendarAtomOf } from '../calendar.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
-import { elementModuleUrl } from '../elements.mjs'
+import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
 import { collectTexts, isSectionNode, sectionHeadOf } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
@@ -170,9 +170,14 @@ export function interpolate(text, state) {
   // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
   // arrives as ${state['_position']})
   // and nested paths: `${state.status.message}` (the badge of a header @Status)
-  return String(text == null ? '' : text).replace(
-    /\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
-    (all, dotted, quoted) => {
+  // `\${` / `\\` are the literal escapes the server writes around DATA (Templates.literal): they
+  // show as `${` / `\`, never as an expression — a record titled «${state.id}» is not evaluated
+  const source = String(text == null ? '' : text)
+  if (!source.includes('${')) return source
+  return source.replace(
+    /\\(\\|\$\{)|\$\{state(?:\.([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)|\[\s*['"]([^'"\]]+)['"]\s*\])\}/g,
+    (all, escaped, dotted, quoted) => {
+      if (escaped) return escaped === '\\' ? '\\' : '${'
       if (quoted) return state && state[quoted] != null ? String(state[quoted]) : ''
       let value = state
       for (const part of dotted.split('.')) {
@@ -181,6 +186,14 @@ export function interpolate(text, state) {
       return value != null && typeof value !== 'object' ? String(value) : ''
     },
   )
+}
+
+/** A template the renderer shows WITHOUT evaluating it (the window title): the server's literal
+ *  escapes resolved (`\${` → `${`, `\\` → `\`), so the tab, the trail and the header agree. */
+export function literalText(text) {
+  const source = String(text == null ? '' : text)
+  if (!source.includes('${')) return source
+  return source.replace(/\\(\\|\$\{)/g, (all, escaped) => (escaped === '\\' ? '\\' : '${'))
 }
 
 /** A button's route with its `${state.x}` resolved, or null when any of them is missing or blank
@@ -678,7 +691,11 @@ export function islandContentOf(ctx, opts = {}) {
       // they are VALUES and are re-evaluated on every render — same idiom as any label. The
       // module of the `import` attribute is loaded by the app the first time the tag is used.
       const attributes = {}
-      for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
+      for (const key of Object.keys(m.attributes || {})) {
+        // a data-bound attribute never becomes code: no srcdoc, no handler, only safe urls (M-S7)
+        const value = elementAttributeValue(m.name, key, m.attributes[key], interp(m.attributes[key]))
+        if (value !== undefined) attributes[key] = value
+      }
       atom({
         isElement: true,
         // the server sends a filler id ("fieldId") to ALL Elements (a record without an id):

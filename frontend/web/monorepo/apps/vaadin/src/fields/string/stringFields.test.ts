@@ -100,7 +100,7 @@ describe('string fields', () => {
         // and ask for the elements that load on first use
         expect(requireElement).toHaveBeenCalledWith('mateu-signature-pad')
         expect(requireElement).toHaveBeenCalledWith('mateu-camera-capture')
-        expect(requireElement).toHaveBeenCalledWith('vaadin-markdown')
+        expect(requireElement).toHaveBeenCalledWith('mateu-markdown')
     })
 
     it('a plain string that brings options is a select; a stereotyped one is not', () => {
@@ -199,9 +199,9 @@ describe('every field render function draws nothing without a field', () => {
 })
 
 describe('the Vaadin field elements load on first use', () => {
-    it('vaadin-markdown and vcf-date-range-picker are registered as lazy elements', async () => {
+    it('mateu-markdown and vcf-date-range-picker are registered as lazy elements', async () => {
         await import('../lazyFieldElements')
         const { lazyElementTags } = await import('@infra/ui/lazyElements.ts')
-        expect(lazyElementTags()).toEqual(expect.arrayContaining(['vaadin-markdown', 'vcf-date-range-picker']))
+        expect(lazyElementTags()).toEqual(expect.arrayContaining(['mateu-markdown', 'vcf-date-range-picker']))
     })
 })

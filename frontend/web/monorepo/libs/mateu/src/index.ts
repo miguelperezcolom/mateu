@@ -5,4 +5,5 @@ export type { ExternalAuthProvider, ExternalAuthContext } from './mateu/ui/infra
 export { registerCustomComponent } from './mateu/ui/infra/ui/renderers/customComponentRegistry.ts'
 export type { CustomComponentRenderer } from './mateu/ui/infra/ui/renderers/customComponentRegistry.ts'
 export { configureAuthToken, setAuthToken, getAuthToken } from './mateu/ui/infra/http/authToken.ts'
+export { configureCredentialOrigins } from './mateu/ui/infra/http/credentialScope.ts'
 export type { AuthTokenStorage } from './mateu/ui/infra/http/authToken.ts'

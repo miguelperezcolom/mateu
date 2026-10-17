@@ -81,6 +81,7 @@
   "errServerStatus": "The server could not complete the request (error {status}). Try again.",
   "errUnauthorized": "Your session is no longer valid. Sign in again.",
   "errForbidden": "You're not allowed to do this.",
+  "errSecurityRefused": "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
   "errNotFound": "This is no longer available. It may have been moved or deleted.",
   "errClient": "The request was rejected.",
   "errClientStatus": "The request was rejected (error {status}).",

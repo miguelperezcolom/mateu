@@ -1,8 +1,8 @@
 /**
  * <mateu-markdown> — design-system-neutral markdown element (renderer parity phase 2).
  *
- * Renders markdown with the exact same pipeline vaadin-markdown uses (marked → DOMPurify,
- * allowing custom elements), into the component's LIGHT DOM so the host app's typography
+ * Renders markdown with the same pipeline vaadin-markdown uses (marked → DOMPurify, with
+ * Mateu's data policy — see sanitizePolicy.ts), into the component's LIGHT DOM so the host app's typography
  * applies unchanged. Under the Vaadin renderer the output is therefore pixel-equivalent to
  * vaadin-markdown; under any other renderer it inherits that design system's typography.
  *
@@ -10,6 +10,7 @@
  * or light DOM, and stays importable from node-based unit tests (same pattern as
  * <mateu-unsupported>). marked + dompurify are lazy-loaded to stay out of the initial bundle.
  */
+import { dataHtmlPolicy, installDataHtmlHooks } from './sanitizePolicy'
 
 // HTMLElement does not exist under plain node (vitest); use a no-op base there so this module
 // stays importable from unit tests. The element is only defined when customElements exists.
@@ -54,13 +55,10 @@ export class MateuMarkdown extends Base {
         }
         // html + svg profiles: agents answer with markdown that may embed images
         // (data: URIs included) and inline <svg> renders — e.g. a model diagram —
-        // which must survive sanitization; custom elements keep passing through.
-        this.innerHTML = DOMPurify.sanitize(await marked.parse(content), {
-            USE_PROFILES: { html: true, svg: true, svgFilters: true },
-            CUSTOM_ELEMENT_HANDLING: {
-                tagNameCheck: (_tagName: string) => true,
-            },
-        })
+        // which must survive sanitization; custom elements only from the allow-list (a
+        // `<mateu-ux baseurl=…>` in an answer must not boot a client against another origin).
+        installDataHtmlHooks(DOMPurify as never)
+        this.innerHTML = DOMPurify.sanitize(await marked.parse(content), dataHtmlPolicy()) as unknown as string
     }
 }
 

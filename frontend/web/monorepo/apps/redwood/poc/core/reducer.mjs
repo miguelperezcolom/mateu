@@ -1,6 +1,7 @@
 import { HOST_ID, collectFields } from './tree.mjs'
 import { findByType, findFirst } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
+import { literalText } from './content.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
 /** OnLoad triggers of the context (e.g. the listing fires 'search' on load). */
@@ -339,7 +340,8 @@ export function reduceContexts(reg, increment, opts = {}) {
     const t = c.targetComponentId
     switch (c.type) {
       case 'SetWindowTitle':
-        effects.docTitle = c.data
+        // as the header shows it: the server's literal escapes around data resolved (`\${` → `${`)
+        effects.docTitle = typeof c.data === 'string' ? literalText(c.data) : c.data
         break
       case 'NavigateTo': {
         const d = String(c.data || '')

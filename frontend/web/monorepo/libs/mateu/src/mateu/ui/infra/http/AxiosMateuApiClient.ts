@@ -15,6 +15,8 @@ import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
 import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
+import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
+import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 
 let abortControllers: AbortController[] = []
 
@@ -29,8 +31,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
 
     constructor() {
         this.axiosInstance.interceptors.request.use(config => {
-            this.addAuthToken(config)
-            this.addSessionId(config)
+            // the user's credentials only go to the origins trusted with them (credentialScope.ts)
+            if (mayCarryCredentials(this.axiosInstance.getUri(config))) {
+                this.addAuthToken(config)
+                this.addSessionId(config)
+            }
             return config;
         })
         // Session expiry without losing work: a 401 hands control to the app's re-auth flow
@@ -42,12 +47,15 @@ export class AxiosMateuApiClient implements MateuApiClient {
         // requested one and the body isn't JSON, send the BROWSER to that URL so the user can
         // log in again instead of the action silently doing nothing.
         this.axiosInstance.interceptors.response.use(response => {
-            const target = loginRedirectTarget({
-                requestedUrl: this.axiosInstance.getUri(response.config),
+            const requestedUrl = this.axiosInstance.getUri(response.config)
+            // only OUR backends' login redirect is followed (a remote must not be able to send the
+            // browser somewhere), and only to an http(s) URL
+            const target = mayCarryCredentials(requestedUrl) ? resolveSafeUrl(loginRedirectTarget({
+                requestedUrl,
                 finalUrl: (response.request as { responseURL?: string } | undefined)?.responseURL,
                 contentType: String(response.headers?.['content-type'] ?? ''),
                 data: response.data,
-            })
+            }))?.href : undefined
             if (target) {
                 window.location.assign(target)
                 // the page is navigating away — settle like a cancelled request so no
@@ -323,8 +331,9 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
         // the app-level context (@AppContext header selectors) travels with EVERY request:
         // explicit appState entries win over the persisted context
-        appState = { ...readAppContext(), ...appState }
         const uri = baseUrl + '/mateu/v3/sync/' + ((route && route != '')?route:'_no_route')
+        // …but only to an origin trusted with the user's credentials (credentialScope.ts)
+        appState = mayCarryCredentials(uri) ? { ...readAppContext(), ...appState } : { ...appState }
         const payload = {
             serverSideType,
             appState,

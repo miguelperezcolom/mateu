@@ -41,6 +41,9 @@ import {
 } from './chat.mjs'
 import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
 import { nlsFiles } from './make-nls.mjs'
+import { trustShellBase } from './hostHeaders.mjs'
+// the transport tests talk to these bases as the shell's own backend (hostHeaders.storedTokenMayGoTo)
+trustShellBase('http://x'); trustShellBase('https://x')
 import { classifyRequestFailure as i18nClassify } from './resilience.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -3150,7 +3153,8 @@ test('widgets: Popover(Text) → área de perfil (iniciales + nombre + email/Log
   assert.equal(user.label, 'Hola, Demo User')
   assert.equal(user.initials, 'DU')
   assert.deepEqual(user.rows.map((r) => r.isText ? r.text : `${r.label} → ${r.href}`),
-    ['Email: demo@mateu.io', 'Logout → javascript: window.logout();'])
+    // a javascript: url is never a link (M-S7 — the web renderer's anchor already refused it)
+    ['Email: demo@mateu.io', 'Logout → #'])
   // the badge: remote, with its pod and its route; the user Popover is NOT repeated in the actions area
   assert.equal(items.length, 1)
   assert.equal(items[0].isRemote, true)
