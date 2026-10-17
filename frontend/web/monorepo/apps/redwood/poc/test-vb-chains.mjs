@@ -120,7 +120,11 @@ const Actions = {
     if (chains[chain]) return new chains[chain]().run(context, params || {})
     return undefined
   },
-  async callComponentMethod(_context, { selector, method }) { calls.push(['method', selector, method]) },
+  async callComponentMethod(_context, { selector, method }) {
+    calls.push(['method', selector, method])
+    // the confirmation dialog: its Yes/No buttons answer the pending question (their chain does it)
+    if (selector === '#mateuConfirm' && method === 'open') setTimeout(() => bridge.answerConfirmation(confirmAnswer), 0)
+  },
   async fireEvent(_context, { name, payload }) { calls.push(['event', name, payload]) },
   async fireDataProviderEvent(_context, spec) { calls.push(['dataProvider', spec]) },
   async fireNotificationEvent(_context, n) { calls.push(['notification', n]) },
@@ -146,6 +150,7 @@ globalThis.fetch = async (url, init = {}) => {
   if (!hit) return { ok: false, status: 404, text: async () => 'no such route', json: async () => ({}) }
   const res = typeof hit.response === 'function' ? await hit.response(body) : hit.response
   if (res && res.__network) throw new TypeError('Failed to fetch')
+  if (res && res.__sse) return { ok: true, status: 200, text: async () => res.__sse.map((inc) => 'data: ' + JSON.stringify(inc)).join('\n\n') + '\n\n' }
   if (res && res.status) return { ok: false, status: res.status, text: async () => 'boom', json: async () => ({}) }
   return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(res)), text: async () => JSON.stringify(res) }
 }
@@ -387,6 +392,49 @@ test('onMateuNavigate: page banners go to the shell banner, the stale ones remov
   assert.deepEqual(ctx.$application.variables.mateuBannerKeys, [])
 })
 
+// Every page family lands in its own template (the variables the shell page branches on) — real
+// captures of each family, loaded through the chain.
+const LANDINGS = [
+  ['load-wizard', (v) => v.mateuWizard && !v.mateuListing],
+  ['booking-new-wizard', (v) => v.mateuWizard],
+  ['load-foldout', (v) => v.mateuFoldout && v.mateuFoldoutContent.panels.length > 0],
+  ['crud-view-foldout-booking', (v) => v.mateuFoldout && v.mateuHostTitle === 'QN29HB · Giulia Keller'],
+  ['load-welcome', (v) => v.mateuWelcome && !v.mateuWizard],
+  ['fo-load-checkin', (v) => v.mateuQueue && v.mateuHostTitle === 'Check-In'],
+  ['load-stock', (v) => v.mateuListing && v.mateuHostTitle === 'Stock'],
+  ['crud-view-booking', (v) => v.mateuHostContent.length > 0 && v.mateuPageHeader && !v.mateuListing],
+  ['crud-edit-booking', (v) => v.mateuHostContent.length > 0 && v.mateuHostTitle === '3F2X5Y · Florian Steiner'],
+  ['crud-view-integration', (v) => v.mateuHostTitle === 'MRU01 ↔ XMAR' && v.mateuHostContent.length > 0],
+  ['p1-history', (v) => v.mateuHostTitle === 'History'],
+  ['wf-process', (v) => v.mateuHostContent.length === 1],
+  ['load-not-found', (v) => v.mateuNotFound && v.mateuHostContent.length === 0],
+]
+test('onMateuNavigate: every page family lands in its own template', async () => {
+  for (const [name, check] of LANDINGS) {
+    routes = []
+    answer((b) => b.actionId === '' && !b.consumedRoute, fx(name))
+    answer(() => true, { fragments: [] })
+    const ctx = newContext()
+    await navigate(ctx, '/' + name)
+    const v = ctx.$application.variables
+    assert.ok(check(v), name + ' did not land where it belongs')
+    assert.equal(v.mateuNavigating, false, name)
+  }
+})
+
+test('onMateuNavigate: from one foldout to another, the foldout subtree is re-created', async () => {
+  answer(byRoute('/f1'), fx('load-foldout'))
+  answer(byRoute('/f2'), fx('crud-view-foldout-booking'))
+  answer(() => true, { fragments: [] })
+  const ctx = newContext()
+  await navigate(ctx, '/f1')
+  const first = ctx.$application.variables.mateuFoldout
+  assert.ok(first)
+  await navigate(ctx, '/f2')
+  assert.notEqual(ctx.$application.variables.mateuFoldout, first)
+  assert.ok(ctx.$application.variables.mateuFoldout)
+})
+
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
 
 const act = (ctx, actionId, parameters) => new chains.runMateuAction().run(ctx, { actionId, parameters })
@@ -509,6 +557,111 @@ test('runMateuAction: an error message goes to the shell notification banner, no
   assert.ok(n, 'a notification event')
   assert.match(JSON.stringify(n[1]), /Rate missing/)
   assert.deepEqual(ctx.$page.variables.mateuDraft, { name: 'typed' }, 'a messages-only answer keeps what the user typed')
+})
+
+test('runMateuAction: confirmationRequired asks first — No sends nothing, Yes sends it', async () => {
+  const p = page('pc', 'x.Danger', 'Danger zone', [text('careful')], { actions: [
+    { id: 'purge', confirmationRequired: true, confirmationTexts: { title: 'Purge?', message: 'All rows go', confirmationText: 'Purge', denialText: 'Keep' } }] })
+  answer(byRoute('/danger'), replace(p))
+  let purged = 0
+  answer((b) => b.actionId === 'purge', () => { purged++; return { fragments: [], messages: [{ variant: 'success', text: 'Purged' }] } })
+  const ctx = newContext()
+  await navigate(ctx, '/danger')
+  confirmAnswer = false
+  await act(ctx, 'purge')
+  assert.equal(purged, 0, 'No: nothing went out')
+  assert.equal(ctx.$page.variables.mateuConfirm.title, 'Purge?')
+  assert.equal(ctx.$page.variables.mateuConfirm.confirmText, 'Purge')
+  confirmAnswer = true
+  await act(ctx, 'purge')
+  assert.equal(purged, 1)
+  assert.equal(ctx.$page.variables.mateuToastText, 'Purged')
+})
+
+test('runMateuAction: a wizard\'s next with its required fields empty marks them and does not leave', async () => {
+  answer(byRoute('/wizard'), fx('load-wizard'))
+  let nexts = 0
+  answer((b) => b.actionId === 'next', () => { nexts++; return { fragments: [] } })
+  const ctx = newContext()
+  await navigate(ctx, '/wizard')
+  const v = ctx.$application.variables
+  assert.ok(v.mateuWizard, 'the wizard projection is bound')
+  assert.equal(v.mateuWizardForwardId, 'next')
+  assert.equal(v.mateuWizardShownStep, '', 'a fresh entry starts by the guided process overview')
+  await act(ctx, 'next')
+  assert.equal(nexts, 0, 'the empty required fields stop it in the browser')
+  ctx.$page.variables.mateuDraft = { name: 'Ada', email: 'ada@example.com' }
+  await act(ctx, 'next')
+  assert.equal(nexts, 1)
+})
+
+test('runMateuAction: a flow the page declares runs in the browser, with no server round trip', async () => {
+  const p = page('pf', 'x.Flows', 'Flows', [text('x')], { actions: [
+    { id: 'goHome', commands: [{ type: 'NavigateTo', data: '/home' }] }] })
+  answer(byRoute('/flows'), replace(p))
+  const ctx = newContext()
+  await navigate(ctx, '/flows')
+  const before = sent.length
+  await act(ctx, 'goHome')
+  assert.equal(sent.length, before, 'no request')
+  const nav = calls.find((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate')
+  assert.deepEqual(nav[2], { route: '/home', force: true }, 'a NavigateTo forces the shell to the route')
+})
+
+test('runMateuAction: an absolute NavigateTo opens the other console in its own tab', async () => {
+  const opened = []
+  const realOpen = win.open
+  win.open = (url, target) => { opened.push([url, target]) }
+  try {
+    answer(byRoute('/person'), fx('load-form'))
+    answer((b) => b.actionId === 'save', { commands: [{ type: 'NavigateTo', data: 'https://other.example/console' }], fragments: [], messages: [] })
+    const ctx = newContext()
+    await navigate(ctx, '/person')
+    await act(ctx, 'save')
+    assert.deepEqual(opened, [['https://other.example/console', '_blank']])
+  } finally { win.open = realOpen }
+})
+
+test('runMateuAction: a LongTask (sse action) shows its progress dialog live and applies the last answer', async () => {
+  const stream = fx('fo-sse-scan-stream')
+  const p = page('ps', 'x.Scan', 'Scan', [text('doc')], { actions: [{ id: 'scan', sse: true }] })
+  answer(byRoute('/scan'), replace(p))
+  let streamed = null
+  answer((b, url) => url.includes('/mateu/v3/sse/'), (b) => { streamed = b; return { __sse: stream } })
+  const ctx = newContext()
+  await navigate(ctx, '/scan')
+  assert.deepEqual(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].sseActionIds, ['scan'])
+  await act(ctx, 'scan')
+  assert.ok(streamed, 'it went to the /sse endpoint')
+  const opened = calls.findIndex((c) => c[0] === 'method' && c[1] === '#mateuProgressDialog' && c[2] === 'open')
+  const closed = calls.findIndex((c) => c[0] === 'method' && c[1] === '#mateuProgressDialog' && c[2] === 'close')
+  assert.ok(opened >= 0 && closed > opened, 'opened while streaming, closed at the end')
+  assert.ok(ctx.$page.variables.mateuProgressTitle, 'the dialog shows the task\'s title')
+  assert.equal(typeof ctx.$page.variables.mateuProgressValue, 'number')
+})
+
+test('runMateuAction: @Searchable opens its selector dialog with its first page, and «Add selected» closes it into the host', async () => {
+  const form = fx('searchable-multi-form')
+  form.fragments[0].targetComponentId = ''
+  answer(byRoute('/page5'), form)
+  answer((b) => b.actionId === 'codesearch-hotelIds', fx('searchable-multi-open'))
+  let searched = null
+  answer((b) => b.actionId === 'search', (b) => { searched = b; return fx('searchable-multi-search') })
+  answer((b) => b.actionId === 'action-on-row-select-selected', fx('searchable-multi-add'))
+  const ctx = newContext()
+  await navigate(ctx, '/page5')
+  ctx.$page.variables.mateuDraft = { hotelId: 'h9' }
+  await act(ctx, 'codesearch-hotelIds')
+  assert.equal(ctx.$page.variables.mateuPickerOpen, true)
+  assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuPicker' && c[2] === 'open'))
+  assert.ok(searched, 'its first page was asked for')
+  assert.equal(searched.serverSideType, 'io.mateu.mdd.demoadminpanel.infra.in.ui.HotelSelector', 'against the selector, not the host')
+  assert.equal(ctx.$page.variables.mateuPickerRows.length, 30)
+  assert.equal(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].state.hotelId, 'h9', 'what was typed is kept')
+  await act(ctx, 'action-on-row-select-selected')
+  assert.equal(ctx.$page.variables.mateuPickerOpen, false)
+  assert.ok(calls.some((c) => c[0] === 'method' && c[1] === '#mateuPicker' && c[2] === 'close'))
+  assert.deepEqual(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].state.hotelIds, ['3', '1', '5'])
 })
 
 // ═══ runMateuIslandAction ═════════════════════════════════════════════════════════════════════
