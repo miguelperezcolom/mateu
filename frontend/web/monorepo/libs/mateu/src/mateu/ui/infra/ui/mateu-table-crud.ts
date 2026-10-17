@@ -85,6 +85,21 @@ export const listingSearchesOnLoad = (start: unknown): boolean => {
     return true
 }
 
+/** The file id an import upload answered: the raw body, or a JSON string / {fileId} / {id}. */
+export const importFileIdOf = (responseText: unknown): string | undefined => {
+    if (typeof responseText !== 'string') return undefined
+    const text = responseText.trim()
+    try {
+        const parsed = JSON.parse(text)
+        if (typeof parsed === 'string') return parsed
+        if (parsed && typeof parsed === 'object') {
+            const id = (parsed as { fileId?: unknown, id?: unknown }).fileId ?? (parsed as { id?: unknown }).id
+            if (id !== undefined && id !== null) return String(id)
+        }
+    } catch { /* not JSON: the body is the id */ }
+    return text
+}
+
 @customElement('mateu-table-crud')
 export class MateuTableCrud extends LitElement {
 
@@ -1001,8 +1016,11 @@ export class MateuTableCrud extends LitElement {
         return false
     }
 
+    // The upload's answer is the file id, whichever way the file went up: vaadin-upload's
+    // upload-success event carries it as detail.xhr.responseText, the dialog's own fetch hands
+    // the same shape (see uploadImportFile). A JSON body ("id" or {fileId}) is read too.
     handleImportUploadSuccess = (e: CustomEvent) => {
-        const fileId = e.detail.xhr.responseText
+        const fileId = importFileIdOf(e.detail?.xhr?.responseText)
         this.showImportDialog = false
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
@@ -1469,8 +1487,10 @@ export class MateuTableCrud extends LitElement {
                         if (file) {
                             const fd = new FormData(); fd.append('file', file)
                             fetch('/upload', { method: 'POST', body: fd })
-                                .then(r => r.json())
-                                .then(detail => this.handleImportUploadSuccess({ detail } as unknown as CustomEvent))
+                                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text() })
+                                // the same detail vaadin-upload's upload-success event carries
+                                .then(responseText => this.handleImportUploadSuccess(
+                                    new CustomEvent('upload-success', { detail: { xhr: { responseText } } })))
                                 .catch(() => this.notify('Import failed'))
                         }
                     }}">

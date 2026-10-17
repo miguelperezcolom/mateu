@@ -22,7 +22,7 @@ public class FluentApp implements AppSupplier {
                 .pageTitle("Fluent Demo App")
                 .title("Fluent Demo App")
                 .subtitle("This is the subtitle bla, bla, bla")
-                .variant(AppVariant.HAMBURGUER_MENU)
+                .variant(AppVariant.HAMBURGER_MENU)
                 //.drawerClosed(true)
                 .style("width: 100%;")
                 //.cssClasses("redwood")

@@ -20,10 +20,10 @@ import java.util.List;
  */
 @UI("")
 @Title("VB Demo")
-// HAMBURGUER_MENU explícito para exhibir el navigator-drawer del renderer VB
+// HAMBURGER_MENU explícito para exhibir el navigator-drawer del renderer VB
 // (AUTO daría MENU_ON_TOP con este menú: opciones visibles en el header)
 // themeToggle: the header's light/dark switch (JET's inverted colour scheme on Redwood)
-@io.mateu.uidl.annotations.App(value = io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU, themeToggle = true)
+@io.mateu.uidl.annotations.App(value = io.mateu.uidl.fluent.AppVariant.HAMBURGER_MENU, themeToggle = true)
 // Chat de IA: sseUrl → el shell VB muestra el panel de conversación. Ruta RELATIVA same-origin (el
 // chat VB antepone el base a la sseUrl) → ChatAgentController, que hace de proxy al agente local del
 // demo (frontend/promo/local-agent.mjs, :8777): autora la definición Mateu y emite `render-screen`,
