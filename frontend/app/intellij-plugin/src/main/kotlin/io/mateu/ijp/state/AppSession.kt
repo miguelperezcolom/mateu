@@ -17,6 +17,9 @@ class AppSession(
     val baseUrl: String,
     config: Map<String, Any?> = emptyMap(),
     tokenProvider: io.mateu.ijp.api.TokenProvider = io.mateu.ijp.api.TokenProvider.NONE,
+    /** The app's REST source catalogue (+ references, sample mode). Its own unless given — an island
+     *  over another base url passes its host's, so what it registers stays in that app. */
+    val sources: io.mateu.ijp.ui.RestSourceCatalogue = io.mateu.ijp.ui.RestSourceCatalogue(),
 ) {
     val mapper: ObjectMapper = ObjectMapper()
     val sessionId: String = UUID.randomUUID().toString().replace("-", "")

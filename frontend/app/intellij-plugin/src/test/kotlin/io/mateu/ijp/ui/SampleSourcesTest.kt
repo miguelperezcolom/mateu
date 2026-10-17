@@ -25,9 +25,10 @@ class SampleSourcesTest : TestCase() {
             "meta":{"total":3}}""",
     )
 
+    private val sources = RestSourceCatalogue()
+
     override fun setUp() {
-        RestFetch.setSampleMode(false)
-        RestFetch.registerRestSources(
+        sources.registerRestSources(
             json(
                 """[{"name":"orders","source":{"url":"http://127.0.0.1:9/api/orders","itemsPath":"data","proxy":true},
                      "totalPath":"meta.total","sample":$ordersSample},
@@ -36,42 +37,37 @@ class SampleSourcesTest : TestCase() {
         )
     }
 
-    override fun tearDown() {
-        RestFetch.setSampleMode(false)
-        RestFetch.registerRestSources(null)
-    }
-
     fun testSampleModeOffLeavesSourcesAlone() {
         val ref = json("""{"ref":"orders"}""")
-        assertFalse(RestFetch.isSampled(ref))
-        assertTrue(RestFetch.viaProxy(ref))
-        assertNull(RestFetch.sampledResponse(ref))
+        assertFalse(sources.isSampled(ref))
+        assertTrue(sources.viaProxy(ref))
+        assertNull(sources.sampledResponse(ref))
     }
 
     fun testAReadAnswersWithACopyOfTheSample() {
-        RestFetch.setSampleMode(true)
-        val got = RestFetch.fetch(api, json("""{"ref":"orders"}"""), emptyMap())
+        sources.setSampleMode(true)
+        val got = RestFetch.fetch(api, json("""{"ref":"orders"}"""), emptyMap(), sources)
         assertEquals(ordersSample, got)
         (got.path("data") as com.fasterxml.jackson.databind.node.ArrayNode).removeAll()
         assertEquals(3, ordersSample.path("data").size())
     }
 
     fun testAWriteSucceedsWithNull() {
-        RestFetch.setSampleMode(true)
-        assertTrue(RestFetch.fetch(api, json("""{"ref":"orders","method":"POST"}"""), emptyMap()).isNull)
-        assertTrue(RestFetch.sampledResponse(json("""{"ref":"orders"}"""), "DELETE")!!.isNull)
+        sources.setSampleMode(true)
+        assertTrue(RestFetch.fetch(api, json("""{"ref":"orders","method":"POST"}"""), emptyMap(), sources).isNull)
+        assertTrue(sources.sampledResponse(json("""{"ref":"orders"}"""), "DELETE")!!.isNull)
     }
 
     fun testASampledSourceIsNeverProxied() {
-        RestFetch.setSampleMode(true)
-        assertFalse(RestFetch.viaProxy(json("""{"ref":"orders"}""")))
-        assertTrue(RestFetch.viaProxy(json("""{"ref":"plain"}""")))
+        sources.setSampleMode(true)
+        assertFalse(sources.viaProxy(json("""{"ref":"orders"}""")))
+        assertTrue(sources.viaProxy(json("""{"ref":"plain"}""")))
     }
 
     fun testTheSurfacesOwnSampleWinsAndInlineSourcesAreSampled() {
-        RestFetch.setSampleMode(true)
-        assertEquals(json("""{"data":[]}"""), RestFetch.fetch(api, json("""{"ref":"orders","sample":{"data":[]}}"""), emptyMap()))
-        assertEquals(json("[1,2]"), RestFetch.fetch(api, json("""{"url":"/x","sample":[1,2]}"""), emptyMap()))
+        sources.setSampleMode(true)
+        assertEquals(json("""{"data":[]}"""), RestFetch.fetch(api, json("""{"ref":"orders","sample":{"data":[]}}"""), emptyMap(), sources))
+        assertEquals(json("[1,2]"), RestFetch.fetch(api, json("""{"url":"/x","sample":[1,2]}"""), emptyMap(), sources))
     }
 
     fun testASampledListingSearchesFiltersSortsAndPagesInMemory() {

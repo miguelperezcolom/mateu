@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.ui.ComponentRenderer
-import io.mateu.ijp.ui.RestFetch
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -501,10 +500,10 @@ class AppContext(val session: AppSession) {
             work = {
                 // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a
                 // copy of the sample, a write succeeds with null (nothing persisted, nothing to merge).
-                val sampled = io.mateu.ijp.ui.RestFetch.sampledResponse(source)
+                val sampled = session.sources.sampledResponse(source)
                 if (sampled != null) {
                     sampled
-                } else if (io.mateu.ijp.ui.RestFetch.viaProxy(source)) {
+                } else if (session.sources.viaProxy(source)) {
                     // Proxy mode: route through the Mateu server (no CORS, secrets injected
                     // server-side) via the reserved __restfetch__ action. The __restdata__
                     // (screen-load) id resolves the class @RestData source; any other id is a
@@ -689,7 +688,7 @@ class AppContext(val session: AppSession) {
     fun applyIncrement(increment: JsonNode?) {
         if (increment == null) return
         // first: the components about to render may fetch from the sources they name
-        io.mateu.ijp.ui.RestFetch.addReferencedRestSources(increment.path("restSources"))
+        session.sources.addReferencedRestSources(increment.path("restSources"))
 
         val fragments = increment.path("fragments")
         if (fragments.isArray) for (fragment in fragments) applyFragment(fragment)
@@ -743,10 +742,10 @@ class AppContext(val session: AppSession) {
         // of a mediator ServerSide wrapper).
         val appMeta = component.path("metadata").takeIf { it.text("type") == "App" }
             ?: component.path("children").path(0).path("metadata").takeIf { it.text("type") == "App" }
-        if (appMeta != null && appMeta.has("restSources")) RestFetch.registerRestSources(appMeta.path("restSources"))
+        if (appMeta != null && appMeta.has("restSources")) session.sources.registerRestSources(appMeta.path("restSources"))
         if (appMeta != null && appMeta.has("actionCatalogue")) session.actionCatalogue = appMeta.path("actionCatalogue")
         // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
-        if (appMeta != null && appMeta.path("mockSources").asBoolean(false)) RestFetch.setSampleMode(true)
+        if (appMeta != null && appMeta.path("mockSources").asBoolean(false)) session.sources.setSampleMode(true)
 
         // Overlay fragments (action Add + Drawer/Dialog component) stack over the page instead of
         // replacing it — shown as a side panel anchored to the IDE window.
