@@ -59,6 +59,9 @@
     <!-- Module-wide (BUNDLE) line-coverage floor; modules with real suites override it
          (backend/shared/core sets 70%). -->
     <jacoco.min.bundle.coverage>0%</jacoco.min.bundle.coverage>
+    <!-- Module-wide (BUNDLE) BRANCH-coverage floor, same ratchet as the line floor: a module with a
+         real suite sets it just under its measured value. -->
+    <jacoco.min.bundle.branch.coverage>0%</jacoco.min.bundle.branch.coverage>
     <!-- Public-API compatibility check (japicmp) of uidl and core's archetypes (dtos: report only,
          the wire DTOs are outside the Java binary promise) against the
          last RELEASED version. Report-only while the version is an alpha: set
@@ -82,6 +85,9 @@
     <module>mvc</module>
     <module>helidon-mp</module>
     <module>mateu-bundle-maven-plugin</module>
+    <!-- internal: merges every module's JaCoCo data into the cross-module report and gates uidl
+         and dtos over all the suites (see its pom). After every module whose tests run. -->
+    <module>coverage</module>
     <!-- not a child of this pom (see its header): only aggregated, so it is built and released
          with the rest -->
     <module>mateu-bom</module>
@@ -401,7 +407,9 @@
           <!-- internal modules: built and tested, never published (each also sets
                maven.deploy.skip) -->
           <excludeArtifacts>
-            <artifact>integration-tests</artifact>
+            <!-- matched against the exact artifactId -->
+            <artifact>mateu-integration-tests</artifact>
+            <artifact>mateu-coverage</artifact>
           </excludeArtifacts>
         </configuration>
       </plugin>
@@ -522,6 +530,11 @@
                   <counter>LINE</counter>
                   <value>COVEREDRATIO</value>
                   <minimum>${jacoco.min.bundle.coverage}</minimum>
+                </limit>
+                <limit>
+                  <counter>BRANCH</counter>
+                  <value>COVEREDRATIO</value>
+                  <minimum>${jacoco.min.bundle.branch.coverage}</minimum>
                 </limit>
               </limits>
             </rule>
