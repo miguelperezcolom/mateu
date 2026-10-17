@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 2 integrated locally on `integration/walkthrough-2`, pending CI; the open owner decisions resolved on `pending/decisions`, batch 3 below).
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (batch 3 integrated locally on `integration/batch-3`, pending CI — the owner decisions, the natives/listings fixes and the Redwood fixes; batch 2 on `integration/walkthrough-2` also pending CI).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -75,6 +75,9 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
 - **Phase 2 (walkthrough) integrated, pending CI**: local branch `integration/walkthrough-2` = origin/master + `walkthrough/authoring`
   + `walkthrough/native-ports` + `ga/control`, conflicts resolved keeping both sides' fixes and tests, bundles rebuilt once, every
   suite green locally (see "Batch 2 integration" below). Next: push, one PR, merge when green, then the phase release.
+- **Batch 3 integrated, pending CI**: local branch `integration/batch-3` = origin/master + `pending/natives` + `pending/decisions`
+  + `pending/redwood` (see "Batch 3 integration" below). Both batches start from origin/master (#812); push batch 2 first, then
+  rebase or merge batch 3 on it — they do not overlap in code (batch 3 touches the ports' titles/banners, listings, Redwood).
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
@@ -185,7 +188,37 @@ quarkus-core 25 · helidon-mp-core 26 ✅ · libs/mateu vitest 1516 ✅ · Redwo
 Not run locally: WebFlux/Quarkus/Helidon e2e, renderer-vb and static-bundle Playwright projects, VS Code extension tests,
 the .NET net10.0 target (no SDK here) — CI covers them.
 
-### Decisions applied 2026-10-17 (batch 3) — branch `pending/decisions` (from origin/master, NOT pushed)
+### Batch 3 integration (2026-10-17) — `integration/batch-3` (local, NOT pushed)
+Merged `pending/natives` (IntelliJ canvas heights, one-search listings + `?page` deep links, record page titles in .NET/Python,
+.NET `PageBanners`, the Mateu face as plugin/extension icon), `pending/decisions` (the 13 owner decisions below) and
+`pending/redwood` (seven VB bugs) onto origin/master (#812). Resolutions:
+- **Known overlap — both natives and decisions implemented the record-page title in .NET and Python, and .NET
+  `PageBanners.Replace/Append`.** ONE implementation kept, natives' (the more complete one and closer to Java's
+  `PageMetadataExtractor.getTitle`: `ReflectionMapper.TitleOf(type, instance)` / `mateu_core.titles.record_title` cover the
+  crud view/edit/new pages, the capability forms, plain views and the window title, escape a record's `${` as a template
+  literal and recognise a compiler-generated record `ToString` / dataclass repr / pydantic `__str__` as a field dump, not a
+  name; `PageBanners(Banners, Appending)` + a routed view inside a list result re-rendering with the rest merged).
+  Decisions' twins (`ReflectionMapper.EntityTitle`, `mapper.entity_title`, `PageBanners.AppendToExisting`) dropped; its tests
+  kept (`A_record_page_is_titled_by_the_record_as_in_java`, `Page_banners_replace_and_append`,
+  `test_a_record_page_is_titled_by_the_record_as_in_java`) and pointed at the kept API (`TitleOf` made public for the direct
+  assertion). No duplicate type or method remains (both suites compile and pass).
+- Generated bundles (Vaadin ×3 copies, visual editor, Redwood): natives' taken at merge time, then everything rebuilt ONCE from
+  the merged sources per the integration practice (Redwood byte-identical to its branch) and committed; the copy scripts empty
+  the asset folders, no stale chunk.
+- STATUS.md and the walkthrough matrices (`actions`, `listings`, `pages`): unions — natives' rows (its .NET/Python cells were in
+  the right columns), decisions' test names, redwood's VB cells.
+Natives, what landed: IntelliJ Gantt/Kanban/PlanningBoard/MatrixGrid keep a content-derived minimum height on long pages
+(`ContentHeightScrollPane`; `StackedCanvasHeightsRenderTest`); a delete / void row or bulk method answers ONE search (the
+`listingChanged` event refreshes the listing in place, no `/list` route reload — `CrudActionResult.listingChanged`), a filtered
+deep link runs one search (`standInForOnLoad`) and a `?page=N` deep link answers that page (`DeleteActionHandlerTest`,
+`CrudSyncTest` +2, `onLoadTimes.test.ts` +4, shared e2e `listing-searches-once.spec.ts`).
+Redwood, what landed (each with poc contract/DOM tests + a renderer-vb spec, verified in a browser on its branch): inline islands
+held by form fields (surfaces of their own + the `@SubscribeTo` bus by scope), a dialog over a drawer (per-kind overlay
+variables), `Callable<Component>` holders drawn, the `@Toc` index (`poc/toc.mjs`, mateu-page's tri-state rule), the calendar
+event click (`preventDefault` on the `href="#"` chip), the map marker as a keyboard button. The oj-gantt negative-width console
+errors did not reproduce headless (recorded as such — recheck headed).
+
+#### Decisions applied (batch 3, from `pending/decisions`)
 The ❌ items the walkthrough left (authoring §4, native-ports, and the leftovers of the other matrices + the "Known
 doc/CLAUDE.md corrections" below), decided with the owner's rules (UI only; everything supported everywhere; the
 documented behaviour wins) — one commit each, each with a test that fails without it. Matrices marked 🔧 in place.
@@ -240,37 +273,31 @@ documented behaviour wins) — one commit each, each with a test that fails with
 13. ✅ `e2e/renderer/layout-sizing.spec.ts` detects the shared layout in the DOM (`mateu-ux`), not by project name.
 14. ✅ CLAUDE.md: Code + YAML is offered on Micronaut/Helidon; tooling gotchas (workspace `npm ci`, RN test on Node 23,
     the ports' `MATEU_UI`). Authoring 3 (Redwood 400) was already fixed at integration — marked.
-Not decided here, left as they were: authoring 10 (Redwood canvas stray filter select) and every VB/Redwood and
-IntelliJ-layout bug — other agents own those areas.
+Not decided there: authoring 10 (Redwood canvas stray filter select) — still open; the VB/Redwood and IntelliJ-layout bugs
+landed in this same batch from `pending/redwood` and `pending/natives` (above).
 
-Verification (local, 2026-10-17): core `mvn verify` 1799 ✅ (JaCoCo 84 % gate met) · libs/mateu vitest 1516 ✅ ·
-apps/vaadin `test:coverage` 89 ✅ · visual-editor vitest 436 ✅ + `tsc` clean · VS Code extension vitest 172 ✅ + `tsc`
-clean · Python 853 ✅ + mypy clean · .NET net8 785 ✅ (one run had `LiveReloadTests.The_watcher_reports_an_edit_on_disk`
-time out under full-suite load; green alone and on rerun) · Playwright `--list` of the layout spec · bundles rebuilt
-once (vaadin, visual-editor) and committed; bundle freshness, design tokens (553), annotation density 5.38 ≤ 5.45,
-licences ✅. Not run: the e2e Playwright projects against a SUT (the Java changes are covered by core; the UI-serving
-path was checked in a real browser on the Python starter), Redwood `npm test` (untouched), the .NET net10.0 target,
-IntelliJ gradle (no plugin code changed; its visual-editor resources were rebuilt).
+#### Verification of the integrated branch (local, 2026-10-17, ports 18950–18951)
+backend `mvn install` ✅ · core `mvn verify` 1826 ✅ (JaCoCo 84 % gate met) · libs/mateu vitest 1520 ✅ · apps/vaadin
+`test:coverage` 89 ✅ (thresholds met; CI's `frontend-lib` runs these too — the last batch's duplicated Lit binding was only
+caught there) · visual-editor vitest 436 ✅ · VS Code extension `tsc` + vitest 172 ✅ · Redwood `npm test` all suites ✅ (bundle
+rebuilt byte-identical) · Python 866 ✅ + mypy clean · .NET net8 801 ✅ · IntelliJ `gradlew test` 360 ✅ (1 skipped) · shared e2e
+on mvc-app1 (Vaadin) 494 ✅ + renderer-vaadin 60 ✅ · renderer-vb on mvc-app1 built with `mateu-redwood` 64 ✅ (1 skipped by design: the shared-layout-only geometry check, decision 13) ·
+lint 0 errors (415 warnings ≤ 420) · bundle freshness, design tokens (553), annotation density 5.38 ≤ 5.45, licences, Vaadin
+bundle budget ✅. Not run locally: WebFlux/Quarkus/Micronaut/Helidon e2e, the static-bundle and yaml-federation Playwright
+projects, the .NET net10.0 target (no SDK here), RN tests — CI covers them.
 
 ### Left for the next session (not done — budget)
-- Push `integration/walkthrough-2`, open the ONE batch-2 PR, merge when green, cut the phase release (v3.0-alpha.423) with the
-  behaviour notes: validation re-checked server-side on `@Button`/`@Toolbar`; an app with no home opens on its first menu
-  item on every backend; a data fetch to a missing endpoint answers 404, never the index page.
-- ~~Open ❌ items of authoring and native-ports~~ — resolved on `pending/decisions` (batch 3 above); merge it after
-  batch 2. Owner-only leftovers: publish `mateu-vaadin` to npm per release / package the renderer into PyPI and NuGet.
-- Then phase 3 (coverage) and 4 (refactor) as planned.
-- Redwood (branch `pending/redwood`, 2026-10-17): the six walkthrough bugs that reproduced are fixed, each with poc
-  contract/DOM tests and a renderer-vb spec, verified in a browser — inline islands held by form fields (surfaces of
-  their own + the bus by `@SubscribeTo` scope), dialog over a drawer, `Callable<Component>` holders, the `@Toc`
-  index, the calendar event click (`<a href="#">` rebooted VB's router), the map marker (keyboard button). The
-  Gantt «`<rect>` width negative» console errors did NOT reproduce headless (4 viewports, CPU×8 + slow-CDN
-  throttling, the renderer-vb flows with every console message kept): left as "not reproduced — recheck in a headed
-  browser; if seen, gate the oj-gantt on a laid-out container (ResizeObserver)". Pending: push + PR of the branch.
-- IntelliJ: Gantt/Kanban/PlanningBoard/MatrixGrid squeezed on long pages (needs `renderProbe`).
-- Listings: double `search` after delete/bulk and on filtered deep links (harmless); record page title is the class
-  title in Python AND .NET (decide whether the record should name it, as Java does).
-- .NET `PageBanners` (append) for full parity.
+- Push `integration/walkthrough-2`, open the ONE batch-2 PR, merge when green; then push `integration/batch-3` (merge master
+  into it first), open the batch-3 PR, merge when green; cut the phase release (v3.0-alpha.423) with the behaviour notes:
+  validation re-checked server-side on `@Button`/`@Toolbar`; an app with no home opens on its first menu item on every backend;
+  a data fetch to a missing endpoint answers 404, never the index page; a record page is titled by the record in .NET/Python;
+  a delete or a filtered/paged deep link runs one search; the ports can serve the web renderer (`MATEU_UI`).
+- Owner-only leftovers of the decisions: publish `mateu-vaadin` to npm per release / package the renderer into PyPI and NuGet.
+- Redwood: the `@AppContext` picker preselects the first option — align with the decided contract (nothing selected until the
+  user picks, `app-context.md`); the oj-gantt negative-width console errors (not reproduced headless — recheck headed; if seen,
+  gate the oj-gantt on a laid-out container); authoring 10 (canvas stray filter select).
 - Quarkus/Micronaut/Helidon: decision 4 compiled and adapter tests compile, but no local e2e run (CI will).
+- Then phase 3 (coverage) and 4 (refactor) as planned.
 
 ## (Superseded) Pending owner decisions — the original list, all applied above
 1. **Default home page** — 7 doc pages say an app opens on its first menu item; Redwood does, Vaadin shell + server don't. → implement the documented rule everywhere.
@@ -283,7 +310,7 @@ IntelliJ gradle (no plugin code changed; its visual-editor resources were rebuil
 8. **Editable markdown/html fields**: Redwood shows raw source as editable text, Vaadin shows rendered content → decide the contract (proposal: an editor with preview on both).
 9. **Vaadin page heading on composed archetypes**: Dashboard, SmartSearchPage and ItemOverview show no heading on Vaadin (Redwood now does; docs assume one) → add it on Vaadin.
 10. **Python has no fluent `Card`** (and its card title is a string, Java's a component) → add it with Java's shape.
-11. **Redwood bugs to fix** (not decisions): embedded components held by a form field aren't drawn (needs Redwood island support); the drawer stays hidden after a dialog opened over it is closed; Amount edits send a bare number (verify server side); a `Callable<Component>` holder field isn't drawn in a plain form; no `@Toc` index; separator line invisible; calendar event click runs nothing; map marker click unconfirmed; Gantt negative-width console errors; **every Redwood shell page load returns a 400 'invalid catalog JSON'** (check before any Redwood demo). RN web: calendar nests buttons (warning).
+11. **Redwood bugs to fix** (not decisions) — ✅ all fixed (batch 1: the 400 'invalid catalog JSON', Amount edits, the separator; batch 3 `pending/redwood`: islands held by a form field, drawer under a dialog, `Callable<Component>` holder, `@Toc`, calendar event click, map marker) except the Gantt negative-width console errors (not reproduced headless). RN web: calendar nests buttons — fixed (batch 1).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
 - ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).
