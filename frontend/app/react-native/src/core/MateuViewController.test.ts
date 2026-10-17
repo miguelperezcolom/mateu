@@ -10,12 +10,16 @@ stubNativePackages(['react-native', 'expo-web-browser', 'expo-file-system']);
 
 const announced: string[] = [];
 const presented: unknown[] = [];
+const liveQueue: (boolean | undefined)[] = [];
 mock.module('react-native', {
   namedExports: {
     Platform: { OS: 'ios' },
     AccessibilityInfo: {
       announceForAccessibility: (m: string) => announced.push(m),
-      announceForAccessibilityWithOptions: (m: string) => announced.push('live:' + m),
+      announceForAccessibilityWithOptions: (m: string, o: { queue?: boolean }) => {
+        announced.push('live:' + m);
+        liveQueue.push(o?.queue);
+      },
     },
     // the iOS share sheet: a file it cannot hand to anything rejects
     Share: {
@@ -39,6 +43,7 @@ mock.module('expo-file-system', { namedExports: { File: FakeFile, Paths: { cache
 
 const { MateuViewController } = await import('./MateuViewController.ts');
 const { MateuSession } = await import('./MateuSession.ts');
+const { headerValues } = await import('./appShellExtras.ts');
 
 type Json = Record<string, any>;
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -469,4 +474,56 @@ test('validation falls back to the legacy matcher for syntax the parser does not
   c.putState('tags', ['a']);
   await c.runAction('save');
   assert.equal(calls.filter((x) => x.actionId === 'save').length, 1);
+});
+
+test('a LongTask (sse action) streams: every increment is applied as it arrives', async () => {
+  const { c, session, renders } = harness([fragment(ssc({ actions: [{ id: 'importAll', sse: true }] }))]);
+  await c.initialLoad('/orders');
+  const streamed: Json[] = [];
+  (session as any).api.runActionStream = async (rq: Json, onIncrement: (i: unknown) => void) => {
+    streamed.push(rq);
+    onIncrement({ fragments: [{ state: { progress: 0.5 } }] });
+    assert.equal(c.currentComponentState['progress'], 0.5, 'the first step is on screen before the stream ends');
+    onIncrement({ fragments: [{ state: { progress: 1, done: true } }] });
+  };
+  await c.runAction('importAll', { file: 'a.csv' });
+  assert.equal(streamed.length, 1);
+  assert.equal(streamed[0].actionId, 'importAll');
+  assert.deepEqual(streamed[0].parameters, { file: 'a.csv' });
+  assert.equal(renders.at(-1)!.state.done, true);
+});
+
+test('a live header value change is announced once; Announce honours assertive', () => {
+  const { c } = harness();
+  headerValues.seed([{ id: 'businessDate', label: 'Business date', value: '1 Oct' }]);
+  announced.length = 0;
+  liveQueue.length = 0;
+  c.applyIncrement({ commands: [{ type: 'UpdateHeaderValue', data: { id: 'businessDate', value: '2 Oct' } }] });
+  c.applyIncrement({ commands: [{ type: 'UpdateHeaderValue', data: { id: 'businessDate', value: '2 Oct' } }] });
+  assert.deepEqual(announced, ['live:Business date changed to 2 Oct']);
+  c.applyIncrement({ commands: [{ type: 'Announce', data: { text: 'Payment failed', assertive: true } }, { type: 'Announce', data: 'Saved' }] });
+  assert.deepEqual(announced.slice(1), ['live:Payment failed', 'live:Saved']);
+  assert.deepEqual(liveQueue.slice(1), [false, true]);
+  headerValues.reset();
+});
+
+test('crud mediator moves on a phone stack: Back to list pops to the listing; the same inner route stays put', async () => {
+  const { c, calls } = harness([fragment(ssc()), {}]);
+  await c.initialLoad('/orders');
+  // open a record in place (no opener yet): the inner route becomes "7"
+  c.applyIncrement({ fragments: [{ state: { _route: '/7', _componentRoute: '/orders' } }] });
+  await tick();
+  assert.equal(calls.at(-1)!.route, '/orders/7');
+  const stacked: Json[] = [];
+  c.detailOpener = () => assert.fail('a list is never opened as a detail');
+  c.stackNavigator = (target, replaceTop) => stacked.push({ ...target, replaceTop });
+  c.applyIncrement({ fragments: [{ state: { _route: '', _componentRoute: '/orders' } }] });
+  assert.deepEqual(stacked, [{ label: '', route: '/orders', consumedRoute: '/orders', serverSideType: 'app.Orders', replaceTop: false }]);
+  // the record answering for itself again ("7" → "7") just merges the state
+  const before = calls.length;
+  c.applyIncrement({ fragments: [{ state: { _route: '/7/', _componentRoute: '/orders', total: 3 } }] });
+  assert.equal(calls.length, before);
+  assert.equal(c.currentComponentState['total'], 3);
+  c.stackNavigator = null;
+  c.detailOpener = null;
 });
