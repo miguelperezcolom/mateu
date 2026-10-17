@@ -7,6 +7,8 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 import { ganttSelection } from './ganttSelection';
+import { ganttLayout, todayDayNumber, todayOffset } from './timeline';
+import { addOnTotal, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels';
 import { factAction } from './factAction';
 
 type Dict = Record<string, unknown>;
@@ -66,14 +68,6 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
 }
 
 // ── HeroSection ───────────────────────────────────────────────────────────────
-const heroHeight = (height?: string): number => {
-  if (!height) return 180;
-  const value = parseFloat(height);
-  if (isNaN(value)) return 180;
-  if (height.includes('rem') || height.includes('em')) return value * 16;
-  return value;
-};
-
 export function HeroSectionRenderer({ component, state }: { component: unknown; state: Dict }) {
   const m = meta(component) as unknown as HeroSection;
   const children = childrenOf(component);
@@ -163,15 +157,8 @@ export function SkeletonRenderer({ metadata }: { metadata: Skeleton }) {
 }
 
 // ── Gantt (horizontal-scrollable timeline with proportional bars) ─────────────
-const DAY_MS = 86400000;
 const GANTT_ROW_H = 30;
 const GANTT_HEADER_H = 22;
-
-const parseDay = (s?: string): number | null => {
-  if (!s) return null;
-  const t = Date.parse(`${s}T00:00:00Z`);
-  return isNaN(t) ? null : Math.floor(t / DAY_MS);
-};
 
 export function GanttRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
@@ -182,30 +169,10 @@ export function GanttRenderer({ component }: { component: unknown }) {
     const selection = ganttSelection(selectAction, t.id);
     if (selection) void controller.runAction(selection.actionId, selection.parameters);
   };
-  const tasks = ((meta(component)['tasks'] as GanttTask[]) ?? []).filter(
-    (t) => parseDay(t.start) != null && parseDay(t.end) != null,
-  );
-  if (tasks.length === 0) return <Text style={styles.ganttEmpty}>No tasks.</Text>;
-
-  const minDay = Math.min(...tasks.map((t) => parseDay(t.start)!));
-  const maxDay = Math.max(...tasks.map((t) => parseDay(t.end)!));
-  const totalDays = Math.max(1, maxDay - minDay + 1);
-  const dayW = Math.max(4, Math.min(16, Math.round(560 / totalDays)));
-  const laneW = totalDays * dayW;
-  const todayDay = Math.floor(Date.now() / DAY_MS);
-  const todayX = todayDay >= minDay && todayDay <= maxDay ? (todayDay - minDay) * dayW : null;
-
-  // Month tick labels along the header.
-  const months: { label: string; left: number }[] = [];
-  const cursor = new Date(minDay * DAY_MS);
-  cursor.setUTCDate(1);
-  while (Math.floor(cursor.getTime() / DAY_MS) <= maxDay) {
-    const day = Math.floor(cursor.getTime() / DAY_MS);
-    if (day >= minDay) {
-      months.push({ label: cursor.toISOString().slice(0, 7), left: (day - minDay) * dayW });
-    }
-    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
-  }
+  const layout = ganttLayout((meta(component)['tasks'] as GanttTask[]) ?? []);
+  if (!layout) return <Text style={styles.ganttEmpty}>No tasks.</Text>;
+  const { tasks, minDay, maxDay, dayW, laneW, months, bars } = layout;
+  const todayX = todayOffset(todayDayNumber(), minDay, maxDay, dayW);
 
   return (
     <View style={styles.gantt}>
@@ -231,12 +198,7 @@ export function GanttRenderer({ component }: { component: unknown }) {
             ))}
           </View>
           <View>
-            {tasks.map((t, i) => {
-              const start = parseDay(t.start)!;
-              const end = parseDay(t.end)!;
-              const left = (start - minDay) * dayW;
-              const width = Math.max(dayW, (end - start + 1) * dayW);
-              const progress = Math.max(0, Math.min(100, t.progress ?? 0));
+            {bars.map(({ task: t, left, width, progress }, i) => {
               return (
                 <View key={t.id ?? i} style={styles.ganttRow}>
                   <TouchableOpacity
@@ -721,13 +683,6 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
 
 // ── Front-office UX components ────────────────────────────────────────────────
 
-// Fixed 2-decimals + thousands-dot (de-DE style) amount formatter: 1234.5 → "1.234,50".
-const fmtAmount = (n: number): string => {
-  const sign = n < 0 ? '-' : '';
-  const [int, dec] = Math.abs(n).toFixed(2).split('.');
-  return `${sign}${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`;
-};
-
 // Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer.
 const PALETTE: Record<string, string> = {
   success: theme.success, warning: theme.warning, error: theme.danger, danger: theme.danger, contrast: theme.ink, normal: theme.muted,
@@ -1108,15 +1063,11 @@ export function AddOnPickerRenderer({ component }: { component: unknown }) {
   const [added, setAdded] = useState<Set<string>>(
     () => new Set(items.filter((it) => it.added).map((it) => it.id ?? '')),
   );
-  const totalOf = (set: Set<string>) =>
-    items.filter((it) => set.has(it.id ?? '')).reduce((sum, it) => sum + (it.price ?? 0), 0);
+  const totalOf = (set: Set<string>) => addOnTotal(items, set);
   const toggle = (it: AddOn) => {
-    const id = it.id ?? '';
-    const next = new Set(added);
-    const nowAdded = !next.has(id);
-    if (nowAdded) next.add(id); else next.delete(id);
+    const { next, parameters } = toggleAddOn(items, added, it.id ?? '');
     setAdded(next);
-    if (actionId) void controller.runAction(actionId, { _item: id, _added: nowAdded, _total: totalOf(next) });
+    if (actionId) void controller.runAction(actionId, parameters);
   };
   return (
     <View style={styles.addOnPicker}>
@@ -1161,9 +1112,6 @@ export function AddOnPickerRenderer({ component }: { component: unknown }) {
 }
 
 // ── Ledger (folio breakdown with total) ───────────────────────────────────────
-const ledgerAmount = (amount: number, currency: string): string =>
-  `${amount < 0 ? '-' : ''}${currency ? `${currency} ` : ''}${fmtAmount(Math.abs(amount))}`;
-
 export function LedgerRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const lines = (m['lines'] as LedgerLine[]) ?? [];

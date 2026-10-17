@@ -87,6 +87,34 @@ export function isRuleLeaf(item: FlowMenuItem | null | undefined): boolean {
   return Array.isArray(item?.rules) && (item!.rules as unknown[]).length > 0;
 }
 
+/** A menu entry as the shell walks it: a separator, a group of `submenus`, or a leaf. */
+export interface WalkableMenuItem extends FlowMenuItem {
+  separator?: boolean;
+  submenus?: WalkableMenuItem[];
+  route?: string;
+  serverSideType?: string;
+}
+
+/**
+ * The leaves that open a screen, depth-first in menu order — what the tab bar and the global
+ * search offer. Separators are skipped, groups contribute their leaves, and a leaf that RUNS a
+ * flow (rules) has no screen of its own: it is drawn in the drawer, never a tab.
+ */
+export function navigableMenuLeaves<T extends WalkableMenuItem>(items: T[]): T[] {
+  const result: T[] = [];
+  for (const item of items) {
+    if (item.separator) continue;
+    if (item.submenus && item.submenus.length > 0) {
+      result.push(...navigableMenuLeaves(item.submenus as T[]));
+    } else if (isRuleLeaf(item)) {
+      continue;
+    } else if (item.route || item.serverSideType) {
+      result.push(item);
+    }
+  }
+  return result;
+}
+
 /** The lowered commands of a declared shell flow, or undefined when the shell declares none. */
 export function shellFlowFor(actions: ShellAction[] | null | undefined, actionId: string): ShellAction['commands'] | undefined {
   if (!Array.isArray(actions)) return undefined;
