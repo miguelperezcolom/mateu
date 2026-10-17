@@ -1,6 +1,8 @@
-/* An action of a surface of its own inside the content — a MicroFrontend, loaded from ITS backend
- * (bridge.runSurfaceAction posts it there and reduces the answer) — then the content is projected
- * again (poc/reproject.mjs) and its messages shown. */
+/* An action of a surface of its own inside the content — a MicroFrontend, loaded from ITS backend,
+ * or an INLINE island (a form's component field holding a ServerSide: bridge.runSurfaceAction posts
+ * it with the island's class, reduces the answer, delivers the bus events it emitted to the page and
+ * the other islands by @SubscribeTo scope, and registers the islands a host re-render brought) —
+ * then the content is projected again (poc/reproject.mjs) and its messages shown. */
 
 define([
   'vb/action/actionChain',

@@ -505,7 +505,7 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-  'trackPressedControls', 'installRecordMerges', 'installFactActions',
+  'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
@@ -547,7 +547,7 @@ let currentVars = null
 
 export function installEmbeddedContentRuntime(b, runtime) {
   const runPageAction = (actionId, parameters, atom) => runtime.fireEvent('application:mateuElementEvent', {
-    actionId, parameters, fromNested: !!(atom && atom.fromNested),
+    actionId, parameters, fromNested: !!(atom && atom.fromNested), surfaceId: (atom && atom.surfaceId) || '',
   })
   for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
   if (typeof b.setTileReorderSink === 'function') {

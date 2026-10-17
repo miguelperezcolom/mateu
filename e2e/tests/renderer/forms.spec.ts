@@ -65,6 +65,25 @@ test.describe('renderer-agnostic forms', () => {
     await expect(page.getByText('add address').first()).toBeVisible();
   });
 
+  test('a long sectioned page with @Toc shows a sections index that jumps to a section and follows Ctrl+Alt+N', async ({ page }) => {
+    // Redwood had no index at all (walkthrough forms ❌); Vaadin's lives in mateu-page (`aside.page-toc`)
+    await page.goto('/walk-layout');
+    await expect(page.getByText('X1234567').first()).toBeVisible({ timeout: 15000 });
+    const index = page.getByRole('complementary', { name: /^(Sections|Secciones)$/ });
+    await expect(index).toBeVisible();
+    for (const title of ['Guests', 'Document', 'Contact', 'Address', 'Preferences', 'Notes', 'History']) {
+      await expect(index.getByText(title, { exact: true })).toBeVisible();
+    }
+    await index.getByText('Notes', { exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Notes' }).first()).toBeInViewport();
+    await page.keyboard.press('Control+Alt+7');
+    await expect(page.getByRole('heading', { name: 'History' }).first()).toBeInViewport();
+    // a short form (one section) carries no index
+    await page.goto('/overlay-lab');
+    await expect(page.getByRole('heading', { name: 'Overlay lab' }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('complementary', { name: /^(Sections|Secciones)$/ })).toHaveCount(0);
+  });
+
   test('autosave, action shortcuts and identity-gated fields', async ({ page }) => {
     await page.goto('/walk-behaviour');
     const name = page.getByRole('textbox', { name: 'Name', exact: true }).first();

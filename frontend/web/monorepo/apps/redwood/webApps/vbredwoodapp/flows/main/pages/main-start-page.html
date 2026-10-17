@@ -107,7 +107,7 @@
     </div>
   </div>
 </oj-bind-if>
-<div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass ]]"
+<div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass + ' ' + $application.variables.mateuToc.cls ]]"
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">
@@ -115,28 +115,48 @@
      esté visible la rama que esté (form, listado, isla…) -->
 <oj-sp-messages-toast primary-text="[[ $variables.mateuToastText ]]" id="mateuToast"></oj-sp-messages-toast>
 
+<!-- STICKY SECTIONS INDEX (@Toc, bridge.tocOf → mateuToc): one entry per titled @Section, in the right
+     column of the content grid (.mateu-has-toc); click / Ctrl+Alt+N scroll to the section and the one
+     in view is highlighted (poc/toc.mjs installToc, by the data-mateu-section markers) -->
+<oj-bind-if test="[[ $application.variables.mateuToc.on ]]">
+  <aside class="mateu-toc" :aria-label="[[ $application.translations.appBundle.sections ]]">
+    <nav class="mateu-toc-nav">
+      <oj-bind-for-each data="[[ $application.variables.mateuToc.entries ]]">
+        <template>
+          <a href="#" class="mateu-toc-item" :data-toc-index="[[ $current.data.index ]]" :title="[[ $current.data.hint ]]">
+            <span class="mateu-toc-label"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></span>
+            <oj-bind-if test="[[ !!$current.data.key ]]">
+              <span class="mateu-toc-key" aria-hidden="true"><oj-bind-text value="[[ $current.data.key ]]"></oj-bind-text></span>
+            </oj-bind-if>
+          </a>
+        </template>
+      </oj-bind-for-each>
+    </nav>
+  </aside>
+</oj-bind-if>
+
 <!-- MODAL de decisión (overlay Dialog del wire, p.ej. "¿seguimos con el check-in del
      grupo?"): título + líneas de mensaje + las acciones del Dialog en el footer -->
 <oj-dialog id="mateuModal" cancel-behavior="icon" drag-affordance="none"
-  :style.width="[[ $application.variables.mateuDrawer.width || null ]]"
-  :style.max-width="[[ $application.variables.mateuDrawer.width ? '90vw' : null ]]"
+  :style.width="[[ $application.variables.mateuDialog.width || null ]]"
+  :style.max-width="[[ $application.variables.mateuDialog.width ? '90vw' : null ]]"
   on-oj-before-close="[[ $listeners.mateuModalClosed ]]">
   <div slot="header">
-    <span class="oj-dialog-title"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></span>
+    <span class="oj-dialog-title"><oj-bind-text value="[[ $application.variables.mateuDialog.title ]]"></oj-bind-text></span>
   </div>
   <!-- the Dialog's width (Dialog.width) is the modal's; without one, a decision-sized body -->
   <div slot="body" style="min-width: min(24rem, 80vw);"
-    :style.max-width="[[ $application.variables.mateuDrawer.width ? 'none' : '32rem' ]]">
-    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.texts ]]">
+    :style.max-width="[[ $application.variables.mateuDialog.width ? 'none' : '32rem' ]]">
+    <oj-bind-for-each data="[[ $application.variables.mateuDialog.texts ]]">
       <template>
         <div class="oj-typography-body-md oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
       </template>
     </oj-bind-for-each>
     <!-- un FORMULARIO en el diálogo (EmbeddedView: el «Cancel booking» de una reserva): sus
          campos con los mismos widgets que el drawer; lo escrito va al borrador del overlay -->
-    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sections ]]">
+    <oj-bind-for-each data="[[ $application.variables.mateuDialog.sections ]]">
       <template>
-        <div class="mateu-form-section">
+        <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
           <oj-bind-if test="[[ $current.data.hasTitle ]]">
             <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
@@ -355,7 +375,7 @@
     </oj-bind-for-each>
   </div>
   <div slot="footer">
-    <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
+    <oj-bind-for-each data="[[ $application.variables.mateuDialog.actions ]]">
       <template>
         <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
           disabled="[[ !!$current.data.disabled ]]"
@@ -16578,7 +16598,7 @@
          bridge.formSectionsOf): sin secciones es un único grupo sin título -->
     <oj-bind-for-each data="[[ $application.variables.mateuDrawer.sections ]]">
       <template>
-        <div class="mateu-form-section">
+        <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
           <oj-bind-if test="[[ $current.data.hasTitle ]]">
             <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
@@ -20269,7 +20289,7 @@
            bridge.formSectionsOf): sin secciones es un único grupo sin título -->
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
-          <div class="mateu-form-section">
+          <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
             <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
             <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
               <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
@@ -20561,7 +20581,7 @@
            bridge.formSectionsOf): sin secciones es un único grupo sin título -->
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
-          <div class="mateu-form-section">
+          <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
             <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
             <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
               <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
@@ -31281,7 +31301,7 @@
     <oj-bind-for-each data="[[ $application.variables.mateuHostContent ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-section="[[ $current.data.sectionTitle || null ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -34713,7 +34733,7 @@
          bridge.formSectionsOf): sin secciones es un único grupo sin título -->
     <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
       <template>
-        <div class="mateu-form-section">
+        <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
           <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
           <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
             <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
@@ -35006,7 +35026,7 @@
            bridge.formSectionsOf): sin secciones es un único grupo sin título -->
       <oj-bind-for-each data="[[ $application.variables.mateuIsland.sections ]]">
         <template>
-          <div class="mateu-form-section">
+          <div class="mateu-form-section" :data-mateu-section="[[ $current.data.title || null ]]">
             <oj-bind-if test="[[ $current.data.hasTitle ]]">
               <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>

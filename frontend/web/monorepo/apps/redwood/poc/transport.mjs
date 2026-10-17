@@ -4,7 +4,7 @@
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withInitialValues, inlineIslandOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
@@ -525,6 +525,8 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
  * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
  */
 export async function loadSubresource(base, reg, sub, extra = {}) {
+  // an inline island arrived with its tree: nothing to load, its context comes from the node
+  if (sub.inline) return registerInlineIsland(base, reg, sub, extra)
   // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
   if (sub.baseUrl) base = sub.baseUrl
   if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
@@ -562,7 +564,161 @@ export async function runSurfaceAction(reg, surfaceId, actionId, parameters, ext
   const outbound = ctx.outbound || {}
   const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
     { ...extra, parameters: parameters || {} })
-  return increment ? reduceContexts(reg, increment) : reg
+  if (!increment) return reg
+  // the increment is reduced AS the surface's (initiator): its MarkAsClean/Dirty land on it and the
+  // bus events it emits carry it as their source
+  let next = reduceContexts(reg, increment, { initiator: surfaceId })
+  const toasts = [...(next.effects.toasts || [])]
+  // what it emitted (a DispatchEvent, a CloseModal with an event) reaches every subscriber of the
+  // page — the host, the other islands — by @SubscribeTo scope; their answers are reduced too
+  next = await deliverBusEvents(next, next.effects.events || [], { base: outbound.baseUrl, appState: extra.appState })
+  toasts.push(...(next.effects.toasts || []))
+  // an answer that re-rendered the host brings fresh inline islands: register them (no I/O)
+  next = await ensureInlineIslands(outbound.baseUrl, next, extra)
+  return { ...next, effects: { ...next.effects, toasts } }
+}
+
+/**
+ * An INLINE island's context, from the node it arrived as (inlineIslandOf): its tree, its state
+ * (initialData), and the outbound an action from it needs — the host's route and consumed route
+ * (what the web client's nested mateu-component sends: its ux's) with ITS serverSideType, so the
+ * server instantiates the island's class and answers to its id (the initiator). Then its OnLoad
+ * triggers, like a loaded surface's. No request is made for the island itself.
+ */
+export async function registerInlineIsland(base, reg, sub, extra = {}) {
+  const node = sub.inline
+  const host = (reg.contexts || {})[HOST_ID] || {}
+  const hostOutbound = host.outbound || {}
+  const outbound = {
+    route: hostOutbound.route || '',
+    consumedRoute: hostOutbound.consumedRoute || '',
+    serverSideType: sub.serverSideType || node.serverSideType,
+    baseUrl: hostOutbound.baseUrl != null ? hostOutbound.baseUrl : base,
+  }
+  const previous = (reg.contexts || {})[sub.id]
+  let next = {
+    ...reg,
+    contexts: {
+      ...reg.contexts,
+      [sub.id]: {
+        id: sub.id,
+        kind: 'island',
+        tree: node,
+        // a re-render of the host re-sends the island with its CURRENT state: it wins over what the
+        // previous incarnation held
+        state: withInitialValues(node, { ...((previous && previous.state) || {}), ...(sub.componentState || {}) }),
+        data: (previous && previous.data) || {},
+        dirty: false,
+        outbound,
+      },
+    },
+  }
+  for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
+    const ctx = next.contexts[sub.id]
+    const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route, triggerActionId, ctx.state || {}, extra)
+    if (increment) next = reduceContexts(next, increment, { initiator: sub.id })
+  }
+  return next
+}
+
+/** Every inline island of the host tree (inlineIslandOf), in document order. */
+export function inlineIslandsOf(tree) {
+  const out = []
+  const walk = (n, isRoot) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && n.type === 'ServerSide') {
+      const inline = inlineIslandOf(n)
+      if (inline) out.push(inline)
+      return // another surface: its own islands are its business
+    }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+  }
+  walk(tree, true)
+  return out
+}
+
+/** Registers the host's inline islands that have no context yet (after a host re-render). */
+export async function ensureInlineIslands(base, reg, extra = {}) {
+  const host = (reg.contexts || {})[HOST_ID]
+  let next = reg
+  for (const inline of inlineIslandsOf(host && host.tree)) {
+    if (!next.contexts[inline.id]) next = await registerInlineIsland(base, next, inline, extra)
+  }
+  return next
+}
+
+// ── the event bus (@SubscribeTo) across the page's surfaces ──────────────────────────────────────
+//
+// Vaadin dispatches a real DOM CustomEvent and each component's trigger decides by scope; here the
+// surfaces are registry contexts, so the bus is a walk over them. `source` is the context that
+// emitted (the reducer stamps the initiator). The listener's trigger says what it hears:
+//   DOCUMENT (default)  anything, whoever sent it;
+//   COMPONENT `from`    only an emitter NAMED `from` (@Emits(name), else its serverSideType);
+//   SELF                what bubbles up from inside it — an island of the host is inside the host;
+//                       a surface also hears what it emits itself.
+
+/** The emitter's name on the bus: @Emits(name), else its class (what the web stamps as __source). */
+export function busSourceNameOf(ctx) {
+  const tree = ctx && ctx.tree
+  return (tree && (tree.emitsName || tree.serverSideType)) || ''
+}
+
+/** Is `innerId` a surface INSIDE `outerId` (the host contains every island; a surface contains itself)? */
+export function surfaceWithin(reg, innerId, outerId) {
+  if (!innerId || !outerId) return false
+  if (innerId === outerId) return true
+  if (outerId === HOST_ID) return true // every other context of the registry lives in the host's page
+  const outer = (reg.contexts || {})[outerId]
+  return !!(outer && outer.tree && inlineIslandsOf(outer.tree).some((i) => i.id === innerId))
+}
+
+/** The [{ ctxId, actionId }] a bus event reaches, by each listener's @SubscribeTo scope. */
+export function busSubscribersOf(reg, event, { skipHost = false } = {}) {
+  const out = []
+  const contexts = (reg && reg.contexts) || {}
+  const sourceCtx = event.source ? contexts[event.source] : null
+  const sourceName = busSourceNameOf(sourceCtx)
+  for (const ctxId of Object.keys(contexts)) {
+    if (skipHost && ctxId === HOST_ID) continue
+    const ctx = contexts[ctxId]
+    for (const t of ((ctx && ctx.tree && ctx.tree.triggers) || [])) {
+      if (t.type !== 'OnCustomEvent' || t.eventName !== event.name || !t.actionId) continue
+      const scope = String(t.source || 'DOCUMENT').toUpperCase()
+      if (scope === 'COMPONENT' && !(t.from && sourceName && t.from === sourceName)) continue
+      if (scope === 'SELF' && !(event.source && surfaceWithin(reg, event.source, ctxId))) continue
+      out.push({ ctxId, actionId: t.actionId })
+    }
+  }
+  return out
+}
+
+/**
+ * Runs the subscribed actions of every surface a bus event reaches (busSubscribersOf) and reduces
+ * their answers; the event's detail travels as the action's parameters (plus `__source`, like the
+ * web's). `skipHost`: the host's own subscribers are run by the caller (runMateuAction.js does, with
+ * its listing paging) — the islands' are not. Returns the new registry; its effects are the last
+ * answer's, with every toast of the round accumulated.
+ */
+export async function deliverBusEvents(reg, events, { base, appState, skipHost = false } = {}) {
+  let next = reg
+  const toasts = []
+  for (const event of events || []) {
+    for (const { ctxId, actionId } of busSubscribersOf(next, event, { skipHost })) {
+      const ctx = next.contexts[ctxId]
+      if (!ctx) continue
+      const outbound = ctx.outbound || {}
+      const detail = event.detail && typeof event.detail === 'object' ? event.detail : {}
+      const sourceName = busSourceNameOf(next.contexts[event.source])
+      const parameters = { ...detail, ...(sourceName && detail.__source == null ? { __source: sourceName } : {}) }
+      const increment = await runMateuAction(outbound.baseUrl != null ? outbound.baseUrl : base, ctx, outbound.route || '',
+        actionId, { ...(ctx.state || {}), ...detail }, { appState, parameters })
+      if (!increment) continue
+      next = reduceContexts(next, increment, { initiator: ctxId })
+      toasts.push(...(next.effects.toasts || []))
+    }
+  }
+  return next === reg ? reg : { ...next, effects: { ...next.effects, toasts } }
 }
 
 export async function loadSubresources(base, reg, blocks, extra = {}) {

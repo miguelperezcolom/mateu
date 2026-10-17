@@ -24,6 +24,7 @@ import {
 } from './a11y.mjs'
 import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRuleActionSink, rulesDebug } from './rules.mjs'
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
+import { installToc, tocActiveIndex, tocSectionsOf } from './toc.mjs'
 import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs'
 import { installRowTones, setListingTones, installStickyHeader } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
@@ -305,24 +306,30 @@ test('hover: pasar (o enfocar) abre la ventana con las líneas; salir la cierra;
 // ── mapa ─────────────────────────────────────────────────────────────────────────────────────
 function fakeLeaflet() {
   const log = []
+  const layers = []
   const layer = (kind, args) => {
     const handlers = {}
-    const node = { setAttribute: (k, v) => log.push(['attr', k, v]), style: {} }
+    const node = { setAttribute: (k, v) => log.push(['attr', k, v]), style: {}, keys: {}, addEventListener(ev, fn) { this.keys[ev] = fn } }
+    // like Leaflet: the element exists only once the layer is added to a map WITH a view (the map
+    // adds layers whenReady) — getElement() is null until the `add` event the test fires
+    let added = false
     const l = { kind, args, handlers, addTo: () => l, bindTooltip: (t) => { log.push(['tooltip', t]); return l },
-      on: (ev, fn) => { handlers[ev] = fn; return l }, getElement: () => node, node }
+      on: (ev, fn) => { handlers[ev] = fn; return l }, getElement: () => (added ? node : null), node,
+      add: () => { added = true; if (handlers.add) handlers.add() } }
     log.push([kind, ...args])
+    layers.push(l)
     return l
   }
   const map = { remove: () => log.push(['remove']), fitBounds: (b) => log.push(['fit', b]), setView: (c, z) => log.push(['view', c, z]), invalidateSize: () => {} }
   const L = { map: () => map, tileLayer: (...a) => layer('tiles', a), circleMarker: (...a) => layer('marker', a) }
   L.markers = () => log.filter((x) => x[0] === 'marker')
-  return { L, log }
+  return { L, log, layers }
 }
 class FakeObserver { constructor(fn) { this.fn = fn; FakeObserver.last = this } observe() {} }
 
 test('map: un marcador pintado lanza markerActionId con _markerId; varios se encuadran; el atributo nuevo repinta', async () => {
   const { doc, el } = makeDom()
-  const { L, log } = fakeLeaflet()
+  const { L, log, layers } = fakeLeaflet()
   globalThis.window = { L }
   globalThis.MutationObserver = FakeObserver
   const spec = { markers: [
@@ -337,6 +344,17 @@ test('map: un marcador pintado lanza markerActionId con _markerId; varios se enc
   const markers = log.filter((x) => x[0] === 'marker')
   assert.equal(markers.length, 2)
   assert.equal(markers[1][2].fillColor, '#00f')
+  assert.ok(!log.some((x) => x[0] === 'attr'), 'nothing to decorate before the layers are added (no element yet)')
+  for (const l of layers) if (l.kind === 'marker') l.add()
+  // a marker that runs something is a keyboard-reachable button (Leaflet draws a bare SVG path)
+  assert.ok(log.some((x) => x[0] === 'attr' && x[1] === 'role' && x[2] === 'button'), 'role=button on the marker')
+  assert.ok(log.some((x) => x[0] === 'attr' && x[1] === 'tabindex' && x[2] === '0'), 'a tab stop on the marker')
+  // …and Enter on it runs the action like a click (the shared spec: «a keyboard-reachable button»)
+  const pin = layers.find((l) => l.kind === 'marker')
+  const enter = new FakeEvent('keydown', { key: 'Enter' })
+  pin.node.keys.keydown(enter)
+  assert.deepEqual(sink.calls[0], ['openHotel', { _markerId: 'h1' }, {}])
+  assert.ok(enter.defaultPrevented)
   assert.deepEqual(log.find((x) => x[0] === 'fit')[1], [[40.4, -3.7], [41.4, 2.2]])
   assert.ok(log.some((x) => x[0] === 'attr' && x[1] === 'aria-label' && x[2] === 'Madrid · 120 rooms'), 'el marcador tiene nombre accesible')
   assert.ok(log.some((x) => x[0] === 'tiles' && /openstreetmap/.test(x[1])))
@@ -593,13 +611,66 @@ test('calendar: cambiar de vista es del DOM; un evento clicable o un día (clic 
   setCalendarActionSink(sink)
   fire(switcher, 'valueChanged', { bubbles: false, detail: { value: 'week' } })
   assert.equal(cal.getAttribute('data-cal-shown'), 'week')
-  fire(chip, 'click')
+  const chipClick = fire(chip, 'click')
   assert.deepEqual(sink.calls[0], ['openCalendarEvent', { _clickedEvent: { id: 'e1', title: 'Standup', date: '2026-10-05' } }, {}])
+  // the chip is an <a href="#">: without this the browser went to /# and VB rebooted the app
+  assert.ok(chipClick.defaultPrevented, 'the anchor does not navigate')
   fire(dead, 'click')
   assert.equal(sink.calls.length, 1, 'un evento no clicable no hace nada')
   const ev = fire(day.querySelector('span'), 'keydown', { key: 'Enter' })
   assert.deepEqual(sink.calls[1], ['openCalendarDay', { _date: '2026-10-06' }, {}])
   assert.ok(ev.defaultPrevented)
+})
+
+// ── @Toc: the sticky sections index ──────────────────────────────────────────────────────────
+test('toc: a click on an entry scrolls to its section (no anchor navigation) and keeps it highlighted; Ctrl+Alt+N jumps; the spy follows the reading line', () => {
+  const { doc, win, el, fire } = makeDom()
+  const scrolls = []
+  win.scrollBy = (o) => scrolls.push(o.top)
+  const titles = ['Guests', 'Document', 'Contact', 'Notes']
+  const sections = titles.map((t, i) => el('div', { 'data-mateu-section': t, box: { top: 100 + i * 500, height: 400 } }))
+  const items = titles.map((t, i) => el('a', { href: '#', class: 'mateu-toc-item', 'data-toc-index': String(i), text: t }))
+  const toc = el('aside', { class: 'mateu-toc' }, el('nav', {}, ...items))
+  doc.body.appendChild(el('div', { class: 'mateu-has-toc' }, toc, ...sections))
+  // an untitled marker (a frameless band) is not a section of the index
+  doc.body.appendChild(el('div', { 'data-mateu-section': '' }))
+  installToc(doc, win)
+  installToc(doc, win) // once
+  assert.deepEqual(tocSectionsOf(doc).map((s) => s.getAttribute('data-mateu-section')), titles)
+  // click «Contact» (section 3, top 1100): scroll by its distance to the reading line (16px of air)
+  const click = fire(items[2].querySelector ? items[2] : items[2], 'click')
+  assert.ok(click.defaultPrevented, 'the anchor does not navigate (VB would reboot on /#)')
+  assert.deepEqual(scrolls, [1100 - 16])
+  assert.ok(items[2].classList.contains('is-active'))
+  assert.equal(items[2].getAttribute('aria-current'), 'true')
+  assert.ok(!items[0].classList.contains('is-active'))
+  // locked on the click: a scroll event that lands elsewhere does not move the highlight…
+  sections.forEach((s, i) => s.box({ top: -3000 + i * 500, height: 400 }))
+  fire(win, 'scroll', { bubbles: false })
+  assert.ok(items[2].classList.contains('is-active'), 'still the clicked one')
+  // …until the user scrolls by hand (wheel): then the spy picks the section at the reading line
+  fire(win, 'wheel', { bubbles: false })
+  fire(win, 'scroll', { bubbles: false })
+  assert.ok(items[3].classList.contains('is-active'), 'the last section whose top is above the line')
+  assert.equal(items[3].getAttribute('aria-current'), 'true')
+  assert.equal(items[2].getAttribute('aria-current'), null)
+  // Ctrl+Alt+2 (physical key, layout-independent): «Document»
+  const key = fire(doc.body, 'keydown', { key: '@', code: 'Digit2', ctrlKey: true, altKey: true })
+  assert.ok(key.defaultPrevented)
+  assert.ok(items[1].classList.contains('is-active'))
+  assert.equal(scrolls.length, 2)
+  // a digit without the modifiers, or one past the entries: nothing
+  fire(doc.body, 'keydown', { key: '3', code: 'Digit3' })
+  fire(doc.body, 'keydown', { key: '9', code: 'Digit9', ctrlKey: true, altKey: true })
+  assert.equal(scrolls.length, 2)
+  // the reading line sits under a pinned record header
+  doc.body.appendChild(el('div', { class: 'mateu-sticky-header', box: { top: 0, height: 64 } }))
+  sections.forEach((s, i) => s.box({ top: 70 + i * 500, height: 400 }))
+  fire(win, 'wheel', { bubbles: false })
+  fire(win, 'scroll', { bubbles: false })
+  assert.ok(items[0].classList.contains('is-active'), 'Guests (70) is just under the 64px header + air: in view')
+  assert.equal(tocActiveIndex([0, 500, 1000], 520), 1)
+  assert.equal(tocActiveIndex([300, 800], 16), 0, 'nothing above the line: the first')
 })
 
 // ── campos de captura ────────────────────────────────────────────────────────────────────────

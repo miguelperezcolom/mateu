@@ -722,7 +722,11 @@ test('overlay templates: the drawer and the dialog bind each group\'s columns, t
     assert.match(piece, /<oj-form-layout class="oj-formlayout-full-width" max-columns="\[\[ \$current\.data\.columns \]\]" direction="row">/, id)
   }
   const modal = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('slot="header"', html.indexOf('<oj-dialog id="mateuModal"')))
-  assert.match(modal, /:style\.width="\[\[ \$application\.variables\.mateuDrawer\.width \|\| null \]\]"/)
+  // the modal reads the DIALOG projection (mateuDialog), never the drawer's: a Dialog opened over a
+  // Drawer shows in the modal while the drawer panel keeps showing the drawer
+  assert.match(modal, /:style\.width="\[\[ \$application\.variables\.mateuDialog\.width \|\| null \]\]"/)
+  const modalAll = html.slice(html.indexOf('<oj-dialog id="mateuModal"'), html.indexOf('</oj-dialog>', html.indexOf('<oj-dialog id="mateuModal"')))
+  assert.ok(!/variables\.mateuDrawer\./.test(modalAll), 'nothing in the modal binds the drawer variable')
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)
