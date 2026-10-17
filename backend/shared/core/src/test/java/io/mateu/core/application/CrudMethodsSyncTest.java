@@ -66,6 +66,7 @@ class CrudMethodsSyncTest {
       ran = "purged";
     }
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     Object retry(Job row, HttpRequest httpRequest) {
       ran = "retried:" + row.id();
       return null;

@@ -115,7 +115,7 @@ Hidden fields carry state across requests but are not rendered.
 
 ## Actions
 
-Actions are public methods that the user can trigger from the browser.
+Actions are methods that the user can trigger from the browser: marked ones (`@Toolbar`, `@Button`, `@Action`…), or public ones the view names in a component, a trigger or a menu rule. A public method nothing names is not reachable from the browser (see [strict action mode](/java-user-manual/advanced/security/#strict-action-mode-mateuactionsstrict--the-default)).
 
 ### Toolbar actions
 

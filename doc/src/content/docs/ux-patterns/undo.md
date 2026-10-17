@@ -22,6 +22,7 @@ public Message archive(HttpRequest httpRequest) {
     return Message.undoable("Documento archivado", "restore", Map.of("docId", docId));
 }
 
+@Action // only the toast names it: mark it, or strict action mode refuses it
 public Message restore(HttpRequest httpRequest) {
     var docId = String.valueOf(httpRequest.runActionRq().parameters().get("docId"));
     service.restore(docId);

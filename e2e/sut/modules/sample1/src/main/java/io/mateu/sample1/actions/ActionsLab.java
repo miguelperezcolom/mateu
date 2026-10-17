@@ -95,7 +95,11 @@ public class ActionsLab {
     return List.of(this, Message.undoable("Item 7 deleted", "restore", Map.of("itemId", "7")));
   }
 
-  /** The undo of {@link #deleteWithUndo()}: reached only through the toast's Undo control. */
+  /**
+   * The undo of {@link #deleteWithUndo()}: reached only through the toast's Undo control — so it
+   * is marked: no component of the view names it (strict action mode).
+   */
+  @io.mateu.uidl.annotations.Action
   public ActionsLab restore(HttpRequest httpRequest) {
     Object id = httpRequest.runActionRq().parameters().get("itemId");
     outcome = "restored " + id;

@@ -74,7 +74,7 @@ public final class TreeActionHarvester {
     var owner = io.mateu.core.infra.ModelBridge.ownerOf(view).getClass();
     Set<String> handled =
         getAllMethods(owner).stream()
-            .filter(method -> ActionMethods.isInvocable(method, owner))
+            .filter(method -> ActionMethods.isHandler(method, owner))
             .map(Method::getName)
             .collect(Collectors.toSet());
     var known = declared.stream().map(ActionDto::id).collect(Collectors.toSet());

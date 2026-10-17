@@ -174,6 +174,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - Python: CORS needs `cors_origins=[...]`; the distribution is **`mateu-ui`** on PyPI.
 
 ### Security and robustness
+- **Strict action mode is the default** (Java): an `actionId` runs a method only when it is marked as
+  an action or its id is advertised by the view (a component, a trigger, a menu rule, `@OnRowSelected`…);
+  an unadvertised public method answers 403, as in the .NET and Python backends.
+  `mateu.actions.strict=false` restores the old convention.
 - An **error boundary** on every backend: `UserFacingException` messages are shown as written;
   anything else shows a generic message with a reference id, logged at ERROR under it.
 - Proxied REST URLs are percent-encoded by position on every server and renderer.

@@ -26,6 +26,7 @@ class OptionalFieldsSyncTest {
     Optional<Integer> age = Optional.empty();
     String name = "Ada";
 
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public String echo() {
       return nickname.orElse("-") + "|" + age.map(String::valueOf).orElse("-");
     }
@@ -33,6 +34,7 @@ class OptionalFieldsSyncTest {
 
   @UI("/optional-record")
   public record OptionalRecord(Optional<String> nickname, String name) {
+    @io.mateu.uidl.annotations.Action // nothing advertises it: the test dispatches it
     public String echo() {
       return nickname.orElse("-") + "|" + name;
     }
