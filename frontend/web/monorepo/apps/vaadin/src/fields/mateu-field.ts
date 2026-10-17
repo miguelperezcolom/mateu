@@ -37,7 +37,8 @@ import "@infra/ui/mateu-rich-text-editor"
 import "@vaadin/email-field"
 import "@vaadin/upload"
 import "@vaadin/list-box"
-import "@vaadin/markdown"
+// markdown values are DATA: rendered by mateu-markdown (Mateu's sanitizer policy — vaadin-markdown lets any custom element through)
+import "@infra/ui/mateu-markdown.ts"
 import '@vaadin/item'
 import "@vaadin-component-factory/vcf-date-range-picker"
 import { safeHtml } from "@infra/ui/safeHtml.ts";
@@ -789,7 +790,7 @@ export class MateuField extends LitElement {
                 data-colspan="${this.field.colspan}"
                 style="${this.field.style ?? ''}"
         >${this.field.stereotype == 'markdown'
-            ? html`<vaadin-markdown .content="${source}"></vaadin-markdown>`
+            ? html`<mateu-markdown .content="${source}"></mateu-markdown>`
             : html`<div>${safeHtml(source)}</div>`}</vaadin-custom-field>`
     }
 
@@ -1237,7 +1238,7 @@ export class MateuField extends LitElement {
                     ><mateu-markup-editor
                             .value="${value ?? ''}" .label="${typeof label === "string" ? label : ""}" ?required="${this.field.required}"
                             @value-changed="${this.markupChanged}"
-                    ><vaadin-markdown slot="preview" .content="${value ?? ''}"></vaadin-markdown></mateu-markup-editor>
+                    ><mateu-markdown slot="preview" .content="${value ?? ''}"></mateu-markdown></mateu-markup-editor>
                     </vaadin-custom-field>
                 `
             }
