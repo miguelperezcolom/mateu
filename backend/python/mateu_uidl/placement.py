@@ -59,7 +59,14 @@ class NavLink:
 
 @dataclass(frozen=True)
 class HeaderBadge:
+    """A status chip in the page header strip (Java's ``@BadgeInHeader``, also exported as
+    ``BadgeInHeader``). On a ``str`` field the value is the chip text (``None``/blank = no chip); on
+    a ``bool`` field the chip shows only while it is ``True``, reading ``label`` (default: the
+    field's ``Label`` or humanized name). The field is shown in the header only, never in the form
+    body."""
+
     color: str = "normal"
+    label: str = ""
 
 
 @dataclass(frozen=True)
