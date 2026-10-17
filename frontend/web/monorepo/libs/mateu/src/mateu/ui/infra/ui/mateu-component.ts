@@ -239,23 +239,21 @@ export class MateuComponent extends ComponentElement {
                     console.error('validation failed', validation, e)
                 }
             }
-            for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
-                const validation = validatons[validationIndex]
-                if (this.skipValidation(fieldsToValidate, validation)) {
-                    continue
+            // The data is replaced (and the form re-rendered) only when the errors CHANGED: per
+            // field, by their joined messages, plus any field whose errors are no longer computed
+            // (they are dropped). Written as `a?[b]?.join(','):''` this used to parse as a ternary,
+            // so the comparison never compared anything.
+            const errorsOf = (errors: Record<string, string[]> | undefined, fieldName: string) =>
+                errors?.[fieldName]?.join(',') ?? ''
+            const oldErrors = data['errors'] as Record<string, string[]> | undefined
+            const newErrors = newData['errors'] as Record<string, string[]>
+            const fieldNames = new Set([...Object.keys(oldErrors ?? {}), ...Object.keys(newErrors)])
+            for (const fieldName of fieldNames) {
+                if (errorsOf(oldErrors, fieldName) != errorsOf(newErrors, fieldName)
+                    || (oldErrors !== undefined && (fieldName in oldErrors) != (fieldName in newErrors))) {
+                    dataUpdated = true
+                    break
                 }
-
-                const fieldNames = (validation.fieldId??'_component').split(',')
-                for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
-                    const fieldName = fieldNames[fieldIndex]
-                    if (data['errors']?[fieldName]?.join(','):'' == newData['errors']?[fieldName]?.join(','):'') {
-                        dataUpdated = true
-                        break
-                    }
-                }
-            }
-            if (data['errors']?['_component']?.join(','):'' == newData['errors']?['_component']?.join(','):'') {
-                dataUpdated = true
             }
         }
         newData._valid = valid
