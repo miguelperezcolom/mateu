@@ -11,12 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
-Changes merged after `3.0-alpha.425`, towards the 3.0 beta.
+## [3.0-alpha.426] — 2026-10-18 (beta candidate)
+
+The beta candidate: the refactor phase and every fix from the independent pre-GA review. Read
+**Behaviour changes** before upgrading.
 
 ### Security
 - **Strict action mode is the default** (Java): an `actionId` runs a method only when it is marked as
-  an action or its id is advertised by the view (a component, a trigger, a menu rule, `@OnRowSelected`…);
-  an unadvertised public method answers 403, as in the .NET and Python backends.
+  an action or its id is advertised by the view (a component, a trigger, a menu rule, `@OnRowSelected`,
+  a column action…); an unadvertised public method answers 403, as in the .NET and Python backends.
   `mateu.actions.strict=false` restores the old convention.
 - **CRUD saves are not a mass-assignment channel**: an edit saves the record its route names (its
   id and its read-only / hidden fields keep the stored values), a create ignores the read-only and
@@ -24,14 +27,96 @@ Changes merged after `3.0-alpha.425`, towards the 3.0 beta.
 - An **unknown `actionId`** is a refused request on every backend — HTTP 403 and one WARN line, the
   same answer for a CRUD as for any other view (Java used to log an ERROR with a stack trace for a
   CRUD; .NET and Python answered an "Action not found" toast).
+- **Data HTML is sanitised with an allow-list** (web): no custom element from data except
+  `vaadin-icon`, no form controls; interpolated data in titles, texts and headers is text; markdown
+  values render through Mateu's policy (`mateu-markdown`). Redwood header widgets and `Element`s
+  with data go through the bridge's whitelist sanitiser; data-bound `href`/`src` are safe links only.
+- **Credentials stay in scope**: the Bearer token, session id and app context go only to the page
+  origin, the shell's backend and the remotes the app names — web, Redwood, React Native, IntelliJ.
+- Active document types (HTML, SVG, XML, script) are never inlined or shown in the app's origin:
+  they are parked and served sandboxed.
+- The Vaadin page runs under `script-src 'self'` (the theme script is external, the remaining
+  inline scripts carry CSP hashes); no template markers or Vite icon in a served page (Java, .NET,
+  Python).
+- The expression sandbox hands out no property descriptor and takes no forbidden function as a
+  callback; the idle sign-out never follows a `javascript:` URL; a login flow's `?continue` never
+  becomes a route parameter.
+- The client-log endpoint is rate-limited per user / client address.
 
-### Changed
+### Behaviour changes
+- **Spring Security works out of the box**: Mateu exempts its own JSON endpoints from CSRF
+  (`MateuCsrfAutoConfiguration` / `MateuCsrfWebFluxAutoConfiguration`); a 403 Mateu did not send
+  (CSRF, the framework's security, a proxy) gets its own message instead of "You are not allowed".
+- **Mateu's settings are read from the framework's configuration** (`application.properties`,
+  MicroProfile Config, Micronaut config) as well as `-D` and environment variables.
+- The no-security-module startup notice is a WARN.
+- The runtime bundle endpoint (`GET /mateu/v3/bundle`) answers a failure through the error boundary
+  (generic text + reference; the exception only with `mateu.errors.detailed`), as valid JSON.
+- The mobile manifest's `wireVersion` is the envelope's (`"3.0"`) in Java, .NET and Python.
+- .NET `Crud<T>.Save` / `Delete` **refuse by default** instead of silently dropping writes —
+  override them. .NET crud ids come from `[Id]` (else `Id`, else the crud is refused); `Find` gets
+  the filter state on the capability-listing path.
+- .NET header badges, `[Hidden]` and `[Kpi]` follow Java's semantics; Python `eyes_only("admin")`
+  takes a single string as one name.
+- Optional web elements (chat, workflow, form editor, planning board, Gantt, matrix grid,
+  signature, camera, markdown, date-range picker) load on first use; the classes stay exported from
+  `mateu-vaadin`, but code that creates these elements before Mateu draws one must `await
+  ensureElement(tag)`.
+- Form rules settle before rendering: one render per change (was 2–3); an effect that held only
+  in the middle of a rule chain no longer fires.
+- Redwood: `?.`, `??` and regex literals in rules; `state:`/`appState:` seeds, `initialData` and
+  the query string on statically served loads. React Native and IntelliJ: `?.` and regex literals.
+- Core registries load under a lock instead of a monitor (no virtual-thread deadlock on a cold
+  burst); the Micronaut adapter looks beans up without exceptions.
 - A .NET or Python server that serves no web renderer answers a browser opening its mount with a
-  short page explaining the sync API and `MATEU_UI` (still status 404) instead of a bare 404.
+  short page explaining the sync API and `MATEU_UI` (still status 404).
+
+### New
+- The .NET and Python ports gained page toolbar actions (`[Toolbar]` / `@toolbar`), triggers
+  (OnLoad / OnSuccess / OnError / OnValueChange), field help, placeholder, autofocus, step and slider
+  bounds, and the generic fluent components (Breadcrumbs, Icon, Notification, Element, Tooltip,
+  Details, SplitLayout, ConfirmDialog). An `info` toast variant everywhere.
+- `wire-schema.json`: the response wire and the request, generated and pinned; a removed or
+  renamed member fails the build.
+- The canonical endpoint is named: `POST {baseUrl}/mateu/v3/sync/{route}`.
+- Public API: `@Internal` marks plumbing outside the stability promise; every annotation has a
+  `@Target` and `@Documented`; positional uidl records have builders; Python `ActionRequest` /
+  `current_request` are public; .NET `MateuForbiddenException` lives in `Mateu.Uidl`, deprecations
+  carry DiagnosticIds (`MATEU001`–`003`).
+
+### Deprecated
+- `Result` and `Stepper` wire types (registered, never produced); the dead `@List` annotation;
+  `JwtExtractor` (→ `IdentityResolver`); `DashboardLayout` / `ContentLayout` are now for removal
+  (→ `ResponsiveGrid`); the `RunActionUseCase` / `ComponentStateHelper` state statics (→ `ComponentState`).
 
 ### Fixed
-- The Vaadin renderer no longer prints its own Lumo-mixin deprecation and vaadin-card style-module
-  warnings in the browser console (the date-range picker, a third-party component, still prints one).
+- Scanning `specs/ui` inside a jar no longer closes the JVM-cached JarFile ("zip file closed" under
+  concurrent load, seen on Quarkus).
+- Bean-validation messages follow the request's language (English when it names none); a `@Size`
+  condition holds for a valid length; a definition-only YAML page names the window.
+- Redwood: the create/edit drawer validates before Save leaves and marks its fields; header widget
+  links navigate again.
+- CRUD import: the dialog's upload hands the success handler the response it reads.
+- React Native and IntelliJ: a non-proxied `@RestAction` naming its source by ref fetches the
+  resolved endpoint; registrations stay per session / per app.
+- IntelliJ: a drawer, dialog or confirm dialog renders in place in a headless render.
+- The Vaadin renderer prints no Lumo / vaadin-card warnings of its own in the console.
+
+### Performance
+- Singleton beans on the request path are resolved once; view-model injection points are found
+  once per class; the structure hash is digested while the canonical JSON is written; `specs/ui` is
+  walked once per classloader.
+- Eager web bundle 678.8 → 604.1 KB gzip (lazy optional elements); `mateu-field` split.
+
+### Docs
+- Security guide (CSRF, strict actions, identity source), configuration, the C# and Python manuals,
+  `static-ui.md`, the wire specification (schemas, MCP tool names), navigation/shell pages and
+  `parity.md` now describe what ships; one "Imports" callout per Java sample page; the Micronaut
+  page covers virtual-thread pinning on JDK 21–23; starters and guides point at the latest release.
+
+### Build and CI
+- e2e runs as three parallel legs; backend tests in one Maven build; client conformance corpus
+  (expressions, route params) in all four renderers; core layering and request-budget tests.
 
 ## [3.0-alpha.425] — 2026-10-17
 
