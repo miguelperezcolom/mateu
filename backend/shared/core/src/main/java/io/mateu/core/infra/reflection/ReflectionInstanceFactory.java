@@ -144,6 +144,18 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return (T) o;
   }
 
+  private static final java.util.concurrent.atomic.LongAdder FIELD_SCANS =
+      new java.util.concurrent.atomic.LongAdder();
+
+  /**
+   * How many times a class's declared fields were walked looking for injection points, since the
+   * JVM started. A diagnostic for the request-budget test (reflection on the request path); not
+   * part of any contract.
+   */
+  public static long injectionFieldScans() {
+    return FIELD_SCANS.sum();
+  }
+
   /** The injection annotations a view model Mateu instantiates may use on its fields. */
   private static final java.util.Set<String> FIELD_INJECTION =
       java.util.Set.of("Autowired", "Inject", "Resource");
@@ -160,6 +172,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       return;
     }
     for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+      FIELD_SCANS.increment();
       for (var field : c.getDeclaredFields()) {
         if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
           continue;
