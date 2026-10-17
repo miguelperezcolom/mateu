@@ -145,7 +145,7 @@ jobs:
           --test-coverage-exclude='test*.mjs' --test-coverage-exclude='make-*.mjs'
           --test-coverage-exclude='capture*.mjs' --test-coverage-exclude='probe*.mjs'
           --test-coverage-exclude='parity-check.mjs' --test-coverage-exclude='coverage.mjs'
-          --test-coverage-lines=97 --test-coverage-functions=95 --test-coverage-branches=84
+          --test-coverage-lines=98 --test-coverage-functions=95 --test-coverage-branches=85
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
           test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs
@@ -176,7 +176,7 @@ jobs:
           cd frontend/app/react-native && node --test --experimental-test-module-mocks
           --experimental-test-coverage --test-coverage-include='src/**/*.ts'
           --test-coverage-exclude='src/**/*.test.ts' --test-coverage-lines=98
-          --test-coverage-branches=86 --test-coverage-functions=95 'src/**/*.test.ts'
+          --test-coverage-branches=89 --test-coverage-functions=95 'src/**/*.test.ts'
 
       - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
         run: cd frontend/app/react-native && node scripts/parity-check.mjs

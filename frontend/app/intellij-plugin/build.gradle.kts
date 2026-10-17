@@ -285,14 +285,14 @@ tasks.runIde {
 // plugin preinstalled, a launcher wrapper that opens the bundled workspace on double-click, re-signed
 // ad-hoc. Unsigned → first launch needs right-click ▸ Open (or clear the quarantine xattr).
 // Coverage ratchet (`koverVerify`, run in CI after the tests): line coverage of the plugin's own
-// code may only stay or grow. Measured 65.8% (2026-10-17, 426 tests; was 47.9% on 2026-10-11) —
+// code may only stay or grow. Measured 69.3% (2026-10-18, 459 tests; 65.8% on 2026-10-17) —
 // raise the bound as suites grow, never lower it. The whole module counts: IDE glue that cannot run headless (dialogs, tool
 // window factories, project service) is deliberately NOT excluded, so it shows as the gap it is.
 kover {
     reports {
         verify {
             rule("plugin line coverage") {
-                minBound(65)
+                minBound(69)
             }
         }
     }

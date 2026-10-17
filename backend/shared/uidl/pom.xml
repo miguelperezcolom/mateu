@@ -18,8 +18,8 @@
              branches when last raised. Over ALL the suites (core's TestMateu drives most of it)
              uidl is gated by backend/coverage instead (2026-10, design/coverage/coverage-map.md).
              Ratchet. -->
-        <jacoco.min.bundle.coverage>49%</jacoco.min.bundle.coverage>
-        <jacoco.min.bundle.branch.coverage>29%</jacoco.min.bundle.branch.coverage>
+        <jacoco.min.bundle.coverage>50%</jacoco.min.bundle.coverage>
+        <jacoco.min.bundle.branch.coverage>30%</jacoco.min.bundle.branch.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
