@@ -109,7 +109,7 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-Point a Mateu renderer at it — e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web`; the server must list that origin in its CORS settings). The server answers the sync API only: it does not serve the web renderer's page itself.
+To open it in a browser, tell the server where a web renderer is — `add_mateu(app, views, ui="<path>")` or `MATEU_UI=<path>`: the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar from Maven Central, or its extracted `static/` folder (e.g. `MATEU_UI=mateu-vaadin-3.0-alpha.422.jar uvicorn samples.demo.main:app --port 8594` → http://localhost:8594). It then serves the page at the mount and its deep links and the assets at the origin root, like a Java app; `mateu-ui` does not package the renderer. Without it the server answers the sync API only — point a renderer served elsewhere at it, e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web`; the server must list that origin in its CORS settings).
 The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Android emulator
 (`10.0.2.2:8594`) reach it too.
 

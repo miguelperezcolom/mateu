@@ -51,12 +51,25 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-This server answers the sync API only — it does not serve a web page of its own. Point a Mateu
-renderer at it: the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594
-npx expo start --web` — or `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that
-origin in its CORS settings), the IntelliJ plugin, or the Vaadin renderer's dev server
-(`MATEU_BACKEND=http://localhost:8594 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy
-forwards `/mateu` to the backend).
+**Open it in a browser**: the server serves the web renderer's page too when you tell it where the
+renderer is — `add_mateu(app, views, ui="<path>")` or the `MATEU_UI` environment variable, pointing
+at the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar of the version you target, or at its
+extracted `static/` folder. The jar is on Maven Central; `mateu-ui` does not package it:
+
+```bash
+V=3.0-alpha.422
+curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
+MATEU_UI=mateu-vaadin-$V.jar uvicorn samples.demo.main:app --port 8594   # http://localhost:8594
+```
+
+The page answers the mount and every deep link under it, the renderer's assets are served at the
+origin root, your own routes keep winning, and nothing under `/mateu` is ever answered with the
+page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only,
+for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
+EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web` — or
+`EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that origin in its CORS
+settings), the IntelliJ plugin, or the Vaadin renderer's dev server (`MATEU_BACKEND=http://localhost:8594
+npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy forwards `/mateu` to the backend).
 The server binds to `0.0.0.0`, so the iOS simulator and Android emulator reach it too.
 
 Wire it up:
