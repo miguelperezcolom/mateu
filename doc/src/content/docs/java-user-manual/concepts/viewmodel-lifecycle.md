@@ -67,6 +67,9 @@ Callable<String> summary = () -> name + " — " + status;
 ```
 
 The lambda runs against the already-hydrated ViewModel, so `name` and `status` reflect the values from the current request.
+A `Callable` is **computed, never typed into**: one returning a basic value (a `String`, a number, a
+date…) renders its result as read-only text under the field's label, and it never enters the
+component state; one returning a `Component` renders that component.
 
 ### Actions
 

@@ -12,7 +12,9 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -37,6 +39,8 @@ class HolderFieldsSyncTest {
     Callable<Component> lazy = () -> new Text("lazy content");
 
     Component banner = new Text("banner content");
+
+    Callable<String> computed = () -> "Total: 42";
 
     final String finalCode = "C-1";
 
@@ -89,6 +93,33 @@ class HolderFieldsSyncTest {
     // and no leaked entries from recursing into the built components
     assertThat(state.keySet())
         .noneMatch(key -> key.startsWith("lazy-") || key.startsWith("banner-"));
+  }
+
+  @Test
+  void aCallableOfABasicValueRendersItsResultAsReadOnlyText() {
+    // Callable<String> used to be mapped by its value's class: an EMPTY editable text box, bound to
+    // a state key the serializer (rightly) never writes — the walkthrough's "Callable<String>
+    // renders as an empty editable text box".
+    var wire = SpecsFixture.JSON.valueToTree(mateu.sync("/holder-fields"));
+    var texts = new ArrayList<String>();
+    var editableIds = new ArrayList<String>();
+    collect(wire, texts, editableIds);
+    assertThat(texts).contains("Total: 42");
+    assertThat(editableIds).doesNotContain("computed");
+    assertThat(wire.toString()).contains("computed-computed");
+  }
+
+  private static void collect(
+      com.fasterxml.jackson.databind.JsonNode node, List<String> texts, List<String> fieldIds) {
+    if (node.isObject()) {
+      if ("Text".equals(node.path("type").asText())) {
+        texts.add(node.path("text").asText());
+      }
+      if ("FormField".equals(node.path("type").asText())) {
+        fieldIds.add(node.path("fieldId").asText());
+      }
+    }
+    node.forEach(child -> collect(child, texts, fieldIds));
   }
 
   @Test
