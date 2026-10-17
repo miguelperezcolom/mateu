@@ -59,11 +59,21 @@ public abstract class Crud<T> :
     /// <summary>Loads one entity by id (default: linear scan of <see cref="Fetch"/>).</summary>
     public virtual T? Get(string id) => Fetch(null).FirstOrDefault(e => IdOf(e) == id);
 
-    /// <summary>Persists a created/edited entity. Override to store it.</summary>
-    public virtual void Save(T entity) { }
+    /// <summary>Persists a created/edited entity. Override to store it: the default REFUSES with a
+    /// user-facing "Not implemented" error naming this override (it used to do nothing, so a crud
+    /// that only implemented <see cref="Fetch"/> answered "Saved" and discarded every write — Java's
+    /// AutoCrud.store() is abstract for the same reason). A crud that must not write should
+    /// narrow <see cref="CanCreate"/>/<see cref="CanEdit"/> instead.</summary>
+    public virtual void Save(T entity) => throw NotImplemented("Save(" + typeof(T).Name + ")");
 
-    /// <summary>Removes an entity by id. Override to store it.</summary>
-    public virtual void Delete(string id) { }
+    /// <summary>Removes an entity by id. Override to delete it from your store: the default
+    /// REFUSES with a user-facing "Not implemented" error naming this override. A crud that must
+    /// not delete should narrow <see cref="CanDelete"/> instead.</summary>
+    public virtual void Delete(string id) => throw NotImplemented("Delete(string)");
+
+    private UserFacingException NotImplemented(string member) =>
+        new("Not implemented",
+            $"{GetType().Name} cannot store changes yet: override {member} in {GetType().Name}.");
 
     /// <summary>The value of the entity's <c>Id</c> property as a string.</summary>
     public static string? IdOf(T entity) =>

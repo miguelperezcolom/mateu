@@ -179,6 +179,7 @@ public class UidlContractTests
     public class NoIdItems : Crud<NoIdItem>
     {
         public override IEnumerable<NoIdItem> Fetch(string? search) => [new() { Name = "x" }];
+        public override void Save(NoIdItem entity) { }
     }
 
     [Fact]
