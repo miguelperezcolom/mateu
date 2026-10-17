@@ -58,7 +58,7 @@ class BundleIdentityPolicyTest {
     mateu.close();
   }
 
-  private static MateuBundleExporter.BundleEntry entryFor(String route) {
+  private static BundleEntry entryFor(String route) {
     var manifest =
         new MateuBundleExporter(mateu.service())
             .exportAll("", BundleIdentityPolicyTest.class.getClassLoader(), false, true);

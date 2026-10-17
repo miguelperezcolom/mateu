@@ -73,9 +73,7 @@ public final class StaticSafetyCheck {
           "io.mateu.uidl.annotations.WizardCompletionAction");
 
   static List<Violation> check(
-      MateuBundleExporter.BundleManifest manifest,
-      Map<String, String> classByRoute,
-      ClassLoader cl) {
+      BundleManifest manifest, Map<String, String> classByRoute, ClassLoader cl) {
     var out = new ArrayList<Violation>();
     var catalog = manifest.sources() != null ? manifest.sources() : RestSourceCatalog.empty();
     for (var entry : manifest.entries()) {
@@ -373,7 +371,7 @@ public final class StaticSafetyCheck {
     return out;
   }
 
-  private static Set<String> catalogueActionIds(MateuBundleExporter.BundleManifest manifest) {
+  private static Set<String> catalogueActionIds(BundleManifest manifest) {
     var ids = new java.util.HashSet<String>();
     if (manifest.actions() != null) {
       for (var action : manifest.actions()) {

@@ -51,7 +51,7 @@ class BundleFromTheIndexTest {
     }
   }
 
-  private static MateuBundleExporter.BundleManifest export() {
+  private static BundleManifest export() {
     var fixture = new Fixture();
     var thread = Thread.currentThread();
     var previous = thread.getContextClassLoader();
@@ -63,8 +63,7 @@ class BundleFromTheIndexTest {
     }
   }
 
-  private static MateuBundleExporter.BundleEntry entry(
-      MateuBundleExporter.BundleManifest manifest, String route) {
+  private static BundleEntry entry(BundleManifest manifest, String route) {
     return manifest.entries().stream()
         .filter(e -> route.equals(e.route()))
         .findFirst()
@@ -83,27 +82,23 @@ class BundleFromTheIndexTest {
     var manifest = export();
     assertThat(entry(manifest, "/about").json()).contains("About us");
     assertThat(manifest.definitions()).doesNotContainKey("missing.yaml");
-    assertThat(manifest.entries())
-        .extracting(MateuBundleExporter.BundleEntry::route)
-        .contains("/ghost");
+    assertThat(manifest.entries()).extracting(BundleEntry::route).contains("/ghost");
   }
 
   @Test
   void requiredCapabilitiesAreTheUnionOverBundledEntries() {
     var entries =
         List.of(
-            new MateuBundleExporter.BundleEntry(
+            new BundleEntry(
                 "/a",
                 "a",
                 "{\"x\":[{\"requiredCapabilities\":[\"maps\",\"\",3]}],"
                     + "\"y\":{\"requiredCapabilities\":[\"charts\",\"maps\"]}}",
                 true,
                 null),
-            new MateuBundleExporter.BundleEntry(
-                "/b", "b", "{\"requiredCapabilities\":[\"never\"]}", false, "skipped"),
-            new MateuBundleExporter.BundleEntry("/c", "c", " ", true, null),
-            new MateuBundleExporter.BundleEntry("/d", "d", "{not json", true, null));
-    assertThat(MateuBundleExporter.BundleManifest.aggregateCapabilities(entries))
-        .containsExactly("charts", "maps");
+            new BundleEntry("/b", "b", "{\"requiredCapabilities\":[\"never\"]}", false, "skipped"),
+            new BundleEntry("/c", "c", " ", true, null),
+            new BundleEntry("/d", "d", "{not json", true, null));
+    assertThat(BundleManifest.aggregateCapabilities(entries)).containsExactly("charts", "maps");
   }
 }

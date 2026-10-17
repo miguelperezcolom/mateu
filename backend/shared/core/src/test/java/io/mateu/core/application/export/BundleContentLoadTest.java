@@ -79,11 +79,10 @@ class BundleContentLoadTest {
 
   @Test
   void theContentIsPartOfTheBundleIdentity() {
-    var shellOnly = new MateuBundleExporter.BundleEntry("/x", "x", "{}", true, null);
-    var withContent =
-        new MateuBundleExporter.BundleEntry("/x", "x", "{}", true, null, null, null, "{\"c\":1}");
-    var a = new MateuBundleExporter.BundleManifest("", "t", true, java.util.List.of(shellOnly));
-    var b = new MateuBundleExporter.BundleManifest("", "t", true, java.util.List.of(withContent));
+    var shellOnly = new BundleEntry("/x", "x", "{}", true, null);
+    var withContent = new BundleEntry("/x", "x", "{}", true, null, null, null, "{\"c\":1}");
+    var a = new BundleManifest("", "t", true, java.util.List.of(shellOnly));
+    var b = new BundleManifest("", "t", true, java.util.List.of(withContent));
     assertThat(a.structureHash()).isNotEqualTo(b.structureHash());
   }
 

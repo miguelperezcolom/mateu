@@ -3,8 +3,6 @@ package io.mateu.core.application.export;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mateu.core.application.export.MateuBundleExporter.BundleEntry;
-import io.mateu.core.application.export.MateuBundleExporter.BundleManifest;
 import io.mateu.uidl.data.Access;
 import io.mateu.uidl.data.RouteEntry;
 import io.mateu.uidl.data.RouteTable;

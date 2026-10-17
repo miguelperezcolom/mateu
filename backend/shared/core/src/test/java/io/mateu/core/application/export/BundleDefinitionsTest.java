@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
  */
 class BundleDefinitionsTest {
 
-  private static MateuBundleExporter.BundleManifest bundle() {
+  private static BundleManifest bundle() {
     try (var mateu = TestMateu.withUis()) {
       var exporter = new MateuBundleExporter(mateu.context().getBean(MateuService.class));
       // The test classpath carries specs/ui/routes.yaml + the definition files it routes to.
@@ -48,7 +48,7 @@ class BundleDefinitionsTest {
   void oldConstructorsCarryEmptyDefinitionsRatherThanNull() {
     // The pre-specs-mode shapes must not produce a null map, or every reader would need a null
     // check.
-    var manifest = new MateuBundleExporter.BundleManifest("", "now", true, java.util.List.of());
+    var manifest = new BundleManifest("", "now", true, java.util.List.of());
     assertThat(manifest.definitions()).isNotNull().isEmpty();
   }
 }

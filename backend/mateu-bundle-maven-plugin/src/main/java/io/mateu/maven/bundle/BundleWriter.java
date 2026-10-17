@@ -1,6 +1,7 @@
 package io.mateu.maven.bundle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.infra.IndexPage;
 import io.mateu.uidl.data.ProjectRenderer;
@@ -45,12 +46,12 @@ final class BundleWriter {
   }
 
   /**
-   * As {@link #write(Path, MateuBundleExporter.BundleManifest, String, ClassLoader, String, String,
-   * ProjectRenderer)} for the Vaadin renderer.
+   * As {@link #write(Path, BundleManifest, String, ClassLoader, String, String, ProjectRenderer)}
+   * for the Vaadin renderer.
    */
   static void write(
       Path outputDirectory,
-      MateuBundleExporter.BundleManifest manifest,
+      BundleManifest manifest,
       String assetsFrom,
       ClassLoader appLoader,
       String baseUrl,
@@ -66,7 +67,7 @@ final class BundleWriter {
    */
   static void write(
       Path outputDirectory,
-      MateuBundleExporter.BundleManifest manifest,
+      BundleManifest manifest,
       String assetsFrom,
       ClassLoader appLoader,
       String baseUrl,

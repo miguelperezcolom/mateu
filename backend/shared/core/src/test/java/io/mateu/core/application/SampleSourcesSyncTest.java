@@ -3,6 +3,7 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.mateu.core.application.export.BundleManifest;
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.application.runaction.RestSourceRegistry;
 import io.mateu.core.application.runaction.SampleSources;
@@ -86,7 +87,7 @@ class SampleSourcesSyncTest {
         .isEqualTo(List.of(Map.of("id", 7, "name", "Acme")));
   }
 
-  private static MateuBundleExporter.BundleManifest export() {
+  private static BundleManifest export() {
     return SpecsFixture.over(
         "field-types",
         () -> {

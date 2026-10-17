@@ -66,13 +66,12 @@ class BundleExportCompiledRoutesTest {
     mateu.close();
   }
 
-  private static MateuBundleExporter.BundleManifest export() {
+  private static BundleManifest export() {
     return new MateuBundleExporter(mateu.service())
         .exportAll("", BundleExportCompiledRoutesTest.class.getClassLoader(), true);
   }
 
-  private static MateuBundleExporter.BundleEntry entry(
-      MateuBundleExporter.BundleManifest manifest, String route) {
+  private static BundleEntry entry(BundleManifest manifest, String route) {
     return manifest.entries().stream()
         .filter(e -> route.equals(e.route()))
         .findFirst()
