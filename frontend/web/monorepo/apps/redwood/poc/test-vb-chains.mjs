@@ -150,7 +150,15 @@ const fakeFetch = async (url, init = {}) => {
   if (!hit) return { ok: false, status: 404, text: async () => 'no such route', json: async () => ({}) }
   const res = typeof hit.response === 'function' ? await hit.response(body) : hit.response
   if (res && res.__network) throw new TypeError('Failed to fetch')
-  if (res && res.__sse) return { ok: true, status: 200, text: async () => res.__sse.map((inc) => 'data: ' + JSON.stringify(inc)).join('\n\n') + '\n\n' }
+  if (res && res.__sse) {
+    const text = res.__sse.map((inc) => 'data: ' + JSON.stringify(inc)).join('\n\n') + (res.__trailingSeparator === false ? '' : '\n\n')
+    if (!res.__chunked) return { ok: true, status: 200, text: async () => text }
+    // a real stream: the events arrive cut at arbitrary points, a read at a time
+    const bytes = new TextEncoder().encode(text)
+    const chunks = []
+    for (let i = 0; i < bytes.length; i += res.__chunked) chunks.push(bytes.slice(i, i + res.__chunked))
+    return { ok: true, status: 200, body: { getReader: () => ({ read: async () => (chunks.length ? { done: false, value: chunks.shift() } : { done: true }), cancel: async () => {} }) } }
+  }
   if (res && res.status) return { ok: false, status: res.status, text: async () => 'boom', json: async () => ({}) }
   return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(res)), text: async () => JSON.stringify(res) }
 }
@@ -707,7 +715,53 @@ test('runMateuAction: @Searchable opens its selector dialog with its first page,
   assert.deepEqual(ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].state.hotelIds, ['3', '1', '5'])
 })
 
-// ═══ runMateuIslandAction ═════════════════════════════════════════════════════════════════════
+test('runMateuAction: a LongTask streamed in arbitrary chunks applies every event (the last one without its separator too)', async () => {
+  const p = page('ps', 'x.Scan', 'Scan', [text('doc')], { actions: [{ id: 'scan', sse: true }] })
+  answer(byRoute('/scan'), replace(p))
+  answer((b, url) => url.includes('/mateu/v3/sse/'), () => ({ __chunked: 7, __trailingSeparator: false, __sse: [
+    { fragments: [{ targetComponentId: 'ps', action: 'Replace', component: null, state: { step: 1 } }] },
+    { fragments: [{ targetComponentId: 'ps', action: 'Replace', component: null, state: { step: 2, done: 'yes' } }], messages: [{ variant: 'success', text: 'Scanned' }] },
+  ] }))
+  const ctx = newContext()
+  await navigate(ctx, '/scan')
+  await act(ctx, 'scan')
+  const host = ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID]
+  assert.deepEqual([host.state.step, host.state.done], [2, 'yes'])
+  assert.equal(ctx.$page.variables.mateuToastText, 'Scanned')
+})
+
+test('a federated menu: each pod answers its section, a pod that is down leaves its section disabled, a deep link goes to its pod', async () => {
+  const shell = { commands: [], messages: [], fragments: [{ targetComponentId: 'shell', component: { type: 'ClientSide', metadata: {
+    type: 'App', route: '', title: 'Fed', variant: 'HAMBURGUER_MENU', serverSideType: 'x.Shell', menu: [
+      { label: 'Home', route: '/home', path: '/home', serverSideType: 'x.Shell', submenus: [] },
+      { label: 'Workflow', route: '/wf', remote: true, baseUrl: 'http://pod', submenus: [] },
+      { label: 'Billing', route: '/bill', remote: true, baseUrl: 'http://dead', submenus: [] },
+    ] } } }] }
+  const podApp = { fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', route: '/wf', serverSideType: 'pod.App', menu: [
+    { label: 'Forms', route: '/wf/forms', submenus: [{ label: 'Tasks', route: '/wf/forms/tasks', submenus: [] }] }] } } }] }
+  answer((b, url) => url.startsWith('http://api/') && url.endsWith('/components/_/action'), shell)
+  answer((b, url) => url.startsWith('http://dead/'), DOWN)
+  answer((b, url) => url.startsWith('http://pod/') && b.consumedRoute === '_empty', podApp)
+  answer(byRoute('/home'), replace(page('ph', 'x.Home', 'Home')))
+  let podLoad = null
+  answer((b, url) => url.startsWith('http://pod/') && b.route === '/wf/forms/task/9', (b) => { podLoad = { url: sent[sent.length - 1].url, body: b }; return replace(page('pt', 'pod.Task', 'Task 9')) })
+  const ctx = await (async () => { const c = newContext(); await new chains.loadMateuShell().run(c); return c })()
+  const v = ctx.$application.variables
+  assert.equal(v.mateuLastError == null || !/Billing/.test(v.mateuLastError), true, 'a pod that is down is not the app\'s error')
+  const labels = JSON.stringify(v.mateuMenuTree)
+  assert.match(labels, /Forms/, 'the pod\'s own entries are in the menu')
+  assert.match(labels, /Billing/, 'the section of the pod that is down stays')
+  const billing = (function find(nodes) { for (const n of nodes || []) { if (n.label === 'Billing') return n; const f = find(n.children); if (f) return f } return null })(v.mateuMenuTree)
+  assert.ok(billing && billing.disabled, 'disabled, saying why')
+  await navigate(ctx, '/wf/forms/task/9')
+  assert.ok(podLoad, 'a page under the pod\'s group is loaded from the pod (the group route claims it)')
+  assert.match(podLoad.url, /^http:\/\/pod\/mateu\/v3\/sync\/wf\/forms\/task\/9$/)
+  assert.equal(podLoad.body.serverSideType, 'pod.App')
+  assert.equal(podLoad.body.consumedRoute, '/wf')
+  assert.equal(v.mateuHostTitle, 'Task 9')
+})
+
+// ═══ runMateuIslandAction ═══// ═══ runMateuIslandAction ═════════════════════════════════════════════════════════════════════
 
 // the embedded-mediator island of demo-vb's IslandHostPage, as captured (fixtures/real/island-*):
 // the host carries a ServerSide `_guestNote` whose child is a MEDIATOR App; the island loads in two
