@@ -45,6 +45,11 @@ Body: {
 }
 ```
 
+- **This is the canonical endpoint** — the one every first-party renderer sends its requests to,
+  and the one to document and build against. The body decides, not the path, so every server
+  (Java, .NET, Python) also serves the older spelling `POST /{baseUrl}/mateu/v3/components/_/action`
+  the same way (the Redwood shell still bootstraps through it); the Java adapters answer any `POST
+  …/mateu/v3/<operation>/…` other than `sse` so.
 - The response is a **`UIIncrementDto`** (the envelope). The `v3` in `/mateu/v3/sync/…` is a **route
   path segment**, not the schema version — the schema version is `wireVersion` in the payload.
 - The **route load** is dispatched as `actionId: ""` (empty), not `"__load__"` — both are treated as
