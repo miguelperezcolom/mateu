@@ -14,9 +14,12 @@
     <description>Runtime of the Mateu adapter for Spring Boot (Spring MVC).</description>
 
     <properties>
-        <!-- BUNDLE line-coverage floor (jacoco:check, mvn verify), just under the measured 65.0%
-             (2026-10, design/coverage/backends.md). Ratchet it up as the suite grows. -->
-        <jacoco.min.bundle.coverage>63%</jacoco.min.bundle.coverage>
+        <!-- BUNDLE line and branch floors (jacoco:check, mvn verify), the values measured at the end
+             of the coverage stream S3 rounded down (88.5% lines / 86.1% branches, 2026-10-17,
+             design/coverage/coverage-map.md). Ratchet them up as the suite grows. The branch
+             property is read by the parent's BUNDLE BRANCH limit. -->
+        <jacoco.min.bundle.coverage>88%</jacoco.min.bundle.coverage>
+        <jacoco.min.bundle.branch.coverage>86%</jacoco.min.bundle.branch.coverage>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

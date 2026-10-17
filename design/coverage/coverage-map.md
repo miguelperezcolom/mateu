@@ -27,11 +27,11 @@ How it was measured (reproducible):
 | Java `shared/dtos` — no own suite | 0 | (78.4% cross-module) | (57.5%) | **none, no report** | 1.6 |
 | Java `annotation-processor-core` | 27 | 73.5% | 53.5% | 72% bundle + 70% per package | 6.5 |
 | Java `annotation-processor-indexer` | 10 | 67.8% | 65.8% | 65% | 12.2 |
-| Java `mvc-core` | — | 70.6% | 73.5% | 63% | 9.4 |
-| Java `webflux-core` | — | 79.1% | 73.4% | 76% | 0.9 |
-| Java `micronaut-core` | 28 | 85.0% | 85.1% | 84% | — |
-| Java `quarkus-core` | 21 | 86.5% (**91.9%** real, see §5.1) | 64.5% | 86% | — |
-| Java `helidon-mp-core` | 21 | 83.2% | 63.2% | 83% | — |
+| Java `mvc-core` | 51 | **88.5%** (S3: was 70.6) | 86.1% | 88% lines / 86% branches | — |
+| Java `webflux-core` | 55 | **95.0%** (S3: was 79.1) | 84.9% | 95% lines / 84% branches | — |
+| Java `micronaut-core` | 44 | **92.4%** (S3: was 85.0) | 82.2% | 92% lines / 82% branches | — |
+| Java `quarkus-core` | 31 | **92.4%** (S3: was 86.5; quarkus-jacoco now counts @QuarkusTest, §5.1/§5.2 fixed) | 76.5% | 92% lines / 76% branches | — |
+| Java `helidon-mp-core` | 32 | **91.5%** (S3: was 83.2) | 78.8% | 91% lines / 78% branches | — |
 | Java `mateu-bundle-maven-plugin` | 11 | 59.9% | 50.3% | 58% | 20.1 |
 | Java 5 framework annotation processors | 0 | not measurable (run in javac) | | none | — |
 | Java `mateu-archetype` | archetype IT | n/a (Groovy post-generate) | | IT pass/fail | — |
