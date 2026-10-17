@@ -146,7 +146,7 @@ describe('applyFragment', () => {
         // the answer to a user's write: the view loads like on opening, and the flag is spent
         const el = rendered(true)
         expect((el.component as any).triggers[0].firedTimes).toBeUndefined()
-        expect(el._userWroteSinceRender).toBe(false)
+        expect((el as any)._userWroteSinceRender).toBe(false)
     })
 
     it('ignores a fragment aimed at another component', () => {
