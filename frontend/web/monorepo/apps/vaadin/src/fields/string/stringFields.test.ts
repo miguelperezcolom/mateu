@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, nothing } from 'lit'
+import { Notification } from '@vaadin/notification'
 import type { MateuField } from '../mateu-field'
+import { requireElement } from '@infra/ui/lazyElements.ts'
+
+// The renderers ask for their lazy elements; here they are recorded, not downloaded (a chunk
+// landing after the test ends would run against a torn-down DOM).
+vi.mock('@infra/ui/lazyElements.ts', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@infra/ui/lazyElements.ts')>()),
+    requireElement: vi.fn(),
+}))
 import { renderStringField } from './index'
 import { offersItsOptions } from './select'
 import { renderLinkField } from './link'
@@ -88,6 +97,10 @@ describe('string fields', () => {
         expect(inner('treeSelect', 'mateu-vaadin-tree-select')).not.toBeNull()
         expect(inner('markdown', 'mateu-markup-editor')).not.toBeNull()
         expect(inner('html', 'mateu-markup-editor')).not.toBeNull()
+        // and ask for the elements that load on first use
+        expect(requireElement).toHaveBeenCalledWith('mateu-signature-pad')
+        expect(requireElement).toHaveBeenCalledWith('mateu-camera-capture')
+        expect(requireElement).toHaveBeenCalledWith('vaadin-markdown')
     })
 
     it('a plain string that brings options is a select; a stereotyped one is not', () => {
@@ -175,11 +188,13 @@ describe('every field render function draws nothing without a field', () => {
         expect(draw(fn()).children.length).toBe(0)
     })
 
-    it('copying a read-only value writes it to the clipboard', async () => {
+    it('copying a read-only value writes it to the clipboard and confirms it', async () => {
         const writeText = vi.fn(() => Promise.resolve())
         Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+        const shown = vi.spyOn(Notification, 'show').mockImplementation(() => ({}) as never)
         copyValue('abc')
         expect(writeText).toHaveBeenCalledWith('abc')
+        await vi.waitFor(() => expect(shown).toHaveBeenCalledWith('Copied', expect.objectContaining({ theme: 'success' })))
     })
 })
 
