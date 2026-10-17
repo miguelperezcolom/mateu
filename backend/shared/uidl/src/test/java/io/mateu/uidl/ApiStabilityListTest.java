@@ -159,6 +159,9 @@ class ApiStabilityListTest {
     assertThat(members.get("io.mateu.uidl.interfaces.Listing"))
         .contains("handleActionOnRow", "getCrudId");
     assertThat(members.get(core + "wizard.Wizard")).contains("currentStepField");
+    // a process-wide test hook is not something an app may call
+    assertThat(members.get("io.mateu.uidl.LiveHeaderValues")).contains("reset", "subscribe");
+    assertThat(members.get("io.mateu.uidl.di.MateuBeanProvider")).contains("setBeanProvider");
   }
 
   static String render() throws IOException {

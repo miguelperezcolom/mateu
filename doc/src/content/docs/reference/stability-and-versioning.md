@@ -256,6 +256,8 @@ same concepts.
 
 - `io.mateu.core.infra.declarative.orchestrators.crud.Crud`: `addButtonsToList`, `behaviourSource`, `getStyleForList`, `isListingRoute`, `list`, `metadataSource`, `stateSource`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `currentStepField`
+- `io.mateu.uidl.LiveHeaderValues`: `reset`, `subscribe`
+- `io.mateu.uidl.di.MateuBeanProvider`: `setBeanProvider`
 - `io.mateu.uidl.interfaces.HttpRequest`: `storeGetUIRqDto`, `storeRunActionRqDto`
 - `io.mateu.uidl.interfaces.Listing`: `getCrudId`, `handleActionOnRow`
 

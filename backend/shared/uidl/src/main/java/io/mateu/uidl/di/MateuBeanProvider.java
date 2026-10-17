@@ -11,6 +11,8 @@ public class MateuBeanProvider {
 
   private static volatile BeanProvider beanProvider;
 
+  /** Set by the adapter at startup; an app never calls it. */
+  @io.mateu.uidl.annotations.Internal("set by the adapters at startup")
   public static void setBeanProvider(BeanProvider beanProvider) {
     MateuBeanProvider.beanProvider = beanProvider;
   }
