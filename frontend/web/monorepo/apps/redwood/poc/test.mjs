@@ -2734,7 +2734,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   // only if the app declares the chat; its Redwood icon and its label (display=icons → aria-label +
   // tooltip), and marked while the panel is open
   const header = shell.match(/<oj-sp-global-header[\s\S]*?<\/oj-sp-global-header>/)[0]
-  const end = header.match(/<div slot="end"[\s\S]*?<!-- ÁREA DE PERFIL/)[0]
+  const end = header.match(/<div slot="end"[\s\S]*?<!-- PROFILE AREA/)[0]
   const toggle = end.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatSseUrl \]\]">\s*<oj-button id="mateuChatToggle"[\s\S]*?<\/oj-button>/)
   assert.ok(toggle, 'el botón del chat está en la zona de acciones, sólo con sseUrl')
   assert.ok(end.indexOf('id="mateuChatToggle"') < end.indexOf('mateu-header-widgets'), 'antes de los widgets')
@@ -2812,7 +2812,7 @@ test('chat: la respuesta del asistente se pinta como markdown, con el HTML escap
 
 test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dictar — con JET', () => {
   const shell = webApp('pages/shell-page.html')
-  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- Navigator PERSISTENTE/)[0]
+  const panel = shell.match(/<div slot="start" id="mateuChatPanel"[\s\S]*?<!-- PERSISTENT navigator/)[0]
   // the empty response is not painted; the status row, with JET's progress circle, is
   assert.match(panel, /<oj-bind-if test="\[\[ \$current\.data\.role === 'user' \|\| !!\$current\.data\.text \]\]">/)
   const status = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatStatus \]\]">[\s\S]*?<\/oj-bind-if>/)[0]
