@@ -20,10 +20,13 @@ class AppSession(
     /** The app's REST source catalogue (+ references, sample mode). Its own unless given — an island
      *  over another base url passes its host's, so what it registers stays in that app. */
     val sources: io.mateu.ijp.ui.RestSourceCatalogue = io.mateu.ijp.ui.RestSourceCatalogue(),
+    /** Where the app's credentials may go: its backend + the islands it names. Its own unless given
+     *  — an island passes its host's. */
+    val credentials: io.mateu.ijp.api.CredentialScope = io.mateu.ijp.api.CredentialScope(baseUrl),
 ) {
     val mapper: ObjectMapper = ObjectMapper()
     val sessionId: String = UUID.randomUUID().toString().replace("-", "")
-    val apiClient: MateuApiClient = MateuApiClient(baseUrl, sessionId, mapper, tokenProvider)
+    val apiClient: MateuApiClient = MateuApiClient(baseUrl, sessionId, mapper, tokenProvider, credentials::mayCarryCredentials)
 
     /** Control/context data echoed back on every request; seeded from the launch config. */
     val appState: MutableMap<String, Any?> = HashMap(config)

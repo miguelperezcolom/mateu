@@ -652,7 +652,7 @@ fun renderMessageInput(ctx: AppContext, metadata: JsonNode): JComponent {
 fun renderChat(ctx: AppContext, metadata: JsonNode): JComponent {
     val url = metadata.text("sseUrl")
     if (url.isBlank()) return muted("Chat: no endpoint configured.")
-    return buildChatPanel(url, ctx.session.apiClient.tokenProvider).fixedHeight(JBUI.scale(360))
+    return buildChatPanel(url, ctx.session.apiClient).fixedHeight(JBUI.scale(360))
 }
 
 // ── overlays met inline, and islands ────────────────────────────────────────────────────────
@@ -695,20 +695,26 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
 
 /**
  * The session a MicroFrontend island runs in: the host's for the same backend; for another origin
- * its own (WITHOUT this project's token) that keeps the host app's REST source catalogue, so what
- * the island registers stays in the app it is part of.
+ * its own that keeps the host app's REST source catalogue (what the island registers stays in the
+ * app it is part of) and its credential scope. It carries this project's token only when the app's
+ * own backend named it (a DECLARED remote, see CredentialScope); an island a remote named is
+ * called anonymously.
  */
 internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSession {
     val base = metadata.text("baseUrl").trimEnd('/')
     if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     @Suppress("UNCHECKED_CAST")
     val appState = host.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
-    return AppSession(base, appState, sources = host.sources)
+    host.credentials.declare(host.baseUrl, listOf(base))
+    val tokens = if (host.credentials.mayCarryCredentials(base)) host.apiClient.tokenProvider
+        else io.mateu.ijp.api.TokenProvider.NONE
+    return AppSession(base, appState, tokens, sources = host.sources, credentials = host.credentials)
 }
 
 /**
  * MicroFrontend: another Mateu UI embedded as an island with its own context. Same backend → the
- * same session (and credentials); another origin → its own session WITHOUT this project's token.
+ * same session (and credentials); another origin → its own session, with this project's token only
+ * when the app's backend named it.
  */
 fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
     val island = AppContext(microFrontendSession(ctx.session, metadata))
