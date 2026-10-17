@@ -163,7 +163,7 @@ public class DocumentStore {
   }
 
   private static long longProperty(String name, long fallback) {
-    String value = System.getProperty(name);
+    String value = io.mateu.core.infra.MateuSettings.get(name);
     if (value == null || value.isBlank()) {
       return fallback;
     }

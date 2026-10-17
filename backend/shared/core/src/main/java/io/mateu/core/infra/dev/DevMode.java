@@ -51,7 +51,7 @@ public final class DevMode {
     if (f != null) {
       return f;
     }
-    return truthy(System.getProperty(PROPERTY)) || truthy(System.getenv(ENV));
+    return truthy(io.mateu.core.infra.MateuSettings.get(PROPERTY));
   }
 
   /**
@@ -117,10 +117,7 @@ public final class DevMode {
   public static List<Path> specsDirs() {
     var raw = configuredSpecsDirs;
     if (raw == null) {
-      raw = System.getProperty(SPECS_DIR_PROPERTY);
-    }
-    if (raw == null) {
-      raw = System.getenv(SPECS_DIR_ENV);
+      raw = io.mateu.core.infra.MateuSettings.get(SPECS_DIR_PROPERTY);
     }
     if (raw == null || raw.isBlank()) {
       raw = DEFAULT_SPECS_DIR;

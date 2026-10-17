@@ -599,6 +599,24 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * Mateu's own settings are read from the FRAMEWORK's configuration ({@code
+   * application.properties} / {@code application.yml} / MicroProfile Config), not only from JVM
+   * system properties and environment variables: run with {@code
+   * mateu.mobile.min-app-version=2.5.0} set there, the manifest carries it. (Before, {@code
+   * mateu.actions.strict}, {@code mateu.errors.detailed} & co. written in {@code
+   * application.properties} were silently ignored.)
+   */
+  public void readsMateuSettingsFromTheFrameworkConfiguration() {
+    given()
+        .accept("application/json")
+        .when()
+        .get("/plain/mateu/v3/manifest")
+        .then()
+        .statusCode(200)
+        .body(containsString("\"minAppVersion\":\"2.5.0\""));
+  }
+
+  /**
    * {@code GET /mateu/v3/bundle}: the static bundle rendered live ({@code MateuBundleExporter}) —
    * the {@code manifest.json} the {@code mateu:bundle} goal writes, with an entry per served
    * {@code @UI} — with and without the parameterised routes, the same body on a second (cached)

@@ -15,7 +15,11 @@ class AdapterParityDisabledTest {
   public static class Disabled implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
-      return Map.of("mateu.client-log.enabled", "false", "mateu.static-assets.caching", "false");
+      return Map.of(
+          "mateu.client-log.enabled", "false",
+          "mateu.static-assets.caching", "false",
+          // a MateuSettings key, read through MicroProfile Config (M-S2)
+          "mateu.mobile.min-app-version", "2.5.0");
     }
   }
 
@@ -24,6 +28,11 @@ class AdapterParityDisabledTest {
   @Test
   void refusesClientLogsWhenDisabled() {
     contract.refusesClientLogsWhenDisabled();
+  }
+
+  @Test
+  void readsMateuSettingsFromTheFrameworkConfiguration() {
+    contract.readsMateuSettingsFromTheFrameworkConfiguration();
   }
 
   @Test

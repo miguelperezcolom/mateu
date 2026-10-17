@@ -24,12 +24,12 @@ public final class SampleSources {
 
   /** True when the running app opted into sample data. */
   public static boolean enabled() {
-    return truthy(System.getProperty(PROPERTY)) || truthy(System.getenv(ENV));
+    return truthy(io.mateu.core.infra.MateuSettings.get(PROPERTY));
   }
 
   /** True when a bundle being exported should ship (and use) the samples. */
   public static boolean forBundle() {
-    return truthy(System.getProperty(BUNDLE_PROPERTY)) || enabled();
+    return truthy(io.mateu.core.infra.MateuSettings.get(BUNDLE_PROPERTY)) || enabled();
   }
 
   private static boolean truthy(String value) {
