@@ -27,6 +27,22 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val title = io.mateu.ijp.state.Expressions.interpolate(metadata.text("title", metadata.text("pageTitle")), exprCtx)
     // Title + (optional) record/context switcher beside it — the header's "which one" selector.
     val switcher = PageSlots.switcherOf(metadata)
+    // The canonical header's quiet line above the title (PageDto.overline).
+    val overline = metadata.text("overline")
+    if (overline.isNotBlank()) {
+        header.addStacked(JBLabel(overline.uppercase()).apply {
+            foreground = ToneColors.secondaryText()
+            font = font.deriveFont(font.size2D * 0.85f)
+        }, 2)
+    }
+    // While there is no title yet, the placeholder stands in its place, dimmed (PageDto.titlePlaceholder).
+    val placeholder = metadata.text("titlePlaceholder")
+    if (title.isBlank() && placeholder.isNotBlank()) {
+        header.addStacked(JBLabel(placeholder).apply {
+            font = font.deriveFont(Font.BOLD, 20f)
+            foreground = ToneColors.secondaryText()
+        }, 4)
+    }
     if (title.isNotBlank() || switcher != null) {
         val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0))
         titleRow.isOpaque = false
@@ -43,6 +59,29 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val l = JBLabel(subtitle)
         l.foreground = ToneColors.secondaryText()
         header.addStacked(l, 8)
+    }
+    // "Last updated …" under the subtitle (PageDto.timestamp).
+    val timestamp = metadata.text("timestamp")
+    if (timestamp.isNotBlank()) {
+        header.addStacked(JBLabel(timestamp).apply { foreground = ToneColors.secondaryText() }, 6)
+    }
+    // Previous / next record (PageDto.peerNav): a side without a route is disabled.
+    val peerNav = metadata.path("peerNav")
+    if (peerNav.isObject) {
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0))
+        row.isOpaque = false
+        for ((labelKey, routeKey, arrow) in listOf(Triple("prevLabel", "prevRoute", "‹"), Triple("nextLabel", "nextRoute", "›"))) {
+            val label = peerNav.text(labelKey)
+            val route = peerNav.text(routeKey)
+            if (label.isBlank() && route.isBlank()) continue
+            val text = if (arrow == "‹") "‹ $label" else "$label ›"
+            val button = javax.swing.JButton(text)
+            button.isEnabled = route.isNotBlank()
+            button.accessibleContext.accessibleName = (if (arrow == "‹") "Previous: " else "Next: ") + label
+            button.addActionListener { r.ctx.openRoute(route) }
+            row.add(button)
+        }
+        if (row.componentCount > 0) header.addStacked(row, 8)
     }
     // Toolbar actions go to the native host toolbar (editor header / tool window title) when the
     // host provides one — the IntelliJ-idiomatic spot; otherwise render the inline button row.

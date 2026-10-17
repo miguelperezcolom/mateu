@@ -156,6 +156,9 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         val ctx = context()
         val empty = render(ctx, """{"type":"EmptyState","icon":"📭","title":"No orders","description":"Create one","actionId":"newOrder","actionLabel":"New order"}""")
         assertTrue(texts(empty).containsAll(listOf("No orders", "Create one")))
+        // a web icon token is not a glyph: it must not print as text
+        val tokenIcon = render(ctx, """{"type":"EmptyState","icon":"vaadin:list-select","title":"Select an item"}""")
+        assertFalse(texts(tokenIcon).contains("vaadin:list-select"))
         all(empty).filterIsInstance<AbstractButton>().single { it.text == "New order" }.doClick()
         awaitRequests(1)
         val notice = render(ctx, """{"type":"Notice","theme":"warning","text":"2 complaints pending","actionLabel":"Review","actionId":"review"}""")
@@ -163,6 +166,16 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         all(notice).filterIsInstance<AbstractButton>().single { it.text == "Review" }.doClick()
         awaitRequests(2)
         assertEquals(listOf("newOrder", "review"), server.actionIds())
+    }
+
+    fun testTaskQueueCardsAreNotCappedBelowTheirOwnHeight() {
+        // the card's height cap was taken before its frame was set: the caption line was clipped
+        val queue = render(context(), """{"type":"TaskQueue","actionId":"pick","groups":[{"label":"3 items",
+            "items":[{"id":"h1","title":"Riu Palace","caption":"Palma"},{"id":"h2","title":"Riu Plaza","caption":"Madrid","selected":true}]}]}""")
+        val cards = all(queue).filterIsInstance<javax.swing.JPanel>()
+            .filter { it.accessibleContext.accessibleName?.startsWith("Riu ") == true }.toList()
+        assertEquals(2, cards.size)
+        for (card in cards) assertTrue(card.accessibleContext.accessibleName, card.maximumSize.height >= card.preferredSize.height)
     }
 
     fun testEntityHeaderAndMeter() {

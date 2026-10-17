@@ -42,6 +42,7 @@ import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
 import { environmentName, parseTranslationsFile } from './model/translationsModel'
+import { parseComponentCatalogue } from './model/componentCatalogue'
 import {
     isProjectYaml, parseProjectSettings, PROJECT_RENDERER_LABELS, RENDERER_ARTIFACTS, type ProjectRendererId,
 } from './model/projectSettings'
@@ -875,6 +876,16 @@ export class MateuVisualEditor extends LitElement {
                     <td style="padding:.2rem 0; border-bottom:1px solid var(--ve-border,#eceef1)">${catalogue.messages[k]}</td></tr>`)}</table>
             </div>`
         }
+        const components = parseComponentCatalogue(yaml)
+        if (components) {
+            return html`<div style=${box}>
+                <h3 style="margin:0 0 .25rem">Business components</h3>
+                <div style="color:var(--ve-secondary,#6b7280); margin-bottom:.75rem">${components.length} named composition${components.length === 1 ? '' : 's'} — a page uses one with <code>type: ComponentRef</code>, <code>ref: &lt;name&gt;</code>. Edit this file as YAML.</div>
+                <table style="border-collapse:collapse; width:100%">${components.map((c) => html`<tr>
+                    <td style="padding:var(--lumo-space-xs, .2rem) var(--lumo-space-s, .6rem) var(--lumo-space-xs, .2rem) 0; font-family:ui-monospace,monospace; font-size:var(--lumo-font-size-xs, 12px); white-space:nowrap">${c.name}</td>
+                    <td style="padding:var(--lumo-space-xs, .2rem) 0; border-bottom:1px solid var(--ve-border,#eceef1)">${c.rootType}</td></tr>`)}</table>
+            </div>`
+        }
         return html`<div style=${box}>
             <h3 style="margin:0 0 .25rem">Environment · ${environmentName(this.currentPath ?? '', yaml)}</h3>
             <div style="color:var(--ve-secondary,#6b7280)">Re-points named REST sources (baseUrl, url, headers, proxy) when this environment is active (<code>MATEU_ENVIRONMENT</code>, or the bundle goal's <code>environment</code>). Never put a secret here — use <code>\${secret.X}</code>. Edit this file as YAML.</div>
@@ -905,7 +916,8 @@ export class MateuVisualEditor extends LitElement {
         }
         // A message catalogue / a deployment environment: plain YAML (schema-validated by the IDE),
         // summarised here — neither is a screen to lay out.
-        if (parseTranslationsFile(this.currentPath ?? '', yaml) || environmentName(this.currentPath ?? '', yaml)) {
+        if (parseTranslationsFile(this.currentPath ?? '', yaml) || environmentName(this.currentPath ?? '', yaml)
+            || parseComponentCatalogue(yaml)) {
             this.mode = 'data'
             this.structuredYaml = yaml
             return
@@ -1118,7 +1130,7 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'app') return html`<span class="shape app" title="An app shell definition (type: AppShell) — a view bound to a route like any other.">app</span>`
         if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
         if (this.mode === 'actions') return html`<span class="shape actions" title="The action catalogue — named client-runnable actions (flows, REST calls) run by id from the menu and any page.">actions</span>`
-        if (this.mode === 'data') return html`<span class="shape sources" title="A Translations catalogue or an Environment — plain YAML, validated by the specs schema.">data</span>`
+        if (this.mode === 'data') return html`<span class="shape sources" title="A Translations catalogue, an Environment or the business component catalogue — plain YAML, validated by the specs schema.">data</span>`
         if (this.mode === 'types') return html`<span class="shape sources" title="The field type catalogue — the domain vocabulary, named once and referenced by fieldType.">types</span>`
         if (this.mode === 'project') return html`<span class="shape sources" title="The project descriptor (type: Project) — the renderer the whole project paints with.">project</span>`
         if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`

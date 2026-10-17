@@ -1,0 +1,6 @@
+# Fixture for MountHomeSyncTest: a select fed by a proxied, keyed catalogue entry.
+type: UI
+basePath: /
+home: /pick
+routes:
+  - routes.yaml

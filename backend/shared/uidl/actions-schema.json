@@ -18,7 +18,14 @@
         "description" : "Named client-runnable actions: each one a flow (`steps`) or a REST call (`restAction`). Server logic stays an @Action method — an entry with neither is ignored with a warning."
       }
     },
-    "required" : [ "actions" ]
+    "required" : [ "actions" ],
+    "not" : {
+      "anyOf" : [ {
+        "required" : [ "layout" ]
+      }, {
+        "required" : [ "layoutDelta" ]
+      } ]
+    }
   }, {
     "type" : "array",
     "items" : {

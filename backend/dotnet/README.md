@@ -88,7 +88,7 @@ dotnet run --project samples/Mateu.Demo        # serves on http://0.0.0.0:8593
 dotnet test                                     # golden tests
 ```
 
-Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8593`.
+Point a Mateu renderer at it — e.g. the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8593 npx expo start --web`; the server must list that origin in its CORS settings). The server answers the sync API only: it does not serve the web renderer's page itself.
 The server binds to `0.0.0.0` so the iOS simulator (`localhost:8593`) and Android emulator
 (`10.0.2.2:8593`) reach it too.
 

@@ -1,0 +1,27 @@
+# A definition-only page (no view model anywhere): every authored kind a page can lean on, so the
+# shared suite (tests/shared/yaml-authoring.spec.ts) proves each one is served the same way by all
+# five Java adapters — the route's seeded state, a translation, a partial, a business component, a
+# field type from types.yaml, a field restricted with eyesOnly, a page action (a flow) and an
+# action-catalogue entry.
+pageType: form
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Text, id: wt-title, text: "${i18n.walkthrough.title}", container: h2}
+    - {type: Text, id: wt-greeting, text: "Greeting: ${state.greeting}"}
+    - type: FormLayout
+      content:
+        - {type: FormField, id: name, label: Name, dataType: string}
+        - {type: Partial, ref: walkthrough-address}
+        - {type: FormField, id: code, fieldType: WalkthroughCode}
+        - {type: FormField, id: salary, label: Salary, dataType: number, eyesOnly: {roles: [admin]}}
+    - {type: ComponentRef, ref: WalkthroughNotice}
+    - type: HorizontalLayout
+      content:
+        - {type: Button, id: wt-flow, label: Open alpha, actionId: openAlpha}
+        - {type: Button, id: wt-catalogue, label: Open beta, actionId: walkthroughOpenBeta}
+actions:
+  - id: openAlpha
+    steps:
+      - type: Navigate
+        route: /walkthrough/pinned/alpha

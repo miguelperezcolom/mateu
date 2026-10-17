@@ -1,5 +1,6 @@
 import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
+import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -49,11 +50,17 @@ export class MateuSession {
    *  target the web reaches by DOM bubbling. */
   openOverlay: (component: unknown, state: unknown, data: unknown, opener?: OverlayOpenerContext) => void = () => {};
 
+  /** Host hook: a state update aimed at an OPEN overlay (by its id) — true when one took it. */
+  updateOverlayState: (id: string, state: Record<string, unknown>) => boolean = () => false;
+
   /** Host hook: close the topmost overlay. */
   closeTopOverlay: () => void = () => {};
 
   /** Host hook: dirty-guard confirmation — resolve true to discard unsaved changes and leave. */
   confirmDiscard: () => Promise<boolean> = async () => true;
+
+  /** Host hook: an @Action(confirmationRequired) question — resolve true to run the action. */
+  confirmAction: (texts: ConfirmationDialogTexts) => Promise<boolean> = async () => true;
 
   /** Host hook (hub sessions): sign out of THIS UI only. Absent → the global provider's sign-out. */
   signOut?: () => Promise<void>;

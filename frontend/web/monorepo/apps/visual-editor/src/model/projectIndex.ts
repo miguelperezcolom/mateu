@@ -3,6 +3,7 @@ import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
 import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
+import { parseComponentCatalogue } from './componentCatalogue'
 import { isActionsYaml, parseActionCatalogue, type CatalogueAction } from './actionsModel'
 import type { ComboOption } from '../widgets/comboModel'
 import { isProjectYaml, parseProjectSettings, DEFAULT_PROJECT_SETTINGS, type ProjectSettings } from './projectSettings'
@@ -160,6 +161,8 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
             }
             continue
         }
+        // the business component catalogue (components.yaml): named compositions, not a screen
+        if (parseComponentCatalogue(content)) continue
         if (hasAppShell(content)) { appShells.push(path); continue }
         if (isPartial(path)) { partials.push(stem(path)); continue }
         pages.push(path) // anything else is a page definition (a component tree)

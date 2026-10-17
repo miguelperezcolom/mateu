@@ -85,9 +85,9 @@ def test_a_field_the_model_grows_keeps_its_inferred_place_and_stale_entries_are_
         "layoutDelta: {order: [ghost, internalNote], hidden: [alsoGone]}\n",
     )
     ids = [f["fieldId"] for f in fields_in_order(h.handle(RunActionRq(route="delta-contact")))]
-    # internalNote moves first WITHIN its row (the inferred form lays two fields per row); the
-    # ghost entries match nothing and nothing disappears
-    assert ids == ["name", "email", "internalNote", "phone"]
+    # internalNote moves first: the rows of one form layout are one run (the editor shows them so);
+    # the ghost entries match nothing and nothing disappears
+    assert ids == ["internalNote", "name", "email", "phone"]
 
 
 def test_order_never_moves_a_field_between_containers(tmp_path):

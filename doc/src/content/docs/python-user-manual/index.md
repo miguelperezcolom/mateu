@@ -51,7 +51,12 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8594`.
+This server answers the sync API only — it does not serve a web page of its own. Point a Mateu
+renderer at it: the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594
+npx expo start --web` — or `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that
+origin in its CORS settings), the IntelliJ plugin, or the Vaadin renderer's dev server
+(`MATEU_BACKEND=http://localhost:8594 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy
+forwards `/mateu` to the backend).
 The server binds to `0.0.0.0`, so the iOS simulator and Android emulator reach it too.
 
 Wire it up:
@@ -580,6 +585,15 @@ async def chat(rq: dict):
 Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily and are no longer
 eagerly stored in `__dict__['__annotations__']`. Mateu reads them via `inspect.get_annotations(...)`,
 so the field markers work on Python 3.11 through 3.14+.
+
+## YAML pages: the components this server builds
+
+A `specs/ui/<route>.yaml` page (or a `routes.yaml` entry's `layout:`) is built from YAML by this
+server, which knows a SUBSET of the YAML component catalogue: `VerticalLayout`, `HorizontalLayout`,
+`FormLayout`, `FormField`, `Button`, `Text`, `Form` and `ComponentRef` (plus partials). Any other
+`type:` — `HeroSection`, `Listing`, `Card`… — renders as an "Unsupported component: <type>" text, and
+`type: AppShell` is Java-only. For those screens, declare them in code; the Java server builds the
+whole catalogue from YAML.
 
 ## Partials
 

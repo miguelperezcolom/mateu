@@ -66,6 +66,20 @@ export function isCurrentDestination(item: { route?: string | null }, currentRou
  * transport text ("Failed to fetch", "Network request failed", an HTTP status). RN-05 / Nielsen #9:
  * say what happened and how to recover.
  */
+/**
+ * Why the BOOT load drew nothing: an increment with no fragment carries its reason as a message
+ * (the server's error boundary answers "Something went wrong / Reference: …", a 403, a missing
+ * route). Without this the first screen was blank — no message, nothing to press.
+ * Null when the increment has something to render.
+ */
+export function bootFailureOf(increment: unknown): string | null {
+  const res = (increment ?? {}) as { fragments?: unknown[]; messages?: { variant?: string; title?: string | null; text?: string }[] };
+  if ((res.fragments ?? []).some((f) => !!(f as { component?: unknown })?.component)) return null;
+  const message = (res.messages ?? []).find((m) => m.variant === 'error') ?? (res.messages ?? [])[0];
+  if (!message) return 'The server answered with nothing to show.';
+  return [message.title, message.text].filter((t) => !!t && t.trim()).join(': ') || 'The server answered with nothing to show.';
+}
+
 export function loadFailureMessage(raw: string | null | undefined): { title: string; detail: string } {
   const text = (raw ?? '').trim();
   if (/failed to fetch|network request failed|networkerror|load failed|ECONNREFUSED|ERR_CONNECTION/i.test(text)) {
@@ -93,6 +107,13 @@ export function loadFailureMessage(raw: string | null | undefined): { title: str
  */
 export const FAB_SIZE = 52;
 export const FAB_MARGIN = 16;
+/** Where a page's floating buttons sit: above the page's bottom button bar when it has one (the
+ *  bar used to cover them — a tap on the FAB pressed the bar's button underneath). */
+export const PAGE_BOTTOM_BAR_HEIGHT = 76; // 16px padding a side + a 44px button
+export function fabBottom(hasBottomBar: boolean): number {
+  return hasBottomBar ? PAGE_BOTTOM_BAR_HEIGHT + 24 : 24;
+}
+
 export function fabInset(fabCount: number): number {
   return fabCount > 0 ? FAB_SIZE + FAB_MARGIN + 8 : 0;
 }
@@ -163,4 +184,120 @@ export function chartTextAlternative(
 export function rowCheckboxLabel(rowTitle: unknown): string {
   const t = rowTitle == null ? '' : String(rowTitle).trim();
   return t ? `Select ${t}` : 'Select row';
+}
+
+/**
+ * Where a crud mediator's state-only `_route` move (view / cancel / save / delete answers) takes a
+ * native screen stack. `current` is the inner route this screen was seeded with by its own load
+ * (`null` when its load carried none — a pushed record screen). The listing answers to two names,
+ * `""` and `"list"`, so a delete on the listing STAYS (the RunAction search in the same increment
+ * refreshes it) instead of pushing a copy of itself; and a record screen sent to the list goes BACK
+ * to the listing it was opened from instead of stacking a second listing on top of it.
+ */
+export type MediatorMove = 'stay' | 'backToList' | 'detail' | 'inPlace';
+
+export function mediatorMove(routeSuffix: string, current: string | null, canStack: boolean): MediatorMove {
+  const trim = (s: string) => s.replace(/^\/+|\/+$/g, '');
+  const next = trim(routeSuffix);
+  const isList = (r: string) => r === '' || r === 'list';
+  if (current !== null && (trim(current) === next || (isList(trim(current)) && isList(next)))) return 'stay';
+  if (isList(next)) return canStack ? 'backToList' : 'inPlace';
+  return canStack ? 'detail' : 'inPlace';
+}
+
+/**
+ * How full a ProgressBar is (0..1). Its value is read from the state under `valueKey` when the bar
+ * names one (a LongTask's dialog moves it step by step), and a 0 bound means "unset" on the wire —
+ * the dialog sends min 0, max 0 with a 0..1 value, which the web's vaadin-progress-bar reads as its
+ * 0..1 default; dividing by max - min = 0 left the bar empty to the end.
+ */
+export function progressFraction(metadata: Record<string, unknown>, state: Record<string, unknown>): number {
+  const min = Number(metadata['min']) || 0;
+  const max = Number(metadata['max']) || 1;
+  const key = (metadata['valueKey'] as string) ?? '';
+  const raw = key && state[key] != null ? Number(state[key]) : Number(metadata['value'] ?? 0);
+  if (max - min === 0 || Number.isNaN(raw)) return 0;
+  return Math.max(0, Math.min(1, (raw - min) / (max - min)));
+}
+
+/**
+ * Money values. A field typed `Amount` travels as an OBJECT `{value, currency, locale}` (the web's
+ * mateu-money-field edits its `value` and keeps the rest); a plain numeric money field as a
+ * number. Showing the object as text printed "[object Object]" in the input.
+ */
+type AmountValue = { value?: unknown; currency?: unknown; locale?: unknown };
+const isAmount = (raw: unknown): raw is AmountValue => !!raw && typeof raw === 'object' && !Array.isArray(raw) && 'value' in (raw as object);
+
+/** What a money input shows: the amount's number, or the plain value; '' when unset. */
+export function moneyInputText(raw: unknown): string {
+  const v = isAmount(raw) ? raw.value : raw;
+  return v === null || v === undefined ? '' : String(v);
+}
+
+/** The value a money input commits: an Amount keeps its currency/locale (a cleared amount is 0,
+ *  as on the web); a plain money number is null when cleared. */
+export function moneyInputCommit(raw: unknown, text: string): unknown {
+  const n = text.trim() === '' ? null : parseFloat(text.replace(',', '.'));
+  if (isAmount(raw)) return { ...raw, value: n === null || Number.isNaN(n) ? 0 : n };
+  return n === null || Number.isNaN(n) ? null : n;
+}
+
+/** Read-only money text: an Amount formats with its OWN locale and currency, a number as de-DE 2dp. */
+export function moneyText(raw: unknown): string {
+  const amount = isAmount(raw) ? raw : null;
+  const v = amount ? amount.value : raw;
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
+  if (Number.isNaN(n)) return v === null || v === undefined ? '' : String(v);
+  const locale = (amount && typeof amount.locale === 'string' && amount.locale) || 'de-DE';
+  const currency = amount && typeof amount.currency === 'string' && amount.currency ? amount.currency : null;
+  try {
+    return new Intl.NumberFormat(locale, currency
+      ? { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  } catch {
+    return n.toFixed(2);
+  }
+}
+
+/** A stepper's value: null (unset — shown empty, as the web's integer field) or a number. */
+export function stepperValue(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
+}
+
+/**
+ * A decimal input keeps what the user is TYPING ("12.", "0,", "") while the committed value is the
+ * parsed number: re-deriving the text from the number turned "12." into "12" (so 12.5 became 125)
+ * and a cleared amount into "0". The draft gives way only when the value changes from elsewhere.
+ */
+export function decimalDraft(draft: string, externalText: string): string {
+  const num = (t: string) => (t.trim() === '' ? null : parseFloat(t.replace(',', '.')));
+  const a = num(draft);
+  const b = num(externalText);
+  const same = (a === null || Number.isNaN(a)) ? b === null || b === 0 || Number.isNaN(b as number) : a === b;
+  return same ? draft : externalText;
+}
+
+/**
+ * A crud's create/edit form screen (`…/new`, `…/edit`). When its save lands on the record, the
+ * record REPLACES the form on the native stack: Back then returns to where the user came from (the
+ * listing, or the record before Edit), not to a form already submitted.
+ */
+export function isFormRoute(route: string | null | undefined): boolean {
+  return /\/(new|edit)\/?$/.test((route ?? '').trim());
+}
+
+/**
+ * The native screen stack after navigating to `target` from a pushed screen: a route ALREADY on the
+ * stack (or the tab's own base route) is gone BACK to — no second copy of the listing over the
+ * record; otherwise it is pushed, or takes the top's place when `replaceTop` (a saved form).
+ */
+export function stackAfterGoTo<T extends { route: string }>(stack: T[], baseRoute: string, target: T, replaceTop: boolean): T[] {
+  const norm = (r: string) => r.replace(/^\/+|\/+$/g, '');
+  const want = norm(target.route);
+  for (let i = stack.length - 1; i >= 0; i--) if (norm(stack[i].route) === want) return stack.slice(0, i + 1);
+  if (norm(baseRoute) === want) return [];
+  if (replaceTop && stack.length > 0) return [...stack.slice(0, -1), target];
+  return [...stack, target];
 }

@@ -33,8 +33,15 @@ public class MateuYamlMountIndexController {
       uris = {"/", "/{+path:(?!.*mateu/v3/manifest$)[^.]*}"},
       produces = MediaType.TEXT_HTML)
   @ExecuteOn(TaskExecutors.BLOCKING)
-  public HttpResponse<String> index(@PathVariable("path") @Nullable String path) {
+  public HttpResponse<String> index(
+      @PathVariable("path") @Nullable String path,
+      @io.micronaut.http.annotation.Header("Accept") @Nullable String accept) {
     String requested = "/" + (path == null ? "" : path);
+    if (path != null && !path.isEmpty() && !io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
+      // a data fetch, not a navigation (see SpaFallback.acceptsHtml): a REST source whose endpoint
+      // does not exist yet must not be answered a 200 of HTML
+      return HttpResponse.status(HttpStatus.NOT_FOUND);
+    }
     YamlMounts.Mount best = null;
     for (var mount : api.mounts()) {
       var spa = mount.spaPath();

@@ -60,6 +60,9 @@ class AppSession(
      */
     val openOverlays = HashMap<String, (com.fasterxml.jackson.databind.JsonNode, com.fasterxml.jackson.databind.JsonNode, com.fasterxml.jackson.databind.JsonNode) -> Boolean>()
 
+    /** Open overlays by id that take a STATE update aimed at them (a LongTask's progress steps). */
+    val overlayStateUpdaters = HashMap<String, (com.fasterxml.jackson.databind.JsonNode) -> Unit>()
+
     fun pushOverlay(close: () -> Unit) = overlays.addLast(close)
     fun removeOverlay(close: () -> Unit) = overlays.remove(close)
     fun closeTopOverlay() {

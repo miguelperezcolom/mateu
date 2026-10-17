@@ -131,8 +131,37 @@ def _rewrite_list(children: list, delta: LayoutDelta) -> list:
         kept.append(rewritten)
     ordered = _reorder(kept, delta.order)
     if ordered is not None:
-        return ordered
+        kept, changed = ordered, True
+    across = _reorder_across_rows(kept, delta.order)
+    if across is not None:
+        return across
     return kept if changed else children
+
+
+def _is_row(node: Any) -> bool:
+    return isinstance(node, ClientSideComponent) and getattr(node.metadata, "type", None) == "FormRow"
+
+
+def _reorder_across_rows(children: list, order: tuple[str, ...]) -> list | None:
+    """A form layout's FormRows are a presentation detail of its columns (inference lays a
+    two-column form out as rows of two): the fields of sibling rows are reordered as one run, each
+    slot keeping its row — the same rule as the Java LayoutDeltaApplier."""
+    rows = [c for c in children if _is_row(c)]
+    if not order or len(rows) < 2:
+        return None
+    flat = [f for r in rows for f in (r.children or [])]
+    reordered = _reorder(flat, order)
+    if reordered is None:
+        return None
+    out, nxt = [], 0
+    for c in children:
+        if _is_row(c):
+            size = len(c.children or [])
+            out.append(c.model_copy(update={"children": reordered[nxt:nxt + size]}))
+            nxt += size
+        else:
+            out.append(c)
+    return out
 
 
 def _reorder(children: list, order: tuple[str, ...]) -> list | None:

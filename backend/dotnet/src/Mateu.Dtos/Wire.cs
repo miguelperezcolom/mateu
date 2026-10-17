@@ -205,6 +205,11 @@ public record ActionDto(
     /// </summary>
     public int TimeoutMillis { get; init; }
 
+    /// <summary>The keyboard shortcut that runs this action (<c>ctrl+s</c>): the web client scans
+    /// the component's ACTIONS for it, not the buttons (mirrors io.mateu.dtos.ActionDto.shortcut).
+    /// </summary>
+    public string? Shortcut { get; init; }
+
     /// <summary>Declares that re-sending this action cannot apply the same change twice, so the
     /// client may retry it by itself after a transient network failure. Only for genuine reads or
     /// naturally idempotent writes: after a timeout the client cannot know whether the server

@@ -52,4 +52,26 @@ class DefinitionOnlyRouteSyncTest {
     assertThat(about.ok()).as("skipped because: %s", about.skipReason()).isTrue();
     assertThat(about.json()).isNotBlank();
   }
+
+  /** A plain (non-app) root view: it owns "", not every route under it. */
+  @io.mateu.uidl.annotations.UI("")
+  public static class PlainRootView {
+    public String name;
+  }
+
+  @Test
+  void aFreshDeepLinkUnderAPlainRootViewRendersTheDefinitionNotTheRoot() {
+    // The browser's first load of /about sends consumedRoute "_empty": the direct-class search
+    // walks the route's prefixes longest-first, and the root view at "" used to answer it — the
+    // page showed the ROOT form instead of the definition (found by the e2e authoring walkthrough:
+    // a definition-only route of the sample1 SUT rendered its @UI("") SimpleForm).
+    try (var withRoot = TestMateu.withUis(PlainRootView.class)) {
+      var json = String.valueOf(withRoot.sync("/about"));
+      assertThat(json).contains("About this app");
+      assertThat(json).doesNotContain(PlainRootView.class.getName());
+
+      // the root itself is still the root view
+      assertThat(String.valueOf(withRoot.sync("/"))).contains(PlainRootView.class.getName());
+    }
+  }
 }

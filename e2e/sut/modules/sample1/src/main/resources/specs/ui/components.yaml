@@ -1,0 +1,7 @@
+# The business component catalogue: a named composition a `type: ComponentRef` names.
+components:
+  - name: WalkthroughNotice
+    component:
+      type: Notice
+      text: Built from the component catalogue
+      theme: success

@@ -66,7 +66,9 @@ class ViewMapperMixin(MixinBase):
         # A @rest_action button carries the client-side REST descriptor on its action.
         actions = [
             with_action_options(
-                Action(id=b.action_id, rest_action=self._rest_action(f)), cls, b.action_id
+                Action(id=b.action_id, rest_action=self._rest_action(f), shortcut=b.shortcut),
+                cls,
+                b.action_id,
             )
             for (n, f), b in zip(button_methods, buttons)
         ]
@@ -133,8 +135,13 @@ class ViewMapperMixin(MixinBase):
             known = {a.id for a in actions}
             tree_ids = self.collect_action_ids(tree)
             for a in tree_ids:
-                # handled = the method the action guard would let this id run
-                handled = resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                # handled = the method the action guard would let this id run, or an archetype's
+                # built-in action the sync handler answers (calendar toolbar, view switcher…) —
+                # unadvertised, those toolbars were dead in the web client
+                handled = (
+                    resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                    or a in _builtin_archetype_actions(instance)
+                )
                 # OWNER FIRST, then the action catalogue: an id the view neither declares nor has a
                 # method for runs the catalogue entry of that id (Java's TreeActionHarvester).
                 from_catalogue = (
@@ -259,6 +266,11 @@ class ViewMapperMixin(MixinBase):
                         "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
                     }
                 ]
+                # ...and the action it fires is the view's own: unadvertised, the client let it
+                # bubble (web: lost; native: sent to the APP type → "Action not found"), so typing
+                # in a CollectionDetail / GeneralOverview search field never filtered anything
+                if all(a.id != refresh for a in actions):
+                    actions = list(actions) + [Action(id=refresh, validation_required=False)]
         else:
             initial_data = self.form_initial_data(cls, instance)
         # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
@@ -289,3 +301,23 @@ class ViewMapperMixin(MixinBase):
                 [] if is_tree_supplier else client_validations(self, cls, instance)
             ),
         )
+
+
+def _builtin_archetype_actions(instance) -> frozenset[str]:
+    """The ids an archetype's own tree references and the sync handler answers in place (see
+    ``sync_handler.dispatch``), with no method of that name on the view."""
+    from mateu_uidl import CalendarPage, ComponentTreeSupplier, DataManagement, GanttPage, TodoList
+
+    ids: set[str] = set()
+    if isinstance(instance, CalendarPage):
+        ids |= {"openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
+                "switchCalendarView", "openCalendarDay", "createCalendarEvent"}
+    if isinstance(instance, GanttPage):
+        ids.add("selectGanttTask")
+    if isinstance(instance, TodoList):
+        ids.add("openTodoItem")
+    if isinstance(instance, DataManagement):
+        ids |= {"switchToGrid", "switchToGantt", "toggleEndPanel", "toggleBottomPanel"}
+    if isinstance(instance, ComponentTreeSupplier):
+        ids |= {"selectCollectionItem", "filterCollection", "switchRecord"}
+    return frozenset(ids)

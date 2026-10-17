@@ -44,14 +44,26 @@ public final class NothingToServeCheck {
         + " <annotationProcessorPaths>.";
   }
 
+  /**
+   * The routed UIs the container knows: a {@link RoutedClassProvider} per {@code @UI} class (the
+   * MVC processor) or a pre-compiled {@link io.mateu.uidl.interfaces.RouteResolver} per mount (the
+   * WebFlux/Quarkus/Helidon processors). Counting only the first made a working WebFlux app log
+   * "Mateu found no UI to serve … every Mateu URL will answer 404" at every start.
+   */
+  static int servedUis() {
+    if (!MateuBeanProvider.isInitialized()) {
+      return 0;
+    }
+    var providers = MateuBeanProvider.getBeans(RoutedClassProvider.class);
+    var resolvers = MateuBeanProvider.getBeans(io.mateu.uidl.interfaces.RouteResolver.class);
+    return (providers != null ? providers.size() : 0) + (resolvers != null ? resolvers.size() : 0);
+  }
+
   /** Logs {@link #message} once per JVM, reading the routed classes from the bean container. */
   public static void warnOnStartup(String processorArtifact) {
-    int routed = 0;
+    int routed;
     try {
-      if (MateuBeanProvider.isInitialized()) {
-        var beans = MateuBeanProvider.getBeans(RoutedClassProvider.class);
-        routed = beans != null ? beans.size() : 0;
-      }
+      routed = servedUis();
     } catch (RuntimeException e) {
       return; // a container that cannot tell: say nothing rather than something wrong
     }

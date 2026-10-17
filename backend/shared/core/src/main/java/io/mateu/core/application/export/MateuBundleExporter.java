@@ -620,6 +620,7 @@ public final class MateuBundleExporter {
     var mapper = new YAMLMapper();
     var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
+    var inliner = new DefinitionInliner(cl);
     for (var entry : authored.routes()) {
       var def = entry.definition();
       if (def == null || def.isBlank()) continue;
@@ -635,7 +636,9 @@ public final class MateuBundleExporter {
         // it
         // travels with its `fieldType` references already expanded and the browser needs no types
         // table (the vocabulary is design-time, unlike the source catalogue it is not re-pointed).
-        out.put(def, types.resolve(mapper.readTree(is)));
+        // So are partials and business-component references: the browser has neither the partial
+        // files nor the component catalogue (DefinitionInliner).
+        out.put(def, types.resolve(inliner.inline(mapper.readTree(is))));
       } catch (Exception e) {
         log.warn("bundle: could not read definition {}: {}", def, e.toString());
       }

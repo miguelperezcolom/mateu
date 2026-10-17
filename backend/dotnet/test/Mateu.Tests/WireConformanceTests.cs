@@ -33,7 +33,10 @@ public class WireConformanceTests
 
     /// <summary>Mirrors the Java and Python normalisers: drop volatile and DEFAULT members, sort
     /// keys. "Absent" and "at its default" are the same thing to a renderer.</summary>
-    private static JsonNode? Normalise(JsonNode? node)
+    /// An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
+    /// is a contract break (dropped with every generated id, the ports' CRUD forms shipped with dead
+    /// Save/Edit buttons unnoticed).
+    private static JsonNode? Normalise(JsonNode? node, bool inActions = false)
     {
         switch (node)
         {
@@ -42,8 +45,8 @@ public class WireConformanceTests
                 var result = new JsonObject();
                 foreach (var name in obj.Select(p => p.Key).OrderBy(n => n, StringComparer.Ordinal))
                 {
-                    if (Volatile_.Contains(name)) continue;
-                    var value = Normalise(obj[name]?.DeepClone());
+                    if (Volatile_.Contains(name) && !(name == "id" && inActions)) continue;
+                    var value = Normalise(obj[name]?.DeepClone(), name == "actions");
                     if (IsDefault(value)) continue;
                     result[name] = value;
                 }
@@ -52,7 +55,7 @@ public class WireConformanceTests
             case JsonArray array:
             {
                 var result = new JsonArray();
-                foreach (var item in array) result.Add(Normalise(item?.DeepClone()));
+                foreach (var item in array) result.Add(Normalise(item?.DeepClone(), inActions));
                 return result;
             }
             // A number compares by VALUE, not by spelling: Java writes a double weight as 3.0,
@@ -81,7 +84,25 @@ public class WireConformanceTests
     private static JsonNode Actual(Type view, string? @case = null)
     {
         var handler = new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
-        var increment = handler.Handle(new RunActionRqDto { ServerSideType = view.FullName });
+        // A case with a request.json is pinned on that (second) request to its fixture type, not on
+        // the first load — identical in the three runners.
+        var requestFile = @case is null ? null : Path.Combine(Corpus, @case, "request.json");
+        RunActionRqDto rq = new() { ServerSideType = view.FullName };
+        if (requestFile is not null && File.Exists(requestFile))
+        {
+            var req = JsonNode.Parse(File.ReadAllText(requestFile))!.AsObject();
+            rq = new RunActionRqDto
+            {
+                ServerSideType = view.FullName,
+                Route = req["route"]?.GetValue<string>() ?? "",
+                ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
+                ActionId = req["actionId"]?.GetValue<string>() ?? "",
+                ComponentState = req["componentState"] is JsonObject state
+                    ? JsonSerializer.Deserialize<Dictionary<string, object?>>(state.ToJsonString())!
+                    : new Dictionary<string, object?>(),
+            };
+        }
+        var increment = handler.Handle(rq);
         var json = JsonSerializer.Serialize(increment, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var normalised = Normalise(JsonNode.Parse(json))!;
         return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
@@ -153,6 +174,11 @@ public class WireConformanceTests
         { "listing-navigable", typeof(Wire.NavigableBooks) },
         { "crud-grouped", typeof(SalesCrud) },
         { "listing-columns", typeof(MeasurementsListing) },
+        { "peer-nav", typeof(PeerNavPage) },
+        { "app-no-home-content", typeof(NoHomeApp) },
+        { "card-menu", typeof(CardMenuApp) },
+        { "app-extras", typeof(ExtrasApp) },
+        { "welcome-banner", typeof(WelcomeBannerPage) },
     };
 
     [Fact]

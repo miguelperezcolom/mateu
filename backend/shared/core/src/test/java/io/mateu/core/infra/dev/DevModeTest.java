@@ -76,4 +76,19 @@ class DevModeTest {
     assertThat(first).contains("\"type\":\"hello\"").contains(DevEndpoint.BOOT_ID);
     assertThat(DevEndpoint.sse(first)).startsWith("data: ").endsWith("\n\n");
   }
+
+  @Test
+  void theEventStreamCompletesWhenTheServerShutsDown() throws Exception {
+    // an endless stream held a graceful shutdown for its whole grace period, and the browser kept
+    // talking to the dying process instead of reconnecting to the restarted one
+    var shuttingDown = reactor.core.publisher.Sinks.empty();
+    var completed = new java.util.concurrent.CountDownLatch(1);
+    var received = new java.util.concurrent.CopyOnWriteArrayList<String>();
+    DevEndpoint.events(java.time.Duration.ofHours(1), shuttingDown.asMono())
+        .subscribe(received::add, e -> {}, completed::countDown);
+    assertThat(completed.await(200, java.util.concurrent.TimeUnit.MILLISECONDS)).isFalse();
+    assertThat(received).hasSize(1).allMatch(e -> e.contains("hello"));
+    shuttingDown.tryEmitEmpty();
+    assertThat(completed.await(2, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+  }
 }

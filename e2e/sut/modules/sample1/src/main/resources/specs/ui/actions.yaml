@@ -1,0 +1,8 @@
+# The action catalogue: a client-runnable flow any page names by id.
+type: Actions
+actions:
+  - id: walkthroughOpenBeta
+    description: Open the beta flavour of the pinned page
+    steps:
+      - type: Navigate
+        route: /walkthrough/pinned/beta

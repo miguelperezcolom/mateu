@@ -26,6 +26,11 @@ Products.cs             the model (Product) and a Crud<Product> mounted with [UI
 dotnet run                   # sync API on http://localhost:8080 (`--urls` or MATEU_URL override it)
 ```
 
+The server answers the sync API only; it serves no web page itself. To see the app in a browser,
+run a renderer against it — e.g. from a Mateu checkout, `MATEU_BACKEND=http://localhost:8080 npm run dev`
+in `frontend/web/monorepo/apps/vaadin` (its dev server proxies `/mateu` to the backend), or the
+React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8080`.
+
 ## Rules to respect
 
 - **View models are per request.** A `[UI]` class is instantiated fresh for every request: keep

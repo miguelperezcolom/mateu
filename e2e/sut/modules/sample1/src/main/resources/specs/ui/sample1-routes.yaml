@@ -22,3 +22,34 @@ routes:
   - route: yaml-page
     layout: yaml-page.yaml
     state: {number: "4471", updatedAt: "2026-07-20 12:00", notes: Two chairs}
+  # ── The YAML authoring walkthrough (tests/shared/yaml-authoring.spec.ts) ───────────────────────
+  # A definition-only page: no view model, the state seeded by the route.
+  - route: walkthrough/page
+    layout: walkthrough/page.yaml
+    state:
+      greeting: Hola
+
+  # One definition, two routes, each pinning its own parameter.
+  - route: walkthrough/pinned/alpha
+    layout: walkthrough/pinned.yaml
+    fixedParams:
+      flavour: alpha
+  - route: walkthrough/pinned/beta
+    layout: walkthrough/pinned.yaml
+    fixedParams:
+      flavour: beta
+
+  # A layout bound to a Java view model by the entry (the "Code + YAML" flavour).
+  - route: walkthrough/bound
+    layout: walkthrough/bound.yaml
+    viewModel: io.mateu.sample1.WalkthroughCounter
+
+  # The same kind of view model, its inferred form adjusted by a layoutDelta (order, hidden, label).
+  - route: walkthrough/delta
+    layout: walkthrough/delta.yaml
+    viewModel: io.mateu.sample1.WalkthroughDeltaForm
+
+  # A route only an admin may open: the SUT has no security, so the caller is anonymous → refused.
+  - route: walkthrough/restricted
+    layout: walkthrough/pinned.yaml
+    access: {roles: [admin]}

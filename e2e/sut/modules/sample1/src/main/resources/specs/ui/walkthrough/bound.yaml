@@ -1,0 +1,7 @@
+# A layout-only definition bound to a Java view model by its route entry (viewModel:) — the
+# "Code + YAML" flavour: the layout is data, the state and the behaviour are the class's.
+layout:
+  type: VerticalLayout
+  content:
+    - {type: FormField, id: count, label: Count, dataType: integer}
+    - {type: Button, id: wt-increment, label: Increment, actionId: increment}

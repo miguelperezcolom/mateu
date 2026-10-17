@@ -302,7 +302,7 @@ An inferred tree may spread the model's fields over sections, tabs or rows, so:
 |---|---|
 | `hidden` | removes that field wherever it sits |
 | `overrides` | apply to that field wherever it sits |
-| `order` | reorders the fields **within each container that holds them**, leaving non-field siblings in their slots |
+| `order` | reorders the fields **within each container that holds them**, leaving non-field siblings in their slots (the rows of one form layout — how its columns are drawn — count as one run, so a two-column form reorders as the editor shows it) |
 
 A delta cannot move a field between containers, and cannot restructure the tree. That limit is not
 an omission — it is the reason a delta survives a model change at all.

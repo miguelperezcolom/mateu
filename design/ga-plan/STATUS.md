@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-12 evening.
+continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-17 (phase 2 integrated locally on `integration/walkthrough-2`, pending CI).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no
@@ -22,7 +22,8 @@ continue the work from here. **Update it at the end of every block of work.** La
 
 ## The plan (agreed 2026-10-12)
 1. ~~Close the blockers~~ ✅ · ~~UX review~~ ✅ (no real-user tests: it's all on us)
-2. **Exhaustive walkthrough** ← IN PROGRESS. A matrix feature × authoring × renderer × serving, walked with real
+2. **Exhaustive walkthrough** ✅ walked (all seven areas) and **integrated, pending CI** (2026-10-17: batch 1 = PR #802 merged;
+   batch 2 = `integration/walkthrough-2`, see below). A matrix feature × authoring × renderer × serving, walked with real
    interaction; every cell → fix at the root + a permanent test. Brief: [`walkthrough-brief.md`](walkthrough-brief.md).
    Seven areas, one branch each (from master):
    | area | branch | port block |
@@ -40,7 +41,8 @@ continue the work from here. **Update it at the end of every block of work.** La
 3. **Coverage** — measured in [`../coverage/coverage-map.md`](../coverage/coverage-map.md) (PR #800): 8 streams
    S1–S8 with target floors. Launch AFTER the walkthrough is integrated (its tests change the numbers).
 4. **Refactor/optimization** backed by those tests — **scheduled for the weekend of 17–18 Oct** (owner, 2026-10-12), with whatever token budget is left that week.
-5. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
+5. **Deep independent review by Fable** (owner, 2026-10-12): at the very END, after the refactor, before GA — a different model with fresh eyes over the whole product (public API + stability, security, wire contract + Java/.NET/Python parity, core architecture, docs-vs-reality, a new developer's first hour). Runs on the separate Fable weekly quota (`model: "fable"` agents). Its report becomes the GA blocker list.
+6. **Pre-beta review with Miguel** (same weekend, after the refactor) (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
    then beta, then GA.
 
 ## Minimise CI runs and releases (owner, 2026-10-12)
@@ -69,7 +71,10 @@ batch closes the included PRs. Agent worktrees live under `.claude/worktrees/` �
 IntelliJ down; `.claude` is excluded in Miguel's IDE).
 
 ## State at last update
-- Latest release: **v3.0-alpha.414** (lambda `Button`s advertised again; YAML card menus; demo index page). Demos redeployed on it (image tag 2026.10.12b) and verified in a browser.
+- Latest release: **v3.0-alpha.422**. Demos were last redeployed on alpha.414 (image tag 2026.10.12b) and verified in a browser.
+- **Phase 2 (walkthrough) integrated, pending CI**: local branch `integration/walkthrough-2` = origin/master + `walkthrough/authoring`
+  + `walkthrough/native-ports` + `ga/control`, conflicts resolved keeping both sides' fixes and tests, bundles rebuilt once, every
+  suite green locally (see "Batch 2 integration" below). Next: push, one PR, merge when green, then the phase release.
 - Open PRs: #800 (coverage map, docs only).
 - Demos: `swapi.mateu.io` (root → Swagger UI) and `demo.mateu.io` — redeploy of `demo-vaadin-webflux` on alpha.414
   (index page + counter fix) pending; ops in [`../../deploy/demos/README.md`](../../deploy/demos/README.md)
@@ -81,14 +86,16 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
 
-## Walkthrough results so far (branches pushed, not integrated yet)
+## Walkthrough results (all seven branches integrated: batch 1 = PR #802 on master; batch 2 = `integration/walkthrough-2`, pending CI)
 | area | branch | matrix | ✅ | 🔧 fixed | ❌ owner | not walked |
 |---|---|---|---|---|---|---|
 | app shell & navigation | `walkthrough/app-shell` (16 commits) | `design/walkthrough/app-shell.md` | 63 | 33 (11 bugs) | 5 | RN, IntelliJ, static bundles, .NET in a browser, MicroFrontend, breadcrumbs, appState/appData in a browser, visual editor |
 | actions, events, overlays | `walkthrough/actions` (10 commits) | `design/walkthrough/actions.md` | 54 | 22 (14 bugs) | 3 | 170 cells ⏳ (mostly RN, IntelliJ, ports beyond unit level, static bundle, editor) |
 | forms, fields, layouts, wizards | `walkthrough/forms` (14 commits) | `design/walkthrough/forms.md` | ~45 ✅/🔧 of ~60 | 24 bugs | 6 | ~25 cells: RN, IntelliJ, visual editor, ImportWizard, YAML layout bound to a view model in a browser, Quarkus/Micronaut/Helidon locally (CI covers), static bundle beyond a unit test |
 | page archetypes & display | `walkthrough/pages` (29 commits) | `design/walkthrough/pages.md` | ~130 | ~30 (26 bugs) | 7 | ~60: mostly .NET/Python pages in a browser, MicroFrontend |
-| listings · authoring · native-ports | `walkthrough/<area>` | — | running, hard stop 03:00 13 Oct | | | |
+| listings & CRUD | `walkthrough/listings` (batch 1) | `design/walkthrough/listings.md` | 117 | 24 | 4 (+1 ⚠) | 95 cells ⏳ (N/A 89) |
+| YAML authoring, data, tooling | `walkthrough/authoring` (45 commits, 23 fixes) | `design/walkthrough/authoring.md` | 109 | 38 | 7 | a real security module on Helidon MP (MP-JWT); IntelliJ/VS Code completion inside a running IDE; RN for the YAML fixtures; compiling the docs' annotation-driven Java samples |
+| native renderers + .NET/Python as servers | `walkthrough/native-ports` (51 commits, 42 fixes) | `design/walkthrough/native-ports.md` | ≈90 | 42 (+3 doc claims) | 5 | photo capture on a device; IntelliJ click-level interaction in a running IDE; RN Back-after-Save on a port; RN `.NET` column cells; the remaining shared e2e specs replayed on native (inline-grid-form, master-detail, recent-features, accessibility) |
 
 Each matrix file lists every cell; the ⏳ / "not walked yet" cells are where to resume (same brief).
 
@@ -150,7 +157,42 @@ shell only without a root `@UI`), and `MicronautBeanProvider` was a lazy singlet
 index's `deepLinkIndex` saw the facade uninitialised and served the root UI (now `@Context`). Shared suite on
 micronaut-app1 482/482, mvc YAML specs green, micronaut-core 30 tests.
 
+### Batch 2 integration (2026-10-17) — `integration/walkthrough-2`
+Merged `walkthrough/authoring`, `walkthrough/native-ports`, `ga/control` onto origin/master (after #811). Real conflicts and
+how they went (both sides' tests kept everywhere):
+- Adapter `index.ftl` (Micronaut/Quarkus/Helidon): master's YAML-mount deep link (`YamlMounts.deepLinkIndex`) AND authoring's
+  Accept guard (a data fetch never gets the index) — guard first, then the deep link. Micronaut: the YAML shell stays in
+  master's `MateuYamlMountIndexController`, the Accept guard moved there with its test.
+- `ActionInstanceCreator`: both branches fixed the definition-only deep link; master's (`isAuthoredDefinitionOnly` +
+  `definesItsOwnPage`) kept, authoring's twin dropped. `RouteInstanceCreator.findApp` was added by both — one kept.
+- `StaticSafetyCheck`: master's `isClientFlow` (a flow with a `RunAction` step is not static) over `has("steps")`.
+- Shell content load of an app with no home (.NET `SyncHandler`, Python `dispatch.py`): both fixed the loop; native-ports'
+  `IsTerminalRoute`/`_is_terminal_route` (`endsWith`, Java's rule) kept, master's exact-match twin dropped.
+- .NET `[Range]` validations: master's Bean semantics (absent passes) AND native-ports' invariant literals / open bounds not
+  sent; the server-side `Violations` use the same literals.
+- **Genuine disagreement**: native-ports pinned `_no_home_route` as the wire home of an app WITH menu items (its tests and
+  the new `app-extras` golden predate owner decision 1). Master's rule wins: the .NET/Python shell tests assert the first
+  menu item, the golden was regenerated from Java (`-Dconformance.write=true`); the sentinel load still renders a page.
+- Page FAB dispatch, `bundleStore` seeds (`state:` + `appState:`), sample1 `routes.yaml`/`types.yaml`, Python
+  `_with_declared_page_type(state)`: unions. Generated bundles taken from master and rebuilt once at the end.
+- Found by the merged suites: IntelliJ's global-search editor had no accessible name (surfaced by `app-extras` opening on
+  its first menu item) — named.
+Verification (local): backend `mvn install` ✅ · core `mvn verify` 1821 ✅ (JaCoCo 84 % gate met) · micronaut-core 34 ·
+quarkus-core 25 · helidon-mp-core 26 ✅ · libs/mateu vitest 1516 ✅ · Redwood `npm test` ✅ · Python 839 ✅ + mypy clean ·
+.NET net8 772 ✅ · RN node tests + parity (116 wire types) + tsc ✅ · IntelliJ 354 ✅ (after the fix) · shared e2e mvc-app1
+491 ✅ · micronaut-app1 475 + 15 rerun ✅ (the 15 failed only while the IntelliJ gradle build ran alongside; all pass alone)
+· dead-button probe 5/5 routes · bundle freshness, design tokens (553), annotation density 5.38 ≤ 5.45, licences ✅.
+Not run locally: WebFlux/Quarkus/Helidon e2e, renderer-vb and static-bundle Playwright projects, VS Code extension tests,
+the .NET net10.0 target (no SDK here) — CI covers them.
+
 ### Left for the next session (not done — budget)
+- Push `integration/walkthrough-2`, open the ONE batch-2 PR, merge when green, cut the phase release (v3.0-alpha.423) with the
+  behaviour notes: validation re-checked server-side on `@Button`/`@Toolbar`; an app with no home opens on its first menu
+  item on every backend; a data fetch to a missing endpoint answers 404, never the index page.
+- Open ❌ items of authoring (7, section 4 of its matrix — notably the yaml-language-server cost of the 125-way Component
+  `oneOf`) and native-ports (5: the ports serve no web UI / stale `mateu-vaadin` on npm, structural divergences of the
+  ports' create forms, …) need owner decisions.
+- Then phase 3 (coverage) and 4 (refactor) as planned.
 - Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog
   over it closes; `Callable<Component>` holder not drawn in a plain form; no `@Toc` index; calendar event click runs
   nothing; map marker click unconfirmed; Gantt negative-width console errors (data in `/arch/interactive` is valid —

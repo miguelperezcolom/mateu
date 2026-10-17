@@ -2052,12 +2052,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
+        '"fieldsToValidate": null, "shortcut": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
     ) in j
     # The BUTTON carries the selection guard too, so the renderer can disable it while nothing is
     # selected without looking the advertised action up by id (Java's ButtonDto.rowsSelectedRequired).
@@ -2138,9 +2138,9 @@ def test_crud_create_navigates_back_with_message():
             component_state={"name": "Gamma"},
         )
     )
-    assert len(inc.commands) == 1
-    assert inc.commands[0].type == "NavigateTo"
-    assert inc.commands[0].data == "/things"
+    # MarkAsClean first: leaving a saved form must not ask "unsaved changes?"
+    assert [c.type for c in inc.commands] == ["MarkAsClean", "NavigateTo"]
+    assert inc.commands[1].data == "/things"
     assert inc.messages[0].text == "Saved"
 
 

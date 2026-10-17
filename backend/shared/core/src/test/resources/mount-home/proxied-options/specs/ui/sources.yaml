@@ -1,0 +1,10 @@
+# A keyed endpoint: proxied, its key a secret only the server injects.
+sources:
+  - name: keyed-products
+    source:
+      url: https://api.example.com/products
+      proxy: true
+      valuePath: id
+      labelPath: name
+      headers:
+        X-Api-Key: ${secret.API_KEY}

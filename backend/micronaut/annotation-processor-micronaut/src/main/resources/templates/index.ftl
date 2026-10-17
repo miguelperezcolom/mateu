@@ -28,8 +28,16 @@ public class ${simpleClassName}Controller {
     // Any route under the UI, however deep, answers the index — the SPA fallback. Except the
     // mobile app's manifest (any UI's <base>/mateu/v3/manifest), which is JSON even when a browser
     // asks for HTML.
-    @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[\\-a-zA-Z0-9/_]+}", produces = MediaType.TEXT_HTML)
-    public String getIndexAlways(String path) {
+    // Any character but a dot (a dot is a static asset): a record id with a space, an accent, a `+`,
+    // `~`, `:` or `@` (/stays/Jos%C3%A9) is a deep link like any other — it used to be a 404 here only.
+    @Get(value = "/{+path:(?!.*mateu/v3/manifest$)[^.]+}", produces = MediaType.TEXT_HTML)
+    public String getIndexAlways(String path,
+            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept) {
+        // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
+        // whose endpoint does not exist yet) must not be answered a 200 of HTML.
+        if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
+            throw new io.micronaut.http.exceptions.HttpStatusException(io.micronaut.http.HttpStatus.NOT_FOUND, "Not found");
+        }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount: this
         // catch-all and the YAML one would otherwise be equally specific
         var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);

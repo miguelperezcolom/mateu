@@ -1,0 +1,24 @@
+{
+  "commands" : [ {
+    "data" : "No home app",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "pageTitle" : "No home app",
+          "pageType" : "form",
+          "title" : "No home app",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

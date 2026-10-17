@@ -11,8 +11,40 @@ public class QuarkusHttpRequest implements HttpRequest {
   private final HttpServerRequest delegate;
   private final Map<String, Object> attributes = new HashMap<>();
 
+  /** The SecurityIdentity a Vert.x route found on its RoutingContext, when it found one. */
+  private Object identity;
+
   public QuarkusHttpRequest(HttpServerRequest delegate) {
     this.delegate = delegate;
+  }
+
+  /**
+   * The identity Quarkus authenticated for a request served by a Vert.x ROUTE (YAML mounts): it
+   * rides on the RoutingContext — {@code rc.user()} once authenticated, else the deferred identity
+   * proactive authentication left there. The CDI lookup {@link #getUserPrincipal} falls back to
+   * only works inside a JAX-RS request, so without this a YAML app's {@code access:} refused
+   * everybody.
+   */
+  public QuarkusHttpRequest withIdentityOf(io.vertx.ext.web.RoutingContext rc) {
+    this.identity = identityOf(rc);
+    return this;
+  }
+
+  static Object identityOf(io.vertx.ext.web.RoutingContext rc) {
+    try {
+      Object user = rc.user();
+      if (user != null) {
+        return user.getClass().getMethod("getSecurityIdentity").invoke(user);
+      }
+      Object deferred = rc.get("io.quarkus.vertx.http.deferred-identity");
+      if (deferred != null) {
+        Object await = deferred.getClass().getMethod("await").invoke(deferred);
+        return await.getClass().getMethod("indefinitely").invoke(await);
+      }
+    } catch (Exception | LinkageError e) {
+      // not a Quarkus security user, or no identity: the CDI lookup decides
+    }
+    return null;
   }
 
   @Override
@@ -43,12 +75,23 @@ public class QuarkusHttpRequest implements HttpRequest {
   @Override
   public java.security.Principal getUserPrincipal() {
     try {
-      var type = Class.forName("io.quarkus.security.identity.SecurityIdentity");
-      var instance = jakarta.enterprise.inject.spi.CDI.current().select(type);
-      if (!instance.isResolvable()) {
-        return null;
+      Object identity = this.identity;
+      // the identity's own loader: Quarkus runs the app in a class loader of its own, and a type
+      // from another one fails every reflective call on the object (silently: refused like anybody)
+      var type =
+          identity != null
+              ? Class.forName(
+                  "io.quarkus.security.identity.SecurityIdentity",
+                  false,
+                  identity.getClass().getClassLoader())
+              : Class.forName("io.quarkus.security.identity.SecurityIdentity");
+      if (identity == null) {
+        var instance = jakarta.enterprise.inject.spi.CDI.current().select(type);
+        if (!instance.isResolvable()) {
+          return null;
+        }
+        identity = instance.get();
       }
-      Object identity = instance.get();
       if (Boolean.TRUE.equals(type.getMethod("isAnonymous").invoke(identity))) {
         return null;
       }

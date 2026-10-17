@@ -19,7 +19,12 @@ conformance/
     <case>/
       case.md         what the case pins, and why it is worth pinning
       expected.json   the normalised wire the three servers must produce
+      request.json    optional: pin a SECOND request instead of the first load
 ```
+
+A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
+optional) is rendered by sending that request to the case's fixture type — how an interaction step
+(the shell's content load, an action) is pinned, not only the first render.
 
 ## The contract
 
@@ -38,7 +43,9 @@ corpus flag noise, and a check that reports noise gets ignored.
 
 So both sides normalise before comparing:
 
-- **drop** generated identifiers (`id` values the server invents) and empty/null members;
+- **drop** generated identifiers (`id` values the server invents) and empty/null members — but
+  NOT an action's `id` (inside `actions[]`): that is the name the client sends, so a missing or
+  renamed action is a contract break;
 - **sort** object keys;
 - keep everything that describes *what the screen is*: types, field ids, labels, data types,
   actions, layout structure.

@@ -249,6 +249,9 @@ class WizardMapperMixin(MixinBase):
                     if isinstance(instance, Draftable) and not result_step
                     else []
                 ),
+                # Back leaves the step as it is: no validation. Java advertises a catch-all that
+                # claims it; unadvertised, Back did nothing in the web client.
+                *([] if result_step else [Action(id="back", validation_required=False)]),
                 *self.field_actions(cls, [f for f, s in step_fields if s == current]),
             ],
             triggers=[],

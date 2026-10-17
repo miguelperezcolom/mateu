@@ -116,6 +116,19 @@ describe('The starters themselves', () => {
         for (const d of dirs) expect(used.has(d), d).toBe(true)
     })
 
+    it('no starter narrows the Spring scan to io.mateu (the app\'s own beans would be ignored)', () => {
+        // Mateu's beans come from its auto-configuration. scanBasePackages = "io.mateu" scanned NOT
+        // the app's own package: a security config, a PrincipalResolver, a SecretsProvider… added to
+        // a generated project silently did nothing
+        const javaFiles = (dir: string): string[] => !existsSync(dir) ? [] : readdirSync(dir).flatMap((e) => {
+            const p = join(dir, e)
+            return statSync(p).isDirectory() ? javaFiles(p) : p.endsWith('.java') ? [p] : []
+        })
+        const offenders = dirs.flatMap((d) => javaFiles(join(sources.starters, d, 'src')))
+            .filter((f) => /scanBasePackages\s*=\s*\{?\s*"io\.mateu/.test(readFileSync(f, 'utf8')))
+        expect(offenders).toEqual([])
+    })
+
     it('the static starter ships the same UI as the YAML one (one design, two deployments)', () => {
         const specs = (d: string) => join(sources.starters, d, 'src/main/resources/specs/ui')
         const names = readdirSync(specs('yaml')).sort()
@@ -164,7 +177,8 @@ describe('New Mateu project — helpers', () => {
         const withRule = { ...manifest, incompatible: [{ renderer: 'redwood', sample: 'crud', reason: 'not on Redwood yet' }] }
         expect(validate(withRule as typeof manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood' }).join()).toContain('not on Redwood yet')
         expect(validate(manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood', sample: 'empty' })).toEqual([])
-        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'micronaut' }).join()).toContain('runs on')
+        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'micronaut' })).toEqual([])
+        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'dotnet' }).join()).toContain('runs on')
     })
 
     it('writes into an empty folder only', () => {

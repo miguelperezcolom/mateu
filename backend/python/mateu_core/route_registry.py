@@ -512,34 +512,68 @@ class RouteRegistry:
         return None
 
     def _load(self) -> RouteTable:
-        path = self._dir / self.FILE
-        if not path.is_file():
+        """Every authored route file, merged (a later file wins a route collision, as in Java):
+        the files each ``type: UI`` mount lists (relative to the mount's base path), then
+        ``routes.yaml`` and any other ``type: Routes`` file no mount lists (relative to their own
+        ``basePath`` header, default the root). Only ``routes.yaml`` used to be read, so a mount
+        splitting its routes over several files (what New › Mateu › Routes File creates) lost all
+        but that one — the pages answered "Route not found"."""
+        if not self._dir.is_dir():
             return RouteTable()
+        by_route: dict[str, RouteEntry] = {}
+        listed: set[Path] = set()
+        for mount in self._scan_mount_descriptors():
+            for route_file in mount["route_files"]:
+                path = (self._dir / route_file).resolve()
+                listed.add(path)
+                for e in self._entries_of(path, mount["base_path"]):
+                    by_route[e.route] = e
+        for file in sorted(self._dir.rglob("*")):
+            if file.suffix not in (".yaml", ".yml") or file.resolve() in listed:
+                continue
+            if file.name != self.FILE and not self._declares_routes(file):
+                continue
+            for e in self._entries_of(file, None):
+                by_route[e.route] = e
+        return RouteTable(tuple(by_route.values()))
+
+    @staticmethod
+    def _declares_routes(file: Path) -> bool:
+        try:
+            root = yaml.safe_load(file.read_text())
+        except Exception:  # noqa: BLE001 - not a route file then
+            return False
+        return isinstance(root, dict) and root.get("type") == "Routes"
+
+    def _entries_of(self, path: Path, mount_base: str | None) -> list[RouteEntry]:
+        if not path.is_file():
+            return []
         try:
             root = yaml.safe_load(path.read_text())
         except Exception as e:  # noqa: BLE001 - logged, not fatal
             _log.warning("Ignoring unreadable %s: only the code-declared routes apply (%s)", path, e)
-            # A broken routes.yaml must not take the app down: the decorator-declared routes still
+            # A broken route file must not take the app down: the decorator-declared routes still
             # work, and the failure is loud in the log rather than fatal at boot.
-            return RouteTable()
+            return []
         if root is None:
-            return RouteTable()
+            return []
         # Both shapes are accepted: a bare list of entries, or a `routes:` envelope. A standalone
         # `type: Routes` envelope may tag itself with a `basePath` so a class-declared @ui("/shop")
-        # mount authors its inner routes relatively and they resolve absolutely (last-wins on a
-        # route collision is not needed for a single file — one file is one bucket).
-        base_path = ""
+        # mount authors its inner routes relatively and they resolve absolutely; a file a mount lists
+        # is relative to that mount unless its own header says otherwise.
+        base_path = mount_base or ""
         nodes = root
         if isinstance(root, dict):
-            base_path = _normalize(root.get("basePath") or root.get("base_path"))
+            declared = root.get("basePath") or root.get("base_path")
+            if declared:
+                base_path = _normalize(declared)
             nodes = root.get("routes")
         if not isinstance(nodes, list):
-            return RouteTable()
+            return []
         # Flatten each authored node (composing nested `children` relative to their parent and
         # setting `parent`), then prefix everything with the file's base path into absolute routes.
         relative: list[RouteEntry] = []
         for node in nodes:
             if isinstance(node, dict):
                 _flatten_node(node, parent_route=None, prefix="", out=relative)
-        entries = [_with_base_path(e, base_path) for e in relative]
-        return RouteTable(tuple(entries))
+        return [_with_base_path(e, base_path) for e in relative]

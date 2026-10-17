@@ -6,9 +6,10 @@ import { headerValues } from './appShellExtras.ts';
 import { presentDocument } from './documentEffects.ts';
 import type { FileDownloadData } from './documents.ts';
 import { isTimedOnLoad, PollingScheduler } from './polling.ts';
-import { serverSideState } from './uxRules.ts';
+import { isFormRoute, mediatorMove, serverSideState } from './uxRules.ts';
 import { isDev } from '../api/MateuApiClient.ts';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows.ts';
+import { confirmationOf, type ConfirmationDialogTexts } from './actionConfirmation.ts';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {
@@ -57,7 +58,8 @@ export class MateuViewController {
   currentComponentState: Json = {};
 
   /** The mediator's inner route currently rendered (stay-in-place detection). */
-  private currentInnerRoute = '';
+  /** The crud mediator's inner route this screen's own load seeded (`null`: its load carried none). */
+  private currentInnerRoute: string | null = null;
   /** The sst this view was NAVIGATED with (crud orchestrator) — bubbling fallback. */
   private navigationServerSideType = '';
   private orchestratorServerSideType = '';
@@ -73,6 +75,9 @@ export class MateuViewController {
   private flowDepth = 0;
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
+  private actionConfirmation: Record<string, ConfirmationDialogTexts> = {};
+  /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
+  private actionSse: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
   /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
    *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -105,6 +110,9 @@ export class MateuViewController {
   onRender: (view: RenderedView) => void = () => {};
   /** Detail navigations (row → detail/new/edit) open as a NEW screen through this; unset → in place. */
   detailOpener: ((target: NavTarget) => void) | null = null;
+  /** Host hook: go to `target` on the native stack — back to it when it is already there, else
+   *  pushed (or taking the top's place when `replaceTop`). */
+  stackNavigator: ((target: NavTarget, replaceTop: boolean) => void) | null = null;
   /** Errors/messages silenced (embedded islands). */
   silentErrors = false;
 
@@ -217,13 +225,18 @@ export class MateuViewController {
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
         const summary = Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; ');
-        this.session.notify('Revisa los campos', summary, 'warning');
+        this.session.notify('There are validation errors', summary, 'warning');
         // A toast is a visual affordance: a screen-reader user gets no indication that the save
         // was refused, let alone why. Speak it.
-        announce(`Revisa los campos. ${summary}`);
+        announce(`There are validation errors. ${summary}`);
         return;
       }
     }
+
+    // @Action(confirmationRequired): ask first, with the declared texts — same order as the web's
+    // mateu-component (selection guard, validation, then the question).
+    const confirmation = this.actionConfirmation[actionId];
+    if (confirmation && !(await this.session.confirmAction(confirmation))) return;
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
     // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
@@ -256,6 +269,24 @@ export class MateuViewController {
 
     const generation = this.polling.currentGeneration;
     try {
+      if (this.actionSse[actionId]) {
+        // a LongTask: each progress increment is applied as it arrives
+        await this.session.api.runActionStream(
+          {
+            route: this.currentRoute,
+            consumedRoute: this.currentConsumedRoute,
+            actionId,
+            serverSideType: this.resolveActionTarget(actionId) || null,
+            initiatorComponentId: this.currentComponentId,
+            componentState: this.currentComponentState,
+            appState: this.session.appState,
+            parameters: parameters ?? {},
+          },
+          (increment) => this.applyIncrement(increment as Json),
+        );
+        this.polling.actionSucceeded(generation, actionId);
+        return;
+      }
       const increment = await this.session.api.runAction({
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
@@ -398,6 +429,8 @@ export class MateuViewController {
     const actions: string[] = [];
     const validationFlags: Record<string, boolean> = {};
     const rowsSelectedFlags: Record<string, boolean> = {};
+    const confirmations: Record<string, ConfirmationDialogTexts> = {};
+    const sseFlags: Record<string, boolean> = {};
     const bubbleFlags: Record<string, boolean> = {};
     const restData: Record<string, Json> = {};
     for (const a of asArray(sscNode['actions'])) {
@@ -406,6 +439,9 @@ export class MateuViewController {
       actions.push(id);
       validationFlags[id] = a['validationRequired'] === true;
       rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
+      const confirmation = confirmationOf(a);
+      if (confirmation) confirmations[id] = confirmation;
+      if (a['sse'] === true) sseFlags[id] = true;
       bubbleFlags[id] = a['bubble'] === true;
       if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
     }
@@ -413,6 +449,8 @@ export class MateuViewController {
     this.currentActionDefs = asArray(sscNode['actions']) as ShellAction[];
     this.actionValidationRequired = validationFlags;
     this.actionRowsSelectedRequired = rowsSelectedFlags;
+    this.actionConfirmation = confirmations;
+    this.actionSse = sseFlags;
     this.actionBubble = bubbleFlags;
     this.actionRestData = restData;
     this.currentValidations = asArray(sscNode['validations']);
@@ -649,6 +687,11 @@ export class MateuViewController {
       return;
     }
 
+    // A state update aimed at an open overlay (a LongTask's progress dialog) belongs to it.
+    if (!component && state && typeof state === 'object' && targetId && this.session.updateOverlayState(targetId, state)) {
+      return;
+    }
+
     if (!component) {
       // Data-only fragment — push to a registered data handler (e.g. Crud search results).
       if (data !== null && data !== undefined) {
@@ -674,9 +717,17 @@ export class MateuViewController {
         const stateComp = str(state['_componentRoute']);
         const base = stateComp || this.currentConsumedRoute;
         const routeSuffix = str(state['_route']);
-        if (this.currentInnerRoute && trimSlashes(routeSuffix) === this.currentInnerRoute) {
-          // Same inner route: stay put — a RunAction command in the same increment refreshes data.
+        const move = mediatorMove(routeSuffix, this.currentInnerRoute, !!this.detailOpener);
+        if (move === 'stay') {
+          // Same inner route (the listing answers to "" and "list"): stay put — a RunAction command
+          // in the same increment refreshes the data.
           Object.assign(this.currentComponentState, state);
+          return;
+        }
+        if (move === 'backToList' && this.stackNavigator) {
+          // A record screen sent to the list (Back to list, Cancel, a delete from the record): back
+          // to the listing it was opened from, not a second listing stacked on top of it.
+          this.stackNavigator({ label: '', route: base, consumedRoute: base, serverSideType: this.navigationServerSideType || this.currentServerSideType }, false);
           return;
         }
         const fullRoute = base + routeSuffix;
@@ -684,9 +735,11 @@ export class MateuViewController {
           this.orchestratorServerSideType && this.orchestratorComponentRoute === stateComp
             ? this.orchestratorServerSideType
             : this.navigationServerSideType || this.currentServerSideType;
-        const isDetail = routeSuffix !== '' && fullRoute !== base;
-        if (this.detailOpener && isDetail) {
-          this.detailOpener({ label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst });
+        if (this.detailOpener && move === 'detail') {
+          const target = { label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst };
+          // a saved create/edit form gives its place to the record (Back must not return to it)
+          if (this.stackNavigator) this.stackNavigator(target, isFormRoute(this.currentRoute) && !isFormRoute(fullRoute));
+          else this.detailOpener(target);
         } else {
           this.currentInnerRoute = trimSlashes(routeSuffix);
           void this.navigate(fullRoute, base, sst);
@@ -871,8 +924,12 @@ export class MateuViewController {
       case 'NavigateTo': {
         const href = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['href']);
         if (!href) break;
-        if (this.detailOpener) {
-          this.detailOpener({ label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' });
+        const navTarget = { label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' };
+        if (this.stackNavigator) {
+          // a screen already on the stack is gone back to; a saved form gives its place to the record
+          this.stackNavigator(navTarget, isFormRoute(this.currentRoute) && !isFormRoute(href));
+        } else if (this.detailOpener) {
+          this.detailOpener(navTarget);
         } else {
           this.session.openView({ label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' });
         }

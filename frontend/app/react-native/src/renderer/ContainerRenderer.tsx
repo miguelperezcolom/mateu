@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
+import { progressFraction } from '../core/uxRules';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
@@ -136,11 +137,7 @@ export function AnchorRenderer({ metadata }: { metadata: Dict }) {
 }
 
 export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state: Dict }) {
-  const min = (metadata['min'] as number) ?? 0;
-  const max = (metadata['max'] as number) ?? 1;
-  const key = (metadata['valueKey'] as string) ?? '';
-  const raw = key && state[key] != null ? Number(state[key]) : Number(metadata['value'] ?? 0);
-  const frac = max - min === 0 ? 0 : Math.max(0, Math.min(1, (raw - min) / (max - min)));
+  const frac = progressFraction(metadata, state);
   // RN-18: the bar's own text (a wizard sends "Step 2") was dropped, so the bar alone had to say
   // where the user was; and it was invisible to screen readers. Now the text shows above the bar,
   // and the bar is a progressbar with its value.

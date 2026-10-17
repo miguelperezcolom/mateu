@@ -26,12 +26,27 @@ public class ActionMapper {
         .toList();
   }
 
+  /** A record of Mateu's own (core) that wraps a page: its fields are not the page's fields. */
+  static boolean isFrameworkWrapper(Object serverSideObject) {
+    return serverSideObject != null
+        && serverSideObject.getClass().isRecord()
+        && serverSideObject.getClass().getName().startsWith("io.mateu.core.")
+        && serverSideObject instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier;
+  }
+
   public static List<Action> createActions(Object serverSideObject, HttpRequest httpRequest) {
     List<Action> actions = new ArrayList<>();
+    // A framework wrapper record (a definition-only page's SeededYamlPage…) holds plumbing, not a
+    // form: its record components (the declared actions, the source catalogue) were harvested as
+    // if they were editable list fields — 36 bogus ids like declaredActions_add and
+    // nested-form-action-catalog-sources_save on every YAML page, naming internals on the wire.
+    var plumbing = isFrameworkWrapper(serverSideObject);
     // actions.add(ActionDto.builder().id("nested-form-action-*").build());
-    actions.addAll(
-        addNestedFormsActions(
-            "nested-form-action-", serverSideObject.getClass(), serverSideObject, httpRequest));
+    if (!plumbing) {
+      actions.addAll(
+          addNestedFormsActions(
+              "nested-form-action-", serverSideObject.getClass(), serverSideObject, httpRequest));
+    }
     if (MetaAnnotations.isPresent(serverSideObject.getClass(), AutoSave.class)) {
       actions.add(Action.builder().id("*").build());
     }
@@ -54,7 +69,8 @@ public class ActionMapper {
             .map(ActionMapper::mapToAction)
             .toList());
 
-    List<Action> fieldActions = FieldActionCollector.collect(serverSideObject);
+    List<Action> fieldActions =
+        plumbing ? List.of() : FieldActionCollector.collect(serverSideObject);
 
     if (serverSideObject instanceof LookupOptionsSupplier) {
       actions.add(Action.builder().id("search-*").build());

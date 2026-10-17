@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Only boots the server. The whole UI — mount, app shell, routes, pages and REST sources — is data
  * under {@code src/main/resources/specs/ui/}; there is no UI code to write.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication
 public class Application {
 
   public static void main(String[] args) {

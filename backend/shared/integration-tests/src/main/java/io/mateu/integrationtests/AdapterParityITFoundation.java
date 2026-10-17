@@ -136,6 +136,24 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * The same refusal on the STREAMED leg ({@code /v3/sse/}, the one a LongTask / {@code Action.sse}
+   * uses): 403 too. A streamed route produces {@code text/event-stream}, and an adapter whose
+   * forbidden handler only answers other media types (or that commits the stream before the request
+   * is guarded) answered 500.
+   */
+  public void refusesARestrictedStreamedActionToAnAnonymousCaller() {
+    given()
+        .contentType(ContentType.JSON)
+        .accept("text/event-stream")
+        .body(action("adminAction"))
+        .when()
+        .post("/restricted/mateu/v3/sse/_no_route")
+        .then()
+        .statusCode(403)
+        .body(not(containsString("admin action ran")));
+  }
+
+  /**
    * A caller the framework authenticated with the {@code admin} role (sent as {@code headers}, e.g.
    * {@link #PARITY_ROLES_HEADER}; empty when the test itself establishes the identity) sees the
    * {@code @EyesOnly} field and may run the restricted action: the framework's principal reaches
@@ -454,6 +472,36 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * A deep link whose record id carries a space, an accent, a {@code +}, {@code ~}, {@code :} or
+   * {@code @} answers the index like any other (Micronaut answered 404 for them).
+   */
+  public void answersDeepLinksWithEncodedSegments() {
+    given()
+        .urlEncodingEnabled(false)
+        .accept("text/html")
+        .when()
+        .get("/hello/stays/Jos%C3%A9%20A+B~c:d@e")
+        .then()
+        .statusCode(200)
+        .body(containsString("<mateu-ui baseUrl=\"/hello\""));
+  }
+
+  /**
+   * A DATA fetch of a path nobody serves (a REST source pointing at an endpoint that does not exist
+   * yet) is NOT answered with the index page: a 200 of HTML made the missing endpoint look like an
+   * empty one, with nothing in any log. Only a navigation (Accept: text/html) gets the index.
+   */
+  public void doesNotAnswerADataFetchWithTheIndex() {
+    var response =
+        given().accept("application/json, text/plain, */*").when().get("/hello/some/deep/link");
+    var contentType = String.valueOf(response.getContentType());
+    if (response.getStatusCode() == 200 && contentType.startsWith("text/html")) {
+      throw new AssertionError(
+          "a data fetch of an unknown path was answered with the index page: " + contentType);
+    }
+  }
+
+  /**
    * {@code GET <baseUrl>/mateu/v3/manifest}: the Mateu mobile app's manifest, public and cacheable,
    * the same JSON on every adapter ({@code io.mateu.core.infra.MobileManifest}) — also for a
    * request that asks for HTML, which must never get the index page. The fixture is
@@ -540,6 +588,12 @@ public class AdapterParityITFoundation {
           .header("Content-Type", startsWith("text/html"))
           .body(containsString("<mateu-ui baseUrl=\"" + YAML_MOUNT + "\""))
           .body(containsString("<title>" + YAML_MOUNT_TITLE + "</title>"));
+    }
+    // a data fetch under the mount is not a deep link: no index page for it
+    var fetched = given().accept("application/json, */*").when().get(YAML_MOUNT + "/page");
+    if (fetched.getStatusCode() == 200
+        && String.valueOf(fetched.getContentType()).startsWith("text/html")) {
+      throw new AssertionError("a data fetch under the YAML mount was answered with the index");
     }
     for (String accept : new String[] {"application/json", "text/html"}) {
       given()

@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useRef } from 'react';
-import { MateuApiClient } from '../api/MateuApiClient';
+import { fetch as expoFetch } from 'expo/fetch';
+import { MateuApiClient, setStreamingFetch } from '../api/MateuApiClient';
+
+// LongTask progress is read as a stream: React Native's own fetch buffers the whole body.
+setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';

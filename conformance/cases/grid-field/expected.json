@@ -7,12 +7,35 @@
     "action" : "Replace",
     "component" : {
       "actions" : [ {
+        "id" : "guests_create",
         "validationRequired" : true
       }, {
+        "id" : "guests_create-and-stay",
         "validationRequired" : true
-      }, { }, { }, { }, { }, { }, {
+      }, {
+        "id" : "guests_add"
+      }, {
+        "id" : "guests_select"
+      }, {
+        "id" : "guests_selected"
+      }, {
+        "id" : "guests_prev"
+      }, {
+        "id" : "guests_next"
+      }, {
+        "id" : "guests_save",
         "validationRequired" : true
-      }, { }, { }, { }, { }, { } ],
+      }, {
+        "id" : "guests_remove"
+      }, {
+        "id" : "guests_move-up"
+      }, {
+        "id" : "guests_move-down"
+      }, {
+        "id" : "guests_cancel"
+      }, {
+        "id" : "onSel"
+      } ],
       "children" : [ {
         "children" : [ {
           "cssClasses" : "mateu-section",

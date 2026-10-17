@@ -85,9 +85,14 @@ try {
     page.on('request', (r) => { if (r.url().includes('/mateu/v3/sync/')) reloads.push(r.postData() ?? '') })
     const status = (await fetch(`${BASE}/mateu/dev/reload`, { method: 'POST' })).status
     await page.waitForTimeout(1500)
-    check('POST /mateu/dev/reload (the IDE after a HotSwap) re-renders the open screen',
-        status === 204 && reloads.length === 1 && reloads[0].includes('Ada Lovelace'),
-        `status ${status}, ${reloads.length} load(s)`)
+    // what the developer sees: one re-render, the typed value still there. Whether the REQUEST carries
+    // it depends on the page: a server-side one sends its state (a view model is hydrated from it); a
+    // definition-only page with no action renders client-side, holds no state object and nothing on
+    // the server could read one — its value survives on screen.
+    const keptAfterHotSwap = await page.locator(INPUT).first().inputValue()
+    check('POST /mateu/dev/reload (the IDE after a HotSwap) re-renders the open screen, value kept',
+        status === 204 && reloads.length === 1 && keptAfterHotSwap === 'Ada Lovelace',
+        `status ${status}, ${reloads.length} load(s), "${keptAfterHotSwap}"`)
 
     if (STOP && RESTART) {
         execSync(STOP, { stdio: 'inherit' })

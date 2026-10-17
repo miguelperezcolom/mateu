@@ -472,6 +472,8 @@ public final class UidlSchemaGenerator {
             "Deprecated alias of `layout` — kept so existing routes.yaml files keep working. Prefer"
                 + " `layout`; if both are present, `layout` wins.");
 
+    allowSourceShorthand(routeEntryProps);
+
     var entryRef = MAPPER.createObjectNode().put("$ref", "#/$defs/RouteEntry");
     var list = MAPPER.createObjectNode().put("type", "array");
     list.set("items", entryRef);
@@ -602,6 +604,11 @@ public final class UidlSchemaGenerator {
                 + " (`restAction`). Server logic stays an @Action method — an entry with neither is"
                 + " ignored with a warning.");
     envelope.putArray("required").add("actions");
+    // A page definition declares `actions:` too, beside its `layout:` — that file is a page, not a
+    // catalogue, and without this the two branches both matched and the oneOf rejected the page.
+    var notAPage = envelope.putObject("not").putArray("anyOf");
+    notAPage.addObject().putArray("required").add("layout");
+    notAPage.addObject().putArray("required").add("layoutDelta");
     return envelope;
   }
 
@@ -868,6 +875,92 @@ public final class UidlSchemaGenerator {
     var typeList = MAPPER.createObjectNode().put("type", "array");
     typeList.putObject("items").put("$ref", "#/$defs/FieldTypeEntry");
 
+    // A route's `data:`/`appData:` is usually just the NAME of a sources.yaml entry (RouteRegistry
+    // reads a string as RestDataSource.ref); the record says RestDataSource, so the reflected
+    // schema
+    // rejected the documented shorthand `data: swapi-person` in every editor.
+    allowSourceShorthand((ObjectNode) defs.get("RouteEntry").get("properties"));
+
+    // A page definition in its ENVELOPE form: `layout:` (or `layoutDelta:`) beside the page's own
+    // keys, no `type` at the root — the shape routes.yaml entries point at and the New › Page
+    // wizards' definition files use. YamlUidlLoader.layoutOf reads `layout` when present, so
+    // without
+    // this branch every such file was flagged as invalid.
+    var pageEnvelope = MAPPER.createObjectNode().put("type", "object");
+    pageEnvelope.put(
+        "description",
+        "A page definition as an envelope: the component tree under `layout:` (or a `layoutDelta:`"
+            + " over the inferred layout) beside the page's own keys.");
+    var envelopeProps = pageEnvelope.putObject("properties");
+    envelopeProps
+        .putObject("layout")
+        .put("$ref", "#/$defs/Component")
+        .put("description", "The page's component tree.");
+    var deltaGen = new UidlSchemaGenerator();
+    deltaGen.defineValueRecord(io.mateu.uidl.data.LayoutDelta.class);
+    deltaGen.defineValueRecord(io.mateu.uidl.data.LayoutDelta.FieldOverride.class);
+    deltaGen.defs.forEach(defs::putIfAbsent);
+    if (defs.get("LayoutDelta") instanceof ObjectNode deltaDef
+        && deltaDef.get("properties") instanceof ObjectNode deltaProps) {
+      deltaProps
+          .putObject("overrides")
+          .put("type", "object")
+          .put("description", "Field id → what a human changed about it.")
+          .putObject("additionalProperties")
+          .put("$ref", "#/$defs/FieldOverride");
+    }
+    envelopeProps
+        .putObject("layoutDelta")
+        .put("$ref", "#/$defs/LayoutDelta")
+        .put(
+            "description",
+            "What a human changed about the INFERRED layout (field order, hidden fields, per-field"
+                + " label/colspan/section), anchored to field ids — the alternative to `layout:`.");
+    pageProps
+        .fields()
+        .forEachRemaining(e -> envelopeProps.set(e.getKey(), e.getValue().deepCopy()));
+    var envelopeRequired = pageEnvelope.putArray("anyOf");
+    envelopeRequired.addObject().putArray("required").add("layout");
+    envelopeRequired.addObject().putArray("required").add("layoutDelta");
+    pageEnvelope.putObject("not").putArray("required").add("type");
+
+    // A partial standing for SEVERAL components (specs/ui/partials/<name>.yaml): a `content:` list
+    // and nothing else (PartialRegistry splices it into the parent). A single-component partial is
+    // just that component, already covered by the component branch.
+    var partialEnvelope = MAPPER.createObjectNode().put("type", "object");
+    partialEnvelope.put(
+        "description",
+        "A partial (specs/ui/partials/) standing for several components, spliced where a"
+            + " `type: Partial` names it.");
+    partialEnvelope
+        .putObject("properties")
+        .putObject("content")
+        .put("type", "array")
+        .putObject("items")
+        .put("$ref", "#/$defs/Component");
+    partialEnvelope.putArray("required").add("content");
+    partialEnvelope.putObject("not").putArray("required").add("type");
+
+    // The business component catalogue (specs/ui/components.yaml): a `components:` envelope of
+    // {name, component} (ComponentRegistry.authoredFrom; it ignores `type`, so Components is
+    // optional).
+    var components = MAPPER.createObjectNode().put("type", "object");
+    components.put(
+        "description",
+        "The business component catalogue (specs/ui/components.yaml): named, bound compositions a"
+            + " `type: ComponentRef` names.");
+    // No `type` discriminator: the loader reads only the conventional file, by its `components:`
+    // envelope (like a partial's `content:`), so there is no New-file kind keyed by a type.
+    var componentsProps = components.putObject("properties");
+    var componentEntry =
+        componentsProps.putObject("components").put("type", "array").putObject("items");
+    componentEntry.put("type", "object");
+    var componentEntryProps = componentEntry.putObject("properties");
+    componentEntryProps.putObject("name").put("type", "string");
+    componentEntryProps.putObject("component").put("$ref", "#/$defs/Component");
+    componentEntry.putArray("required").add("name").add("component");
+    components.putArray("required").add("components");
+
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);
     oneOf.add(routesEnvelope);
@@ -879,6 +972,9 @@ public final class UidlSchemaGenerator {
     oneOf.add(typesEnvelope(typeList));
     oneOf.add(projectDescriptor(defs));
     oneOf.add(pageDefinition); // app shell / page
+    oneOf.add(pageEnvelope); // a page as `layout:` / `layoutDelta:` + its own keys
+    oneOf.add(partialEnvelope); // a multi-component partial
+    oneOf.add(components); // the business component catalogue
     root.set("oneOf", oneOf);
 
     root.put("$id", "https://mateu.io/uidl/specs-schema.json");
@@ -891,9 +987,30 @@ public final class UidlSchemaGenerator {
             + " catalogue, a `type: Translations` message catalogue, a `type: Environment` source"
             + " overlay, a `type: Types` field type catalogue, the `type: Project` project"
             + " descriptor (specs/ui/project.yaml), or a component definition"
-            + " (`type: AppShell` app shell / a page). The `type` field selects the branch."
+            + " (`type: AppShell` app shell / a page — bare, or as a `layout:`/`layoutDelta:`"
+            + " envelope), a multi-component partial (`content:`) or the business component"
+            + " catalogue (`components:`). The `type` field selects the branch."
             + " GENERATED by UidlSchemaGenerator — do not edit by hand.");
     return root;
+  }
+
+  /**
+   * A route's {@code data}/{@code appData} accept the NAME of a source catalogue entry as well as
+   * the full descriptor (RouteRegistry reads a string as {@code RestDataSource.ref}).
+   */
+  private static void allowSourceShorthand(ObjectNode routeEntryProps) {
+    for (var key : List.of("data", "appData")) {
+      if (routeEntryProps.get(key) instanceof ObjectNode declared) {
+        var either = MAPPER.createObjectNode();
+        var anyOf = either.putArray("anyOf");
+        anyOf
+            .addObject()
+            .put("type", "string")
+            .put("description", "The name of a sources.yaml entry.");
+        anyOf.add(declared.deepCopy());
+        routeEntryProps.set(key, either);
+      }
+    }
   }
 
   /**

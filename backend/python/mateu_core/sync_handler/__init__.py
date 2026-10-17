@@ -207,6 +207,10 @@ class SyncHandler(
         self.yaml_specs.action_catalog = self.action_catalog
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
+        # "__load__" is the documented load action (Java treats it as the route load; the Redwood
+        # renderer boots with it): answered "Action not found" here, Redwood rendered nothing.
+        if rq.action_id == "__load__":
+            rq = rq.model_copy(update={"action_id": ""})
         # A route (routes.yaml) may seed state/appState/data/appData. `state` folds into the
         # component state at resolution (see below), but the other three are applied on the
         # RESPONSE side, so the matched entry is stashed for this request and read back when the

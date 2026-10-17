@@ -499,3 +499,65 @@ public class MeasurementsListing : IListing<Measurement>
 {
     public ListingData<Measurement> Search(SearchRequest request) => ListingData.From(new List<Measurement>());
 }
+
+/// <summary>The canonical header's previous/next record links (PageMetadataDto.PeerNav).</summary>
+[UI("conformance/peer-nav"), Title("Record 2")]
+public class PeerNavPage : IPeerNavigationSupplier
+{
+    public string? Name { get; set; } = "Two";
+
+    public PeerNav? Peers() => new("Record 1", "/records/1", "Record 3", "/records/3");
+}
+
+/// <summary>The content slot of an app that declares only menu items (request.json: the
+/// "_no_home_route" sentinel loaded against the app type).</summary>
+[UI("conformance/app-no-home"), App("No home app")]
+public class NoHomeApp
+{
+    [MenuItem("Orders")]
+    public void Orders() { }
+}
+
+/// <summary>A card menu authored in code: a group shown as CARDS, each entry a card with its
+/// description, its own entries the card's actions — mirrors the Java CardMenuApp fixture.</summary>
+[UI("conformance/card-menu"), App("Card menu")]
+public class CardMenuApp : IAppSupplier
+{
+    public AppShell GetApp() => new("Card menu", new List<MenuItemDto>
+    {
+        new("Bookings", "/b", "")
+        {
+            Display = "cards",
+            Submenus = new List<MenuItemDto>
+            {
+                new("Reservations", "/b/r", "") { Description = "Search and modify reservations" },
+            },
+        },
+        new("Plain", "/plain", ""),
+    })
+    {
+        HomeRoute = "/plain",
+        Variant = AppVariant.HamburgerMenu,
+    };
+}
+
+/// <summary>The app-level shell extras as flags: command center, notification bell, global search.</summary>
+[UI("conformance/app-extras"), App("Extras app", CommandCenter = true)]
+public class ExtrasApp : INotificationsSupplier, IGlobalSearchSupplier
+{
+    [MenuItem("Home")]
+    public void Home() { }
+
+    public IReadOnlyList<AppNotification> Notifications() => [];
+
+    public void MarkNotificationsRead(IReadOnlyList<string> ids) { }
+
+    public IReadOnlyList<GlobalSearchResult> GlobalSearch(string searchText) => [];
+}
+
+/// <summary>The welcome banner: a centered HeroSection whose title falls back to the page title.</summary>
+[UI("conformance/welcome-banner"), Title("Onboarding"), WelcomeBanner(Subtitle = "Three steps and you are done")]
+public class WelcomeBannerPage
+{
+    public string? Name { get; set; } = "";
+}

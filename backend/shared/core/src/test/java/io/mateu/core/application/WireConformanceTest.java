@@ -121,6 +121,18 @@ class WireConformanceTest {
     public String notes = "";
   }
 
+  /**
+   * The Redwood welcome banner: a centered HeroSection (id "welcome-banner") prepended to the page
+   * content, its title falling back to the page title when the banner declares none.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/welcome-banner")
+  @Title("Onboarding")
+  @io.mateu.uidl.annotations.WelcomeBanner(subtitle = "Three steps and you are done")
+  public static class WelcomeBannerPage {
+    public String name = "";
+  }
+
   /** Consecutive fields under the same @Tab label group into one tab of a TabLayout strip. */
   @SuppressWarnings("unused")
   @UI("/conformance/tabs")
@@ -277,6 +289,88 @@ class WireConformanceTest {
 
     @Panel(title = "Notes", subtitle = "Today")
     public io.mateu.uidl.data.Text notes = new io.mateu.uidl.data.Text("All systems nominal");
+  }
+
+  /**
+   * A card menu authored in code: a group that opens as a panel of CARDS (display "cards"), each
+   * entry a card with its description, its own entries the card's actions.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/card-menu")
+  @Title("Card menu")
+  public static class CardMenuApp implements AppSupplier {
+
+    @Override
+    public AppShell getApp(HttpRequest httpRequest) {
+      var reservations =
+          new RouteLink(
+              "/b/r",
+              "/b/r",
+              "Reservations",
+              null,
+              false,
+              null,
+              null,
+              false,
+              false,
+              null,
+              null,
+              null,
+              "Search and modify reservations",
+              null,
+              false);
+      return AppShell.builder()
+          .title("Card menu")
+          .homeRoute("/plain")
+          .variant(AppVariant.HAMBURGER_MENU)
+          .menu(
+              List.of(
+                  new Menu(
+                      "/b",
+                      "Bookings",
+                      List.of(reservations),
+                      false,
+                      null,
+                      null,
+                      false,
+                      false,
+                      null,
+                      null,
+                      false,
+                      io.mateu.uidl.data.MenuPresentation.cards()),
+                  new RouteLink("/plain", "Plain")))
+          .build();
+    }
+  }
+
+  /**
+   * The app-level shell extras as flags on the app metadata: the command center (an always-present
+   * palette FAB), the notification bell (an app implementing NotificationsSupplier) and the global
+   * entity search (GlobalSearchSupplier).
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/app-extras")
+  @Title("Extras app")
+  @io.mateu.uidl.annotations.App(commandCenter = true)
+  public static class ExtrasApp
+      implements io.mateu.uidl.interfaces.NotificationsSupplier,
+          io.mateu.uidl.interfaces.GlobalSearchSupplier {
+
+    @io.mateu.uidl.annotations.Menu public String home = "/a";
+
+    @Override
+    public List<io.mateu.uidl.data.AppNotification> notifications(HttpRequest httpRequest) {
+      return List.of();
+    }
+
+    @Override
+    public void markNotificationsRead(List<String> ids, HttpRequest httpRequest) {}
+
+    @Override
+    public List<io.mateu.uidl.data.GlobalSearchResult> globalSearch(
+        String searchText, HttpRequest httpRequest) {
+      return List.of();
+    }
   }
 
   /** An app whose shell and its whole menu are composed IN CODE via {@link AppSupplier}. */
@@ -763,6 +857,43 @@ class WireConformanceTest {
     }
   }
 
+  /** The canonical header's previous/next record links (PageDto.peerNav). */
+  @UI("/conformance/peer-nav")
+  @Title("Record 2")
+  public static class PeerNavPage implements io.mateu.uidl.interfaces.PeerNavigationSupplier {
+    public String name = "Two";
+
+    @Override
+    public io.mateu.uidl.data.PeerNav peers(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.PeerNav("Record 1", "/records/1", "Record 3", "/records/3");
+    }
+  }
+
+  /**
+   * The content slot of an app that declares only menu items: the shell's home is the
+   * "_no_home_route" sentinel and the browser loads it against the app type (request.json).
+   */
+  /**
+   * The screen NoHomeApp's menu leads to (a typed @Menu leaf: no value rides in the app's state).
+   */
+  @UI("/conformance/app-no-home/orders")
+  public static class NoHomeOrders {
+    public String note = "orders";
+  }
+
+  @UI("/conformance/app-no-home")
+  public static class NoHomeApp {
+    @io.mateu.uidl.annotations.Menu NoHomeOrders orders;
+  }
+
+  /**
+   * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
+   * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
+   * request to the case's fixture type instead of the first load. Identical in the three runners.
+   */
+  private static final java.util.Map<String, Class<?>> REQUESTED =
+      java.util.Map.of("app-no-home-content", NoHomeApp.class);
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -795,7 +926,12 @@ class WireConformanceTest {
           "listing-filters",
           "listing-navigable",
           "crud-grouped",
-          "listing-columns");
+          "listing-columns",
+          "peer-nav",
+          "app-no-home-content",
+          "card-menu",
+          "app-extras",
+          "welcome-banner");
 
   static TestMateu mateu;
 
@@ -833,7 +969,12 @@ class WireConformanceTest {
             FilteredBooks.class,
             NavigableBooks.class,
             SalesCrud.class,
-            MeasurementsListing.class);
+            MeasurementsListing.class,
+            PeerNavPage.class,
+            NoHomeApp.class,
+            CardMenuApp.class,
+            ExtrasApp.class,
+            WelcomeBannerPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -886,16 +1027,25 @@ class WireConformanceTest {
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {
+    return normalise(node, false);
+  }
+
+  /**
+   * An ACTION's id is not volatile: it is the name the client sends, so a missing or renamed action
+   * is a contract break. Dropped with every generated id, the ports' CRUD forms shipped with dead
+   * Save/Edit buttons that no case noticed.
+   */
+  static JsonNode normalise(JsonNode node, boolean inActions) {
     if (node.isObject()) {
       var out = MAPPER.createObjectNode();
       var names = new java.util.TreeSet<String>();
       node.fieldNames().forEachRemaining(names::add);
       for (var name : names) {
         if (VOLATILE.contains(name)
-            && !(Boolean.getBoolean("conformance.keepIds") && name.equals("id"))) {
+            && !(name.equals("id") && (inActions || Boolean.getBoolean("conformance.keepIds")))) {
           continue;
         }
-        var value = normalise(node.get(name));
+        var value = normalise(node.get(name), name.equals("actions"));
         if (isDefault(value)) {
           continue; // absent and default mean the same thing to a renderer
         }
@@ -905,7 +1055,7 @@ class WireConformanceTest {
     }
     if (node.isArray()) {
       ArrayNode out = MAPPER.createArrayNode();
-      node.forEach(child -> out.add(normalise(child)));
+      node.forEach(child -> out.add(normalise(child, inActions)));
       return out;
     }
     return node;
@@ -945,6 +1095,30 @@ class WireConformanceTest {
           "listing-navigable", NavigableBooks.class);
 
   private static JsonNode actual(String route) {
+    var requested = REQUESTED.get(route);
+    var requestFile = corpus().resolve(route).resolve("request.json");
+    if (requested != null && Files.exists(requestFile)) {
+      try {
+        var request = MAPPER.readTree(Files.readString(requestFile));
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> state =
+            request.has("componentState")
+                ? MAPPER.convertValue(request.get("componentState"), java.util.Map.class)
+                : java.util.Map.of();
+        return roundTrip(
+            mateu.run(
+                io.mateu.dtos.RunActionRqDto.builder()
+                    .route(request.path("route").asText(""))
+                    .consumedRoute(
+                        request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
+                    .actionId(request.path("actionId").asText(""))
+                    .serverSideType(requested.getName())
+                    .componentState(state)
+                    .build()));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
     var path = "/conformance/" + route;
     var mediated = MEDIATED.get(route);
     var increment =

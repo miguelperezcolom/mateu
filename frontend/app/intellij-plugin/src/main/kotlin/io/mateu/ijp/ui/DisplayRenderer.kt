@@ -50,7 +50,9 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
 fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(4)
     panel.border = JBUI.Borders.empty(28)
-    val icon = metadata.text("icon")
+    // An emoji glyph shows; a web icon token ("vaadin:list-select") is not a glyph — it printed as
+    // raw text above the title.
+    val icon = metadata.text("icon").takeUnless { it.contains(':') }.orEmpty()
     if (icon.isNotBlank()) panel.addStacked(JBLabel(icon, SwingConstants.CENTER).apply { font = font.deriveFont(28f) }, 4)
     val title = metadata.text("title")
     if (title.isNotBlank()) panel.addStacked(JBLabel(title, SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
@@ -1077,6 +1079,10 @@ fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
         for (item in group.arr("items")) {
             val id = item.text("id")
             val card = verticalPanel(2)
+            // The border BEFORE the card is stacked: addStacked caps its height at the preferred
+            // height it has then, and restyle() adding the 9px frame afterwards clipped the caption
+            // line (both frames — selected and not — are 9px a side, so the cap stays right).
+            card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(8))
             card.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
             val foot = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
             val caption = item.text("caption")
