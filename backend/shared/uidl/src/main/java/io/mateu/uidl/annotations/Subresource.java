@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * the row count on the tab ("Subnets 12").
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface Subresource {
 
   /** When a sub-listing is fetched. */

@@ -40,7 +40,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Navigation & Menus](./navigation) | ✅ Implemented | `@App(AppVariant.*)`, `⌘K` command palette |
 | [Split View](./split-view) | ✅ Implemented | `@SplitCrud` |
 | [Tree CRUD](./tree-crud) | ✅ Implemented | `gridLayout() = GridLayout.tree`, `@SplitCrud` |
-| [Filters & Listing](./filters-and-listing) | ✅ Implemented | `@List`, `@Filterable`, `ColumnActionGroup` |
+| [Filters & Listing](./filters-and-listing) | ✅ Implemented | `AutoCrud` / `Listing`, `@Filterable`, `ColumnActionGroup` |
 | [Bulk actions](./bulk-actions) | ✅ Implemented | `@ListToolbarButton` + typed `List<Row>` selection |
 | [Saved views](./saved-views) | ✅ Implemented | Smart search bar bookmark — named condition sets, default view |
 | [Totals & row grouping](./aggregates) | ✅ Implemented | `@Aggregate(sum/avg/…)` footer + `@GroupBy` subtotal rows |
