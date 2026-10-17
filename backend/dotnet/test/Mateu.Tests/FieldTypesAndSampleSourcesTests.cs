@@ -93,7 +93,7 @@ public class FieldTypesAndSampleSourcesTests
     public void Each_target_takes_only_its_own_attributes_and_the_reference_never_reaches_the_wire()
     {
         var catalog = FieldTypeRegistry.AuthoredFrom(Dir);
-        Assert.Equal(["OrderStatus", "Money", "Email"], catalog.Types.Select(t => t.Id));
+        Assert.Equal(["OrderStatus", "Money", "Email", "Zip"], catalog.Types.Select(t => t.Id));
 
         var column = FieldTypeResolver.Apply(
             new Dictionary<object, object> { ["type"] = "GridColumn", ["id"] = "status", ["fieldType"] = "OrderStatus" }, catalog);
@@ -115,6 +115,19 @@ public class FieldTypesAndSampleSourcesTests
         Assert.Equal("Amount", money["label"]);
         Assert.Equal("money", money["dataType"]);
         Assert.Equal("end", money["align"]);
+    }
+
+    [Fact]
+    public void A_types_file_under_any_name_is_discovered_by_its_header()
+    {
+        // catalogs/more-types.yaml declares `type: Types`: found like a `type: Actions` file. Before,
+        // only <dir>/types.yaml was read and a file created under another name was ignored.
+        var zip = FieldTypeRegistry.AuthoredFrom(Dir).Get("Zip");
+        Assert.NotNull(zip);
+        Assert.Equal("Postal code", zip!.Label);
+        Assert.Equal("00000", zip.Placeholder);
+        // the conventional file is read first; a file found by its header comes after it
+        Assert.Equal("Zip", FieldTypeRegistry.AuthoredFrom(Dir).Types.Last().Id);
     }
 
     [Fact]

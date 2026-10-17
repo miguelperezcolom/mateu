@@ -3,6 +3,8 @@ import { customElement, property, state, query } from 'lit/decorators.js'
 import { parse } from 'yaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
+import { resolveForCanvas } from '../model/canvasReferences'
+import type { ProjectFile } from '../model/projectIndex'
 import '@infra/ui/mateu-ux.ts'
 
 /** The width a screen is laid out at before it is shrunk into its card: a laptop, so it reads as one. */
@@ -30,6 +32,8 @@ export class BoardPreview extends LitElement {
     @property() content = ''
     @property() baseUrl = ''
     @property({ type: Boolean }) clientRender = false
+    /** The mount's files: partials, component refs and `${i18n.…}` of an offline miniature resolve from them. */
+    @property({ attribute: false }) files: ProjectFile[] = []
     @property() theme: 'light' | 'dark' = 'light'
     /** Changes when the renderer does, so the miniature repaints in the new design system. */
     @property() renderer = ''
@@ -104,7 +108,7 @@ export class BoardPreview extends LitElement {
         }
         if (!isClientExpandable(spec)) { this.msg = 'Needs its view model — preview it with a backend'; return undefined }
         try {
-            return expandDefinition(spec, 'preview')?.fragments?.[0]
+            return expandDefinition(resolveForCanvas(spec, this.files) as DefinitionSpec, 'preview')?.fragments?.[0]
         } catch (e: any) {
             this.msg = e?.message ?? String(e)
             return undefined

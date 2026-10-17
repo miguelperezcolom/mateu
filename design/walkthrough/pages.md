@@ -70,7 +70,7 @@ Columns: **Java** (annotations/fluent, served — mvc + the 4 other adapters for
 |---|---|---|---|---|---|---|---|---|---|---|
 | EntityHeader, Text sizes, Separator, BulletedList, Faq, Testimonials, Skeleton, Meter, Funnel, Heatmap, TrendChart, ComparisonCard, Scoreboard/MetricCard, DashboardLayout/Panel, HeroSection | ✅ | ✅ sync | ✅ bundle + expander | ✅ display-gallery.spec | ✅ test-display + VB | 🔧 #14 | 🔧 #14 | ✅ expo web | ✅ probe (❌ layout, see below) | ✅ palette (schema-derived) |
 | Markdown, Image, Badge, Avatar, AvatarGroup, Chart, Bpmn, ProgressBar | ✅ (🔧 #16 ids) | ✅ | ✅ | ✅ (🔧 #5) | ✅ | 🔧 #15 | 🔧 #15 | ✅ (🔧 #24) | ✅ (🔧 #20) | ✅ |
-| Card | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ no Python fluent `Card` (its CardMetadata takes a string title, Java's a component — owner: align it?) | ✅ | ✅ | ✅ |
+| Card | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🔧 batch 1, decision 10: Python fluent `Card` with Java's component slots | ✅ | ✅ | ✅ |
 | Notice (action + content) | ✅ | ✅ | 🔧 #2 | ✅ | 🔧 #11 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | MatrixGrid (link + edit, sections) | ✅ | ✅ | 🔧 #2 | ✅ link + edit round trip | ✅ renders; ⏳ VB edit | ✅ | ✅ | ✅ link | ✅ (`MatrixGridsTest`; keeps its height on long pages — `StackedCanvasHeightsRenderTest`) | ✅ |
 | PlanningBoard (select, drag/move) | ✅ | ✅ | ✅ | ✅ select + drag | ✅ renders; ⏳ VB drag | ✅ | ✅ | 🔧 #25 select | ✅ renders/drags (`PlanningDragTest`; height pinned — `StackedCanvasHeightsRenderTest`) | ✅ |
@@ -103,7 +103,7 @@ Now content-height canvases (`ContentHeightScrollPane`), pinned by `StackedCanva
 | `@WelcomeBanner` | ✅ | N/A | N/A | ✅ | 🔧 #12 keeps the form | ⏳ | ⏳ |
 | Page width / page type | ✅ archetypes.spec | ⏳ | ⏳ | ✅ data-page-width/type | ⏳ | ⏳ | ⏳ |
 | `@AutoPage` | 🔧 #23 (+ window title #7) | N/A | N/A | ✅ | ⏳ | ⏳ | ⏳ |
-| Visible heading on composed archetypes | ❌ Dashboard / SmartSearchPage / ItemOverview render no page heading on **Vaadin** (GanttPage/DataManagement compose one; Redwood now shows the window title, #17) — owner: should Vaadin show it too? The smart-search doc says "an intro line under the page title" |
+| Visible heading on composed archetypes | 🔧 batch 1, decision 9: Vaadin shows the window title as the heading of composed archetypes (`composedHeading.ts`), like Redwood (#17) |
 
 ### Archetypes (Java, served)
 
@@ -135,7 +135,7 @@ Now content-height canvases (`ContentHeightScrollPane`), pinned by `StackedCanva
 - `reference/parity.md`: "Nothing on the server surface remains Java-only" — eight display components were Java-only (#15); Python still lacks a fluent `Card`.
 - `reference/parity.md`: "YAML pages … ✅ ✅ ✅" — the ports rendered every display component of a YAML page as "Unsupported component" (#14).
 - `conformance/cases/{dashboard,notice,status-list}/case.md`: "Known divergence" sections predicted port xfails that no longer exist (rewritten).
-- `ux-patterns/smart-search.md`: "an optional intro line under the page title" — no page title on Vaadin (❌ above).
+- `ux-patterns/smart-search.md`: "an optional intro line under the page title" — true again since batch 1, decision 9 (Vaadin composes the heading).
 
 ## Notes for other areas
 

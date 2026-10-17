@@ -2,7 +2,9 @@
 // non-interactively from a clean checkout:
 //   - LICENSE           ← repo-root LICENSE.txt (vsce warns/prompts without one)
 //   - schema/specs-schema.json ← backend/shared/uidl/specs-schema.json (the generated authoring
-//                         schema, contributed through `yamlValidation` for specs/ui/**)
+//                         schema, contributed through `yamlValidation` for specs/ui/**) with its
+//                         polymorphic families rewritten as `type` dispatches — the shape
+//                         yaml-language-server validates in milliseconds (scripts/schema-dispatch.mjs)
 //   - templates/        ← the New › Mateu catalogue + skeletons (intellij-plugin resources)
 //   - starters/         ← repo starters/ (the New Project templates + starters/generator)
 //   - media/            ← the shared visual-editor web bundle. Built fresh from
@@ -10,10 +12,11 @@
 //                         otherwise copied from the bundle committed in the IntelliJ plugin
 //                         (src/main/resources/visual-editor — the exact same `dist/`).
 // All of them are gitignored: the sources of truth live elsewhere in the repo.
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { dispatchByType, dispatchedFamilyNames } from './schema-dispatch.mjs'
 
 const here = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const repo = resolve(here, '../../..')
@@ -25,8 +28,16 @@ function copy(from, to) {
     console.log(`prepackage: ${from.replace(repo + '/', '')} -> ${to.replace(here + '/', '')}`)
 }
 
+function stageSchema(from, to) {
+    if (!existsSync(from)) throw new Error(`prepackage: missing ${from}`)
+    const schema = JSON.parse(readFileSync(from, 'utf8'))
+    mkdirSync(dirname(to), { recursive: true })
+    writeFileSync(to, JSON.stringify(dispatchByType(schema), null, 2))
+    console.log(`prepackage: ${from.replace(repo + '/', '')} -> ${to.replace(here + '/', '')} (type dispatch: ${dispatchedFamilyNames(schema).join(', ')})`)
+}
+
 copy(join(repo, 'LICENSE.txt'), join(here, 'LICENSE'))
-copy(join(repo, 'backend/shared/uidl/specs-schema.json'), join(here, 'schema/specs-schema.json'))
+stageSchema(join(repo, 'backend/shared/uidl/specs-schema.json'), join(here, 'schema/specs-schema.json'))
 
 // New › Mateu: the file-kind catalogue and the skeletons, shared with the IntelliJ plugin (its
 // resources are the single source of truth; see src/newFiles.ts).

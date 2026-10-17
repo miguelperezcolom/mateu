@@ -43,6 +43,12 @@ status badge's tone per value (`success | warning | danger | info | neutral`, th
 the generated `types-schema.json` (and the `type: Types` branch of `specs-schema.json`), so an IDE
 validates and completes it.
 
+**Where the file lives**: `specs/ui/types.yaml` by convention (its `type:` header optional), plus
+**any file under `specs/ui` that declares `type: Types`**, whatever its name — what New › Mateu ›
+Field Types writes anywhere in the tree works. Files are read in discovery order (the conventional
+one first) and a later file's entry replaces an earlier one of the same id, exactly like the
+[action catalogue](/concepts/action-catalogue/). Same rule in Java, .NET and Python.
+
 ## Referencing a type
 
 ```yaml

@@ -346,7 +346,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
     /// while a component, an inherited <c>object.ToString</c> and a record's compiler-generated
     /// <c>Name { A = 1 }</c> (a field dump, not a name) fall back to the humanized class name.
     /// A record's text is DATA, not a template: its <c>${</c> is escaped.</summary>
-    internal string TitleOf(Type type, object? instance)
+    public string TitleOf(Type type, object? instance)
     {
         var actual = instance?.GetType() ?? type;
         if (actual.Find<TitleAttribute>() is { } declared) return T(declared.Value);

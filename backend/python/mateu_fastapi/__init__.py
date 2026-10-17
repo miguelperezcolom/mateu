@@ -27,7 +27,8 @@ from starlette.concurrency import run_in_threadpool
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_core.identity import framework_identity_provider, warn_on_startup
-from mateu_core import dev_specs, documents, mobile_manifest
+from mateu_core import dev_specs, documents, mobile_manifest, ui_page
+from mateu_core.naming import humanize
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
 from mateu_uidl import Identity
@@ -102,6 +103,7 @@ def add_mateu(
     environment: str | None = None,
     live_reload: bool | None = None,
     mcp: bool | None = None,
+    ui: str | os.PathLike[str] | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -127,6 +129,12 @@ def add_mateu(
     - ``mcp`` — serve the native MCP endpoint ``POST /mateu/mcp`` (default: the
       ``MATEU_MCP_ENABLED`` env var, else OFF — Java's ``mateu.mcp.enabled``). It gives any caller a
       programmatic way to drive every screen, so the application has to decide to expose it.
+    - ``ui`` — serve a web renderer's page too, like a Java app does: the ``static/`` folder of the
+      ``io.mateu:mateu-vaadin`` (or ``mateu-redwood``) jar, or the jar itself (default: the
+      ``MATEU_UI`` env var; neither → the sync API only). The page answers the mount and every deep
+      link under it, the renderer's assets are served at the origin root, and nothing under
+      ``/mateu`` is ever answered with the page. Your own routes keep winning: the page only answers
+      what nothing else did.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -371,7 +379,92 @@ def add_mateu(
     if dev_specs.enabled() if live_reload is None else live_reload:
         dev_specs.enable(True)
         _add_dev_endpoints(app)
+
+    renderer = ui_page.configured_renderer(ui)
+    if renderer is not None:
+        app_type = registry.app_type
+        title = (
+            (
+                getattr(app_type, "__mateu_app__", None)
+                or getattr(app_type, "__mateu_title__", None)
+                or humanize(app_type.__name__)
+            )
+            if app_type is not None
+            else "Mateu"
+        )
+        app.add_middleware(
+            MateuUiMiddleware, renderer=renderer, base_url=prefix, title=str(title), debug=show_details
+        )
+        log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
     return handler
+
+
+class MateuUiMiddleware:
+    """Serves a web renderer's page and assets for whatever the app itself did not answer — the
+    ASGI twin of Java's index controller + ``SpaRedirectFilter``.
+
+    Pure ASGI, not ``BaseHTTPMiddleware``: it only looks at a GET/HEAD it could answer, lets the
+    app run first and steps in when the app answered 404 (so an app's own routes, and the sync
+    API, always win), and never touches a streamed response (the SSE endpoints pass through
+    untouched). What it answers: a file of the renderer at the origin root (``/assets/…``), the
+    renderer's page at the mount and at any deep link under it that accepts HTML and names no
+    file; nothing under ``/mateu`` (an API miss stays a 404, never the page)."""
+
+    def __init__(self, app, renderer: ui_page.RendererFiles, base_url: str, title: str, debug: bool = False):
+        self.app = app
+        self.renderer = renderer
+        # the mount as a path ("" for the root, "/shop" otherwise), whatever spelling it was given in
+        mount = base_url.strip("/")
+        self.base_url = "/" + mount if mount else ""
+        self.title = title
+        self.debug = debug
+
+    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+        """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
+        or None when the request is not ours."""
+        if path != "/" and "." in path.rsplit("/", 1)[-1]:
+            body = self.renderer.read(path)
+            if body is None:
+                return None
+            return ui_page.content_type_of(path), body, ui_page.cache_control_for(path)
+        is_mount = path == (self.base_url or "/") or path == self.base_url + "/"
+        if not (is_mount or (ui_page.spa_candidate(path) and ui_page.under_mount(path, self.base_url))):
+            return None
+        if not ui_page.accepts_html(accept):
+            return None
+        html = ui_page.render_index(self.renderer.index_template(), self.base_url, self.title, self.debug)
+        return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope.get("method") not in ("GET", "HEAD"):
+            await self.app(scope, receive, send)
+            return
+        accept = next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept"), None)
+        answer = self.answer(scope["path"], accept)
+        if answer is None:
+            await self.app(scope, receive, send)
+            return
+        state = {"started": False, "swallow": False}
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start" and not state["started"]:
+                state["started"] = True
+                if message["status"] == 404:
+                    state["swallow"] = True
+                    return
+            if state["swallow"]:
+                return
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+        if not state["swallow"]:
+            return
+        content_type, body, cache_control = answer
+        headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
+        if cache_control:
+            headers.append((b"cache-control", cache_control.encode("latin-1")))
+        await send({"type": "http.response.start", "status": 200, "headers": headers})
+        await send({"type": "http.response.body", "body": b"" if scope["method"] == "HEAD" else body})
 
 
 def _add_dev_endpoints(app: FastAPI) -> None:
@@ -411,4 +504,4 @@ def _add_dev_endpoints(app: FastAPI) -> None:
     app.add_api_route(dev_specs.RELOAD_PATH, reload, methods=["POST"])
 
 
-__all__ = ["CORRELATION_HEADER", "add_mateu"]
+__all__ = ["CORRELATION_HEADER", "MateuUiMiddleware", "add_mateu"]

@@ -294,6 +294,26 @@ class Things(Crud[Thing]):
         return [a, b]
 
 
+class NamedThing:
+    """A record that names itself (its own __str__)."""
+
+    id: str = ""
+    name: str = ""
+
+    def __str__(self) -> str:
+        return f"Thing {self.name}"
+
+
+@ui("named-things")
+@title("Named things")
+class NamedThings(Crud[NamedThing]):
+    def fetch(self, search):
+        a, b = NamedThing(), NamedThing()
+        a.id, a.name = "1", "Alpha"
+        b.id, b.name = "2", "Beta"
+        return [a, b]
+
+
 class BookingChannel(Enum):
     WEB = "WEB"
     PHONE = "PHONE"
@@ -2613,3 +2633,22 @@ def test_an_error_message_stays_until_dismissed():
     assert inc.messages[0].duration == 0
     ok = handler().map_result(Message("Fine", duration=4000), None)
     assert ok.messages[0].duration == 4000
+
+
+def test_a_record_page_is_titled_by_the_record_as_in_java():
+    # Java's CrudFormComponentBuilder titles the view/edit/new page with the ENTITY (its @title, a
+    # __str__ it declares, else its class name); the port used the crud's title ("Things").
+    def titles(inc):
+        page = inc.fragments[0].component
+        window = next((c.data for c in inc.commands if c.type == "SetWindowTitle"), None)
+        return page.children[0].metadata.title, window
+
+    h = handler()
+    assert titles(h.handle(RunActionRq(route="named-things/1/edit"))) == ("Thing Alpha", "Thing Alpha")
+    assert titles(h.handle(RunActionRq(route="named-things/2")))[0] == "Thing Beta"
+    # a record that does not name itself: its class name, not the crud's title
+    assert titles(h.handle(RunActionRq(route="things/1/edit"))) == ("Thing", "Thing")
+    # @title on the class wins over everything (Java's rule)
+    from mateu_core.titles import record_title
+
+    assert record_title(Things, Things()) == "Things"

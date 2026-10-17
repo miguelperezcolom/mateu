@@ -51,12 +51,25 @@ uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
 
-This server answers the sync API only — it does not serve a web page of its own. Point a Mateu
-renderer at it: the React Native app (`cd frontend/app/react-native && EXPO_PUBLIC_MATEU_BACKEND_PORT=8594
-npx expo start --web` — or `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that
-origin in its CORS settings), the IntelliJ plugin, or the Vaadin renderer's dev server
-(`MATEU_BACKEND=http://localhost:8594 npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy
-forwards `/mateu` to the backend).
+**Open it in a browser**: the server serves the web renderer's page too when you tell it where the
+renderer is — `add_mateu(app, views, ui="<path>")` or the `MATEU_UI` environment variable, pointing
+at the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar of the version you target, or at its
+extracted `static/` folder. The jar is on Maven Central; `mateu-ui` does not package it:
+
+```bash
+V=3.0-alpha.422
+curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
+MATEU_UI=mateu-vaadin-$V.jar uvicorn samples.demo.main:app --port 8594   # http://localhost:8594
+```
+
+The page answers the mount and every deep link under it, the renderer's assets are served at the
+origin root, your own routes keep winning, and nothing under `/mateu` is ever answered with the
+page — the same rules as a Java app. Without `ui`/`MATEU_UI` the server answers the sync API only,
+for a renderer served elsewhere: the React Native app (`cd frontend/app/react-native &&
+EXPO_PUBLIC_MATEU_BACKEND_PORT=8594 npx expo start --web` — or
+`EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:8594`; the server must list that origin in its CORS
+settings), the IntelliJ plugin, or the Vaadin renderer's dev server (`MATEU_BACKEND=http://localhost:8594
+npm run dev` in `frontend/web/monorepo/apps/vaadin`: its proxy forwards `/mateu` to the backend).
 The server binds to `0.0.0.0`, so the iOS simulator and Android emulator reach it too.
 
 Wire it up:
@@ -589,11 +602,13 @@ so the field markers work on Python 3.11 through 3.14+.
 ## YAML pages: the components this server builds
 
 A `specs/ui/<route>.yaml` page (or a `routes.yaml` entry's `layout:`) is built from YAML by this
-server, which knows a SUBSET of the YAML component catalogue: `VerticalLayout`, `HorizontalLayout`,
-`FormLayout`, `FormField`, `Button`, `Text`, `Form` and `ComponentRef` (plus partials). Any other
-`type:` — `HeroSection`, `Listing`, `Card`… — renders as an "Unsupported component: <type>" text, and
-`type: AppShell` is Java-only. For those screens, declare them in code; the Java server builds the
-whole catalogue from YAML.
+server: every component of the fluent catalogue, read generically off its properties (the YAML keys
+are the component's attributes, camel-cased), plus `Form` pages, partials and `ComponentRef`, and a
+**`type: Listing`** over a REST source (`rowsSource`, `columns`, `filters`, `searchable`,
+`pageSize` — the yaml starter's products page; the renderer fetches the rows itself). A `Button`
+whose `actionable:` is a `RouteLink` navigates. What stays Java-only: `type: AppShell` definitions
+(declare the shell in code here — `IAppSupplier`/`AppSupplier`) and a listing's `rowRoute`. An
+unknown `type:` renders as an "Unsupported component: <type>" text.
 
 ## Partials
 

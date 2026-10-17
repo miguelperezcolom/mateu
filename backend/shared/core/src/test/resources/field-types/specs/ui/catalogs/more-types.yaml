@@ -1,0 +1,8 @@
+# A types file under a name of its own (what New › Mateu › Field Types writes anywhere under
+# specs/ui): discovered by its `type: Types` header, like a `type: Actions` file.
+type: Types
+types:
+  - id: Zip
+    label: Postal code
+    dataType: string
+    placeholder: "00000"

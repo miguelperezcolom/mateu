@@ -24,8 +24,8 @@ Code and the tools that read `AGENTS.md` get the same guidance.
 | [`quarkus`](quarkus) | Quarkus 3, Java 21 | `mvn quarkus:dev` | http://localhost:8080 |
 | [`micronaut`](micronaut) | Micronaut 4, Java 21 | `mvn mn:run` | http://localhost:8080 |
 | [`helidon-mp`](helidon-mp) | Helidon MP 4, Java 21 | `mvn package && java -jar target/mateu-starter-helidon-mp.jar` | http://localhost:8080 |
-| [`dotnet`](dotnet) | ASP.NET Core 8 (C#) | `dotnet run` | sync API on http://localhost:8080 |
-| [`python`](python) | FastAPI (Python 3.11+) | `PYTHONPATH=../../backend/python uvicorn main:app --port 8080` | sync API on http://localhost:8080 |
+| [`dotnet`](dotnet) | ASP.NET Core 8 (C#) | `dotnet run` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |
+| [`python`](python) | FastAPI (Python 3.11+) | `PYTHONPATH=../../backend/python uvicorn main:app --port 8080` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |
 | [`yaml`](yaml) | Spring Boot 4 (MVC) serving YAML only | `mvn spring-boot:run` | http://localhost:8080 |
 | [`static`](static) | none — a static bundle | `mvn package && npx serve -s target/mateu-bundle` | http://localhost:3000 |
 

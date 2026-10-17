@@ -4,6 +4,8 @@ import { join, relative } from 'node:path'
 import Ajv from 'ajv'
 import { parse } from 'yaml'
 import { loadCatalogue, render, templateText, templatesRoot } from './newFiles'
+// @ts-ignore — a plain ESM script shared with scripts/prepackage.mjs (no .d.ts: it runs before tsc)
+import { dispatchByType, dispatchedFamilyNames } from '../scripts/schema-dispatch.mjs'
 
 // The schema this extension contributes to yaml-language-server (package.json `yamlValidation`, staged
 // from backend/shared/uidl/specs-schema.json) must accept every specs/ui file the loader accepts. A
@@ -18,6 +20,10 @@ const repo = join(__dirname, '..', '..', '..', '..')
 const schema = JSON.parse(readFileSync(join(repo, 'backend/shared/uidl/specs-schema.json'), 'utf8'))
 const ajv = new Ajv({ strict: false, allErrors: false })
 const validate = ajv.compile(schema)
+// What this extension actually contributes: the same schema with its polymorphic families as `type`
+// dispatches (scripts/schema-dispatch.mjs) — the shape yaml-language-server validates in milliseconds.
+const staged = dispatchByType(schema)
+const validateStaged = new Ajv({ strict: false, allErrors: false }).compile(staged)
 
 const SKIPPED = new Set(['node_modules', 'target', '.git', 'build', 'dist', 'bin', 'obj', '.venv', 'out', '.idea', '.gradle'])
 
@@ -57,6 +63,7 @@ describe('specs-schema.json accepts what the loader accepts', () => {
             if (doc == null) continue
             checked++
             if (!validate(doc)) failures.push(`${relative(repo, file)}: ${problems(doc)}`)
+            if (!validateStaged(doc)) failures.push(`${relative(repo, file)} (staged type-dispatch variant): ${JSON.stringify(validateStaged.errors?.slice(0, 2))}`)
         }
         expect(checked).toBeGreaterThan(50)
         expect(failures).toEqual([])
@@ -127,5 +134,43 @@ describe('specs-schema.json accepts what the loader accepts', () => {
         }
         expect(checked).toBeGreaterThan(50)
         expect(failures).toEqual([])
+    })
+})
+
+describe('the staged schema is a type dispatch (yaml-language-server cost)', () => {
+    // The generated schema spells `Component` as a 125-way `oneOf`; yaml-language-server tries every
+    // branch at every level on every keystroke (5 s for a 4 KB page in the 2026-10 walkthrough). The
+    // extension stages the same families as `type` dispatches — same files accepted, same files refused.
+    it('rewrites every polymorphic family and keeps the rest of the schema', () => {
+        expect(dispatchedFamilyNames(schema)).toEqual(['Actionable', 'Component', 'Step', 'Trigger', 'UserTrigger'])
+        const component = staged.$defs.Component
+        expect(component.oneOf).toBeUndefined()
+        expect(component.properties.type.enum.length).toBe(schema.$defs.Component.oneOf.length)
+        expect(component.properties.type.enum).toContain('Notice')
+        expect(component.allOf.find((b: any) => b.if.properties.type.const === 'Notice').then).toEqual({ $ref: '#/$defs/Notice' })
+        // untouched: the per-component definitions, the file-kind union, the descriptions
+        expect(staged.$defs.Notice).toEqual(schema.$defs.Notice)
+        expect(staged.oneOf.length).toBe(schema.oneOf.length)
+        expect(staged.$defs.Component.description).toBe(schema.$defs.Component.description)
+        // and the generated file itself is not what is staged (the transform is not a no-op)
+        expect(JSON.stringify(staged)).not.toBe(JSON.stringify(schema))
+    })
+
+    it('refuses what the generated schema refuses', () => {
+        const unknownType = { type: 'VerticalLayout', content: [{ type: 'Nonsense' }] }
+        const wrongProperty = { type: 'VerticalLayout', content: [{ type: 'Notice', text: 'x', slim: 'yes' }] }
+        const good = { type: 'VerticalLayout', content: [{ type: 'Notice', text: 'x', slim: true, content: [{ type: 'Text', text: 'y' }] }] }
+        for (const doc of [unknownType, wrongProperty]) {
+            expect(validate(doc)).toBe(false)
+            expect(validateStaged(doc)).toBe(false)
+        }
+        expect(validate(good)).toBe(true)
+        expect(validateStaged(good)).toBe(true)
+    })
+
+    it('is what scripts/prepackage.mjs writes for yamlValidation', () => {
+        const prepackage = readFileSync(join(__dirname, '..', 'scripts', 'prepackage.mjs'), 'utf8')
+        expect(prepackage).toContain('dispatchByType(schema)')
+        expect(prepackage).toContain("join(here, 'schema/specs-schema.json')")
     })
 })

@@ -486,7 +486,7 @@ wherever something references them.
 |---|---|
 | **What it is** | A named domain concept (`ProductStatus`, `Money`, `Email`): label, data type, stereotype, options, alignment, status tones. |
 | **What it's for** | Declaring a concept once instead of repeating `dataType: money, align: end` on every field and column. A field or column names one with `fieldType:`, and whatever the field declares itself still wins. |
-| **Where it lives** | `types.yaml` (`type: Types`), or a `FieldTypeCatalogSupplier`. The Java analogue for annotated classes is a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/). |
+| **Where it lives** | `types.yaml` or any `specs/ui` file declaring `type: Types`, or a `FieldTypeCatalogSupplier`. The Java analogue for annotated classes is a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/). |
 | **Served vs static** | Resolved on the authored tree before it becomes components, by the server, the browser expander and the ports alike. The wire never carries `fieldType`. |
 
 ```yaml

@@ -101,7 +101,13 @@ that folder is used; failing that, `src/main/resources/specs/ui` is created when
 Maven/Gradle module, else `<folder>/specs/ui`. Existing files are never overwritten.
 
 Every skeleton is validated against the generated specs schema in the plugin's test suite (strictly:
-a key the schema does not declare fails), so a new file never starts out red. In IntelliJ the
+a key the schema does not declare fails), so a new file never starts out red.
+
+Both editors validate against the same generated schema (`backend/shared/uidl/specs-schema.json`), in
+two spellings: IntelliJ reads it as generated, while the VS Code extension stages a variant whose
+polymorphic families (`Component`, `Actionable`, …) are rewritten as `type` dispatches — the shape the
+Red Hat YAML language server validates in milliseconds instead of trying all 125 component branches
+at every level on every keystroke. Same files accepted, same files refused; one source. In IntelliJ the
 skeletons are ordinary file templates — customise them in **Settings | Editor | File and Code
 Templates | Other** (`Mateu …` entries). Placeholders: `__TITLE__`, `__NAME__`, and a line holding
 only `__PAGE_WIDTH__`.

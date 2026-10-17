@@ -69,8 +69,8 @@ N/A (why) · — not walked yet.
 | Section affordances, draft save | ✅ | ✅ |
 | Card menu, app context picker, header action, notification bell, command-center palette + global search | ✅ shell-walk | ✅ shell-walk |
 | Security principal (identity the host app established → `EyesOnly` / `ReadOnlyUnless` / `disabled_unless`) | ✅ sec.mjs: no role → salary hidden, notes read-only, Approve disabled; `hr` → salary shown; `hr,manager` → notes editable, Approve enabled | ✅ sec.mjs over an ASP.NET host setting `HttpContext.User` (none / hr / hr+manager / manager, same outcomes); a forced `approve` without the role answers 403 "Forbidden" |
-| YAML pages served by the ports (the yaml starter's specs) | ❌ 8: only 8 YAML component types build — `home.yaml` (HeroSection) and `products.yaml` (Listing) show "Unsupported component"; `app.yaml` (AppShell) is documented as Java-only | ❌ 8: same 8 types in `YamlComponentBuilder` |
-| Ports behind **Redwood** (bundle served by a scratch proxy reproducing `IndexPage.mountUi`) | 🔧 the port answered the documented `POST v3/components/_/action` 404 and `__load__` "Action not found" → 3c22ff69a: the Redwood shell now boots on a port (title, menu tabs). ❌ 9: the content area stayed empty; the scratch proxy is not faithful for routed URLs (it also sends route "" for a Java mount), so this needs a proper serving path (❌ 1) before it can be judged | 🔧 same → 3c22ff69a (test) |
+| YAML pages served by the ports (the yaml starter's specs) | 🔧 8 (batch 3): `home.yaml` builds (HeroSection generic, the button navigates by `RouteLink`) and `products.yaml` is a client-side Crud over its REST source (`test_yaml_listing.py`); `app.yaml` (AppShell) stays Java-only | 🔧 8 (batch 3): same (`YamlListingTests`) |
+| Ports behind **Redwood** (bundle served by a scratch proxy reproducing `IndexPage.mountUi`) | 🔧 the port answered the documented `POST v3/components/_/action` 404 and `__load__` "Action not found" → 3c22ff69a: the Redwood shell now boots on a port (title, menu tabs). 🔧 1 → the ports now serve the renderer's page themselves (batch 3: `MapMateu(ui:)` / `add_mateu(ui=…)` / `MATEU_UI`, Java's index + SpaRedirectFilter rules); the Vaadin page was verified in a browser on the Python starter. 9 (Redwood content area behind a port) is not walked — Redwood area, now walkable without a proxy | 🔧 same → 3c22ff69a (test) |
 
 ### React Native (Expo web)
 
@@ -114,7 +114,7 @@ N/A (why) · — not walked yet.
 | Page header overline / placeholder / timestamp / peer nav | 🔧 dropped → 97af34a04 (`PageSlotsRenderTest`) |
 | EmptyState icon token | 🔧 printed as text → 2ae7068f2 (`DisplayComponentsRenderTest`) |
 | CollectionDetail queue cards | 🔧 captions clipped → see commit "task-queue cards no longer clip" |
-| App shell whose app has no home | ❌ 5: content area empty |
+| App shell whose app has no home | 🔧 5: decision 1 (batch 1) puts the first menu item on the wire as `homeRoute`; IntelliJ's `AppRenderer` follows it — no plugin change |
 | `@Action(confirmationRequired)` | 🔧 ran without asking → fcc01398a (`ActionConfirmationTest`) |
 | LongTask progress dialog | 🔧 never streamed, raw `${state.title}`, empty bar → 82f33d96b (`MateuApiClientStreamTest`, `OverlayStateTest`, `NativeUxReviewTest`) |
 | Delete on a listing seeded with `""` | 🔧 opened a second "list" tab → d5bf61b3c (`MediatorRoutesTest`) |
@@ -131,12 +131,12 @@ N/A (why) · — not walked yet.
 | Normaliser dropped ACTION ids with every generated id — the corpus could not see a missing action | 🔧 45e827575: ids inside `actions[]` compared in the three runners; 7 goldens regenerated, Java/.NET/Python all match |
 | `fab` golden gains the advertised FAB action | 🔧 b44946598 |
 | New case `peer-nav` | 🔧 d3abf2593 (3 servers match) |
-| Cases that need a second request | 🔧 87799500e: `request.json` honoured by the three runners; `app-no-home-content` matches in all three. A `crud-new-form` trial showed the ports' create form diverging structurally from Java's (layout, actions) — the semantic gaps it surfaced (pageType, dirty guard) are fixed (c0adaa50b); the case itself is not added (❌ 7) |
-| CollectionDetail / wizard cases | ❌ 7: known structural divergences |
+| Cases that need a second request | 🔧 87799500e: `request.json` honoured by the three runners; `app-no-home-content` matches in all three. A `crud-new-form` trial showed the ports' create form diverging structurally from Java's (layout, actions) — the semantic gaps it surfaced (pageType, dirty guard) are fixed (c0adaa50b); the case itself is not added (7: documented as port idioms in `parity.md`, batch 3) |
+| CollectionDetail / wizard cases | 🔧 7: the structural divergences are documented as port idioms (`parity.md` "Port idioms", batch 3) — same screen, same action ids; no case |
 | New cases `card-menu`, `app-extras` (command center / notifications / global search flags), `welcome-banner` | 🔧 03ce1c245 / b68499658 / 6437514d6 — the three servers match |
 
 **Counts:** ✅ ≈ 90 cells verified · 🔧 42 fixes (each with a test or probe) + 3 doc claims ·
-❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: photo capture on a device, IntelliJ
+❌ open: 0 — items 1, 5, 7, 8 decided and implemented 2026-10-17 (batch 3), 9 unblocked and left to the Redwood area (see below) · — not walked yet: photo capture on a device, IntelliJ
 click-level interaction in a running IDE (its fixes are pinned by unit tests), RN Back-after-Save
 on a port, RN `.NET` column cells marked "—", the remaining shared e2e specs replayed on native
 (inline-grid-form, master-detail, recent-features, accessibility on Java screens).
@@ -186,6 +186,12 @@ on a port, RN `.NET` column cells marked "—", the remaining shared e2e specs r
 37. conformance — new cases `card-menu`, `app-extras`, `welcome-banner` (all three servers match).
 
 ## ❌ Open — owner decisions / not fixed
+
+Decided 2026-10-17 (batch 3, owner delegated): 1 → the ports serve the renderer's page (`ui=`/`MATEU_UI`; the
+renderer is not packaged — the Maven Central jar is named in the manuals; npm publishing of `mateu-vaadin`
+and packaging the renderer into PyPI/NuGet stay with the owner). 5 → covered by decision 1 of batch 1
+(IntelliJ follows the wire's `homeRoute`). 7 → documented as port idioms in `parity.md`, not converged.
+8 → `type: Listing` + `RouteLink` buttons added to both ports' YAML builders. 9 → walkable now, Redwood area.
 
 1. **The .NET and Python ports serve no web UI.** `uvicorn main:app` / `dotnet run` answer the sync
    API only; the starters' own docs say "sync API on :8080". A first-time user has nothing to open

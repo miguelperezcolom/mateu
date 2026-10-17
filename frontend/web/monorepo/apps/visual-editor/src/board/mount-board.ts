@@ -296,7 +296,7 @@ export class MountBoard extends LitElement {
         if (s.kind === 'shell') return this.renderShell(content)
         if (s.kind === 'viewModel') return html`<div class="note">Served by a view model:<code>${s.viewModel}</code>Its layout comes from the class, so the board does not draw it.</div>`
         if (s.kind === 'missing' || content === undefined) return html`<div class="note">The definition <code>${s.file ?? '(none)'}</code> is not in the mount.</div>`
-        return html`<board-preview .content=${content} .baseUrl=${this.baseUrl} .clientRender=${this.clientRender} .theme=${this.theme} .renderer=${this.renderer}></board-preview>`
+        return html`<board-preview .content=${content} .files=${this.files} .baseUrl=${this.baseUrl} .clientRender=${this.clientRender} .theme=${this.theme} .renderer=${this.renderer}></board-preview>`
     }
 
     /** The app shell has no screen of its own to shrink — its title and menu say what it is. */

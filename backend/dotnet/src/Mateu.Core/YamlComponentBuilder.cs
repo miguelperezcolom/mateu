@@ -210,7 +210,11 @@ public static class YamlComponentBuilder
             {
                 Primary = Str(map, "buttonStyle") == "primary",
                 Disabled = Bool(map, "disabled"),
+                Route = RouteLinkOf(map),
             },
+            // A listing authored as data: rows from a REST source, fetched client-side (the yaml
+            // starter's products page). Before 2026-10-17 it rendered "Unsupported component".
+            "Listing" => BuildListing(map, partials, chain),
             "Text" => new Text(Str(map, "text") ?? ""),
             // a C# member cannot share its record's name: the `markdown` key is MarkdownText
             "Markdown" => new Markdown { MarkdownText = Str(map, "markdown") ?? "", Style = Str(map, "style"), CssClasses = Str(map, "cssClasses") },
@@ -358,7 +362,46 @@ public static class YamlComponentBuilder
         {
             ButtonStyle = Str(b, "buttonStyle"),
             Disabled = Bool(b, "disabled"),
+            Route = RouteLinkOf(b),
         };
+
+    /// <summary>The route of a button whose <c>actionable:</c> is a <c>RouteLink</c> (Java's
+    /// ButtonMapper.routeOf): the button navigates instead of running an action. Null otherwise.</summary>
+    private static string? RouteLinkOf(IDictionary<object, object> button) =>
+        button.TryGetValue("actionable", out var a) && a is IDictionary<object, object> actionable
+        && Str(actionable, "type") == "RouteLink"
+            ? Str(actionable, "route")
+            : null;
+
+    /// <summary>A <c>type: Listing</c> node (Java's fluent Listing as YamlUidlLoader reads it):
+    /// title, the smart search bar (<c>searchable</c>, <c>filters</c>), the <c>columns</c>
+    /// (<c>type: GridColumn</c> nodes, field types already resolved) and the <c>rowsSource</c> — a
+    /// catalogue <c>ref</c> or an inline endpoint — the renderer fetches the rows from.</summary>
+    private static ListingComponent BuildListing(IDictionary<object, object> map, Ctx partials, List<string> chain) => new()
+    {
+        Id = Str(map, "id"),
+        Style = Str(map, "style"),
+        CssClasses = Str(map, "cssClasses"),
+        Title = Str(map, "title"),
+        Subtitle = Str(map, "subtitle"),
+        Searchable = Bool(map, "searchable"),
+        PageSize = int.TryParse(Str(map, "pageSize"), out var size) ? size : 0,
+        GridLayout = Str(map, "gridLayout"),
+        Compact = Bool(map, "compact"),
+        EmptyStateMessage = Str(map, "emptyStateMessage"),
+        Columns = Maps(map, "columns").Select(c => partials.Types.Resolve(c)).Select(c => new ListingColumn(Str(c, "id") ?? "", Str(c, "label") ?? Str(c, "id") ?? "")
+        {
+            DataType = Str(c, "dataType"),
+            Stereotype = Str(c, "stereotype"),
+            Sortable = Bool(c, "sortable"),
+            Identifier = Bool(c, "identifier"),
+            Width = Str(c, "width"),
+            Align = Str(c, "align"),
+            Tones = TonesOf(c),
+        }).ToList(),
+        Filters = Maps(map, "filters").Select(f => Build(f, partials, chain)).OfType<FormField>().ToList(),
+        RowsSource = SourceOf(map, "rowsSource"),
+    };
 
     private static IEnumerable<IDictionary<object, object>> Maps(IDictionary<object, object> map, string key) =>
         map.TryGetValue(key, out var v) && v is IEnumerable<object> seq
@@ -372,6 +415,13 @@ public static class YamlComponentBuilder
                     : new Option(opt?.ToString() ?? "", opt?.ToString() ?? ""))
                 .ToList()
             : [];
+
+    /// <summary>A status column's <c>tones:</c> map (value → tone), or null.</summary>
+    private static IReadOnlyDictionary<string, string>? TonesOf(IDictionary<object, object> column) =>
+        column.TryGetValue("tones", out var t) && t is IDictionary<object, object> tones
+            ? tones.Where(e => e.Key is string && e.Value is not null)
+                .ToDictionary(e => (string)e.Key, e => e.Value!.ToString()!)
+            : null;
 
     /// <summary>A <c>{ref, url, itemsPath, valuePath, labelPath, …}</c> node (or a bare name, the
     /// ref shorthand) as a RestDataSource.</summary>

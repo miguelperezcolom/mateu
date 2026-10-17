@@ -40,10 +40,10 @@ CI only — it could not be built offline here); **YAML** = definition-only page
 | `URI` / `UICommand.navigateTo` → navigation | ✅ actions-lab | ✅ flow `Navigate` | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | ✅ flow (yaml-actions, no round trip) |
 | Another object → the next view | ✅ actions-lab | N/A | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `Message.undoable` → Undo runs the undo action with its parameters | 🔧 bee171948 (Undo dispatched on the component HOST, past its listener) + 8b304a096 (label hard-coded "Deshacer" in Java/.NET/Python) | N/A | ✅ renderer/actions | 🔧 8b304a096 | 🔧 8b304a096 | ⏳ | ⏳ | N/A |
-| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | ✅ `PageBanners.Replace/Append` (`PageBannersTests`) | ✅ `PageBanners.replace/append` | ⏳ | ⏳ | N/A |
+| `PageBanner` / `PageBanners.append` | 🔧 bee171948 (a list with `this` dropped banners + append flag; the re-render wiped banners of the same answer) | ⏳ | 🔧 10cc12091 (action banners never drawn) | 🔧 batch 3: `PageBanners.Replace/Append` (`PageBannersTests`, `Page_banners_replace_and_append`) | ✅ `PageBanners.replace/append` | ⏳ | ⏳ | N/A |
 | A `Collection` mixing the new state with a toast / an event | ✅ actions-lab (state+event), 🔧 state+toast/banners (bee171948) | N/A | ✅ | ✅ (`this` in a list re-renders + the rest merges — `PageBannersTests`) | ⏳ | ⏳ | ⏳ | N/A |
 | Commands: `announce`/`announceAssertive`, `pushStateToHistory`, `runAction`, `markAsDirty`/`markAsClean`, `downloadFile` | ✅ actions-lab | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
-| `UserFacingException` as written; anything else "Something went wrong … Reference: id", internals never shown | ✅ actions-lab | ⏳ | ✅ renderer/actions | ✅ same texts (code compared) | ✅ same texts (code compared; its error toast has duration 0 = sticky, Java's 3000 — see ❌ list) | ⏳ | ⏳ | N/A |
+| `UserFacingException` as written; anything else "Something went wrong … Reference: id", internals never shown | ✅ actions-lab | ⏳ | ✅ renderer/actions | ✅ same texts (code compared) | ✅ same texts (code compared; sticky error toasts are the contract everywhere since batch 1, decision 6) | ⏳ | ⏳ | N/A |
 | `LongTask` / SSE streaming | ✅ existing long-task spec (MVC, WebFlux, Quarkus, Helidon) | N/A | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `Dialog` / `Drawer` returned | ✅ overlay-lab | ⏳ | ✅ renderer/actions | ⏳ | ⏳ | ⏳ | ⏳ | N/A |
 | `ConfirmDialog` returned → picked button's action runs | 🔧 bee171948 (replaced the page with a closed dialog = blank page; crashed with no content; ids not advertised) | ⏳ | 🔧 10cc12091 (an empty drawer with no buttons) | N/A (no ConfirmDialog in the ports) | N/A (same) | ⏳ | ⏳ | N/A |
@@ -112,6 +112,9 @@ Cells: ✅ 54 · 🔧 22 · ❌ 3 · N/A 38 · ⏳ 170 (React Native and Intelli
 14. Python `@subscribe_to` put the snake_case name on the wire; the guard only runs camelCase ids (766ce88d8).
 
 ## ❌ — owner decision needed
+
+Decided: Python `PageBanners` (batch 1, decision 5) and .NET `PageBanners` (batch 3); error toasts sticky in
+every backend and renderer (batch 1, decision 6). The two VB items stay with the Redwood area.
 
 - **VB: islands held by a form's component fields are not painted** (EventsLab): the shell paints a
   form page through its generic form and drops `CustomField`s holding a `ServerSide`. Needs the

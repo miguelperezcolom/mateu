@@ -181,7 +181,12 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             action_id=node.get("actionId", ""),
             button_style="primary" if node.get("buttonStyle") == "primary" else None,
             disabled=bool(node.get("disabled", False)),
+            route=_route_link_of(node),
         )
+    if kind == "Listing":
+        # A listing authored as data: rows from a REST source, fetched client-side (the yaml
+        # starter's products page). Before 2026-10-17 it rendered "Unsupported component".
+        return _listing(node, partials, chain)
     if kind == "Text":
         return fluent.Text(text=node.get("text", ""))
     if kind == "ComponentRef":
@@ -320,6 +325,75 @@ def _int(value: Any) -> int:
         return 0
 
 
+def _route_link_of(button: dict) -> str | None:
+    """The route of a button whose ``actionable:`` is a ``RouteLink`` (Java's
+    ButtonMapper.routeOf): the button navigates instead of running an action. None otherwise."""
+    actionable = button.get("actionable")
+    if isinstance(actionable, dict) and actionable.get("type") == "RouteLink":
+        return _str(actionable.get("route"))
+    return None
+
+
+def _rest_source_of(node: dict, key: str):
+    """A REST source node: a bare string is a catalogue reference, an object may name a ``ref``
+    and/or carry an inline endpoint (mirrors RouteRegistry's ``_data_source_of``)."""
+    from mateu_uidl.rest_sources import RestDataSource
+
+    raw = node.get(key)
+    if isinstance(raw, str) and raw.strip():
+        return RestDataSource(ref=raw.strip())
+    if not isinstance(raw, dict):
+        return None
+    return RestDataSource(
+        ref=str(raw.get("ref") or "").strip(),
+        url=str(raw.get("url") or ""),
+        method=str(raw.get("method") or "GET"),
+        body=str(raw.get("body") or ""),
+        items_path=str(raw.get("itemsPath") or raw.get("items_path") or ""),
+        value_path=str(raw.get("valuePath") or raw.get("value_path") or "value"),
+        label_path=str(raw.get("labelPath") or raw.get("label_path") or "label"),
+        proxy=bool(raw.get("proxy", False)),
+    )
+
+
+def _listing(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.ListingComponent:
+    """A ``type: Listing`` node (Java's fluent Listing as YamlUidlLoader reads it): title, the
+    smart search bar (``searchable``, ``filters``), the ``columns`` (``type: GridColumn`` nodes,
+    field types already resolved) and the ``rowsSource`` the renderer fetches the rows from."""
+
+    def column(c: dict) -> fluent.ListingColumn:
+        c = _resolve_types(c)
+        tones = c.get("tones")
+        return fluent.ListingColumn(
+            id=str(c.get("id") or ""),
+            label=str(c.get("label") or c.get("id") or ""),
+            data_type=_str(c.get("dataType")),
+            stereotype=_str(c.get("stereotype")),
+            sortable=bool(c.get("sortable", False)),
+            identifier=bool(c.get("identifier", False)),
+            width=_str(c.get("width")),
+            align=_str(c.get("align")),
+            tones={str(k): str(v) for k, v in tones.items()} if isinstance(tones, dict) else None,
+        )
+
+    filters = [_build(f, partials, chain) for f in _maps(node, "filters")]
+    return fluent.ListingComponent(
+        id=_str(node.get("id")),
+        style=_str(node.get("style")),
+        css_classes=_str(node.get("cssClasses")),
+        title=_str(node.get("title")),
+        subtitle=_str(node.get("subtitle")),
+        searchable=bool(node.get("searchable", False)),
+        page_size=_int(node.get("pageSize")),
+        columns=tuple(column(c) for c in _maps(node, "columns")),
+        filters=tuple(f for f in filters if isinstance(f, fluent.FormField)),
+        rows_source=_rest_source_of(node, "rowsSource"),
+        grid_layout=_str(node.get("gridLayout")),
+        compact=bool(node.get("compact", False)),
+        empty_state_message=_str(node.get("emptyStateMessage")),
+    )
+
+
 def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.Form:
     """A ``type: Form`` node: a page with a declared header (title, subtitle, overline,
     titlePlaceholder, timestamp, badges, kpis, peerNav, recordSwitcher, banners, fabs) over its
@@ -333,6 +407,7 @@ def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.For
             action_id=str(b.get("actionId") or ""),
             button_style=_str(b.get("buttonStyle")),
             disabled=bool(b.get("disabled", False)),
+            route=_route_link_of(b),
         )
 
     def theme(raw: Any) -> BannerTheme:

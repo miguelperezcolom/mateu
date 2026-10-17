@@ -15,6 +15,9 @@ public class SimpleForm
 
     [Button] public Message Greet() => new($"Hello {Name}!");
     [Button] public PageBanner Warn() => new(BannerTheme.Warning, "Heads up", "Something to note");
+    [Button] public PageBanners WarnMore() => PageBanners.Append(new PageBanner(BannerTheme.Success, "Saved"));
+    [Button] public object[] WarnMixed() => [new Message("ok"), PageBanners.Append(new PageBanner(Title: "More"))];
+    [Button] public PageBanners WarnOnly() => PageBanners.Replace(new PageBanner(Title: "Only"));
     [Button] public string GoHome() => "/things";
 }
 
@@ -237,6 +240,21 @@ public class CaptureForm : IOptionsSupplier
 public class Things : Crud<Thing>
 {
     public override IEnumerable<Thing> Fetch(string? search) =>
+        [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
+}
+
+/// <summary>A record that names itself (an overridden ToString), and one that does not.</summary>
+public class NamedThing
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public override string ToString() => $"Thing {Name}";
+}
+
+[UI("named-things"), Title("Named things")]
+public class NamedThings : Crud<NamedThing>
+{
+    public override IEnumerable<NamedThing> Fetch(string? search) =>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
 }
 
@@ -2827,6 +2845,52 @@ public class SyncHandlerTests
             "\"groups\":[{\"value\":\"North\",\"count\":1,\"aggregates\":{\"amount\":100,\"invoice\":1}},"
             + "{\"value\":\"South\",\"count\":1,\"aggregates\":{\"amount\":50,\"invoice\":1}}]",
             json);
+    }
+
+    [Fact]
+    public void A_record_page_is_titled_by_the_record_as_in_java()
+    {
+        // Java's CrudFormComponentBuilder titles the view/edit/new page with the ENTITY (its @Title,
+        // a toString it declares, else its class name); the ports used the crud's title ("Things").
+        static (string? Page, string? Window) Titles(UIIncrementDto inc)
+        {
+            var page = (ServerSideComponentDto)inc.Fragments[0].Component!;
+            var meta = (PageMetadataDto)((ClientSideComponentDto)page.Children[0]).Metadata;
+            var window = inc.Commands.FirstOrDefault(c => c.Type == "SetWindowTitle")?.Data as string;
+            return (meta.Title, window);
+        }
+        var named = Titles(Handler().Handle(new RunActionRqDto { Route = "named-things/1/edit", ServerSideType = typeof(NamedThings).FullName }));
+        Assert.Equal(("Thing Alpha", "Thing Alpha"), named);
+        var viewed = Titles(Handler().Handle(new RunActionRqDto { Route = "named-things/2", ServerSideType = typeof(NamedThings).FullName }));
+        Assert.Equal("Thing Beta", viewed.Page);
+        // a record that does not name itself: its class name, not the crud's title
+        var plain = Titles(Handler().Handle(new RunActionRqDto { Route = "things/1/edit", ServerSideType = typeof(Things).FullName }));
+        Assert.Equal(("Thing", "Thing"), plain);
+        // a class without a [Title] or its own ToString is named by its humanized class name (Java's rule)
+        Assert.Equal("Simple Form", new ReflectionMapper().TitleOf(typeof(SimpleForm), new SimpleForm()));
+    }
+
+    [Fact]
+    public void Page_banners_replace_and_append()
+    {
+        // Java's PageBanners: append accumulates across actions, replace (the default) swaps them —
+        // the port had no way to say "append" (Python got it on 2026-10-12; .NET now).
+        UIIncrementDto Run(string action) => Handler().Handle(new RunActionRqDto
+        {
+            ActionId = action, ServerSideType = typeof(SimpleForm).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Ann") },
+        });
+        var added = Run("warnMore");
+        Assert.True(added.AppendBanners);
+        Assert.Equal("Saved", ((BannerDto)added.Banners.Single()).Title);
+        var replaced = Run("warnOnly");
+        Assert.False(replaced.AppendBanners);
+        Assert.Equal("Only", ((BannerDto)replaced.Banners.Single()).Title);
+        var mixed = Run("warnMixed");
+        Assert.True(mixed.AppendBanners);
+        Assert.Equal("More", ((BannerDto)mixed.Banners.Single()).Title);
+        Assert.Single(mixed.Messages);
+        Assert.Contains("\"appendBanners\":true", Render(added));
     }
 
     [Fact]

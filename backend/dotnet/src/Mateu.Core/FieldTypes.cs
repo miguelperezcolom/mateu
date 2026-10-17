@@ -94,17 +94,51 @@ public sealed class FieldTypeRegistry : ISpecsCache
         return new FieldTypeCatalog(order.Select(id => byId[id]).ToList());
     }
 
-    /// <summary>The authored half: <c>&lt;dir&gt;/types.yaml</c> — a <c>types:</c> envelope
-    /// (optionally typed <c>type: Types</c>) or a bare list. The keys ARE
-    /// <see cref="FieldTypeEntry"/>'s properties, camel-cased.</summary>
+    /// <summary>The <c>type:</c> header a standalone types file declares.</summary>
+    public const string TypeHeader = "Types";
+
+    /// <summary>The authored half: <c>&lt;dir&gt;/types.yaml</c> (with or without its <c>type: Types</c>
+    /// header) then every other YAML under <paramref name="dir"/> declaring <c>type: Types</c>, in
+    /// path order — a later file's entry replaces an earlier one of the same id, exactly like the
+    /// action catalogue. Each file is a <c>types:</c> envelope or a bare list; the keys ARE
+    /// <see cref="FieldTypeEntry"/>'s properties, camel-cased. Before 2026-10-17 only the
+    /// conventional name was read, so a Types file created under another name was silently ignored.</summary>
     public static FieldTypeCatalog AuthoredFrom(string dir)
     {
-        var path = Path.Combine(dir, FileName);
-        if (!File.Exists(path)) return FieldTypeCatalog.Empty;
+        if (!Directory.Exists(dir)) return FieldTypeCatalog.Empty;
+        var files = new List<string>();
+        var conventional = Path.Combine(dir, FileName);
+        if (File.Exists(conventional)) files.Add(conventional);
+        foreach (var path in Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories)
+                     .Where(p => p.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase)
+                                 || p.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+                     .Where(p => Path.GetFullPath(p) != Path.GetFullPath(conventional))
+                     .OrderBy(p => p, StringComparer.Ordinal))
+        {
+            if (Root(path) is IDictionary<object, object> map && Str(map, "type") == TypeHeader) files.Add(path);
+        }
+        var byId = new Dictionary<string, FieldTypeEntry>();
+        var order = new List<string>();
+        foreach (var file in files)
+        foreach (var entry in Read(file))
+        {
+            if (!byId.ContainsKey(entry.Id)) order.Add(entry.Id);
+            byId[entry.Id] = entry;
+        }
+        return new FieldTypeCatalog(order.Select(id => byId[id]).ToList());
+    }
+
+    private static object? Root(string path)
+    {
+        try { return Yaml.Deserialize<object?>(File.ReadAllText(path)); }
+        catch { return null; }
+    }
+
+    private static List<FieldTypeEntry> Read(string path)
+    {
         try
         {
-            var root = Yaml.Deserialize<object?>(File.ReadAllText(path));
-            var nodes = root switch
+            var nodes = Yaml.Deserialize<object?>(File.ReadAllText(path)) switch
             {
                 IDictionary<object, object> map when map.TryGetValue("types", out var t) => t as IEnumerable<object>,
                 IEnumerable<object> list => list,
@@ -117,12 +151,12 @@ public sealed class FieldTypeRegistry : ISpecsCache
                 if (EntryOf(map) is { } entry) entries.Add(entry);
                 else MateuLogging.For("Mateu.FieldTypes").LogWarning("Ignoring a field type with no id in {Path}", path);
             }
-            return new FieldTypeCatalog(entries);
+            return entries;
         }
         catch (Exception e)
         {
             MateuLogging.For("Mateu.FieldTypes").LogWarning(e, "{Path} ignored: {Error}", path, e.Message);
-            return FieldTypeCatalog.Empty;
+            return [];
         }
     }
 

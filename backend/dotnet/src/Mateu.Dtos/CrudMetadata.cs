@@ -55,6 +55,10 @@ public record CrudMetadataDto(
     /// them; a bare listing shows none — mirrors CrudlDto.rowsSelectionEnabled).</summary>
     public bool RowsSelectionEnabled { get; init; }
 
+    /// <summary>What an empty result shows (mirrors CrudlDto.emptyStateMessage); omitted when null.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? EmptyStateMessage { get; init; }
+
     /// <summary>Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint
     /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
     /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
@@ -141,6 +145,10 @@ public record GridColumnMetaDto(string Id, string Label)
     /// its rows).</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool Sortable { get; init; }
+
+    /// <summary>The column holding the row's identity (mirrors GridColumnDto.identifier). Omitted when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Identifier { get; init; }
 
     /// <summary>The user can drag the column's edge (every listing column, as in Java).</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
