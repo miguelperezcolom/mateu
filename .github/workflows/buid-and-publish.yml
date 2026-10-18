@@ -7,8 +7,9 @@ on:
   release:
     types: [published]
 
-# Publishing goes to Maven Central with its own secrets; the only write to GitHub is the
-# redwood-embedded job attaching its zip to the release (its own job-level contents: write). Read-only
+# Publishing goes to Maven Central with its own secrets; the only writes to GitHub are the
+# redwood-embedded and sbom jobs attaching files to the release (each its own job-level contents:
+# write) and bump-examples opening its PR. Read-only
 # also caps the called run_tests.yml (a called workflow cannot exceed its caller's permissions).
 permissions:
   contents: read
@@ -186,6 +187,47 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: gh release upload "$TAG" frontend/web/monorepo/apps/redwood/build/embedded/mateu-ui-*.zip --clobber --repo "$GITHUB_REPOSITORY"
+
+  # CycloneDX SBOMs (Maven artifacts, web renderer npm deps, Python wheel, .NET packages), attached to
+  # the release as assets — scripts/release-sboms.sh says what each one covers. Its own job, so it
+  # never delays or fails a publish, and nothing in the normal build pays for it (no plugin is bound
+  # to a Maven phase). Writes to GitHub, hence its own contents: write.
+  sbom:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # gh release upload
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          java-version: 21
+          distribution: zulu
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Generate the SBOMs
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: scripts/release-sboms.sh "$TAG" "$RUNNER_TEMP/sbom"
+      - name: Attach them to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" "$RUNNER_TEMP"/sbom/*.cdx.json --clobber --repo "$GITHUB_REPOSITORY"
 
   # The Python port ships to PyPI as `mateu-ui` (the name `mateu` is taken by an unrelated project),
   # in lockstep with Maven: the same framework release, the version derived from the same tag

@@ -358,6 +358,6 @@ next minor.
 
 ## Supported versions
 
-Security fixes go to the **latest minor of the current major**; see
-[SECURITY.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY.md) for the current
-table and how to report a vulnerability.
+Which releases get bug and security fixes, and which Java, .NET, Python, framework and IDE
+versions a release supports, is the [Support policy](/reference/support-policy/). How to report a
+vulnerability is in [SECURITY.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY.md).
