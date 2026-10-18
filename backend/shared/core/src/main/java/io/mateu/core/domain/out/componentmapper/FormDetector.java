@@ -8,7 +8,6 @@ import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Header;
 import io.mateu.uidl.annotations.KPI;
 import io.mateu.uidl.annotations.Menu;
-import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.FieldStereotype;
@@ -26,7 +25,10 @@ public final class FormDetector {
   }
 
   public static boolean isForm(Class<?> type) {
-    // A class is a form if it has at least one editable data field.
+    // A class is a form if it has at least one data field — editable or not: a view whose fields
+    // are all @ReadOnly is a read-only form (labels, read-only widgets, a grid for a list of rows),
+    // not a page of bare components. It used to be sent down the component path, where each value
+    // was mapped by its class: the labels were lost and a grid became its rows' toString().
     // @Button/@Toolbar methods are not required — a read-only / action-free form is still a form.
     // A routed orchestrator field (an embedded crud / editable view, @Inline or @Subresource) is
     // rendered BY the form builder, as an island: a class holding one is a form even when its
@@ -46,7 +48,6 @@ public final class FormDetector {
                         || MetaAnnotations.isPresent(field, Toolbar.class))
                     && ((!Modifier.isFinal(field.getModifiers())
                             || field.getDeclaringClass().isRecord())
-                        && !MetaAnnotations.isPresent(field, ReadOnly.class)
                         && !Component.class.isAssignableFrom(field.getType())
                         && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
                         && !MicroFrontend.class.isAssignableFrom(field.getType())

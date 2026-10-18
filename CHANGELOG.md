@@ -26,6 +26,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   unaffected.
 
 ### Fixed
+- Java: a view whose fields are all `@ReadOnly` renders as a read-only form — its fields keep their
+  labels and a `@ReadOnly` list of rows is a grid. It used to be taken for a page of components
+  (a class counted as a form only with an editable field), so the labels vanished and the grid
+  became its rows' text. (.NET and Python already rendered it; now pinned there too.)
 - Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
   re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,
   the toast showed and the screen kept its old values.
