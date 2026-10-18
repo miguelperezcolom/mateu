@@ -114,10 +114,13 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview pane
         // POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors Java's
         // __preview__ reserved action / YamlUidlLoader.parseText).
-        if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
+        // The AI chat's built-in render target posts it too (render-screen with no subscriber on
+        // screen): with no YAML it answers the same "Invalid or empty YAML" notice as Java.
+        if (rq.ActionId == "__preview__")
         {
-            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "", types: _fieldTypes)
-                              ?? new Text("Invalid YAML");
+            var yamlText = rq.Parameters.TryGetValue("_yaml", out var yamlParam) ? StateString(yamlParam) ?? "" : "";
+            var previewTree = (string.IsNullOrWhiteSpace(yamlText) ? null : YamlComponentBuilder.Parse(yamlText, types: _fieldTypes))
+                              ?? new Text("Invalid or empty YAML") { Style = "color: red;" };
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
 

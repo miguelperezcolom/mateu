@@ -38,9 +38,9 @@ class RenderHandlerMixin(MixinBase):
         from mateu_ui.core.yaml_preview import build_from_yaml
         from mateu_ui.uidl import components as fluent
 
-        tree = build_from_yaml(yaml_text, field_types=getattr(self, "field_types", None)) or fluent.Text(
-            text="Invalid YAML"
-        )
+        tree = (
+            build_from_yaml(yaml_text, field_types=getattr(self, "field_types", None)) if yaml_text.strip() else None
+        ) or fluent.Text(text="Invalid or empty YAML", style="color: red;")
         return self.fragment_response("Preview", self.mapper.map_component(tree), rq)
 
     # ── Component adapters ─────────────────────────────────────────────────────

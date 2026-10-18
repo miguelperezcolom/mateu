@@ -541,6 +541,20 @@ export class MateuUx extends ConnectedElement {
         this.updateComplete.then(() => { this.initialState = previous })
     }
 
+    /**
+     * Shows a fragment that is NOT this route's content — a screen the AI chat generated (the
+     * built-in render target of render-screen). Not cached as the route's structure, and the route's
+     * ETag is forgotten, so the next load of this route — any navigation, the same menu entry
+     * included — is a fresh one and brings the real screen back instead of merging onto this one.
+     */
+    showTransient(fragment: UIFragment) {
+        this.fragment = { ...fragment, targetComponentId: this.id }
+        this.lastAuthoritativeKey = undefined
+        this.currentStructureHash = undefined
+        this.hasRenderedContent = true
+        this.stampPageChrome()
+    }
+
     applyFragment(fragment: UIFragment) {
         if (this.liveReloadState && fragment.action !== UIFragmentAction.Add) {
             fragment = { ...fragment, state: { ...(fragment.state ?? {}), ...this.liveReloadState } }
