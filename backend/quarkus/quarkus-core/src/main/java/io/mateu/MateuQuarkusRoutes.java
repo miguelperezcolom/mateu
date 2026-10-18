@@ -4,6 +4,7 @@ import io.mateu.core.application.MateuService;
 import io.mateu.core.application.mcp.McpEndpoint;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlAppLoader;
+import io.mateu.core.infra.ClasspathAssets;
 import io.mateu.core.infra.ClientErrorLog;
 import io.mateu.core.infra.CorsPolicy;
 import io.mateu.core.infra.MateuController;
@@ -29,7 +30,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  * The adapter-level HTTP surface on Quarkus, registered on the Vert.x router (ahead of Quarkus
  * REST): the {@code mateu.cors.allowed-origins} allow-list ({@link CorsPolicy}), the asset cache
  * policy ({@link StaticAssetCaching}), the renderer's error reports ({@link ClientErrorLog}), the
- * MCP endpoint ({@link McpEndpoint}, only with {@code mateu.mcp.enabled=true}) and, for a
+ * MCP endpoint ({@link McpEndpoint}, only with {@code mateu.mcp.enabled=true}), the renderer's
+ * assets from the classpath {@code static/} folder the renderer jars ship them in ({@link
+ * ClasspathAssets} — Quarkus' own static handler serves only {@code META-INF/resources}) and, for a
  * deployment with no Java {@code @UI}, the YAML mounts ({@link YamlMounts}). The same contract as
  * every other adapter, each piece decided in core.
  */
@@ -81,6 +84,7 @@ public class MateuQuarkusRoutes {
     if (assetCachingEnabled) {
       assetCaching(router);
     }
+    rendererAssets(router);
     clientLog(router);
     documents(router);
     if (mcpEnabled) {
@@ -144,6 +148,61 @@ public class MateuQuarkusRoutes {
               }
               rc.next();
             });
+  }
+
+  /**
+   * {@code /assets/**}, {@code /js/**}, {@code /myassets/**}, {@code /_redwood/**} and {@code
+   * /version_<n>/**} from the classpath {@code static/} folder. After Quarkus' HTTP security (like
+   * its own static handler, so the app's permission policies cover them) and ahead of Quarkus REST;
+   * a path with nothing behind it passes on, so an app's own endpoint or resource still answers it.
+   */
+  static void rendererAssets(Router router) {
+    router
+        .getWithRegex("/(assets|js|myassets|_redwood|version_[^/]+)/.+")
+        .order(AFTER_SECURITY)
+        .blockingHandler(MateuQuarkusRoutes::serveAsset, false);
+    router
+        .headWithRegex("/(assets|js|myassets|_redwood|version_[^/]+)/.+")
+        .order(AFTER_SECURITY)
+        .blockingHandler(MateuQuarkusRoutes::serveAsset, false);
+  }
+
+  private static void serveAsset(RoutingContext rc) {
+    var asset =
+        ClasspathAssets.find(Thread.currentThread().getContextClassLoader(), rc.normalizedPath());
+    if (asset == null) {
+      rc.next();
+      return;
+    }
+    var request = rc.request();
+    var response = rc.response();
+    String etag = asset.etag();
+    if (etag != null) {
+      response.putHeader("ETag", etag);
+    }
+    String lastModified = asset.lastModifiedHeader();
+    if (lastModified != null) {
+      response.putHeader("Last-Modified", lastModified);
+    }
+    if (asset.notModified(
+        request.getHeader("If-None-Match"), request.getHeader("If-Modified-Since"))) {
+      response.setStatusCode(304).end();
+      return;
+    }
+    String contentType = asset.contentType();
+    if (contentType != null) {
+      response.putHeader("Content-Type", contentType);
+    }
+    try {
+      byte[] body = asset.read();
+      if (request.method() == HttpMethod.HEAD) {
+        response.putHeader("Content-Length", String.valueOf(body.length)).end();
+      } else {
+        response.end(io.vertx.core.buffer.Buffer.buffer(body));
+      }
+    } catch (java.io.IOException e) {
+      rc.fail(e);
+    }
   }
 
   private void clientLog(Router router) {

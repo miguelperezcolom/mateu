@@ -10,7 +10,7 @@ namespace Mateu.Core.Mcp;
 /// <see cref="McpProjection"/> the sidecar uses. RBAC is enforced by the handler (an [EyesOnly]
 /// member a caller may not see never reaches the projection). C# mirror of the Java McpService.
 /// </summary>
-public sealed class McpService
+internal sealed class McpService
 {
     readonly SyncHandler _handler;
     readonly JsonSerializerOptions _json;

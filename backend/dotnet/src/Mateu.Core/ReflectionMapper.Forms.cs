@@ -6,7 +6,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Forms: sections, zones, tabs, folded layouts, fields and buttons (Java: SectionFormRenderer, FormLayoutBuilder, ReflectionFormFieldMapper, FieldTypeMapper).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
     public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route,

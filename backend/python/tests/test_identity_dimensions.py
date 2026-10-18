@@ -2,7 +2,7 @@
 
 import pytest
 
-from mateu_uidl.security import (
+from mateu_ui.uidl.security import (
     Access,
     DisabledUnless,
     EyesOnly,

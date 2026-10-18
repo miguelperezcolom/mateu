@@ -11,10 +11,10 @@ from typing import Annotated
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.sync_handler import SAVED_IN_DRAWER_EVENT  # noqa: E402
-from mateu_core import RunActionRq  # noqa: E402
-from mateu_core import MateuRegistry, SyncHandler  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core.sync_handler import SAVED_IN_DRAWER_EVENT  # noqa: E402
+from mateu_ui.core import RunActionRq  # noqa: E402
+from mateu_ui.core import MateuRegistry, SyncHandler  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Crud,
     Message,
     Step,
@@ -148,7 +148,7 @@ def test_rail_wizard_emits_the_vertical_step_list_and_the_counter():
     assert '"type":"ProgressBar"' not in j
 
 
-from mateu_uidl import Required  # noqa: E402
+from mateu_ui.uidl import Required  # noqa: E402
 
 
 class Note:

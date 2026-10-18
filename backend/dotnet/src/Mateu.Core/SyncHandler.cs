@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
+internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
     Func<string, string?>? secrets = null, HttpClient? http = null,
     RestSourceRegistry? restSources = null, ComponentRegistry? components = null,
     Func<string?>? locale = null, TranslationRegistry? translations = null, string? specsDir = null,

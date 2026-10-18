@@ -11,9 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.component_registry import ComponentRegistry  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.component_registry import ComponentRegistry  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     ComponentCatalogSupplier,
     ComponentEntry,
     ComponentTreeSupplier,
@@ -22,7 +22,7 @@ from mateu_uidl import (  # noqa: E402
     menu_item,
     ui,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

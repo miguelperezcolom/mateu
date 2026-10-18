@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.mapper import enum_label  # noqa: E402
-from mateu_core.naming import humanize_constant  # noqa: E402
+from mateu_ui.core.mapper import enum_label  # noqa: E402
+from mateu_ui.core.naming import humanize_constant  # noqa: E402
 
 
 class Departure(Enum):
@@ -37,8 +37,8 @@ def test_an_enum_member_is_called_by_its_str_or_its_name_humanized():
 
 # ── grid cells: an enum column carries its labels, rows keep the raw value ─────────────────────
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_uidl import Crud, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.uidl import Crud, title, ui  # noqa: E402
 
 
 class Stay:

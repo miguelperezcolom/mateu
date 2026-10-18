@@ -11,9 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.menu_route_conformance import dangling_routes  # noqa: E402
-from mateu_core.route_registry import RouteEntry, RouteTable  # noqa: E402
-from mateu_dtos import MenuItem, RuleRecord  # noqa: E402
+from mateu_ui.core.menu_route_conformance import dangling_routes  # noqa: E402
+from mateu_ui.core.route_registry import RouteEntry, RouteTable  # noqa: E402
+from mateu_ui.dtos import MenuItem, RuleRecord  # noqa: E402
 
 KNOWN = RouteTable.of([RouteEntry(route="products", view_model="X"),
                        RouteEntry(route="orders/:id", view_model="Y")])

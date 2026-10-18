@@ -10,7 +10,7 @@ namespace Mateu.Core;
 /// validation message; anything else is a bug — a generic message with a 12-character reference the
 /// adapter logs the exception under. <c>MATEU_ERRORS_DETAILED=true</c> restores the raw exception in
 /// the toast, for development.</summary>
-public static class ErrorBoundary
+internal static class ErrorBoundary
 {
     public const string GenericTitle = "Something went wrong";
     public const string GenericText = "An unexpected error occurred. Reference: ";

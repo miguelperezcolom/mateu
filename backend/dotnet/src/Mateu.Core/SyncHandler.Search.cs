@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Searching: listings, crud search, filters, sort, paging, totals and grouping (Java: SearchActionHandler, SearchRequestBuilder, FilterStateAssembler, CrudStore.find/summaries).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>Answers a lookup field's search-&lt;fieldId&gt; action: the view's
     /// IOptionsSupplier options for that field, filtered by the typed text (case-insensitive

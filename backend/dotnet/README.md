@@ -49,10 +49,32 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 |---|---|
 | `src/Mateu.Uidl` | Public API — attributes (`[UI]`,`[Title]`,`[Button]`,`[Panel]`…), fluent components (`MetricCard`, `Gantt`, …), archetypes (`Dashboard`, `Foldout`, …) + data types (`Message`) |
 | `src/Mateu.Dtos` | The wire model — `UIIncrementDto`, `ComponentDto` + metadata (System.Text.Json polymorphism on `type`) |
-| `src/Mateu.Core` | The engine — `MateuRegistry` (route/type resolution), `ReflectionMapper` (model→tree), `SyncHandler` (action dispatch) |
+| `src/Mateu.Core` | The engine — route/type resolution, model→tree mapping, action dispatch (internal: see **Public API** below) |
 | `src/Mateu.AspNetCore` | `AddMateu()` / `MapMateu()` — DI + the `POST /mateu/v3/sync/{route}` endpoint |
 | `samples/Mateu.Demo` | A runnable ASP.NET app (`SimpleForm`, `Person`) |
 | `test/Mateu.Tests` | Golden-JSON tests asserting wire compatibility with the Java backend |
+
+## Public API
+
+What an app compiles against is **`Mateu.Uidl`** (attributes, fluent components, archetypes, the SPIs
+an app implements: `ITranslator`, `ISecretsProvider`, `IListingExporter`, `IComponentAdapter`, the
+code-authoring suppliers…), **`Mateu.AspNetCore`** (`AddMateu` / `MapMateu`, `MateuOptions`,
+`ClaimsIdentityMapper`) and **`Mateu.Dtos`** (the wire model). Since 3.0-alpha.429 the engine in
+`Mateu.Core` — `SyncHandler`, `MateuRegistry`, `ReflectionMapper`, the route/YAML/MCP machinery — is
+`internal` (visible only to `Mateu.AspNetCore` and the test suite); hosting it outside ASP.NET Core is
+no longer a supported path. `Mateu.Core` exports only:
+
+| Type | Why it is public |
+|---|---|
+| `DevSpecs`, `ISpecsCache` | live reload: an app's own cache of `specs/ui/**` registers with `DevSpecs.Register` |
+| `PartialRegistry` | partials registered in code (`PartialRegistry.Default.Register(ref, nodes)`) |
+| `DocumentStore` (+ `Parked`) | the documented `DocumentStore.InlineMaxBytes` knob / a shared store |
+| `Export.BuiltInCsvExporter` | an `IListingExporter` an app's own exporter can delegate to |
+| `InferenceSwitches` | the names of the inference `AppContext` switches |
+| `RouteEntry`, `IRouteEntrySupplier`, `IMenuSupplier`, `IAppSupplier`, `AppShell`, `MateuForbiddenException` | type forwards to `Mateu.Uidl` (binary compatibility) |
+
+The list is pinned by `PublicSurfaceTests` (`test/Mateu.Tests/api/*.txt`): growing it is a reviewed
+change (`MATEU_API_WRITE=true dotnet test` rewrites the files).
 
 ## Install (NuGet)
 

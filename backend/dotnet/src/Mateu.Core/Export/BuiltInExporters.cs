@@ -7,7 +7,7 @@ namespace Mateu.Core.Export;
 /// Mateu ships no spreadsheet or PDF engine: Excel and PDF are offered only when the application
 /// registers an <see cref="IListingExporter"/> for them. CSV defaults to the dependency-free
 /// <see cref="BuiltInCsvExporter"/>, which an application CSV exporter replaces.</summary>
-public sealed class MateuExporters
+internal sealed class MateuExporters
 {
     /// <summary>The built-in exporters only: CSV.</summary>
     public static readonly MateuExporters BuiltIn = new([]);

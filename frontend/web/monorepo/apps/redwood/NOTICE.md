@@ -22,8 +22,11 @@ repository root):
 
 The Maven module `backend/shared/frontend/redwood` packages as static resources the **optimised
 build of this VB app** (`build/optimized/webApps/vbredwoodapp`, copied by `scripts/copy.mjs` into
-`static/_redwood/`): the code listed above plus the few starter scaffolding files (section 4, which
-keep their Oracle copyright headers). The jar **vendors no artefact from `static.oracle.com`**:
+`static/_redwood/`): the code listed above, and nothing else. The page it serves
+(`static/_index.html`) is not the build's `index.html` either: `scripts/copy.mjs` writes Mateu's own
+page (`scripts/index-page.mjs`) and reads off the build output only facts — the CDN urls of the
+theme and of the runtime scripts, the runtime's configuration values and the module bundle map — so
+no markup of the Visual Builder tooling or of its starter template travels in the jar. The jar **vendors no artefact from `static.oracle.com`**:
 JET, the Spectra components (`oj-sp-*`) and the visual runtime are referenced by URL and loaded
 from Oracle's CDN at run time, exactly as in a VB app hosted by Oracle.
 
@@ -69,13 +72,20 @@ is not UPL is referenced by URL, never copied into the repository or into publis
 `npm install` (see `package.json`) under Oracle's terms. They are not redistributed with this
 repository.
 
-### 4. Visual Builder starter scaffolding
+### 4. Visual Builder starter scaffolding — none left
 
-Only `webApps/vbredwoodapp/index.html` comes from the starter template the Visual Builder tooling
-generates (the markup that boots the VB runtime); it keeps its Oracle copyright header. Every other
-file the template contributed — the empty app, flow and page modules, the toast and message-band
-chains, `Gruntfile.js` — has been rewritten from scratch as Mateu code, and `pages/shell-page.js`,
-Mateu code that carried the Oracle header VB stamps on new files, now carries Mateu's.
+No file of the starter template the Visual Builder tooling generates remains, in the sources or in
+the jar. `webApps/vbredwoodapp/index.html` (the development page `npm run serve` / `npm run build`
+start from) has been written from scratch as Mateu code too; it keeps only the two directives the
+VB build reads to inject the runtime boot. Before it, every other file the template contributed —
+the empty app, flow and page modules, the toast and message-band chains, `Gruntfile.js` — had been
+rewritten from scratch, and `pages/shell-page.js` carries Mateu's header.
+
+What the VB build still GENERATES under `build/` (its own `index.html` with the injected boot, the
+intermediate `ojcss.js` / `ojL10n.js`, `build-info.json`, the source maps and the unminified
+bundle) is tool output that is never redistributed: `scripts/copy.mjs` leaves all of it out of the
+jar. The bundle it does ship (`bundles/vb-app-bundle.js`) is the app's own modules concatenated by
+the build, with the AMD wrappers of the optimiser around them.
 
 Branding: by default the shell's FAB is neutral ("Search" with the magnifier). The "Ask Oracle"
 look only appears if the app asks for it with `@App(askLabel, askIcon)`.

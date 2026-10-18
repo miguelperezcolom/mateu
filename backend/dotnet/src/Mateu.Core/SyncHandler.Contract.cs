@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Visual-builder contract and structure hash (Java: the __contract__ reserved action).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     // ── ModelView contract ─────────────────────────────────────────────────────
     private UIIncrementDto ContractResponse(Type type, RunActionRqDto rq)

@@ -95,7 +95,7 @@ public sealed class DocumentStore
 /// <summary><c>GET {baseUrl}/mateu/v3/documents/{token}</c>: the response for a parked document —
 /// single use, <c>no-store</c>, <c>nosniff</c>, a sandboxed active type, and a Content-Disposition
 /// with no CR/LF/quotes/path in it. (Mirrors Java's DocumentDownloads.)</summary>
-public static class DocumentDownloads
+internal static class DocumentDownloads
 {
     public const string PathMarker = "/mateu/v3/documents/";
 
@@ -178,12 +178,12 @@ public static class DocumentDownloads
 }
 
 /// <summary>The DownloadFile payload (same fields as Java's FileDownload).</summary>
-public sealed record FileDownloadDto(string Filename, string MimeType, string? Base64Content, string? Url,
+internal sealed record FileDownloadDto(string Filename, string MimeType, string? Base64Content, string? Url,
     string? Disposition, bool Print);
 
 /// <summary>Lowers a <see cref="Document"/> to the DownloadFile payload: inline when small, a
 /// single-use URL when large or lazy. (Mirrors Java's DocumentCommands.)</summary>
-public static class DocumentCommands
+internal static class DocumentCommands
 {
     public static FileDownloadDto ToFileDownload(Document document, string? baseUrl, DocumentStore? store = null,
         int? inlineMaxBytes = null)

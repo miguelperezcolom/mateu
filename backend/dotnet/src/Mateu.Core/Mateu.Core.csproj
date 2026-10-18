@@ -9,6 +9,12 @@
     <RootNamespace>Mateu.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The engine is internal (3.0-alpha.429): only the authoring/app-facing API is public — see
+         README "Public API" and PublicSurfaceTests. The adapter and the test suite see the rest. -->
+    <InternalsVisibleTo Include="Mateu.AspNetCore" />
+    <InternalsVisibleTo Include="Mateu.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../Mateu.Uidl/Mateu.Uidl.csproj" />
     <ProjectReference Include="../Mateu.Dtos/Mateu.Dtos.csproj" />
   </ItemGroup>

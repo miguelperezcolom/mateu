@@ -17,7 +17,7 @@ namespace Mateu.Core;
 /// for the request's locale: exact (<c>es-ES</c>) → language (<c>es</c>) → fallback
 /// (MATEU_I18N_FALLBACK, default <c>en</c>) → the key itself, with ONE warning per (locale, key).</para>
 /// </summary>
-public sealed class TranslationRegistry : ISpecsCache
+internal sealed class TranslationRegistry : ISpecsCache
 {
     /// <summary>The <c>${i18n.key}</c> expression, anywhere inside a text.</summary>
     public static readonly Regex Expression = new(@"\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.\-]*)\s*\}", RegexOptions.Compiled);
@@ -255,7 +255,7 @@ public sealed class TranslationRegistry : ISpecsCache
 /// then the catalogue — <c>${i18n.key}</c> expressions inside the text, or the whole text when it IS
 /// a key there. Its <see cref="Locale"/> is the app translator's, else the request's
 /// (Accept-Language) — what Java's DefaultTranslator answers.</summary>
-public sealed class CatalogueTranslator(ITranslator? inner, TranslationRegistry catalogue, Func<string?> requestLocale)
+internal sealed class CatalogueTranslator(ITranslator? inner, TranslationRegistry catalogue, Func<string?> requestLocale)
     : ITranslator
 {
     public string Translate(string key)

@@ -16,9 +16,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.naming import camel_case  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.naming import camel_case  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Crud,
     Dashboard,
     EyesOnly,
@@ -35,7 +35,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 CALLS: dict[str, int] = {}
 
@@ -342,7 +342,7 @@ def test_the_fastapi_endpoint_answers_a_denied_action_with_403():
     fastapi = pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     app = fastapi.FastAPI()
     add_mateu(app, MODULE)

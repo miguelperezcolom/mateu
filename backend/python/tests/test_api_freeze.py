@@ -10,10 +10,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import mateu_uidl  # noqa: E402
-from mateu_core.mapper import ReflectionMapper  # noqa: E402
-from mateu_uidl import AppVariant, app, menu_item, title, ui  # noqa: E402
-from mateu_uidl.components import ContentLayout, DashboardLayout  # noqa: E402
+import mateu_ui.uidl  # noqa: E402
+from mateu_ui.core.mapper import ReflectionMapper  # noqa: E402
+from mateu_ui.uidl import AppVariant, app, menu_item, title, ui  # noqa: E402
+from mateu_ui.uidl.components import ContentLayout, DashboardLayout  # noqa: E402
 
 
 @ui("freeze-home")
@@ -79,33 +79,33 @@ def test_the_deprecated_layouts_warn_naming_their_replacement():
 
 
 def test_parity_aliases_are_the_same_objects():
-    assert mateu_uidl.BadgeInHeader is mateu_uidl.HeaderBadge
-    assert mateu_uidl.PageWidthStyle is mateu_uidl.PageWidth
+    assert mateu_ui.uidl.BadgeInHeader is mateu_ui.uidl.HeaderBadge
+    assert mateu_ui.uidl.PageWidthStyle is mateu_ui.uidl.PageWidth
 
 
 def test_every_public_export_is_in_all():
-    """``from mateu_uidl import *`` must not silently drop public API: every public name the
+    """``from mateu_ui.uidl import *`` must not silently drop public API: every public name the
     package binds (not modules, not private, not typing helpers) is listed in ``__all__``."""
     import types
 
-    exported = set(mateu_uidl.__all__)
+    exported = set(mateu_ui.uidl.__all__)
     missing = sorted(
         name
-        for name, value in vars(mateu_uidl).items()
+        for name, value in vars(mateu_ui.uidl).items()
         if not name.startswith("_")
         and not isinstance(value, types.ModuleType)
         and name not in exported
         and name not in {"annotations", "T", "C", "D", "E", "F", "I", "R"}
     )
-    assert missing == [], f"public names missing from mateu_uidl.__all__: {missing}"
-    assert all(hasattr(mateu_uidl, n) for n in exported)
+    assert missing == [], f"public names missing from mateu_ui.uidl.__all__: {missing}"
+    assert all(hasattr(mateu_ui.uidl, n) for n in exported)
 
 
 def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
     import warnings
 
-    from mateu_core.validation import field_constraints  # noqa: F401  (Size is still a Length)
-    from mateu_uidl import Length, Size
+    from mateu_ui.core.validation import field_constraints  # noqa: F401  (Size is still a Length)
+    from mateu_ui.uidl import Length, Size
 
     with pytest.warns(DeprecationWarning, match="use Length"):
         old = Size(min=2, max=4)
@@ -117,7 +117,7 @@ def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
 
 
 def test_secured_warns_naming_eyes_only():
-    from mateu_uidl import secured
+    from mateu_ui.uidl import secured
 
     with pytest.warns(DeprecationWarning, match="eyes_only"):
 
@@ -152,21 +152,21 @@ def test_no_published_export_is_removed():
 
 def test_private_helpers_do_not_leak_into_the_namespace():
     for name in ("_Banner", "_Fab", "_ListToolbarButton", "_maybe_bare"):
-        assert not hasattr(mateu_uidl, name), name
+        assert not hasattr(mateu_ui.uidl, name), name
 
 
 def test_the_request_types_are_public():
-    import mateu_core
-    from mateu_core import MateuRequest, RunActionRq, current_request
-    from mateu_uidl import ActionRequest
+    import mateu_ui.core
+    from mateu_ui.core import MateuRequest, RunActionRq, current_request
+    from mateu_ui.uidl import ActionRequest
 
-    assert {"MateuRequest", "current_request", "RunActionRq"} <= set(mateu_core.__all__)
+    assert {"MateuRequest", "current_request", "RunActionRq"} <= set(mateu_ui.core.__all__)
     assert current_request() is None
     assert isinstance(RunActionRq(action_id="x"), ActionRequest)
     assert MateuRequest(headers={"a": "b"}).header("A") == "b"
 
 
-from mateu_uidl import ActionRequest, Message, action  # noqa: E402
+from mateu_ui.uidl import ActionRequest, Message, action  # noqa: E402
 
 SEEN: dict = {}
 
@@ -182,8 +182,8 @@ class RequestView:
 
 
 def test_an_action_parameter_typed_action_request_receives_the_request():
-    from mateu_core import MateuRegistry, RunActionRq, SyncHandler
-    from mateu_core.registry import type_name
+    from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler
+    from mateu_ui.core.registry import type_name
 
     handler = SyncHandler(MateuRegistry(sys.modules[__name__]))
     inc = handler.handle(RunActionRq(
@@ -196,8 +196,8 @@ def test_an_action_parameter_typed_action_request_receives_the_request():
 
 
 def test_the_progress_step_clash_is_resolved_by_add_and_deprecate():
-    from mateu_uidl import Step as WizardStepMarker
-    from mateu_uidl.components import ProgressStep, Step
+    from mateu_ui.uidl import Step as WizardStepMarker
+    from mateu_ui.uidl.components import ProgressStep, Step
 
     assert WizardStepMarker(2).step == 2  # the wizard marker keeps the top-level name
     with warnings.catch_warnings():
@@ -209,7 +209,7 @@ def test_the_progress_step_clash_is_resolved_by_add_and_deprecate():
 
 
 def test_bare_kpi_uses_the_method_name_and_keeps_the_method():
-    from mateu_uidl import kpi
+    from mateu_ui.uidl import kpi
 
     class Page:
         @kpi
@@ -227,8 +227,8 @@ def test_bare_kpi_uses_the_method_name_and_keeps_the_method():
 
 
 def test_markers_compare_by_value():
-    from mateu_uidl import Aggregate, AggregateFunction, Audience, PlainText, PrimaryColumn
-    from mateu_uidl import PhotoCapture, Searchable, Tooltip, TreeSelect
+    from mateu_ui.uidl import Aggregate, AggregateFunction, Audience, PlainText, PrimaryColumn
+    from mateu_ui.uidl import PhotoCapture, Searchable, Tooltip, TreeSelect
 
     assert Tooltip("a") == Tooltip("a")
     assert Aggregate() == Aggregate(AggregateFunction.sum) == Aggregate("sum")
@@ -246,13 +246,13 @@ def test_markers_compare_by_value():
 @pytest.mark.parametrize(
     "build",
     [
-        lambda: mateu_uidl.page_width("wide"),
-        lambda: mateu_uidl.page_template("home"),
-        lambda: mateu_uidl.size("big"),
-        lambda: mateu_uidl.form_layout(labels_aside="left"),
-        lambda: mateu_uidl.wizard_progress("dots"),
-        lambda: mateu_uidl.banner(theme="ALERT"),
-        lambda: mateu_uidl.menu_group("G", display="tiles"),
+        lambda: mateu_ui.uidl.page_width("wide"),
+        lambda: mateu_ui.uidl.page_template("home"),
+        lambda: mateu_ui.uidl.size("big"),
+        lambda: mateu_ui.uidl.form_layout(labels_aside="left"),
+        lambda: mateu_ui.uidl.wizard_progress("dots"),
+        lambda: mateu_ui.uidl.banner(theme="ALERT"),
+        lambda: mateu_ui.uidl.menu_group("G", display="tiles"),
         lambda: app("Bad", variant="SIDEBAR"),
     ],
 )
@@ -262,7 +262,7 @@ def test_enum_valued_decorators_reject_unknown_values(build):
 
 
 def test_enum_valued_decorators_accept_the_member_its_value_or_its_name():
-    from mateu_uidl import PageWidth, page_width
+    from mateu_ui.uidl import PageWidth, page_width
 
     for spelling in (PageWidth.FULL_WIDTH, "fullWidth", "FULL_WIDTH"):
         @page_width(spelling)

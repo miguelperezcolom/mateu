@@ -15,7 +15,7 @@ namespace Mateu.Core;
 /// A <c>type: Partial</c> node is resolved here, against a <see cref="PartialRegistry"/>, and never
 /// reaches the built tree — so nothing downstream, and no renderer, has to know partials exist.
 /// </remarks>
-public static class YamlComponentBuilder
+internal static class YamlComponentBuilder
 {
     /// <summary>A partial chain longer than this is a bug, not a design.</summary>
     private const int MaxDepth = 20;

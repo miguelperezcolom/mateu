@@ -11,6 +11,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Behaviour changes
+- **.NET: the `Mateu.Core` engine is internal.** `SyncHandler`, `MateuRegistry`, `ReflectionMapper`,
+  `ComponentMapper`, the route/YAML/MCP machinery and the other engine types (43 of the 50 exported
+  types) are no longer public; an app uses `Mateu.Uidl` + `AddMateu` / `MapMateu`. Still public:
+  `DevSpecs`, `ISpecsCache`, `PartialRegistry`, `DocumentStore`, `BuiltInCsvExporter`,
+  `InferenceSwitches` and the type forwards. Hosting the engine outside ASP.NET Core is no longer
+  supported; register component adapters as `IComponentAdapter` services instead of
+  `MateuRegistry.RegisterAdapter`. Pinned by `PublicSurfaceTests`.
+
+### Deprecated
+- **Python: one namespace.** The `mateu-ui` wheel installs ONE top-level package, `mateu_ui`
+  (`mateu_ui.uidl`, `mateu_ui.dtos`, `mateu_ui.core`, `mateu_ui.fastapi`), instead of four generic
+  ones that could collide with other distributions. The old names (`mateu_uidl`, `mateu_dtos`,
+  `mateu_core`, `mateu_fastapi`) still ship for the whole 3.x line as aliases of the SAME modules —
+  submodule imports included (`from mateu_core.mapper import ReflectionMapper`) — and each emits one
+  `DeprecationWarning` naming the new path. Type checkers only see the new paths (the aliases carry no
+  `py.typed`). Starters, samples, the project generator and the docs use `mateu_ui.*`. The version
+  now lives in `mateu_ui.__version__` (`mateu_ui.core.__version__` is the same value).
+
 ## [3.0-alpha.426] — 2026-10-18 (beta candidate)
 
 The beta candidate: the refactor phase and every fix from the independent pre-GA review. Read

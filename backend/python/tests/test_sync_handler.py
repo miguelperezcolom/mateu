@@ -12,10 +12,10 @@ from typing import Annotated
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_dtos import MenuItem, Option, UICommand  # noqa: E402
-from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.dtos import MenuItem, Option, UICommand  # noqa: E402
+from mateu_ui.uidl.components import Dialog, Drawer, Text  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     action_options,
     Aggregate,
     AggregateFunction,
@@ -89,7 +89,7 @@ from mateu_uidl import (  # noqa: E402
     ui,
     zones,
 )
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Audience,
     DisabledUnless,
     EyesOnly,
@@ -109,7 +109,7 @@ from mateu_uidl import (  # noqa: E402
     rest_data,
     rest_listing,
 )
-from mateu_uidl.components import MicroFrontend  # noqa: E402
+from mateu_ui.uidl.components import MicroFrontend  # noqa: E402
 
 
 @ui("")
@@ -638,8 +638,8 @@ class OverlayDemo:
 
     @button()
     def open_general_drawer(self):
-        from mateu_uidl import PeerNav
-        from mateu_uidl.components import DrawerSize
+        from mateu_ui.uidl import PeerNav
+        from mateu_ui.uidl.components import DrawerSize
 
         return Drawer(
             header_title="Ada Lovelace",
@@ -652,7 +652,7 @@ class OverlayDemo:
 
     @button()
     def open_bottom_drawer(self):
-        from mateu_uidl.components import DrawerPosition
+        from mateu_ui.uidl.components import DrawerPosition
 
         return Drawer(
             header_title="Detalles",
@@ -1392,7 +1392,7 @@ def test_remote_menu_emits_a_federated_entry():
 
 
 def test_micro_frontend_component_mounts_a_remote_island():
-    from mateu_core.mapper import ReflectionMapper
+    from mateu_ui.core.mapper import ReflectionMapper
 
     dto = ReflectionMapper(None).map_component(
         MicroFrontend(base_url="https://billing.example.com", route="/invoices")
@@ -2384,7 +2384,7 @@ def test_crud_search_filtering_recomputes_the_summaries_over_the_filtered_set_on
 
 
 def _name(cls) -> str:
-    from mateu_core import type_name
+    from mateu_ui.core import type_name
 
     return type_name(cls)
 
@@ -2532,7 +2532,7 @@ def _seeded_handler(tmp_path):
         "      ref: seed-catalog\n"
     )
     h = SyncHandler(MateuRegistry(MODULE))
-    from mateu_core.route_registry import RouteRegistry as _RR
+    from mateu_ui.core.route_registry import RouteRegistry as _RR
 
     h.routes = _RR(str(tmp_path))
     return h
@@ -2601,7 +2601,7 @@ def test_a_route_app_data_ref_is_emitted_on_the_app_metadata(tmp_path):
         "      ref: shop-catalog\n"
     )
     h = SyncHandler(MateuRegistry(RuleMenuApp, RuleMenuCatalog))
-    from mateu_core.route_registry import RouteRegistry as _RR
+    from mateu_ui.core.route_registry import RouteRegistry as _RR
 
     h.routes = _RR(str(tmp_path))
     inc = h.handle(RunActionRq(route="", consumed_route="_empty"))
@@ -2614,7 +2614,7 @@ def test_a_route_app_data_ref_is_emitted_on_the_app_metadata(tmp_path):
 def test_page_banners_replace_and_append():
     # Java's PageBanners: append accumulates across actions, replace (the default) swaps them —
     # the port had no way to say "append"
-    from mateu_uidl import BannerTheme, PageBanner, PageBanners
+    from mateu_ui.uidl import BannerTheme, PageBanner, PageBanners
 
     added = handler().map_result(PageBanners.append(PageBanner(BannerTheme.SUCCESS, "Saved")), None)
     assert [b.title for b in added.banners] == ["Saved"] and added.append_banners is True
@@ -2627,7 +2627,7 @@ def test_page_banners_replace_and_append():
 def test_an_error_message_stays_until_dismissed():
     # owner, 2026-10-12: an error toast has duration 0 (sticky) in every backend — Java mapped any
     # error to 3000 ms; a Message an action returns with a duration is no exception
-    from mateu_uidl import MessageVariant
+    from mateu_ui.uidl import MessageVariant
 
     inc = handler().map_result(Message("Boom", variant=MessageVariant.ERROR, duration=4000), None)
     assert inc.messages[0].duration == 0
@@ -2649,6 +2649,6 @@ def test_a_record_page_is_titled_by_the_record_as_in_java():
     # a record that does not name itself: its class name, not the crud's title
     assert titles(h.handle(RunActionRq(route="things/1/edit"))) == ("Thing", "Thing")
     # @title on the class wins over everything (Java's rule)
-    from mateu_core.titles import record_title
+    from mateu_ui.core.titles import record_title
 
     assert record_title(Things, Things()) == "Things"

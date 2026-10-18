@@ -12,9 +12,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_dtos import UICommand  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.dtos import UICommand  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     AppShell,
     AppShortcutEntry,
     AppSupplier,
@@ -31,7 +31,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 KEEP_ALIVES: list[int] = []
 
@@ -202,7 +202,7 @@ def test_record_merge_action_is_advertised():
 
 
 def test_record_merge_defaults_record_ids_and_labels():
-    from mateu_core.mapper.components import _record_merge_metadata
+    from mateu_ui.core.mapper.components import _record_merge_metadata
 
     md = _record_merge_metadata(fluent.RecordMerge(
         records=(fluent.MergeRecord(), fluent.MergeRecord()),
@@ -300,11 +300,11 @@ def _client(monkeypatch):
     fastapi = pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    import mateu_fastapi
-    from mateu_fastapi import add_mateu
+    import mateu_ui.fastapi
+    from mateu_ui.fastapi import add_mateu
 
-    monkeypatch.setattr(mateu_fastapi, "LIVE_MAX_SECONDS", 0.3)
-    monkeypatch.setattr(mateu_fastapi, "LIVE_HEARTBEAT_SECONDS", 0.1)
+    monkeypatch.setattr(mateu_ui.fastapi, "LIVE_MAX_SECONDS", 0.3)
+    monkeypatch.setattr(mateu_ui.fastapi, "LIVE_HEARTBEAT_SECONDS", 0.1)
     api = fastapi.FastAPI()
     add_mateu(api, MODULE, identity_provider=lambda: None)
     return TestClient(api)

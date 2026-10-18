@@ -77,6 +77,14 @@ export class MateuForm extends MetadataDrivenElement {
         .form-content {
             padding-bottom: 3rem;
         }
+
+        /* The form's own buttons (Save / Cancel under the fields) keep a clear gap from the last
+           field instead of sitting flush against it — the gap mateu-page's .form-content gives a
+           reflected form's buttons (max(0.9rem, --lumo-space-l)). On the slotted buttons, not on
+           the row, so a form with no buttons leaves no empty band. */
+        .form-buttons slot[name='buttons']::slotted(*) {
+            margin-block-start: max(0.9rem, var(--lumo-space-l, 1.5rem));
+        }
     `
 }
 

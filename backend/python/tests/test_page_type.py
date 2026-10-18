@@ -13,15 +13,15 @@ from pathlib import Path
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import (  # noqa: E402
+from mateu_ui.core import (  # noqa: E402
     ImportWizard,
     MateuRegistry,
     RunActionRq,
     SyncHandler,
     type_name,
 )
-from mateu_core.page_type_inference import page_type_of  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core.page_type_inference import page_type_of  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     CalendarPage,
     CollectionDetail,
     ComponentTreeSupplier,
@@ -43,7 +43,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl.components import MetricCard  # noqa: E402
+from mateu_ui.uidl.components import MetricCard  # noqa: E402
 
 
 # ── (a) Minimal archetype subclasses — one per mapped base class ──────────────

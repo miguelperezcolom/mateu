@@ -10,7 +10,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Wire state: binding componentState onto a view and coercing values (Java: Hydrater, FieldValueConverter, TypeCoercionHelper).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     private static object? GetState(Dictionary<string, object?>? state, string key)
         => state is not null && state.TryGetValue(key, out var v) ? v : null;

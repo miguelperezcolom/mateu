@@ -5,7 +5,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // REST data sources (Java: RestSourceResolver + the @RestOptions/@RestListing/@RestAction/@RestData readers).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>The client-side external options descriptor when the property carries [RestOptions]
     /// (headers parsed from "Name: Value" strings); null otherwise. By reference (Source set) the

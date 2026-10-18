@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // App-level actions: notification inbox and global search (Java: NotificationsSupplier / GlobalSearchSupplier runners).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>The notification inbox's app-level actions (mirrors Java's
     /// NotificationsActionRunner): _notifications-list answers the supplier's current list as a

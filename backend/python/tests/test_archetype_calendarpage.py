@@ -10,9 +10,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_uidl import CalendarPage, title, ui  # noqa: E402
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.uidl import CalendarPage, title, ui  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 EVENTS = [
     fluent.CalendarEvent(id="e1", title="Release v3", date=date(2026, 2, 10), color="green"),

@@ -6,7 +6,7 @@ namespace Mateu.Core;
 
 // Group header actions: a [GroupAction] button on a [GroupBy] group row (Java: @GroupAction, the
 // action-on-row-<method> dispatch with _groupValue, GroupActionVisibility).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>Runs the [GroupAction] method <paramref name="actionId"/> of a listing. Only a
     /// method carrying [GroupAction] is reachable (the id is wire input); a string parameter

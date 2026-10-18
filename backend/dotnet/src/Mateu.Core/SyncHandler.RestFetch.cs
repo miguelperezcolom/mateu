@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Mateu.Core;
 
 // Proxy-mode REST fetch: the __restfetch__ reserved action (Java: RunActionUseCase proxy + RestSourceResolver).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>The __restfetch__ reserved action: resolve the DECLARED source of the routed view by
     /// _sourceKind/_sourceId, interpolate ${state.x}/${secret.X}, fetch server-side and return the

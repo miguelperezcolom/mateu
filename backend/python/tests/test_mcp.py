@@ -1,6 +1,6 @@
 """Pure projection + JSON-RPC tests for the Python MCP host (the agent-operability plane, P4).
 
-Loads ``mateu_core/mcp.py`` in isolation (it only needs stdlib), so it runs with plain ``python3``
+Loads ``mateu_ui/core/mcp.py`` in isolation (it only needs stdlib), so it runs with plain ``python3``
 — ``python3 -m unittest tests.test_mcp`` — without pydantic/fastapi. It is the Python twin of the
 sidecar's projection.test.mjs and the Java McpProjectionTest.
 """
@@ -9,7 +9,7 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-_mcp_path = Path(__file__).resolve().parents[1] / "mateu_core" / "mcp.py"
+_mcp_path = Path(__file__).resolve().parents[1] / "mateu_ui" / "core" / "mcp.py"
 _spec = importlib.util.spec_from_file_location("mateu_mcp_under_test", _mcp_path)
 mcp = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(mcp)

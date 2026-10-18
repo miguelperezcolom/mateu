@@ -9,7 +9,7 @@ namespace Mateu.Core;
 // The grid-field crud: the row editing actions of a LIST property — add / create / select / save /
 // remove / move / prev / next / cancel — answered on the form's own state (Java: FieldCrudActionRunner,
 // CrudFieldActionDispatcher and the crudfieldhandlers package).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     private static readonly JsonSerializerOptions RowJson = new(JsonSerializerDefaults.Web);
 

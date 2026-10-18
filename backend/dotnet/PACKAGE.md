@@ -14,7 +14,7 @@ shared wire-conformance corpus.
 |---|---|
 | `Mateu.Uidl` | Attributes (`[UI]`, `[Section]`, `[Button]`…), fluent components, archetypes, capability interfaces |
 | `Mateu.Dtos` | The wire model (`UIIncrementDto`, component DTOs) |
-| `Mateu.Core` | The engine: route registry, reflection mapper, action dispatch |
+| `Mateu.Core` | The engine (internal): route registry, reflection mapper, action dispatch |
 | `Mateu.AspNetCore` | `AddMateu()` / `MapMateu()` for ASP.NET Core |
 
 ## Install

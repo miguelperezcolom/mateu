@@ -10,7 +10,7 @@ namespace Mateu.Core;
 /// <summary>Maps fluent components (Mateu.Uidl.IComponent trees) to wire ClientSideComponentDtos —
 /// the C# analogue of the Java fragment-mapper mappers (MetricCardMapper, FoldoutLayoutMapper…).
 /// The JSON shape (type discriminators, field names, slots) matches the Java backend exactly.</summary>
-public static class ComponentMapper
+internal static class ComponentMapper
 {
     public static ClientSideComponentDto Map(IComponent component) => component switch
     {

@@ -6,7 +6,7 @@ from datetime import date
 from enum import Enum
 from typing import Annotated
 
-from mateu_uidl import (
+from mateu_ui.uidl import (
     BannerTheme,
     ComponentTreeSupplier,
     Crud,
@@ -40,7 +40,7 @@ from mateu_uidl import (
     title,
     ui,
 )
-from mateu_uidl.components import (
+from mateu_ui.uidl.components import (
     Button as CtaButton,
     EmptyState,
     Gantt,

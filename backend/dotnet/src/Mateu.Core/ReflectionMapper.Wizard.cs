@@ -6,7 +6,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Wizards (Java: Wizard + WizardButtonBuilder).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     public ServerSideComponentDto MapWizard(Type type, object instance, string route, int step)
     {

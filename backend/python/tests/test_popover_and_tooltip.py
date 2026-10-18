@@ -10,9 +10,9 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_uidl import ComponentTreeSupplier, Listing, Tooltip, title, ui  # noqa: E402
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.uidl import ComponentTreeSupplier, Listing, Tooltip, title, ui  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 
 @ui("hover-popover")

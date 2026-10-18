@@ -15,7 +15,11 @@ The Redwood / Visual Builder renderer (frontend/web/monorepo/apps/redwood)
 integrates with Oracle JET (Universal Permissive License 1.0) and loads Oracle
 Spectra / Visual Builder Runtime from Oracle's CDN. Those components are NOT
 part of this project and are NOT relicensed here; see
-frontend/web/monorepo/apps/redwood/NOTICE.md for details.
+frontend/web/monorepo/apps/redwood/NOTICE.md for details. The renderer jar
+(io.mateu:mateu-redwood) contains only Mateu code: it vendors nothing from
+Oracle's CDN and no file of the Visual Builder starter template or of its
+build tooling's output markup (its page is written by Mateu's own build
+script, which reads only CDN urls and configuration values off the VB build).
 
 All other renderers and the Mateu runtime, annotations, wire DTOs, generated
 schemas and tooling are licensed under Apache License 2.0.

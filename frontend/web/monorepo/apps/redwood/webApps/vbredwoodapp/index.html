@@ -1,19 +1,22 @@
-<!-- Copyright (c) 2026, Oracle and/or its affiliates -->
-
+<!-- Mateu — Apache License 2.0 (LICENSE.txt at the repository root) -->
+<!--
+  The development page of the Visual Builder app (npm run serve / npm run build). The two VB tool
+  directives below are where grunt-vb-build injects the theme stylesheets and the runtime boot.
+  The page the renderer jar ships is NOT this file after the build: scripts/copy.mjs writes its own
+  (scripts/index-page.mjs) and only reads facts from the build output (CDN urls, module bundles).
+-->
 <!DOCTYPE html>
 <html class="oj-html" lang="en">
   <head>
-    <title>Mateu</title>
     <meta charset="UTF-8" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mateu</title>
     <link rel="preconnect" href="https://static.oracle.com">
-    <!-- the query the console opens with (?integration=MRU01: a listing's filters) is
-         saved BEFORE Visual Builder starts, whose router removes it from the URL on startup -->
-
+    <!-- keep the query the page was opened with (e.g. a listing's filters): the VB router drops
+         it from the URL while starting -->
     <script>window.__mateuInitialSearch = window.location.search || '';</script>
-    <!-- the interface language is the browser's (like the Vaadin renderer), not a fixed "en": VB
-         reads <html lang> for its locale (JET's own texts, the appBundle translations) and the
-         bridge's chrome catalogue (poc/i18n.mjs) reads it too -->
+    <!-- the interface language follows the browser, as in the Vaadin renderer: VB, JET and the
+         bridge's chrome texts (poc/i18n.mjs) all read <html lang> -->
     <script>document.documentElement.lang = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';</script>
     <!-- vb:inject id="headContent" theme="resources/css/dt.theme.redwood" -->
     <link rel="stylesheet" href="resources/css/app.css">

@@ -6,7 +6,7 @@ namespace Mateu.Core;
 
 // The app-shell extras of the E2 patterns (Java: AppShellExtrasMapper): app-wide shortcuts and
 // quick-launch codes, live header values (+ the live event stream flag) and the idle-session warning.
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>The app-level keep-alive action id (Java's KeepAliveActionRunner.ACTION_ID).</summary>
     public const string KeepAliveActionId = "_keep-alive";

@@ -1,0 +1,505 @@
+"""Request dispatch: route seeds (routes.yaml state/appState/data/appData) and the reserved and routed actions (Java's RunActionUseCase / ActionInstanceCreator)."""
+
+from __future__ import annotations
+
+from mateu_ui.dtos import (
+    Action,
+    ClientSideComponent,
+    RestAction,
+    RestDataSource,
+    ServerSideComponent,
+    Trigger,
+    UIIncrement,
+)
+from mateu_ui.uidl import (
+    CalendarPage,
+    ComponentTreeSupplier,
+    DataManagement,
+    GanttPage,
+    RecordSwitcherSupplier,
+    TodoList,
+    Wizard,
+)
+
+from .. import capabilities
+from ..mapper import set_current_audience
+from ..registry import normalize, type_name
+from .. import layout_delta
+from ._base import MixinBase
+from ._common import (
+    _route_seed,
+    RunActionRq,
+)
+
+
+class DispatchMixin(MixinBase):
+    def _seed_increment(self, inc: UIIncrement, rq: RunActionRq) -> UIIncrement:
+        """Apply a matched route's `appState`/`appData` seeds onto the response (component `data`
+        rides on the component via the mapper's __restdata__ path; `state` was folded into the
+        component state at resolution). appState is merged UNDER the client's app state so the
+        route's values are defaults and the persisted @app_context still wins; appData is emitted
+        on the app metadata (mirrors ReflectionUiIncrementMapper.mapToAppState + AppDto.appDataSource)."""
+        seed = _route_seed.get()
+        if seed is None:
+            return inc
+        entry = seed.entry
+        if entry.app_state:
+            merged = dict(entry.app_state)
+            merged.update(rq.app_state or {})
+            inc = inc.model_copy(update={"app_state": merged})
+        # `data`: the route names a component-scope source. Advertise the same synthetic
+        # __restdata__ action + OnLoad trigger the @rest_data surface uses, so the client fetches it
+        # and merges it into the state (mirrors Java's ActionMapper/TriggerMapper reading _routeData).
+        if entry.data is not None:
+            inc = self._advertise_route_data(inc, entry.data)
+        # `appData`: an app-scope source, emitted on the app metadata (AppDto.appDataSource) so the
+        # shell fetches it once. Applied only when the response carries the app shell.
+        if entry.app_data is not None:
+            inc = self._advertise_route_app_data(inc, entry.app_data)
+        return inc
+
+    @staticmethod
+    def _rest_action_from_ref(source) -> RestAction:
+        """A client-side REST descriptor for a route-declared data/appData source (a ref into
+        sources.yaml, or an inline endpoint). Blank result_path merges the whole response."""
+        return RestAction(
+            source=RestDataSource(
+                ref=source.ref,
+                url=source.url,
+                method=source.method,
+                body=source.body,
+                items_path=source.items_path,
+                value_path=source.value_path,
+                label_path=source.label_path,
+                proxy=source.proxy,
+            ),
+            success_message=None,
+            result_path="",
+        )
+
+    def _advertise_route_data(self, inc: UIIncrement, source) -> UIIncrement:
+        rest_action = self._rest_action_from_ref(source)
+        for i, frag in enumerate(inc.fragments):
+            comp = frag.component
+            if not isinstance(comp, ServerSideComponent):
+                continue
+            actions = list(comp.actions or [])
+            if not any(a.id == "__restdata__" for a in actions):
+                actions.append(
+                    Action(id="__restdata__", validation_required=False, rest_action=rest_action)
+                )
+            triggers = list(comp.triggers or [])
+            if not any(
+                (isinstance(t, Trigger) and t.type == "OnLoad" and t.action_id == "__restdata__")
+                or (isinstance(t, dict) and t.get("type") == "OnLoad" and t.get("actionId") == "__restdata__")
+                for t in triggers
+            ):
+                triggers.append(Trigger(type="OnLoad", action_id="__restdata__"))
+            new_comp = comp.model_copy(update={"actions": actions, "triggers": triggers})
+            inc.fragments[i] = frag.model_copy(update={"component": new_comp})
+            break
+        return inc
+
+    def _advertise_route_app_data(self, inc: UIIncrement, source) -> UIIncrement:
+        rest_source = RestDataSource(
+            ref=source.ref,
+            url=source.url,
+            method=source.method,
+            body=source.body,
+            items_path=source.items_path,
+            value_path=source.value_path,
+            label_path=source.label_path,
+            proxy=source.proxy,
+        )
+        for i, frag in enumerate(inc.fragments):
+            comp = frag.component
+            if isinstance(comp, ClientSideComponent) and getattr(comp.metadata, "type", None) == "App":
+                # app-data becomes a REQUIRED capability the moment an app-scope source is present
+                # (the descriptor never contradicts the metadata it is derived from). Sorted+deduped.
+                caps = set(getattr(comp.metadata, "required_capabilities", []) or [])
+                caps.add(capabilities.APP_DATA)
+                new_meta = comp.metadata.model_copy(
+                    update={
+                        "app_data_source": rest_source,
+                        "required_capabilities": sorted(caps),
+                    }
+                )
+                new_comp = comp.model_copy(update={"metadata": new_meta})
+                inc.fragments[i] = frag.model_copy(update={"component": new_comp})
+                break
+        return inc
+
+    def _handle_inner(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
+        # 0. Audience projection: the appState value under "audience" (the @app_context selector
+        # named audience) filters Audience()-marked members for the whole request.
+        set_current_audience(rq.app_state.get("audience"))
+
+        # 0b. Visual-builder contract: the ModelView's bindable fields + actions instead of a render
+        # (the tooling POSTs a sync request with the ModelView as serverSideType and this action;
+        # mirrors Java's __contract__ reserved action).
+        if rq.action_id == "__contract__" and rq.server_side_type:
+            cls = self.registry.resolve(rq.server_side_type, rq.route)
+            if cls is not None:
+                return self._contract_response(cls, rq)
+
+        # 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview
+        # pane POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors
+        # Java's __preview__ reserved action / YamlUidlLoader.parseText).
+        if rq.action_id == "__preview__" and rq.parameters.get("_yaml"):
+            return self._preview_response(rq.parameters["_yaml"], rq)
+
+        # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
+        # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
+        # inject ${secret.X} and fetch server-side, returning the raw JSON on app_data._restfetch
+        # (mirrors Java's __restfetch__ reserved action).
+        if rq.action_id == "__restfetch__":
+            return self._rest_fetch_response(rq)
+
+        # 0d'. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
+        # routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that
+        # route, so a bookmarked /products shows the header and the menu around the screen (Java
+        # parity: there the root app answers a deep link and the shell loads the route inside).
+        if not rq.action_id and not rq.server_side_type and rq.consumed_route == "_empty":
+            app_t = self.registry.app_type
+            if app_t is not None and self._app_menu_claims(app_t, rq.route, request_base_url):
+                return self.render_app(app_t, rq, request_base_url, home_route_override=rq.route)
+
+        # 0e. A menu leaf carries the APP's serverSideType (Java parity: there the app resolves its
+        # own menu routes), so loading a menu route the app does not render itself — a route owned
+        # by a registered view, or one of its CRUD sub-routes — loads that view, not the app again
+        # (which the shell would nest inside its own content area).
+        if not rq.action_id and rq.server_side_type:
+            app_t = self.registry.resolve(rq.server_side_type, None)
+            if app_t is not None and "__mateu_app__" in app_t.__dict__:
+                owner = self.registry.resolve_by_prefix(rq.route)
+                if owner is not None and owner[0] is not app_t:
+                    rq = rq.model_copy(update={"server_side_type": type_name(owner[0])})
+
+        # 1. App shell at the root route — unless this is the shell's own CONTENT load: an app with
+        # no home route aims its content area at the "_no_home_route" sentinel with its own type,
+        # and answering the shell again nested a second shell inside the first, which asked again
+        # (the browser's loop guard). That load renders the app as a page, as Java does.
+        if not rq.action_id:
+            t0 = self.registry.resolve(rq.server_side_type, rq.route)
+            if t0 is not None and "__mateu_app__" in t0.__dict__:
+                if _is_terminal_route(rq.route):
+                    # The shell's content slot loading the home of an app that declares none
+                    # ("_no_home_route" / "_page"): Java renders the app class as a plain page
+                    # (ActionInstanceCreator.isTerminalRoute). Answering the shell again nested it
+                    # inside its own content area, which reloaded it forever.
+                    return self._handle_view(t0, rq, None)
+                return self.render_app(t0, rq, request_base_url)
+
+        # 2. A Crud (by serverSideType or route prefix) — list / detail / new / edit + actions.
+        c = self.resolve_crud(rq)
+        if c is not None:
+            return self.handle_crud(*c, rq)
+
+        # 2a. A capability Listing (by serverSideType or route prefix) — the listing plus ONLY
+        # the routes/actions of the capabilities the class declares (mirrors Java's
+        # CapabilityCrud bridging).
+        lst = self.resolve_listing(rq)
+        if lst is not None:
+            return self.handle_listing(*lst, rq)
+
+        # The AUTHORED registry answers before the decorator-declared views — explicit beats
+        # derived, the same precedence the layout and page inference already use. Its parameters are
+        # folded into the component state here, at the single point every downstream step reads:
+        #
+        #   fixed > client state > path > defaults
+        #
+        # The fixed ones are re-applied on the SERVER rather than trusted from the client, because
+        # route resolution also runs in the browser (a statically deployed mount has no server to
+        # ask) and a parameter pinned only there would be a suggestion, not a constraint.
+        route_match = self.routes.match(rq.route)
+        type_ = None
+        if route_match is not None:
+            rq = rq.model_copy(
+                update={"component_state": route_match.params(rq.component_state or {})}
+            )
+            if route_match.entry.view_model:
+                type_ = self.registry.type_by_name(route_match.entry.view_model)
+        if type_ is None:
+            type_ = self.registry.resolve(rq.server_side_type, rq.route)
+        from ..translations import locale_of
+
+        # As THIS request sees it: access keys applied for the caller, ${i18n.…} for their locale.
+        yaml_spec = self.yaml_specs.load_spec_for(
+            rq.route, self.mapper.authorized, locale_of(self.mapper)
+        )
+        if type_ is None and yaml_spec is not None:
+            # A route with no view class → a YAML page. A bare layout renders as a static, unbound
+            # page; a page that declares modelView: instantiates that logic class (state + actions)
+            # and renders the YAML layout bound to it (mirrors Java's ActionInstanceCreator.load_yaml).
+            if not yaml_spec.model_view:
+                # The route's seeds (state:, fixed/default/path params) are the page's state: a
+                # bare layout has nowhere to hold them, so a seeded page is wrapped, as Java's
+                # SeededYamlPage does (they were dropped: ${state.x} rendered blank).
+                seeded = dict(rq.component_state or {}) if route_match is not None else {}
+                return self.fragment_response(
+                    _definition_window_title(yaml_spec.layout, seeded, rq.route),
+                    _with_declared_page_type(
+                        self.mapper.map_component(yaml_spec.layout), yaml_spec.page_type, rq, seeded
+                    ),
+                    rq,
+                )
+            type_ = self.registry.type_by_name(yaml_spec.model_view)
+        if type_ is None:
+            return self.error(f"Route not found: {rq.route}")
+        # A YAML page bound to this modelView re-applies its layout on every render (first load AND
+        # any in-place re-render) so the layout stays authoritative (mirrors Java's
+        # ReflectionObjectToComponentMapper.layout_for_route).
+        bound_spec = yaml_spec is not None and yaml_spec.model_view == type_name(type_)
+        layout_override = yaml_spec.layout if bound_spec else None
+        # A layoutDelta: page re-applies its delta over the view model's INFERRED layout on every
+        # render of this request (Java's LayoutDeltaApplier).
+        delta_token = layout_delta.activate(type_, yaml_spec.delta if bound_spec else None)
+        try:
+            increment = self._handle_view(type_, rq, layout_override)
+        finally:
+            layout_delta.deactivate(delta_token)
+        # A `pageType:` the bound definition declares wins over the inferred one, as its layout does
+        # (Java's ReflectionObjectToComponentMapper.pageTypeOf).
+        if bound_spec and yaml_spec.page_type:
+            increment = _with_page_type_on_view(increment, type_name(type_), yaml_spec.page_type)
+        return increment
+
+    def _app_menu_claims(self, app_t, route: str | None, request_base_url: str | None) -> bool:
+        """Whether ``route`` is one of the root app's menu routes, or a route under one (a CRUD
+        sub-route such as ``products/P-001``)."""
+        norm = normalize(route)
+        if not norm:
+            return False
+        try:
+            menu = getattr(self.mapper.map_app(app_t, request_base_url).metadata, "menu", None) or []
+        except Exception:  # noqa: BLE001 - an app that cannot map claims nothing
+            return False
+
+        def claims(items) -> bool:
+            for item in items:
+                if getattr(item, "remote", False) or getattr(item, "rules", None):
+                    continue
+                leaf = normalize(getattr(item, "route", "") or "")
+                if leaf and (norm == leaf or norm.startswith(leaf + "/")):
+                    return True
+                if claims(getattr(item, "submenus", None) or []):
+                    return True
+            return False
+
+        return claims(menu)
+
+    def _handle_view(self, type_, rq: RunActionRq, layout_override) -> UIIncrement:
+
+        # 2b. The notification inbox's app-level actions — dispatched with the app's
+        # serverSideType (the same rail as the @app_context pickers' remote search), exempt
+        # from regular action resolution.
+        if rq.action_id in ("_notifications-list", "_notifications-read"):
+            return self.notifications_action(type_, rq)
+
+        # 2c. The command palette's entity search — same app-level rail (mirrors Java's
+        # GlobalSearchActionRunner).
+        if rq.action_id == "_globalsearch":
+            return self.global_search_action(type_, rq)
+
+        # 2c'. The @app_context pickers' search — the same app-level rail (mirrors Java's
+        # AppContextSearchActionRunner).
+        if (rq.action_id or "").startswith(self.APP_CONTEXT_SEARCH_PREFIX):
+            return self.app_context_search_action(type_, rq)
+
+        # 2d. The idle warning's keep-alive and the live-updates stream are app-level too (mirrors
+        # Java's KeepAliveActionRunner / LiveUpdatesActionRunner; the stream itself is served by
+        # the adapter's SSE endpoint).
+        if rq.action_id == "_keep-alive":
+            return self.keep_alive_action(type_, rq)
+        if rq.action_id == "_live-updates":
+            return self.live_updates_snapshot()
+
+        # 3. A wizard.
+        if issubclass(type_, Wizard):
+            return self.handle_wizard(type_, rq)
+
+        # 3b. A model with a ComponentAdapter: rebuilt from the state by the adapter, rendered
+        # through it, its listed action ids run on the model (Java's AdapterInstanceFactory +
+        # AdaptedComponentTree).
+        adapter = self.registry.adapter_for(type_) if hasattr(self.registry, "adapter_for") else None
+        if adapter is not None:
+            return self.handle_adapted(type_, adapter, rq)
+
+        # 4. A plain view.
+        instance = type_()
+        self.bind_state(instance, rq.component_state)
+        if isinstance(instance, (TodoList, CalendarPage)):
+            # The archetype's data (and its click's action_on) may depend on the inbound
+            # request — the port's analogue of Java's HttpRequest injection.
+            instance.http_request = rq  # type: ignore[assignment]
+        # 4a. A list (grid) field's row editing: add / select / create / save / move / remove
+        # edit the rows held in the form state (Java's FieldCrudActionRunner).
+        list_action = self.list_field_action(type_, rq.action_id)
+        if list_action is not None:
+            return self.handle_list_field_action(type_, *list_action, rq)
+        if rq.action_id and rq.action_id.startswith("search-"):
+            return self.field_search(instance, rq)
+        if rq.action_id and rq.action_id.startswith("codesearch-"):
+            return self.field_code_search(type_, rq)
+        if not rq.action_id:
+            return self.render(type_, instance, rq, layout_override)
+        # 4a'. The header record switcher's pick (_switchRecord, the picked value in _record):
+        # runs the page's switch_to; None (or the page itself) re-renders in place (mirrors
+        # Java's RecordSwitcherActionRunner).
+        if (
+            isinstance(instance, RecordSwitcherSupplier)
+            and rq.action_id == RecordSwitcherSupplier.ACTION_ID
+        ):
+            raw = (rq.parameters or {}).get(RecordSwitcherSupplier.VALUE_PARAMETER)
+            result = instance.switch_to(None if raw is None else str(raw))
+            if result is None or result is instance:
+                return self.render(type_, instance, rq, layout_override)
+            return self.map_result(result, rq)
+        # 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
+        # filtering and record switching mutate the bound state and re-render the tree — no
+        # navigation, no method dispatch.
+        if isinstance(instance, ComponentTreeSupplier):
+            if rq.action_id == "selectCollectionItem":
+                raw = rq.parameters.get("_item") if rq.parameters else None
+                instance.selected_id = None if raw is None else str(raw)  # type: ignore[attr-defined]
+                return self.render(type_, instance, rq)
+            if rq.action_id in ("filterCollection", "switchRecord"):
+                return self.render(type_, instance, rq)
+        # 4c. A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
+        # period (a month, week or day by the view) and the view buttons (parameters._view)
+        # switch the view, both re-rendering; a date cell click (parameters._date) runs
+        # action_on_day; an event click ACTS on the
+        # event — the frontend sends it as parameters._clickedEvent = {id, title, date, color}
+        # and the archetype finds it back by id, its action_on result mapping as a regular
+        # action result (a route string → NavigateTo); "+ Create" runs create_action. Unknown
+        # events / None results just re-render the page (mirrors Java's CalendarPage actions
+        # returning `this`).
+        if isinstance(instance, CalendarPage):
+            if rq.action_id == "openCalendarEvent":
+                opened = instance.open_calendar_event(self._clicked_event_id(rq))
+                return self.map_result(opened, rq) if opened is not None else self.render(type_, instance, rq)
+            if rq.action_id == "previousCalendarMonth":
+                instance.previous_calendar_month()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "nextCalendarMonth":
+                instance.next_calendar_month()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "goCalendarToday":
+                instance.go_calendar_today()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "switchCalendarView":
+                instance.switch_calendar_view((rq.parameters or {}).get("_view"))
+                return self.render(type_, instance, rq)
+            if rq.action_id == "openCalendarDay":
+                opened_day = instance.open_calendar_day((rq.parameters or {}).get("_date"))
+                return (
+                    self.map_result(opened_day, rq)
+                    if opened_day is not None
+                    else self.render(type_, instance, rq)
+                )
+            if rq.action_id == "createCalendarEvent":
+                created = instance.create_calendar_event()
+                return self.map_result(created, rq) if created is not None else self.render(type_, instance, rq)
+        # 4d. A GanttPage bar click ACTS on the task: the frontend sends its id as
+        # parameters._clickedTaskId and the archetype opens it in a side Drawer (mirrors Java's
+        # GanttPage.select_gantt_task). Unknown task / None just re-renders the canvas.
+        if isinstance(instance, GanttPage) and rq.action_id == "selectGanttTask":
+            clicked = (rq.parameters or {}).get("_clickedTaskId")
+            task_id = None if clicked is None else str(clicked)
+            drawer = instance.select_gantt_task(task_id)
+            return self.map_result(drawer, rq) if drawer is not None else self.render(type_, instance, rq)
+        # 4e. A DataManagement toolbar switch flips the active view and re-renders in place.
+        if isinstance(instance, DataManagement) and rq.action_id in ("switchToGrid", "switchToGantt"):
+            instance.view = "gantt" if rq.action_id == "switchToGantt" else "grid"
+            return self.render(type_, instance, rq)
+        # 4f. A DataManagement docked-panel toggle flips that panel and re-renders in place.
+        if isinstance(instance, DataManagement) and rq.action_id == "toggleEndPanel":
+            instance.toggle_end_panel()
+            return self.render(type_, instance, rq)
+        if isinstance(instance, DataManagement) and rq.action_id == "toggleBottomPanel":
+            instance.toggle_bottom_panel()
+            return self.render(type_, instance, rq)
+        return self.run_action(type_, instance, rq, layout_override)
+
+    @staticmethod
+    def _clicked_event_id(rq: RunActionRq) -> str | None:
+        """The id inside the calendar's ``_clickedEvent`` action parameter — a map
+        ``{id, title, date, color}`` the frontend sends with every "openCalendarEvent" dispatch
+        (mirrors Java reading ``httpRequest.runActionRq().parameters().get("_clickedEvent")`` as
+        a Map)."""
+        clicked = (rq.parameters or {}).get("_clickedEvent")
+        if isinstance(clicked, dict) and clicked.get("id") is not None:
+            return str(clicked.get("id"))
+        return None
+
+
+def _with_declared_page_type(layout, page_type: str | None, rq: RunActionRq, state: dict | None = None):
+    """A definition-only page that declares a ``pageType:`` or that its route SEEDS (``state:``,
+    fixed/default/path params): the bare layout carries neither, so it is wrapped in a server-side
+    page that does (Java's ``ActionInstanceCreator.seedBareLayout`` → ``SeededYamlPage``).
+    Neither → unchanged."""
+    if not page_type and not state:
+        return layout
+    import re
+
+    from mateu_ui.dtos import ServerSideComponent
+
+    route = (rq.route or "").split("?")[0].strip("/")
+    return ServerSideComponent(
+        id="page_" + re.sub(r"[^A-Za-z0-9_-]", "_", route or "root"),
+        server_side_type="",
+        route="/" + route,
+        children=[layout],
+        initial_data=dict(state or {}),
+        page_type=page_type,
+    )
+
+
+def _definition_window_title(layout, state: dict | None, route: str | None) -> str:
+    """What a definition-only page names the window with (Java's
+    ``ActionInstanceCreator.nameTheWindow``): the root component's own ``title``, interpolated
+    against the page state — unless an expression in it has no value yet —, else the route's last
+    literal segment humanized (``orders/:id/edit-notes`` → "Edit notes")."""
+    import re
+
+    from ..naming import humanize_constant
+
+    title = getattr(layout, "title", None)
+    if isinstance(title, str) and title.strip():
+        values = state or {}
+
+        def value_of(expression: str):
+            key = expression.strip()
+            key = key[len("state.") :] if key.startswith("state.") else key
+            value = values.get(key)
+            return None if value is None or str(value).strip() == "" else str(value)
+
+        placeholders = re.findall(r"\$\{([^}]+)}", title)
+        if all(value_of(p) is not None for p in placeholders):
+            return re.sub(r"\$\{([^}]+)}", lambda m: value_of(m.group(1)) or "", title)
+    for segment in reversed((route or "").split("?", 1)[0].split("/")):
+        if segment.strip() and not segment.startswith(":") and not segment.startswith("{"):
+            return humanize_constant(segment)
+    return route or ""
+
+
+def _with_page_type_on_view(increment: UIIncrement, server_side_type: str, page_type: str):
+    """The increment with the bound view's page wrapper carrying the declared page type."""
+    from mateu_ui.dtos import ServerSideComponent
+
+    changed = False
+    fragments = []
+    for fragment in increment.fragments or []:
+        component = fragment.component
+        if isinstance(component, ServerSideComponent) and component.server_side_type == server_side_type:
+            fragment = fragment.model_copy(update={"component": component.model_copy(update={"page_type": page_type})})
+            changed = True
+        fragments.append(fragment)
+    return increment.model_copy(update={"fragments": fragments}) if changed else increment
+
+
+def _is_terminal_route(route: str | None) -> bool:
+    """A content load of a sentinel route — an app with no home answers ``_no_home_route``
+    (Java's ``ActionInstanceCreator.isTerminalRoute``)."""
+    r = (route or "").split("?", 1)[0]
+    return r.endswith("_no_home_route") or r.endswith("_page")

@@ -8,7 +8,7 @@ namespace Mateu.Core;
 
 /// <summary>Where Mateu.Core logs. The core has no host of its own, so the adapter hands it the
 /// application's <see cref="ILoggerFactory"/> (AddMateu does); until then nothing is logged.</summary>
-public static class MateuLogging
+internal static class MateuLogging
 {
     private static ILoggerFactory _factory = NullLoggerFactory.Instance;
 
@@ -36,7 +36,7 @@ public static class MateuLogging
 /// error-message increment the renderers show, instead of a raw HTTP 500 they cannot render. The
 /// texts and rules are <see cref="ErrorBoundary"/>'s (shared with Java and Python); this adds the
 /// increment and the correlation id the adapter logs the entry under.</summary>
-public static class MateuErrors
+internal static class MateuErrors
 {
     /// <summary>The exception the user code actually threw: reflection invocation wraps it in a
     /// <see cref="TargetInvocationException"/>, and that wrapper says nothing.</summary>

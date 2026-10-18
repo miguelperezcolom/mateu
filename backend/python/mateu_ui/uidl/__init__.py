@@ -1,0 +1,381 @@
+"""Public API for defining Mateu views in Python.
+
+Class shape is expressed with plain type hints; field modifiers ride in ``Annotated[...]`` metadata;
+class- and method-level features are decorators. Mirrors the C# ``Mateu.Uidl`` attributes.
+
+Example::
+
+    from typing import Annotated
+    from mateu_ui.uidl import ui, title, button, Section, Required, Message
+
+    @ui("person")
+    @title("Person")
+    class Person:
+        name: Annotated[str | None, Required(), Section("Identity")] = None
+        age: int = 0
+
+        @button()
+        def save(self) -> Message: return Message(f"Saved {self.name}")
+"""
+
+from __future__ import annotations
+
+from .documents import (  # noqa: F401
+    Document,
+    DocumentDisposition,
+)
+from .messages import (  # noqa: F401
+    BannerTheme,
+    Message,
+    MessageVariant,
+    T,
+    UserFacingError,
+    UserFacingException,
+)
+from .markers import (  # noqa: F401
+    Aggregate,
+    AggregateFunction,
+    BulletedList,
+    Colspan,
+    Help,
+    SliderMin,
+    SliderMax,
+    DetailForm,
+    Disabled,
+    FileUpload,
+    GroupBy,
+    Hidden,
+    Inline,
+    Label,
+    Money,
+    Multiline,
+    OnRowSelected,
+    Password,
+    PhotoCapture,
+    PlainText,
+    PrimaryColumn,
+    RangeFilter,
+    ReadOnly,
+    Required,
+    RestOptions,
+    RowStatus,
+    Rule,
+    Section,
+    SeparatorBefore,
+    Signature,
+    Stereotype,
+    Tab,
+    Text,
+    Tooltip,
+    TreeSelect,
+    UseRadioButtons,
+    Version,
+)
+from .security import (  # noqa: F401
+    Access,
+    Audience,
+    audience,
+    disabled_unless,
+    DisabledUnless,
+    eyes_only,
+    EyesOnly,
+    Identity,
+    ReadOnlyUnless,
+)
+from .live_header_values import LiveHeaderValues  # noqa: F401
+from .suppliers import (  # noqa: F401
+    AppShortcutEntry,
+    HeaderValue,
+    HeaderValuesSupplier,
+    KeepAliveHandler,
+    AppActionsSupplier,
+    AppHeaderAction,
+    AppNotification,
+    AppShell,
+    AppSupplier,
+    HomeRouteSupplier,
+    GlobalSearchResult,
+    GlobalSearchSupplier,
+    GroupActionVisibility,
+    InlineEditing,
+    LookupLabelSupplier,
+    MenuSupplier,
+    NotificationsSupplier,
+    PeerNav,
+    PeerNavigationSupplier,
+    RuleSupplier,
+)
+from .placement import (  # noqa: F401
+    Aside,
+    HeaderBadge,
+    LinkTo,
+    Lookup,
+    NavLink,
+    Panel,
+    Searchable,
+    Step,
+    Timestamp,
+)
+from .class_decorators import (  # noqa: F401
+    AppVariant,
+    LabelsAsideMode,
+    PageBanner,
+    PageBanners,
+    PageType,
+    PageWidth,
+    SizeMode,
+    ai,
+    app,
+    app_context,
+    auto_layout,
+    auto_page,
+    compact,
+    confirm_on_navigation_if_dirty,
+    edit_in_drawer,
+    emits,
+    folded_layout,
+    form_layout,
+    inline_editing,
+    mobile_app,
+    overline,
+    page_template,
+    page_width,
+    plain_text,
+    read_only,
+    remote_menu,
+    app_shortcut,
+    rest_action,
+    rest_data,
+    rest_listing,
+    secured,
+    size,
+    static_view,
+    subscribe_to,
+    SubscriptionSource,
+    TriggerType,
+    TriggerSpec,
+    trigger,
+    subtitle,
+    title,
+    title_placeholder,
+    toc,
+    ui,
+    welcome_banner,
+    wizard_progress,
+    zones,
+)
+from .method_decorators import (  # noqa: F401
+    action,
+    action_options,
+    banner,
+    button,
+    toolbar,
+    drag_rows,
+    fab,
+    group_action,
+    kpi,
+    list_toolbar_button,
+    menu_group,
+    menu_item,
+    MenuDisplay,
+    MenuLook,
+    shortcut,
+    wizard_completion_action,
+)
+from .listing import (  # noqa: F401
+    C,
+    Creatable,
+    Crud,
+    D,
+    DateRange,
+    Deletable,
+    E,
+    Editable,
+    F,
+    Filterable,
+    GroupSummary,
+    I,
+    Listing,
+    ListingData,
+    Navigable,
+    NumberRange,
+    Pageable,
+    PageResult,
+    R,
+    SearchRequest,
+    SelectedItem,
+    Selector,
+    SortSpec,
+)
+from .views import (  # noqa: F401
+    ComponentTreeSupplier,
+    HeroSearch,
+    LinkSupplier,
+    SmartSearchPage,
+    Translator,
+    Wizard,
+)
+from .archetypes import (  # noqa: F401
+    CollectionDetail,
+    Dashboard,
+    Foldout,
+    GeneralOverview,
+    ItemOverview,
+    Welcome,
+)
+from .archetype_pages import (  # noqa: F401
+    CalendarPage,
+    DataManagement,
+    GanttPage,
+    TodoList,
+)
+from .flow import (  # noqa: F401
+    Announce,
+    CloseOverlay,
+    Emit,
+    FlowStep,
+    MarkClean,
+    MarkDirty,
+    Navigate,
+    RunAction,
+)
+from .constraints import (  # noqa: F401
+    Length,
+    Max,
+    Min,
+    Pattern,
+    Size,
+    Validation,
+    ValidationSupplier,
+    validation,
+)
+from .action_catalog import ActionCatalogSupplier, CatalogAction, CatalogRestAction  # noqa: F401
+from .export import ExportColumn, ExportedFile, ExportFormat, ListingExport, ListingExporter  # noqa: F401
+from .rest_sources import (  # noqa: F401
+    DeclaredRestSource,
+    RestDataSource,
+    RestSourceCatalogSupplier,
+    RestSourceEntry,
+    RestSourceKind,
+    RestSourceProvenance,
+    RestSourceSupplier,
+    rest_source,
+)
+from .business_components import (  # noqa: F401
+    ComponentCatalogSupplier,
+    ComponentEntry,
+    business_component,
+)
+from .adapters import (  # noqa: F401
+    AdaptedView,
+    ComponentAdapter,
+)
+from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .request import ActionRequest  # noqa: F401
+from .environments import Environment, SourceOverride  # noqa: F401
+from .field_types import (  # noqa: F401
+    FieldType,
+    FieldTypeCatalogSupplier,
+    FieldTypeEntry,
+)
+from .patterns import (  # noqa: F401
+    CrudDisplay,
+    DockedPanel,
+    Draftable,
+    GeneralOverviewDisplay,
+    HeroTone,
+    RecordSwitcher,
+    RecordSwitcherSupplier,
+    SwitcherType,
+    Toggle,
+    WizardDisplay,
+)
+
+
+# Parity aliases (API freeze, 3.0-alpha.410): the Java / .NET name of the same concept. Both names
+# are supported; neither is deprecated.
+BadgeInHeader = HeaderBadge  # Java @BadgeInHeader
+PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width takes it)
+
+__all__ = [
+    "ActionRequest",
+    "Document",
+    "DocumentDisposition",
+    "Access",
+    "Translations",
+    "TranslationsSupplier",
+    "Environment",
+    "SourceOverride",
+    "UserFacingException",
+    "Inline",
+    "AdaptedView",
+    "ComponentAdapter",
+    "ComponentCatalogSupplier",
+    "ComponentEntry",
+    "business_component",
+    "group_action",
+    "GroupActionVisibility",
+    "GroupSummary",
+    "wizard_completion_action",
+    "eyes_only",
+    "DeclaredRestSource",
+    "RestDataSource",
+    "RestSourceCatalogSupplier",
+    "ActionCatalogSupplier",
+    "ExportColumn",
+    "ExportedFile",
+    "ExportFormat",
+    "ListingExport",
+    "ListingExporter",
+    "CatalogAction",
+    "CatalogRestAction",
+    "FieldType",
+    "FieldTypeCatalogSupplier",
+    "FieldTypeEntry",
+    "RestSourceEntry",
+    "RestSourceKind",
+    "RestSourceProvenance",
+    "RestSourceSupplier",
+    "rest_source",
+    "Colspan",
+    "Help",
+    "SliderMin",
+    "SliderMax",
+    "DetailForm",
+    "Max",
+    "Min",
+    "Pattern",
+    "Size",
+    "Length",
+    "Validation",
+    "ValidationSupplier",
+    "validation",
+    "Text",
+    "UserFacingError",
+    "MenuDisplay",
+    "MenuLook",
+    "menu_group",
+    "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageBanners", "PageWidth", "PageType",
+    "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
+    "static_view",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
+    "plain_text", "emits", "subscribe_to", "SubscriptionSource", "TriggerType", "TriggerSpec", "trigger", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
+    "button", "toolbar", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
+    "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
+    "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
+    "CalendarPage",
+    "AppShell", "AppSupplier", "MenuSupplier", "HomeRouteSupplier",
+    "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
+    "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
+    # API freeze (3.0-alpha.410): names that were importable but missing from __all__
+    "app_context", "edit_in_drawer", "overline", "title_placeholder", "auto_page", "action_options",
+    "PrimaryColumn", "Aside", "LinkTo", "NavLink", "CollectionDetail", "GeneralOverview",
+    "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
+    # parity with the Java / .NET names
+    "AppVariant", "BadgeInHeader", "PageWidthStyle",
+    # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
+    "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
+    "LiveHeaderValues",
+]

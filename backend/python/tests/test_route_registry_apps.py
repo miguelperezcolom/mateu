@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 DSL_MOUNT = Path(__file__).resolve().parent / "specs" / "dsl-mount"
 
-from mateu_core.route_registry import AppRef, RouteEntry, RouteRegistry  # noqa: E402
+from mateu_ui.core.route_registry import AppRef, RouteEntry, RouteRegistry  # noqa: E402
 
 
 def _registry() -> RouteRegistry:

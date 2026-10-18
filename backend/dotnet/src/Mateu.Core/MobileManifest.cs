@@ -15,7 +15,7 @@ namespace Mateu.Core;
 /// environment), then <see cref="MobileAppAttribute"/>, then the app itself ([App] title, [Title],
 /// the humanized class name). Same members, order and JSON as Java's MobileManifest and Python's
 /// mobile_manifest. EXPERIMENTAL (mobile app, 3.0 beta).</para></summary>
-public static class MobileManifest
+internal static class MobileManifest
 {
     /// <summary>The endpoint under every mount's base path.</summary>
     public const string Path = "/mateu/v3/manifest";

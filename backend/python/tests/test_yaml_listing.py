@@ -11,9 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.mapper import ReflectionMapper  # noqa: E402
-from mateu_core.yaml_preview import build_from_yaml  # noqa: E402
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.core.mapper import ReflectionMapper  # noqa: E402
+from mateu_ui.core.yaml_preview import build_from_yaml  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 # starters/yaml/src/main/resources/specs/ui/products.yaml, as shipped
 PRODUCTS = """

@@ -11,7 +11,7 @@ namespace Mateu.Core;
 /// tree suppliers are never rewritten (crud/listing views take their own mapping paths before
 /// this is consulted). Only fully-derivable archetypes compose: dashboard (MetricCard
 /// properties) and welcome (nothing but calls-to-action and presentational components).</summary>
-public static class PageInference
+internal static class PageInference
 {
     /// <summary>[AutoPage] decides when present; otherwise the "Mateu.PageInference.Enabled"
     /// AppContext switch (default on; see <see cref="InferenceSwitches"/>).</summary>

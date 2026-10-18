@@ -12,9 +12,9 @@
 > The golden-JSON tests pass; the live `showcase` view is byte-identical to the C# reference.
 > Since 2026-10-10 the port is a fully supported producer (PyPI `mateu-ui`): the shared wire-
 > conformance corpus is a hard gate, and every server row of the parity matrix is ✅ (see
-> `doc/src/content/docs/reference/parity.md`). The engine is split by concern: `mateu_core/mapper/`
-> and `mateu_core/sync_handler/` are packages of mixins composed into `ReflectionMapper` /
-> `SyncHandler`; `mateu_uidl` and `mateu_dtos` are modules re-exported from their package roots.
+> `doc/src/content/docs/reference/parity.md`). The engine is split by concern: `mateu_ui/core/mapper/`
+> and `mateu_ui/core/sync_handler/` are packages of mixins composed into `ReflectionMapper` /
+> `SyncHandler`; `mateu_ui.uidl` and `mateu_ui.dtos` are modules re-exported from their package roots.
 
 ## 1. Guiding principle: the renderers are backend-agnostic
 
@@ -66,15 +66,15 @@ server-side on CRUD save.
 
 ```
 backend/python/
-  mateu_uidl/     ← public API: decorators + field markers + Message/Crud/Wizard/Translator
-  mateu_dtos/     ← the wire model (Pydantic): UIIncrement, Component + metadata subtypes
-  mateu_core/     ← the engine: naming, reflection, MateuRegistry, ReflectionMapper, SyncHandler
-  mateu_fastapi/  ← add_mateu(app, *sources): the POST /mateu/v3/sync/{route} endpoint
+  mateu_ui/uidl/     ← public API: decorators + field markers + Message/Crud/Wizard/Translator
+  mateu_ui/dtos/     ← the wire model (Pydantic): UIIncrement, Component + metadata subtypes
+  mateu_ui/core/     ← the engine: naming, reflection, MateuRegistry, ReflectionMapper, SyncHandler
+  mateu_ui/fastapi/  ← add_mateu(app, *sources): the POST /mateu/v3/sync/{route} endpoint
   samples/demo/   ← a runnable FastAPI app (Person, Reservations, SignupWizard, Showcase, …)
   tests/          ← golden-JSON tests (pytest) — same suite as the C# port
 ```
 
-## 5. Mapping pipeline (mateu_core)
+## 5. Mapping pipeline (mateu_ui.core)
 
 ```
 HTTP sync ─▶ MateuRegistry.resolve(serverSideType|route) ─▶ instantiate the view type

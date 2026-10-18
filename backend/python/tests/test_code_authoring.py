@@ -11,11 +11,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from mateu_core.mapper import ReflectionMapper  # noqa: E402
-from mateu_core.registry import MateuRegistry  # noqa: E402
-from mateu_core.route_registry import RouteEntry, RouteEntrySupplier, RouteRegistry  # noqa: E402
-from mateu_dtos import MenuItem, RuleRecord  # noqa: E402
-from mateu_uidl import AppShell, AppSupplier, app, ui  # noqa: E402
+from mateu_ui.core.mapper import ReflectionMapper  # noqa: E402
+from mateu_ui.core.registry import MateuRegistry  # noqa: E402
+from mateu_ui.core.route_registry import RouteEntry, RouteEntrySupplier, RouteRegistry  # noqa: E402
+from mateu_ui.dtos import MenuItem, RuleRecord  # noqa: E402
+from mateu_ui.uidl import AppShell, AppSupplier, app, ui  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "specs" / "ui"
 

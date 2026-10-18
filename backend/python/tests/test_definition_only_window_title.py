@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 
 MODULE = sys.modules[__name__]
 
@@ -29,7 +29,7 @@ def _handler(tmp_path):
     (tmp_path / "form.yaml").write_text("type: Form\ntitle: Sign up\ncontent: []\n")
     (tmp_path / "customer.yaml").write_text("type: Form\ntitle: 'Customer ${state.name}'\ncontent: []\n")
     h = SyncHandler(MateuRegistry(MODULE))
-    from mateu_core.route_registry import RouteRegistry
+    from mateu_ui.core.route_registry import RouteRegistry
 
     h.routes = RouteRegistry(str(tmp_path))
     h.yaml_specs = YamlSpecLoader(str(tmp_path), h.routes)

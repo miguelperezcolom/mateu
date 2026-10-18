@@ -12,9 +12,9 @@ from typing import Annotated
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.sync_handler import version_field  # noqa: E402
-from mateu_uidl import Crud, Version, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.sync_handler import version_field  # noqa: E402
+from mateu_ui.uidl import Crud, Version, title, ui  # noqa: E402
 
 
 class Article:
@@ -255,7 +255,7 @@ def test_a_conflict_dialog_button_closes_the_dialog_with_its_answer():
     assert reload.commands[0].type == "CloseModal"
 
 
-from mateu_uidl import edit_in_drawer  # noqa: E402
+from mateu_ui.uidl import edit_in_drawer  # noqa: E402
 
 
 @ui("locked-articles-drawer")

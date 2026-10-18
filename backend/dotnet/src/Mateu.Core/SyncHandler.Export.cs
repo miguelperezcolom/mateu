@@ -6,7 +6,7 @@ namespace Mateu.Core;
 
 // Listing export: export-csv / export-excel / export-pdf (Java: ExportActionRunner + the
 // ListingExporter port).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     private MateuExporters _exporters = MateuExporters.BuiltIn;
 

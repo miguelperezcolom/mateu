@@ -21,12 +21,12 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.field_type_registry import FieldTypeRegistry, resolve_field_types  # noqa: E402
-from mateu_core.rest_source_registry import RestSourceRegistry  # noqa: E402
-from mateu_core.route_registry import RouteRegistry  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.field_type_registry import FieldTypeRegistry, resolve_field_types  # noqa: E402
+from mateu_ui.core.rest_source_registry import RestSourceRegistry  # noqa: E402
+from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     FieldType,
     FieldTypeCatalogSupplier,
     FieldTypeEntry,
@@ -308,7 +308,7 @@ def test_a_sample_file_is_read_relative_to_specs_ui(specs):
 
 
 def app_meta(h: SyncHandler) -> dict:
-    from mateu_uidl import app
+    from mateu_ui.uidl import app
 
     @app("Sampled app")
     class SampledApp:

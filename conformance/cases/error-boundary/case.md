@@ -8,4 +8,4 @@ request's correlation id in .NET), so the three normalisers mask it as `Referenc
 around it is pinned.
 
 Java applies the boundary in `RunActionUseCase`; .NET (`MateuErrors`) and Python
-(`mateu_core.errors`) apply it in the HTTP adapter, and their runners wrap the handler the same way.
+(`mateu_ui.core.errors`) apply it in the HTTP adapter, and their runners wrap the handler the same way.

@@ -15,7 +15,7 @@ namespace Mateu.Core;
 /// layout. This is a port of the Java reference decision table
 /// (io.mateu.core.domain.out.componentmapper.LayoutInference): same rules and thresholds, so the
 /// wire JSON stays identical across server implementations.</summary>
-public static class LayoutInference
+internal static class LayoutInference
 {
     /// <summary>Enums with up to this many constants render as radio buttons instead of a dropdown.</summary>
     public const int RadioMaxOptions = 4;

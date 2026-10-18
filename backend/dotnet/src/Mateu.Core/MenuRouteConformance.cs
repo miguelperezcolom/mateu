@@ -14,7 +14,7 @@ namespace Mateu.Core;
 /// here), an external URL and an empty placeholder are all skipped. (Mirrors Java's
 /// io.mateu.core.application.MenuRouteConformance and Python's menu_route_conformance.)</para>
 /// </summary>
-public static class MenuRouteConformance
+internal static class MenuRouteConformance
 {
     /// <summary>The absolute routes of leaves that resolve to no entry in <paramref name="knownRoutes"/>,
     /// in menu order.</summary>

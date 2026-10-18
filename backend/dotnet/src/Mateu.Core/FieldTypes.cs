@@ -19,7 +19,7 @@ namespace Mateu.Core;
 /// <para>Never fails: a broken file or entry logs and yields fewer types. A field naming a type the
 /// catalogue does not carry is WARNed about (once per id) and rendered as declared.</para>
 /// </summary>
-public sealed class FieldTypeRegistry : ISpecsCache
+internal sealed class FieldTypeRegistry : ISpecsCache
 {
     public const string FileName = "types.yaml";
 
@@ -233,7 +233,7 @@ public sealed class FieldTypeRegistry : ISpecsCache
 /// <item>an unknown type is WARNed about and the object rendered as declared — never a failed page.</item>
 /// </list>
 /// </summary>
-public static class FieldTypeResolver
+internal static class FieldTypeResolver
 {
     /// <summary>The authored key a field or a column references a type by.</summary>
     public const string Key = "fieldType";
@@ -346,7 +346,7 @@ public static class FieldTypeResolver
 /// <c>1</c>), or the handler's <c>MockSources</c> option (<c>MateuOptions.MockSources</c> in
 /// ASP.NET). Never silently in production.
 /// </summary>
-public static class SampleSources
+internal static class SampleSources
 {
     public const string Env = "MATEU_SOURCES_MOCK";
 

@@ -5,8 +5,8 @@ in the form body."""
 import json
 from typing import Annotated
 
-from mateu_core.mapper import ReflectionMapper
-from mateu_uidl import BadgeInHeader, HeaderBadge, Label, ui
+from mateu_ui.core.mapper import ReflectionMapper
+from mateu_ui.uidl import BadgeInHeader, HeaderBadge, Label, ui
 
 
 @ui("/badged-booking")

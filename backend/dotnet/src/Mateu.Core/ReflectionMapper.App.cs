@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Mateu.Core;
 
 // The app shell: variant, menu, header actions and context selectors (Java: AppMapper, AppMenuBuilder, MenuEntryMapper).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>Builds the App shell (header + menu) from an [App] class's [MenuItem] methods.</summary>
     /// <summary>The navigation chrome (mirrors Java's AppMetadataExtractor.getVariant): an

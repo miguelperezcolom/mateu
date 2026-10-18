@@ -4,7 +4,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Discovers [App] and [UI] view types in the given assemblies and resolves them by route or type name.</summary>
-public sealed class MateuRegistry
+internal sealed class MateuRegistry
 {
     private readonly Dictionary<string, Type> _byRoute = new();
     // The mounts of the registered apps: a route that arrives WITH its mount (a notification /

@@ -12,12 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.request_context import MateuRequest, bound_request  # noqa: E402
-from mateu_core.route_registry import RouteRegistry  # noqa: E402
-from mateu_core.translations import TranslationRegistry  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
-from mateu_uidl import Translations, TranslationsSupplier  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.request_context import MateuRequest, bound_request  # noqa: E402
+from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
+from mateu_ui.core.translations import TranslationRegistry  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.uidl import Translations, TranslationsSupplier  # noqa: E402
 
 
 class CodeMessages(TranslationsSupplier):

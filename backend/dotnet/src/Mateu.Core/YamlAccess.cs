@@ -20,7 +20,7 @@ namespace Mateu.Core;
 /// </list>
 /// Hidden or read-only fields are reported as LOCKED: their client-sent values are dropped.
 /// </summary>
-public static class YamlAccess
+internal static class YamlAccess
 {
     public const string AccessKey = "access";
     public const string EyesOnlyKey = "eyesOnly";

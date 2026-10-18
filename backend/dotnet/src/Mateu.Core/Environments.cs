@@ -14,7 +14,7 @@ namespace Mateu.Core;
 /// Only the DEPLOYMENT of an endpoint is overridable; secrets never belong here — a literal
 /// credential header is warned about (write <c>${secret.X}</c>, resolved by the proxy).
 /// </summary>
-public static class Environments
+internal static class Environments
 {
     public const string EnvVar = "MATEU_ENVIRONMENT";
 

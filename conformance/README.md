@@ -101,7 +101,7 @@ Some cases cannot be mirrored member for member, and that is information, not an
   component's `route` out on every side (`MEDIATED_FORMS`), besides the mediator protocol above.
 
 - **The error boundary lives in the HTTP adapter in the ports.** Java answers an exception inside
-  `RunActionUseCase`; .NET (`MateuErrors`) and Python (`mateu_core.errors`) in the adapter. Their
+  `RunActionUseCase`; .NET (`MateuErrors`) and Python (`mateu_ui.core.errors`) in the adapter. Their
   runners wrap the handler exactly as the adapter does, so `rejected-save` and `error-boundary` pin
   what travels.
 

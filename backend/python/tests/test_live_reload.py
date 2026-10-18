@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from mateu_core import dev_specs
-from mateu_core.rest_source_registry import RestSourceRegistry
-from mateu_core.route_registry import RouteRegistry
-from mateu_core.yaml_spec_loader import YamlSpecLoader
+from mateu_ui.core import dev_specs
+from mateu_ui.core.rest_source_registry import RestSourceRegistry
+from mateu_ui.core.route_registry import RouteRegistry
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader
 
 
 @pytest.fixture(autouse=True)
@@ -106,7 +106,7 @@ def test_the_watcher_reports_an_edit_on_disk(tmp_path):
 def _app(live_reload: bool):
     from fastapi import FastAPI
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     app = FastAPI()
     add_mateu(app, live_reload=live_reload)
@@ -161,7 +161,7 @@ def _live_app_module():
     import sys
     import types
 
-    from mateu_uidl import app, ui
+    from mateu_ui.uidl import app, ui
 
     module = types.ModuleType("live_reload_app")
 
@@ -186,7 +186,7 @@ def _actions(target: str) -> str:
 def test_an_edited_action_catalogue_is_what_the_next_sync_ships(tmp_path, monkeypatch):
     import json
 
-    from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name
+    from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name
 
     monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
     write(tmp_path, "actions.yaml", _actions("first-target"))
@@ -209,8 +209,8 @@ def test_an_edited_action_catalogue_is_what_the_next_sync_ships(tmp_path, monkey
 def test_an_edited_translation_is_what_the_next_sync_shows(tmp_path, monkeypatch):
     import json
 
-    from mateu_core import MateuRegistry, RunActionRq, SyncHandler
-    from mateu_core.request_context import MateuRequest, bound_request
+    from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler
+    from mateu_ui.core.request_context import MateuRequest, bound_request
 
     monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
     (tmp_path / "translations").mkdir()
