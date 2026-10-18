@@ -8,6 +8,21 @@ import javax.swing.JToggleButton
  * the painted ones (charts, heatmaps, meters) actually paint.
  */
 class DisplayWidgetsRenderTest : RenderTestCase() {
+    // the expectations below are written in a Spanish app's number format; pin it, or the test
+    // depends on the machine's default locale (money follows the UI locale since 3.0-alpha.430)
+    override fun setUp() {
+        super.setUp()
+        MoneyValues.setAppLocale("es-ES")
+    }
+
+    override fun tearDown() {
+        try {
+            MoneyValues.setAppLocale(null)
+        } finally {
+            super.tearDown()
+        }
+    }
+
 
     fun testProgressStepsMarkDoneStepsAndKeepDescriptionsInBothOrientations() {
         val steps = """[{"title":"Guest","status":"done"},{"title":"Room","status":"current","description":"Pick one"},
