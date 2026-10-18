@@ -171,8 +171,8 @@ raw into `JEditorPane`, browses any scheme) — native-renderer hardening for th
   rewrite or accept.
 - MINOR 29: the Redwood jar redistributes the VB starter `index.html` with its Oracle copyright header — a
   one-line legal confirmation of the template's terms.
-- MINOR 27 / refactor §5.10: `vaadin-lit` ships every asset twice (`static/` + `META-INF/resources/`, 8 MB for
-  4) — touches all five adapters and both ports; post-beta.
+- ~~MINOR 27 / refactor §5.10: `vaadin-lit` ships every asset twice~~ — DONE (decisions/d6): both renderer jars carry
+  each asset once, under `static/`; the Quarkus adapter serves Mateu's asset paths from it (`ClasspathAssets`).
 - MINOR 19 (port string APIs where Java has enums), the Java-only wire types beyond those F6
   ported (listed honestly in parity.md).
 

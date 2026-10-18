@@ -59,6 +59,12 @@ check() {
 check vaadin \
   "backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/mateu-vaadin.js" \
   "frontend/web/monorepo/apps/vaadin/src frontend/web/monorepo/libs/mateu/src"
+# the renderer jars carry each asset ONCE, under static/ (every adapter serves it from there): a
+# second copy under META-INF/resources (the pre-2026-10 layout) is ~4 MB nobody serves
+if [ -d "backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources" ]; then
+  status=1
+  echo "STALE  vaadin: old layout left behind (META-INF/resources/) - npm run copy removes it"
+fi
 
 # Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
 # written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).

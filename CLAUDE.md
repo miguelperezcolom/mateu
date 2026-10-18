@@ -423,7 +423,7 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   its own AP and run `AdapterParityITFoundation` — add any new HTTP behaviour there. SSE/LongTask now
   works on every adapter (Helidon SSE + MCP run on the Helidon routing `MateuHelidonRoutes`, not Jersey,
   which buffered streams). Quarkus ArC needs a SCOPE on generated and core beans (`@Named` alone is not
-  discovered; quarkus-spring-di was dropped — apps must declare `quarkus-rest-jackson`). The Spring bean
+  discovered; quarkus-spring-di was dropped — apps must declare `quarkus-rest-jackson`). **Renderer assets live ONCE, under classpath `static/`** (2026-10-18; the jars used to carry a second copy under `META-INF/resources/` for Quarkus — 2× the size): Spring serves `static/` by default, Micronaut/Helidon map it in app config, the ports/bundle exporter/`@UI(indexHtmlPath)` read it, and the Quarkus adapter serves Mateu's asset paths (`/assets`, `/js`, `/myassets`, `/_redwood`, `/version_*`) from it itself (`MateuQuarkusRoutes.rendererAssets` over core `ClasspathAssets`, ETag/Last-Modified/304); `check-bundle-freshness.sh` fails on a `META-INF/resources` left behind. The Spring bean
   is `mateuObjectMapper`. `io.mateu:mateu-bom` imports every Mateu artifact at one version
   (`MateuBomCompletenessTest`); annotation processors go on the processor path only and declare
   themselves Gradle-incremental. mvc-core test apps live in `com.example.*`. **Spring scan (2026-10-10)**:

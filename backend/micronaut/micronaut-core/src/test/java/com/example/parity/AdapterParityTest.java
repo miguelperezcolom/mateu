@@ -113,6 +113,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesARendererAssetFromTheClasspathStaticFolder() {
+    contract.servesARendererAssetFromTheClasspathStaticFolder("/assets/fixed.js");
+  }
+
+  @Test
   void answersARevalidationOfAnUnchangedAssetWith304() {
     contract.answersARevalidationOfAnUnchangedAssetWith304("/assets/fixed.js");
   }
