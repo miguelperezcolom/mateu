@@ -211,3 +211,18 @@ test('a by-ref @RestAction resolves against the entries a response carried', asy
   await b.c.runAction('ping');
   assert.deepEqual(fetched, ['https://b.example/ping']);
 });
+
+test('the assistant hooks: a shell-less session navigates by opening the view; preview and screen do nothing', () => {
+  const session = new MateuSession('http://x', 's', {}, null);
+  const opened: unknown[] = [];
+  session.openView = (t) => opened.push(t);
+  session.navigateTo({ route: '/orders', consumedRoute: '', actionId: '', serverSideType: 'O' });
+  session.navigateTo({ route: '/a', consumedRoute: '/', actionId: '' });
+  assert.deepEqual(opened, [
+    { label: '', route: '/orders', consumedRoute: '', serverSideType: 'O' },
+    { label: '', route: '/a', consumedRoute: '/', serverSideType: '' },
+  ]);
+  session.showPreview({}, 'content');
+  assert.equal(session.currentScreen(), null);
+  assert.deepEqual(session.chatApp, {});
+});

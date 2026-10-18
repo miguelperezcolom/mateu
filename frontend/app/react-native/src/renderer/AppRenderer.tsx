@@ -6,7 +6,9 @@ import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
-import { NavTarget } from '../core/MateuSession';
+import { NavTarget, islandSession } from '../core/MateuSession';
+import { firstComponentFragment, previewOverlayOf, type ChatScreenSnapshot } from '../core/chatStream';
+import type { MateuViewController } from '../core/MateuViewController';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 import { theme } from '../theme';
@@ -31,6 +33,8 @@ interface MenuItem {
   consumedRoute?: string;
   serverSideType?: string;
   actionId?: string;
+  /** A remote entry's own backend (federated menus). */
+  baseUrl?: string;
   submenus?: MenuItem[];
   icon?: string | null;
   description?: string | null;
@@ -51,6 +55,10 @@ interface AppContextSelector {
 interface AppMeta extends ShellExtrasMeta {
   title?: string;
   sseUrl?: string | null;
+  /** The app's MCP endpoint (@AI(mcp=…)): forwarded, absolute, with every chat message. */
+  mcpUrl?: string | null;
+  /** The endpoint the chat's attach button uploads to (@AI(upload=…)). */
+  uploadUrl?: string | null;
   themeToggle?: boolean;
   fabs?: { id?: string; label?: string; actionId?: string; icon?: string }[];
   homeRoute?: string;
@@ -91,8 +99,18 @@ interface GlobalSearchHit {
  * A navigation stack of Mateu views: the base screen (menu target) plus pushed details
  * (row → detail/new/edit, NavigateTo). The top view shows a back header when stacked.
  */
-function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomInset = 0, onPopToRoot }: { route: string; consumedRoute: string; serverSideType: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void }) {
-  const { session } = useAppContext();
+/** What the assistant is told the user is looking at: the live top view. */
+const screenOf = (c: MateuViewController): ChatScreenSnapshot => ({
+  route: c.currentRoute,
+  componentState: c.currentComponentState,
+  component: c.rendered.component,
+});
+
+function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl, bottomInset = 0, onPopToRoot }: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string; bottomInset?: number; onPopToRoot?: (popToRoot: () => void) => void }) {
+  const { session: appSession } = useAppContext();
+  // a navigation naming another backend (a federated entry, the assistant's navigation-requested)
+  // runs against it — with the user's credentials only when the app's own backend named it
+  const session = React.useMemo(() => (baseUrl ? islandSession(appSession, baseUrl) : appSession), [appSession, baseUrl]);
   const [stack, setStack] = useState<NavTarget[]>([]);
   // live controller of the TOP view, for the dirty check on back navigation
   const topController = React.useRef<import('../core/MateuViewController').MateuViewController | null>(null);
@@ -155,10 +173,41 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
         target={top}
         onOpenDetail={push}
         onStackNavigate={stackNavigate}
-        onController={(c) => (topController.current = c)}
+        onController={(c) => {
+          topController.current = c;
+          appSession.currentScreen = () => screenOf(c);
+        }}
       />
     </View>
   );
+}
+
+/** The assistant's render-screen, shown by the shell in the content area until the next navigation. */
+function PreviewScreen({ preview, onDismiss, bottomInset }: { preview: ContentPreview; onDismiss: () => void; bottomInset: number }) {
+  const { session } = useAppContext();
+  return (
+    <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
+      <View style={styles.backBar}>
+        <TouchableOpacity {...buttonA11y({ label: 'Close preview' })} onPress={onDismiss} style={styles.backButton} hitSlop={theme.hitSlop}>
+          <Text style={styles.backText}>✕</Text>
+        </TouchableOpacity>
+        <Text style={styles.backTitle}>{preview.title || 'Assistant preview'}</Text>
+      </View>
+      <MateuViewHost
+        key={preview.version}
+        session={session}
+        preview={{ increment: preview.increment, route: preview.route, consumedRoute: preview.route }}
+        onController={(c) => (session.currentScreen = () => screenOf(c))}
+      />
+    </View>
+  );
+}
+
+interface ContentPreview {
+  increment: unknown;
+  route: string;
+  title?: string;
+  version: number;
 }
 
 // beyond this many options the open selector shows a search box (like the web picker)
@@ -674,13 +723,14 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
           </TouchableOpacity>
         )}
       </View>
-      {chatOpen && !!appMeta.sseUrl && <ChatPanel session={session} sseUrl={appMeta.sseUrl} onClose={() => setChatOpen(false)} />}
+      {/* mounted while hidden: the conversation survives closing it (and a navigation it asked for) */}
+      {!!appMeta.sseUrl && <ChatPanel session={session} sseUrl={appMeta.sseUrl} visible={chatOpen} onClose={() => setChatOpen(false)} />}
     </>
   );
 }
 
 export function AppRenderer({ component, appMeta }: { component: Record<string, unknown>; appMeta: AppMeta }) {
-  const [currentNav, setCurrentNav] = useState<{ route: string; consumedRoute: string; serverSideType: string }>({
+  const [currentNav, setNav] = useState<{ route: string; consumedRoute: string; serverSideType: string; baseUrl?: string }>({
     route: appMeta.homeRoute ?? '',
     consumedRoute: appMeta.homeConsumedRoute ?? '',
     serverSideType: appMeta.homeServerSideType ?? appMeta.serverSideType ?? '',
@@ -697,6 +747,13 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   const { session } = useAppContext();
   const runAppAction = useRunAppAction(appMeta);
+  // the assistant's render-screen shown in the content area: transient — any navigation (even back
+  // to the same menu entry) shows the real screen again
+  const [preview, setPreview] = useState<ContentPreview | null>(null);
+  const setCurrentNav = (nav: { route: string; consumedRoute: string; serverSideType: string; baseUrl?: string }) => {
+    setPreview(null);
+    setNav(nav);
+  };
   // each tab's "back to my own screen", called when the ACTIVE tab is pressed again
   const tabRoots = React.useRef<Record<number, () => void>>({});
 
@@ -704,6 +761,37 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // lowered commands here (no server round-trip); any other id is an app-level server action.
   // The catalogue is app-wide: register it so every screen's controller resolves ids against it.
   React.useEffect(() => session.actionCatalogue.register(appMeta.actionCatalogue), [session, appMeta.actionCatalogue]);
+
+  // The assistant: what the shell lets it do (navigate like a menu click, show a screen it declared)
+  // and what it tells it (the menu, the MCP and upload endpoints).
+  session.chatApp = { menu: appMeta.menu, mcpUrl: appMeta.mcpUrl, uploadUrl: appMeta.uploadUrl };
+  session.navigateTo = (nav) => {
+    if (!nav.route && nav.actionId) {
+      void runAppAction(nav.actionId); // an action entry of the menu
+      return;
+    }
+    const target = { route: nav.route, consumedRoute: nav.consumedRoute, serverSideType: nav.serverSideType ?? '', baseUrl: nav.baseUrl && nav.baseUrl !== session.api.baseUrl ? nav.baseUrl : undefined };
+    if (variant === 'TABS' && menuItems.length > 0) {
+      // tabs keep their own screens: the destination opens on the live tab's stack
+      setPreview(null);
+      session.openView({ label: '', ...target });
+    } else {
+      setCurrentNav(target);
+    }
+  };
+  session.showPreview = (increment, target, title) => {
+    const route = session.currentScreen()?.route ?? currentNav.route;
+    if (target === 'content') {
+      setPreview((p) => ({ increment, route, title, version: (p?.version ?? 0) + 1 }));
+      return;
+    }
+    const fragment = firstComponentFragment(increment);
+    if (!fragment) {
+      session.notify(null, 'The assistant sent a screen with nothing to show.', 'warning');
+      return;
+    }
+    session.openOverlay(previewOverlayOf(fragment, target, title), null, null, { route, consumedRoute: route, serverSideType: '' });
+  };
 
   // live header values: seeded from the shell, changed by UpdateHeaderValue / the event stream
   React.useEffect(() => session.headerValues.seed(appMeta.headerValues), [session, appMeta.headerValues]);
@@ -794,17 +882,18 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0));
   const withOverlays = (screen: React.ReactNode) => (
     <View style={styles.stackHost}>
-      {screen}
+      {preview ? <PreviewScreen preview={preview} onDismiss={() => setPreview(null)} bottomInset={bottomInset} /> : screen}
       <AppOverlays appMeta={appMeta} />
     </View>
   );
 
   const mainScreen = withOverlays(
     <ContentScreen
-      key={`${currentNav.route}-${currentNav.consumedRoute}-${contextVersion}`}
+      key={`${currentNav.route}-${currentNav.consumedRoute}-${currentNav.baseUrl ?? ""}-${contextVersion}`}
       route={currentNav.route}
       consumedRoute={currentNav.consumedRoute}
       serverSideType={currentNav.serverSideType}
+      baseUrl={currentNav.baseUrl}
       bottomInset={bottomInset}
     />,
   );
@@ -819,6 +908,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
               name={item.label ?? `Tab${i}`}
               listeners={({ navigation }) => ({
                 tabPress: () => {
+                  setPreview(null);
                   if (navigation.isFocused()) tabRoots.current[i]?.();
                 },
               })}

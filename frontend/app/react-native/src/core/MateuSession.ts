@@ -8,6 +8,7 @@ import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts'
 import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
+import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -98,7 +99,24 @@ export class MateuSession {
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
   hub?: { goHome: () => void; openSwitcher: () => void; uiName: string };
 
-  private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => void }[] = [];
+  // ── the assistant chat (App.sseUrl / the Chat component): what the shell lets it do ──
+
+  /** Host hook: navigate exactly like a menu click carrying these fields (navigation-requested). */
+  navigateTo: (nav: ChatNavigation) => void = (nav) =>
+    this.openView({ label: '', route: nav.route, consumedRoute: nav.consumedRoute, serverSideType: nav.serverSideType ?? '' });
+
+  /** Host hook: show a `__preview__` increment the shell rendered (render-screen with no
+   *  subscriber) — in the content area, transiently, or in a drawer/dialog. */
+  showPreview: (increment: unknown, target: ChatPreviewTarget, title?: string) => void = () => {};
+
+  /** Host hook: what the user is looking at (route, title, state, the rendered tree). */
+  currentScreen: () => ChatScreenSnapshot | null = () => null;
+
+  /** The app shell's chat settings: its menu (menuContext), the MCP and upload endpoints. */
+  chatApp: { menu?: unknown; mcpUrl?: string | null; uploadUrl?: string | null } = {};
+
+  /** Event handlers answer whether they TOOK the event (false: filtered out); nothing = took it. */
+  private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => boolean | void }[] = [];
 
   /** `storesFrom`: share that session's stores instead of choosing by `auth` (an island). */
   constructor(
@@ -124,7 +142,7 @@ export class MateuSession {
     this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
   }
 
-  subscribe(owner: unknown, eventName: string, handler: (payload: unknown) => void): void {
+  subscribe(owner: unknown, eventName: string, handler: (payload: unknown) => boolean | void): void {
     this.subscriptions.push({ owner, eventName, handler });
   }
 
@@ -132,10 +150,13 @@ export class MateuSession {
     this.subscriptions = this.subscriptions.filter((s) => s.owner !== owner);
   }
 
-  dispatchEvent(eventName: string, payload: unknown): void {
+  /** Delivers an event to its subscribers; true when one of them took it. */
+  dispatchEvent(eventName: string, payload: unknown): boolean {
+    let taken = false;
     for (const s of [...this.subscriptions]) {
-      if (s.eventName === eventName) s.handler(payload);
+      if (s.eventName === eventName && s.handler(payload) !== false) taken = true;
     }
+    return taken;
   }
 }
 

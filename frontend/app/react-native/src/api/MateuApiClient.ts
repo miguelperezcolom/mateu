@@ -87,17 +87,6 @@ export class MateuApiClient {
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
-    const send = streamingFetch ?? fetch;
-    // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
-    const doFetch = async () => send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }), body: payload });
-    let response = await doFetch();
-    // Session expiry, exactly as runAction: a 401 gives the app (or this client's own provider) one
-    // chance to re-authenticate, then the stream is retried once — nothing has been streamed yet.
-    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth))) {
-      await response.text().catch(() => '');
-      response = await doFetch();
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     let buffer = '';
     const deliver = (final: boolean) => {
       const { increments, rest } = parseSseChunk(final ? buffer + '\n\n' : buffer);
@@ -107,20 +96,65 @@ export class MateuApiClient {
         onIncrement(increment);
       }
     };
+    await this.postStream(url, payload, (text) => {
+      buffer += text;
+      deliver(false);
+    });
+    deliver(true);
+  }
+
+  /**
+   * POSTs `body` to `url` (an SSE endpoint: a LongTask, the assistant chat) and hands the response
+   * text to `onText` AS IT ARRIVES — through the registered streaming fetch; without one the whole
+   * text arrives once the stream has ended. Credentials only when `url` is trusted with them.
+   * Session expiry, exactly as runAction: a 401 gives the app (or this client's own provider) one
+   * chance to re-authenticate, then the request is retried once — nothing has been streamed yet.
+   */
+  async postStream(url: string, body: string, onText: (text: string) => void): Promise<void> {
+    const send = streamingFetch ?? fetch;
+    // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
+    const doFetch = async () => send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }, url), body });
+    const response = await this.withReauth(url, doFetch);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const reader = (response.body as ReadableStream<Uint8Array> | null)?.getReader?.();
     if (!reader) {
-      buffer = await response.text();
-      deliver(true);
+      onText(await response.text());
       return;
     }
     const decoder = new TextDecoder();
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      deliver(false);
+      onText(decoder.decode(value, { stream: true }));
     }
-    deliver(true);
+    const tail = decoder.decode();
+    if (tail) onText(tail);
+  }
+
+  /**
+   * A multipart POST (the assistant's attachments): the credential headers when `url` is trusted
+   * with them, but NO Content-Type — the runtime writes the multipart boundary. Answers the JSON.
+   */
+  async postForm(url: string, form: FormData): Promise<unknown> {
+    const doFetch = async () => {
+      const headers = await this.headers({}, url);
+      delete headers['Content-Type'];
+      return fetch(url, { method: 'POST', headers, body: form });
+    };
+    const response = await this.withReauth(url, doFetch);
+    const text = await response.text();
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${text.slice(0, 200)}`);
+    return text ? JSON.parse(text) : {};
+  }
+
+  /** One re-authentication + retry on a 401 — only against a url trusted with the credentials. */
+  private async withReauth(url: string, doFetch: () => Promise<Response>): Promise<Response> {
+    const response = await doFetch();
+    if (response.status === 401 && this.carriesCredentials(url) && (await handleSessionExpired(this.auth))) {
+      await response.text().catch(() => '');
+      return doFetch();
+    }
+    return response;
   }
 
   private requestOf(params: RunActionParams): { urlSegment: string; payload: string } {

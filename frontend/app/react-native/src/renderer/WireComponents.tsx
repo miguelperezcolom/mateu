@@ -659,15 +659,16 @@ export function MessageInputRenderer({ metadata }: { metadata: Dict }) {
 export function ChatRenderer({ metadata }: { metadata: Dict }) {
   const { session } = useAppContext();
   const [open, setOpen] = useState(false);
+  // relative urls (sseUrl, uploadUrl) resolve against the backend inside the panel
   const sseUrl = str(metadata['sseUrl']);
-  const url = sseUrl.startsWith('/') ? `${session.api.baseUrl}${sseUrl}` : sseUrl;
   if (!sseUrl) return null;
   return (
     <>
-      <TouchableOpacity {...buttonA11y()} style={styles.primaryBtn} onPress={() => setOpen(true)}>
+      <TouchableOpacity {...buttonA11y({ label: 'Open chat' })} style={styles.primaryBtn} onPress={() => setOpen(true)}>
         <Text style={styles.primaryBtnText}>💬 Open chat</Text>
       </TouchableOpacity>
-      {open && <ChatPanel session={session} sseUrl={url} onClose={() => setOpen(false)} />}
+      {/* mounted while hidden: the conversation survives closing it */}
+      <ChatPanel session={session} sseUrl={sseUrl} uploadUrl={str(metadata['uploadUrl']) || null} visible={open} onClose={() => setOpen(false)} />
     </>
   );
 }
