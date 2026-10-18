@@ -77,15 +77,22 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
     // What the save said, if it said something ({@link #SAVED_MESSAGE}): "Sin cambios" for a save
     // that found nothing to change, instead of claiming it saved.
     var said = httpRequest.getAttribute(SAVED_MESSAGE);
+    var message =
+        Message.builder()
+            .variant(said == null ? NotificationVariant.success : NotificationVariant.contrast)
+            .text(said == null ? "Item saved successfully" : said.toString());
+    if (offersAddAnother(persistAction, orchestrator)) {
+      // "Add another" belongs to the create flow: the record just created opens on its view, and
+      // the toast confirming it offers to start the next one (the crud's "new"). Not on the view
+      // of an existing record, where it used to sit next to Edit.
+      message
+          .undoLabel(orchestrator.addAnotherLabel())
+          .undoActionId("new")
+          .undoParameters(Map.of())
+          .duration(10000);
+    }
     var result =
-        CrudActionResult.of(persistAction)
-            .withSavedId(savedId)
-            .withMessage(
-                Message.builder()
-                    .variant(
-                        said == null ? NotificationVariant.success : NotificationVariant.contrast)
-                    .text(said == null ? "Item saved successfully" : said.toString())
-                    .build());
+        CrudActionResult.of(persistAction).withSavedId(savedId).withMessage(message.build());
     if (orchestrator.editInDrawer()) {
       if (saveAndNext) {
         var next = nextDrawer(savedId, httpRequest, orchestrator);
@@ -110,6 +117,18 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
           UICommand.closeModal(Crud.SAVED_IN_DRAWER_EVENT));
     }
     return result.withRoute("/" + savedId);
+  }
+
+  /**
+   * Whether the confirmation of a save offers "Add another": only after CREATING a record on the
+   * routed form (the drawer closes back onto the listing, whose New is right there), and only when
+   * the crud can create.
+   */
+  static boolean offersAddAnother(String persistAction, Crud orchestrator) {
+    return "create".equals(persistAction)
+        && !orchestrator.editInDrawer()
+        && !orchestrator.readOnly()
+        && orchestrator.canCreate();
   }
 
   /** The edit drawer for the row after the saved one, or null when it was the last. */

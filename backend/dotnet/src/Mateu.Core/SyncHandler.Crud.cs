@@ -341,6 +341,9 @@ internal sealed partial class SyncHandler
                 ],
                 messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
         }
+        // a create's confirmation offers "Add another" when the crud can create (Crud<T>.CanCreate)
+        if (id is null && (crudType.GetProperty("CanCreate")?.GetValue(crud) as bool? ?? true))
+            return NavigateAfterCreate(baseRoute, rq);
         return Navigate(baseRoute, "Saved", rq);
     }
 

@@ -173,6 +173,9 @@ internal sealed partial class SyncHandler
         var form = New(profile.FormType);
         BindState(form, rq.ComponentState);
         var id = profile.CreatableInterface!.GetMethod("Create")!.Invoke(listing, [form]);
+        // a create's confirmation offers "Add another" (the drawer closes onto the listing's New)
+        if (!profile.EditInDrawer)
+            return NavigateAfterCreate(profile.CanView && id is not null ? $"{baseRoute}/{id}" : baseRoute, rq);
         return CapabilityPersisted(profile, baseRoute, id, rq);
     }
 

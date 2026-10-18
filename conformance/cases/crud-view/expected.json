@@ -121,10 +121,6 @@
             "label" : "Back to list",
             "type" : "Button"
           }, {
-            "actionId" : "new",
-            "label" : "Add another",
-            "type" : "Button"
-          }, {
             "actionId" : "edit",
             "label" : "Edit",
             "type" : "Button"

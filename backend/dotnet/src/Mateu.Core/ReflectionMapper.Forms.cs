@@ -16,13 +16,14 @@ internal sealed partial class ReflectionMapper
         // the entity's [Title], else its own ToString(), else its class name — never the crud's title.
         var title = TitleOf(element, entity);
         // The toolbar exactly as Java's CrudFormComponentBuilder / ViewToolbarBuilder draw it: the way
-        // back (Cancel / Back to list) is a tertiary button, the view page offers "Add another"
-        // before "Edit", and an EDIT form saves through "save" ("create" is the creation form's).
+        // back (Cancel / Back to list) is a tertiary button, the view page offers "Edit" (no "Add
+        // another": that belongs to the create flow — the toast confirming a create offers it), and
+        // an EDIT form saves through "save" ("create" is the creation form's).
         var toolbar = (mode switch
         {
             "view" => new List<ButtonDto>
             {
-                new("Back to list", "cancel-view") { ButtonStyle = "tertiary" }, new("Add another", "new"), new("Edit", "edit"),
+                new("Back to list", "cancel-view") { ButtonStyle = "tertiary" }, new("Edit", "edit"),
             },
             "edit" => [new("Cancel", "cancel-edit") { ButtonStyle = "tertiary" }, new("Save", "save") { ButtonStyle = "primary" }],
             _ /* new */ => [new("Cancel", "cancel-new") { ButtonStyle = "tertiary" }, new("Save", "create") { ButtonStyle = "primary" }],

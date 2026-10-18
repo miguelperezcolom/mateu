@@ -2162,6 +2162,15 @@ def test_crud_create_navigates_back_with_message():
     assert [c.type for c in inc.commands] == ["MarkAsClean", "NavigateTo"]
     assert inc.commands[1].data == "/things"
     assert inc.messages[0].text == "Saved"
+    # the create flow offers the next record: "Add another" rides the confirmation toast
+    assert inc.messages[0].undo_label == "Add another"
+    assert inc.messages[0].undo_action_id == "new"
+
+
+def test_the_view_of_an_existing_record_offers_edit_but_not_add_another():
+    j = render(handler().handle(RunActionRq(route="/things/1", action_id="", server_side_type=_name(Things))))
+    assert '"edit"' in j
+    assert "Add another" not in j
 
 
 def test_crud_create_missing_required_is_error():

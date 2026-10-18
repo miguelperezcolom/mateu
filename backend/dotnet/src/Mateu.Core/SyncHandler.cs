@@ -899,6 +899,16 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             commands: [new UICommandDto(Target(rq), "MarkAsClean", null), new UICommandDto(Target(rq), "NavigateTo", route)],
             messages: successText is null ? [] : [new MessageDto("success", "middle", "", successText, 3000)]);
 
+    /// <summary>The navigation a successful CREATE answers with: its "Saved" toast offers "Add
+    /// another" (dispatching the crud's "new") — the create flow is where it belongs, not the view
+    /// of an existing record (mirrors Java's PersistActionHandler.offersAddAnother).</summary>
+    private static UIIncrementDto NavigateAfterCreate(string route, RunActionRqDto rq) =>
+        Navigate(route, "Saved", rq) with
+        {
+            Messages = [new MessageDto("success", "middle", "", "Saved", 10000,
+                UndoLabel: "Add another", UndoActionId: "new", UndoParameters: new Dictionary<string, object?>())],
+        };
+
     private static UIIncrementDto Error(string text) =>
         UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", text, 5000)]);
 
