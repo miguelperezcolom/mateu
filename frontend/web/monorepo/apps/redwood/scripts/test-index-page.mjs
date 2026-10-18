@@ -41,13 +41,13 @@ test('carries every marker the controllers rely on, once', () => {
 
 test('the boot is parked, in order, between AQUIJS and HASTAAQUIJS', () => {
   const span = page.slice(page.indexOf('<!-- AQUIJS -->'), page.indexOf('<!-- HASTAAQUIJS -->'))
-  const scripts = [...span.matchAll(/<script\b([^>]*)>/g)].map((m) => m[1])
+  const scripts = [...span.matchAll(/<script\b([^>]*)>/gi)].map((m) => m[1])
   assert.ok(scripts.every((a) => /type="text\/mateu-deferred"/.test(a) && !/(^|\s)src=/.test(a)))
   const srcs = scripts.map((a) => /data-src="([^"]+)"/.exec(a)?.[1]).filter(Boolean)
   assert.deepEqual(srcs, [...facts.libraries, facts.runtime])
   assert.ok(span.indexOf('require.config(') > span.indexOf('third-party-libs.js'), 'the require config runs after require.js')
   assert.ok(span.indexOf('require.config(') < span.indexOf('visual-runtime.js'))
-  assert.equal([...page.matchAll(/<script\b/g)].length, scripts.length, 'no script outside the span')
+  assert.equal([...page.matchAll(/<script\b/gi)].length, scripts.length, 'no script outside the span')
 })
 
 test('anchors the runtime and the app at the app folder, with the cache-busting hash', () => {

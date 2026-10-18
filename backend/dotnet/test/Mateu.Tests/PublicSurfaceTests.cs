@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Mateu.AspNetCore;
 using Mateu.Core;
 using Xunit;
@@ -28,15 +27,14 @@ public class PublicSurfaceTests
             Assert.False(engine.IsVisible, engine.FullName + " is public");
     }
 
-    private static void AssertSurface(System.Reflection.Assembly assembly, string file,
-        [CallerFilePath] string here = "")
+    private static void AssertSurface(System.Reflection.Assembly assembly, string file)
     {
         var actual = assembly.GetExportedTypes()
             .Select(t => t.FullName!)
             .Concat(assembly.GetForwardedTypes().Select(t => t.FullName! + " (forwarded)"))
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
-        var path = Path.Combine(Path.GetDirectoryName(here)!, "api", file);
+        var path = Path.Combine(TestProjectDir(), "api", file);
         if (string.Equals(Environment.GetEnvironmentVariable("MATEU_API_WRITE"), "true",
                 StringComparison.OrdinalIgnoreCase))
             File.WriteAllLines(path, actual);
@@ -47,5 +45,13 @@ public class PublicSurfaceTests
             $"The public surface of {assembly.GetName().Name} changed — added: [{string.Join(", ", added)}], "
             + $"removed: [{string.Join(", ", removed)}]. If deliberate, rerun with MATEU_API_WRITE=true "
             + $"and commit api/{file}.");
+    }
+
+    // not [CallerFilePath]: CI builds deterministically, so source paths come out as "/_/..."
+    private static string TestProjectDir()
+    {
+        for (var d = new DirectoryInfo(AppContext.BaseDirectory); d != null; d = d.Parent)
+            if (File.Exists(Path.Combine(d.FullName, "Mateu.Tests.csproj"))) return d.FullName;
+        throw new InvalidOperationException("Mateu.Tests.csproj not found above " + AppContext.BaseDirectory);
     }
 }
