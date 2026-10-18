@@ -64,14 +64,39 @@ public sealed class PartialRegistry : ISpecsCache
         return _byRef.GetOrAdd(reference, FromYaml);
     }
 
+    /// <summary>The paths, relative to the specs directory, a YAML partial <c>reference</c> may live
+    /// at, in lookup order. A short name is <c>partials/&lt;ref&gt;.yaml</c> (or <c>.yml</c>); an explicit
+    /// <c>.yaml</c>/<c>.yml</c> path is relative to the specs directory, and the classpath spelling Java
+    /// takes (<c>specs/ui/partials/x.yaml</c>, leading slash ignored) is honoured too — one definition
+    /// resolves in every backend.</summary>
+    public static IReadOnlyList<string> CandidatePaths(string reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference)) return [];
+        if (!IsYamlPath(reference))
+            return [Path.Combine("partials", reference + ".yaml"), Path.Combine("partials", reference + ".yml")];
+        var path = reference.TrimStart('/');
+        return path.StartsWith("specs/ui/", StringComparison.Ordinal) ? [path, path["specs/ui/".Length..]] : [path];
+    }
+
+    /// <summary>Whether a ref names a file by path rather than by short name.</summary>
+    public static bool IsYamlPath(string reference) =>
+        reference.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase)
+        || reference.EndsWith(".yml", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>What identifies the partial a ref names — the file it resolves to (the ref itself when
+    /// registered in code or missing), so two spellings of one file are one link of a cycle.</summary>
+    public string Key(string reference)
+    {
+        if (_registered.ContainsKey(reference)) return reference;
+        return CandidatePaths(reference).FirstOrDefault(c => File.Exists(Path.Combine(_dir, c)))
+               ?.Replace('\\', '/') ?? reference;
+    }
+
     private IReadOnlyList<object> FromYaml(string reference)
     {
-        var relative = reference.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase)
-                       || reference.EndsWith(".yml", StringComparison.OrdinalIgnoreCase)
-            ? reference
-            : Path.Combine("partials", reference + ".yaml");
+        var relative = CandidatePaths(reference).FirstOrDefault(c => File.Exists(Path.Combine(_dir, c)));
+        if (relative is null) return None;
         var path = Path.Combine(_dir, relative);
-        if (!File.Exists(path)) return None;
         try
         {
             var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));

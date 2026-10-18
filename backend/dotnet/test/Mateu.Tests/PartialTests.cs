@@ -74,6 +74,20 @@ public class PartialTests
         Assert.Empty(ContentOf(tree));
     }
 
+    [Theory]
+    [InlineData("legal-notice")]
+    [InlineData("partials/legal-notice.yaml")]
+    [InlineData("specs/ui/partials/legal-notice.yaml")]
+    [InlineData("/specs/ui/partials/legal-notice.yaml")]
+    public void A_partial_is_named_by_its_short_name_or_by_an_explicit_path_in_either_spelling(string reference)
+    {
+        // the specs-relative path the ports took, and the classpath path Java's PartialRegistry takes
+        var tree = YamlComponentBuilder.Parse(
+            $"type: VerticalLayout\ncontent:\n  - type: Partial\n    ref: {reference}\n", Partials());
+
+        Assert.Equal("Prices include VAT.", Describe(Assert.Single(ContentOf(tree))));
+    }
+
     [Fact]
     public void A_partial_can_be_registered_in_code_and_wins_over_a_file_of_the_same_name()
     {

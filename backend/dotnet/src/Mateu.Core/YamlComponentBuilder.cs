@@ -163,8 +163,9 @@ internal static class YamlComponentBuilder
         if (node is IDictionary<object, object> map && Str(map, "type") == "Partial")
         {
             var reference = Str(map, "ref") ?? "";
-            if (chain.Contains(reference) || chain.Count >= MaxDepth) return [];
-            chain.Add(reference);
+            var key = partials.Partials.Key(reference);
+            if (chain.Contains(key) || chain.Count >= MaxDepth) return [];
+            chain.Add(key);
             try
             {
                 return partials.Partials.Resolve(reference)

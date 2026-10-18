@@ -153,13 +153,30 @@ class MateuApiClient(
         ).filterValues { it != null }
         val url = "$baseUrl/mateu/v3/sse/$urlSegment"
         log("[Mateu] --> POST (stream) $url")
-        val b = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("Content-Type", "application/json")
-            .header("Accept", "text/event-stream")
-        credentialHeaders(url).forEach { (k, v) -> b.header(k, v) }
-        val response = http.send(b.POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body))).build(), HttpResponse.BodyHandlers.ofLines())
-        if (response.statusCode() == 401) throw UnauthorizedException(url)
+        val json = mapper.writeValueAsString(body)
+        fun request(token: String?): HttpRequest {
+            val b = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("Accept", "text/event-stream")
+            credentialHeaders(url, token).forEach { (k, v) -> b.header(k, v) }
+            return b.POST(HttpRequest.BodyPublishers.ofString(json)).build()
+        }
+        val trusted = carriesCredentials(url)
+        val token = if (trusted) tokenProvider.accessToken() else null
+        var response = http.send(request(token), HttpResponse.BodyHandlers.ofLines())
+        // Session expiry, exactly as runAction: one chance to re-authenticate, then the stream is
+        // retried once with the REBUILT request (the new token) — nothing has been streamed yet.
+        if (response.statusCode() == 401 && trusted &&
+            (tokenProvider.onUnauthorized(token) || SessionGuard.handleSessionExpired())
+        ) {
+            response.body().close()
+            response = http.send(request(tokenProvider.accessToken()), HttpResponse.BodyHandlers.ofLines())
+        }
+        if (response.statusCode() == 401) {
+            response.body().close()
+            throw UnauthorizedException(url)
+        }
         if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")
         response.body().use { lines ->
             for (raw in lines.iterator()) {

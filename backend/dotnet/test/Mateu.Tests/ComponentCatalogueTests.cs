@@ -95,6 +95,33 @@ public class ComponentCatalogueTests
     }
 
     [Fact]
+    public void A_self_reference_inside_a_composition_renders_once_and_the_rest_of_the_page_too()
+    {
+        // external review 2026-10-18: Java and Python overflowed the stack; here the depth bound
+        // stopped it only after twenty nested copies of the composition
+        var cyclic = new ComponentCatalog([
+            new ComponentEntry("Greeting", new VerticalLayout { Content = [new Text("loop body"), new ComponentRef("Greeting")] }),
+        ]);
+        var json = JsonSerializer.Serialize(Handler(cyclic).Handle(new RunActionRqDto { Route = "component-refs" }), Json);
+        Assert.Equal(1, json.Split("loop body").Length - 1);
+        Assert.Contains("Unknown business component: Greeting", json);
+        Assert.Contains("Unknown business component: Nope", json);
+    }
+
+    [Fact]
+    public void An_indirect_cycle_is_broken_where_it_closes()
+    {
+        var cyclic = new ComponentCatalog([
+            new ComponentEntry("Greeting", new VerticalLayout { Content = [new Text("ping a"), new ComponentRef("Pong")] }),
+            new ComponentEntry("Pong", new VerticalLayout { Content = [new Text("ping b"), new ComponentRef("Greeting")] }),
+        ]);
+        var json = JsonSerializer.Serialize(Handler(cyclic).Handle(new RunActionRqDto { Route = "component-refs" }), Json);
+        Assert.Equal(1, json.Split("ping a").Length - 1);
+        Assert.Equal(1, json.Split("ping b").Length - 1);
+        Assert.Contains("Unknown business component: Greeting", json);
+    }
+
+    [Fact]
     public void The_app_carries_the_mapped_catalogue()
     {
         var json = JsonSerializer.Serialize(Handler(ComponentRegistry.AuthoredFrom(Dir)).Handle(new RunActionRqDto

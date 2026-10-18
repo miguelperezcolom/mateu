@@ -145,4 +145,22 @@ class PartialExpansionTest {
 
     assertThat(PartialExpander.expand(tree, null)).isSameAs(tree);
   }
+
+  @Test
+  void aPartialIsNamedByItsShortNameOrByAnExplicitPathInEitherSpelling() {
+    // the classpath path PartialRegistry always took, and the specs-relative one the ports, the
+    // visual editor and the static bundle accept — so one definition resolves everywhere
+    for (var ref :
+        List.of(
+            "legal-notice",
+            "specs/ui/partials/legal-notice.yaml",
+            "/specs/ui/partials/legal-notice.yaml",
+            "partials/legal-notice.yaml")) {
+      assertThat(PartialRegistry.instance().resolve(ref, null))
+          .as(ref)
+          .singleElement()
+          .isInstanceOf(Text.class);
+    }
+    assertThat(PartialRegistry.instance().resolve("partials/no-such-thing.yaml", null)).isEmpty();
+  }
 }

@@ -67,6 +67,66 @@ public final class ComponentToFragmentDtoMapper {
     }
   }
 
+  /**
+   * The business components being resolved on the way down this thread's mapping, outermost first.
+   * A composition that references itself — directly, through another component, or through a
+   * partial — closes a cycle; without this the mapping recursed until a StackOverflowError.
+   */
+  private static final ThreadLocal<java.util.Deque<String>> RESOLVING =
+      ThreadLocal.withInitial(java.util.ArrayDeque::new);
+
+  /** A ref chain longer than this is a bug, not a design (same bound as partials). */
+  private static final int MAX_COMPONENT_REF_DEPTH = 20;
+
+  private static ComponentDto mapComponentRef(
+      io.mateu.uidl.data.ComponentRef ref,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var chain = RESOLVING.get();
+    var name = ref.ref();
+    if (chain.contains(name) || chain.size() >= MAX_COMPONENT_REF_DEPTH) {
+      var path = new java.util.ArrayList<>(chain);
+      java.util.Collections.reverse(path);
+      path.add(name);
+      log.error(
+          "Business component '{}' includes itself: {}; rendered as a placeholder",
+          name,
+          String.join(" -> ", path));
+      return mapComponentToDto(
+          null,
+          new io.mateu.uidl.data.Text("Unknown business component: " + name),
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
+    }
+    var registry =
+        io.mateu.uidl.di.MateuBeanProvider.getBean(
+            io.mateu.core.application.runaction.ComponentRegistry.class);
+    var entry =
+        registry == null
+            ? java.util.Optional.<io.mateu.uidl.data.ComponentEntry>empty()
+            : registry.get(name);
+    var resolved =
+        entry
+            .map(io.mateu.uidl.data.ComponentEntry::component)
+            .filter(java.util.Objects::nonNull)
+            // a partial inside a composition is resolved like one anywhere else in a tree
+            .map(c -> io.mateu.core.application.runaction.PartialExpander.expand(c, httpRequest))
+            .orElseGet(() -> new io.mateu.uidl.data.Text("Unknown business component: " + name));
+    chain.push(name);
+    try {
+      return mapComponentToDto(
+          null, resolved, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    } finally {
+      chain.pop();
+    }
+  }
+
   public static ComponentDto mapComponentToDto(
       ComponentTreeSupplier componentSupplier,
       Component component,
@@ -89,21 +149,7 @@ public final class ComponentToFragmentDtoMapper {
     // placeholder,
     // never an error.
     if (component instanceof io.mateu.uidl.data.ComponentRef ref) {
-      var registry =
-          io.mateu.uidl.di.MateuBeanProvider.getBean(
-              io.mateu.core.application.runaction.ComponentRegistry.class);
-      var entry =
-          registry == null
-              ? java.util.Optional.<io.mateu.uidl.data.ComponentEntry>empty()
-              : registry.get(ref.ref());
-      var resolved =
-          entry
-              .map(io.mateu.uidl.data.ComponentEntry::component)
-              .filter(java.util.Objects::nonNull)
-              .orElseGet(
-                  () -> new io.mateu.uidl.data.Text("Unknown business component: " + ref.ref()));
-      return mapComponentToDto(
-          null, resolved, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      return mapComponentRef(ref, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof ServerSideComponent serverSideComponent) {
       return ServerSideComponentDto.builder()

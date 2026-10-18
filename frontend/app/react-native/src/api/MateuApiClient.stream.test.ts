@@ -35,3 +35,69 @@ test('an sse action posts to the stream endpoint and applies each increment as i
   assert.equal(seenAccept, 'text/event-stream');
   assert.deepEqual(applied, [{ fragments: [{ step: 1 }] }, { fragments: [{ step: 2 }] }, { fragments: [{ step: 3 }] }]);
 });
+
+// Session expiry on the stream (external review, 2026-10-18): runAction re-authenticates on a 401
+// and retries once; a LongTask's stream failed straight away, losing the user's long-running work.
+const sseParams = { route: '/long-task', consumedRoute: '', actionId: 'runLongTask', serverSideType: 'T', initiatorComponentId: 'c', componentState: {}, appState: {}, parameters: {} };
+const tokenProvider = (first: string, renewed: string | null) => {
+  const p = {
+    token: first,
+    refreshes: 0,
+    getToken: async () => p.token,
+    refresh: async () => {
+      p.refreshes++;
+      if (renewed === null) return false;
+      p.token = renewed;
+      return true;
+    },
+    login: async () => false,
+  };
+  return p;
+};
+const streamFetch = (statusFor: (auth: string | undefined, attempt: number) => number, seen: (string | undefined)[]) =>
+  (async (_url: string, init: { headers: Record<string, string> }) => {
+    const auth = init.headers['Authorization'];
+    seen.push(auth);
+    const status = statusFor(auth, seen.length);
+    return new Response(status === 200 ? 'data: {"fragments":[{"step":1}]}\n\n' : 'expired', { status });
+  }) as unknown as typeof fetch;
+
+test('a 401 on the stream re-authenticates through the client\'s provider and retries ONCE with the new token', async () => {
+  const seen: (string | undefined)[] = [];
+  const provider = tokenProvider('OLD', 'NEW');
+  setStreamingFetch(streamFetch((auth) => (auth === 'Bearer NEW' ? 200 : 401), seen));
+  const applied: unknown[] = [];
+  try {
+    await new MateuApiClient('http://x', 's', provider).runActionStream(sseParams, (inc) => applied.push(inc));
+  } finally {
+    setStreamingFetch(null);
+  }
+  assert.deepEqual(seen, ['Bearer OLD', 'Bearer NEW']);
+  assert.equal(provider.refreshes, 1);
+  assert.deepEqual(applied, [{ fragments: [{ step: 1 }] }]);
+});
+
+test('a stream still 401 after the renewal fails without a second retry', async () => {
+  const seen: (string | undefined)[] = [];
+  const provider = tokenProvider('OLD', 'NEW');
+  setStreamingFetch(streamFetch(() => 401, seen));
+  try {
+    await assert.rejects(new MateuApiClient('http://x', 's', provider).runActionStream(sseParams, () => {}), /HTTP 401/);
+  } finally {
+    setStreamingFetch(null);
+  }
+  assert.equal(seen.length, 2);
+});
+
+test('a stream 401 nobody can renew fails at once', async () => {
+  const seen: (string | undefined)[] = [];
+  setStreamingFetch(streamFetch(() => 401, seen));
+  try {
+    await assert.rejects(new MateuApiClient('http://x', 's', tokenProvider('OLD', null)).runActionStream(sseParams, () => {}), /HTTP 401/);
+    // an anonymous client (auth = null) is never re-authenticated either
+    await assert.rejects(new MateuApiClient('http://x', 's', null).runActionStream(sseParams, () => {}), /HTTP 401/);
+  } finally {
+    setStreamingFetch(null);
+  }
+  assert.equal(seen.length, 2);
+});

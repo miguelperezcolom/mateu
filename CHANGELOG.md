@@ -11,6 +11,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.3] — 2026-10-18
+
+Fixes from a second external review.
+
+### Fixed
+- **A business component that references itself** — directly, through another component or through a
+  partial — no longer crashes rendering, the static bundle export or the visual editor with a stack
+  overflow: the cycle is cut at the repeated reference (a placeholder) and the rest renders. (Java,
+  .NET, Python, visual editor)
+- A partial inside a business component is expanded on the Java server too.
+- `type: Partial` refs accept the same spellings in every backend and the visual editor: the short
+  name, the classpath path (`specs/ui/partials/x.yaml`) or the specs-relative path
+  (`partials/x.yaml`), `.yaml` or `.yml`.
+- React Native and IntelliJ: a long-running task's stream re-authenticates on an expired session and
+  retries once, like ordinary requests.
+
 ## [3.0-beta.2] — 2026-10-18
 
 Security fixes from an external review. Upgrade recommended.

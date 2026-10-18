@@ -87,8 +87,16 @@ export class MateuApiClient {
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
-    const doFetch = streamingFetch ?? fetch;
-    const response = await doFetch(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }), body: payload });
+    const send = streamingFetch ?? fetch;
+    // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
+    const doFetch = async () => send(url, { method: 'POST', headers: await this.headers({ Accept: 'text/event-stream' }), body: payload });
+    let response = await doFetch();
+    // Session expiry, exactly as runAction: a 401 gives the app (or this client's own provider) one
+    // chance to re-authenticate, then the stream is retried once — nothing has been streamed yet.
+    if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth))) {
+      await response.text().catch(() => '');
+      response = await doFetch();
+    }
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     let buffer = '';
     const deliver = (final: boolean) => {

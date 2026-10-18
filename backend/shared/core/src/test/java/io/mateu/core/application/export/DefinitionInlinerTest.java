@@ -69,4 +69,113 @@ class DefinitionInlinerTest {
       assertThat(content.get(1).path("type").asText()).isEqualTo("ComponentRef");
     }
   }
+
+  /** A classloader over a temp project holding {@code files} (path → content). */
+  private static URLClassLoader project(Path dir, java.util.Map<String, String> files)
+      throws Exception {
+    for (var f : files.entrySet()) {
+      var path = dir.resolve(f.getKey());
+      Files.createDirectories(path.getParent());
+      Files.writeString(path, f.getValue());
+    }
+    return new URLClassLoader(new java.net.URL[] {dir.toUri().toURL()}, null);
+  }
+
+  @Test
+  void aSelfReferencingBusinessComponentIsLeftAsAReferenceAndTheRestInlines(@TempDir Path dir)
+      throws Exception {
+    try (var cl =
+        project(
+            dir,
+            java.util.Map.of(
+                "specs/ui/components.yaml",
+                """
+                components:
+                  - name: loop
+                    component: {type: VerticalLayout, content: [{type: Text, text: inside}, {type: ComponentRef, ref: loop}]}
+                  - name: price
+                    component: {type: Text, text: Price}
+                """))) {
+      var def =
+          yaml.readTree(
+              "layout: {type: VerticalLayout, content: [{type: ComponentRef, ref: loop},"
+                  + " {type: ComponentRef, ref: price}]}");
+      var content = new DefinitionInliner(cl).inline(def).path("layout").path("content");
+      assertThat(content.get(0).path("content").get(0).path("text").asText()).isEqualTo("inside");
+      assertThat(content.get(0).path("content").get(1).path("type").asText())
+          .isEqualTo("ComponentRef");
+      assertThat(content.get(1).path("text").asText()).isEqualTo("Price");
+    }
+  }
+
+  @Test
+  void indirectAndMixedCyclesAreBroken(@TempDir Path dir) throws Exception {
+    try (var cl =
+        project(
+            dir,
+            java.util.Map.of(
+                "specs/ui/components.yaml",
+                """
+                components:
+                  - name: a
+                    component: {type: Card, content: {type: ComponentRef, ref: b}}
+                  - name: b
+                    component: {type: Card, content: {type: ComponentRef, ref: a}}
+                  - name: header
+                    component: {type: VerticalLayout, content: [{type: Partial, ref: brand}]}
+                """,
+                "specs/ui/partials/brand.yaml",
+                """
+                content:
+                  - {type: Text, text: Brand}
+                  - {type: ComponentRef, ref: header}
+                """))) {
+      var inliner = new DefinitionInliner(cl);
+      var indirect = inliner.inline(yaml.readTree("{type: ComponentRef, ref: a}"));
+      assertThat(indirect.toString())
+          .isEqualTo(
+              "{\"type\":\"Card\",\"content\":{\"type\":\"Card\",\"content\":"
+                  + "{\"type\":\"ComponentRef\",\"ref\":\"a\"}}}");
+      var mixed = inliner.inline(yaml.readTree("{type: ComponentRef, ref: header}"));
+      assertThat(mixed.path("content").toString())
+          .isEqualTo(
+              "[{\"type\":\"Text\",\"text\":\"Brand\"},"
+                  + "{\"type\":\"ComponentRef\",\"ref\":\"header\"}]");
+    }
+  }
+
+  @Test
+  void aPartialIsNamedByItsShortNameOrAnyExplicitPath(@TempDir Path dir) throws Exception {
+    try (var cl =
+        project(
+            dir,
+            java.util.Map.of(
+                "specs/ui/partials/address.yaml",
+                "content: [{type: FormField, id: street}, {type: FormField, id: city}]",
+                "specs/ui/shared/legal.yml",
+                "{type: Text, text: Legal}"))) {
+      var inliner = new DefinitionInliner(cl);
+      for (var ref :
+          java.util.List.of(
+              "address",
+              "specs/ui/partials/address.yaml",
+              "partials/address.yaml",
+              "/specs/ui/partials/address.yaml")) {
+        var out =
+            inliner.inline(
+                yaml.readTree(
+                    "layout: {type: FormLayout, content: [{type: Partial, ref: '" + ref + "'}]}"));
+        assertThat(out.path("layout").path("content").toString())
+            .as(ref)
+            .contains("street")
+            .contains("city")
+            .doesNotContain("Partial");
+      }
+      var legal =
+          inliner.inline(
+              yaml.readTree(
+                  "{type: VerticalLayout, content: [{type: Partial, ref: shared/legal.yml}]}"));
+      assertThat(legal.path("content").get(0).path("text").asText()).isEqualTo("Legal");
+    }
+  }
 }
