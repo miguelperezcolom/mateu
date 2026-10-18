@@ -36,6 +36,16 @@
        also applied to the processor path (annotationProcessorPathsUseDepMgmt), converges it. -->
   <dependencyManagement>
     <dependencies>
+      <!-- Align every JUnit artifact on one line. Without it the Spring Boot BOM moves the platform
+           jars to 6.x under the 5.11 Jupiter declared below, and surefire 3.6 (which adds the vintage
+           engine because junit:junit is on the test classpath) refuses the mixed versions. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.11.4</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>io.micronaut</groupId>
         <artifactId>micronaut-core-bom</artifactId>
