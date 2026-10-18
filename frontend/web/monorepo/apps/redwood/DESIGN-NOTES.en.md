@@ -352,7 +352,7 @@ kit + point at a Mateu → screen with native Redwood look, zero code of your ow
   `min-width:0` on shell-page's `oj-vb-content` (applies to ANY wide content:
   foldouts, tables, planning…) and no flex wrappers around the foldout in the page.
 - Noted limitations: `open=false` (Notes initially folded) has NO API in
-  `oj-sp-foldout-panel` (all start visible); `subtitle` does not exist as a prop (it is painted
+  `oj-sp-foldout-panel` (all start visible) — closed 2026-10-18, see "Folded foldout panels" below; `subtitle` does not exist as a prop (it is painted
   as the first line of the content); the panels' content is projected as TEXTS
   (`collectTexts`) — the general recursive dispatcher is still pending (later phases).
 - Tests 17/17 (fixture `load-foldout.json`). Evidence: `shots/fase7.png`, `fase7-folded.png`.
@@ -1967,3 +1967,26 @@ and sets `theme="light"`, regardless of `prefers-color-scheme` and of `localStor
 (not deleted: Vaadin on the same origin reads it). Removed: the toggleMateuTheme chain, its
 listener, the mateuThemeToggle variable, the themeToggle string and app.css's
 `html.mateu-theme-dark` rules. Pinned by test-chains.mjs.
+
+## Folded foldout panels — `FoldoutPanel.open = false` (2026-10-18)
+
+Inspected at runtime against the CDN component: `oj-sp-foldout-layout` is a horizontal carousel
+whose panel containers only ever carry its `open` animation class — no per-panel folded state and
+no property to start one folded (its properties: `selectedPanel`, `animate`, `orientation`,
+`displayOptions`…; method `refresh`). What it does own is the SELECTION: a click or focus on a
+panel's container, or its page dot, writes back `selectedPanel` and fires `selectedPanelChanged`
+(`updatedFrom: 'internal'`).
+
+So `poc/foldouts.mjs` reduces an `open=false` panel to a strip (class `mateu-foldout-folded` on
+the `oj-sp-foldout-panel`; the container follows through `:has()` in app.css) showing its title
+vertically and its summary, with `aria-expanded="false"` and a "Show …" title on the container.
+Selecting it through the component's own mechanism unfolds it and scrolls it into view. Open
+panels are untouched; unfolded panels stay unfolded while the page is the same (an action
+re-projects the foldout) and a navigation starts over.
+
+> **GOTCHA**: do NOT call `layout.refresh()` after unfolding. The carousel measures its panels
+> live (dots and scroll keep working without it), and a refresh re-applies its own scroll position
+> about a second later, sliding the panel the user just opened back out of view.
+
+Tests: `test-pms.mjs` (state rules), `test-dom.mjs` (strip + unfold through `selectedPanelChanged`).
+Evidence: `poc/shots/foldout-open-false-{before,folded,unfolded}.png` (demo-vb `/booking`, 1440×900).

@@ -45,6 +45,7 @@ import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, value
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl, remoteOriginOf } from './elements.mjs'
 import { foldoutOf } from './core/archetypes.mjs'
+import { foldedPanelIndexes, isPanelFolded, unfoldPanel, resetFoldoutFolds, wirePanelIndexOf, foldoutPanelKey } from './foldouts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let pass = 0
@@ -321,6 +322,42 @@ test('Element atom carries the backend its OWNING context was loaded from (also 
   const f = foldoutOf({ tree: node({ type: 'Page' }, [foldout]), state: {}, data: {}, outbound })
   const inPanel = f.panels[0].blocks.flatMap((b) => b.items || []).find((a) => a.isElement)
   assert.equal(inPanel.screenBase, 'http://localhost:8620/_workflow') // NOSONAR
+})
+
+// ── FoldoutPanel.open = false on the page foldout (poc/foldouts.mjs) ─────────────────────────────
+test('foldout: the open=false panels start folded, unfolding one keeps it unfolded until a new page', () => {
+  const foldout = foldoutOf(reduceContexts(empty(), JSON.parse(readFileSync(join(here, 'fixtures', 'real', 'load-foldout.json'), 'utf8'))).contexts[HOST_ID])
+  resetFoldoutFolds()
+  // the BookingFoldout fixture: Payments, Guest profile open; Notes (open = false) folded
+  assert.deepEqual(foldout.panels.map((p) => p.open), [true, true, false])
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  // an open panel never folds, and "unfolding" it changes nothing
+  assert.equal(isPanelFolded(foldout, 0), false)
+  assert.equal(unfoldPanel(foldout, 0), false)
+  assert.equal(unfoldPanel(foldout, 2), true)
+  assert.deepEqual(foldedPanelIndexes(foldout), [])
+  assert.equal(unfoldPanel(foldout, 2), false, 'already unfolded')
+  // an action re-projects the same page: a new projection object, same panels → still unfolded
+  assert.deepEqual(foldedPanelIndexes({ panels: foldout.panels.map((p) => ({ ...p })) }), [])
+  // a new page starts over
+  resetFoldoutFolds()
+  assert.deepEqual(foldedPanelIndexes(foldout), [2])
+  // nothing to fold without panels, or with an unknown index
+  assert.deepEqual(foldedPanelIndexes(null), [])
+  assert.equal(isPanelFolded(foldout, 9), false)
+  resetFoldoutFolds()
+})
+
+test("foldout: the layout's selectedPanel counts the overview as panel 0", () => {
+  assert.equal(wirePanelIndexOf(0), -1, 'the overview is never folded')
+  assert.equal(wirePanelIndexOf(1), 0)
+  assert.equal(wirePanelIndexOf(3), 2)
+  assert.equal(wirePanelIndexOf('2'), 1)
+  assert.equal(wirePanelIndexOf(undefined), -1)
+  assert.equal(wirePanelIndexOf(1.5), -1)
+  // a panel's identity on the same page: its position and title
+  assert.equal(foldoutPanelKey({ title: 'Notes' }, 2), '2:Notes')
+  assert.notEqual(foldoutPanelKey({ title: 'Notes' }, 2), foldoutPanelKey({ title: 'Notes' }, 1))
 })
 
 test('Element: contenido HTML con `${…}` se marca para sanearlo al montarlo', () => {

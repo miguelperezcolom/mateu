@@ -4290,9 +4290,9 @@
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
-              <!-- FoldoutPanel.summary (child summary-N): oj-sp-foldout-layout's panels never fold (a
-                   carousel of open panels), so the summary is the spec's fallback — a one-line
-                   digest under the panel title. Not the panel's `summary` slot: oj-sp-foldout-panel
+              <!-- FoldoutPanel.summary (child summary-N): a one-line digest under the panel title (a
+                   carousel of open panels); on a FOLDED strip (open=false, poc/foldouts.mjs) it is
+                   the line kept beside the vertical title. Not the panel's `summary` slot: oj-sp-foldout-panel
                    reads that slot ONCE when it is created (hasSummary), before this binding stamps -->
               <oj-bind-if test="[[ !!($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).hasSummary ]]">
                 <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-4x-bottom mateu-foldout-summary"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).summary ]]"></oj-bind-text></div>

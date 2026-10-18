@@ -29,6 +29,7 @@ import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs
 import { installRowTones, setListingTones, installStickyHeader } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
+import { applyFoldoutFolds, resetFoldoutFolds, FOLDED_CLASS } from './foldouts.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink } from './displayDom.mjs'
 import { registerCustomComponent, fieldWidgetOf } from './reduceContexts.mjs'
@@ -979,6 +980,51 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
     const script = doc.head.querySelectorAll('script').find((s) => s.type === 'module')
     assert.equal(script.src, 'http://pod:8620/eventconductor/workflow-graph.js', 'from the remote, not the shell') // NOSONAR
     setElementModuleBase('')
+  }))
+}
+
+// ── page foldout: FoldoutPanel.open = false starts folded; the layout's own selection unfolds ──
+{
+  const { doc, el } = makeDom()
+  test("foldout: an open=false panel starts as a strip and the layout's selection (click, dot, focus) unfolds it", withDocument(doc, () => {
+    resetFoldoutFolds()
+    // what oj-sp-foldout-layout stamps: one container per panel, the overview first
+    const container = (title) => el('div', { class: 'oj-sp-foldout-animation-container oj-sp-foldout-layout-panel-container open' },
+      el('oj-sp-foldout-panel', { 'panel-title': title }))
+    const layout = el('oj-sp-foldout-layout', { id: 'mateuFoldoutEl' },
+      el('div', { class: 'oj-sp-foldout-layout-children-container' },
+        container('Booking'), container('Payments'), container('Notes')))
+    doc.body.appendChild(layout)
+    const foldout = { panels: [{ title: 'Payments', open: true }, { title: 'Notes', open: false }] }
+    // not every panel stamped yet → the caller retries
+    assert.equal(applyFoldoutFolds(layout, { panels: [...foldout.panels, { title: 'More', open: false }] }), false)
+    assert.equal(applyFoldoutFolds(layout, foldout), true)
+    const [overview, payments, notes] = layout.querySelectorAll('.oj-sp-foldout-layout-panel-container')
+    const panelIn = (c) => c.querySelector('oj-sp-foldout-panel')
+    let revealed = 0
+    notes.scrollIntoView = () => { revealed++ }
+    assert.ok(panelIn(notes).classList.contains(FOLDED_CLASS), 'Notes starts folded')
+    assert.equal(notes.getAttribute('aria-expanded'), 'false')
+    assert.equal(notes.getAttribute('title'), chromeText('foldoutUnfold', { title: 'Notes' }))
+    assert.ok(!panelIn(payments).classList.contains(FOLDED_CLASS), 'an open panel is untouched')
+    assert.equal(payments.getAttribute('aria-expanded'), null)
+    assert.ok(!panelIn(overview).classList.contains(FOLDED_CLASS))
+    // selecting ANOTHER panel leaves it folded
+    layout.dispatchEvent(new CustomEvent('selectedPanelChanged', { detail: { value: 1 } }))
+    assert.ok(panelIn(notes).classList.contains(FOLDED_CLASS))
+    assert.equal(revealed, 0)
+    // the layout selects Notes (its container clicked/focused, or its page dot): it unfolds
+    layout.dispatchEvent(new CustomEvent('selectedPanelChanged', { detail: { value: 2 } }))
+    assert.ok(!panelIn(notes).classList.contains(FOLDED_CLASS), 'unfolded')
+    assert.equal(notes.getAttribute('aria-expanded'), 'true')
+    assert.equal(notes.getAttribute('title'), null)
+    assert.equal(revealed, 1, 'the unfolded panel is brought into view')
+    // an action re-projects the page: it stays unfolded, and the listener is not wired twice
+    applyFoldoutFolds(layout, { panels: foldout.panels.map((p) => ({ ...p })) })
+    assert.ok(!panelIn(notes).classList.contains(FOLDED_CLASS))
+    layout.dispatchEvent(new CustomEvent('selectedPanelChanged', { detail: { value: 2 } }))
+    assert.equal(revealed, 1)
+    resetFoldoutFolds()
   }))
 }
 

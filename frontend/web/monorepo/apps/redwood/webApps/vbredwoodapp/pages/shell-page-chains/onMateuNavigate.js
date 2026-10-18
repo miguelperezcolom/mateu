@@ -316,9 +316,9 @@ define([
       // the null). From a booking's detail (foldout) to the tour, `!mateuFoldout` stayed false
       // and the host content was not projected: the screen was left with its header and blank.
       const foldoutNow = foldoutProjection;
-      // the Elements of its panels (server HTML, web components) are mounted by hand
-      // (same reason as the host's: VB cannot paint an arbitrary tag)
+      // its panels' Elements are mounted by hand (VB cannot paint an arbitrary tag, as for the host's)
       bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
+      bridge.applyFoldoutFoldsSoon(foldoutProjection, { fresh: true }); // open=false panels start folded
       $application.variables.mateuSelectPlaceholder = bridge.selectPlaceholder(
         document.documentElement.lang || navigator.language);
       const wizardProjection = bridge.wizardOf(host);

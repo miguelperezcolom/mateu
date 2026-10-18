@@ -339,7 +339,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, an `open=false` panel starts as a strip the layout's selection unfolds; collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | 🟡 registry + placeholder | 🟡 registry + placeholder |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
@@ -418,7 +418,7 @@ renderers, and its children still render.
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
 | `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
 | `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
-| `FoldoutLayout` | ✅ | oj-sp-foldout-layout; inside a tab, collapsible panels |
+| `FoldoutLayout` | ✅ | oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |

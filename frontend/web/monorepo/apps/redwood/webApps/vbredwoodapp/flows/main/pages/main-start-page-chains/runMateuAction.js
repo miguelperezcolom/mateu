@@ -430,6 +430,7 @@ define([
           $application.variables.mateuFoldout = foldoutProjection;
         }
         bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
+        bridge.applyFoldoutFoldsSoon(foldoutProjection); // same page: unfolded panels stay unfolded
       }
       // ── the page projection (poc/pageProjection.mjs, tested): what to assign from the registry ──
       const vars = $application.variables;

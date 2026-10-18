@@ -21,7 +21,7 @@ export const REDWOOD_COVERAGE = {
   AccordionPanel: { status: 'part', note: 'of AccordionLayout' },
   TabLayout: { status: 'full', note: 'oj-tab-bar (nested strips flattened)' },
   Tab: { status: 'part', note: 'of TabLayout' },
-  FoldoutLayout: { status: 'full', note: 'oj-sp-foldout-layout; inside a tab, collapsible panels' },
+  FoldoutLayout: { status: 'full', note: 'oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels' },
   SplitLayout: { status: 'full', note: 'two panes' },
   MasterDetailLayout: { status: 'full', note: 'list + detail panes' },
   HorizontalLayout: { status: 'full', note: 'oj-flex row' },
