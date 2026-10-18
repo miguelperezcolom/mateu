@@ -51,15 +51,26 @@ class ContractCache(private val project: Project) {
       cache[fqn] = Optional.ofNullable(contract)
       inFlight.remove(fqn)
       ApplicationManager.getApplication().invokeLater(
-        // restart() is deprecated in favour of restart(PsiFile), but this is a GLOBAL re-annotate after a
-        // contract fetch (no single file), so the no-arg form is the right one — @Suppress the warning.
-        { if (!project.isDisposed) @Suppress("DEPRECATION") DaemonCodeAnalyzer.getInstance(project).restart() },
+        { if (!project.isDisposed) restartDaemon(DaemonCodeAnalyzer.getInstance(project)) },
         { project.isDisposed },
       )
     }
   }
 
   companion object {
+    /**
+     * A GLOBAL re-annotate after a contract fetch (no single file). 2025.3 (253) deprecates both
+     * `restart()` and `restart(PsiFile)` for `restart(Object reason)`, which 2025.2 (252, our minimum)
+     * does not have — and no non-deprecated global restart exists on both lines. So resolve it at
+     * runtime: the reason-taking overload where the platform has it, the no-arg one otherwise.
+     */
+    internal fun restartDaemon(daemon: DaemonCodeAnalyzer) {
+      val type = DaemonCodeAnalyzer::class.java
+      val withReason = runCatching { type.getMethod("restart", Any::class.java) }.getOrNull()
+      if (withReason != null) withReason.invoke(daemon, "Mateu contract fetched")
+      else type.getMethod("restart").invoke(daemon)
+    }
+
     fun getInstance(project: Project): ContractCache = project.getService(ContractCache::class.java)
   }
 }
