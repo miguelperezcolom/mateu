@@ -122,8 +122,15 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     sidebar.addStacked(buildSidebar(session, metadata.path("menu")), 0)
     // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
     val sseUrl = metadata.text("sseUrl")
+    if (r.ctx.appShell) {
+        session.appMcpUrl = metadata.text("mcpUrl").ifBlank { null }
+        session.appUploadUrl = metadata.text("uploadUrl").ifBlank { null }
+    }
     if (sseUrl.isNotBlank()) {
-        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl, session.apiClient) }
+        val askLabel = metadata.text("askLabel").ifBlank { "Assistant" }
+        val chat = ActionLink(plain("💬 $askLabel")) {
+            openChatDialog(session, sseUrl, metadata.text("uploadUrl").ifBlank { null }, askLabel)
+        }
         chat.border = JBUI.Borders.empty(8)
         sidebar.addStacked(chat, 2)
     }
@@ -274,60 +281,11 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
     }
 }
 
-/** The assistant in a modeless dialog (the navigator's "Assistant" link). */
-private fun openChatDialog(sseUrl: String, api: io.mateu.ijp.api.MateuApiClient) {
-    val dialog = javax.swing.JDialog(null as java.awt.Frame?, "Assistant", false)
-    dialog.contentPane = buildChatPanel(sseUrl, api)
-    dialog.setSize(420, 480)
+/** The assistant in a modeless dialog (the navigator's "Assistant" link); the agent's close-requested closes it. */
+private fun openChatDialog(session: AppSession, sseUrl: String, uploadUrl: String?, title: String) {
+    val dialog = javax.swing.JDialog(null as java.awt.Frame?, title, false)
+    dialog.contentPane = buildChatPanel(session, sseUrl, uploadUrl, host = null) { dialog.dispose() }
+    dialog.setSize(JBUI.scale(460), JBUI.scale(560))
     dialog.setLocationRelativeTo(null)
     dialog.isVisible = true
-}
-
-/** Minimal assistant speaking the mateu-chat contract: POST {message, sessionId} to the SSE
- *  endpoint and show the accumulated `data:` payloads as the agent reply. Shared by the app's
- *  assistant dialog and an inline `Chat` component. */
-internal fun buildChatPanel(sseUrl: String, api: io.mateu.ijp.api.MateuApiClient): JComponent {
-    val messages = javax.swing.JTextArea()
-    messages.isEditable = false
-    messages.lineWrap = true
-    messages.wrapStyleWord = true
-    val input = com.intellij.ui.components.JBTextField()
-    messages.accessibleName("Conversation")
-    input.accessibleName("Message to the assistant")
-    val sessionId = "chat-" + java.util.UUID.randomUUID().toString().take(8)
-    val client = java.net.http.HttpClient.newHttpClient()
-    val mapper = com.fasterxml.jackson.databind.ObjectMapper()
-
-    fun send() {
-        val text = input.text.trim()
-        if (text.isBlank()) return
-        input.text = ""
-        messages.append("You: $text\n")
-        Thread {
-            val reply = runCatching {
-                val body = mapper.writeValueAsString(mapOf("message" to text, "sessionId" to sessionId))
-                val request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(sseUrl))
-                    .header("Accept", "text/event-stream")
-                    .header("Content-Type", "application/json")
-                    // the Bearer only when the chat's url is trusted with it (see CredentialScope)
-                    .apply { api.credentialHeaders(sseUrl)["Authorization"]?.let { header("Authorization", it) } }
-                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
-                    .build()
-                val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
-                response.body().lineSequence()
-                    .filter { it.startsWith("data:") }
-                    .map { it.removePrefix("data:").trim() }
-                    .filter { it.isNotBlank() && !it.startsWith("{") }
-                    .joinToString("")
-            }.getOrElse { "⚠️ ${it.message}" }
-            javax.swing.SwingUtilities.invokeLater { messages.append("Agent: $reply\n\n") }
-        }.apply { isDaemon = true }.start()
-    }
-    input.addActionListener { send() }
-
-    val root = javax.swing.JPanel(java.awt.BorderLayout(0, JBUI.scale(6)))
-    root.border = JBUI.Borders.empty(10)
-    root.add(JBScrollPane(messages), java.awt.BorderLayout.CENTER)
-    root.add(input, java.awt.BorderLayout.SOUTH)
-    return root
 }

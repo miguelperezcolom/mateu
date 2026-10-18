@@ -90,9 +90,33 @@ class AppSession(
         subscriptions.removeIf { it.owner === owner }
     }
 
-    fun dispatchEvent(eventName: String, payload: com.fasterxml.jackson.databind.JsonNode?) {
-        for (s in subscriptions) if (s.eventName == eventName) s.handler(payload)
+    /** Fires [eventName] on the bus; true when a subscriber took it (the assistant's render-screen
+     *  falls back to the shell when nobody did). */
+    fun dispatchEvent(eventName: String, payload: com.fasterxml.jackson.databind.JsonNode?): Boolean {
+        var taken = false
+        for (s in subscriptions) if (s.eventName == eventName) { s.handler(payload); taken = true }
+        return taken
     }
+
+    /** Whether some component on screen subscribes to [eventName]. */
+    fun hasSubscriber(eventName: String): Boolean = subscriptions.any { it.eventName == eventName }
+
+    // ── the assistant (App.sseUrl / mcpUrl / uploadUrl) ──
+    /** The view the user last navigated in — the screen the assistant is told about. */
+    @Volatile var activeView: AppContext? = null
+
+    /** The app's MCP endpoint (`App.mcpUrl`), forwarded (absolute) with every chat message. */
+    var appMcpUrl: String? = null
+
+    /** The app's upload endpoint (`App.uploadUrl`): the assistant's attach button posts there. */
+    var appUploadUrl: String? = null
+
+    /**
+     * Where an assistant-rendered screen (render-screen, target content) is shown: (title, the
+     * rendered panel, its context). The plugin opens it in a transient "preview" editor tab, which the
+     * next navigation closes; unset → the chat shows it in a window of its own.
+     */
+    var contentPreviewHandler: ((String, javax.swing.JComponent, AppContext) -> Unit)? = null
 
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null

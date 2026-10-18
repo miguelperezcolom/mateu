@@ -44,6 +44,15 @@ class MateuApiClient(
         return headers
     }
 
+    /**
+     * A request to [url] came back 401 with [refusedToken]: the ONE re-authentication chance every
+     * Mateu call gets — the [tokenProvider] (refresh / sign in), then the legacy [SessionGuard] hook.
+     * True when the caller should retry once (with freshly built credential headers). Never for a url
+     * not trusted with the credentials: an anonymous endpoint's 401 is not ours to fix.
+     */
+    fun reauthenticate(url: String, refusedToken: String?): Boolean =
+        carriesCredentials(url) && (tokenProvider.onUnauthorized(refusedToken) || SessionGuard.handleSessionExpired())
+
     /** Host hook: told ONCE when the server's `wireVersion` is another major (see [WireVersion]). */
     var onWireMismatch: ((String) -> Unit)? = null
 

@@ -102,6 +102,8 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         val viewManager = MateuViewManager(project, s)
         s.openViewHandler = viewManager::openView
         s.openDetailHandler = viewManager::openDetail
+        // an assistant-rendered screen (render-screen, target content) → a transient preview tab
+        s.contentPreviewHandler = viewManager::showPreview
         // The toolbar widget and the menu-derived IDE actions find the session via the project.
         project.putUserData(MATEU_SESSION, s)
         // Standalone-app window title: app-level SetWindowTitle lands on the real IDE frame, and the
