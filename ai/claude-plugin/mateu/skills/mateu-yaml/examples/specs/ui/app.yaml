@@ -1,0 +1,16 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: AppShell
+title: My app
+variant: MENU_ON_TOP
+menu:
+  - {type: RouteLink, label: Home, route: home}
+  - {type: RouteLink, label: Products, route: products}
+  - type: Menu
+    label: Sales
+    submenu:
+      - {type: RouteLink, label: Orders, route: orders, icon: "vaadin:cart"}
+      - {type: RouteLink, label: Dashboard, route: dashboard}
+      - type: RuleLink
+        label: New order
+        rules:
+          - {action: RunAction, actionId: newOrder}

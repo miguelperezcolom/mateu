@@ -21,6 +21,7 @@ and not to add Java UI classes.
 |---|---|---|
 | [Compact reference](https://mateu.io/mateu-ai-compact.md) | ~2 500 tokens | Day-to-day code generation, tools with small context windows |
 | [Full reference](https://mateu.io/mateu-ai-full.md) | ~9 000 tokens | Thorough assistance, broad feature coverage, Gemini 1.5 / Claude Projects |
+| [llms-full.txt](https://mateu.io/llms-full.txt) | the whole site | Tools that ingest a documentation site in one file (generated from these pages at build time) |
 
 Both files are plain Markdown — paste them directly, link to them, or download them.
 
@@ -30,25 +31,23 @@ Both files are plain Markdown — paste them directly, link to them, or download
 
 ### Claude Code / Claude Agent SDK
 
-Mateu ships a family of ready-made **skills** under `.claude/skills/`. When you run
-Claude Code (or the Claude Agent SDK) inside a project that contains them, the right
-skill activates automatically as soon as you ask for Mateu work — *"create a CRUD
-for…"*, *"start a new Mateu app"*, *"run and screenshot this screen"* — and loads its
-references on demand (progressive disclosure), so they cost almost nothing until needed.
+Install the **`mateu` plugin** from the marketplace in the Mateu repository — a family of
+**skills** that activate as soon as you ask for Mateu work (*"create a CRUD for…"*, *"a YAML listing
+over our REST API"*, *"start a new Mateu app"*, *"run and screenshot this screen"*) and load their
+references on demand (progressive disclosure), so they cost almost nothing until needed:
 
-- **In the Mateu repo:** they are already there — just ask.
-- **In your own project:** copy the `.claude/skills/` folder into your repo, or into
-  `~/.claude/skills/` to make the skills available in every project.
+```text
+/plugin marketplace add miguelperezcolom/mateu
+/plugin install mateu@mateu
+```
 
-| Skill | Use it for |
-|---|---|
-| `mateu` | Writing screens: CRUD, forms and actions, wizards, editor/partial-form views, fluent component trees, shells and federation, custom adapters / web components / CSS, and the full annotation catalogue. |
-| `mateu-scaffold` | Wiring the Maven build: the two-step annotation processing (indexer + framework AP), the renderer dependency, the Spring Boot main class — and fixing "compiles but nothing renders". |
-| `mateu-run` | Building in the right order, running the app, and screenshotting a route (Playwright) to see it render. |
-| `mateu-federation` | Composing several `@UI` modules by Maven (build-time) or independent services by `RemoteMenu` (runtime). |
-
-Each skill is a set of focused references the agent reads only when relevant, and stays in
-sync with the compact and full references below.
+Projects made by the New Project generators already enable it in `.claude/settings.json`. Skills:
+`mateu` (Java), `mateu-screen`, `mateu-yaml` (YAML specs and static bundles), `mateu-dotnet`,
+`mateu-python`, `mateu-scaffold`, `mateu-run`, `mateu-federation` — what each does, and the rest of
+the AI tooling (AGENTS.md, llms.txt, the JSON Schemas, MCP), is in
+[Build UIs with AI](/build-uis-with-ai/). With the Claude Agent SDK, load the same skills from
+[`ai/claude-plugin/mateu/skills`](https://github.com/miguelperezcolom/mateu/tree/master/ai/claude-plugin/mateu/skills)
+(the plugin directory is the single source; inside the Mateu repository `.claude/skills/` links to it).
 
 ### Claude Projects (claude.ai)
 

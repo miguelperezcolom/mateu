@@ -6,11 +6,14 @@ All authoring paths and servers emit one versioned wire model (JSON); every rend
 
 ## AI reference files
 
-For AI-assisted development, use these context documents with your AI tool (Claude Projects, Gemini Gems, Cursor Rules, etc.):
-
+- [Build UIs with AI](https://mateu.io/build-uis-with-ai/): the Claude Code plugin, AGENTS.md in every project, these files, the JSON Schemas and MCP
+- [Full documentation as text](https://mateu.io/llms-full.txt): every page of this site in one file, generated at build time
 - [Compact reference](https://mateu.io/mateu-ai-compact.md): ~2 500 tokens — key annotations, patterns, return types. Use for day-to-day code generation.
-- [Full reference](https://mateu.io/mateu-ai-full.md): ~9 000 tokens — complete annotation catalogue, all interfaces, all UX patterns. Use for thorough assistance or broad feature coverage.
-- Claude Code / Claude Agent SDK: a bundled skill at `.claude/skills/mateu/` auto-activates for Mateu tasks (progressive disclosure). See [Use Mateu with AI assistants](https://mateu.io/ai-assistant-reference/).
+- [Full reference](https://mateu.io/mateu-ai-full.md): ~9 000 tokens — complete annotation catalogue, all interfaces, all UX patterns.
+- Claude Code plugin: `/plugin marketplace add miguelperezcolom/mateu` then `/plugin install mateu@mateu` — skills `mateu` (Java), `mateu-screen`, `mateu-yaml` (YAML + static bundles), `mateu-dotnet`, `mateu-python`, `mateu-scaffold`, `mateu-run`, `mateu-federation` ([source](https://github.com/miguelperezcolom/mateu/tree/master/ai/claude-plugin/mateu/skills))
+- JSON Schemas for every `specs/ui` YAML file: [specs-schema.json](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json) (all file kinds), [uidl-schema.json](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json) (components)
+- [Agent operability (MCP)](https://mateu.io/reference/agent-operability/): operate a running app's screens as MCP tools · [Prompt-to-app](https://mateu.io/reference/prompt-to-app/): an LLM writes the UI as data, checked against the schemas
+- [Use Mateu with AI assistants](https://mateu.io/ai-assistant-reference/): loading the references in Claude Projects, Gemini, ChatGPT, Cursor, Copilot
 
 ## Documentation
 
@@ -46,9 +49,22 @@ Patterns, reference, quality:
 - [Stability & versioning](https://mateu.io/reference/stability-and-versioning/) and [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/)
 - [Quality](https://mateu.io/quality/): how UX is evaluated, accessibility, conformance across servers and renderers
 
+## Key concepts (YAML path)
+
+- Everything lives under `specs/ui/` (on the classpath for a Java backend, e.g. `src/main/resources/specs/ui`). Start each file with `$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json` and validate against it.
+- A `type: UI` file is a mount (the YAML twin of `@UI`): its base path, its route files and its `home:` route.
+- `routes.yaml` (`type: Routes`) binds each mount-relative route to a `layout:` (a definition file) and/or a `viewModel:` (a class), with `fixedParams`/`defaultParams`; one definition can serve several routes.
+- A definition file is a page: a component tree (`type: Listing`, `Form`, layouts, cards…), optionally with `actions:` beside `layout:` to write through a `restAction`.
+- `sources.yaml` names each REST endpoint once (`itemsPath`, `totalPath`, `fields`, `proxy`, `sample:` data); pages reference it by `ref:`. Secrets only as `${secret.KEY}` on proxied sources.
+- `type: AppShell` is the chrome and the menu. Other kinds: actions, types, translations, environments, `project.yaml`, partials.
+- An unparseable definition answers "Not found" (the reason is in the server log, or on the page with `-Dmateu.dev=true`); unknown keys are ignored silently.
+- No backend: the `mateu-bundle-maven-plugin` bundles `specs/ui` into static files for any CDN (`specsOnly`, `staticOnly` fails the build on anything that needs a server).
+
 ## Key concepts (Java path)
 
-- `@UI("/path")` on a class registers it as a routed view; no path means root.
+- `@UI("/path")` on a class registers it as a routed view; no path means root. It is the only routing annotation: inner routes go in `routes.yaml`.
+- A routed view model is instantiated fresh on every request (not a singleton bean).
+- Actions are declared: only `@Action`/`@Button`/`@Toolbar`… methods (or ids the view itself advertises) run — strict mode is the default.
 - Fields → form fields. `List<T>` fields → grids/tables. Nested class fields → subforms.
 - Methods annotated with `@Button` or `@Toolbar` become buttons.
 - Bean validation (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) is enforced client-side and server-side automatically.
@@ -59,10 +75,10 @@ Patterns, reference, quality:
 - Wizard: extend `Wizard`, declare `WizardStep` fields, annotate the final action with `@WizardCompletionAction`.
 - Dense screens: combine `@Compact` + `@Zones`/`@Zone` + `@Section(zone="...")`.
 - Dynamic banners: `@Banner` on a method or implement `BannerSupplier`.
-- Header badges: `@BadgeInHeader` on a field or implement `BadgeSupplier`.
+- Header badges: `@BadgeInHeader` on a field or implement `HeaderBadgesSupplier`.
 - Floating buttons: `@Fab(icon="vaadin:plus")` on a method (app-level = global, page-level = scoped).
 - Dark/light mode toggle: `@App(themeToggle=true)`.
 - Unsaved-changes guard: `@ConfirmOnNavigationIfDirty` warns before leaving a modified form (menu, browser back/forward, reload/close); use `UICommand.markAsClean()` / `markAsDirty()` to control the state.
-- Money formatting: `@Stereotype(FieldStereotype.money)` formats a numeric read-only/plain-text field as a currency amount.
+- Money formatting: `@Stereotype(FieldStereotype.money)` formats a numeric read-only/plain-text field as an amount in the UI's locale.
 - Expression labels: any label supports `${state.field}` template expressions.
 - URL pagination: CRUD pages sync `?page=N&sort=field:asc` to the URL automatically.

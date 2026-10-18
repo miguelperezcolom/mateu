@@ -57,7 +57,7 @@ function fromGitTags() {
 	}
 }
 
-async function resolveVersion() {
+export async function resolveVersion() {
 	if (cached) return cached;
 	const sources = [
 		['MATEU_VERSION env', fromEnv],

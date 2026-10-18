@@ -1,0 +1,24 @@
+{
+  "name": "mateu",
+  "displayName": "Mateu",
+  "version": "3.0.0-beta.3",
+  "description": "Build business UIs with Mateu, the model-driven UI system: declare the model as Java (@UI), C# ([UI]), Python (@ui) or YAML (specs/ui) and Mateu renders forms, CRUDs, wizards, dashboards and app shells. Skills for authoring screens, scaffolding projects, running and verifying them, static bundles and federation.",
+  "author": {
+    "name": "Miguel Pérez Colom",
+    "url": "https://github.com/miguelperezcolom"
+  },
+  "homepage": "https://mateu.io/build-uis-with-ai/",
+  "repository": "https://github.com/miguelperezcolom/mateu",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mateu",
+    "ui",
+    "model-driven",
+    "low-code",
+    "java",
+    "spring-boot",
+    "csharp",
+    "python",
+    "yaml"
+  ]
+}

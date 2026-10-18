@@ -1,0 +1,5 @@
+# Project settings: the renderer the visual editor's canvas and Play open in (and a static bundle
+# ships). A served app's renderer is still its Maven dependency; the server warns when they differ.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Project
+renderer: vaadin

@@ -1,0 +1,19 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: New order
+pageType: form
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: customer, label: Customer, dataType: string, required: true}
+      - {type: FormField, id: total, label: Total, dataType: number, min: 0}
+      - {type: Partial, ref: order-notes}
+buttons:
+  - {type: Button, label: Create, actionId: create, buttonStyle: primary}
+actions:
+  - id: create
+    validationRequired: true
+    restAction:
+      source: {ref: order-create}
+      successMessage: Order created
+      successRoute: orders

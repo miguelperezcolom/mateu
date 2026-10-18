@@ -121,6 +121,18 @@ Or clone a starter for your runtime: [`starters/`](starters) has Spring MVC, Web
 Micronaut, Helidon MP, .NET, Python, YAML and static — CI builds and boots each one. Java
 quickstart: https://mateu.io/java-user-manual/start-here/quickstart/.
 
+### With an AI assistant
+
+Every generated project and starter ships an `AGENTS.md`. For Claude Code, install the Mateu plugin
+(skills for Java, C#, Python and YAML screens, scaffolding, running and federation):
+
+```text
+/plugin marketplace add miguelperezcolom/mateu
+/plugin install mateu@mateu
+```
+
+More — `llms.txt`, the JSON Schemas, MCP: https://mateu.io/build-uis-with-ai/
+
 ---
 
 ## What you get

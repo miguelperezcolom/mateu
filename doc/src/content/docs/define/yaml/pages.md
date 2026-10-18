@@ -222,18 +222,29 @@ This activates IntelliSense for every `*.yaml` file under any `specs/ui/` direct
 `type: UI` mounts, `sources.yaml`, `project.yaml`…), so a routes or sources file validates too; the
 component catalogue `uidl-schema.json` alone would flag those as invalid.
 
-**Option B — per-file comment**
+**Option B — per file**
 
-Add this comment at the top of any individual YAML file:
+Start the file with a `$schema` key (the loaders ignore it; this is what the starters do), or with the
+YAML language server's comment:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: VerticalLayout
 ...
 ```
 
-`uidl-schema.json` covers a page's component tree; for any other kind of file (routes, sources,
-project settings) point at `specs-schema.json` instead.
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+```
+
+`specs-schema.json` fits every file kind — a bare component tree, a page with a `layout:` envelope,
+routes, sources, project settings. `uidl-schema.json` covers a bare component tree only and rejects a
+`layout:` page.
+
+Neither the schema nor the loader rejects an **unknown key** (a misspelt `titel:` is ignored), so a
+typo shows as a missing feature, not an error. A file the loader cannot read at all makes its route
+answer *Not found*; the reason is in the server log (`WARN Could not read the definition …`) and,
+with `-Dmateu.dev=true`, on the page.
 
 ---
 

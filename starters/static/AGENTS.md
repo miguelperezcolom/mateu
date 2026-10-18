@@ -48,9 +48,15 @@ Deploy `target/mateu-bundle/` to any static host with an SPA fallback (every non
 - Every file carries a `$schema` line; keep it. `dataType` values: integer, string, number, date,
   time, dateTime, bool, array, file, status, money… (there is no `decimal`).
 - Re-pointing a deployment at another API is an edit of `sources` in `manifest.json`, no rebuild.
+- An **unknown key is ignored silently** (by the schema and by the loader): a misspelt key looks
+  like a feature that does not work, not like an error — check spellings against the schema.
 
 ## References
 
+- **Claude Code plugin `mateu`** (the skills that know this API): `/plugin marketplace add
+  miguelperezcolom/mateu`, then `/plugin install mateu@mateu`. A project made by the New Project
+  wizards already enables it in `.claude/settings.json` — trust the folder and install it once.
+  Skills for this project: `mateu-yaml` (the YAML file kinds, sources, app shell, static bundles), `mateu-run` (preview + screenshot). Guide: https://mateu.io/build-uis-with-ai/
 - Static UIs: https://mateu.io/deploy/static-ui/
 - REST sources and sample data: https://mateu.io/concepts/data-sources/
 - The authoring schema (every component and its keys):

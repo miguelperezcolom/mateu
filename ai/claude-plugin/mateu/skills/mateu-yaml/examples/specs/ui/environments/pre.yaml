@@ -1,0 +1,4 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Environment
+sources:
+  orders: {baseUrl: https://pre.api.example.com}
