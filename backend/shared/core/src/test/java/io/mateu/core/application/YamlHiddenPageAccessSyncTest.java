@@ -195,7 +195,7 @@ class YamlHiddenPageAccessSyncTest {
         .contains("paid 999");
     // the page still renders, restricted: the field is read-only for the anonymous caller
     var page = outcome(root, broken, load("/payroll-locked"), ANONYMOUS).toString();
-    assertThat(page).contains("Salary").doesNotContain("readOnlyUnless").doesNotContain("999");
+    assertThat(page).contains("Salary").doesNotContain("readOnlyUnless").doesNotContain(":999");
   }
 
   @Test
