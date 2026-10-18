@@ -245,8 +245,9 @@ environment without a rebuild.
   `RestDataSourceDto.ref`) and the catalogue travels separately: `AppDto.restSources` for a live app,
   once in `manifest.json` for a bundle. Web resolves in `fetchExternalJson` (libs/mateu, the single
   fetch choke point, so vaadin + every shell at once) via `restSourceCatalogue.ts`; what a surface
-  declares still wins over the entry. **PENDING: React Native and IntelliJ consume REST sources and
-  still need the same lookup**; VB/Redwood does not consume them yet, so it will be ref-native.
+  declares still wins over the entry. React Native (`src/core/restFetch.ts`) and IntelliJ
+  (`ui/RestFetch.kt`) resolve a `ref` the same way (the app's catalogue first, then the entries a
+  response references); VB/Redwood consumes the catalogue too (`poc/restSources.mjs`, by `ref`).
 - **`fields` (name → dot path) closes a gap no surface can close**: a listing reads each column by
   using the column id DIRECTLY as the path, and a record field cannot be called `customer.name`.
   `mapItemsToRows` gained a `pathOf` hook for it. `totalPath` is the server-paged total.

@@ -51,7 +51,7 @@ export const RN_COVERAGE = {
   Button: { status: 'full' },
   Anchor: { status: 'full', note: 'in-app route or OS browser' },
   Element: { status: 'partial', note: 'HTML tags map to native text / image / rule, on.click runs its action; custom elements (web components) show their text content' },
-  CustomComponent: { status: 'partial', note: 'registry (registerCustomComponent) + visible placeholder' },
+  CustomComponent: { status: 'full', note: 'registry (registerCustomComponent); unregistered → a visible placeholder that still renders the slotted children' },
   MicroFrontend: { status: 'full', note: 'own island (own session when it has its own baseUrl)' },
   // ── overlays ──
   Dialog: { status: 'full', note: 'overlay fragments open as a modal sheet' },
