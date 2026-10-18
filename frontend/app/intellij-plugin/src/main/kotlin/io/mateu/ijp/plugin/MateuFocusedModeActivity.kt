@@ -8,7 +8,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.WindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -93,7 +92,6 @@ class MateuFocusedModeActivity : ProjectActivity {
     private fun disableScopeViewPane(project: Project) {
         runCatching {
             val point = com.intellij.ide.projectView.impl.AbstractProjectViewPane.EP.getPoint(project)
-            @Suppress("DEPRECATION")
             point.unregisterExtension(com.intellij.ide.scopeView.ScopeViewPane::class.java)
         }
     }
@@ -191,12 +189,27 @@ class MateuFocusedModeActivity : ProjectActivity {
     private fun unregisterForeignToolWindowEps() {
         runCatching {
             val epName = com.intellij.openapi.wm.ToolWindowEP.EP_NAME
+            val point = epName.point
             for (ext in epName.extensionList.toList()) {
                 if (ext.id in KEEP) continue
-                @Suppress("DEPRECATION")
-                runCatching { epName.point.unregisterExtension(ext) }
+                runCatching { unregisterExtensionInstance(point, ext) }
             }
         }
+    }
+
+    /**
+     * `ExtensionPoint.unregisterExtension(T)` is deprecated on 252 and 253, and its suggested
+     * replacements don't fit a BEAN extension point: `unregisterExtension(Class)` matches by class and
+     * every `<toolWindow>` is a `ToolWindowEP` (it would drop ours too), and
+     * `unregisterExtensions(BiPredicate, …)` hands out the `@ApiStatus.Internal`
+     * `ExtensionComponentAdapter`. So the instance overload is called reflectively, isolated here:
+     * if the platform ever removes it the lookup fails inside the caller's `runCatching` and the
+     * tool-window sweep ([hideForeignToolWindows]) still hides the window.
+     */
+    private fun unregisterExtensionInstance(point: com.intellij.openapi.extensions.ExtensionPoint<*>, ext: Any) {
+        com.intellij.openapi.extensions.ExtensionPoint::class.java
+            .getMethod("unregisterExtension", Any::class.java)
+            .invoke(point, ext)
     }
 
     /** 'More tool windows' is built from the `Activate<Id>ToolWindow` ACTIONS, not the tool-window
@@ -220,13 +233,14 @@ class MateuFocusedModeActivity : ProjectActivity {
         if (sweeping) return
         sweeping = true
         try {
-            val ex = twm as? ToolWindowManagerEx
             for (id in twm.toolWindowIds.toList()) {
                 if (id in KEEP) continue
+                val window = twm.getToolWindow(id) ?: continue
                 // Fully REMOVE foreign windows (Run/Debug/Hierarchy/Commit…) so they vanish from
                 // 'More tool windows' too — setAvailable(false) only drops the stripe button.
-                if (ex != null && runCatching { ex.unregisterToolWindow(id) }.isSuccess) continue
-                twm.getToolWindow(id)?.setAvailable(false)
+                // ToolWindow.remove() is the non-deprecated form of unregisterToolWindow(id).
+                if (runCatching { window.remove() }.isSuccess) continue
+                window.setAvailable(false)
             }
         } finally {
             sweeping = false
