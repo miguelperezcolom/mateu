@@ -228,7 +228,7 @@ internal static class ComponentMapper
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
         Markdown md => Dto(md, new MarkdownMetadataDto(md.MarkdownText)),
-        Image img => Dto(img, new ImageMetadataDto(img.Src)),
+        Image img => Dto(img, new ImageMetadataDto(img.Src) { Alt = img.Alt }),
         Badge bd => Dto(bd, new BadgeMetadataDto(bd.Text)
         {
             IconOnLeft = bd.IconOnLeft, IconOnRight = bd.IconOnRight, Color = bd.Color,

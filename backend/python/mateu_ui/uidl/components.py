@@ -94,12 +94,14 @@ class Markdown(Component):
 
 @dataclass(frozen=True)
 class Image(Component):
-    """An image, by url or data URI."""
+    """An image, by url or data URI. ``alt`` is its text alternative — what a screen reader reads
+    (``""`` declares it decorative)."""
 
     src: str = ""
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    alt: str | None = None
 
 
 @dataclass(frozen=True)

@@ -50,3 +50,9 @@ def test_a_split_layout_without_orientation_sends_none_and_its_two_panes_as_chil
     dto = mapped(fluent.SplitLayout(master=fluent.Text(text="m"), detail=fluent.Text(text="d")))
     assert dto["metadata"]["orientation"] is None
     assert [c["metadata"]["text"] for c in dto["children"]] == ["m", "d"]
+
+
+def test_an_image_carries_its_alt_text():
+    # the text alternative a screen reader reads (Java's ImageDto.alt)
+    assert mapped(fluent.Image(src="/logo.png", alt="Company logo"))["metadata"]["alt"] == "Company logo"
+    assert mapped(fluent.Image(src="/logo.png"))["metadata"].get("alt") is None

@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **`Image.alt`** — the text alternative a screen reader reads (`""` marks the image decorative):
+  `Image.builder().alt(…)` / `new Image(src, alt)` in Java (the existing constructors stay),
+  `Image { Alt = … }` in .NET, `fluent.Image(alt=…)` in Python and `alt:` in YAML. Rendered as the
+  `<img>` alt on Vaadin and Redwood, the accessibility label on React Native and the accessible
+  name in the IntelliJ plugin. Wire: `ImageDto.alt` (additive).
+
 ### Behaviour changes
 - Python: `Crud.save` and `Crud.delete` **refuse by default** with a user-facing "Not implemented"
   error naming the method to override (`FetchOnlyNotes cannot store changes yet: override

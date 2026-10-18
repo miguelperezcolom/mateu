@@ -65,7 +65,12 @@ When using the `Image` component or embedding `<img>` tags, always provide meani
 
 ```java
 Image.builder().src("/logo.png").alt("Acme Corp logo").build()
+// or: new Image("/logo.png", "Acme Corp logo")
 ```
+
+An empty `alt` (`""`) declares the image decorative, so screen readers skip it. The alt text
+reaches every renderer: the `<img>` alt on the web and in Redwood, the accessibility label on
+React Native, the accessible name in the IntelliJ plugin.
 
 ---
 

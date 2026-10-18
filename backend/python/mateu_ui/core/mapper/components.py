@@ -971,7 +971,7 @@ class ComponentMapperMixin(MixinBase):
         if isinstance(c, fluent.Markdown):
             return self._fluent_client(MarkdownMetadata(markdown=c.markdown), c)
         if isinstance(c, fluent.Image):
-            return self._fluent_client(ImageMetadata(src=c.src), c)
+            return self._fluent_client(ImageMetadata(src=c.src, alt=c.alt), c)
         if isinstance(c, fluent.Badge):
             return self._fluent_client(
                 BadgeMetadata(
