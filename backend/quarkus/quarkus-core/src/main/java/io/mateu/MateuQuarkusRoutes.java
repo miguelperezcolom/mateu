@@ -168,11 +168,8 @@ public class MateuQuarkusRoutes {
   }
 
   private static void serveAsset(RoutingContext rc) {
-    var classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = MateuQuarkusRoutes.class.getClassLoader();
-    }
-    var asset = ClasspathAssets.find(classLoader, rc.normalizedPath());
+    var asset =
+        ClasspathAssets.find(Thread.currentThread().getContextClassLoader(), rc.normalizedPath());
     if (asset == null) {
       rc.next();
       return;
