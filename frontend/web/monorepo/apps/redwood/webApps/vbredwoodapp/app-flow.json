@@ -1,6 +1,6 @@
 {
   "id": "starter",
-  "description": "Starter VB app",
+  "description": "Mateu renderer on Visual Builder",
   "defaultPage": "shell",
   "routerStrategy": "path",
   "chains": {},

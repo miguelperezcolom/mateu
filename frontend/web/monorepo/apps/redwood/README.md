@@ -105,7 +105,7 @@ the `sseUrl` load from the backend root, as on Vaadin.
 
 What the jar holds (and why it does not change on every build):
 
-- `static/_index.html` — the page the controller serves.
+- `static/_index.html` — the page the controller serves, written by `scripts/index-page.mjs` (not the VB build's `index.html`).
 - `static/_redwood/` — the VB app, in ONE place under a STABLE name (the module's pom copies it to
   `META-INF/resources/_redwood` at package time for Quarkus); no `bundles/plain`, no source maps.
 - `static/mateu-build-info.json` — `{ sourceHash }` of the sources it was built from
