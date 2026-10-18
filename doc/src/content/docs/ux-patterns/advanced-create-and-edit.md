@@ -75,7 +75,8 @@ public class OrderEdit {
   @Section("Shipping")           String carrier;
 
   @Aside(width = "22rem")        // the detail slot: supporting info beside the form
-  Markdown context = new Markdown("**SLA** 48h · **Priority** High\n\nLast contact 2 days ago.");
+  Markdown context = new Markdown(
+      "**SLA** 48h · **Priority** High\n\nLast contact 2 days ago.", null, null);
 
   @Toolbar @Label("Cancel") URI cancel() { return URI.create("/orders"); }
   @Button  @Label("Save")   Message save() { return new Message("Saved"); }

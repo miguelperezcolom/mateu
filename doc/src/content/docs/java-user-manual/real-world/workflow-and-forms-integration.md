@@ -91,15 +91,15 @@ public class OrderWorkflowPage implements ComponentTreeSupplier, ActionHandler, 
 
     @Override
     public Form component(HttpRequest httpRequest) {
-        String workflowId = httpRequest.getPathVariable("workflowId");
+        String workflowId = httpRequest.lastPathItem(); // orders/:workflowId
         var state = workflowEngine.getState(workflowId);
 
         return Form.builder()
                 .title("Order " + workflowId)
                 .content(List.of(
                         new Text("Status: " + state.currentStep()),
-                        new ProgressBar.builder().value(state.progress()).build(),
-                        // show step-specific form fields based on state.currentStep()
+                        ProgressBar.builder().value(state.progress()).build()
+                        // + step-specific form fields based on state.currentStep()
                 ))
                 .build();
     }
@@ -107,6 +107,12 @@ public class OrderWorkflowPage implements ComponentTreeSupplier, ActionHandler, 
     @Override
     public List<Trigger> triggers(HttpRequest httpRequest) {
         return List.of(new OnLoadTrigger("refresh"));
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        // "refresh": re-render with the latest workflow state
+        return component(httpRequest);
     }
 }
 ```
@@ -130,7 +136,9 @@ Action.builder()
         .id("process")
         .sse(true)
         .build()
+```
 
+```java
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
     return Flux
@@ -153,7 +161,7 @@ Complex workflows with multi-step forms can use a different page (or the same pa
 ```java
 @Override
 public Form component(HttpRequest httpRequest) {
-    String step = httpRequest.getPathVariable("step");
+    String step = httpRequest.lastPathItem(); // the :step segment
     return switch (step) {
         case "customer"  -> renderCustomerStep();
         case "items"     -> renderItemsStep();

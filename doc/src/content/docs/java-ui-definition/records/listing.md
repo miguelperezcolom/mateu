@@ -82,13 +82,17 @@ public record Listing(
 
 ## Basic usage
 
+The record shares its simple name with the [`Listing<Row>` interface](/java-ui-definition/interfaces/listing/)
+(`io.mateu.uidl.fluent.Listing` vs `io.mateu.uidl.interfaces.Listing`), so a class using both has to
+qualify one of them — the samples below qualify the record.
+
 ```java
 public class CustomerListing implements ComponentTreeSupplier, Listing<CustomerRow>,
         Searchable, Filterable<CustomerFilters> {
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Listing.builder()
+        return io.mateu.uidl.fluent.Listing.builder()
             .title("Customers")
             .searchable(true)
             .pageSize(20)
@@ -115,7 +119,7 @@ routes:
 ## With explicit columns
 
 ```java
-return Listing.builder()
+return io.mateu.uidl.fluent.Listing.builder()
     .title("Orders")
     .column(GridColumn.builder().id("id").label("Order #").build())
     .column(GridColumn.builder().id("customer").label("Customer").build())
@@ -127,9 +131,9 @@ return Listing.builder()
 ## With filters
 
 ```java
-return Listing.builder()
+return io.mateu.uidl.fluent.Listing.builder()
     .title("Invoices")
-    .filter(FormField.builder().id("status").label("Status").dataType(FieldDataType.enumeration).build())
+    .filter(FormField.builder().id("status").label("Status").dataType(FieldDataType.string).stereotype(FieldStereotype.select).build())
     .filter(FormField.builder().id("dateFrom").label("From").dataType(FieldDataType.date).build())
     .searchable(true)
     .build();

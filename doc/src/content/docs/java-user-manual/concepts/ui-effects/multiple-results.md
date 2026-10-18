@@ -41,7 +41,7 @@ What happens here:
 @Button
 @Action(validationRequired = true)
 public List<?> publish() {
-    status = Status.Available;
+    status = ProductStatus.Available;
     productRepository.save(id, name, status);
     return List.of(
         new Message("Product is now available"),

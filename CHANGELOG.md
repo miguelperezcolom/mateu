@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Documentation
+- **The code samples of the docs are checked against the API.** Every Java, C#, Python and YAML block
+  under `doc/` is compiled (against mateu-uidl + mateu-core / `backend/dotnet/src`), type-checked
+  with mypy (against mateu-ui) or validated against `specs-schema.json` — `npm run check:snippets` in
+  `doc/`, and the `snippets` job of the Docs workflow on PRs touching the docs or the authoring APIs.
+  Running it the first time found about 190 samples out of date with the API (renamed constants and
+  builder methods, removed annotations, missing required overrides, Java names in C#/Python
+  samples…); they are fixed. Deliberate sketches opt out with ` ```java nocheck `.
+
 ## [3.0-beta.2] — 2026-10-18
 
 Security fixes from an external review. Upgrade recommended.

@@ -71,7 +71,9 @@ Parameters:
 Use for: loading initial data, auto-starting background processes, polling.
 
 ```java
-public class Dashboard implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
+public class ItemsPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
+
+    // ... component(httpRequest) renders ${state.items}
 
     @Override
     public List<Trigger> triggers(HttpRequest httpRequest) {
@@ -82,6 +84,10 @@ public class Dashboard implements ComponentTreeSupplier, ActionHandler, Triggers
     public Object handleAction(String actionId, HttpRequest httpRequest) {
         return new State(Map.of("items", loadItems()));
     }
+
+    List<String> loadItems() {
+        return List.of("First", "Second");
+    }
 }
 ```
 
@@ -89,8 +95,8 @@ public class Dashboard implements ComponentTreeSupplier, ActionHandler, Triggers
 # src/main/resources/specs/ui/routes.yaml
 type: Routes
 routes:
-  - route: dashboard
-    viewModel: com.example.Dashboard
+  - route: items
+    viewModel: com.example.ItemsPage
 ```
 
 ---

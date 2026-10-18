@@ -65,7 +65,7 @@ public Message archiveSelected(List<Product> selectedRows) {
 ```java
 @ListToolbarButton
 public Message markAvailable(List<Product> selection) {
-    selection.forEach(p -> productRepository.setStatus(p.id(), Status.Available));
+    selection.forEach(p -> productRepository.setStatus(p.id(), ProductStatus.Available));
     return Message.builder()
         .text("Marked " + selection.size() + " products as available")
         .build();
@@ -202,13 +202,13 @@ Actions in a listing can be attached to individual rows using `ColumnAction` and
 Define the action in the row model:
 
 ```java
-record Product(
+public record Product(
     String id,
     String name,
-    Status status,
+    ProductStatus status,
     ColumnActionGroup action
-) {
-    Product {
+) implements Identifiable {
+    public Product {
         action = new ColumnActionGroup(new ColumnAction[]{
             new ColumnAction("markAvailable", "Mark available"),
             new ColumnAction("markOutOfStock", "Mark out of stock")
@@ -228,11 +228,11 @@ public class Products extends AutoCrud<Product> {
     }
 
     void markAvailable(Product row) {
-        productRepository.setStatus(row.id(), Status.Available);
+        productRepository.setStatus(row.id(), ProductStatus.Available);
     }
 
     void markOutOfStock(Product row) {
-        productRepository.setStatus(row.id(), Status.OutOfStock);
+        productRepository.setStatus(row.id(), ProductStatus.OutOfStock);
     }
 
 }

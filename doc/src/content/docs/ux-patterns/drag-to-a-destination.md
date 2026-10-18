@@ -39,6 +39,9 @@ public class FolioWindows implements Listing<ChargeRow>, HeaderSupplier {
     @Override public boolean selectionEnabled() { return true; }
 
     @Override
+    public ListingData<ChargeRow> search(SearchRequest request, HttpRequest rq) { ... }  // the folio's charges
+
+    @Override
     public List<Component> header(HttpRequest rq) {
         return List.of(DropZone.builder()
                 .accept("charge").actionId("moveCharges").parameters(Map.of("window", 2))

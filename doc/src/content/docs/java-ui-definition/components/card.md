@@ -51,7 +51,10 @@ Card.builder()
 Variants can be combined:
 
 ```java
-.variants(List.of(CardVariant.outlined, CardVariant.stretchMedia))
+Card.builder()
+    .content(new Text("…"))
+    .variants(List.of(CardVariant.outlined, CardVariant.stretchMedia))
+    .build()
 ```
 
 ## With media image

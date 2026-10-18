@@ -77,7 +77,11 @@ Implement a `@Primary` `RouteResolver` bean to intercept and rewrite routes befo
 
 ```java
 public class CustomRouteResolverPage implements ComponentTreeSupplier {
-    // page loaded via a custom routing strategy
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+        return new Text("Page loaded via a custom routing strategy");
+    }
 }
 ```
 
@@ -93,11 +97,12 @@ routes:
 
 ## Micro-frontends
 
-Embed an external frontend inside a Mateu page using `MicroFrontend`:
+Embed a screen served by another Mateu backend inside a page using `MicroFrontend` — `baseUrl` is that backend, `route` the screen:
 
 ```java
 MicroFrontend.builder()
-        .url("https://other-service.internal/ui")
+        .baseUrl("https://other-service.internal")
+        .route("/ui")
         .style("width: 100%; height: 600px;")
         .build()
 ```

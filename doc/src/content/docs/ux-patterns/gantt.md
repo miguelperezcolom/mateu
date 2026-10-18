@@ -55,8 +55,8 @@ the canvas out **edge to edge** (it declares `PageWidthStyle.EDGE_TO_EDGE`), and
 @UI("/gantt-page-demo")
 @Title("Project plan")
 public class ProjectPlanPage extends GanttPage {
-    @Override protected List<GanttTask> tasks(HttpRequest rq) { return schedule(); }
-    @Override protected Component detail(HttpRequest rq) { return summaryTable(); }
+    @Override protected List<GanttTask> tasks(HttpRequest rq) { ... }  // the schedule
+    @Override protected Component detail(HttpRequest rq) { ... }       // a summary table
 }
 ```
 

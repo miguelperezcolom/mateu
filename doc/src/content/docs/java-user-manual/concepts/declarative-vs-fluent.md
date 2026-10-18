@@ -25,7 +25,7 @@ public class NewProductForm {
     String name;
 
     @Stereotype(FieldStereotype.radio)
-    Status status = Status.Available;
+    ProductStatus status = ProductStatus.Available;
 
     @Stereotype(FieldStereotype.textarea)
     String description;
@@ -57,19 +57,24 @@ In the fluent style, you build the UI explicitly using Mateu's builder API.
 
 ```java
 @UI("/dashboard")
-public class Dashboard implements Component {
+public class ProductsDashboard implements ComponentTreeSupplier {
 
     @Override
-    public Component content() {
-        return Grid.of(
-            Row.of(
-                Card.of("Total products", productRepository.count()),
-                Card.of("Available", productRepository.countByStatus(Status.Available)),
-                Card.of("Out of stock", productRepository.countByStatus(Status.OutOfStock))
-            ),
-            Row.of(
-                Chart.bar("Stock by category", stockService.byCategory())
-            )
+    public Component component(HttpRequest httpRequest) {
+        return new VerticalLayout(
+            Scoreboard.builder()
+                .metrics(List.of(
+                    MetricCard.builder().title("Total products")
+                        .value("" + productRepository.count()).build(),
+                    MetricCard.builder().title("Available")
+                        .value("" + productRepository.countByStatus(ProductStatus.Available)).build(),
+                    MetricCard.builder().title("Out of stock")
+                        .value("" + productRepository.countByStatus(ProductStatus.OutOfStock)).build()))
+                .build(),
+            Chart.builder()
+                .chartType(ChartType.bar)
+                .chartData(stockService.byCategory()) // a ChartData
+                .build()
         );
     }
 
@@ -97,9 +102,12 @@ A declarative ViewModel can include a `Component` field that is built with the f
 public class ProductForm {
 
     String name;
-    Status status;
+    ProductStatus status;
 
-    Component stockChart = Chart.line("Stock history", stockService.history(id));
+    Component stockChart = Chart.builder()
+        .chartType(ChartType.line)
+        .chartData(stockService.history(id)) // a ChartData
+        .build();
 
 }
 ```

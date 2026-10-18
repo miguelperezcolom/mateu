@@ -99,7 +99,9 @@ public class CheckInForm implements HeaderSupplier {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
     }
 
-    // ... fields, sections (including the GuestsSection above), populate(), header() ...
+    private boolean populate() { ... }   // re-reads the reservation into the fields
+
+    // ... fields, sections (including the GuestsSection above), header() ...
 }
 ```
 
@@ -291,10 +293,14 @@ with three states:
 ```java
 @UI("/checkin-documento")
 @Title("Documento")
-public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoEditor> {
+public class DocumentoView extends EditableView<Object, DocumentoEditor> {
 
     @Hidden String stayId;      // context, seeded by the host (see below)
     @Hidden boolean vistaAlterna;
+    @Autowired DocumentScanner scanner;
+
+    private Guest guest() { ... }                                   // the pax of stayId
+    private DocumentoDatos fill(DocumentoDatos d, Guest g) { ... }  // copies the scanned data
 
     @Override
     public Object view(HttpRequest rq) {
@@ -309,6 +315,9 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
     public DocumentoEditor editor(HttpRequest rq) { ... }   // state 3
 
     @Override
+    public void save(HttpRequest rq) { ... }                // persists, lands back on state 2
+
+    @Override
     public boolean readOnly() {                        // no Edit button while empty
         var guest = guest();
         return guest == null || !guest.identityComplete();
@@ -320,7 +329,7 @@ public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoE
             case "escanear" -> LongTask.create("Escaneando documento…")   // SSE progress dialog
                 .withProgressBar()
                 .withCommand(UICommand.dispatchEvent("documento-escaneado"))
-                .run(progress -> ...);
+                .run(progress -> scanner.scan(stayId, progress));
             case "reloadDocumento" -> {                // fired by the subscription
                 vistaAlterna = !vistaAlterna;          // route flip → re-render
                 setRouteTo(vistaAlterna ? "/view" : "/");

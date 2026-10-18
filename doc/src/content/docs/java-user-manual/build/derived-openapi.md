@@ -175,7 +175,7 @@ generator never produces and therefore can never overwrite:
 ```java
 @Service
 class ReservationsAdapter implements ReservationsApi {
-  // your queries, your use cases, your business rules
+  // … your queries, your use cases, your business rules
 }
 ```
 

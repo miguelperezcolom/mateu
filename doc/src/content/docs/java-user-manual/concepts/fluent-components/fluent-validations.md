@@ -24,7 +24,7 @@ public class MyPage implements ComponentTreeSupplier, ActionSupplier, Validation
     public Form component(HttpRequest httpRequest) { ... }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
             Action.builder()
                     .id("submit")

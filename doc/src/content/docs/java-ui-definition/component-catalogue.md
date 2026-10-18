@@ -45,7 +45,11 @@ configuration or a database):
 @Service
 public class Catalogue implements ComponentCatalogSupplier {
   public List<ComponentEntry> businessComponents() {
-    return List.of(new ComponentEntry("AgencySelector", /* the composition */));
+    return List.of(new ComponentEntry("AgencySelector", agencySelector()));
+  }
+
+  private Component agencySelector() {
+    return new HorizontalLayout(new Text("Agency"), new Text("…")); // the composition
   }
 }
 ```

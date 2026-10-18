@@ -33,8 +33,8 @@ HorizontalLayout.builder()
         .padding(true)           // add internal padding
         .spacing(true)           // add gap between children
         .fullWidth(true)         // stretch to full container width
-        .justification(HorizontalLayoutJustification.center)  // horizontal alignment
-        .verticalAlignment(VerticalAlignment.center)           // vertical alignment
+        .justification(HorizontalLayoutJustification.CENTER)  // horizontal alignment
+        .verticalAlignment(VerticalAlignment.CENTER)           // vertical alignment
         .build()
 ```
 
@@ -87,19 +87,19 @@ TabLayout.builder()
 ```java
 // Vertical tabs (tabs on the left)
 TabLayout.builder()
-        .tabs(...)
+        .tabs(tabs)
         .orientation(Orientation.vertical)
         .build()
 
 // Centered tab labels
 TabLayout.builder()
-        .tabs(...)
+        .tabs(tabs)
         .variant(TabLayoutVariant.centered)
         .build()
 
 // Equal-width tab labels
 TabLayout.builder()
-        .tabs(...)
+        .tabs(tabs)
         .variant(TabLayoutVariant.equalWidth)
         .build()
 ```
@@ -143,9 +143,9 @@ AccordionPanel.builder()
 ### Variants
 
 ```java
-.variant(AccordionLayoutVariant.reverse)   // reverse colors
-.variant(AccordionLayoutVariant.filled)    // filled background
-.variant(AccordionLayoutVariant.small)     // compact size
+AccordionLayout.builder().variant(AccordionLayoutVariant.reverse)   // reverse colors
+AccordionLayout.builder().variant(AccordionLayoutVariant.filled)    // filled background
+AccordionLayout.builder().variant(AccordionLayoutVariant.small)     // compact size
 ```
 
 ---
@@ -182,8 +182,8 @@ SplitLayout.builder()
 ### Variants
 
 ```java
-.variant(SplitLayoutVariant.small)    // compact splitter
-.variant(SplitLayoutVariant.minimal)  // minimal splitter style
+SplitLayout.builder().variant(SplitLayoutVariant.small)    // compact splitter
+SplitLayout.builder().variant(SplitLayoutVariant.minimal)  // minimal splitter style
 ```
 
 ---

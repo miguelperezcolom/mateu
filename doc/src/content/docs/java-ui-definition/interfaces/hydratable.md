@@ -55,7 +55,7 @@ public class OrderForm implements Hydratable {
 
     @Override
     public void hydrate(HttpRequest httpRequest) {
-        var state = httpRequest.getState(Map.class);
+        var state = httpRequest.getComponentState(Map.class);
         var id = (String) state.get("id");
         this.order = orderRepository.findById(id).orElseThrow();
         // apply any edits the user made

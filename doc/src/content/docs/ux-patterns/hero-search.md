@@ -39,7 +39,7 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     public ListingData<Hotel> search(SearchRequest request, HttpRequest httpRequest) {
         // query your use case / repository with
         // request.searchText() + filters(request) + request.pageable()
-        return ListingData.<Hotel>builder().page(/* … */).build();
+        return ListingData.of(/* … the matching hotels */);
     }
 }
 ```

@@ -54,7 +54,7 @@ new Badge("Active")
 | `text` | String | — | Badge text |
 | `iconOnLeft` | String | — | Icon name rendered before the text |
 | `iconOnRight` | String | — | Icon name rendered after the text |
-| `color` | `BadgeColor` | normal | Color theme |
+| `color` | String (a `BadgeColor` name) | `normal` | Color theme |
 | `primary` | boolean | false | Uses the primary colour fill |
 | `small` | boolean | false | Renders a smaller badge |
 | `pill` | boolean | false | Rounds the badge into a pill shape |
@@ -69,7 +69,6 @@ new Badge("Active")
 | `success` | Green — positive / active |
 | `warning` | Yellow / amber — caution |
 | `error` | Red — problem / inactive |
-| `info` | Blue — informational |
 | `contrast` | High-contrast for accessibility |
 
 ### Examples
@@ -78,7 +77,7 @@ new Badge("Active")
 // Success pill badge
 Badge.builder()
     .text("Active")
-    .color(BadgeColor.success)
+    .color(BadgeColor.success.name())
     .pill(true)
     .primary(true)
     .build()
@@ -86,15 +85,15 @@ Badge.builder()
 // Small error badge
 Badge.builder()
     .text("Failed")
-    .color(BadgeColor.error)
+    .color(BadgeColor.error.name())
     .small(true)
     .build()
 
 // With icon
 Badge.builder()
     .text("Verified")
-    .iconOnLeft(IconKey.Checkmark.iconName)
-    .color(BadgeColor.success)
+    .iconOnLeft(IconKey.Check.iconName)
+    .color(BadgeColor.success.name())
     .build()
 ```
 
@@ -105,6 +104,6 @@ Badges work well inside grid cell renderers or alongside text:
 ```java
 new HorizontalLayout(
     new Text("Order #1234"),
-    Badge.builder().text("Shipped").color(BadgeColor.info).pill(true).build()
+    Badge.builder().text("Shipped").color(BadgeColor.normal.name()).pill(true).build()
 )
 ```

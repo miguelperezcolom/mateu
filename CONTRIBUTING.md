@@ -72,11 +72,38 @@ check fails otherwise.
 | .NET | `cd backend/dotnet && dotnet test` |
 | Python | `cd backend/python && pytest` |
 | Docs site | `cd doc && npm ci && npm run verify` (build + broken-link check) |
+| Docs code samples | `cd doc && npm run check:snippets` (see [Documentation snippets](#documentation-snippets)) |
 | Starters | `cd starters && mvn package -Dmateu.version=0.0.1-MATEU && ./smoke-test.sh` |
 
 Most behaviour is tested **in-JVM** with the core integration harness (`TestMateu`): one
 `mateu.sync("/route")` exercises route resolution → instance creation → mapping → wire DTOs. Add a
 `*SyncTest` next to the existing ones for a new feature.
+
+## Documentation snippets
+
+Every ` ```java `, ` ```csharp `, ` ```python ` and ` ```yaml ` block under
+`doc/src/content/docs` is checked against the **current** sources — `npm run check:snippets` in
+`doc/` (`-- --lang java --only ux-patterns/` to narrow it), and the `snippets` job of
+`.github/workflows/docs.yml` on every PR that touches the docs or the authoring APIs (uidl, core,
+the Python and .NET ports, the specs schema):
+
+- **Java** compiles against mateu-uidl + mateu-core (install them first:
+  `cd backend && mvn -pl shared/core -am install -DskipTests`). Samples leave their imports out;
+  the checker infers them, wraps fragments (class bodies, statements, expressions, a type header,
+  bare annotations) and allows `{ ... }` / `// …` elisions. A type the page declares in another
+  block is visible; a type nobody declares and Mateu does not have (`ProductService`) is assumed to
+  be the app's.
+- **C#** compiles against `backend/dotnet/src` (needs the .NET 10 SDK); **Python** is type-checked
+  with mypy against `mateu-ui` (`pip install "./backend/python[dev,all]" jsonschema`, or point
+  `MATEU_SNIPPETS_PYTHON` at an interpreter that has them).
+- **YAML** that declares a top-level `type:` (or a `$schema`) is validated against
+  `backend/shared/uidl/specs-schema.json`, with unknown keys rejected.
+
+A sample that fails is wrong about the API: fix the sample — or, if the docs are right, the API.
+Only a deliberate sketch that is not meant to compile (a constructor signature, pseudo-code, a
+"before — no longer compiles" example) opts out, by adding `nocheck` to the fence:
+` ```java nocheck `. Use it sparingly; the header comments of `doc/scripts/check-snippets.mjs` and
+`doc/scripts/snippets/*` describe exactly what each checker tolerates.
 
 ## Making a change
 

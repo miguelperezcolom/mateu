@@ -65,11 +65,11 @@ return Form.builder()
     .contentItem(FormLayout.builder()
         .content(List.of(
             FormField.builder().id("name").label("Name").dataType(FieldDataType.string).build(),
-            FormField.builder().id("email").label("Email").dataType(FieldDataType.email).build()
+            FormField.builder().id("email").label("Email").dataType(FieldDataType.string).stereotype(FieldStereotype.email).build()
         ))
         .build())
-    .toolbarItem(Action.builder().id("save").build())
-    .toolbarItem(Action.builder().id("cancel").build())
+    .toolbarItem(Button.builder().label("Save").actionId("save").build())
+    .toolbarItem(Button.builder().label("Cancel").actionId("cancel").build())
     .build();
 ```
 

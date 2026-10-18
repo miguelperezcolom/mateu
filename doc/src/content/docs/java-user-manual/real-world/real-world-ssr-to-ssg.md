@@ -114,7 +114,9 @@ Action.builder()
                 "Cancel"
         ))
         .build()
+```
 
+```java
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
     return ssgWorker.rebuildAll()   // returns Flux<BuildProgressEvent>

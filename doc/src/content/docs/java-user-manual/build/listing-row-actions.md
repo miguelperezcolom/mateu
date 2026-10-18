@@ -85,7 +85,7 @@ This id is used by Mateu to route the action to the backend.
 Rows should include an identifier:
 
 ```java
-@Hidden String id
+@Hidden String id;
 ```
 
 This allows Mateu to know which row triggered the action.
@@ -105,14 +105,16 @@ Status is rendered visually (badge-like), not as plain text.
 ## Building rows in adapters
 
 ```java
-.map(dto -> new ChangeRow(
+List<ChangeRow> rows = changes.stream()
+    .map(dto -> new ChangeRow(
         dto.pageId(),
         dto.page(),
         dto.country(),
         dto.language(),
         new Status(mapStatus(dto.status()), dto.status().name()),
         new ColumnAction("compare", "Compare")
-))
+    ))
+    .toList();
 ```
 
 Rows are typically built in adapters or query services.

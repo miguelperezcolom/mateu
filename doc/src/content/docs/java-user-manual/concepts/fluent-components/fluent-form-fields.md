@@ -255,7 +255,7 @@ FormField.builder()
         .label("Items")
         .dataType(FieldDataType.array)
         .stereotype(FieldStereotype.listBox)
-        .options(...)
+        .options(options) // a List<Option>, as above
         .build()
 ```
 
@@ -301,16 +301,20 @@ FormField.builder()
 
 ---
 
-## Disabled
+## Read-only and disabled
 
 ```java
 FormField.builder()
         .id("id")
         .label("ID")
         .dataType(FieldDataType.string)
-        .disabled(true)
+        .readOnly(true)
         .build()
 ```
+
+A fluent `FormField` has no `disabled` flag of its own: `readOnly(true)` shows the value without an
+editor, and a field that must be disabled only in some states takes a client-side rule
+(`RuleFieldAttribute.disabled`, see [Rules](/java-user-manual/concepts/fluent-components/fluent-rules/)).
 
 ---
 

@@ -601,7 +601,7 @@ Applied to an `AutoCrud`, `FilteredAutoCrud`, or `Crud` class, hides the New, Ed
 ```java
 @UI("/audit-log")
 @ReadOnly
-public class AuditLog extends AutoCrud<AuditEntry> { ... }
+public class AuditLog extends AutoCrud<LogEntry> { ... }
 ```
 
 Applied to a field or an `EditableView` class, makes that field or the entire view non-editable.
@@ -623,7 +623,7 @@ Combine with `@ReadOnly` for a plain read-only list with no detail view:
 ```java
 @ReadOnly
 @NotNavigable
-public class AuditLog extends AutoCrud<AuditEntry> { ... }
+public class AuditLog extends AutoCrud<LogEntry> { ... }
 ```
 
 ---

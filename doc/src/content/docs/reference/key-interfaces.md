@@ -77,7 +77,9 @@ Use it when triggers should not be static.
 Specialized extension point for classes that return a fluent `AppShell`.
 
 ```java
-AppShell getApp(HttpRequest httpRequest);
+public interface AppSupplier extends ComponentTreeSupplier {
+  AppShell getApp(HttpRequest httpRequest);
+}
 ```
 
 Use it when the whole application shell is produced fluently.
@@ -89,7 +91,9 @@ Use it when the whole application shell is produced fluently.
 Provides fluent UI metadata.
 
 ```java
-UI getUI(HttpRequest httpRequest);
+public interface UISupplier {
+  UI getUI(HttpRequest httpRequest);
+}
 ```
 
 Useful when page metadata should be generated programmatically.

@@ -29,7 +29,7 @@ This tells Mateu:
 
 ## Using Spring beans
 
-In real applications, your ViewModel, `LookupOptionsSupplier`, and `LabelSupplier` will often be Spring beans.
+In real applications, your ViewModel, `LookupOptionsSupplier`, and `LookupLabelSupplier` will often be Spring beans.
 
 This allows you to:
 
@@ -126,11 +126,11 @@ public class RoleOptionsSupplier implements LookupOptionsSupplier {
 
 ## Label supplier as a bean
 
-The `LabelSupplier` resolves a human-readable label for a selected id:
+The `LookupLabelSupplier` resolves a human-readable label for a selected id:
 
 ```java
 @Service
-public class RoleLabelSupplier implements LabelSupplier {
+public class RoleLabelSupplier implements LookupLabelSupplier {
 
     final RoleRepository roleRepository;
 
@@ -177,7 +177,7 @@ Use:
 
 - `@Lookup` to define a relationship
 - an `OptionsSupplier` bean to search candidates
-- a `LabelSupplier` bean to render labels
+- a `LookupLabelSupplier` bean to render labels
 - a `@Stereotype` to choose how the field is presented
 
 ---

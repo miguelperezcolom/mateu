@@ -45,7 +45,7 @@ Details.builder()
 ```java
 Details.builder()
     .summary(new HorizontalLayout(
-        new Icon(IconKey.Document),
+        new Icon(IconKey.FileText),
         new Text("Pending invoices")
     ))
     .content(VerticalLayout.builder()

@@ -2,7 +2,11 @@
 title: "Listings"
 ---
 
-`Listing` is the fluent API's data grid component. Combined with the `Listing<Row>` interface (io.mateu.uidl.interfaces) — plus the `Searchable`/`Filterable` capabilities — it powers searchable, filterable, paginated tables with optional row actions.
+`Listing` (`io.mateu.uidl.fluent.Listing`) is the fluent API's data grid component. Combined with the `Listing<Row>` interface (`io.mateu.uidl.interfaces.Listing`) — plus the `Searchable`/`Filterable` capabilities — it powers searchable, filterable, paginated tables with optional row actions.
+
+The two share a simple name, so a class using both imports one and qualifies the other. The pattern
+below imports the interface and writes the component in full; the shorter samples that only build
+the component import it.
 
 ---
 
@@ -19,9 +23,11 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 public class MyListing implements ComponentTreeSupplier, Listing<MyRow>,
         Searchable, Filterable<MyFilters>, TriggersSupplier {
 
+    @Inject MyRowService rowService;   // your data access
+
     @Override
-    public Listing component(HttpRequest httpRequest) {
-        return Listing.builder()
+    public Component component(HttpRequest httpRequest) {
+        return io.mateu.uidl.fluent.Listing.builder()
                 .title("My listing")
                 .id("crud")
                 .columns(List.of(
@@ -37,7 +43,7 @@ public class MyListing implements ComponentTreeSupplier, Listing<MyRow>,
     public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest) {
         // fetch and filter your data
         var pageable = request.pageable();
-        var rows = fetchRows(request.searchText(), filters(request), pageable);
+        var rows = rowService.fetch(request.searchText(), filters(request), pageable);
         return new ListingData<>(new Page<>(
                 request.searchText(),
                 pageable.size(),
@@ -120,6 +126,8 @@ GridColumn.builder()
 Declare filter fields in the listing definition:
 
 ```java
+import io.mateu.uidl.fluent.Listing;
+
 Listing.builder()
         .filters(List.of(
                 FormField.builder()
@@ -136,13 +144,17 @@ The filter values are carried by the `SearchRequest` — declare `Filterable<MyF
 
 ```java
 record MyFilters(int age) {}
+```
 
+```java
 @Override
 public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest) {
     var filters = filters(request);
-    return allItems.stream()
+    var rows = allItems.stream()
             .filter(item -> filters.age() == 0 || item.age() == filters.age())
-            ...
+            .toList();
+    return new ListingData<>(new Page<>(
+            request.searchText(), rows.size(), 0, rows.size(), rows));
 }
 ```
 
@@ -188,6 +200,8 @@ public ListingData<MyRow> search(SearchRequest request, HttpRequest httpRequest)
 Add buttons above the listing:
 
 ```java
+import io.mateu.uidl.fluent.Listing;
+
 Listing.builder()
         .toolbar(List.of(
                 Button.builder()
@@ -202,19 +216,24 @@ Listing.builder()
 Handle the action in `handleAction` (override `supportsAction` too):
 
 ```java
-@Override
-public boolean supportsAction(String actionId) {
-    if ("export".equals(actionId)) return true;
-    return Listing.super.supportsAction(actionId);
-}
+public class MyListing implements Listing<MyRow> {
 
-@Override
-public Object handleAction(String actionId, HttpRequest httpRequest) {
-    if ("export".equals(actionId)) {
-        // run export
-        return Message.builder().text("Exported!").build();
+    // ... search(...) as in the pattern above
+
+    @Override
+    public boolean supportsAction(String actionId) {
+        if ("export".equals(actionId)) return true;
+        return Listing.super.supportsAction(actionId);
     }
-    return Listing.super.handleAction(actionId, httpRequest);
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("export".equals(actionId)) {
+            // run export
+            return Message.builder().text("Exported!").build();
+        }
+        return Listing.super.handleAction(actionId, httpRequest);
+    }
 }
 ```
 
@@ -225,6 +244,8 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 Enable multi-row selection and respond to selection changes:
 
 ```java
+import io.mateu.uidl.fluent.Listing;
+
 Listing.builder()
         .rowsSelectionEnabled(true)
         .onRowSelectionChangedActionId("row-selected")
@@ -235,13 +256,18 @@ Listing.builder()
 In the action handler, read the selected rows:
 
 ```java
-@Override
-public Object handleAction(String actionId, HttpRequest httpRequest) {
-    if ("row-selected".equals(actionId)) {
-        var selected = httpRequest.getSelectedRows(MyRow.class);
-        return Message.builder().text("Selected: " + selected).build();
+public class MyListing implements Listing<MyRow> {
+
+    // ... search(...) as in the pattern above
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if ("row-selected".equals(actionId)) {
+            var selected = httpRequest.getSelectedRows(MyRow.class);
+            return Message.builder().text("Selected: " + selected).build();
+        }
+        return Listing.super.handleAction(actionId, httpRequest);
     }
-    return Listing.super.handleAction(actionId, httpRequest);
 }
 ```
 
@@ -258,8 +284,11 @@ record MyRow(
         int age,
         ColumnActionGroup actions   // appears as a context menu in each row
 ) {}
+```
 
-// Build the rows with different actions per row
+Build the rows with different actions per row:
+
+```java
 new MyRow(
         "Alice",
         30,
@@ -283,13 +312,18 @@ GridColumn.builder()
 Handle row actions using `httpRequest.getClickedRow()`:
 
 ```java
-@Override
-public Object handleAction(String actionId, HttpRequest httpRequest) {
-    if (List.of("edit", "delete").contains(actionId)) {
-        var row = httpRequest.getClickedRow(MyRow.class);
-        return Message.builder().text(actionId + " on " + row.name()).build();
+public class MyListing implements Listing<MyRow> {
+
+    // ... search(...) as in the pattern above
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest httpRequest) {
+        if (List.of("edit", "delete").contains(actionId)) {
+            var row = httpRequest.getClickedRow(MyRow.class);
+            return Message.builder().text(actionId + " on " + row.name()).build();
+        }
+        return Listing.super.handleAction(actionId, httpRequest);
     }
-    return Listing.super.handleAction(actionId, httpRequest);
 }
 ```
 
@@ -299,20 +333,29 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 
 Show a detail component when a row is expanded or clicked:
 
+The detail is stored as a `ComponentDto` in each row:
+
 ```java
-// The detail is stored as a ComponentDto in each row
 @Serdeable
 record MyRow(String name, ComponentDto detail) {}
+```
 
-// Build rows with detail buttons
+Build rows with detail buttons:
+
+```java
 new MyRow("Alice",
         mapButtonToDto(Button.builder()
                 .label("View")
                 .actionId("view-detail")
                 .parameters(new Params("Alice"))
                 .build()))
+```
 
-// Declare the detail path on the Listing
+Declare the detail path on the `Listing`:
+
+```java
+import io.mateu.uidl.fluent.Listing;
+
 Listing.builder()
         .detailPath("detail")
         .useButtonForDetail(true)
@@ -325,6 +368,8 @@ Listing.builder()
 ## Visual options
 
 ```java
+import io.mateu.uidl.fluent.Listing;
+
 Listing.builder()
         .compact(true)            // compact row height
         .rowStripes(true)         // alternate row background

@@ -56,7 +56,7 @@ Image.builder()
 
 ```java
 Icon.builder()
-        .icon(IconKey.Heart.iconName)
+        .icon(IconKey.Heart)
         .build()
 ```
 
@@ -71,25 +71,25 @@ Colored label for status or categories.
 ```java
 Badge.builder()
         .text("Active")
-        .color(BadgeColor.success)
+        .color(BadgeColor.success.name())
         .build()
 
 // Variants
 Badge.builder()
         .text("Error")
-        .color(BadgeColor.error)
+        .color(BadgeColor.error.name())
         .small(true)
         .build()
 
 Badge.builder()
         .text("New")
-        .color(BadgeColor.contrast)
+        .color(BadgeColor.contrast.name())
         .pill(true)
         .primary(true)
         .build()
 ```
 
-`BadgeColor` values: `success`, `error`, `warning`, `contrast`, `primary`.
+`color` is a string; `BadgeColor` names the values: `success`, `error`, `warning`, `contrast`, `normal` (the default).
 
 ---
 
@@ -127,7 +127,7 @@ Renders Markdown content as HTML.
 
 ```java
 Markdown.builder()
-        .content("# Hello\n\nThis is **bold** text.")
+        .markdown("# Hello\n\nThis is **bold** text.")
         .build()
 ```
 
@@ -275,10 +275,11 @@ Chart.builder()
 
 ### Map
 
-Renders a geographic map.
+Renders a geographic map. The name clashes with `java.util.Map`, so qualify it (or import
+`io.mateu.uidl.data.Map` explicitly):
 
 ```java
-Map.builder()
+io.mateu.uidl.data.Map.builder()
         .position("41.3851,2.1734")   // latitude,longitude
         .zoom("14")
         .build()

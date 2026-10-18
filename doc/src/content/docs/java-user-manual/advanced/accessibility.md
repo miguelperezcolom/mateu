@@ -48,7 +48,7 @@ If you inject raw HTML, ensure links have descriptive text, interactive elements
 ### Custom web components via `Element.builder()`
 
 ```java
-Element.builder().tag("my-custom-widget").build()
+Element.builder().name("my-custom-widget").build()
 ```
 
 Custom elements must implement their own ARIA roles and keyboard behaviour. The design system does not wrap them.
@@ -61,10 +61,11 @@ Custom elements must implement their own ARIA roles and keyboard behaviour. The 
 
 ### Image alt text
 
-When using the `Image` component or embedding `<img>` tags, always provide meaningful alt text:
+Images need meaningful alt text. The `Image` component carries only a `src` (it has no alt text
+yet), so an image that conveys information is better written as an `img` element with its `alt`:
 
 ```java
-Image.builder().src("/logo.png").alt("Acme Corp logo").build()
+new Element("img", Map.of("src", "/logo.png", "alt", "Acme Corp logo"), "")
 ```
 
 ---

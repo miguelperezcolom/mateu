@@ -598,7 +598,8 @@ public @interface Compact {}
 @Zones({ @Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%") })
 public class CheckInForm {
     @Section(value = "Reservation", columns = 8, zone = "left")
-    // … many read-only fields rendered tightly …
+    String reservationNumber;
+    // … many more read-only fields, rendered tightly …
 }
 ```
 

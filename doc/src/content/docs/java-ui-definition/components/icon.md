@@ -31,13 +31,13 @@ new Icon(IconKey.Form)
 new Icon(IconKey.Form)
 new Icon(IconKey.Abacus)
 new Icon(IconKey.Airplane)
-new Icon(IconKey.Checkmark)
+new Icon(IconKey.Check)
 new Icon(IconKey.Cart)
-new Icon(IconKey.Document)
+new Icon(IconKey.FileText)
 
 // Sized via style
 Icon.builder()
-    .icon(IconKey.Person)
+    .icon(IconKey.User)
     .style("width: 32px; height: 32px; color: var(--lumo-primary-color);")
     .build()
 ```
@@ -51,16 +51,9 @@ Button.builder()
     .iconOnLeft(IconKey.Trash.iconName)
     .build()
 
-// Icon in a tab
-Tab.builder()
-    .label("Orders")
-    .iconOnLeft(IconKey.Cart.iconName)
-    .content(ordersContent)
-    .build()
-
 // Icon alongside text
 new HorizontalLayout(
-    new Icon(IconKey.Checkmark),
+    new Icon(IconKey.Check),
     new Text("All checks passed")
 )
 ```

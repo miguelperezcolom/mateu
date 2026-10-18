@@ -117,7 +117,8 @@ When the web component fires `new CustomEvent("bar-click")`, Mateu captures it a
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
     if ("chart-bar-clicked".equals(actionId)) {
-        Map<String, Object> event = httpRequest.getParameters(Map.class).get("event");
+        Map<String, Object> parameters = httpRequest.getParameters(Map.class);
+        var event = parameters.get("event");
         // event contains the CustomEvent's detail payload
         log.info("Bar clicked: {}", event);
         return Message.builder().text("Bar clicked").build();

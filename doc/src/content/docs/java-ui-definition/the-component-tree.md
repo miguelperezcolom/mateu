@@ -22,7 +22,7 @@ public class Counter implements ComponentTreeSupplier {
   int count = 0;
 
   @Override
-  public Component getComponent(HttpRequest httpRequest) {
+  public Component component(HttpRequest httpRequest) {
     return new VerticalLayout(
       new Text("" + count),
       new Button("Increment", (Runnable) () -> count++)

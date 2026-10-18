@@ -99,7 +99,7 @@ These combine freely. A few common patterns:
 @UI("/audit-log")
 @ReadOnly
 @NotNavigable
-public class AuditLog extends AutoCrud<AuditEntry> {
+public class AuditLog extends AutoCrud<AuditLogEntry> {
 
     private final AuditRepository repository;
 
@@ -108,7 +108,7 @@ public class AuditLog extends AutoCrud<AuditEntry> {
     }
 
     @Override
-    public CrudStore<AuditEntry> store() {
+    public CrudStore<AuditLogEntry> store() {
         return repository;
     }
 }

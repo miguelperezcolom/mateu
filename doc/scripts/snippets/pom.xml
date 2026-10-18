@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The classpath the Java snippets of the docs compile against (doc/scripts/check-snippets.mjs).
+     Never built: only `dependency:build-classpath` runs on it, after `mvn -pl shared/core -am install`
+     in backend/. The extra dependencies are the host-framework types the samples use next to Mateu's
+     (Spring stereotypes, Spring Boot's main class, Lombok, Bean Validation). -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-parent</artifactId>
+    <version>0.0.1-MATEU</version>
+    <relativePath>../../../backend/pom.xml</relativePath>
+  </parent>
+  <artifactId>mateu-doc-snippets</artifactId>
+  <packaging>pom</packaging>
+  <dependencies>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-core</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>org.springframework</groupId><artifactId>spring-context</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-autoconfigure</artifactId></dependency>
+    <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></dependency>
+    <dependency><groupId>jakarta.validation</groupId><artifactId>jakarta.validation-api</artifactId></dependency>
+    <dependency><groupId>jakarta.inject</groupId><artifactId>jakarta.inject-api</artifactId></dependency>
+  </dependencies>
+</project>
