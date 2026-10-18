@@ -109,7 +109,7 @@ children dispatch. The supplier is evaluated on every shell build, so actions ca
 disappear with server-side state.
 
 ```java
-@UI
+@UI("")
 public class BackofficeApp implements AppActionsSupplier {
 
   @Override

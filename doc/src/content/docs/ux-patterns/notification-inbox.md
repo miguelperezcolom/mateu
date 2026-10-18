@@ -25,7 +25,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 Implement `NotificationsSupplier` on the `@UI` app class:
 
 ```java
-@UI
+@UI("")
 public class BackofficeApp implements NotificationsSupplier {
 
     @Override
