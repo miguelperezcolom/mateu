@@ -160,19 +160,18 @@ second-request cases, M-W3 Result/Stepper deprecated + web wire-type gate (F5); 
 M-X1 wording + CoreLayeringTest (F7/R2). MINORs 1–4, 7–18, 21–24, 26, 28, 30–34 fixed. **Still open (bugs, not decisions): MINOR 5** (React Native
 opens any URL scheme from data — route through `safeLinkUrl`) **and MINOR 6** (IntelliJ puts html/richText values
 raw into `JEditorPane`, browses any scheme) — native-renderer hardening for the next batch; MINOR 25 was N/A.
-**Left for the owner** (decisions, not bugs):
-- M-A2 rest: .NET `Mateu.Core` exposes 72 public engine types (`ReflectionMapper`, `SyncHandler`, `MateuRegistry`…)
-  with no `InternalsVisibleTo` — make them internal before the freeze, or declare them API.
-- M-A7 rest: the Python wheel installs four generic top-level packages (`mateu_uidl`, `mateu_dtos`, `mateu_core`,
-  `mateu_fastapi`) — rename under one `mateu_ui` namespace before GA, or accept.
-- MINOR 20: SPI signatures (`InstanceFactory.newInstance` checked exceptions, `ListingExporter.export throws
-  Exception`, `String`-only ids) — change before the freeze or keep.
-- Git history hygiene: an internal hostname survives in history (the removed `backend/probe-tmp.mjs`, MINOR 28) —
-  rewrite or accept.
-- MINOR 29: the Redwood jar redistributes the VB starter `index.html` with its Oracle copyright header — a
-  one-line legal confirmation of the template's terms.
-- ~~MINOR 27 / refactor §5.10: `vaadin-lit` ships every asset twice~~ — DONE (decisions/d6): both renderer jars carry
-  each asset once, under `static/`; the Quarkus adapter serves Mateu's asset paths from it (`ClasspathAssets`).
+**Owner decisions — resolved 2026-10-18 (delegated by the owner, alpha.429):**
+- M-A2 rest ✅ .NET `Mateu.Core` engine is `internal` (50 → 7 public types + 6 forwards; `InternalsVisibleTo`
+  Mateu.AspNetCore + tests; surface pinned by `PublicSurfaceTests`).
+- M-A7 rest ✅ Python: one top-level package `mateu_ui.{uidl,dtos,core,fastapi}`; the old four names are
+  deprecated aliases of the same modules for the whole 3.x line.
+- MINOR 20 ✅ decided: SPI signatures are KEPT for 3.x (changing them breaks implementers); revisit for 4.0.
+- MINOR 29 ✅ the Redwood jar no longer ships Oracle's starter `index.html`: `scripts/index-page.mjs` writes
+  `_index.html` from build facts only (CDN URLs, runtime settings, bundle map).
+- MINOR 27 ✅ renderer jars ship each asset once, under `static/` (Quarkus serves it via `ClasspathAssets`).
+- Still the owner's: git history hygiene (an internal hostname in the history of the removed
+  `backend/probe-tmp.mjs`) — recommendation: do NOT rewrite (force push breaks clones/forks/tags); and the
+  external accounts (PyPI/NuGet/npm secrets, mobile stores).
 - MINOR 19 (port string APIs where Java has enums), the Java-only wire types beyond those F6
   ported (listed honestly in parity.md).
 
