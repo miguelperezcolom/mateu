@@ -808,7 +808,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
                 <div>
                     <div>
-                        <div class="${HEADER_ROW_CLASS}" 
+                        <div class="${HEADER_ROW_CLASS} mateu-app-header--tabs"
                                 style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
