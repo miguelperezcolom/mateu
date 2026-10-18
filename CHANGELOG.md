@@ -11,6 +11,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Behaviour changes
+- Python: `Crud.save` and `Crud.delete` **refuse by default** with a user-facing "Not implemented"
+  error naming the method to override (`FetchOnlyNotes cannot store changes yet: override
+  save(Note) in FetchOnlyNotes.`), as `Crud<T>.Save`/`Delete` do in .NET (Java's `AutoCrud.store()`
+  is abstract). They used to do nothing, so a crud that only implemented `fetch` answered "Saved" /
+  "Deleted" and discarded every write. A crud that writes overrides both.
+
 ### Fixed
 - Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
   re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,

@@ -293,6 +293,10 @@ class Things(Crud[Thing]):
         b.id, b.name = "2", "Beta"
         return [a, b]
 
+    def save(self, entity):
+        # a write the tests can observe — the default Crud.save refuses (it is not a no-op)
+        self.saved = entity
+
 
 class NamedThing:
     """A record that names itself (its own __str__)."""
