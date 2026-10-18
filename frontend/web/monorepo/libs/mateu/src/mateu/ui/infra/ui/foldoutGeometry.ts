@@ -78,8 +78,10 @@ export function visibleSections(rail: Span, sections: Span[]): boolean[] {
  * read-only input — what Redwood draws for every read-only field. A CRUD's view page is a DETAIL,
  * not a form: all its fields arrive readOnly and must read as label + value, foldout or not (the
  * wire carries no "view page" flag — Page.readOnly is false and pageType is "form" — so the rule
- * is the field's own readOnly). Lists, statuses, money, booleans, images, uploads and the
- * stereotypes with their own rendering (html, markdown, links, icons, colors, stars…) keep it.
+ * is the field's own readOnly). Lists, statuses, Amounts (dataType money), booleans, images,
+ * uploads and the stereotypes with their own rendering (html, markdown, links, icons, colors,
+ * stars…) keep it. A plain number declared money (stereotype money) reads as text like its
+ * neighbours — formatted as money by the renderer.
  * `inFoldout` is kept for callers; it no longer narrows the rule.
  */
 export function readOnlyAsPlainText(field: { readOnly?: boolean; stereotype?: string; dataType?: string } | null | undefined, _inFoldout?: boolean): boolean {
@@ -88,7 +90,7 @@ export function readOnlyAsPlainText(field: { readOnly?: boolean; stereotype?: st
     }
     const keepOwn = new Set(['grid', 'fileUpload', 'image', 'uploadableImage', 'signature', 'camera', 'badge',
         'bulletedList', 'html', 'richText', 'markdown', 'link', 'icon', 'color', 'stars', 'slider', 'toggle',
-        'popover', 'plainText', 'status', 'money', 'password'])
+        'popover', 'plainText', 'status', 'password'])
     if (field.stereotype && keepOwn.has(field.stereotype)) {
         return false
     }

@@ -65,6 +65,8 @@ describe('foldout geometry (Vaadin, as Redwood)', () => {
         expect(readOnlyAsPlainText({ readOnly: true, stereotype: 'html', dataType: 'string' })).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: false, dataType: 'string' }, true)).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'money' }, true)).toBe(false)
+        // a number declared money reads as text like its neighbours (formatted by the renderer)
+        expect(readOnlyAsPlainText({ readOnly: true, dataType: 'number', stereotype: 'money' }, true)).toBe(true)
         expect(readOnlyAsPlainText({ readOnly: true, dataType: 'bool' }, true)).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: true, stereotype: 'image', dataType: 'string' }, true)).toBe(false)
         expect(readOnlyAsPlainText({ readOnly: true, stereotype: 'grid', dataType: 'array' }, true)).toBe(false)

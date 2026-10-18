@@ -168,10 +168,20 @@ class FormFieldRenderTest : BasePlatformTestCase() {
     }
 
     fun testReadOnlyMoneyIsFormatted() {
-        val rendered = render(context(), """{"fieldId":"total","label":"Total","dataType":"money","readOnly":true}""", """{"total":1234.5}""")
-        assertTrue(all(rendered).filterIsInstance<JLabel>().any { it.text == "1.234,50" })
-        val plain = render(context(), """{"fieldId":"t","label":"T","dataType":"money","stereotype":"plainText"}""", """{"t":10}""")
-        assertTrue(all(plain).filterIsInstance<JLabel>().any { it.text == "10,00" })
+        // money is written in the UI's locale (MoneyValues): a German app here
+        MoneyValues.setAppLocale("de-DE")
+        try {
+            val rendered = render(context(), """{"fieldId":"total","label":"Total","dataType":"money","readOnly":true}""", """{"total":1234.5}""")
+            assertTrue(all(rendered).filterIsInstance<JLabel>().any { it.text == "1.234,50" })
+            val plain = render(context(), """{"fieldId":"t","label":"T","dataType":"money","stereotype":"plainText"}""", """{"t":10}""")
+            assertTrue(all(plain).filterIsInstance<JLabel>().any { it.text == "10,00" })
+            // …and an English one: a read-only price declared money (stereotype) reads "89.50"
+            MoneyValues.setAppLocale("en")
+            val price = render(context(), """{"fieldId":"price","label":"Price","dataType":"number","stereotype":"money","readOnly":true}""", """{"price":89.5}""")
+            assertTrue(all(price).filterIsInstance<JLabel>().any { it.text == "89.50" })
+        } finally {
+            MoneyValues.setAppLocale(null)
+        }
     }
 
     fun testPropertyRowShowsLabelAndValueReadOnly() {

@@ -14,6 +14,30 @@ import java.util.Locale
  * bare number. Pure — mirrors React Native's moneyInputText / moneyInputCommit / moneyText.
  */
 object MoneyValues {
+    /**
+     * The app's locale (`AppDto.locale`, the server's Translator), remembered when the shell arrives;
+     * null goes back to the IDE's. A bare number declared money is written in it — it used to be
+     * hard-wired to de-DE, so an English app read "1.234,50" (mirrors libs/mateu moneyFormat).
+     */
+    @Volatile
+    var appLocale: Locale? = null
+        private set
+
+    fun setAppLocale(tag: String?) {
+        appLocale = tag?.trim()?.takeIf { it.isNotEmpty() }?.let { Locale.forLanguageTag(it.replace('_', '-')) }
+    }
+
+    /** The UI's locale: the app's, else the IDE's. */
+    fun uiLocale(): Locale = appLocale ?: Locale.getDefault()
+
+    /** A money number with exactly two decimals in [locale] (default: the UI's). */
+    fun numberText(n: Double, locale: Locale = uiLocale()): String {
+        val fmt = NumberFormat.getNumberInstance(locale)
+        fmt.minimumFractionDigits = 2
+        fmt.maximumFractionDigits = 2
+        return fmt.format(n)
+    }
+
     fun isAmount(raw: JsonNode?): Boolean = raw != null && raw.isObject && raw.has("value")
 
     /** What the input shows: the amount's number; "" when unset. */
@@ -30,15 +54,14 @@ object MoneyValues {
         return copy
     }
 
-    /** Read-only text: formatted with the amount's OWN locale and currency. */
+    /** Read-only text: formatted with the amount's OWN locale (else the UI's) and currency. */
     fun text(raw: JsonNode): String {
         val n = raw.path("value").takeIf { it.isNumber || it.isTextual }?.asText()?.toDoubleOrNull() ?: return inputText(raw)
-        val locale = raw.path("locale").asText("").ifBlank { "de-DE" }.let { Locale.forLanguageTag(it) }
-        val fmt = NumberFormat.getNumberInstance(locale)
-        fmt.minimumFractionDigits = 2
-        fmt.maximumFractionDigits = 2
+        // its own locale wins; without one, the UI's
+        val locale = raw.path("locale").asText("").takeIf { it.isNotBlank() }
+            ?.let { Locale.forLanguageTag(it.replace('_', '-')) } ?: uiLocale()
         val currency = raw.path("currency").asText("")
         val symbol = runCatching { Currency.getInstance(currency).getSymbol(locale) }.getOrNull()
-        return if (symbol != null) "${fmt.format(n)} $symbol" else fmt.format(n)
+        return if (symbol != null) "${numberText(n, locale)} $symbol" else numberText(n, locale)
     }
 }

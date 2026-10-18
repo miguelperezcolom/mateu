@@ -3,30 +3,15 @@
  * and read-only money renderings, which used to repeat the same unwrap/format logic inline.
  */
 
-/** An `Amount` on the wire: a value with its own locale and currency. */
-export interface AmountLike {
-    value: number | string
-    locale?: string
-    currency?: string
-}
-
-const isAmount = (v: unknown): v is AmountLike =>
-    !!v && typeof v === 'object' && 'value' in (v as Record<string, unknown>)
+import { formatMoneyValue, isAmount } from '@infra/ui/moneyFormat.ts'
+export type { AmountLike } from '@infra/ui/moneyFormat.ts'
 
 /**
  * A money amount as text: in its own locale/currency when it carries them, else with two decimals
- * (de-DE grouping, the framework's historical default). Non-numeric input comes back as-is.
+ * grouped the way the UI's locale groups them (the app's, else the browser's — see moneyFormat).
+ * Non-numeric input comes back as-is.
  */
-export const formatMoney = (raw: unknown): string => {
-    const amount = isAmount(raw) ? raw : undefined
-    const value = amount ? amount.value : raw
-    const num = typeof value === 'number' ? value : parseFloat(String(value))
-    if (value === null || value === undefined || value === '' || isNaN(num)) return value == null ? '' : String(value)
-    if (amount?.locale && amount.currency) {
-        return new Intl.NumberFormat(amount.locale, { style: 'currency', currency: amount.currency }).format(num)
-    }
-    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
-}
+export const formatMoney = (raw: unknown): string => formatMoneyValue(raw)
 
 export interface DisplayedValue {
     /** A boolean is drawn as an icon, not as text. */
@@ -43,12 +28,14 @@ export interface DisplayedValue {
  * The value a read-only field displays: an `Amount`/`{value}` unwrapped, booleans recognised (by
  * data type or by value), money formatted, and an em dash for "no value".
  */
-export const displayedValue = (raw: unknown, dataType?: string): DisplayedValue => {
+export const displayedValue = (raw: unknown, dataType?: string, stereotype?: string): DisplayedValue => {
     let v: unknown = raw
     const amount = isAmount(v) ? v : undefined
     if (amount && amount.value) v = amount.value
     const isBool = dataType === 'bool' || v === true || v === false
-    const isMoney = dataType === 'money'
+    // money is said either way: dataType money (an Amount, or a number in plain-text context) or
+    // the money stereotype on a plain number (a read-only view of an editable money field)
+    const isMoney = dataType === 'money' || stereotype === 'money'
     const hasValue = v !== null && v !== undefined && v !== ''
     let display = hasValue ? String(v) : '—'
     if (isMoney && hasValue) {

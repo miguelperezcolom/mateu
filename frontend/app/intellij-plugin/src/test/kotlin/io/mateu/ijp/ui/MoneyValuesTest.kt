@@ -27,4 +27,19 @@ class MoneyValuesTest : TestCase() {
     fun testReadOnlyTextUsesTheAmountsOwnLocaleAndCurrency() {
         assertEquals("25,50 €", MoneyValues.text(price).replace(' ', ' '))
     }
+
+    fun testANumberFollowsTheAppLocaleNotDeDe() {
+        MoneyValues.setAppLocale("en")
+        try {
+            assertEquals("1,234.50", MoneyValues.numberText(1234.5))
+            assertEquals("89.50", formatMoney("89.5"))
+            // an Amount without a locale of its own: the UI's
+            val noLocale = json.readTree("""{"currency": "EUR", "value": 89.5}""")
+            assertTrue(MoneyValues.text(noLocale).startsWith("89.50"))
+            MoneyValues.setAppLocale("de-DE")
+            assertEquals("1.234,50", MoneyValues.numberText(1234.5))
+        } finally {
+            MoneyValues.setAppLocale(null)
+        }
+    }
 }

@@ -24,9 +24,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.text.NumberFormat
 import java.util.Base64
-import java.util.Locale
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
 import javax.swing.Box
@@ -463,10 +461,7 @@ fun treeSelectField(ctx: AppContext, fieldId: String, metadata: JsonNode, value:
 
 fun formatMoney(value: String): String {
     val n = value.toDoubleOrNull() ?: return value
-    val fmt = NumberFormat.getNumberInstance(Locale.GERMANY)
-    fmt.minimumFractionDigits = 2
-    fmt.maximumFractionDigits = 2
-    return fmt.format(n)
+    return MoneyValues.numberText(n)
 }
 
 /** Light markdown → HTML (headings, bold, bullets) rendered with a JEditorPane; html is sanitised

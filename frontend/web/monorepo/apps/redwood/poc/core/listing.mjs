@@ -4,7 +4,7 @@ import { dragMimeOf } from './atoms.mjs'
 import { columnPrefsReader, islandContentOf } from './content.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
-import { chromeText, chromeLanguage } from '../i18n.mjs'
+import { chromeText, chromeLanguage, moneyText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
 /** RENDER helper: first node of the tree with the given metadata.type. */
@@ -605,6 +605,8 @@ export const LABEL_CELL_SUFFIX = '__labelCell'
 
 /** What a cell shows for a raw value: the column's label for it, or the value itself. */
 export function valueLabelOf(c, value) {
+  // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
+  if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
   // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
   if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
   const labels = c && c.valueLabels
@@ -612,6 +614,9 @@ export function valueLabelOf(c, value) {
   const label = labels[String(value)]
   return label != null ? label : value
 }
+
+/** A column of amounts: an Amount (dataType money) or a number declared money (stereotype). */
+const isMoneyColumn = (c) => !!c && (c.dataType === 'money' || c.stereotype === 'money')
 
 /** Whether a (non-status, non-editable) column reads its values through their labels. */
 const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
@@ -624,7 +629,7 @@ export function alignOf(c) {
 }
 
 export function labelColumn(c) {
-  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c))) && !c.editable
+  return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c))) && !c.editable
     && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
 }
 

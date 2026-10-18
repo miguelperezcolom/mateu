@@ -20,5 +20,5 @@ rowsSource:
 columns:
   - {type: GridColumn, id: id, label: Id, identifier: true, sortable: true}
   - {type: GridColumn, id: name, label: Name, sortable: true}
-  - {type: GridColumn, id: price, label: Price, sortable: true}
+  - {type: GridColumn, id: price, label: Price, stereotype: money, sortable: true}
   - {type: GridColumn, id: status, label: Status, dataType: status, sortable: true}

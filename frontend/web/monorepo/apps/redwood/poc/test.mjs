@@ -1164,6 +1164,9 @@ test('EntityHeader: el chip normal/info es un badge info, no el neutro', () => {
 // StatusList (extras/confirm), Ledger/PaymentPicker (check-out), Meter/Stat (in house).
 // Dispatch contracts = those of the shared web renderer (_item / _method / _added+_total).
 test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan del wire real', () => {
+  // money is written in the UI's locale (i18n.moneyText): this front office is a German-grouped one
+  setChromeLanguage('de-DE')
+  try {
   const atomsOf = (name) => islandContentOf(fx(name)).flatMap((b) => b.items)
   const conf = atomsOf('fo-island-step-last')
   const statusList = conf.find((a) => a.isStatusList)
@@ -1183,6 +1186,7 @@ test('front-office: átomos ResourceGrid/AddOns/Ledger/Payment/Meter proyectan d
   assert.equal(meter.max, 1800)
   assert.match(meter.valueText, /1.710,50/)
   assert.ok(casa.some((a) => a.isStat))
+  } finally { setChromeLanguage('') }
 })
 
 // 27) NESTED island (the check-in document): collectIslands detects the App node with its

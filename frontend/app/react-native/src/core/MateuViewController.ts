@@ -4,6 +4,7 @@ import { actionFlagsOf, actionTargetOf, appHomeOf, errorSummary, fieldErrorsOf, 
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
+import { setAppLocale } from './money.ts';
 import { externalAuthHeaders } from './restFetch.ts';
 import { announce, announceLive } from '../a11y/a11y.ts';
 import { presentDocument } from './documentEffects.ts';
@@ -690,6 +691,8 @@ export class MateuViewController {
     // that references a source by `ref` can resolve it — before the home-route hop below returns.
     if (meta['type'] === 'App' && meta['restSources'] !== undefined) this.session.sources.register(meta['restSources']);
     if (meta['type'] === 'App' && meta['actionCatalogue'] !== undefined) this.session.actionCatalogue.register(meta['actionCatalogue']);
+    // the app's locale (AppDto.locale — the server's Translator) writes its amounts of money
+    if (meta['type'] === 'App' && typeof meta['locale'] === 'string') setAppLocale(meta['locale']);
     // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
     if (meta['type'] === 'App' && meta['mockSources'] === true) this.session.sources.setSampleMode(true);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {

@@ -748,6 +748,8 @@ class AppContext(val session: AppSession) {
             ?: component.path("children").path(0).path("metadata").takeIf { it.text("type") == "App" }
         if (appMeta != null && appMeta.has("restSources")) session.sources.registerRestSources(appMeta.path("restSources"))
         if (appMeta != null && appMeta.has("actionCatalogue")) session.actionCatalogue = appMeta.path("actionCatalogue")
+        // the app's locale (AppDto.locale) writes its amounts of money
+        if (appMeta != null && appMeta.path("locale").isTextual) io.mateu.ijp.ui.MoneyValues.setAppLocale(appMeta.path("locale").asText())
         // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
         if (appMeta != null && appMeta.path("mockSources").asBoolean(false)) session.sources.setSampleMode(true)
 

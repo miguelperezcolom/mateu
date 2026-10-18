@@ -1,9 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+// money follows the UI's locale (moneyFormat): these expectations are written for a German one
+beforeAll(() => { vi.stubGlobal('navigator', { language: 'de-DE' }) })
+afterAll(() => { vi.unstubAllGlobals() })
 import { formatMoney, formatNumber, formatWithUnit } from './uxShared'
 
 describe('uxShared money formatting', () => {
 
-    it('formats numbers with de-DE thousands dot and 2 decimals', () => {
+    it('formats numbers with the UI locale grouping (de-DE here) and 2 decimals', () => {
         expect(formatNumber(1540)).toBe('1.540,00')
         expect(formatNumber(343)).toBe('343,00')
         expect(formatNumber(1710.5)).toBe('1.710,50')
