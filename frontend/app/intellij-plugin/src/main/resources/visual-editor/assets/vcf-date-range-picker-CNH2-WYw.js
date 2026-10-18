@@ -1,4 +1,4 @@
-import{Ft as e,Ot as t,wt as n}from"./index-D6kVJnRV.js";import{d as r,f as i,l as a,n as o,p as s,r as c,x as l}from"./slot-styles-mixin-D1d5V5KE.js";import{a as u,c as d,d as f,f as p,i as ee,l as te,n as ne,o as re,r as ie,s as ae,t as oe,u as se}from"./vaadinCanvasRenderer-BQ7pE9qU.js";p(`Lumo .js mixins are deprecated and will be removed in V26`);var ce=e`
+import{Ft as e,Ot as t,wt as n}from"./index-CHEgOsOK.js";import{d as r,f as i,l as a,n as o,p as s,r as c,x as l}from"./slot-styles-mixin-DeQKo9yl.js";import{a as u,c as d,d as f,f as p,i as ee,l as te,n as ne,o as re,r as ie,s as ae,t as oe,u as se}from"./vaadinCanvasRenderer-CIhKCIHW.js";p(`Lumo .js mixins are deprecated and will be removed in V26`);var ce=e`
   :host {
     inset: var(--vaadin-overlay-viewport-inset, var(--lumo-space-m));
     /* Workaround for Edge issue (only on Surface), where an overflowing vaadin-list-box inside vaadin-select-overlay makes the overlay transparent */
