@@ -101,7 +101,7 @@ monta además páginas sueltas (`/hello`, `/welcome`) y un crud (`/products`).
 
 ### Qué lleva el jar (y por qué no cambia en cada build)
 
-- `static/_index.html` — la página que sirve el controller (`indexHtmlPath` por defecto).
+- `static/_index.html` — la página que sirve el controller (`indexHtmlPath` por defecto), escrita por `scripts/index-page.mjs` (no es el `index.html` del build de VB).
 - `static/_redwood/` — la app VB, en UN sitio y con nombre ESTABLE. Spring Boot, Micronaut
   (`classpath:static`) y Helidon (`/static`) la sirven de ahí; el pom del módulo la copia además a
   `META-INF/resources/_redwood` al empaquetar, para Quarkus (git guarda una copia, el jar dos).

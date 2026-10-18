@@ -22,8 +22,11 @@ Mateu (ver `LICENSE.txt` en la raíz del repositorio):
 
 El módulo Maven `backend/shared/frontend/redwood` empaqueta como recursos estáticos el
 **build optimizado de la propia app VB** (`build/optimized/webApps/vbredwoodapp`, copiado por
-`scripts/copy.mjs`): el código de autoría propia listado arriba más los pocos ficheros del
-scaffolding del starter (sección 4, que conservan sus cabeceras de copyright de Oracle). El jar
+`scripts/copy.mjs`): el código de autoría propia listado arriba, y nada más. La página que sirve
+(`static/_index.html`) tampoco es el `index.html` del build: `scripts/copy.mjs` escribe la página
+propia de Mateu (`scripts/index-page.mjs`) y del build solo lee datos —las URLs del CDN del tema y de
+los scripts del runtime, los valores de configuración del runtime y el mapa de bundles de módulos—,
+así que en el jar no viaja marcado de la tooling de Visual Builder ni de su plantilla starter. El jar
 **no vendoriza ningún artefacto de `static.oracle.com`**: JET, los componentes Spectra
 (`oj-sp-*`) y el visual-runtime se referencian por URL y se cargan del CDN de Oracle en tiempo
 de ejecución, exactamente igual que en una app VB alojada en Oracle.
@@ -73,14 +76,21 @@ ni a artefactos publicados.
 durante `npm install` (ver `package.json`) bajo los términos de Oracle. No se
 redistribuyen con este repositorio.
 
-### 4. Scaffolding del starter de Visual Builder
+### 4. Scaffolding del starter de Visual Builder — no queda ninguno
 
-Solo `webApps/vbredwoodapp/index.html` procede de la plantilla starter que genera la tooling de
-Visual Builder (el marcado que arranca el runtime de VB). Conserva su cabecera de copyright de
-Oracle. El resto de ficheros que la plantilla aportaba —los módulos vacíos de app, flujo y página,
-las chains de toast y banda de mensajes, el `Gruntfile.js`— se han reescrito desde cero como código
-de Mateu, y `pages/shell-page.js`, que es código de Mateu y llevaba la cabecera de Oracle que VB
-estampa al crear un fichero, lleva ahora la de Mateu.
+No queda ningún fichero de la plantilla starter que genera la tooling de Visual Builder, ni en las
+fuentes ni en el jar. `webApps/vbredwoodapp/index.html` (la página de desarrollo de la que parten
+`npm run serve` / `npm run build`) se ha escrito también desde cero como código de Mateu; solo
+conserva las dos directivas que lee el build de VB para inyectar el arranque del runtime. Antes, el
+resto de ficheros que aportaba la plantilla —los módulos vacíos de app, flujo y página, las chains de
+toast y banda de mensajes, el `Gruntfile.js`— ya se habían reescrito desde cero, y
+`pages/shell-page.js` lleva la cabecera de Mateu.
+
+Lo que el build de VB sigue GENERANDO en `build/` (su propio `index.html` con el arranque inyectado,
+los intermedios `ojcss.js` / `ojL10n.js`, `build-info.json`, los source maps y el bundle sin
+minificar) es salida de la herramienta que nunca se redistribuye: `scripts/copy.mjs` lo deja todo
+fuera del jar. El bundle que sí viaja (`bundles/vb-app-bundle.js`) son los módulos propios de la app
+concatenados por el build, con los envoltorios AMD del optimizador alrededor.
 
 La marca: por defecto el FAB del shell es neutro («Search» con la lupa). El aspecto de «Ask Oracle»
 solo aparece si la app lo pide con `@App(askLabel, askIcon)`.

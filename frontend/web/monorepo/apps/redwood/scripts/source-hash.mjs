@@ -6,7 +6,8 @@
 // sources give the same hash on any machine, whatever the build time or the toolchain.
 //
 // Sources = webApps/ (the VB app: pages, chains, the generated bridge, css) + poc/ minus what never
-// reaches the bundle (tests, wire fixtures, screenshots, the capture/probe tooling).
+// reaches the bundle (tests, wire fixtures, screenshots, the capture/probe tooling), plus
+// scripts/index-page.mjs, which writes the jar's page.
 // Usage: node scripts/source-hash.mjs   → prints the hash
 
 import { createHash } from 'node:crypto'
@@ -45,6 +46,7 @@ function walk(dir, out) {
 export function sourceFiles(root = rendererRoot) {
   return ['poc', 'webApps']
     .flatMap((d) => walk(join(root, d), []))
+    .concat([join(root, 'scripts', 'index-page.mjs')])
     .map((p) => relative(root, p).split(sep).join('/'))
     .filter(isSource)
     // code-unit order, not locale order: the hash must be identical on every machine
