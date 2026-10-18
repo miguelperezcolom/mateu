@@ -21,7 +21,7 @@ export const REDWOOD_COVERAGE = {
   AccordionPanel: { status: 'part', note: 'of AccordionLayout' },
   TabLayout: { status: 'full', note: 'oj-tab-bar (nested strips flattened)' },
   Tab: { status: 'part', note: 'of TabLayout' },
-  FoldoutLayout: { status: 'full', note: 'oj-sp-foldout-layout; inside a tab, collapsible panels' },
+  FoldoutLayout: { status: 'full', note: 'oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels' },
   SplitLayout: { status: 'full', note: 'two panes' },
   MasterDetailLayout: { status: 'full', note: 'list + detail panes' },
   HorizontalLayout: { status: 'full', note: 'oj-flex row' },
@@ -50,7 +50,7 @@ export const REDWOOD_COVERAGE = {
   CustomField: { status: 'layout', note: 'its component in place' },
   Button: { status: 'full', note: 'oj-button' },
   Anchor: { status: 'full', note: 'link / file download' },
-  Element: { status: 'full', note: 'third-party web component, events wired back' },
+  Element: { status: 'full', note: "third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin" },
   CustomComponent: { status: 'full', note: 'a registry the app fills (bridge.registerCustomComponent); without a view, a visible placeholder + its children — same contract as the web' },
   // ── overlays ──
   Dialog: { status: 'full', via: "=== 'Dialog'", note: 'oj-dialog (overlay stack)' },

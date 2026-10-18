@@ -705,6 +705,9 @@ export function islandContentOf(ctx, opts = {}) {
         elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
         name: m.name,
         importUrl: (m.attributes || {}).import || '',
+        // the backend the owning screen came from: a root-relative `import` of a REMOTE screen
+        // (RemoteMenu pod, MicroFrontend) is loaded from that remote's origin (elements.mjs)
+        screenBase: (ctx.outbound && ctx.outbound.baseUrl) || '',
         attributes,
         style: node.style || '',
         cssClasses: node.cssClasses || '',

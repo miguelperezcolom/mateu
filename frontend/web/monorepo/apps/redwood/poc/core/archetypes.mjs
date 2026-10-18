@@ -20,7 +20,7 @@ export function foldoutOf(ctx) {
   for (const child of children) bySlot[child.slot || ''] = child
   const blocksOf = (slotNode) => {
     const blocks = slotNode
-      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
+      ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
       : null
     // same visual contract as hostContentOf: column blocks with their colClass,
     // the rest full-row

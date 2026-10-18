@@ -29,10 +29,40 @@ export function setElementModuleBase(base) {
   moduleBase = String(base || '').replace(/\/$/, '')
 }
 
-/** The URL an Element's module is loaded from. */
-export function elementModuleUrl(importUrl, base = moduleBase) {
+const isAbsoluteHttp = (url) => /^https?:\/\//i.test(String(url || ''))
+
+/**
+ * The origin of the REMOTE app that sent the screen an Element sits in, or undefined when the
+ * screen is this app's own. Same rule as the shared web renderer (libs/mateu elementRenderer
+ * `remoteOriginOf`), expressed over what this renderer knows: `screenBase` is the backend the
+ * owning context was loaded from (its outbound baseUrl — a RemoteMenu's pod, a MicroFrontend's
+ * baseUrl, or this app's own base for everything else) and `ownBase` is this app's backend. The
+ * screen is remote when its backend is absolute and on another origin than this app's (an
+ * absolute own base → its origin; an empty or relative one → the page's origin).
+ */
+export function remoteOriginOf(screenBase, ownBase = moduleBase,
+  pageOrigin = (typeof location !== 'undefined' && location && location.origin) || '') {
+  if (!screenBase || !isAbsoluteHttp(screenBase)) return undefined
+  try {
+    const own = ownBase && isAbsoluteHttp(ownBase) ? new URL(ownBase).origin : pageOrigin
+    const remote = new URL(screenBase).origin
+    return remote !== own ? remote : undefined
+  } catch (e) {
+    return undefined
+  }
+}
+
+/**
+ * The URL an Element's module is loaded from. A root-relative url (`/acme/graph.js`) means "on
+ * the server that sent this screen": for a screen loaded from a REMOTE app (`remoteOrigin`), the
+ * remote's origin — resolved against this app's backend it 404s and the element never upgrades.
+ * Everything else keeps this app's rule (the backend serves relative modules). The remote has to
+ * serve the module with CORS for this app's origin: a module script is fetched in cors mode.
+ */
+export function elementModuleUrl(importUrl, base = moduleBase, remoteOrigin) {
   if (!importUrl) return ''
   if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
+  if (remoteOrigin && importUrl.startsWith('/')) return String(remoteOrigin).replace(/\/+$/, '') + importUrl
   const root = String(base || '').replace(/\/+$/, '')
   return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
 }
@@ -155,7 +185,7 @@ export function mountElements(atoms) {
   for (const hole of holes) {
     const atom = byId[hole.getAttribute('data-element-id')]
     if (!atom) continue
-    ensureDefined(atom.name, elementModuleUrl(atom.importUrl))
+    ensureDefined(atom.name, elementModuleUrl(atom.importUrl, moduleBase, remoteOriginOf(atom.screenBase)))
     let element = hole.firstElementChild
     if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
       hole.textContent = ''

@@ -351,7 +351,7 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   `min-width:0` en el `oj-vb-content` de shell-page (aplica a CUALQUIER contenido ancho:
   foldouts, tablas, planning…) y sin wrappers flex alrededor del foldout en la página.
 - Limitaciones anotadas: `open=false` (Notes plegado de inicio) NO tiene API en
-  `oj-sp-foldout-panel` (todos arrancan visibles); `subtitle` no existe como prop (se pinta
+  `oj-sp-foldout-panel` (todos arrancan visibles) — resuelto el 2026-10-18, ver «Paneles de foldout plegados» abajo; `subtitle` no existe como prop (se pinta
   como primera línea del contenido); el contenido de los paneles se proyecta como TEXTOS
   (`collectTexts`) — el dispatcher recursivo general sigue pendiente (fases posteriores).
 - Tests 17/17 (fixture `load-foldout.json`). Evidencia: `shots/fase7.png`, `fase7-folded.png`.
@@ -1669,6 +1669,15 @@ reescribe los atributos: un componente web guarda estado que el servidor no cono
 selección de un grafo), y recrearlo lo tira. Los atributos son `${state.x}` y se reinterpolan en
 cada render — es su único canal de datos y la metadata no se reenvía con un State.
 
+**Origen del módulo (2026-10-18).** Un `import` relativo lo sirve el backend de esta app
+(`setElementModuleBase`), salvo el de un Element de una pantalla REMOTA — un pod de RemoteMenu, un
+MicroFrontend: su `import` relativo a la raíz (`/x.js`) se carga del origen del remoto, la misma
+regla que el renderer web (`remoteOriginOf`/`moduleUrlFor`). El átomo lleva el `outbound.baseUrl`
+del contexto dueño como `screenBase` (los paneles de un foldout conservan el outbound del host), y la
+pantalla es remota cuando esa base es absoluta y de otro origen que el backend de esta app (o que la
+página, si el backend es del mismo origen). Los imports absolutos, protocol-relative y relativos a
+secas mantienen su regla. El remoto tiene que servir el módulo con CORS.
+
 > **GOTCHA que costó la primera vuelta**: `import(url)` NO vale. El transpilador del build de VB
 > lo convierte en un `require()` de AMD y requirejs se pone a resolver la URL como un id de módulo
 > suyo: la petición no llega a salir, el hueco se queda vacío y no hay ni un error. Se inyecta un
@@ -1923,3 +1932,22 @@ JET (`oj-color-invert`, `oj-c-colorscheme-dark`) y pone `theme="light"`, sin mir
 `prefers-color-scheme` ni `localStorage['mateu-theme']` (que no se borra: lo lee Vaadin en el mismo
 origen). Fuera: el chain toggleMateuTheme, su listener, la variable mateuThemeToggle, el texto
 themeToggle y las reglas `html.mateu-theme-dark` de app.css. Lo fija test-chains.mjs.
+
+## Paneles de foldout plegados — `FoldoutPanel.open = false` (2026-10-18)
+
+Inspeccionado en tiempo de ejecución contra el componente del CDN: `oj-sp-foldout-layout` es un
+carrusel horizontal cuyos contenedores de panel sólo llevan su clase de animación `open` — no hay
+estado plegado por panel ni propiedad para arrancar uno plegado. Lo que sí tiene es la SELECCIÓN:
+un clic o foco en el contenedor de un panel, o su punto de paginación, escribe `selectedPanel` y
+lanza `selectedPanelChanged`.
+
+`poc/foldouts.mjs` reduce un panel `open=false` a una tira (clase `mateu-foldout-folded`; el
+contenedor la sigue con `:has()` en app.css) con su título en vertical y su resumen; seleccionarlo
+con el mecanismo del propio componente lo despliega y lo trae a la vista. Los paneles abiertos no se
+tocan; los desplegados siguen así mientras la página es la misma y una navegación empieza de cero.
+
+> **GOTCHA**: NO llamar a `layout.refresh()` tras desplegar: el carrusel mide sus paneles en vivo y
+> un refresh reaplica su propia posición de scroll un segundo después, sacando de la vista el panel
+> recién abierto.
+
+Tests: `test-pms.mjs`, `test-dom.mjs`. Evidencia: `poc/shots/foldout-open-false-*.png`.

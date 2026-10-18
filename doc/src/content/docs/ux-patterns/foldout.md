@@ -127,7 +127,7 @@ for them. The canonical page-header elements shared by every template are docume
 | **Slot** default (the panels) | component fields annotated `@Panel`, or `FoldoutLayout.panels` | ✅ |
 | **Slot** `drilldown` | — | — |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
-| `selectedPanel` (controlled selection) | `@Panel(open = …)` / `FoldoutPanel.open` set the initial state; the open panel is not a controlled prop afterwards | 🟡 |
+| `selectedPanel` (controlled selection) | `@Panel(open = …)` / `FoldoutPanel.open` set the initial state — the component has no folded state, so an `open = false` panel starts as a strip (title + summary) and selecting it (click, keyboard focus, its page dot) unfolds it; the selection is not a controlled prop afterwards | 🟡 |
 | `animate` | the renderer animates folding; not configurable | 🟡 |
 | `displayOptions.bidirectionalNavigation` | — | — |
 | `displayOptions.background: default \| transparent` | — (`style`/`cssClasses` escape hatch) | — |

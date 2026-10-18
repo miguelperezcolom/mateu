@@ -194,6 +194,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       stepAction: 'Action', stepJoin: 'Join', stepFork: 'Fork', stepEnd: 'End', stepUserTask: 'User task', stepProcess: 'Process',
       workflowInvalid: 'Workflow: the definition is not valid JSON',
       unsupportedComponent: 'Unsupported component "{type}"{id} — the Redwood renderer has no view for it',
+      foldoutUnfold: 'Show {title}',
       customFailed: 'Custom component failed: {message}',
       askSomething: 'Ask something…',
       assistantFailed: 'The assistant could not answer: {message}',
@@ -394,6 +395,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       stepAction: 'Acción', stepJoin: 'Unión', stepFork: 'Bifurcación', stepEnd: 'Fin', stepUserTask: 'Tarea de usuario', stepProcess: 'Proceso',
       workflowInvalid: 'Workflow: la definición no es un JSON válido',
       unsupportedComponent: 'Componente no soportado "{type}"{id} — el renderer Redwood no tiene vista para él',
+      foldoutUnfold: 'Mostrar {title}',
       customFailed: 'El componente propio ha fallado: {message}',
       askSomething: 'Pregunta lo que quieras…',
       assistantFailed: 'El asistente no ha podido responder: {message}',
@@ -2093,7 +2095,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const child of children) bySlot[child.slot || ''] = child
     const blocksOf = (slotNode) => {
       const blocks = slotNode
-        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
@@ -4032,6 +4034,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
           name: m.name,
           importUrl: (m.attributes || {}).import || '',
+          // the backend the owning screen came from: a root-relative `import` of a REMOTE screen
+          // (RemoteMenu pod, MicroFrontend) is loaded from that remote's origin (elements.mjs)
+          screenBase: (ctx.outbound && ctx.outbound.baseUrl) || '',
           attributes,
           style: node.style || '',
           cssClasses: node.cssClasses || '',
@@ -11590,10 +11595,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     moduleBase = String(base || '').replace(/\/$/, '')
   }
 
-  /** The URL an Element's module is loaded from. */
-  function elementModuleUrl(importUrl, base = moduleBase) {
+  const isAbsoluteHttp = (url) => /^https?:\/\//i.test(String(url || ''))
+
+  /**
+   * The origin of the REMOTE app that sent the screen an Element sits in, or undefined when the
+   * screen is this app's own. Same rule as the shared web renderer (libs/mateu elementRenderer
+   * `remoteOriginOf`), expressed over what this renderer knows: `screenBase` is the backend the
+   * owning context was loaded from (its outbound baseUrl — a RemoteMenu's pod, a MicroFrontend's
+   * baseUrl, or this app's own base for everything else) and `ownBase` is this app's backend. The
+   * screen is remote when its backend is absolute and on another origin than this app's (an
+   * absolute own base → its origin; an empty or relative one → the page's origin).
+   */
+  function remoteOriginOf(screenBase, ownBase = moduleBase,
+    pageOrigin = (typeof location !== 'undefined' && location && location.origin) || '') {
+    if (!screenBase || !isAbsoluteHttp(screenBase)) return undefined
+    try {
+      const own = ownBase && isAbsoluteHttp(ownBase) ? new URL(ownBase).origin : pageOrigin
+      const remote = new URL(screenBase).origin
+      return remote !== own ? remote : undefined
+    } catch (e) {
+      return undefined
+    }
+  }
+
+  /**
+   * The URL an Element's module is loaded from. A root-relative url (`/acme/graph.js`) means "on
+   * the server that sent this screen": for a screen loaded from a REMOTE app (`remoteOrigin`), the
+   * remote's origin — resolved against this app's backend it 404s and the element never upgrades.
+   * Everything else keeps this app's rule (the backend serves relative modules). The remote has to
+   * serve the module with CORS for this app's origin: a module script is fetched in cors mode.
+   */
+  function elementModuleUrl(importUrl, base = moduleBase, remoteOrigin) {
     if (!importUrl) return ''
     if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
+    if (remoteOrigin && importUrl.startsWith('/')) return String(remoteOrigin).replace(/\/+$/, '') + importUrl
     const root = String(base || '').replace(/\/+$/, '')
     return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
   }
@@ -11716,7 +11751,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const hole of holes) {
       const atom = byId[hole.getAttribute('data-element-id')]
       if (!atom) continue
-      ensureDefined(atom.name, elementModuleUrl(atom.importUrl))
+      ensureDefined(atom.name, elementModuleUrl(atom.importUrl, moduleBase, remoteOriginOf(atom.screenBase)))
       let element = hole.firstElementChild
       if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
         hole.textContent = ''
@@ -11761,6 +11796,128 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const out = elementAtomsOf((content.overview || {}).blocks)
     for (const panel of content.panels || []) out.push(...elementAtomsOf(panel && panel.blocks))
     return out
+  }
+
+
+  // Folded panels of the PAGE foldout (FoldoutPanel.open = false → the panel starts folded).
+  //
+  // oj-sp-foldout-layout is a horizontal carousel: every oj-sp-foldout-panel is laid out open, it has
+  // no folded state of its own and no property to start one folded (inspected at runtime: the panel
+  // containers only ever carry the layout's `open` animation class). What it DOES own is the
+  // selection — a click or focus on a panel's container, or its page dot, writes back
+  // `selectedPanel` and fires `selectedPanelChanged`. So a folded panel is the component's own panel
+  // reduced to a strip with its title (class `mateu-foldout-folded`, app.css), and the component's own
+  // selection unfolds it: selecting the strip — click, keyboard focus, page dot — unfolds the panel
+  // and brings it into view. Open panels are not touched. Unfolded panels stay unfolded while the page is the same (an action re-projects the
+  // foldout); a navigation starts over, as a fresh page does on the web renderer.
+
+
+  const FOLDED_CLASS = 'mateu-foldout-folded'
+  const LAYOUT_ID = 'mateuFoldoutEl'
+  const PANEL_CONTAINER = 'oj-sp-foldout-layout-panel-container'
+
+  const unfolded = new Set()
+
+  /** The identity of a wire panel across re-projections of the same page: position + title. */
+  function foldoutPanelKey(panel, index) {
+    return index + ':' + ((panel && panel.title) || '')
+  }
+
+  /** A new page: every `open: false` panel starts folded again. */
+  function resetFoldoutFolds() {
+    unfolded.clear()
+  }
+
+  /** Whether the wire panel `index` of the projection is folded right now. */
+  function isPanelFolded(foldout, index) {
+    const panel = ((foldout && foldout.panels) || [])[index]
+    return !!panel && panel.open === false && !unfolded.has(foldoutPanelKey(panel, index))
+  }
+
+  /** The indexes (wire order) of the panels folded right now. */
+  function foldedPanelIndexes(foldout) {
+    return ((foldout && foldout.panels) || []).map((_, i) => i).filter((i) => isPanelFolded(foldout, i))
+  }
+
+  /** The wire panel index a `selectedPanel` value names: the layout counts the overview as panel 0. */
+  function wirePanelIndexOf(selectedPanel) {
+    const n = Number(selectedPanel)
+    return Number.isInteger(n) && n >= 1 ? n - 1 : -1
+  }
+
+  /** Marks a panel as unfolded. Returns whether it was folded. */
+  function unfoldPanel(foldout, index) {
+    if (!isPanelFolded(foldout, index)) return false
+    unfolded.add(foldoutPanelKey(foldout.panels[index], index))
+    return true
+  }
+
+  /** The panel containers of the layout, in order (the overview first). */
+  function containersOf(layout) {
+    return [...layout.querySelectorAll('.' + PANEL_CONTAINER)]
+      .filter((c) => c.closest('oj-sp-foldout-layout') === layout)
+  }
+
+  function panelOf(container) {
+    for (const child of container.children || []) {
+      if (String(child.tagName).toLowerCase() === 'oj-sp-foldout-panel') return child
+    }
+    return null
+  }
+
+  /** Paints the folded/unfolded state on the layout's panels. Returns false while the layout has
+   *  not stamped every panel yet (VB paints asynchronously — the caller retries). */
+  function applyFoldoutFolds(layout, foldout) {
+    if (!layout || !foldout) return false
+    const panels = foldout.panels || []
+    const containers = containersOf(layout)
+    if (containers.length < panels.length + 1) return false
+    layout.__mateuFoldout = foldout
+    wireSelection(layout)
+    panels.forEach((panel, i) => {
+      const container = containers[i + 1]
+      const element = container && panelOf(container)
+      if (!element) return
+      const folded = isPanelFolded(foldout, i)
+      element.classList.toggle(FOLDED_CLASS, folded)
+      if (panel.open === false) container.setAttribute('aria-expanded', folded ? 'false' : 'true')
+      if (folded) container.setAttribute('title', chromeText('foldoutUnfold', { title: panel.title || '' }))
+      else if (panel.open === false) container.removeAttribute('title')
+    })
+    return true
+  }
+
+  /** The component's own selection unfolds a folded panel (once per layout element). */
+  function wireSelection(layout) {
+    if (layout.__mateuFoldWired) return
+    layout.__mateuFoldWired = true
+    layout.addEventListener('selectedPanelChanged', (e) => {
+      const foldout = layout.__mateuFoldout
+      const index = wirePanelIndexOf(e && e.detail ? e.detail.value : layout.selectedPanel)
+      if (!foldout || index < 0 || !unfoldPanel(foldout, index)) return
+      applyFoldoutFolds(layout, foldout)
+      // the strip grew to the panel's width: bring it into view. NOT layout.refresh(): the carousel
+      // measures its panels live (dots and scroll keep working), and a refresh re-applies its own
+      // scroll position a second later, sliding the panel the user just opened back out of view
+      const container = containersOf(layout)[index + 1]
+      const reveal = () => container && container.scrollIntoView && container.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(reveal))
+      else reveal()
+    })
+  }
+
+  /** Applies the folds once VB has painted the foldout. `fresh` = a new page (folds start over). */
+  function applyFoldoutFoldsSoon(foldout, { fresh = false, frames = 60 } = {}) {
+    if (fresh) resetFoldoutFolds()
+    if (!foldout || typeof document === 'undefined') return
+    if (!(foldout.panels || []).some((p) => p && p.open === false)) return
+    let left = frames
+    const tick = () => {
+      if (applyFoldoutFolds(document.getElementById(LAYOUT_ID), foldout)) return
+      left -= 1
+      if (left > 0 && typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(tick)
+    }
+    tick()
   }
 
 
@@ -20940,6 +21097,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     mountElementsSoon,
     elementAtomsOf,
     foldoutElementAtomsOf,
+    applyFoldoutFoldsSoon,
+    applyFoldoutFolds,
+    foldedPanelIndexes,
     reduceContexts,
     planningActionOf,
     applyDomEffects,
