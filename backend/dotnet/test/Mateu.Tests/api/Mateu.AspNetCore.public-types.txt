@@ -1,0 +1,3 @@
+Mateu.AspNetCore.ClaimsIdentityMapper
+Mateu.AspNetCore.MateuExtensions
+Mateu.AspNetCore.MateuOptions

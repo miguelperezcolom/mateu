@@ -18,7 +18,7 @@ namespace Mateu.Core;
 /// time). Editing a spec during development needs a restart to be picked up. Override the specs
 /// directory with the MATEU_SPECS_DIR environment variable (default: <c>specs/ui</c> under the cwd).
 /// </remarks>
-public sealed class YamlSpecLoader : ISpecsCache
+internal sealed class YamlSpecLoader : ISpecsCache
 {
     /// <summary>A parsed page spec: the layout, plus the ModelView class name when the YAML declares
     /// one, plus its <c>layoutDelta:</c> (empty when none; a delta-only page has no Layout).</summary>

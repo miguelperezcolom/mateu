@@ -438,6 +438,29 @@ Python `DeprecationWarning`), each naming its replacement.
 | 10 | Port-model differences | Documented as port idioms in `reference/parity.md` ("Port idioms" table: menus, KPI, wizard steps, completion, progress style, edit-in-drawer, action options, toast variants). Converged only where the difference was a trap: **`[Secured]` / `@secured` was never read by either port** (a "secured" view was open), so it is now ENFORCED with exactly the semantics of `EyesOnly(permissions = p)` — view and actions 403, menu entries hidden; tests `SecuredEnforcementTests` (.NET) / `test_secured_enforced.py` — and deprecated in favour of `EyesOnly`; Python's top-level `Step` (wizard marker) stays and the doc names `mateu_uidl.components.Step` as the ProgressSteps item; Python's `wizard_progress` now documents `rail` | `parity.md`, `I18nAndEvents.cs`, `class_decorators.py` |
 | 11 | japicmp baseline | → **`3.0-alpha.411`** (on Maven Central under the `mateu-*` ids; alpha.409 never was). The allowlist is back to the sentinel; `mvn install -pl shared/dtos,shared/uidl,shared/core -Dmateu.api.enforce=true` passes. It did catch one real issue on the way (see #4) | `backend/pom.xml`, `api-compat/japicmp-exclusions.properties` |
 
+### 7.1 .NET engine made internal (3.0-alpha.429, decision delegated by the owner)
+
+`Mateu.Core` exported 50 types (44 top-level + 6 nested records) with no `InternalsVisibleTo`, so
+the whole engine was de-facto API. Before the beta freeze it is `internal`, with
+`[InternalsVisibleTo]` for `Mateu.AspNetCore` and `Mateu.Tests` only. Kept public (7 exported types
++ 6 forwards), each for a documented or app-implemented reason:
+
+| Type | Class of reason |
+|---|---|
+| `ISpecsCache`, `DevSpecs` | SPI an app implements / calls (live reload, `live-reload.md`) |
+| `PartialRegistry` | code registration of partials (`partials.md`, .NET ✅) |
+| `DocumentStore` (+ `Parked`, exposed by `Take`) | documented knob (`DocumentStore.InlineMaxBytes`, `documents-and-printing.md`) |
+| `Export.BuiltInCsvExporter` | in doubt — an `IListingExporter` an app may delegate to |
+| `InferenceSwitches` | in doubt — the `AppContext` switch names (strings work as well) |
+| `RouteEntry`, `IRouteEntrySupplier`, `IMenuSupplier`, `IAppSupplier`, `AppShell`, `MateuForbiddenException` | `[TypeForwardedTo]` (§7 #9) |
+
+Everything else (`SyncHandler`, `MateuRegistry`, `ReflectionMapper`, `ComponentMapper`,
+`RouteRegistry`, `YamlSpecLoader`, `Mcp*`, `MateuErrors`, `ErrorBoundary`, `Environments`,
+`MateuLogging`, `UiPage`, `RendererFiles`, …) is engine. The C# manual no longer offers "hosting the
+engine without ASP.NET Core"; `MateuRegistry.RegisterAdapter` gave way to `IComponentAdapter`
+services in the docs. `PublicSurfaceTests` pins the exported lists of `Mateu.Core` and
+`Mateu.AspNetCore` (`test/Mateu.Tests/api/*.txt`).
+
 Also in the same round (UX decisions, not API): **U1** a click anywhere on a navigable listing row
 opens the record (except the selection, editable cells and display columns; Enter opens) in all four
 renderers; **U2** `MetricCard.timeframe` (`@Experimental`), rendered under the value everywhere, with

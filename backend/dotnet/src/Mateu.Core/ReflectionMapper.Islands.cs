@@ -6,7 +6,7 @@ namespace Mateu.Core;
 
 // Islands: component adapters (Java: AdapterRegistry + AdaptedComponentTree) and routed views
 // embedded in a host form as independent mediators (Java: EmbeddedOrchestratorFieldBuilder).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>Query-string marker of an embedded island's route: the view is running inside a host
     /// page (Java's EmbeddedOrchestratorFieldBuilder.EMBEDDED_MARKER).</summary>

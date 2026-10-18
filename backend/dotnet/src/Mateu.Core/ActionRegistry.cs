@@ -19,7 +19,7 @@ namespace Mateu.Core;
 /// a warning — server logic stays a view method. Never fails: a broken file logs and yields fewer
 /// entries.</para>
 /// </summary>
-public sealed class ActionRegistry : ISpecsCache
+internal sealed class ActionRegistry : ISpecsCache
 {
     public const string FileName = "actions.yaml";
     public const string Type = "Actions";

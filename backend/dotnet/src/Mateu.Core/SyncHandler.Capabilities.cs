@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Capability listings: the CapabilityCrud bridge serving only the declared routes/buttons (Java: CapabilityCrud).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     private (CapabilityProfile Profile, string BaseRoute)? ResolveCapability(RunActionRqDto rq)
     {

@@ -17,7 +17,7 @@ namespace Mateu.Core;
 /// The encoding is RFC 3986 strict (<see cref="Uri.EscapeDataString(string)"/>), byte for byte the same as
 /// the other backends and renderers.
 /// </summary>
-public static class UrlTemplate
+internal static class UrlTemplate
 {
     private static readonly Regex Placeholder = new(@"\$\{([^}]+)\}", RegexOptions.Compiled);
     private static readonly Regex AnyPlaceholder = new(@"\$\{[^}]*\}", RegexOptions.Compiled);

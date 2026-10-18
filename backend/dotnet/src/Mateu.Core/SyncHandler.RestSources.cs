@@ -4,7 +4,7 @@ using Mateu.Dtos;
 
 namespace Mateu.Core;
 
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>The response with the catalogue entries its components name by <c>ref</c>
     /// (<see cref="UIIncrementDto.RestSources"/>): a page served with NO app shell never receives

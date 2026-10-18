@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Wizard navigation (Java: WizardActionDispatcher).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
     {

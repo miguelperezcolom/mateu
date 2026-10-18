@@ -9,7 +9,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Crud<T>: list / detail / edit / new / save / delete, bulk actions, export, inline row update and optimistic locking (Java: crud action handlers, FilteredAutoCrud, OptimisticLock).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     // ── CRUD ───────────────────────────────────────────────────────────────────
     private (Type Type, Type Element, string BaseRoute)? ResolveCrud(RunActionRqDto rq)

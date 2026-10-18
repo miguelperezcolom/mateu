@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Behaviour changes
+- **.NET: the `Mateu.Core` engine is internal.** `SyncHandler`, `MateuRegistry`, `ReflectionMapper`,
+  `ComponentMapper`, the route/YAML/MCP machinery and the other engine types (43 of the 50 exported
+  types) are no longer public; an app uses `Mateu.Uidl` + `AddMateu` / `MapMateu`. Still public:
+  `DevSpecs`, `ISpecsCache`, `PartialRegistry`, `DocumentStore`, `BuiltInCsvExporter`,
+  `InferenceSwitches` and the type forwards. Hosting the engine outside ASP.NET Core is no longer
+  supported; register component adapters as `IComponentAdapter` services instead of
+  `MateuRegistry.RegisterAdapter`. Pinned by `PublicSurfaceTests`.
+
 ## [3.0-alpha.426] — 2026-10-18 (beta candidate)
 
 The beta candidate: the refactor phase and every fix from the independent pre-GA review. Read

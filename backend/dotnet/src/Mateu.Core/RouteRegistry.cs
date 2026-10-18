@@ -6,7 +6,7 @@ using Access = Mateu.Uidl.Access;
 namespace Mateu.Core;
 
 /// <summary>A matched route: the entry that answered, and the path parameters read off the URL.</summary>
-public sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, object?> PathParams)
+internal sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, object?> PathParams)
 {
     public Dictionary<string, object?> Params(IReadOnlyDictionary<string, object?>? incoming)
     {
@@ -19,7 +19,7 @@ public sealed record RouteMatch(RouteEntry Entry, IReadOnlyDictionary<string, ob
 }
 
 /// <summary>A mount's route table.</summary>
-public sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
+internal sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
 {
     public static readonly RouteTable Empty = new(new List<RouteEntry>());
 
@@ -71,7 +71,7 @@ public sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
 /// the same screen can answer several routes with different parameters pinned, and a route can exist
 /// with no server class behind it at all.</para>
 /// </summary>
-public sealed class RouteRegistry : ISpecsCache
+internal sealed class RouteRegistry : ISpecsCache
 {
     private static readonly IReadOnlyDictionary<string, object?> NoParams =
         new Dictionary<string, object?>();

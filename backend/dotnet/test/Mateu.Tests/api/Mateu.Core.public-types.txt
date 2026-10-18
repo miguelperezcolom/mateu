@@ -1,0 +1,13 @@
+Mateu.Core.AppShell (forwarded)
+Mateu.Core.DevSpecs
+Mateu.Core.DocumentStore
+Mateu.Core.DocumentStore+Parked
+Mateu.Core.Export.BuiltInCsvExporter
+Mateu.Core.IAppSupplier (forwarded)
+Mateu.Core.IMenuSupplier (forwarded)
+Mateu.Core.IRouteEntrySupplier (forwarded)
+Mateu.Core.ISpecsCache
+Mateu.Core.InferenceSwitches
+Mateu.Core.MateuForbiddenException (forwarded)
+Mateu.Core.PartialRegistry
+Mateu.Core.RouteEntry (forwarded)

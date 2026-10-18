@@ -19,7 +19,7 @@ namespace Mateu.Core;
 ///
 /// <para>Never fails: a broken file or supplier logs a warning and yields fewer entries.</para>
 /// </summary>
-public sealed class RestSourceRegistry : ISpecsCache
+internal sealed class RestSourceRegistry : ISpecsCache
 {
     public const string FileName = "sources.yaml";
 
@@ -255,7 +255,7 @@ public sealed class RestSourceRegistry : ISpecsCache
 /// (<c>components:</c> envelope or bare list of <c>{name, component}</c>), merged on top — authored
 /// wins.
 /// </summary>
-public sealed class ComponentRegistry : ISpecsCache
+internal sealed class ComponentRegistry : ISpecsCache
 {
     public const string FileName = "components.yaml";
 

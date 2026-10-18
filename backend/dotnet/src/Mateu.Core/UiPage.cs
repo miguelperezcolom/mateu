@@ -19,7 +19,7 @@ namespace Mateu.Core;
 /// jar downloaded from Maven Central (<c>io.mateu:mateu-vaadin</c> or <c>mateu-redwood</c>, the
 /// version of the wire you target) or at its extracted <c>static/</c> folder.
 /// </remarks>
-public static class UiPage
+internal static class UiPage
 {
     /// <summary>The renderer the server serves, when not passed to <c>MapMateu(ui: …)</c>.</summary>
     public const string EnvVar = "MATEU_UI";
@@ -176,7 +176,7 @@ public static class UiPage
 /// <summary>A web renderer's files: a directory holding <c>_index.html</c> and its assets (a jar's
 /// extracted <c>static/</c> folder, a renderer's <c>dist/</c>), or the jar/zip itself, read in place
 /// (only its <c>static/</c> entries: never META-INF, never classes).</summary>
-public sealed class RendererFiles
+internal sealed class RendererFiles
 {
     public string Location { get; }
     public bool IsArchive { get; }

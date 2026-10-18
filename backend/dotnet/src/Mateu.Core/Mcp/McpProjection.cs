@@ -12,7 +12,7 @@ namespace Mateu.Core.Mcp;
 /// <para>Pure (no I/O). A System.Text.Json.Nodes node has a single parent, so any node copied from
 /// the source into the output is <c>DeepClone()</c>d.</para>
 /// </summary>
-public static class McpProjection
+internal static class McpProjection
 {
     /// <summary>The server encodes the root/empty route as "_empty"; treat it as "".</summary>
     public static string NormalizeRoute(string? route)

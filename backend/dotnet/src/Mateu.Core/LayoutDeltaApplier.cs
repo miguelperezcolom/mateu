@@ -17,7 +17,7 @@ namespace Mateu.Core;
 /// </list>
 /// The walk covers children AND the components nested inside metadata (a Card's content, a tab's
 /// panels…), since inferred forms nest their fields there.</summary>
-public static class LayoutDeltaApplier
+internal static class LayoutDeltaApplier
 {
     /// <summary>The tree with the delta applied; the same instance when the delta is empty or
     /// changes nothing. A failure renders the inferred layout (logged) — a page that renders beats

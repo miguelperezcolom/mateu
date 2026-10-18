@@ -128,6 +128,11 @@ compiling and working (Java `@Deprecated(forRemoval = true)`, .NET `[Obsolete]`,
 names (`Mateu.Core.*`); `Mateu.Core` forwards them, so existing code and binaries keep working, and a
 UI-only module no longer needs `Mateu.Core` to use them.
 
+**.NET engine now internal (3.0-alpha.429)**: `SyncHandler`, `MateuRegistry`, `ReflectionMapper` and
+the rest of the `Mateu.Core` engine are `internal`. An app built on `AddMateu` / `MapMateu` changes
+nothing; code that constructed the engine itself must go through `Mateu.AspNetCore`, and a
+`MateuRegistry.RegisterAdapter(adapter)` call becomes an `IComponentAdapter` service registration.
+
 ## Defaults that changed
 
 These compile unchanged and **behave differently**. Check each against your screens.

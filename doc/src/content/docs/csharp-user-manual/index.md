@@ -36,7 +36,7 @@ dotnet add package Mateu.AspNetCore --prerelease
 |---|---|
 | `Mateu.AspNetCore` | The web app: `AddMateu()` / `MapMateu()` |
 | `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) — pass its assembly to `AddMateu` (see below) |
-| `Mateu.Core` | Hosting the engine without ASP.NET Core (tests, another web stack) |
+| `Mateu.Core` | Never directly — the engine is internal; `Mateu.AspNetCore` brings it (it exports only a few knobs: `DevSpecs`, `PartialRegistry`, `DocumentStore`, `InferenceSwitches`) |
 | `Mateu.Dtos` | Reading or producing the wire model |
 
 ## Run it from the repository
@@ -77,7 +77,7 @@ The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8593`) and Andro
 |---|---|
 | `src/Mateu.Uidl` | Public API — attributes (`[UI]`, `[Title]`, `[Button]`, …) + data types (`Message`) |
 | `src/Mateu.Dtos` | The wire model — `UIIncrementDto`, `ComponentDto` + metadata (polymorphism on `type`) |
-| `src/Mateu.Core` | The engine — `MateuRegistry`, `ReflectionMapper`, `SyncHandler` |
+| `src/Mateu.Core` | The engine (internal) — route resolution, the reflection mapper, action dispatch |
 | `src/Mateu.AspNetCore` | `AddMateu()` / `MapMateu()` — DI + the `POST /mateu/v3/sync/{route}` endpoint |
 | `samples/Mateu.Demo` | A runnable ASP.NET app |
 | `test/Mateu.Tests` | Golden-JSON tests asserting wire compatibility with the Java backend |
@@ -578,9 +578,8 @@ The island mounts its own `mateu-ux` against the remote backend and runs its own
 
 Java's `ComponentAdapter` SPI is available as is: an adapter renders a domain object that is NOT a
 Mateu view and carries no Mateu attributes, and rebuilds it from the state that comes back on an
-action. Adapters are discovered in the scanned assemblies, registered with
-`MateuRegistry.RegisterAdapter`, or registered as `IComponentAdapter` services (picked up by
-`AddMateu`).
+action. Adapters are discovered in the scanned assemblies, or registered as `IComponentAdapter`
+services (picked up by `AddMateu`).
 
 ```csharp
 [UI("pedido")]                       // routing only — the adapter owns the whole UI

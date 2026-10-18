@@ -8,7 +8,7 @@ namespace Mateu.Core.Mcp;
 /// surface whether it talks to the sidecar or to a Mateu backend directly. C# mirror of the Java
 /// McpJsonRpc.
 /// </summary>
-public static class McpJsonRpc
+internal static class McpJsonRpc
 {
     public const string ProtocolVersion = "2024-11-05";
     public const string ServerName = "mateu-mcp";

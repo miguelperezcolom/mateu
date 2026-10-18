@@ -6,7 +6,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Turns an annotated C# view instance into the Mateu component tree (App→Page→Card→…→FormField).</summary>
-public sealed partial class ReflectionMapper(ITranslator? translator = null, Func<Identity?>? identity = null,
+internal sealed partial class ReflectionMapper(ITranslator? translator = null, Func<Identity?>? identity = null,
     MateuRegistry? registry = null)
 {
     /// <summary>Translates a user-facing string when a translator is registered, else returns it unchanged.</summary>

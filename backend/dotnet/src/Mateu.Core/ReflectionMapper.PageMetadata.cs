@@ -6,7 +6,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Page metadata: banners, badges, KPIs, FABs, header extras, width/type (Java: PageMetadataExtractor, PageWidthResolver, PageTypeResolver).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>Client-side field validations from the bean-validation constraints (mirrors Java's
     /// ConstraintValidationMapper): [Required] → the field must be truthy ("Cannot be empty");

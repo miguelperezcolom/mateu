@@ -6,7 +6,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 // Listings, CRUDs, capability listings and grid fields (Java: ListRouteResolver, PageListingBuilder, ListingColumnBuilder, GridColumnBuilder).
-public sealed partial class ReflectionMapper
+internal sealed partial class ReflectionMapper
 {
     /// <summary>If <paramref name="type"/> derives from Crud&lt;T&gt;, returns T; else null.</summary>
     internal static Type? CrudElementType(Type type)

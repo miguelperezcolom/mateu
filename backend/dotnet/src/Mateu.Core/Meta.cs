@@ -16,7 +16,7 @@ namespace Mateu.Core;
 /// carried the underlying [Money] and [Label]. The C# analogue of Java's MetaAnnotations —
 /// minimal like it: first match wins, no attribute overriding.
 /// </summary>
-public static class Meta
+internal static class Meta
 {
     /// <summary>The A attribute present on <paramref name="element"/> directly or via a composed
     /// attribute (depth-first, cycle-safe; first match wins, also for repeatable attributes).</summary>

@@ -7,7 +7,7 @@ namespace Mateu.Core;
 
 // Islands: adapted domain objects (Java: AdapterInstanceFactory + AdaptedComponentTree) and routed
 // views embedded in a host page (Java: EmbeddedOrchestratorFieldBuilder's markers).
-public sealed partial class SyncHandler
+internal sealed partial class SyncHandler
 {
     /// <summary>An embedded island loads its route with markers in a query string
     /// (<c>/documento?_embeddedMediator=1&amp;_inline=1</c>). The route resolves without them; the
