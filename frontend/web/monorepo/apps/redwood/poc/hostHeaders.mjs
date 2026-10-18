@@ -8,9 +8,10 @@
 // send, so a host whose token rotates (the VB security provider, an OAuth refresh) is asked again
 // each time, and the retry after a 401 carries the new one.
 //
-// What the host supplies WINS over the stored token: the component speaks for the host page.
-// Nothing here is set in the standalone app, so its behaviour is unchanged (resilience falls back to
-// the stored token exactly as before).
+// What the host supplies REPLACES the stored token: the component speaks for the host page, so
+// while a provider is configured the stored token is never sent — a provider answering no
+// Authorization (or failing) means "no session", not "use whatever is in storage". Nothing here is
+// set in the standalone app, so its behaviour is unchanged (resilience reads the stored token).
 
 let hostProvider = null
 let hostCredentialsMode

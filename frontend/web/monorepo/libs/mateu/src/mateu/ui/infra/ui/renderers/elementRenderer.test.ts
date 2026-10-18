@@ -137,6 +137,96 @@ describe('renderElement', () => {
     })
 })
 
+describe('a re-render with a different definition', () => {
+
+    beforeEach(() => { document.body.innerHTML = '' })
+
+    // what the element's events reach: the host's manageActionRequestedEvent
+    const listeningHost = (...ids: string[]) => {
+        const h = host(...ids) as HTMLElement & { manageActionRequestedEvent?: (e: CustomEvent) => void }
+        const actions: string[] = []
+        h.manageActionRequestedEvent = (e: CustomEvent) => { actions.push(e.detail.actionId) }
+        return { h, actions }
+    }
+
+    const withOn = (on: Record<string, string>, attributes: Record<string, string> = {}): Element =>
+        ({ name: 'workflow-graph', attributes, on, content: '', html: false }) as unknown as Element
+
+    const renderWith = async (h: HTMLElement, e: Element, c: Record<string, unknown> = { id: 'diagram' }) => {
+        renderElement(h as unknown as LitElement, e, c as unknown as ClientSideComponent, {}, {}, {}, {})
+        await settle()
+        return h.shadowRoot!.querySelector('workflow-graph')!
+    }
+
+    it('an event runs the action the CURRENT definition names, once, on the same node', async () => {
+        const { h, actions } = listeningHost('diagram')
+        const first = await renderWith(h, withOn({ click: 'old-action' }))
+        const second = await renderWith(h, withOn({ click: 'new-action' }))
+        expect(second).toBe(first)
+        second.dispatchEvent(new Event('click'))
+        expect(actions).toEqual(['new-action'])
+    })
+
+    it('an event the definition no longer names runs nothing, and a new one is wired', async () => {
+        const { h, actions } = listeningHost('diagram')
+        await renderWith(h, withOn({ click: 'select' }))
+        const el = await renderWith(h, withOn({ dblclick: 'open' }))
+        el.dispatchEvent(new Event('click'))
+        el.dispatchEvent(new Event('dblclick'))
+        // re-rendering the same definition again does not add a second listener
+        await renderWith(h, withOn({ dblclick: 'open' }))
+        el.dispatchEvent(new Event('dblclick'))
+        expect(actions).toEqual(['open', 'open'])
+    })
+
+    it('an attribute gone from the definition is removed', async () => {
+        const { h } = listeningHost('diagram')
+        const first = await renderWith(h, withOn({}, { disabled: '', title: 'T' }))
+        expect(first.hasAttribute('disabled')).toBe(true)
+        const second = await renderWith(h, withOn({}, { title: 'T' }))
+        expect(second).toBe(first)
+        expect(second.hasAttribute('disabled')).toBe(false)
+        expect(second.getAttribute('title')).toBe('T')
+    })
+
+    it('a data-bound url that turns unsafe is removed rather than left at its old value', async () => {
+        const { h } = listeningHost('diagram')
+        const e = withOn({}, { href: '${state.url}' })
+        renderElement(h as unknown as LitElement, e, { id: 'diagram' } as unknown as ClientSideComponent, { url: 'https://ok.example' }, {}, {}, {})
+        await settle()
+        renderElement(h as unknown as LitElement, e, { id: 'diagram' } as unknown as ClientSideComponent, { url: 'javascript:alert(1)' }, {}, {}, {})
+        await settle()
+        expect(h.shadowRoot!.querySelector('workflow-graph')!.hasAttribute('href')).toBe(false)
+    })
+
+    it('style, class and slot follow the component, and go when it drops them', async () => {
+        const { h } = listeningHost('diagram')
+        const el = await renderWith(h, withOn({}), { id: 'diagram', style: 'color: red', cssClasses: 'big', slot: 'side' })
+        expect(el.getAttribute('style')).toBe('color: red')
+        expect(el.getAttribute('class')).toBe('big')
+        expect(el.getAttribute('slot')).toBe('side')
+        await renderWith(h, withOn({}), { id: 'diagram' })
+        expect(el.hasAttribute('style')).toBe(false)
+        expect(el.hasAttribute('class')).toBe(false)
+        expect(el.hasAttribute('slot')).toBe(false)
+    })
+
+    it("the element's OWN attributes are left alone", async () => {
+        // a custom element writes attributes of its own (state reflected for styling, aria-*):
+        // only what Mateu wrote is Mateu's to take away
+        const { h } = listeningHost('diagram')
+        const el = await renderWith(h, withOn({}, { mode: 'edit' }))
+        el.setAttribute('aria-busy', 'true')
+        el.setAttribute('class', 'upgraded')
+        el.setAttribute('style', 'width: 10px')
+        await renderWith(h, withOn({}, {}))
+        expect(el.hasAttribute('mode')).toBe(false)
+        expect(el.getAttribute('aria-busy')).toBe('true')
+        expect(el.getAttribute('class')).toBe('upgraded')
+        expect(el.getAttribute('style')).toBe('width: 10px')
+    })
+})
+
 describe('the module of an Element sent by a REMOTE screen', () => {
 
     // A shell → its remote section's mateu-ux (absolute baseUrl) → a nested component of the

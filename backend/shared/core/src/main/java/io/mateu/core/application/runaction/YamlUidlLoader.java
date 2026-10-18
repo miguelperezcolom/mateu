@@ -391,16 +391,20 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     if (spec == null || !spec.dependsOnRequest()) {
       return spec;
     }
+    // Who may see what is decided FIRST, and a failure there is never answered with the shared
+    // spec: that one has no restriction applied, so falling back to it handed a caller the very
+    // layout, state and actions the access keys were taking away from them.
+    var source = spec.source();
+    JsonNode tree;
+    java.util.Set<String> refused = java.util.Set.of();
+    java.util.Set<String> locked = java.util.Set.of();
     try {
-      var tree = spec.source();
-      java.util.Set<String> refused = java.util.Set.of();
-      java.util.Set<String> locked = java.util.Set.of();
-      var catalogueRefused = catalogueActionsRefusedIn(tree, httpRequest);
-      if (io.mateu.core.application.security.YamlAccess.declaresAccess(tree)
+      var catalogueRefused = catalogueActionsRefusedIn(source, httpRequest);
+      if (io.mateu.core.application.security.YamlAccess.declaresAccess(source)
           || !catalogueRefused.isEmpty()) {
         var applied =
             io.mateu.core.application.security.YamlAccess.apply(
-                tree,
+                source,
                 httpRequest,
                 path -> routeRegistry.isReachable(path, httpRequest),
                 catalogueRefused);
@@ -408,15 +412,37 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         refused = applied.refusedActions();
         locked = applied.lockedFields();
       } else {
-        tree = tree.deepCopy();
+        tree = source.deepCopy();
       }
-      if (tree == null) {
-        return null;
-      }
-      if (!io.mateu.core.application.i18n.TranslationRegistry.isRaw(httpRequest)) {
+    } catch (Exception e) {
+      log.error("Could not apply the access keys of the YAML spec for {}", route, e);
+      throw new IllegalStateException(
+          "the access keys of the definition for route '" + route + "' could not be applied", e);
+    }
+    if (hidesThePage(source, tree)) {
+      // The caller may see NOTHING of the page: refused like a class-level @EyesOnly, before any
+      // state is hydrated or any action runs — there is no restricted version of it to serve.
+      log.warn(
+          "Refused request: the definition of route '{}' is hidden from the caller (eyesOnly:/"
+              + "access: on its root)",
+          route);
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "page not visible to caller: " + route);
+    }
+    if (!io.mateu.core.application.i18n.TranslationRegistry.isRaw(httpRequest)) {
+      try {
         translations.translateTree(
             tree, io.mateu.core.application.i18n.TranslationRegistry.localeOf(httpRequest));
+      } catch (Exception e) {
+        // A translation problem is not an authorization one: the caller keeps the page THEY may
+        // see, restrictions applied, just untranslated.
+        log.warn(
+            "Could not translate the YAML spec for {} (served untranslated): {}",
+            route,
+            e.getMessage());
       }
+    }
+    try {
       return new YamlPageSpec(
           spec.modelView(),
           layoutOf(tree),
@@ -428,9 +454,25 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
           locked,
           spec.pageType());
     } catch (Exception e) {
-      log.warn("Failed to personalise the YAML spec for {}: {}", route, e.getMessage());
-      return spec;
+      log.error("Could not build the personalised YAML spec for {}", route, e);
+      throw new IllegalStateException(
+          "the definition for route '" + route + "' could not be personalised for the caller", e);
     }
+  }
+
+  /**
+   * Whether applying the access keys took the whole page away: the root itself was removed, or the
+   * {@code layout:} of an envelope was (what is left is no page, and reading the envelope as a bare
+   * layout would fail).
+   */
+  static boolean hidesThePage(JsonNode source, JsonNode applied) {
+    if (applied == null) {
+      return true;
+    }
+    return source != null
+        && source.isObject()
+        && source.hasNonNull("layout")
+        && !applied.hasNonNull("layout");
   }
 
   int cachedRoutes() {

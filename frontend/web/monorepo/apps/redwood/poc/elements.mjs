@@ -160,13 +160,21 @@ function ensureDefined(name, importUrl) {
 }
 
 function hydrate(element, atom) {
-  for (const key of Object.keys(atom.attributes || {})) {
+  const wanted = { ...(atom.attributes || {}) }
+  if (atom.style) wanted.style = atom.style
+  if (atom.cssClasses) wanted['class'] = atom.cssClasses
+  // What an earlier render wrote and this definition no longer declares is taken back (a
+  // `disabled` left behind is a control nobody can use) — only the names Mateu wrote: whatever the
+  // component set on itself (aria-*, reflected state) is its own. Same rule as libs/mateu.
+  for (const key of element.__mateuAttributes || []) {
+    if (!Object.prototype.hasOwnProperty.call(wanted, key)) element.removeAttribute(key)
+  }
+  for (const key of Object.keys(wanted)) {
     // setAttribute on the one ALREADY there, never on a new one: the component turns it into a
     // property change and repaints keeping its own state
-    element.setAttribute(key, atom.attributes[key])
+    element.setAttribute(key, wanted[key])
   }
-  if (atom.style) element.setAttribute('style', atom.style)
-  if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
+  element.__mateuAttributes = Object.keys(wanted)
   if (atom.content) {
     if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeElementHtml(atom.content) : atom.content
     else element.textContent = atom.content

@@ -144,6 +144,36 @@ test('every Mateu request carries the host headers, read fresh on each send; coo
   assert.deepEqual(await hostHeadersFor('x'), {}, 'standalone: no provider, nothing added')
 })
 
+test("a configured host provider is AUTHORITATIVE: no answer is no token, never the stored one", async () => {
+  // the standalone app's token of a previous user is still in this origin's storage
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const sent = []
+  globalThis.fetch = async (url, init) => { sent.push({ url, init }); return new Response('{}', { status: 200 }) }
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'previous-user-token' : null), setItem() {}, removeItem() {} }
+  const prevWarn = console.warn
+  console.warn = () => {}
+  try {
+    for (const provider of [() => ({}), () => null, () => undefined, () => ({ Authorization: undefined, 'X-Tenant': 't1' }),
+      () => { throw new Error('no session') }]) {
+      setHostHeaderProvider(provider)
+      await fetchWithPolicy('/mateu/v3/sync/x', { method: 'POST', headers: {} }, { actionId: '' })
+      assert.equal((sent.at(-1).init?.headers || {}).Authorization, undefined, String(provider))
+      assert.equal(authHeadersOf().Authorization, undefined, 'the sync callers too: ' + String(provider))
+    }
+    // standalone (no provider): the stored token is still what goes
+    setHostHeaderProvider(null)
+    await fetchWithPolicy('/mateu/v3/sync/x', { method: 'POST', headers: {} }, { actionId: '' })
+    assert.equal(sent.at(-1).init.headers.Authorization, 'Bearer previous-user-token')
+  } finally {
+    console.warn = prevWarn
+    globalThis.fetch = originalFetch
+    if (originalStorage === undefined) delete globalThis.localStorage
+    else globalThis.localStorage = originalStorage
+    setHostHeaderProvider(null)
+  }
+})
+
 // ── the mode switch ───────────────────────────────────────────────────────────────────────
 
 test('embedded: the title is reported to the host (mateuTitle), never written to document.title', () => {

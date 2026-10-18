@@ -88,6 +88,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
         const token = getAuthToken()
         if (token) {
             config.headers.Authorization =  'Bearer ' + token;
+        } else {
+            // a retried request (the 401 re-auth path re-sends the SAME config) still carries the
+            // header of its first attempt: no token now means none is sent, not the stale one
+            delete config.headers.Authorization
         }
     }
 

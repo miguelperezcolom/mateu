@@ -11,6 +11,27 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.2] — 2026-10-18
+
+Security fixes from an external review. Upgrade recommended.
+
+### Security
+- **A YAML page hidden at its root answers 403.** A definition whose root (bare or the `layout:` of an
+  envelope) is hidden from the caller by `eyesOnly:`/`access:` is refused before any state is
+  hydrated or any action runs. Before, the caller's state and actions reached the view model, and an
+  enveloped layout could be served in full. (Java, .NET, Python)
+- **A failed personalisation never serves the unrestricted definition.** If applying the access keys
+  or building the personalised spec fails, the request is rejected; a translation failure serves the
+  restricted page untranslated. (Java, .NET, Python)
+- **A configured auth token provider is authoritative.** A null, empty or failing answer sends no
+  `Authorization` header instead of a token left in storage, and a request retried after a 401 no
+  longer re-sends the previous token (web client and Redwood's embedded host header provider).
+
+### Fixed
+- A re-rendered `Element` dispatches the actions its current `on:` declares (no duplicate listeners,
+  same DOM node), and removes the attributes, `style`, `class` and `slot` its definition no longer
+  declares, leaving the component's own attributes alone (Vaadin and Redwood).
+
 ## [3.0-beta.1] — 2026-10-18
 
 The first beta. Everything since the beta candidate (3.0-alpha.426): the last review findings, the

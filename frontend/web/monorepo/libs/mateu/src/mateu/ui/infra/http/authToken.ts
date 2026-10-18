@@ -13,8 +13,9 @@ import { safeLocalStorage, safeSessionStorage } from '@infra/safeStorage.ts'
  *  - `sessionStorage`: per tab, gone when the tab closes. Same XSS exposure while open.
  *  - `memory`: never written to storage; the page must call `setAuthToken` (or register a
  *    `provider`) after every load. Smallest exposure, no persistence.
- *  - `provider`: a function the app supplies (e.g. `() => keycloak.token`) — wins over storage,
- *    so the token can stay inside the OIDC library.
+ *  - `provider`: a function the app supplies (e.g. `() => keycloak.token`) — replaces storage
+ *    while configured (an empty answer is "no token", the storage is not consulted), so the token
+ *    can stay inside the OIDC library.
  *
  * Configure with `configureAuthToken({ storage, provider })` before `<mateu-ui>` boots, or
  * declaratively with `<meta name="mateu-auth-token-storage" content="sessionStorage">`.
@@ -53,14 +54,21 @@ export const configureAuthToken = (options: {
     if (options.provider !== undefined) provider = options.provider ?? undefined
 }
 
-/** The current Bearer token, or null. Never throws. */
+/**
+ * The current Bearer token, or null. Never throws.
+ *
+ * A configured `provider` is AUTHORITATIVE: what it answers is the token, and an empty answer
+ * (null, undefined, '') or a failure means "no session" — never "ask the storage instead". The
+ * storage may still hold a previous user's token (a logout through the OIDC library never knew
+ * about Mateu's key), and reviving it would send requests as somebody who signed out.
+ */
 export const getAuthToken = (): string | null => {
     if (provider) {
         try {
-            const t = provider()
-            if (t) return t
+            return provider() || null
         } catch {
             // a provider failure is "no token"
+            return null
         }
     }
     switch (authTokenStorage()) {
