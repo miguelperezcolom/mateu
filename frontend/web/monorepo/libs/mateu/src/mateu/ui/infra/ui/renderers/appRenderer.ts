@@ -239,6 +239,28 @@ const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
     ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}`
 
 /**
+ * Whether the header's widget zone has anything to show: the chat toggle, an authored widget (an
+ * App child in slot "widgets"), a context picker / header action / notification bell / live header
+ * value, the open-on-mobile QR button or the theme toggle — the same conditions the renderers above
+ * draw them on. MENU_ON_TOP's band 1 holds only the logo and these, so without either it is an
+ * empty 56px strip above the menu band and is not drawn.
+ */
+export const hasHeaderWidgets = (metadata: App, container: Pick<MateuApp, 'component'>): boolean =>
+    !!metadata.sseUrl
+    || !!metadata.themeToggle
+    || !!metadata.mobileQr
+    || !!metadata.notificationsEnabled
+    || (metadata.contextSelectors?.length ?? 0) > 0
+    || (metadata.contextActions?.length ?? 0) > 0
+    || (metadata.headerValues?.length ?? 0) > 0
+    || ((container.component as { children?: { slot?: string }[] } | undefined)?.children ?? [])
+        .some(child => child?.slot === 'widgets')
+
+/** MENU_ON_TOP's band 1 (logo on the start, widgets on the end) is drawn only when it holds either. */
+export const showsMenuOnTopBand1 = (metadata: App, container: Pick<MateuApp, 'component'>): boolean =>
+    !!metadata.logo || hasHeaderWidgets(metadata, container)
+
+/**
  * The agent's chat panel. It sits in the content row (.m-md), under the header, and mateu-app's
  * styles put it on the row's START: on a wide viewport it pushes the content aside, on a narrow one
  * it covers the content area — never the header.
@@ -559,8 +581,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
                     <!-- TWO BANDS, like the Redwood header: band 1 = the logo on the left and the
                          widgets on the right; band 2 = the app's title, then its menu as a horizontal
-                         bar. A narrow viewport folds the menu into a ☰ button next to the title. -->
-                    <div class="m-hl mateu-app-band1"
+                         bar. A narrow viewport folds the menu into a ☰ button next to the title.
+                         Band 1 is drawn only when there is a logo or a widget to put in it. -->
+                    ${showsMenuOnTopBand1(metadata, container) ? html`<div class="m-hl mateu-app-band1"
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
@@ -571,7 +594,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${renderHeaderWidgets(metadata, container)}
                         </div>
                     </div>
-                    </div>
+                    </div>` : nothing}
                     <nav class="mateu-app-band2" aria-label="${metadata.title || chromeText('menu')}"
                             @navigation-requested="${container.updateRoute}">
                         <div class="mateu-app-menu-button">

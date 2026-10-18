@@ -109,10 +109,21 @@ describe('the app shell variants', () => {
     })
 
     it('the brand that goes home is a button, not a javascript: link', async () => {
-        const el = await mount(app({ variant: AppVariant.MENU_ON_TOP }))
+        const el = await mount(app({ variant: AppVariant.MENU_ON_TOP, logo: '/logo.svg' }))
         const brand = el.shadowRoot!.querySelector('.mateu-app-brand')
         expect(brand?.tagName).toBe('BUTTON')
         expect(brand?.getAttribute('type')).toBe('button')
+        const title = el.shadowRoot!.querySelector('.mateu-app-band-title')
+        expect(title?.tagName).toBe('BUTTON')
+        expect(title?.getAttribute('type')).toBe('button')
+    })
+
+    it('MENU_ON_TOP draws no empty band above the menu when there is neither a logo nor a widget', async () => {
+        const bare = await mount(app({ variant: AppVariant.MENU_ON_TOP }))
+        expect(bare.shadowRoot!.querySelector('.mateu-app-band1')).toBeNull()
+        expect(bare.shadowRoot!.querySelector('.mateu-app-band2')).not.toBeNull()
+        const withWidget = await mount(app({ variant: AppVariant.MENU_ON_TOP, themeToggle: true }))
+        expect(withWidget.shadowRoot!.querySelector('.mateu-app-band1 .mateu-theme-toggle')).not.toBeNull()
     })
 })
 

@@ -656,6 +656,11 @@ export class MateuPage extends LitElement {
                the floor keeps the gap legible under @Compact (which shrinks --lumo-space-l to ~7px) */
             margin-top: max(0.9rem, var(--lumo-space-l));
         }
+        /* …and none when the header draws nothing (mateu-content-header[data-empty]): the body is
+           then the first thing on the page and starts where the header would have */
+        .page-header-wrap:has(> mateu-content-header[data-empty]) ~ .page-body {
+            margin-top: 0;
+        }
 
         .sticky-header {
             position: sticky;

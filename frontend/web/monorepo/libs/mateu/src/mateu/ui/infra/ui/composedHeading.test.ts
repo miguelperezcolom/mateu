@@ -27,6 +27,18 @@ describe('composed page heading', () => {
             children: [{ type: 'ClientSide', metadata: { type: 'Crud', title: 'Orders' } }] })).toBe(false)
     })
 
+    it('a page that opens with its own h1/h2 Text does not (no title drawn twice)', () => {
+        const heading = (container: string, value = 'Dashboard') =>
+            ({ type: 'ClientSide', metadata: { type: 'Text', container, text: value } })
+        const layout = (child: ReturnType<typeof heading>) => ({ type: 'ServerSide', pageType: 'dashboard',
+            children: [{ type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [child, grid] }] })
+        expect(needsComposedHeading(layout(heading('h2')))).toBe(false)
+        expect(needsComposedHeading(layout(heading('h1')))).toBe(false)
+        // a sub-heading or an empty one names nothing
+        expect(needsComposedHeading(layout(heading('h3')))).toBe(true)
+        expect(needsComposedHeading(layout(heading('h2', ' ')))).toBe(true)
+    })
+
     it('neither does a form, a process, an embedded island nor a client-side component', () => {
         expect(needsComposedHeading({ type: 'ServerSide', pageType: 'form', children: [grid] })).toBe(false)
         expect(needsComposedHeading({ type: 'ServerSide', pageType: 'process', children: [grid] })).toBe(false)

@@ -91,9 +91,11 @@ Page templates follow the [page templates](/ux-patterns/page-templates/) Mateu s
 | Planning Board | `PlanningBoard` resources × days | edge to edge |
 | Blank layout | an empty `VerticalLayout` | renderer decides |
 
-The **page width** (fixed = centred, max 1408px · full width = 24px gutters · edge to edge = no
-margins) is written as the root layout's `style`, because a YAML definition has no `pageWidth`
-key; choose *Let the renderer decide* to leave it out.
+The **page width** (fixed = centred, max 1408px · full width = the whole content width · edge to
+edge = no margins) is written as the root layout's `style`, because a YAML definition has no
+`pageWidth` key; choose *Let the renderer decide* to leave it out. The style never adds a side
+gutter: the view the page renders in already has one (the app shell's, or the design system's when
+the page stands alone).
 
 **Where the file goes.** If you right-clicked a folder inside `specs/ui`, the file goes there.
 Otherwise the nearest existing `specs/ui` (`src/main/resources/specs/ui` or `specs/ui`) at or above
