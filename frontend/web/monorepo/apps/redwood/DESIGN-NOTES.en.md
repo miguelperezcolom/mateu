@@ -1666,6 +1666,15 @@ rewrites its attributes: a web component keeps state the server does not know ab
 selection), and recreating it throws that away. The attributes are `${state.x}` and are re-interpolated on
 each render — their only data channel, and the metadata is not resent with a State.
 
+**Module origin (2026-10-18).** A relative `import` is served by this app's backend
+(`setElementModuleBase`), except for an Element of a REMOTE screen — a RemoteMenu pod, a
+MicroFrontend: its root-relative `import` (`/x.js`) is loaded from the remote's origin, the same
+rule as the web renderer (`remoteOriginOf`/`moduleUrlFor`). The atom carries the owning context's
+`outbound.baseUrl` as `screenBase` (foldout panels keep the host's outbound), and the screen is
+remote when that base is absolute and on another origin than this app's backend (or the page, when
+the backend is same-origin). Absolute, protocol-relative and bare relative imports keep their rule.
+The remote must serve the module with CORS.
+
 > **GOTCHA that cost the first round**: `import(url)` is NOT valid. The VB build's transpiler
 > turns it into an AMD `require()` and requirejs goes about resolving the URL as one of its own
 > module ids: the request does not even go out, the slot stays empty and there is not even an error. A

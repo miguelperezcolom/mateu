@@ -1669,6 +1669,15 @@ reescribe los atributos: un componente web guarda estado que el servidor no cono
 selección de un grafo), y recrearlo lo tira. Los atributos son `${state.x}` y se reinterpolan en
 cada render — es su único canal de datos y la metadata no se reenvía con un State.
 
+**Origen del módulo (2026-10-18).** Un `import` relativo lo sirve el backend de esta app
+(`setElementModuleBase`), salvo el de un Element de una pantalla REMOTA — un pod de RemoteMenu, un
+MicroFrontend: su `import` relativo a la raíz (`/x.js`) se carga del origen del remoto, la misma
+regla que el renderer web (`remoteOriginOf`/`moduleUrlFor`). El átomo lleva el `outbound.baseUrl`
+del contexto dueño como `screenBase` (los paneles de un foldout conservan el outbound del host), y la
+pantalla es remota cuando esa base es absoluta y de otro origen que el backend de esta app (o que la
+página, si el backend es del mismo origen). Los imports absolutos, protocol-relative y relativos a
+secas mantienen su regla. El remoto tiene que servir el módulo con CORS.
+
 > **GOTCHA que costó la primera vuelta**: `import(url)` NO vale. El transpilador del build de VB
 > lo convierte en un `require()` de AMD y requirejs se pone a resolver la URL como un id de módulo
 > suyo: la petición no llega a salir, el hueco se queda vacío y no hay ni un error. Se inyecta un

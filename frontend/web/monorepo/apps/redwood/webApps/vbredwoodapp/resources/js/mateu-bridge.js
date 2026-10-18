@@ -2093,7 +2093,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const child of children) bySlot[child.slot || ''] = child
     const blocksOf = (slotNode) => {
       const blocks = slotNode
-        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {} })
+        ? islandContentOf({ tree: slotNode, state: (ctx && ctx.state) || {}, data: (ctx && ctx.data) || {}, outbound: ctx && ctx.outbound })
         : null
       // same visual contract as hostContentOf: column blocks with their colClass,
       // the rest full-row
@@ -4032,6 +4032,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
           name: m.name,
           importUrl: (m.attributes || {}).import || '',
+          // the backend the owning screen came from: a root-relative `import` of a REMOTE screen
+          // (RemoteMenu pod, MicroFrontend) is loaded from that remote's origin (elements.mjs)
+          screenBase: (ctx.outbound && ctx.outbound.baseUrl) || '',
           attributes,
           style: node.style || '',
           cssClasses: node.cssClasses || '',
@@ -11590,10 +11593,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     moduleBase = String(base || '').replace(/\/$/, '')
   }
 
-  /** The URL an Element's module is loaded from. */
-  function elementModuleUrl(importUrl, base = moduleBase) {
+  const isAbsoluteHttp = (url) => /^https?:\/\//i.test(String(url || ''))
+
+  /**
+   * The origin of the REMOTE app that sent the screen an Element sits in, or undefined when the
+   * screen is this app's own. Same rule as the shared web renderer (libs/mateu elementRenderer
+   * `remoteOriginOf`), expressed over what this renderer knows: `screenBase` is the backend the
+   * owning context was loaded from (its outbound baseUrl — a RemoteMenu's pod, a MicroFrontend's
+   * baseUrl, or this app's own base for everything else) and `ownBase` is this app's backend. The
+   * screen is remote when its backend is absolute and on another origin than this app's (an
+   * absolute own base → its origin; an empty or relative one → the page's origin).
+   */
+  function remoteOriginOf(screenBase, ownBase = moduleBase,
+    pageOrigin = (typeof location !== 'undefined' && location && location.origin) || '') {
+    if (!screenBase || !isAbsoluteHttp(screenBase)) return undefined
+    try {
+      const own = ownBase && isAbsoluteHttp(ownBase) ? new URL(ownBase).origin : pageOrigin
+      const remote = new URL(screenBase).origin
+      return remote !== own ? remote : undefined
+    } catch (e) {
+      return undefined
+    }
+  }
+
+  /**
+   * The URL an Element's module is loaded from. A root-relative url (`/acme/graph.js`) means "on
+   * the server that sent this screen": for a screen loaded from a REMOTE app (`remoteOrigin`), the
+   * remote's origin — resolved against this app's backend it 404s and the element never upgrades.
+   * Everything else keeps this app's rule (the backend serves relative modules). The remote has to
+   * serve the module with CORS for this app's origin: a module script is fetched in cors mode.
+   */
+  function elementModuleUrl(importUrl, base = moduleBase, remoteOrigin) {
     if (!importUrl) return ''
     if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
+    if (remoteOrigin && importUrl.startsWith('/')) return String(remoteOrigin).replace(/\/+$/, '') + importUrl
     const root = String(base || '').replace(/\/+$/, '')
     return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
   }
@@ -11716,7 +11749,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const hole of holes) {
       const atom = byId[hole.getAttribute('data-element-id')]
       if (!atom) continue
-      ensureDefined(atom.name, elementModuleUrl(atom.importUrl))
+      ensureDefined(atom.name, elementModuleUrl(atom.importUrl, moduleBase, remoteOriginOf(atom.screenBase)))
       let element = hole.firstElementChild
       if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
         hole.textContent = ''

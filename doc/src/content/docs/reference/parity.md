@@ -412,7 +412,7 @@ renderers, and its children still render.
 | `Directory` | ✅ | a column per group with its links (in-app routes navigate inside the shell) |
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
-| `Element` | ✅ | third-party web component, events wired back |
+| `Element` | ✅ | third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin |
 | `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card); a fact with an action gets its icon button after the value |
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |

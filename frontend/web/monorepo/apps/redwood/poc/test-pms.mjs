@@ -43,7 +43,8 @@ import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp, mediatorConsum
 import { fileDownloadOf, triggerDownload, applyDomEffects, documentUrlOf, noteDocumentBase, PRINT_CSS } from './files.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
-import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl } from './elements.mjs'
+import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl, remoteOriginOf } from './elements.mjs'
+import { foldoutOf } from './core/archetypes.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let pass = 0
@@ -267,6 +268,59 @@ test('Element: un import relativo se carga del BACKEND (VB alojado/vb-serve son 
   assert.equal(elementModuleUrl('/pms/floor-plan.js', 'http://localhost:9005/'), 'http://localhost:9005/pms/floor-plan.js') // NOSONAR
   assert.equal(elementModuleUrl('/pms/floor-plan.js', ''), '/pms/floor-plan.js')
   assert.equal(elementModuleUrl('https://cdn.example/x.js', 'http://b'), 'https://cdn.example/x.js')
+})
+
+// Same rule as libs/mateu elementRenderer (remoteOriginOf / moduleUrlFor) and the same cases as
+// its tests: a root-relative module of a REMOTE screen is loaded from the remote's origin.
+test('Element of a REMOTE screen: its root-relative module is loaded from the remote, not from this app', () => {
+  // the EventConductor console's diagram tab, composed into a shell on another origin
+  const origin = remoteOriginOf('http://localhost:8620/_workflow', '', 'http://localhost:8621') // NOSONAR
+  assert.equal(origin, 'http://localhost:8620') // NOSONAR
+  assert.equal(elementModuleUrl('/eventconductor/workflow-graph.js', '', origin),
+    'http://localhost:8620/eventconductor/workflow-graph.js') // NOSONAR
+  // this app's backend is absolute (vb-serve / hosted VB): still the remote wins for a remote screen
+  assert.equal(elementModuleUrl('/eventconductor/workflow-graph.js', 'http://localhost:8621', origin), // NOSONAR
+    'http://localhost:8620/eventconductor/workflow-graph.js') // NOSONAR
+})
+
+test("Element of this app's own screens: no remote origin", () => {
+  // a relative screen base (a mount of this same app)
+  assert.equal(remoteOriginOf('/_workflow', '', 'http://localhost:8621'), undefined) // NOSONAR
+  // this app's own backend is absolute on another origin than the page (a static front end
+  // calling its API): a screen from that backend is not remote
+  assert.equal(remoteOriginOf('https://api.acme.com/_wf', 'https://api.acme.com', 'https://cdn.acme.com'), undefined)
+  // no base known (an unloaded context, a test fixture)
+  assert.equal(remoteOriginOf('', '', 'http://localhost:8621'), undefined) // NOSONAR
+  assert.equal(remoteOriginOf(undefined), undefined)
+  // without a remote origin the app's rule stands
+  assert.equal(elementModuleUrl('/x/graph.js', '', undefined), '/x/graph.js')
+  assert.equal(elementModuleUrl('/x/graph.js', 'http://localhost:9005', undefined), 'http://localhost:9005/x/graph.js') // NOSONAR
+})
+
+test('Element of a REMOTE screen: absolute, protocol-relative and relative module urls keep their rule', () => {
+  const remote = 'http://localhost:8620' // NOSONAR
+  assert.equal(elementModuleUrl('https://cdn.acme.com/graph.js', '', remote), 'https://cdn.acme.com/graph.js')
+  assert.equal(elementModuleUrl('//cdn.acme.com/graph.js', '', remote), '//cdn.acme.com/graph.js')
+  // a bare relative url is NOT re-pointed at the remote (the web leaves it to the page; here
+  // that is this app's backend, as for any other Element)
+  assert.equal(elementModuleUrl('graph.js', '', remote), 'graph.js')
+  assert.equal(elementModuleUrl('graph.js', 'http://localhost:9005', remote), 'http://localhost:9005/graph.js') // NOSONAR
+})
+
+test('Element atom carries the backend its OWNING context was loaded from (also inside a foldout panel)', () => {
+  const graph = node({ type: 'Element', name: 'wf-graph', attributes: { import: '/wf/graph.js' }, on: {} })
+  const outbound = { route: '/_workflow/p/1', baseUrl: 'http://localhost:8620/_workflow' } // NOSONAR
+  const atom = (islandContentOf({ tree: node({ type: 'Page' }, [graph]), state: {}, data: {}, outbound }) || [])
+    .flatMap((b) => b.items || []).find((a) => a.isElement)
+  assert.equal(atom.screenBase, 'http://localhost:8620/_workflow') // NOSONAR
+  // a context without an outbound (fixtures) has none
+  assert.equal(atomsOf(node({ type: 'Page' }, [graph])).find((a) => a.isElement).screenBase, '')
+  // a foldout panel projects its slot through a synthetic context: it keeps the host's outbound
+  const foldout = node({ type: 'FoldoutLayout', panels: [{ title: 'Graph' }] },
+    [{ ...node({ type: 'VerticalLayout' }), slot: 'overview' }, { ...node({ type: 'VerticalLayout' }, [graph]), slot: 'panel-0' }])
+  const f = foldoutOf({ tree: node({ type: 'Page' }, [foldout]), state: {}, data: {}, outbound })
+  const inPanel = f.panels[0].blocks.flatMap((b) => b.items || []).find((a) => a.isElement)
+  assert.equal(inPanel.screenBase, 'http://localhost:8620/_workflow') // NOSONAR
 })
 
 test('Element: contenido HTML con `${…}` se marca para sanearlo al montarlo', () => {

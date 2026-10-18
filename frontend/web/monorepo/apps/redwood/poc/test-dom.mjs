@@ -967,6 +967,21 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
   }))
 }
 
+// ── an Element of a REMOTE screen loads its module from the remote ────────────────────────────
+{
+  const { doc, el } = makeDom()
+  test('elements: the module of an Element sent by a REMOTE screen is loaded from the remote origin', withDocument(doc, () => {
+    const hole = el('div', { class: 'mateu-element', 'data-element-id': 'wf' })
+    doc.body.appendChild(hole)
+    setElementModuleBase('http://shell:8621/') // NOSONAR
+    assert.equal(mountElements([{ elementId: 'wf', name: 'wf-remote-graph', importUrl: '/eventconductor/workflow-graph.js',
+      attributes: {}, screenBase: 'http://pod:8620/_workflow' }]), 1) // NOSONAR
+    const script = doc.head.querySelectorAll('script').find((s) => s.type === 'module')
+    assert.equal(script.src, 'http://pod:8620/eventconductor/workflow-graph.js', 'from the remote, not the shell') // NOSONAR
+    setElementModuleBase('')
+  }))
+}
+
 // ── display: cookies, context menu, registered components, BPMN, chat ───────────────────────
 {
   const { doc, el, fire } = makeDom()

@@ -50,7 +50,7 @@ export const REDWOOD_COVERAGE = {
   CustomField: { status: 'layout', note: 'its component in place' },
   Button: { status: 'full', note: 'oj-button' },
   Anchor: { status: 'full', note: 'link / file download' },
-  Element: { status: 'full', note: 'third-party web component, events wired back' },
+  Element: { status: 'full', note: "third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin" },
   CustomComponent: { status: 'full', note: 'a registry the app fills (bridge.registerCustomComponent); without a view, a visible placeholder + its children — same contract as the web' },
   // ── overlays ──
   Dialog: { status: 'full', via: "=== 'Dialog'", note: 'oj-dialog (overlay stack)' },
