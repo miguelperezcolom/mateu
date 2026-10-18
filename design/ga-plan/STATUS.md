@@ -3,7 +3,7 @@
 Live progress page (updated by the working session as it advances): https://claude.ai/artifact/UeYCtDuoXftPbvZQRRwLZr — republish it from `scratchpad`-style source or rebuild it from this file.
 
 This file is the hand-off point: any session (local, at work, or a cloud session on claude.ai/code) can
-continue the work from here. **Update it at the end of every block of work.** Last update: 2026-10-18 (phase 4 — refactor, seven streams R1–R7 — plus the Fable review fixes F1–F8, `fixes/extra` and `fixes/natives2` integrated locally on `integration/beta` on top of origin/master = alpha.425, pending CI; beta candidate = v3.0-alpha.426).
+continue the work from here. **Update it at the end of every block of work.** **3.0-beta.1 released 2026-10-18** (owner's go; GA after a few weeks of beta with no blocker, japicmp enforcing, a second independent review). Last update: 2026-10-18 (phase 4 — refactor, seven streams R1–R7 — plus the Fable review fixes F1–F8, `fixes/extra` and `fixes/natives2` integrated locally on `integration/beta` on top of origin/master = alpha.425, pending CI; beta candidate = v3.0-alpha.426).
 
 ## Owner rules (Miguel)
 - Mateu ships **UI only**; a non-UI concern is at most an interface the app implements (no DB, no PDF engine, no

@@ -11,7 +11,28 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.1] — 2026-10-18
+
+The first beta. Everything since the beta candidate (3.0-alpha.426): the last review findings, the
+owner decisions, the parity audit and the new-project polish. From here on, API changes follow the
+[stability policy](https://mateu.io/reference/stability-and-versioning/) — add and deprecate, never
+remove silently. Upgrading from an alpha: read
+[Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+
 ### Behaviour changes
+- **Money follows the UI locale** (3.0-alpha.430). A bare number with the money stereotype is
+  formatted in the app's locale (`AppDto.locale`, else the browser/device/IDE) on Vaadin, Redwood,
+  React Native and IntelliJ; the hard-coded `de-DE` is gone. An `Amount` keeps its own locale and
+  currency; read-only money fields on detail pages are formatted.
+- **CRUD "Add another" moved** from the record view toolbar to the toast that confirms a create
+  (Java, .NET, Python; `addAnotherLabel()` still sets its text).
+- **Renderer jars ship each asset once**, under `static/` (about half the size); Quarkus serves it
+  through `ClasspathAssets`. Apps that referenced `META-INF/resources/...` paths of the renderer jars
+  must use `static/...`.
+- **Redwood**: the jar's index page is written by Mateu; no Oracle starter file is redistributed.
+  A remote screen's `Element` loads its `import` from the remote's origin; a foldout panel declared
+  `open=false` starts folded.
+
 - **.NET: the `Mateu.Core` engine is internal.** `SyncHandler`, `MateuRegistry`, `ReflectionMapper`,
   `ComponentMapper`, the route/YAML/MCP machinery and the other engine types (43 of the 50 exported
   types) are no longer public; an app uses `Mateu.Uidl` + `AddMateu` / `MapMateu`. Still public:
@@ -19,6 +40,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `InferenceSwitches` and the type forwards. Hosting the engine outside ASP.NET Core is no longer
   supported; register component adapters as `IComponentAdapter` services instead of
   `MateuRegistry.RegisterAdapter`. Pinned by `PublicSurfaceTests`.
+
+### Fixed
+- New projects look finished: no empty band above a MENU_ON_TOP bar without logo or widgets, a real
+  dashboard template (one title, page width, a chart and a table), spacing above YAML form buttons,
+  no blank header over a listing, the TABS shell title aligned with the content.
+- Data links and rich text are safe on React Native and IntelliJ (3.0-alpha.427).
+- .NET `[Money]` / Python `Money()` listing columns carry the money stereotype.
+- The IntelliJ plugin uses no deprecated platform API on 2025.2 / 2025.3.
 
 ### Deprecated
 - **Python: one namespace.** The `mateu-ui` wheel installs ONE top-level package, `mateu_ui`
