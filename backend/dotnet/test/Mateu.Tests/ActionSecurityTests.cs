@@ -216,6 +216,17 @@ public class ActionSecurityTests
     public void A_framework_base_class_method_is_not_an_action() =>
         AssertNotFound(Handler(), Action("sec-dashboard", "component"));
 
+    /// <summary>An id that names NOTHING on the view — no method, no field, no handler — is the
+    /// same refusal on a plain view, a component-tree view, a CRUD and a listing: never a 200 that
+    /// re-renders the page as if it had run (Java used to answer that for a plain view).</summary>
+    [Theory]
+    [InlineData("sec-probe")]
+    [InlineData("sec-dashboard")]
+    [InlineData("sec-crud")]
+    [InlineData("sec-cap")]
+    public void An_id_naming_nothing_is_refused(string route) =>
+        AssertNotFound(Handler(), Action(route, "noSuchThing"));
+
     [Fact]
     public void A_component_tree_advertised_method_still_runs() =>
         Assert.Contains("drilled", JsonSerializer.Serialize(Handler().Handle(Action("sec-dashboard", "drill")), Json));

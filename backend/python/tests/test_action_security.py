@@ -222,6 +222,14 @@ def assert_forbidden(h: SyncHandler, request: RunActionRq) -> None:
 # ── 1. only declared actions are reachable ──────────────────────────────────────
 
 
+@pytest.mark.parametrize("route", ["sec-probe", "sec-dashboard", "sec-crud", "sec-cap"])
+def test_an_id_naming_nothing_is_refused(route):
+    """No method, field or handler answers it: the same 403 on a plain view, a CRUD and a listing
+    — never a 200 that re-renders the page as if it had run (Java used to, for a plain view)."""
+    assert_not_found(handler(), rq(route, "noSuchThing"))
+
+
+
 @pytest.mark.parametrize(
     "member, key",
     [

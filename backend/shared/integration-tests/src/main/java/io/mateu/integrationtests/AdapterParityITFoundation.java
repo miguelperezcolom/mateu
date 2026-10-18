@@ -139,6 +139,22 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * An {@code actionId} that names nothing on {@code @UI("/restricted")} — no method, no field, no
+   * handler, not advertised — is a refused request (403), never a 200 that re-renders the page as
+   * if something had run.
+   */
+  public void refusesAnActionIdThatNamesNothing() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("noSuchThing"))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(403)
+        .body(not(containsString("visibleField")));
+  }
+
+  /**
    * The same refusal on the STREAMED leg ({@code /v3/sse/}, the one a LongTask / {@code Action.sse}
    * uses): 403 too. A streamed route produces {@code text/event-stream}, and an adapter whose
    * forbidden handler only answers other media types (or that commits the stream before the request

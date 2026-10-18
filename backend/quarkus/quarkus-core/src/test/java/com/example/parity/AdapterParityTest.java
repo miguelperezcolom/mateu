@@ -26,6 +26,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesAnActionIdThatNamesNothing() {
+    contract.refusesAnActionIdThatNamesNothing();
+  }
+
+  @Test
   void refusesARestrictedStreamedActionToAnAnonymousCaller() {
     contract.refusesARestrictedStreamedActionToAnAnonymousCaller();
   }

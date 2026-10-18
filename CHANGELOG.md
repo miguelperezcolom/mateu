@@ -18,6 +18,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   is abstract). They used to do nothing, so a crud that only implemented `fetch` answered "Saved" /
   "Deleted" and discarded every write. A crud that writes overrides both.
 
+### Security
+- Java: an `actionId` that names nothing on a plain view — no method, no field, no runner, and not
+  advertised by the view — answers 403 with one WARN line, as on a CRUD and in the .NET and Python
+  backends. It used to re-render the page with HTTP 200, so an unknown id looked like one that ran.
+  The route load, the framework's reserved and app-level ids and every id the view advertises are
+  unaffected.
+
 ### Fixed
 - Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
   re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,
