@@ -1,9 +1,12 @@
-# Dashboard: a KPI band over a grid of titled panels. A MetricCard with an actionId is clickable.
+# Dashboard: a KPI band over a grid of titled panels, with sample data to replace with your own.
+# The page is titled by its menu entry / window title. A MetricCard with an actionId is clickable.
 type: VerticalLayout
 pageType: dashboard
 __PAGE_WIDTH__
+fullWidth: true
+horizontalAlignment: STRETCH
+spacing: true
 content:
-  - {type: Text, text: __TITLE__, container: h2}
   - type: Scoreboard
     metrics:
       - {type: MetricCard, title: Revenue, value: "1.2M", unit: EUR, trend: up, trendLabel: +8% vs last month}
@@ -14,9 +17,32 @@ content:
     items:
       - type: DashboardPanel
         title: Sales by region
+        subtitle: Last 6 months, thousands of EUR
         colSpan: 1
-        content: {type: Text, text: Put a Chart here}
+        content:
+          type: Chart
+          chartType: bar
+          chartData:
+            labels: [May, Jun, Jul, Aug, Sep, Oct]
+            datasets:
+              - {label: North, data: [120, 135, 128, 150, 162, 171]}
+              - {label: South, data: [98, 104, 117, 121, 119, 133]}
       - type: DashboardPanel
         title: Latest orders
+        subtitle: The five most recent
         colSpan: 1
-        content: {type: Text, text: Put a Listing here}
+        content:
+          type: Grid
+          compact: true
+          content:
+            - {type: GridColumn, id: order, label: Order}
+            - {type: GridColumn, id: customer, label: Customer}
+            - {type: GridColumn, id: total, label: Total, align: end}
+            - {type: GridColumn, id: status, label: Status}
+          page:
+            content:
+              - {order: SO-1042, customer: Acme Corp, total: "1,250.00", status: Shipped}
+              - {order: SO-1041, customer: Globex, total: "860.50", status: Paid}
+              - {order: SO-1040, customer: Initech, total: "2,310.00", status: Pending}
+              - {order: SO-1039, customer: Umbrella, total: "412.75", status: Shipped}
+              - {order: SO-1038, customer: Stark Ltd, total: "1,980.00", status: Paid}

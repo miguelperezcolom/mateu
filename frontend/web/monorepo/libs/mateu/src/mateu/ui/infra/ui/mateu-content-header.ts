@@ -432,6 +432,10 @@ export class MateuContentHeader extends LitElement {
         else this.removeAttribute('data-nested')
 
         const crumbs = this.crumbsOf(metadata as Form, level)
+        // Nothing to draw (a listing page whose title lives in the listing itself): say so, so the
+        // page drops the gap it keeps between a header and its body — an empty header plus that
+        // gap left ~40px of nothing above a listing's own title.
+        this.toggleAttribute('data-empty', crumbs.length === 0 && !metadata.noHeader && !hasMainHeader)
         return html`
             ${crumbs.length > 0 ? html`
                 <nav class="breadcrumbs-bar" aria-label="${chromeText('breadcrumb')}">

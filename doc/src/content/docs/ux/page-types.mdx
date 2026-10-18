@@ -379,8 +379,25 @@ content:
   - type: ResponsiveGrid
     columns: [{size: fill}, {size: fill}]
     content:
-      - {type: DashboardPanel, title: Sales by region, content: {type: Text, text: Put a Chart here}}
-      - {type: DashboardPanel, title: Latest orders, content: {type: Text, text: Put a Listing here}}
+      - type: DashboardPanel
+        title: Sales by region
+        content:
+          type: Chart
+          chartType: bar
+          chartData:
+            labels: [May, Jun, Jul]
+            datasets: [{label: North, data: [120, 135, 128]}, {label: South, data: [98, 104, 117]}]
+      - type: DashboardPanel
+        title: Latest orders
+        content:
+          type: Grid
+          content:
+            - {type: GridColumn, id: order, label: Order}
+            - {type: GridColumn, id: total, label: Total, align: end}
+          page:
+            content:
+              - {order: SO-1042, total: "1,250.00"}
+              - {order: SO-1041, total: "860.50"}
 ```
 
 </TabItem>

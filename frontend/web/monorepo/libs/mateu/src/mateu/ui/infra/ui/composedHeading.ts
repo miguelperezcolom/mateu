@@ -22,11 +22,17 @@ export const windowTitleChanged = (title: string) => {
 /** The page types of the composed archetypes (PageTypeResolver families). */
 const COMPOSED_TYPES = new Set(['dashboard', 'collection', 'detail'])
 
-/** What already names the page: a Page/Crud header, a hero, an entity header or a composed title. */
+/** What already names the page: a Page/Crud header, a hero, an entity header, a composed title or a heading Text. */
 const NAMING_TYPES = new Set(['Page', 'App', 'HeroSection', 'EntityHeader', 'Wizard'])
 
 type Node = { type?: string, id?: string, route?: string, pageType?: string,
-    metadata?: { type?: string, title?: unknown }, children?: Node[] }
+    metadata?: { type?: string, title?: unknown, container?: string, text?: unknown }, children?: Node[] }
+
+/** A Text drawn as a page-level heading (h1/h2) with something in it: the page wrote its own title. */
+const isHeadingText = (n: Node) =>
+    n.metadata?.type === 'Text'
+    && (n.metadata.container === 'h1' || n.metadata.container === 'h2')
+    && typeof n.metadata.text === 'string' && n.metadata.text.trim() !== ''
 
 const named = (n: Node | undefined, depth = 0): boolean => {
     if (!n || depth > 12) return false
@@ -35,6 +41,8 @@ const named = (n: Node | undefined, depth = 0): boolean => {
     // a listing names the page only when it carries a title of its own
     if (type === 'Crud' && typeof n.metadata?.title === 'string' && n.metadata.title.trim()) return true
     if (type === 'Text' && typeof n.id === 'string' && n.id.endsWith('page-title')) return true
+    // a YAML/fluent page that opens with its own h1/h2 (e.g. `{type: Text, container: h2}`)
+    if (isHeadingText(n)) return true
     // a nested server-side component (an island) names only itself
     if (depth > 0 && n.type === 'ServerSide') return false
     return (n.children ?? []).some(c => named(c, depth + 1))
