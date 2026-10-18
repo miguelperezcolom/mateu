@@ -2505,7 +2505,22 @@ public class SyncHandlerTests
         Assert.Equal(["MarkAsClean", "NavigateTo"], inc.Commands.Select(c => c.Type));
         var nav = inc.Commands[1];
         Assert.Equal("/things", nav.Data);
-        Assert.Equal("Saved", Assert.Single(inc.Messages).Text);
+        var saved = Assert.Single(inc.Messages);
+        Assert.Equal("Saved", saved.Text);
+        // the create flow offers the next record: "Add another" rides the confirmation toast
+        Assert.Equal("Add another", saved.UndoLabel);
+        Assert.Equal("new", saved.UndoActionId);
+    }
+
+    [Fact]
+    public void The_view_of_an_existing_record_offers_edit_but_not_add_another()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "/things/1", ActionId = "", ServerSideType = typeof(Things).FullName,
+        }));
+        Assert.Contains("\"actionId\":\"edit\"", json);
+        Assert.DoesNotContain("Add another", json);
     }
 
     [Fact]

@@ -1,26 +1,26 @@
-import{Ft as e,Mt as t,Ot as n,P as r,St as i,Tt as a,_t as o,ft as s,kt as c,xt as l}from"./index-B3DeFpz1.js";var u=class extends l{constructor(...e){super(...e),this.fieldId=``,this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>this.emit(r.result),r.readAsDataURL(n),t.value=``}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:`environment`},audio:!1}),this.cameraOpen=!0,await this.updateComplete;let e=this.renderRoot.querySelector(`video`);e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){let e=this.renderRoot.querySelector(`video`);if(!e||e.videoWidth===0)return;let t=document.createElement(`canvas`);t.width=e.videoWidth,t.height=e.videoHeight,t.getContext(`2d`).drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL(`image/jpeg`,.9))}triggerFallback(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``;return a`
+import{Ft as e,L as t,Mt as n,Ot as r,Rt as i,Tt as a,bt as o,ht as s,jt as c,wt as l}from"./index-D6kVJnRV.js";var u=class extends l{constructor(...e){super(...e),this.fieldId=``,this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{let t=e.target,n=t.files?.[0];if(!n)return;let r=new FileReader;r.onload=()=>this.emit(r.result),r.readAsDataURL(n),t.value=``}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:`environment`},audio:!1}),this.cameraOpen=!0,await this.updateComplete;let e=this.renderRoot.querySelector(`video`);e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){let e=this.renderRoot.querySelector(`video`);if(!e||e.videoWidth===0)return;let t=document.createElement(`canvas`);t.width=e.videoWidth,t.height=e.videoHeight,t.getContext(`2d`).drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL(`image/jpeg`,.9))}triggerFallback(){this.renderRoot.querySelector(`input[type=file]`)?.click()}render(){let e=this.value!=null&&this.value!==``;return r`
             <input type="file" accept="image/*" capture="environment" style="display: none;"
                    @change="${this.fileFallback}">
-            ${this.cameraOpen?a`
+            ${this.cameraOpen?r`
                 <video class="viewfinder" playsinline muted></video>
                 <div class="actions">
                     <button class="button button--primary" @click="${this.shoot}">${s(`capture`)}</button>
                     <button class="button" @click="${this.closeCamera}">${s(`cancel`)}</button>
                 </div>
-            `:a`
-                ${e?a`<img class="preview" src="${this.value}" alt="Photo"/>`:a`<div class="placeholder" aria-hidden="true">${r(`vaadin:camera`,`width: var(--lumo-icon-size-l, 2.25rem); height: var(--lumo-icon-size-l, 2.25rem);`)}</div>`}
+            `:r`
+                ${e?r`<img class="preview" src="${this.value}" alt="Photo"/>`:r`<div class="placeholder" aria-hidden="true">${t(`vaadin:camera`,`width: var(--lumo-icon-size-l, 2.25rem); height: var(--lumo-icon-size-l, 2.25rem);`)}</div>`}
                 <div class="actions">
                     <button class="button button--primary" @click="${this.openCamera}">
                         ${e?`Retake`:`Take photo`}
                     </button>
-                    ${this.cameraError?a`
-                        <button class="button" @click="${this.triggerFallback}">Use file / native camera</button>`:i}
-                    ${e?a`
-                        <button class="button button--danger" @click="${()=>this.emit(``)}">${s(`delete`)}</button>`:i}
+                    ${this.cameraError?r`
+                        <button class="button" @click="${this.triggerFallback}">Use file / native camera</button>`:a}
+                    ${e?r`
+                        <button class="button button--danger" @click="${()=>this.emit(``)}">${s(`delete`)}</button>`:a}
                 </div>
-                ${this.cameraError?a`
-                    <div class="error-hint">Camera unavailable — the file picker opens the device camera on phones.</div>`:i}
-            `}`}static{this.styles=t`
+                ${this.cameraError?r`
+                    <div class="error-hint">Camera unavailable — the file picker opens the device camera on phones.</div>`:a}
+            `}`}static{this.styles=e`
         :host {
             display: block;
             max-width: 420px;
@@ -76,4 +76,4 @@ import{Ft as e,Mt as t,Ot as n,P as r,St as i,Tt as a,_t as o,ft as s,kt as c,xt
             font-size: var(--lumo-font-size-xs, 0.75rem);
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.6));
         }
-    `}};o([c()],u.prototype,`fieldId`,void 0),o([c()],u.prototype,`value`,void 0),o([n()],u.prototype,`cameraOpen`,void 0),o([n()],u.prototype,`cameraError`,void 0),u=o([e(`mateu-camera-capture`)],u);export{u as MateuCameraCapture};
+    `}};o([n()],u.prototype,`fieldId`,void 0),o([n()],u.prototype,`value`,void 0),o([c()],u.prototype,`cameraOpen`,void 0),o([c()],u.prototype,`cameraError`,void 0),u=o([i(`mateu-camera-capture`)],u);export{u as MateuCameraCapture};

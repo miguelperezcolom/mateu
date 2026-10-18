@@ -61,13 +61,10 @@ final class ViewToolbarBuilder {
     if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
-    // Only what the crud can do: a listing that is only Navigable has no create form and no editor,
-    // and offering them led to a route nothing serves.
-    if (!orchestrator.readOnly()
-        && orchestrator.canCreate()
-        && !hiddenByEntity(finalEntity, "new", httpRequest)) {
-      toolbar.add(new Button(orchestrator.addAnotherLabel(), "new"));
-    }
+    // No "Add another" here: the view of an EXISTING record is not the place to start another one
+    // (the listing's New is). It belongs to the create flow — the toast a successful create answers
+    // with offers it (PersistActionHandler). Only what the crud can do: a listing that is only
+    // Navigable has no editor, and offering it led to a route nothing serves.
     if (!viewReadOnly(item, orchestrator)
         && orchestrator.canEdit()
         && !hiddenByEntity(finalEntity, "edit", httpRequest)) {

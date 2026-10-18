@@ -466,6 +466,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
   }
 
+  // ── money ─────────────────────────────────────────────────────────────────────────────────────
+  // The rule the web renderers follow (libs/mateu moneyFormat): an Amount ({value, currency, locale})
+  // is written in ITS locale and currency; a bare number declared money gets two decimals grouped the
+  // way the UI's locale groups them — the app's (<html lang> / explicit), else the browser's. It used to
+  // be hard-wired to de-DE, so an English app read "1.234,50".
+
+  /** The UI's full locale tag (explicit > <html lang> > browser > 'en'), for number formatting. */
+  function uiLocale() {
+    return explicitLanguage
+      || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || 'en'
+  }
+
+  function intl(locale, options) {
+    try { return new Intl.NumberFormat(locale, options) } catch (e) {
+      try { return new Intl.NumberFormat(String(locale || '').replace(/_/g, '-'), options) } catch (e2) {
+        return new Intl.NumberFormat('en', options)
+      }
+    }
+  }
+
+  const TWO_DECIMALS = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+
+  /** A money number with two decimals in `locale` (default: the UI's); not a finite number → ''. */
+  function moneyNumberText(value, locale) {
+    const n = typeof value === 'number' ? value : parseFloat(String(value))
+    if (!Number.isFinite(n)) return ''
+    return intl(locale || uiLocale(), TWO_DECIMALS).format(n)
+  }
+
+  /** Any money value as text: an Amount in its own locale/currency, a number in the UI's locale. */
+  function moneyText(raw, locale) {
+    const amount = raw && typeof raw === 'object' && 'value' in raw ? raw : null
+    const value = amount ? amount.value : raw
+    if (value === null || value === undefined || value === '') return ''
+    const n = typeof value === 'number' ? value : parseFloat(String(value))
+    if (Number.isNaN(n)) return String(value)
+    const own = (amount && amount.locale) || locale || uiLocale()
+    if (amount && amount.currency) {
+      try { return new Intl.NumberFormat(own, { style: 'currency', currency: amount.currency }).format(n) } catch (e) {
+        return moneyNumberText(n, own) + ' ' + amount.currency
+      }
+    }
+    return moneyNumberText(n, own)
+  }
+
 
 
   // LISTING PERSONALISATION in the browser: the COLUMN CHOOSER (which ones show and in what
@@ -3631,8 +3677,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...(route ? { route } : {}),
       }
     }
-    const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
-      .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
+    const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
     const STATUS_TEXT = {
       success: 'oj-text-color-success',
       warning: 'oj-text-color-warning',
@@ -6310,6 +6356,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** What a cell shows for a raw value: the column's label for it, or the value itself. */
   function valueLabelOf(c, value) {
+    // an amount of money reads formatted: "89.50" in the UI's locale, an Amount in its own ("€89.50")
+    if (isMoneyColumn(c) && value != null && value !== '') return moneyText(value)
     // a boolean reads Yes / No, never the raw "true" / "false" (UX review W-R-BOOL: Nielsen #2)
     if (isBoolColumn(c) && typeof value === 'boolean') return chromeText(value ? 'confirmYes' : 'confirmNo')
     const labels = c && c.valueLabels
@@ -6317,6 +6365,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const label = labels[String(value)]
     return label != null ? label : value
   }
+
+  /** A column of amounts: an Amount (dataType money) or a number declared money (stereotype). */
+  const isMoneyColumn = (c) => !!c && (c.dataType === 'money' || c.stereotype === 'money')
 
   /** Whether a (non-status, non-editable) column reads its values through their labels. */
   const isBoolColumn = (c) => !!c && (c.dataType === 'bool' || c.dataType === 'boolean')
@@ -6329,7 +6380,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function labelColumn(c) {
-    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c))) && !c.editable
+    return !!(c && ((c.valueLabels && Object.keys(c.valueLabels).length) || isBoolColumn(c) || isMoneyColumn(c))) && !c.editable
       && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
   }
 
@@ -8460,6 +8511,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
   // ── PlanningBoard (Room Diary) on oj-gantt ────────────────────────────────────────────────────
@@ -8624,7 +8676,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function formatAggregate(value, col) {
     if (value == null) return ''
     if (col.dataType === 'money' || col.stereotype === 'money')
-      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+      return moneyNumberText(value)
     if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
     return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
   }

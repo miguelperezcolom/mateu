@@ -311,6 +311,10 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return "Edit";
   }
 
+  /**
+   * The label of the "Add another" affordance a successful create offers in its confirmation toast
+   * (it starts the next record). It is not on the view of an existing record.
+   */
   public String addAnotherLabel() {
     return "Add another";
   }

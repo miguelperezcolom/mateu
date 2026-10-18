@@ -309,9 +309,13 @@ class CrudMapperMixin(MixinBase):
 
     @staticmethod
     def column_stereotype_of(f) -> str | None:
-        """"primary" when the column field carries PrimaryColumn() (coherence-plan #6); None
-        otherwise (mirrors Java's ColumnTypeMapper.getStereotypeForColumn)."""
-        return "primary" if f.marker(PrimaryColumn) is not None else None
+        """"primary" when the column field carries PrimaryColumn() (coherence-plan #6), "money"
+        for Money(); None otherwise (mirrors Java's ColumnTypeMapper.getStereotypeForColumn)."""
+        if f.marker(PrimaryColumn) is not None:
+            return "primary"
+        # Money(): the cell is written as an amount ("89.50" in the UI's locale), as Java's
+        # @Stereotype(money) column
+        return "money" if f.has(Money) else None
 
     @staticmethod
     def caption_path_of(f) -> str | None:
@@ -617,7 +621,8 @@ class CrudMapperMixin(MixinBase):
         save_and_next: Button | None = None,
     ) -> ServerSideComponent:
         """The detail/edit/create form of a crud or capability listing. ``can_edit`` /
-        ``can_create`` trim the view-mode toolbar to the declared capabilities;
+        ``can_create`` trim the view-mode toolbar to the declared capabilities (``can_create`` is
+        kept for callers: the view no longer offers "Add another");
         ``save_action_id`` is the action Save dispatches ("create" on the crud path, "save" on
         a capability listing's editor)."""
         # The page is named after the RECORD, as Java's CrudFormComponentBuilder does
@@ -625,12 +630,11 @@ class CrudMapperMixin(MixinBase):
         # never the crud's title.
         title = self.T(record_title(element, entity))
         # The toolbar exactly as Java's CrudFormComponentBuilder / ViewToolbarBuilder draw it: the
-        # way back (Cancel / Back to list) is a tertiary button, the view page offers "Add another"
-        # before "Edit", and an EDIT form saves through "save" ("create" is the creation form's).
+        # way back (Cancel / Back to list) is a tertiary button, the view page offers "Edit" (no "Add
+        # another": that belongs to the create flow — the toast confirming a create offers it), and
+        # an EDIT form saves through "save" ("create" is the creation form's).
         if mode == "view":
             toolbar = [Button(label="Back to list", action_id="cancel-view", button_style="tertiary")]
-            if can_create:
-                toolbar.append(Button(label="Add another", action_id="new"))
             if can_edit:
                 toolbar.append(Button(label="Edit", action_id="edit"))
         elif mode == "edit":

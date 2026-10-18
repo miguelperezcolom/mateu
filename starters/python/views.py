@@ -9,6 +9,7 @@ from typing import Annotated
 from mateu_ui.uidl import (
     Crud,
     HomeRouteSupplier,
+    Money,
     Panel,
     Required,
     Welcome,
@@ -31,7 +32,7 @@ class Product:
 
     id: Annotated[str, Required()] = ""
     name: Annotated[str, Required()] = ""
-    price: float = 0.0
+    price: Annotated[float, Money()] = 0.0
     status: ProductStatus = ProductStatus.Available
 
 

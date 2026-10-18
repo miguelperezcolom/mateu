@@ -1,3 +1,4 @@
+import { moneyValueText } from './money.ts';
 /**
  * Pure UX decisions of the React Native renderer, kept out of the components so they can be
  * unit-tested with `node --test` (the components import react-native, which node cannot load).
@@ -242,21 +243,10 @@ export function moneyInputCommit(raw: unknown, text: string): unknown {
   return n === null || Number.isNaN(n) ? null : n;
 }
 
-/** Read-only money text: an Amount formats with its OWN locale and currency, a number as de-DE 2dp. */
+/** Read-only money text: an Amount formats with its OWN locale and currency, a number with two
+ *  decimals in the UI's locale (the app's, else the device's — see money.ts). */
 export function moneyText(raw: unknown): string {
-  const amount = isAmount(raw) ? raw : null;
-  const v = amount ? amount.value : raw;
-  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
-  if (Number.isNaN(n)) return v === null || v === undefined ? '' : String(v);
-  const locale = (amount && typeof amount.locale === 'string' && amount.locale) || 'de-DE';
-  const currency = amount && typeof amount.currency === 'string' && amount.currency ? amount.currency : null;
-  try {
-    return new Intl.NumberFormat(locale, currency
-      ? { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-  } catch {
-    return n.toFixed(2);
-  }
+  return moneyValueText(raw);
 }
 
 /** A stepper's value: null (unset — shown empty, as the web's integer field) or a number. */

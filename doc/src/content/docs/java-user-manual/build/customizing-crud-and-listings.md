@@ -209,7 +209,7 @@ Every built-in CRUD button label can be replaced by overriding the matching meth
 | `cancelLabel()` | `Cancel` |
 | `deleteLabel()` | `Delete` |
 | `editLabel()` | `Edit` |
-| `addAnotherLabel()` | `Add another` |
+| `addAnotherLabel()` | `Add another` — offered by the toast confirming a create (not on the view of an existing record) |
 | `backToListLabel()` | `Back to list` |
 | `importLabel()` | `Import` |
 | `historyLabel()` | `History` |

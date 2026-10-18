@@ -196,7 +196,8 @@ describe('cells by column kind', () => {
     for (const [what, over, row, check] of [
         ['a status', { dataType: 'status' }, { name: 'OK' }, 'Ok'],
         ['a boolean', { dataType: 'bool' }, { name: true }, ''],
-        ['a money stereotype', { stereotype: 'money' }, { name: 1234.5 }, '1.234,50'],
+        // two decimals in the UI locale (jsdom's browser language is en-US)
+        ['a money stereotype', { stereotype: 'money' }, { name: 1234.5 }, '1,234.50'],
         ['an Amount', { dataType: 'money' }, { name: { value: 12, locale: 'en-US', currency: 'USD' } }, '$12.00'],
         ['a primary cell', { stereotype: 'primary' }, { name: 'Lead' }, 'Lead'],
     ] as const) {

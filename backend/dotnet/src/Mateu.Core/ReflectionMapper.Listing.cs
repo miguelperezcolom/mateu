@@ -507,7 +507,11 @@ internal sealed partial class ReflectionMapper
     /// <summary>The rich "primary" column stereotype (coherence-plan #6) when the property carries
     /// [PrimaryColumn]; null otherwise. (Mirrors Java's ColumnTypeMapper.getStereotypeForColumn.)</summary>
     internal static string? ColumnStereotypeOf(PropertyInfo p) =>
-        p.Find<PrimaryColumnAttribute>() is not null ? "primary" : null;
+        p.Find<PrimaryColumnAttribute>() is not null ? "primary"
+        // [Money]: the cell is written as an amount ("89.50" in the UI's locale), as Java's
+        // @Stereotype(money) column (ColumnTypeMapper.getStereotypeForColumn)
+        : p.Find<MoneyAttribute>() is not null ? "money"
+        : null;
 
     internal static string? CaptionPathOf(PropertyInfo p) =>
         p.Find<PrimaryColumnAttribute>()?.Caption is { Length: > 0 } c ? c : null;

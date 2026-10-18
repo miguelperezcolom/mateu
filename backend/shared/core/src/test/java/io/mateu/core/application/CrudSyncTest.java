@@ -446,6 +446,46 @@ class CrudSyncTest {
   }
 
   @org.junit.jupiter.api.Test
+  void addAnotherIsOfferedByTheCreateConfirmationNotByTheViewOfAnExistingRecord() {
+    // the view of an existing record: Back to list and Edit — no "Add another" next to Edit
+    var view = crud("/items/1", "");
+    var buttons = new ArrayList<io.mateu.dtos.ButtonDto>();
+    view.fragments().forEach(f -> collectButtons(f.component(), buttons));
+    org.assertj.core.api.Assertions.assertThat(buttons)
+        .extracting(io.mateu.dtos.ButtonDto::actionId)
+        .contains("cancel-view", "edit")
+        .doesNotContain("new");
+    // the create flow: the toast confirming the new record offers the next one
+    var created =
+        crud(
+            "/items/new",
+            "create",
+            Map.of(),
+            Map.of("initiatorState", Map.of("name", "Saw", "units", 7, "active", true)));
+    org.assertj.core.api.Assertions.assertThat(created.messages())
+        .singleElement()
+        .satisfies(
+            message -> {
+              org.assertj.core.api.Assertions.assertThat(message.text())
+                  .isEqualTo("Item saved successfully");
+              org.assertj.core.api.Assertions.assertThat(message.undoLabel())
+                  .isEqualTo("Add another");
+              org.assertj.core.api.Assertions.assertThat(message.undoActionId()).isEqualTo("new");
+            });
+    // an EDIT's confirmation offers nothing more
+    var saved =
+        crud(
+            "/items/1/edit",
+            "save",
+            Map.of("id", "1", "name", "Sledgehammer", "units", 11, "active", false),
+            null);
+    org.assertj.core.api.Assertions.assertThat(saved.messages())
+        .singleElement()
+        .satisfies(
+            message -> org.assertj.core.api.Assertions.assertThat(message.undoActionId()).isNull());
+  }
+
+  @org.junit.jupiter.api.Test
   void saveWithComponentStateOnlyPersistsTheEdit() {
     // no parameters at all: toEntity must fall back to the componentState
     crud(

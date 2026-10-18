@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+// money follows the UI's locale (moneyFormat): these expectations are written for a German one
+beforeAll(() => { vi.stubGlobal('navigator', { language: 'de-DE' }) })
+afterAll(() => { vi.unstubAllGlobals() })
 import {
     GroupRow,
     buildAggregateFooters,
@@ -125,7 +129,7 @@ describe('groupRowCellText', () => {
 })
 
 describe('formatAggregateValue', () => {
-    it('formats money like the money cells (de-DE, 2 decimals)', () => {
+    it('formats money like the money cells (2 decimals, the UI locale)', () => {
         expect(formatAggregateValue(1234.5, { dataType: 'money', aggregate: 'sum' })).toBe('1.234,50')
         expect(formatAggregateValue(1234.5, { stereotype: 'money', aggregate: 'avg' })).toBe('1.234,50')
     })

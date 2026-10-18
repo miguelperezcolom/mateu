@@ -178,7 +178,8 @@ class ListingHandlerMixin(MixinBase):
             self._invoke(view.create, form, rq)
             if drawer_editor:
                 return self._close_drawer_and_research(rq)
-            return self.navigate(base_route, "Saved", rq)
+            # a create's confirmation offers "Add another" (the drawer closes onto the listing's New)
+            return self.navigate_after_create(base_route, rq)
         if deletable and aid == "delete":
             self._invoke(view.delete_all_by_id, self._selected_ids(rq), rq)
             refreshed = self.listing_search(view, rq)

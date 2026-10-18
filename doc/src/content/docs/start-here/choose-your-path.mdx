@@ -41,7 +41,7 @@ rowsSource:
 columns:
   - {type: GridColumn, id: id, label: Id, identifier: true}
   - {type: GridColumn, id: name, label: Name}
-  - {type: GridColumn, id: price, label: Price}
+  - {type: GridColumn, id: price, label: Price, stereotype: money}
   - {type: GridColumn, id: status, label: Status, dataType: status}
 ```
 
@@ -62,7 +62,8 @@ backend, or bundled into static files.
 
 ```java
 public record Product(@NotEmpty String id, @NotEmpty String name,
-                      @Min(0) double price, @NotNull ProductStatus status)
+                      @Min(0) @Stereotype(FieldStereotype.money) double price,
+                      @NotNull ProductStatus status)
     implements Identifiable {}
 
 @UI("/products")
@@ -86,7 +87,7 @@ public class Product
 {
     [Required] public string Id { get; set; } = "";
     [Required] public string Name { get; set; } = "";
-    [Range(0, double.MaxValue)] public double Price { get; set; }
+    [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }
 }
 
@@ -109,7 +110,7 @@ Runs on ASP.NET Core (`dotnet add package Mateu.AspNetCore --prerelease`).
 class Product:
     id: Annotated[str, Required()] = ""
     name: Annotated[str, Required()] = ""
-    price: float = 0.0
+    price: Annotated[float, Money()] = 0.0
     status: ProductStatus = ProductStatus.Available
 
 @ui("products")

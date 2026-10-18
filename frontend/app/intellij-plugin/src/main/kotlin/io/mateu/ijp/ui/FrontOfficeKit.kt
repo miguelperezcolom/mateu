@@ -17,9 +17,9 @@ import javax.swing.JPanel
 
 /** Shared Swing helpers of the front-office UX components (money format, badge palette, chips, avatars, item actions). */
 
-/** de-DE style money formatting: 1234.5 → "1.234,50" (fixed 2 decimals, thousands dots). */
-internal fun uxFormatAmount(value: Double): String =
-    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.GERMANY)).format(value)
+/** Money formatting: two decimals in the UI's locale (the app's, else the IDE's — see [MoneyValues]):
+ *  1234.5 → "1,234.50" in an English app, "1.234,50" in a German one. */
+internal fun uxFormatAmount(value: Double): String = MoneyValues.numberText(value)
 
 /** Badge palette (normal | success | warning | error | contrast) as theme-aware foregrounds. */
 internal fun uxPaletteColor(color: String): Color = when (color.lowercase()) {

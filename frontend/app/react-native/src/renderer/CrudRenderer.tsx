@@ -554,7 +554,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <>
                         {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
                         <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
-                          {cellText(item[col.fieldId], col.valueLabels)}
+                          {cellText(item[col.fieldId], col.valueLabels, col)}
                         </Text>
                       </>
                     );
@@ -622,7 +622,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <TouchableOpacity {...rowA11y(item)} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
                     <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}</Text>
                     <Text style={styles.listSecondary} numberOfLines={1}>
-                      {colDefs.slice(1).map((c) => cellText(item[c.fieldId], c.valueLabels)).filter(Boolean).join(' · ')}
+                      {colDefs.slice(1).map((c) => cellText(item[c.fieldId], c.valueLabels, c)).filter(Boolean).join(' · ')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -696,7 +696,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     <TouchableOpacity {...rowA11y(item)} style={styles.tableRowCells} onPress={() => handleRowPress(item)}>
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
-                      const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels)}</Text>;
+                      const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels, col)}</Text>;
                       if (col.display) return renderDisplayCell(col, item, styles.cell, content);
                       return tip ? (
                         <TouchableOpacity

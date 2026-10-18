@@ -1,4 +1,5 @@
 import { GroupSummary, ListingData } from "@mateu/shared/apiClients/dtos/ListingData";
+import { formatMoneyNumber } from "@infra/ui/moneyFormat.ts";
 
 /**
  * LISTING AGGREGATES + ROW GROUPING — shared, renderer-agnostic logic.
@@ -77,7 +78,7 @@ export const interleaveGroupRows = <T>(
 
 /**
  * Formats an aggregate value like the matching cells do: money dataType/stereotype → the
- * money-cell format (de-DE, 2 decimals); count → integer; anything else → locale number
+ * money-cell format (2 decimals in the UI's locale, see moneyFormat); count → integer; anything else → locale number
  * with max 2 decimals.
  */
 export const formatAggregateValue = (
@@ -86,7 +87,7 @@ export const formatAggregateValue = (
 ): string => {
     if (value == null) return ''
     if (column.dataType === 'money' || column.stereotype === 'money') {
-        return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+        return formatMoneyNumber(value)
     }
     if (column.aggregate === 'count') {
         return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))

@@ -11,6 +11,21 @@ import javax.swing.JTree
  * the row, the pager, master-detail, the tree layout, the pre-search content and cell tooltips.
  */
 class CrudFeaturesRenderTest : RenderTestCase() {
+    // the expectations below are written in a Spanish app's number format; pin it, or the test
+    // depends on the machine's default locale (money follows the UI locale since 3.0-alpha.430)
+    override fun setUp() {
+        super.setUp()
+        MoneyValues.setAppLocale("es-ES")
+    }
+
+    override fun tearDown() {
+        try {
+            MoneyValues.setAppLocale(null)
+        } finally {
+            super.tearDown()
+        }
+    }
+
 
     private fun crudContext(): AppContext = context().also { it.currentServerSideType = "x.Bookings" }
 

@@ -1,15 +1,16 @@
+import { moneyNumberText } from '../core/money.ts';
 // Small decisions of DisplayRenderer.tsx that are not drawing: amount formatting (meters, add-on
 // pickers, ledgers), the hero's height, and the add-on picker's selection and total. Pure
 // TypeScript, tested by node's runner.
 
-/** Fixed 2-decimals + thousands-dot (de-DE style) amount: 1234.5 → "1.234,50". */
+/** An amount with two decimals in the UI's locale (the app's, else the device's — see money.ts):
+ *  1234.5 → "1,234.50" in an English app, "1.234,50" in a German one. */
 export const fmtAmount = (n: number): string => {
   const sign = n < 0 ? '-' : '';
-  const [int, dec] = Math.abs(n).toFixed(2).split('.');
-  return `${sign}${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`;
+  return `${sign}${moneyNumberText(Math.abs(n))}`;
 };
 
-/** A ledger line: the sign before the currency ("-EUR 12,00"). */
+/** A ledger line: the sign before the currency ("-EUR 12.00"). */
 export const ledgerAmount = (amount: number, currency: string): string =>
   `${amount < 0 ? '-' : ''}${currency ? `${currency} ` : ''}${fmtAmount(Math.abs(amount))}`;
 

@@ -4,6 +4,7 @@ import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
   rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute, stackAfterGoTo,
 } from './uxRules.ts';
+import { setAppLocale } from './money.ts';
 
 test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
   // the Java SUT's /bulk-actions: seeded with "" and its delete answers "/list" — same screen
@@ -141,7 +142,17 @@ test('an Amount field edits its value and keeps currency/locale (nullable-number
   assert.equal(moneyInputCommit(7, ''), null);
   assert.equal(moneyInputText(null), '');
   assert.equal(moneyText(price).replace(/\s/g, ' '), '25,50 €');
-  assert.equal(moneyText(1234.5), '1.234,50');
+  setAppLocale('de-DE');
+  try {
+    assert.equal(moneyText(1234.5), '1.234,50');
+    // an English app: the number in English, an Amount still in its own locale
+    setAppLocale('en-US');
+    assert.equal(moneyText(89.5), '89.50');
+    assert.equal(moneyText({ value: 89.5, currency: 'EUR' }), '€89.50');
+    assert.equal(moneyText(price).replace(/\s/g, ' '), '25,50 €');
+  } finally {
+    setAppLocale(undefined);
+  }
 });
 
 test('an unset integer stepper is empty, not 0', () => {

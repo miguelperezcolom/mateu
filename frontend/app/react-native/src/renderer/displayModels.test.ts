@@ -2,8 +2,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { addOnTotal, fmtAmount, heroHeight, ledgerAmount, toggleAddOn } from './displayModels.ts';
+import { setAppLocale } from '../core/money.ts';
 
-test('amounts: two decimals, dot thousands, comma decimals, sign first', () => {
+// money follows the UI's locale (money.ts): these expectations are a German app's
+setAppLocale('de-DE');
+
+test('amounts: two decimals, the UI locale grouping (de-DE here: dot thousands, comma decimals), sign first', () => {
   assert.equal(fmtAmount(1234.5), '1.234,50');
   assert.equal(fmtAmount(1234567.891), '1.234.567,89');
   assert.equal(fmtAmount(0), '0,00');
@@ -38,4 +42,14 @@ test('the add-on toggle says what it adds or removes (an icon-only "+" told a sc
   assert.deepEqual(addOnToggleA11y({ title: 'Spa' }, false), { label: 'Add Spa', selected: false });
   assert.deepEqual(addOnToggleA11y({ title: 'Spa' }, true), { label: 'Remove Spa', selected: true });
   assert.deepEqual(addOnToggleA11y({ id: 'late' }, false), { label: 'Add late', selected: false });
+});
+
+test('amounts in an English app read the English way — not the de-DE default they used to', () => {
+  setAppLocale('en-US');
+  try {
+    assert.equal(fmtAmount(1234.5), '1,234.50');
+    assert.equal(ledgerAmount(-12, 'EUR'), '-EUR 12.00');
+  } finally {
+    setAppLocale('de-DE');
+  }
 });

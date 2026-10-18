@@ -1,4 +1,5 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { formatMoneyValue } from "@infra/ui/moneyFormat.ts";
 import { shownReadOnlyValue } from '@infra/ui/passwordMask.ts'
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
@@ -39,7 +40,9 @@ export const renderNeutralField = (component: ClientSideComponent, state: Compon
 
     let control
     if (readOnly || stereotype === 'plainText') {
-        control = html`<div style="padding:.4rem 0;">${String(shownReadOnlyValue(field as { stereotype?: string }, value) ?? '')}</div>`
+        const money = (dataType === 'money' || stereotype === 'money') && value !== null && value !== undefined && value !== ''
+        const shown = money ? formatMoneyValue(value) : shownReadOnlyValue(field as { stereotype?: string }, value)
+        control = html`<div style="padding:.4rem 0;">${String(shown ?? '')}</div>`
     } else if (dataType === 'boolean' || dataType === 'bool' || stereotype === 'checkbox' || stereotype === 'badge') {
         control = html`<input type="checkbox" ?checked="${!!value}" ?disabled="${disabled}" @change="${onInput(field)}">`
     } else if (options && options.length) {

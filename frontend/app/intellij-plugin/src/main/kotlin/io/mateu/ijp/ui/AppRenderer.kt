@@ -35,6 +35,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appActions = metadata.path("actions").takeIf { it.isArray }
         // The app's ACTION catalogue: an id the shell (or a view) does not declare resolves here.
         session.actionCatalogue = metadata.path("actionCatalogue").takeIf { it.isArray }
+        // the app's locale (AppDto.locale) writes its amounts of money (MoneyValues)
+        if (metadata.path("locale").isTextual) MoneyValues.setAppLocale(metadata.path("locale").asText())
         session.appRootRoute = metadata.text("rootRoute")
         session.appServerSideType = metadata.text("serverSideType").ifBlank { null }
         // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.

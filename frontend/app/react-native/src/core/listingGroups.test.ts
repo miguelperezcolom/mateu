@@ -9,6 +9,10 @@ import {
   isGroupRow,
   type GroupRow,
 } from './listingGroups.ts';
+import { setAppLocale } from './money.ts';
+
+// money follows the UI's locale (money.ts): these expectations are a German app's
+setAppLocale('de-DE');
 
 const rows = [
   { id: 1, city: 'Palma', amount: 10 },

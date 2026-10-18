@@ -1132,8 +1132,19 @@ export class MateuApp extends ComponentElement {
            inherited through those, so the header sets two:
              display: var(--mateu-header-wide-only, inline)   shown except when compact
              display: var(--mateu-header-narrow-only, none)   shown only when compact (inline-flex, what a vaadin-icon needs to keep its size and place) */
+        /* TABS: the header row takes the content's gutter (.app-content pads 2rem), so the title, the
+           back link and the widgets line up with the page below instead of sitting 10px from the
+           edge (the brand's own 10px inset is for the rows that bring no gutter of their own). */
+        .mateu-app-header--tabs { box-sizing: border-box; padding-inline: 2rem; }
+        .mateu-app-header--tabs .mateu-app-title,
+        .mateu-app-header--tabs .mateu-app-brand img,
+        .mateu-app-header--tabs > .mateu-back-link { margin-inline-start: 0 !important; }
         @media (max-width: 600px) {
             .mateu-app-header .mateu-app-title { display: none; }
+            /* the title is gone: the tab strip starts the row, its first tab's TEXT at the gutter
+               (a tab pads itself 1rem) */
+            .mateu-app-header--tabs { padding-inline: 1rem; }
+            .mateu-app-header--tabs > .mateu-tabs { margin-left: 0 !important; }
             .mateu-app-header { --mateu-header-wide-only: none; --mateu-header-narrow-only: inline-flex; }
             /* compact header: every pixel of the row is the menu's */
             .mateu-app-widgets { gap: var(--lumo-space-s, .5rem); }

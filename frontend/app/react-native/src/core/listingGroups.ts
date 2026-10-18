@@ -1,3 +1,4 @@
+import { moneyNumberText } from './money.ts';
 /**
  * LISTING AGGREGATES + ROW GROUPING — the React Native port of the web renderers' shared
  * helpers (frontend/web/monorepo/libs/mateu/src/mateu/ui/infra/ui/listingGroups.ts). Keep the
@@ -88,7 +89,7 @@ export const interleaveGroupRows = <T>(
 
 /**
  * Formats an aggregate value like the matching cells do: money dataType/stereotype → the
- * money-cell format (de-DE, 2 decimals); count → integer; anything else → locale number with
+ * money-cell format (2 decimals in the UI's locale, see money.ts); count → integer; anything else → locale number with
  * max 2 decimals.
  */
 export const formatAggregateValue = (
@@ -97,7 +98,7 @@ export const formatAggregateValue = (
 ): string => {
   if (value == null) return '';
   if (column.dataType === 'money' || column.stereotype === 'money') {
-    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    return moneyNumberText(value);
   }
   if (column.aggregate === 'count') {
     return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value));

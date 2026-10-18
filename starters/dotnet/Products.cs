@@ -10,7 +10,7 @@ public class Product
 {
     [Required] public string Id { get; set; } = "";
     [Required] public string Name { get; set; } = "";
-    [Range(0, double.MaxValue)] public double Price { get; set; }
+    [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }
 }
 

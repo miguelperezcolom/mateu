@@ -12,7 +12,7 @@ import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, shownReadOn
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
-import { chromeText } from '../i18n.mjs'
+import { chromeText, moneyNumberText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
@@ -302,8 +302,8 @@ export function islandContentOf(ctx, opts = {}) {
       ...(route ? { route } : {}),
     }
   }
-  const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
-    .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
+  const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
   const STATUS_TEXT = {
     success: 'oj-text-color-success',
     warning: 'oj-text-color-warning',

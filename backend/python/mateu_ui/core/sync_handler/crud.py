@@ -471,6 +471,9 @@ class CrudHandlerMixin(MixinBase):
                 ],
                 messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],
             )
+        if id_ is None and self.mapper._crud_display(type(crud), crud).create.enabled():
+            # a create's confirmation offers "Add another" (the crud can still create)
+            return self.navigate_after_create(base_route, rq)
         return self.navigate(base_route, "Saved", rq)
 
     def field_search(self, instance, rq: RunActionRq) -> UIIncrement:

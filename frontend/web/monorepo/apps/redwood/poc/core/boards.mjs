@@ -1,5 +1,6 @@
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { dataProviderFactory } from './content.mjs'
+import { moneyNumberText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
 // ── PlanningBoard (Room Diary) on oj-gantt ────────────────────────────────────────────────────
@@ -164,7 +165,7 @@ export function toneRows(rows, field) {
 export function formatAggregate(value, col) {
   if (value == null) return ''
   if (col.dataType === 'money' || col.stereotype === 'money')
-    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+    return moneyNumberText(value)
   if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
 }

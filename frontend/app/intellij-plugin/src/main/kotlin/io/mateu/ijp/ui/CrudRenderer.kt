@@ -597,7 +597,7 @@ internal fun isNumericColumn(dataType: String, stereotype: String): Boolean =
  * The text of a numeric cell: grouped digits in the user's locale, no spurious ".0" on whole
  * numbers, two decimals for money. "650.0" (the raw double) made a column of prices read as code.
  */
-internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Locale = java.util.Locale.getDefault()): String {
+internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Locale = MoneyValues.uiLocale()): String {
     val n = raw.trim().toBigDecimalOrNull() ?: return raw
     val f = java.text.NumberFormat.getNumberInstance(locale)
     if (money) { f.minimumFractionDigits = 2; f.maximumFractionDigits = 2 } else { f.maximumFractionDigits = 6 }
@@ -646,15 +646,12 @@ private fun JsonNode?.groupKeyString(): String =
     if (this == null || isNull || isMissingNode) "" else asText("")
 
 /**
- * Formats an aggregate value like the matching cells do: money dataType/stereotype → German
+ * Formats an aggregate value like the matching cells do: money dataType/stereotype → the UI's
  * locale with exactly 2 fraction digits; 'count' → integer; else default locale, max 2 decimals.
  */
 private fun formatAggregate(value: Double, spec: ColSpec): String {
     if (spec.dataType == "money" || spec.stereotype == "money") {
-        val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY)
-        nf.minimumFractionDigits = 2
-        nf.maximumFractionDigits = 2
-        return nf.format(value)
+        return MoneyValues.numberText(value)
     }
     if (spec.aggregate == "count") {
         return java.text.NumberFormat.getIntegerInstance().format(Math.round(value))

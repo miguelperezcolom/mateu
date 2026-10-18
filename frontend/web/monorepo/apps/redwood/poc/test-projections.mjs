@@ -19,9 +19,9 @@ import {
   smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
   smartFilterDropdownRowsOf, suggestionsProviderOf, smartFiltersOf, setMetadataProviderFactory, IDS_PARAM,
   pageSwitcherOf, switcherPickOf, pageKpisOf, welcomeOf,
-  planningActionOf, formatAggregate, aggregateFootersOf, groupedRows, rowToneOf,
+  planningActionOf, formatAggregate, aggregateFootersOf, groupedRows, rowToneOf, labelCellRows, LABEL_CELL_SUFFIX,
 } from './reduceContexts.mjs'
-import { chromeText } from './i18n.mjs'
+import { chromeText, setChromeLanguage, moneyText } from './i18n.mjs'
 import * as prefs from './prefs.mjs'
 import { createChatProgress, classifyChatPayload, projectChatScreen, chatTurnOf, chatTurnTextOf, chatToolStepsOf, formatToolDuration, withAttachments, createSseParser } from './chat.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
@@ -860,6 +860,9 @@ test('tape chart: a drop is the new nights (end exclusive → last night), the r
 })
 
 test('totals: money as money, counts as whole numbers; the footer names the total, a group row its count', () => {
+  // money follows the UI's locale (i18n.moneyText): these expectations are a German one's
+  setChromeLanguage('de-DE')
+  try {
   assert.equal(formatAggregate(1234.5, { dataType: 'money' }), '1.234,50')
   assert.equal(formatAggregate(1234.5, { stereotype: 'money' }), '1.234,50')
   assert.equal(formatAggregate(2.6, { aggregate: 'count' }), new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(3))
@@ -876,6 +879,26 @@ test('totals: money as money, counts as whole numbers; the footer names the tota
   assert.equal(rowToneOf({ s: { type: 'ERROR' } }, 's'), 'danger')
   assert.equal(rowToneOf({ s: { value: 'pink' } }, 's'), null)
   assert.equal(rowToneOf({ s: null }, 's'), null)
+  } finally { setChromeLanguage('') }
+  // …and an English UI groups the English way — the de-DE default it replaced read "1.234,50"
+  setChromeLanguage('en-US')
+  try {
+    assert.equal(formatAggregate(1234.5, { dataType: 'money' }), '1,234.50')
+  } finally { setChromeLanguage('') }
+})
+
+test('money cells: a price column reads "89.50" in the UI locale, an Amount in its own; the row keeps the raw value', () => {
+  setChromeLanguage('en-US')
+  try {
+    const cols = [{ metadata: { id: 'price', dataType: 'number', stereotype: 'money' } }, { metadata: { id: 'total', dataType: 'money' } }]
+    const [row] = labelCellRows([{ price: 89.5, total: { value: 10, currency: 'EUR', locale: 'de-DE' } }], cols)
+    assert.equal(row.price, 89.5)
+    assert.equal(row['price' + LABEL_CELL_SUFFIX], '89.50')
+    assert.equal(row['total' + LABEL_CELL_SUFFIX], '10,00\u00a0€')
+    assert.equal(moneyText({ value: 5, currency: 'EUR' }), '€5.00')
+    assert.equal(moneyText(null), '')
+    assert.equal(moneyText('n/a'), 'n/a')
+  } finally { setChromeLanguage('') }
 })
 
 for (const { name, fn } of queue) {
