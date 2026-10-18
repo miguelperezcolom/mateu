@@ -1,27 +1,8 @@
-"""The Mateu engine: route registry, reflection mapper, and the sync use-case."""
+"""Deprecated alias of :mod:`mateu_ui.core` (removed in Mateu 4): import ``mateu_ui.core`` instead.
 
-from ._version import __version__
-from .action_guard import MateuForbiddenException
-from .importwizard import ColumnMapping, ImportWizard, RowIssue, detect_separator, parse_csv
-from .mapper import ReflectionMapper
-from .registry import MateuRegistry, normalize, type_name
-from .request_context import MateuRequest, current_request
-from .sync_handler import RunActionRq, SyncHandler
+Kept so code written before 3.0-beta keeps importing; see :mod:`mateu_ui._compat`.
+"""
 
-__all__ = [
-    "ColumnMapping",
-    "ImportWizard",
-    "MateuForbiddenException",
-    "MateuRegistry",
-    "MateuRequest",
-    "ReflectionMapper",
-    "RowIssue",
-    "RunActionRq",
-    "SyncHandler",
-    "current_request",
-    "detect_separator",
-    "normalize",
-    "parse_csv",
-    "type_name",
-    "__version__",
-]
+from mateu_ui._compat import alias
+
+alias(__name__)

@@ -8,9 +8,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.request_context import MateuRequest, bound_request  # noqa: E402
-from mateu_uidl import app, menu_item, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.request_context import MateuRequest, bound_request  # noqa: E402
+from mateu_ui.uidl import app, menu_item, ui  # noqa: E402
 
 
 @ui("locale-probe")

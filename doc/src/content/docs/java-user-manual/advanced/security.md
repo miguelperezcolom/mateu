@@ -307,7 +307,7 @@ void reserve() {
 
 In development, `mateu.errors.detailed=true` (`application.properties`, a system property, or `MATEU_ERRORS_DETAILED=true`)
 puts the raw exception class and message back in the toast. The .NET (`Mateu.Uidl.UserFacingException`,
-`System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_uidl.UserFacingException`,
+`System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_ui.uidl.UserFacingException`,
 pydantic `ValidationError`) backends apply the same boundary with the same texts — and an exception
 there is now a toast instead of a framework HTTP 500.
 

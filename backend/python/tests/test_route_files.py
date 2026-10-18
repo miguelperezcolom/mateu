@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.route_registry import RouteRegistry  # noqa: E402
+from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
 
 
 def test_route_files_listed_by_a_mount_and_standalone_type_routes_files_are_read(tmp_path):

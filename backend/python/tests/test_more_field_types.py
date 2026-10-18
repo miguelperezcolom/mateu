@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime, time
 from typing import Optional
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name
-from mateu_uidl import Message, button, ui
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name
+from mateu_ui.uidl import Message, button, ui
 
 
 @ui("/more-field-types")

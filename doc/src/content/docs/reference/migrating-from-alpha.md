@@ -133,6 +133,12 @@ the rest of the `Mateu.Core` engine are `internal`. An app built on `AddMateu` /
 nothing; code that constructed the engine itself must go through `Mateu.AspNetCore`, and a
 `MateuRegistry.RegisterAdapter(adapter)` call becomes an `IComponentAdapter` service registration.
 
+## Deprecated in 3.0-beta (still working)
+
+| Deprecated | Use instead |
+|---|---|
+| The Python top-level packages `mateu_uidl`, `mateu_dtos`, `mateu_core`, `mateu_fastapi` | `mateu_ui.uidl`, `mateu_ui.dtos`, `mateu_ui.core`, `mateu_ui.fastapi` — the `mateu-ui` wheel now installs one top-level package, `mateu_ui`. The old names import the SAME modules (submodules too: `from mateu_core.mapper import ReflectionMapper` still works) and each emits one `DeprecationWarning` naming the new path; type checkers only see the new paths. They are kept for the whole 3.x line. Migrating is a prefix replace |
+
 ## Defaults that changed
 
 These compile unchanged and **behave differently**. Check each against your screens.

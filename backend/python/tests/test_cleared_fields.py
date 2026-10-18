@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, SyncHandler  # noqa: E402
+from mateu_ui.core import MateuRegistry, SyncHandler  # noqa: E402
 
 
 class Booking:

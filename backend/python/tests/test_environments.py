@@ -12,8 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import environments  # noqa: E402
-from mateu_core.rest_source_registry import RestSourceRegistry  # noqa: E402
+from mateu_ui.core import environments  # noqa: E402
+from mateu_ui.core.rest_source_registry import RestSourceRegistry  # noqa: E402
 
 SOURCES = """
 sources:
@@ -72,7 +72,7 @@ def test_the_active_environment_repoints_the_named_sources(tmp_path, monkeypatch
     wire = {e.name: e for e in registry.wire()}
     assert urlparse(wire["orders"].source.url).netloc == "pre.api.acme.com"
     # the proxy resolves a by-ref descriptor against the same catalogue
-    from mateu_dtos import RestDataSource
+    from mateu_ui.dtos import RestDataSource
 
     assert registry.resolve(RestDataSource(ref="payments")).url == "https://pre.pay.acme.com/v1/payments"
 

@@ -12,8 +12,8 @@ from typing import Annotated
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Crud, Listing, RowStatus, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import Crud, Listing, RowStatus, title, ui  # noqa: E402
 
 
 class Tone(Enum):
@@ -143,7 +143,7 @@ def test_a_crud_that_is_not_exportable_offers_no_export_and_refuses_it():
     assert "export-csv" not in [b["actionId"] for b in crud_of(GuestsNoExport)["toolbar"]]
     import pytest
 
-    from mateu_core import MateuForbiddenException
+    from mateu_ui.core import MateuForbiddenException
 
     with pytest.raises(MateuForbiddenException):
         export(GuestsNoExport, "/rs-guests-no-export")

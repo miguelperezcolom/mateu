@@ -10,8 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.route_registry import RouteRegistry  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 
 
 def specs(tmp_path: Path, layout: str, body: str) -> Path:

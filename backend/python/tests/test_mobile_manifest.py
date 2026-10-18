@@ -10,8 +10,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, mobile_manifest, type_name  # noqa: E402
-from mateu_uidl import app, menu_item, mobile_app, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, mobile_manifest, type_name  # noqa: E402
+from mateu_ui.uidl import app, menu_item, mobile_app, title, ui  # noqa: E402
 
 ACME = (
     '{"name":"Acme CRM","shortName":"CRM","icon":"/images/acme.svg","themeColor":"#1f6feb",'
@@ -110,7 +110,7 @@ def test_the_endpoint_is_public_and_cacheable():
     fastapi = pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     api = fastapi.FastAPI()
     add_mateu(api, AcmeApp, MmHome, identity_provider=lambda: None)

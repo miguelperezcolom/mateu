@@ -13,8 +13,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import ImportWizard, parse_csv  # noqa: E402
-from mateu_core.importwizard import ColumnMapping  # noqa: E402
+from mateu_ui.core import ImportWizard, parse_csv  # noqa: E402
+from mateu_ui.core.importwizard import ColumnMapping  # noqa: E402
 
 
 class Size(Enum):

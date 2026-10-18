@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from mateu_core import type_name  # noqa: E402
-from mateu_fastapi import add_mateu  # noqa: E402
-from mateu_uidl import app, menu_item, title, ui  # noqa: E402
+from mateu_ui.core import type_name  # noqa: E402
+from mateu_ui.fastapi import add_mateu  # noqa: E402
+from mateu_ui.uidl import app, menu_item, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

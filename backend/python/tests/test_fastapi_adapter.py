@@ -18,17 +18,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.errors import error_increment  # noqa: E402
-from mateu_core.identity import identity_from_claims  # noqa: E402
-from mateu_core.request_context import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.errors import error_increment  # noqa: E402
+from mateu_ui.core.identity import identity_from_claims  # noqa: E402
+from mateu_ui.core.request_context import (  # noqa: E402
     MateuRequest,
     bearer_token,
     bound_request,
     current_request,
 )
-from mateu_fastapi import CORRELATION_HEADER, add_mateu  # noqa: E402
-from mateu_uidl import EyesOnly, Identity, UserFacingError, button, title, ui  # noqa: E402
+from mateu_ui.fastapi import CORRELATION_HEADER, add_mateu  # noqa: E402
+from mateu_ui.uidl import EyesOnly, Identity, UserFacingError, button, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 SEEN_THREADS: list[str] = []
@@ -57,7 +57,7 @@ class Boom:
     @button()
     def where(self):
         SEEN_THREADS.append(threading.current_thread().name)
-        from mateu_uidl import Message
+        from mateu_ui.uidl import Message
 
         return Message("ok")
 

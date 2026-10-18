@@ -6,7 +6,7 @@ import json
 import unittest
 from pathlib import Path
 
-_mcp_path = Path(__file__).resolve().parents[1] / "mateu_core" / "mcp.py"
+_mcp_path = Path(__file__).resolve().parents[1] / "mateu_ui" / "core" / "mcp.py"
 _spec = importlib.util.spec_from_file_location("mateu_mcp_tools_under_test", _mcp_path)
 mcp = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(mcp)

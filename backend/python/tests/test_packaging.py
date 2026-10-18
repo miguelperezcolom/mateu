@@ -14,7 +14,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import set_version  # noqa: E402
 
-PACKAGES = ["mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
+SUBPACKAGES = ["mateu_ui.uidl", "mateu_ui.dtos", "mateu_ui.core", "mateu_ui.fastapi"]
+#: the pre-beta top-level names, shipped as deprecated aliases (mateu_ui/_compat.py)
+ALIASES = ["mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
 
 
 @pytest.mark.parametrize(
@@ -45,13 +47,18 @@ def test_stamp_rewrites_only_the_version_line(tmp_path):
     assert f.read_text() == '"""doc"""\n\n__version__ = "3.0.0a406"\n'
 
 
-def test_the_wheel_ships_exactly_the_four_packages_typed():
+def test_the_wheel_ships_one_typed_namespace_plus_the_deprecated_aliases():
     meta = tomllib.loads((ROOT / "pyproject.toml").read_text())
     assert meta["project"]["name"] == "mateu-ui"
-    assert meta["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == PACKAGES
-    for pkg in PACKAGES:
-        assert (ROOT / pkg / "py.typed").is_file(), f"{pkg} is not marked typed"
+    assert meta["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["mateu_ui", *ALIASES]
+    assert meta["tool"]["mypy"]["packages"] == ["mateu_ui"]
+    assert (ROOT / "mateu_ui" / "py.typed").is_file(), "mateu_ui is not marked typed"
+    for pkg in SUBPACKAGES:
         importlib.import_module(pkg)
+    for old in ALIASES:
+        # one-file shims: no py.typed (type checkers should see the new paths only)
+        assert sorted(p.name for p in (ROOT / old).iterdir() if p.suffix == ".py") == ["__init__.py"]
+        assert not (ROOT / old / "py.typed").exists()
 
 
 def test_pydantic_is_capped_below_the_next_major():
@@ -60,6 +67,8 @@ def test_pydantic_is_capped_below_the_next_major():
 
 
 def test_the_version_is_exposed():
-    import mateu_core
+    import mateu_ui
+    import mateu_ui.core
 
-    assert mateu_core.__version__
+    assert mateu_ui.__version__
+    assert mateu_ui.core.__version__ == mateu_ui.__version__

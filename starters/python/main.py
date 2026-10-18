@@ -11,7 +11,7 @@ also serves the web page at http://localhost:8080 (add_mateu(..., ui=...) does t
 from fastapi import FastAPI
 
 import views
-from mateu_fastapi import add_mateu
+from mateu_ui.fastapi import add_mateu
 
 app = FastAPI(title="Mateu starter")
 add_mateu(app, views)

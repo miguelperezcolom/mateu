@@ -11,9 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import AdaptedView, ComponentAdapter, Message, ui  # noqa: E402
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import AdaptedView, ComponentAdapter, Message, ui  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 MODULE = sys.modules[__name__]
 
@@ -108,7 +108,7 @@ def test_a_camel_case_action_reaches_the_snake_case_method():
 def test_an_unlisted_method_is_never_reachable():
     import pytest
 
-    from mateu_core import MateuForbiddenException
+    from mateu_ui.core import MateuForbiddenException
 
     with pytest.raises(MateuForbiddenException):
         load(Order, action_id="secret", component_state={})

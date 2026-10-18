@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, mcp, type_name  # noqa: E402
-from mateu_uidl import Listing, Searchable, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, mcp, type_name  # noqa: E402
+from mateu_ui.uidl import Listing, Searchable, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

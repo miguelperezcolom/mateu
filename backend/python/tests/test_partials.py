@@ -18,9 +18,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 HERE = Path(__file__).resolve().parent / "specs" / "ui"
 
-from mateu_core.partial_registry import PartialRegistry  # noqa: E402
-from mateu_core.yaml_preview import build_from_yaml  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.core.partial_registry import PartialRegistry  # noqa: E402
+from mateu_ui.core.yaml_preview import build_from_yaml  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 
 
 def partials() -> PartialRegistry:
@@ -88,7 +88,7 @@ def test_a_partial_can_be_registered_in_code_and_wins_over_a_file_of_the_same_na
 def test_a_layout_delta_page_has_no_layout_of_its_own():
     # A `layoutDelta:` is re-applied over the INFERRED layout (see test_layout_delta.py); the
     # envelope itself must never be rendered as a component.
-    from mateu_core.yaml_preview import parse_spec
+    from mateu_ui.core.yaml_preview import parse_spec
 
     model_view, layout = parse_spec("modelView: com.acme.Contact\nlayoutDelta:\n  order: [b, a]\n")
 

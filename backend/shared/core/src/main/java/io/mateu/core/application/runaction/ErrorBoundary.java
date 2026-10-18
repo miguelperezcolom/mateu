@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  *
  * <p>{@value #DETAILED} ({@code MATEU_ERRORS_DETAILED}) restores the raw class and message in the
- * toast, for development. The .NET ({@code MateuExtensions}) and Python ({@code mateu_fastapi})
+ * toast, for development. The .NET ({@code MateuExtensions}) and Python ({@code mateu_ui.fastapi})
  * adapters apply the same boundary with the same texts.
  */
 @Slf4j

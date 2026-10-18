@@ -10,8 +10,8 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Crud,
     Message,
     button,
@@ -201,7 +201,7 @@ class Booking:
 
 def run_button(state: dict) -> dict:
     """The toast the user reads — through the error boundary, as the adapters answer it."""
-    from mateu_core import error_boundary
+    from mateu_ui.core import error_boundary
 
     try:
         inc = handler().handle(

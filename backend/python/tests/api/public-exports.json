@@ -1,5 +1,5 @@
 {
- "mateu_uidl": [
+ "mateu_ui.uidl": [
   "Access",
   "ActionCatalogSupplier",
   "ActionRequest",
@@ -228,7 +228,7 @@
   "wizard_progress",
   "zones"
  ],
- "mateu_uidl.components": [
+ "mateu_ui.uidl.components": [
   "ActionPanel",
   "ActionPanelCategory",
   "ActionPanelItem",
@@ -330,7 +330,7 @@
   "TimelineItem",
   "TrendChart"
  ],
- "mateu_core": [
+ "mateu_ui.core": [
   "ColumnMapping",
   "ImportWizard",
   "MateuForbiddenException",
@@ -347,7 +347,7 @@
   "parse_csv",
   "type_name"
  ],
- "mateu_fastapi": [
+ "mateu_ui.fastapi": [
   "CORRELATION_HEADER",
   "MateuUiMiddleware",
   "add_mateu"

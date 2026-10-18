@@ -10,9 +10,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.yaml_preview import build_from_yaml  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.yaml_preview import build_from_yaml  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 
 MODULE = sys.modules[__name__]
 
@@ -172,7 +172,7 @@ def test_a_switcher_defaults_to_an_object_switcher_dispatching_switch_record(tmp
 
 
 def test_the_form_content_travels_as_its_children():
-    from mateu_uidl import components as fluent
+    from mateu_ui.uidl import components as fluent
 
     built = build_from_yaml("type: Form\ntitle: T\ncontent:\n  - type: Text\n    text: Hi\n")
     assert isinstance(built, fluent.Form)

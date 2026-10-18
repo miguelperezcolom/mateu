@@ -12,11 +12,11 @@ from typing import Annotated
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import RunActionRq  # noqa: E402
-from mateu_core import MateuRegistry, SyncHandler  # noqa: E402
-from mateu_dtos import ServerSideComponent  # noqa: E402
-from mateu_uidl import PlainText, Step, Wizard, action, title, ui  # noqa: E402
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.core import RunActionRq  # noqa: E402
+from mateu_ui.core import MateuRegistry, SyncHandler  # noqa: E402
+from mateu_ui.dtos import ServerSideComponent  # noqa: E402
+from mateu_ui.uidl import PlainText, Step, Wizard, action, title, ui  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 
 @ui("gpd-wizard")

@@ -3,8 +3,8 @@ interpolateUrl.test.ts and .NET UrlTemplateTests: both legs must reach the same 
 
 import pytest
 
-from mateu_core.sync_handler import SyncHandler
-from mateu_core.url_template import interpolate_url, secret_env_name
+from mateu_ui.core.sync_handler import SyncHandler
+from mateu_ui.core.url_template import interpolate_url, secret_env_name
 
 
 def url(template, state, secrets=None):

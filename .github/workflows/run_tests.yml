@@ -419,7 +419,10 @@ jobs:
           python -m build backend/python --outdir /tmp/dist
           python -m venv /tmp/wheelcheck
           /tmp/wheelcheck/bin/pip install /tmp/dist/*.whl
-          /tmp/wheelcheck/bin/python -c "import mateu_uidl, mateu_dtos, mateu_core, mateu_fastapi"
+          # the one namespace imports with no warning at all; the pre-beta names still import, as
+          # deprecated aliases of the SAME modules
+          /tmp/wheelcheck/bin/python -W error -c "import mateu_ui.uidl, mateu_ui.dtos, mateu_ui.core, mateu_ui.fastapi"
+          /tmp/wheelcheck/bin/python -W ignore::DeprecationWarning -c "import mateu_uidl, mateu_dtos, mateu_core, mateu_fastapi, mateu_ui.core.mapper; from mateu_core.mapper import ReflectionMapper; assert ReflectionMapper is mateu_ui.core.mapper.ReflectionMapper"
 
   # The oldest versions the package's lower bounds admit: a bound nobody installs is a bound
   # nobody tests, and `>=` is a promise.

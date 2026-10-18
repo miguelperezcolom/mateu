@@ -14,9 +14,9 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_dtos import UICommand  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.dtos import UICommand  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Announce,
     Crud,
     CrudDisplay,
@@ -48,7 +48,7 @@ from mateu_uidl import (  # noqa: E402
     welcome_banner,
     wizard_completion_action,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

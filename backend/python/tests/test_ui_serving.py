@@ -18,9 +18,9 @@ fastapi = pytest.importorskip("fastapi")
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
-from mateu_core import ui_page  # noqa: E402
-from mateu_fastapi import add_mateu  # noqa: E402
-from mateu_uidl import app as mateu_app, menu_item, title, ui  # noqa: E402
+from mateu_ui.core import ui_page  # noqa: E402
+from mateu_ui.fastapi import add_mateu  # noqa: E402
+from mateu_ui.uidl import app as mateu_app, menu_item, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 VAADIN_STATIC = Path(__file__).resolve().parents[3] / "backend/shared/frontend/vaadin-lit/src/main/resources/static"
