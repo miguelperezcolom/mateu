@@ -11,6 +11,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed
+- **The 3.x public API is frozen, and the build enforces it.** The Java compatibility check (japicmp,
+  baseline `3.0-beta.1`) is now blocking by default for `mateu-uidl` and the archetypes of
+  `mateu-core` (`mateu-dtos` stays report-only), and a break fails with the list of incompatible
+  changes and the add + deprecate recipe. .NET pins every public member signature of `Mateu.Uidl`
+  (not only the type names of `Mateu.Core`/`Mateu.AspNetCore`); Python pins the exports and the
+  signatures of the `mateu_ui.uidl` decorators, functions and classes. See
+  [Stability & versioning](https://mateu.io/reference/stability-and-versioning/#enforcement).
+
 ## [3.0-beta.2] — 2026-10-18
 
 Security fixes from an external review. Upgrade recommended.
