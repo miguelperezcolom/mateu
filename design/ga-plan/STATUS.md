@@ -491,7 +491,7 @@ projects, the .NET net10.0 target (no SDK here), RN tests — CI covers them.
 8. **Editable markdown/html fields**: Redwood shows raw source as editable text, Vaadin shows rendered content → decide the contract (proposal: an editor with preview on both).
 9. **Vaadin page heading on composed archetypes**: Dashboard, SmartSearchPage and ItemOverview show no heading on Vaadin (Redwood now does; docs assume one) → add it on Vaadin.
 10. **Python has no fluent `Card`** (and its card title is a string, Java's a component) → add it with Java's shape.
-11. **Redwood bugs to fix** (not decisions) — ✅ all fixed (batch 1: the 400 'invalid catalog JSON', Amount edits, the separator; batch 3 `pending/redwood`: islands held by a form field, drawer under a dialog, `Callable<Component>` holder, `@Toc`, calendar event click, map marker) except the Gantt negative-width console errors (not reproduced headless). RN web: calendar nests buttons — fixed (batch 1).
+11. **Redwood bugs to fix** (not decisions) — ✅ all fixed (batch 1: the 400 'invalid catalog JSON', Amount edits, the separator; batch 3 `pending/redwood`: islands held by a form field, drawer under a dialog, `Callable<Component>` holder, `@Toc`, calendar event click, map marker) and the Gantt negative-width console errors (2026-10-18: oj-gantt laid out under ~160px — a full-page capture's 1x1 viewport, a squeezed container — now floored at `min-width: 12rem`). RN web: calendar nests buttons — fixed (batch 1).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
 - ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).

@@ -5,8 +5,8 @@ import GanttTask from "@mateu/shared/apiClients/dtos/componentmetadata/GanttTask
 import { onActivate, tabStop } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { ganttGeometry } from '@infra/ui/ganttGeometry.ts'
 
-const DAY = 24 * 60 * 60 * 1000;
 
 /**
  * Dependency-free Gantt/timeline: one row per task, bars positioned on a shared time axis by
@@ -110,18 +110,6 @@ export class MateuGantt extends LitElement {
         ${activatableFocusStyles}
     `
 
-    private range(): { min: number, max: number } | null {
-        const dates = this.tasks
-            .flatMap(t => [t.start, t.end])
-            .filter(d => !!d)
-            .map(d => new Date(d + 'T00:00:00').getTime())
-        if (!dates.length) {
-            return null
-        }
-        // one day of padding on each side so the first/last bars don't touch the edges
-        return { min: Math.min(...dates) - DAY, max: Math.max(...dates) + 2 * DAY }
-    }
-
     private months(min: number, max: number) {
         const months: { label: string, from: number, to: number }[] = []
         const cursor = new Date(min)
@@ -140,11 +128,11 @@ export class MateuGantt extends LitElement {
     }
 
     render() {
-        const range = this.range()
+        const range = ganttGeometry(this.tasks)
         if (!range) {
             return html``
         }
-        const span = range.max - range.min
+        const span = range.span
         const pct = (t: number) => (t - range.min) / span * 100
         const now = Date.now()
         return html`
@@ -155,9 +143,7 @@ export class MateuGantt extends LitElement {
                         <div class="month" style="width: ${(month.to - month.from) / span * 100}%;">${month.label}</div>
                     `)}
                 </div>
-                ${this.tasks.map(task => {
-                    const start = new Date(task.start + 'T00:00:00').getTime()
-                    const end = new Date(task.end + 'T00:00:00').getTime() + DAY
+                ${range.bars.map(({ task, leftPct, widthPct }) => {
                     return html`
                         <div class="label" title="${task.title}">${task.title}</div>
                         <div class="lane">
@@ -167,7 +153,7 @@ export class MateuGantt extends LitElement {
                                  class="bar ${this.onTaskSelectionActionId ? 'clickable' : ''}"
                                  title="${task.title} · ${task.start} → ${task.end}${task.progress ? ` · ${task.progress}%` : ''}"
                                  @click="${() => this.selectTask(task)}" @keydown="${onActivate(() => this.selectTask(task))}"
-                                 style="left: ${pct(start)}%; width: ${(end - start) / span * 100}%; ${task.color ? `--mateu-gantt-fill: ${task.color};` : ''}">
+                                 style="left: ${leftPct}%; width: ${widthPct}%; ${task.color ? `--mateu-gantt-fill: ${task.color};` : ''}">
                                 <div class="fill" style="width: ${task.progress ?? 0}%;"></div>
                             </div>
                         </div>
