@@ -68,7 +68,7 @@
          mateu.api.enforce=true (done from the beta tag on) and an incompatible change fails
          `mvn verify` unless the type/member is @Experimental or listed in
          api-compat/japicmp-exclusions.properties. See reference/stability-and-versioning.md. -->
-    <mateu.japicmp.baseline>3.0-alpha.425</mateu.japicmp.baseline>
+    <mateu.japicmp.baseline>3.0-beta.1</mateu.japicmp.baseline>
     <!-- THE beta switch: `-Dmateu.api.enforce=true` (or flipping this default at the beta tag)
          makes an incompatible change to the non-@Experimental surface fail the build.
          mateu.japicmp.enforce is the knob the plugin reads; it follows this one. -->
