@@ -14,12 +14,12 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 `backend/python/tests`, and by the shared [conformance corpus](#the-conformance-gate)). A 🟡 row
 names what the ports lack; the gaps that are not features of their own — wire component types,
 envelope members, authoring annotations — are listed after the table, in
-[What is still Java-only](#what-is-still-java-only). *In progress* marks what is being ported for
-the next alpha: flip it to ✅ when it is merged.
+[What is still Java-only](#what-is-still-java-only). When something is ported, flip its row here
+in the same change.
 
 | Feature | Java | .NET | Python |
 |---|---|---|---|
-| Forms, sections, field types, validation. Ports: no `@Section(sticky, columns, style)`, `@MainFilter`, `@HiddenIn*`; field help (`@Help` → `description`), `placeholder`, `autofocus`, `step`, `sliderMin` *in progress* | ✅ | 🟡 | 🟡 |
+| Forms, sections, field types, validation. Field help (`[Help]` / `Help()` → `description`), `[SliderMin]`/`[SliderMax]` (`SliderMin()`/`SliderMax()`) and the fluent `FormField`'s `placeholder`/`autofocus`/`step` are in both ports (conformance cases `field-help`, `field-hints`). Ports: no `@Section(sticky, columns, style)`, `@MainFilter`, `@HiddenIn*` | ✅ | 🟡 | 🟡 |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation. Ports: no `@App(layout, backLink, ask…)`, and 25 of the 61 `AppDto` members are never emitted (see [envelope members](#envelope-members)) | ✅ | 🟡 | 🟡 |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
@@ -64,7 +64,7 @@ the next alpha: flip it to ✅ when it is merged.
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in CSV writer, Excel / PDF through the app's `IListingExporter` services — no exporter, no button) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; built-in CSV writer, Excel / PDF through the app's `ListingExporter` subclasses — no exporter, no button, as in Java) |
-| i18n, events (emit/subscribe), security scaffolding. Ports: `@SubscribeTo` scopes (`source`/`from`/`condition`) *in progress*; Python has no class-level `read_only_unless` (.NET's `[ReadOnlyUnless]` works on a class) | ✅ | 🟡 | 🟡 |
+| i18n, events (emit/subscribe), security scaffolding. `[SubscribeTo]` / `@subscribe_to` carry the scopes (`source`/`from`/`condition`, `DOCUMENT` by default) in both ports (conformance case `triggers`). Python has no class-level `read_only_unless` (.NET's `[ReadOnlyUnless]` works on a class) | ✅ | ✅ | 🟡 |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
@@ -121,8 +121,8 @@ the next alpha: flip it to ✅ when it is merged.
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
 | Component adapters | ✅ | ✅ `IComponentAdapter<T>` SPI | ✅ (`ComponentAdapter` + `AdaptedView`) |
 | Hero search archetype | ✅ | ✅ | ✅ |
-| Page toolbar from methods (`@Toolbar`, `@ViewToolbarButton`). Python hard-codes an empty toolbar on reflected pages; the .NET doc comment that mentions `[Toolbar]` names an attribute that does not exist — *in progress* in both | ✅ | — | — |
-| Triggers (`@Trigger`: `OnLoad` with `timeoutMillis`/`times`, `OnSuccess`, `OnError`, `OnValueChange` — periodic refresh, chained actions). The ports emit only a fixed `OnLoad`, `AutoSave` and `OnCustomEvent`, so a port cannot produce the renderers' "Periodic refresh" row — *in progress* | ✅ | — | — |
+| Page toolbar from methods (`@Toolbar`, `@ViewToolbarButton`). `@Toolbar` is in both ports (.NET `[Toolbar]`, Python `@toolbar`: label, `buttonStyle`, validation, access gates; conformance case `page-toolbar`). Neither port has `@ViewToolbarButton`: a CRUD record's view page carries the fixed Back to list / Add another / Edit toolbar | ✅ | 🟡 | 🟡 |
+| Triggers (`@Trigger`: `OnLoad` with `timeoutMillis`/`times`, `OnSuccess`, `OnError`, `OnValueChange` — periodic refresh, chained actions). .NET `[Trigger(TriggerType…)]`, Python `@trigger(TriggerType…)`; the actions they name are advertised and runnable (conformance case `triggers`) | ✅ | ✅ | ✅ |
 | Class-level `@AutoSave` (debounced save on every change). The ports emit `AutoSave` only from their archetypes (CollectionDetail, GeneralOverview…) | ✅ | — | — |
 | Editable views (`EditableView` / `AutoEditableView`, `MasterDetailView` orchestrators: a read view with an Edit toolbar that flips to an editor and back) | ✅ | — | — |
 
@@ -235,16 +235,17 @@ except an explicit, strictly-xfailed allow-list whose every entry is a defect of
 ### What is still Java-only
 
 Measured against the generated [wire schema](/reference/wire-specification/#the-machine-readable-schemas)
-(3.0-alpha.426). The renderers handle all of these; it is the PORTS that cannot produce them.
+(master after 3.0-alpha.427). The renderers handle all of these; it is the PORTS that cannot produce them.
 
 **Wire component types.** The wire registers 116 component types: **114 that a server produces**,
 plus `Result` and `Stepper`, deprecated for removal since 3.0-alpha.426 (no mapper, record or port
 produces them; they stay registered until the next wire major). The .NET and Python registries
-carry 84 and 85 of them; the rest are Java-only:
+carry 90 of them each (`Element`, `Tooltip`, `ConfirmDialog`, `Details`, `SplitLayout`,
+`Breadcrumbs`, `Icon` and `Notification` were the last to arrive, pinned by the
+`generic-components` conformance case); the other 24 producible types are Java-only:
 
 | Types | .NET | Python |
 |---|---|---|
-| `Element`, `Tooltip`, `ConfirmDialog`, `Details`, `SplitLayout`, `Breadcrumbs`, `Icon`, `Notification` | *in progress* | *in progress* |
 | `BoardLayout` (+ `BoardLayoutRow`, `BoardLayoutItem`), `CarouselLayout`, `Chat`, `Container`, `ContextMenu`, `CookieConsent`, `Directory`, `FormEditor`, `FormItem`, `FormSubSection`, `FullWidth`, `Grid` (+ `GridColumn`, `GridGroupColumn` — the ports' tables are listings and grid fields), `MasterDetailLayout`, `MenuBar`, `MessageInput`, `MessageList`, `NotFound`, `Scroller`, `VirtualList`, `Workflow` | — | — |
 
 #### Envelope members
@@ -257,17 +258,17 @@ express, not broken screens:
 |---|---|
 | `AppDto` (25 of 61) | `accentColor`, `accentStrip`, `generatedAccentStrip`, `actions`, `apps`, `askIcon`, `askLabel`, `backLabel`, `backRoute`, `noBreadcrumbs`, `cssClasses`, `style`, `drawerClosed`, `fabs`, `favicon`, `icon`, `logo`, `home`, `homeUriPrefix`, `globalSearchSource`, `notificationsSource`, `notificationsReadSource`, `mcpUrl`, `uploadUrl`, `welcomeMessage` |
 | `CrudlDto` (26 of 49) | `multipleRowSelectionEnabled`, `onRowSelectionChangedActionId`, `selectionListened`, `hasActionOnSelectedRow`, `useButtonForDetail`, `infiniteScrolling`, `lazyLoading`, `lazyColumnRendering`, `initialPage`, `allRowsVisible`, `contentHeight`, `size`, `header`, `footer`, `child`, `rowRoute` (Java's YAML listings), `showCards`, `wrapCellContent`, `columnBorders`, `columnReorderingAllowed`, `noBorder`, `noRowBorder`, `rowStripes`, `gridStyle`, `vaadinGridCellBackground`, `vaadinGridCellPadding` |
-| `FormFieldDto` (11 of 43; .NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `description`, `placeholder`, `autofocus`, `step`, `sliderMin` — *in progress* —; `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
+| `FormFieldDto` (6 of 43; .NET also lacks `detailPath`, `formStyle`, `formTheme`, `useButtonForDetail`) | `badges`, `bold`, `rightAligned`, `cssClasses`, `mainFilter`, `observed` |
 | `ActionDto` (8 of 19) | `sse`, `background`, `confirmationTexts`, `js`, `href`, `customEvent`, `modalStyle`, `modalTitle` |
 | `DialogDto` (4 of 15) | `draggable`, `resizable`, `top`, `left` |
 
 #### Authoring
 
-Besides the 🟡/— rows of the table: `@Toolbar`/`@ViewToolbarButton` (*in progress*), `@Help`
-(*in progress*), class-level `@AutoSave`, `@MainFilter`, `@HiddenIn*`, `@Section(sticky, columns,
-style)`, `@SubscribeTo(source, from, condition)` (*in progress*), `@App(layout, backLink, ask…)` and
-the `EditableView`/`AutoEditableView`/`MasterDetailView` orchestrators have no port equivalent;
-Python also lacks a class-level `read_only_unless`.
+Besides the 🟡/— rows of the table: `@ViewToolbarButton`, class-level `@AutoSave`, `@MainFilter`,
+`@HiddenIn*`, `@Section(sticky, columns, style)`, `@App(layout, backLink, ask…)` and the
+`EditableView`/`AutoEditableView`/`MasterDetailView` orchestrators have no port equivalent; Python
+also lacks a class-level `read_only_unless`. (`@Toolbar`, `@Help`, `@Trigger` and
+`@SubscribeTo(source, from, condition)` are ported — see the table.)
 
 ### The conformance gate
 
@@ -339,13 +340,13 @@ of each type and fail on a placeholder — not a string match on the source.
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
-| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | 🟡 registry + placeholder | 🟡 registry + placeholder |
+| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | ✅ registry (`CustomComponentRegistry.register`) + placeholder and slotted children | ✅ registry (`registerCustomComponent`) + placeholder and slotted children |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, an `open=false` panel starts as a strip the layout's selection unfolds; collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped: kept in memory, reset on app restart) |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped: kept in memory, reset on app restart; no reorder) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ flattened, `Group · Column` headers |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
@@ -412,13 +413,13 @@ renderers, and its children still render.
 | `Directory` | ✅ | a column per group with its links (in-app routes navigate inside the shell) |
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
-| `Element` | ✅ | third-party web component, events wired back |
+| `Element` | ✅ | third-party web component, events wired back; a REMOTE screen's root-relative import loads from the remote's origin |
 | `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card); a fact with an action gets its icon button after the value |
 | `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
 | `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
 | `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
-| `FoldoutLayout` | ✅ | oj-sp-foldout-layout; inside a tab, collapsible panels |
+| `FoldoutLayout` | ✅ | oj-sp-foldout-layout (an open=false panel starts as a strip the layout selection unfolds); inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |
@@ -508,8 +509,8 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 89 rendered, 11 layout containers, 6 parts of another component,
-10 with a documented mobile adaptation. None is dropped.
+native renderer — 90 rendered, 11 layout containers, 6 parts of another component,
+9 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
 |---|---|---|
@@ -537,6 +538,7 @@ native renderer — 89 rendered, 11 layout containers, 6 parts of another compon
 | `ContentLayout` | ✅ | main / aside / footer; aside beside main ≥ 768 px, stacked on a phone |
 | `CookieConsent` | ✅ | dismissible banner, dismissal persisted on the device |
 | `Crud` | ✅ | table / list / cards / tree, smart-search panel, selection, totals, groups, inline edit, saved views |
+| `CustomComponent` | ✅ | registry (registerCustomComponent); unregistered → a visible placeholder that still renders the slotted children |
 | `DashboardLayout` | ✅ |  |
 | `DashboardPanel` | ✅ |  |
 | `Details` | ✅ | collapsible panel |
@@ -615,7 +617,6 @@ native renderer — 89 rendered, 11 layout containers, 6 parts of another compon
 | `VerticalLayout` | ✅ container |  |
 | `Bpmn` | 🟡 | read-only diagram (react-native-svg, from the BPMN DI section); edit on the web |
 | `ContextMenu` | 🟡 | long-press (no right-click on touch) opens an action sheet |
-| `CustomComponent` | 🟡 | registry (registerCustomComponent) + visible placeholder |
 | `DropZone` | 🟡 | "Move to…" picker (no drag on touch) |
 | `Element` | 🟡 | HTML tags map to native text / image / rule, on.click runs its action; custom elements (web components) show their text content |
 | `FormEditor` | 🟡 | read-only definition preview; edit on the web |

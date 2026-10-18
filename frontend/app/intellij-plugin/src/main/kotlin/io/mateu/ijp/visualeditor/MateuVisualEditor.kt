@@ -202,7 +202,7 @@ class MateuVisualEditor(
     private fun addImage() {
         ApplicationManager.getApplication().invokeLater {
             val root = moduleRoot()
-            val descriptor = com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor()
+            val descriptor = com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.singleFile()
                 .withTitle("Add Image to Project")
                 .withFileFilter { vf -> ProjectImages.isImage(vf.name) }
             val chosen = if (root == null) null else com.intellij.openapi.fileChooser.FileChooser.chooseFile(descriptor, project, null)

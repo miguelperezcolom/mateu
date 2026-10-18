@@ -1730,3 +1730,65 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
   .mateu-has-toc { display: block; }
   .mateu-toc { display: none; }
 }
+
+/* FOLDED foldout panel (FoldoutPanel.open = false, poc/foldouts.mjs): the component's own panel
+   reduced to a strip that shows its title vertically. Its container keeps the layout's click /
+   focus / page-dot selection, which unfolds it. !important: a panel with a wire width carries
+   inline flex/min/max sizes. */
+.oj-sp-foldout-layout-panel-container:has(> oj-sp-foldout-panel.mateu-foldout-folded) {
+  flex: 0 0 4rem !important;
+  width: 4rem !important;
+  min-width: 4rem !important;
+  max-width: 4rem !important;
+  overflow: hidden;
+  cursor: pointer;
+}
+oj-sp-foldout-panel.mateu-foldout-folded {
+  flex: 0 0 4rem !important;
+  width: 4rem !important;
+  min-width: 4rem !important;
+  max-width: 4rem !important;
+}
+/* only the title and the panel's summary (FoldoutPanel.summary) stay — the summary is what tells
+   the user whether the panel is worth opening, as in the web renderer's strip */
+oj-sp-foldout-panel.mateu-foldout-folded div:has(> .oj-sp-foldout-panel-title-underline),
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-slot-wrapper > :not(.mateu-foldout-summary) {
+  display: none !important;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-container > .oj-flex-item:not(.oj-sp-foldout-panel-header) {
+  margin-top: 0.75rem !important;
+  display: flex;
+  justify-content: center;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .mateu-foldout-summary {
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  max-height: 40vh;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 !important;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-header,
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-header {
+  justify-content: center;
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title-container {
+  overflow: visible;
+}
+oj-sp-foldout-panel.mateu-foldout-folded .oj-sp-foldout-panel-title {
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  max-height: 70vh;
+  -webkit-line-clamp: unset;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

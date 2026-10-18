@@ -167,6 +167,7 @@
   "stepProcess": "Proceso",
   "workflowInvalid": "Workflow: la definición no es un JSON válido",
   "unsupportedComponent": "Componente no soportado \"{type}\"{id} — el renderer Redwood no tiene vista para él",
+  "foldoutUnfold": "Mostrar {title}",
   "customFailed": "El componente propio ha fallado: {message}",
   "askSomething": "Pregunta lo que quieras…",
   "assistantFailed": "El asistente no ha podido responder: {message}",
