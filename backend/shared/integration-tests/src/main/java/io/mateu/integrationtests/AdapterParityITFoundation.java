@@ -795,6 +795,21 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * A renderer asset is served from the classpath {@code static/} folder the renderer jars carry it
+   * in (once — no second copy under {@code META-INF/resources}), as JavaScript (a module script
+   * with another type does not run) and with the revalidate policy.
+   */
+  public void servesARendererAssetFromTheClasspathStaticFolder(String assetPath) {
+    given()
+        .when()
+        .get(assetPath)
+        .then()
+        .statusCode(200)
+        .header("Content-Type", containsString("javascript"))
+        .header("Cache-Control", containsString("no-cache"));
+  }
+
+  /**
    * An unchanged fixed-name asset costs a 304 with no body when the browser revalidates it with the
    * validator it was given (an {@code ETag}, else {@code Last-Modified}), and the 304 keeps the
    * revalidate policy.
