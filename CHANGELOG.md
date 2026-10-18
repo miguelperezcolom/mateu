@@ -11,6 +11,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed
+- Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
+  re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,
+  the toast showed and the screen kept its old values.
+
 ## [3.0-beta.3] — 2026-10-18
 
 Fixes from a second external review.
