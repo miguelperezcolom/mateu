@@ -51,7 +51,7 @@ You can build on these; they follow the deprecation policy.
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
 | **Adapter configuration** — the `mateu.*` properties the guides document (`mateu.cors.allowed-origins`, `mateu.ui.modules`…) and `@EnableMateuUiModules` (Spring MVC / WebFlux) | the adapter artifacts (`mateu-mvc`, `mateu-webflux`, …); everything else in them is internal |
-| **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
+| **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_ui.uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
 
 ### The wire DTOs: JSON, not Java binaries
 
@@ -163,7 +163,7 @@ Everything public in these packages is **stable** unless it is listed as experim
 here or is deprecated. The table and the lists are generated from the `@Experimental` /
 `@Deprecated` / `@Internal` markers in the sources (by `ApiStabilityListTest` in `mateu-uidl`, which
 fails the build when this page is stale), so they are exactly what the compatibility check
-enforces. The .NET (`Mateu.Uidl`) and Python (`mateu_uidl`) ports follow the same boundary for the
+enforces. The .NET (`Mateu.Uidl`) and Python (`mateu_ui.uidl`) ports follow the same boundary for the
 same concepts.
 
 <!-- api-stability:start -->

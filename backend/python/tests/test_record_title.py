@@ -11,10 +11,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pydantic import BaseModel  # noqa: E402
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core.titles import record_title  # noqa: E402
-from mateu_dtos import ClientSideComponent, PageMetadata, ServerSideComponent  # noqa: E402
-from mateu_uidl import Crud, Listing, ListingData, Navigable, SearchRequest, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core.titles import record_title  # noqa: E402
+from mateu_ui.dtos import ClientSideComponent, PageMetadata, ServerSideComponent  # noqa: E402
+from mateu_ui.uidl import Crud, Listing, ListingData, Navigable, SearchRequest, title, ui  # noqa: E402
 
 
 class Fastener:

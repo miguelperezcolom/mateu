@@ -10,8 +10,8 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Crud,
     GroupActionVisibility,
     GroupBy,
@@ -143,7 +143,7 @@ def test_groups_the_listing_computed_itself_are_kept():
 def test_a_method_that_is_not_a_group_action_is_not_reachable():
     import pytest
 
-    from mateu_core import MateuForbiddenException
+    from mateu_ui.core import MateuForbiddenException
 
     with pytest.raises(MateuForbiddenException):
         handler().handle(

@@ -19,24 +19,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 CORPUS = Path(__file__).resolve().parents[3] / "conformance" / "cases"
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.errors import error_increment, new_correlation_id  # noqa: E402
-from mateu_core.rest_source_registry import RestSourceRegistry  # noqa: E402
-from mateu_uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.errors import error_increment, new_correlation_id  # noqa: E402
+from mateu_ui.core.rest_source_registry import RestSourceRegistry  # noqa: E402
+from mateu_ui.uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  # noqa: E402
 from typing import Annotated  # noqa: E402
 from datetime import date, datetime  # noqa: E402
 from enum import Enum  # noqa: E402
-from mateu_dtos import Option  # noqa: E402
-from mateu_uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
-from mateu_uidl.components import Notice, StatusItem, StatusList  # noqa: E402
-from mateu_uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
+from mateu_ui.dtos import Option  # noqa: E402
+from mateu_ui.uidl import AppActionsSupplier, AppHeaderAction, BulletedList, ComponentTreeSupplier, Lookup, LookupLabelSupplier, OnRowSelected, Password, Required, Stereotype, TreeSelect, app_context, compact, menu_item, toc  # noqa: E402
+from mateu_ui.uidl.components import Notice, StatusItem, StatusList  # noqa: E402
+from mateu_ui.uidl import Help, SliderMax, SliderMin, TriggerType, subscribe_to, toolbar, trigger  # noqa: E402
 from decimal import Decimal  # noqa: E402
-from mateu_dtos import MenuItem  # noqa: E402
-from mateu_uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
-from mateu_uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
-from mateu_uidl import Text as TextField  # noqa: E402
-from mateu_uidl import Max, Min  # noqa: E402
-from mateu_uidl import EyesOnly, ReadOnlyUnless, button, disabled_unless  # noqa: E402
+from mateu_ui.dtos import MenuItem  # noqa: E402
+from mateu_ui.uidl import AppShell, AppSupplier, AppVariant, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
+from mateu_ui.uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
+from mateu_ui.uidl import Text as TextField  # noqa: E402
+from mateu_ui.uidl import Max, Min  # noqa: E402
+from mateu_ui.uidl import EyesOnly, ReadOnlyUnless, button, disabled_unless  # noqa: E402
 
 
 class Colour(str, Enum):
@@ -162,7 +162,7 @@ class DashboardPage(Dashboard):
     notes: Annotated[Text, Panel("Notes", subtitle="Today")] = Text(text="All systems nominal")
 
 
-from mateu_uidl import GlobalSearchSupplier, NotificationsSupplier  # noqa: E402
+from mateu_ui.uidl import GlobalSearchSupplier, NotificationsSupplier  # noqa: E402
 
 
 @ui("/conformance/app-extras")
@@ -184,7 +184,7 @@ class ExtrasApp(NotificationsSupplier, GlobalSearchSupplier):
         return []
 
 
-from mateu_uidl import welcome_banner  # noqa: E402
+from mateu_ui.uidl import welcome_banner  # noqa: E402
 
 
 @ui("/conformance/welcome-banner")
@@ -333,7 +333,7 @@ class GenericComponentsPage(ComponentTreeSupplier):
         return None
 
     def component(self):
-        from mateu_uidl import components as fl
+        from mateu_ui.uidl import components as fl
 
         return fl.VerticalLayout(content=(
             fl.Breadcrumbs(
@@ -406,7 +406,7 @@ class FieldHintsPage(ComponentTreeSupplier):
         return None
 
     def component(self):
-        from mateu_uidl import components as fl
+        from mateu_ui.uidl import components as fl
 
         return fl.FormField(
             field_id="amount", label="Amount", data_type="number", placeholder="0.00",
@@ -575,7 +575,7 @@ class AccessAnnotations:
 
 # ── Listings and CRUDs ──────────────────────────────────────────────────────────────────────────
 
-from mateu_uidl import Aggregate, AggregateFunction, Crud, Filterable, GroupBy, Listing, Navigable, Searchable  # noqa: E402
+from mateu_ui.uidl import Aggregate, AggregateFunction, Crud, Filterable, GroupBy, Listing, Navigable, Searchable  # noqa: E402
 
 
 class ProductStatus(Enum):
@@ -702,7 +702,7 @@ class SalesCrud(Crud[Sale]):
     def delete(self, id):
         pass
 
-from mateu_uidl import PeerNav, PeerNavigationSupplier  # noqa: E402
+from mateu_ui.uidl import PeerNav, PeerNavigationSupplier  # noqa: E402
 
 
 @ui("/conformance/peer-nav")
@@ -727,7 +727,7 @@ class NoHomeApp:
         return None
 
 
-from mateu_uidl import RestOptions, Step, Wizard, wizard_completion_action  # noqa: E402
+from mateu_ui.uidl import RestOptions, Step, Wizard, wizard_completion_action  # noqa: E402
 
 
 @ui("/conformance/wizard")
@@ -761,8 +761,8 @@ class RestSourceForm:
 
 # ── Second requests: what an ACTION answers, not what a first load draws ──────────────────────
 
-from mateu_uidl import MessageVariant, action  # noqa: E402
-from mateu_uidl.components import Drawer, DrawerPosition  # noqa: E402
+from mateu_ui.uidl import MessageVariant, action  # noqa: E402
+from mateu_ui.uidl.components import Drawer, DrawerPosition  # noqa: E402
 
 
 @ui("/conformance/action-effects")

@@ -11,9 +11,9 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.mapper.fields import FieldMapperMixin  # noqa: E402
-from mateu_core.reflection import view_fields  # noqa: E402
-from mateu_uidl import RestOptions, rest_action, rest_data, rest_listing  # noqa: E402
+from mateu_ui.core.mapper.fields import FieldMapperMixin  # noqa: E402
+from mateu_ui.core.reflection import view_fields  # noqa: E402
+from mateu_ui.uidl import RestOptions, rest_action, rest_data, rest_listing  # noqa: E402
 
 
 class Shipping:

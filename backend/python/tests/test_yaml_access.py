@@ -14,11 +14,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_core import yaml_access  # noqa: E402
-from mateu_core.route_registry import RouteRegistry  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
-from mateu_uidl import Access, Identity  # noqa: E402
+from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core import yaml_access  # noqa: E402
+from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.uidl import Access, Identity  # noqa: E402
 
 MODULE = sys.modules[__name__]
 
@@ -195,7 +195,7 @@ layout:
 
 
 def catalogue_handler(tmp_path: Path, roles) -> SyncHandler:
-    from mateu_core.action_registry import ActionRegistry
+    from mateu_ui.core.action_registry import ActionRegistry
 
     (tmp_path / "routes.yaml").write_text("routes:\n  - route: tools\n    layout: tools.yaml\n")
     (tmp_path / "tools.yaml").write_text(CATALOGUE_PAGE)

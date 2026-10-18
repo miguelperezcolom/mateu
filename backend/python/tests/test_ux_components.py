@@ -12,8 +12,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     Aside,
     ComponentTreeSupplier,
     Dashboard,
@@ -25,7 +25,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl.components import (  # noqa: E402
+from mateu_ui.uidl.components import (  # noqa: E402
     AddOn,
     AddOnPicker,
     Anchor,
@@ -1518,7 +1518,7 @@ def test_an_entity_header_fact_carries_its_action_and_a_display_only_one_keeps_i
 
 
 def test_a_fact_without_action_id_has_no_button():
-    from mateu_core.mapper import ReflectionMapper
+    from mateu_ui.core.mapper import ReflectionMapper
 
     record = ReflectionMapper()._fact_record(Fact(label="A", value="B", icon="vaadin:cog"))
     assert record.model_dump(by_alias=True) == {"label": "A", "value": "B"}

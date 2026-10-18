@@ -6,8 +6,8 @@ layouts, fields, buttons and texts."""
 import json
 from pathlib import Path
 
-from mateu_core.mapper import ReflectionMapper
-from mateu_core.yaml_preview import build_from_yaml
+from mateu_ui.core.mapper import ReflectionMapper
+from mateu_ui.core.yaml_preview import build_from_yaml
 
 GALLERY = (
     Path(__file__).resolve().parents[2]

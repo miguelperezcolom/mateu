@@ -9,8 +9,8 @@ from pathlib import Path
 # Make the backend/python packages importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     ComponentTreeSupplier,
     Listing,
     Message,
@@ -19,7 +19,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 
 class Charge:

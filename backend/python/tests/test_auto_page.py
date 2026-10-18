@@ -14,15 +14,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from typing import Annotated  # noqa: E402
 
-from mateu_core import (  # noqa: E402
+from mateu_ui.core import (  # noqa: E402
     MateuRegistry,
     RunActionRq,
     SyncHandler,
     type_name,
 )
-from mateu_core.page_type_inference import page_type_of  # noqa: E402
-from mateu_uidl import Panel, auto_page, title, ui  # noqa: E402
-from mateu_uidl.components import Button, MetricCard, Text  # noqa: E402
+from mateu_ui.core.page_type_inference import page_type_of  # noqa: E402
+from mateu_ui.uidl import Panel, auto_page, title, ui  # noqa: E402
+from mateu_ui.uidl.components import Button, MetricCard, Text  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

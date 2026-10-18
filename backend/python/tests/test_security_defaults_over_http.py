@@ -22,9 +22,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_fastapi import add_mateu  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.fastapi import add_mateu  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     DeclaredRestSource,
     EyesOnly,
     RestDataSource,
@@ -266,7 +266,7 @@ def test_mcp_applies_the_same_rbac_as_sync():
 
 
 def test_the_environment_flag_reads_only_true_values(monkeypatch):
-    from mateu_fastapi import mcp_enabled_from_env
+    from mateu_ui.fastapi import mcp_enabled_from_env
 
     for value, expected in (("true", True), ("1", True), ("YES", True), ("false", False), ("", False)):
         monkeypatch.setenv("MATEU_MCP_ENABLED", value)

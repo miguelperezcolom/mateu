@@ -13,14 +13,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import (  # noqa: E402
+from mateu_ui.core import (  # noqa: E402
     MateuRegistry,
     RunActionRq,
     SyncHandler,
     type_name,
 )
 
-from mateu_uidl import overline, title, title_placeholder, ui  # noqa: E402
+from mateu_ui.uidl import overline, title, title_placeholder, ui  # noqa: E402
 
 
 @ui("/overlined")

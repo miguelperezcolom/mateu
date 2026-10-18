@@ -13,8 +13,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Identity, Message, app, button, menu_item, secured, title, ui  # noqa: E402
+from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import Identity, Message, app, button, menu_item, secured, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 RAN: list[str] = []

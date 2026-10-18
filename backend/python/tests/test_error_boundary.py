@@ -9,8 +9,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import error_boundary  # noqa: E402
-from mateu_uidl import Message, UserFacingException, button, title, ui  # noqa: E402
+from mateu_ui.core import error_boundary  # noqa: E402
+from mateu_ui.uidl import Message, UserFacingException, button, title, ui  # noqa: E402
 
 
 @ui("err-probe")
@@ -88,7 +88,7 @@ def test_the_endpoint_answers_a_toast_instead_of_a_500():
     fastapi = pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     app = fastapi.FastAPI()
     add_mateu(app, MODULE)

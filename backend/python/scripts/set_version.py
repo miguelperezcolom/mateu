@@ -1,6 +1,6 @@
 """Stamp the package version from a release tag, in lockstep with the Maven artifacts.
 
-    python scripts/set_version.py v3.0-alpha.406      # → mateu_core/_version.py = "3.0.0a406"
+    python scripts/set_version.py v3.0-alpha.406      # → mateu_ui/_version.py = "3.0.0a406"
 
 The Java release takes the tag minus its ``v`` (``3.0-alpha.406``) as the Maven version; that is not
 a valid PEP 440 version, so it is translated: ``alpha``/``beta``/``rc`` pre-releases become
@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-VERSION_FILE = Path(__file__).resolve().parents[1] / "mateu_core" / "_version.py"
+VERSION_FILE = Path(__file__).resolve().parents[1] / "mateu_ui" / "_version.py"
 
 _PRE = {"alpha": "a", "a": "a", "beta": "b", "b": "b", "rc": "rc", "cr": "rc"}
 

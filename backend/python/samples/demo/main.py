@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from fastapi import FastAPI  # noqa: E402
 
-from mateu_fastapi import add_mateu  # noqa: E402
+from mateu_ui.fastapi import add_mateu  # noqa: E402
 from samples.demo import views  # noqa: E402
 
 app = FastAPI(title="Mateu Python demo")

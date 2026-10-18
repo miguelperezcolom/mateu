@@ -12,9 +12,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.action_registry import ActionRegistry  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.action_registry import ActionRegistry  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     ActionCatalogSupplier,
     CatalogAction,
     ComponentTreeSupplier,
@@ -23,7 +23,7 @@ from mateu_uidl import (  # noqa: E402
     menu_item,
     ui,
 )
-from mateu_uidl.components import Button, VerticalLayout  # noqa: E402
+from mateu_ui.uidl.components import Button, VerticalLayout  # noqa: E402
 
 MODULE = sys.modules[__name__]
 

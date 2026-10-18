@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Annotated
 
-from mateu_uidl import (
+from mateu_ui.uidl import (
     Crud,
     HomeRouteSupplier,
     Panel,
@@ -17,7 +17,7 @@ from mateu_uidl import (
     title,
     ui,
 )
-from mateu_uidl.components import Button, Text
+from mateu_ui.uidl.components import Button, Text
 
 
 class ProductStatus(Enum):

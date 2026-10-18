@@ -229,7 +229,7 @@ jobs:
         run: |
           python -m venv /tmp/wheelcheck
           /tmp/wheelcheck/bin/pip install dist/*.whl
-          /tmp/wheelcheck/bin/python -c "import mateu_uidl, mateu_dtos, mateu_core, mateu_fastapi; print(mateu_core.__version__)"
+          /tmp/wheelcheck/bin/python -c "import mateu_ui, mateu_ui.uidl, mateu_ui.dtos, mateu_ui.core, mateu_ui.fastapi; print(mateu_ui.__version__)"
 
       - name: Publish (API token)
         if: env.PYPI_API_TOKEN != ''

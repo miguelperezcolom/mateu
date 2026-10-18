@@ -11,8 +11,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Crud, Identity, Message, app, button, eyes_only, menu_item, title, ui  # noqa: E402
+from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import Crud, Identity, Message, app, button, eyes_only, menu_item, title, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 RAN: list[str] = []
@@ -131,7 +131,7 @@ def test_the_fastapi_edge_answers_403():
     fastapi = pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     app_ = fastapi.FastAPI()
     add_mateu(app_, MODULE, identity_provider=lambda: None)

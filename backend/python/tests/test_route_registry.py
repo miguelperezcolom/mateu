@@ -16,12 +16,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 HERE = Path(__file__).resolve().parent / "specs" / "ui"
 
-from mateu_core.route_registry import (  # noqa: E402
+from mateu_ui.core.route_registry import (  # noqa: E402
     RouteEntry,
     RouteRegistry,
     RouteTable,
 )
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 
 
 class Tickets:

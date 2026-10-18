@@ -38,9 +38,21 @@ pip install "mateu-ui[server]"     # the package + uvicorn (any ASGI server work
 
 (`[all]` is an alias of `[server]` today.)
 
-The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); you
-import `mateu_uidl`, `mateu_dtos`, `mateu_core` and `mateu_fastapi`. Versions move in lockstep with
-the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`. Python 3.11–3.13 are tested.
+The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); it
+installs one top-level package, `mateu_ui`, and you import `mateu_ui.uidl` (the authoring API),
+`mateu_ui.dtos` (the wire model), `mateu_ui.core` (the engine) and `mateu_ui.fastapi` (the adapter).
+Versions move in lockstep with the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`.
+Python 3.11–3.13 are tested.
+
+:::note[Upgrading from 3.0-alpha.428 or earlier]
+Before 3.0-beta the wheel installed four top-level packages: `mateu_uidl`, `mateu_dtos`,
+`mateu_core` and `mateu_fastapi`. Those imports keep working for the whole 3.x line (they are
+aliases of the same modules, so `mateu_core.mapper.ReflectionMapper is
+mateu_ui.core.mapper.ReflectionMapper`), and each emits one `DeprecationWarning` naming the new path.
+Type checkers only see the new paths. To migrate, replace the prefixes:
+`mateu_uidl` → `mateu_ui.uidl`, `mateu_dtos` → `mateu_ui.dtos`, `mateu_core` → `mateu_ui.core`,
+`mateu_fastapi` → `mateu_ui.fastapi`. The aliases go away in Mateu 4.
+:::
 
 ## Run it
 
@@ -77,7 +89,7 @@ Wire it up:
 
 ```python
 from fastapi import FastAPI
-from mateu_fastapi import add_mateu
+from mateu_ui.fastapi import add_mateu
 from samples.demo import views      # a module holding your @ui / @app classes
 
 app = FastAPI()
@@ -103,7 +115,7 @@ add_mateu(
   Mateu the result:
 
   ```python
-  from mateu_core.identity import identity_from_claims
+  from mateu_ui.core.identity import identity_from_claims
 
   @app.middleware("http")
   async def authenticate(request, call_next):
@@ -124,7 +136,7 @@ add_mateu(
   Java and .NET ("Something went wrong" / "An unexpected error occurred. Reference: <id>"), the
   reference being the request's correlation id (also in the `X-Mateu-Correlation-Id` header and the
   logged traceback). `dev=True` / `MATEU_ERRORS_DETAILED=true` shows the exception; raise
-  `mateu_uidl.UserFacingException("…", title="…")` for a message written for the user. A denied
+  `mateu_ui.uidl.UserFacingException("…", title="…")` for a message written for the user. A denied
   action answers 403.
 - **Concurrency.** The handler runs in the threadpool (a slow proxied upstream never blocks the event
   loop); per-request state lives in `ContextVar`s.
@@ -142,7 +154,7 @@ returning a `Message` shows a toast.
 ```python
 from enum import Enum
 from typing import Annotated
-from mateu_uidl import ui, title, subtitle, button, Required, Section, Message
+from mateu_ui.uidl import ui, title, subtitle, button, Required, Section, Message
 
 class Role(Enum):
     GUEST = "GUEST"
@@ -240,7 +252,7 @@ capabilities at once. To drop a built-in affordance, override `display()` and re
 
 ```python
 import dataclasses
-from mateu_uidl import Crud, CrudDisplay, Toggle
+from mateu_ui.uidl import Crud, CrudDisplay, Toggle
 
 class Reservations(Crud[Reservation]):
     def display(self):
@@ -309,7 +321,7 @@ class Profile:
 ## KPIs, FABs, shortcuts & page flags
 
 ```python
-from mateu_uidl import kpi, fab, shortcut, button, compact, confirm_on_navigation_if_dirty
+from mateu_ui.uidl import kpi, fab, shortcut, button, compact, confirm_on_navigation_if_dirty
 
 @ui("dashboard")
 @compact                            # high-density rendering
@@ -329,7 +341,7 @@ class Dashboard:
 ## Dashboards, foldouts & UX-pattern components
 
 The UX-pattern components from the Java backend are available as **fluent components** in
-`mateu_uidl.components` — they emit the exact same wire JSON, so every renderer that supports them
+`mateu_ui.uidl.components` — they emit the exact same wire JSON, so every renderer that supports them
 renders the Python backend unchanged:
 
 | Component | Purpose |
@@ -352,8 +364,8 @@ components; mark titled panels with `Panel(...)` inside `Annotated[...]` (the an
 ```python
 from datetime import date
 from typing import Annotated
-from mateu_uidl import ui, title, Dashboard, Panel
-from mateu_uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
+from mateu_ui.uidl import ui, title, Dashboard, Panel
+from mateu_ui.uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
 
 @ui("dashboard")
 @title("Sales dashboard")
@@ -387,8 +399,8 @@ For full control, subclass `ComponentTreeSupplier` and return any fluent compone
 
 ```python
 from datetime import date
-from mateu_uidl import ui, title, ComponentTreeSupplier
-from mateu_uidl.components import Gantt, GanttTask
+from mateu_ui.uidl import ui, title, ComponentTreeSupplier
+from mateu_ui.uidl.components import Gantt, GanttTask
 
 @ui("project-plan")
 @title("Project plan")
@@ -459,8 +471,8 @@ returning options with children:
 
 ```python
 from typing import Annotated
-from mateu_dtos import Option          # the option record lives in mateu_dtos, not mateu_uidl
-from mateu_uidl import ui, Signature, PhotoCapture, TreeSelect
+from mateu_ui.dtos import Option          # the option record lives in mateu_ui.dtos, not mateu_ui.uidl
+from mateu_ui.uidl import ui, Signature, PhotoCapture, TreeSelect
 
 @ui("checkin")
 class CheckIn:
@@ -511,7 +523,7 @@ class Shell: ...
 To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
 
 ```python
-from mateu_uidl.components import MicroFrontend
+from mateu_ui.uidl.components import MicroFrontend
 
 def component(self):
     return MicroFrontend(base_url="https://billing.example.com", route="/invoices")
@@ -525,8 +537,8 @@ The `ComponentAdapter` SPI (Java's `ComponentAdapter<T>`) renders a class that c
 markers and rebuilds it from the state:
 
 ```python
-from mateu_uidl import AdaptedView, ComponentAdapter, ui
-from mateu_uidl import components as fluent
+from mateu_ui.uidl import AdaptedView, ComponentAdapter, ui
+from mateu_ui.uidl import components as fluent
 
 @ui("/order")                    # routing only: the adapter owns the UI
 class Order:                     # a plain domain class
@@ -740,7 +752,7 @@ not offered. A starting point with openpyxl (your dependency, not Mateu's):
 ```python
 import io
 from openpyxl import Workbook
-from mateu_uidl import ExportedFile, ExportFormat, ListingExport, ListingExporter
+from mateu_ui.uidl import ExportedFile, ExportFormat, ListingExport, ListingExporter
 
 class ExcelExporter(ListingExporter):
     format = ExportFormat.EXCEL

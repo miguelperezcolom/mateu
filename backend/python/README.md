@@ -41,7 +41,7 @@ for the sibling implementation.
   enums with ≤ 4 members render as radio buttons (`UseRadioButtons()` forces radio always);
   developer-declared tabs always carry `groupRelationship="alternative"` and are `adaptable` when
   the class opted in. Explicit layout markers always win.
-- **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
+- **UX-pattern components** (`mateu_ui.uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
   `ResponsiveGrid` (`DashboardLayout` is deprecated), `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
@@ -84,10 +84,10 @@ The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_con
 
 | Package | Role |
 |---|---|
-| `mateu_uidl` | Public API — decorators (`@ui`, `@app`, `@button`, …) + field markers + `Message`, `Crud`, `Wizard`, `Translator`. One module per concern (`markers`, `security`, `suppliers`, `class_decorators`, `method_decorators`, `listing`, `views`, `archetypes`, …), all re-exported from `mateu_uidl` |
-| `mateu_dtos` | The wire model in Pydantic — `UIIncrement`, `Component` + metadata (polymorphism on `type`); split by concern (`app`, `layout`, `fields`, `components`, `envelope`, …), re-exported from `mateu_dtos` |
-| `mateu_core` | The engine — `MateuRegistry`, `ReflectionMapper` (package `mapper/`: one mixin per concern — app, view, archetypes, components, crud, layout, fields…), `SyncHandler` (package `sync_handler/`: dispatch, wizard, listing, crud, search, proxy…) |
-| `mateu_fastapi` | `add_mateu(app, …)` — the `POST /mateu/v3/sync/{route}` endpoint |
+| `mateu_ui.uidl` | Public API — decorators (`@ui`, `@app`, `@button`, …) + field markers + `Message`, `Crud`, `Wizard`, `Translator`. One module per concern (`markers`, `security`, `suppliers`, `class_decorators`, `method_decorators`, `listing`, `views`, `archetypes`, …), all re-exported from `mateu_ui.uidl` |
+| `mateu_ui.dtos` | The wire model in Pydantic — `UIIncrement`, `Component` + metadata (polymorphism on `type`); split by concern (`app`, `layout`, `fields`, `components`, `envelope`, …), re-exported from `mateu_ui.dtos` |
+| `mateu_ui.core` | The engine — `MateuRegistry`, `ReflectionMapper` (package `mapper/`: one mixin per concern — app, view, archetypes, components, crud, layout, fields…), `SyncHandler` (package `sync_handler/`: dispatch, wizard, listing, crud, search, proxy…) |
+| `mateu_ui.fastapi` | `add_mateu(app, …)` — the `POST /mateu/v3/sync/{route}` endpoint |
 | `samples/demo` | A runnable FastAPI app |
 | `tests` | Golden-JSON tests asserting wire compatibility with the Java/C# backends |
 
@@ -98,8 +98,12 @@ pip install "mateu-ui[server]"          # the package + uvicorn
 pip install "mateu-ui[all]"             # the FastAPI server extras
 ```
 
-The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); the
-import names are `mateu_uidl`, `mateu_dtos`, `mateu_core` and `mateu_fastapi`. Versions move in
+The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project);
+the wheel installs ONE top-level package, `mateu_ui`: import `mateu_ui.uidl` (authoring API),
+`mateu_ui.dtos` (wire model), `mateu_ui.core` (engine) and `mateu_ui.fastapi` (adapter). Code written
+before 3.0-beta that imports the old top-level names (`mateu_uidl`, `mateu_dtos`, `mateu_core`,
+`mateu_fastapi`) keeps working for the whole 3.x line — each emits one `DeprecationWarning` naming the
+new path — but new code should use `mateu_ui.*` (type checkers only see the new paths). Versions move in
 lockstep with the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`.
 
 ## Run
@@ -120,8 +124,8 @@ The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Andro
 
 ```python
 from fastapi import FastAPI
-from mateu_fastapi import add_mateu
-from mateu_core.identity import identity_from_claims
+from mateu_ui.fastapi import add_mateu
+from mateu_ui.core.identity import identity_from_claims
 
 app = FastAPI()
 add_mateu(
@@ -146,7 +150,7 @@ async def authenticate(request, call_next):
   `request.auth.scopes`). A Bearer token is never decoded: verify it in your app and hand Mateu the
   result (`identity_from_claims(claims)` maps Keycloak `realm_access`/`resource_access` roles +
   `roles`, `groups`, `scope`/`scp`, `permissions`). No identity → every gate denies. A custom
-  `identity_provider` (parameterless, reading `mateu_core.request_context.current_request()`)
+  `identity_provider` (parameterless, reading `mateu_ui.core.request_context.current_request()`)
   replaces the default.
 - **Secrets.** `secrets_provider(key) -> str | None` resolves `${secret.KEY}`; unset → the
   environment variable `MATEU_SECRET_<KEY>` (never an arbitrary one). Only the proxy channel (`__restfetch__`) ever sees them.
@@ -158,7 +162,7 @@ async def authenticate(request, call_next):
   reference being the request's correlation id (also in the `X-Mateu-Correlation-Id` header and in
   the ERROR log line with the traceback, logger `mateu.errors`). `dev=True` (or `MATEU_DEV=true` /
   `MATEU_ERRORS_DETAILED=true`) shows the exception instead; raise
-  `mateu_uidl.UserFacingException("…", title="…")` (alias `UserFacingError`) for a message written
+  `mateu_ui.uidl.UserFacingException("…", title="…")` (alias `UserFacingError`) for a message written
   for the user, always shown; a pydantic validation error shows its messages. A denied action
   still answers 403.
 - **Concurrency.** The handler runs in Starlette's threadpool, so a slow proxied upstream
@@ -173,7 +177,7 @@ async def authenticate(request, call_next):
 
 ```python
 from typing import Annotated
-from mateu_uidl import ui, title, section, button, Required, Section, Message, app, menu_item, menu_group, MenuDisplay, Crud
+from mateu_ui.uidl import ui, title, section, button, Required, Section, Message, app, menu_item, menu_group, MenuDisplay, Crud
 
 @ui("person")
 @title("Person")
@@ -215,8 +219,8 @@ Dashboards, foldouts and Gantt charts use the fluent components + archetypes:
 
 ```python
 from datetime import date
-from mateu_uidl import ui, title, Dashboard, Panel
-from mateu_uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
+from mateu_ui.uidl import ui, title, Dashboard, Panel
+from mateu_ui.uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
 
 @ui("dashboard")
 @title("Sales dashboard")

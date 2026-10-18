@@ -16,7 +16,7 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import (  # noqa: E402
+from mateu_ui.core import (  # noqa: E402
     ImportWizard,
     MateuRegistry,
     RunActionRq,
@@ -25,7 +25,7 @@ from mateu_core import (  # noqa: E402
     parse_csv,
     type_name,
 )
-from mateu_uidl import Required, ui  # noqa: E402
+from mateu_ui.uidl import Required, ui  # noqa: E402
 
 
 class Product:
@@ -201,7 +201,7 @@ def test_csv_parser_detects_the_semicolon_separator_on_the_first_line_outside_qu
 
 
 def test_the_validation_report_checks_min_and_max_too():
-    from mateu_uidl import Max, Min
+    from mateu_ui.uidl import Max, Min
 
     class Stock:
         name: Annotated[str | None, Required()] = None

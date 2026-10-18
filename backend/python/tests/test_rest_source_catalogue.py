@@ -16,9 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import urllib.request  # noqa: E402
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.rest_source_registry import RestSourceRegistry, merged_over  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.rest_source_registry import RestSourceRegistry, merged_over  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     DeclaredRestSource,
     RestDataSource,
     RestOptions,

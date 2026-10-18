@@ -1,14 +1,14 @@
 """The global inference switches (mirror of Java's InferenceSwitchesTest): environment variables,
 with the class decorator always winning."""
 
-from mateu_core import layout_inference, page_inference
-from mateu_core.inference_switches import (
+from mateu_ui.core import layout_inference, page_inference
+from mateu_ui.core.inference_switches import (
     LAYOUT,
     PAGE,
     layout_inference_enabled,
     page_inference_enabled,
 )
-from mateu_uidl import auto_layout
+from mateu_ui.uidl import auto_layout
 
 
 class Plain:

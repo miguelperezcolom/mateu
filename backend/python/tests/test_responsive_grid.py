@@ -8,8 +8,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core.mapper import ReflectionMapper  # noqa: E402
-from mateu_uidl.components import GridTrack, ResponsiveGrid, Slotted, Text  # noqa: E402
+from mateu_ui.core.mapper import ReflectionMapper  # noqa: E402
+from mateu_ui.uidl.components import GridTrack, ResponsiveGrid, Slotted, Text  # noqa: E402
 
 
 def test_tracks_resolve_to_a_css_grid_template_and_children_travel():

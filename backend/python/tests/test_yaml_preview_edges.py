@@ -4,11 +4,11 @@ value the component refuses (shown as unsupported instead of crashing the page).
 
 from datetime import date
 
-from mateu_core.partial_registry import PartialRegistry
-from mateu_core.yaml_preview import build_from_yaml, parse_spec_with_delta
-from mateu_uidl import BannerTheme
-from mateu_uidl import components as fluent
-from mateu_uidl.components import Gantt, MetricCard, MetricTrend
+from mateu_ui.core.partial_registry import PartialRegistry
+from mateu_ui.core.yaml_preview import build_from_yaml, parse_spec_with_delta
+from mateu_ui.uidl import BannerTheme
+from mateu_ui.uidl import components as fluent
+from mateu_ui.uidl.components import Gantt, MetricCard, MetricTrend
 
 
 def test_malformed_yaml_yields_nothing_instead_of_raising():

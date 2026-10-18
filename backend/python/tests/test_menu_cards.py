@@ -11,9 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_dtos import MenuItem  # noqa: E402
-from mateu_uidl import MenuDisplay, MenuSupplier, app, menu_group, menu_item, title, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.dtos import MenuItem  # noqa: E402
+from mateu_ui.uidl import MenuDisplay, MenuSupplier, app, menu_group, menu_item, title, ui  # noqa: E402
 
 
 @ui("/cards/reservations")

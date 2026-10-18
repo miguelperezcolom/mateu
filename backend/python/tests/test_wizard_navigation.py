@@ -11,8 +11,8 @@ from typing import Annotated
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Message, Step, Wizard, title, ui, wizard_completion_action  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.uidl import Message, Step, Wizard, title, ui, wizard_completion_action  # noqa: E402
 
 MODULE = sys.modules[__name__]
 VETOES: list[tuple[int, int]] = []

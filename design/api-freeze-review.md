@@ -443,3 +443,28 @@ opens the record (except the selection, editable cells and display columns; Ente
 renderers; **U2** `MetricCard.timeframe` (`@Experimental`), rendered under the value everywhere, with
 a one-time `ArchetypeAdvisor` hint when a dashboard's KPI tiles carry none and a KPI checklist on the
 dashboard page.
+
+## 8. Python import namespace (decided 2026-10-18, before the beta)
+
+The wheel `mateu-ui` installed four generic top-level packages (`mateu_uidl`, `mateu_dtos`,
+`mateu_core`, `mateu_fastapi`) — names another distribution could plausibly also claim, and a
+collision between two wheels' top-level packages is silent (the second install overwrites files).
+Decision (delegated by the owner): move everything under ONE namespace before the beta freezes it.
+
+- `mateu_ui.uidl`, `mateu_ui.dtos`, `mateu_ui.core`, `mateu_ui.fastapi` (moved with `git mv`; the
+  version moved to `mateu_ui/_version.py`, re-exported as `mateu_ui.core.__version__`; `py.typed` is
+  on `mateu_ui` only).
+- **Compatibility for the 3.x line**: the four old names ship as one-file shims
+  (`mateu_core/__init__.py` → `mateu_ui._compat.alias(__name__)`) that emit ONE `DeprecationWarning`
+  pointing at the importing line and replace themselves in `sys.modules` with the new module; a
+  meta-path finder answers any submodule under an old name (`mateu_core.mapper`, …) with the module
+  already imported under the new name. Aliasing (not re-loading) is the point: a second load would
+  create second copies of every class, and `isinstance` / registry lookups would silently disagree
+  between spellings. The module keeps its canonical `__name__`/`__spec__`. Shims carry no
+  `py.typed`, so type checkers see only the new paths. Removal: Mateu 4.
+- Framework-class detection that keyed on the top-level module name (`action_guard`,
+  `mapper.components` action-id harvest) now keys on `mateu_ui` / `mateu_ui.<sub>`.
+- Pinned by `tests/test_compat_aliases.py` (warning once, naming the new path, at the user's line;
+  identities across spellings; unknown submodules still fail; `import mateu_ui` alone loads no
+  subpackage) and `tests/test_packaging.py` (wheel package list, mypy package, typed marker).
+

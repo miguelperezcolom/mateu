@@ -11,9 +11,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, documents, type_name  # noqa: E402
-from mateu_dtos import UICommand  # noqa: E402
-from mateu_uidl import (  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, documents, type_name  # noqa: E402
+from mateu_ui.dtos import UICommand  # noqa: E402
+from mateu_ui.uidl import (  # noqa: E402
     ComponentTreeSupplier,
     Document,
     DocumentDisposition,
@@ -22,7 +22,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     ui,
 )
-from mateu_uidl import components as fluent  # noqa: E402
+from mateu_ui.uidl import components as fluent  # noqa: E402
 
 SMALL = b"%PDF-1.4 small"
 LARGE = bytes(400 * 1024)
@@ -206,7 +206,7 @@ def test_the_fastapi_mount_serves_a_parked_document_once():
     import fastapi
     from fastapi.testclient import TestClient
 
-    from mateu_fastapi import add_mateu
+    from mateu_ui.fastapi import add_mateu
 
     app = fastapi.FastAPI()
     add_mateu(app, MODULE, base_url="/hotel")

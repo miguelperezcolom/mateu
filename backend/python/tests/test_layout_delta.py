@@ -11,10 +11,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_core.layout_delta import LayoutDelta  # noqa: E402
-from mateu_core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
-from mateu_uidl import Section, ui  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_ui.core.layout_delta import LayoutDelta  # noqa: E402
+from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
+from mateu_ui.uidl import Section, ui  # noqa: E402
 
 MODULE = sys.modules[__name__]
 
