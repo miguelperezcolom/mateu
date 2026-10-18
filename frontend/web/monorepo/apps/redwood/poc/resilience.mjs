@@ -16,7 +16,7 @@
 
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
-import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials, storedTokenMayGoTo } from './hostHeaders.mjs'
+import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials, storedTokenMayGoTo, hasHostHeaderProvider } from './hostHeaders.mjs'
 
 // ── classification ────────────────────────────────────────────────────────────────────────
 
@@ -384,7 +384,7 @@ function storedToken() {
 export function authHeadersOf() {
   // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
   const host = lastHostHeadersOf()
-  return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
+  return { ...((hasHostHeaderProvider() || hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
 }
 
 /** The refresh in progress, if any: 401s arriving meanwhile wait for this one. */
@@ -458,8 +458,11 @@ export async function fetchWithPolicy(url, init, options = {}) {
     // after a 401 carries whatever the host has now; it wins over the stored token
     const host = await hostHeadersFor(url)
     const credentials = hostCredentials()
-    // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo)
-    const auth = hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
+    // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo), and
+    // never while a host provider is configured: the host is AUTHORITATIVE for the identity — its
+    // provider answering no Authorization (or failing) is "no session", and falling back to the
+    // stored token would send the request as whoever last used the standalone app on this origin
+    const auth = hasHostHeaderProvider() || hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
     sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
     if (!auth && !Object.keys(host).length && !credentials) return init
     return {

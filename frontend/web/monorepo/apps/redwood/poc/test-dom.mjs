@@ -968,6 +968,27 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
   }))
 }
 
+// ── an Element re-rendered with a DIFFERENT definition: what is no longer declared goes ────────
+{
+  const { doc, el } = makeDom()
+  test("elements: an attribute, style or class the definition drops is removed — the element's own are kept", withDocument(doc, () => {
+    const hole = el('div', { class: 'mateu-element', 'data-element-id': 'g2' })
+    doc.body.appendChild(hole)
+    const atom = { elementId: 'g2', name: 'my-plan', attributes: { disabled: '', title: 'T' }, style: 'color: red', cssClasses: 'big' }
+    mountElements([atom])
+    const plan = hole.firstElementChild
+    assert.equal(plan.hasAttribute('disabled'), true)
+    plan.setAttribute('aria-busy', 'true') // the component's own
+    mountElements([{ ...atom, attributes: { title: 'T' }, style: '', cssClasses: '' }])
+    assert.equal(hole.firstElementChild, plan, 'the same element')
+    assert.equal(plan.hasAttribute('disabled'), false, 'dropped from the definition → removed')
+    assert.equal(plan.getAttribute('title'), 'T')
+    assert.equal(plan.hasAttribute('style'), false)
+    assert.equal(plan.hasAttribute('class'), false)
+    assert.equal(plan.getAttribute('aria-busy'), 'true', 'never written by Mateu → left alone')
+  }))
+}
+
 // ── an Element of a REMOTE screen loads its module from the remote ────────────────────────────
 {
   const { doc, el } = makeDom()

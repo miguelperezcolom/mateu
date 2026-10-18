@@ -1,4 +1,4 @@
-import{Ft as e,Ot as t,wt as n}from"./index-D6kVJnRV.js";import{f as r,l as i,n as a,t as o,x as s}from"./slot-styles-mixin-D1d5V5KE.js";import{renderMarkdownToElement as c}from"./markdown-helpers-DMy0ppMr.js";var l=e`
+import{Ft as e,Ot as t,wt as n}from"./index-CHEgOsOK.js";import{f as r,l as i,n as a,t as o,x as s}from"./slot-styles-mixin-DeQKo9yl.js";import{renderMarkdownToElement as c}from"./markdown-helpers-toPnGL-I.js";var l=e`
   @layer vaadin.base {
     vaadin-markdown {
       line-height: 1.6;

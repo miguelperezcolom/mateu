@@ -10429,9 +10429,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // send, so a host whose token rotates (the VB security provider, an OAuth refresh) is asked again
   // each time, and the retry after a 401 carries the new one.
   //
-  // What the host supplies WINS over the stored token: the component speaks for the host page.
-  // Nothing here is set in the standalone app, so its behaviour is unchanged (resilience falls back to
-  // the stored token exactly as before).
+  // What the host supplies REPLACES the stored token: the component speaks for the host page, so
+  // while a provider is configured the stored token is never sent — a provider answering no
+  // Authorization (or failing) means "no session", not "use whatever is in storage". Nothing here is
+  // set in the standalone app, so its behaviour is unchanged (resilience reads the stored token).
 
   let hostProvider = null
   let hostCredentialsMode
@@ -10933,7 +10934,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function authHeadersOf() {
     // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
     const host = lastHostHeadersOf()
-    return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
+    return { ...((hasHostHeaderProvider() || hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
   }
 
   /** The refresh in progress, if any: 401s arriving meanwhile wait for this one. */
@@ -11007,8 +11008,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // after a 401 carries whatever the host has now; it wins over the stored token
       const host = await hostHeadersFor(url)
       const credentials = hostCredentials()
-      // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo)
-      const auth = hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
+      // our stored token only to an origin trusted with it (hostHeaders.storedTokenMayGoTo), and
+      // never while a host provider is configured: the host is AUTHORITATIVE for the identity — its
+      // provider answering no Authorization (or failing) is "no session", and falling back to the
+      // stored token would send the request as whoever last used the standalone app on this origin
+      const auth = hasHostHeaderProvider() || hostAuthorizes(host) || !storedTokenMayGoTo(url) ? null : authHeaders(init)
       sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
       if (!auth && !Object.keys(host).length && !credentials) return init
       return {
@@ -11778,13 +11782,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function hydrate(element, atom) {
-    for (const key of Object.keys(atom.attributes || {})) {
+    const wanted = { ...(atom.attributes || {}) }
+    if (atom.style) wanted.style = atom.style
+    if (atom.cssClasses) wanted['class'] = atom.cssClasses
+    // What an earlier render wrote and this definition no longer declares is taken back (a
+    // `disabled` left behind is a control nobody can use) — only the names Mateu wrote: whatever the
+    // component set on itself (aria-*, reflected state) is its own. Same rule as libs/mateu.
+    for (const key of element.__mateuAttributes || []) {
+      if (!Object.prototype.hasOwnProperty.call(wanted, key)) element.removeAttribute(key)
+    }
+    for (const key of Object.keys(wanted)) {
       // setAttribute on the one ALREADY there, never on a new one: the component turns it into a
       // property change and repaints keeping its own state
-      element.setAttribute(key, atom.attributes[key])
+      element.setAttribute(key, wanted[key])
     }
-    if (atom.style) element.setAttribute('style', atom.style)
-    if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
+    element.__mateuAttributes = Object.keys(wanted)
     if (atom.content) {
       if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeElementHtml(atom.content) : atom.content
       else element.textContent = atom.content

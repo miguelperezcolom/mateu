@@ -50,27 +50,55 @@ const resolve = (
     return { attributes, content: interpolate(element.content, state, data, extra) }
 }
 
+/**
+ * What Mateu last wrote on an element — the attribute names it manages and the events it listens
+ * to — so a re-render with a DIFFERENT definition can take back what is no longer declared, without
+ * touching anything the element (a third-party custom element) wrote on itself.
+ */
+type Managed = {
+    attributes: Set<string>
+    /** event name → the action the CURRENT definition names; read when the event fires */
+    on: Record<string, string>
+    listeners: Map<string, EventListener>
+    container: LitElement
+}
+
+const managed = new WeakMap<object, Managed>()
+
+const managedOf = (htmlElement: HTMLElement, container: LitElement): Managed => {
+    let m = managed.get(htmlElement)
+    if (!m) {
+        m = { attributes: new Set(), on: {}, listeners: new Map(), container }
+        managed.set(htmlElement, m)
+    }
+    m.container = container
+    return m
+}
+
 const hydrate = (
     htmlElement: any,
     element: Element,
     component: ClientSideComponent,
     resolved: { attributes: Record<string, string>, content: string | undefined },
+    m: Managed,
 ) => {
-    for (let k in resolved.attributes) {
+    const wanted: Record<string, string> = { ...resolved.attributes }
+    if (component.style) wanted['style'] = component.style
+    if (component.cssClasses) wanted['class'] = component.cssClasses
+    if (component.slot) wanted['slot'] = component.slot
+    // What an earlier render wrote and this definition no longer declares is taken back — a
+    // `disabled` that stays after the definition dropped it is a control nobody can use. Only the
+    // names Mateu wrote: whatever the element set on itself (aria-*, reflected state) is its own.
+    for (const k of m.attributes) {
+        if (!(k in wanted)) htmlElement.removeAttribute(k)
+    }
+    for (const k in wanted) {
         // setAttribute on the element that is already there, never a fresh one: a custom element
         // observing the attribute turns it into a property change and repaints, keeping whatever
         // it holds that the server knows nothing about — zoom, selection, a computed layout.
-        htmlElement.setAttribute(k, resolved.attributes[k])
+        htmlElement.setAttribute(k, wanted[k])
     }
-    if (component.style) {
-        htmlElement.setAttribute('style', component.style)
-    }
-    if (component.cssClasses) {
-        htmlElement.setAttribute('class', component.cssClasses)
-    }
-    if (component.slot) {
-        htmlElement.setAttribute('slot', component.slot)
-    }
+    m.attributes = new Set(Object.keys(wanted))
     if (resolved.content) {
         if (element.html) {
             // Markup written in the definition is trusted as is; once `${…}` has put DATA into
@@ -81,6 +109,42 @@ const hydrate = (
         } else {
             htmlElement.append(resolved.content)
         }
+    }
+}
+
+/**
+ * Wires the element's `on:` events to the CURRENT definition: one listener per event name, which
+ * reads the action when the event fires (so a re-render naming another action is obeyed), added
+ * for an event newly declared and removed for one no longer declared — never a second listener
+ * for the same event.
+ */
+const wireEvents = (htmlElement: HTMLElement, element: Element, m: Managed) => {
+    m.on = { ...(element.on ?? {}) }
+    for (const [name, listener] of m.listeners) {
+        if (!(name in m.on)) {
+            htmlElement.removeEventListener(name, listener)
+            m.listeners.delete(name)
+        }
+    }
+    for (const name in m.on) {
+        if (m.listeners.has(name)) continue
+        const listener = (e: Event) => {
+            const actionId = m.on[name]
+            if (!actionId) return
+            const mateuComponent = m.container as MateuComponent
+            mateuComponent.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId,
+                    parameters: {
+                        event: serialize(e)
+                    }
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+        htmlElement.addEventListener(name, listener)
+        m.listeners.set(name, listener)
     }
 }
 
@@ -173,29 +237,17 @@ export const renderElement = (
         const htmlElement = elementContainer?.querySelector(selector)
         if (!htmlElement) {
             const htmlElement = document.createElement(element.name);
-            hydrate(htmlElement, element, component, resolved)
-            for (let k in element.on) {
-                htmlElement.addEventListener(k, (e: Event) => {
-                    const parameter = serialize(e)
-                    const mateuComponent = container as MateuComponent
-                    mateuComponent.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: element.on[k],
-                            parameters: {
-                                event: parameter
-                            }
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                })
-            }
+            const m = managedOf(htmlElement, container)
+            hydrate(htmlElement, element, component, resolved, m)
+            wireEvents(htmlElement, element, m)
             elementContainer?.appendChild(htmlElement)
         } else {
             while (htmlElement.firstChild) {
                 htmlElement.removeChild(htmlElement.lastChild!);
             }
-            hydrate(htmlElement, element, component, resolved)
+            const m = managedOf(htmlElement as HTMLElement, container)
+            hydrate(htmlElement, element, component, resolved, m)
+            wireEvents(htmlElement as HTMLElement, element, m)
         }
     })
     return html`<div class="element-container" data-element-id="${ifDefined(component.id)}"></div>`

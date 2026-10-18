@@ -1,4 +1,4 @@
-import{Ft as e,Mt as t,Ot as n,R as r,Rt as i,Tt as a,bt as o,f as s,ht as c,k as l,p as u,wt as d}from"./index-D6kVJnRV.js";var f=864e5,p=class extends d{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=e`
+import{Ft as e,Mt as t,Ot as n,R as r,Rt as i,Tt as a,bt as o,f as s,ht as c,k as l,p as u,wt as d}from"./index-CHEgOsOK.js";var f=864e5,p=class extends d{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=e`
         :host {
             display: block;
             width: 100%;

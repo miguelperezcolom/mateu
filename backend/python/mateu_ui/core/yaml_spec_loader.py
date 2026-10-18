@@ -54,6 +54,18 @@ class Spec:
         return self.source is not None
 
 
+def hides_the_page(source: Any, applied: Any) -> bool:
+    """Whether applying the access keys took the whole page away: the root itself was removed, or
+    the ``layout:`` of an envelope was (what is left is no page)."""
+    if applied is None:
+        return True
+    return (
+        isinstance(source, dict)
+        and source.get("layout") is not None
+        and (not isinstance(applied, dict) or applied.get("layout") is None)
+    )
+
+
 class YamlSpecLoader:
     def __init__(
         self,
@@ -126,14 +138,17 @@ class YamlSpecLoader:
         spec = self.load_spec(route)
         if spec is None or not spec.depends_on_request():
             return spec
+        # Who may see what is decided FIRST, and a failure there is never answered with the shared
+        # spec: that one has no restriction applied, so falling back to it handed the caller the
+        # very layout, state and actions the access keys were taking away (mirrors Java).
+        source = spec.source
+        refused: frozenset = frozenset()
+        locked: frozenset = frozenset()
         try:
-            tree = spec.source
-            refused: frozenset = frozenset()
-            locked: frozenset = frozenset()
-            catalogue_refused = self._catalogue_actions_refused_in(tree, authorized)
-            if yaml_access.declares_access(tree) or catalogue_refused:
+            catalogue_refused = self._catalogue_actions_refused_in(source, authorized)
+            if yaml_access.declares_access(source) or catalogue_refused:
                 applied = yaml_access.apply(
-                    tree,
+                    source,
                     authorized,
                     lambda path: self._registry.is_reachable(path, authorized),
                     catalogue_refused,
@@ -142,15 +157,34 @@ class YamlSpecLoader:
             else:
                 import copy
 
-                tree = copy.deepcopy(tree)
-            if tree is None:
-                return None
+                tree = copy.deepcopy(source)
+        except Exception as e:
+            _log.exception("Could not apply the access keys of the YAML spec for %s", route)
+            raise RuntimeError(
+                f"the access keys of the definition for route '{route}' could not be applied"
+            ) from e
+        if hides_the_page(source, tree):
+            # The caller may see NOTHING of the page: refused like a class-level @eyes_only,
+            # before any state is hydrated or any action runs — no restricted version to serve.
+            from mateu_ui.core import action_guard
+
+            action_guard.deny(
+                f"the definition of route '{route}' is hidden from the caller"
+                " (eyesOnly:/access: on its root)"
+            )
+        try:
             self.translations.translate_tree(tree, locale)
+        except Exception as e:  # noqa: BLE001 - a translation problem is not an authorization one
+            # the caller keeps the page THEY may see, restrictions applied, just untranslated
+            _log.warning("Could not translate the YAML spec for %s (served untranslated): %s", route, e)
+        try:
             _, layout, delta = parse_spec_tree(tree, self.partials, self.field_types)
-            return Spec(spec.model_view, layout, delta, None, refused, locked, spec.page_type)
-        except Exception as e:  # noqa: BLE001 - fall back to the shared spec
-            _log.warning("Failed to personalise the YAML spec for %s: %s", route, e)
-            return spec
+        except Exception as e:
+            _log.exception("Could not build the personalised YAML spec for %s", route)
+            raise RuntimeError(
+                f"the definition for route '{route}' could not be personalised for the caller"
+            ) from e
+        return Spec(spec.model_view, layout, delta, None, refused, locked, spec.page_type)
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)

@@ -85,32 +85,63 @@ internal sealed class YamlSpecLoader : ISpecsCache
     {
         var spec = LoadSpec(route);
         if (spec is not { DependsOnRequest: true }) return spec;
+        // Who may see what is decided FIRST, and a failure there is never answered with the shared
+        // spec: that one has no restriction applied, so falling back to it handed the caller the
+        // very layout, state and actions the access keys were taking away (mirrors Java).
+        var source = spec.Source;
+        object? tree;
+        IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>();
         try
         {
-            var tree = spec.Source;
-            IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>();
             // the action catalogue's restricted entries this page names (not its own): enforced
             // like the page's own refused actions (mirrors Java's catalogueActionsRefusedIn)
-            var catalogueRefused = ActionRegistry.CatalogueIdsNamedBy(tree);
+            var catalogueRefused = ActionRegistry.CatalogueIdsNamedBy(source);
             catalogueRefused.IntersectWith(MateuCatalogs.RefusedActions);
-            if (YamlAccess.DeclaresAccess(tree) || catalogueRefused.Count > 0)
+            if (YamlAccess.DeclaresAccess(source) || catalogueRefused.Count > 0)
             {
-                var applied = YamlAccess.Apply(tree, granted, path => _registry.IsReachable(path, granted),
+                var applied = YamlAccess.Apply(source, granted, path => _registry.IsReachable(path, granted),
                     catalogueRefused);
                 (tree, refused, locked) = (applied.Tree, applied.RefusedActions, applied.LockedFields);
             }
-            else tree = YamlAccess.DeepCopy(tree);
-            if (tree is null) return null;
+            else tree = YamlAccess.DeepCopy(source);
+        }
+        catch (Exception e)
+        {
+            MateuLogging.For("Mateu.Yaml").LogError(e, "Could not apply the access keys of the YAML spec for {Route}", route);
+            throw new InvalidOperationException($"the access keys of the definition for route '{route}' could not be applied", e);
+        }
+        if (HidesThePage(source, tree))
+            // The caller may see NOTHING of the page: refused like a class-level [EyesOnly], before
+            // any state is hydrated or any action runs — there is no restricted version to serve.
+            ActionGuard.Deny($"the definition of route '{route}' is hidden from the caller (eyesOnly:/access: on its root)");
+        try
+        {
             tree = _translations.TranslateTree(tree, locale);
+        }
+        catch (Exception e)
+        {
+            // A translation problem is not an authorization one: the caller keeps the page THEY may
+            // see, restrictions applied, just untranslated.
+            MateuLogging.For("Mateu.Yaml").LogWarning("Could not translate the YAML spec for {Route} (served untranslated): {Error}", route, e.Message);
+        }
+        try
+        {
             var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials, _fieldTypes);
             return spec with { Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked };
         }
         catch (Exception e)
         {
-            MateuLogging.For("Mateu.Yaml").LogWarning(e, "Failed to personalise the YAML spec for {Route}: {Error}", route, e.Message);
-            return spec;
+            MateuLogging.For("Mateu.Yaml").LogError(e, "Could not build the personalised YAML spec for {Route}", route);
+            throw new InvalidOperationException($"the definition for route '{route}' could not be personalised for the caller", e);
         }
     }
+
+    /// <summary>Whether applying the access keys took the whole page away: the root itself was
+    /// removed, or the <c>layout:</c> of an envelope was (what is left is no page).</summary>
+    internal static bool HidesThePage(object? source, object? applied) =>
+        applied is null
+        || (source is IDictionary<object, object> s && s.TryGetValue("layout", out var layout) && layout is not null
+            && (applied is not IDictionary<object, object> a || !a.TryGetValue("layout", out var kept) || kept is null));
 
     /// <summary>Dev mode: a spec changed — every parsed definition is read again on next use.</summary>
     public void InvalidateSpecs() => _byRoute.Clear();

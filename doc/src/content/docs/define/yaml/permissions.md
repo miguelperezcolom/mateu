@@ -63,6 +63,7 @@ authenticated — Mateu does not authenticate, and never reads a Bearer token it
 | `@EyesOnly` on a menu field | `access:` | an app-shell menu item | the item is not sent. A `RouteLink` with no `access:` of its own **inherits its route's**, so a link to a page you cannot open is not offered. A `Menu` group left empty disappears too |
 | `@EyesOnly` / `@DisabledUnless` on an action method | `access:` | an entry of a definition's `actions:` | the action is **not advertised**, every `Button` naming it is **disabled**, and a call that reaches the server anyway (dispatched, or proxied through `__restfetch__`) answers **403** |
 | `@EyesOnly` on a field | `eyesOnly:` | any component of a definition | the component (and everything inside it) is removed |
+| `@EyesOnly` on a `@UI` class | `eyesOnly:` / `access:` | the ROOT of a definition (its `layout:`, or a bare layout) | nothing of the page is left for the caller: **403**, before any state is hydrated or any action of its view model runs |
 | `@ReadOnlyUnless` | `readOnlyUnless:` | any component | `readOnly: true` on it and on every `FormField` inside it |
 | `@DisabledUnless` | `disabledUnless:` | any component | `disabled: true` (a `Button`, a `RouteLink`, a `Menu`…); a `FormField`, which has no disabled state, becomes **read-only** |
 

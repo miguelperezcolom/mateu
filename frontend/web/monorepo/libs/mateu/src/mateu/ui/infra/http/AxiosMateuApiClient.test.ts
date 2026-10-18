@@ -224,6 +224,21 @@ describe('an expired session', () => {
         expect(types()).toEqual(['backend-called-event', 'backend-succeeded-event'])
     })
 
+    it('the retry carries the CURRENT token: a refreshed one, or none at all — never the stale one', async () => {
+        setAuthToken('expired-token')
+        const client = new AxiosMateuApiClient()
+        const sent = answering(client, [401, 200, 401, 200])
+        onSessionExpired((ctx) => { setAuthToken('fresh-token'); ctx.retry() })
+        await run(client, initiatorEvents().initiator)
+        expect(sent[0].headers.Authorization).toBe('Bearer expired-token')
+        expect(sent[1].headers.Authorization).toBe('Bearer fresh-token')
+        // re-auth that ends with NO session (the user signed out): the retry goes anonymous
+        onSessionExpired((ctx) => { setAuthToken(null); ctx.retry() })
+        await run(client, initiatorEvents().initiator)
+        expect(sent[2].headers.Authorization).toBe('Bearer fresh-token')
+        expect(sent[3].headers.Authorization).toBeUndefined()
+    })
+
     it('giving up fails the action', async () => {
         const client = new AxiosMateuApiClient()
         const sent = answering(client, [401])

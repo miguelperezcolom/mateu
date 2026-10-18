@@ -54,9 +54,26 @@ describe('the Bearer token', () => {
         configureAuthToken({ provider: () => 'live' })
         expect(getAuthToken()).toBe('live')
         configureAuthToken({ provider: () => { throw new Error('x') } })
-        expect(getAuthToken()).toBe('stored')
+        expect(getAuthToken()).toBeNull()
+        expect(authHeaders()).toEqual({})
+        // clearing the provider hands the decision back to the storage
         configureAuthToken({ provider: null })
         expect(getAuthToken()).toBe('stored')
+    })
+
+    it('a configured provider is authoritative: "no session" never revives a stored token', () => {
+        // the previous user's token is still in storage (logout through the OIDC library, which
+        // never knew about Mateu's key): the provider saying "nobody" must be believed
+        local.setItem(AUTH_TOKEN_KEY, 'previous-user-token')
+        session.setItem(AUTH_TOKEN_KEY, 'previous-user-token')
+        for (const answer of [null, undefined, '']) {
+            for (const storage of ['localStorage', 'sessionStorage', 'memory'] as const) {
+                configureAuthToken({ storage, provider: () => answer as string | null | undefined })
+                setAuthToken('previous-user-token')
+                expect(getAuthToken()).toBeNull()
+                expect(authHeaders()).toEqual({})
+            }
+        }
     })
 
     it('never throws when storage is blocked', () => {
