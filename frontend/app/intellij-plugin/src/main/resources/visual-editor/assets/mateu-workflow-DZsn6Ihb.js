@@ -1,4 +1,4 @@
-import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./index-B3DeFpz1.js";import{a as c,i as l,n as u,t as d}from"./neutralChrome-B9gkX_ft.js";var f=160,p=56,m=220,h=110,g=60,_={ACTION:`#3B82F6`,JOIN:`#8B5CF6`,FORK:`#F59E0B`,END:`#EF4444`,USER_TASK:`#10B981`,PROCESS:`#6366F1`},v={ACTION:`▶`,JOIN:`⟨`,FORK:`⟩`,END:`◼`,USER_TASK:`👤`,PROCESS:`⚙`},y=[`ACTION`,`JOIN`,`FORK`,`END`,`USER_TASK`,`PROCESS`];function b(){return`step-`+Math.random().toString(36).slice(2,8)}var x=class extends s{constructor(...e){super(...e),this.value=`{"name":"New Workflow","steps":[]}`,this.wf={name:`New Workflow`,steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;let t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener(`mousemove`,this.onMouseMove),window.removeEventListener(`mouseup`,this.onMouseUp)}}updated(e){if(e.has(`value`)){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){let e=this.wf.steps??[],t={};e.forEach(e=>{t[e.id]=0});let n=!0;for(;n;)n=!1,e.forEach(e=>{if(e.preconditionStepId!=null&&t[e.preconditionStepId]!==void 0){let r=t[e.preconditionStepId]+1;r>t[e.id]&&(t[e.id]=r,n=!0)}});let r={};e.forEach(e=>{let n=t[e.id]??0;(r[n]??=[]).push(e.id)});let i={...this.positions},a=!1;Object.entries(r).forEach(([e,t])=>{let n=Number(e);t.forEach((e,t)=>{i[e]||(i[e]={x:g+n*m,y:g+t*h},a=!0)})}),a&&(this.positions=i)}emit(){let e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(n=>n.id===e?{...n,...t}:n)},this.emit()}addStep(){let e=b(),t={id:e,type:`ACTION`,name:`New Step`};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};let n=Object.values(this.positions).map(e=>e.y),r=n.length?Math.max(...n)+h:g;this.positions={...this.positions,[e]:{x:g,y:r}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(t=>t.id!==e).map(t=>t.preconditionStepId===e?{...t,preconditionStepId:void 0}:t)};let{[e]:t,...n}=this.positions;this.positions=n,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;let n=this.positions[t]??{x:0,y:0};this.svgEl=e.currentTarget.closest(`svg`);let r=this.toSvgPoint(e);this.dragOffset={x:r.x-n.x,y:r.y-n.y},window.addEventListener(`mousemove`,this.onMouseMove),window.addEventListener(`mouseup`,this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};let t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){let e=Object.values(this.positions),t=e.length?Math.max(...e.map(e=>e.x))+f+g:600,n=e.length?Math.max(...e.map(e=>e.y))+p+g:400;return{w:Math.max(t,600),h:Math.max(n,400)}}render(){let{w:e,h:t}=this.canvasSize(),n=this.wf.steps??[];return i`
+import{Ft as e,Mt as t,Ot as n,Rt as r,bt as i,jt as a,kt as o,wt as s}from"./index-D6kVJnRV.js";import{a as c,i as l,n as u,t as d}from"./neutralChrome-DS_EhmRc.js";var f=160,p=56,m=220,h=110,g=60,_={ACTION:`#3B82F6`,JOIN:`#8B5CF6`,FORK:`#F59E0B`,END:`#EF4444`,USER_TASK:`#10B981`,PROCESS:`#6366F1`},v={ACTION:`▶`,JOIN:`⟨`,FORK:`⟩`,END:`◼`,USER_TASK:`👤`,PROCESS:`⚙`},y=[`ACTION`,`JOIN`,`FORK`,`END`,`USER_TASK`,`PROCESS`];function b(){return`step-`+Math.random().toString(36).slice(2,8)}var x=class extends s{constructor(...e){super(...e),this.value=`{"name":"New Workflow","steps":[]}`,this.wf={name:`New Workflow`,steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;let t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener(`mousemove`,this.onMouseMove),window.removeEventListener(`mouseup`,this.onMouseUp)}}updated(e){if(e.has(`value`)){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){let e=this.wf.steps??[],t={};e.forEach(e=>{t[e.id]=0});let n=!0;for(;n;)n=!1,e.forEach(e=>{if(e.preconditionStepId!=null&&t[e.preconditionStepId]!==void 0){let r=t[e.preconditionStepId]+1;r>t[e.id]&&(t[e.id]=r,n=!0)}});let r={};e.forEach(e=>{let n=t[e.id]??0;(r[n]??=[]).push(e.id)});let i={...this.positions},a=!1;Object.entries(r).forEach(([e,t])=>{let n=Number(e);t.forEach((e,t)=>{i[e]||(i[e]={x:g+n*m,y:g+t*h},a=!0)})}),a&&(this.positions=i)}emit(){let e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent(`value-changed`,{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(n=>n.id===e?{...n,...t}:n)},this.emit()}addStep(){let e=b(),t={id:e,type:`ACTION`,name:`New Step`};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};let n=Object.values(this.positions).map(e=>e.y),r=n.length?Math.max(...n)+h:g;this.positions={...this.positions,[e]:{x:g,y:r}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(t=>t.id!==e).map(t=>t.preconditionStepId===e?{...t,preconditionStepId:void 0}:t)};let{[e]:t,...n}=this.positions;this.positions=n,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;let n=this.positions[t]??{x:0,y:0};this.svgEl=e.currentTarget.closest(`svg`);let r=this.toSvgPoint(e);this.dragOffset={x:r.x-n.x,y:r.y-n.y},window.addEventListener(`mousemove`,this.onMouseMove),window.addEventListener(`mouseup`,this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};let t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){let e=Object.values(this.positions),t=e.length?Math.max(...e.map(e=>e.x))+f+g:600,n=e.length?Math.max(...e.map(e=>e.y))+p+g:400;return{w:Math.max(t,600),h:Math.max(n,400)}}render(){let{w:e,h:t}=this.canvasSize(),r=this.wf.steps??[];return n`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():``}
@@ -12,14 +12,14 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                                     <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
                                 </marker>
                             </defs>
-                            ${n.map(e=>this.renderArrow(e))}
-                            ${n.map(e=>this.renderNode(e))}
+                            ${r.map(e=>this.renderArrow(e))}
+                            ${r.map(e=>this.renderNode(e))}
                         </svg>
                     </div>
                     ${this.selectedId?this.renderPanel():``}
                 </div>
             </div>
-        `}renderToolbar(){let e=this.wf.status??`DRAFT`;return i`
+        `}renderToolbar(){let e=this.wf.status??`DRAFT`;return n`
             <div class="toolbar">
                 <span class="wf-name">${this.wf.name}</span>
                 <span class="badge badge-${e.toLowerCase()}">${e}</span>
@@ -37,7 +37,7 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                     Export
                 </button>
             </div>
-        `}renderMeta(){let e=this.wf;return i`
+        `}renderMeta(){let e=this.wf;return n`
             <div class="meta-panel">
                 <div class="meta-grid">
                     <label>Name</label>
@@ -46,13 +46,13 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                     <textarea class="inp" rows="2" @change="${e=>this.updateWf({description:e.target.value})}">${e.description??``}</textarea>
                     <label>Status</label>
                     <select class="inp" @change="${e=>this.updateWf({status:e.target.value})}">
-                        ${[`DRAFT`,`ACTIVE`,`DISABLED`,`ARCHIVED`].map(t=>i`
+                        ${[`DRAFT`,`ACTIVE`,`DISABLED`,`ARCHIVED`].map(t=>n`
                             <option value="${t}" ?selected="${e.status===t}">${t}</option>`)}
                     </select>
                     <label>Limit concurrent</label>
                     <input type="checkbox" ?checked="${e.limitConcurrentExecutions}"
                            @change="${e=>this.updateWf({limitConcurrentExecutions:e.target.checked})}"/>
-                    ${e.limitConcurrentExecutions?i`
+                    ${e.limitConcurrentExecutions?n`
                         <label>Max concurrent</label>
                         <input class="inp" type="number" min="0" .value="${String(e.maxConcurrentExecutions??0)}"
                                @change="${e=>this.updateWf({maxConcurrentExecutions:Number(e.target.value)})}"/>
@@ -62,38 +62,38 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                     `:``}
                 </div>
             </div>
-        `}renderArrow(t){if(!t.preconditionStepId)return e``;let n=this.positions[t.preconditionStepId],r=this.positions[t.id];if(!n||!r)return e``;let i=n.x+f,a=n.y+p/2,o=r.x,s=r.y+p/2,c=(i+o)/2;return e`
-            <path d="M${i},${a} C${c},${a} ${c},${s} ${o},${s}"
+        `}renderArrow(e){if(!e.preconditionStepId)return o``;let t=this.positions[e.preconditionStepId],n=this.positions[e.id];if(!t||!n)return o``;let r=t.x+f,i=t.y+p/2,a=n.x,s=n.y+p/2,c=(r+a)/2;return o`
+            <path d="M${r},${i} C${c},${i} ${c},${s} ${a},${s}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(t){let n=this.positions[t.id]??{x:g,y:g},r=_[t.type]??`#64748b`,i=v[t.type]??`•`,a=this.selectedId===t.id;return e`
-            <g transform="translate(${n.x},${n.y})"
+        `}renderNode(e){let t=this.positions[e.id]??{x:g,y:g},n=_[e.type]??`#64748b`,r=v[e.type]??`•`,i=this.selectedId===e.id;return o`
+            <g transform="translate(${t.x},${t.y})"
                style="cursor:grab"
-               @mousedown="${e=>this.onNodeMouseDown(e,t.id)}"
-               @click="${e=>{e.stopPropagation(),this.selectedId=t.id}}">
+               @mousedown="${t=>this.onNodeMouseDown(t,e.id)}"
+               @click="${t=>{t.stopPropagation(),this.selectedId=e.id}}">
                 <rect width="${f}" height="${p}" rx="8"
                       fill="white"
-                      stroke="${a?r:`#e2e8f0`}"
-                      stroke-width="${a?2.5:1.5}"
+                      stroke="${i?n:`#e2e8f0`}"
+                      stroke-width="${i?2.5:1.5}"
                       filter="url(#shadow)"/>
                 <!-- type badge -->
-                <rect x="0" y="0" width="32" height="${p}" rx="8" fill="${r}" clip-path="inset(0 -8px 0 0 round 8px)"/>
-                <rect x="24" y="0" width="8" height="${p}" fill="${r}"/>
+                <rect x="0" y="0" width="32" height="${p}" rx="8" fill="${n}" clip-path="inset(0 -8px 0 0 round 8px)"/>
+                <rect x="24" y="0" width="8" height="${p}" fill="${n}"/>
                 <text x="16" y="${33}" text-anchor="middle"
-                      font-size="14" fill="white">${i}</text>
+                      font-size="14" fill="white">${r}</text>
                 <!-- name -->
                 <text x="44" y="${p/2-6}" font-size="11" fill="#1e293b" font-weight="600">
-                    ${t.name.length>16?t.name.slice(0,15)+`…`:t.name}
+                    ${e.name.length>16?e.name.slice(0,15)+`…`:e.name}
                 </text>
-                <text x="44" y="${36}" font-size="9" fill="#94a3b8">${t.id}</text>
-                <text x="44" y="${48}" font-size="9" fill="${r}">${t.type}</text>
+                <text x="44" y="${36}" font-size="9" fill="#94a3b8">${e.id}</text>
+                <text x="44" y="${48}" font-size="9" fill="${n}">${e.type}</text>
             </g>
-        `}renderPanel(){let e=this.wf.steps.find(e=>e.id===this.selectedId);if(!e)return``;let t=this.wf.steps.filter(t=>t.id!==e.id),n=(e,t)=>i`
+        `}renderPanel(){let e=this.wf.steps.find(e=>e.id===this.selectedId);if(!e)return``;let t=this.wf.steps.filter(t=>t.id!==e.id),r=(e,t)=>n`
             <div class="field">
                 <label class="field-label">${e}</label>
                 ${t}
             </div>
-        `;return i`
+        `;return n`
             <div class="properties">
                 <div class="prop-header">
                     <span>Step Properties</span>
@@ -102,21 +102,21 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                     <button class="close-btn" @click="${()=>this.selectedId=null}">✕</button>
                 </div>
                 <div class="prop-body">
-                    ${n(`ID`,i`<input class="inp" readonly .value="${e.id}"/>`)}
-                    ${n(`Name`,i`<input class="inp" .value="${e.name}"
+                    ${r(`ID`,n`<input class="inp" readonly .value="${e.id}"/>`)}
+                    ${r(`Name`,n`<input class="inp" .value="${e.name}"
                         @change="${t=>this.updateStep(e.id,{name:t.target.value})}"/>`)}
-                    ${n(`Type`,i`
+                    ${r(`Type`,n`
                         <select class="inp" @change="${t=>this.updateStep(e.id,{type:t.target.value})}">
-                            ${y.map(t=>i`<option value="${t}" ?selected="${e.type===t}">${t}</option>`)}
+                            ${y.map(t=>n`<option value="${t}" ?selected="${e.type===t}">${t}</option>`)}
                         </select>`)}
-                    ${n(`Description`,i`<textarea class="inp" rows="2"
+                    ${r(`Description`,n`<textarea class="inp" rows="2"
                         @change="${t=>this.updateStep(e.id,{description:t.target.value})}">${e.description??``}</textarea>`)}
-                    ${n(`Precondition step`,i`
+                    ${r(`Precondition step`,n`
                         <select class="inp" @change="${t=>this.updateStep(e.id,{preconditionStepId:t.target.value||void 0})}">
                             <option value="">— none —</option>
-                            ${t.map(t=>i`<option value="${t.id}" ?selected="${e.preconditionStepId===t.id}">${t.name} (${t.id})</option>`)}
+                            ${t.map(t=>n`<option value="${t.id}" ?selected="${e.preconditionStepId===t.id}">${t.name} (${t.id})</option>`)}
                         </select>`)}
-                    ${n(`Precondition expression`,i`<input class="inp" placeholder="JEXL expression"
+                    ${r(`Precondition expression`,n`<input class="inp" placeholder="JEXL expression"
                         .value="${e.preconditionExpression??``}"
                         @change="${t=>this.updateStep(e.id,{preconditionExpression:t.target.value||void 0})}"/>`)}
                     <div class="field row">
@@ -124,10 +124,10 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                         <input type="checkbox" ?checked="${e.parallel}"
                                @change="${t=>this.updateStep(e.id,{parallel:t.target.checked})}"/>
                     </div>
-                    ${n(`Timeout (ms)`,i`<input class="inp" type="number" min="0"
+                    ${r(`Timeout (ms)`,n`<input class="inp" type="number" min="0"
                         .value="${String(e.timeout??0)}"
                         @change="${t=>this.updateStep(e.id,{timeout:Number(t.target.value)})}"/>`)}
-                    ${n(`Retries`,i`<input class="inp" type="number" min="0"
+                    ${r(`Retries`,n`<input class="inp" type="number" min="0"
                         .value="${String(e.retries??0)}"
                         @change="${t=>this.updateStep(e.id,{retries:Number(t.target.value)})}"/>`)}
                     <div class="field row">
@@ -135,24 +135,24 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
                         <input type="checkbox" ?checked="${e.rollbackable}"
                                @change="${t=>this.updateStep(e.id,{rollbackable:t.target.checked})}"/>
                     </div>
-                    ${e.rollbackable?n(`Compensation step`,i`
+                    ${e.rollbackable?r(`Compensation step`,n`
                         <select class="inp" @change="${t=>this.updateStep(e.id,{compensationStepId:t.target.value||void 0})}">
                             <option value="">— none —</option>
-                            ${t.map(t=>i`<option value="${t.id}" ?selected="${e.compensationStepId===t.id}">${t.name} (${t.id})</option>`)}
+                            ${t.map(t=>n`<option value="${t.id}" ?selected="${e.compensationStepId===t.id}">${t.name} (${t.id})</option>`)}
                         </select>`):``}
 
-                    ${e.type===`ACTION`?n(`Topic`,i`<input class="inp" placeholder="kafka.topic.name"
+                    ${e.type===`ACTION`?r(`Topic`,n`<input class="inp" placeholder="kafka.topic.name"
                         .value="${e.topic??``}"
                         @change="${t=>this.updateStep(e.id,{topic:t.target.value||void 0})}"/>`):``}
-                    ${e.type===`USER_TASK`?n(`Form ID`,i`<input class="inp"
+                    ${e.type===`USER_TASK`?r(`Form ID`,n`<input class="inp"
                         .value="${e.formId??``}"
                         @change="${t=>this.updateStep(e.id,{formId:t.target.value||void 0})}"/>`):``}
-                    ${e.type===`PROCESS`?n(`Child workflow ID`,i`<input class="inp"
+                    ${e.type===`PROCESS`?r(`Child workflow ID`,n`<input class="inp"
                         .value="${e.childWorkflowDefinitionId??``}"
                         @change="${t=>this.updateStep(e.id,{childWorkflowDefinitionId:t.target.value||void 0})}"/>`):``}
                 </div>
             </div>
-        `}exportJson(){let e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:`application/json`}),n=URL.createObjectURL(t),r=document.createElement(`a`);r.href=n,r.download=(this.wf.name??`workflow`).replace(/\s+/g,`-`).toLowerCase()+`.json`,r.click(),URL.revokeObjectURL(n)}static{this.styles=[c,n`
+        `}exportJson(){let e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:`application/json`}),n=URL.createObjectURL(t),r=document.createElement(`a`);r.href=n,r.download=(this.wf.name??`workflow`).replace(/\s+/g,`-`).toLowerCase()+`.json`,r.click(),URL.revokeObjectURL(n)}static{this.styles=[c,e`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -230,4 +230,4 @@ import{Et as e,Ft as t,Mt as n,Ot as r,Tt as i,_t as a,kt as o,xt as s}from"./in
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `]}};a([o()],x.prototype,`value`,void 0),a([r()],x.prototype,`wf`,void 0),a([r()],x.prototype,`positions`,void 0),a([r()],x.prototype,`selectedId`,void 0),a([r()],x.prototype,`showMeta`,void 0),x=a([t(`mateu-workflow`)],x);export{x as MateuWorkflow};
+    `]}};i([t()],x.prototype,`value`,void 0),i([a()],x.prototype,`wf`,void 0),i([a()],x.prototype,`positions`,void 0),i([a()],x.prototype,`selectedId`,void 0),i([a()],x.prototype,`showMeta`,void 0),x=i([r(`mateu-workflow`)],x);export{x as MateuWorkflow};

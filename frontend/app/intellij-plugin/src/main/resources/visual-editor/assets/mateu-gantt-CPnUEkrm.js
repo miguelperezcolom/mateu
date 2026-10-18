@@ -1,4 +1,4 @@
-import{E as e,F as t,Ft as n,Mt as r,St as i,Tt as a,_t as o,f as s,ft as c,kt as l,p as u,xt as d}from"./index-B3DeFpz1.js";var f=864e5,p=class extends d{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=r`
+import{Ft as e,Mt as t,Ot as n,R as r,Rt as i,Tt as a,bt as o,f as s,ht as c,k as l,p as u,wt as d}from"./index-D6kVJnRV.js";var f=864e5,p=class extends d{constructor(...e){super(...e),this.tasks=[],this.onTaskSelectionActionId=``}selectTask(e){this.onTaskSelectionActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.onTaskSelectionActionId,parameters:{_clickedTaskId:e.id}},bubbles:!0,composed:!0}))}static{this.styles=e`
         :host {
             display: block;
             width: 100%;
@@ -73,28 +73,28 @@ import{E as e,F as t,Ft as n,Mt as r,St as i,Tt as a,_t as o,f as s,ft as c,kt a
             opacity: .55;
         }
     
-        ${t}
-    `}range(){let e=this.tasks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>new Date(e+`T00:00:00`).getTime());return e.length?{min:Math.min(...e)-f,max:Math.max(...e)+2*f}:null}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let t=this.range();if(!t)return a``;let n=t.max-t.min,r=e=>(e-t.min)/n*100,o=Date.now();return a`
+        ${r}
+    `}range(){let e=this.tasks.flatMap(e=>[e.start,e.end]).filter(e=>!!e).map(e=>new Date(e+`T00:00:00`).getTime());return e.length?{min:Math.min(...e)-f,max:Math.max(...e)+2*f}:null}months(e,t){let n=[],r=new Date(e);for(r.setDate(1);r.getTime()<=t;){let i=Math.max(r.getTime(),e),a=new Date(r.getFullYear(),r.getMonth()+1,1),o=Math.min(a.getTime(),t);n.push({label:r.toLocaleDateString(void 0,{month:`short`,year:`2-digit`}),from:i,to:o}),r.setMonth(r.getMonth()+1)}return n}render(){let e=this.range();if(!e)return n``;let t=e.max-e.min,r=n=>(n-e.min)/t*100,i=Date.now();return n`
             <div class="frame">
                 <div class="head">${c(`task`)}</div>
                 <div class="head months">
-                    ${this.months(t.min,t.max).map(e=>a`
-                        <div class="month" style="width: ${(e.to-e.from)/n*100}%;">${e.label}</div>
+                    ${this.months(e.min,e.max).map(e=>n`
+                        <div class="month" style="width: ${(e.to-e.from)/t*100}%;">${e.label}</div>
                     `)}
                 </div>
-                ${this.tasks.map(c=>{let l=new Date(c.start+`T00:00:00`).getTime(),d=new Date(c.end+`T00:00:00`).getTime()+f;return a`
-                        <div class="label" title="${c.title}">${c.title}</div>
+                ${this.tasks.map(o=>{let c=new Date(o.start+`T00:00:00`).getTime(),d=new Date(o.end+`T00:00:00`).getTime()+f;return n`
+                        <div class="label" title="${o.title}">${o.title}</div>
                         <div class="lane">
-                            ${o>=t.min&&o<=t.max?a`<div class="today" style="left: ${r(o)}%;"></div>`:i}
-                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${e(u(!!this.onTaskSelectionActionId))}
-                                 aria-label="${c.title}, ${c.start} to ${c.end}${c.progress?`, ${c.progress}% complete`:``}"
+                            ${i>=e.min&&i<=e.max?n`<div class="today" style="left: ${r(i)}%;"></div>`:a}
+                            <div role="${this.onTaskSelectionActionId?`button`:`img`}" tabindex=${l(u(!!this.onTaskSelectionActionId))}
+                                 aria-label="${o.title}, ${o.start} to ${o.end}${o.progress?`, ${o.progress}% complete`:``}"
                                  class="bar ${this.onTaskSelectionActionId?`clickable`:``}"
-                                 title="${c.title} · ${c.start} → ${c.end}${c.progress?` · ${c.progress}%`:``}"
-                                 @click="${()=>this.selectTask(c)}" @keydown="${s(()=>this.selectTask(c))}"
-                                 style="left: ${r(l)}%; width: ${(d-l)/n*100}%; ${c.color?`--mateu-gantt-fill: ${c.color};`:``}">
-                                <div class="fill" style="width: ${c.progress??0}%;"></div>
+                                 title="${o.title} · ${o.start} → ${o.end}${o.progress?` · ${o.progress}%`:``}"
+                                 @click="${()=>this.selectTask(o)}" @keydown="${s(()=>this.selectTask(o))}"
+                                 style="left: ${r(c)}%; width: ${(d-c)/t*100}%; ${o.color?`--mateu-gantt-fill: ${o.color};`:``}">
+                                <div class="fill" style="width: ${o.progress??0}%;"></div>
                             </div>
                         </div>
                     `})}
             </div>
-        `}};o([l({type:Array})],p.prototype,`tasks`,void 0),o([l()],p.prototype,`onTaskSelectionActionId`,void 0),p=o([n(`mateu-gantt`)],p);export{p as MateuGantt};
+        `}};o([t({type:Array})],p.prototype,`tasks`,void 0),o([t()],p.prototype,`onTaskSelectionActionId`,void 0),p=o([i(`mateu-gantt`)],p);export{p as MateuGantt};
