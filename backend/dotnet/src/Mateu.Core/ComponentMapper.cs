@@ -502,7 +502,7 @@ internal static class ComponentMapper
                 foreach (var f in eh.Facts.Where(f => !string.IsNullOrWhiteSpace(f.ActionId))) ids.Add(f.ActionId!);
                 break;
             case RecordMerge rm when !string.IsNullOrEmpty(rm.MergeActionId): ids.Add(rm.MergeActionId); break;
-            case ComponentRef r: Collect(MateuCatalogs.Resolve(r), ids); break;
+            case ComponentRef r: MateuCatalogs.Within(r, resolved => { Collect(resolved, ids); return 0; }); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
             case DashboardLayout d: foreach (var i in d.Items) Collect(i, ids); break;

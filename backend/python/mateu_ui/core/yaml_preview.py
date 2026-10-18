@@ -134,9 +134,10 @@ def _in_list(node: Any, partials: PartialRegistry, chain: list[str]) -> list[flu
     """What a node becomes in a content list — where a partial may contribute several."""
     if isinstance(node, dict) and node.get("type") == "Partial":
         ref = node.get("ref") or ""
-        if ref in chain or len(chain) >= _MAX_DEPTH:
+        key = partials.key(ref)
+        if key in chain or len(chain) >= _MAX_DEPTH:
             return []
-        chain.append(ref)
+        chain.append(key)
         try:
             resolved: list[fluent.Component] = []
             for child in partials.resolve(ref):

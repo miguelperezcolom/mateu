@@ -94,14 +94,42 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
     return byRef.computeIfAbsent(ref, this::fromYaml);
   }
 
+  /**
+   * The classpath paths a YAML partial {@code ref} may live at, in lookup order. A short name is
+   * {@code specs/ui/partials/<ref>.yaml} (or {@code .yml}); an explicit {@code .yaml}/{@code .yml}
+   * path is honoured as a classpath path ({@code specs/ui/partials/x.yaml}, leading slash ignored)
+   * and, failing that, relative to {@code specs/ui/} — the spelling the .NET/Python ports, the
+   * visual editor and the static bundle also accept, so one definition resolves everywhere.
+   */
+  public static List<String> candidatePaths(String ref) {
+    if (ref == null || ref.isBlank()) {
+      return List.of();
+    }
+    if (!isYamlPath(ref)) {
+      return List.of("specs/ui/partials/" + ref + ".yaml", "specs/ui/partials/" + ref + ".yml");
+    }
+    var path = ref.replaceFirst("^(classpath:)?/+", "");
+    return path.startsWith("specs/ui/") ? List.of(path) : List.of(path, "specs/ui/" + path);
+  }
+
+  /** Whether a ref names a file by path rather than by short name or class. */
+  public static boolean isYamlPath(String ref) {
+    return ref != null && (ref.endsWith(".yaml") || ref.endsWith(".yml"));
+  }
+
   private List<Component> fromYaml(String ref) {
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            Thread.currentThread().getContextClassLoader());
+    var candidates = candidatePaths(ref);
     var path =
-        ref.endsWith(".yaml") || ref.endsWith(".yml") ? ref : "specs/ui/partials/" + ref + ".yaml";
-    try (InputStream in =
-        io.mateu.core.infra.dev.DevSpecs.classLoader(Thread.currentThread().getContextClassLoader())
-            .getResourceAsStream(path)) {
+        candidates.stream()
+            .filter(c -> cl.getResource(c) != null)
+            .findFirst()
+            .orElse(candidates.isEmpty() ? "" : candidates.get(0));
+    try (InputStream in = cl.getResourceAsStream(path)) {
       if (in == null) {
-        log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, path);
+        log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, candidates);
         return NONE;
       }
       var root = FieldTypeRegistry.resolveWithAppTypes(mapper.readTree(in));
@@ -127,7 +155,7 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
   }
 
   private List<Component> fromClass(String ref, HttpRequest httpRequest) {
-    if (ref.indexOf('.') < 0 || ref.endsWith(".yaml") || ref.endsWith(".yml")) {
+    if (ref.indexOf('.') < 0 || isYamlPath(ref)) {
       return null;
     }
     try {

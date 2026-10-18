@@ -63,11 +63,32 @@ class PartialRegistry:
             self._by_ref[ref] = self._from_yaml(ref)
         return self._by_ref[ref]
 
+    @staticmethod
+    def candidate_paths(ref: str) -> list[str]:
+        """The paths, relative to the specs directory, a partial ``ref`` may live at, in lookup
+        order. A short name is ``partials/<ref>.yaml`` (or ``.yml``); an explicit ``.yaml``/``.yml``
+        path is relative to the specs directory, and the classpath spelling Java takes
+        (``specs/ui/partials/x.yaml``, leading slash ignored) is honoured too — one definition
+        resolves in every backend."""
+        if not ref:
+            return []
+        if not ref.endswith((".yaml", ".yml")):
+            return [f"partials/{ref}.yaml", f"partials/{ref}.yml"]
+        path = ref.lstrip("/")
+        return [path, path[len("specs/ui/") :]] if path.startswith("specs/ui/") else [path]
+
+    def key(self, ref: str) -> str:
+        """What identifies the partial a ref names — the file it resolves to (the ref itself when
+        registered in code or missing), so two spellings of one file are one link of a cycle."""
+        if ref in self._registered:
+            return ref
+        return next((c for c in self.candidate_paths(ref) if (self._dir / c).is_file()), ref)
+
     def _from_yaml(self, ref: str) -> list[Any]:
-        relative = ref if ref.endswith((".yaml", ".yml")) else str(Path("partials") / f"{ref}.yaml")
-        path = self._dir / relative
-        if not path.is_file():
+        relative = next((c for c in self.candidate_paths(ref) if (self._dir / c).is_file()), None)
+        if relative is None:
             return _NONE
+        path = self._dir / relative
         try:
             root = yaml.safe_load(path.read_text())
         except (OSError, yaml.YAMLError):

@@ -242,7 +242,7 @@ internal static class ActionGuard
         if (node is null or string || depth > 64) return;
         if (node is ComponentRef reference)
         {
-            Walk(MateuCatalogs.Resolve(reference), ids, seen, depth + 1);
+            MateuCatalogs.Within(reference, resolved => { Walk(resolved, ids, seen, depth + 1); return 0; });
             return;
         }
         var t = node.GetType();

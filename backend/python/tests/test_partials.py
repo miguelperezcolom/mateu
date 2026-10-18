@@ -94,3 +94,15 @@ def test_a_layout_delta_page_has_no_layout_of_its_own():
 
     assert model_view == "com.acme.Contact"
     assert layout is None
+
+
+def test_a_partial_is_named_by_its_short_name_or_by_an_explicit_path_in_either_spelling():
+    # the specs-relative path the ports took, and the classpath path Java's PartialRegistry takes
+    for ref in (
+        "legal-notice",
+        "partials/legal-notice.yaml",
+        "specs/ui/partials/legal-notice.yaml",
+        "/specs/ui/partials/legal-notice.yaml",
+    ):
+        tree = build_from_yaml(f"type: VerticalLayout\ncontent:\n  - type: Partial\n    ref: {ref}\n", partials())
+        assert [describe(c) for c in tree.content] == ["Prices include VAT."], ref

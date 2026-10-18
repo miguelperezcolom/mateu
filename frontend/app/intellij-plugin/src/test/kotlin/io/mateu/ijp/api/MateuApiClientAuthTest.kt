@@ -87,4 +87,40 @@ class MateuApiClientAuthTest : TestCase() {
         }
         assertEquals(2, seen.size)
     }
+
+    // The LongTask stream re-authenticates like a sync call (external review, 2026-10-18): it used to
+    // throw UnauthorizedException on the first 401.
+    private fun stream(tokens: TokenProvider) {
+        client(tokens).runActionStream("/long-task", "", "runLongTask", "T", "c", emptyMap(), emptyMap(), emptyMap()) {}
+    }
+
+    fun testAStreamUnauthorizedRefreshesAndRetriesOnceWithTheNewToken() {
+        var current = "expired"
+        var asked: String? = null
+        val provider = object : TokenProvider {
+            override fun accessToken() = current
+            override fun onUnauthorized(rejected: String?): Boolean {
+                asked = rejected
+                current = "good"
+                return true
+            }
+        }
+        stream(provider)
+        assertEquals("expired", asked)
+        assertEquals(listOf<String?>("Bearer expired", "Bearer good"), seen)
+    }
+
+    fun testAStreamStillUnauthorizedAfterTheRetryFailsWithoutLooping() {
+        val provider = object : TokenProvider {
+            override fun accessToken() = "bad"
+            override fun onUnauthorized(rejected: String?) = true
+        }
+        try {
+            stream(provider)
+            fail("expected UnauthorizedException")
+        } catch (e: UnauthorizedException) {
+            // expected
+        }
+        assertEquals(2, seen.size)
+    }
 }

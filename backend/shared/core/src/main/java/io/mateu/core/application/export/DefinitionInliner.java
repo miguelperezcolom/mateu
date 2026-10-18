@@ -89,6 +89,13 @@ final class DefinitionInliner {
     if (ref.isBlank()) {
       return null;
     }
+    // The chain holds every reference being expanded on the way down — business components AND
+    // partials (by the file they resolve to, so two spellings of one file are one link) — so a
+    // direct, indirect or mixed cycle is broken where it closes, that reference left as it was.
+    if (chain.size() >= MAX_DEPTH) {
+      log.error("bundle: references nest deeper than {} at '{}'; left as it was", MAX_DEPTH, ref);
+      return null;
+    }
     if ("ComponentRef".equals(type)) {
       var component = components().get(ref);
       if (component == null) {
@@ -96,22 +103,41 @@ final class DefinitionInliner {
             "bundle: business component '{}' is not in {} — left as a reference", ref, COMPONENTS);
         return null;
       }
-      var out = JsonNodeFactory.instance.arrayNode();
-      out.add(rewrite(component, chain));
-      return out;
+      var key = "component:" + ref;
+      if (chain.contains(key)) {
+        log.error("bundle: business component '{}' includes itself; left as a reference", ref);
+        return null;
+      }
+      chain.push(key);
+      try {
+        var out = JsonNodeFactory.instance.arrayNode();
+        out.add(rewrite(component, chain));
+        return out;
+      } finally {
+        chain.pop();
+      }
     }
     if (!"Partial".equals(type)) {
       return null;
     }
-    if (chain.contains(ref) || chain.size() >= MAX_DEPTH) {
-      log.error("bundle: partial '{}' includes itself or nests too deep; left as it was", ref);
+    var resolvedPath = partialPath(ref);
+    if (resolvedPath == null) {
+      log.warn(
+          "bundle: no partial '{}' at classpath:{} — left as a reference",
+          ref,
+          io.mateu.core.application.runaction.PartialRegistry.candidatePaths(ref));
       return null;
     }
-    var root = partial(ref);
+    var key = "partial:" + resolvedPath;
+    if (chain.contains(key)) {
+      log.error("bundle: partial '{}' includes itself; left as it was", ref);
+      return null;
+    }
+    var root = partial(ref, resolvedPath);
     if (root == null) {
       return null;
     }
-    chain.push(ref);
+    chain.push(key);
     try {
       var out = JsonNodeFactory.instance.arrayNode();
       var content = root.has("content") && !root.has("type") ? root.get("content") : null;
@@ -133,15 +159,21 @@ final class DefinitionInliner {
     }
   }
 
-  private JsonNode partial(String ref) {
-    if (ref.indexOf('.') >= 0 && !ref.endsWith(".yaml") && !ref.endsWith(".yml")) {
+  /** The classpath path a YAML partial resolves to, or null (a class partial, or no such file). */
+  private String partialPath(String ref) {
+    if (ref.indexOf('.') >= 0
+        && !io.mateu.core.application.runaction.PartialRegistry.isYamlPath(ref)) {
       return null; // a class partial: rendered by a server, not inlinable here
     }
-    var path =
-        ref.endsWith(".yaml") || ref.endsWith(".yml") ? ref : "specs/ui/partials/" + ref + ".yaml";
+    return io.mateu.core.application.runaction.PartialRegistry.candidatePaths(ref).stream()
+        .filter(c -> cl.getResource(c) != null)
+        .findFirst()
+        .orElse(null);
+  }
+
+  private JsonNode partial(String ref, String path) {
     try (var is = cl.getResourceAsStream(path)) {
       if (is == null) {
-        log.warn("bundle: no partial '{}' at classpath:{} — left as a reference", ref, path);
         return null;
       }
       return mapper.readTree(is);

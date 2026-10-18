@@ -15,7 +15,7 @@ import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWir
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, callMateu, loadLookups } from './transport.mjs'
+import { composeInnerRoute, mediatorBaseOf, routeFlipOf, loadRoute, loadRouteInto, bootstrapShell, expandRemoteMenus, remoteRouteOf, registerRemoteRoute, baseOf, runMateuAction, runMateuActionSse, callMateu, loadLookups } from './transport.mjs'
 import {
   headerWidgetsOf, redwoodHtmlOf, plainTextOf, initialsOf, remoteWidgetHtmlOf, startRemoteWidget, stopRemoteWidgets,
   askFabOf, brandAskFab, ASK_FAB_GLYPH, SHELL_CHAT_GLYPH,
@@ -2018,6 +2018,40 @@ atest('fetchWithPolicy ante un 401 pide reautenticar y reenvía UNA vez con el t
   try {
     await fetchWithPolicy('https://x/', {}, { actionId: 'save' })
     assert.deepEqual(sent, ['Bearer caducado', 'Bearer nuevo'])
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
+atest('a LongTask stream answered 401 re-authenticates and is resent ONCE with the new token (RN/IntelliJ parity)', async () => {
+  // External review 2026-10-18: React Native and IntelliJ failed the stream at once; this renderer's
+  // SSE leg goes through fetchWithPolicy — pinned here so it stays that way.
+  connectivity.reset()
+  const sent = []
+  let token = 'expired'
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    token = 'renewed'
+    e.detail.retry()
+  })
+  globalThis.fetch = async (url, init) => {
+    sent.push([url, init.headers.Authorization])
+    return init.headers.Authorization === 'Bearer renewed'
+      ? { ok: true, text: async () => 'data: {"fragments":[{"step":1}]}\n\n' }
+      : { ok: false, status: 401, text: async () => '' }
+  }
+  try {
+    const increments = await runMateuActionSse('https://x', null, '/long-task', 'runLongTask', {})
+    assert.deepEqual(sent, [['https://x/mateu/v3/sse/long-task', 'Bearer expired'], ['https://x/mateu/v3/sse/long-task', 'Bearer renewed']])
+    assert.deepEqual(increments, [{ fragments: [{ step: 1 }] }])
   } finally {
     globalThis.fetch = originalFetch
     globalThis.localStorage = originalStorage

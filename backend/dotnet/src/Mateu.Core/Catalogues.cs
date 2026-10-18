@@ -391,7 +391,8 @@ internal static class MateuCatalogs
     private static readonly AsyncLocal<RestSourceCatalog?> Rest = new();
     private static readonly AsyncLocal<ComponentCatalog?> Comps = new();
     private static readonly AsyncLocal<FieldTypeCatalog?> Types = new();
-    private static readonly AsyncLocal<int> Depth = new();
+    /// <summary>The business components being resolved on the way down this request's mapping.</summary>
+    private static readonly AsyncLocal<string[]?> Resolving = new();
     private static readonly AsyncLocal<ActionCatalog?> Acts = new();
 
     private static readonly AsyncLocal<IReadOnlySet<string>?> RefusedActs = new();
@@ -427,20 +428,32 @@ internal static class MateuCatalogs
     internal static ComponentCatalog Components => Comps.Value ?? ComponentCatalog.Empty;
     internal static FieldTypeCatalog FieldTypes => Types.Value ?? FieldTypeCatalog.Empty;
 
-    /// <summary>The composition a <see cref="ComponentRef"/> stands for; an unknown name (or a
-    /// reference cycle) is a visible placeholder, never an error (Java: ComponentToFragmentDtoMapper).</summary>
-    internal static IComponent Resolve(ComponentRef reference) =>
-        Depth.Value < 20 && Components.Get(reference.Ref)?.Component is { } component
+    /// <summary>The composition a <see cref="ComponentRef"/> stands for; an unknown name, or a
+    /// reference that closes a cycle (the composition references itself — directly or through
+    /// another component), is a visible placeholder, never an error (Java: ComponentToFragmentDtoMapper).</summary>
+    internal static IComponent Resolve(ComponentRef reference)
+    {
+        var chain = Resolving.Value ?? [];
+        return !chain.Contains(reference.Ref) && chain.Length < 20
+               && Components.Get(reference.Ref)?.Component is { } component
             ? component
             : new Text("Unknown business component: " + reference.Ref);
+    }
+
+    /// <summary>Runs <paramref name="body"/> over the resolved composition with the reference on the
+    /// chain, so a nested reference to it is seen as the cycle it is.</summary>
+    internal static T Within<T>(ComponentRef reference, Func<IComponent, T> body)
+    {
+        var resolved = Resolve(reference);
+        var previous = Resolving.Value;
+        Resolving.Value = [.. previous ?? [], reference.Ref];
+        try { return body(resolved); }
+        finally { Resolving.Value = previous; }
+    }
 
     /// <summary>Maps a resolved reference, guarding against a reference cycle.</summary>
-    internal static ClientSideComponentDto MapRef(ComponentRef reference)
-    {
-        Depth.Value++;
-        try { return ComponentMapper.Map(Resolve(reference)); }
-        finally { Depth.Value--; }
-    }
+    internal static ClientSideComponentDto MapRef(ComponentRef reference) =>
+        Within(reference, ComponentMapper.Map);
 
     /// <summary>A uidl descriptor on the wire.</summary>
     internal static RestDataSourceDto ToDto(RestDataSource s) => new(s.Url ?? "")

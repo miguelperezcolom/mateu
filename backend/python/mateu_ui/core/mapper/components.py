@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextvars import ContextVar
 from typing import Any
 
 import dataclasses
@@ -148,6 +149,12 @@ from mateu_ui.uidl.patterns import hero_tone_wire
 from ._base import MixinBase
 
 
+# The business components being resolved on the way down this request's mapping (per request, like
+# every other piece of mapping state).
+_RESOLVING: ContextVar[tuple[str, ...]] = ContextVar("mateu_component_refs", default=())
+_MAX_REF_DEPTH = 20
+
+
 class ComponentMapperMixin(MixinBase):
     def map_component(self, c) -> ClientSideComponent:
         """A fluent component (``mateu_ui.uidl.components``) -> its wire ClientSide component.
@@ -162,10 +169,22 @@ class ComponentMapperMixin(MixinBase):
             # A business component reference resolves HERE, so a backend-driven app never ships
             # it; an unknown name is a visible placeholder, never an error (Java's
             # ComponentToFragmentDtoMapper ComponentRef branch).
-            entry = self.components.get(c.ref) if self.components is not None else None
+            # A composition that references itself — directly or through another component — closes
+            # a cycle: broken where it closes, with the same placeholder (it used to recurse until a
+            # RecursionError).
+            chain = _RESOLVING.get()
+            entry = (
+                self.components.get(c.ref)
+                if self.components is not None and c.ref not in chain and len(chain) < _MAX_REF_DEPTH
+                else None
+            )
             if entry is None or entry.component is None:
                 return self.map_component(fluent.Text(text=f"Unknown business component: {c.ref}"))
-            return self.map_component(entry.component)
+            token = _RESOLVING.set((*chain, c.ref))
+            try:
+                return self.map_component(entry.component)
+            finally:
+                _RESOLVING.reset(token)
         if isinstance(c, fluent.Card):
             # Java's CardMapper: each slot maps as a component of its own
             def slot(x):
