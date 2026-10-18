@@ -1549,6 +1549,8 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-chat-user { align-self: flex-end; background: var(--oj-core-brand-color, #2b6a9e); color: var(--oj-core-text-color-inverse, #fff); }
 .mateu-chat-assistant { align-self: flex-start; background: var(--oj-core-neutral-contrast, rgba(0,0,0,.05)); }
 .mateu-chat-form { display: flex; gap: 8px; align-items: flex-end; padding: var(--oj-core-spacing-3x, 12px); border-block-start: 1px solid var(--oj-core-divider-color, #eee); }
+.mateu-chat-status, .mateu-chat-tokens, .mateu-chat-attached { padding: 0 var(--oj-core-spacing-3x, 12px); }
+.mateu-chat-status:empty, .mateu-chat-tokens:empty, .mateu-chat-attached:empty { display: none; }
 .mateu-chat-input { flex: 1 1 auto; resize: vertical; padding: 8px; border-radius: var(--oj-core-border-radius-md, 6px);
   border: 1px solid var(--oj-core-border-color, #ccc); font: inherit; background: var(--oj-core-bg-color-content, #fff); color: inherit; }
 

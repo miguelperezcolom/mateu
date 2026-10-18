@@ -153,6 +153,8 @@ se cerraron las diferencias con `libs/mateu/.../mateu-chat.ts`.)
 | Dictado + Ctrl+Shift+M | ✅ `chatMic` |
 | Título = marca del App (`@App(askLabel)`) | ✅ `chatConfigOf` |
 | Modo ancho | ✅ (sin arrastre del borde: el ancho del drawer lo fija JET) |
-| `render-screen` / `navigation-requested` | ✅ vía `onMateuNavigate` |
-| Otros eventos del agente | 🟡 se despachan en el `document` (un componente web los oye); `@SubscribeTo` de la pantalla no, porque la shell no alcanza las chains del contenido |
+| `render-screen` | ✅ mid-stream, `dispatchChatEvent`: the on-screen `@SubscribeTo` subscriber runs it; otherwise the built-in render target (`__preview__` → content, transient / drawer / dialog) |
+| `navigation-requested` / `close-requested` | ✅ mid-stream; every menu-click field honoured (`navigationLoadExtraOf`); closes the panel |
+| Other agent events | ✅ document CustomEvent + the registry bus (`@SubscribeTo` of the page and its islands, run by the content page) |
+| Inline `Chat` component | ✅ same dispatcher, progress + token lines, attachments when `Chat.uploadUrl` is set |
 | Textos del panel en el idioma de la interfaz | ✅ catálogo `poc/i18n.mjs` |

@@ -10,9 +10,8 @@
  * (it is replaced, not added up). */
 define([
   'vb/action/actionChain',
-  'vb/action/actions',
   'resources/js/mateu-bridge',
-], (ActionChain, Actions, bridge) => {
+], (ActionChain, bridge) => {
   'use strict';
 
   const inputEl = () => document.querySelector('#mateuChatInput input');
@@ -91,12 +90,19 @@ define([
         if (!hasText && value) { hasText = true; showStatus(); }
       };
 
-      // The agent may emit a `render-screen` event with the definition (YAML) it has authored.
-      // It is CAPTURED during the stream and fired AFTERWARDS, from the chain's main flow (not
-      // from the nested async callback, which does not propagate the application event reliably).
-      let renderYaml = null;
-      // And a `navigation-requested` one (the agent's [NAVIGATE:…]): the route to open, also at the end.
-      let navigateTo = null;
+      // The agent's UI events (navigation-requested, close-requested, render-screen, any other) are
+      // handled AS THEY ARRIVE, while the answer keeps streaming — one at a time, in order, through
+      // the dispatcher the inline Chat component uses too (bridge.dispatchChatEvent; its host —
+      // navigate, close the panel, run a subscriber, paint a generated screen — is set by
+      // loadMateuShell). Not awaited by the stream: a slow screen does not hold the answer back.
+      let events = Promise.resolve();
+      let opened = false;
+      const onAgentEvent = (ev) => {
+        events = events.then(async () => {
+          const plan = await bridge.dispatchChatEvent(ev);
+          if (plan && (plan.kind === 'navigate' || plan.kind === 'preview')) opened = true;
+        }).catch(() => undefined);
+      };
       let failure = null;
       try {
         accumulated = await bridge.streamChat({
@@ -114,17 +120,7 @@ define([
             showStatus();
           },
           onUsage: (usage) => { turnUsage = bridge.mergeTurnUsage(turnUsage, usage); },
-          onEvent: (ev) => {
-            if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
-              renderYaml = ev.detail.yaml;
-            } else if (ev && ev.event === 'navigation-requested' && ev.detail && typeof ev.detail.route === 'string') {
-              navigateTo = ev.detail.route;
-            } else if (ev && ev.event) {
-              // any other agent event goes out to the document, as in the web chat (which
-              // dispatches it bubbling): whoever listens hears it (a web component of the page)
-              document.dispatchEvent(new CustomEvent(ev.event, { detail: ev.detail, bubbles: true, composed: true }));
-            }
-          },
+          onEvent: onAgentEvent,
         }) || accumulated;
       } catch (e) {
         failure = e || new Error('Error');
@@ -139,26 +135,10 @@ define([
         focusInput();
       }
 
-      // The generated screen is painted by onMateuNavigate (the shell chain that drives the content):
-      // it reloads the current route and, with renderYaml present, runs renderScreen with the YAML on the
-      // host and projects the result. It is the same path as menu navigation, which does work
-      // from the shell (an application event from here does NOT reach the content's listeners).
-      if (renderYaml) {
-        await Actions.callChain(context, {
-          chain: 'onMateuNavigate',
-          params: {
-            event: { route: vars.mateuSelectedRoute || '/ai-screen', renderYaml },
-            force: true,
-          },
-        });
-      } else if (navigateTo) {
-        await Actions.callChain(context, {
-          chain: 'onMateuNavigate',
-          params: { event: { route: navigateTo } },
-        });
-      }
-      // Back to the message box once the screen the answer opened is painted: the conversation goes on.
-      if (renderYaml || navigateTo) focusInput();
+      // Back to the message box once what the answer opened (a screen, a navigation) is painted:
+      // the conversation goes on.
+      await events;
+      if (opened && vars.mateuChatOpen) focusInput();
     }
   }
   return chatSend;
