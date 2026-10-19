@@ -1,5 +1,6 @@
 package io.mateu.uidl.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,6 +13,7 @@ import java.lang.annotation.Target;
  *     Declare the field with its type argument instead (e.g. {@code List<MyDto> items}).
  */
 @Deprecated(since = "3.0-alpha.410", forRemoval = true)
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE})
 public @interface GenericClass {
