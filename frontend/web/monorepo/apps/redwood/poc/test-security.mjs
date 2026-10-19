@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs'
 import { elementAttributeValue, sanitizeElementHtml } from './elements.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
+import { streamChat, uploadChatFiles } from './chat.mjs'
 
 let passed = 0
 const queue = []
@@ -236,6 +237,31 @@ test('NB1: an untrusted (agent-authored) definition keeps nothing script-capable
   assert.ok(corpus.cases.length > 5)
   for (const c of corpus.cases) {
     assert.deepEqual(JSON.parse(JSON.stringify(neutralizeUntrusted(c.input))), c.expected, c.name)
+  }
+})
+
+test('NM10: the chat sends the token only to an origin trusted with it — its stream and its uploads', async () => {
+  resetCredentialOrigins()
+  trustShellBase('https://app.example/')
+  try {
+    const sent = []
+    const fetchImpl = async (url, init) => {
+      sent.push({ url, auth: (init.headers || {}).Authorization, sid: (init.headers || {})['X-Session-Id'] })
+      return { ok: true, status: 200, json: async () => ({ files: [] }), body: null, text: async () => '' }
+    }
+    const headers = () => ({ Authorization: 'Bearer tok', 'X-Session-Id': 'sid' })
+    await streamChat({ url: 'https://attacker.example/sse', body: {}, headers, fetchImpl }).catch(() => {})
+    await streamChat({ url: 'https://app.example/chat', body: {}, headers, fetchImpl }).catch(() => {})
+    await uploadChatFiles({ uploadUrl: 'https://attacker.example/up', files: [], headers: headers(), fetchImpl, FormDataImpl: class { append() {} } })
+    await uploadChatFiles({ uploadUrl: '/upload', files: [], headers: headers(), fetchImpl, FormDataImpl: class { append() {} } })
+    assert.deepEqual(sent.map((s) => [s.url, s.auth, s.sid]), [
+      ['https://attacker.example/sse', undefined, undefined],
+      ['https://app.example/chat', 'Bearer tok', 'sid'],
+      ['https://attacker.example/up', undefined, undefined],
+      ['/upload', 'Bearer tok', 'sid'],
+    ])
+  } finally {
+    resetCredentialOrigins()
   }
 })
 

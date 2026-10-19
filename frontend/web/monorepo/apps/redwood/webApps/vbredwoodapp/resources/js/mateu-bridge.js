@@ -17896,6 +17896,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
   function tryParseTokenUsage(payload) {
     const trimmed = (payload || '').trim()
@@ -17971,11 +17972,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Uploads files to the `@AI(upload=…)` endpoint as multipart; returns the saved `{name, path}`. */
+  /**
+   * The credential headers a chat request to `url` may carry: all of them to an origin trusted with
+   * the user's token (the page's, the shell's backend, the remotes its app names —
+   * hostHeaders.storedTokenMayGoTo), NONE to any other. A `Chat` names its `sseUrl`/`uploadUrl` in a
+   * screen, and a screen may come from a remote or an agent: the token must not follow it there (the
+   * web client's credentialHeadersFor does the same).
+   */
+  function chatHeadersFor(url, headers) {
+    return storedTokenMayGoTo(url) ? (headers || {}) : {}
+  }
+
   async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {}, fetchImpl = globalThis.fetch, FormDataImpl = globalThis.FormData }) {
     const form = new FormDataImpl()
     for (const f of files || []) form.append('files', f)
     if (sessionId) form.append('sessionId', sessionId)
-    const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
+    const response = await fetchImpl(uploadUrl, { method: 'POST', headers: chatHeadersFor(uploadUrl, headers), body: form })
     if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
     const result = await response.json()
     return ((result && result.files) || []).filter((f) => f && f.path)
@@ -18146,7 +18158,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       method: 'POST',
       headers: {
         Accept: 'text/event-stream', 'Content-Type': 'application/json',
-        ...((typeof headers === 'function' ? headers() : headers) || {}),
+        ...chatHeadersFor(url, typeof headers === 'function' ? headers() : headers),
       },
       body: payload,
     })

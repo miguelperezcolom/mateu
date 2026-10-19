@@ -75,6 +75,10 @@ public class MyApp { ... }
 | `Content-Type`  | `application/json`                               |
 | `Accept`        | `text/event-stream`                              |
 
+`Authorization` and `X-Session-Id` go only to an endpoint on an origin trusted with the user's
+credentials — the app's own backend and the remotes its menu names. A chat endpoint (or upload
+endpoint) on any other origin is called without them, on every renderer.
+
 **Body**
 
 ```json
