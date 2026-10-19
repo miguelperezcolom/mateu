@@ -239,7 +239,7 @@ jobs:
   #     once the `mateu-ui` project on PyPI trusts this workflow.
   pypi:
     needs: e2e
-    if: startsWith(github.event.release.tag_name, 'v3.0-')
+    if: startsWith(github.event.release.tag_name, 'v3.')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
