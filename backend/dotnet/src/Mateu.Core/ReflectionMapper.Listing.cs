@@ -476,7 +476,10 @@ internal sealed partial class ReflectionMapper
     {
         // named after the RECORD, like Java's EditableView/CrudFormComponentBuilder (getTitle(entity))
         var title = TitleOf(formType, entity);
-        var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
+        var page = Client(new PageMetadataDto(title, title, null, toolbar, [])
+            {
+                TitleIsText = TitledByData(formType, entity) ? true : null,
+            }, null,
             FormCards(formType, entity, readOnly));
         // The entity's field values ride in initialData / the fragment state (Java parity), so a
         // detail/edit/create form arrives prefilled.

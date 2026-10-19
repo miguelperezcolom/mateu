@@ -48,6 +48,23 @@ afterEach(() => {
 })
 
 describe('the header text', () => {
+    it('a DATA title (titleIsText: a record named by its toString) is text, never markup', async () => {
+        const hostile = '<img src="//attacker.example/beacon"><a href="https://phish.example">Acme</a>'
+        const { root } = await mount({ title: hostile, titleIsText: true })
+        const h2 = root.querySelector('h2')!
+        expect(h2.querySelector('img')).toBeNull()
+        expect(h2.querySelector('a')).toBeNull()
+        expect(h2.textContent).toBe(hostile)
+        // a literal ${ in the record's name shows as written (the server escapes it as data)
+        const { root: literal } = await mount({ title: 'Washer \\${size}', titleIsText: true })
+        expect(literal.querySelector('h2')?.textContent).toBe('Washer ${size}')
+    })
+
+    it('a declared title keeps its markup', async () => {
+        const { root } = await mount({ title: '<b>Declared</b>' })
+        expect(root.querySelector('h2 b')?.textContent).toBe('Declared')
+    })
+
     it('overline, title, subtitle and timestamp, interpolated against the state', async () => {
         const { root } = await mount({
             overline: 'Requisitions', title: 'Order ${state.no}', subtitle: 'for ${state.who}', timestamp: 'Last updated today',

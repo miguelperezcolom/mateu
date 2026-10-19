@@ -33,7 +33,7 @@ from ..reflection import (
     view_fields,
 )
 from ..registry import type_name
-from ..titles import record_title
+from ..titles import record_title, titled_by_data
 from ._base import MixinBase
 from .decorations import triggered_action_ids
 from .layout import section_affordance_ids
@@ -221,6 +221,7 @@ class ViewMapperMixin(MixinBase):
             title_placeholder=self._opt_t(
                 class_flag(cls, "__mateu_title_placeholder__", None)
             ),
+            title_is_text=True if titled_by_data(cls, instance) else None,
         )
         if is_tree_supplier:
             # The tree is the fragment component: the ServerSide holds the mapped tree children

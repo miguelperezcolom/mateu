@@ -40,7 +40,7 @@ public class CrudFormComponentBuilder {
       boolean buttonsAtBottom) {
     Object viewModel = editor;
     String title;
-    httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
+    httpRequest.setAttribute("windowTitle", title = getTitle(viewModel, httpRequest));
     // The creation form and the edit form hide different fields, and the validations that travel
     // with the page are built separately from its content — see ValidationMapper.FOR_CREATION_FORM.
     httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);

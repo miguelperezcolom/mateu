@@ -44,5 +44,7 @@ export default interface Form extends ComponentMetadata {
     overline?: string
     /** What the header shows while the title is empty (`@TitlePlaceholder` / `titlePlaceholder:`). */
     titlePlaceholder?: string
+    /** The title is DATA (a record's own toString): render it as text, never as markup. */
+    titleIsText?: boolean
 
 }

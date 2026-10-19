@@ -49,7 +49,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
     Object viewModel = view;
     var toolbar = createViewToolbar(viewModel, orchestrator, httpRequest);
     String title;
-    httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
+    httpRequest.setAttribute("windowTitle", title = getTitle(viewModel, httpRequest));
     var page =
         PageView.builder()
             .title(title)

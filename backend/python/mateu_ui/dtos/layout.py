@@ -53,6 +53,10 @@ class PageMetadata(Wire):
     #: What the header shows while ``title`` is still empty (the Redwood pageTitlePlaceholder
     #: header element). A placeholder, NOT a default: renderers must ignore it once a title exists.
     title_placeholder: str | None = None
+    #: True when ``title`` is DATA — a record's own ``__str__`` — rather than a declared string: a
+    #: renderer that renders declared titles as HTML renders this one as text (no markup planted by
+    #: whoever names a record). None = a declared title (mirrors PageDto.titleIsText).
+    title_is_text: bool | None = None
     #: The record/context switcher of the header (the Redwood selectObject/selectContext
     #: element); None when the page supplies none (mirrors PageDto.switcher).
     switcher: "RecordSwitcherRecord | None" = None

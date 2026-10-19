@@ -79,6 +79,12 @@ class AuthoringWireParityGuardTest {
               // author declares `columns`, the wire carries the rendered template.
               "ResponsiveGridDto.gridTemplateColumns",
 
+              // ---- PageDto (authoring record: PageView) ----
+              // DERIVED: whether the title is DATA (a record's own toString) the renderer must
+              // show as text — decided by the server from where the title came from, never
+              // authored (an author's title is declared, so it is never data).
+              "PageDto.titleIsText",
+
               // ---- FormFieldDto ----
               // DERIVED: rules re-evaluation flag, computed from @Observed/rule wiring, never
               // authored on the field itself.

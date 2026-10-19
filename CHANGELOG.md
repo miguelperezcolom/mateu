@@ -12,6 +12,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased]
 
 ### Security
+- **A page title that is data renders as text.** A CRUD detail page (and any routed object) is
+  titled by the record's own `toString()`; the web header rendered it as HTML, so whoever could name
+  a record planted a tracking image or a phishing link in the header of everyone who opened it. Such
+  titles now travel marked `PageDto.titleIsText` (additive wire field; .NET `TitleIsText`, Python
+  `title_is_text`) and the web header renders them as text; declared titles (`@Title`, a
+  `TitleSupplier`) keep their markup. Redwood, React Native and IntelliJ already rendered titles as
+  text. (Java, .NET, Python, web renderer)
 - **Inline row editing (`update-row`) is guarded like the editor's save.** A `@ReadOnly` field keeps
   the stored value, the row is laid over the stored record (its other fields survive), an id with no
   stored record is refused instead of inserted, and only a crud with `@InlineEditing` (and
