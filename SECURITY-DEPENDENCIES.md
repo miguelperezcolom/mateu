@@ -4,7 +4,11 @@ Dependabot tracks the advisories of every manifest in this repository. This file
 that are **not fixed by an upgrade**, with the reason, so they can be dismissed on GitHub with that
 reason — and the **overrides** we carry to fix the rest, so nobody removes one by accident.
 
-Last reviewed: 2026-10-10 (GA dependency sweep).
+Last reviewed: 2026-10-19 (pre-GA review 3). The web monorepo was re-checked over a full install
+(`npm ci` at `frontend/web/monorepo`, `npm ls <package> --all` per entry, and for each override every
+range the lockfile's packages declare for it, resolved against the registry): the open advisories
+below are all still present at the versions listed, and the overrides that no longer change anything
+were removed (see "Removed overrides"). The React Native and doc entries were not re-checked.
 
 ## Open advisories we cannot fix by upgrading
 
@@ -49,15 +53,10 @@ version without it. Each one is also noted in the manifest's `"//overrides"` key
 
 | Override | Alerts | Pulled by |
 |---|---|---|
-| `source-map-js` ^1.2.2 | #756 | postcss / css-tree (vite, jsdom, grunt-vb-build) |
-| `proxy-addr` ^2.0.8 | #755 | express 4 (grunt-vb-build dev server) |
-| `undici` ^7.29.1 | #677 #679 #680 #683 #684 #685 | jsdom (vitest environment) |
 | `adm-zip` ^0.6.1 | #528 #629 #657 #710 #714 | grunt-contrib-compress (grunt-vb-build) |
 | `lodash` ^4.18.1 | #326 #327 #516 | grunt, grunt-contrib-compress |
-| `http-cache-semantics` ^4.3.0 | #739 | got 12 → cacheable-request (grunt-vb-build) |
 | `js-yaml@<3.15.2` → ^3.15.2 | #527 #529 #575 #653 | grunt-vb-audit |
 | `minimatch@<3.1.3` → ^3.1.5 | #520 | grunt-vb-audit, globule, recursive-readdir |
-| `brace-expansion` (1.x ^1.1.21, 2.x ^2.1.7, 5.x ^5.0.12) | #721 #722 #723 | the minimatch copies above and eslint / vite-plugin-dts |
 | `braces@<3.0.3` → ^3.0.3 | #507 | micromatch 3 (grunt-vb-audit → cpy → globby 9) |
 | `form-data@<2.5.6` → ^2.5.6 | #512 #526 | request (grunt-vb-audit) |
 | `qs@<6.14.1` → ^6.14.1 | #514 | request |
@@ -68,6 +67,30 @@ version without it. Each one is also noted in the manifest's `"//overrides"` key
 
 Verified with the Redwood suites (`npm test`) and `npm run build` in `apps/redwood`, which still
 produces `build/optimized` including its compress tasks.
+
+Each override above is still needed: at least one package pins a range whose newest version is
+vulnerable — `grunt-contrib-compress` asks `adm-zip ^0.5.1`, `@oracle/grunt-vb-audit` pins `lodash
+4.17.21`, `grunt` asks `js-yaml ~3.14.0` and `minimatch ~3.0.4` (`globule ~3.0.2`,
+`recursive-readdir 3.0.4`), `micromatch` 2 asks `braces ^2.3.1`, `request` asks `form-data ~2.3.2`,
+`qs ~6.5.2` and `tough-cookie ~2.5.0`, `puppeteer-core` 13 pins `tar-fs 2.1.1` and `ws 8.5.0`, and
+`mocha` / `rollup-plugin-terser` ask `serialize-javascript ^6.0.2` / `^4.0.0`.
+
+The other two entries of `overrides` (and `resolutions`) are not security: `@vaadin/*` ~25.3.3 keeps
+every Vaadin component on one release.
+
+#### Removed overrides (2026-10-19)
+
+No longer change the install — every range in the tree already reaches a fixed version (or nothing
+depends on the package), and removing them leaves `package-lock.json` byte-identical:
+
+| Override | Alerts | Why it went |
+|---|---|---|
+| `source-map-js` ^1.2.2 | #756 | every dependent range reaches 1.2.2 |
+| `proxy-addr` ^2.0.8 | #755 | express 4's range reaches 2.0.8 |
+| `undici` ^7.29.1 | #677 #679 #680 #683 #684 #685 | jsdom's range reaches 7.30 |
+| `http-cache-semantics` ^4.3.0 | #739 | cacheable-request's range reaches 4.3.0 |
+| `brace-expansion` (1.x, 2.x, 5.x) | #721 #722 #723 | every minimatch copy's range reaches a fixed version |
+| `esbuild` ^0.28.1 (also in `resolutions`) | — (alignment, never security) | esbuild is no longer in the tree (Vite 8 does not use it; only optional peers name it) |
 
 ### `doc/package.json`
 
