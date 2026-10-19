@@ -4530,6 +4530,181 @@
     ]
    ]
   },
+  "Anchor": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "target",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Avatar": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "abbreviation",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "AvatarGroup": {
+   "class": [
+    [
+     "avatars",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_items_visible",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Badge": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon_on_left",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon_on_right",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "primary",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "small",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "pill",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Bpmn": {
+   "class": [
+    [
+     "xml",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Breadcrumb": {
    "class": [
     [
@@ -4553,6 +4728,30 @@
     ],
     [
      "breadcrumbs",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "BulletedList": {
+   "class": [
+    [
+     "items",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -4786,6 +4985,132 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Card": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "media",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header_prefix",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "header_suffix",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "variants",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Chart": {
+   "class": [
+    [
+     "chart_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chart_data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "chart_options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ChartData": {
+   "class": [
+    [
+     "labels",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "datasets",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ChartDataset": {
+   "class": [
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -5100,6 +5425,40 @@
     ]
    ]
   },
+  "CustomComponent": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "props",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "DashboardLayout": {
    "class": [
     [
@@ -5365,6 +5724,14 @@
     "bottom",
     "end",
     "start"
+   ]
+  },
+  "DrawerSize": {
+   "enum": [
+    "l",
+    "m",
+    "s",
+    "xl"
    ]
   },
   "DropZone": {
@@ -5981,6 +6348,95 @@
     ]
    ]
   },
+  "FormField": {
+   "class": [
+    [
+     "field_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "stereotype",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "required",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "read_only",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "initial_value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "options",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "placeholder",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "description",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "autofocus",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "slider_min",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "slider_max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "step",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Funnel": {
    "class": [
     [
@@ -6087,6 +6543,26 @@
     ]
    ]
   },
+  "GridTrack": {
+   "class": [
+    [
+     "css",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "fill": [],
+    "fixed": [
+     [
+      "length",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "hug": []
+   }
+  },
   "HeatCell": {
    "class": [
     [
@@ -6184,6 +6660,35 @@
     ]
    ]
   },
+  "HorizontalLayout": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "spacing",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Icon": {
    "class": [
     [
@@ -6203,6 +6708,35 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Image": {
+   "class": [
+    [
+     "src",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "alt",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -6353,6 +6887,124 @@
     ]
    ]
   },
+  "ListingColumn": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "stereotype",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sortable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "identifier",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "align",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "tones",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ListingComponent": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "subtitle",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "searchable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "page_size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "filters",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "rows_source",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "grid_layout",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "compact",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "empty_state_message",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
   "Map": {
    "class": [
     [
@@ -6431,6 +7083,30 @@
     ],
     [
      "color",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Markdown": {
+   "class": [
+    [
+     "markdown",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -6791,6 +7467,80 @@
     ],
     [
      "app_state",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Notice": {
+   "class": [
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "no_icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "action_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "status",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "slim",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "full_width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "inline_content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -7232,6 +7982,46 @@
     ]
    ]
   },
+  "Popover": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "wrapped",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "trigger",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PopoverTrigger": {
+   "enum": [
+    "click",
+    "hover"
+   ]
+  },
   "PricingPlan": {
    "class": [
     [
@@ -7353,6 +8143,60 @@
    "class": [
     [
      "items",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "ProgressBar": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "min",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "indeterminate",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "value_key",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "theme",
      "POSITIONAL_OR_KEYWORD",
      true
     ],
@@ -7616,6 +8460,85 @@
     ]
    ]
   },
+  "ResponsiveGrid": {
+   "class": [
+    [
+     "columns",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "gap",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "col_spans",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "stack_below",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "grid_template_areas",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "sticky_areas",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "reorderable",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "grid_template_columns": [],
+    "template": [
+     [
+      "id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "areas",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "slotted",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "Scoreboard": {
    "class": [
     [
@@ -7623,6 +8546,25 @@
      "POSITIONAL_OR_KEYWORD",
      true
     ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "Separator": {
+   "class": [
     [
      "id",
      "POSITIONAL_OR_KEYWORD",
@@ -7675,6 +8617,20 @@
     "form",
     "grid",
     "text"
+   ]
+  },
+  "Slotted": {
+   "class": [
+    [
+     "slot",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
    ]
   },
   "SplitLayout": {
@@ -8169,6 +9125,35 @@
     ],
     [
      "area",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "style",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "VerticalLayout": {
+   "class": [
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "spacing",
      "POSITIONAL_OR_KEYWORD",
      true
     ],

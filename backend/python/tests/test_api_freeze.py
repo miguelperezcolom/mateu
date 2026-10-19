@@ -101,6 +101,31 @@ def test_every_public_export_is_in_all():
     assert all(hasattr(mateu_ui.uidl, n) for n in exported)
 
 
+def test_every_public_component_is_in_all():
+    """The freeze pins ``mateu_ui.uidl.components`` by its ``__all__`` (``public-exports.json``,
+    ``public-signatures.json``), so a public class or function the module defines but leaves out of
+    ``__all__`` could be renamed, removed or re-signatured with no failure (the review found 27 —
+    VerticalLayout, FormField, Card… — unpinned). Every public name the module DEFINES (or re-binds
+    from another Mateu module) must be listed."""
+    import inspect
+    import types
+
+    import mateu_ui.uidl.components as components
+
+    exported = set(components.__all__)
+    missing = sorted(
+        name
+        for name, value in vars(components).items()
+        if not name.startswith("_")
+        and not isinstance(value, types.ModuleType)
+        and (inspect.isclass(value) or inspect.isfunction(value))
+        and getattr(value, "__module__", "").startswith("mateu_ui")
+        and name not in exported
+    )
+    assert missing == [], f"public names missing from mateu_ui.uidl.components.__all__: {missing}"
+    assert all(hasattr(components, n) for n in exported)
+
+
 def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
     import warnings
 
