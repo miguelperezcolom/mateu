@@ -103,10 +103,14 @@ public final class SpecWriter {
     }
     com.fasterxml.jackson.databind.JsonNode tree;
     try {
-      tree =
-          new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(yaml == null ? "" : yaml);
-    } catch (IOException | RuntimeException e) {
+      tree = expandedTree(yaml == null ? "" : yaml);
+    } catch (org.yaml.snakeyaml.error.YAMLException e) {
+      if (e.getMessage() != null && e.getMessage().contains("aliases")) {
+        return SCRIPT_REFUSAL; // aliases expanding past any page's size: not checkable, not saved
+      }
       return null; // not YAML: the validation report already says so
+    } catch (RuntimeException | StackOverflowError e) {
+      return SCRIPT_REFUSAL; // e.g. an alias inside its own anchor: not checkable, not saved
     }
     if (carriesARequest(tree)) {
       return REQUEST_REFUSAL;
@@ -123,6 +127,24 @@ public final class SpecWriter {
       "A definition saved by an agent may not run code in the browser: no event-handler, import or"
           + " srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS"
           + " rule or action js, and no MicroFrontend loaded from another server.";
+
+  /**
+   * The definition as a JSON tree with its YAML aliases EXPANDED (SnakeYAML's safe loader, at most
+   * 50 aliases per collection): Jackson's tree reader does not resolve an alias of a mapping, so an
+   * {@code import:} (or a {@code proxy: true}) written once under an anchor and aliased into an
+   * {@code Element} would not be seen where it lands.
+   */
+  private static com.fasterxml.jackson.databind.JsonNode expandedTree(String yaml) {
+    var options = new org.yaml.snakeyaml.LoaderOptions();
+    options.setAllowRecursiveKeys(false);
+    options.setMaxAliasesForCollections(50);
+    var loaded =
+        new org.yaml.snakeyaml.Yaml(new org.yaml.snakeyaml.constructor.SafeConstructor(options))
+            .load(yaml);
+    return new com.fasterxml.jackson.databind.ObjectMapper()
+        .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+        .valueToTree(loaded);
+  }
 
   /** The message of a definition that would decide a request (shown as written). */
   public static final String REQUEST_REFUSAL =

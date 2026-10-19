@@ -39,4 +39,21 @@ class SaveSpecScriptRefusalTest {
       }
     }
   }
+
+  @Test
+  void anAliasBombIsRefusedRatherThanExpanded() {
+    var yaml = new StringBuilder("a: &a [x, x, x, x, x, x, x, x, x, x]\n");
+    var prev = "a";
+    for (int i = 0; i < 8; i++) {
+      var next = "l" + i;
+      yaml.append(next).append(": &").append(next).append(" [");
+      for (int j = 0; j < 10; j++) {
+        yaml.append(j == 0 ? "" : ", ").append("*").append(prev);
+      }
+      yaml.append("]\n");
+      prev = next;
+    }
+    assertThat(SpecWriter.agentRefusal("component", yaml.toString()))
+        .isEqualTo(SpecWriter.SCRIPT_REFUSAL);
+  }
 }
