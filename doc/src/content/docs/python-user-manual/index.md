@@ -115,7 +115,7 @@ add_mateu(
   Mateu the result:
 
   ```python
-  from mateu_ui.core.identity import identity_from_claims
+  from mateu_ui.fastapi import identity_from_claims  # also in mateu_ui.core
 
   @app.middleware("http")
   async def authenticate(request, call_next):

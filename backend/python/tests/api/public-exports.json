@@ -389,6 +389,7 @@
   "__version__",
   "current_request",
   "detect_separator",
+  "identity_from_claims",
   "normalize",
   "parse_csv",
   "type_name"
@@ -396,6 +397,7 @@
  "mateu_ui.fastapi": [
   "CORRELATION_HEADER",
   "MateuUiMiddleware",
-  "add_mateu"
+  "add_mateu",
+  "identity_from_claims"
  ]
 }

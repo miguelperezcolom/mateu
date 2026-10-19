@@ -27,7 +27,7 @@ from starlette.concurrency import run_in_threadpool
 
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
-from mateu_ui.core.identity import framework_identity_provider, warn_on_startup
+from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
 from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, ui_page
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
@@ -678,4 +678,6 @@ def _add_dev_endpoints(app: FastAPI) -> None:
     app.add_api_route(dev_specs.RELOAD_PATH, reload, methods=["POST"])
 
 
-__all__ = ["CORRELATION_HEADER", "MateuUiMiddleware", "add_mateu"]
+# identity_from_claims: re-exported here because this is where an app wires its own token check
+# (request.state.mateu_identity = identity_from_claims(verified_claims)).
+__all__ = ["CORRELATION_HEADER", "MateuUiMiddleware", "add_mateu", "identity_from_claims"]

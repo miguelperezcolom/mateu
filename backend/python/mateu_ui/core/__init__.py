@@ -2,6 +2,7 @@
 
 from .._version import __version__
 from .action_guard import MateuForbiddenException
+from .identity import identity_from_claims
 from .importwizard import ColumnMapping, ImportWizard, RowIssue, detect_separator, parse_csv
 from .mapper import ReflectionMapper
 from .registry import MateuRegistry, normalize, type_name
@@ -20,6 +21,7 @@ __all__ = [
     "SyncHandler",
     "current_request",
     "detect_separator",
+    "identity_from_claims",
     "normalize",
     "parse_csv",
     "type_name",
