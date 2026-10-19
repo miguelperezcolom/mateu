@@ -1662,9 +1662,12 @@
     } ]
   }, {
     "type" : "Image",
-    "description" : "An image shown from a URL or data URI.",
+    "description" : "An image, by url or data URI.",
     "attributes" : [ {
       "name" : "src",
+      "type" : "string"
+    }, {
+      "name" : "alt",
       "type" : "string"
     } ]
   }, {
