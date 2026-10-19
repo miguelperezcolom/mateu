@@ -7,7 +7,7 @@
         <groupId>io.helidon.applications</groupId>
         <artifactId>helidon-mp</artifactId>
         <!-- the Helidon line the adapter (backend/helidon-mp/helidon-mp-core) is built against -->
-        <version>4.5.1</version>
+        <version>4.5.5</version>
         <relativePath/>
     </parent>
     <groupId>io.mateu.e2e</groupId>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.40</version>
+            <version>1.18.48</version>
             <optional>true</optional>
         </dependency>
     </dependencies>
@@ -97,7 +97,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.40</version>
+                            <version>1.18.48</version>
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
