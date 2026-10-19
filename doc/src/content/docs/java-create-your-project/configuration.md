@@ -19,6 +19,7 @@ implemented once, in Mateu's core, so it is the same on every adapter.
 | `mateu.security.csrf-exemption.enabled` | `true` | Spring: exempts Mateu's JSON calls from Spring Security's CSRF check ([why it is safe](/java-user-manual/advanced/security/#wiring-each-framework)). |
 | `mateu.static-assets.caching` | `true` | Caches Mateu's frontend assets: `/version_<n>/…` immutable for a year, `/assets/…` revalidated (`no-cache`). |
 | `mateu.debug` | `false` | Starts the renderer in debug mode (`<mateu-ui debug="true">`). |
+| `mateu.micronaut.replace-json-mapper` | `true` | Micronaut: Mateu replaces micronaut-serde's JSON mapper with a plain Jackson one — the wire DTOs rely on Jackson polymorphism (the component tree), which micronaut-serde cannot encode. `false` keeps micronaut-serde (then the app must provide a mapper that can). |
 
 ### Core settings
 
@@ -36,7 +37,8 @@ Config on Quarkus and Helidon), then the environment variable (`mateu.self-base-
 | `mateu.mobile.*` | — | The [mobile manifest](/ux-patterns/mobile-app/) (name, icon, OIDC issuer and client…). |
 | `mateu.environment`, `mateu.sources.mock`, `mateu.i18n.fallback`, `mateu.documents.inline-max-bytes` | — | The active environment, sample-data mode, the fallback locale, the inline document limit. |
 | `mateu.mcp.push.enabled` | `false` | [Live UI push](/reference/agent-operability/#drive-a-live-ui): an agent paired with a browser tab can render screens and drive it. Needs `mateu.mcp.enabled=true` too. |
-| `mateu.mcp.push.rate-per-minute`, `mateu.mcp.push.max-sessions`, `mateu.mcp.push.max-sessions-per-owner` | `30`, `1000`, `20` | Live UI push limits: messages per session per minute, registered sessions, sessions per signed-in user (or per client address for anonymous UIs). |
+| `mateu.mcp.push.rate-per-minute`, `mateu.mcp.push.max-sessions`, `mateu.mcp.push.max-sessions-per-owner` | `30`, `1000`, `20` | Live UI push limits: messages per session per minute, registered sessions, sessions per signed-in user. |
+| `mateu.mcp.push.max-anonymous-sessions-per-address` | `200` | Registered **anonymous** UI sessions per client address — the address the host framework resolves (behind a reverse proxy without the framework's forwarded-header handling, every anonymous UI shares the proxy's, hence the high default); an address the adapter cannot tell is limited only by `max-sessions`. |
 
 Before `3.0-alpha.426` these were read only from system properties and environment variables: a key
 written in `application.properties` was silently ignored.
