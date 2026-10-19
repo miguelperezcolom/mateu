@@ -11,6 +11,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+- **Live UI push: an agent sends UI to a UI that is open.** With the MCP endpoint and
+  `mateu.mcp.push.enabled=true` (.NET `MateuOptions.McpPush`, Python `add_mateu(mcp_push=True)`,
+  `MATEU_MCP_PUSH_ENABLED` everywhere), each tab / app window keeps an *agent channel* open
+  (`_agent-channel` over the existing SSE endpoint) and the shell offers **Connect AI**: a one-time
+  pairing code, the connected agents, Disconnect. MCP tools `mateu_list_sessions`,
+  `mateu_pair_session`, `mateu_push_ui` (validates first, then renders the page in that tab — content,
+  drawer or dialog — through `__preview__`), `mateu_navigate` and `mateu_dispatch_event`. A caller
+  reaches only its own user's sessions and the ones paired to it; rate and size limits; every push
+  logged. Wire: `AppDto.agentPush`, command `AgentPush {kind, event, detail}`. Identical in Java (5
+  adapters), .NET, Python and the sidecar (which forwards to the app's `/mateu/mcp`), pinned by
+  `conformance/mcp/push.json`; applied by Vaadin, Redwood, React Native and IntelliJ with the same
+  code as the chat's events. (Java, .NET, Python, sidecar, Vaadin, Redwood, React Native, IntelliJ)
+
+### Changed
+- The chat's `sessionId` is the UI session id (the web's per-tab `X-Session-Id`; the native
+  renderers' app session), shared with the agent channel.
+
 ## [3.0-beta.4] — 2026-10-19
 
 The closing batch: the 3.x API frozen and enforced, a first-hour smoke against every release, the docs' code samples compiled, an AI plugin for Claude Code, one chat contract on every renderer, an MCP for authoring screens, and the product bugs those efforts found.
