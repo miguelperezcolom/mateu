@@ -73,7 +73,7 @@ public class ProductForm {
     String name;
 
     @Stereotype(FieldStereotype.radio)
-    Status status;
+    ProductStatus status;
 
     @ReadOnly
     String audit;

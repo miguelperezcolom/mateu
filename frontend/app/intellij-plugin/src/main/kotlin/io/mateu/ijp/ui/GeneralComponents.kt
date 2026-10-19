@@ -653,7 +653,11 @@ fun renderMessageInput(ctx: AppContext, metadata: JsonNode): JComponent {
 fun renderChat(ctx: AppContext, metadata: JsonNode): JComponent {
     val url = metadata.text("sseUrl")
     if (url.isBlank()) return muted("Chat: no endpoint configured.")
-    return buildChatPanel(url, ctx.session.apiClient).fixedHeight(JBUI.scale(360))
+    lateinit var panel: JComponent
+    // the agent's close-requested folds the inline panel away
+    panel = buildChatPanel(ctx.session, url, metadata.text("uploadUrl").ifBlank { null }, host = ctx) { panel.isVisible = false }
+        .fixedHeight(JBUI.scale(360))
+    return panel
 }
 
 // ── overlays met inline, and islands ────────────────────────────────────────────────────────

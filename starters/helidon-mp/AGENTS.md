@@ -69,11 +69,12 @@ mvn package && java -jar target/mateu-starter-helidon-mp.jar   # http://localhos
 
 ## References
 
+- **Claude Code plugin `mateu`** (the skills that know this API): `/plugin marketplace add
+  miguelperezcolom/mateu`, then `/plugin install mateu@mateu`. A project made by the New Project
+  wizards already enables it in `.claude/settings.json` — trust the folder and install it once.
+  Skills for this project: `mateu` (Java screens), `mateu-screen` (pick the page archetype), `mateu-yaml` (screens as data under `specs/ui`), `mateu-scaffold`, `mateu-run` (run + screenshot), `mateu-federation`. Guide: https://mateu.io/build-uis-with-ai/
 - Docs: https://mateu.io — quickstart, annotation and interface references, UX patterns.
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md (short) and
   https://mateu.io/mateu-ai-full.md (complete).
-- Claude Code skills (`mateu`, `mateu-scaffold`, `mateu-run`, `mateu-screen`, `mateu-federation`):
-  copy `.claude/skills/` from https://github.com/miguelperezcolom/mateu into this repo or
-  `~/.claude/skills/`.
 - MCP: set `mateu.mcp.enabled=true` and the running app serves `POST /mateu/mcp`, so an agent can
   discover and operate its screens (https://mateu.io/reference/agent-operability/).

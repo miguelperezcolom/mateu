@@ -63,16 +63,17 @@
          real suite sets it just under its measured value. -->
     <jacoco.min.bundle.branch.coverage>0%</jacoco.min.bundle.branch.coverage>
     <!-- Public-API compatibility check (japicmp) of uidl and core's archetypes (dtos: report only,
-         the wire DTOs are outside the Java binary promise) against the
-         last RELEASED version. Report-only while the version is an alpha: set
-         mateu.api.enforce=true (done from the beta tag on) and an incompatible change fails
-         `mvn verify` unless the type/member is @Experimental or listed in
-         api-compat/japicmp-exclusions.properties. See reference/stability-and-versioning.md. -->
-    <mateu.japicmp.baseline>3.0-alpha.425</mateu.japicmp.baseline>
-    <!-- THE beta switch: `-Dmateu.api.enforce=true` (or flipping this default at the beta tag)
-         makes an incompatible change to the non-@Experimental surface fail the build.
-         mateu.japicmp.enforce is the knob the plugin reads; it follows this one. -->
-    <mateu.api.enforce>false</mateu.api.enforce>
+         the wire DTOs are outside the Java binary promise) against the last RELEASED version.
+         ENFORCING since 3.0-beta.1 — the 3.x API is frozen: an incompatible change to the
+         non-@Experimental, non-@Internal surface fails `mvn verify` (and so `install` and CI's
+         backend-tests) with the add + deprecate recipe (api-compat/api-guard-enforce-true.groovy),
+         unless it is listed in api-compat/japicmp-exclusions.properties.
+         See reference/stability-and-versioning.md. -->
+    <mateu.japicmp.baseline>3.0-beta.3</mateu.japicmp.baseline>
+    <!-- THE switch, on by default: `-Dmateu.api.enforce=false` makes the check report-only (to read
+         the full report of a break locally; never for a pull request). mateu.japicmp.enforce is the
+         knob the plugin reads; it follows this one (mateu-dtos pins it to false). -->
+    <mateu.api.enforce>true</mateu.api.enforce>
     <mateu.japicmp.enforce>${mateu.api.enforce}</mateu.japicmp.enforce>
     <mateu.japicmp.skip>false</mateu.japicmp.skip>
   </properties>
@@ -112,58 +113,33 @@
       <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
-        <version>1.18.46</version>
+        <version>1.18.48</version>
       </dependency>
       <!--
-        Pin smallrye-common-function ahead of the Quarkus BOM. Quarkus 3.38 pulls it at 2.14.0 via
-        jboss-threads and at 2.19.0 via smallrye-common-io, which the maven-enforcer
-        DependencyConvergence rule rejects. A directly declared managed dependency converges every
-        path on 2.19.0.
+        Pin smallrye-common-function ahead of the Quarkus BOM. Quarkus pulls it at different versions via
+        jboss-threads and smallrye-common-io, which the maven-enforcer DependencyConvergence rule
+        rejects. A directly declared managed dependency converges every path on 2.21.1.
       -->
       <dependency>
         <groupId>io.smallrye.common</groupId>
         <artifactId>smallrye-common-function</artifactId>
-        <version>2.19.0</version>
+        <version>2.21.1</version>
       </dependency>
       <!--
-        Pin hibernate-validator to the Spring Boot 4 line (9.1.2.Final) everywhere. Spring Boot 4.1.0
+        Pin hibernate-validator to the Spring Boot 4 line (9.1.5.Final) everywhere. Spring Boot 4.1
         brings jakarta-validation 3.x / hibernate-validator 9.x; core and webflux-core also declare it
-        directly (bumped to 9.1.2 in their poms), and this managed pin converges the modules that
+        directly (bumped to 9.1.5 in their poms), and this managed pin converges the modules that
         pick it up transitively from the Boot BOM, keeping maven-enforcer DependencyConvergence happy.
       -->
       <dependency>
         <groupId>org.hibernate.validator</groupId>
         <artifactId>hibernate-validator</artifactId>
-        <version>9.1.2.Final</version>
-      </dependency>
-      <!--
-        Pin Apache Groovy to the line rest-assured expects (4.0.22). rest-assured 5.5.0 (test scope)
-        pulls groovy/groovy-json/groovy-xml at 4.0.22, but the Spring Boot 4.1 BOM manages them up to
-        5.0.6. rest-assured's Groovy-based HTTPBuilder is not compatible with Groovy 5 — plain GET
-        requests blow up with a NullPointerException deep in the Groovy metaclass machinery
-        (io.mateu.integrationtests.GetIndexIT). Groovy is a test-only transitive here (nothing in the
-        backend uses it at runtime), so a directly managed pin back to 4.0.22 fixes the ITs with no
-        runtime impact.
-      -->
-      <dependency>
-        <groupId>org.apache.groovy</groupId>
-        <artifactId>groovy</artifactId>
-        <version>4.0.22</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.groovy</groupId>
-        <artifactId>groovy-json</artifactId>
-        <version>4.0.22</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.groovy</groupId>
-        <artifactId>groovy-xml</artifactId>
-        <version>4.0.22</version>
+        <version>9.1.5.Final</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -191,12 +167,12 @@
                   <plugin>
                       <groupId>org.apache.maven.plugins</groupId>
                       <artifactId>maven-surefire-plugin</artifactId>
-                      <version>3.5.6</version> </plugin>
+                      <version>3.6.0</version> </plugin>
                   <!-- Loads the reviewed API-compatibility exclusions (one property, a ';' list). -->
                   <plugin>
                       <groupId>org.codehaus.mojo</groupId>
                       <artifactId>properties-maven-plugin</artifactId>
-                      <version>1.2.1</version>
+                      <version>1.3.1</version>
                       <executions>
                           <execution>
                               <id>japicmp-exclusions</id>
@@ -217,6 +193,15 @@
                       <groupId>com.github.siom79.japicmp</groupId>
                       <artifactId>japicmp-maven-plugin</artifactId>
                       <version>0.26.3</version>
+                      <dependencies>
+                          <!-- the JSR-223 engine japicmp runs the postAnalysisScript with -->
+                          <dependency>
+                              <groupId>org.apache.groovy</groupId>
+                              <artifactId>groovy-jsr223</artifactId>
+                              <!-- 5.x: the 4.x line cannot read the class files of the newest JDKs -->
+                              <version>5.0.6</version>
+                          </dependency>
+                      </dependencies>
                       <executions>
                           <execution>
                               <id>api-compatibility</id>
@@ -237,6 +222,9 @@
                               <ignoreMissingClasses>true</ignoreMissingClasses>
                               <breakBuildOnBinaryIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnBinaryIncompatibleModifications>
                               <breakBuildOnSourceIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnSourceIncompatibleModifications>
+                              <!-- enforcing: fails first, listing the breaks with the add + deprecate
+                                   recipe; report-only: a no-op. Picked by the flag's value. -->
+                              <postAnalysisScript>${project.basedir}/../../api-compat/api-guard-enforce-${mateu.japicmp.enforce}.groovy</postAnalysisScript>
                               <excludes>
                                   <exclude>@io.mateu.uidl.annotations.Experimental</exclude>
                                   <exclude>@io.mateu.uidl.annotations.Internal</exclude>
@@ -253,7 +241,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.15.0</version>
+        <version>3.16.0</version>
         <configuration>
           <source>21</source>
           <target>21</target>
@@ -320,7 +308,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.6.2</version>
         <executions>
           <execution>
             <id>add_sources</id>
@@ -396,7 +384,7 @@
       <plugin>
         <groupId>org.sonatype.central</groupId>
         <artifactId>central-publishing-maven-plugin</artifactId>
-        <version>0.11.0</version>
+        <version>0.12.0</version>
         <extensions>true</extensions>
         <configuration>
           <publishingServerId>central</publishingServerId>

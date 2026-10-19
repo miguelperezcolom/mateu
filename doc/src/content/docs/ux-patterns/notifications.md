@@ -117,11 +117,11 @@ public class ShellHome implements WidgetSupplier {
         return List.of(
             HorizontalLayout.builder()
                 .content(List.of(
+                    // ... other header widgets (user menu, etc.) go in this list too
                     MicroFrontend.builder()
                         .baseUrl("/_forms")
                         .route("/my-tasks")
-                        .build(),
-                    // ... other header widgets (user menu, etc.)
+                        .build()
                 ))
                 .style("align-items: flex-end;")
                 .build()

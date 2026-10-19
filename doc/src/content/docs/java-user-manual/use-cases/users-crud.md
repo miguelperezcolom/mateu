@@ -163,7 +163,7 @@ public class RoleOptionsSupplier implements LookupOptionsSupplier {
 
 ```java
 @Service
-public class RoleLabelSupplier implements LabelSupplier {
+public class RoleLabelSupplier implements LookupLabelSupplier {
 
     @Override
     public String label(String fieldName, Object id, HttpRequest httpRequest) {
@@ -177,7 +177,7 @@ public class RoleLabelSupplier implements LabelSupplier {
 }
 ```
 
-`LabelSupplier` resolves a stored ID to a human-readable label. Mateu calls this when displaying a list row or a read-only form.
+`LookupLabelSupplier` resolves a stored ID to a human-readable label. Mateu calls this when displaying a list row or a read-only form.
 
 ---
 

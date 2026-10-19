@@ -17,9 +17,11 @@ The `GeneralOverview<Row>` archetype renders a **context switcher** at the top (
 @Title("Requisitions")
 public class RequisitionOverview extends GeneralOverview<Requisition> {
 
+  @Autowired RequisitionRepository repo;
+
   @Override
   protected List<Option> switcherOptions(HttpRequest rq) {
-    return repo.findAll().stream().map(r -> new Option(r.id(), r.title(), null, null, null, null, null)).toList();
+    return repo.findAll().stream().map(r -> new Option(r.id(), r.title())).toList();
   }
 
   @Override
@@ -31,9 +33,10 @@ public class RequisitionOverview extends GeneralOverview<Requisition> {
         EntityHeader.builder()          // the metadata strip: title + badges + facts + metric
             .title(r.title())
             .facts(List.of(Fact.builder().label("Business Unit").value(r.unit()).build()))
-            .metricLabel("Amount").metricValue(...)
+            .metricLabel("Amount").metricValue(r.amount())
             .build(),
-        ...property cards...)).build();
+        Card.builder().title(new Text("Details")).build()   // … the property cards
+    )).build();
   }
 }
 ```

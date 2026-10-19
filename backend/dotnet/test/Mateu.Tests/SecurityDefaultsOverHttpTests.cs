@@ -133,6 +133,41 @@ public class SecurityDefaultsOverHttpTests
         Assert.Contains("-32700", await r.Content.ReadAsStringAsync());
     }
 
+    [Fact]
+    public async Task A_json_value_that_is_not_an_object_is_an_invalid_request()
+    {
+        await using var host = await Boot(o => o.Mcp = true);
+        var r = await host.Http.PostAsync("/mateu/mcp", JsonBody("[1,2]"));
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+            await r.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task A_refused_mcp_action_is_the_tool_error_forbidden()
+    {
+        await using var host = await Boot(o => o.Mcp = true);
+        var r = await host.Http.PostAsync("/mateu/mcp", JsonBody(
+            "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":\"mateu_run_action\","
+            + "\"arguments\":{\"route\":\"http-security-probe\",\"actionId\":\"approve\"}}}"));
+        using var doc = JsonDocument.Parse(await r.Content.ReadAsStringAsync());
+        var result = doc.RootElement.GetProperty("result");
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Equal("Error: Forbidden", result.GetProperty("content")[0].GetProperty("text").GetString());
+    }
+
+    [Fact]
+    public async Task The_authoring_tools_are_served_over_http()
+    {
+        await using var host = await Boot(o => o.Mcp = true);
+        var report = await ToolCall(host, "mateu_validate_uidl", "{\"yaml\":\"foo: bar\\n\"}");
+        Assert.Contains("unknown_kind", report);
+        var preview = await ToolCall(host, "mateu_preview_uidl",
+            "{\"yaml\":\"type: VerticalLayout\\ncontent:\\n  - type: FormField\\n    id: name\\n    label: Name\\n\"}");
+        Assert.Contains("\"rendered\": true", preview);
+        Assert.Contains("\"id\": \"name\"", preview);
+    }
+
     private static async Task<string> ToolCall(Running host, string name, string arguments)
     {
         var r = await host.Http.PostAsync("/mateu/mcp", JsonBody(

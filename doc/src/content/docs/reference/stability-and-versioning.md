@@ -35,8 +35,10 @@ From that tag on:
   for. The [list below](#stable-and-experimental-api-by-package) is the exact boundary.
 - The **wire** stays additive within `wireVersion` 3.x (see [Wire compatibility](#wire-compatibility)),
   and YAML keys follow the same add-then-deprecate rule as Java names.
-- The compatibility check that enforces this for Java ([Enforcement](#enforcement)) is switched to
-  blocking at the beta tag.
+- **The promise is enforced by the build**, not only stated: from `3.0-beta.1` on, an incompatible
+  change to the stable API fails CI in all three backends — Java (japicmp), .NET (the pinned public
+  surface of `Mateu.Uidl`) and Python (the pinned exports and signatures of `mateu_ui.uidl`). See
+  [Enforcement](#enforcement).
 
 ## What is public API
 
@@ -51,7 +53,7 @@ You can build on these; they follow the deprecation policy.
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
 | **Adapter configuration** — the `mateu.*` properties the guides document (`mateu.cors.allowed-origins`, `mateu.ui.modules`…) and `@EnableMateuUiModules` (Spring MVC / WebFlux) | the adapter artifacts (`mateu-mvc`, `mateu-webflux`, …); everything else in them is internal |
-| **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_ui.uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
+| **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_ui.uidl` (and `mateu_ui.uidl.components`) decorators/markers/components | the `Mateu.Uidl` NuGet package and the `mateu-ui` PyPI package; same policy, pinned by their own tests ([Enforcement](#enforcement)) |
 
 ### The wire DTOs: JSON, not Java binaries
 
@@ -100,7 +102,11 @@ import the other type explicitly:
 import io.mateu.uidl.annotations.*;   // @Section, @Toolbar, @Badge…
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Badge;      // the record wins for the bare name `Badge`…
-// …and the annotation is then written qualified: @io.mateu.uidl.annotations.Badge
+
+class Example {
+  @io.mateu.uidl.annotations.Badge boolean active;  // …and the annotation is written qualified
+  Badge chip;                                       // the record
+}
 ```
 
 The shared names (pinned by `NameCollisionsTest` in `mateu-uidl`, so a new one is a reviewed
@@ -288,43 +294,64 @@ compatibility check skips them, and they may change in any release. The extensio
 
 ## Enforcement
 
-Every build checks the Java public API against the **last released version** with
-[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `mateu-uidl` jar and the
-archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`) — and, report-only,
-the `mateu-dtos` jar ([why](#the-wire-dtos-json-not-java-binaries)) — against
-`<mateu.japicmp.baseline>` (in `backend/pom.xml`; `scripts/bump-example-version.sh` moves it to each
-release once it is on Maven Central) and writes a report to
-`target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job summary.
+**The 3.x public API is frozen from `3.0-beta.1` on**, and the build enforces it in every backend.
+An incompatible change to a stable element fails the pull request's checks (the `backend-tests` and
+`python` jobs) and tells you how to make it compatible instead: **add + deprecate** — add the
+replacement next to the old element, keep the old one working and mark it deprecated naming the
+replacement, and remove it no earlier than the release the [deprecation policy](#deprecation-policy)
+allows.
 
-- **Until the beta** the check is **report-only** (`mateu.api.enforce=false`): the alphas
-  change the API in place, and [Migrating from alpha](/reference/migrating-from-alpha/) is the record of it.
-- **The blocking configuration is ready** behind one switch: `-Dmateu.api.enforce=true` (the
-  `mateu.api.enforce` property of `backend/pom.xml`; the plugin's own `mateu.japicmp.enforce`
-  follows it). With it, a binary- or source-incompatible change to the **non-`@Experimental`**
-  surface of `mateu-uidl` and the archetypes **fails `mvn verify`** (`mateu-dtos` stays
-  report-only), unless it is listed in
-  **`backend/api-compat/japicmp-exclusions.properties`** — the reviewed allowlist. Adding an entry is
-  how an intentional break (the end of a deprecation period, a major release) gets through; the
+| Backend | What is checked | How | Accepting a deliberate change |
+|---|---|---|---|
+| **Java** | `mateu-uidl` and the archetype packages of `mateu-core` (`io.mateu.core.infra.declarative.orchestrators.*`), binary **and** source compatibility; `mateu-dtos` report-only ([why](#the-wire-dtos-json-not-java-binaries)) | [japicmp](https://siom79.github.io/japicmp/) in `mvn verify` (so also `install`) against `<mateu.japicmp.baseline>` — the last release on Maven Central, `3.0-beta.1` today | a reviewed entry in `backend/api-compat/japicmp-exclusions.properties` |
+| **.NET** | `Mateu.Uidl`: every exported type name and every public/protected member signature (constructors with their defaults, methods, properties incl. `init`, fields, events, enum members); `Mateu.Core` / `Mateu.AspNetCore`: exported type names | `PublicSurfaceTests` against `backend/dotnet/test/Mateu.Tests/api/*.txt` | rerun with `MATEU_API_WRITE=true` and commit the rewritten file |
+| **Python** | `mateu_ui.uidl`, `mateu_ui.uidl.components`, `mateu_ui.core`, `mateu_ui.fastapi`: the exported names; `mateu_ui.uidl` and `.components`: the parameters (name, kind, has-a-default) of every decorator, function and constructor, the public methods of every class and the members of every enum | `test_api_freeze.py` / `test_public_surface.py` against `backend/python/tests/api/public-exports.json` / `public-signatures.json` | rerun with `MATEU_API_WRITE=true` and commit the rewritten file |
+
+In .NET and Python an **addition** also fails until it is re-pinned — it is compatible, but the
+review should see every change to the surface. A removed or changed member is reported separately
+as a break of the promise.
+
+### Java: how the check works
+
+`mvn verify` compares the `mateu-uidl` jar and the archetype packages of `core` — and, report-only,
+the `mateu-dtos` jar — against `<mateu.japicmp.baseline>` (in `backend/pom.xml`;
+`scripts/bump-example-version.sh` moves it to each release once it is on Maven Central) and writes a
+report to `target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job
+summary.
+
+- It is **enforcing by default** (`<mateu.api.enforce>true</mateu.api.enforce>`; the plugin's own
+  `mateu.japicmp.enforce` follows it). A binary- or source-incompatible change to the
+  **non-`@Experimental`, non-`@Internal`** surface of `mateu-uidl` and the archetypes fails the
+  build with the list of breaks and the add + deprecate recipe
+  (`backend/api-compat/api-guard-enforce-true.groovy`, japicmp's post-analysis script):
+
+  ```text
+  Incompatible change to the FROZEN 3.x public API (compared with <mateu.japicmp.baseline> in backend/pom.xml):
+    - io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard#columns(): METHOD_REMOVED
+
+  Within 3.x a stable element is never removed, renamed or re-typed in place. Do ADD + DEPRECATE instead:
+    1. add the replacement next to the old element …
+  ```
+
+- Typical compatible spellings: a new **overload** instead of a changed parameter list; a new
+  **default** method on an interface instead of an abstract one (`METHOD_ADDED_TO_INTERFACE` is a
+  break for implementers); a new record component through a **new constructor**, keeping the old
+  canonical one delegating to it; a new type instead of a renamed one, the old one deprecated.
+- **`backend/api-compat/japicmp-exclusions.properties`** is the reviewed allowlist: adding an entry
+  is how an intentional break (the end of a deprecation period, a major release) gets through; the
   comment block above the list names the release or PR that accepted each group, and the list is
-  reset whenever the baseline moves. The [Internal](#stable-and-experimental-api-by-package) types
-  are excluded from the check.
-- Marking an existing stable API `@Experimental` is itself reported as a removal — japicmp drops the
-  annotated element on the new side only — so an API cannot leave the promise silently: such a mark
-  needs an allowlist entry until the baseline moves past it.
+  reset to its sentinel whenever the baseline moves. The [Internal](#stable-and-experimental-api-by-package)
+  types are excluded from the check.
+- Marking an existing stable API `@Experimental` or `@Internal` is itself reported as a removal —
+  japicmp drops the annotated element on the new side only — so an API cannot leave the promise
+  silently: such a mark needs an allowlist entry until the baseline moves past it.
+- **Locally**: `mvn verify -pl shared/uidl` (or `shared/core`). `-Dmateu.api.enforce=false` makes it
+  report-only, to read the full japicmp report of a break (a failing run stops before writing it);
+  `-Dmateu.japicmp.skip=true` skips it, e.g. offline — the baseline jar comes from Maven Central.
+  Neither is for a pull request: CI runs the default.
 
-**Flipping it on at the beta** — one commit, at the beta tag:
-
-1. set `<mateu.japicmp.baseline>` to the last release before the beta (or to the beta itself once it
-   is on Maven Central, for the betas that follow);
-2. set `<mateu.api.enforce>true</mateu.api.enforce>` in `backend/pom.xml`;
-3. empty `japicmp-exclusions.properties` down to the sentinel (its entries described the diff against
-   the old baseline), run `mvn verify -pl shared/dtos,shared/uidl,shared/core`, and re-add only the
-   breaks that are deliberate. (Since 3.0-alpha.412 the list holds only the sentinel and
-   `-Dmateu.api.enforce=true` passes against `3.0-alpha.411`.)
-
-Run it locally with `mvn verify -pl shared/uidl` (add `-Dmateu.api.enforce=true` to see what would
-fail; `-Dmateu.japicmp.skip=true` skips it, e.g. offline — the baseline jar comes from Maven
-Central).
+Until the beta the check was report-only — the alphas changed the API in place, and
+[Migrating from alpha](/reference/migrating-from-alpha/) is the record of it.
 
 ## Wire compatibility
 
@@ -358,6 +385,6 @@ next minor.
 
 ## Supported versions
 
-Security fixes go to the **latest minor of the current major**; see
-[SECURITY.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY.md) for the current
-table and how to report a vulnerability.
+Which releases get bug and security fixes, and which Java, .NET, Python, framework and IDE
+versions a release supports, is the [Support policy](/reference/support-policy/). How to report a
+vulnerability is in [SECURITY.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY.md).

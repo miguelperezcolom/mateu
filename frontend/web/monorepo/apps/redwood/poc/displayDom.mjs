@@ -1,7 +1,7 @@
 import { chromeText } from './i18n.mjs'
-import { streamChat, buildChatBody, chatMarkdownToHtml } from './chat.mjs'
+import { streamChat, buildChatBody, chatMarkdownToHtml, chatStatusText, chatTurnTextOf, chatUsageTextOf, dispatchChatEvent, latestUsage, mergeTurnUsage, uploadChatFiles } from './chat.mjs'
 import { sanitizeHtml } from './richtext.mjs'
-import { authHeadersOf } from './resilience.mjs'
+import { authHeadersOf, askForReauthentication } from './resilience.mjs'
 import { hasConsentCookie, customComponentMountOf } from './reduceContexts.mjs'
 
 // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
@@ -201,9 +201,53 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
     send.setAttribute('data-oj-binding-provider', 'none')
     send.setAttribute('chroming', 'callToAction')
     send.textContent = chromeText('chatSend')
+    // what the agent is doing (its phase, the tool it calls, «Thinking… N s») and the tokens it used,
+    // as in the shell panel: a polite status row and a quiet token line under the conversation
+    const status = doc.createElement('div')
+    status.className = 'mateu-chat-status oj-typography-body-sm oj-text-color-secondary'
+    status.setAttribute('role', 'status')
+    const tokens = doc.createElement('div')
+    tokens.className = 'mateu-chat-tokens oj-typography-body-xs oj-text-color-secondary'
+    // attachments, when the Chat declares an upload endpoint (Chat.uploadUrl): multipart "files"
+    const uploadUrl = el.getAttribute('data-mateu-chat-upload') || ''
+    let attachments = []
+    const attached = doc.createElement('div')
+    attached.className = 'mateu-chat-attached oj-typography-body-xs'
+    if (uploadUrl) {
+      const picker = doc.createElement('input')
+      picker.setAttribute('type', 'file')
+      picker.setAttribute('multiple', '')
+      picker.setAttribute('hidden', '')
+      const attach = doc.createElement('oj-button')
+      attach.setAttribute('data-oj-binding-provider', 'none')
+      attach.setAttribute('chroming', 'borderless')
+      attach.setAttribute('class', 'mateu-chat-attach')
+      attach.textContent = '📎'
+      attach.setAttribute('aria-label', chromeText('chatAttach'))
+      attach.setAttribute('title', chromeText('chatAttach'))
+      attach.addEventListener('ojAction', (e) => { e.stopPropagation(); if (picker.click) picker.click() })
+      picker.addEventListener('change', async () => {
+        const files = Array.from(picker.files || [])
+        if (!files.length) return
+        try {
+          const saved = await uploadChatFiles({ uploadUrl, files, sessionId: conv.sessionId, headers: authHeadersOf() })
+          for (const f of saved) if (!attachments.some((a) => a.path === f.path)) attachments.push({ name: f.name || f.path, path: f.path })
+        } catch (err) {
+          conv.turns.push({ role: 'assistant', error: true, text: '⚠️ ' + (err && err.message ? err.message : String(err)) })
+          paint()
+        }
+        picker.value = ''
+        attached.textContent = attachments.length ? '📎 ' + attachments.map((a) => a.name).join(', ') : ''
+      })
+      form.appendChild(picker)
+      form.appendChild(attach)
+    }
     form.appendChild(input)
     form.appendChild(send)
     el.appendChild(log)
+    el.appendChild(status)
+    el.appendChild(tokens)
+    el.appendChild(attached)
     el.appendChild(form)
     const paint = () => {
       log.textContent = ''
@@ -214,30 +258,57 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
         log.appendChild(div)
       }
       log.scrollTop = log.scrollHeight
+      tokens.textContent = chatUsageTextOf(conv.usage)
     }
     const submit = async () => {
       const text = input.value.trim()
-      if (!text || conv.busy) return
+      if ((!text && !attachments.length) || conv.busy) return
       input.value = ''
       conv.busy = true
-      conv.turns.push({ role: 'user', text })
+      const sentAttachments = attachments
+      attachments = []
+      attached.textContent = ''
+      const names = sentAttachments.map((a) => a.name).join(', ')
+      conv.turns.push({ role: 'user', text: names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text })
       const answer = { role: 'assistant', text: '' }
       conv.turns.push(answer)
       paint()
+      const startedAt = Date.now()
+      let progress = null
+      let turnUsage = null
+      let accumulated = ''
+      let failure = null
+      const showStatus = () => {
+        status.textContent = chatStatusText({ busy: true, hasText: !!accumulated, elapsedSeconds: (Date.now() - startedAt) / 1000, progress, now: Date.now() })
+      }
+      showStatus()
+      const ticking = setInterval(showStatus, 1000)
+      // the agent's UI events, AS THEY ARRIVE and in order, through the shell's dispatcher (the same
+      // the shell panel uses: navigation, render-screen, close, any other to the page's subscribers)
+      let events = Promise.resolve()
       try {
-        await streamChat({
+        accumulated = await streamChat({
           url: el.getAttribute('data-mateu-chat-url'),
-          body: buildChatBody({ message: text, sessionId: conv.sessionId, currentRoute: location.pathname }),
+          body: buildChatBody({ message: text, sessionId: conv.sessionId, attachments: sentAttachments, currentRoute: location.pathname }),
           headers: () => authHeadersOf(),
-          onText: (all) => { answer.text = all; paint() },
-        })
+          reauthenticate: askForReauthentication,
+          onText: (all) => { accumulated = all; answer.text = all; paint(); showStatus() },
+          onProgress: (p) => { progress = p; showStatus() },
+          onUsage: (usage) => { turnUsage = mergeTurnUsage(turnUsage, usage) },
+          onEvent: (ev) => { events = events.then(() => dispatchChatEvent(ev)).catch(() => undefined) },
+        }) || accumulated
       } catch (err) {
-        answer.error = true
-        answer.text = chromeText('assistantFailed', { message: err && err.message ? err.message : String(err) })
+        failure = err || new Error('Error')
       } finally {
+        clearInterval(ticking)
+        answer.text = chatTurnTextOf(accumulated, failure)
+        answer.error = !!failure
+        conv.usage = latestUsage(conv.usage, turnUsage)
+        status.textContent = ''
         conv.busy = false
         paint()
       }
+      await events
     }
     send.addEventListener('ojAction', (e) => { e.stopPropagation(); void submit() })
     form.addEventListener('submit', (e) => { e.preventDefault(); void submit() })

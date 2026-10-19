@@ -17,3 +17,14 @@ test('a link to an unsafe scheme is just its text', () => {
 test('a line with no markup is one text span', () => {
   assert.deepEqual(inlineSpans('plain'), [{ kind: 'text', text: 'plain' }]);
 });
+
+test('app-route links are spans only where the caller opens app routes', () => {
+  assert.deepEqual(inlineSpans('[Nora](/booking/4)'), [{ kind: 'text', text: 'Nora' }]);
+  assert.deepEqual(inlineSpans('[Nora](/booking/4) [x](https://e.com) [y](//cdn)', true), [
+    { kind: 'route', text: 'Nora', route: '/booking/4' },
+    { kind: 'text', text: ' ' },
+    { kind: 'link', text: 'x', url: 'https://e.com' },
+    { kind: 'text', text: ' ' },
+    { kind: 'text', text: 'y' },
+  ]);
+});

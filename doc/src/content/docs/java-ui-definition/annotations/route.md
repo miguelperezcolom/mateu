@@ -30,7 +30,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-```java
+```java nocheck
 // Before (no longer compiles)
 @UI("/orders")
 @HomeRoute("/orders/list")

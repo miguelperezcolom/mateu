@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A two-pane layout separated by a draggable splitter. */
 @Builder
 public record SplitLayout(
     String id,

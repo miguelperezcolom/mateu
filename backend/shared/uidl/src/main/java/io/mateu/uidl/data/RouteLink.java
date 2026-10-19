@@ -8,6 +8,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
 import lombok.With;
 
+/** A menu entry that navigates to a route, optionally on another backend. */
 @Builder
 @With
 public record RouteLink(

@@ -90,11 +90,24 @@ public class WorkspaceCrud extends Crud<
     @Override public boolean    searchable() { return true; }
 
     @Override
+    public ListingData<WorkspaceRow> search(SearchRequest request, HttpRequest req) {
+        return ListingData.of(adapter.tree());   // the whole tree, built once
+    }
+
+    @Override public Object view(String id, HttpRequest req) { return adapter.editorFor(id); }
+    @Override public Object edit(String id, HttpRequest req) { return adapter.editorFor(id); }
+
+    @Override
     public String save(HttpRequest req) {
         String id = req.getString(getIdFieldForRow());
         adapter.save(id, req);   // route by id — the adapter knows which editor the id belongs to
         return id;
     }
+
+    // @NotCreatable @NotDeletable: never offered
+    @Override public Object creationForm(HttpRequest req) { return null; }
+    @Override public String create(HttpRequest req) { return null; }
+    @Override public void deleteAllById(List<String> ids, HttpRequest req) {}
 }
 ```
 

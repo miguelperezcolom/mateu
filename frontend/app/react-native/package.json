@@ -14,7 +14,7 @@
     "build:apk:local": "npx eas-cli build --platform android --profile preview --local",
     "submit:android": "npx eas-cli submit --platform android --profile production",
     "submit:ios": "npx eas-cli submit --platform ios --profile production",
-    "test": "node --test 'src/**/*.test.ts'",
+    "test": "node --test --experimental-test-module-mocks 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
     "parity": "node scripts/parity-check.mjs"
   },

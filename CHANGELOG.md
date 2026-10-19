@@ -11,6 +11,94 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0-beta.4] — 2026-10-19
+
+The closing batch: the 3.x API frozen and enforced, a first-hour smoke against every release, the docs' code samples compiled, an AI plugin for Claude Code, one chat contract on every renderer, an MCP for authoring screens, and the product bugs those efforts found.
+
+### Added
+- **MCP for authoring UI.** The MCP endpoint (and the stdio sidecar) now also lets an agent *write*
+  screens: resources `mateu://guide`, `mateu://catalog`, `mateu://schema/specs`, `mateu://schema/uidl`
+  (shipped inside the app), and tools `mateu_list_components`, `mateu_get_component_schema`,
+  `mateu_validate_uidl` (every error and warning with its JSONPath and line/column — unknown types
+  and keys with a "did you mean", wrong values, `dataType: decimal`, undeclared actions, references
+  to sources/partials/components/field types that do not resolve, and whatever the real loader still
+  refuses), `mateu_preview_uidl` (renders the page and returns its projection) and, in development
+  mode only, `mateu_save_spec` (writes into the specs directory; live reload shows it). Identical in
+  Java, .NET, Python and the sidecar, pinned by `conformance/mcp/authoring.json`. (Java, .NET, Python,
+  sidecar)
+- A reserved sync action `__validate__` (`parameters._yaml` → report on `appData._validation`), what
+  the tools are built on.
+- The component catalogue `uidl-catalog.json`, generated with the schemas; every component's
+  schema `$def` now carries a one-line `description` taken from the record's Javadoc.
+
+### Changed
+- The MCP tool texts and input schemas are the same in the four implementations
+  (`additionalProperties: false` everywhere); `initialize` also advertises `resources`.
+
+### Fixed
+- The Java MCP endpoint answers a body that is not JSON with JSON-RPC `-32700` (and a non-object
+  message with `-32600`) instead of failing the request.
+- An MCP tool that fails unexpectedly answers the generic text with a reference id (logged under it)
+  instead of the exception's message; a refused call is `Error: Forbidden`. (Java, .NET, Python,
+  sidecar)
+- A YAML preview that cannot be parsed says why (`Invalid YAML — line N (path): …`) instead of
+  "Invalid or empty YAML"; `YamlUidlLoader.parseTextReporting` exposes the reason.
+
+- **`Image.alt`** — the text alternative a screen reader reads (`""` marks the image decorative):
+  `Image.builder().alt(…)` / `new Image(src, alt)` in Java (the existing constructors stay),
+  `Image { Alt = … }` in .NET, `fluent.Image(alt=…)` in Python and `alt:` in YAML. Rendered as the
+  `<img>` alt on Vaadin and Redwood, the accessibility label on React Native and the accessible
+  name in the IntelliJ plugin. Wire: `ImageDto.alt` (additive).
+
+### Behaviour changes
+- Python: `Crud.save` and `Crud.delete` **refuse by default** with a user-facing "Not implemented"
+  error naming the method to override (`FetchOnlyNotes cannot store changes yet: override
+  save(Note) in FetchOnlyNotes.`), as `Crud<T>.Save`/`Delete` do in .NET (Java's `AutoCrud.store()`
+  is abstract). They used to do nothing, so a crud that only implemented `fetch` answered "Saved" /
+  "Deleted" and discarded every write. A crud that writes overrides both.
+
+### Security
+- Java: an `actionId` that names nothing on a plain view — no method, no field, no runner, and not
+  advertised by the view — answers 403 with one WARN line, as on a CRUD and in the .NET and Python
+  backends. It used to re-render the page with HTTP 200, so an unknown id looked like one that ran.
+  The route load, the framework's reserved and app-level ids and every id the view advertises are
+  unaffected.
+
+### Fixed
+- Java: a view whose fields are all `@ReadOnly` renders as a read-only form — its fields keep their
+  labels and a `@ReadOnly` list of rows is a grid. It used to be taken for a page of components
+  (a class counted as a form only with an editable field), so the labels vanished and the grid
+  became its rows' text. (.NET and Python already rendered it; now pinned there too.)
+- Python: an action returning a collection that holds the view (`[self, Message("Saved")]`)
+  re-renders the view with its new state as well as showing the rest, as in Java and .NET. Before,
+  the toast showed and the screen kept its old values.
+
+### Documentation
+- **The code samples of the docs are checked against the API.** Every Java, C#, Python and YAML block
+  under `doc/` is compiled (against mateu-uidl + mateu-core / `backend/dotnet/src`), type-checked
+  with mypy (against mateu-ui) or validated against `specs-schema.json` — `npm run check:snippets` in
+  `doc/`, and the `snippets` job of the Docs workflow on PRs touching the docs or the authoring APIs.
+  Running it the first time found about 190 samples out of date with the API (renamed constants and
+  builder methods, removed annotations, missing required overrides, Java names in C#/Python
+  samples…); they are fixed. Deliberate sketches opt out with ` ```java nocheck `.
+
+### Added
+- **SBOMs on every release.** The release workflow attaches CycloneDX (JSON) SBOMs to the GitHub
+  release: the Maven artifacts, the web renderer's production npm dependencies, the Python wheel and
+  the .NET packages (`scripts/release-sboms.sh`; nothing is added to a normal build).
+- Docs: [Support policy](https://mateu.io/reference/support-policy/) (which versions get fixes, the
+  supported Java / .NET / Python / framework / IDE versions) and
+  [Known issues](https://mateu.io/reference/known-issues/) (current limitations with workarounds).
+
+### Changed
+- **The 3.x public API is frozen, and the build enforces it.** The Java compatibility check (japicmp,
+  baseline `3.0-beta.1`) is now blocking by default for `mateu-uidl` and the archetypes of
+  `mateu-core` (`mateu-dtos` stays report-only), and a break fails with the list of incompatible
+  changes and the add + deprecate recipe. .NET pins every public member signature of `Mateu.Uidl`
+  (not only the type names of `Mateu.Core`/`Mateu.AspNetCore`); Python pins the exports and the
+  signatures of the `mateu_ui.uidl` decorators, functions and classes. See
+  [Stability & versioning](https://mateu.io/reference/stability-and-versioning/#enforcement).
+
 ## [3.0-beta.3] — 2026-10-18
 
 Fixes from a second external review.

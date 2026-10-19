@@ -43,11 +43,12 @@ public class ProductOptionsSupplier implements LookupOptionsSupplier {
     }
 
     @Override
-    public List<Option> getOptions(String search, HttpRequest httpRequest) {
-        return productQueryService.search(search, 20)
+    public ListingData<Option> search(
+            String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(productQueryService.search(searchText, pageable.size())
                 .stream()
                 .map(dto -> new Option(dto.id(), dto.name()))
-                .toList();
+                .toList());
     }
 }
 ```
@@ -69,10 +70,10 @@ public class ProductLabelSupplier implements LookupLabelSupplier {
     }
 
     @Override
-    public String getLabel(String value, HttpRequest httpRequest) {
-        return productQueryService.findById(value)
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+        return productQueryService.findById((String) id)
                 .map(ProductDto::name)
-                .orElse(value);
+                .orElse(String.valueOf(id));
     }
 }
 ```
@@ -92,12 +93,13 @@ public class RemoteProductOptionsSupplier implements LookupOptionsSupplier {
     private final ProductApiClient productApiClient;
 
     @Override
-    public List<Option> getOptions(String search, HttpRequest httpRequest) {
+    public ListingData<Option> search(
+            String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
         String jwt = httpRequest.getHeaderValue("Authorization");
-        return productApiClient.search(search, jwt)
+        return ListingData.of(productApiClient.search(searchText, jwt)
                 .stream()
                 .map(dto -> new Option(dto.id(), dto.name()))
-                .toList();
+                .toList());
     }
 }
 ```

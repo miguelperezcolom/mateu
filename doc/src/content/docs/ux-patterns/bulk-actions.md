@@ -74,7 +74,7 @@ This is the same composition a detail-view method already uses, so nothing is du
         confirmationText = "Cancel them",
         confirmationDenialText = "Keep running")
 @Label("Cancel")
-public Message cancel(List<Process> selection) {
+public Message cancel(List<ProcessRow> selection) {
     selection.forEach(process -> service.cancel(process.id()));
     return new Message(selection.size() + " cancelled");
 }
@@ -110,8 +110,10 @@ confirmation texts on the wire (no action of theirs can declare them, bulk or no
 
 
 ```csharp
-public class InvoicesCrud : AutoCrud<Invoice>
+public class InvoicesCrud : Crud<Invoice>
 {
+    // … Fetch / Get / Save as in any Crud …
+
     [ListToolbarButton]
     [Label("Approve selected")]
     public Message Approve(List<Invoice> selection) =>
@@ -120,8 +122,10 @@ public class InvoicesCrud : AutoCrud<Invoice>
 ```
 
 ```python
-class InvoicesCrud(AutoCrud[Invoice]):
-    @list_toolbar_button(label="Approve selected")
+class InvoicesCrud(Crud[Invoice]):
+    # … fetch / get / save as in any Crud …
+
+    @list_toolbar_button("Approve selected")
     def approve(self, selection: list[Invoice]):
         return Message(f"{len(selection)} approved")
 ```

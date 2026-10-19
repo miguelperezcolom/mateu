@@ -27,6 +27,8 @@ public class Article implements Identifiable {
     String id;
     String name;
     @Version long version;   // never an input on the edit/creation form; it still travels in state
+
+    @Override public String id() { return id; }
 }
 ```
 

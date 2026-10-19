@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A small colored label (chip) for a status or count, optionally with icons. */
 @Builder
 public record Badge(
     String text,

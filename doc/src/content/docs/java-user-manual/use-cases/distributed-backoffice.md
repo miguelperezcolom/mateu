@@ -93,8 +93,8 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 @PageTitle("Backoffice")
 public class ShellHome {
 
-  RemoteMenu users = new RemoteMenu("Users", "http://localhost:8081", "/users");
-  RemoteMenu content = new RemoteMenu("Content", "http://localhost:8082", "/content");
+  RemoteMenu users = new RemoteMenu("http://localhost:8081", "/users").withLabel("Users");
+  RemoteMenu content = new RemoteMenu("http://localhost:8082", "/content").withLabel("Content");
 
 }
 ```

@@ -114,12 +114,25 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview pane
         // POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors Java's
         // __preview__ reserved action / YamlUidlLoader.parseText).
-        if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
+        // The AI chat's built-in render target posts it too (render-screen with no subscriber on
+        // screen): with no YAML it answers the same "Invalid or empty YAML" notice as Java.
+        if (rq.ActionId == "__preview__")
         {
-            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "", types: _fieldTypes)
-                              ?? new Text("Invalid YAML");
+            var previewYaml = rq.Parameters.TryGetValue("_yaml", out var yamlParam) ? StateString(yamlParam) ?? "" : "";
+            if (System.Text.Encoding.UTF8.GetByteCount(previewYaml) > Authoring.UidlValidator.MaxYamlBytes)
+                return FragmentResponse("Preview", ComponentMapper.Map(new Text("The YAML is too large to preview") { Style = "color: red;" }), rq);
+            // Say WHY a definition cannot be read: "invalid" alone sent the author hunting through the file.
+            (IComponent? previewTree, string? problem) = string.IsNullOrWhiteSpace(previewYaml)
+                ? (null, null)
+                : YamlComponentBuilder.ParseReporting(previewYaml, types: _fieldTypes);
+            previewTree ??= new Text(problem is not null ? "Invalid YAML — " + problem : "Invalid or empty YAML") { Style = "color: red;" };
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
+
+        // 0c'. Authoring: validate arbitrary YAML definition text (the MCP tool mateu_validate_uidl)
+        // and answer the report on appData._validation; renders nothing (mirrors Java's __validate__).
+        if (rq.ActionId == ValidateAction)
+            return ValidateResponse(rq);
 
         // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),

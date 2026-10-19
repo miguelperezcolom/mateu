@@ -30,7 +30,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.11.4</version>
+                <version>6.1.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -55,6 +55,22 @@
                 <targetPath>META-INF/mateu</targetPath>
                 <includes>
                     <include>contract.json</include>
+                </includes>
+            </resource>
+            <!--
+              The authoring contract, packaged so a running app can serve it (the MCP authoring
+              resources mateu://schema/uidl, mateu://schema/specs, mateu://catalog, mateu://guide)
+              and validate YAML against it without reaching the network. Generated/authored at
+              the module root (pinned by UidlSchemaTest) and copied in at build time.
+            -->
+            <resource>
+                <directory>${project.basedir}</directory>
+                <targetPath>META-INF/mateu/schema</targetPath>
+                <includes>
+                    <include>uidl-schema.json</include>
+                    <include>specs-schema.json</include>
+                    <include>uidl-catalog.json</include>
+                    <include>authoring-guide.md</include>
                 </includes>
             </resource>
         </resources>
@@ -109,7 +125,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.46</version>
+                            <version>1.18.48</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -122,7 +138,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.46</version>
+            <version>1.18.48</version>
             <scope>provided</scope>
         </dependency>
 
@@ -135,7 +151,7 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.8.6</version>
+            <version>3.8.7</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -153,26 +169,26 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.11.4</version>
+            <version>6.1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.11.4</version>
+            <version>6.1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
-            <version>1.11.4</version>
+            <version>6.1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

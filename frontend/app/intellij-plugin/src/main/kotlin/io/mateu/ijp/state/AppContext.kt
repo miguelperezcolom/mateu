@@ -204,7 +204,12 @@ class AppContext(val session: AppSession) {
         polling.stop()
         autoSaveTimer?.stop()
         session.unsubscribeAll(this)
+        if (session.activeView === this) session.activeView = null
     }
+
+    /** The last component rendered into this view's content slot — what the assistant is told is on screen. */
+    var lastContent: JsonNode? = null
+        private set
     private var currentFormChildren: JsonNode? = null
     private var currentFormContainer: JComponent? = null
 
@@ -320,6 +325,8 @@ class AppContext(val session: AppSession) {
                 }
             },
             onOk = { increment ->
+                // the screen the user is on, for the assistant's context (views only, not the navigator)
+                if (!appShell) session.activeView = this
                 currentRoute = route ?: ""
                 currentConsumedRoute = consumedRoute ?: ""
                 currentServerSideType = serverSideType ?: ""
@@ -840,6 +847,7 @@ class AppContext(val session: AppSession) {
         if (target == null) return
         // A content fragment carrying the mediator's `_route` tells us which inner route is being
         // rendered (e.g. "list" on the listing load) — the baseline for stay-in-place detection.
+        if (target === contentPane) lastContent = component
         if (target === contentPane && state.isObject && state.has("_route")) {
             currentInnerRoute = state.text("_route").trim('/')
         }

@@ -99,6 +99,34 @@ IntelliJ down; `.claude` is excluded in Miguel's IDE).
   or remote custom elements; console registry (`design/control-plane-and-newsletter.md`) queued.
 
 
+## GA docs + SBOM (`close/gadoc`, 2026-10-18, on v3.0-beta.2 — local, not pushed)
+- **Known issues** page (`reference/known-issues`): the user-facing limitations gathered from this file,
+  parity.md (🟡/— rows), CLAUDE.md "KNOWN"/"not yet" notes and the production checklist, each with a
+  workaround — servlet context path, Micronaut JDK 21–23 pinning, Helidon SE routes without principal,
+  SSE buffering, cosmetic permissions in static bundles/Play, Vaadin foldouts start expanded, Redwood
+  light-only + federation (static remotes / remote custom elements), remote `Element` scripts need the
+  remote's CORS, multi-value `optionsSource`, RN session-scoped saved views/column choices, touch/desktop
+  adaptations, the ports' Java-only list (EditableView family, class `@AutoSave`, `@ViewToolbarButton`,
+  `type: AppShell`, bundle exporter, Dialog placement…), .NET 8 end of support, tooling ranges.
+  **Keep it current**: an item leaves the page in the release that fixes it.
+- **Support policy** page (`reference/support-policy`), linked from SECURITY.md and stability-and-versioning.
+  **Owner to confirm the proposed defaults**: bug fixes only on the latest 3.x minor; security fixes
+  (critical/high) also on the previous minor for **6 months** after the next minor; the last 3.x minor gets
+  security fixes for **12 months** after 4.0; betas fixed only in the next beta. SECURITY.md's table was
+  aligned to it. Platform matrix read from the build: Java 21+ (CI 21), Boot 4.x (4.1), Quarkus 3.x (3.38),
+  Micronaut 4.x (4.10), Helidon MP 4.x (4.5), net8.0+net10.0, Python ≥ 3.11 (CI 3.11–3.13 + lowest deps),
+  Expo SDK 57 / RN 0.86, IntelliJ 252–253.*, VS Code ≥ 1.85, Node 24 only to build from source.
+- **SBOMs**: `scripts/release-sboms.sh <tag> <dir>` (CycloneDX 1.6 JSON: maven-plugin 2.9.1 aggregate over
+  backend/ minus integration-tests/coverage, test scope out; cyclonedx-npm 6.0.1 from the lockfile for
+  workspaces mateu-vaadin + mateu, prod only; cyclonedx-bom 7.5.0 over a venv holding the wheel; dotnet
+  CycloneDX 6.3.1 on Mateu.AspNetCore with project references) + a new `sbom` job in
+  `buid-and-publish.yml` (needs e2e, its own `contents: write`, uploads `mateu-<v>-{maven,web-renderer,
+  python,dotnet}.cdx.json` with `gh release upload`). Verified locally end to end in a throwaway worktree
+  (419 / 393 / 12 / 6 components; ~50 s warm); actionlint clean except the pre-existing SC2034 in
+  bump-examples' wait loop. Not proven in CI until the next release.
+- Beta release-notes template: `design/ga-plan/beta-release-notes-template.md` (links Known issues,
+  Support policy, the SBOM assets); `release-notes-3.0.0.md` "Known edges" points at the page.
+
 ## Beta integration (phase 4 refactor + Fable review fixes, 2026-10-18 — `integration/beta`, pending CI)
 Merged in order r3, r1, r2, r4, r5, `fixes/natives2` (⊃ r6), `fixes/extra`, f8, f4, f3, f5, f6, f2, f1, f7, r7.
 Notable conflict resolutions:
@@ -491,7 +519,7 @@ projects, the .NET net10.0 target (no SDK here), RN tests — CI covers them.
 8. **Editable markdown/html fields**: Redwood shows raw source as editable text, Vaadin shows rendered content → decide the contract (proposal: an editor with preview on both).
 9. **Vaadin page heading on composed archetypes**: Dashboard, SmartSearchPage and ItemOverview show no heading on Vaadin (Redwood now does; docs assume one) → add it on Vaadin.
 10. **Python has no fluent `Card`** (and its card title is a string, Java's a component) → add it with Java's shape.
-11. **Redwood bugs to fix** (not decisions) — ✅ all fixed (batch 1: the 400 'invalid catalog JSON', Amount edits, the separator; batch 3 `pending/redwood`: islands held by a form field, drawer under a dialog, `Callable<Component>` holder, `@Toc`, calendar event click, map marker) except the Gantt negative-width console errors (not reproduced headless). RN web: calendar nests buttons — fixed (batch 1).
+11. **Redwood bugs to fix** (not decisions) — ✅ all fixed (batch 1: the 400 'invalid catalog JSON', Amount edits, the separator; batch 3 `pending/redwood`: islands held by a form field, drawer under a dialog, `Callable<Component>` holder, `@Toc`, calendar event click, map marker) and the Gantt negative-width console errors (2026-10-18: oj-gantt laid out under ~160px — a full-page capture's 1x1 viewport, a squeezed container — now floored at `min-width: 12rem`). RN web: calendar nests buttons — fixed (batch 1).
 
 ## Known doc/CLAUDE.md corrections to apply at integration
 - ✅ `parity.md` claimed full server+YAML parity for the ports; fixed in walkthrough/pages, and Python now has `Card` (row added).

@@ -14,7 +14,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 :::
 
 ```java
-new Image("https://example.com/logo.png")
+new Image("https://example.com/logo.png", "Acme Corp logo")
 ```
 
 ## Properties
@@ -24,6 +24,14 @@ new Image("https://example.com/logo.png")
 | `src` | String | — | Image URL or `data:image/...;base64,...` data URI |
 | `style` | String | `""` | Inline CSS — use to control `width`, `height`, `border-radius`, etc. |
 | `cssClasses` | String | `""` | CSS class names |
+| `alt` | String | — | Text alternative read by screen readers — what the image shows or does. `""` marks it decorative |
+
+Always give an image an `alt` unless it is purely decorative (see
+[Accessibility](/ux-patterns/accessibility/#writing-accessible-screens-yourself)):
+
+```java
+new Image("https://example.com/logo.png", "Acme Corp logo")
+```
 
 ## From a URL
 

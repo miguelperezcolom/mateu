@@ -21,7 +21,7 @@
          lines / 75.4% branches (2026-10, design/coverage/coverage-map.md). Ratchet. -->
     <jacoco.min.bundle.coverage>90%</jacoco.min.bundle.coverage>
     <jacoco.min.bundle.branch.coverage>75%</jacoco.min.bundle.branch.coverage>
-    <maven.version>3.9.9</maven.version>
+    <maven.version>3.10.0</maven.version>
   </properties>
 
   <dependencies>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.13.1</version>
+      <version>3.16.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -95,7 +95,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.13.1</version>
+        <version>3.16.0</version>
         <configuration>
           <goalPrefix>mateu-bundle</goalPrefix>
         </configuration>

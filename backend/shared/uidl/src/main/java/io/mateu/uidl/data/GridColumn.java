@@ -4,6 +4,7 @@ import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import lombok.Builder;
 
+/** A column of a grid or listing: header label, data type, alignment, sorting and width. */
 @Builder(toBuilder = true)
 public record GridColumn(
     String id,

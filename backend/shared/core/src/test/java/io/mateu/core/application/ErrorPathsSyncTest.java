@@ -91,10 +91,14 @@ class ErrorPathsSyncTest {
     assertThat(increment).isNotNull();
   }
 
+  /** An id that names nothing is a refused request (403), not a 200 re-render of the page. */
   @Test
-  void unknownActionIdsAreHandled() {
-    var increment = run("does-not-exist");
-    assertThat(increment).isNotNull();
+  void unknownActionIdsAreRefused() {
+    org.assertj.core.api.Assertions.assertThatThrownBy(() -> run("does-not-exist"))
+        .satisfies(
+            e ->
+                assertThat(io.mateu.core.application.security.MateuForbiddenException.find(e))
+                    .isNotNull());
   }
 
   private UIIncrementDto run(String actionId) {

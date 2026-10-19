@@ -13,7 +13,7 @@ This case shows the `Listing<Row>` pattern, which gives you full control over wh
 - how to use `Listing<Row>` for custom data sources
 - how to define row types with actions and status badges
 - how to add toolbar buttons that open forms
-- how to access HTTP headers from an action (e.g., to extract a JWT)
+- how to read the current user from an action (`HttpRequest.getUserPrincipal()`)
 - how to auto-trigger search on page load
 - how to validate a form action with `@Action(validationRequired = true)`
 
@@ -108,11 +108,8 @@ public class Changes implements Listing<ChangeRow>, Searchable {
             List<ChangeRow> selectedRows,
             HttpRequest httpRequest) {
 
-        var auth = httpRequest.getHeaderValue("Authorization");
-        var jwt = auth.split(" ")[1];
-        String[] chunks = jwt.split("\\.");
-        var payload = fromJson(new String(Base64.getUrlDecoder().decode(chunks[1])));
-        var user = payload.get("preferred_username").toString();
+        // the caller as authenticated by the host framework (Spring Security, Quarkus…)
+        var user = httpRequest.getUserPrincipal().getName();
 
         return createReleaseForm.withUser(user);
     }
@@ -129,7 +126,7 @@ Key points:
 - `@Toolbar` on `createRelease()` adds a button to the top toolbar of the listing
 - `HttpRequest httpRequest` in `@Toolbar` methods gives access to HTTP headers
 
-### Extracting the current user from the JWT
+### Reading the current user
 
 ```java
 @Toolbar
@@ -137,17 +134,14 @@ public CreateReleaseForm createRelease(
         List<ChangeRow> selectedRows,
         HttpRequest httpRequest) {
 
-    var auth = httpRequest.getHeaderValue("Authorization");
-    var jwt = auth.split(" ")[1];
-    String[] chunks = jwt.split("\\.");
-    var payload = fromJson(new String(Base64.getUrlDecoder().decode(chunks[1])));
-    var user = payload.get("preferred_username").toString();
+    // the caller as authenticated by the host framework (Spring Security, Quarkus…)
+    var user = httpRequest.getUserPrincipal().getName();
 
     return createReleaseForm.withUser(user);
 }
 ```
 
-This pattern lets you access the logged-in user (or any other header value) inside a toolbar action.
+This pattern lets you access the logged-in user inside a toolbar action. Mateu does not decode tokens itself: the principal is whatever your framework's security module authenticated (`httpRequest.getHeaderValue(...)` still gives you any other header).
 
 The first selected rows are passed as `List<ChangeRow> selectedRows`, making it straightforward to act on selected items.
 
@@ -186,7 +180,7 @@ public class CreateReleaseForm {
 
 Key points:
 
-- `@ReadOnly` on `user` makes the field visible but not editable; it is populated from the JWT before the form is shown
+- `@ReadOnly` on `user` makes the field visible but not editable; it is populated from the current user before the form is shown
 - `@Action(validationRequired = true)` ensures validation runs before `create()` is called
 - `@Toolbar` places the `create` button in the form toolbar (as opposed to a regular `@Button`)
 - Returning a `URI` navigates the user to that URL
@@ -199,7 +193,7 @@ Key points:
 Changes (Listing<ChangeRow> + Searchable)
   └── search() → ChangeQueryService → maps DTOs to ChangeRow
   └── compare(ChangeRow) → opens ComparisonResultPage
-  └── createRelease() [@Toolbar] → opens CreateReleaseForm (pre-filled from JWT)
+  └── createRelease() [@Toolbar] → opens CreateReleaseForm (pre-filled with the current user)
         └── create() [@Toolbar, @Action] → navigates to workflow URL
 ```
 

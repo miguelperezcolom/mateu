@@ -607,7 +607,7 @@ public class OrdersPage implements BannerSupplier {
 
 `PageBanner` constructor:
 
-```java
+```java nocheck
 // Full constructor
 new PageBanner(BannerTheme theme, String title, String description,
                boolean closeable, int timeoutSeconds)

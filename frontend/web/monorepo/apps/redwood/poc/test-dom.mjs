@@ -29,6 +29,7 @@ import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs
 import { installRowTones, setListingTones, installStickyHeader } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
 import { chromeText } from './i18n.mjs'
+import { setChatEventHost } from './chat.mjs'
 import { applyFoldoutFolds, resetFoldoutFolds, FOLDED_CLASS } from './foldouts.mjs'
 import { sanitizeElementHtml, mountElements, setElementEventSink, setElementModuleBase } from './elements.mjs'
 import { installCookieConsent, installContextMenus, installCustomComponents, drawBpmn, installBpmn, installChatComponents, decorateFactActions, installFactActions, setFactActionSink } from './displayDom.mjs'
@@ -1160,6 +1161,50 @@ test('tables: la cabecera de ficha se compacta al hacer scroll', () => {
       await sleep(5)
       assert.equal(sent.length, 1, 'Shift+Enter es salto de línea; vacío no se envía')
     } finally {
+      globalThis.fetch = realFetch
+      delete globalThis.location
+      delete globalThis.MutationObserver
+    }
+  })
+
+  test('display: the Chat component hands the agent events to the shell dispatcher WHILE the answer streams, and shows progress and tokens', async () => {
+    const { doc: d, el: e, fire: f } = makeDom()
+    globalThis.MutationObserver = FakeObserver
+    globalThis.location = { pathname: '/bookings' }
+    const realFetch = globalThis.fetch
+    const enc = new TextEncoder()
+    const chunks = [
+      'data: {"event":"agent-status","detail":{"phase":"thinking","text":"Looking it up"}}\n\n',
+      'data: {"event":"navigation-requested","detail":{"route":"/orders","serverSideType":"a.B"}}\n\n',
+      'data: {"inputTokens":3,"outputTokens":5}\n\n',
+      'data: Done\n\n',
+    ]
+    let i = 0
+    let statusMidStream = ''
+    globalThis.fetch = async () => ({ ok: true, body: { getReader: () => ({ read: async () => {
+      if (i === 3) { await sleep(5); statusMidStream = box.querySelector('.mateu-chat-status').textContent }
+      return i < chunks.length ? { done: false, value: enc.encode(chunks[i++]) } : { done: true }
+    } }) } })
+    const seen = []
+    setChatEventHost({ registry: () => null, navigate: async (n) => { seen.push([n, i]) } })
+    let box
+    try {
+      box = e('div', { id: 'chat2', 'data-mateu-chat-url': '/agent/chat', 'data-mateu-chat-upload': '/agent/upload' })
+      d.body.appendChild(box)
+      installChatComponents(d)
+      assert.ok(box.querySelector('.mateu-chat-attach'), 'with an upload endpoint: the attach button')
+      const input = box.querySelector('textarea')
+      input.value = 'take me to orders'
+      f(input, 'keydown', { key: 'Enter' })
+      await sleep(30)
+      assert.deepEqual(seen[0][0], { route: '/orders', serverSideType: 'a.B' })
+      assert.ok(seen[0][1] < chunks.length, 'handled before the stream ended')
+      assert.equal(statusMidStream, 'Looking it up')
+      assert.equal(box.querySelector('.mateu-chat-tokens').textContent, 'Tokens: input 3 · output 5')
+      assert.equal(box.querySelector('.mateu-chat-status').textContent, '')
+      assert.match(box.querySelectorAll('.mateu-chat-turn')[1].textContent, /Done/)
+    } finally {
+      setChatEventHost(null)
       globalThis.fetch = realFetch
       delete globalThis.location
       delete globalThis.MutationObserver

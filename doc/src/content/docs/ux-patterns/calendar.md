@@ -66,9 +66,11 @@ The `CalendarPage` archetype turns the component into the full Redwood **Calenda
 @Title("Housekeeping calendar")
 public class HousekeepingCalendar extends CalendarPage {
 
+    @Autowired HousekeepingSchedule schedule;    // your use case / repository
+
     @Override
     protected List<CalendarEvent> events(LocalDate month, HttpRequest httpRequest) {
-        return myEventsOf(month);                 // your use case / repository, per month
+        return schedule.eventsOf(month);          // fetched per month
     }
     @Override
     protected Object actionOn(CalendarEvent event, HttpRequest httpRequest) {

@@ -149,7 +149,7 @@ Mateu only needs:
 The lookup has two parts:
 
 - `LookupOptionsSupplier` → searches available customers
-- `LabelSupplier` → resolves selected customer labels
+- `LookupLabelSupplier` → resolves selected customer labels
 
 ---
 
@@ -187,7 +187,7 @@ public class CustomerOptionsSupplier implements LookupOptionsSupplier {
 
 ```java
 @Service
-public class CustomerLabelSupplier implements LabelSupplier {
+public class CustomerLabelSupplier implements LookupLabelSupplier {
 
     final CustomerRepository repository;
 

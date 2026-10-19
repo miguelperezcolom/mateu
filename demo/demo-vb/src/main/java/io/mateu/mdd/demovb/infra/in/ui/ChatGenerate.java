@@ -12,9 +12,11 @@ import io.mateu.uidl.interfaces.HttpRequest;
 /**
  * "Chat → screen" on the Redwood/VB renderer: open the AI assistant (the chat FAB), ask for a screen
  * in plain language, and the screen appears IN THIS PAGE — exactly like the Vaadin demo. The chat's
- * agent authors a Mateu definition (YAML) and emits a {@code render-screen} event; the VB shell's
- * {@code chatSend} chain reroutes it to this page, which runs {@link #renderScreen} and returns the
- * generated component AS the page (so it renders through the standard form path on every renderer).
+ * agent authors a Mateu definition (YAML) and emits a {@code render-screen} event; this page
+ * subscribes to it, so while it is on screen the event is ITS: {@link #renderScreen} runs with the
+ * event's detail and returns the generated component AS the page (so it renders through the
+ * standard form path on every renderer). On a page that subscribes to nothing, the shell renders
+ * the screen itself through {@code __preview__} (the chat's built-in render target).
  */
 @UI("/ai-screen")
 @Title("Chat → screen")

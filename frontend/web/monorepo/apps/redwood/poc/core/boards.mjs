@@ -17,11 +17,36 @@ export const isoDay = (d) => {
 }
 export const plusDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T00:00:00Z') + n * DAY_MS))
 
+/** A wire date as a calendar day (YYYY-MM-DD), or null. A date-time keeps its date part (the
+ *  boards are day-based); anything unparseable is null, so it never reaches the gantt as NaN. */
+export function dayOf(v) {
+  if (v == null || v === '') return null
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(v))
+  return m && !isNaN(Date.parse(m[1] + 'T00:00:00Z')) ? m[1] : null
+}
+
+/** A block's / task's days with the degenerate inputs settled: a missing or unparseable date →
+ *  null (the item is not drawn), an end BEFORE the start → a single day at the start (the same
+ *  rule as the web and native renderers). So no bar can ever have a negative length. */
+export function daySpanOf(start, end) {
+  const s = dayOf(start)
+  const e = dayOf(end)
+  if (!s || !e) return null
+  return { start: s, end: e < s ? s : e }
+}
+
 export function planningAtomOf(m, id) {
   const columns = m.attributeColumns || []
-  const blocks = m.blocks || []
-  const from = m.from || (blocks.length ? blocks.map((b) => b.start).sort()[0] : isoDay(new Date()))
-  const to = m.to || (blocks.length ? blocks.map((b) => b.end).sort().slice(-1)[0] : from)
+  const blocks = (m.blocks || []).map((b) => {
+    const span = b && daySpanOf(b.start, b.end)
+    return span ? { ...b, start: span.start, end: span.end } : null
+  }).filter(Boolean)
+  const days = blocks.flatMap((b) => [b.start, b.end]).sort()
+  let from = dayOf(m.from) || days[0] || isoDay(new Date())
+  let to = dayOf(m.to) || days[days.length - 1] || from
+  // an inverted window (from after to) is read as the same days the other way round: the time
+  // axis of oj-gantt must end after it starts
+  if (to < from) [from, to] = [to, from]
   const rows = (m.resources || []).map((r, i) => {
     const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
     return {
@@ -31,7 +56,7 @@ export function planningAtomOf(m, id) {
       label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
       group: r.group || '',
       iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
-      tasks: blocks.filter((b) => b.resourceId === r.id && b.start && b.end).map((b) => ({
+      tasks: blocks.filter((b) => b.resourceId === r.id).map((b) => ({
         id: b.id,
         start: b.start + 'T00:00:00',
         end: plusDays(b.end, 1) + 'T00:00:00',
@@ -75,7 +100,11 @@ export function planningAtomOf(m, id) {
  *  chart: one row per task with its bar, progress as JET's progress fill, and the clicked task
  *  → onTaskSelectionActionId with _clickedTaskId (the web renderer's contract). */
 export function ganttAtomOf(m, id) {
-  const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
+  // a task without both dates has no bar: it is left out (with its row), like the other renderers
+  const tasks = (m.tasks || []).map((t) => {
+    const span = t && daySpanOf(t.start, t.end)
+    return span ? { ...t, start: span.start, end: span.end } : null
+  }).filter(Boolean)
   const atom = planningAtomOf({
     resources: tasks.map((t) => ({ id: t.id, label: t.title || t.id })),
     blocks: tasks.map((t) => ({

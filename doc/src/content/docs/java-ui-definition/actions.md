@@ -98,7 +98,7 @@ public class OrderForm implements ButtonsSupplier {
         var buttons = new ArrayList<UserTrigger>();
         if ("draft".equals(status)) {
             buttons.add(Button.builder().label("Submit").actionId("submit")
-                .color(ButtonColor.primary).build());
+                .buttonStyle(ButtonStyle.primary).build());
             buttons.add(Button.builder().label("Discard").actionId("discard").build());
         }
         if ("pending".equals(status)) {

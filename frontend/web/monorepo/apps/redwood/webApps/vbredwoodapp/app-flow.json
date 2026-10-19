@@ -948,6 +948,12 @@
         "scope": "string"
       }
     },
+    "mateuChatPreview": {
+      "description": "a screen the AI chat generated (render-screen nobody on screen subscribes to): the shell hands the __preview__ answer, ready to reduce, to the content page, which paints it like any action answer",
+      "payloadType": {
+        "increment": "any"
+      }
+    },
     "mateuElementEvent": {
       "description": "evento de un Element (componente web) con accion en Element.on: la shell lo reenvia a la pagina de contenido, que sabe en que superficie ejecutarla",
       "payloadType": {

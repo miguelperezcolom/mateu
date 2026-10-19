@@ -63,7 +63,9 @@ public record Product(
 ```java
 // ✅ record — id() generated automatically
 public record Product(String id, String name) implements Identifiable {}
+```
 
+```java
 // ✅ class — must add id() manually
 @Data
 @Builder
@@ -174,7 +176,10 @@ Mateu uses standard validation annotations:
 ## Status as badge
 
 ```java
-@Status
+@Status(defaultStatus = StatusType.NONE, mappings = {
+    @StatusMapping(from = "ACTIVE", to = StatusType.SUCCESS),
+    @StatusMapping(from = "DISCONTINUED", to = StatusType.DANGER)
+})
 ProductStatus status;
 ```
 
@@ -224,7 +229,12 @@ public class Products extends AutoCrud<Product> {
     @Override
     public String deleteLabel() { return "Remove"; }
 
-    // store() as usual …
+    private final ProductStore store;
+
+    public Products(ProductStore store) { this.store = store; }
+
+    @Override
+    public CrudStore<Product> store() { return store; }
 }
 ```
 
@@ -239,10 +249,11 @@ This is the simplest way to localise or rephrase the CRUD chrome without touchin
 ```java
 @FormLayout(columns = 2)
 public record Product(
+    String id,
     String name,
     BigDecimal price,
     ProductStatus status
-) {}
+) implements Identifiable {}
 ```
 
 ---

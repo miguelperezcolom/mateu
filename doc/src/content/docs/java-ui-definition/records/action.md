@@ -67,8 +67,8 @@ Action.builder()
     .confirmationTexts(ConfirmationTexts.builder()
         .title("Delete record")
         .message("This cannot be undone. Continue?")
-        .confirmText("Delete")
-        .denyText("Cancel")
+        .confirmationText("Delete")
+        .denialText("Cancel")
         .build())
     .build()
 ```
@@ -91,18 +91,23 @@ Action.builder()
     .build()
 ```
 
-## In a Form toolbar
+## In a page toolbar
+
+A toolbar holds buttons (`UserTrigger`s); the `Action` says how the action a button names behaves.
+`PageView` takes both:
 
 ```java
-return Form.builder()
+return PageView.builder()
     .title("Order")
     .contentItem(content)
-    .toolbarItem(Action.builder().id("save").validationRequired(true).build())
-    .toolbarItem(Action.builder().id("delete")
+    .toolbarItem(Button.builder().label("Save").actionId("save").build())
+    .toolbarItem(Button.builder().label("Delete").actionId("delete").build())
+    .actionItem(Action.builder().id("save").validationRequired(true).build())
+    .actionItem(Action.builder().id("delete")
         .confirmationRequired(true)
         .confirmationTexts(ConfirmationTexts.builder()
             .title("Delete order")
-            .confirmText("Yes, delete")
+            .confirmationText("Yes, delete")
             .build())
         .build())
     .build();
@@ -121,7 +126,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
         }
         case "delete" -> {
             orderService.delete(httpRequest.lastPathItem());
-            yield new UICommand("navigate", "/orders");
+            yield UICommand.navigateTo("/orders");
         }
         default -> null;
     };

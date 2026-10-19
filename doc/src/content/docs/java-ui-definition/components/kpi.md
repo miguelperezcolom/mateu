@@ -48,7 +48,7 @@ Combine `KPI` tiles with a `BoardLayout` for a full dashboard layout:
 BoardLayout.builder()
     .rows(List.of(
         BoardLayoutRow.builder()
-            .items(List.of(
+            .content(List.of(
                 BoardLayoutItem.builder().content(new KPI("Revenue", "€ 42,000")).build(),
                 BoardLayoutItem.builder().content(new KPI("Orders", "1,234")).build()
             ))

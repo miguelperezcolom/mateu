@@ -208,7 +208,7 @@ They come from the smart search bar's range widgets (temporal fields by default,
 annotated with `@RangeFilter`) and enum multi-selects, and reach the store through a second
 overload:
 
-```java
+```java nocheck
 default Page<T> find(String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable)
 ```
 
@@ -232,7 +232,7 @@ public class ProductStore implements CrudStore<Product> {
         this.jpa = jpa;
     }
 
-    // findById / save / findAll / deleteAllById as usual …
+    // … findById / save / findAll / deleteAllById as usual
 
     @Override
     public Page<Product> find(String searchText, Product filters, Pageable pageable) {
@@ -243,6 +243,14 @@ public class ProductStore implements CrudStore<Product> {
         return new Page<>(
             searchText, result.getSize(), result.getNumber(),
             result.getTotalElements(), result.getContent());
+    }
+
+    private static org.springframework.data.domain.Sort toSpringSort(List<Sort> sort) {
+        return org.springframework.data.domain.Sort.by(sort.stream()
+            .map(s -> s.direction() == Direction.ascending
+                ? org.springframework.data.domain.Sort.Order.asc(s.field())
+                : org.springframework.data.domain.Sort.Order.desc(s.field()))
+            .toList());
     }
 }
 ```

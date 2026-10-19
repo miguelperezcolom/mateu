@@ -4,6 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
+/** A set of tabs where selecting a tab shows its content. */
 @Builder
 public record TabLayout(
     String id,

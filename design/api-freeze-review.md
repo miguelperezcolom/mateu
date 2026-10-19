@@ -371,6 +371,12 @@ again. The fluent `Listing` and `PageView` constructor changes are in the allowl
 
 ## 4. japicmp
 
+> **Update (3.0-beta.2+):** the freeze is ON. Baseline `3.0-beta.1`, `<mateu.api.enforce>true` by
+> default (dtos still report-only), allowlist reset to the sentinel; a break fails with the add +
+> deprecate recipe (`api-compat/api-guard-enforce-true.groovy`). .NET pins `Mateu.Uidl` member
+> signatures (`PublicSurfaceTests`), Python pins `mateu_ui.uidl` exports + signatures
+> (`test_api_freeze.py`, `test_public_surface.py`). See the stability page, "Enforcement".
+
 > **Update (3.0-alpha.412):** baseline `3.0-alpha.411`, allowlist reset to the sentinel, `mateu-dtos`
 > report-only — see §7 #1 and #11. The rest of this section describes the alpha.410 state.
 

@@ -2886,9 +2886,10 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   // the status row reads the progress the agent reports
   assert.match(send, /onProgress: \(p\) => \{\s*progress = p;\s*vars\.mateuChatSteps = bridge\.chatToolStepsOf\(p\);\s*showStatus\(\);\s*\}/)
   assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
-  // and a navigation-requested navigates when done, if there is no generated screen
-  assert.match(send, /ev\.event === 'navigation-requested'/)
-  assert.match(send, /\} else if \(navigateTo\) \{\s*await Actions\.callChain\(context, \{\s*chain: 'onMateuNavigate'/)
+  // the agent's UI events go, as they arrive, through the shared dispatcher (poc test-chat-events.mjs)
+  assert.match(send, /onEvent: onAgentEvent/)
+  assert.match(send, /bridge\.dispatchChatEvent\(ev\)/)
+  assert.doesNotMatch(send, /renderScreen|ai-screen/)
   assert.match(send, /clearInterval\(ticking\)/)
   assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
   const mc = webApp('pages/shell-page-chains/chatMic.js')
@@ -5036,7 +5037,7 @@ import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
     assert.equal(pageFlowOf(reg, 'refreshCustomers'), null, 'a REST entry is not a flow')
     assert.equal(pageFlowOf(reg, 'nobody'), null)
     const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8')
-    assert.match(chain, /const clientFlow = bridge\.pageFlowOf\(before, id\);/)
+    assert.match(chain, /const clientFlow = preset \? null : bridge\.pageFlowOf\(before, id\);/)
     const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
     assert.match(amd, /pageFlowOf,/)
   })

@@ -145,8 +145,15 @@ class DispatchMixin(MixinBase):
         # 0c. Visual-builder live preview: render arbitrary YAML page text (the plugin's preview
         # pane POSTs the editor buffer under _yaml). No ModelView binding — layout only (mirrors
         # Java's __preview__ reserved action / YamlUidlLoader.parseText).
-        if rq.action_id == "__preview__" and rq.parameters.get("_yaml"):
-            return self._preview_response(rq.parameters["_yaml"], rq)
+        # The AI chat's built-in render target posts it too (render-screen with no subscriber on
+        # screen): with no YAML it answers the same "Invalid or empty YAML" notice as Java.
+        if rq.action_id == "__preview__":
+            return self._preview_response(str((rq.parameters or {}).get("_yaml") or ""), rq)
+
+        # 0c'. Authoring validation: the report of arbitrary YAML text (parameters._yaml) on
+        # appData._validation — the MCP authoring tools' validator (mirrors Java's __validate__).
+        if rq.action_id == "__validate__":
+            return self._validate_response(rq.parameters.get("_yaml"))
 
         # 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         # _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),

@@ -20,7 +20,7 @@ public class ProductForm {
 
     String name;           // → text field
     boolean active;        // → checkbox
-    Status status;         // → combobox (enum)
+    ProductStatus status;         // → combobox (enum)
     int stockCount;        // → number input
     LocalDate releaseDate; // → date picker
 
@@ -45,10 +45,10 @@ The field value is hydrated from request data before any action runs and seriali
 Use `@Stereotype` when the inferred control is not what you want.
 
 ```java
-enum Status { Available, OutOfStock }
+enum ProductStatus { Available, OutOfStock }
 
 @Stereotype(FieldStereotype.radio)
-Status status;             // → radio button group instead of combobox
+ProductStatus status;             // → radio button group instead of combobox
 
 @Stereotype(FieldStereotype.textarea)
 String description;        // → multi-line text area instead of single-line
@@ -179,7 +179,7 @@ When an action returns `void`, Mateu sends no explicit effect. Use `State(this)`
 ```java
 @Button
 public Message check() {
-    if (status == Status.OutOfStock) {
+    if (status == ProductStatus.OutOfStock) {
         return Message.builder()
             .variant(NotificationVariant.warning)
             .text("Product is out of stock")
@@ -241,14 +241,16 @@ public UICommand closeAndRefresh() {
 
 ## Validation
 
-Standard Bean Validation annotations are enforced automatically. They prevent invalid form submissions and display errors next to the affected field.
+Standard Bean Validation annotations are enforced automatically. They prevent invalid form submissions and display errors next to the affected field. Import `@Size` from `jakarta.validation.constraints` explicitly: Mateu has an unrelated `@Size` (component sizing) in `io.mateu.uidl.annotations`.
 
 ```java
+import jakarta.validation.constraints.Size;
+
 @NotBlank
 String name;
 
 @NotNull
-Status status;
+ProductStatus status;
 
 @Size(max = 200)
 String description;
@@ -269,7 +271,7 @@ public class NewProductForm {
 
     @NotNull
     @Stereotype(FieldStereotype.radio)
-    Status status = Status.Available;
+    ProductStatus status = ProductStatus.Available;
 
     @Stereotype(FieldStereotype.textarea)
     String description;

@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "mateu": {
+      "source": { "source": "github", "repo": "miguelperezcolom/mateu" }
+    }
+  },
+  "enabledPlugins": {
+    "mateu@mateu": true
+  }
+}

@@ -61,7 +61,7 @@ routes:
 |---|---|
 | `ComponentTreeSupplier` | Provides the component tree — implement `component()` |
 | `ActionHandler` | Handles action calls — implement `handleAction()` |
-| `ActionSupplier` | Declares available actions — implement `actions()` |
+| `ActionSupplier` | Declares available actions — implement `actions(HttpRequest)` |
 | `RuleSupplier` | Declares client-side rules — implement `rules()` |
 | `ValidationSupplier` | Declares validations — implement `validations()` |
 | `TriggersSupplier` | Declares triggers — implement `triggers()` |

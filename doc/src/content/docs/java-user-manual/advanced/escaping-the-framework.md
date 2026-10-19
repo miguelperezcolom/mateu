@@ -58,7 +58,7 @@ title, badges, `@KPI` facts or peer navigation, even if the class carries `@Titl
 @Title("Ignored here")           // ← no page metadata is emitted
 public class Special implements ComponentTreeSupplier {
   public Component component(HttpRequest request) {
-    return VerticalLayout.builder().content(...).build();
+    return VerticalLayout.builder().content(List.of(new Text("Anything you like"))).build();
   }
 }
 ```

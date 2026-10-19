@@ -8,7 +8,7 @@ Mateu supports both **declarative UI** and **fluent components**.
 
 Even inside a declarative page, you can include any component that implements:
 
-```java
+```text
 io.mateu.uidl.fluent.Component
 ```
 

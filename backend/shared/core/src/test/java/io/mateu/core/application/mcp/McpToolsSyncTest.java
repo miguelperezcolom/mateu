@@ -172,10 +172,11 @@ class McpToolsSyncTest {
     args.put("route", "mcp-counter").put("actionId", "purge");
     args.putObject("componentState").put("count", 5);
 
+    // Refused as a tool error "Forbidden" in all four MCP implementations — never the guard's
+    // internal wording (which names the role and the annotation).
     JsonNode refused = call("mateu_run_action", args, ANONYMOUS);
     assertThat(refused.get("isError").asBoolean()).isTrue();
-    assertThat(refused.get("content").get(0).get("text").asText())
-        .contains("action not allowed: purge (@EyesOnly not satisfied)");
+    assertThat(refused.get("content").get(0).get("text").asText()).isEqualTo("Error: Forbidden");
 
     JsonNode screen = text(call("mateu_run_action", args, ADMIN));
     assertThat(screen.get("state").get("count").asInt()).isZero();

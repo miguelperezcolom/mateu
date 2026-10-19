@@ -38,7 +38,7 @@ Popover.builder()
     .content(VerticalLayout.builder()
         .spacing(true)
         .content(List.of(
-            new Text("Why is this field required?", TextContainer.strong),
+            new Text("Why is this field required?", List.of(TextVariant.b)),
             new Text("This value is used to calculate VAT. Without it, the invoice cannot be generated.")
         ))
         .build())

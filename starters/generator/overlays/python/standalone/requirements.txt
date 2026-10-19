@@ -1,5 +1,5 @@
 # Mateu for Python — published on PyPI as `mateu-ui` (the name `mateu` is taken), the same release
-# as the Java artifacts (3.0-alpha.N is 3.0.0aN).
+# as the Java artifacts (3.0-beta.N is 3.0.0bN).
 mateu-ui==__PYPI_VERSION__
 fastapi>=0.110
 uvicorn>=0.27

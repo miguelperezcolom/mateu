@@ -52,7 +52,8 @@ class RunActionEdgesSyncTest {
                 .initiatorComponentId("preview")
                 .parameters(Map.of("_yaml", "type: [unclosed"))
                 .build());
-    assertThat(textOf(increment)).isEqualTo("Invalid or empty YAML");
+    // it says WHY, not just "invalid" (YamlUidlLoader.parseTextReporting)
+    assertThat(textOf(increment)).startsWith("Invalid YAML — ").contains("expected ',' or ']'");
   }
 
   @Test

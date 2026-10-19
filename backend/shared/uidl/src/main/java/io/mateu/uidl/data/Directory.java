@@ -5,6 +5,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
 
+/** A page listing menu entries as a browsable directory of links. */
 @Builder
 public record Directory(List<Actionable> menu, String style, String cssClasses)
     implements Component {}

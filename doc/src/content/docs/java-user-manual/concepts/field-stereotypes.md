@@ -33,7 +33,7 @@ This means a basic form requires no annotations beyond field declarations:
 public class ProductForm {
 
     String name;
-    Status status;   // enum → combobox
+    ProductStatus status;   // enum → combobox
     boolean active;
     LocalDate releaseDate;
 
@@ -47,10 +47,10 @@ public class ProductForm {
 Use `@Stereotype` when the inferred control is not the right choice for that field's presentation intent.
 
 ```java
-enum Status { Available, OutOfStock }
+enum ProductStatus { Available, OutOfStock }
 
 @Stereotype(FieldStereotype.radio)
-Status status;           // radio group instead of combobox
+ProductStatus status;           // radio group instead of combobox
 ```
 
 ```java

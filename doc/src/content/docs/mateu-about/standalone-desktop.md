@@ -60,6 +60,8 @@ With Spring Boot, react to `ApplicationReadyEvent` and open the browser pointing
 at the port the app is listening on:
 
 ```java
+import org.springframework.beans.factory.annotation.Value;
+
 @Component
 class BrowserLauncher {
 

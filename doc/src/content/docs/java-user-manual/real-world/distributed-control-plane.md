@@ -63,7 +63,7 @@ new ChangeRow(
     dto.page(),
     dto.country(),
     dto.language(),
-    new Status(...),
+    new Status(mapStatus(dto.status()), dto.status().name()),
     new ColumnAction("compare", "Compare")
 )
 ```

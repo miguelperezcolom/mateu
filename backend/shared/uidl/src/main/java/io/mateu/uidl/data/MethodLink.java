@@ -5,6 +5,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
 import lombok.With;
 
+/** A menu entry that runs a method of the app class when selected. */
 @Builder
 @With
 public record MethodLink(

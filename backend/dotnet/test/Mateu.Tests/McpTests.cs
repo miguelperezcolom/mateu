@@ -230,7 +230,11 @@ public class McpTests
     {
         var r = McpJsonRpc.Handle(new JsonObject { ["id"] = 2, ["method"] = "tools/list" }, Service());
         var names = r!["result"]!["tools"]!.AsArray().Select(t => (string?)t!["name"]).OrderBy(x => x).ToArray();
-        Assert.Equal(new[] { "mateu_describe_screen", "mateu_list_routes", "mateu_run_action", "mateu_search" }, names);
+        Assert.Equal(new[]
+        {
+            "mateu_describe_screen", "mateu_get_component_schema", "mateu_list_components", "mateu_list_routes",
+            "mateu_preview_uidl", "mateu_run_action", "mateu_search", "mateu_validate_uidl",
+        }, names);
     }
 
     [Fact]
@@ -360,15 +364,19 @@ public class McpTests
     }
 
     [Fact]
-    public void A_failing_tool_call_is_a_tool_error_not_a_protocol_error()
+    public void A_failing_action_is_its_screen_with_the_generic_message_not_a_protocol_error()
     {
+        // an action that FAILS (not refused) is not a tool error: its screen carries the sync
+        // endpoint's error message — the generic text + reference, never the raw exception
         var r = McpJsonRpc.Handle(new JsonObject
         {
             ["id"] = 5, ["method"] = "tools/call",
             ["params"] = new JsonObject { ["name"] = "mateu_run_action", ["arguments"] = new JsonObject { ["route"] = "mcp-failing", ["actionId"] = "explode" } },
         }, Service());
-        Assert.True((bool)r!["result"]!["isError"]!);
-        Assert.StartsWith("Error: ", (string?)r["result"]!["content"]![0]!["text"]);
+        Assert.Null(r!["result"]!["isError"]);
+        var text = (string?)r["result"]!["content"]![0]!["text"];
+        Assert.Contains("An unexpected error occurred. Reference: ", text);
+        Assert.DoesNotContain("boom", text);
         Assert.Null(r["error"]);
     }
 
@@ -394,12 +402,12 @@ public class McpTests
     }
 
     [Fact]
-    public void Ping_answers_an_empty_result_and_a_non_object_message_is_method_not_found()
+    public void Ping_answers_an_empty_result_and_a_non_object_message_is_an_invalid_request()
     {
         var ping = McpJsonRpc.Handle(new JsonObject { ["id"] = "p", ["method"] = "ping" }, Service());
         Assert.Equal("p", (string?)ping!["id"]);
         Assert.Empty(ping["result"]!.AsObject());
-        Assert.Null(McpJsonRpc.Handle(JsonValue.Create(3), Service()));
+        Assert.Equal(-32600, (int)McpJsonRpc.Handle(JsonValue.Create(3), Service())!["error"]!["code"]!);
     }
 
     [Fact]

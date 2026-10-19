@@ -55,7 +55,7 @@ renderer is — `app.MapMateu(ui: "<path>")` or the `MATEU_UI` environment varia
 `static/` folder. The jar is on Maven Central; the NuGet packages do not include it:
 
 ```bash
-V=3.0-alpha.425
+V=3.0-beta.3
 curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
 MATEU_UI=mateu-vaadin-$V.jar dotnet run --project samples/Mateu.Demo   # http://localhost:8593
 ```

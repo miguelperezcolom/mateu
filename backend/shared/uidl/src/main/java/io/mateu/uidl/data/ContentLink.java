@@ -6,6 +6,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import lombok.Builder;
 import lombok.With;
 
+/** A menu entry that shows a component or component tree in the content area when selected. */
 @Builder
 @With
 public record ContentLink(

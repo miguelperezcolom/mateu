@@ -1170,6 +1170,16 @@ public class SyncHandlerTests
             Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(":\n  - broken: [") },
         });
         Assert.NotNull(inc.Fragments[0].Component); // a notice fragment, not an exception
+        Assert.Contains("Invalid YAML", Render(inc)); // says why (MCP authoring, 3.0-beta.4)
+    }
+
+    [Fact]
+    public void Preview_action_with_no_yaml_says_so_like_java()
+    {
+        // the AI chat's built-in render target posts __preview__ from any page: no YAML is a
+        // notice, never an attempt to run "__preview__" as an action of the page
+        var inc = Handler().Handle(new RunActionRqDto { ActionId = "__preview__", Route = "", ConsumedRoute = "_empty" });
+        Assert.Contains("Invalid or empty YAML", Render(inc));
     }
 
     [Fact]

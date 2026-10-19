@@ -17,13 +17,13 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 AccordionLayout.builder()
     .panels(List.of(
         AccordionPanel.builder()
-            .summary(new Text("Section 1"))
+            .label("Section 1")
             .content(new Text("Content for section 1"))
             .build(),
         AccordionPanel.builder()
-            .summary(new Text("Section 2"))
+            .label("Section 2")
             .content(new Text("Content for section 2"))
-            .opened(true)
+            .active(true)
             .build()
     ))
     .build()
@@ -45,24 +45,25 @@ AccordionLayout.builder()
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `summary` | `Component` | — | Panel header / toggle trigger |
+| `label` | String | — | Panel header / toggle trigger (plain text; `${...}` expressions are interpolated) |
 | `content` | `Component` | — | Collapsible panel body |
-| `opened` | boolean | false | Whether this panel is initially expanded |
+| `active` | boolean | false | Whether this panel is initially expanded |
+| `disabled` | boolean | false | Shows the panel but does not let it open |
+| `style` / `cssClasses` | String | — | Inline CSS / class names of the panel |
 
-## With custom summaries
+## Panels holding forms
+
+The header is a text label; anything richer goes in the panel's content:
 
 ```java
 AccordionLayout.builder()
     .panels(List.of(
         AccordionPanel.builder()
-            .summary(new HorizontalLayout(new Icon(IconKey.Form), new Text("Personal data")))
+            .label("Personal data")
             .content(personalDataForm)
-            .opened(true)
+            .active(true)
             .build(),
-        AccordionPanel.builder()
-            .summary(new Text("Address"))
-            .content(addressForm)
-            .build()
+        new AccordionPanel("Address", addressForm)
     ))
     .build()
 ```

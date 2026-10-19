@@ -8,6 +8,7 @@ import { setActionCatalogue } from './actionCatalogue'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { TriggerType } from '@mateu/shared/apiClients/dtos/componentmetadata/TriggerType'
+import { isEventClaimed } from './chatEvents'
 
 /**
  * How mateu-component turns an `action-requested` into what the user relies on: a request to the
@@ -539,6 +540,23 @@ describe('triggers', () => {
         document.body.appendChild(el)
         document.dispatchEvent(new CustomEvent('pax-selected', { detail: {} }))
         expect(sent).toHaveLength(4)
+    })
+
+    it('a subscriber CLAIMS the event it takes, so the chat knows not to render the screen itself', async () => {
+        vi.useFakeTimers()
+        await mount(serverSide({
+            triggers: [{ type: TriggerType.OnCustomEvent, eventName: 'render-screen', actionId: 'renderScreen', source: 'DOCUMENT' }],
+            actions: [{ id: 'renderScreen' }],
+        }))
+        vi.advanceTimersByTime(0)
+        const taken = new CustomEvent('render-screen', { detail: { yaml: 'type: Text' }, bubbles: true, composed: true, cancelable: true })
+        document.body.dispatchEvent(taken)
+        expect(isEventClaimed(taken)).toBe(true)
+        expect(sent.at(-1)!.detail).toMatchObject({ actionId: 'renderScreen', parameters: { yaml: 'type: Text' } })
+        // an event nobody subscribes to is not claimed: the shell falls back to its own handling
+        const free = new CustomEvent('highlight-row', { detail: {}, bubbles: true, composed: true })
+        document.body.dispatchEvent(free)
+        expect(isEventClaimed(free)).toBe(false)
     })
 })
 

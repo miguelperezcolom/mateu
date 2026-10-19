@@ -23,6 +23,15 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The MCP authoring contract (schemas, component catalogue, agent guide), served verbatim:
+         LINKED to the generated files of backend/shared/uidl — never copied, so the four
+         implementations serve the same bytes (conformance/mcp/README.md). -->
+    <EmbeddedResource Include="../../../shared/uidl/uidl-schema.json" LogicalName="Mateu.Authoring.uidl-schema.json" Link="Authoring/uidl-schema.json" />
+    <EmbeddedResource Include="../../../shared/uidl/specs-schema.json" LogicalName="Mateu.Authoring.specs-schema.json" Link="Authoring/specs-schema.json" />
+    <EmbeddedResource Include="../../../shared/uidl/uidl-catalog.json" LogicalName="Mateu.Authoring.uidl-catalog.json" Link="Authoring/uidl-catalog.json" />
+    <EmbeddedResource Include="../../../shared/uidl/authoring-guide.md" LogicalName="Mateu.Authoring.authoring-guide.md" Link="Authoring/authoring-guide.md" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 </Project>

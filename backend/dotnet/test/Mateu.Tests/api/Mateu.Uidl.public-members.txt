@@ -1,0 +1,1801 @@
+Mateu.Core.AppShell ctor(System.String = null, System.Collections.Generic.IReadOnlyList<Mateu.Dtos.MenuItemDto> = null)
+Mateu.Core.AppShell property System.Collections.Generic.IReadOnlyList<Mateu.Dtos.MenuItemDto> Menu { get;init; }
+Mateu.Core.AppShell property System.String HomeRoute { get;init; }
+Mateu.Core.AppShell property System.String Subtitle { get;init; }
+Mateu.Core.AppShell property System.String Title { get;init; }
+Mateu.Core.AppShell property System.String Variant { get;init; }
+Mateu.Core.IAppSupplier abstract method Mateu.Core.AppShell GetApp()
+Mateu.Core.IMenuSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Dtos.MenuItemDto> Menu()
+Mateu.Core.IRouteEntrySupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Core.RouteEntry> Routes()
+Mateu.Core.MateuForbiddenException ctor(System.String)
+Mateu.Core.RouteEntry ctor(System.String, System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, System.String = null, System.Collections.Generic.IReadOnlyList<Mateu.Core.RouteEntry> = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, Mateu.Dtos.RestDataSourceDto = null, Mateu.Dtos.RestDataSourceDto = null, Mateu.Uidl.Access = null)
+Mateu.Core.RouteEntry method System.Boolean HasParent()
+Mateu.Core.RouteEntry method System.Boolean RestrictsAccess()
+Mateu.Core.RouteEntry method System.Collections.Generic.Dictionary<System.String,System.Object> ResolveParams(System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>)
+Mateu.Core.RouteEntry method System.Collections.Generic.IReadOnlyList<System.String> PathParams()
+Mateu.Core.RouteEntry property Mateu.Dtos.RestDataSourceDto AppData { get;init; }
+Mateu.Core.RouteEntry property Mateu.Dtos.RestDataSourceDto Data { get;init; }
+Mateu.Core.RouteEntry property Mateu.Uidl.Access Access { get;init; }
+Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> AppState { get;init; }
+Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> DefaultParams { get;init; }
+Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> FixedParams { get;init; }
+Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> State { get;init; }
+Mateu.Core.RouteEntry property System.Collections.Generic.IReadOnlyList<Mateu.Core.RouteEntry> Children { get;init; }
+Mateu.Core.RouteEntry property System.String Definition { get;init; }
+Mateu.Core.RouteEntry property System.String Parent { get;init; }
+Mateu.Core.RouteEntry property System.String Route { get;init; }
+Mateu.Core.RouteEntry property System.String ViewModel { get;init; }
+Mateu.Core.RouteEntry static method Mateu.Core.RouteEntry Of(System.String, System.String)
+Mateu.Uidl.AIAttribute ctor(System.String)
+Mateu.Uidl.AIAttribute property System.String Sse { get; }
+Mateu.Uidl.Access ctor(System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
+Mateu.Uidl.Access method System.Boolean Restricts()
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> Groups { get;init; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> GroupsOrEmpty { get; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> Permissions { get;init; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> PermissionsOrEmpty { get; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> Roles { get;init; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> RolesOrEmpty { get; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
+Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> ScopesOrEmpty { get; }
+Mateu.Uidl.Access static method Mateu.Uidl.Access OfRoles(System.String[])
+Mateu.Uidl.ActionAttribute ctor()
+Mateu.Uidl.ActionCatalog ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction>)
+Mateu.Uidl.ActionCatalog method Mateu.Uidl.ActionCatalog MergedOver(Mateu.Uidl.ActionCatalog)
+Mateu.Uidl.ActionCatalog method Mateu.Uidl.CatalogAction Get(System.String)
+Mateu.Uidl.ActionCatalog method System.Boolean HasNoActions()
+Mateu.Uidl.ActionCatalog property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction> Actions { get;init; }
+Mateu.Uidl.ActionCatalog static readonly field Mateu.Uidl.ActionCatalog Empty
+Mateu.Uidl.ActionOptionsAttribute ctor()
+Mateu.Uidl.ActionOptionsAttribute property System.Boolean Idempotent { get;init; }
+Mateu.Uidl.ActionOptionsAttribute property System.Int32 TimeoutMillis { get;init; }
+Mateu.Uidl.ActionPanel ctor()
+Mateu.Uidl.ActionPanel property System.Boolean HideUnpopulatedToggle { get;init; }
+Mateu.Uidl.ActionPanel property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ActionPanelCategory> Categories { get;init; }
+Mateu.Uidl.ActionPanel property System.Int32 MaxPerCategory { get;init; }
+Mateu.Uidl.ActionPanel property System.String Label { get;init; }
+Mateu.Uidl.ActionPanel property System.String Shortcut { get;init; }
+Mateu.Uidl.ActionPanelCategory ctor(System.String)
+Mateu.Uidl.ActionPanelCategory property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ActionPanelItem> Actions { get;init; }
+Mateu.Uidl.ActionPanelCategory property System.String Title { get;init; }
+Mateu.Uidl.ActionPanelItem ctor(System.String, System.String)
+Mateu.Uidl.ActionPanelItem property System.Boolean Disabled { get;init; }
+Mateu.Uidl.ActionPanelItem property System.Boolean Populated { get;init; }
+Mateu.Uidl.ActionPanelItem property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.ActionPanelItem property System.Int32? Count { get;init; }
+Mateu.Uidl.ActionPanelItem property System.String ActionId { get;init; }
+Mateu.Uidl.ActionPanelItem property System.String Label { get;init; }
+Mateu.Uidl.AdaptedView ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent>, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
+Mateu.Uidl.AdaptedView property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Data { get;init; }
+Mateu.Uidl.AdaptedView property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> State { get;init; }
+Mateu.Uidl.AdaptedView property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Components { get;init; }
+Mateu.Uidl.AdaptedView property System.Collections.Generic.IReadOnlyList<System.String> Actions { get;init; }
+Mateu.Uidl.AdaptedView static method Mateu.Uidl.AdaptedView Of(Mateu.Uidl.IComponent, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null)
+Mateu.Uidl.AddOn ctor()
+Mateu.Uidl.AddOn property System.Boolean Added { get;init; }
+Mateu.Uidl.AddOn property System.Double? Price { get;init; }
+Mateu.Uidl.AddOn property System.String Description { get;init; }
+Mateu.Uidl.AddOn property System.String Icon { get;init; }
+Mateu.Uidl.AddOn property System.String Id { get;init; }
+Mateu.Uidl.AddOn property System.String IncludedLabel { get;init; }
+Mateu.Uidl.AddOn property System.String Title { get;init; }
+Mateu.Uidl.AddOn property System.String Unit { get;init; }
+Mateu.Uidl.AddOnPicker ctor()
+Mateu.Uidl.AddOnPicker property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AddOn> Items { get;init; }
+Mateu.Uidl.AddOnPicker property System.String ActionId { get;init; }
+Mateu.Uidl.AddOnPicker property System.String Currency { get;init; }
+Mateu.Uidl.AddOnPicker property System.String TotalLabel { get;init; }
+Mateu.Uidl.AggregateAttribute ctor(Mateu.Uidl.AggregateFunction = Sum)
+Mateu.Uidl.AggregateAttribute property Mateu.Uidl.AggregateFunction Function { get; }
+Mateu.Uidl.AggregateFunction enum Avg
+Mateu.Uidl.AggregateFunction enum Count
+Mateu.Uidl.AggregateFunction enum Max
+Mateu.Uidl.AggregateFunction enum Min
+Mateu.Uidl.AggregateFunction enum Sum
+Mateu.Uidl.Anchor ctor(System.String, System.String)
+Mateu.Uidl.Anchor property System.String Target { get;init; }
+Mateu.Uidl.Anchor property System.String Text { get;init; }
+Mateu.Uidl.Anchor property System.String Url { get;init; }
+Mateu.Uidl.Announce ctor(System.String, System.Boolean = False)
+Mateu.Uidl.Announce property System.Boolean Assertive { get;init; }
+Mateu.Uidl.Announce property System.String Text { get;init; }
+Mateu.Uidl.AppAttribute ctor(System.String)
+Mateu.Uidl.AppAttribute property System.Boolean AccessKeys { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean Chromeless { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean CommandCenter { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean LiveUpdates { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean MobileQr { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean ThemeToggle { get;set; }
+Mateu.Uidl.AppAttribute property System.Int32 IdleTimeoutMinutes { get;set; }
+Mateu.Uidl.AppAttribute property System.Int32 IdleWarningSeconds { get;set; }
+Mateu.Uidl.AppAttribute property System.String IdleSignOutUrl { get;set; }
+Mateu.Uidl.AppAttribute property System.String Route { get;set; }
+Mateu.Uidl.AppAttribute property System.String Title { get; }
+Mateu.Uidl.AppAttribute property System.String Variant { get;set; }
+Mateu.Uidl.AppAttribute property System.String[] Requires { get;set; }
+Mateu.Uidl.AppContextAttribute ctor(System.String = "")
+Mateu.Uidl.AppContextAttribute property System.String Label { get; }
+Mateu.Uidl.AppHeaderAction ctor(System.String, System.String, System.String = null, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction> = null)
+Mateu.Uidl.AppHeaderAction property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction> Children { get;init; }
+Mateu.Uidl.AppHeaderAction property System.String ActionId { get;init; }
+Mateu.Uidl.AppHeaderAction property System.String Icon { get;init; }
+Mateu.Uidl.AppHeaderAction property System.String Label { get;init; }
+Mateu.Uidl.AppHeaderAction static method Mateu.Uidl.AppHeaderAction Menu(System.String, System.String, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction>)
+Mateu.Uidl.AppNotification ctor(System.String, System.String, System.String, System.String, System.Boolean = True, System.String = null)
+Mateu.Uidl.AppNotification property System.Boolean Unread { get;init; }
+Mateu.Uidl.AppNotification property System.String Id { get;init; }
+Mateu.Uidl.AppNotification property System.String Route { get;init; }
+Mateu.Uidl.AppNotification property System.String Text { get;init; }
+Mateu.Uidl.AppNotification property System.String Title { get;init; }
+Mateu.Uidl.AppNotification property System.String When { get;init; }
+Mateu.Uidl.AppShortcutAttribute ctor()
+Mateu.Uidl.AppShortcutAttribute property System.String ActionId { get;set; }
+Mateu.Uidl.AppShortcutAttribute property System.String Code { get;set; }
+Mateu.Uidl.AppShortcutAttribute property System.String Key { get;set; }
+Mateu.Uidl.AppShortcutAttribute property System.String Label { get;set; }
+Mateu.Uidl.AppShortcutAttribute property System.String Route { get;set; }
+Mateu.Uidl.AppVariant const field System.String Auto
+Mateu.Uidl.AppVariant const field System.String HamburgerMenu
+Mateu.Uidl.AppVariant const field System.String HamburgerSections
+Mateu.Uidl.AppVariant const field System.String MenuOnLeft
+Mateu.Uidl.AppVariant const field System.String MenuOnTop
+Mateu.Uidl.AppVariant const field System.String Rail
+Mateu.Uidl.AppVariant const field System.String Tabs
+Mateu.Uidl.AppVariant const field System.String Tiles
+Mateu.Uidl.AppVariant static method System.String ToWire(System.String)
+Mateu.Uidl.ArchetypeComposers static method Mateu.Uidl.IComponent ComposeDashboard(System.Object, System.Int32, System.Boolean = False)
+Mateu.Uidl.ArchetypeComposers static method Mateu.Uidl.IComponent ComposeWelcome(System.Object, System.String, System.String, System.String, Mateu.Uidl.HeroTone = Auto)
+Mateu.Uidl.AsideAttribute ctor()
+Mateu.Uidl.AsideAttribute property System.Boolean Sticky { get;init; }
+Mateu.Uidl.AsideAttribute property System.String Position { get;init; }
+Mateu.Uidl.AsideAttribute property System.String Width { get;init; }
+Mateu.Uidl.AudienceAttribute ctor(System.String[])
+Mateu.Uidl.AudienceAttribute property System.String[] Audiences { get; }
+Mateu.Uidl.AutoLayoutAttribute ctor(System.Boolean = True)
+Mateu.Uidl.AutoLayoutAttribute property System.Boolean Value { get; }
+Mateu.Uidl.AutoPageAttribute ctor(System.Boolean = True)
+Mateu.Uidl.AutoPageAttribute property System.Boolean Value { get; }
+Mateu.Uidl.Avatar ctor()
+Mateu.Uidl.Avatar property System.String Abbreviation { get;init; }
+Mateu.Uidl.Avatar property System.String Image { get;init; }
+Mateu.Uidl.Avatar property System.String Name { get;init; }
+Mateu.Uidl.AvatarGroup ctor()
+Mateu.Uidl.AvatarGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Avatar> Avatars { get;init; }
+Mateu.Uidl.AvatarGroup property System.Int32 MaxItemsVisible { get;init; }
+Mateu.Uidl.Badge ctor()
+Mateu.Uidl.Badge property System.Boolean Pill { get;init; }
+Mateu.Uidl.Badge property System.Boolean Primary { get;init; }
+Mateu.Uidl.Badge property System.Boolean Small { get;init; }
+Mateu.Uidl.Badge property System.String Color { get;init; }
+Mateu.Uidl.Badge property System.String IconOnLeft { get;init; }
+Mateu.Uidl.Badge property System.String IconOnRight { get;init; }
+Mateu.Uidl.Badge property System.String Text { get;init; }
+Mateu.Uidl.BannerAttribute ctor(Mateu.Uidl.BannerTheme = Info, System.String = null)
+Mateu.Uidl.BannerAttribute property Mateu.Uidl.BannerTheme Theme { get; }
+Mateu.Uidl.BannerAttribute property System.String Title { get; }
+Mateu.Uidl.BannerTheme enum Danger
+Mateu.Uidl.BannerTheme enum Info
+Mateu.Uidl.BannerTheme enum Success
+Mateu.Uidl.BannerTheme enum Warning
+Mateu.Uidl.Bpmn ctor()
+Mateu.Uidl.Bpmn property System.String Xml { get;init; }
+Mateu.Uidl.Breadcrumb ctor(System.String, System.String)
+Mateu.Uidl.Breadcrumb property System.String Link { get;init; }
+Mateu.Uidl.Breadcrumb property System.String Text { get;init; }
+Mateu.Uidl.Breadcrumbs ctor(System.String)
+Mateu.Uidl.Breadcrumbs property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Breadcrumb> Items { get;init; }
+Mateu.Uidl.Breadcrumbs property System.String CurrentItemText { get;init; }
+Mateu.Uidl.BulletedList ctor()
+Mateu.Uidl.BulletedList property System.Collections.Generic.IReadOnlyList<System.String> Items { get;init; }
+Mateu.Uidl.BulletedListAttribute ctor()
+Mateu.Uidl.BusinessComponentAttribute ctor(System.String)
+Mateu.Uidl.BusinessComponentAttribute property System.String Name { get; }
+Mateu.Uidl.Button ctor(System.String, System.String)
+Mateu.Uidl.Button property System.Boolean Disabled { get;init; }
+Mateu.Uidl.Button property System.Boolean Primary { get;init; }
+Mateu.Uidl.Button property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.Button property System.String ActionId { get;init; }
+Mateu.Uidl.Button property System.String ButtonStyle { get;init; }
+Mateu.Uidl.Button property System.String Label { get;init; }
+Mateu.Uidl.Button property System.String Route { get;init; }
+Mateu.Uidl.ButtonAttribute ctor(System.String = null)
+Mateu.Uidl.ButtonAttribute property System.String Label { get; }
+Mateu.Uidl.Calendar ctor()
+Mateu.Uidl.Calendar property Mateu.Uidl.CalendarView? View { get;init; }
+Mateu.Uidl.Calendar property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarDay> Days { get;init; }
+Mateu.Uidl.Calendar property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarEvent> Events { get;init; }
+Mateu.Uidl.Calendar property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarView> Views { get;init; }
+Mateu.Uidl.Calendar property System.DateOnly? Month { get;init; }
+Mateu.Uidl.Calendar property System.String DayActionId { get;init; }
+Mateu.Uidl.CalendarDay ctor(System.DateOnly?, System.String, System.String = null)
+Mateu.Uidl.CalendarDay property System.DateOnly? Date { get;init; }
+Mateu.Uidl.CalendarDay property System.String Label { get;init; }
+Mateu.Uidl.CalendarDay property System.String Tone { get;init; }
+Mateu.Uidl.CalendarEvent ctor()
+Mateu.Uidl.CalendarEvent property System.DateOnly? Date { get;init; }
+Mateu.Uidl.CalendarEvent property System.DateOnly? EndDate { get;init; }
+Mateu.Uidl.CalendarEvent property System.String ActionId { get;init; }
+Mateu.Uidl.CalendarEvent property System.String Color { get;init; }
+Mateu.Uidl.CalendarEvent property System.String EndTime { get;init; }
+Mateu.Uidl.CalendarEvent property System.String Id { get;init; }
+Mateu.Uidl.CalendarEvent property System.String StartTime { get;init; }
+Mateu.Uidl.CalendarEvent property System.String Title { get;init; }
+Mateu.Uidl.CalendarPage abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarEvent> Events(System.DateOnly)
+Mateu.Uidl.CalendarPage abstract method System.Object ActionOn(Mateu.Uidl.CalendarEvent)
+Mateu.Uidl.CalendarPage ctor()
+Mateu.Uidl.CalendarPage method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.CalendarPage method System.Object CreateCalendarEvent()
+Mateu.Uidl.CalendarPage method System.Object OpenCalendarDay(System.String)
+Mateu.Uidl.CalendarPage method System.Object OpenCalendarEvent(System.String)
+Mateu.Uidl.CalendarPage method System.Void GoToday()
+Mateu.Uidl.CalendarPage method System.Void NextMonth()
+Mateu.Uidl.CalendarPage method System.Void PreviousMonth()
+Mateu.Uidl.CalendarPage method System.Void SwitchView(System.String)
+Mateu.Uidl.CalendarPage property System.Boolean DaysClickable { get; }
+Mateu.Uidl.CalendarPage property System.Boolean ShowCreate { get; }
+Mateu.Uidl.CalendarPage property System.String EventId { get;set; }
+Mateu.Uidl.CalendarPage property System.String Month { get;set; }
+Mateu.Uidl.CalendarPage property System.String View { get;set; }
+Mateu.Uidl.CalendarPage virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarDay> Days(System.DateOnly, System.DateOnly)
+Mateu.Uidl.CalendarPage virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CalendarView> Views()
+Mateu.Uidl.CalendarPage virtual method System.DateOnly InitialMonth()
+Mateu.Uidl.CalendarPage virtual method System.Object ActionOnDay(System.DateOnly)
+Mateu.Uidl.CalendarPage virtual method System.Object CreateAction()
+Mateu.Uidl.CalendarView enum Day
+Mateu.Uidl.CalendarView enum List
+Mateu.Uidl.CalendarView enum Month
+Mateu.Uidl.CalendarView enum Week
+Mateu.Uidl.CalloutCard ctor()
+Mateu.Uidl.CalloutCard property System.String ActionId { get;init; }
+Mateu.Uidl.CalloutCard property System.String CtaLabel { get;init; }
+Mateu.Uidl.CalloutCard property System.String Description { get;init; }
+Mateu.Uidl.CalloutCard property System.String Icon { get;init; }
+Mateu.Uidl.CalloutCard property System.String Theme { get;init; }
+Mateu.Uidl.CalloutCard property System.String Title { get;init; }
+Mateu.Uidl.Capabilities const field System.String AppData
+Mateu.Uidl.Capabilities const field System.String CommandCenter
+Mateu.Uidl.Capabilities const field System.String ContextSelectors
+Mateu.Uidl.Capabilities const field System.String GlobalSearch
+Mateu.Uidl.Capabilities const field System.String HeaderActions
+Mateu.Uidl.Capabilities const field System.String Notifications
+Mateu.Uidl.Capabilities const field System.String RestSources
+Mateu.Uidl.Capabilities const field System.String Sse
+Mateu.Uidl.Capabilities static readonly field System.Collections.Generic.IReadOnlyCollection<System.String> All
+Mateu.Uidl.Card ctor()
+Mateu.Uidl.Card property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.Card property System.String Title { get;init; }
+Mateu.Uidl.CatalogAction ctor(System.String)
+Mateu.Uidl.CatalogAction method System.Boolean ClientRunnable()
+Mateu.Uidl.CatalogAction property Mateu.Uidl.Access Access { get;init; }
+Mateu.Uidl.CatalogAction property Mateu.Uidl.CatalogRestAction RestAction { get;init; }
+Mateu.Uidl.CatalogAction property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FlowStep> Steps { get;init; }
+Mateu.Uidl.CatalogAction property System.String Description { get;init; }
+Mateu.Uidl.CatalogAction property System.String Id { get;init; }
+Mateu.Uidl.CatalogRestAction ctor(Mateu.Uidl.RestDataSource, System.String = null, System.String = null)
+Mateu.Uidl.CatalogRestAction property Mateu.Uidl.RestDataSource Source { get;init; }
+Mateu.Uidl.CatalogRestAction property System.String ResultPath { get;init; }
+Mateu.Uidl.CatalogRestAction property System.String SuccessMessage { get;init; }
+Mateu.Uidl.Chart ctor()
+Mateu.Uidl.Chart property Mateu.Uidl.ChartData ChartData { get;init; }
+Mateu.Uidl.Chart property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> ChartOptions { get;init; }
+Mateu.Uidl.Chart property System.String ChartType { get;init; }
+Mateu.Uidl.ChartData ctor()
+Mateu.Uidl.ChartData property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ChartDataset> Datasets { get;init; }
+Mateu.Uidl.ChartData property System.Collections.Generic.IReadOnlyList<System.String> Labels { get;init; }
+Mateu.Uidl.ChartDataset ctor()
+Mateu.Uidl.ChartDataset property System.Collections.Generic.IReadOnlyList<System.Double> Data { get;init; }
+Mateu.Uidl.ChartDataset property System.String Label { get;init; }
+Mateu.Uidl.Checklist ctor()
+Mateu.Uidl.Checklist property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ChecklistItem> Items { get;init; }
+Mateu.Uidl.Checklist property System.String Title { get;init; }
+Mateu.Uidl.ChecklistItem ctor()
+Mateu.Uidl.ChecklistItem property System.Boolean Done { get;init; }
+Mateu.Uidl.ChecklistItem property System.String ActionId { get;init; }
+Mateu.Uidl.ChecklistItem property System.String Id { get;init; }
+Mateu.Uidl.ChecklistItem property System.String Label { get;init; }
+Mateu.Uidl.Chip ctor()
+Mateu.Uidl.Chip property System.String Color { get;init; }
+Mateu.Uidl.Chip property System.String Label { get;init; }
+Mateu.Uidl.CloseOverlay ctor(System.String = null)
+Mateu.Uidl.CloseOverlay property System.String Event { get;init; }
+Mateu.Uidl.CollectionDetail<TRow> abstract method Mateu.Uidl.IComponent Detail(TRow)
+Mateu.Uidl.CollectionDetail<TRow> abstract method System.Collections.Generic.IEnumerable<TRow> Rows(System.String)
+Mateu.Uidl.CollectionDetail<TRow> abstract method System.String IdOf(TRow)
+Mateu.Uidl.CollectionDetail<TRow> abstract method System.String TitleOf(TRow)
+Mateu.Uidl.CollectionDetail<TRow> ctor()
+Mateu.Uidl.CollectionDetail<TRow> method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.CollectionDetail<TRow> property System.Int32 RefreshDebounceMillis { get; }
+Mateu.Uidl.CollectionDetail<TRow> property System.String ListWidth { get; }
+Mateu.Uidl.CollectionDetail<TRow> property System.String RefreshActionId { get; }
+Mateu.Uidl.CollectionDetail<TRow> property System.String Search { get;set; }
+Mateu.Uidl.CollectionDetail<TRow> property System.String SelectedId { get;set; }
+Mateu.Uidl.CollectionDetail<TRow> virtual method Mateu.Uidl.IComponent EmptyDetail()
+Mateu.Uidl.CollectionDetail<TRow> virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> BadgesOf(TRow)
+Mateu.Uidl.CollectionDetail<TRow> virtual method System.String CaptionOf(TRow)
+Mateu.Uidl.CollectionDetail<TRow> virtual method System.String ListLabel(System.Int32)
+Mateu.Uidl.ColspanAttribute ctor(System.Int32)
+Mateu.Uidl.ColspanAttribute property System.Int32 Value { get; }
+Mateu.Uidl.ColumnMapping ctor()
+Mateu.Uidl.ColumnMapping property System.String CsvColumn { get;set; }
+Mateu.Uidl.ColumnMapping property System.String Sample { get;set; }
+Mateu.Uidl.ColumnMapping property System.String TargetField { get;set; }
+Mateu.Uidl.Comment ctor()
+Mateu.Uidl.Comment property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Comment> Replies { get;init; }
+Mateu.Uidl.Comment property System.String Author { get;init; }
+Mateu.Uidl.Comment property System.String Avatar { get;init; }
+Mateu.Uidl.Comment property System.String Id { get;init; }
+Mateu.Uidl.Comment property System.String Text { get;init; }
+Mateu.Uidl.Comment property System.String Timestamp { get;init; }
+Mateu.Uidl.CommentThread ctor()
+Mateu.Uidl.CommentThread property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Comment> Comments { get;init; }
+Mateu.Uidl.CompactAttribute ctor()
+Mateu.Uidl.ComparisonCard ctor()
+Mateu.Uidl.ComparisonCard property System.String Delta { get;init; }
+Mateu.Uidl.ComparisonCard property System.String LeftLabel { get;init; }
+Mateu.Uidl.ComparisonCard property System.String LeftValue { get;init; }
+Mateu.Uidl.ComparisonCard property System.String RightLabel { get;init; }
+Mateu.Uidl.ComparisonCard property System.String RightValue { get;init; }
+Mateu.Uidl.ComparisonCard property System.String Title { get;init; }
+Mateu.Uidl.ComparisonCard property System.String Trend { get;init; }
+Mateu.Uidl.ComponentAdapter<T> abstract method Mateu.Uidl.AdaptedView Adapt(T)
+Mateu.Uidl.ComponentAdapter<T> abstract method T Deserialize(System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>)
+Mateu.Uidl.ComponentAdapter<T> ctor()
+Mateu.Uidl.ComponentAdapter<T> property System.Type Type { get; }
+Mateu.Uidl.ComponentBase ctor()
+Mateu.Uidl.ComponentBase ctor(Mateu.Uidl.ComponentBase)
+Mateu.Uidl.ComponentBase property System.String CssClasses { get;init; }
+Mateu.Uidl.ComponentBase property System.String Id { get;init; }
+Mateu.Uidl.ComponentBase property System.String Style { get;init; }
+Mateu.Uidl.ComponentCatalog ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ComponentEntry>)
+Mateu.Uidl.ComponentCatalog method Mateu.Uidl.ComponentCatalog MergedOver(Mateu.Uidl.ComponentCatalog)
+Mateu.Uidl.ComponentCatalog method Mateu.Uidl.ComponentEntry Get(System.String)
+Mateu.Uidl.ComponentCatalog method System.Boolean HasNoComponents()
+Mateu.Uidl.ComponentCatalog property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ComponentEntry> Components { get;init; }
+Mateu.Uidl.ComponentCatalog static readonly field Mateu.Uidl.ComponentCatalog Empty
+Mateu.Uidl.ComponentEntry ctor(System.String, Mateu.Uidl.IComponent)
+Mateu.Uidl.ComponentEntry property Mateu.Uidl.IComponent Component { get;init; }
+Mateu.Uidl.ComponentEntry property System.String Name { get;init; }
+Mateu.Uidl.ComponentRef ctor(System.String)
+Mateu.Uidl.ComponentRef property System.String Ref { get;init; }
+Mateu.Uidl.ConfirmDialog ctor()
+Mateu.Uidl.ConfirmDialog property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.ConfirmDialog property System.Boolean CanCancel { get;init; }
+Mateu.Uidl.ConfirmDialog property System.Boolean CanReject { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String CancelActionId { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String ConfirmActionId { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String ConfirmText { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String Header { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String OpenedCondition { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String RejectActionId { get;init; }
+Mateu.Uidl.ConfirmDialog property System.String RejectText { get;init; }
+Mateu.Uidl.ConfirmOnNavigationIfDirtyAttribute ctor()
+Mateu.Uidl.ContentLayout ctor()
+Mateu.Uidl.ContentLayout property System.Boolean AsideSticky { get;init; }
+Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Aside { get;init; }
+Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer { get;init; }
+Mateu.Uidl.ContentLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Main { get;init; }
+Mateu.Uidl.ContentLayout property System.String AsidePosition { get;init; }
+Mateu.Uidl.ContentLayout property System.String AsideWidth { get;init; }
+Mateu.Uidl.Crud<T> abstract method System.Collections.Generic.IEnumerable<T> Fetch(System.String)
+Mateu.Uidl.Crud<T> ctor()
+Mateu.Uidl.Crud<T> property Mateu.Uidl.CrudDisplay Display { get; }
+Mateu.Uidl.Crud<T> property System.Boolean CanCreate { get; }
+Mateu.Uidl.Crud<T> property System.Boolean CanDelete { get; }
+Mateu.Uidl.Crud<T> property System.Boolean CanEdit { get; }
+Mateu.Uidl.Crud<T> property System.Boolean CanView { get; }
+Mateu.Uidl.Crud<T> property System.Boolean CsvExportable { get; }
+Mateu.Uidl.Crud<T> property System.Boolean EditInDrawer { get; }
+Mateu.Uidl.Crud<T> property System.Boolean ExcelExportable { get; }
+Mateu.Uidl.Crud<T> property System.Boolean PdfExportable { get; }
+Mateu.Uidl.Crud<T> property System.String EditDrawerWidth { get; }
+Mateu.Uidl.Crud<T> property System.String SaveAndNextLabel { get; }
+Mateu.Uidl.Crud<T> static method System.String IdOf(T)
+Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.ListingData<T> Search(Mateu.Uidl.SearchRequest)
+Mateu.Uidl.Crud<T> virtual method Mateu.Uidl.PageResult<T> Find(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>, Mateu.Uidl.Pageable)
+Mateu.Uidl.Crud<T> virtual method System.String NextIdAfter(System.String)
+Mateu.Uidl.Crud<T> virtual method System.Void Delete(System.String)
+Mateu.Uidl.Crud<T> virtual method System.Void DeleteAllById(System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.Crud<T> virtual method System.Void Save(T)
+Mateu.Uidl.Crud<T> virtual method T CreationForm()
+Mateu.Uidl.Crud<T> virtual method T Edit(System.String)
+Mateu.Uidl.Crud<T> virtual method T Get(System.String)
+Mateu.Uidl.Crud<T> virtual method T View(System.String)
+Mateu.Uidl.CrudDisplay ctor(Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle = Off, Mateu.Uidl.Toggle = On)
+Mateu.Uidl.CrudDisplay property Mateu.Uidl.Toggle Create { get;init; }
+Mateu.Uidl.CrudDisplay property Mateu.Uidl.Toggle Delete { get;init; }
+Mateu.Uidl.CrudDisplay property Mateu.Uidl.Toggle ErrorBanner { get;init; }
+Mateu.Uidl.CrudDisplay property Mateu.Uidl.Toggle SaveAndNext { get;init; }
+Mateu.Uidl.CrudDisplay static property Mateu.Uidl.CrudDisplay Defaults { get; }
+Mateu.Uidl.CsvParser static method System.Char DetectSeparator(System.String)
+Mateu.Uidl.CsvParser static method System.Collections.Generic.List<System.Collections.Generic.List<System.String>> Parse(System.String)
+Mateu.Uidl.CustomComponent ctor(System.String)
+Mateu.Uidl.CustomComponent property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Props { get;init; }
+Mateu.Uidl.CustomComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.CustomComponent property System.String Name { get;init; }
+Mateu.Uidl.Dashboard ctor()
+Mateu.Uidl.Dashboard method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.Dashboard property System.Boolean Reorderable { get; }
+Mateu.Uidl.Dashboard property System.Int32 Columns { get; }
+Mateu.Uidl.Dashboard property System.String Style { get; }
+Mateu.Uidl.DashboardLayout ctor()
+Mateu.Uidl.DashboardLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Items { get;init; }
+Mateu.Uidl.DashboardLayout property System.Int32 Columns { get;init; }
+Mateu.Uidl.DashboardPanel ctor()
+Mateu.Uidl.DashboardPanel property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.DashboardPanel property System.Int32 ColSpan { get;init; }
+Mateu.Uidl.DashboardPanel property System.Int32 RowSpan { get;init; }
+Mateu.Uidl.DashboardPanel property System.String Subtitle { get;init; }
+Mateu.Uidl.DashboardPanel property System.String Title { get;init; }
+Mateu.Uidl.DataManagement abstract method Mateu.Uidl.IComponent GanttView()
+Mateu.Uidl.DataManagement abstract method Mateu.Uidl.IComponent GridView()
+Mateu.Uidl.DataManagement ctor()
+Mateu.Uidl.DataManagement method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.DataManagement method System.Void ToggleBottomPanel()
+Mateu.Uidl.DataManagement method System.Void ToggleEndPanel()
+Mateu.Uidl.DataManagement property System.Boolean? BottomOpen { get;set; }
+Mateu.Uidl.DataManagement property System.Boolean? EndOpen { get;set; }
+Mateu.Uidl.DataManagement property System.String GanttLabel { get; }
+Mateu.Uidl.DataManagement property System.String GridLabel { get; }
+Mateu.Uidl.DataManagement property System.String Heading { get; }
+Mateu.Uidl.DataManagement property System.String View { get;set; }
+Mateu.Uidl.DataManagement virtual method Mateu.Uidl.DockedPanel BottomPanel()
+Mateu.Uidl.DataManagement virtual method Mateu.Uidl.DockedPanel EndPanel()
+Mateu.Uidl.DataManagement virtual method Mateu.Uidl.PageWidthStyle? PageWidth()
+Mateu.Uidl.DateRange ctor(System.DateOnly? = null, System.DateOnly? = null)
+Mateu.Uidl.DateRange method System.Boolean Contains(System.DateOnly)
+Mateu.Uidl.DateRange property System.Boolean IsEmpty { get; }
+Mateu.Uidl.DateRange property System.DateOnly? From { get;init; }
+Mateu.Uidl.DateRange property System.DateOnly? To { get;init; }
+Mateu.Uidl.DeclaredRestSource ctor(Mateu.Uidl.RestSourceKind, Mateu.Uidl.RestDataSource)
+Mateu.Uidl.DeclaredRestSource ctor(Mateu.Uidl.RestSourceKind, System.String, Mateu.Uidl.RestDataSource)
+Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestDataSource Source { get;init; }
+Mateu.Uidl.DeclaredRestSource property Mateu.Uidl.RestSourceKind Kind { get;init; }
+Mateu.Uidl.DeclaredRestSource property System.String Id { get;init; }
+Mateu.Uidl.Details ctor()
+Mateu.Uidl.Details property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.Details property Mateu.Uidl.IComponent Summary { get;init; }
+Mateu.Uidl.Details property System.Boolean Opened { get;init; }
+Mateu.Uidl.Dialog ctor()
+Mateu.Uidl.Dialog property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.Dialog property Mateu.Uidl.IComponent Footer { get;init; }
+Mateu.Uidl.Dialog property Mateu.Uidl.IComponent Header { get;init; }
+Mateu.Uidl.Dialog property System.Boolean CloseButtonOnHeader { get;init; }
+Mateu.Uidl.Dialog property System.Boolean Modeless { get;init; }
+Mateu.Uidl.Dialog property System.Boolean NoPadding { get;init; }
+Mateu.Uidl.Dialog property System.String HeaderTitle { get;init; }
+Mateu.Uidl.Dialog property System.String Height { get;init; }
+Mateu.Uidl.Dialog property System.String Width { get;init; }
+Mateu.Uidl.DisabledAttribute ctor()
+Mateu.Uidl.DisabledUnlessAttribute ctor()
+Mateu.Uidl.DockedPanel ctor(System.String, System.String, Mateu.Uidl.IComponent, System.String = null, System.Boolean = False)
+Mateu.Uidl.DockedPanel property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.DockedPanel property System.Boolean Open { get;init; }
+Mateu.Uidl.DockedPanel property System.String Id { get;init; }
+Mateu.Uidl.DockedPanel property System.String Size { get;init; }
+Mateu.Uidl.DockedPanel property System.String Title { get;init; }
+Mateu.Uidl.Document const field System.String PdfMediaType
+Mateu.Uidl.Document ctor(System.String, System.String, System.Byte[], System.Func<System.Byte[]> = null, Mateu.Uidl.DocumentDisposition = Attachment, System.Boolean = False)
+Mateu.Uidl.Document method Mateu.Uidl.Document Downloaded()
+Mateu.Uidl.Document method Mateu.Uidl.Document Printed()
+Mateu.Uidl.Document method Mateu.Uidl.Document ShowInline()
+Mateu.Uidl.Document method System.Byte[] Bytes()
+Mateu.Uidl.Document property Mateu.Uidl.DocumentDisposition Disposition { get; }
+Mateu.Uidl.Document property System.Boolean Print { get; }
+Mateu.Uidl.Document property System.Boolean ProducedOnDemand { get; }
+Mateu.Uidl.Document property System.Byte[] Content { get; }
+Mateu.Uidl.Document property System.Func<System.Byte[]> LazyContent { get; }
+Mateu.Uidl.Document property System.String Filename { get; }
+Mateu.Uidl.Document property System.String MediaType { get; }
+Mateu.Uidl.Document static method Mateu.Uidl.Document Attachment(System.String, System.String, System.Byte[])
+Mateu.Uidl.Document static method Mateu.Uidl.Document Inline(System.String, System.String, System.Byte[])
+Mateu.Uidl.Document static method Mateu.Uidl.Document Lazy(System.String, System.String, System.Func<System.Byte[]>)
+Mateu.Uidl.Document static method Mateu.Uidl.Document Pdf(System.String, System.Byte[])
+Mateu.Uidl.DocumentDisposition enum Attachment
+Mateu.Uidl.DocumentDisposition enum Inline
+Mateu.Uidl.DragRowsAttribute ctor(System.String)
+Mateu.Uidl.DragRowsAttribute property System.String Type { get; }
+Mateu.Uidl.Drawer ctor()
+Mateu.Uidl.Drawer property Mateu.Uidl.DrawerPosition Position { get;init; }
+Mateu.Uidl.Drawer property Mateu.Uidl.DrawerSize? Size { get;init; }
+Mateu.Uidl.Drawer property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.Drawer property Mateu.Uidl.IComponent Footer { get;init; }
+Mateu.Uidl.Drawer property Mateu.Uidl.IComponent Header { get;init; }
+Mateu.Uidl.Drawer property Mateu.Uidl.PeerNav PeerNav { get;init; }
+Mateu.Uidl.Drawer property System.Boolean Collapsible { get;init; }
+Mateu.Uidl.Drawer property System.Boolean Layout { get;init; }
+Mateu.Uidl.Drawer property System.Boolean Maximizable { get;init; }
+Mateu.Uidl.Drawer property System.Boolean Modeless { get;init; }
+Mateu.Uidl.Drawer property System.Boolean NoPadding { get;init; }
+Mateu.Uidl.Drawer property System.String HeaderTitle { get;init; }
+Mateu.Uidl.Drawer property System.String Subtitle { get;init; }
+Mateu.Uidl.Drawer property System.String Width { get;init; }
+Mateu.Uidl.DrawerPosition enum Bottom
+Mateu.Uidl.DrawerPosition enum End
+Mateu.Uidl.DrawerPosition enum Start
+Mateu.Uidl.DrawerSize enum L
+Mateu.Uidl.DrawerSize enum M
+Mateu.Uidl.DrawerSize enum S
+Mateu.Uidl.DrawerSize enum Xl
+Mateu.Uidl.DropZone ctor()
+Mateu.Uidl.DropZone property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.DropZone property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.DropZone property System.String Accept { get;init; }
+Mateu.Uidl.DropZone property System.String ActionId { get;init; }
+Mateu.Uidl.DropZone property System.String Subtitle { get;init; }
+Mateu.Uidl.DropZone property System.String Title { get;init; }
+Mateu.Uidl.Element ctor(System.String)
+Mateu.Uidl.Element property System.Boolean Html { get;init; }
+Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Attributes { get;init; }
+Mateu.Uidl.Element property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> On { get;init; }
+Mateu.Uidl.Element property System.String Content { get;init; }
+Mateu.Uidl.Element property System.String Name { get;init; }
+Mateu.Uidl.EmbeddedView ctor(System.Object)
+Mateu.Uidl.EmbeddedView property System.Object View { get;init; }
+Mateu.Uidl.Emit ctor(System.String, System.Object = null)
+Mateu.Uidl.Emit property System.Object Payload { get;init; }
+Mateu.Uidl.Emit property System.String Event { get;init; }
+Mateu.Uidl.EmitsAttribute ctor(System.String)
+Mateu.Uidl.EmitsAttribute property System.String Name { get; }
+Mateu.Uidl.EmptyState ctor()
+Mateu.Uidl.EmptyState property System.String ActionId { get;init; }
+Mateu.Uidl.EmptyState property System.String ActionLabel { get;init; }
+Mateu.Uidl.EmptyState property System.String Description { get;init; }
+Mateu.Uidl.EmptyState property System.String Icon { get;init; }
+Mateu.Uidl.EmptyState property System.String Title { get;init; }
+Mateu.Uidl.EntityHeader ctor()
+Mateu.Uidl.EntityHeader property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> Badges { get;init; }
+Mateu.Uidl.EntityHeader property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Fact> Facts { get;init; }
+Mateu.Uidl.EntityHeader property System.String MetricCaption { get;init; }
+Mateu.Uidl.EntityHeader property System.String MetricLabel { get;init; }
+Mateu.Uidl.EntityHeader property System.String MetricValue { get;init; }
+Mateu.Uidl.EntityHeader property System.String Subtitle { get;init; }
+Mateu.Uidl.EntityHeader property System.String Title { get;init; }
+Mateu.Uidl.EntityIds static method System.Reflection.PropertyInfo PropertyOf(System.Type)
+Mateu.Uidl.EntityIds static method System.Reflection.PropertyInfo Require(System.Type)
+Mateu.Uidl.EntityIds static method System.String FieldName(System.Type)
+Mateu.Uidl.EntityIds static method System.String Of(System.Object)
+Mateu.Uidl.EntityIds static method System.Void SetId(System.Object, System.String)
+Mateu.Uidl.ExportColumn ctor(System.String, System.String)
+Mateu.Uidl.ExportColumn method System.Object ValueOf(System.Object)
+Mateu.Uidl.ExportColumn method System.String TextOf(System.Object)
+Mateu.Uidl.ExportColumn property System.String Field { get;init; }
+Mateu.Uidl.ExportColumn property System.String Label { get;init; }
+Mateu.Uidl.ExportFormat enum Csv
+Mateu.Uidl.ExportFormat enum Excel
+Mateu.Uidl.ExportFormat enum Pdf
+Mateu.Uidl.ExportFormats static method System.String ActionId(Mateu.Uidl.ExportFormat)
+Mateu.Uidl.ExportFormats static method System.String ButtonLabel(Mateu.Uidl.ExportFormat)
+Mateu.Uidl.ExportFormats static method System.String DefaultFilename(Mateu.Uidl.ExportFormat)
+Mateu.Uidl.ExportFormats static method System.String DefaultMediaType(Mateu.Uidl.ExportFormat)
+Mateu.Uidl.ExportedFile ctor(System.Byte[], System.String = null, System.String = null)
+Mateu.Uidl.ExportedFile property System.Byte[] Content { get;init; }
+Mateu.Uidl.ExportedFile property System.String Filename { get;init; }
+Mateu.Uidl.ExportedFile property System.String MediaType { get;init; }
+Mateu.Uidl.EyesOnlyAttribute ctor()
+Mateu.Uidl.FabAttribute ctor(System.String, System.String = null, System.Int32 = 0)
+Mateu.Uidl.FabAttribute property System.Int32 Order { get; }
+Mateu.Uidl.FabAttribute property System.String Icon { get; }
+Mateu.Uidl.FabAttribute property System.String Label { get; }
+Mateu.Uidl.Fact ctor()
+Mateu.Uidl.Fact property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.Fact property System.String ActionId { get;init; }
+Mateu.Uidl.Fact property System.String ActionLabel { get;init; }
+Mateu.Uidl.Fact property System.String Icon { get;init; }
+Mateu.Uidl.Fact property System.String Label { get;init; }
+Mateu.Uidl.Fact property System.String Value { get;init; }
+Mateu.Uidl.Faq ctor()
+Mateu.Uidl.Faq property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FaqItem> Items { get;init; }
+Mateu.Uidl.FaqItem ctor()
+Mateu.Uidl.FaqItem property System.Boolean Open { get;init; }
+Mateu.Uidl.FaqItem property System.String Answer { get;init; }
+Mateu.Uidl.FaqItem property System.String Question { get;init; }
+Mateu.Uidl.Feature ctor()
+Mateu.Uidl.Feature property System.String ActionId { get;init; }
+Mateu.Uidl.Feature property System.String Description { get;init; }
+Mateu.Uidl.Feature property System.String Icon { get;init; }
+Mateu.Uidl.Feature property System.String Title { get;init; }
+Mateu.Uidl.FeatureGrid ctor()
+Mateu.Uidl.FeatureGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Feature> Features { get;init; }
+Mateu.Uidl.FeatureGrid property System.Int32 Columns { get;init; }
+Mateu.Uidl.FieldTypeAttribute ctor(System.String)
+Mateu.Uidl.FieldTypeAttribute property System.String Id { get; }
+Mateu.Uidl.FieldTypeCatalog ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry>)
+Mateu.Uidl.FieldTypeCatalog method Mateu.Uidl.FieldTypeCatalog MergedOver(Mateu.Uidl.FieldTypeCatalog)
+Mateu.Uidl.FieldTypeCatalog method Mateu.Uidl.FieldTypeEntry Get(System.String)
+Mateu.Uidl.FieldTypeCatalog method System.Boolean HasNoTypes()
+Mateu.Uidl.FieldTypeCatalog property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> Types { get;init; }
+Mateu.Uidl.FieldTypeCatalog static readonly field Mateu.Uidl.FieldTypeCatalog Empty
+Mateu.Uidl.FieldTypeEntry ctor(System.String)
+Mateu.Uidl.FieldTypeEntry property Mateu.Uidl.RestDataSource OptionsSource { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Boolean? AutoWidth { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Boolean? ReadOnly { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Boolean? Required { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Tones { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Double? Max { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Double? Min { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Double? Step { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.Int32? Colspan { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Align { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String CssClasses { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String DataType { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Description { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Id { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Label { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Placeholder { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Stereotype { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Style { get;init; }
+Mateu.Uidl.FieldTypeEntry property System.String Width { get;init; }
+Mateu.Uidl.FieldTypeEntry static method Mateu.Uidl.FieldTypeEntry Of(System.String, System.String, System.String = null)
+Mateu.Uidl.FileItem ctor()
+Mateu.Uidl.FileItem property System.String ActionId { get;init; }
+Mateu.Uidl.FileItem property System.String Name { get;init; }
+Mateu.Uidl.FileItem property System.String Size { get;init; }
+Mateu.Uidl.FileItem property System.String Type { get;init; }
+Mateu.Uidl.FileItem property System.String Url { get;init; }
+Mateu.Uidl.FileList ctor()
+Mateu.Uidl.FileList property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FileItem> Files { get;init; }
+Mateu.Uidl.FileUploadAttribute ctor(System.String = "")
+Mateu.Uidl.FileUploadAttribute property System.String Accept { get; }
+Mateu.Uidl.FilterCriterion ctor(System.String, Mateu.Uidl.FilterOperator, System.Collections.Generic.IReadOnlyList<System.Object>)
+Mateu.Uidl.FilterCriterion property Mateu.Uidl.FilterOperator Operator { get;init; }
+Mateu.Uidl.FilterCriterion property System.Collections.Generic.IReadOnlyList<System.Object> Values { get;init; }
+Mateu.Uidl.FilterCriterion property System.String Field { get;init; }
+Mateu.Uidl.FilterOperator enum Between
+Mateu.Uidl.FilterOperator enum Gte
+Mateu.Uidl.FilterOperator enum In
+Mateu.Uidl.FilterOperator enum Lte
+Mateu.Uidl.FlowStep ctor()
+Mateu.Uidl.FlowStep ctor(Mateu.Uidl.FlowStep)
+Mateu.Uidl.FoldedLayoutAttribute ctor()
+Mateu.Uidl.Foldout ctor()
+Mateu.Uidl.Foldout method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.Foldout property Mateu.Uidl.FoldoutNavigation NavigationHeader { get; }
+Mateu.Uidl.Foldout property System.Collections.Generic.IReadOnlyList<System.String> HeaderBadges { get; }
+Mateu.Uidl.Foldout property System.String HeaderTitle { get; }
+Mateu.Uidl.Foldout property System.String Orientation { get; }
+Mateu.Uidl.Foldout property System.String OverviewEditActionId { get; }
+Mateu.Uidl.Foldout virtual method Mateu.Uidl.IComponent PanelSummary(System.String)
+Mateu.Uidl.Foldout virtual method Mateu.Uidl.PageWidthStyle? PageWidth()
+Mateu.Uidl.FoldoutLayout ctor()
+Mateu.Uidl.FoldoutLayout property Mateu.Uidl.FoldoutNavigation Navigation { get;init; }
+Mateu.Uidl.FoldoutLayout property Mateu.Uidl.IComponent Overview { get;init; }
+Mateu.Uidl.FoldoutLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FoldoutPanel> Panels { get;init; }
+Mateu.Uidl.FoldoutLayout property System.Collections.Generic.IReadOnlyList<System.String> Badges { get;init; }
+Mateu.Uidl.FoldoutLayout property System.String HeaderTitle { get;init; }
+Mateu.Uidl.FoldoutLayout property System.String Orientation { get;init; }
+Mateu.Uidl.FoldoutLayout property System.String OverviewEditActionId { get;init; }
+Mateu.Uidl.FoldoutNavigation ctor()
+Mateu.Uidl.FoldoutNavigation property System.String NextActionId { get;init; }
+Mateu.Uidl.FoldoutNavigation property System.String ParentActionId { get;init; }
+Mateu.Uidl.FoldoutNavigation property System.String ParentLabel { get;init; }
+Mateu.Uidl.FoldoutNavigation property System.String PreviousActionId { get;init; }
+Mateu.Uidl.FoldoutNavigation property System.String Title { get;init; }
+Mateu.Uidl.FoldoutPanel ctor()
+Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.FoldoutPanel property Mateu.Uidl.IComponent Summary { get;init; }
+Mateu.Uidl.FoldoutPanel property System.Boolean Open { get;init; }
+Mateu.Uidl.FoldoutPanel property System.String Icon { get;init; }
+Mateu.Uidl.FoldoutPanel property System.String Subtitle { get;init; }
+Mateu.Uidl.FoldoutPanel property System.String Title { get;init; }
+Mateu.Uidl.FoldoutPanel property System.String Width { get;init; }
+Mateu.Uidl.Form ctor()
+Mateu.Uidl.Form property Mateu.Uidl.PeerNav PeerNav { get;init; }
+Mateu.Uidl.Form property Mateu.Uidl.RecordSwitcher RecordSwitcher { get;init; }
+Mateu.Uidl.Form property System.Boolean NoHeader { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> Buttons { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> Toolbar { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> Badges { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Fact> Kpis { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PageBanner> Banners { get;init; }
+Mateu.Uidl.Form property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PageFab> Fabs { get;init; }
+Mateu.Uidl.Form property System.String Overline { get;init; }
+Mateu.Uidl.Form property System.String Subtitle { get;init; }
+Mateu.Uidl.Form property System.String Timestamp { get;init; }
+Mateu.Uidl.Form property System.String Title { get;init; }
+Mateu.Uidl.Form property System.String TitlePlaceholder { get;init; }
+Mateu.Uidl.FormField ctor()
+Mateu.Uidl.FormField property System.Boolean Autofocus { get;init; }
+Mateu.Uidl.FormField property System.Boolean ReadOnly { get;init; }
+Mateu.Uidl.FormField property System.Boolean Required { get;init; }
+Mateu.Uidl.FormField property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options { get;init; }
+Mateu.Uidl.FormField property System.Double Step { get;init; }
+Mateu.Uidl.FormField property System.Int32 SliderMax { get;init; }
+Mateu.Uidl.FormField property System.Int32 SliderMin { get;init; }
+Mateu.Uidl.FormField property System.Object InitialValue { get;init; }
+Mateu.Uidl.FormField property System.String DataType { get;init; }
+Mateu.Uidl.FormField property System.String Description { get;init; }
+Mateu.Uidl.FormField property System.String FieldId { get;init; }
+Mateu.Uidl.FormField property System.String Label { get;init; }
+Mateu.Uidl.FormField property System.String Placeholder { get;init; }
+Mateu.Uidl.FormField property System.String Stereotype { get;init; }
+Mateu.Uidl.FormLayoutAttribute ctor()
+Mateu.Uidl.FormLayoutAttribute property Mateu.Uidl.LabelsAsideMode LabelsAside { get;set; }
+Mateu.Uidl.FormLayoutAttribute property System.Int32 Columns { get;set; }
+Mateu.Uidl.Funnel ctor()
+Mateu.Uidl.Funnel property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FunnelStage> Stages { get;init; }
+Mateu.Uidl.FunnelStage ctor()
+Mateu.Uidl.FunnelStage property System.Double Value { get;init; }
+Mateu.Uidl.FunnelStage property System.String Color { get;init; }
+Mateu.Uidl.FunnelStage property System.String Label { get;init; }
+Mateu.Uidl.Gantt ctor()
+Mateu.Uidl.Gantt property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GanttTask> Tasks { get;init; }
+Mateu.Uidl.Gantt property System.String OnTaskSelectionActionId { get;init; }
+Mateu.Uidl.GanttPage abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GanttTask> Tasks()
+Mateu.Uidl.GanttPage ctor()
+Mateu.Uidl.GanttPage method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.GanttPage method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GanttTask> GanttTasks()
+Mateu.Uidl.GanttPage method System.Object SelectGanttTask(System.String)
+Mateu.Uidl.GanttPage property System.String Heading { get; }
+Mateu.Uidl.GanttPage virtual method Mateu.Uidl.Drawer TaskDrawer(Mateu.Uidl.GanttTask)
+Mateu.Uidl.GanttPage virtual method Mateu.Uidl.IComponent BottomPanel()
+Mateu.Uidl.GanttPage virtual method Mateu.Uidl.IComponent Detail()
+Mateu.Uidl.GanttPage virtual method Mateu.Uidl.IComponent TaskDetail(Mateu.Uidl.GanttTask)
+Mateu.Uidl.GanttPage virtual method Mateu.Uidl.PageWidthStyle? PageWidth()
+Mateu.Uidl.GanttPage virtual method System.String BottomPanelTitle()
+Mateu.Uidl.GanttTask ctor()
+Mateu.Uidl.GanttTask property System.DateOnly? End { get;init; }
+Mateu.Uidl.GanttTask property System.DateOnly? Start { get;init; }
+Mateu.Uidl.GanttTask property System.Double Progress { get;init; }
+Mateu.Uidl.GanttTask property System.String Color { get;init; }
+Mateu.Uidl.GanttTask property System.String Id { get;init; }
+Mateu.Uidl.GanttTask property System.String Title { get;init; }
+Mateu.Uidl.GeneralOverview<TRow> abstract method Mateu.Uidl.IComponent Overview(TRow)
+Mateu.Uidl.GeneralOverview<TRow> abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> SwitcherOptions()
+Mateu.Uidl.GeneralOverview<TRow> abstract method TRow Load(System.String)
+Mateu.Uidl.GeneralOverview<TRow> ctor()
+Mateu.Uidl.GeneralOverview<TRow> method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.GeneralOverview<TRow> property Mateu.Uidl.GeneralOverviewDisplay Display { get; }
+Mateu.Uidl.GeneralOverview<TRow> property System.Int32 RefreshDebounceMillis { get; }
+Mateu.Uidl.GeneralOverview<TRow> property System.String InfoWidth { get; }
+Mateu.Uidl.GeneralOverview<TRow> property System.String Record { get;set; }
+Mateu.Uidl.GeneralOverview<TRow> property System.String RefreshActionId { get; }
+Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent EmptyOverview()
+Mateu.Uidl.GeneralOverview<TRow> virtual method Mateu.Uidl.IComponent Info(TRow)
+Mateu.Uidl.GeneralOverviewDisplay ctor(Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle = Off)
+Mateu.Uidl.GeneralOverviewDisplay property Mateu.Uidl.Toggle Info { get;init; }
+Mateu.Uidl.GeneralOverviewDisplay property Mateu.Uidl.Toggle PromoteInfoSlot { get;init; }
+Mateu.Uidl.GeneralOverviewDisplay static property Mateu.Uidl.GeneralOverviewDisplay Defaults { get; }
+Mateu.Uidl.GlobalSearchResult ctor(System.String, System.String)
+Mateu.Uidl.GlobalSearchResult ctor(System.String, System.String, System.String, System.String)
+Mateu.Uidl.GlobalSearchResult property System.String Category { get;init; }
+Mateu.Uidl.GlobalSearchResult property System.String Description { get;init; }
+Mateu.Uidl.GlobalSearchResult property System.String Label { get;init; }
+Mateu.Uidl.GlobalSearchResult property System.String Route { get;init; }
+Mateu.Uidl.GridTrack ctor(Mateu.Uidl.SizeMode, System.String = null)
+Mateu.Uidl.GridTrack method System.String ToCss()
+Mateu.Uidl.GridTrack property Mateu.Uidl.SizeMode Size { get;init; }
+Mateu.Uidl.GridTrack property System.String Length { get;init; }
+Mateu.Uidl.GridTrack static method Mateu.Uidl.GridTrack Fill()
+Mateu.Uidl.GridTrack static method Mateu.Uidl.GridTrack Fixed(System.String)
+Mateu.Uidl.GridTrack static method Mateu.Uidl.GridTrack Hug()
+Mateu.Uidl.GroupActionAttribute ctor(System.String)
+Mateu.Uidl.GroupActionAttribute property System.String Label { get; }
+Mateu.Uidl.GroupByAttribute ctor()
+Mateu.Uidl.GroupRelationship enum Alternative
+Mateu.Uidl.GroupRelationship enum Sequential
+Mateu.Uidl.GroupRelationship enum Simultaneous
+Mateu.Uidl.GroupSummaries static method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GroupSummary> ApplyVisibility(System.Object, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GroupSummary>)
+Mateu.Uidl.GroupSummaries static method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GroupSummary> Synthesize(System.Collections.Generic.IEnumerable<System.Object>, System.Type)
+Mateu.Uidl.GroupSummaries static method System.Collections.Generic.IReadOnlyList<System.String> GroupActionIds(System.Type)
+Mateu.Uidl.GroupSummaries static method System.Reflection.PropertyInfo GroupByProperty(System.Type)
+Mateu.Uidl.GroupSummary ctor(System.String, System.Int64, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
+Mateu.Uidl.GroupSummary property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Aggregates { get;init; }
+Mateu.Uidl.GroupSummary property System.Collections.Generic.IReadOnlyList<System.String> HiddenActions { get;init; }
+Mateu.Uidl.GroupSummary property System.Int64 Count { get;init; }
+Mateu.Uidl.GroupSummary property System.String Value { get;init; }
+Mateu.Uidl.HeaderBadgeAttribute ctor(System.String = "normal")
+Mateu.Uidl.HeaderBadgeAttribute property System.String Color { get; }
+Mateu.Uidl.HeaderBadgeAttribute property System.String Label { get;init; }
+Mateu.Uidl.HeaderValue ctor(System.String, System.String, System.String)
+Mateu.Uidl.HeaderValue property System.String Id { get;init; }
+Mateu.Uidl.HeaderValue property System.String Label { get;init; }
+Mateu.Uidl.HeaderValue property System.String Value { get;init; }
+Mateu.Uidl.HeatCell ctor()
+Mateu.Uidl.HeatCell property System.DateOnly? Date { get;init; }
+Mateu.Uidl.HeatCell property System.Double Value { get;init; }
+Mateu.Uidl.HeatCell property System.String Label { get;init; }
+Mateu.Uidl.Heatmap ctor()
+Mateu.Uidl.Heatmap property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.HeatCell> Cells { get;init; }
+Mateu.Uidl.HelpAttribute ctor(System.String)
+Mateu.Uidl.HelpAttribute property System.String Value { get; }
+Mateu.Uidl.HeroSearch<T> ctor()
+Mateu.Uidl.HeroSearch<T> virtual method System.String HeroImage()
+Mateu.Uidl.HeroSearch<T> virtual method System.String HeroSubtitle()
+Mateu.Uidl.HeroSearch<T> virtual method System.String HeroTitle()
+Mateu.Uidl.HeroSection ctor()
+Mateu.Uidl.HeroSection property Mateu.Uidl.HeroTone Tone { get;init; }
+Mateu.Uidl.HeroSection property System.Boolean Centered { get;init; }
+Mateu.Uidl.HeroSection property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.HeroSection property System.String Height { get;init; }
+Mateu.Uidl.HeroSection property System.String Image { get;init; }
+Mateu.Uidl.HeroSection property System.String Subtitle { get;init; }
+Mateu.Uidl.HeroSection property System.String Title { get;init; }
+Mateu.Uidl.HeroTone enum Auto
+Mateu.Uidl.HeroTone enum Lilac
+Mateu.Uidl.HeroTone enum Ocean
+Mateu.Uidl.HeroTone enum Pebble
+Mateu.Uidl.HeroTone enum Pine
+Mateu.Uidl.HeroTone enum Plum
+Mateu.Uidl.HeroTone enum Rose
+Mateu.Uidl.HeroTone enum Sienna
+Mateu.Uidl.HeroTone enum Slate
+Mateu.Uidl.HeroTone enum Teal
+Mateu.Uidl.HiddenAttribute ctor(System.String = "")
+Mateu.Uidl.HiddenAttribute property System.String Value { get; }
+Mateu.Uidl.HorizontalLayout ctor()
+Mateu.Uidl.HorizontalLayout property System.Boolean Spacing { get;init; }
+Mateu.Uidl.HorizontalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.IActionCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction> ActionCatalog()
+Mateu.Uidl.IAppActionsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction> AppActions()
+Mateu.Uidl.ICalendarPage abstract method System.Object CreateCalendarEvent()
+Mateu.Uidl.ICalendarPage abstract method System.Object OpenCalendarDay(System.String)
+Mateu.Uidl.ICalendarPage abstract method System.Object OpenCalendarEvent(System.String)
+Mateu.Uidl.ICalendarPage abstract method System.Void GoToday()
+Mateu.Uidl.ICalendarPage abstract method System.Void NextMonth()
+Mateu.Uidl.ICalendarPage abstract method System.Void PreviousMonth()
+Mateu.Uidl.ICalendarPage abstract method System.Void SwitchView(System.String)
+Mateu.Uidl.IComponent property System.String CssClasses { get; }
+Mateu.Uidl.IComponent property System.String Id { get; }
+Mateu.Uidl.IComponent property System.String Style { get; }
+Mateu.Uidl.IComponentAdapter abstract method Mateu.Uidl.AdaptedView Adapt(System.Object)
+Mateu.Uidl.IComponentAdapter abstract method System.Object Deserialize(System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>)
+Mateu.Uidl.IComponentAdapter property System.Type Type { get; }
+Mateu.Uidl.IComponentCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ComponentEntry> BusinessComponents()
+Mateu.Uidl.IComponentTreeSupplier abstract method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.IComponentTreeSupplier property System.String Style { get; }
+Mateu.Uidl.ICreatable<TForm,TId> abstract method TForm CreationForm()
+Mateu.Uidl.ICreatable<TForm,TId> abstract method TId Create(TForm)
+Mateu.Uidl.ICrudAffordances abstract method System.String NextIdAfter(System.String)
+Mateu.Uidl.ICrudAffordances property Mateu.Uidl.CrudDisplay Display { get; }
+Mateu.Uidl.ICrudAffordances property System.String SaveAndNextLabel { get; }
+Mateu.Uidl.ICrudExports property System.Boolean CsvExportable { get; }
+Mateu.Uidl.ICrudExports property System.Boolean ExcelExportable { get; }
+Mateu.Uidl.ICrudExports property System.Boolean PdfExportable { get; }
+Mateu.Uidl.IDataManagement property System.String View { get;set; }
+Mateu.Uidl.IDeletable<TId> abstract method System.Void DeleteAllById(System.Collections.Generic.IReadOnlyList<TId>)
+Mateu.Uidl.IDraftable abstract method System.Object SaveDraft()
+Mateu.Uidl.IDraftable virtual method System.Int32? ResumeStep()
+Mateu.Uidl.IDraftable virtual method System.Object CloseDraft()
+Mateu.Uidl.IEditable<TEditor,TId> abstract method TEditor Edit(TId)
+Mateu.Uidl.IEditable<TEditor,TId> abstract method TId Save(TEditor)
+Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
+Mateu.Uidl.IGanttPage abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GanttTask> GanttTasks()
+Mateu.Uidl.IGanttPage abstract method System.Object SelectGanttTask(System.String)
+Mateu.Uidl.IGlobalSearchSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GlobalSearchResult> GlobalSearch(System.String)
+Mateu.Uidl.IGroupActionVisibility abstract method System.Boolean GroupActionVisible(System.String, System.String)
+Mateu.Uidl.IHeaderValuesSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.HeaderValue> HeaderValues()
+Mateu.Uidl.IHeroSearch abstract method System.String HeroImage()
+Mateu.Uidl.IHeroSearch abstract method System.String HeroSubtitle()
+Mateu.Uidl.IHeroSearch abstract method System.String HeroTitle()
+Mateu.Uidl.IHomeRouteSupplier abstract method System.String HomeRoute()
+Mateu.Uidl.IKeepAliveHandler abstract method System.Void KeepAlive()
+Mateu.Uidl.ILinkSupplier abstract method Mateu.Uidl.NavLink Link(System.String)
+Mateu.Uidl.IListing<TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Mateu.Uidl.SearchRequest)
+Mateu.Uidl.IListingExporter abstract method Mateu.Uidl.ExportedFile Export(Mateu.Uidl.ListingExport)
+Mateu.Uidl.IListingExporter property Mateu.Uidl.ExportFormat Format { get; }
+Mateu.Uidl.ILookupLabelSupplier abstract method System.String Label(System.String, System.Object)
+Mateu.Uidl.INavigable<TDetail,TId> abstract method TDetail View(TId)
+Mateu.Uidl.INotificationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppNotification> Notifications()
+Mateu.Uidl.INotificationsSupplier abstract method System.Void MarkNotificationsRead(System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options(System.String)
+Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
+Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
+Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
+Mateu.Uidl.IRecordSwitcherSupplier abstract method System.Object SwitchTo(System.String)
+Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
+Mateu.Uidl.IRecordSwitcherSupplier const field System.String ValueParameter
+Mateu.Uidl.IRefreshOnChange property System.Int32 RefreshDebounceMillis { get; }
+Mateu.Uidl.IRefreshOnChange property System.String RefreshActionId { get; }
+Mateu.Uidl.IRestSourceCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> RestSources()
+Mateu.Uidl.IRestSourceSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.DeclaredRestSource> DeclaredRestSources()
+Mateu.Uidl.IRuleSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Rule> Rules()
+Mateu.Uidl.ISecretsProvider abstract method System.String Secret(System.String)
+Mateu.Uidl.ISelector<TRow> abstract method Mateu.Uidl.SelectedItem Selected(TRow)
+Mateu.Uidl.ISmartSearchPage abstract method System.String PageSubtitle()
+Mateu.Uidl.ISmartSearchPage virtual method Mateu.Uidl.IComponent PreSearchContent()
+Mateu.Uidl.ITodoList abstract method System.Object OpenTodoItem(System.String)
+Mateu.Uidl.ITranslationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Translations> Translations()
+Mateu.Uidl.ITranslator abstract method System.String Translate(System.String)
+Mateu.Uidl.ITranslator property System.String Locale { get; }
+Mateu.Uidl.Icon ctor(System.String)
+Mateu.Uidl.Icon property System.String Name { get;init; }
+Mateu.Uidl.IdAttribute ctor()
+Mateu.Uidl.Identity ctor(System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
+Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Groups { get;init; }
+Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Permissions { get;init; }
+Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Roles { get;init; }
+Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
+Mateu.Uidl.IdentityGatedAttribute ctor()
+Mateu.Uidl.IdentityGatedAttribute property System.String[] Groups { get;set; }
+Mateu.Uidl.IdentityGatedAttribute property System.String[] Permissions { get;set; }
+Mateu.Uidl.IdentityGatedAttribute property System.String[] Roles { get;set; }
+Mateu.Uidl.IdentityGatedAttribute property System.String[] Scopes { get;set; }
+Mateu.Uidl.Image ctor()
+Mateu.Uidl.Image property System.String Alt { get;init; }
+Mateu.Uidl.Image property System.String Src { get;init; }
+Mateu.Uidl.ImportWizard<Row> abstract method System.Void ImportRows(System.Collections.Generic.List<Row>)
+Mateu.Uidl.ImportWizard<Row> ctor()
+Mateu.Uidl.ImportWizard<Row> method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options(System.String)
+Mateu.Uidl.ImportWizard<Row> property System.Collections.Generic.List<Mateu.Uidl.ColumnMapping> Mappings { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.Collections.Generic.List<Mateu.Uidl.RowIssue> Issues { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.Int32 Imported { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.Int32 InvalidRows { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.Int32 Skipped { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.Int32 ValidRows { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.String CompletionActionLabel { get; }
+Mateu.Uidl.ImportWizard<Row> property System.String File { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.String Pasted { get;set; }
+Mateu.Uidl.ImportWizard<Row> property System.String WizardTitle { get; }
+Mateu.Uidl.ImportWizard<Row> virtual method Mateu.Uidl.Message Complete()
+Mateu.Uidl.ImportWizard<Row> virtual method System.String StepTitle(System.Int32)
+Mateu.Uidl.ImportWizard<Row> virtual method System.Void OnNext(System.Int32, System.Int32)
+Mateu.Uidl.InlineAttribute ctor()
+Mateu.Uidl.InlineEditingAttribute ctor()
+Mateu.Uidl.ItemOverview ctor()
+Mateu.Uidl.ItemOverview method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.ItemOverview property System.String PanelWidth { get; }
+Mateu.Uidl.Kanban ctor()
+Mateu.Uidl.Kanban property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.KanbanColumn> Columns { get;init; }
+Mateu.Uidl.KanbanCard ctor()
+Mateu.Uidl.KanbanCard property System.String ActionId { get;init; }
+Mateu.Uidl.KanbanCard property System.String Badge { get;init; }
+Mateu.Uidl.KanbanCard property System.String Color { get;init; }
+Mateu.Uidl.KanbanCard property System.String Description { get;init; }
+Mateu.Uidl.KanbanCard property System.String Id { get;init; }
+Mateu.Uidl.KanbanCard property System.String Title { get;init; }
+Mateu.Uidl.KanbanColumn ctor()
+Mateu.Uidl.KanbanColumn property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.KanbanCard> Cards { get;init; }
+Mateu.Uidl.KanbanColumn property System.String Color { get;init; }
+Mateu.Uidl.KanbanColumn property System.String Id { get;init; }
+Mateu.Uidl.KanbanColumn property System.String Title { get;init; }
+Mateu.Uidl.KpiAttribute ctor(System.String)
+Mateu.Uidl.KpiAttribute property System.String Title { get; }
+Mateu.Uidl.LabelAttribute ctor(System.String)
+Mateu.Uidl.LabelAttribute property System.String Value { get; }
+Mateu.Uidl.LabelsAsideMode enum Aside
+Mateu.Uidl.LabelsAsideMode enum Auto
+Mateu.Uidl.LabelsAsideMode enum Top
+Mateu.Uidl.LayoutDelta ctor(System.Collections.Generic.IEnumerable<System.String> = null, System.Collections.Generic.IEnumerable<System.String> = null, System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.LayoutDelta+FieldOverride> = null)
+Mateu.Uidl.LayoutDelta method Mateu.Uidl.LayoutDelta+FieldOverride OverrideFor(System.String)
+Mateu.Uidl.LayoutDelta method System.Collections.Generic.IReadOnlyList<System.String> ApplyTo(System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.LayoutDelta property System.Boolean IsEmpty { get; }
+Mateu.Uidl.LayoutDelta property System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.LayoutDelta+FieldOverride> Overrides { get; }
+Mateu.Uidl.LayoutDelta property System.Collections.Generic.IReadOnlyList<System.String> Hidden { get; }
+Mateu.Uidl.LayoutDelta property System.Collections.Generic.IReadOnlyList<System.String> Order { get; }
+Mateu.Uidl.LayoutDelta static method Mateu.Uidl.LayoutDelta Between(System.Collections.Generic.IReadOnlyList<System.String>, System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.LayoutDelta static property Mateu.Uidl.LayoutDelta Empty { get; }
+Mateu.Uidl.LayoutDelta+FieldOverride ctor(System.String = null, System.Int32? = null, System.String = null)
+Mateu.Uidl.LayoutDelta+FieldOverride property System.Int32? Colspan { get;init; }
+Mateu.Uidl.LayoutDelta+FieldOverride property System.String Label { get;init; }
+Mateu.Uidl.LayoutDelta+FieldOverride property System.String Section { get;init; }
+Mateu.Uidl.Ledger ctor()
+Mateu.Uidl.Ledger property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.LedgerLine> Lines { get;init; }
+Mateu.Uidl.Ledger property System.Double? Total { get;init; }
+Mateu.Uidl.Ledger property System.String Currency { get;init; }
+Mateu.Uidl.Ledger property System.String TotalLabel { get;init; }
+Mateu.Uidl.LedgerLine ctor()
+Mateu.Uidl.LedgerLine property System.Boolean Included { get;init; }
+Mateu.Uidl.LedgerLine property System.Double? Amount { get;init; }
+Mateu.Uidl.LedgerLine property System.String Concept { get;init; }
+Mateu.Uidl.LedgerLine property System.String IncludedLabel { get;init; }
+Mateu.Uidl.LinkToAttribute ctor(System.String)
+Mateu.Uidl.LinkToAttribute property System.String Href { get; }
+Mateu.Uidl.LinkToAttribute property System.String Icon { get;set; }
+Mateu.Uidl.LinkToAttribute property System.String Target { get;set; }
+Mateu.Uidl.LinkToAttribute property System.String Title { get;set; }
+Mateu.Uidl.ListToolbarButtonAttribute ctor(System.Boolean = False, System.Boolean = True)
+Mateu.Uidl.ListToolbarButtonAttribute property System.Boolean ConfirmationRequired { get; }
+Mateu.Uidl.ListToolbarButtonAttribute property System.Boolean RowsSelectedRequired { get; }
+Mateu.Uidl.Listing<TFilters,TRow> abstract method Mateu.Uidl.ListingData<TRow> Search(Mateu.Uidl.SearchRequest)
+Mateu.Uidl.Listing<TFilters,TRow> ctor()
+Mateu.Uidl.Listing<TFilters,TRow> property System.Boolean CsvExportable { get; }
+Mateu.Uidl.Listing<TFilters,TRow> property System.Boolean ExcelExportable { get; }
+Mateu.Uidl.Listing<TFilters,TRow> property System.Boolean PdfExportable { get; }
+Mateu.Uidl.Listing<TFilters,TRow> virtual method System.String GridLayout()
+Mateu.Uidl.ListingColumn ctor(System.String, System.String)
+Mateu.Uidl.ListingColumn property System.Boolean Identifier { get;init; }
+Mateu.Uidl.ListingColumn property System.Boolean Sortable { get;init; }
+Mateu.Uidl.ListingColumn property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Tones { get;init; }
+Mateu.Uidl.ListingColumn property System.String Align { get;init; }
+Mateu.Uidl.ListingColumn property System.String DataType { get;init; }
+Mateu.Uidl.ListingColumn property System.String Id { get;init; }
+Mateu.Uidl.ListingColumn property System.String Label { get;init; }
+Mateu.Uidl.ListingColumn property System.String Stereotype { get;init; }
+Mateu.Uidl.ListingColumn property System.String Width { get;init; }
+Mateu.Uidl.ListingComponent ctor()
+Mateu.Uidl.ListingComponent property Mateu.Uidl.RestDataSource RowsSource { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean Compact { get;init; }
+Mateu.Uidl.ListingComponent property System.Boolean Searchable { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FormField> Filters { get;init; }
+Mateu.Uidl.ListingComponent property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ListingColumn> Columns { get;init; }
+Mateu.Uidl.ListingComponent property System.Int32 PageSize { get;init; }
+Mateu.Uidl.ListingComponent property System.String EmptyStateMessage { get;init; }
+Mateu.Uidl.ListingComponent property System.String GridLayout { get;init; }
+Mateu.Uidl.ListingComponent property System.String Subtitle { get;init; }
+Mateu.Uidl.ListingComponent property System.String Title { get;init; }
+Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> From<TRow>(System.Collections.Generic.IEnumerable<TRow>)
+Mateu.Uidl.ListingData static method Mateu.Uidl.ListingData<TRow> Of<TRow>(TRow[])
+Mateu.Uidl.ListingData<TRow> ctor(System.Collections.Generic.IReadOnlyList<TRow>, System.Int64? = null)
+Mateu.Uidl.ListingData<TRow> method Mateu.Uidl.ListingData<TRow> WithGroups(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GroupSummary>)
+Mateu.Uidl.ListingData<TRow> method Mateu.Uidl.ListingData<TRow> WithSynthesizedGroups(System.Type)
+Mateu.Uidl.ListingData<TRow> property System.Boolean Paged { get; }
+Mateu.Uidl.ListingData<TRow> property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Aggregates { get;init; }
+Mateu.Uidl.ListingData<TRow> property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GroupSummary> Groups { get;init; }
+Mateu.Uidl.ListingData<TRow> property System.Collections.Generic.IReadOnlyList<TRow> Content { get;init; }
+Mateu.Uidl.ListingData<TRow> property System.Int64? TotalElements { get;init; }
+Mateu.Uidl.ListingData<TRow> static method Mateu.Uidl.ListingData<TRow> From(System.Collections.Generic.IEnumerable<TRow>)
+Mateu.Uidl.ListingExport ctor(Mateu.Uidl.ExportFormat, System.String, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ExportColumn>, System.Collections.Generic.IReadOnlyList<System.Object>, System.String)
+Mateu.Uidl.ListingExport property Mateu.Uidl.ExportFormat Format { get;init; }
+Mateu.Uidl.ListingExport property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ExportColumn> Columns { get;init; }
+Mateu.Uidl.ListingExport property System.Collections.Generic.IReadOnlyList<System.Object> Rows { get;init; }
+Mateu.Uidl.ListingExport property System.String SearchText { get;init; }
+Mateu.Uidl.ListingExport property System.String Title { get;init; }
+Mateu.Uidl.LiveHeaderValues static method System.IDisposable Subscribe(System.Action<Mateu.Uidl.HeaderValue>)
+Mateu.Uidl.LiveHeaderValues static method System.Void Publish(System.String, System.String)
+Mateu.Uidl.LiveHeaderValues static method System.Void Reset()
+Mateu.Uidl.LiveHeaderValues static property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Current { get; }
+Mateu.Uidl.LookupAttribute ctor()
+Mateu.Uidl.Map ctor()
+Mateu.Uidl.Map property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MapMarker> Markers { get;init; }
+Mateu.Uidl.Map property System.String Attribution { get;init; }
+Mateu.Uidl.Map property System.String MarkerActionId { get;init; }
+Mateu.Uidl.Map property System.String Position { get;init; }
+Mateu.Uidl.Map property System.String TileUrl { get;init; }
+Mateu.Uidl.Map property System.String Zoom { get;init; }
+Mateu.Uidl.MapMarker ctor()
+Mateu.Uidl.MapMarker property System.Double Latitude { get;init; }
+Mateu.Uidl.MapMarker property System.Double Longitude { get;init; }
+Mateu.Uidl.MapMarker property System.String Color { get;init; }
+Mateu.Uidl.MapMarker property System.String Description { get;init; }
+Mateu.Uidl.MapMarker property System.String Id { get;init; }
+Mateu.Uidl.MapMarker property System.String Label { get;init; }
+Mateu.Uidl.MarkClean ctor()
+Mateu.Uidl.MarkDirty ctor()
+Mateu.Uidl.Markdown ctor()
+Mateu.Uidl.Markdown property System.String MarkdownText { get;init; }
+Mateu.Uidl.MateuEnvironment ctor(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride>)
+Mateu.Uidl.MateuEnvironment property System.Collections.Generic.IReadOnlyDictionary<System.String,Mateu.Uidl.SourceOverride> Sources { get;init; }
+Mateu.Uidl.MateuEnvironment property System.String Name { get;init; }
+Mateu.Uidl.MatrixCell ctor(System.String)
+Mateu.Uidl.MatrixCell property System.Boolean Link { get;init; }
+Mateu.Uidl.MatrixCell property System.String Tone { get;init; }
+Mateu.Uidl.MatrixCell property System.String Value { get;init; }
+Mateu.Uidl.MatrixCell static method Mateu.Uidl.MatrixCell Of(System.Object)
+Mateu.Uidl.MatrixColumn ctor(System.String, System.String)
+Mateu.Uidl.MatrixColumn property System.String Group { get;init; }
+Mateu.Uidl.MatrixColumn property System.String Id { get;init; }
+Mateu.Uidl.MatrixColumn property System.String Label { get;init; }
+Mateu.Uidl.MatrixColumn property System.String Tone { get;init; }
+Mateu.Uidl.MatrixGrid ctor()
+Mateu.Uidl.MatrixGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MatrixColumn> Columns { get;init; }
+Mateu.Uidl.MatrixGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MatrixSection> Sections { get;init; }
+Mateu.Uidl.MatrixGrid property System.String CellActionId { get;init; }
+Mateu.Uidl.MatrixGrid property System.String EditActionId { get;init; }
+Mateu.Uidl.MatrixGrid property System.String RowHeaderLabel { get;init; }
+Mateu.Uidl.MatrixRow ctor(System.String, System.String)
+Mateu.Uidl.MatrixRow property System.Boolean Editable { get;init; }
+Mateu.Uidl.MatrixRow property System.Boolean Emphasis { get;init; }
+Mateu.Uidl.MatrixRow property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MatrixCell> Cells { get;init; }
+Mateu.Uidl.MatrixRow property System.String Id { get;init; }
+Mateu.Uidl.MatrixRow property System.String Label { get;init; }
+Mateu.Uidl.MatrixSection ctor()
+Mateu.Uidl.MatrixSection property System.Boolean Collapsed { get;init; }
+Mateu.Uidl.MatrixSection property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MatrixRow> Rows { get;init; }
+Mateu.Uidl.MatrixSection property System.String Id { get;init; }
+Mateu.Uidl.MatrixSection property System.String Title { get;init; }
+Mateu.Uidl.MenuDisplay const field System.String Cards
+Mateu.Uidl.MenuDisplay const field System.String List
+Mateu.Uidl.MenuGroupAttribute ctor(System.String)
+Mateu.Uidl.MenuGroupAttribute property System.String Description { get;set; }
+Mateu.Uidl.MenuGroupAttribute property System.String Display { get;set; }
+Mateu.Uidl.MenuGroupAttribute property System.String Group { get; }
+Mateu.Uidl.MenuGroupAttribute property System.String Icon { get;set; }
+Mateu.Uidl.MenuGroupAttribute property System.String Image { get;set; }
+Mateu.Uidl.MenuItemAttribute ctor(System.String = null)
+Mateu.Uidl.MenuItemAttribute property System.String Description { get;set; }
+Mateu.Uidl.MenuItemAttribute property System.String Group { get;set; }
+Mateu.Uidl.MenuItemAttribute property System.String Icon { get;set; }
+Mateu.Uidl.MenuItemAttribute property System.String Image { get;set; }
+Mateu.Uidl.MenuItemAttribute property System.String Label { get; }
+Mateu.Uidl.MergeField ctor(System.String, System.String, System.Collections.Generic.IReadOnlyList<System.Object>)
+Mateu.Uidl.MergeField property System.Boolean Editable { get;init; }
+Mateu.Uidl.MergeField property System.Collections.Generic.IReadOnlyList<System.Object> Values { get;init; }
+Mateu.Uidl.MergeField property System.String Chosen { get;init; }
+Mateu.Uidl.MergeField property System.String FieldId { get;init; }
+Mateu.Uidl.MergeField property System.String Label { get;init; }
+Mateu.Uidl.MergeField static method Mateu.Uidl.MergeField Of(System.String, System.String, System.Object[])
+Mateu.Uidl.MergeRecord ctor(System.String, System.String, System.String = null)
+Mateu.Uidl.MergeRecord property System.String Caption { get;init; }
+Mateu.Uidl.MergeRecord property System.String Id { get;init; }
+Mateu.Uidl.MergeRecord property System.String Label { get;init; }
+Mateu.Uidl.Message ctor(System.String, Mateu.Uidl.MessageVariant = Success, System.String = "")
+Mateu.Uidl.Message property Mateu.Uidl.MessageVariant Variant { get; }
+Mateu.Uidl.Message property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> UndoParameters { get;init; }
+Mateu.Uidl.Message property System.Int32 Duration { get;init; }
+Mateu.Uidl.Message property System.String Text { get; }
+Mateu.Uidl.Message property System.String Title { get; }
+Mateu.Uidl.Message property System.String UndoActionId { get;init; }
+Mateu.Uidl.Message property System.String UndoLabel { get;init; }
+Mateu.Uidl.Message static method Mateu.Uidl.Message Undoable(System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> = null)
+Mateu.Uidl.MessageVariant enum Contrast
+Mateu.Uidl.MessageVariant enum Error
+Mateu.Uidl.MessageVariant enum Info
+Mateu.Uidl.MessageVariant enum Success
+Mateu.Uidl.MessageVariant enum Warning
+Mateu.Uidl.Meter ctor()
+Mateu.Uidl.Meter property System.Double Max { get;init; }
+Mateu.Uidl.Meter property System.Double Value { get;init; }
+Mateu.Uidl.Meter property System.Double? DangerAt { get;init; }
+Mateu.Uidl.Meter property System.Double? WarnAt { get;init; }
+Mateu.Uidl.Meter property System.String Caption { get;init; }
+Mateu.Uidl.Meter property System.String Label { get;init; }
+Mateu.Uidl.Meter property System.String Unit { get;init; }
+Mateu.Uidl.MetricCard ctor()
+Mateu.Uidl.MetricCard property Mateu.Uidl.MetricTrend? Trend { get;init; }
+Mateu.Uidl.MetricCard property System.String ActionId { get;init; }
+Mateu.Uidl.MetricCard property System.String Description { get;init; }
+Mateu.Uidl.MetricCard property System.String Icon { get;init; }
+Mateu.Uidl.MetricCard property System.String Timeframe { get;init; }
+Mateu.Uidl.MetricCard property System.String Title { get;init; }
+Mateu.Uidl.MetricCard property System.String TrendLabel { get;init; }
+Mateu.Uidl.MetricCard property System.String Unit { get;init; }
+Mateu.Uidl.MetricCard property System.String Value { get;init; }
+Mateu.Uidl.MetricTrend enum Down
+Mateu.Uidl.MetricTrend enum Neutral
+Mateu.Uidl.MetricTrend enum Up
+Mateu.Uidl.MicroFrontend ctor(System.String, System.String = "")
+Mateu.Uidl.MicroFrontend property System.Object AppState { get;init; }
+Mateu.Uidl.MicroFrontend property System.String BaseUrl { get;init; }
+Mateu.Uidl.MicroFrontend property System.String Route { get;init; }
+Mateu.Uidl.MobileAppAttribute ctor()
+Mateu.Uidl.MobileAppAttribute property System.String Icon { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String MinAppVersion { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String Name { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String OidcClientId { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String OidcIssuer { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String ShortName { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String ThemeColor { get;set; }
+Mateu.Uidl.MobileAppAttribute property System.String[] Scopes { get;set; }
+Mateu.Uidl.MoneyAttribute ctor()
+Mateu.Uidl.MultilineAttribute ctor()
+Mateu.Uidl.NavLink ctor(System.String, System.String = null, System.String = null, System.String = null)
+Mateu.Uidl.NavLink property System.String Href { get;init; }
+Mateu.Uidl.NavLink property System.String Icon { get;init; }
+Mateu.Uidl.NavLink property System.String Target { get;init; }
+Mateu.Uidl.NavLink property System.String Title { get;init; }
+Mateu.Uidl.Navigate ctor(System.String)
+Mateu.Uidl.Navigate property System.String Route { get;init; }
+Mateu.Uidl.Notice ctor(System.String)
+Mateu.Uidl.Notice property System.Boolean FullWidth { get;init; }
+Mateu.Uidl.Notice property System.Boolean InlineContent { get;init; }
+Mateu.Uidl.Notice property System.Boolean NoIcon { get;init; }
+Mateu.Uidl.Notice property System.Boolean Slim { get;init; }
+Mateu.Uidl.Notice property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.Notice property System.String ActionId { get;init; }
+Mateu.Uidl.Notice property System.String ActionLabel { get;init; }
+Mateu.Uidl.Notice property System.String Icon { get;init; }
+Mateu.Uidl.Notice property System.String Status { get;init; }
+Mateu.Uidl.Notice property System.String Text { get;init; }
+Mateu.Uidl.Notice property System.String Theme { get;init; }
+Mateu.Uidl.Notification ctor(System.String)
+Mateu.Uidl.Notification property System.String Text { get;init; }
+Mateu.Uidl.Notification property System.String Title { get;init; }
+Mateu.Uidl.NumberRange ctor(System.Decimal? = null, System.Decimal? = null)
+Mateu.Uidl.NumberRange method System.Boolean Contains(System.Decimal)
+Mateu.Uidl.NumberRange property System.Boolean IsEmpty { get; }
+Mateu.Uidl.NumberRange property System.Decimal? From { get;init; }
+Mateu.Uidl.NumberRange property System.Decimal? To { get;init; }
+Mateu.Uidl.OfferCard ctor()
+Mateu.Uidl.OfferCard property System.Boolean Added { get;init; }
+Mateu.Uidl.OfferCard property System.Boolean Current { get;init; }
+Mateu.Uidl.OfferCard property System.Collections.Generic.IReadOnlyList<System.String> Features { get;init; }
+Mateu.Uidl.OfferCard property System.String ActionId { get;init; }
+Mateu.Uidl.OfferCard property System.String ActionLabel { get;init; }
+Mateu.Uidl.OfferCard property System.String AddedLabel { get;init; }
+Mateu.Uidl.OfferCard property System.String CurrentLabel { get;init; }
+Mateu.Uidl.OfferCard property System.String Image { get;init; }
+Mateu.Uidl.OfferCard property System.String PriceLabel { get;init; }
+Mateu.Uidl.OfferCard property System.String Subtitle { get;init; }
+Mateu.Uidl.OfferCard property System.String Tag { get;init; }
+Mateu.Uidl.OfferCard property System.String Title { get;init; }
+Mateu.Uidl.OnRowSelectedAttribute ctor(System.String)
+Mateu.Uidl.OnRowSelectedAttribute property System.String Shortcut { get;set; }
+Mateu.Uidl.OnRowSelectedAttribute property System.String Value { get; }
+Mateu.Uidl.Option ctor(System.String, System.String, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> = null)
+Mateu.Uidl.Option property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Children { get;init; }
+Mateu.Uidl.Option property System.String Label { get;init; }
+Mateu.Uidl.Option property System.String Value { get;init; }
+Mateu.Uidl.OrgChart ctor()
+Mateu.Uidl.OrgChart property Mateu.Uidl.OrgNode Root { get;init; }
+Mateu.Uidl.OrgNode ctor()
+Mateu.Uidl.OrgNode property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.OrgNode> Children { get;init; }
+Mateu.Uidl.OrgNode property System.String ActionId { get;init; }
+Mateu.Uidl.OrgNode property System.String Avatar { get;init; }
+Mateu.Uidl.OrgNode property System.String Color { get;init; }
+Mateu.Uidl.OrgNode property System.String Id { get;init; }
+Mateu.Uidl.OrgNode property System.String Subtitle { get;init; }
+Mateu.Uidl.OrgNode property System.String Title { get;init; }
+Mateu.Uidl.Orientation enum Horizontal
+Mateu.Uidl.Orientation enum Vertical
+Mateu.Uidl.OverlineAttribute ctor(System.String)
+Mateu.Uidl.OverlineAttribute property System.String Value { get; }
+Mateu.Uidl.PageBanner ctor(Mateu.Uidl.BannerTheme = Info, System.String = null, System.String = null)
+Mateu.Uidl.PageBanner property Mateu.Uidl.BannerTheme Theme { get;init; }
+Mateu.Uidl.PageBanner property System.Boolean Closeable { get;init; }
+Mateu.Uidl.PageBanner property System.Int32 TimeoutSeconds { get;init; }
+Mateu.Uidl.PageBanner property System.String Description { get;init; }
+Mateu.Uidl.PageBanner property System.String Title { get;init; }
+Mateu.Uidl.PageBanners ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PageBanner>, System.Boolean)
+Mateu.Uidl.PageBanners property System.Boolean Appending { get;init; }
+Mateu.Uidl.PageBanners property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PageBanner> Banners { get;init; }
+Mateu.Uidl.PageBanners static method Mateu.Uidl.PageBanners Append(Mateu.Uidl.PageBanner[])
+Mateu.Uidl.PageBanners static method Mateu.Uidl.PageBanners Replace(Mateu.Uidl.PageBanner[])
+Mateu.Uidl.PageFab ctor()
+Mateu.Uidl.PageFab property System.Int32 Order { get;init; }
+Mateu.Uidl.PageFab property System.String ActionId { get;init; }
+Mateu.Uidl.PageFab property System.String ButtonStyle { get;init; }
+Mateu.Uidl.PageFab property System.String Icon { get;init; }
+Mateu.Uidl.PageFab property System.String Label { get;init; }
+Mateu.Uidl.PageResult<T> ctor(System.Collections.Generic.IReadOnlyList<T>, System.Int64)
+Mateu.Uidl.PageResult<T> property System.Collections.Generic.IReadOnlyList<T> Content { get;init; }
+Mateu.Uidl.PageResult<T> property System.Int64 TotalElements { get;init; }
+Mateu.Uidl.PageTemplateAttribute ctor(Mateu.Uidl.PageType)
+Mateu.Uidl.PageTemplateAttribute property Mateu.Uidl.PageType Value { get; }
+Mateu.Uidl.PageType enum Collection
+Mateu.Uidl.PageType enum Dashboard
+Mateu.Uidl.PageType enum Detail
+Mateu.Uidl.PageType enum Form
+Mateu.Uidl.PageType enum Landing
+Mateu.Uidl.PageType enum Process
+Mateu.Uidl.PageWidthAttribute ctor(Mateu.Uidl.PageWidthStyle)
+Mateu.Uidl.PageWidthAttribute property Mateu.Uidl.PageWidthStyle Value { get; }
+Mateu.Uidl.PageWidthStyle enum EdgeToEdge
+Mateu.Uidl.PageWidthStyle enum Fixed
+Mateu.Uidl.PageWidthStyle enum FullWidth
+Mateu.Uidl.Pageable ctor(System.Int32, System.Int32, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.SortSpec>)
+Mateu.Uidl.Pageable property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.SortSpec> Sort { get;init; }
+Mateu.Uidl.Pageable property System.Int32 Page { get;init; }
+Mateu.Uidl.Pageable property System.Int32 Size { get;init; }
+Mateu.Uidl.PanelAttribute ctor()
+Mateu.Uidl.PanelAttribute property System.Boolean Open { get;set; }
+Mateu.Uidl.PanelAttribute property System.Int32 ColSpan { get;set; }
+Mateu.Uidl.PanelAttribute property System.Int32 RowSpan { get;set; }
+Mateu.Uidl.PanelAttribute property System.String Icon { get;set; }
+Mateu.Uidl.PanelAttribute property System.String Subtitle { get;set; }
+Mateu.Uidl.PanelAttribute property System.String Title { get;set; }
+Mateu.Uidl.PasswordAttribute ctor()
+Mateu.Uidl.PaymentMethod ctor()
+Mateu.Uidl.PaymentMethod property System.String Id { get;init; }
+Mateu.Uidl.PaymentMethod property System.String Label { get;init; }
+Mateu.Uidl.PaymentPicker ctor()
+Mateu.Uidl.PaymentPicker property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PaymentMethod> Methods { get;init; }
+Mateu.Uidl.PaymentPicker property System.String ActionId { get;init; }
+Mateu.Uidl.PaymentPicker property System.String ConfirmLabel { get;init; }
+Mateu.Uidl.PaymentPicker property System.String ContextLabel { get;init; }
+Mateu.Uidl.PaymentPicker property System.String ContextValue { get;init; }
+Mateu.Uidl.PaymentPicker property System.String MethodActionId { get;init; }
+Mateu.Uidl.PaymentPicker property System.String Selected { get;init; }
+Mateu.Uidl.PeerNav ctor(Mateu.Uidl.PeerNav)
+Mateu.Uidl.PeerNav ctor(System.String, System.String, System.String, System.String)
+Mateu.Uidl.PeerNav property System.String NextLabel { get;init; }
+Mateu.Uidl.PeerNav property System.String NextRoute { get;init; }
+Mateu.Uidl.PeerNav property System.String PrevLabel { get;init; }
+Mateu.Uidl.PeerNav property System.String PrevRoute { get;init; }
+Mateu.Uidl.PhotoCaptureAttribute ctor()
+Mateu.Uidl.PlainTextAttribute ctor()
+Mateu.Uidl.PlanningBlock ctor()
+Mateu.Uidl.PlanningBlock property System.DateOnly? End { get;init; }
+Mateu.Uidl.PlanningBlock property System.DateOnly? Start { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Color { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Icon { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Id { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Label { get;init; }
+Mateu.Uidl.PlanningBlock property System.String ResourceId { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Status { get;init; }
+Mateu.Uidl.PlanningBlock property System.String Summary { get;init; }
+Mateu.Uidl.PlanningBoard ctor()
+Mateu.Uidl.PlanningBoard property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PlanningBlock> Blocks { get;init; }
+Mateu.Uidl.PlanningBoard property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PlanningResource> Resources { get;init; }
+Mateu.Uidl.PlanningBoard property System.Collections.Generic.IReadOnlyList<System.String> AttributeColumns { get;init; }
+Mateu.Uidl.PlanningBoard property System.DateOnly? From { get;init; }
+Mateu.Uidl.PlanningBoard property System.DateOnly? To { get;init; }
+Mateu.Uidl.PlanningBoard property System.String MoveActionId { get;init; }
+Mateu.Uidl.PlanningBoard property System.String OpenActionId { get;init; }
+Mateu.Uidl.PlanningBoard property System.String RangeSelectActionId { get;init; }
+Mateu.Uidl.PlanningBoard property System.String ResizeActionId { get;init; }
+Mateu.Uidl.PlanningBoard property System.String SelectActionId { get;init; }
+Mateu.Uidl.PlanningResource ctor()
+Mateu.Uidl.PlanningResource property System.Collections.Generic.IReadOnlyList<System.String> Attributes { get;init; }
+Mateu.Uidl.PlanningResource property System.String Group { get;init; }
+Mateu.Uidl.PlanningResource property System.String Icon { get;init; }
+Mateu.Uidl.PlanningResource property System.String Id { get;init; }
+Mateu.Uidl.PlanningResource property System.String Label { get;init; }
+Mateu.Uidl.Popover ctor()
+Mateu.Uidl.Popover property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.Popover property Mateu.Uidl.IComponent Wrapped { get;init; }
+Mateu.Uidl.Popover property Mateu.Uidl.PopoverTrigger Trigger { get;init; }
+Mateu.Uidl.PopoverTrigger enum Click
+Mateu.Uidl.PopoverTrigger enum Hover
+Mateu.Uidl.PricingPlan ctor()
+Mateu.Uidl.PricingPlan property System.Boolean Featured { get;init; }
+Mateu.Uidl.PricingPlan property System.Collections.Generic.IReadOnlyList<System.String> Features { get;init; }
+Mateu.Uidl.PricingPlan property System.String ActionId { get;init; }
+Mateu.Uidl.PricingPlan property System.String CtaLabel { get;init; }
+Mateu.Uidl.PricingPlan property System.String Id { get;init; }
+Mateu.Uidl.PricingPlan property System.String Name { get;init; }
+Mateu.Uidl.PricingPlan property System.String Period { get;init; }
+Mateu.Uidl.PricingPlan property System.String Price { get;init; }
+Mateu.Uidl.PricingTable ctor()
+Mateu.Uidl.PricingTable property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PricingPlan> Plans { get;init; }
+Mateu.Uidl.PrimaryColumnAttribute ctor()
+Mateu.Uidl.PrimaryColumnAttribute property System.String Caption { get;init; }
+Mateu.Uidl.PrimaryColumnAttribute property System.String Leading { get;init; }
+Mateu.Uidl.ProcessItem ctor()
+Mateu.Uidl.ProcessItem property System.Collections.Generic.IReadOnlyList<System.String> Systems { get;init; }
+Mateu.Uidl.ProcessItem property System.Int32 Errors { get;init; }
+Mateu.Uidl.ProcessItem property System.Int32 Ok { get;init; }
+Mateu.Uidl.ProcessItem property System.Int32 Warnings { get;init; }
+Mateu.Uidl.ProcessItem property System.String ActionId { get;init; }
+Mateu.Uidl.ProcessItem property System.String ActionLabel { get;init; }
+Mateu.Uidl.ProcessItem property System.String Id { get;init; }
+Mateu.Uidl.ProcessItem property System.String Name { get;init; }
+Mateu.Uidl.ProcessItem property System.String Status { get;init; }
+Mateu.Uidl.ProcessMonitor ctor()
+Mateu.Uidl.ProcessMonitor property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ProcessItem> Items { get;init; }
+Mateu.Uidl.ProgressBar ctor()
+Mateu.Uidl.ProgressBar property System.Boolean Indeterminate { get;init; }
+Mateu.Uidl.ProgressBar property System.Double Max { get;init; }
+Mateu.Uidl.ProgressBar property System.Double Min { get;init; }
+Mateu.Uidl.ProgressBar property System.Double Value { get;init; }
+Mateu.Uidl.ProgressBar property System.String Text { get;init; }
+Mateu.Uidl.ProgressBar property System.String Theme { get;init; }
+Mateu.Uidl.ProgressBar property System.String ValueKey { get;init; }
+Mateu.Uidl.ProgressSteps ctor()
+Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
+Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
+Mateu.Uidl.QueueGroup ctor()
+Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
+Mateu.Uidl.QueueGroup property System.String Label { get;init; }
+Mateu.Uidl.QueueItem ctor()
+Mateu.Uidl.QueueItem property System.Boolean Selected { get;init; }
+Mateu.Uidl.QueueItem property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> Badges { get;init; }
+Mateu.Uidl.QueueItem property System.String Caption { get;init; }
+Mateu.Uidl.QueueItem property System.String Id { get;init; }
+Mateu.Uidl.QueueItem property System.String Title { get;init; }
+Mateu.Uidl.RangeFilterAttribute ctor()
+Mateu.Uidl.ReadOnlyAttribute ctor()
+Mateu.Uidl.ReadOnlyUnlessAttribute ctor()
+Mateu.Uidl.RecordMerge ctor()
+Mateu.Uidl.RecordMerge property System.Boolean DifferencesOnly { get;init; }
+Mateu.Uidl.RecordMerge property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.RecordMerge property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MergeField> Fields { get;init; }
+Mateu.Uidl.RecordMerge property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MergeRecord> Records { get;init; }
+Mateu.Uidl.RecordMerge property System.String MergeActionId { get;init; }
+Mateu.Uidl.RecordMerge property System.String MergeLabel { get;init; }
+Mateu.Uidl.RecordMerge property System.String Title { get;init; }
+Mateu.Uidl.RecordSwitcher ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option>, System.String, Mateu.Uidl.SwitcherType = Object, System.String = null, System.Boolean = False, System.Boolean = False)
+Mateu.Uidl.RecordSwitcher property Mateu.Uidl.RestDataSource OptionsSource { get;init; }
+Mateu.Uidl.RecordSwitcher property Mateu.Uidl.SwitcherType Type { get;init; }
+Mateu.Uidl.RecordSwitcher property System.Boolean Disabled { get;init; }
+Mateu.Uidl.RecordSwitcher property System.Boolean Searchable { get;init; }
+Mateu.Uidl.RecordSwitcher property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Option> Options { get;init; }
+Mateu.Uidl.RecordSwitcher property System.String ActionId { get;init; }
+Mateu.Uidl.RecordSwitcher property System.String Label { get;init; }
+Mateu.Uidl.RecordSwitcher property System.String Route { get;init; }
+Mateu.Uidl.RecordSwitcher property System.String Value { get;init; }
+Mateu.Uidl.RemoteMenuAttribute ctor(System.String, System.String)
+Mateu.Uidl.RemoteMenuAttribute property System.Boolean Explode { get;set; }
+Mateu.Uidl.RemoteMenuAttribute property System.String BaseUrl { get; }
+Mateu.Uidl.RemoteMenuAttribute property System.String Label { get; }
+Mateu.Uidl.RemoteMenuAttribute property System.String Route { get;set; }
+Mateu.Uidl.ResourceGrid ctor()
+Mateu.Uidl.ResourceGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ResourceItem> Items { get;init; }
+Mateu.Uidl.ResourceGrid property System.Int32 Columns { get;init; }
+Mateu.Uidl.ResourceGrid property System.String ActionId { get;init; }
+Mateu.Uidl.ResourceGrid property System.String RecommendedLabel { get;init; }
+Mateu.Uidl.ResourceItem ctor()
+Mateu.Uidl.ResourceItem property System.Boolean Disabled { get;init; }
+Mateu.Uidl.ResourceItem property System.Boolean Recommended { get;init; }
+Mateu.Uidl.ResourceItem property System.Boolean Selected { get;init; }
+Mateu.Uidl.ResourceItem property System.String Id { get;init; }
+Mateu.Uidl.ResourceItem property System.String Note { get;init; }
+Mateu.Uidl.ResourceItem property System.String NoteColor { get;init; }
+Mateu.Uidl.ResourceItem property System.String StatusColor { get;init; }
+Mateu.Uidl.ResourceItem property System.String StatusLabel { get;init; }
+Mateu.Uidl.ResourceItem property System.String Subtitle { get;init; }
+Mateu.Uidl.ResourceItem property System.String Title { get;init; }
+Mateu.Uidl.ResponsiveGrid ctor()
+Mateu.Uidl.ResponsiveGrid method System.String GridTemplateColumns()
+Mateu.Uidl.ResponsiveGrid property System.Boolean Reorderable { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.GridTrack> Columns { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.Collections.Generic.IReadOnlyList<System.Int32> ColSpans { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.Collections.Generic.IReadOnlyList<System.String> StickyAreas { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.String Gap { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.String GridTemplateAreas { get;init; }
+Mateu.Uidl.ResponsiveGrid property System.String StackBelow { get;init; }
+Mateu.Uidl.ResponsiveGrid static method Mateu.Uidl.ResponsiveGrid Template(System.String, System.String, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent>)
+Mateu.Uidl.RestActionAttribute ctor()
+Mateu.Uidl.RestActionAttribute ctor(System.String)
+Mateu.Uidl.RestActionAttribute property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String Body { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String Method { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String ResultPath { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String Source { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String SuccessMessage { get;init; }
+Mateu.Uidl.RestActionAttribute property System.String Url { get; }
+Mateu.Uidl.RestActionAttribute property System.String[] Headers { get;init; }
+Mateu.Uidl.RestDataAttribute ctor()
+Mateu.Uidl.RestDataAttribute ctor(System.String)
+Mateu.Uidl.RestDataAttribute property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestDataAttribute property System.String Body { get;init; }
+Mateu.Uidl.RestDataAttribute property System.String Method { get;init; }
+Mateu.Uidl.RestDataAttribute property System.String ResultPath { get;init; }
+Mateu.Uidl.RestDataAttribute property System.String Source { get;init; }
+Mateu.Uidl.RestDataAttribute property System.String Url { get; }
+Mateu.Uidl.RestDataAttribute property System.String[] Headers { get;init; }
+Mateu.Uidl.RestDataSource ctor()
+Mateu.Uidl.RestDataSource method Mateu.Uidl.RestDataSource ResolvedAgainst(Mateu.Uidl.RestSourceEntry)
+Mateu.Uidl.RestDataSource method System.Boolean CarriesSample()
+Mateu.Uidl.RestDataSource method System.Boolean HasRef()
+Mateu.Uidl.RestDataSource property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestDataSource property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Headers { get;init; }
+Mateu.Uidl.RestDataSource property System.Object Sample { get;init; }
+Mateu.Uidl.RestDataSource property System.String Body { get;init; }
+Mateu.Uidl.RestDataSource property System.String ItemsPath { get;init; }
+Mateu.Uidl.RestDataSource property System.String LabelPath { get;init; }
+Mateu.Uidl.RestDataSource property System.String Method { get;init; }
+Mateu.Uidl.RestDataSource property System.String Ref { get;init; }
+Mateu.Uidl.RestDataSource property System.String Url { get;init; }
+Mateu.Uidl.RestDataSource property System.String ValuePath { get;init; }
+Mateu.Uidl.RestDataSource static method Mateu.Uidl.RestDataSource OfRef(System.String)
+Mateu.Uidl.RestListingAttribute ctor()
+Mateu.Uidl.RestListingAttribute ctor(System.String)
+Mateu.Uidl.RestListingAttribute property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestListingAttribute property System.String Body { get;init; }
+Mateu.Uidl.RestListingAttribute property System.String ItemsPath { get;init; }
+Mateu.Uidl.RestListingAttribute property System.String Method { get;init; }
+Mateu.Uidl.RestListingAttribute property System.String Source { get;init; }
+Mateu.Uidl.RestListingAttribute property System.String Url { get; }
+Mateu.Uidl.RestListingAttribute property System.String[] Headers { get;init; }
+Mateu.Uidl.RestOptionsAttribute ctor()
+Mateu.Uidl.RestOptionsAttribute ctor(System.String)
+Mateu.Uidl.RestOptionsAttribute property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String Body { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String ItemsPath { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String LabelPath { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String Method { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String Source { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String Url { get; }
+Mateu.Uidl.RestOptionsAttribute property System.String ValuePath { get;init; }
+Mateu.Uidl.RestOptionsAttribute property System.String[] Headers { get;init; }
+Mateu.Uidl.RestSourceAttribute ctor(System.String, System.String)
+Mateu.Uidl.RestSourceAttribute property Mateu.Uidl.RestSourceProvenance Provenance { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.Boolean Proxy { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String Body { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String Description { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String ItemsPath { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String LabelPath { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String Method { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String Name { get; }
+Mateu.Uidl.RestSourceAttribute property System.String TotalPath { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String Url { get; }
+Mateu.Uidl.RestSourceAttribute property System.String ValuePath { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String[] Fields { get;init; }
+Mateu.Uidl.RestSourceAttribute property System.String[] Headers { get;init; }
+Mateu.Uidl.RestSourceCatalog ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry>)
+Mateu.Uidl.RestSourceCatalog method Mateu.Uidl.RestSourceCatalog MergedOver(Mateu.Uidl.RestSourceCatalog)
+Mateu.Uidl.RestSourceCatalog method Mateu.Uidl.RestSourceEntry Get(System.String)
+Mateu.Uidl.RestSourceCatalog method System.Boolean HasNoSources()
+Mateu.Uidl.RestSourceCatalog method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> Consumed()
+Mateu.Uidl.RestSourceCatalog method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> ToImplement()
+Mateu.Uidl.RestSourceCatalog property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.RestSourceEntry> Sources { get;init; }
+Mateu.Uidl.RestSourceCatalog static readonly field Mateu.Uidl.RestSourceCatalog Empty
+Mateu.Uidl.RestSourceEntry ctor(System.String, Mateu.Uidl.RestDataSource)
+Mateu.Uidl.RestSourceEntry method Mateu.Uidl.RestSourceProvenance EffectiveProvenance()
+Mateu.Uidl.RestSourceEntry method System.Object EffectiveSample()
+Mateu.Uidl.RestSourceEntry method System.String PathOf(System.String)
+Mateu.Uidl.RestSourceEntry property Mateu.Uidl.RestDataSource Source { get;init; }
+Mateu.Uidl.RestSourceEntry property Mateu.Uidl.RestSourceProvenance Provenance { get;init; }
+Mateu.Uidl.RestSourceEntry property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Fields { get;init; }
+Mateu.Uidl.RestSourceEntry property System.Object Sample { get;init; }
+Mateu.Uidl.RestSourceEntry property System.String Description { get;init; }
+Mateu.Uidl.RestSourceEntry property System.String Name { get;init; }
+Mateu.Uidl.RestSourceEntry property System.String SampleFile { get;init; }
+Mateu.Uidl.RestSourceEntry property System.String TotalPath { get;init; }
+Mateu.Uidl.RestSourceKind enum Action
+Mateu.Uidl.RestSourceKind enum Data
+Mateu.Uidl.RestSourceKind enum Options
+Mateu.Uidl.RestSourceKind enum Rows
+Mateu.Uidl.RestSourceKinds static method Mateu.Uidl.RestSourceKind? FromWire(System.String)
+Mateu.Uidl.RestSourceKinds static method System.String WireName(Mateu.Uidl.RestSourceKind)
+Mateu.Uidl.RestSourceProvenance enum Auto
+Mateu.Uidl.RestSourceProvenance enum Existing
+Mateu.Uidl.RestSourceProvenance enum Generate
+Mateu.Uidl.RowIssue ctor()
+Mateu.Uidl.RowIssue property System.Int32 Line { get;set; }
+Mateu.Uidl.RowIssue property System.String Column { get;set; }
+Mateu.Uidl.RowIssue property System.String Problem { get;set; }
+Mateu.Uidl.RowIssue property System.String Value { get;set; }
+Mateu.Uidl.RowStatusAttribute ctor()
+Mateu.Uidl.Rule ctor(System.String, System.String, System.String, System.String, System.Object, System.String, System.String = "Continue", System.String = null)
+Mateu.Uidl.Rule property System.Object Value { get;init; }
+Mateu.Uidl.Rule property System.String Action { get;init; }
+Mateu.Uidl.Rule property System.String ActionId { get;init; }
+Mateu.Uidl.Rule property System.String Expression { get;init; }
+Mateu.Uidl.Rule property System.String FieldAttribute { get;init; }
+Mateu.Uidl.Rule property System.String FieldName { get;init; }
+Mateu.Uidl.Rule property System.String Filter { get;init; }
+Mateu.Uidl.Rule property System.String Result { get;init; }
+Mateu.Uidl.Rule static method Mateu.Uidl.Rule Disable(System.String, System.String = "true")
+Mateu.Uidl.Rule static method Mateu.Uidl.Rule Hide(System.String, System.String)
+Mateu.Uidl.RunAction ctor(System.String)
+Mateu.Uidl.RunAction property System.String ActionId { get;init; }
+Mateu.Uidl.Scoreboard ctor()
+Mateu.Uidl.Scoreboard property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.MetricCard> Metrics { get;init; }
+Mateu.Uidl.SearchRequest ctor()
+Mateu.Uidl.SearchRequest ctor(System.String, System.Object = null, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FilterCriterion> = null, Mateu.Uidl.Pageable = null)
+Mateu.Uidl.SearchRequest property Mateu.Uidl.Pageable Pageable { get;init; }
+Mateu.Uidl.SearchRequest property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> FilterState { get;init; }
+Mateu.Uidl.SearchRequest property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FilterCriterion> Criteria { get;init; }
+Mateu.Uidl.SearchRequest property System.Object Filters { get;init; }
+Mateu.Uidl.SearchRequest property System.String SearchText { get;init; }
+Mateu.Uidl.SearchRequestExtensions static method TFilters Filters<TFilters>(Mateu.Uidl.SearchRequest)
+Mateu.Uidl.SearchableAttribute ctor(System.Type)
+Mateu.Uidl.SearchableAttribute property System.Type Selector { get; }
+Mateu.Uidl.SectionAttribute ctor(System.String)
+Mateu.Uidl.SectionAttribute property System.Boolean Frameless { get;set; }
+Mateu.Uidl.SectionAttribute property System.Boolean PropertyList { get;set; }
+Mateu.Uidl.SectionAttribute property System.String AddAction { get;set; }
+Mateu.Uidl.SectionAttribute property System.String Caption { get; }
+Mateu.Uidl.SectionAttribute property System.String EditAction { get;set; }
+Mateu.Uidl.SectionAttribute property System.String ViewMoreAction { get;set; }
+Mateu.Uidl.SectionAttribute property System.String Zone { get;set; }
+Mateu.Uidl.SecuredAttribute ctor(System.String)
+Mateu.Uidl.SecuredAttribute property System.String Permission { get; }
+Mateu.Uidl.SelectedItem ctor(System.Object, System.String)
+Mateu.Uidl.SelectedItem property System.Object Id { get;init; }
+Mateu.Uidl.SelectedItem property System.String Label { get;init; }
+Mateu.Uidl.Separator ctor()
+Mateu.Uidl.SeparatorBeforeAttribute ctor()
+Mateu.Uidl.ShortcutAttribute ctor(System.String)
+Mateu.Uidl.ShortcutAttribute property System.String Keys { get; }
+Mateu.Uidl.SignatureAttribute ctor()
+Mateu.Uidl.SizeAttribute ctor(Mateu.Uidl.SizeMode)
+Mateu.Uidl.SizeAttribute property Mateu.Uidl.SizeMode Value { get; }
+Mateu.Uidl.SizeAttribute property System.String Length { get;set; }
+Mateu.Uidl.SizeMode enum Fill
+Mateu.Uidl.SizeMode enum Fixed
+Mateu.Uidl.SizeMode enum Hug
+Mateu.Uidl.Skeleton ctor()
+Mateu.Uidl.Skeleton property Mateu.Uidl.SkeletonVariant Variant { get;init; }
+Mateu.Uidl.Skeleton property System.Int32 Count { get;init; }
+Mateu.Uidl.SkeletonVariant enum Card
+Mateu.Uidl.SkeletonVariant enum Form
+Mateu.Uidl.SkeletonVariant enum Grid
+Mateu.Uidl.SkeletonVariant enum Text
+Mateu.Uidl.SliderMaxAttribute ctor(System.Int32)
+Mateu.Uidl.SliderMaxAttribute property System.Int32 Value { get; }
+Mateu.Uidl.SliderMinAttribute ctor(System.Int32)
+Mateu.Uidl.SliderMinAttribute property System.Int32 Value { get; }
+Mateu.Uidl.Slotted ctor(System.String, Mateu.Uidl.IComponent)
+Mateu.Uidl.Slotted property Mateu.Uidl.IComponent SlotContent { get;init; }
+Mateu.Uidl.Slotted property System.String Slot { get;init; }
+Mateu.Uidl.SmartSearchPage<TFilters,TRow> ctor()
+Mateu.Uidl.SmartSearchPage<TFilters,TRow> virtual method Mateu.Uidl.IComponent PreSearchContent()
+Mateu.Uidl.SmartSearchPage<TFilters,TRow> virtual method System.String PageSubtitle()
+Mateu.Uidl.SortSpec ctor(System.String, System.Boolean)
+Mateu.Uidl.SortSpec property System.Boolean Descending { get;init; }
+Mateu.Uidl.SortSpec property System.String Field { get;init; }
+Mateu.Uidl.SourceOverride ctor(System.String = null, System.String = null, System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> = null, System.Boolean? = null)
+Mateu.Uidl.SourceOverride property System.Boolean? Proxy { get;init; }
+Mateu.Uidl.SourceOverride property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Headers { get;init; }
+Mateu.Uidl.SourceOverride property System.String BaseUrl { get;init; }
+Mateu.Uidl.SourceOverride property System.String Url { get;init; }
+Mateu.Uidl.SplitLayout ctor(Mateu.Uidl.IComponent, Mateu.Uidl.IComponent)
+Mateu.Uidl.SplitLayout property Mateu.Uidl.IComponent Detail { get;init; }
+Mateu.Uidl.SplitLayout property Mateu.Uidl.IComponent Master { get;init; }
+Mateu.Uidl.SplitLayout property Mateu.Uidl.Orientation? Orientation { get;init; }
+Mateu.Uidl.SplitLayout property Mateu.Uidl.SplitLayoutVariant? Variant { get;init; }
+Mateu.Uidl.SplitLayout property System.Boolean FullWidth { get;init; }
+Mateu.Uidl.SplitLayoutVariant enum Minimal
+Mateu.Uidl.SplitLayoutVariant enum Small
+Mateu.Uidl.Stat ctor()
+Mateu.Uidl.Stat property System.Collections.Generic.IReadOnlyList<System.Double> Spark { get;init; }
+Mateu.Uidl.Stat property System.String ActionId { get;init; }
+Mateu.Uidl.Stat property System.String Delta { get;init; }
+Mateu.Uidl.Stat property System.String Label { get;init; }
+Mateu.Uidl.Stat property System.String Trend { get;init; }
+Mateu.Uidl.Stat property System.String Unit { get;init; }
+Mateu.Uidl.Stat property System.String Value { get;init; }
+Mateu.Uidl.StaticViewAttribute ctor()
+Mateu.Uidl.StatusItem ctor()
+Mateu.Uidl.StatusItem property System.String ActionId { get;init; }
+Mateu.Uidl.StatusItem property System.String ActionLabel { get;init; }
+Mateu.Uidl.StatusItem property System.String Avatar { get;init; }
+Mateu.Uidl.StatusItem property System.String Description { get;init; }
+Mateu.Uidl.StatusItem property System.String Icon { get;init; }
+Mateu.Uidl.StatusItem property System.String Id { get;init; }
+Mateu.Uidl.StatusItem property System.String Status { get;init; }
+Mateu.Uidl.StatusItem property System.String StatusColor { get;init; }
+Mateu.Uidl.StatusItem property System.String Title { get;init; }
+Mateu.Uidl.StatusList ctor()
+Mateu.Uidl.StatusList property System.Boolean Compact { get;init; }
+Mateu.Uidl.StatusList property System.Boolean Frameless { get;init; }
+Mateu.Uidl.StatusList property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.StatusItem> Items { get;init; }
+Mateu.Uidl.StatusList property System.String RowActionId { get;init; }
+Mateu.Uidl.Step ctor()
+Mateu.Uidl.Step property System.String Description { get;init; }
+Mateu.Uidl.Step property System.String Id { get;init; }
+Mateu.Uidl.Step property System.String Status { get;init; }
+Mateu.Uidl.Step property System.String Title { get;init; }
+Mateu.Uidl.StepAttribute ctor(System.Int32)
+Mateu.Uidl.StepAttribute property System.Int32 Step { get; }
+Mateu.Uidl.StereotypeAttribute ctor(System.String)
+Mateu.Uidl.StereotypeAttribute property System.String Value { get; }
+Mateu.Uidl.SubscribeToAttribute ctor(System.String, System.String)
+Mateu.Uidl.SubscribeToAttribute property Mateu.Uidl.SubscriptionSource Source { get;init; }
+Mateu.Uidl.SubscribeToAttribute property System.String Action { get; }
+Mateu.Uidl.SubscribeToAttribute property System.String Condition { get;init; }
+Mateu.Uidl.SubscribeToAttribute property System.String Event { get; }
+Mateu.Uidl.SubscribeToAttribute property System.String From { get;init; }
+Mateu.Uidl.SubscriptionSource enum Component
+Mateu.Uidl.SubscriptionSource enum Document
+Mateu.Uidl.SubscriptionSource enum Self
+Mateu.Uidl.SubtitleAttribute ctor(System.String)
+Mateu.Uidl.SubtitleAttribute property System.String Value { get; }
+Mateu.Uidl.SwitcherType enum Context
+Mateu.Uidl.SwitcherType enum Object
+Mateu.Uidl.TabAttribute ctor(System.String)
+Mateu.Uidl.TabAttribute property System.Boolean Open { get;init; }
+Mateu.Uidl.TabAttribute property System.String Name { get; }
+Mateu.Uidl.TabLayout ctor()
+Mateu.Uidl.TabLayout property Mateu.Uidl.GroupRelationship? GroupRelationship { get;init; }
+Mateu.Uidl.TabLayout property System.Boolean Adaptable { get;init; }
+Mateu.Uidl.TabLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.TabPanel> Tabs { get;init; }
+Mateu.Uidl.TabPanel ctor(System.String, Mateu.Uidl.IComponent)
+Mateu.Uidl.TabPanel property Mateu.Uidl.IComponent Content { get;init; }
+Mateu.Uidl.TabPanel property System.Boolean Active { get;init; }
+Mateu.Uidl.TabPanel property System.String Label { get;init; }
+Mateu.Uidl.TaskProgress ctor()
+Mateu.Uidl.TaskProgress property System.Int32 Done { get;init; }
+Mateu.Uidl.TaskProgress property System.Int32 Total { get;init; }
+Mateu.Uidl.TaskProgress property System.String ActionId { get;init; }
+Mateu.Uidl.TaskProgress property System.String ActionLabel { get;init; }
+Mateu.Uidl.TaskProgress property System.String Label { get;init; }
+Mateu.Uidl.TaskQueue ctor()
+Mateu.Uidl.TaskQueue property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueGroup> Groups { get;init; }
+Mateu.Uidl.TaskQueue property System.String ActionId { get;init; }
+Mateu.Uidl.Testimonial ctor()
+Mateu.Uidl.Testimonial property System.Int32 Rating { get;init; }
+Mateu.Uidl.Testimonial property System.String Author { get;init; }
+Mateu.Uidl.Testimonial property System.String Avatar { get;init; }
+Mateu.Uidl.Testimonial property System.String Quote { get;init; }
+Mateu.Uidl.Testimonial property System.String Role { get;init; }
+Mateu.Uidl.Testimonials ctor()
+Mateu.Uidl.Testimonials property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Testimonial> Items { get;init; }
+Mateu.Uidl.Text ctor(System.String)
+Mateu.Uidl.Text property System.Boolean NoMargins { get;init; }
+Mateu.Uidl.Text property System.String Container { get;init; }
+Mateu.Uidl.Text property System.String Content { get;init; }
+Mateu.Uidl.Text property System.String Size { get;init; }
+Mateu.Uidl.TextAttribute ctor()
+Mateu.Uidl.TextAttribute property System.Boolean NoMargins { get;set; }
+Mateu.Uidl.TextAttribute property System.String Container { get;set; }
+Mateu.Uidl.TextAttribute property System.String Size { get;set; }
+Mateu.Uidl.Timeline ctor()
+Mateu.Uidl.Timeline property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.TimelineItem> Items { get;init; }
+Mateu.Uidl.TimelineItem ctor()
+Mateu.Uidl.TimelineItem property System.String ActionId { get;init; }
+Mateu.Uidl.TimelineItem property System.String Color { get;init; }
+Mateu.Uidl.TimelineItem property System.String Description { get;init; }
+Mateu.Uidl.TimelineItem property System.String Icon { get;init; }
+Mateu.Uidl.TimelineItem property System.String Id { get;init; }
+Mateu.Uidl.TimelineItem property System.String Timestamp { get;init; }
+Mateu.Uidl.TimelineItem property System.String Title { get;init; }
+Mateu.Uidl.TimestampAttribute ctor(System.String = "")
+Mateu.Uidl.TimestampAttribute property System.String Label { get; }
+Mateu.Uidl.TitleAttribute ctor(System.String)
+Mateu.Uidl.TitleAttribute property System.String Value { get; }
+Mateu.Uidl.TitlePlaceholderAttribute ctor(System.String)
+Mateu.Uidl.TitlePlaceholderAttribute property System.String Value { get; }
+Mateu.Uidl.TocAttribute ctor(System.Boolean = True)
+Mateu.Uidl.TocAttribute property System.Boolean Value { get; }
+Mateu.Uidl.TodoList<TRow> abstract method System.Collections.Generic.IEnumerable<TRow> Rows()
+Mateu.Uidl.TodoList<TRow> abstract method System.Object ActionOn(TRow)
+Mateu.Uidl.TodoList<TRow> abstract method System.String GroupOf(TRow)
+Mateu.Uidl.TodoList<TRow> abstract method System.String IdOf(TRow)
+Mateu.Uidl.TodoList<TRow> abstract method System.String TitleOf(TRow)
+Mateu.Uidl.TodoList<TRow> ctor()
+Mateu.Uidl.TodoList<TRow> method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.TodoList<TRow> method System.Object OpenTodoItem(System.String)
+Mateu.Uidl.TodoList<TRow> property System.String SelectedId { get;set; }
+Mateu.Uidl.TodoList<TRow> virtual method Mateu.Uidl.IComponent EmptyState()
+Mateu.Uidl.TodoList<TRow> virtual method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Chip> BadgesOf(TRow)
+Mateu.Uidl.TodoList<TRow> virtual method System.Collections.Generic.IReadOnlyList<System.String> GroupOrder()
+Mateu.Uidl.TodoList<TRow> virtual method System.String CaptionOf(TRow)
+Mateu.Uidl.TodoList<TRow> virtual method System.String GroupLabel(System.String, System.Int32)
+Mateu.Uidl.Toggle enum Disabled
+Mateu.Uidl.Toggle enum Off
+Mateu.Uidl.Toggle enum On
+Mateu.Uidl.ToggleExtensions static method System.Boolean Enabled(Mateu.Uidl.Toggle)
+Mateu.Uidl.ToggleExtensions static method System.Boolean Shown(Mateu.Uidl.Toggle)
+Mateu.Uidl.ToolbarAttribute ctor(System.String = null)
+Mateu.Uidl.ToolbarAttribute property System.String ButtonStyle { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.String Label { get; }
+Mateu.Uidl.Tooltip ctor(System.String)
+Mateu.Uidl.Tooltip property Mateu.Uidl.IComponent Wrapped { get;init; }
+Mateu.Uidl.Tooltip property System.String Text { get;init; }
+Mateu.Uidl.TooltipAttribute ctor(System.String)
+Mateu.Uidl.TooltipAttribute property System.String Value { get; }
+Mateu.Uidl.Translations ctor(System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object>)
+Mateu.Uidl.Translations property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Messages { get;init; }
+Mateu.Uidl.Translations property System.String Locale { get;init; }
+Mateu.Uidl.TreeSelectAttribute ctor(System.Boolean = False)
+Mateu.Uidl.TreeSelectAttribute property System.Boolean LeavesOnly { get; }
+Mateu.Uidl.TrendChart ctor()
+Mateu.Uidl.TrendChart property System.Boolean Area { get;init; }
+Mateu.Uidl.TrendChart property System.Collections.Generic.IReadOnlyList<System.Double> Values { get;init; }
+Mateu.Uidl.TrendChart property System.Collections.Generic.IReadOnlyList<System.String> Labels { get;init; }
+Mateu.Uidl.TrendChart property System.String Color { get;init; }
+Mateu.Uidl.TrendChart property System.String Title { get;init; }
+Mateu.Uidl.TriggerAttribute ctor(Mateu.Uidl.TriggerType, System.String)
+Mateu.Uidl.TriggerAttribute property Mateu.Uidl.TriggerType Type { get; }
+Mateu.Uidl.TriggerAttribute property System.Boolean Background { get;init; }
+Mateu.Uidl.TriggerAttribute property System.Int32 TimeoutMillis { get;init; }
+Mateu.Uidl.TriggerAttribute property System.Int32 Times { get;init; }
+Mateu.Uidl.TriggerAttribute property System.String ActionId { get; }
+Mateu.Uidl.TriggerAttribute property System.String CalledActionId { get;init; }
+Mateu.Uidl.TriggerAttribute property System.String Condition { get;init; }
+Mateu.Uidl.TriggerAttribute property System.String EventName { get;init; }
+Mateu.Uidl.TriggerAttribute property System.String PropertyName { get;init; }
+Mateu.Uidl.TriggerType enum OnCustomEvent
+Mateu.Uidl.TriggerType enum OnError
+Mateu.Uidl.TriggerType enum OnLoad
+Mateu.Uidl.TriggerType enum OnSuccess
+Mateu.Uidl.TriggerType enum OnValueChange
+Mateu.Uidl.UIAttribute ctor(System.String = "")
+Mateu.Uidl.UIAttribute property System.String Route { get; }
+Mateu.Uidl.UseRadioButtonsAttribute ctor()
+Mateu.Uidl.UserFacingException ctor(System.String)
+Mateu.Uidl.UserFacingException ctor(System.String, System.String)
+Mateu.Uidl.UserFacingException ctor(System.String, System.String, System.Exception)
+Mateu.Uidl.UserFacingException property System.String Title { get; }
+Mateu.Uidl.VersionAttribute ctor()
+Mateu.Uidl.VerticalLayout ctor()
+Mateu.Uidl.VerticalLayout property System.Boolean Spacing { get;init; }
+Mateu.Uidl.VerticalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.Welcome ctor()
+Mateu.Uidl.Welcome method Mateu.Uidl.IComponent Component()
+Mateu.Uidl.Welcome property Mateu.Uidl.HeroTone HeroTone { get; }
+Mateu.Uidl.Welcome property System.String HeroImage { get; }
+Mateu.Uidl.Welcome property System.String HeroSubtitle { get; }
+Mateu.Uidl.Welcome property System.String HeroTitle { get; }
+Mateu.Uidl.WelcomeBannerAttribute ctor()
+Mateu.Uidl.WelcomeBannerAttribute property Mateu.Uidl.HeroTone Tone { get;set; }
+Mateu.Uidl.WelcomeBannerAttribute property System.String Image { get;set; }
+Mateu.Uidl.WelcomeBannerAttribute property System.String Subtitle { get;set; }
+Mateu.Uidl.WelcomeBannerAttribute property System.String Title { get;set; }
+Mateu.Uidl.Wizard abstract method Mateu.Uidl.Message Complete()
+Mateu.Uidl.Wizard ctor()
+Mateu.Uidl.Wizard property Mateu.Uidl.WizardDisplay Display { get; }
+Mateu.Uidl.Wizard property System.Int32? CompletionAvailableFromStep { get; }
+Mateu.Uidl.Wizard property System.String CompletionActionId { get; }
+Mateu.Uidl.Wizard property System.String CompletionActionLabel { get; }
+Mateu.Uidl.Wizard property System.String WizardTitle { get; }
+Mateu.Uidl.Wizard virtual method System.Boolean StepSkippable(System.Int32)
+Mateu.Uidl.Wizard virtual method System.Object BeforeStepNavigate(System.Int32, System.Int32)
+Mateu.Uidl.Wizard virtual method System.String StepTitle(System.Int32)
+Mateu.Uidl.Wizard virtual method System.Void OnNext(System.Int32, System.Int32)
+Mateu.Uidl.WizardDisplay ctor(Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle = On, Mateu.Uidl.Toggle = On)
+Mateu.Uidl.WizardDisplay property Mateu.Uidl.Toggle SaveAndClose { get;init; }
+Mateu.Uidl.WizardDisplay property Mateu.Uidl.Toggle SaveDraft { get;init; }
+Mateu.Uidl.WizardDisplay property Mateu.Uidl.Toggle Skip { get;init; }
+Mateu.Uidl.WizardDisplay static property Mateu.Uidl.WizardDisplay Defaults { get; }
+Mateu.Uidl.WizardProgressAttribute ctor(System.String)
+Mateu.Uidl.WizardProgressAttribute property System.String Style { get; }
+Mateu.Uidl.ZoneAttribute ctor(System.String, System.String = "")
+Mateu.Uidl.ZoneAttribute property System.String Name { get; }
+Mateu.Uidl.ZoneAttribute property System.String Width { get; }

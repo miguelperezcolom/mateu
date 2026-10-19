@@ -379,10 +379,50 @@ define([
           bridge.registerRemoteRoute(detail.route, detail);
           Actions.callChain(liveContext(), {
             chain: 'onMateuNavigate',
-            params: { event: { detail: { route: detail.route } } },
+            // all the menu-click fields it carries, not only the route (consumedRoute/serverSideType/actionId)
+            params: { event: { detail: { route: detail.route, navigation: bridge.chatNavigationOf(detail) } } },
           });
         });
       }
+
+      // The AI chat's UI events (poc/chat.mjs dispatchChatEvent — the shell panel's chatSend and the
+      // inline Chat component share it): what the shell does for each, against the LIVE context.
+      //  - navigation-requested → onMateuNavigate with every menu-click field (its pod registered first);
+      //  - close-requested → the chat panel closes;
+      //  - a subscriber of the event on screen (OnCustomEvent / @SubscribeTo) → its action, on its surface,
+      //    run by the CONTENT page (the Element-event route: host → runMateuAction, island → its surface);
+      //  - a render-screen nobody takes → the `__preview__` answer, painted by the content page as an
+      //    ordinary increment (application:mateuChatPreview). In the content it is TRANSIENT: the menu
+      //    selection is cleared and onMateuNavigate knows a generated screen is shown, so any
+      //    navigation — even to the same entry — loads the real screen again.
+      bridge.setChatEventHost({
+        registry: () => liveContext().$application.variables.mateuRegistry,
+        currentRoute: () => liveContext().$application.variables.mateuSelectedRoute || '',
+        base: () => bridge.baseOf(liveContext().$application.variables.mateuRegistry) || base,
+        navigate: (navigation) => {
+          bridge.registerRemoteRoute(navigation.route, navigation);
+          return Actions.callChain(liveContext(), {
+            chain: 'onMateuNavigate',
+            params: { event: { route: navigation.route, navigation } },
+          });
+        },
+        closeChat: () => Actions.callChain(liveContext(), { chain: 'toggleMateuChat', params: { open: false } }),
+        runAction: (actionId, parameters, ctxId) => Actions.fireEvent(liveContext(), {
+          name: 'application:mateuElementEvent',
+          payload: { actionId, parameters, fromNested: false, surfaceId: ctxId === bridge.HOST_ID ? '' : ctxId },
+        }),
+        paintPreview: (increment, request) => {
+          if (request.target === 'content') {
+            window.__mateuChatPreviewShown = true;
+            liveContext().$application.variables.mateuSelectedNavId = '';
+          }
+          return Actions.fireEvent(liveContext(), {
+            name: 'application:mateuChatPreview',
+            payload: { increment },
+          });
+        },
+        onError: (e) => { console.warn('[mateu-chat] agent event', e); },
+      });
 
       // An ordinary HTML link in the content (`<a href="/journey/bookings/ZUAAKJ">`, one from an
       // app's Text/Html) navigates INSIDE the shell, as in Vaadin (Flow's RouterLinkHandler):

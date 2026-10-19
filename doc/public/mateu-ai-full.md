@@ -6,7 +6,7 @@ Mateu defines business UIs agnostically: one model, authored as YAML (by hand or
 ```xml
 <properties>
   <!-- latest release: https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml -->
-  <mateu.version>3.0-alpha.425</mateu.version>
+  <mateu.version>3.0-beta.3</mateu.version>
 </properties>
 
 <dependency>
@@ -332,7 +332,7 @@ Control the input widget (`@Stereotype`) and read-only display (`@Representation
 `FieldStereotype` values: `regular`, `radio`, `checkbox`, `textarea`, `toggle`, `combobox`, `select`, `email`, `password`, `richText`, `listBox`, `html`, `markdown`, `image`, `icon`, `link`, `money`, `grid`, `color`, `choice`, `popover`, `slider`, `button`, `stars`, `searchable`, `badge`, `plainText`.
 
 ### Money formatting — `@Stereotype(FieldStereotype.money)`
-Mark a numeric field (`BigDecimal`, `double`, `long`, …) with `@Stereotype(FieldStereotype.money)` so it is rendered as a formatted currency amount. In a **read-only / plain-text context** (the field or its declaring class is `@PlainText`) the field keeps the dense plain-text rendering but the number is formatted with a thousands separator and 2 decimals (`de-DE` style by default — e.g. `1.250,00`). Fields of type `Amount` (which carry their own `currency` + `locale`) are formatted as full currency automatically without needing the stereotype.
+Mark a numeric field (`BigDecimal`, `double`, `long`, …) with `@Stereotype(FieldStereotype.money)` so it is rendered as a formatted currency amount. In a **read-only / plain-text context** (the field or its declaring class is `@PlainText`) the field keeps the dense plain-text rendering but the number is formatted with a thousands separator and 2 decimals in the UI's locale (the app's locale, else the browser's — e.g. `1,250.00` in English, `1.250,00` in Spanish). Fields of type `Amount` (which carry their own `currency` + `locale`) are formatted as full currency automatically without needing the stereotype.
 ```java
 @PlainText
 public class FoliosSection {
@@ -527,7 +527,7 @@ class ProductStore implements CrudStore<Product> {
     public void deleteAllById(List<String> ids) { /* ... */ }
 
     // DEFAULT method: search + filter + sort + paginate -> Page<T>.
-    // Default impl filters findAll() by searchText (Searchable/toString),
+    // Default impl filters findAll() by searchText (SearchableText/toString),
     // sorts by pageable.sort(), paginates in memory. Override for DB-side paging.
     // Page<T> carries totalElements, so no separate count() is needed.
     // public Page<Product> find(String searchText, Product filters, Pageable pageable) { ... }

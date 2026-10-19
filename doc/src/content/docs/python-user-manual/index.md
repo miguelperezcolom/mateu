@@ -70,7 +70,7 @@ at the `io.mateu:mateu-vaadin` (or `mateu-redwood`) jar of the version you targe
 extracted `static/` folder. The jar is on Maven Central; `mateu-ui` does not package it:
 
 ```bash
-V=3.0-alpha.425
+V=3.0-beta.3
 curl -LO https://repo1.maven.org/maven2/io/mateu/mateu-vaadin/$V/mateu-vaadin-$V.jar
 MATEU_UI=mateu-vaadin-$V.jar uvicorn samples.demo.main:app --port 8594   # http://localhost:8594
 ```
@@ -193,6 +193,11 @@ class Reservations(Crud[Reservation]):
     def save(self, entity): store_by_id[entity.id] = entity
     def delete(self, id): store_by_id.pop(id, None)
 ```
+
+`fetch` is the only method you must write, but a crud that writes must also override `save` and
+`delete`: their defaults refuse with a "Not implemented" error naming the override, so a crud that
+forgot them can never answer "Saved" and drop the change. A crud that should not create or delete
+turns those buttons off in `display()` (`CrudDisplay`) instead.
 
 The listing renders a **smart search bar** whose filters come straight from the entity: enums
 become multi-selects (IN over the picked values), `date`/`datetime` fields become from–to date

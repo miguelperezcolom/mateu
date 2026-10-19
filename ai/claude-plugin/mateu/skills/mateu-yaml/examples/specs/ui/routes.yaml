@@ -1,0 +1,18 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Routes
+routes:
+  - route: ""
+    layout: app.yaml
+  - route: home
+    layout: home.yaml
+  - route: products
+    layout: products.yaml
+  - route: orders
+    layout: orders.yaml
+  - route: orders/new          # before orders/:id, or "new" is read as an id
+    layout: order-new.yaml
+  - route: orders/:id
+    layout: order.yaml
+    data: order                # fetch the record into the page state on load
+  - route: dashboard
+    layout: dashboard.yaml

@@ -86,7 +86,11 @@ public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto
 public record MarkdownMetadataDto(string? Markdown) : ComponentMetadataDto;
 
 /// <summary>An image by url or data URI (mirrors Java's ImageDto).</summary>
-public record ImageMetadataDto(string? Src) : ComponentMetadataDto;
+public record ImageMetadataDto(string? Src) : ComponentMetadataDto
+{
+    /// <summary>The text alternative assistive technology reads; null = none declared.</summary>
+    public string? Alt { get; init; }
+}
 
 /// <summary>A small status chip (mirrors Java's BadgeDto).</summary>
 public record BadgeMetadataDto(string? Text) : ComponentMetadataDto

@@ -22,6 +22,15 @@ public class GenericComponentsTests
         Assert.Equal("fieldId", dto.Id);
     }
 
+    /// <summary>An image carries its text alternative to the wire (Java's ImageDto.alt).</summary>
+    [Fact]
+    public void An_image_carries_its_alt_text()
+    {
+        var meta = Assert.IsType<ImageMetadataDto>(ComponentMapper.Map(new Image { Src = "/logo.png", Alt = "Company logo" }).Metadata);
+        Assert.Equal("Company logo", meta.Alt);
+        Assert.Null(Assert.IsType<ImageMetadataDto>(ComponentMapper.Map(new Image { Src = "/logo.png" }).Metadata).Alt);
+    }
+
     [Fact]
     public void An_element_is_keyed_by_its_own_id_attribute_else_a_stable_hash()
     {

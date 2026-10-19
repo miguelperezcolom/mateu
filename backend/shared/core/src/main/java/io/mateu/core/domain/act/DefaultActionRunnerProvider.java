@@ -1,6 +1,8 @@
 package io.mateu.core.domain.act;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.application.security.ActionMethods;
+import io.mateu.core.domain.out.fragmentmapper.mappers.AdvertisedActions;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.interfaces.ActionHandler;
@@ -89,6 +91,14 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         public Flux<?> run(Object instance, RunActionCommand command) {
           if (instance instanceof ActionHandler handlesActions) {
             return asFlux(handlesActions.handleAction(actionId, httpRequest), instance);
+          }
+          // No runner claims the id and the view is no ActionHandler deciding for itself: an id
+          // the view ADVERTISES (a trigger or subscription naming a refresh, a declared action
+          // whose behaviour is client-side…) re-renders it, as it always did; an id nobody
+          // advertises names nothing — wire input, refused (403 + one WARN), never a silent 200
+          // reload (the answer the .NET and Python backends give).
+          if (!AdvertisedActions.advertises(instance, httpRequest, actionId)) {
+            throw ActionMethods.noSuchAction(instance.getClass(), actionId);
           }
           return Flux.just(instance);
         }

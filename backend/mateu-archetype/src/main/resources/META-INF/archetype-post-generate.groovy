@@ -54,7 +54,7 @@ if (authoring == 'code' && sample == 'empty') {
     Path empty = gen.resolve('overlays/java/empty')
     if (Files.isDirectory(empty)) move(empty, root)
 }
-// (4) overlays: common (gitignore → .gitignore) and the renderer's
+// (4) overlays: common (gitignore → .gitignore, claude/settings.json → .claude/settings.json) and the renderer's
 move(gen.resolve('overlays/common'), root)
 Path rendererOverlay = gen.resolve("overlays/java/${renderer}")
 if (Files.isDirectory(rendererOverlay)) move(rendererOverlay, root)
@@ -86,7 +86,11 @@ Files.walk(root).filter { Files.isRegularFile(it) }.toList().each { Path f ->
 }
 java.renames.each { r ->
     Path from = root.resolve(expand(r.from))
-    if (Files.exists(from)) Files.move(from, root.resolve(expand(r.to)), StandardCopyOption.REPLACE_EXISTING)
+    if (!Files.exists(from)) return
+    Path to = root.resolve(expand(r.to))
+    Files.createDirectories(to.parent)   // claude/settings.json → .claude/settings.json
+    Files.move(from, to, StandardCopyOption.REPLACE_EXISTING)
+    if (from.parent != root && from.parent.toFile().list().length == 0) Files.delete(from.parent)
 }
 Path pkgDir = root.resolve(java.packageDir)
 if (Files.isDirectory(pkgDir)) {

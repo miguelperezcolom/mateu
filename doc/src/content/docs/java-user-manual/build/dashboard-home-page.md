@@ -76,7 +76,7 @@ public Component component(HttpRequest httpRequest) {
                                     // Row 1: three equal KPI cards
                                     BoardLayoutRow.builder()
                                             .content(List.of(
-                                                    kpiCard("Total orders",   "${state.totalOrders}",   BadgeColor.primary),
+                                                    kpiCard("Total orders",   "${state.totalOrders}",   BadgeColor.normal),
                                                     kpiCard("Pending",        "${state.pendingOrders}", BadgeColor.error),
                                                     kpiCard("Revenue (EUR)",  "${state.revenue}",       BadgeColor.success)
                                             ))
@@ -108,7 +108,7 @@ private Component kpiCard(String label, String valueExpression, BadgeColor color
             .content(
                     Badge.builder()
                             .text(valueExpression)   // ${state.field} expression
-                            .color(color)
+                            .color(color.name())
                             .pill(true)
                             .build()
             )
@@ -175,7 +175,7 @@ private Component recentActivity() {
                                                             .color(mapColor(order.status()))
                                                             .build()
                                             ))
-                                            .justification(HorizontalLayoutJustification.between)
+                                            .justification(HorizontalLayoutJustification.BETWEEN)
                                             .build())
                                     .collect(Collectors.toList()))
                             .build()
@@ -228,13 +228,17 @@ public class MyApp implements WidgetSupplier {
                         .rows(List.of(
                                 BoardLayoutRow.builder()
                                         .content(List.of(
-                                                kpiCard("Total orders",  "" + totalOrders),
-                                                kpiCard("Pending",       "" + pendingOrders)
+                                                kpiCard("Total orders",  "" + totalOrders,   BadgeColor.normal),
+                                                kpiCard("Pending",       "" + pendingOrders, BadgeColor.error)
                                         ))
                                         .build()
                         ))
                         .build()
         );
+    }
+
+    private Component kpiCard(String label, String value, BadgeColor color) {
+        // ... the helper shown above
     }
 }
 ```
@@ -250,7 +254,7 @@ Use `Listing` with `ListingType.card` for a home page that shows records as card
 ```java
 @Override
 public Component component(HttpRequest httpRequest) {
-    return Page.builder()
+    return PageView.builder()
             .title("Welcome")
             .subtitle("Review your open orders.")
             .content(List.of(

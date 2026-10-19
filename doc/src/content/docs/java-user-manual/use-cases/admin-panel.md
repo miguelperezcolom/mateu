@@ -200,9 +200,9 @@ record Product(
         ColumnActionGroup action,
         @Colspan(2)
         List<ProductComponent> components
-) implements Identifiable, LookupOptionsSupplier {
+) implements Identifiable {
 
-    Product {
+    public Product {
         action = new ColumnActionGroup(new ColumnAction[]{
                 new ColumnAction("setAsBlue", "Set as blue"),
                 new ColumnAction("setAsGreen", "Set as green")
@@ -217,9 +217,15 @@ Then add handler methods with matching names in the orchestrator:
 @UI("/products")
 public class Products extends AutoCrud<Product> {
 
+    private final CrudStore<Product> store; // e.g. a ProductStore like the one above
+
+    public Products(CrudStore<Product> store) {
+        this.store = store;
+    }
+
     @Override
     public CrudStore<Product> store() {
-        return new ProductStore();
+        return store;
     }
 
     void setAsBlue(Product row) {

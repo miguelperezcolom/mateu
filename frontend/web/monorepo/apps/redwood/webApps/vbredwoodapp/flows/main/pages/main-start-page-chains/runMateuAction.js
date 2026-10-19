@@ -24,14 +24,15 @@ define([
      * @param {string} params.actionId    id of the Mateu action (from the button's $current)
      * @param {Object} params.parameters  extra parameters (e.g. the row on the view click)
      * @param {Object} params.event       ojAction event (fallback: data-action-id)
+     * @param {Object} params.increment   a READY answer (the chat's generated screen: the shell ran `__preview__`)
      */
-    async run(context, { actionId, parameters, event }) {
+    async run(context, { actionId, parameters, event, increment }) {
       const { $application, $page } = context;
 
       // Marking the pressed control is done by the transport hooks at document level
       // (bridge.trackPressedControls): that way it covers ALL the chains, not just this one.
       try {
-        return await this.dispatch(context, { actionId, parameters, event });
+        return await this.dispatch(context, { actionId, parameters, event, increment });
       } catch (e) {
         // its screen is gone (navigated away while in flight): die silently
         if (bridge.isStaleResponse(e)) return undefined;
@@ -42,7 +43,7 @@ define([
       }
     }
 
-    async dispatch(context, { actionId, parameters, event }) {
+    async dispatch(context, { actionId, parameters, event, increment }) {
       const { $application, $page } = context;
 
       let id = actionId;
@@ -107,18 +108,20 @@ define([
         listingSelection: $application.variables.mateuListingSelection,
         formSections: $application.variables.mateuFormSections,
       });
-      if (plan.stop === 'selectionRequired') {
+      // the chat's generated screen arrives answered: none of the outbound checks apply to it
+      const preset = id === bridge.CHAT_PREVIEW_PAINT_ACTION ? (increment || { fragments: [] }) : null;
+      if (!preset && plan.stop === 'selectionRequired') {
         $page.variables.mateuToastText = bridge.chromeText('selectRowsFirst');
         await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
         return;
       }
-      if (plan.stop === 'fieldErrors') {
+      if (!preset && plan.stop === 'fieldErrors') {
         // the required fields are marked as a Redwood form does (a failed bound or pattern with
         // its wire message), the focus goes to the first — the page's, or the open drawer's
         await bridge.showFieldErrors(plan.missing, null, { messages: plan.messages, inOverlay: plan.inOverlay });
         return;
       }
-      if (plan.stop === 'rowErrors') {
+      if (!preset && plan.stop === 'rowErrors') {
         $page.variables.mateuRowErrors = plan.rowErrors;
         if (plan.rowEditor) {
           $page.variables.mateuRowEditor = plan.rowEditor;
@@ -135,7 +138,7 @@ define([
       // confirmationRequired: the confirmation dialog BEFORE it leaves (with the action's
       // texts); «No», ✕ or Esc leave it unsent. Vaadin does it in the browser; here it was
       // skipped and the action went out without asking.
-      const confirmation = bridge.confirmationOf(transportCtx, id);
+      const confirmation = preset ? null : bridge.confirmationOf(transportCtx, id);
       if (confirmation) {
         $page.variables.mateuConfirm = confirmation;
         const answer = bridge.awaitConfirmation();
@@ -174,8 +177,10 @@ define([
       // OWNER FIRST, then the app's ACTION catalogue: a flow the page declares — or, when the page
       // does not declare the id, the catalogue's — runs HERE with no server round trip, reduced
       // like any increment (NavigateTo / DispatchEvent / CloseModal / MarkAsClean …).
-      const clientFlow = bridge.pageFlowOf(before, id);
-      if (clientFlow) {
+      const clientFlow = preset ? null : bridge.pageFlowOf(before, id);
+      if (preset) {
+        applyInc(preset);
+      } else if (clientFlow) {
         applyInc({ commands: clientFlow, fragments: [], messages: [] });
       } else if (isSse) {
         // LongTask: the progress dialog is painted LIVE as the stream arrives; its

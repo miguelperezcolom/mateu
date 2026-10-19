@@ -32,7 +32,7 @@ VerticalLayout.builder()
 | `padding` | boolean | false | Adds inner padding |
 | `margin` | boolean | false | Adds outer margin |
 | `spacingVariant` | `SpacingVariant` | — | Controls spacing size |
-| `horizontalAlignment` | `HorizontalAlignment` | — | Aligns children horizontally (start, center, end, stretch) |
+| `horizontalAlignment` | `HorizontalAlignment` | — | Aligns children horizontally (`START`, `CENTER`, `END`, `STRETCH`) |
 | `justification` | `HorizontalLayoutJustification` | — | Justification mode |
 | `wrap` | boolean | false | Allows wrapping |
 | `flexGrows` | `List<Integer>` | `[]` | Flex-grow values per child |
@@ -66,7 +66,7 @@ VerticalLayout.builder()
 ```java
 VerticalLayout.builder()
     .content(List.of(new Text("Centered")))
-    .horizontalAlignment(HorizontalAlignment.center)
+    .horizontalAlignment(HorizontalAlignment.CENTER)
     .build()
 ```
 

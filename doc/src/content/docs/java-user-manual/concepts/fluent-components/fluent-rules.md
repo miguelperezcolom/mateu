@@ -110,7 +110,7 @@ boolean fieldDisabled = false;
 Form component = Form.builder()
         .content(List.of(
                 new Button("A Button"),
-                FormField.builder().id("aField")...build(),
+                FormField.builder().id("aField").label("A field").build(),
                 new Button("Toggle", () ->
                         new Data(
                                 Map.of(

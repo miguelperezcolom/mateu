@@ -280,7 +280,7 @@ export function LinkText({ value }: { value: string }) {
 
 /** Light markdown/HTML rendering: headings, bold-only lines, bullets — enough for @Help texts
  *  and read-only content fields without pulling a rendering dependency. */
-export function RichText({ value, kind }: { value: string; kind: 'markdown' | 'html' | 'richText' }) {
+export function RichText({ value, kind, onRouteLink }: { value: string; kind: 'markdown' | 'html' | 'richText'; onRouteLink?: (route: string) => void }) {
   const text = kind === 'markdown' ? value : stripHtml(value);
   const lines = text.split('\n');
   return (
@@ -300,13 +300,13 @@ export function RichText({ value, kind }: { value: string; kind: 'markdown' | 'h
           return (
             <Text key={i} style={styles.mdText}>
               {'  • '}
-              {renderInline(bullet[1], kind)}
+              {renderInline(bullet[1], kind, onRouteLink)}
             </Text>
           );
         }
         return (
           <Text key={i} style={styles.mdText}>
-            {renderInline(line, kind)}
+            {renderInline(line, kind, onRouteLink)}
           </Text>
         );
       })}
@@ -314,11 +314,15 @@ export function RichText({ value, kind }: { value: string; kind: 'markdown' | 'h
   );
 }
 
-function renderInline(line: string, kind: string): React.ReactNode {
+function renderInline(line: string, kind: string, onRouteLink?: (route: string) => void): React.ReactNode {
   if (kind !== 'markdown') return line;
-  // **bold** and [links](url) — the pragmatic subset
-  return inlineSpans(line).map((span, i) =>
-    span.kind === 'bold' ? (
+  // **bold** and [links](url) — the pragmatic subset; [text](/route) only where app routes open
+  return inlineSpans(line, !!onRouteLink).map((span, i) =>
+    span.kind === 'route' ? (
+      <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => onRouteLink?.(span.route)}>
+        {span.text}
+      </Text>
+    ) : span.kind === 'bold' ? (
       <Text key={i} style={styles.mdBold}>{span.text}</Text>
     ) : span.kind === 'link' ? (
       <Text key={i} style={styles.link} accessibilityRole="link" onPress={() => void openExternal(span.url)}>

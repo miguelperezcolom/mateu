@@ -302,6 +302,7 @@
       }
     },
     "AccordionLayout" : {
+      "description" : "A stack of collapsible panels where one or more can be expanded at a time.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -350,6 +351,7 @@
       "enum" : [ "filled", "small", "reverse" ]
     },
     "AccordionPanel" : {
+      "description" : "One collapsible panel of an accordion, with a label and its content.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -466,6 +468,7 @@
       }
     },
     "ActionPanel" : {
+      "description" : "A categorised ACTION PANEL: a trigger button that opens a layer over the page with the actions of the record grouped in columns, one per category (e.g.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -605,6 +608,7 @@
       }
     },
     "AddOnPicker" : {
+      "description" : "Priced extras with a live running total (e.g. upsell packages at check-in): a responsive grid of AddOn cards, each with a +/✓ toggle, and a header-right total (totalLabel + currency + sum of added prices, computed client-side).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -655,6 +659,7 @@
       }
     },
     "Anchor" : {
+      "description" : "A hyperlink with text that opens a URL, optionally in another window (target).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -716,6 +721,7 @@
       }
     },
     "AppData" : {
+      "description" : "Invisible holder that sets the data available to expressions across the app.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -795,6 +801,7 @@
       }
     },
     "AppShell" : {
+      "description" : "The application frame: title, menu, header widgets, layout variant and home route of an app.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -976,6 +983,7 @@
       }
     },
     "AppState" : {
+      "description" : "Invisible holder that sets the app-wide state shared by all screens.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1013,6 +1021,7 @@
       "enum" : [ "HAMBURGUER_MENU", "HAMBURGER_MENU", "HAMBURGER_SECTIONS", "MENU_ON_LEFT", "MENU_ON_TOP", "TABS", "TILES", "RAIL", "AUTO", "MEDIATOR" ]
     },
     "AutoSaveTrigger" : {
+      "description" : "Runs an action automatically, after a debounce delay, whenever the user changes a field.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1029,6 +1038,7 @@
       }
     },
     "Avatar" : {
+      "description" : "A round user avatar showing an image, initials or a name abbreviation.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1070,6 +1080,7 @@
       }
     },
     "AvatarGroup" : {
+      "description" : "A compact row of overlapping avatars that collapses extras into a +N chip.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1115,6 +1126,7 @@
       "enum" : [ "BREADCRUMBS", "PARENT" ]
     },
     "Badge" : {
+      "description" : "A small colored label (chip) for a status or count, optionally with icons.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1172,6 +1184,7 @@
       "enum" : [ "NONE", "INFO", "SUCCESS", "WARNING", "DANGER" ]
     },
     "BoardLayout" : {
+      "description" : "A responsive dashboard board made of rows of items that share the row width in columns.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1213,6 +1226,7 @@
       }
     },
     "BoardLayoutItem" : {
+      "description" : "One cell of a board row holding a component, spanning a number of board columns.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1251,6 +1265,7 @@
       }
     },
     "BoardLayoutRow" : {
+      "description" : "A row of a board layout; its items share the width.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1289,6 +1304,7 @@
       }
     },
     "Bpmn" : {
+      "description" : "A BPMN diagram rendered from BPMN 2.0 XML.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1335,6 +1351,7 @@
       }
     },
     "Breadcrumbs" : {
+      "description" : "A breadcrumb trail of links showing where the current page sits in the hierarchy.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1376,6 +1393,7 @@
       }
     },
     "BulletedList" : {
+      "description" : "A plain bulleted list — renders as a simple of text items.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1417,6 +1435,7 @@
       }
     },
     "Button" : {
+      "description" : "A button of a component tree (the fluent counterpart of @Button/@Toolbar): a label and/or icons, an appearance (ButtonStyle, ButtonColor, ButtonSize) and what it does — an actionId the enclosing component runs (an action method of the same name), or a handler of its own (runnable/callable). parameters travel to the action.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1504,6 +1523,7 @@
       "enum" : [ "none", "success", "error", "warning", "contrast", "normal" ]
     },
     "ButtonGroup" : {
+      "description" : "A group of buttons shown together, usually collapsed into a single dropdown trigger.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1563,6 +1583,7 @@
       "enum" : [ "danger", "warning", "error" ]
     },
     "Calendar" : {
+      "description" : "A calendar with events. month is the ANCHOR date: any day of the month to show in the month and list views, the day of the day view, a day of the week in the week view.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1664,6 +1685,7 @@
       "enum" : [ "month", "week", "day", "list" ]
     },
     "CalloutCard" : {
+      "description" : "A highlighted call-to-action block: an icon, a title, a description and an optional CTA button (ctaLabel + actionId). theme tints it — one of \"info\", \"success\", \"warning\" or \"danger\" (default info).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1717,6 +1739,7 @@
       }
     },
     "Card" : {
+      "description" : "A card: optional media, a header (prefix, title, subtitle, suffix), the content and a footer — each slot any component.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1786,6 +1809,7 @@
       "enum" : [ "outlined", "elevated", "horizontal", "stretchMedia", "coverMedia" ]
     },
     "CarouselLayout" : {
+      "description" : "A slideshow that shows one child component at a time with navigation controls.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1869,6 +1893,7 @@
       }
     },
     "Chart" : {
+      "description" : "A chart (bar, line, pie and others) drawn from labelled datasets.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1975,6 +2000,7 @@
       "enum" : [ "bar", "line", "scatter", "polarArea", "bubble", "pie", "doughnut", "radar" ]
     },
     "Chat" : {
+      "description" : "The AI assistant chat panel as a component.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2013,6 +2039,7 @@
       }
     },
     "Checklist" : {
+      "description" : "A checklist with a progress bar: a list of ChecklistItems (done/undone) and a header showing how many are complete.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2085,6 +2112,7 @@
       }
     },
     "CloseOverlay" : {
+      "description" : "Close the top overlay (dialog/drawer), optionally emitting a named result event as it closes.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2128,6 +2156,7 @@
       }
     },
     "CommentThread" : {
+      "description" : "A read-only discussion thread: a list of Comments, each with an author, text, timestamp and nested replies.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2169,6 +2198,7 @@
       }
     },
     "ComparisonCard" : {
+      "description" : "A side-by-side comparison of two values (e.g. two periods, plans or options): a title, a left and right label+value, and a delta with a trend (\"up\" / \"down\" / \"flat\") between them.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2479,6 +2509,7 @@
       } ]
     },
     "ComponentRef" : {
+      "description" : "A reference to a named business component in the ComponentCatalog (coherence-plan .13): drop new ComponentRef(\"AgencySelector\") anywhere a component goes and it stands for that catalogue entry's bound composition.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2508,6 +2539,7 @@
       }
     },
     "ConfirmDialog" : {
+      "description" : "A modal that asks the user to confirm, reject or cancel, running an action for each choice.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2587,6 +2619,7 @@
       }
     },
     "Container" : {
+      "description" : "A plain wrapper around one component, used for styling or grouping.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2626,6 +2659,7 @@
       "enum" : [ "start", "end" ]
     },
     "ContentLayout" : {
+      "description" : "Redwood-style content page layout: the uniform slot grammar shared by the page archetypes.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2688,6 +2722,7 @@
       }
     },
     "ContentLink" : {
+      "description" : "A menu entry that shows a component or component tree in the content area when selected.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2730,6 +2765,7 @@
       }
     },
     "ContextMenu" : {
+      "description" : "A menu that opens on right click (or left click) over a wrapped component.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2774,6 +2810,7 @@
       }
     },
     "CookieConsent" : {
+      "description" : "A cookie-consent banner with a message, learn-more link and dismiss button.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2831,6 +2868,7 @@
       "enum" : [ "Top", "Bottom", "TopLeft", "TopRight", "BottomLeft", "BottomRight" ]
     },
     "CustomComponent" : {
+      "description" : "A genuinely NEW component type the platform does not ship (coherence-plan .14): the explicit, relegated per-renderer escape hatch.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2881,6 +2919,7 @@
       }
     },
     "CustomField" : {
+      "description" : "A form field slot that holds an arbitrary component with a label.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2922,6 +2961,7 @@
       }
     },
     "DashboardLayout" : {
+      "description" : "A responsive grid of dashboard tiles (Scoreboard, DashboardPanel, MetricCard or any other component). columns fixes the number of grid columns; 0 (the default) lets the renderer pick a responsive column count.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -2966,6 +3006,7 @@
       }
     },
     "DashboardPanel" : {
+      "description" : "A titled tile inside a DashboardLayout.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3016,6 +3057,7 @@
       }
     },
     "Data" : {
+      "description" : "An action result that sets the enclosing component's DATA — values the screen reads (options, search results, anything referenced as ${data.…}) without being part of the form state. newState, when set, also replaces the state.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3067,6 +3109,7 @@
       }
     },
     "Details" : {
+      "description" : "A collapsible block with a summary that expands to reveal its content.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3108,6 +3151,7 @@
       }
     },
     "Dialog" : {
+      "description" : "A modal dialog with optional header, content and footer, opened over the current page.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3183,6 +3227,7 @@
       }
     },
     "Directory" : {
+      "description" : "A page listing menu entries as a browsable directory of links.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3221,6 +3266,7 @@
       }
     },
     "Div" : {
+      "description" : "A generic block element holding text or child components, for custom layout and styling.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3262,6 +3308,7 @@
       }
     },
     "Drawer" : {
+      "description" : "A panel that slides in from a side of the viewport, overlaying the current page.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3348,6 +3395,7 @@
       "enum" : [ "s", "m", "l", "xl" ]
     },
     "DropZone" : {
+      "description" : "A place to DROP dragged listing rows (a listing marked @DragRows(type)): a titled area — a card, a column, an item of a list of destinations — wrapping any content.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3404,6 +3452,7 @@
       }
     },
     "Element" : {
+      "description" : "An arbitrary HTML element or web component with attributes, event bindings and content.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3451,6 +3500,7 @@
       }
     },
     "EmbeddedView" : {
+      "description" : "Embeds a routed view (a @UI/@Route model view — e.g. a Wizard) as an INDEPENDENT server-side component: it renders inside the host tree but routes its OWN actions back to itself (its step navigation, saves, etc.), unlike ModelViewComponent, which renders the view inline and lets its actions bubble to the host.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3478,6 +3528,7 @@
       }
     },
     "Emit" : {
+      "description" : "Emit a named event on the app event bus (pub/sub — refinement R1), optionally with a payload.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3492,6 +3543,7 @@
       }
     },
     "EmptyState" : {
+      "description" : "A friendly placeholder for \"there is nothing here yet\": an icon, a title, a description and an optional call-to-action button.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3542,6 +3594,7 @@
       }
     },
     "EntityHeader" : {
+      "description" : "A persistent context banner for the entity a flow operates on (e.g. the guest of a check-in wizard): the title with its badges (Chips), a subtitle, key facts (Fact label-over-value pairs) and one highlighted metric on the right (metricLabel, big accent-colored metricValue, metricCaption).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3627,6 +3680,7 @@
       }
     },
     "Faq" : {
+      "description" : "A read-only FAQ list: collapsible question/answer rows.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3699,6 +3753,7 @@
       }
     },
     "FeatureGrid" : {
+      "description" : "A responsive grid of feature cards (icon + title + description), for landing/marketing pages.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3747,6 +3802,7 @@
       "enum" : [ "integer", "string", "number", "date", "time", "dateTime", "bool", "array", "file", "status", "money", "component", "menu", "range", "action", "actionGroup", "dateRange" ]
     },
     "FieldLink" : {
+      "description" : "A menu entry that navigates to a screen exposed by a field of the app class.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3822,6 +3878,7 @@
       }
     },
     "FileList" : {
+      "description" : "A read-only list of attached files, each shown with a type icon, name and size.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3867,6 +3924,7 @@
       "enum" : [ "auto", "inline", "popover", "drawer", "dialog" ]
     },
     "FoldoutLayout" : {
+      "description" : "Redwood-style foldout: a fixed overview panel on the left with general information about the current record, plus two or more lateral FoldoutPanels with categories of associated information that the user folds in and out.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -3953,6 +4011,7 @@
       "enum" : [ "vertical", "horizontal" ]
     },
     "FoldoutPanel" : {
+      "description" : "One lateral panel of a FoldoutLayout: a category of information associated to the record shown in the overview.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4009,6 +4068,7 @@
       }
     },
     "Form" : {
+      "description" : "A page: a header (title, subtitle, toolbar…) over its content — what a YAML page authors as type: Form.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4125,6 +4185,7 @@
       }
     },
     "FormEditor" : {
+      "description" : "A form-definition editor component. value is the JSON FormDefinition string.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4160,6 +4221,7 @@
       }
     },
     "FormField" : {
+      "description" : "One field of a fluent form: an id (the key of the component state it is bound to), a label, a FieldDataType and an optional FieldStereotype (how it is edited — select, textarea, grid…), plus the usual modifiers (required, read-only, placeholder, options…).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4317,6 +4379,7 @@
       }
     },
     "FormItem" : {
+      "description" : "One item of a form layout, wrapping the components that make up a field.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4358,6 +4421,7 @@
       }
     },
     "FormLayout" : {
+      "description" : "A responsive form grid: its content (fields, rows) flows into up to maxColumns columns, with labels on top or, with labelsAside, to the left of each field.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4434,6 +4498,7 @@
       "enum" : [ "top", "right", "bottom", "left", "modalLeft", "modalRight", "modal" ]
     },
     "FormRow" : {
+      "description" : "A row of a form layout grouping components side by side.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4475,6 +4540,7 @@
       }
     },
     "FormSection" : {
+      "description" : "A titled section of a form that groups fields, with an optional toolbar.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4522,6 +4588,7 @@
       }
     },
     "FormSubSection" : {
+      "description" : "A titled sub-group of fields inside a form section.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4563,6 +4630,7 @@
       }
     },
     "FullWidth" : {
+      "description" : "Wraps a component so it stretches across the full width of its container.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4598,6 +4666,7 @@
       }
     },
     "Funnel" : {
+      "description" : "A read-only conversion funnel: stacked horizontal bars, each narrower than the last, showing how a value drops through stages with the conversion percentage between them.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4653,6 +4722,7 @@
       }
     },
     "FutureComponent" : {
+      "description" : "A placeholder for a component that is resolved asynchronously on the server.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4680,6 +4750,7 @@
       }
     },
     "Gantt" : {
+      "description" : "A Gantt/timeline chart: one row per GanttTask, bars spanning the task's dates on a shared time axis, with per-task progress and a today marker.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4743,6 +4814,7 @@
       }
     },
     "Grid" : {
+      "description" : "A data table with columns, rows and optional tree, striping and border options.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4817,6 +4889,7 @@
       }
     },
     "GridColumn" : {
+      "description" : "A column of a grid or listing: header label, data type, alignment, sorting and width.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -4943,6 +5016,7 @@
       }
     },
     "GridGroupColumn" : {
+      "description" : "A column header that groups several grid columns under a shared label.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5032,6 +5106,7 @@
       }
     },
     "Heatmap" : {
+      "description" : "A read-only calendar heatmap (GitHub-contributions style): one square per day, laid out in week-columns, colored by intensity from 0 to the maximum value.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5073,6 +5148,7 @@
       }
     },
     "HeroSection" : {
+      "description" : "A prominent page hero: a large title and subtitle, optionally over a background image, with slotted content below (search box, call-to-action buttons…).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5140,6 +5216,7 @@
       "enum" : [ "START", "CENTER", "END", "STRETCH" ]
     },
     "HorizontalLayout" : {
+      "description" : "Lays its content out side by side, with optional spacing, alignment and wrapping (wrap lets a child drop below the others on a narrow screen; flexGrows gives each child its share of the width).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5215,6 +5292,7 @@
       "enum" : [ "START", "CENTER", "END", "BETWEEN", "AROUND", "EVENLY" ]
     },
     "Icon" : {
+      "description" : "A single icon from the built-in icon set.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5254,6 +5332,7 @@
       "enum" : [ "None", "Abacus", "AbsolutePosition", "AcademyCap", "Accessibility", "AccordionMenu", "AddDock", "Adjust", "AdobeFlash", "Airplane", "Alarm", "AlignCenter", "AlignJustify", "AlignLeft", "AlignRight", "AltA", "Alt", "Ambulance", "Anchor", "AngleDoubleDown", "AngleDoubleLeft", "AngleDoubleRight", "AngleDoubleUp", "AngleDown", "AngleLeft", "AngleRight", "AngleUp", "Archive", "Archives", "AreaSelect", "ArrowBackward", "ArrowCircleDownO", "ArrowCircleDown", "ArrowCircleLeftO", "ArrowCircleLeft", "ArrowCircleRightO", "ArrowCircleRight", "ArrowCircleUpO", "ArrowCircleUp", "ArrowDown", "ArrowForward", "ArrowLeft", "ArrowLongDown", "ArrowLongLeft", "ArrowRight", "ArrowUp", "ArrowsCross", "ArrowsLongH", "ArrowsLongRight", "ArrowsLongUp", "ArrowsLongV", "Arrows", "Asterisk", "At", "Automation", "BackspaceA", "Backspace", "Backwards", "Ban", "BarChartH", "BarChartV", "BarChart", "Barcode", "Bed", "BellO", "BellSlashO", "BellSlash", "Bell", "Boat", "Bold", "Bolt", "Bomb", "BookDollar", "BookPercent", "Book", "BookmarkO", "Bookmark", "Briefcase", "Browser", "BugO", "Bug", "BuildingO", "Building", "Bullets", "Bullseye", "Bus", "Buss", "Button", "CalcBook", "Calc", "CalendarBriefcase", "CalendarClock", "CalendarEnvelope", "CalendarO", "CalendarUser", "Calendar", "Camera", "Car", "CaretDown", "CaretLeft", "CaretRight", "CaretSquareDownO", "CaretSquareLeftO", "CaretSquareRightO", "CaretSquareUpO", "CaretUp", "CartO", "Cart", "Cash", "Chart3d", "ChartGrid", "ChartLine", "ChartTimeline", "Chart", "Chat", "CheckCircleO", "CheckCircle", "CheckSquareO", "CheckSquare", "Check", "ChevronCircleDownO", "ChevronCircleDown", "ChevronCircleLeftO", "ChevronCircleLeft", "ChevronCircleRightO", "ChevronCircleRight", "ChevronCircleUpO", "ChevronCircleUp", "ChevronDownSmall", "ChevronDown", "ChevronLeftSmall", "ChevronLeft", "ChevronRightSmall", "ChevronRight", "ChevronUpSmall", "ChevronUp", "Child", "CircleThin", "Circle", "ClipboardCheck", "ClipboardCross", "ClipboardHeart", "ClipboardPulse", "ClipboardText", "ClipboardUser", "Clipboard", "Clock", "CloseBig", "CloseCircleO", "CloseCircle", "CloseSmall", "Close", "CloudDownloadO", "CloudDownload", "CloudO", "CloudUploadO", "CloudUpload", "Cloud", "Cluster", "Code", "Coffee", "CogO", "Cog", "Cogs", "CoinPiles", "Coins", "Combobox", "CommentEllipsisO", "CommentEllipsis", "CommentO", "Comment", "CommentsO", "Comments", "Compile", "CompressSquare", "Compress", "ConnectO", "Connect", "Controller", "CopyO", "Copy", "Copyright", "CornerLowerLeft", "CornerLowerRight", "CornerUpperLeft", "CornerUpperRight", "CreditCard", "Crop", "CrossCutlery", "Crosshairs", "Css", "CtrlA", "Ctrl", "Cube", "Cubes", "CurlyBrackets", "CursorO", "Cursor", "Cutlery", "Dashboard", "Database", "DateInput", "Deindent", "DelA", "Del", "DentalChair", "Desktop", "DiamondO", "Diamond", "DiplomaScroll", "Diploma", "Disc", "DoctorBriefcase", "Doctor", "Dollar", "DotCircle", "DownloadAlt", "Download", "Drop", "Edit", "Eject", "Elastic", "EllipsisCircleO", "EllipsisCircle", "EllipsisDotsH", "EllipsisDotsV", "EllipsisH", "EllipsisV", "EnterArrow", "Enter", "EnvelopeO", "EnvelopeOpenO", "EnvelopeOpen", "Envelope", "EnvelopesO", "Envelopes", "Eraser", "EscA", "Esc", "Euro", "Exchange", "ExclamationCircleO", "ExclamationCircle", "Exclamation", "ExitO", "Exit", "ExpandFull", "ExpandSquare", "Expand", "ExternalBrowser", "ExternalLink", "EyeSlash", "Eye", "Eyedropper", "FacebookSquare", "Facebook", "Factory", "Family", "FastBackward", "FastForward", "Female", "FileAdd", "FileCode", "FileFont", "FileMovie", "FileO", "FilePicture", "FilePresentation", "FileProcess", "FileRefresh", "FileRemove", "FileSearch", "FileSound", "FileStart", "FileTable", "FileTextO", "FileText", "FileTreeSmall", "FileTreeSub", "FileTree", "FileZip", "File", "Fill", "Film", "Filter", "Fire", "FlagCheckered", "FlagO", "Flag", "Flash", "Flask", "FlightLanding", "FlightTakeoff", "FlipH", "FlipV", "FolderAdd", "FolderO", "FolderOpenO", "FolderOpen", "FolderRemove", "FolderSearch", "Folder", "Font", "Form", "Forward", "FrownO", "Funcion", "Function", "Funnel", "Gamepad", "Gavel", "Gift", "Glass", "Glasses", "GlobeWire", "Globe", "Golf", "GooglePlusSquare", "GooglePlus", "Grab", "GridBevel", "GridBigO", "GridBig", "GridH", "GridSmallO", "GridSmall", "GridV", "Grid", "Group", "Hammer", "Hand", "HandleCorner", "HandsUp", "Handshake", "HarddriveO", "Harddrive", "Hash", "Header", "Headphones", "Headset", "HealthCard", "HeartO", "Heart", "HomeO", "Home", "Hospital", "HourglassEmpty", "HourglassEnd", "HourglassStart", "Hourglass", "Inbox", "Indent", "InfoCircleO", "InfoCircle", "Info", "Input", "Insert", "Institution", "Invoice", "Italic", "KeyO", "Key", "KeyboardO", "Keyboard", "Laptop", "Layout", "LevelDownBold", "LevelDown", "LevelLeftBold", "LevelLeft", "LevelRightBold", "LevelRight", "LevelUpBold", "LevelUp", "Lifebuoy", "Lightbulb", "LineBarChart", "LineChart", "LineH", "LineV", "LinesList", "Lines", "Link", "ListOl", "ListSelect", "ListUl", "List", "LocationArrowCircleO", "LocationArrowCircle", "LocationArrow", "Lock", "Magic", "Magnet", "Mailbox", "Male", "MapMarker", "MarginBottom", "MarginLeft", "MarginRight", "MarginTop", "Margin", "Medal", "Megafone", "Megaphone", "MehO", "Menu", "Microphone", "MinusCircleO", "MinusCircle", "MinusSquareO", "Minus", "MobileBrowser", "MobileRetro", "Mobile", "ModalList", "Modal", "MoneyDeposit", "MoneyExchange", "MoneyWithdraw", "Money", "MoonO", "Moon", "Morning", "Movie", "Music", "Mute", "NativeButton", "Newspaper", "Notebook", "Nurse", "Office", "OpenBook", "OptionA", "Option", "Options", "Orientation", "Out", "Outbox", "Package", "PaddingBottom", "PaddingLeft", "PaddingRight", "PaddingTop", "Padding", "PaintRoll", "Paintbrush", "Palete", "Palette", "Panel", "Paperclip", "PaperplaneO", "Paperplane", "Paragraph", "Password", "Paste", "Pause", "Pencil", "PhoneLandline", "Phone", "Picture", "PieBarChart", "PieChart", "PiggyBankCoin", "PiggyBank", "Pill", "Pills", "PinPost", "Pin", "PlayCircleO", "PlayCircle", "Play", "Plug", "PlusCircleO", "PlusCircle", "PlusMinus", "PlusSquareO", "Plus", "Pointer", "PowerOff", "Presentation", "Print", "Progressbar", "PuzzlePiece", "PyramidChart", "Qrcode", "QuestionCircleO", "QuestionCircle", "Question", "QuoteLeft", "QuoteRight", "Random", "RasterLowerLeft", "Raster", "Records", "Recycle", "Refresh", "ReplyAll", "Reply", "ResizeH", "ResizeV", "Retweet", "Rhombus", "RoadBranch", "RoadBranches", "RoadSplit", "Road", "Rocket", "RotateLeft", "RotateRight", "RssSquare", "Rss", "SafeLock", "Safe", "ScaleUnbalance", "Scale", "ScatterChart", "Scissors", "Screwdriver", "SearchMinus", "SearchPlus", "Search", "Select", "Server", "ShareSquare", "Share", "Shield", "ShiftArrow", "Shift", "Shop", "SignInAlt", "SignIn", "SignOutAlt", "SignOut", "Signal", "Sitemap", "Slider", "Sliders", "SmileyO", "Sort", "SoundDisable", "SparkLine", "Specialist", "SpinnerArc", "SpinnerThird", "Spinner", "SplineAreaChart", "SplineChart", "SplitH", "SplitV", "Split", "Spoon", "SquareShadow", "StarHalfLeftO", "StarHalfLeft", "StarHalfRightO", "StarHalfRight", "StarO", "Star", "StartCog", "StepBackward", "StepForward", "Stethoscope", "Stock", "StopCog", "Stop", "Stopwatch", "Storage", "Strikethrough", "Subscript", "Suitcase", "SunDown", "SunO", "SunRise", "Superscript", "Sword", "TabA", "Tab", "Table", "Tablet", "Tabs", "Tag", "Tags", "Tasks", "Taxi", "Teeth", "Terminal", "TextHeight", "TextInput", "TextLabel", "TextWidth", "ThinSquare", "ThumbsDownO", "ThumbsDown", "ThumbsUpO", "ThumbsUp", "Ticket", "TimeBackward", "TimeForward", "Timer", "Toolbox", "Tools", "Tooth", "Touch", "Train", "Trash", "TreeTable", "TrendindDown", "TrendingDown", "TrendingUp", "Trophy", "Truck", "TwinColSelect", "TwitterSquare", "Twitter", "Umbrella", "Underline", "Unlink", "Unlock", "UploadAlt", "Upload", "UserCard", "UserCheck", "UserClock", "UserHeart", "UserStar", "User", "Users", "VaadinH", "VaadinV", "Viewport", "VimeoSquare", "Vimeo", "VolumeDown", "VolumeOff", "VolumeUp", "Volume", "Wallet", "Warning", "Workplace", "Wrench", "YoutubeSquare", "Youtube" ]
     },
     "Image" : {
+      "description" : "An image, by url or data URI.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5268,6 +5347,9 @@
           "type" : "string"
         },
         "cssClasses" : {
+          "type" : "string"
+        },
+        "alt" : {
           "type" : "string"
         },
         "note" : {
@@ -5289,6 +5371,7 @@
       }
     },
     "KPI" : {
+      "description" : "A small key-performance-indicator pair showing a title and a value.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5327,6 +5410,7 @@
       }
     },
     "Kanban" : {
+      "description" : "A read-only kanban board: columns of cards.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5411,6 +5495,7 @@
       }
     },
     "Ledger" : {
+      "description" : "A folio/invoice breakdown with a total: lines (LedgerLine) rendered as concept-left, monospace-amount-right rows (negative amounts in error red, included lines show their label instead of an amount), then a divider and the totalLabel with the big total (null → the client computes the sum of non-included amounts).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5478,6 +5563,7 @@
       }
     },
     "Listing" : {
+      "description" : "A searchable, filterable, paginated list of rows with columns, a toolbar and row actions.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5673,6 +5759,7 @@
       "enum" : [ "table", "card" ]
     },
     "Map" : {
+      "description" : "A street map: tiles centred on position (\"lat, lon\") at zoom, with optional markers.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5752,6 +5839,7 @@
       }
     },
     "MarkClean" : {
+      "description" : "Mark the current view clean (e.g. after a save) — suppresses the unsaved-changes guard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5762,6 +5850,7 @@
       }
     },
     "MarkDirty" : {
+      "description" : "Mark the current view dirty — arms the unsaved-changes navigation guard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5772,6 +5861,7 @@
       }
     },
     "Markdown" : {
+      "description" : "A block of text rendered from Markdown.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5807,6 +5897,7 @@
       }
     },
     "MasterDetailLayout" : {
+      "description" : "A two-pane layout with a master list and a detail area that shows the selected item.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5885,6 +5976,7 @@
       }
     },
     "MatrixGrid" : {
+      "description" : "A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the shape of an availability or forecast grid.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -5984,6 +6076,7 @@
       }
     },
     "Menu" : {
+      "description" : "A menu entry built in code (the fluent counterpart of a @Menu field): a label, the path it navigates to, or a submenu of further entries; selected, disabled and hidden as their names say.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6035,6 +6128,7 @@
       }
     },
     "MenuBar" : {
+      "description" : "A horizontal bar of menu entries, some of which may open submenus.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6091,6 +6185,7 @@
       }
     },
     "MenuSeparator" : {
+      "description" : "A visual divider between entries of a menu.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6140,6 +6235,7 @@
       }
     },
     "MessageInput" : {
+      "description" : "A chat-style message input.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6178,6 +6274,7 @@
       }
     },
     "MessageList" : {
+      "description" : "A read-only chat-style list of MessageListItems (Vaadin/PatternFly message list).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6242,6 +6339,7 @@
       }
     },
     "Meter" : {
+      "description" : "Consumption against a limit (e.g. balance vs preauthorization): a small-caps label, the formatted value big with the unit symbol appended, a progress track filled to value/max, and a muted caption (absent → the computed fill percent).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6298,6 +6396,7 @@
       }
     },
     "MethodLink" : {
+      "description" : "A menu entry that runs a method of the app class when selected.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6343,6 +6442,7 @@
       }
     },
     "MetricCard" : {
+      "description" : "A KPI tile for dashboards: a title, a prominent value, an optional trend indicator and an optional drill-in action.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6409,6 +6509,7 @@
       "enum" : [ "up", "down", "neutral" ]
     },
     "MicroFrontend" : {
+      "description" : "Embeds a UI served from another backend (baseUrl) or route inside the current page.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6474,6 +6575,7 @@
       }
     },
     "Navigate" : {
+      "description" : "Navigate to a route.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6487,6 +6589,7 @@
       }
     },
     "NotFound" : {
+      "description" : "The page shown in place of a screen whose record or route does not exist: an icon, a heading, a short explanation and a way back.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6534,6 +6637,7 @@
       }
     },
     "Notice" : {
+      "description" : "A compact inline banner: a rounded, theme-tinted strip with a small severity icon and one line of text — for notices like \"2 quejas pendientes\" embedded anywhere in the UI (inside cards, columns, forms).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6605,6 +6709,7 @@
       }
     },
     "Notification" : {
+      "description" : "A transient toast notification with an optional title and text.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6643,6 +6748,7 @@
       }
     },
     "OfferCard" : {
+      "description" : "A current-vs-upgrade offer card: an optional image header, a floating tag chip, title + subtitle, features as outline chips and a footer.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6717,6 +6823,7 @@
       }
     },
     "OnCustomEventTrigger" : {
+      "description" : "Runs an action when a named custom event is dispatched by another component or the page.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6742,6 +6849,7 @@
       }
     },
     "OnErrorTrigger" : {
+      "description" : "Runs an action when another action fails.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6761,6 +6869,7 @@
       }
     },
     "OnLoadTrigger" : {
+      "description" : "Runs actionId when the component loads. background = true runs it as a silent refresh — no loading veil, no busy affordance — which is what a status poll wants: a detail that re-fetches itself every couple of seconds should update in place, not dim the whole page on every tick.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6786,6 +6895,7 @@
       }
     },
     "OnSuccessTrigger" : {
+      "description" : "After calledActionId succeeds, runs actionId (optionally after timeoutMillis). background = true runs it as a silent refresh (no loading veil) — what a self-re-scheduling poll wants: refresh → wait → refresh → … must not dim the page on every tick.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6811,6 +6921,7 @@
       }
     },
     "OnValueChangeTrigger" : {
+      "description" : "Runs an action when a field value changes, optionally only if a condition holds.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6857,6 +6968,7 @@
       }
     },
     "OrgChart" : {
+      "description" : "A read-only top-down hierarchy chart (org chart, category tree): a single root OrgNode whose children fan out below it, connected by lines.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -6989,6 +7101,7 @@
       }
     },
     "Partial" : {
+      "description" : "A reference to a reusable piece of UI, usable anywhere a component is.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7029,6 +7142,7 @@
       }
     },
     "PaymentPicker" : {
+      "description" : "A payment method picker with context and confirm CTA: a row of segmented buttons (PaymentMethod, initial selection seeded from selected, toggled client-side), an optional success-tinted context chip (contextLabel over contextValue) and a primary confirmLabel button dispatching actionId with { \"_method\": selectedId }.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7133,6 +7247,7 @@
       }
     },
     "PlanningBoard" : {
+      "description" : "A planning board / tape chart: one row per PlanningResource, one column per day between from and to, and colored PlanningBlocks spanning their date ranges on their resource's row — the rooms × days grid every hotel/rental/staffing back-office needs.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7226,6 +7341,7 @@
       }
     },
     "Popover" : {
+      "description" : "A popover: the wrapped component, and the content shown in a small floating panel next to it — on click by default, or on hover/focus with trigger = hover (read-only details: a rate breakdown, a reservation summary).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7306,6 +7422,7 @@
       }
     },
     "PricingTable" : {
+      "description" : "A pricing / plan-comparison table: a row of PricingPlan cards side by side, one optionally marked featured (highlighted).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7382,6 +7499,7 @@
       }
     },
     "ProcessMonitor" : {
+      "description" : "A monitored-automations health board: a bordered list of ProcessItem rows, each with a colored status dot, the process name and involved systems, OK/warning/error counters and an optional fix button dispatching the item's actionId with no parameters.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7423,6 +7541,7 @@
       }
     },
     "ProgressBar" : {
+      "description" : "A progress bar showing a value between a minimum and maximum, or an indeterminate wait.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7476,6 +7595,7 @@
       }
     },
     "ProgressSteps" : {
+      "description" : "A read-only horizontal progress indicator: a row of numbered Steps connected by a line, showing where a multi-step process stands.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7563,6 +7683,7 @@
       }
     },
     "RecordMerge" : {
+      "description" : "COMPARE AND MERGE: two (or more) records of the same type side by side, one column per record and one row per field, with the rows whose values differ highlighted and a pick per row (\"use the value from A\") — plus a free edit where a field is editable.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7680,6 +7801,7 @@
       }
     },
     "RemoteMenu" : {
+      "description" : "A section of a federated shell served by another app: the shell asks baseUrl for its menu and puts it where this entry is, and a deep link under one of that app's routes is mounted from it.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7721,6 +7843,7 @@
       }
     },
     "ResourceGrid" : {
+      "description" : "An availability/selection grid (e.g. a room picker): a CSS grid of ResourceItem cards with a fixed columns count (0/absent → responsive auto-fill).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7806,6 +7929,7 @@
       }
     },
     "ResponsiveGrid" : {
+      "description" : "One responsive grid — THE general layout foundation (coherence-plan .9).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -7927,6 +8051,7 @@
       }
     },
     "RouteLink" : {
+      "description" : "A menu entry that navigates to a route, optionally on another backend.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8026,6 +8151,7 @@
       "enum" : [ "required", "disabled", "hidden", "pattern", "minValue", "maxValue", "minLength", "maxLength", "css", "style", "theme", "errorMessage", "description", "none" ]
     },
     "RuleLink" : {
+      "description" : "A menu leaf that RUNS client-side rules when clicked instead of navigating to a route.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8078,6 +8204,7 @@
       "enum" : [ "Continue", "Stop" ]
     },
     "RunAction" : {
+      "description" : "Run a server action by id (the \"call the server\" verb — needs a backend).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8091,6 +8218,7 @@
       }
     },
     "Scoreboard" : {
+      "description" : "A horizontal band of MetricCards summarising essential status information, typically placed at the top of a dashboard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8132,6 +8260,7 @@
       }
     },
     "Scroller" : {
+      "description" : "A scrollable viewport around a component whose content may overflow.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8167,6 +8296,7 @@
       }
     },
     "Separator" : {
+      "description" : "A horizontal divider line () separating contents inside a section, form or any layout.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8209,6 +8339,7 @@
       "enum" : [ "hug", "fill", "fixed" ]
     },
     "Skeleton" : {
+      "description" : "A shimmering placeholder shown while real content loads.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8254,6 +8385,7 @@
       "enum" : [ "text", "card", "grid", "form" ]
     },
     "Slotted" : {
+      "description" : "Places a component into a named slot of a template (coherence-plan .7).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8290,6 +8422,7 @@
       "enum" : [ "xs", "s", "m", "l", "xl" ]
     },
     "SplitLayout" : {
+      "description" : "A two-pane layout separated by a draggable splitter.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8344,6 +8477,7 @@
       "enum" : [ "small", "minimal" ]
     },
     "Stat" : {
+      "description" : "A compact KPI stat: a label, a big value (with optional unit), a delta with a trend direction (\"up\" / \"down\" / \"flat\") and an inline sparkline drawn from spark.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8403,6 +8537,7 @@
       }
     },
     "State" : {
+      "description" : "An action result that sets the enclosing component's STATE from an object's fields — typically return new State(this); after the action changed the view model's fields, so the form shows the new values without re-rendering the whole screen.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8495,6 +8630,7 @@
       }
     },
     "StatusList" : {
+      "description" : "A bordered list of rows with an icon, a title plus description, and a status chip and/or a small action button on the right (see StatusItem) — incidents, side-effects checklists, pending-tasks lists.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8575,6 +8711,7 @@
       "enum" : [ "object", "context" ]
     },
     "Tab" : {
+      "description" : "One tab of a TabLayout: a label (with an optional badge) and the content it shows. active makes it the tab selected on first render; shortcut (e.g. \"alt+1\") selects it from the keyboard.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8625,6 +8762,7 @@
       }
     },
     "TabLayout" : {
+      "description" : "A set of tabs where selecting a tab shows its content.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8682,6 +8820,7 @@
       "enum" : [ "small", "minimal", "centered", "bordered", "equalWidth" ]
     },
     "TaskProgress" : {
+      "description" : "A subtask completion banner (e.g. \"pax 1/4 registered\"): a label, done/total pills (filled up to done) and a right-aligned button (actionLabel + actionId, dispatched with no parameters; hidden when absent).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8732,6 +8871,7 @@
       }
     },
     "TaskQueue" : {
+      "description" : "A grouped work queue rail (e.g. \"Llegadas hoy\" / \"Salidas hoy\"): vertical groups (QueueGroup) of clickable cards (QueueItem).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8796,6 +8936,7 @@
       }
     },
     "Testimonials" : {
+      "description" : "A responsive grid of testimonial / quote cards (a quote, an author with role and avatar, an optional star rating), for landing/marketing pages.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8837,6 +8978,7 @@
       }
     },
     "Text" : {
+      "description" : "A piece of text: a block (div) by default, or a paragraph, a span or a heading (TextContainer h1…h6), with an optional TextSize and variants. text may carry ${…} templates over the component's state and data. noMargins drops the container's block margins (for tight captions).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8905,6 +9047,7 @@
       "enum" : [ "b", "i" ]
     },
     "Timeline" : {
+      "description" : "A read-only vertical timeline / activity feed: a chronological list of TimelineItems, each a dot on a vertical rail with a title, optional description, timestamp label and icon.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8972,6 +9115,7 @@
       }
     },
     "Tooltip" : {
+      "description" : "Wraps a component and shows explanatory text when the user hovers or focuses it.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -9010,6 +9154,7 @@
       }
     },
     "TrendChart" : {
+      "description" : "A read-only lightweight line/area chart: a single series of values plotted as an SVG line (optionally area-filled), with optional x-axis labels, min/max markers and a hover tooltip.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -9094,6 +9239,7 @@
       "enum" : [ "START", "CENTER", "END", "BETWEEN", "AROUND", "EVENLY", "BASELINE" ]
     },
     "VerticalLayout" : {
+      "description" : "Stacks its content vertically, with optional spacing, padding and alignment (flexGrows gives each child its share of the height).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -9168,6 +9314,7 @@
       }
     },
     "VirtualList" : {
+      "description" : "A lazily rendered, scrollable list of components that loads pages on demand.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -9203,6 +9350,7 @@
       }
     },
     "Workflow" : {
+      "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string.",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {

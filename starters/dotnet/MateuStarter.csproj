@@ -7,7 +7,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Inside the Mateu repository the starter builds against the sources. In your own project,
-         replace these with the Mateu.NET packages (see the release notes for their NuGet names). -->
+         replace these with the NuGet packages Mateu.AspNetCore and Mateu.Uidl, version 3.0.0-beta.N
+         for the Mateu release 3.0-beta.N. -->
     <ProjectReference Include="../../backend/dotnet/src/Mateu.AspNetCore/Mateu.AspNetCore.csproj" />
     <ProjectReference Include="../../backend/dotnet/src/Mateu.Uidl/Mateu.Uidl.csproj" />
   </ItemGroup>

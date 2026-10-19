@@ -22,7 +22,7 @@ class SecretEnvFallbackTest {
   void anUnprefixedVariableOfTheProcessIsNotReadable() {
     // PATH is set in every process; MATEU_SECRET_PATH is not
     assertThat(System.getenv("PATH")).isNotNull();
-    var useCase = new RunActionUseCase(null, null, null, null, null, null);
+    var useCase = new RunActionUseCase(null, null, null, null, null, null, null);
     assertThat(useCase.resolveSecret("PATH")).isNull();
   }
 }

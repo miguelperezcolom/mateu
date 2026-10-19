@@ -36,6 +36,12 @@ jobs:
       - name: Bundles are not older than their source
         run: scripts/check-bundle-freshness.sh
 
+      # The AI guidance ships outside this repo (the Claude Code plugin in ai/claude-plugin/mateu,
+      # installed with `/plugin install mateu@mateu`), so it must stand alone and must not fork:
+      # .claude/skills are links into the plugin, skill links stay inside it, manifests agree.
+      - name: The Claude Code plugin is consistent
+        run: node scripts/check-ai-plugin.mjs
+
       # The framework's own thesis, measured: a screen should need few annotations, and that number
       # should not creep up. Each new annotation is always justifiable alone; the sum is what drifts.
       - name: Annotations per screen have not crept up
@@ -148,7 +154,7 @@ jobs:
           --test-coverage-lines=98 --test-coverage-functions=95 --test-coverage-branches=85
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-e2.mjs test-e2-dom.mjs test-mobile.mjs
-          test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs
+          test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs test-chat-events.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -220,12 +226,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: 21
           distribution: zulu
 
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
@@ -274,7 +280,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: 21
           distribution: zulu
@@ -386,7 +392,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install the package
@@ -433,10 +439,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
-      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       - name: Install the package at its lowest direct dependencies
         run: |
           uv venv /tmp/lowest --python 3.11
@@ -461,7 +467,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: 21
           distribution: zulu
@@ -573,7 +579,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           java-version: 21
           distribution: zulu
@@ -596,10 +602,12 @@ jobs:
       # the test suite + JaCoCo coverage check.
       #
       # The build also runs the public-API compatibility check (japicmp) of uidl, dtos and core's
-      # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). It is
-      # REPORT-ONLY while the version is an alpha (<mateu.japicmp.enforce>false</...>); from the
-      # beta tag on it fails the build on an incompatible change that is neither @Experimental nor in
-      # backend/api-compat/japicmp-exclusions.properties.
+      # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). The 3.x API
+      # is FROZEN since 3.0-beta.1: the check is ENFORCING by default (<mateu.api.enforce>true) and
+      # fails this step — with the list of breaks and the add + deprecate recipe — on an
+      # incompatible change to uidl or the archetypes that is neither @Experimental/@Internal nor in
+      # backend/api-compat/japicmp-exclusions.properties. dtos stays report-only (the wire DTOs are
+      # outside the Java binary promise). No extra job: it rides this build's verify phase.
       - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B install -Dgpg.skip=true -Dmaven.javadoc.skip=true -Darchetype.test.skip=true
@@ -636,7 +644,7 @@ jobs:
       # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
       # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x

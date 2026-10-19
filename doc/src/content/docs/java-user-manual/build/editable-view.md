@@ -107,7 +107,7 @@ public class UserProfile extends AutoEditableView<UserSettings> {
 
     @Override
     public UserSettings load(HttpRequest httpRequest) {
-        var userId = httpRequest.getCurrentUserId();
+        var userId = httpRequest.getUserPrincipal().getName();
         return service.loadSettings(userId);
     }
 

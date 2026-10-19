@@ -29,6 +29,10 @@ public final class McpEndpoint {
   /** HTTP 202, the answer to a JSON-RPC notification. */
   public static final int ACCEPTED = 202;
 
+  /** The JSON-RPC answer to a body that is not JSON. */
+  static final String PARSE_ERROR =
+      "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}";
+
   private final McpService mcp;
   private final ObjectMapper objectMapper;
   private final String baseUrl;
@@ -53,7 +57,16 @@ public final class McpEndpoint {
    */
   public String handle(String body, Function<RunActionRqDto, HttpRequest> requests)
       throws Exception {
-    JsonNode message = objectMapper.readTree(body);
+    JsonNode message;
+    try {
+      message = objectMapper.readTree(body == null ? "" : body);
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      // JSON-RPC: a body that is not JSON answers -32700, it does not fail the HTTP request
+      return PARSE_ERROR;
+    }
+    if (message == null || message.isMissingNode()) {
+      return PARSE_ERROR;
+    }
     McpService.HttpRequestFactory factory =
         rq -> {
           var httpRequest = requests.apply(rq);

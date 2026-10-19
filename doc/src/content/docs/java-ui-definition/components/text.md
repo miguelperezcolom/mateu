@@ -25,6 +25,8 @@ new Text("Hello, world!")
 | `text` | String | — | The text content (may contain template expressions like `${value}`) |
 | `container` | `TextContainer` | div | HTML element used to wrap the text |
 | `variants` | `List<TextVariant>` | `[]` | Visual modifiers |
+| `size` | `TextSize` | `m` | Font size relative to the surrounding text |
+| `noMargins` | boolean | false | Drops the container's block margins |
 | `style` | String | `""` | Inline CSS |
 | `cssClasses` | String | `""` | CSS class names |
 | `attributes` | `Map<String, String>` | `{}` | Additional HTML attributes |
@@ -37,24 +39,16 @@ new Text("Hello, world!")
 | `span` | `<span>` (inline) |
 | `h1` – `h6` | Heading levels |
 | `p` | `<p>` paragraph |
-| `small` | `<small>` |
-| `strong` | `<strong>` |
-| `em` | `<em>` |
 
 ## Text variants (`TextVariant`)
 
 | Value | Description |
 |---|---|
-| `primary` | Primary colour |
-| `secondary` | Muted / secondary colour |
-| `tertiary` | Even more muted |
-| `success` | Green |
-| `error` | Red |
-| `warning` | Yellow / amber |
-| `body` | Normal body text size |
-| `large` | Larger text |
-| `small` | Smaller text |
-| `bold` | Bold weight |
+| `b` | Bold weight |
+| `i` | Italic |
+
+Colour and other visual tweaks go through `style` / `cssClasses`; the font size through `size`
+(`TextSize`: `xl`, `l`, `m` — the default —, `s`, `xs`).
 
 ## Examples
 
@@ -65,8 +59,12 @@ new Text("Page title", TextContainer.h2)
 // Paragraph
 new Text("Introductory paragraph.", TextContainer.p)
 
-// Error message
-new Text("Something went wrong!", List.of(TextVariant.error, TextVariant.bold))
+// Bold, coloured through style
+Text.builder()
+    .text("Something went wrong!")
+    .variants(List.of(TextVariant.b))
+    .style("color: var(--lumo-error-text-color);")
+    .build()
 
 // Template expression (interpolated at render time)
 new Text("Welcome, ${user.name}!")
@@ -80,8 +78,8 @@ new Text("inline", TextContainer.span)
 ```java
 new Text("plain string")
 new Text("text", TextContainer.h1)
-new Text("text", List.of(TextVariant.bold))
+new Text("text", List.of(TextVariant.b))
 new Text("id", "text")
 new Text("id", "text", TextContainer.h2)
-new Text("id", "text", List.of(TextVariant.success))
+new Text("id", "text", List.of(TextVariant.i))
 ```

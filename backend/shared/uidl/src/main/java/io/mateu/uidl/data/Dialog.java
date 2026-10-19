@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A modal dialog with optional header, content and footer, opened over the current page. */
 @Builder
 public record Dialog(
     String id,

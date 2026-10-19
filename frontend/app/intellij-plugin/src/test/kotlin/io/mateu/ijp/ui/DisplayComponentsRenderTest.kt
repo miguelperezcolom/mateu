@@ -211,4 +211,15 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertTrue(texts(image).none { it.contains("base64") })
         assertTrue(texts(image).toString(), texts(image).any { it.contains("image/svg+xml") })
     }
+
+    fun testAnImageIsNamedByItsDeclaredAltText() {
+        // a decodable 1×1 PNG: the picture itself, named for the screen reader by Image.alt
+        val png = render(context(), """{"type":"Image","src":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC","alt":"Company logo"}""")
+        assertTrue(all(png).any { it.accessibleContext?.accessibleName == "Company logo" })
+        // an image Swing cannot decode keeps the alt as its name too, instead of a generic "Image"
+        val svg = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,PHN2Zy8+","alt":"Floor plan"}""")
+        assertTrue(all(svg).any { it.accessibleContext?.accessibleName == "Floor plan" })
+        val unnamed = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,PHN2Zy8+"}""")
+        assertTrue(all(unnamed).any { it.accessibleContext?.accessibleName == "Image" })
+    }
 }

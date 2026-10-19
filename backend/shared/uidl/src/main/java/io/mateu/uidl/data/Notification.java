@@ -3,6 +3,7 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** A transient toast notification with an optional title and text. */
 @Builder
 public record Notification(String title, String text, String style, String cssClasses)
     implements Component {

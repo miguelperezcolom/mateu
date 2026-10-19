@@ -52,7 +52,7 @@ routes:
 
 ### Key idea
 
-- `steps` is NOT `List<Step>`
+- `steps` is NOT `List<ProcessStep>`
 - it is a dynamic UI block
 - resolved after the viewmodel is hydrated
 
@@ -61,10 +61,10 @@ routes:
 ## Steps (child CRUD)
 
 ```java
-public class Steps extends AutoCrud<Step> {
+public class Steps extends AutoCrud<ProcessStep> {
     @Override
-    public CrudStore<Step> store() {
-        return new StepStore(); // your CrudStore<Step>
+    public CrudStore<ProcessStep> store() {
+        return new StepStore(); // your CrudStore<ProcessStep>
     }
 
     String processId;
@@ -79,14 +79,14 @@ public class Steps extends AutoCrud<Step> {
 
 ---
 
-## Step model
+## ProcessStep model
 
 ```java
-record Step(
+record ProcessStep(
     String id,
     String processId,
     String name
-) {}
+) implements Identifiable {}
 ```
 
 ---
@@ -107,12 +107,12 @@ If you need create/edit/delete on the child, extend `AutoCrud` instead.
 This is preferred over:
 
 ```java
-List<Step> steps;
+List<ProcessStep> steps;
 ```
 
 Because:
 
-- `List<Step>` becomes a simple editable structure
+- `List<ProcessStep>` becomes a simple editable structure
 - it does NOT provide full CRUD behavior
 - it couples UI to domain structure
 
@@ -123,8 +123,8 @@ Because:
 ```mermaid
 flowchart TD
     P["ProcessPage\nid · name · Callable&lt;?&gt; steps"]
-    P -->|resolves after hydration| S["Steps\nextends AutoCrud&lt;Step&gt;\nscoped by processId"]
-    S --> CR["Read-only on Step\nlist · view"]
+    P -->|resolves after hydration| S["Steps\nextends AutoCrud&lt;ProcessStep&gt;\nscoped by processId"]
+    S --> CR["Read-only on ProcessStep\nlist · view"]
 ```
 
 - parent → state + composition

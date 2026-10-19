@@ -513,6 +513,7 @@ export default defineConfig({
 						{
 							label: 'With AI',
 							items: [
+								{ slug: 'build-uis-with-ai', label: 'Build UIs with AI' },
 								{ slug: 'ai-assistant-reference', label: 'AI assistant reference' },
 								{ slug: 'reference/prompt-to-app', label: 'Prompt-to-app (AI authoring)' },
 							],
@@ -592,6 +593,8 @@ export default defineConfig({
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
 						{ slug: 'reference/stability-and-versioning', label: 'Stability & versioning' },
 						{ slug: 'reference/migrating-from-alpha', label: 'Migrating from alpha' },
+						{ slug: 'reference/support-policy', label: 'Support policy' },
+						{ slug: 'reference/known-issues', label: 'Known issues' },
 					],
 				},
 				{

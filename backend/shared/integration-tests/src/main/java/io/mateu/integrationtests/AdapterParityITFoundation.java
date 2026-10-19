@@ -139,6 +139,22 @@ public class AdapterParityITFoundation {
   }
 
   /**
+   * An {@code actionId} that names nothing on {@code @UI("/restricted")} — no method, no field, no
+   * handler, not advertised — is a refused request (403), never a 200 that re-renders the page as
+   * if something had run.
+   */
+  public void refusesAnActionIdThatNamesNothing() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(action("noSuchThing"))
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(403)
+        .body(not(containsString("visibleField")));
+  }
+
+  /**
    * The same refusal on the STREAMED leg ({@code /v3/sse/}, the one a LongTask / {@code Action.sse}
    * uses): 403 too. A streamed route produces {@code text/event-stream}, and an adapter whose
    * forbidden handler only answers other media types (or that commits the stream before the request
@@ -406,6 +422,30 @@ public class AdapterParityITFoundation {
         .post("/mateu/mcp")
         .then()
         .statusCode(202);
+    // a body that is not JSON is a JSON-RPC parse error, not an HTTP failure
+    given()
+        .contentType(ContentType.JSON)
+        .body("{not json")
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200)
+        .body(containsString("-32700"));
+    // the authoring plane: the resources ship in the app, and validation reaches the app's
+    // validator through its own sync path (the reserved __validate__ action)
+    given()
+        .contentType(ContentType.JSON)
+        .body("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"resources/list\"}")
+        .when()
+        .post("/mateu/mcp")
+        .then()
+        .statusCode(200)
+        .body(containsString("mateu://schema/specs"));
+    mcpToolCall(
+            "mateu_validate_uidl",
+            "{\"yaml\":\"type: FormField\\nid: price\\ndataType: decimal\\n\"}")
+        .body(containsString("invalid_value"))
+        .body(containsString("\\\"line\\\" : 3"));
   }
 
   private static io.restassured.response.ValidatableResponse mcpToolCall(

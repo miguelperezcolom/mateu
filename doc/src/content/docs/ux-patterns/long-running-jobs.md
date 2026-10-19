@@ -90,8 +90,9 @@ The `work` lambda receives a `ProgressReporter`. Each call to `step(...)` return
 that must be emitted by the flux — it is not a side-effect:
 
 ```java
-.run(progress -> items
-        .map(item -> progress.step("Processing: " + item.name())))
+LongTask.create("Processing...")
+        .run(progress -> items
+                .map(item -> progress.step("Processing: " + item.name())));
 ```
 
 `ProgressReporter` offers four overloads:
@@ -134,7 +135,8 @@ LongTask.create("Importing data...")
         .withProgressBar()
         .done("Done", "Import complete")
         .closeAfter(3)
-        .run(progress -> ...);
+        .run(progress -> importService.rows()
+                .map(row -> progress.step("Imported: " + row.name())));
 ```
 
 ### Running a command on completion
@@ -149,7 +151,8 @@ LongTask.create("Importing data...")
         .done("Done", "Import complete")
         .closeAfter(2)
         .withCommand(UICommand.navigateTo("/results"))
-        .run(progress -> ...);
+        .run(progress -> importService.rows()
+                .map(row -> progress.step("Imported: " + row.name())));
 ```
 
 Available commands and their behaviour from a dialog element:
@@ -218,9 +221,15 @@ public void generateReport() {
 When push is not available, use `@Trigger` to poll for state at regular intervals:
 
 ```java
-@Trigger(type = TriggerType.OnLoad, times = 20, timeoutMillis = 3000)
-public JobStatus checkStatus() {
-    return jobService.getStatus(jobId);
+@Trigger(type = TriggerType.OnLoad, actionId = "checkStatus", times = 20, timeoutMillis = 3000)
+public class ReportStatus {
+
+    @Hidden String jobId;
+    @Autowired JobService jobService;
+
+    public JobStatus checkStatus() {
+        return jobService.getStatus(jobId);
+    }
 }
 ```
 

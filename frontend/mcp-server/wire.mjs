@@ -22,6 +22,19 @@ export function routeToPath(route) {
   return r === "" ? "/_no_route" : "/" + r;
 }
 
+/**
+ * The backend answered the sync with a non-2xx status. The message names the status and url; the
+ * response body is kept apart (`body`) so it only reaches the agent in detailed-errors mode.
+ */
+export class HttpError extends Error {
+  constructor(status, message, body = "") {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 export class MateuWire {
   constructor({ baseUrl, token, fetchImpl } = {}) {
     if (!baseUrl) throw new Error("MATEU_BASE_URL is required");
@@ -58,7 +71,7 @@ export class MateuWire {
     const res = await this.fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`Mateu sync ${res.status} ${res.statusText} for ${url}${text ? ": " + text.slice(0, 500) : ""}`);
+      throw new HttpError(res.status, `Mateu sync ${res.status} ${res.statusText} for ${url}`, text.slice(0, 500));
     }
     return res.json();
   }

@@ -15,6 +15,7 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {evaluateExpression, evaluateTemplate, InterpolationContext} from "@infra/ui/interpolation.ts";
 import {onLoadBackground} from "@infra/http/localRequests.ts";
+import {claimEvent} from "@infra/ui/chatEvents.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -499,6 +500,8 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         if (matching.length === 0) {
             return
         }
+        // Taken: whoever dispatched it (the chat's render-screen) need not handle it itself.
+        claimEvent(event)
         // Consume the event only for SELF subscriptions (legacy behaviour where an ancestor
         // swallows a descendant's event). DOCUMENT/COMPONENT must let other global subscribers see it.
         if (matching.some(trigger => !trigger.source || trigger.source === 'SELF')) {

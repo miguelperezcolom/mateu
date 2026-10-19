@@ -6,7 +6,7 @@ Mateu defines business UIs agnostically: one model, authored as YAML (by hand or
 ```xml
 <properties>
   <!-- latest release: https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml -->
-  <mateu.version>3.0-alpha.425</mateu.version>
+  <mateu.version>3.0-beta.3</mateu.version>
 </properties>
 
 <dependency>
@@ -470,10 +470,10 @@ public class CheckInForm {
 - **Full-page form views need `@Style(StyleConstants.CONTAINER)`** (else 100% viewport width) and `@Section(columns=n)` to pack short fields.
 - **Mind `@Colspan` in multi-column sections**: wide fields (grid/textarea/richText/html/markdown) auto-span the full row (explicit `@Colspan` overrides); other fields default to one cell — long text inputs need `@Colspan(n)`, or better `@Stereotype(textarea)` for free-form text.
 - **Mark THE primary action** with `@Button(buttonStyle = ButtonStyle.primary)` — one per screen; all-tertiary buttons bury the action hierarchy.
-- **Parent-child listings**: `@GroupBy` on one row field (carry the parent context in its value), `@Aggregate` for totals, `@GroupAction("label")` methods for whole-parent actions on the group header — never denormalise the parent into repeated columns. Keep listings lean: the auto layout flips to a master-detail rail when columns exceed the width.
+- **Parent-child listings**: `@GroupBy` on one row field (carry the parent context in its value), `@Aggregate` for totals, `@GroupAction("label")` methods for whole-parent actions on the group header — never denormalise the parent into repeated columns. A listing renders as a table unless `gridLayout()` says otherwise (`list`, `cards`, `masterDetail`, `tree`).
 - **Action results / standing warnings are `@Notice` fields** (auto-hide when blank, themed), not `@ReadOnly String`.
 - **Button placement**: `@Button` → form footer; `@Toolbar` → page toolbar; section-scoped buttons → partial-forms (nested type owns the action).
 - **Don't model editable collections as delimited text**: use `@InlineEditing` on a `List<MutablePojo>` grid, never `"a; b"` strings.
 - **Data-driven selects** use `@Lookup(search=…, label=…)` with supplier beans, never a free-text field.
 - **Actions that mutate fields must return `new State(this)`** (typically `List.of(new Message("…"), new State(this))`) — returning only a `Message` does not refresh the client.
-- **Form ViewModels with mutable fields need `@Scope("prototype")`** — a singleton shares form state across users.
+- **A routed ViewModel is per request** — Mateu instantiates it fresh on every request (field `@Autowired`/`@Inject` still works). Do not make it a bean; if you must (constructor injection), it MUST be `@Scope("prototype")` — a singleton shares form state across users.

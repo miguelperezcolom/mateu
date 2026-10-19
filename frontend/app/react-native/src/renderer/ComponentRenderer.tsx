@@ -39,7 +39,7 @@ import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme } from '../theme';
-import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { buttonA11y, headingA11y, imageA11y } from '../a11y/a11y';
 import { headingLevel } from '../core/uxRules';
 
 // h1–h6 sizes on the renderer's type scale (22 = page title, then 20/18/16/15/14)
@@ -342,7 +342,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;
     case 'Image': {
       const src = (metadata['src'] as string) ?? '';
-      return src ? <Image source={{ uri: src }} style={styles.image} resizeMode="contain" /> : null;
+      return src ? (
+        <Image
+          source={{ uri: src }}
+          style={styles.image}
+          resizeMode="contain"
+          {...imageA11y(metadata['alt'] as string | undefined)}
+        />
+      ) : null;
     }
     case 'CustomField':
       // ComponentAdapter's nested island / a custom field: render its content node.

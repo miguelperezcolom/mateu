@@ -34,9 +34,20 @@ public class ProductsListing extends AutoCrud<Product> {
 
     @ListToolbarButton(rowsSelectedRequired = true, confirmationRequired = true)
     public void deactivateSelected(List<Product> selected) {
-        selected.forEach(p -> p.setActive(false));
-        repository.saveAll(selected);
+        selected.forEach(p -> {
+            p.setActive(false);
+            store().save(p);
+        });
     }
+}
+
+class Product implements Identifiable {
+    String id;
+    String name;
+    boolean active;
+
+    @Override public String id() { return id; }
+    void setActive(boolean active) { this.active = active; }
 }
 ```
 
@@ -190,6 +201,9 @@ public class ProductsListing implements Listing<ProductRow>, Searchable, Filtera
 
     @Override public boolean excelExportable() { return true; }
     @Override public boolean csvExportable()   { return true; }
+
+    @Override
+    public ListingData<ProductRow> search(SearchRequest request, HttpRequest httpRequest) { ... }
 }
 ```
 

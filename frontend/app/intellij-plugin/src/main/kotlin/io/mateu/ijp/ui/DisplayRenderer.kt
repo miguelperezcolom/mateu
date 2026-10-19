@@ -251,6 +251,8 @@ fun renderGantt(metadata: JsonNode, ctx: io.mateu.ijp.state.AppContext? = null):
 /** A standalone Image component (metadata.src — data URI or URL). */
 fun renderStandaloneImage(metadata: JsonNode): JComponent {
     val src = metadata.text("src")
+    // the declared text alternative (Image.alt) is the accessible name a screen reader reads
+    val alt = metadata.text("alt").trim()
     if (src.isBlank()) return JPanel().apply { isOpaque = false }
     val img = runCatching {
         if (src.startsWith("data:")) {
@@ -262,14 +264,19 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
     }.getOrNull()
     return if (img != null) {
         val scale = minOf(1.0, 360.0 / img.width)
-        JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
+        JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH))).apply {
+            if (alt.isNotEmpty()) {
+                accessibleName(alt)
+                toolTipText = plainTip(alt)
+            }
+        }
     } else {
         // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be
         // the src itself — a data URI dumped as a wall of base64 across the page.
         val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
         JBLabel(plain("🖼 $shown")).apply {
-            toolTipText = plainTip(shown)
-            accessibleContext.accessibleName = "Image"
+            toolTipText = plainTip(alt.ifEmpty { shown })
+            accessibleContext.accessibleName = alt.ifEmpty { "Image" }
         }
     }
 }

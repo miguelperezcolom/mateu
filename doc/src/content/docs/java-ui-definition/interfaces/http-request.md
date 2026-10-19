@@ -12,7 +12,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 
 `HttpRequest` is injected into any backend method that declares it as a parameter. It gives you access to every piece of contextual data available when an action is triggered: URL parameters, request headers, the serialised component state, app-level state, and the rows the user has selected or clicked.
 
-```java
+```java nocheck
 public interface HttpRequest {
 
     // Core HTTP

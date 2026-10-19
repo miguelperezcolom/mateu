@@ -4,6 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
+/** A generic block element holding text or child components, for custom layout and styling. */
 @Builder
 public record Div(String content, List<Component> children, String style, String cssClasses)
     implements Component {

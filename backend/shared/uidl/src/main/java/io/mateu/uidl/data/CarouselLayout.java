@@ -5,6 +5,7 @@ import io.mateu.uidl.fluent.ContentSupplier;
 import java.util.List;
 import lombok.Builder;
 
+/** A slideshow that shows one child component at a time with navigation controls. */
 @Builder
 public record CarouselLayout(
     String id,

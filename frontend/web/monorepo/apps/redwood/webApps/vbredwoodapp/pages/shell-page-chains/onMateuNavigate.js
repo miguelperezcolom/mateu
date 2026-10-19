@@ -127,8 +127,10 @@ define([
         $application.variables.mateuFiltersPending = true;
         pendingSearchText = fromQuery.searchText;
       }
-      // the echo of the selection writeback after each navigation — do not reload
-      if (!force && target.same) {
+      // the echo of the selection writeback after each navigation — do not reload. Unless the
+      // content shows a screen the AI chat generated (transient): then even the same route
+      // loads the real screen again
+      if (!force && target.same && !window.__mateuChatPreviewShown) {
         return;
       }
       // dirtyGuard (1.5): unsaved local edit → confirm; on cancel, restore the URL
@@ -152,6 +154,7 @@ define([
         pushRouteToUrl($application, target.full);
       }
       startsLoading();
+      window.__mateuChatPreviewShown = false;
       // Another screen: whatever is still in flight from the previous one (its search, an action, a
       // navigation slower than this one) is no longer painted when it answers (resilience.beginView).
       const view = bridge.beginView();
@@ -163,10 +166,15 @@ define([
       // to the shell's base, which does not know that route, and the screen would stay empty.
       const remote = bridge.remoteRouteOf(route);
       const callBase = (remote && remote.baseUrl) ? remote.baseUrl : base;
+      // a REQUESTED navigation may carry the fields a menu entry carries (the agent's
+      // navigation-requested, a widget's link): consumedRoute/serverSideType/actionId load the route
+      // the way a click on that entry would (its baseUrl was registered as a remote route already)
+      const asked = bridge.navigationLoadExtraOf(detail.navigation);
       const extra = remote
-        ? { appState, consumedRoute: remote.consumedRoute, serverSideType: remote.serverSideType }
+        ? { appState, consumedRoute: remote.consumedRoute, serverSideType: remote.serverSideType,
+          ...(asked.actionId ? { actionId: asked.actionId } : {}) }
         // the state an embedding host seeds its first screen with (<mateu-ui initial-state>): {} otherwise
-        : { appState, ...bridge.takeEmbeddedSeed() };
+        : { appState, ...bridge.takeEmbeddedSeed(), ...asked };
       if (liveState) extra.liveState = liveState;
       let reg;
       try {
@@ -213,18 +221,6 @@ define([
         bridge.applyDomEffects(reg.effects, reg);
       }
 
-
-      // The AI chat authored a screen: renderScreen runs with the YAML over the freshly loaded
-      // host — just like an OnLoad trigger — and the projection further below paints it. This is what
-      // makes "open the chat → ask for the screen → it appears" work from the shell.
-      if (detail.renderYaml) {
-        const rh = reg.contexts[bridge.HOST_ID];
-        const inc = await bridge.runMateuAction(
-          callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
-          { parameters: { yaml: detail.renderYaml }, appState });
-        reg = bridge.reduceContexts(reg, inc);
-        bridge.applyDomEffects(reg.effects, reg);
-      }
 
       // embedded islands: each ServerSide boundary of the host is loaded as its own
       // surface (initiator = the boundary's id → its fragments go to ITS context)

@@ -9,7 +9,15 @@
   "scripts": {
     "start": "node index.mjs",
     "test": "node --test",
-    "check": "node --check index.mjs && node --check wire.mjs && node --check projection.mjs"
+    "check": "node --check index.mjs && node --check wire.mjs && node --check projection.mjs && node --check authoring.mjs && node --check scripts/sync-resources.mjs",
+    "sync-resources": "node scripts/sync-resources.mjs"
   },
-  "files": ["index.mjs", "wire.mjs", "projection.mjs", "README.md"]
+  "files": [
+    "index.mjs",
+    "wire.mjs",
+    "projection.mjs",
+    "authoring.mjs",
+    "resources/",
+    "README.md"
+  ]
 }

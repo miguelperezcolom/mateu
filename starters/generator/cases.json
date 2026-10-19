@@ -19,6 +19,7 @@
         "pom.xml",
         "AGENTS.md",
         "CLAUDE.md",
+        ".claude/settings.json",
         ".gitignore",
         "src/main/java/com/acme/shop/Application.java",
         "src/main/java/com/acme/shop/Shell.java",
@@ -29,7 +30,8 @@
       ],
       "absent": [
         "src/main/java/com/example/app/Products.java",
-        "src/main/resources/specs/ui/routes.yaml"
+        "src/main/resources/specs/ui/routes.yaml",
+        "claude/settings.json"
       ],
       "contains": {
         "pom.xml": [
@@ -61,6 +63,10 @@
         ],
         "AGENTS.md": [
           "src/main/java/com/acme/shop/"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -94,11 +100,13 @@
         "pom.xml",
         "src/main/java/org/example/hello/Shell.java",
         "src/main/java/org/example/hello/Home.java",
-        "src/main/java/org/example/hello/Application.java"
+        "src/main/java/org/example/hello/Application.java",
+        ".claude/settings.json"
       ],
       "absent": [
         "src/main/java/org/example/hello/Products.java",
-        "src/main/java/org/example/hello/Product.java"
+        "src/main/java/org/example/hello/Product.java",
+        "claude/settings.json"
       ],
       "contains": {
         "pom.xml": [
@@ -112,6 +120,10 @@
         "src/main/java/org/example/hello/Home.java": [
           "package org.example.hello;",
           "return \"Hello\";"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -148,6 +160,7 @@
         "pom.xml",
         "AGENTS.md",
         "CLAUDE.md",
+        ".claude/settings.json",
         "src/main/java/com/acme/ops/Application.java",
         "src/main/resources/specs/ui/app.ui.yaml",
         "src/main/resources/specs/ui/routes.yaml",
@@ -161,7 +174,8 @@
       ],
       "absent": [
         "src/main/java/com/acme/ops/Products.java",
-        "src/main/java/com/acme/ops/Home.java"
+        "src/main/java/com/acme/ops/Home.java",
+        "claude/settings.json"
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
@@ -198,6 +212,10 @@
         ],
         "AGENTS.md": [
           "Edit `specs/ui`, do not write Java UI"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -231,13 +249,15 @@
         ".mvn/maven.config",
         "AGENTS.md",
         "CLAUDE.md",
+        ".claude/settings.json",
         "src/main/resources/specs/ui/app.ui.yaml",
         "src/main/resources/specs/ui/home.yaml",
         "src/main/resources/specs/ui/products.yaml",
         "src/main/resources/specs/ui/sources.yaml"
       ],
       "absent": [
-        "src/main/java/com/acme/catalogue/Application.java"
+        "src/main/java/com/acme/catalogue/Application.java",
+        "claude/settings.json"
       ],
       "contains": {
         "pom.xml": [
@@ -258,6 +278,10 @@
         ],
         "AGENTS.md": [
           "npx serve -s target/mateu-bundle"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -283,11 +307,13 @@
       "files": [
         "src/main/java/io/acme/crm/Products.java",
         "src/main/resources/specs/ui/routes.yaml",
-        "src/main/resources/specs/ui/home.yaml"
+        "src/main/resources/specs/ui/home.yaml",
+        ".claude/settings.json"
       ],
       "absent": [
         "src/main/java/io/acme/crm/Shell.java",
-        "src/main/java/io/acme/crm/Home.java"
+        "src/main/java/io/acme/crm/Home.java",
+        "claude/settings.json"
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
@@ -308,6 +334,10 @@
         "pom.xml": [
           "<artifactId>mateu-annotation-processor-quarkus</artifactId>",
           "<groupId>io.acme</groupId>"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -337,11 +367,13 @@
       "files": [
         "src/main/java/io/acme/crm/Products.java",
         "src/main/resources/specs/ui/routes.yaml",
-        "src/main/resources/specs/ui/home.yaml"
+        "src/main/resources/specs/ui/home.yaml",
+        ".claude/settings.json"
       ],
       "absent": [
         "src/main/java/io/acme/crm/Shell.java",
-        "src/main/java/io/acme/crm/Home.java"
+        "src/main/java/io/acme/crm/Home.java",
+        "claude/settings.json"
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
@@ -362,6 +394,10 @@
         "pom.xml": [
           "<artifactId>mateu-annotation-processor-helidon-mp</artifactId>",
           "<groupId>io.acme</groupId>"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -391,11 +427,13 @@
       "files": [
         "src/main/java/io/acme/crm/Products.java",
         "src/main/resources/specs/ui/routes.yaml",
-        "src/main/resources/specs/ui/home.yaml"
+        "src/main/resources/specs/ui/home.yaml",
+        ".claude/settings.json"
       ],
       "absent": [
         "src/main/java/io/acme/crm/Shell.java",
-        "src/main/java/io/acme/crm/Home.java"
+        "src/main/java/io/acme/crm/Home.java",
+        "claude/settings.json"
       ],
       "contains": {
         "src/main/resources/specs/ui/routes.yaml": [
@@ -416,6 +454,10 @@
         "pom.xml": [
           "<artifactId>mateu-annotation-processor-micronaut</artifactId>",
           "<groupId>io.acme</groupId>"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -445,13 +487,21 @@
       "files": [
         "pom.xml",
         "src/main/resources/META-INF/beans.xml",
-        "src/main/java/com/acme/inventory/Products.java"
+        "src/main/java/com/acme/inventory/Products.java",
+        ".claude/settings.json"
       ],
       "contains": {
         "AGENTS.md": [
           "java -jar target/inventory.jar"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
-      }
+      },
+      "absent": [
+        "claude/settings.json"
+      ]
     },
     {
       "name": ".NET",
@@ -472,10 +522,12 @@
         "Home.cs",
         "Products.cs",
         "AGENTS.md",
-        "CLAUDE.md"
+        "CLAUDE.md",
+        ".claude/settings.json"
       ],
       "absent": [
-        "MateuStarter.csproj"
+        "MateuStarter.csproj",
+        "claude/settings.json"
       ],
       "contains": {
         "MyShop.csproj": [
@@ -497,6 +549,10 @@
         ],
         "AGENTS.md": [
           "MyShop.csproj"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
@@ -524,7 +580,8 @@
         "requirements.txt",
         "test_starter.py",
         "AGENTS.md",
-        "CLAUDE.md"
+        "CLAUDE.md",
+        ".claude/settings.json"
       ],
       "contains": {
         "requirements.txt": [
@@ -535,13 +592,20 @@
           "class Shell(HomeRouteSupplier):",
           "return \"My shop\"",
           "class Home(Welcome):"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       },
       "lacks": {
         "requirements.txt": [
           "../../backend"
         ]
-      }
+      },
+      "absent": [
+        "claude/settings.json"
+      ]
     },
     {
       "name": "micronaut, code, empty",
@@ -560,15 +624,21 @@
       "files": [
         "src/main/java/io/acme/crm/Shell.java",
         "src/main/java/io/acme/crm/Home.java",
-        "src/main/java/io/acme/crm/Application.java"
+        "src/main/java/io/acme/crm/Application.java",
+        ".claude/settings.json"
       ],
       "absent": [
-        "src/main/java/io/acme/crm/Products.java"
+        "src/main/java/io/acme/crm/Products.java",
+        "claude/settings.json"
       ],
       "contains": {
         "pom.xml": [
           "-Amicronaut.processing.group=io.acme",
           "<exec.mainClass>io.acme.crm.Application</exec.mainClass>"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
         ]
       }
     }

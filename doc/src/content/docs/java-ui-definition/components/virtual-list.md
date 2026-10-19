@@ -33,13 +33,13 @@ VirtualList.builder()
 
 Each item in the page is a `Component` — you control exactly how each row looks.
 
-```java
+```java nocheck
 new Page<>(
-    sortProperty,   // String
-    pageSize,       // int
-    pageNumber,     // int (1-based)
-    totalItems,     // int
-    List<Component> // rendered rows
+    searchSignature, // String
+    pageSize,        // int
+    pageNumber,      // int
+    totalElements,   // long
+    List<Component>  // rendered rows
 )
 ```
 

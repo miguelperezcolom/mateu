@@ -16,6 +16,8 @@ import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./cha
 import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { CLOSE_REQUESTED, isEventClaimed, NAVIGATION_REQUESTED, RENDER_SCREEN, renderScreenRequestOf } from './chatEvents'
+import { renderScreenInShell } from './builtInRenderTarget'
 
 /**
  * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
@@ -120,6 +122,11 @@ export class MateuChat extends LitElement {
     /** The panel's brand (@App(askLabel)); blank → the localised "Assistant". */
     @property()
     label: string | undefined = undefined;
+
+    /** A panel the shell opens and closes (the app's assistant) has a ✕; a Chat placed on a page
+     *  does not — there is nothing to close it into, so the agent's close-requested is ignored too. */
+    @property({ type: Boolean })
+    closable = true;
 
     /** The panel's width in px (the shell lays it out through --mateu-chat-width), remembered per
      *  browser: 460 by default, 320–720 by dragging its edge. */
@@ -460,14 +467,20 @@ export class MateuChat extends LitElement {
             // assistant can fill and run precisely instead of guessing from values. Best-effort.
             const screen = projectCurrentScreen(document, (context as { componentState?: unknown } | undefined)?.componentState);
             const hasScreen = !!screen && (screen.fields.length > 0 || screen.actions.length > 0 || !!screen.title);
+            // a Chat placed on a page has no menu or MCP endpoint of its own: those of the app it is in
+            const shell = this.enclosingApp();
+            const menu = this.menu.length ? this.menu : (shell?.menu ?? []);
+            const mcpUrl = this.mcpUrl ?? shell?.mcpUrl;
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
+                // the route of the screen the question is asked from (the agent's routing may use it)
+                currentRoute: window.location.pathname,
                 ...(attachments.length && { attachments }),
                 ...(context !== undefined && context !== null && { context }),
                 ...(hasScreen && { screen }),
-                ...(this.mcpUrl && { mcpUrl: new URL(this.mcpUrl, window.location.origin).href }),
-                ...(!this.menuContextSent && { menuContext: this.buildMenuContext(this.menu) }),
+                ...(mcpUrl && { mcpUrl: new URL(mcpUrl, window.location.origin).href }),
+                ...(!this.menuContextSent && { menuContext: this.buildMenuContext(menu) }),
             });
             this.menuContextSent = true;
 
@@ -520,7 +533,7 @@ export class MateuChat extends LitElement {
                         progress.tool(msg.detail, Date.now());
                         break;
                     case 'event':
-                        this.dispatchEvent(new CustomEvent(msg.event, { detail: msg.detail, bubbles: true, composed: true }));
+                        this.onAgentEvent(msg.event, msg.detail);
                         return;
                 }
                 this.progressTick++;
@@ -583,6 +596,43 @@ export class MateuChat extends LitElement {
         }
     }
 
+    /**
+     * A UI event the agent sent (see chatEvents.ts for the catalogue). It is dispatched as a DOM
+     * event, bubbling out of the panel, as it always was: the shell takes navigation-requested and
+     * close-requested, a page subscribed to an event takes it. What nobody takes and the panel knows
+     * how to do, it does itself: a navigation outside an app shell, and a generated screen no page
+     * subscribes to — rendered by the shell's built-in render target.
+     */
+    private onAgentEvent(name: string, detail: unknown) {
+        if (name === CLOSE_REQUESTED && !this.closable) return;
+        const event = new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true });
+        this.dispatchEvent(event);
+        if (name === NAVIGATION_REQUESTED && !event.defaultPrevented) {
+            const route = (detail as { route?: unknown } | null)?.route;
+            if (typeof route === 'string') navigateToRoute(this, route);
+            return;
+        }
+        if (name === RENDER_SCREEN && !isEventClaimed(event)) {
+            const request = renderScreenRequestOf(detail);
+            if (!request) return;
+            renderScreenInShell(this, request).catch((e: unknown) => {
+                console.warn('[mateu-chat] render-screen', e);
+                this.addMessage(chromeTextf('chatGeneratedScreenFailed', { error: e instanceof Error ? e.message : String(e) }), 'agent');
+            });
+        }
+    }
+
+    /** The app shell around the panel (crossing shadow roots), as its menu and MCP endpoint. */
+    private enclosingApp(): { menu?: MenuOption[], mcpUrl?: string } | undefined {
+        for (let node: Node | null = this; node; node = node.parentNode instanceof ShadowRoot ? node.parentNode.host : node.parentNode) {
+            if (node instanceof HTMLElement && node.tagName.toLowerCase() === 'mateu-app') {
+                const metadata = (node as unknown as { component?: { metadata?: { menu?: MenuOption[], mcpUrl?: string } } }).component?.metadata;
+                return metadata ? { menu: metadata.menu, mcpUrl: metadata.mcpUrl } : undefined;
+            }
+        }
+        return undefined;
+    }
+
     closeChat = () => {
         this.dispatchEvent(new CustomEvent('close-requested', { bubbles: true, composed: true }))
     }
@@ -643,12 +693,12 @@ export class MateuChat extends LitElement {
                             cssClasses: 'chat-expand',
                             onClick: () => this.toggleExpanded(),
                         })}
-                        ${chatHeaderButton({
+                        ${this.closable ? chatHeaderButton({
                             icon: 'lumo:cross',
                             label: chatText('close'),
                             cssClasses: 'chat-close',
                             onClick: () => this.closeChat(),
-                        })}
+                        }) : nothing}
                     </div>
                 </div>
                 <div class="scroll-container">

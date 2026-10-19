@@ -23,7 +23,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 Implement `GlobalSearchSupplier` on the `@UI` app class:
 
 ```java
-@UI
+@UI("")
 public class BackofficeApp implements GlobalSearchSupplier {
 
     @Override

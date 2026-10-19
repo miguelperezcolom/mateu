@@ -84,3 +84,14 @@ test('headings carry the header role and their level', () => {
   assert.deepEqual(a11y.headingA11y(2), { accessibilityRole: 'header', 'aria-level': 2 });
   assert.deepEqual(a11y.headingA11y(), { accessibilityRole: 'header' });
 });
+
+test('imageA11y reads the declared alt and hides an image declaring none (or an empty one)', () => {
+  assert.deepEqual(a11y.imageA11y('Company logo'), {
+    accessible: true,
+    accessibilityRole: 'image',
+    accessibilityLabel: 'Company logo',
+  });
+  for (const none of [undefined, null, '', '   ']) {
+    assert.deepEqual(a11y.imageA11y(none), { accessible: false, importantForAccessibility: 'no' });
+  }
+});

@@ -34,7 +34,7 @@ Remote menus allow the shell to include UI modules from other services.
 ```java
 @Menu
 RemoteMenu users = new RemoteMenu("/_users")
-    .withAppServerSideType("...");
+    .withServerSideType("...");
 ```
 
 Each remote menu points to a UI exposed by another service.

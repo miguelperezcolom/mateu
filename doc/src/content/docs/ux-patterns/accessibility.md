@@ -148,9 +148,31 @@ list's role. Only upstream can change it.
 
 ## Writing accessible screens yourself
 
-The framework covers the generated UI. Two things are still yours:
+The framework covers the generated UI. Three things are still yours:
 
 - **Labels carry meaning.** `@Label("Name")` is what a screen reader reads; `@Help` becomes the description. A field left to its derived name is announced by that name.
+- **Images say what they show.** Give every `Image` an `alt` — what the picture shows or does, not
+  "image of…". It becomes the `<img>` alt on the web and in Redwood, the accessibility label on
+  React Native and the accessible name in the IntelliJ plugin. An empty `alt` declares the image
+  decorative (screen readers skip it); with no `alt` at all the renderers have nothing to read.
+
+  ```java
+  Image.builder().src("/logo.png").alt("Acme Corp logo").build()   // or new Image("/logo.png", "Acme Corp logo")
+  ```
+
+  ```csharp
+  new Image { Src = "/logo.png", Alt = "Acme Corp logo" }
+  ```
+
+  ```python
+  fluent.Image(src="/logo.png", alt="Acme Corp logo")
+  ```
+
+  ```yaml
+  - type: Image
+    src: /logo.png
+    alt: Acme Corp logo
+  ```
 - **Custom fluent components.** If you build a `Component` tree by hand with clickable divs, the framework cannot know they are interactive. Use the same helpers it uses — `onActivate` for Enter/Space, a `role`, and a tab stop.
 
 ## Related

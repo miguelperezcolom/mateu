@@ -156,10 +156,10 @@ test("MCP initialize returns protocol + serverInfo", async () => {
   assert.ok(r.result.capabilities.tools);
 });
 
-test("MCP tools/list returns the 4 tools with schemas", async () => {
-  const r = await handleRpc({ jsonrpc: "2.0", id: 2, method: "tools/list" }, fakeWire);
+test("MCP tools/list returns the operating and authoring tools with schemas", async () => {
+  const r = await handleRpc({ jsonrpc: "2.0", id: 2, method: "tools/list" }, fakeWire, { env: {} });
   const names = r.result.tools.map((t) => t.name);
-  assert.deepEqual(names.sort(), ["mateu_describe_screen", "mateu_list_routes", "mateu_run_action", "mateu_search"]);
+  assert.deepEqual(names.slice(0, 4), ["mateu_list_routes", "mateu_describe_screen", "mateu_run_action", "mateu_search"]);
   for (const t of TOOLS) assert.equal(t.inputSchema.type, "object");
 });
 
@@ -174,12 +174,14 @@ test("MCP tools/call dispatches and wraps the result as text content", async () 
 
 test("MCP tool error becomes an isError result, not a protocol error", async () => {
   const boomWire = { runAction: async () => { throw new Error("boom"); } };
-  const r = await handleRpc(
-    { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "mateu_run_action", arguments: { route: "x", actionId: "y" } } },
-    boomWire
-  );
+  const call = { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "mateu_run_action", arguments: { route: "x", actionId: "y" } } };
+  const r = await handleRpc(call, boomWire, { env: {} });
   assert.equal(r.result.isError, true);
-  assert.match(r.result.content[0].text, /boom/);
+  // an unexpected failure is generic (the raw message only reaches stderr)...
+  assert.match(r.result.content[0].text, /^Error: An unexpected error occurred\. Reference: [0-9a-f]{12}$/);
+  // ...unless detailed errors are on
+  const detailed = await handleRpc(call, boomWire, { env: { MATEU_ERRORS_DETAILED: "true" } });
+  assert.match(detailed.result.content[0].text, /^Error: boom \(ref [0-9a-f]{12}\)$/);
 });
 
 test("MCP notification (no id) yields no response", async () => {
