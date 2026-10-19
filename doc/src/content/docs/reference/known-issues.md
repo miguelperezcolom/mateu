@@ -44,6 +44,17 @@ see an anonymous caller, so `@EyesOnly` and YAML `access:` refuse them.
 **Workaround:** register a `PrincipalResolver` bean that builds the caller from the request. See
 [Security](/java-user-manual/advanced/security/).
 
+### Micronaut and Quarkus are stricter than the JSON-body rule
+
+Mateu's endpoints accept a body declared `application/json` or any `application/*+json`
+(everything else answers 415). Two frameworks narrow that further before Mateu sees the request:
+Micronaut's sync, SSE and YAML-mount endpoints accept only `application/json` (a
+`application/vnd.x+json` body answers 415 there, while `/mateu/mcp` and every other adapter take
+it), and Quarkus REST refuses `application/json ;charset=UTF-8` with a space before the `;`.
+
+**Workaround:** send exactly `Content-Type: application/json` (with or without `; charset=…`) — what
+every Mateu renderer, native app and the sidecar send.
+
 ### Proxies must not buffer server-sent events
 
 Long-running actions stream their progress over server-sent events. A proxy that buffers the

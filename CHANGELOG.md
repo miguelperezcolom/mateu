@@ -13,50 +13,134 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [3.0-beta.6] — 2026-10-19
 
-Fixes from the second independent pre-GA review: agent-authored screens are untrusted everywhere, JSON-only request bodies, safer authoring actions, `update-row` and data titles hardened, release secrets scoped. Upgrade recommended.
+Fixes from the second independent pre-GA review: agent-authored screens are untrusted everywhere,
+JSON-only request bodies, safer authoring actions, `update-row` and data titles hardened, the live
+push plane tightened, release secrets scoped. **One breaking rule (415 on non-JSON bodies) — read
+Behaviour changes before upgrading.** Upgrade recommended.
+
+### Behaviour changes
+- **Mateu's action endpoints accept only JSON bodies, on every adapter (breaking for non-JSON
+  clients).** A `POST` to `<baseUrl>/mateu/v3/**` (sync, SSE, YAML mounts) or `/mateu/mcp` whose
+  `Content-Type` is not `application/json` / `application/*+json` — `text/plain`, a form encoding,
+  or none at all — now answers **415** with a plain-text body. The renderers, the native apps and the
+  MCP sidecar already send JSON; a hand-written client (a `curl` without `-H 'Content-Type:
+  application/json'`, a `fetch` posting a string, a beacon) must declare it. Out of scope:
+  `…/mateu/v3/client-log` and `/mateu/dev/**`. (Java 5 adapters, .NET, Python)
+- **`__validate__` answers 403** unless the call is an MCP tool call, or the app runs with
+  `mateu.mcp.enabled=true` or in dev mode (the sidecar's authoring tools need one of those).
+- **`update-row` is offered and accepted only by a crud with `@InlineEditing`** (and `canEdit()`):
+  every crud used to advertise it; any other now answers 403.
+- `mateu_save_spec` (dev mode) refuses more definitions than before — see Security.
 
 ### Security
-- **A page title that is data renders as text.** A CRUD detail page (and any routed object) is
-  titled by the record's own `toString()`; the web header rendered it as HTML, so whoever could name
-  a record planted a tracking image or a phishing link in the header of everyone who opened it. Such
-  titles now travel marked `PageDto.titleIsText` (additive wire field; .NET `TitleIsText`, Python
-  `title_is_text`) and the web header renders them as text; declared titles (`@Title`, a
-  `TitleSupplier`) keep their markup. Redwood, React Native and IntelliJ already rendered titles as
-  text. (Java, .NET, Python, web renderer)
-- **Inline row editing (`update-row`) is guarded like the editor's save.** A `@ReadOnly` field keeps
-  the stored value, the row is laid over the stored record (its other fields survive), an id with no
-  stored record is refused instead of inserted, and only a crud with `@InlineEditing` (and
-  `canEdit()`) offers the action — every crud used to advertise and accept it. (Java, .NET, Python)
-- **Mateu's action endpoints accept only JSON bodies, on every adapter.** A `POST` to
-  `<baseUrl>/mateu/v3/**` (sync, SSE, YAML mounts) or `/mateu/mcp` whose `Content-Type` is not
-  `application/json` / `application/*+json` — `text/plain`, a form encoding, or none — answers 415.
-  Those are the requests a cross-site page can forge without a CORS preflight; before, Micronaut,
-  Quarkus and Helidon MP (and the MCP endpoint everywhere, and .NET/Python) ran them, so a
-  cookie-authenticated app was open to cross-site request forgery. (Java 5 adapters, .NET, Python)
-- **The reserved authoring actions are safe on the plain sync endpoint.** `__validate__` answers
-  only an MCP tool call, or an app running with `mateu.mcp.enabled=true` or in dev mode (403
-  otherwise; the sidecar's authoring tools need one of those). `__preview__` stays open — it is the
-  render target of the chat, live push and the visual editor — but every reserved action now answers
-  through the error boundary (a message + reference, never a raw 500), and every catalogue component
-  previews with nothing set: an absent child list or child is an empty one (`type: VerticalLayout`
-  alone used to be an anonymous, log-flooding 500). (Java, .NET, Python)
-- **`mateu_save_spec` (dev mode) saves only what a screen is made of.** A page, a layout envelope, a
-  partial or a business-component catalogue — never a sources / environment / routes / actions /
-  types / translations / mount / project definition, never a catalogue file name, and never a page
-  that references a `${secret.…}`, marks a request `proxy: true` or overrides the url / headers /
-  method / body of a source it names by `ref`. Before, an MCP caller in dev mode could re-point a
-  proxied source at its own server and have Mateu send it the secret. Refusals are logged at WARN.
-  (Java, .NET, Python, sidecar)
-- **Live UI push: anonymous UIs behind one address no longer lock each other out.** The per-owner
-  cap (`max-sessions-per-owner`, 20) is now a signed-in user's only; an anonymous UI counts on its
-  own, and anonymous sessions are capped per client address by the new, much higher
-  `mateu.mcp.push.max-anonymous-sessions-per-address` (200; .NET
-  `MateuOptions.McpPushMaxAnonymousSessionsPerAddress`, Python
-  `add_mateu(mcp_push_max_anonymous_sessions_per_address=…)`). Before, 20 open tabs behind a reverse
-  proxy without forwarded-header handling locked every other anonymous user out. The address is the
-  framework-resolved one (never a forwarded header Mateu reads itself — pinned on every adapter);
-  Helidon MP's JAX-RS leg now reports it too (it was null). Behind a proxy, configure the framework's
-  forwarded-header handling (documented per framework). (Java 5 adapters, .NET, Python)
+- **An agent-authored screen is untrusted and runs no code (NB1).** A screen an agent sends — the
+  chat's `render-screen`, a live push of kind `render` — was rendered like the app's own
+  definitions, so an `Element`'s literal `onerror`, `html` content, `import` module, a `script`
+  element or a `javascript:` link ran in the user's signed-in tab: a prompt-injected LLM could steal
+  the token. Every shell (Vaadin, Redwood, React Native, IntelliJ) now calls `__preview__` with
+  `_untrusted: true` and the backend strips everything script-capable (`on*`/`srcdoc`/`import`/unsafe
+  url attributes, html content shown as text, code-loading or `mateu-*` elements, `RunJS` rules,
+  action `js`, `AddContentToHead`/`Body`, `javascript:`/`vbscript:` urls, a `MicroFrontend`'s
+  absolute `baseUrl`); the web renderers apply the same rules again in the browser. Shared cases:
+  `conformance/untrusted/cases.json`. (Java, .NET, Python, all renderers)
+- **React Native trusts no backend because a navigation names it (NB2).** A `navigation-requested`
+  from the chat or live push carrying `baseUrl: https://attacker` used to send the Bearer token,
+  `X-Session-Id` and the `@AppContext` values there; credentials now go only to the app's own backend
+  or to a remote the app's menu declares.
+- **Mateu's action endpoints accept only JSON bodies (NM1)** — the 415 rule above. Those are the
+  requests a cross-site page can forge without a CORS preflight; before, Micronaut, Quarkus and
+  Helidon MP (and the MCP endpoint everywhere, and .NET/Python) ran them, so a cookie-authenticated
+  app was open to cross-site request forgery. Spring's CSRF exemption for Mateu's JSON calls relies
+  on it. (Java 5 adapters, .NET, Python)
+- **The reserved authoring actions are safe on the plain sync endpoint (NM2).** `__validate__` is
+  gated (above). `__preview__` stays open — it is the render target of the chat, live push and the
+  visual editor — but every reserved action now answers through the error boundary (a message +
+  reference, never a raw 500), and every catalogue component previews with nothing set (`type:
+  VerticalLayout` alone used to be an anonymous, log-flooding 500). (Java, .NET, Python)
+- **`mateu_save_spec` (dev mode) saves only what a screen is made of (NM3).** A page, a layout
+  envelope, a partial or a business-component catalogue — never a sources / environment / routes /
+  actions / types / translations / mount / project definition, never a catalogue file name, and
+  never a page that references a `${secret.…}`, marks a request `proxy: true` or overrides the url /
+  headers / method / body of a source it names by `ref`. Before, an MCP caller in dev mode could
+  re-point a proxied source at its own server and have Mateu send it the secret. Refusals are logged
+  at WARN. (Java, .NET, Python, sidecar)
+- **The log names a push session by fingerprint, never by handle (NM4).** Pairing and delivery were
+  logged at INFO with the session handle — for an anonymously paired session, the credential. Logs
+  now carry `s-` + the first 12 hex digits of its SHA-256 (identical in Java, .NET and Python).
+- **Live UI push: anonymous UIs behind one address no longer lock each other out (NM5).** The
+  per-owner cap (`max-sessions-per-owner`, 20) is now a signed-in user's only; anonymous sessions are
+  capped per client address by the new, much higher `mateu.mcp.push.max-anonymous-sessions-per-address`
+  (200; .NET `MateuOptions.McpPushMaxAnonymousSessionsPerAddress`, Python
+  `add_mateu(mcp_push_max_anonymous_sessions_per_address=…)`). The address is the framework-resolved
+  one (never a forwarded header Mateu reads itself); Helidon MP's JAX-RS leg now reports it too.
+- **Pairing attempts are also counted per client address.** The 10-a-minute failure limit was
+  bucketed per `X-Mateu-Agent-Key` only, so rotating the header gave a fresh bucket per guess while
+  all anonymous callers shared one; the bucket map is now bounded (10 000). (Java, .NET, Python)
+- **An agent dispatches only the events a screen declares (NM9).** Every event name an agent sent
+  went out as a bubbling DOM event, so it could fire the framework's own
+  (`server-side-action-requested`, `page-banners-received`, `route-changed`, `dirty`/`clean`…). Now
+  only the built-in agent events, or one a view on screen subscribes to (`@SubscribeTo`) that is not
+  a framework or DOM name, go out. Shared lists: `conformance/client/agent-events.json`. (web,
+  Redwood; React Native and IntelliJ already delivered to their `@SubscribeTo` bus only)
+- **The Redwood chat sends the token only where it is trusted (NM10).** It sent the stored Bearer to
+  whatever `Chat.sseUrl` / `uploadUrl` a screen named; now only to the page, the shell's backend and
+  the remotes its app names.
+- **Inline row editing (`update-row`) is guarded like the editor's save (NM11).** A `@ReadOnly`
+  field keeps the stored value, the row is laid over the stored record (its other fields survive),
+  an id with no stored record is refused instead of inserted, and only a crud with `@InlineEditing`
+  (and `canEdit()`) offers it. (Java, .NET, Python)
+- **A page title that is data renders as text (NM12).** A record's own `toString()` titled the page
+  and the web header rendered it as HTML, so whoever could name a record planted a tracking image or
+  a phishing link in the header of everyone who opened it. Such titles travel marked
+  `PageDto.titleIsText` (additive wire field; .NET `TitleIsText`, Python `title_is_text`) and render
+  as text; declared titles (`@Title`, a `TitleSupplier`) keep their markup. (Java, .NET, Python, web)
+- **A push session's secret hash is compared in constant time** in Java too (`MessageDigest.isEqual`;
+  .NET and Python already did).
+- **React Native: the push channel secret never comes from `Math.random`.** It fell back to it when
+  `crypto.getRandomValues` was missing — Hermes' default — so on a device the 256-bit secret was
+  predictable. `expo-crypto` now provides the secure source and the secret draw fails rather than
+  fall back.
+- **What an agent sends cannot forge or flood log lines.** The route / event / path an agent sends
+  is logged through one helper (Java `LogSafe`, .NET `MateuLogging.Safe`, Python `log_safe`: clipped
+  to 256 characters, control characters → `?`), and the ports clip a session's route to 512 like
+  Java.
+- **An agent's screen into the content asks before discarding unsaved work.** A `render-screen`
+  with target content replaced the screen without the unsaved-changes check every navigation makes;
+  Vaadin, Redwood and React Native now ask first (a drawer or dialog replaces nothing; IntelliJ opens
+  a separate Preview tab).
+- **Release workflows scope every credential (NM7).** The PyPI and NuGet publishes are split into a
+  read-only build job and a publish job that alone holds the token (passed only through `with:`) or
+  OIDC; the GPG key is imported right before `mvn deploy`, after `npm ci` and the Vite build;
+  write permissions sit only in jobs that run no third-party code; every action is pinned by SHA.
+- **The committed Claude Code settings are neutral (NM8).** `.claude/settings.json` no longer turns
+  on `bypassPermissions` for whoever trusts the repository; personal modes go in the untracked
+  `settings.local.json`.
+- **Dependabot covers** the starters, pip, NuGet, the IntelliJ plugin, the VS Code extension and
+  React Native (it tracked only the backend, the web monorepo, e2e, the docs and the actions).
+
+### Fixed
+- Python: the API freeze pins every public component (NM6) — 27 documented classes of
+  `mateu_ui.uidl.components` (`VerticalLayout`, `FormField`, `Card`, `Notice`, `Chart`…) were missing
+  from `__all__` and could change with no failure; a guard now fails on any public name left out.
+- Python: `identity_from_claims` is public API (`mateu_ui.fastapi`, `mateu_ui.core`), as the docs teach.
+- uidl: `@Documented` on the last three annotations without it (`GenericClass`, `KeycloakSecured`, `List`).
+- `scripts/bump-example-version.sh` accepts a GA / patch release (`3.0.0`) and matches it on the
+  next bump (it refused any version without a `-label.N` suffix).
+- The visual editor's highlight pass is a no-op once the canvas has left the page (a flaky CI
+  failure); `CSS.escape` has a fallback.
+- The .NET YAML builder binds a string-valued map (an `Element` with `attributes:` rendered
+  "Unsupported component: Element").
+
+### Documentation
+- `security.md`: the `@KeycloakSecured` `jsUrl` default is `https://esm.sh/keycloak-js@26.2.2`, and
+  the CSP recipe says what that needs (NM13).
+- `configuration.md` lists the `mateu.mcp.push.*` keys and `mateu.ui.modules`; `MATEU_MCP_ENABLED`
+  works on Java too; parity gains the live UI push rows; the wire spec explains `consumedRoute` null
+  vs `""` and the `KPIDto` discriminator; where the AI chat sits per shell variant; the support policy
+  names the Quarkus version CI tests (3.40); the japicmp baseline is the one in `backend/pom.xml`;
+  a Redwood static bundle names its manifest by an absolute path; the guides pin no release and a
+  release deploy only names a version Central serves; the fixed "Vaadin foldout panels start
+  expanded" known issue is gone; AI reference files and a demo use `HAMBURGER_MENU`.
 
 ## [3.0-beta.5] — 2026-10-19
 
