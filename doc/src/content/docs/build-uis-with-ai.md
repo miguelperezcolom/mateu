@@ -91,7 +91,7 @@ server reads**, so it cannot fall behind the code:
 Point the editor at it (the IntelliJ plugin and the VS Code extension do so for you), or start each
 file with the schema key, as the starters do:
 
-```yaml
+```yaml nocheck
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 ```
 
