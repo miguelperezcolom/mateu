@@ -16,3 +16,6 @@ mvnw.*
 .dev/
 .DS_Store
 .m2-stream/
+
+# Personal Claude Code settings (permission modes etc.) stay out of the repo
+.claude/settings.local.json

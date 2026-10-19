@@ -53,7 +53,7 @@ export function navigatingShellOf(origin: Element): NavigatingShell | null {
 
 export function applyAgentEvent(origin: Element, name: string, detail: unknown, options: AgentEventOptions = {}): void {
     if (!agentMayDispatch(name)) {
-        console.debug('[mateu] agent event not declared on this screen, dropped:', name)
+        console.warn('[mateu] agent event not declared on this screen, dropped:', name)
         return
     }
     const event = new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true })
