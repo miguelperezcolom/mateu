@@ -4,6 +4,7 @@ import type { AppShortcut } from '@mateu/shared/apiClients/dtos/componentmetadat
 import { appShortcutFor, isHelpKey, isTypingTarget } from '@infra/ui/appShortcuts.ts'
 import { installHeaderValuesWatcher, seedHeaderValues } from '@infra/ui/headerValues.ts'
 import { syncLiveUpdates } from '@infra/ui/liveUpdates.ts'
+import { syncAgentChannel } from '@infra/ui/agentChannel.ts'
 import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
 import { navigateToRoute } from '@infra/ui/rowRoute.ts'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
@@ -20,7 +21,8 @@ import '@infra/ui/mateu-idle-warning.ts'
  *   listener so a screen's own shortcut, handled on document first, wins;
  * - live header values: the store is seeded from the shell and follows the other tabs; the event
  *   stream runs when the app asks for it (liveUpdates.ts);
- * - the idle-session warning (mateu-idle-warning), mounted when the app configures one.
+ * - the idle-session warning (mateu-idle-warning), mounted when the app configures one;
+ * - the live UI push channel (`agentPush`): this tab's stream of what an agent sends it (agentChannel.ts).
  *
  * Document-wide singletons: nested MEDIATOR shells are skipped, the top shell owns them.
  */
@@ -71,6 +73,9 @@ export function syncAppExtras(host: Host): void {
     seedHeaderValues(md.headerValues)
     installHeaderValuesWatcher()
     syncLiveUpdates(md, baseUrl)
+
+    // live UI push: what an agent connected through MCP sends to this tab
+    syncAgentChannel(md, baseUrl, host)
 
     // app shortcuts + "?"
     if ((md.shortcuts?.length ?? 0) > 0) {

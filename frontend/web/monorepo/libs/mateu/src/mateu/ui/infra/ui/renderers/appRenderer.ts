@@ -7,6 +7,7 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
+import "@infra/ui/mateu-agent-connect.ts";
 import "@infra/ui/mateu-header-values.ts";
 import { requireElement } from "@infra/ui/lazyElements.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
@@ -67,8 +68,9 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     const actions = metadata.contextActions ?? []
     const liveValues = (metadata.headerValues?.length ?? 0) > 0
-    if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled && !liveValues) return nothing
-    return html`${liveValues ? html`<mateu-header-values></mateu-header-values>` : nothing}${metadata.notificationsEnabled ? html`
+    if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled && !liveValues && !metadata.agentPush) return nothing
+    return html`${liveValues ? html`<mateu-header-values></mateu-header-values>` : nothing}${metadata.agentPush ? html`
+        <mateu-agent-connect .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-agent-connect>` : nothing}${metadata.notificationsEnabled ? html`
         <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
         <details class="mateu-nav-group" style="flex-shrink: 0;">
@@ -250,6 +252,7 @@ export const hasHeaderWidgets = (metadata: App, container: Pick<MateuApp, 'compo
     || !!metadata.themeToggle
     || !!metadata.mobileQr
     || !!metadata.notificationsEnabled
+    || !!metadata.agentPush
     || (metadata.contextSelectors?.length ?? 0) > 0
     || (metadata.contextActions?.length ?? 0) > 0
     || (metadata.headerValues?.length ?? 0) > 0

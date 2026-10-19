@@ -48,6 +48,9 @@ export default interface App extends ComponentMetadata {
     rootRoute: string | undefined
     notificationsEnabled?: boolean
     globalSearchEnabled?: boolean
+    /** Live UI push is on (mateu.mcp.push.enabled): the UI opens its agent channel (`_agent-channel`)
+     *  and the header offers "Connect AI" (`_agent-pair` / `_agent-unpair`). */
+    agentPush?: boolean
     /** A data-authored shell's inbox (`notifications.source`): listed from this REST source instead
      *  of the `_notifications-list` action of a NotificationsSupplier class. */
     notificationsSource?: RestDataSource | null
