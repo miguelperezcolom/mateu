@@ -79,7 +79,9 @@ so an agent gets the contract of the version it talks to, without network access
   Spring MVC, Spring WebFlux, Micronaut, Quarkus, Helidon MP), **Python** (FastAPI) and **.NET** (ASP.NET
   Core) — all at `POST /mateu/mcp`, all sharing one projection. It is **off by default** everywhere:
   enable it with `mateu.mcp.enabled=true` (Java), `MateuOptions.Mcp = true` (.NET),
-  `add_mateu(..., mcp=True)` (Python) or `MATEU_MCP_ENABLED=true` (.NET and Python). It gives any
+  `add_mateu(..., mcp=True)` (Python), or the `MATEU_MCP_ENABLED=true` environment variable on any
+  backend (on Java the framework's own configuration maps it to `mateu.mcp.enabled`, as Spring,
+  Micronaut and MicroProfile Config do for any environment variable). It gives any
   caller holding a valid token a programmatic way to drive every screen, which the application has
   to decide to expose.
 
@@ -161,7 +163,7 @@ Off by default, and it needs the MCP endpoint on too:
 
 | Host | Switch |
 |---|---|
-| Java (every adapter) | `mateu.mcp.enabled=true` + `mateu.mcp.push.enabled=true` (or `MATEU_MCP_PUSH_ENABLED=true`) |
+| Java (every adapter) | `mateu.mcp.enabled=true` + `mateu.mcp.push.enabled=true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
 | .NET | `MateuOptions.Mcp = true` + `MateuOptions.McpPush = true` (or `MATEU_MCP_ENABLED` / `MATEU_MCP_PUSH_ENABLED`) |
 | Python | `add_mateu(..., mcp=True, mcp_push=True)` (or the same environment variables) |
 
