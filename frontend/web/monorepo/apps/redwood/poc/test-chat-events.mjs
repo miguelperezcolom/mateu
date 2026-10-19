@@ -9,8 +9,10 @@ import { reduceContexts, HOST_ID, overlayOf } from './reduceContexts.mjs'
 import {
   renderScreenRequestOf, chatNavigationOf, navigationLoadExtraOf, chatEventPlanOf, chatPreviewBodyOf,
   chatPreviewIncrementOf, dispatchChatEvent, streamChat, resolveChatUrl, chatConfigOf, chatUsageTextOf,
-  CHAT_PREVIEW_ACTION,
+  CHAT_PREVIEW_ACTION, CHAT_AGENT_BUILT_IN_EVENTS, CHAT_RESERVED_EVENT_NAMES, CHAT_RESERVED_EVENT_PREFIXES,
+  agentMayDispatchEvent,
 } from './chat.mjs'
+import { readFileSync } from 'node:fs'
 import { setChromeLanguage } from './i18n.mjs'
 
 setChromeLanguage('en')
@@ -155,6 +157,23 @@ test('close-requested closes; any other event goes to the document AND to its su
   assert.equal(plan.kind, 'custom')
   assert.equal(plan.dispatch, true)
   assert.deepEqual(plan.subscribers, [{ ctxId: HOST_ID, actionId: 'refresh', parameters: { id: 7 } }])
+})
+
+test('NM9: an event nobody on screen declares, or one of the framework\'s own, goes nowhere', async () => {
+  const corpus = JSON.parse(readFileSync(new URL('../../../../../../conformance/client/agent-events.json', import.meta.url), 'utf8'))
+  assert.deepEqual([...CHAT_AGENT_BUILT_IN_EVENTS], corpus.builtIn)
+  assert.deepEqual([...CHAT_RESERVED_EVENT_NAMES], corpus.reserved)
+  assert.deepEqual(CHAT_RESERVED_EVENT_PREFIXES, corpus.reservedPrefixes)
+  for (const c of corpus.cases) assert.equal(agentMayDispatchEvent(c.name, c.subscribed.includes(c.name)), c.allowed, c.name)
+  assert.equal(chatEventPlanOf({ event: 'booking-made', detail: {} }, regWith()).kind, 'ignore', 'undeclared')
+  const reserved = regWith([{ type: 'OnCustomEvent', eventName: 'mateu-session-expired', actionId: 'x' }])
+  assert.equal(chatEventPlanOf({ event: 'mateu-session-expired', detail: {} }, reserved).kind, 'ignore', 'framework event, even subscribed')
+  // and nothing reaches the document
+  const heard = []
+  const doc = { dispatchEvent: (e) => heard.push(e.type) }
+  await dispatchChatEvent({ event: 'mateu-session-expired', detail: {} }, null, doc)
+  await dispatchChatEvent({ event: 'booking-made', detail: {} }, null, doc)
+  assert.deepEqual(heard, [])
 })
 
 // ── the dispatcher, against a fake host ──────────────────────────────────────────────────────

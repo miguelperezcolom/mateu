@@ -11,6 +11,7 @@ vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) 
 import './mateu-chat'
 import type { MateuChat } from './mateu-chat'
 import { claimEvent } from './chatEvents'
+import { declareAgentEvent } from './agentEventPolicy'
 import { sessionId } from '@infra/http/authToken.ts'
 
 /**
@@ -92,7 +93,7 @@ describe('mateu-chat, the events of the stream', () => {
         expect(navigated).toEqual(['/orders'])
     })
 
-    it('a Chat on a page has no ✕ and ignores close-requested; the custom events go out as they are', async () => {
+    it('a Chat on a page has no ✕ and ignores close-requested; the custom events declared on screen go out as they are', async () => {
         const live = liveResponse()
         vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(live.response)))
         const el = chat()
@@ -102,11 +103,14 @@ describe('mateu-chat, the events of the stream', () => {
         const heard: string[] = []
         document.addEventListener('close-requested', () => heard.push('close'))
         document.addEventListener('highlight-row', e => heard.push('highlight ' + (e as CustomEvent).detail.id))
+        const release = declareAgentEvent('highlight-row') // a page on screen subscribes to it
         const sending = el.send(new CustomEvent('submit', { detail: { value: 'x' } }))
         live.write(sse({ event: 'close-requested' }))
         live.write(sse({ event: 'highlight-row', detail: { id: 7 } }))
+        live.write(sse({ event: 'server-side-action-requested', detail: { actionId: 'delete' } }))
         live.close()
         await sending
+        release()
         expect(heard).toEqual(['highlight 7'])
     })
 

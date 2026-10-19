@@ -198,7 +198,7 @@ Listed only when push is on, after the operating and authoring tools:
 | `mateu_pair_session` | Pair a session with the code its user sees. |
 | `mateu_push_ui` | Validate a YAML page (nothing is sent when it has errors), then show it in that tab: `target` = `content` (default), `drawer` or `dialog`, optional `title`. |
 | `mateu_navigate` | Navigate that tab to a route, like a menu click (`route`, plus the optional `consumedRoute`, `actionId`, `baseUrl`, `serverSideType`, `uriPrefix`). |
-| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. |
+| `mateu_dispatch_event` | Dispatch a named event (`@SubscribeTo` views take it). The built-in events are reserved for the two tools above. The tab delivers it only while a view on screen subscribes to it, and never a framework event name (see [the event catalogue](/ai/#the-event-catalogue)). |
 
 The pushed screen is rendered by the UI through the same reserved `__preview__` action as the chat's
 `render-screen`: layout only, no view model is created or bound, and it is requested **with the

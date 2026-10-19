@@ -792,7 +792,8 @@ export function resolveChatUrl(url, base = '') {
 //     none is, the shell renders it itself (the BUILT-IN render target): the reserved `__preview__`
 //     sync action turns the definition into an ordinary increment, painted in the content (default,
 //     transient), a drawer or a dialog;
-//   - anything else → a document CustomEvent and the registry's bus (its OnCustomEvent subscribers).
+//   - anything else a surface on screen subscribes to → a document CustomEvent and the registry's
+//     bus (its OnCustomEvent subscribers); an undeclared or framework event name goes nowhere.
 // Each event is handled AS SOON AS it arrives, while the answer keeps streaming.
 
 export const CHAT_NAVIGATION_REQUESTED = 'navigation-requested'
@@ -849,12 +850,42 @@ export function navigationLoadExtraOf(navigation) {
   return out
 }
 
+// ── which events an agent may dispatch (NM9) ─────────────────────────────────────────────────
+// The built-in ones always; any other only when a surface on screen subscribes to it (its
+// OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names — an
+// agent must not fire the renderer's or the DOM's own events at the app. Same lists as libs/mateu
+// agentEventPolicy.ts, pinned by conformance/client/agent-events.json.
+export const CHAT_AGENT_BUILT_IN_EVENTS = new Set([
+  'navigation-requested', 'close-requested', 'render-screen',
+])
+export const CHAT_RESERVED_EVENT_NAMES = new Set([
+  'action-requested', 'server-side-action-requested', 'url-update-requested', 'route-changed',
+  'navigate-to-requested', 'page-banners-received', 'dirty', 'clean', 'value-changed', 'data-changed',
+  'app-data-updated', 'close-modal-requested', 'column-prefs-changed', 'compact-changed', 'history-pushed',
+  'selected-changed', 'search-requested', 'filter-reset-requested', 'picked', 'pinged', 'click',
+  'dblclick', 'input', 'change', 'submit', 'keydown', 'keyup', 'keypress', 'focus', 'blur', 'focusin',
+  'focusout', 'load', 'error', 'abort', 'message', 'storage', 'popstate', 'hashchange', 'beforeunload',
+  'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
+  'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
+  'DOMContentLoaded',
+])
+export const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+
+/** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
+export function agentMayDispatchEvent(name, subscribed) {
+  if (typeof name !== 'string' || !name) return false
+  if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
+  if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+  return !!subscribed
+}
+
 /**
  * What an agent event means on this screen (`reg` = the registry, for its subscribers):
  *   {kind:'navigate', navigation} | {kind:'close'} | {kind:'ignore'}
  *   {kind:'subscribers', name, detail, subscribers:[{ctxId, actionId, parameters}], dispatch}
  *   {kind:'preview', request, dispatch}  (render-screen nobody on screen takes)
- *   {kind:'custom', name, detail, subscribers, dispatch}
+ *   {kind:'custom', name, detail, subscribers, dispatch}  (only one a surface subscribes to and
+ *     not a framework event name: anything else is {kind:'ignore'})
  * `dispatch`: it also goes out as a document CustomEvent (a page's web component may listen).
  */
 export function chatEventPlanOf(ev, reg) {
@@ -873,6 +904,8 @@ export function chatEventPlanOf(ev, reg) {
     const request = renderScreenRequestOf(detail)
     return request ? { kind: 'preview', request, dispatch: true } : { kind: 'ignore' }
   }
+  // nobody on screen declares it (or it is one of the framework's own): it goes nowhere
+  if (!agentMayDispatchEvent(name, subscribers.length > 0)) return { kind: 'ignore' }
   return { kind: 'custom', name, detail, subscribers, dispatch: true }
 }
 

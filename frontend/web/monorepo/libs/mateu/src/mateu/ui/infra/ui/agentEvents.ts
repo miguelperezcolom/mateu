@@ -1,6 +1,7 @@
 import { isEventClaimed, NAVIGATION_REQUESTED, RENDER_SCREEN, renderScreenRequestOf } from './chatEvents'
 import { renderScreenInShell } from './builtInRenderTarget'
 import { navigateToRoute } from './rowRoute'
+import { agentMayDispatch } from './agentEventPolicy'
 
 /**
  * What the UI does with ONE agent event — the chat's stream (`{"event":…}`) and the live UI push
@@ -14,6 +15,10 @@ import { navigateToRoute } from './rowRoute'
  *    handler a menu click and the chat panel reach); outside a shell, the route is opened directly;
  *  - `render-screen`: the built-in render target (`__preview__` → content / drawer / dialog);
  *  - anything else: nothing more — dispatching it was the whole job.
+ *
+ * Only the built-in events and those a component on screen DECLARES (`@SubscribeTo`) go out, and
+ * never one of the framework's own event names (agentEventPolicy.ts): an agent must not be able to
+ * fire `server-side-action-requested`, `page-banners-received`, `route-changed`… at the app.
  */
 
 export interface AgentEventOptions {
@@ -47,6 +52,10 @@ export function navigatingShellOf(origin: Element): NavigatingShell | null {
 }
 
 export function applyAgentEvent(origin: Element, name: string, detail: unknown, options: AgentEventOptions = {}): void {
+    if (!agentMayDispatch(name)) {
+        console.debug('[mateu] agent event not declared on this screen, dropped:', name)
+        return
+    }
     const event = new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true })
     origin.dispatchEvent(event)
     if (name === NAVIGATION_REQUESTED) {

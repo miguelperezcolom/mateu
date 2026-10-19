@@ -379,7 +379,13 @@ Every renderer reads the stream the same way and handles the same events:
 | `navigation-requested` | Like a menu click with all the fields; outside an app shell, route resolution | Like a menu click with all the fields (`baseUrl`/`uriPrefix` register a remote) | Like a menu click (route, consumedRoute, serverSideType, baseUrl — another backend gets its own session, which carries the user's credentials only when the app's menu names that backend; an `actionId` with no route runs as an app action) | Like a menu click (one backend per session, so `baseUrl`/`uriPrefix` are not used) |
 | `close-requested` | Closes the panel (ignored by a `Chat` on a page) | Closes the panel | Closes the panel | Closes the dialog / hides the inline panel |
 | `render-screen` | Subscriber first, else content / drawer / dialog | Subscriber first, else content / drawer / dialog | Subscriber first, else content / sheet | Subscriber first, else a transient Preview tab / side window / dialog |
-| anything else | A DOM `CustomEvent` (bubbling, composed) for `@SubscribeTo` views and page scripts | A DOM `CustomEvent` + the `@SubscribeTo` views on screen | The session event bus (`@SubscribeTo` views) | The session event bus (`@SubscribeTo` views) |
+| anything else — only an event a view on screen subscribes to | A DOM `CustomEvent` (bubbling, composed) for the `@SubscribeTo` views — page scripts hear it too | A DOM `CustomEvent` + the `@SubscribeTo` views on screen | The session event bus (`@SubscribeTo` views) | The session event bus (`@SubscribeTo` views) |
+
+An agent cannot fire just any event at the app. Besides the three built-in ones, an event goes out
+only while a view on screen declares it (`@SubscribeTo(event = …)`), and never when it is one of
+the framework's own event names (`server-side-action-requested`, `route-changed`,
+`page-banners-received`, `dirty`, `mateu-…`, DOM events…) — whatever a view declares. Anything else
+is dropped. The lists are pinned by `conformance/client/agent-events.json`.
 
 Links in an answer to a screen of the app (`[Nora Duarte](/booking/bookings/4MBZS7)`) open it in the
 app through the menu entry that serves it, on every renderer. Attachments are offered wherever an
