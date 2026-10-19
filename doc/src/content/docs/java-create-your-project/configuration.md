@@ -1,6 +1,6 @@
 ---
 title: "Configuration properties"
-description: "The application properties every Mateu adapter understands: CORS, MCP, client error log, asset caching and debug."
+description: "The application properties every Mateu adapter understands: CORS, MCP and live UI push, UI modules, client error log, asset caching and debug."
 ---
 
 Every Java adapter — Spring MVC, Spring WebFlux, Micronaut, Quarkus and Helidon MP — reads the same
@@ -13,6 +13,7 @@ implemented once, in Mateu's core, so it is the same on every adapter.
 | `mateu.cors.allowed-origins` | *(empty: no CORS)* | Comma-separated origins allowed to call Mateu's endpoints from another origin. `*` = any origin; `https://*.example.com` patterns are accepted. |
 | `mateu.cors.allow-credentials` | `false` | Adds `Access-Control-Allow-Credentials: true` for the listed origins. Never combined with `*`. |
 | `mateu.mcp.enabled` | `false` | Serves the native [MCP endpoint](/reference/agent-operability/) at `POST /mateu/mcp`. |
+| `mateu.ui.modules` | *(empty)* | Spring MVC / WebFlux: comma-separated packages of [external Mateu UI modules](/java-user-manual/build/using-external-mateu-uis/) to mount in-process (same as `@EnableMateuUiModules`). Quarkus, Micronaut and Helidon discover them per jar. |
 | `mateu.client-log.enabled` | `true` | Accepts the renderers' error reports at `POST <baseUrl>/mateu/v3/client-log` ([client error log](/ux-patterns/client-error-log/)). |
 | `mateu.client-log.max-reports-per-minute` | `60` | Reports one user (else one client address) may write per minute; the rest answer `429`. |
 | `mateu.security.csrf-exemption.enabled` | `true` | Spring: exempts Mateu's JSON calls from Spring Security's CSRF check ([why it is safe](/java-user-manual/advanced/security/#wiring-each-framework)). |
@@ -34,6 +35,8 @@ Config on Quarkus and Helidon), then the environment variable (`mateu.self-base-
 | `mateu.layout.inference.enabled`, `mateu.page.inference.enabled` | `false`, `true` | [Layout and page inference](/ux-patterns/layout-inference/). |
 | `mateu.mobile.*` | — | The [mobile manifest](/ux-patterns/mobile-app/) (name, icon, OIDC issuer and client…). |
 | `mateu.environment`, `mateu.sources.mock`, `mateu.i18n.fallback`, `mateu.documents.inline-max-bytes` | — | The active environment, sample-data mode, the fallback locale, the inline document limit. |
+| `mateu.mcp.push.enabled` | `false` | [Live UI push](/reference/agent-operability/#drive-a-live-ui): an agent paired with a browser tab can render screens and drive it. Needs `mateu.mcp.enabled=true` too. |
+| `mateu.mcp.push.rate-per-minute`, `mateu.mcp.push.max-sessions`, `mateu.mcp.push.max-sessions-per-owner` | `30`, `1000`, `20` | Live UI push limits: messages per session per minute, registered sessions, sessions per signed-in user (or per client address for anonymous UIs). |
 
 Before `3.0-alpha.426` these were read only from system properties and environment variables: a key
 written in `application.properties` was silently ignored.
