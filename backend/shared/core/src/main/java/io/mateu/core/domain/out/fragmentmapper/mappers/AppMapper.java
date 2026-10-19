@@ -112,6 +112,7 @@ public final class AppMapper {
             .shortcuts(AppShellExtrasMapper.shortcuts(app, appRouteForMenu))
             .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
+            .agentPush(io.mateu.core.application.agentpush.AgentPush.enabled())
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null

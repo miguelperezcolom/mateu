@@ -69,7 +69,12 @@ public final class McpJsonRpc {
         case "tools/list":
           {
             ObjectNode result = om.createObjectNode();
-            result.set("tools", tools(om, DevMode.enabled()));
+            result.set(
+                "tools",
+                tools(
+                    om,
+                    DevMode.enabled(),
+                    io.mateu.core.application.agentpush.AgentPush.enabled()));
             return response(om, idNode, result);
           }
         case "resources/list":
@@ -186,6 +191,15 @@ public final class McpJsonRpc {
       case "mateu_preview_uidl":
         return svc.preview(
             argument(args, "yaml"), args.path("route").asText(""), baseUrl, httpRequests);
+      case "mateu_list_sessions":
+      case "mateu_pair_session":
+      case "mateu_push_ui":
+      case "mateu_navigate":
+      case "mateu_dispatch_event":
+        if (!io.mateu.core.application.agentpush.AgentPush.enabled()) {
+          throw new UserFacingException("Unknown tool: " + name);
+        }
+        return push(svc, name, args, baseUrl, httpRequests);
       case "mateu_save_spec":
         {
           if (!DevMode.enabled()) {
@@ -202,6 +216,53 @@ public final class McpJsonRpc {
       default:
         throw new UserFacingException("Unknown tool: " + name);
     }
+  }
+
+  private static JsonNode push(
+      McpService svc, String name, JsonNode args, String baseUrl, HttpRequestFactory httpRequests) {
+    switch (name) {
+      case "mateu_list_sessions":
+        return svc.listSessions(httpRequests);
+      case "mateu_pair_session":
+        return svc.pairSession(argument(args, "code"), httpRequests);
+      case "mateu_push_ui":
+        {
+          var session = argument(args, "session");
+          var yaml = argument(args, "yaml");
+          return svc.pushUi(
+              session,
+              yaml,
+              optional(args, "target"),
+              optional(args, "title"),
+              baseUrl,
+              httpRequests);
+        }
+      case "mateu_navigate":
+        {
+          var session = argument(args, "session");
+          var navigation = new java.util.LinkedHashMap<String, String>();
+          navigation.put("route", argument(args, "route"));
+          for (var key :
+              java.util.List.of(
+                  "consumedRoute", "actionId", "baseUrl", "serverSideType", "uriPrefix")) {
+            var value = optional(args, key);
+            if (value != null) navigation.put(key, value);
+          }
+          return svc.navigate(session, navigation, httpRequests);
+        }
+      default:
+        {
+          var session = argument(args, "session");
+          var event = argument(args, "event");
+          return svc.dispatchEvent(session, event, args.get("detail"), httpRequests);
+        }
+    }
+  }
+
+  /** An optional string argument (null when absent or not a string). */
+  private static String optional(JsonNode args, String name) {
+    var value = args.get(name);
+    return value != null && value.isTextual() ? value.asText() : null;
   }
 
   /** A required string argument, or the caller's mistake. */
@@ -225,6 +286,14 @@ public final class McpJsonRpc {
    * mateu_save_spec} is listed only in development mode.
    */
   static ArrayNode tools(ObjectMapper om, boolean devMode) {
+    return tools(om, devMode, false);
+  }
+
+  /**
+   * The tool list: the base tools, then — with live UI push on — the push tools ({@code
+   * conformance/mcp/push.json}), then {@code mateu_save_spec} in development mode.
+   */
+  static ArrayNode tools(ObjectMapper om, boolean devMode, boolean push) {
     ArrayNode tools = om.createArrayNode();
     tools.add(
         tool(
@@ -315,6 +384,9 @@ public final class McpJsonRpc {
                 + " is saved — and return {rendered, screen, validation}: the screen projection"
                 + " (title, fields, actions…) plus the validation report.",
             preview));
+    if (push) {
+      pushTools(om, tools);
+    }
     if (devMode) {
       ObjectNode save = objSchema(om);
       strProp(save, "path", "relative to the specs directory, e.g. customers.yaml");
@@ -331,6 +403,80 @@ public final class McpJsonRpc {
               save));
     }
     return tools;
+  }
+
+  /** The live UI push tools — identical everywhere; pinned by {@code conformance/mcp/push.json}. */
+  static void pushTools(ObjectMapper om, ArrayNode tools) {
+    String sessionDescription = "a session from mateu_list_sessions or mateu_pair_session";
+    tools.add(
+        tool(
+            om,
+            "mateu_list_sessions",
+            "List the live UI sessions (browser tabs, app windows) this caller may send UI to: its"
+                + " own (same signed-in user) and the ones paired to it with mateu_pair_session."
+                + " Returns {sessions: [{session, user, route, renderer, connectedAt, connected,"
+                + " paired}]}.",
+            objSchema(om)));
+    ObjectNode pair = objSchema(om);
+    strProp(pair, "code", "the pairing code shown in the app, e.g. K7QF-4MZP");
+    required(pair, "code");
+    tools.add(
+        tool(
+            om,
+            "mateu_pair_session",
+            "Pair a live UI session with this caller, using the one-time code the user sees after"
+                + " clicking \"Connect AI\" in the app. Returns the session; it can then be addressed"
+                + " by mateu_push_ui, mateu_navigate and mateu_dispatch_event. The code expires in"
+                + " minutes and works once.",
+            pair));
+    ObjectNode pushUi = objSchema(om);
+    strProp(pushUi, "session", sessionDescription);
+    strProp(pushUi, "yaml", "the page's YAML text");
+    ObjectNode target = pushUi.with("properties").putObject("target");
+    target.put("type", "string");
+    target.putArray("enum").add("content").add("drawer").add("dialog");
+    target.put("description", "where to show it (default content)");
+    strProp(pushUi, "title", "optional: the drawer's or dialog's header");
+    required(pushUi, "session", "yaml");
+    tools.add(
+        tool(
+            om,
+            "mateu_push_ui",
+            "Show a screen in a live UI session: validate the YAML page first (nothing is sent when"
+                + " it has errors), then render it in that tab, in the content area (default), a"
+                + " drawer or a dialog. Layout only: no view model is bound. Returns {delivered,"
+                + " session, target, validation} or {delivered: false, reason, validation}.",
+            pushUi));
+    ObjectNode navigate = objSchema(om);
+    strProp(navigate, "session", sessionDescription);
+    strProp(navigate, "route", "the target route, e.g. /orders/42");
+    strProp(
+        navigate, "consumedRoute", "optional: the route consumed by the app shell (usually \"\")");
+    strProp(navigate, "actionId", "optional: an action to run on arrival");
+    strProp(navigate, "baseUrl", "optional: the base URL of the target micro-frontend");
+    strProp(navigate, "serverSideType", "optional: the server-side type of the target UI");
+    strProp(navigate, "uriPrefix", "optional: the URI prefix (usually \"\")");
+    required(navigate, "session", "route");
+    tools.add(
+        tool(
+            om,
+            "mateu_navigate",
+            "Navigate a live UI session to a route of the app, like a click on the menu entry"
+                + " carrying these fields. Returns {delivered, session}.",
+            navigate));
+    ObjectNode dispatch = objSchema(om);
+    strProp(dispatch, "session", sessionDescription);
+    strProp(dispatch, "event", "the event name, e.g. highlight-row");
+    objProp(dispatch, "detail", "optional: the event's detail");
+    required(dispatch, "session", "event");
+    tools.add(
+        tool(
+            om,
+            "mateu_dispatch_event",
+            "Dispatch a named UI event in a live UI session, for the components that subscribe to"
+                + " it (@SubscribeTo). The built-in events are reserved: use mateu_push_ui and"
+                + " mateu_navigate for them. Returns {delivered, session}.",
+            dispatch));
   }
 
   private static ObjectNode tool(

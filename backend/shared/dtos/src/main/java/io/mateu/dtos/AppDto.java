@@ -160,7 +160,13 @@ public record AppDto(
      * with {@code ${state.searchText}} instead of the {@code _globalsearch} action. {@code null} =
      * the class decides (or no data search).
      */
-    RestDataSourceDto globalSearchSource)
+    RestDataSourceDto globalSearchSource,
+    /**
+     * Live UI push is on ({@code mateu.mcp.enabled} + {@code mateu.mcp.push.enabled}): the UI opens
+     * its per-tab agent channel (the {@code _agent-channel} app-level action over the SSE endpoint)
+     * and offers "Connect AI" (pairing with an MCP caller). False otherwise.
+     */
+    boolean agentPush)
     implements ComponentMetadataDto {
 
   public AppDto {
