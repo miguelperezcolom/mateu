@@ -12,6 +12,8 @@ script-capable construct taken out:
   ``link``, ``meta``, …) or a framework element (``mateu-*``) becomes an empty ``div``;
 - ``RunJS`` rules, an action's ``js`` and ``AddContentToHead``/``AddContentToBody`` commands go;
 - a ``javascript:``/``vbscript:`` url anywhere is blanked;
+- nothing runs without a click and nothing posts elsewhere: ``triggers`` are emptied and no
+  ``restAction`` is kept;
 - a ``MicroFrontend`` does not load from another server (its absolute ``baseUrl`` is dropped).
 
 Same rules in Java, .NET and the web renderers; shared cases: ``conformance/untrusted/cases.json``.
@@ -111,7 +113,13 @@ def neutralize(value: Any) -> Any:
         node = _element(node)
     if node.get("type") == "MicroFrontend" and isinstance(node.get("baseUrl"), str) and _absolute_url(node["baseUrl"]):
         node = {**node, "baseUrl": ""}
-    return {k: neutralize(v) for k, v in node.items() if not (k == "js" and isinstance(v, str))}
+    out = {}
+    for k, v in node.items():
+        if (k == "js" and isinstance(v, str)) or k == "restAction":
+            continue
+        # nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+        out[k] = [] if k == "triggers" and isinstance(v, list) else neutralize(v)
+    return out
 
 
 def neutralize_increment(increment):

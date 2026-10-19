@@ -13,6 +13,8 @@
  *  - client-side code goes: `RunJS` rules, an action's `js`, `AddContentToHead`/`AddContentToBody`
  *    commands;
  *  - a `javascript:`/`vbscript:` url anywhere is blanked;
+ *  - nothing runs without a click and nothing posts elsewhere: `triggers` are emptied and no
+ *    `restAction` is kept;
  *  - a `MicroFrontend` does not load from another server (its absolute `baseUrl` is dropped).
  *
  * Everything else renders as authored. The SAME rules run on the server (`__preview__` with
@@ -92,8 +94,9 @@ const walk = (value: Json): Json => {
     }
     const out: JsonObject = {}
     for (const [key, v] of Object.entries(node)) {
-        if (key === 'js' && typeof v === 'string') continue
-        out[key] = walk(v)
+        if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+        // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+        out[key] = key === 'triggers' && Array.isArray(v) ? [] : walk(v)
     }
     return out
 }

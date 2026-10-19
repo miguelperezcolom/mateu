@@ -9,6 +9,8 @@
 //    style, base, link, meta, …) or a framework element (mateu-*) becomes an empty div;
 //  - RunJS rules, an action's `js` and AddContentToHead/AddContentToBody commands go;
 //  - a javascript:/vbscript: url anywhere is blanked;
+//  - nothing runs without a click and nothing posts elsewhere: triggers are emptied and no
+//    restAction is kept;
 //  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped).
 // The backend applies the same rules (`__preview__` with `_untrusted`); this is the renderer's own
 // line for an older backend. Works on wire JSON and returns a sanitised COPY.
@@ -70,8 +72,9 @@ function untrustedWalk(value) {
   }
   const out = {}
   for (const [key, v] of Object.entries(node)) {
-    if (key === 'js' && typeof v === 'string') continue
-    out[key] = untrustedWalk(v)
+    if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+    // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+    out[key] = key === 'triggers' && Array.isArray(v) ? [] : untrustedWalk(v)
   }
   return out
 }
