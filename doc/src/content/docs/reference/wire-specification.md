@@ -88,6 +88,11 @@ Every schema is **generated from the records and pinned by a test**, and served 
   Its test (`WireSchemaTest`) fails on an added member until the schema is regenerated, and fails on
   a **removed, renamed or retyped** member *even when regenerating*: that is a breaking change and
   needs a wire major.
+- **One discriminator is not a bare name, on purpose**: a page/form KPI (`PageDto.kpis`,
+  `FormDto.kpis`) travels as `"type": "KPIDto"` — the DTO's class name — while every other type is
+  its bare name (`"Form"`, `"App"`, `"Crud"`…). It is not registered under a name of its own, the
+  .NET and Python ports emit the same string, the renderers read it, and it is frozen with the rest
+  of the wire: do not "fix" it to `"KPI"` within a wire major.
 
 **The authoring surface** — what an author writes in YAML/JSON:
 
@@ -251,8 +256,11 @@ are shared by every renderer.
   `componentState`, where the listing reads them (as the search box writes them).
 
 **Two transport gotchas** (verified against a live backend, both belong to the contract):
-- `consumedRoute` **must be `null`** for a fresh load — an empty string `""` makes the server resolve
-  to nothing.
+- `consumedRoute` says how much of the route an app shell has already taken, and `null` and `""` are
+  **different requests**: `null` (the server reads it as `"_empty"`) is a **fresh load** — under an
+  app shell it answers the shell, aimed at the route —, while `""` is a **content load**, answered
+  with the screen itself (what the shell asks next, and what a caller that wants the page, not the
+  chrome, sends — see [Build UIs with AI](/build-uis-with-ai/)).
 - the server encodes the root/empty route as **`"_empty"`** on the wire; a host normalizes it to `""`.
 
 **The authoring tools** (the phase-B half: an agent *writing* a screen rather than operating one)
