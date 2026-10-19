@@ -40,6 +40,13 @@ internal sealed class McpService
         _run = run;
     }
 
+    /// <summary>The live UI sessions of the host when live UI push is on (phase C); null = off: the
+    /// push tools are neither listed nor callable.</summary>
+    public AgentPush.AgentSessions? Push { get; init; }
+
+    /// <summary>Who is calling, for the push tools.</summary>
+    public AgentPush.AgentCaller Caller { get; init; } = AgentPush.AgentCaller.Anonymous;
+
     /// <summary>Load a screen (route) → flat projection. The load is dispatched as actionId "".</summary>
     public JsonObject DescribeScreen(string route) =>
         McpProjection.Project(Sync(Rq(route, "", null, null)));

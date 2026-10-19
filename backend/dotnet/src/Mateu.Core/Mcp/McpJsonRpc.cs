@@ -60,7 +60,7 @@ internal static class McpJsonRpc
                 case "ping":
                     return Ok(idNode, new JsonObject());
                 case "tools/list":
-                    return Ok(idNode, new JsonObject { ["tools"] = Tools(devMode) });
+                    return Ok(idNode, new JsonObject { ["tools"] = Tools(devMode, svc.Push is not null) });
                 case "resources/list":
                 {
                     var list = new JsonArray();
@@ -145,6 +145,9 @@ internal static class McpJsonRpc
             case "mateu_get_component_schema": return ComponentSchemas.SchemaOf(Argument(args, "type"));
             case "mateu_validate_uidl": return svc.Validate(Argument(args, "yaml"));
             case "mateu_preview_uidl": return svc.Preview(Argument(args, "yaml"), AsString(args["route"]) ?? "");
+            case var push when McpPushTools.Names.Contains(push):
+                if (svc.Push is null) throw new UserFacingException("Unknown tool: " + name);
+                return McpPushTools.Dispatch(svc, svc.Push, name, args)!;
             case "mateu_save_spec":
                 if (!devMode) throw new UserFacingException("Unknown tool: " + name);
                 if (string.IsNullOrWhiteSpace(specsDir) || !Directory.Exists(specsDir))
@@ -163,8 +166,9 @@ internal static class McpJsonRpc
 
     /// <summary>The tool list — identical (names, descriptions, schemas, order) in the Java, .NET and
     /// Python backends and the sidecar; pinned by <c>conformance/mcp/authoring.json</c>.
-    /// <c>mateu_save_spec</c> is listed only in development mode.</summary>
-    internal static JsonArray Tools(bool devMode)
+    /// <c>mateu_save_spec</c> is listed only in development mode; the live UI push tools
+    /// (<c>conformance/mcp/push.json</c>) only when push is on, after the base tools and before it.</summary>
+    internal static JsonArray Tools(bool devMode, bool push = false)
     {
         var tools = new JsonArray(
             Tool("mateu_list_routes",
@@ -209,6 +213,8 @@ internal static class McpJsonRpc
                 + " (title, fields, actions…) plus the validation report.",
                 ObjSchema(("yaml", "string", "the page's YAML text"),
                     ("route", "string", "optional: the route to render it under (its access rules apply)")).Required("yaml")));
+        if (push)
+            foreach (var tool in McpPushTools.Tools()) tools.Add(tool);
         if (devMode)
             tools.Add(Tool("mateu_save_spec",
                 "Development mode only: validate a YAML definition and, when it has no errors, write"

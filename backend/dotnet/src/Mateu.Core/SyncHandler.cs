@@ -134,6 +134,11 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (rq.ActionId == ValidateAction)
             return ValidateResponse(rq);
 
+        // 0c''. Live UI push: the UI session's pairing actions — app-level, independent of the view
+        // (mirrors Java's agentpush runners; the channel itself is streamed by the SSE endpoint).
+        if (IsAgentAction(rq.ActionId))
+            return AgentAction(rq);
+
         // 0d. Proxy-mode external fetch: a proxy source's renderer POSTs __restfetch__ with
         // _sourceKind/_sourceId + component state; resolve the DECLARED source (never a client url),
         // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
@@ -511,6 +516,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
                     ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
                     RequiredCapabilities = caps.ToList(),
                     MockSources = sampleMode ? true : null,
+                    AgentPush = AgentPush is not null ? true : null,
                 },
             };
         }
