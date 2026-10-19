@@ -913,6 +913,7 @@ Mateu.Uidl.IdentityGatedAttribute property System.String[] Permissions { get;set
 Mateu.Uidl.IdentityGatedAttribute property System.String[] Roles { get;set; }
 Mateu.Uidl.IdentityGatedAttribute property System.String[] Scopes { get;set; }
 Mateu.Uidl.Image ctor()
+Mateu.Uidl.Image property System.String Alt { get;init; }
 Mateu.Uidl.Image property System.String Src { get;init; }
 Mateu.Uidl.ImportWizard<Row> abstract method System.Void ImportRows(System.Collections.Generic.List<Row>)
 Mateu.Uidl.ImportWizard<Row> ctor()

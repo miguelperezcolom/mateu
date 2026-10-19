@@ -123,7 +123,7 @@ class ChatRenderScreenPreviewSyncTest {
               + SupervisorScreen.class.getName()
               + "\nroute: /supervisor-only-preview\n";
       var wire = JSON.valueToTree(mateu.run(preview("", yaml))).toString();
-      assertThat(wire).contains("Invalid or empty YAML").doesNotContain("only for supervisors");
+      assertThat(wire).contains("Invalid").doesNotContain("only for supervisors");
       assertThat(CONSTRUCTED.get()).isZero();
     }
   }

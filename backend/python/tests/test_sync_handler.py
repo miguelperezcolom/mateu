@@ -977,7 +977,7 @@ def test_preview_action_on_invalid_yaml_renders_a_notice_instead_of_failing():
         )
     )
     assert inc.fragments[0].component is not None
-    assert "Invalid or empty YAML" in render(inc)
+    assert "Invalid YAML" in render(inc)  # says why (MCP authoring, 3.0-beta.4)
 
 
 def test_preview_action_with_no_yaml_says_so_like_java():

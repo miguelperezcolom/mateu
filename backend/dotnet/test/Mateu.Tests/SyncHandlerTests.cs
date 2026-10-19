@@ -1170,7 +1170,7 @@ public class SyncHandlerTests
             Parameters = new() { ["_yaml"] = JsonSerializer.SerializeToElement(":\n  - broken: [") },
         });
         Assert.NotNull(inc.Fragments[0].Component); // a notice fragment, not an exception
-        Assert.Contains("Invalid or empty YAML", Render(inc));
+        Assert.Contains("Invalid YAML", Render(inc)); // says why (MCP authoring, 3.0-beta.4)
     }
 
     [Fact]
