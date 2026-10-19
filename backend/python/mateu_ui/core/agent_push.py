@@ -162,15 +162,6 @@ def _sha256(text: str) -> str:
 #: The most characters of a session's route kept (as Java and .NET).
 MAX_ROUTE_LENGTH = 512
 #: The most characters of an agent-supplied detail (a route, an event name) a log line carries.
-MAX_LOGGED_DETAIL = 200
-
-
-def log_safe(text: str | None) -> str:
-    """An agent-supplied text as a log line may carry it: control characters (CR/LF above all,
-    which would forge log lines) become ``?`` and it is clipped — the same in Java and .NET."""
-    if text is None:
-        return ""
-    return "".join("?" if ord(c) < 0x20 or ord(c) == 0x7F else c for c in text[:MAX_LOGGED_DETAIL])
 
 
 def fingerprint(handle: str | None) -> str:
