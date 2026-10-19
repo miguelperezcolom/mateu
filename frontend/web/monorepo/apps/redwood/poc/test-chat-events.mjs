@@ -9,11 +9,12 @@ import { reduceContexts, HOST_ID, overlayOf } from './reduceContexts.mjs'
 import {
   renderScreenRequestOf, chatNavigationOf, navigationLoadExtraOf, chatEventPlanOf, chatPreviewBodyOf,
   chatPreviewIncrementOf, dispatchChatEvent, streamChat, resolveChatUrl, chatConfigOf, chatUsageTextOf,
-  CHAT_PREVIEW_ACTION, CHAT_AGENT_BUILT_IN_EVENTS, CHAT_RESERVED_EVENT_NAMES, CHAT_RESERVED_EVENT_PREFIXES,
+  CHAT_PREVIEW_ACTION, CHAT_AGENT_BUILT_IN_EVENTS, CHAT_RESERVED_EVENT_NAMES, CHAT_RESERVED_EVENT_PREFIXES, CHAT_RESERVED_EVENT_PATTERNS,
   agentMayDispatchEvent,
 } from './chat.mjs'
 import { readFileSync } from 'node:fs'
 import { setChromeLanguage } from './i18n.mjs'
+import { trustShellBase, trustDeclaredRemoteBases, resetCredentialOrigins } from './hostHeaders.mjs'
 
 setChromeLanguage('en')
 let passed = 0
@@ -150,6 +151,22 @@ test('navigation-requested: every menu-click field travels, not only the route',
   assert.deepEqual(navigationLoadExtraOf(undefined), {})
 })
 
+test('R1: an agent navigation keeps a base url only for the shell\'s own origin or a remote its app names', () => {
+  resetCredentialOrigins()
+  try {
+    trustShellBase('https://app.example')
+    trustDeclaredRemoteBases(['https://forms.example'])
+    const baseOf = (baseUrl) => chatEventPlanOf({ event: 'navigation-requested', detail: { route: '/x', baseUrl } }, regWith()).navigation.baseUrl
+    for (const foreign of ['https://attacker.example', '//attacker.example', '\\\\attacker.example', '/\\attacker.example', 'javascript:alert(1)']) {
+      assert.equal(baseOf(foreign), undefined, foreign)
+    }
+    assert.equal(baseOf('https://forms.example'), 'https://forms.example')
+    assert.equal(baseOf('/_pod'), '/_pod')
+  } finally {
+    resetCredentialOrigins()
+  }
+})
+
 test('close-requested closes; any other event goes to the document AND to its subscribers on screen', () => {
   assert.equal(chatEventPlanOf({ event: 'close-requested' }, null).kind, 'close')
   const reg = regWith([{ type: 'OnCustomEvent', eventName: 'booking-made', actionId: 'refresh' }])
@@ -164,6 +181,7 @@ test('NM9: an event nobody on screen declares, or one of the framework\'s own, g
   assert.deepEqual([...CHAT_AGENT_BUILT_IN_EVENTS], corpus.builtIn)
   assert.deepEqual([...CHAT_RESERVED_EVENT_NAMES], corpus.reserved)
   assert.deepEqual(CHAT_RESERVED_EVENT_PREFIXES, corpus.reservedPrefixes)
+  assert.deepEqual(CHAT_RESERVED_EVENT_PATTERNS.map((p) => p.source), corpus.reservedPatterns)
   for (const c of corpus.cases) assert.equal(agentMayDispatchEvent(c.name, c.subscribed.includes(c.name)), c.allowed, c.name)
   assert.equal(chatEventPlanOf({ event: 'booking-made', detail: {} }, regWith()).kind, 'ignore', 'undeclared')
   const reserved = regWith([{ type: 'OnCustomEvent', eventName: 'mateu-session-expired', actionId: 'x' }])

@@ -114,6 +114,22 @@ describe('facts and badges', () => {
         expect(actions().at(-1)?.actionId).toBe('pay')
     })
 
+    it('N8: a KPI value and the timestamp are DATA: text, never markup, and a literal ${ is shown as written', async () => {
+        const hostile = '<img src="//attacker.example/beacon"><a href="https://phish.example">Acme</a>'
+        for (const kpisBelow of [false, true]) {
+            const { root } = await mount({
+                title: 'Booking', kpisBelow,
+                kpis: [{ title: 'Guest', text: hostile }, { title: 'Ref', text: 'R \\${state.n}' }, { title: 'Nights', text: '${state.n}' }],
+                timestamp: 'Last updated ' + hostile,
+            }, { state: { n: '<b>3</b>' } })
+            const values = Array.from(root.querySelectorAll(kpisBelow ? '.kpi-value' : '.header-fact-value'))
+            expect(values.map(v => v.textContent)).toEqual([hostile, 'R ${state.n}', '<b>3</b>'])
+            expect(root.querySelector('img, a[href^="https://phish"], b')).toBeNull()
+            expect(root.querySelector('.page-timestamp')?.textContent).toBe('Last updated ' + hostile)
+            document.body.innerHTML = ''
+        }
+    })
+
     it('with kpisBelow the facts sit in a row under the header and the badges beside the title', async () => {
         const { root } = await mount({
             title: 'Booking', kpisBelow: true,

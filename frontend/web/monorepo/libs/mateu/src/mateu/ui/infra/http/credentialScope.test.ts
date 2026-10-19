@@ -52,4 +52,12 @@ describe('credentialScope (M-S5)', () => {
         expect(originOf('data:text/html,x')).toBeUndefined()
         expect(originOf(undefined)).toBeUndefined()
     })
+
+    it('R4: a backslash or a tab does not make another origin "relative": the url is resolved as the browser does', () => {
+        for (const foreign of ['\\\\attacker.example/x', '/\\attacker.example/x', '\\/attacker.example/x', '/\t/attacker.example/x', ' //attacker.example/x']) {
+            expect(originOf(foreign), JSON.stringify(foreign)).toBe('http://attacker.example')
+            expect(mayCarryCredentials(foreign)).toBe(false)
+        }
+        expect(mayCarryCredentials('/mateu/v3/sync/x')).toBe(true)
+    })
 })

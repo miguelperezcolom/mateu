@@ -12,7 +12,7 @@
 import { chromeText } from './i18n.mjs'
 import { busSubscribersOf, callMateu } from './transport.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
-import { storedTokenMayGoTo } from './hostHeaders.mjs'
+import { storedTokenMayGoTo, isTrustedOrigin } from './hostHeaders.mjs'
 
 /** Recognises a `data:` payload that is a token-usage object ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -880,14 +880,23 @@ export const CHAT_RESERVED_EVENT_NAMES = new Set([
   'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
   'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
   'DOMContentLoaded',
+  // a design-system widget's own events (vaadin *-changed, a dialog's confirm/cancel, JET oj…): not
+  // reachable today (listened on descendants), insurance; an author's booking-changed stays allowed
+  'opened-changed', 'checked-changed', 'active-item-changed', 'selected-items-changed', 'items-changed',
+  'expanded-items-changed', 'detail-opened-items-changed', 'invalid-changed', 'has-value-changed',
+  'filter-changed', 'size-changed', 'loading-changed', 'opened', 'closed', 'close', 'confirm', 'cancel',
+  'reject', 'toggle', 'select', 'validated', 'unparsable-change', 'cell-activate', 'item-click',
+  'grid-dragstart', 'grid-dragend', 'grid-drop',
 ])
 export const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+export const CHAT_RESERVED_EVENT_PATTERNS = [/^oj[A-Z-]/]
 
 /** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
 export function agentMayDispatchEvent(name, subscribed) {
   if (typeof name !== 'string' || !name) return false
   if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
-  if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+  if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))
+    || CHAT_RESERVED_EVENT_PATTERNS.some((p) => p.test(name))) return false
   return !!subscribed
 }
 
@@ -906,7 +915,14 @@ export function chatEventPlanOf(ev, reg) {
   const detail = ev.detail && typeof ev.detail === 'object' ? ev.detail : {}
   if (name === CHAT_NAVIGATION_REQUESTED) {
     const navigation = chatNavigationOf(detail)
-    return navigation ? { kind: 'navigate', navigation } : { kind: 'ignore' }
+    if (!navigation) return { kind: 'ignore' }
+    // R1: an agent may only name a base url the shell trusts — its own, a remote its app names
+    // (the token's rule); any other is dropped and the route opens in the app. Otherwise it was
+    // registered as a remote route and its answer painted with the author's trust.
+    if (navigation.baseUrl && !isTrustedOrigin(navigation.baseUrl)) {
+      delete navigation.baseUrl
+    }
+    return { kind: 'navigate', navigation }
   }
   if (name === CHAT_CLOSE_REQUESTED) return { kind: 'close' }
   const subscribers = (reg ? busSubscribersOf(reg, { name, detail, source: null }) : [])

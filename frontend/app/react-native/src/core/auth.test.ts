@@ -42,6 +42,17 @@ test('randomUuid is a v4 UUID and two draws differ', () => {
   assert.notEqual(a, randomUuid());
 });
 
+test('N9: the session id never falls back to Math.random — no secure source, no id', () => {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+  try {
+    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true, writable: true });
+    assert.throws(() => randomUuid(), /cryptographically secure/);
+  } finally {
+    if (saved) Object.defineProperty(globalThis, 'crypto', saved);
+    else delete (globalThis as { crypto?: unknown }).crypto;
+  }
+});
+
 test('the session id is created once per install and then reused', async () => {
   const store = memoryStore();
   const first = await installSessionId(store);

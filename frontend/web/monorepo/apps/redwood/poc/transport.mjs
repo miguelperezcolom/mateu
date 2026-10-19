@@ -12,7 +12,8 @@ import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { noteDocumentBase } from './files.mjs'
-import { trustShellBase, trustDeclaredRemoteBases } from './hostHeaders.mjs'
+import { trustShellBase, trustDeclaredRemoteBases, isTrustedOrigin } from './hostHeaders.mjs'
+import { neutralizeUntrusted } from './untrusted.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
  *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
@@ -37,13 +38,21 @@ export async function callMateu(base, body, options = {}) {
       route: bare ? `/${bare}` : '',
     }),
   }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
-  const increment = await res.json()
+  // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
+  // through the untrusted strip: what it sends cannot run code in this tab
+  const increment = answeredBy(base, await res.json())
   observeWireVersion(increment)
   // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
   adoptReferencedSources(increment)
   // the body takes time too: whatever arrives after the screen changed is not applied either
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
+}
+
+/** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
+ *  through the untrusted strip (untrusted.mjs) from any other. */
+export function answeredBy(base, increment) {
+  return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
 }
 
 /** Shell bootstrap: the root App only resolves through the generic endpoint.
@@ -330,7 +339,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       if (reader && reader.cancel) reader.cancel().catch(() => undefined)
       throw staleResponseError(actionId)
     }
-    const inc = JSON.parse(line.slice(5).trim())
+    const inc = answeredBy(base, JSON.parse(line.slice(5).trim()))
     observeWireVersion(inc)
     adoptReferencedSources(inc)
     const consumed = onIncrement ? await onIncrement(inc) : false

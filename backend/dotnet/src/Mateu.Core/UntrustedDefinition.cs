@@ -22,6 +22,8 @@ namespace Mateu.Core;
 ///   <item><c>RunJS</c> rules, an action's <c>js</c>, <c>AddContentToHead</c>/<c>AddContentToBody</c>
 ///   commands go;</item>
 ///   <item>a <c>javascript:</c>/<c>vbscript:</c> url anywhere is blanked;</item>
+///   <item>nothing runs without a click and nothing posts elsewhere: <c>triggers</c> are emptied and
+///   no <c>restAction</c> is kept;</item>
 ///   <item>a <c>MicroFrontend</c> does not load from another server (its absolute <c>baseUrl</c> is
 ///   dropped).</item>
 /// </list>
@@ -103,8 +105,9 @@ internal static class UntrustedDefinition
                 var out_ = new JsonObject();
                 foreach (var (key, v) in node)
                 {
-                    if (key == "js" && TextOf(v) is not null) continue;
-                    out_[key] = Neutralize(v);
+                    if ((key == "js" && TextOf(v) is not null) || key == "restAction") continue;
+                    // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+                    out_[key] = key == "triggers" && v is JsonArray ? new JsonArray() : Neutralize(v);
                 }
                 return out_;
             }
@@ -219,5 +222,8 @@ internal static class UntrustedDefinition
 
     static bool IsSafeUrl(string value) => SchemeOf(value) is not { } scheme || SafeSchemes.Contains(scheme);
 
-    static bool IsAbsoluteUrl(string value) => SchemeOf(value) is not null || Cleaned(value).StartsWith("//", StringComparison.Ordinal);
+    // another server's url: a scheme, or //host — a browser reads a backslash as '/', so \\host,
+    // /\host and \/host are //host too
+    static bool IsAbsoluteUrl(string value) =>
+        SchemeOf(value) is not null || Cleaned(value).Replace('\\', '/').StartsWith("//", StringComparison.Ordinal);
 }

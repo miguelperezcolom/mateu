@@ -237,6 +237,14 @@ export class MateuContentHeader extends LitElement {
     evalLabel = (raw: string) => interpolate(raw, this.state, this.data)
 
     /**
+     * A header fact's value and the timestamp: DATA (a @KPI field's value, a @Timestamp field's),
+     * shown as TEXT — whoever writes the record must not plant markup (a tracking image, a phishing
+     * link) in the header of everyone who opens it. A template still reads the state (each value
+     * as text) and a literal `\${` shows as written (N8; Redwood, RN and IntelliJ already did).
+     */
+    factText = (raw: string | undefined) => interpolate(raw ?? '', this.state ?? {}, this.data ?? {})
+
+    /**
      * The way back, as a chevron before the title.
      *
      * <p>Its label is not dropped, it moves to the accessible name: a screen reader still hears
@@ -490,7 +498,7 @@ export class MateuContentHeader extends LitElement {
                         ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${this.renderTitle(metadata)}</h6>`:nothing}
 
                         ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${safeHtml(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
-                        ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${safeHtml(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
+                        ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${this.factText(metadata.timestamp)}</span>` : nothing}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`
@@ -498,10 +506,10 @@ export class MateuContentHeader extends LitElement {
                                 <span class="header-fact-label">${this.evalLabel(kpi.title)}</span>
                                 ${kpi.actionId ? html`
                                     <span class="fact-value-row">
-                                        <span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                                        <span class="header-fact-value">${this.factText(kpi.text)}</span>
                                         ${renderFactAction({ ...kpi, label: kpi.title })}
                                     </span>
-                                ` : html`<span class="header-fact-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>`}
+                                ` : html`<span class="header-fact-value">${this.factText(kpi.text)}</span>`}
                             </div>
                         `) : nothing}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
@@ -517,7 +525,7 @@ export class MateuContentHeader extends LitElement {
                     ${metadata.kpis.map((kpi) => html`
                         <div class="kpi-pair">
                             <span class="kpi-label">${this.evalLabel(kpi.title)}</span>
-                            <span class="kpi-value">${safeHtml(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
+                            <span class="kpi-value">${this.factText(kpi.text)}</span>
                             ${renderFactAction({ ...kpi, label: kpi.title })}
                         </div>
                     `)}

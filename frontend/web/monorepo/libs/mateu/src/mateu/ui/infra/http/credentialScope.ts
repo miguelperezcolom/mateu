@@ -79,12 +79,22 @@ export const trustDeclaredRemotes = (declarerBaseUrl: string | undefined, remote
     })
 }
 
-/** True when a request to `url` may carry the user's credentials. */
-export const mayCarryCredentials = (url: string | undefined): boolean => {
+/**
+ * True when `url` is on an origin the app trusts — ROOT or DECLARED. The one rule for the user's
+ * credentials AND for what may run with the author's trust: a screen answered by any other origin
+ * (an agent-named base url, a remote a remote named) is rendered through the untrusted strip
+ * (untrustedDefinition.ts), and an agent navigation may only name a base url that passes it.
+ * The url is resolved the way the browser resolves it, so `\\host`, `/\host` and a tab inside
+ * `//` are the other origin they really are.
+ */
+export const isTrustedOrigin = (url: string | undefined): boolean => {
     const origin = originOf(url ?? '')
     if (!origin) return false
     return isRoot(origin) || declaredOrigins.has(origin)
 }
+
+/** True when a request to `url` may carry the user's credentials. */
+export const mayCarryCredentials = (url: string | undefined): boolean => isTrustedOrigin(url)
 
 /** Tests only: forgets every trusted origin. */
 export const resetCredentialScope = (): void => {

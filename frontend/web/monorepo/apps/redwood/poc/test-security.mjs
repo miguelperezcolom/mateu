@@ -9,7 +9,7 @@ import { fetchWithPolicy, connectivity, classifyRequestFailure } from './resilie
 import { chromeText } from './i18n.mjs'
 import { idleSignOutUrlOf } from './appExtras.mjs'
 import { routeQueryOf, currentRouteOf, setMount } from './mount.mjs'
-import { expandRemoteMenus } from './transport.mjs'
+import { expandRemoteMenus, callMateu } from './transport.mjs'
 import { fileDownloadOf, isPassiveInlineType } from './files.mjs'
 import { headerWidgetsOf, mountHeaderHtml, remoteWidgetHtmlOf, routeLinksOf, headerNavigationOf } from './widgets.mjs'
 import { readFileSync } from 'node:fs'
@@ -262,6 +262,63 @@ test('NM10: the chat sends the token only to an origin trusted with it — its s
     ])
   } finally {
     resetCredentialOrigins()
+  }
+})
+
+test('R4: a backslash or a tab does not make another origin "relative" — the token stays home', () => {
+  resetCredentialOrigins()
+  try {
+    trustShellBase('https://app.example/')
+    for (const foreign of ['\\\\attacker.example/chat', '/\\attacker.example/chat', '\\/attacker.example/chat',
+      '/\t/attacker.example/chat', ' //attacker.example/chat', '\\\\attacker.example']) {
+      assert.equal(storedTokenMayGoTo(foreign), false, JSON.stringify(foreign))
+    }
+    assert.equal(storedTokenMayGoTo('/chat'), true)
+    assert.equal(storedTokenMayGoTo('chat/upload'), true)
+    assert.equal(storedTokenMayGoTo('https://app.example/chat'), true)
+  } finally {
+    resetCredentialOrigins()
+  }
+})
+
+test('R4: a chat stream at \\\\attacker.example gets no Authorization', async () => {
+  resetCredentialOrigins()
+  trustShellBase('https://app.example/')
+  try {
+    const sent = []
+    const fetchImpl = async (url, init) => {
+      sent.push((init.headers || {}).Authorization)
+      return { ok: true, status: 200, json: async () => ({}), body: null, text: async () => '' }
+    }
+    const headers = () => ({ Authorization: 'Bearer tok' })
+    await streamChat({ url: '\\\\attacker.example/sse', body: {}, headers, fetchImpl }).catch(() => {})
+    assert.deepEqual(sent, [undefined])
+  } finally {
+    resetCredentialOrigins()
+  }
+})
+
+test('R1: an answer from an origin the shell does not trust is painted through the untrusted strip', async () => {
+  resetCredentialOrigins()
+  connectivity.reset()
+  const originalFetch = globalThis.fetch
+  const evil = () => ({ fragments: [{ targetComponentId: 'x', component: { type: 'ClientSide', metadata: { type: 'Element', name: 'img',
+    attributes: { src: 'a.png', onerror: 'steal()' }, on: {}, content: null, html: false } } }],
+  commands: [{ type: 'AddContentToHead', data: '<script>1</script>' }], messages: [] })
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => evil() })
+  try {
+    trustShellBase('https://app.example')
+    trustDeclaredRemoteBases(['https://forms.example'])
+    const attrsFrom = async (base) => (await callMateu(base, { route: '/x', actionId: '' }, { view: null })).fragments[0].component.metadata.attributes
+    assert.deepEqual(await attrsFrom('https://attacker.example'), { src: 'a.png' })
+    assert.deepEqual(await attrsFrom('\\\\attacker.example'), { src: 'a.png' })
+    assert.deepEqual((await callMateu('https://attacker.example', { route: '/x', actionId: '' }, { view: null })).commands, [])
+    assert.equal((await attrsFrom('https://app.example')).onerror, 'steal()', 'the shell backend: the author')
+    assert.equal((await attrsFrom('https://forms.example')).onerror, 'steal()', 'a remote the shell app names')
+  } finally {
+    globalThis.fetch = originalFetch
+    resetCredentialOrigins()
+    connectivity.reset()
   }
 })
 

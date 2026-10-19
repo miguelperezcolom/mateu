@@ -29,6 +29,8 @@ import java.util.regex.Pattern;
  *   <li>{@code RunJS} rules, an action's {@code js}, {@code AddContentToHead}/{@code
  *       AddContentToBody} commands go;
  *   <li>a {@code javascript:}/{@code vbscript:} url anywhere is blanked;
+ *   <li>nothing runs without a click and nothing posts elsewhere: {@code triggers} are emptied and
+ *       no {@code restAction} is kept;
  *   <li>a {@code MicroFrontend} does not load from another server (its absolute {@code baseUrl} is
  *       dropped).
  * </ul>
@@ -130,6 +132,12 @@ public final class UntrustedDefinition {
     while (fields.hasNext()) {
       var entry = fields.next();
       if ("js".equals(entry.getKey()) && entry.getValue().isTextual()) continue;
+      if ("restAction".equals(entry.getKey())) continue;
+      // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+      if ("triggers".equals(entry.getKey()) && entry.getValue().isArray()) {
+        out.set(entry.getKey(), JsonNodeFactory.instance.arrayNode());
+        continue;
+      }
       out.set(entry.getKey(), neutralize(entry.getValue()));
     }
     return out;
@@ -266,7 +274,11 @@ public final class UntrustedDefinition {
     return scheme == null || SAFE_SCHEMES.contains(scheme);
   }
 
+  /**
+   * Another server's url: a scheme, or {@code //host} — a browser reads a backslash as {@code /},
+   * so {@code \\host}, {@code /\host} and {@code \/host} are {@code //host} too.
+   */
   private static boolean isAbsoluteUrl(String value) {
-    return schemeOf(value) != null || cleaned(value).startsWith("//");
+    return schemeOf(value) != null || cleaned(value).replace('\\', '/').startsWith("//");
   }
 }

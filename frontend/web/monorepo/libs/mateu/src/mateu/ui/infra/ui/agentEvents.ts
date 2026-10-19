@@ -2,6 +2,7 @@ import { isEventClaimed, NAVIGATION_REQUESTED, RENDER_SCREEN, renderScreenReques
 import { renderScreenInShell } from './builtInRenderTarget'
 import { navigateToRoute } from './rowRoute'
 import { agentMayDispatch } from './agentEventPolicy'
+import { isTrustedOrigin } from '@infra/http/credentialScope.ts'
 
 /**
  * What the UI does with ONE agent event — the chat's stream (`{"event":…}`) and the live UI push
@@ -51,11 +52,30 @@ export function navigatingShellOf(origin: Element): NavigatingShell | null {
     return null
 }
 
+/**
+ * An agent's navigation names a `baseUrl` only to reach a remote of THIS app: kept when it is the
+ * app's own origin or a remote the app's menu declares (credentialScope.isTrustedOrigin — the rule
+ * credentials follow); any other base url is dropped and the route is opened in the app. Before
+ * this, an agent steered by what it read could name an attacker's Mateu-shaped server and the
+ * content view rendered its answer with the author's trust (R1).
+ */
+export function trustedNavigationOf(detail: unknown): unknown {
+    if (!detail || typeof detail !== 'object') return detail
+    const fields = detail as Record<string, unknown>
+    if (!('baseUrl' in fields) || fields.baseUrl === undefined || fields.baseUrl === null || fields.baseUrl === '') return detail
+    if (typeof fields.baseUrl === 'string' && isTrustedOrigin(fields.baseUrl)) return detail
+    console.warn('[mateu] an agent navigation named a base url this app does not trust; opened in the app instead')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { baseUrl, ...rest } = fields
+    return rest
+}
+
 export function applyAgentEvent(origin: Element, name: string, detail: unknown, options: AgentEventOptions = {}): void {
     if (!agentMayDispatch(name)) {
         console.warn('[mateu] agent event not declared on this screen, dropped:', name)
         return
     }
+    if (name === NAVIGATION_REQUESTED) detail = trustedNavigationOf(detail)
     const event = new CustomEvent(name, { detail, bubbles: true, composed: true, cancelable: true })
     origin.dispatchEvent(event)
     if (name === NAVIGATION_REQUESTED) {

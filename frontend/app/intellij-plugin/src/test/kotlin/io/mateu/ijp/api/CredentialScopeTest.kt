@@ -73,4 +73,15 @@ class CredentialScopeTest : TestCase() {
             server.stop(0)
         }
     }
+
+    fun testABackslashOrATabDoesNotMakeAnotherOriginRelative() {
+        // a browser reads \\host, /\host and \/host as //host; here it names no origin we trust
+        for (base in listOf("", "https://app.example")) {
+            val scope = CredentialScope(base)
+            for (foreign in listOf("\\\\attacker.example", "/\\attacker.example", "\\/attacker.example", "/\t/attacker.example", " //attacker.example/x")) {
+                assertFalse("$foreign over '$base'", scope.mayCarryCredentials(foreign))
+            }
+            assertTrue(scope.mayCarryCredentials("/mateu/v3/sync/x"))
+        }
+    }
 }

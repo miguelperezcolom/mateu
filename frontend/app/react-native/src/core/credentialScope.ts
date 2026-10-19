@@ -22,16 +22,32 @@ const SAME_ORIGIN = 'same-origin';
 
 const isRelative = (url: string): boolean => !/^[a-z][a-z0-9+.-]*:/i.test(url) && !url.startsWith('//');
 
+/** A url as a browser reads it: tabs/newlines removed anywhere, surrounding spaces dropped. */
+const cleaned = (url: string): string => url.replace(/[\t\n\r]/g, '').trim();
+
 /**
  * The origin `url` goes to, or undefined when it is not http(s) (or not a url at all). A relative
  * url resolves against `base` (the root backend).
+ *
+ * A url holding a backslash names NO origin we trust: a browser (expo web) reads `\\host`, `/\host`
+ * and `\/host` as `//host` — another server — while a native loader rejects it. Taken for
+ * relative, it sent the Bearer, the session id and the @AppContext to that server (R5).
  */
 export function originOf(url: string | null | undefined, base?: string): string | undefined {
   if (url === undefined || url === null) return undefined;
-  const u = String(url).trim();
+  const u = cleaned(String(url));
+  if (u.includes('\\')) return undefined;
   if (isRelative(u)) {
-    if (base === undefined || isRelative(base.trim())) return SAME_ORIGIN;
-    return originOf(base);
+    if (base === undefined) return SAME_ORIGIN;
+    const b = cleaned(base);
+    if (b.includes('\\')) return undefined;
+    if (isRelative(b)) return SAME_ORIGIN;
+    try {
+      const parsed = new URL(u, b.startsWith('//') ? 'https:' + b : b);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.origin : undefined;
+    } catch {
+      return undefined;
+    }
   }
   try {
     const parsed = new URL(u.startsWith('//') ? 'https:' + u : u);

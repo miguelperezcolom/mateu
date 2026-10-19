@@ -31,9 +31,20 @@ export const RESERVED_EVENT_NAMES: ReadonlySet<string> = new Set([
     'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
     'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
     'DOMContentLoaded',
+    // a design-system widget's own events (vaadin `*-changed`, a dialog's confirm/cancel): none is
+    // reachable today — they are listened on descendants and an event bubbles UP — it is insurance.
+    // An author's own `booking-changed` stays dispatchable, hence the names and not a `-changed` rule.
+    'opened-changed', 'checked-changed', 'active-item-changed', 'selected-items-changed', 'items-changed',
+    'expanded-items-changed', 'detail-opened-items-changed', 'invalid-changed', 'has-value-changed',
+    'filter-changed', 'size-changed', 'loading-changed', 'opened', 'closed', 'close', 'confirm', 'cancel',
+    'reject', 'toggle', 'select', 'validated', 'unparsable-change', 'cell-activate', 'item-click',
+    'grid-dragstart', 'grid-dragend', 'grid-drop',
 ])
 
 export const RESERVED_EVENT_PREFIXES: readonly string[] = ['mateu-', 'backend-', 'vaadin-']
+
+/** Oracle JET's own events (`ojAction`, `oj-…`), for a renderer that hosts JET components. */
+export const RESERVED_EVENT_PATTERNS: readonly RegExp[] = [/^oj[A-Z-]/]
 
 const declared = new Map<string, number>()
 
@@ -53,6 +64,7 @@ export function declareAgentEvent(name: string): () => void {
 /** True for one of the framework's own event names. */
 export const isReservedEventName = (name: string): boolean =>
     RESERVED_EVENT_NAMES.has(name) || RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))
+    || RESERVED_EVENT_PATTERNS.some((p) => p.test(name))
 
 /**
  * Whether an agent may dispatch `name` here. `subscribed` defaults to what the components on screen
