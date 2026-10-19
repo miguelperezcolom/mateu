@@ -114,6 +114,30 @@ describe('the request', () => {
         expect(sent[3].headers.Authorization).toBe('Bearer tok-1')
     })
 
+    it('R1: an answer from an origin the app does not trust renders through the untrusted strip', async () => {
+        const evil = {
+            fragments: [{ targetComponentId: 'c', component: { type: 'ClientSide', metadata: { type: 'Element', name: 'img',
+                attributes: { src: 'x.png', onerror: 'steal()' }, on: {}, content: null, html: false } } }],
+            commands: [{ type: 'AddContentToHead', data: '<script>steal()</script>' }, { type: 'SetWindowTitle', data: 'T' }],
+            messages: [],
+        }
+        const client = new AxiosMateuApiClient()
+        answering(client, [() => JSON.parse(JSON.stringify(evil))])
+        const remote = (base: string) => client.runAction(base, '/x', '_empty', '', 'c', undefined, undefined,
+            {}, {}, initiatorEvents().initiator, true, {})
+        const foreign = await remote('https://attacker.example')
+        const img = (foreign.fragments![0].component as any).metadata
+        expect(img.attributes).toEqual({ src: 'x.png' })
+        expect(foreign.commands).toEqual([{ type: 'SetWindowTitle', data: 'T' }])
+        // the backslash spelling is the same foreign origin to the browser
+        const slashed = await remote('\\\\attacker.example')
+        expect((slashed.fragments![0].component as any).metadata.attributes).toEqual({ src: 'x.png' })
+        // the app's own backend and a remote its menu declares keep the author's trust
+        trustDeclaredRemotes('', ['https://forms.example'])
+        expect((await remote('https://forms.example')).commands).toHaveLength(2)
+        expect(((await remote('/base')).fragments![0].component as any).metadata.attributes.onerror).toBe('steal()')
+    })
+
     it('M-S5: a lost-session redirect is followed only for a trusted backend, and only to http(s)', async () => {
         const assign = vi.fn()
         const original = window.location

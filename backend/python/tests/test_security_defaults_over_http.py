@@ -275,6 +275,38 @@ def test_a_body_that_is_not_declared_json_is_refused_with_415(content_type):
     assert ok.status_code == 200
 
 
+# The other spellings a router may still send to the same handler — percent-encoded letters,
+# ;matrix parameters, doubled or trailing slashes, dot segments, another case — never run a
+# CORS-simple POST either: 415, or not routed at all (4xx), never 2xx. (Java's guard compared the
+# RAW URI and /%6Dateu/mcp ran JSON-RPC; here the check sits on the matched endpoint.)
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/%6Dateu/mcp",
+        "/%6dateu/%6Dcp",
+        "/mateu/mcp;x=1",
+        "/mateu;x=1/mcp",
+        "//mateu/mcp",
+        "/mateu//mcp",
+        "/mateu/mcp/",
+        "/x/../mateu/mcp",
+        "/MATEU/MCP",
+        "/%6Dateu/v3/sync/mcp-probe",
+        "/mateu/%76%33/sse/mcp-probe",
+        "/mateu/v3/sync/mcp-probe;x=1",
+        "/mateu/v3/sync/mcp-probe/",
+    ],
+)
+def test_no_other_spelling_of_an_action_endpoint_takes_a_non_json_body(path):
+    c = mcp_client(mcp=True)
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "route": "mcp-probe",
+                       "actionId": "", "componentState": {}}).encode()
+    for content_type in ["text/plain", "application/x-www-form-urlencoded", None]:
+        headers = {} if content_type is None else {"content-type": content_type}
+        r = c.post(path, content=body, headers=headers)
+        assert r.status_code >= 400, (path, content_type, r.status_code)
+
+
 def test_an_mcp_tool_call_that_fails_goes_through_the_error_boundary():
     result = tool_call(mcp_client(mcp=True, dev=False), "mateu_run_action",
                        {"route": "mcp-probe", "actionId": "explode"})

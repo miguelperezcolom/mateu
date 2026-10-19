@@ -158,12 +158,28 @@ public class AgentPushTests
         Assert.Equal(AgentSessions.TooManyAttempts, (string)errors["tooManyAttempts"]!);
         Assert.Equal(AgentSessions.ReservedEvent("{event}"), (string)errors["reservedEvent"]!);
         Assert.Equal(AgentSessions.InvalidEvent("{event}"), (string)errors["invalidEvent"]!);
+        Assert.Equal(AgentSessions.FrameworkEvent("{event}"), (string)errors["frameworkEvent"]!);
         Assert.Equal(AgentSessions.DetailTooLarge, (string)errors["detailTooLarge"]!);
         Assert.Equal(AgentSessions.InvalidTarget("{target}"), (string)errors["invalidTarget"]!);
         Assert.Equal(AgentSessions.ChannelRefused, (string)errors["channelRefused"]!);
         Assert.Equal(AgentSessions.TooManySessions, (string)errors["tooManySessions"]!);
         Assert.Equal(AgentSessions.HasErrors, (string)Corpus()["reasons"]!["hasErrors"]!);
         Assert.Equal(AgentSessions.NotAPage, (string)Corpus()["reasons"]!["notAPage"]!);
+    }
+
+    // N16: the server refuses the framework's own event names too — the same list the renderers drop
+    // (conformance/client/agent-events.json), so one renderer's filter defect is no bypass.
+    [Fact]
+    public void The_frameworks_own_event_names_are_the_renderers_ones()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "conformance", "client"))) dir = dir.Parent;
+        var events = JsonNode.Parse(File.ReadAllText(Path.Combine(dir!.FullName, "conformance", "client", "agent-events.json")))!;
+        var reserved = events["reserved"]!.AsArray().Select(n => (string)n!).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        Assert.Equal(reserved, AgentSessions.FrameworkEvents.OrderBy(n => n, StringComparer.Ordinal).ToList());
+        Assert.Equal(events["reservedPrefixes"]!.AsArray().Select(n => (string)n!).ToList(), AgentSessions.FrameworkEventPrefixes.ToList());
+        Assert.True(AgentSessions.IsFrameworkEvent("vaadin-x"));
+        Assert.False(AgentSessions.IsFrameworkEvent("highlight-row"));
     }
 
     [Fact]

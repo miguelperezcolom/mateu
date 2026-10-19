@@ -331,7 +331,9 @@ def _value_of(hint: Any, raw: Any, partials: PartialRegistry, chain: list[str]) 
             return tuple(out)
         if origin is tuple and len(args) == 2 and args[1] is not Ellipsis and isinstance(raw, dict):
             return raw  # a fixed pair: leave as authored
-        return tuple(_value_of(elem, item, partials, chain) for item in items)
+        # a `- null` (or a bare `-`) item is never meaningful in a definition: dropped here rather
+        # than guarded against in every mapper (a crafted one logged an ERROR + stack per request)
+        return tuple(_value_of(elem, item, partials, chain) for item in items if item is not None)
     if origin is dict or hint is dict:
         return raw if isinstance(raw, dict) else {}
     if not isinstance(hint, type):

@@ -14,6 +14,7 @@ import io.mateu.uidl.fluent.MenuBar;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.Actionable;
+import java.util.List;
 
 final class YamlUidlMapperFactory {
 
@@ -32,6 +33,18 @@ final class YamlUidlMapperFactory {
     // rejected. Without this a bare-component page with `$schema:` would fail to deserialize.
     mapper.configure(
         com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    // A `- null` (or a bare `-`) list item is never meaningful in a definition, and every mapper
+    // would have to guard against it — a crafted one used to answer cleanly but log an ERROR with a
+    // stack on every anonymous preview. The loader drops them.
+    for (var listType :
+        List.of(java.util.List.class, java.util.Set.class, java.util.Collection.class)) {
+      mapper
+          .configOverride(listType)
+          .setSetterInfo(
+              com.fasterxml.jackson.annotation.JsonSetter.Value.forContentNulls(
+                  com.fasterxml.jackson.annotation.Nulls.SKIP));
+    }
 
     mapper.addMixIn(Component.class, PolymorphicMixin.class);
     mapper.addMixIn(Actionable.class, PolymorphicMixin.class);

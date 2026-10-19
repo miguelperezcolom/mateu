@@ -126,6 +126,63 @@ internal sealed class AgentSessions
     public static string NotConnected(string session) => $"Session \"{session}\" is not connected.";
     public static string ReservedEvent(string e) => $"Event \"{e}\" is reserved: use mateu_push_ui or mateu_navigate.";
     public static string InvalidEvent(string e) => $"Invalid event name \"{e}\".";
+    public static string FrameworkEvent(string e) =>
+        $"Event \"{e}\" is one of the framework's own events: dispatch an event a screen subscribes to (@SubscribeTo).";
+
+    /// <summary>The event names the renderers listen to themselves (and DOM ones): never an agent's to
+    /// dispatch (N16) — every renderer drops them already; refusing them here too means one renderer's
+    /// filter defect is not a bypass. The same list as <c>conformance/client/agent-events.json</c>.</summary>
+    // the corpus' reservedPatterns: a JET widget's own events (ojValueChanged, oj-…)
+    private static readonly System.Text.RegularExpressions.Regex JetEvent = new("^oj[A-Z-]");
+
+    public static readonly IReadOnlySet<string> FrameworkEvents = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "action-requested", "server-side-action-requested", "url-update-requested",
+        "route-changed", "navigate-to-requested", "page-banners-received", "dirty", "clean",
+        "value-changed", "data-changed", "app-data-updated", "close-modal-requested",
+        "column-prefs-changed", "compact-changed", "history-pushed", "selected-changed",
+        "search-requested", "filter-reset-requested", "picked", "pinged", "click", "dblclick",
+        "input", "change", "submit", "keydown", "keyup", "keypress", "focus", "blur", "focusin",
+        "focusout", "load", "error", "abort", "message", "storage", "popstate", "hashchange",
+        "beforeunload", "pagehide", "online", "offline", "resize", "scroll", "wheel",
+        "contextmenu", "pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "drop",
+        "dragstart", "dragend", "unhandledrejection", "DOMContentLoaded",
+        "active-item-changed",
+        "cancel",
+        "cell-activate",
+        "checked-changed",
+        "close",
+        "closed",
+        "confirm",
+        "detail-opened-items-changed",
+        "expanded-items-changed",
+        "filter-changed",
+        "grid-dragend",
+        "grid-dragstart",
+        "grid-drop",
+        "has-value-changed",
+        "invalid-changed",
+        "item-click",
+        "items-changed",
+        "loading-changed",
+        "opened",
+        "opened-changed",
+        "reject",
+        "select",
+        "selected-items-changed",
+        "size-changed",
+        "toggle",
+        "unparsable-change",
+        "validated",
+    };
+
+    /// <summary>Prefixes of the framework's own event names.</summary>
+    public static readonly IReadOnlyList<string> FrameworkEventPrefixes = ["mateu-", "backend-", "vaadin-"];
+
+    /// <summary>Whether <paramref name="e"/> is one of the framework's own event names.</summary>
+    public static bool IsFrameworkEvent(string e) =>
+        FrameworkEvents.Contains(e) || FrameworkEventPrefixes.Any(p => e.StartsWith(p, StringComparison.Ordinal))
+        || JetEvent.IsMatch(e);
     public static string InvalidTarget(string t) => $"Invalid target \"{t}\": use content, drawer or dialog.";
 
     // ── the fixed limits ──────────────────────────────────────────────────────────────────────

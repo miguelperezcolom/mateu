@@ -91,12 +91,33 @@ def agent_refusal(kind: str | None, text: str | None) -> str | None:
         tree = yaml.safe_load(text or "")
     except Exception:  # noqa: BLE001 - not YAML: the validation report already says so
         return None
-    return REQUEST_REFUSAL if _carries_a_request(tree, set()) else None
+    if _carries_a_request(tree, set()):
+        return REQUEST_REFUSAL
+    # R6: a saved spec is served through the ordinary (trusted) render path, so it may not carry
+    # what the untrusted strip keeps out of an agent's pushed screen
+    from mateu_ui.core import untrusted
+
+    try:
+        return SCRIPT_REFUSAL if untrusted.script_capable(tree) else None
+    except untrusted.TooLarge:
+        return SCRIPT_REFUSAL
+
+
+SCRIPT_REFUSAL = (
+    "A definition saved by an agent may not run code in the browser: no event-handler, import or"
+    " srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS rule or"
+    " action js, and no MicroFrontend loaded from another server."
+)
+
+
+# A ${secret.…} reference as the interpolator reads it: the expression is trimmed, so
+# ${ secret.KEY } resolves a secret too.
+_SECRET_REFERENCE = re.compile(r"\$\{\s*secret\.")
 
 
 def _carries_a_request(node, seen: set[int]) -> bool:
     if isinstance(node, str):
-        return "${secret." in node
+        return _SECRET_REFERENCE.search(node) is not None
     if isinstance(node, (dict, list)):
         if id(node) in seen:  # an alias: already walked
             return False
@@ -108,7 +129,7 @@ def _carries_a_request(node, seen: set[int]) -> bool:
         ref = node.get("ref")
         if isinstance(ref, str) and ref.strip() and any(key in node for key in _REQUEST_KEYS):
             return True
-        if any(isinstance(key, str) and "${secret." in key for key in node):
+        if any(isinstance(key, str) and _SECRET_REFERENCE.search(key) for key in node):
             return True
         return any(_carries_a_request(value, seen) for value in node.values())
     if isinstance(node, list):

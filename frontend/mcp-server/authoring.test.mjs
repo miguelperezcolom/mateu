@@ -353,3 +353,18 @@ test("save_spec: no specs directory is a caller error", async () => {
   );
   assert.equal(text, "Error: No specs directory found (set MATEU_SPECS_DIR).");
 });
+
+// R6: mateu_save_spec refuses a page that would run code in the browser — a saved spec is served
+// through the ordinary (trusted) render path. Shared cases: conformance/mcp/save-spec-script.json
+// (Java, .NET and Python run the same; the sidecar applies the rule to the text, conservatively).
+test("save_spec refuses every script-capable construct of the shared corpus, and allows a plain page", async () => {
+  const { agentRefusal, SCRIPT_REFUSAL } = await import("./authoring.mjs");
+  const here = dirname(fileURLToPath(import.meta.url));
+  const corpus = JSON.parse(readFileSync(join(here, "..", "..", "conformance", "mcp", "save-spec-script.json"), "utf8"));
+  assert.equal(SCRIPT_REFUSAL, corpus.reason);
+  for (const c of corpus.cases) {
+    const refused = agentRefusal("component", c.yaml);
+    if (c.refused) assert.equal(refused, SCRIPT_REFUSAL, c.name);
+    else assert.equal(refused, null, c.name);
+  }
+});

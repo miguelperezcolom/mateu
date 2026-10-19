@@ -28,7 +28,8 @@ public class UpdateRowActionHandler implements CrudOrchestratorActionHandler {
     var parameters = httpRequest.runActionRq().parameters();
     var row = parameters != null ? parameters.get("_editedRow") : null;
     if (!(row instanceof Map<?, ?> rowMap)) {
-      throw new IllegalArgumentException("update-row requires an _editedRow parameter");
+      // a crafted request, not a defect: said as written, no ERROR + stack per request
+      throw new io.mateu.uidl.UserFacingException("update-row requires an _editedRow parameter");
     }
     try {
       return orchestrator.updateRow((Map<String, Object>) rowMap, httpRequest);

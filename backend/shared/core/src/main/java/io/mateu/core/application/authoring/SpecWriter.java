@@ -103,12 +103,47 @@ public final class SpecWriter {
     }
     com.fasterxml.jackson.databind.JsonNode tree;
     try {
-      tree =
-          new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(yaml == null ? "" : yaml);
-    } catch (IOException | RuntimeException e) {
+      tree = expandedTree(yaml == null ? "" : yaml);
+    } catch (org.yaml.snakeyaml.error.YAMLException e) {
+      if (e.getMessage() != null && e.getMessage().contains("aliases")) {
+        return SCRIPT_REFUSAL; // aliases expanding past any page's size: not checkable, not saved
+      }
       return null; // not YAML: the validation report already says so
+    } catch (RuntimeException | StackOverflowError e) {
+      return SCRIPT_REFUSAL; // e.g. an alias inside its own anchor: not checkable, not saved
     }
-    return carriesARequest(tree) ? REQUEST_REFUSAL : null;
+    if (carriesARequest(tree)) {
+      return REQUEST_REFUSAL;
+    }
+    // R6: a saved spec is served through the ordinary (trusted) render path, so it may not carry
+    // what the untrusted strip keeps out of an agent's pushed screen
+    return io.mateu.core.application.runaction.UntrustedDefinition.scriptCapable(tree)
+        ? SCRIPT_REFUSAL
+        : null;
+  }
+
+  /** The message of a definition that would run code in the browser (shown as written). */
+  public static final String SCRIPT_REFUSAL =
+      "A definition saved by an agent may not run code in the browser: no event-handler, import or"
+          + " srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS"
+          + " rule or action js, and no MicroFrontend loaded from another server.";
+
+  /**
+   * The definition as a JSON tree with its YAML aliases EXPANDED (SnakeYAML's safe loader, at most
+   * 50 aliases per collection): Jackson's tree reader does not resolve an alias of a mapping, so an
+   * {@code import:} (or a {@code proxy: true}) written once under an anchor and aliased into an
+   * {@code Element} would not be seen where it lands.
+   */
+  private static com.fasterxml.jackson.databind.JsonNode expandedTree(String yaml) {
+    var options = new org.yaml.snakeyaml.LoaderOptions();
+    options.setAllowRecursiveKeys(false);
+    options.setMaxAliasesForCollections(50);
+    var loaded =
+        new org.yaml.snakeyaml.Yaml(new org.yaml.snakeyaml.constructor.SafeConstructor(options))
+            .load(yaml);
+    return new com.fasterxml.jackson.databind.ObjectMapper()
+        .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+        .valueToTree(loaded);
   }
 
   /** The message of a definition that would decide a request (shown as written). */
@@ -117,12 +152,18 @@ public final class SpecWriter {
           + " server or override the request of a catalogue source; declare those in sources.yaml"
           + " by hand.";
 
+  /**
+   * A {@code ${secret.…}} reference as the interpolator reads it: the expression is trimmed, so
+   * {@code ${ secret.KEY }} resolves a secret too (the sidecar's text rule already said so).
+   */
+  private static final Pattern SECRET_REFERENCE = Pattern.compile("\\$\\{\\s*secret\\.");
+
   private static boolean carriesARequest(com.fasterxml.jackson.databind.JsonNode node) {
     if (node == null) {
       return false;
     }
     if (node.isTextual()) {
-      return node.asText().contains("${secret.");
+      return SECRET_REFERENCE.matcher(node.asText()).find();
     }
     if (node.isObject()) {
       var proxy = node.get("proxy");
@@ -139,7 +180,7 @@ public final class SpecWriter {
       }
       var names = node.fieldNames();
       while (names.hasNext()) {
-        if (names.next().contains("${secret.")) {
+        if (SECRET_REFERENCE.matcher(names.next()).find()) {
           return true;
         }
       }

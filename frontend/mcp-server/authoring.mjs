@@ -368,7 +368,52 @@ export function agentRefusal(kind, yaml) {
   if (key("proxy").test(text)) return REQUEST_REFUSAL;
   // a `ref:` beside any request key, anywhere in the text
   if (key("ref").test(text) && REQUEST_KEYS.some((k) => k.test(text))) return REQUEST_REFUSAL;
-  return null;
+  return runsCode(text) ? SCRIPT_REFUSAL : null;
+}
+
+export const SCRIPT_REFUSAL =
+  "A definition saved by an agent may not run code in the browser: no event-handler, import or srcdoc " +
+  "attribute, no raw-HTML or script-capable element, no javascript: url, RunJS rule or action js, and no " +
+  "MicroFrontend loaded from another server.";
+
+/** Keys starting with "on" that name an ACTION in Mateu's schema (not an HTML event handler). */
+const ACTION_ON_KEYS = new Set(["onItemSelectionActionId", "onRowSelectionChangedActionId", "onTaskSelectionActionId"]);
+const BLOCKED_ELEMENTS =
+  "script|style|iframe|frame|frameset|object|embed|applet|base|link|meta|template|portal|noscript|mateu-[\\w-]*";
+// `icon` is left out: "vaadin:plus" is how every Mateu icon is written (a javascript: one is still caught)
+const URL_KEYS =
+  "href|src|xlink:href|action|formaction|background|poster|data|cite|ping|srcset|manifest|codebase|longdesc|usemap";
+const SAFE_SCHEMES = new Set(["http", "https", "mailto", "tel"]);
+const KEY_START = `(?:^|[\\s{,\\-])["']?`;
+
+/**
+ * R6, on the TEXT (the sidecar has no YAML parser), conservatively: whether a definition might carry
+ * what the untrusted strip takes out of a pushed screen (Java's UntrustedDefinition.scriptCapable) —
+ * a saved spec is served through the ordinary, trusted render path. Errs on refusing: a YAML escape
+ * (\\x, \\u, \\U) anywhere, any `html:` not set to false, any `on…:` key but the schema's action ids.
+ */
+export function runsCode(text) {
+  if (/\\[xuU][0-9a-fA-F]/.test(text)) return true;
+  const flat = text.replace(/[\t\r\n]|\\[tnr]/g, "");
+  if (/(java|vb)script\s*:/i.test(flat)) return true;
+  if (/RunJS|AddContentToHead|AddContentToBody/.test(text)) return true;
+  if (new RegExp(`${KEY_START}(js|import|srcdoc)["']?\\s*:`, "im").test(text)) return true;
+  for (const m of text.matchAll(new RegExp(`${KEY_START}html["']?\\s*:[ \\t]*([^\\s#,}]*)`, "gim"))) {
+    if (!/^["']?(false|no|off)["']?$/i.test(m[1])) return true;
+  }
+  for (const m of text.matchAll(new RegExp(`${KEY_START}(on[a-z0-9_-]+)["']?\\s*:`, "gim"))) {
+    if (!ACTION_ON_KEYS.has(m[1])) return true;
+  }
+  if (new RegExp(`${KEY_START}name["']?\\s*:\\s*["']?\\s*(${BLOCKED_ELEMENTS})\\s*["']?\\s*$`, "im").test(text)) return true;
+  for (const m of text.matchAll(new RegExp(`${KEY_START}(?:${URL_KEYS})["']?\\s*:\\s*["']?\\s*([a-z][a-z0-9+.-]*):`, "gim"))) {
+    if (!SAFE_SCHEMES.has(m[1].toLowerCase())) return true;
+  }
+  if (/MicroFrontend/.test(text)) {
+    for (const m of text.matchAll(new RegExp(`${KEY_START}baseUrl["']?\\s*:\\s*["']?\\s*(\\S*)`, "gim"))) {
+      if (/^([a-z][a-z0-9+.-]*:|\/\/|\\\\|\/\\\\)/i.test(m[1])) return true;
+    }
+  }
+  return false;
 }
 
 /** mateu_save_spec: {saved:false, reason, validation} | {saved:true, path, bytes, validation}. */

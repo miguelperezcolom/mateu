@@ -15,6 +15,7 @@ vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) 
 import { applyAgentEvent, navigatingShellOf } from './agentEvents'
 import { claimEvent } from './chatEvents'
 import { declareAgentEvent } from './agentEventPolicy'
+import { resetCredentialScope, trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 
 /**
  * The ONE place an agent event is applied — the chat's stream and the live UI push channel both
@@ -41,6 +42,7 @@ afterEach(() => {
     rendered.length = 0
     navigated.length = 0
     renderFailure = undefined
+    resetCredentialScope()
 })
 
 describe('applyAgentEvent', () => {
@@ -121,5 +123,25 @@ describe('applyAgentEvent', () => {
         for (const n of names) applyAgentEvent(app, n, { actionId: 'delete', parameters: {} })
         names.forEach((n, i) => { document.removeEventListener(n, listener); releases[i]() })
         expect(heard).toEqual([])
+    })
+
+    it('R1: an agent navigation keeps a base url only for an origin the app trusts — its own, or a remote its menu declares', () => {
+        const app = shell()
+        trustDeclaredRemotes('', ['https://forms.example'])
+        const heard: unknown[] = []
+        app.addEventListener('navigation-requested', (e) => heard.push((e as CustomEvent).detail))
+        const go = (baseUrl: string) => applyAgentEvent(app, 'navigation-requested', { route: '/x', baseUrl, serverSideType: 'x.Home' })
+        for (const foreign of ['https://attacker.example', '//attacker.example', '\\\\attacker.example', '/\\attacker.example',
+            '\\/attacker.example', '/\t/attacker.example', 'javascript:alert(1)']) go(foreign)
+        go('https://forms.example')
+        go('/b')
+        go('')
+        const delivered = (app.updateRoute as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as CustomEvent).detail)
+        const bases = delivered.map((d: { baseUrl?: string }) => d.baseUrl)
+        expect(bases).toEqual([undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+            'https://forms.example', '/b', ''])
+        // what bubbles to the shell's own listener is the same sanitised detail, the route kept
+        expect(heard.map((d) => (d as { baseUrl?: string }).baseUrl)).toEqual(bases)
+        expect(delivered.every((d: { route?: string }) => d.route === '/x')).toBe(true)
     })
 })

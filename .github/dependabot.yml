@@ -70,6 +70,31 @@ updates:
       starters-minor-patch:
         update-types: ["minor", "patch"]
 
+  # ── Demos and the e2e SUT apps (Maven) — runnable apps, where the framework pins (Spring Boot,
+  # Quarkus, Lombok…) live outside the backend reactor. io.mateu moves with the reactor / the
+  # release workflow's bump PR, not here.
+  - package-ecosystem: maven
+    directory: "/demo"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "io.mateu:*"
+    groups:
+      demo-minor-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: maven
+    directory: "/e2e/sut"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "io.mateu:*"
+    groups:
+      e2e-sut-minor-patch:
+        update-types: ["minor", "patch"]
+
   # ── Python port (pip, pyproject.toml) ────────────────────────────
   - package-ecosystem: pip
     directory: "/backend/python"

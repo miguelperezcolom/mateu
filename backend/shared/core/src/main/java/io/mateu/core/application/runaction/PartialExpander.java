@@ -75,6 +75,11 @@ public final class PartialExpander {
       return List.of(rewrite(component, request, chain));
     }
     var ref = partial.ref();
+    if (ref == null || ref.isBlank()) {
+      // authoring input (possibly an anonymous preview): a partial naming nothing renders nothing
+      log.warn("A Partial with no ref renders nothing");
+      return List.of();
+    }
     if (chain.contains(ref)) {
       // A stack iterates newest-first; reversed, the message reads as the include chain a human
       // would follow through the files.

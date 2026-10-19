@@ -384,6 +384,45 @@ public class AdapterParityITFoundation {
         }
       }
     }
+    refusesEveryOtherSpellingOf(
+        new String[] {
+          "/hello/%6Dateu/v3/sync/_no_route",
+          "/hello/mateu/%76%33/sse/_no_route",
+          "/hello/mateu/v3/sync/_no_route;x=1",
+          "/hello/mateu;x=1/v3/sync/_no_route",
+          "/hello//mateu/v3/sync/_no_route",
+          "/hello/mateu/v3/sync/_no_route/",
+          "/hello/x/../mateu/v3/sync/_no_route",
+          "/hello/MATEU/v3/sync/_no_route",
+          "/yaml-parity/%6Dateu/v3/sync/_",
+          "/yaml-parity/mateu/v3/sync/_",
+          "/yaml-parity/mateu/v3/sync/_;x=1"
+        },
+        RQ);
+  }
+
+  /**
+   * The spellings a router may still send to a Mateu handler — percent-encoded letters, {@code
+   * ;matrix} parameters, doubled or trailing slashes, dot segments, another case — never run a
+   * CORS-simple POST: each answers 415 or is not routed at all (4xx), but never 2xx. The guard used
+   * to compare the RAW URI, and {@code POST /%6Dateu/mcp} with {@code text/plain} ran JSON-RPC on
+   * MVC, WebFlux and Quarkus.
+   */
+  private static void refusesEveryOtherSpellingOf(String[] paths, String body) throws Exception {
+    for (String path : paths) {
+      for (String contentType : SIMPLE_REQUEST_CONTENT_TYPES) {
+        var status = postRaw(path, contentType, body);
+        if (status < 400) {
+          throw new AssertionError(
+              path
+                  + " with Content-Type "
+                  + contentType
+                  + " answered "
+                  + status
+                  + ": a non-JSON body reached a handler");
+        }
+      }
+    }
   }
 
   /** The same 415 on {@code POST /mateu/mcp} (with the endpoint enabled). */
@@ -399,6 +438,20 @@ public class AdapterParityITFoundation {
             "/mateu/mcp with Content-Type " + contentType + " answered " + status + ", not 415");
       }
     }
+    refusesEveryOtherSpellingOf(
+        new String[] {
+          "/%6Dateu/mcp",
+          "/%6dateu/%6Dcp",
+          "/mateu/mcp;x=1",
+          "/mateu;x=1/mcp",
+          "//mateu/mcp",
+          "/mateu//mcp",
+          "/mateu/mcp/",
+          "/x/../mateu/mcp",
+          "/./mateu/mcp",
+          "/MATEU/MCP"
+        },
+        call);
     // and a JSON one with parameters still works
     var status =
         postRaw(

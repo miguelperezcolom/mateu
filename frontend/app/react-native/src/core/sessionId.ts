@@ -12,9 +12,12 @@ export interface KeyValueStore {
   remove(key: string): Promise<void>;
 }
 
+import { secureRandomBytes } from './secureRandom.ts';
+
 export const SESSION_ID_KEY = 'mateu.sessionId';
 
-/** An RFC 4122 v4 UUID. Uses crypto.getRandomValues when present (Hermes, web, Node). */
+/** An RFC 4122 v4 UUID, from the secure random source (secureRandom.ts — App.tsx installs it on
+ *  Hermes); throws when there is none. */
 export function randomUuid(random: (bytes: Uint8Array) => Uint8Array = defaultRandom): string {
   const b = random(new Uint8Array(16));
   b[6] = (b[6] & 0x0f) | 0x40;
@@ -23,12 +26,8 @@ export function randomUuid(random: (bytes: Uint8Array) => Uint8Array = defaultRa
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-function defaultRandom(bytes: Uint8Array): Uint8Array {
-  const c = (globalThis as { crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
-  if (c?.getRandomValues) return c.getRandomValues(bytes);
-  for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
-  return bytes;
-}
+// the secure source or nothing: an X-Session-Id drawn from Math.random could be predicted (N9)
+const defaultRandom = (bytes: Uint8Array): Uint8Array => secureRandomBytes(bytes);
 
 /** The install's session id: read it, or create + persist it on first launch. A failing store
  *  still yields a usable (in-memory, per-launch) id rather than a shared constant. */

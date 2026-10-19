@@ -79,6 +79,7 @@ internal static partial class McpPushTools
         var name = Argument(args, "event");
         if (!EventName().IsMatch(name)) throw new UserFacingException(AgentSessions.InvalidEvent(name));
         if (AgentSessions.ReservedEvents.Contains(name)) throw new UserFacingException(AgentSessions.ReservedEvent(name));
+        if (AgentSessions.IsFrameworkEvent(name)) throw new UserFacingException(AgentSessions.FrameworkEvent(name));
         var detail = args["detail"]?.DeepClone() ?? new JsonObject();
         if (Encoding.UTF8.GetByteCount(detail.ToJsonString()) > AgentSessions.MaxDetailBytes)
             throw new UserFacingException(AgentSessions.DetailTooLarge);

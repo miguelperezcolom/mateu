@@ -104,7 +104,12 @@ catalogue. Sources, environments, routes, actions, types, translations, mounts a
 (and their conventional file names) are written by hand, and so is any page that references a
 `${secret.…}`, marks a request `proxy: true` or overrides the request of a source it names by `ref`:
 otherwise an agent in dev mode could re-point a proxied source at its own server and have Mateu send
-it the secret. `__validate__`, which these tools are built on, is served only to MCP tool calls, or by
+it the secret. Nor does it save a page that would run code in the browser — an `Element` with an
+`on…`, `import` or `srcdoc` attribute, an unsafe url, `html: true` or a script-capable element, a
+`javascript:` url, a `RunJS` rule, an action's `js`, a `MicroFrontend` loaded from another server:
+exactly what the untrusted strip takes out of a screen an agent pushes. A saved spec is served
+through the ordinary render path, which trusts the author, so writing one must not be a way around
+that strip. `__validate__`, which these tools are built on, is served only to MCP tool calls, or by
 an app with `mateu.mcp.enabled=true` or in dev mode.
 
 ## Use it from an agent

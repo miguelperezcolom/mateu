@@ -127,3 +127,14 @@ test('a render-screen into the CONTENT asks before discarding unsaved changes (d
   assert.deepEqual(asked, ['asked', 'asked'], 'a drawer covers nothing it would lose');
   assert.equal(log.filter((l) => (l as unknown[])[0] === 'preview').length, 2);
 });
+
+test('R1: an agent navigation keeps a base url only for an origin the app trusts — its own, or a remote its menu names', async () => {
+  const { session, log } = fakeSession();
+  const { declareMenuRemotes } = await import('./MateuSession.ts');
+  declareMenuRemotes(session, [{ label: 'Inbox', route: '/mail', baseUrl: 'https://inbox.example' }]);
+  for (const baseUrl of ['https://attacker.example', '\\\\attacker.example', 'javascript:alert(1)', 'https://inbox.example', 'http://x/other', '/pod']) {
+    applyUiEvent(session, { event: 'navigation-requested', detail: { route: '/a', baseUrl } }, () => {});
+  }
+  const bases = log.map((entry) => ((entry as [string, { baseUrl?: string }])[1]).baseUrl);
+  assert.deepEqual(bases, [undefined, undefined, undefined, 'https://inbox.example', 'http://x/other', '/pod']);
+});

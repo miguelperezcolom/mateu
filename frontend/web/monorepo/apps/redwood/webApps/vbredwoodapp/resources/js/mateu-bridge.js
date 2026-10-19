@@ -10610,14 +10610,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // what a url without a page resolves against (node, a worker): its origin means "relative"
+  const CREDENTIAL_PLACEHOLDER_BASE = 'http://relative.mateu.invalid/'
+
+  /**
+   * True when `url` is on an origin the shell trusts — its own backend, a remote ITS app names. The
+   * one rule for the stored token AND for what may render with the author's trust (callMateu, an
+   * agent navigation's base url). The url is RESOLVED the way the browser resolves it before it is
+   * judged: `\\host`, `/\host`, `\/host` and a tab inside `//` all name another origin, which a
+   * "no scheme, not //" shortcut took for relative (R4).
+   */
+  function isTrustedOrigin(url) {
+    const text = String(url ?? '')
+    const page = typeof location !== 'undefined' && location.href ? location.href : undefined
+    let parsed
+    try {
+      parsed = new URL(text, page || CREDENTIAL_PLACEHOLDER_BASE)
+    } catch (e) {
+      return false
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false
+    // no page to resolve against: a url that stayed on the placeholder was relative — the page's own
+    if (!page && parsed.origin === new URL(CREDENTIAL_PLACEHOLDER_BASE).origin) return true
+    return isRootCredentialOrigin(parsed.origin) || declaredCredentialOrigins.has(parsed.origin)
+  }
+
   /** True when a request to `url` may carry the stored token. */
   function storedTokenMayGoTo(url) {
-    const text = String(url ?? '').trim()
-    // a relative url (no scheme, not protocol-relative) is the page's own origin
-    if (!/^[a-z][a-z0-9+.-]*:/i.test(text) && !text.startsWith('//')) return true
-    const origin = credentialOriginOf(text)
-    if (!origin) return false
-    return isRootCredentialOrigin(origin) || declaredCredentialOrigins.has(origin)
+    return isTrustedOrigin(url)
   }
 
   /** Tests only. */
@@ -16343,6 +16363,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** POST {base}/mateu/v3/sync/{route} — the standard request (= AxiosMateuApiClient.runAction).
    *  It goes out TIED to the current screen (resilience.currentView): if another one is showing by
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
@@ -16366,13 +16387,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         route: bare ? `/${bare}` : '',
       }),
     }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
-    const increment = await res.json()
+    // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
+    // through the untrusted strip: what it sends cannot run code in this tab
+    const increment = answeredBy(base, await res.json())
     observeWireVersion(increment)
     // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
     adoptReferencedSources(increment)
     // the body takes time too: whatever arrives after the screen changed is not applied either
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
+  }
+
+  /** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
+   *  through the untrusted strip (untrusted.mjs) from any other. */
+  function answeredBy(base, increment) {
+    return isTrustedOrigin(`${base}/mateu/v3/`) ? increment : neutralizeUntrusted(increment)
   }
 
   /** Shell bootstrap: the root App only resolves through the generic endpoint.
@@ -16659,7 +16688,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (reader && reader.cancel) reader.cancel().catch(() => undefined)
         throw staleResponseError(actionId)
       }
-      const inc = JSON.parse(line.slice(5).trim())
+      const inc = answeredBy(base, JSON.parse(line.slice(5).trim()))
       observeWireVersion(inc)
       adoptReferencedSources(inc)
       const consumed = onIncrement ? await onIncrement(inc) : false
@@ -17812,6 +17841,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //    style, base, link, meta, …) or a framework element (mateu-*) becomes an empty div;
   //  - RunJS rules, an action's `js` and AddContentToHead/AddContentToBody commands go;
   //  - a javascript:/vbscript: url anywhere is blanked;
+  //  - nothing runs without a click and nothing posts elsewhere: triggers are emptied and no
+  //    restAction is kept;
   //  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped).
   // The backend applies the same rules (`__preview__` with `_untrusted`); this is the renderer's own
   // line for an older backend. Works on wire JSON and returns a sanitised COPY.
@@ -17838,7 +17869,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const scheme = untrustedSchemeOf(value)
     return !scheme || UNTRUSTED_SAFE_SCHEMES.has(scheme)
   }
-  const untrustedAbsoluteUrl = (value) => !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).startsWith('//')
+  // another server's url: a scheme, or //host — a browser reads a backslash as '/', so \\host,
+  // /\host and \/host are //host too
+  const untrustedAbsoluteUrl = (value) =>
+    !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
   const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
   const untrustedIsCode = (v) =>
     untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))
@@ -17870,8 +17904,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const out = {}
     for (const [key, v] of Object.entries(node)) {
-      if (key === 'js' && typeof v === 'string') continue
-      out[key] = untrustedWalk(v)
+      if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+      // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
+      out[key] = key === 'triggers' && Array.isArray(v) ? [] : untrustedWalk(v)
     }
     return out
   }
@@ -18763,14 +18798,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'pagehide', 'online', 'offline', 'resize', 'scroll', 'wheel', 'contextmenu', 'pointerdown', 'pointerup',
     'mousedown', 'mouseup', 'touchstart', 'drop', 'dragstart', 'dragend', 'unhandledrejection',
     'DOMContentLoaded',
+    // a design-system widget's own events (vaadin *-changed, a dialog's confirm/cancel, JET oj…): not
+    // reachable today (listened on descendants), insurance; an author's booking-changed stays allowed
+    'opened-changed', 'checked-changed', 'active-item-changed', 'selected-items-changed', 'items-changed',
+    'expanded-items-changed', 'detail-opened-items-changed', 'invalid-changed', 'has-value-changed',
+    'filter-changed', 'size-changed', 'loading-changed', 'opened', 'closed', 'close', 'confirm', 'cancel',
+    'reject', 'toggle', 'select', 'validated', 'unparsable-change', 'cell-activate', 'item-click',
+    'grid-dragstart', 'grid-dragend', 'grid-drop',
   ])
   const CHAT_RESERVED_EVENT_PREFIXES = ['mateu-', 'backend-', 'vaadin-']
+  const CHAT_RESERVED_EVENT_PATTERNS = [/^oj[A-Z-]/]
 
   /** Whether an agent may dispatch `name`, given whether a surface on screen subscribes to it. */
   function agentMayDispatchEvent(name, subscribed) {
     if (typeof name !== 'string' || !name) return false
     if (CHAT_AGENT_BUILT_IN_EVENTS.has(name)) return true
-    if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))) return false
+    if (CHAT_RESERVED_EVENT_NAMES.has(name) || CHAT_RESERVED_EVENT_PREFIXES.some((p) => name.startsWith(p))
+      || CHAT_RESERVED_EVENT_PATTERNS.some((p) => p.test(name))) return false
     return !!subscribed
   }
 
@@ -18789,7 +18833,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const detail = ev.detail && typeof ev.detail === 'object' ? ev.detail : {}
     if (name === CHAT_NAVIGATION_REQUESTED) {
       const navigation = chatNavigationOf(detail)
-      return navigation ? { kind: 'navigate', navigation } : { kind: 'ignore' }
+      if (!navigation) return { kind: 'ignore' }
+      // R1: an agent may only name a base url the shell trusts — its own, a remote its app names
+      // (the token's rule); any other is dropped and the route opens in the app. Otherwise it was
+      // registered as a remote route and its answer painted with the author's trust.
+      if (navigation.baseUrl && !isTrustedOrigin(navigation.baseUrl)) {
+        delete navigation.baseUrl
+      }
+      return { kind: 'navigate', navigation }
     }
     if (name === CHAT_CLOSE_REQUESTED) return { kind: 'close' }
     const subscribers = (reg ? busSubscribersOf(reg, { name, detail, source: null }) : [])

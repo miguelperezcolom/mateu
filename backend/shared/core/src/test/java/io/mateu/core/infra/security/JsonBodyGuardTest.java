@@ -52,4 +52,38 @@ class JsonBodyGuardTest {
         .isFalse();
     assertThat(JsonBodyGuard.refuses("POST", "/mateu/mcpx", "text/plain")).isFalse();
   }
+
+  @Test
+  void refusesThePathSpellingsTheFrameworksStillRouteToTheSameHandler() {
+    for (String path :
+        new String[] {
+          "/%6Dateu/mcp",
+          "/%6dateu/%6Dcp",
+          "/%256Dateu/mcp",
+          "/mateu/mcp;x=1",
+          "/mateu;a=b/mcp",
+          "//mateu//mcp",
+          "/mateu/mcp//",
+          "/MATEU/MCP",
+          "/x/../mateu/mcp",
+          "/./mateu/./mcp",
+          "\\mateu\\mcp",
+          "/yaml-mixed/%6Dateu/v3/sync/_",
+          "/hello/mateu/%76%33/sync/x",
+          "/hello/mateu/v3;x=1/sse/x",
+          "/mateu/v3/client-log/../sync/x",
+          "/mateu/v3/client-log;x/../sync/x"
+        }) {
+      assertThat(JsonBodyGuard.refuses("POST", path, "text/plain")).as(path).isTrue();
+      assertThat(JsonBodyGuard.refuses("POST", path, null)).as(path).isTrue();
+    }
+  }
+
+  @Test
+  void theCanonicalFormDecodesAndDropsSegmentParametersAndDotSegments() {
+    assertThat(JsonBodyGuard.canonicalPath("/%6Dateu/mcp;x=1?q=1")).isEqualTo("/mateu/mcp");
+    assertThat(JsonBodyGuard.canonicalPath("//a/./b/../c/")).isEqualTo("/a/c");
+    assertThat(JsonBodyGuard.canonicalPath("/%zz/x")).isEqualTo("/%zz/x");
+    assertThat(JsonBodyGuard.canonicalPath("/../../x")).isEqualTo("/x");
+  }
 }

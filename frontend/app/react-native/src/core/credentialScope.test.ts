@@ -99,3 +99,26 @@ test('NB2: a NAVIGATION (the assistant\'s navigation-requested) never makes its 
     setTokenProvider(undefined);
   }
 });
+
+test('R5: a backslash or a tab does not make another origin "relative" — expo web reads \\host as //host', async () => {
+  setTokenProvider(tokens);
+  try {
+    for (const base of ['', 'https://app.example']) {
+      const scope = new CredentialScope(base);
+      for (const foreign of ['\\\\attacker.example', '/\\attacker.example', '\\/attacker.example', '/\t/attacker.example', ' //attacker.example/x']) {
+        assert.equal(scope.mayCarryCredentials(foreign), false, `${JSON.stringify(foreign)} over ${JSON.stringify(base)}`);
+      }
+      assert.equal(scope.mayCarryCredentials('/mateu/v3/sync/x'), true);
+    }
+    // the chain the review ran: an agent navigation to \\attacker.example carries nothing
+    const host = new MateuSession('', 'sid', { hotel: 'H1' });
+    host.appContextKeys.add('hotel');
+    const there = navigationSession(host, chatNavigationOf({ route: '/x', baseUrl: '\\\\attacker.example' })!.baseUrl!);
+    const headers = await there.api.headers();
+    assert.equal(headers['Authorization'], undefined);
+    assert.equal(headers['X-Session-Id'], undefined);
+    assert.deepEqual(there.appState, {});
+  } finally {
+    setTokenProvider(undefined);
+  }
+});

@@ -1,5 +1,5 @@
 {
-  "description": "Which event names an AGENT (the chat stream, a live push) may dispatch onto a renderer. The built-in ones always; any other only when a component on screen declares it (an OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names. Read by libs/mateu agentEventPolicy.test.ts and Redwood test-chat-events.mjs.",
+  "description": "Which event names an AGENT (the chat stream, a live push) may dispatch onto a renderer. The built-in ones always; any other only when a component on screen declares it (an OnCustomEvent trigger: @SubscribeTo) and it is not one of the framework's own event names. Read by libs/mateu agentEventPolicy.test.ts and Redwood test-chat-events.mjs. A design-system widget's own event names (vaadin `*-changed`, dialog `confirm`/`cancel`, JET `oj…`) are reserved too: none is reachable today (they are listened on descendants), it is insurance; an author's own `booking-changed` stays dispatchable.",
   "builtIn": [
     "navigation-requested",
     "close-requested",
@@ -62,7 +62,34 @@
     "dragstart",
     "dragend",
     "unhandledrejection",
-    "DOMContentLoaded"
+    "DOMContentLoaded",
+    "opened-changed",
+    "checked-changed",
+    "active-item-changed",
+    "selected-items-changed",
+    "items-changed",
+    "expanded-items-changed",
+    "detail-opened-items-changed",
+    "invalid-changed",
+    "has-value-changed",
+    "filter-changed",
+    "size-changed",
+    "loading-changed",
+    "opened",
+    "closed",
+    "close",
+    "confirm",
+    "cancel",
+    "reject",
+    "toggle",
+    "select",
+    "validated",
+    "unparsable-change",
+    "cell-activate",
+    "item-click",
+    "grid-dragstart",
+    "grid-dragend",
+    "grid-drop"
   ],
   "reservedPrefixes": [
     "mateu-",
@@ -138,6 +165,51 @@
         "special-offer"
       ],
       "allowed": true
+    },
+    {
+      "name": "opened-changed",
+      "subscribed": [
+        "opened-changed"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "confirm",
+      "subscribed": [
+        "confirm"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "ojAction",
+      "subscribed": [
+        "ojAction"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "oj-c-select-single",
+      "subscribed": [
+        "oj-c-select-single"
+      ],
+      "allowed": false
+    },
+    {
+      "name": "booking-changed",
+      "subscribed": [
+        "booking-changed"
+      ],
+      "allowed": true
+    },
+    {
+      "name": "ojala",
+      "subscribed": [
+        "ojala"
+      ],
+      "allowed": true
     }
+  ],
+  "reservedPatterns": [
+    "^oj[A-Z-]"
   ]
 }
