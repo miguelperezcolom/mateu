@@ -38,4 +38,13 @@ class CsrfExemptionTest {
     assertThat(CsrfExemption.isMateuEndpoint(null)).isFalse();
     assertThat(CsrfExemption.isJson("text/json")).isFalse();
   }
+
+  @Test
+  void aPathThatOnlyLooksLikeAMateuEndpointBeforeItIsResolvedIsNot() {
+    // the raw string mentions a Mateu endpoint, but the framework routes it somewhere else
+    assertThat(CsrfExemption.isMateuJsonCall("/mateu/v3/../../admin/delete", "application/json"))
+        .isFalse();
+    assertThat(CsrfExemption.isMateuJsonCall("/mateu/dev/%2e%2e/%2e%2e/admin", null)).isFalse();
+    assertThat(CsrfExemption.isMateuJsonCall("/mateu/dev/..;/../admin", null)).isFalse();
+  }
 }

@@ -227,6 +227,36 @@ public class SecurityDefaultsOverHttpTests
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
     }
 
+    // The other spellings a router may still send to the same handler — percent-encoded letters,
+    // ;matrix parameters, doubled or trailing slashes, dot segments, another case — never run a
+    // CORS-simple POST either: 415 or not routed at all (4xx), never 2xx. (Java's guard compared the
+    // RAW URI and /%6Dateu/mcp ran JSON-RPC; here the filter sits on the matched endpoint.)
+    [Theory]
+    [InlineData("/%6Dateu/mcp")]
+    [InlineData("/%6dateu/%6Dcp")]
+    [InlineData("/mateu/mcp;x=1")]
+    [InlineData("/mateu;x=1/mcp")]
+    [InlineData("/mateu//mcp")]
+    [InlineData("/mateu/mcp/")]
+    [InlineData("/x/../mateu/mcp")]
+    [InlineData("/MATEU/MCP")]
+    [InlineData("/%6Dateu/v3/sync/http-security-probe")]
+    [InlineData("/mateu/%76%33/sse/http-security-probe")]
+    [InlineData("/mateu/v3/sync/http-security-probe;x=1")]
+    [InlineData("/mateu/v3/sync/http-security-probe/")]
+    public async Task No_other_spelling_of_an_action_endpoint_takes_a_non_json_body(string path)
+    {
+        await using var host = await Boot(o => o.Mcp = true);
+        var body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"route\":\"http-security-probe\",\"actionId\":\"\",\"componentState\":{}}";
+        foreach (var contentType in new[] { "text/plain", "application/x-www-form-urlencoded", null })
+        {
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(body));
+            if (contentType is not null) content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+            var r = await host.Http.PostAsync(path, content);
+            Assert.True((int)r.StatusCode >= 400, $"{path} {contentType} → {r.StatusCode}");
+        }
+    }
+
     // ── sync endpoint ────────────────────────────────────────────────────────
 
     [Fact]

@@ -36,19 +36,29 @@ public final class CsrfExemption {
   }
 
   private static boolean isDevEndpoint(String path) {
-    return path.contains("/mateu/dev/");
+    return path.contains("/mateu/dev/")
+        && JsonBodyGuard.canonicalPath(path).contains("/mateu/dev/");
   }
 
-  /** {@code …/mateu/v3/…}, {@code …/mateu/mcp} or {@code …/mateu/dev/…}, under any base URL. */
+  /**
+   * {@code …/mateu/v3/…}, {@code …/mateu/mcp} or {@code …/mateu/dev/…}, under any base URL — in the
+   * raw path AND in its {@link JsonBodyGuard#canonicalPath canonical form}: an exemption is only
+   * granted when both spellings agree, so a {@code /mateu/v3/../../admin} that the framework
+   * resolves to an application endpoint is never exempted (the guard, conversely, uses either).
+   */
   public static boolean isMateuEndpoint(String path) {
     if (path == null) {
       return false;
     }
     int query = path.indexOf('?');
-    var clean = query >= 0 ? path.substring(0, query) : path;
-    return clean.contains("/mateu/v3/")
-        || clean.endsWith("/mateu/mcp")
-        || clean.contains("/mateu/dev/");
+    var raw = query >= 0 ? path.substring(0, query) : path;
+    return mentionsAMateuEndpoint(raw) && mentionsAMateuEndpoint(JsonBodyGuard.canonicalPath(raw));
+  }
+
+  private static boolean mentionsAMateuEndpoint(String path) {
+    return path.contains("/mateu/v3/")
+        || path.endsWith("/mateu/mcp")
+        || path.contains("/mateu/dev/");
   }
 
   /** {@code application/json} or any {@code application/*+json}, parameters ignored. */
